@@ -19,6 +19,8 @@
 - **Second sync pass (2026-08-28) added 12 components**: 9 curated shadcn primitives (Checkbox, Switch, RadioGroup, Tooltip, DropdownMenu, Popover, Skeleton, Avatar, Separator — non-colliding names only; the rest of `src/components/ui` stays excluded) + 3 domain composites from `inheritance.tsx`. Shadcn groups come from `.design-sync/docs-stubs/*.md` frontmatter stubs (path-derived grouping yields `general` for files outside `srcDir`); composites use JSDoc `@category`. Composite previews import real fixtures from `@/lib/reusable-components` — if that module's shape changes, those previews break first.
 - **Guideline pages** are authored in `docs/guides/*.md` (wired via `guidelinesGlob`) — factual claims validated against `styles.css`/app usage on 2026-08-28; re-validate if the theme changes.
 
+- **Polish pass (2026-08-28, "Stripe parity")**: Select draws its own chevron (`appearance-none` + absolute ChevronDown in a relative span); Modal close and FilterChip use lucide X/Plus, not text glyphs; shadcn tier harmonized to 13px/DS shadows (dark Tooltip, tighter DropdownMenu items, hairline separators, neutral checkbox border); new `EmptyState` (ui.tsx) and `Toaster` (`toast.tsx`, sonner wrapper with `expand` prop — the preview uses `expand` + `duration: Infinity`); styles.css base layer adds `::selection` tint, `accent-color`, thin scrollbars, and a global `svg.lucide { stroke-width: 1.75 }` (that CSS beats strokeWidth attributes — use inline `style` for heavier icons, as checkbox.tsx does).
+
 ## Known render warns
 
 - `[TOKENS_MISSING]` — `--radix-*`, `--sidebar-width`, `--skeleton-width` etc.: runtime-set vars referenced by the *unused* shadcn files, which the Tailwind scan still reads. Expected-absent; harmless.

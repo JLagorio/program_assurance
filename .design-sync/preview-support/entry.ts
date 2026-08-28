@@ -25,8 +25,10 @@ export {
   Select,
   Textarea,
   Modal,
+  EmptyState,
 } from "../../src/components/app/ui";
 export { Shell } from "../../src/components/app/shell";
+export { Toaster, toast } from "../../src/components/app/toast";
 export { PreviewRouter } from "./router-shim";
 
 // Curated subset of the themed shadcn primitives the bespoke kit lacks

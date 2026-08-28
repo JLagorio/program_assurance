@@ -14,6 +14,8 @@ A compact, Stripe-calm kit for a cybersecurity program-assurance platform (ATO p
 - **Tooltips** need `TooltipProvider` around the subtree: `<TooltipProvider><Tooltip><TooltipTrigger asChild>…</TooltipTrigger><TooltipContent>…</TooltipContent></Tooltip></TooltipProvider>`. `DropdownMenu` and `Popover` compose Trigger + Content the same way, no provider needed.
 - Full screens go inside `Shell` (sidebar + top bar + 1240px content column). Sections of a page use `Section`; boxed content uses `Card` (+ `CardHeader`).
 - Two tiers: the bespoke kit (Button, Badge, Table, Modal…) is the product's own look — prefer it; `Checkbox`, `Switch`, `RadioGroup`, `Tooltip`, `DropdownMenu`, `Popover`, `Skeleton`, `Avatar`, `Separator` are themed primitives for what it lacks. For `Avatar`, use `AvatarFallback` initials, not remote images.
+- **Empty tables and lists get `EmptyState`** (icon, one-line reason, action) — never render an empty `<tbody>` or filler rows. **Actions confirm via toasts**: render `<Toaster />` once near the root, then `toast.success("Evidence linked")` / `toast.error(…)` from the same namespace.
+- Lucide icons: `size-4` in buttons/nav, `size-3`–`size-3.5` inline; stroke weight is standardized to 1.75 by the stylesheet — don't set `strokeWidth` unless deliberately heavier (then use inline `style`).
 
 ## Styling idiom — Tailwind utilities, compiled ahead of time
 

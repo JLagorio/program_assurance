@@ -42,6 +42,10 @@
     },
     "Tabs": {
       "cardMode": "column"
+    },
+    "Toaster": {
+      "cardMode": "single",
+      "viewport": "480x360"
     }
   },
   "componentSrcMap": {
@@ -80,7 +84,9 @@
     "Separator": "src/components/ui/separator.tsx",
     "InheritChip": "src/components/app/inheritance.tsx",
     "ConsumerTable": "src/components/app/inheritance.tsx",
-    "ProvidedControlsTable": "src/components/app/inheritance.tsx"
+    "ProvidedControlsTable": "src/components/app/inheritance.tsx",
+    "EmptyState": "src/components/app/ui.tsx",
+    "Toaster": "src/components/app/toast.tsx"
   },
   "docsMap": {
     "Checkbox": ".design-sync/docs-stubs/Checkbox.md",

@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { createPortal } from "react-dom";
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Plus, X } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -305,7 +305,7 @@ export function FilterChip({
       )}
       {...props}
     >
-      <span className="text-[13px] leading-none">+</span>
+      <Plus className="size-3 shrink-0" strokeWidth={1.75} />
       {label}
       {value ? <span className="font-medium text-foreground">{value}</span> : null}
     </button>
@@ -448,9 +448,14 @@ export function Input({ className, ...props }: ComponentProps<"input">) {
   return <input className={cn(controlBase, className)} {...props} />;
 }
 
-/** Native select styled to match Input. @category forms */
+/** Native select styled to match Input; the chevron is drawn by the DS, not the OS. @category forms */
 export function Select({ className, ...props }: ComponentProps<"select">) {
-  return <select className={cn(controlBase, "pr-7", className)} {...props} />;
+  return (
+    <span className="relative block">
+      <select className={cn(controlBase, "appearance-none pr-7", className)} {...props} />
+      <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+    </span>
+  );
 }
 
 /** Multi-line input, resizable, min 68px. @category forms */
@@ -460,6 +465,45 @@ export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
       className={cn(controlBase, "h-auto min-h-[68px] resize-y py-1.5 leading-snug", className)}
       {...props}
     />
+  );
+}
+
+/* ------------------------------------------------------------ Empty state */
+
+/** Designed empty state for tables, lists, and first-run screens: optional icon, one-line reason, primary action. @category display */
+export function EmptyState({
+  icon,
+  title,
+  description,
+  action,
+  className,
+}: {
+  icon?: ReactNode;
+  title: string;
+  description?: ReactNode;
+  action?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center px-6 py-12 text-center",
+        className,
+      )}
+    >
+      {icon ? (
+        <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-subtle text-muted-foreground [&_svg]:size-5">
+          {icon}
+        </div>
+      ) : null}
+      <h3 className="text-[13px] font-semibold">{title}</h3>
+      {description ? (
+        <p className="mt-1 max-w-[380px] text-[12.5px] leading-relaxed text-muted-foreground">
+          {description}
+        </p>
+      ) : null}
+      {action ? <div className="mt-3.5 flex items-center gap-2">{action}</div> : null}
+    </div>
   );
 }
 
@@ -514,7 +558,7 @@ export function Modal({
             aria-label="Close"
             className="-mr-1 flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            ✕
+            <X className="size-4" strokeWidth={1.75} />
           </button>
         </div>
         <div className={cn("grid", aside ? "md:grid-cols-[minmax(0,1fr)_300px]" : "")}>
