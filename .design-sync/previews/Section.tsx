@@ -1,6 +1,6 @@
 import { Badge, Button, Card, Section } from "program-assurance";
 
-export function WithAction() {
+export function Actions() {
   return (
     <Section
       title="Continuous monitoring"
@@ -28,7 +28,7 @@ export function WithAction() {
   );
 }
 
-export function TextBlock() {
+export function Text() {
   return (
     <Section title="Authorization boundary">
       <p className="max-w-2xl pt-3 text-[13px] leading-relaxed text-muted-foreground">

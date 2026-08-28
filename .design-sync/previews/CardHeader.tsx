@@ -1,6 +1,6 @@
 import { Badge, Button, Card, CardHeader } from "program-assurance";
 
-export function TitleAndDescription() {
+export function Titles() {
   return (
     <Card className="max-w-lg">
       <CardHeader
@@ -11,7 +11,7 @@ export function TitleAndDescription() {
   );
 }
 
-export function WithActions() {
+export function Actions() {
   return (
     <Card className="max-w-lg">
       <CardHeader

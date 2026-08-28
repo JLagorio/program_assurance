@@ -21,6 +21,8 @@
 
 - **Polish pass (2026-08-28, "Stripe parity")**: Select draws its own chevron (`appearance-none` + absolute ChevronDown in a relative span); Modal close and FilterChip use lucide X/Plus, not text glyphs; shadcn tier harmonized to 13px/DS shadows (dark Tooltip, tighter DropdownMenu items, hairline separators, neutral checkbox border); new `EmptyState` (ui.tsx) and `Toaster` (`toast.tsx`, sonner wrapper with `expand` prop — the preview uses `expand` + `duration: Infinity`); styles.css base layer adds `::selection` tint, `accent-color`, thin scrollbars, and a global `svg.lucide { stroke-width: 1.75 }` (that CSS beats strokeWidth attributes — use inline `style` for heavier icons, as checkbox.tsx does).
 
+- **Card-presentation rules learned in the claude.ai pane (2026-08-28)**: (1) grid cells render at ~half card width — any component that wants width (tables, page headers, section layouts) needs `cfg.overrides.<Name> = {cardMode:"column", viewport:"900x<H>"}`; without a declared viewport the pane may give a card a short strip that clips content (Td/Th/Tr did). (2) Cell labels are the preview export names rendered UPPERCASE with no word splitting — keep export names to ONE short word ("Cells", not "CellsAndTruncation"). (3) An export name must never collide with a component imported by the same preview (a `Card` export that renders `<Card>` recurses infinitely and crashes the renderer — this killed a whole validate run once).
+
 ## Known render warns
 
 - `[TOKENS_MISSING]` — `--radix-*`, `--sidebar-width`, `--skeleton-width` etc.: runtime-set vars referenced by the *unused* shadcn files, which the Tailwind scan still reads. Expected-absent; harmless.

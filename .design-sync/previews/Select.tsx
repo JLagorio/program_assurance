@@ -14,7 +14,7 @@ export function Severity() {
   );
 }
 
-export function ControlFamily() {
+export function Families() {
   return (
     <div style={{ maxWidth: 384 }}>
       <Select defaultValue="AU — Audit and Accountability">

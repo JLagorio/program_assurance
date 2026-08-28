@@ -1,6 +1,6 @@
 import { Checkbox } from "program-assurance";
 
-export function ControlFamilyFilter() {
+export function Filter() {
   return (
     <div className="space-y-2" style={{ maxWidth: 320 }}>
       <div className="flex items-center gap-2">

@@ -1,6 +1,6 @@
 import { FilterChip } from "program-assurance";
 
-export function FilterBar() {
+export function Bar() {
   return (
     <div className="flex items-center gap-2">
       <FilterChip label="Status" value="Open" active />

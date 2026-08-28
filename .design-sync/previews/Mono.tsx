@@ -11,7 +11,7 @@ export function Standalone() {
   );
 }
 
-export function InSentence() {
+export function Inline() {
   return (
     <div className="max-w-md text-[13px] text-muted-foreground">
       Finding <Mono>F-2031</Mono> maps to control <Mono>AU-6</Mono> and STIG rule{" "}

@@ -1,6 +1,6 @@
 import { Card, Table, Th } from "program-assurance";
 
-export function HeaderCells() {
+export function Header() {
   return (
     <Card>
       <Table>

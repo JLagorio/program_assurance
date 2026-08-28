@@ -19,7 +19,7 @@ export function Assignees() {
   );
 }
 
-export function WithNames() {
+export function Named() {
   return (
     <div className="space-y-2" style={{ maxWidth: 320 }}>
       <div className="flex items-center gap-2">

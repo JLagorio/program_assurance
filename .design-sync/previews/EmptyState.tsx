@@ -1,7 +1,7 @@
 import { Button, Card, CardHeader, EmptyState } from "program-assurance";
 import { FileSearch, ShieldCheck } from "lucide-react";
 
-export function NoFindings() {
+export function Basic() {
   return (
     <Card>
       <CardHeader title="Open findings" description="Weaknesses awaiting remediation or risk acceptance." />
@@ -15,7 +15,7 @@ export function NoFindings() {
   );
 }
 
-export function NoResults() {
+export function Filtered() {
   return (
     <Card>
       <EmptyState

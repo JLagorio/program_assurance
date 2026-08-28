@@ -1,6 +1,6 @@
 import { Card, Skeleton } from "program-assurance";
 
-export function LoadingCard() {
+export function Loading() {
   return (
     <Card style={{ maxWidth: 480 }}>
       <div className="border-b border-border px-4 py-3">
@@ -28,7 +28,7 @@ export function LoadingCard() {
   );
 }
 
-export function InlineRows() {
+export function Rows() {
   return (
     <div className="space-y-2" style={{ maxWidth: 360 }}>
       <Skeleton style={{ width: "100%", height: 12 }} />

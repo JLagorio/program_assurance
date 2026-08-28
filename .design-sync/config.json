@@ -35,17 +35,64 @@
       "viewport": "520x380"
     },
     "Button": {
-      "cardMode": "column"
+      "cardMode": "column",
+      "viewport": "900x440"
     },
     "FilterChip": {
-      "cardMode": "column"
+      "cardMode": "column",
+      "viewport": "900x320"
     },
     "Tabs": {
-      "cardMode": "column"
+      "cardMode": "column",
+      "viewport": "900x330"
     },
     "Toaster": {
       "cardMode": "single",
       "viewport": "480x360"
+    },
+    "PageHeader": {
+      "cardMode": "column",
+      "viewport": "900x480"
+    },
+    "CardHeader": {
+      "cardMode": "column",
+      "viewport": "900x380"
+    },
+    "Section": {
+      "cardMode": "column",
+      "viewport": "900x600"
+    },
+    "Table": {
+      "cardMode": "column",
+      "viewport": "900x360"
+    },
+    "Td": {
+      "cardMode": "column",
+      "viewport": "900x300"
+    },
+    "Th": {
+      "cardMode": "column",
+      "viewport": "900x260"
+    },
+    "Tr": {
+      "cardMode": "column",
+      "viewport": "900x320"
+    },
+    "ConsumerTable": {
+      "cardMode": "column",
+      "viewport": "900x460"
+    },
+    "ProvidedControlsTable": {
+      "cardMode": "column",
+      "viewport": "900x460"
+    },
+    "InheritChip": {
+      "cardMode": "column",
+      "viewport": "900x340"
+    },
+    "Separator": {
+      "cardMode": "column",
+      "viewport": "900x380"
     }
   },
   "componentSrcMap": {

@@ -1,6 +1,6 @@
 import { Badge, Card, Mono, Table, Td, Th, Tr } from "program-assurance";
 
-export function CellsAndTruncation() {
+export function Cells() {
   return (
     <Card>
       <Table>

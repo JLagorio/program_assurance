@@ -1,6 +1,6 @@
 import { Badge, Button, Card, CardHeader } from "program-assurance";
 
-export function WithHeader() {
+export function Header() {
   return (
     <Card className="max-w-lg">
       <CardHeader

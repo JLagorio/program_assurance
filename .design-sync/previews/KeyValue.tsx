@@ -1,6 +1,6 @@
 import { Badge, KeyValue, Mono } from "program-assurance";
 
-export function PropertyList() {
+export function Properties() {
   return (
     <dl className="max-w-sm">
       <KeyValue label="Status">

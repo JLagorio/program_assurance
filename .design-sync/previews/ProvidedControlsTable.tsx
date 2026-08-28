@@ -3,7 +3,7 @@ import { systemComponents } from "@/lib/reusable-components";
 
 const idp = systemComponents[0]!;
 
-export function ProvidedControls() {
+export function Controls() {
   return (
     <Card>
       <CardHeader

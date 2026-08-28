@@ -1,6 +1,6 @@
 import { Field, Input, Select } from "program-assurance";
 
-export function WithHint() {
+export function Hint() {
   return (
     <div style={{ maxWidth: 384 }}>
       <Field label="POA&M item" hint="Weakness title as it will appear in the POA&M export.">
@@ -10,7 +10,7 @@ export function WithHint() {
   );
 }
 
-export function FormGrid() {
+export function Grid() {
   return (
     <div className="grid grid-cols-2 gap-3" style={{ maxWidth: 512 }}>
       <Field label="Assigned to">

@@ -1,6 +1,6 @@
 import { Badge, Button, PageHeader } from "program-assurance";
 
-export function WithActions() {
+export function Actions() {
   return (
     <PageHeader
       eyebrow="Programs / GC2-Cloud"
@@ -16,7 +16,7 @@ export function WithActions() {
   );
 }
 
-export function WithEyebrowBadge() {
+export function Eyebrow() {
   return (
     <PageHeader
       eyebrow={

@@ -1,6 +1,6 @@
 import { Tabs } from "program-assurance";
 
-export function LinkTabs() {
+export function Links() {
   return (
     <Tabs
       active="Controls"
@@ -15,7 +15,7 @@ export function LinkTabs() {
   );
 }
 
-export function ButtonTabs() {
+export function Buttons() {
   return (
     <Tabs
       active="Open"

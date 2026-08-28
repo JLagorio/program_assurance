@@ -1,6 +1,6 @@
 import { RadioGroup, RadioGroupItem } from "program-assurance";
 
-export function AssessmentMethod() {
+export function Methods() {
   return (
     <RadioGroup defaultValue="interview" className="space-y-1" style={{ maxWidth: 340 }}>
       <div className="flex items-center gap-2">
