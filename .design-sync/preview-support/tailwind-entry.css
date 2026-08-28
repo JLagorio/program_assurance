@@ -1,0 +1,10 @@
+/* Design-sync CSS entry: compiles the app's Tailwind v4 theme + utilities
+   for the DS bundle. The remote import ships the brand fonts (the app loads
+   them via <link> in __root.tsx, which the bundle can't see). */
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@400;500&display=swap");
+@import "../../src/styles.css";
+/* Also scan authored preview compositions for utility classes. */
+@source "../previews";
+/* The DS's own custom utilities (defined in src/styles.css) must always ship,
+   even when no scanned source uses them. */
+@source inline("shadow-hairline shadow-raised shadow-pop shadow-button shadow-button-primary tnum animate-slide-up font-sans");

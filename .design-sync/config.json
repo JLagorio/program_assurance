@@ -1,0 +1,43 @@
+{
+  "projectId": "bbe02051-994f-4175-8f47-e7c193a76b2e",
+  "shape": "package",
+  "pkg": "program-assurance",
+  "globalName": "ProgramAssuranceUI",
+  "entry": ".design-sync/preview-support/entry.ts",
+  "tsconfig": "tsconfig.json",
+  "srcDir": "src/components/app",
+  "buildCmd": "npx -y @tailwindcss/cli@4.3.3 -i .design-sync/preview-support/tailwind-entry.css -o .design-sync/.cache/tailwind.css",
+  "cssEntry": ".design-sync/.cache/tailwind.css",
+  "provider": { "component": "PreviewRouter" },
+  "readmeHeader": ".design-sync/conventions.md",
+  "overrides": {
+    "Modal": { "cardMode": "single", "viewport": "960x640", "primaryStory": "CreateFinding" },
+    "Shell": { "cardMode": "single", "viewport": "1280x800" }
+  },
+  "componentSrcMap": {
+    "Button": "src/components/app/ui.tsx",
+    "IconButton": "src/components/app/ui.tsx",
+    "Badge": "src/components/app/ui.tsx",
+    "Dot": "src/components/app/ui.tsx",
+    "Card": "src/components/app/ui.tsx",
+    "Section": "src/components/app/ui.tsx",
+    "CardHeader": "src/components/app/ui.tsx",
+    "Table": "src/components/app/ui.tsx",
+    "Th": "src/components/app/ui.tsx",
+    "Td": "src/components/app/ui.tsx",
+    "Tr": "src/components/app/ui.tsx",
+    "Tabs": "src/components/app/ui.tsx",
+    "FilterChip": "src/components/app/ui.tsx",
+    "KeyValue": "src/components/app/ui.tsx",
+    "RailGroup": "src/components/app/ui.tsx",
+    "Mono": "src/components/app/ui.tsx",
+    "Meter": "src/components/app/ui.tsx",
+    "PageHeader": "src/components/app/ui.tsx",
+    "Field": "src/components/app/ui.tsx",
+    "Input": "src/components/app/ui.tsx",
+    "Select": "src/components/app/ui.tsx",
+    "Textarea": "src/components/app/ui.tsx",
+    "Modal": "src/components/app/ui.tsx",
+    "Shell": "src/components/app/shell.tsx"
+  }
+}
