@@ -1,0 +1,18 @@
+# Status vocabulary
+
+Status is always expressed through the five-value `tone` system (`Badge`, `Dot`, `Meter`) with domain vocabulary — soft fill, solid text, 1px inset ring. Vocabulary the product actually uses:
+
+| Tone | Meaning | Examples from the app |
+|---|---|---|
+| `success` | Meets the bar | Compliant · Passing · Satisfied |
+| `warning` | Needs human attention, not yet a failure | Needs review · Partially satisfied · In remediation · evidence age ("34d") · versions behind |
+| `danger` | Failing the bar | Failing · Non-compliant · Other than satisfied · Overdue |
+| `info` | Informational / automated | Automated · In assessment · info counts |
+| `neutral` | No judgment | Not assessed · Accepted · source/method labels |
+
+Rules:
+
+- Control assessment states use the RMF phrasing: **Satisfied / Partially satisfied / Other than satisfied / Not assessed** — not pass/fail synonyms.
+- A count of problems is a `danger` or `warning` badge only when the count itself is the alarm (overdue POA&M items); otherwise counts are neutral chips (as in `Tabs` counts).
+- `neutral` is the default tone — reach for color only when state genuinely differs from "recorded".
+- Risk severity ladders (Critical / High / Moderate / Low) render as text or `Select` options, with `danger`/`warning` badges reserved for the top of the ladder in tables.

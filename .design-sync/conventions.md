@@ -11,7 +11,9 @@ A compact, Stripe-calm kit for a cybersecurity program-assurance platform (ATO p
   <PreviewRouter><Shell>…screen content…</Shell></PreviewRouter>
   ```
   `Tabs` without `to` (button mode) needs nothing.
+- **Tooltips** need `TooltipProvider` around the subtree: `<TooltipProvider><Tooltip><TooltipTrigger asChild>…</TooltipTrigger><TooltipContent>…</TooltipContent></Tooltip></TooltipProvider>`. `DropdownMenu` and `Popover` compose Trigger + Content the same way, no provider needed.
 - Full screens go inside `Shell` (sidebar + top bar + 1240px content column). Sections of a page use `Section`; boxed content uses `Card` (+ `CardHeader`).
+- Two tiers: the bespoke kit (Button, Badge, Table, Modal…) is the product's own look — prefer it; `Checkbox`, `Switch`, `RadioGroup`, `Tooltip`, `DropdownMenu`, `Popover`, `Skeleton`, `Avatar`, `Separator` are themed primitives for what it lacks. For `Avatar`, use `AvatarFallback` initials, not remote images.
 
 ## Styling idiom — Tailwind utilities, compiled ahead of time
 

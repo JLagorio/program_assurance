@@ -8,11 +8,41 @@
   "srcDir": "src/components/app",
   "buildCmd": "npx -y @tailwindcss/cli@4.3.3 -i .design-sync/preview-support/tailwind-entry.css -o .design-sync/.cache/tailwind.css",
   "cssEntry": ".design-sync/.cache/tailwind.css",
-  "provider": { "component": "PreviewRouter" },
+  "provider": {
+    "component": "PreviewRouter"
+  },
   "readmeHeader": ".design-sync/conventions.md",
   "overrides": {
-    "Modal": { "cardMode": "single", "viewport": "960x640", "primaryStory": "CreateFinding" },
-    "Shell": { "cardMode": "single", "viewport": "1280x800" }
+    "Modal": {
+      "cardMode": "single",
+      "viewport": "960x640",
+      "primaryStory": "CreateFinding"
+    },
+    "Shell": {
+      "cardMode": "single",
+      "viewport": "1280x800"
+    },
+    "Tooltip": {
+      "cardMode": "single",
+      "viewport": "480x240"
+    },
+    "DropdownMenu": {
+      "cardMode": "single",
+      "viewport": "480x420"
+    },
+    "Popover": {
+      "cardMode": "single",
+      "viewport": "520x380"
+    },
+    "Button": {
+      "cardMode": "column"
+    },
+    "FilterChip": {
+      "cardMode": "column"
+    },
+    "Tabs": {
+      "cardMode": "column"
+    }
   },
   "componentSrcMap": {
     "Button": "src/components/app/ui.tsx",
@@ -38,6 +68,30 @@
     "Select": "src/components/app/ui.tsx",
     "Textarea": "src/components/app/ui.tsx",
     "Modal": "src/components/app/ui.tsx",
-    "Shell": "src/components/app/shell.tsx"
-  }
+    "Shell": "src/components/app/shell.tsx",
+    "Checkbox": "src/components/ui/checkbox.tsx",
+    "Switch": "src/components/ui/switch.tsx",
+    "RadioGroup": "src/components/ui/radio-group.tsx",
+    "Tooltip": "src/components/ui/tooltip.tsx",
+    "DropdownMenu": "src/components/ui/dropdown-menu.tsx",
+    "Popover": "src/components/ui/popover.tsx",
+    "Skeleton": "src/components/ui/skeleton.tsx",
+    "Avatar": "src/components/ui/avatar.tsx",
+    "Separator": "src/components/ui/separator.tsx",
+    "InheritChip": "src/components/app/inheritance.tsx",
+    "ConsumerTable": "src/components/app/inheritance.tsx",
+    "ProvidedControlsTable": "src/components/app/inheritance.tsx"
+  },
+  "docsMap": {
+    "Checkbox": ".design-sync/docs-stubs/Checkbox.md",
+    "Switch": ".design-sync/docs-stubs/Switch.md",
+    "RadioGroup": ".design-sync/docs-stubs/RadioGroup.md",
+    "Tooltip": ".design-sync/docs-stubs/Tooltip.md",
+    "DropdownMenu": ".design-sync/docs-stubs/DropdownMenu.md",
+    "Popover": ".design-sync/docs-stubs/Popover.md",
+    "Skeleton": ".design-sync/docs-stubs/Skeleton.md",
+    "Avatar": ".design-sync/docs-stubs/Avatar.md",
+    "Separator": ".design-sync/docs-stubs/Separator.md"
+  },
+  "guidelinesGlob": "docs/guides/*.md"
 }
