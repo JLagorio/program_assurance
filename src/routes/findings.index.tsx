@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Download, Search } from "lucide-react";
 
@@ -6,28 +6,30 @@ import { Shell } from "@/components/app/shell";
 import {
   Badge,
   Button,
+  IdCell,
+  IndexPage,
   KeyValue,
   Mono,
   PageHeader,
+  PreviewRail,
   RailGroup,
   Table,
   Td,
   Th,
   Tr,
 } from "@/components/app/ui";
-import { benchmarkById, rulesByCci } from "@/lib/catalog";
 import {
   assetById,
   assets,
   bySeverity,
   findings,
-  findingsByAsset,
   isOpen,
+  type Asset,
   type Finding,
 } from "@/lib/findings";
 import { severityTone, statusTone } from "@/lib/spine";
 
-export const Route = createFileRoute("/findings")({
+export const Route = createFileRoute("/findings/")({
   head: () => ({
     meta: [
       { title: "Findings & assets — Equinox" },
@@ -62,11 +64,14 @@ function scopeFilter(f: Finding, scope: Scope) {
   return !isOpen(f);
 }
 
+type Preview = { kind: "finding"; item: Finding } | { kind: "asset"; item: Asset } | null;
+
 function FindingsPage() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("Findings");
   const [scope, setScope] = useState<Scope>("Open");
   const [q, setQ] = useState("");
-  const [selected, setSelected] = useState<Finding | null>(null);
+  const [preview, setPreview] = useState<Preview>(null);
 
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -90,29 +95,28 @@ function FindingsPage() {
     Assets: assets.length,
   };
 
-  const railRules = selected ? (rulesByCci.get(selected.cci) ?? []) : [];
-  const asset = selected ? assetById.get(selected.asset) : undefined;
-
   return (
     <Shell>
-      <div className="animate-slide-up space-y-4">
-        <PageHeader
-          title="Findings & assets"
-          description="One technical fact per row, joined to a CCI and an asset. Raw severity is what the scanner said; mitigated severity is what the AO will see."
-          actions={
-            <Button variant="secondary">
-              <Download className="size-3.5" /> Export SAR extract
-            </Button>
-          }
-        />
-
+      <IndexPage
+        header={
+          <PageHeader
+            title="Findings & assets"
+            description="One technical fact per row, joined to a CCI and an asset. Open a row for the record; hover the first column to preview it in place."
+            actions={
+              <Button variant="secondary">
+                <Download className="size-3.5" /> Export SAR extract
+              </Button>
+            }
+          />
+        }
+      >
         <div className="flex items-center gap-4 border-b border-border">
           {tabs.map((t) => (
             <button
               key={t}
               onClick={() => {
                 setTab(t);
-                setSelected(null);
+                setPreview(null);
               }}
             >
               <span
@@ -160,12 +164,12 @@ function FindingsPage() {
           </div>
         ) : null}
 
-        <div className={selected ? "grid lg:grid-cols-[minmax(0,1fr)_272px]" : "grid"}>
+        <div className={preview ? "grid lg:grid-cols-[minmax(0,1fr)_272px]" : "grid"}>
           <div className="min-w-0 lg:pr-6">
             {tab === "Findings" ? (
               <Table className="table-fixed">
                 <colgroup>
-                  <col style={{ width: "92px" }} />
+                  <col style={{ width: "112px" }} />
                   <col />
                   <col style={{ width: "104px" }} />
                   <col style={{ width: "132px" }} />
@@ -190,14 +194,16 @@ function FindingsPage() {
                   {rows.map((f) => (
                     <Tr
                       key={f.id}
-                      onClick={() => setSelected(f)}
-                      className={
-                        selected?.id === f.id ? "cursor-pointer bg-subtle" : "cursor-pointer"
+                      className="cursor-pointer"
+                      onClick={() =>
+                        navigate({ to: "/findings/$findingId", params: { findingId: f.id } })
                       }
                     >
-                      <Td>
-                        <Mono className="text-primary">{f.id}</Mono>
-                      </Td>
+                      <IdCell
+                        id={f.id}
+                        active={preview?.kind === "finding" && preview.item.id === f.id}
+                        onPreview={() => setPreview({ kind: "finding", item: f })}
+                      />
                       <Td className="truncate font-medium">{f.title}</Td>
                       <Td>
                         <Mono className="text-muted-foreground">{f.cci}</Mono>
@@ -208,9 +214,7 @@ function FindingsPage() {
                       <Td className="truncate text-muted-foreground">{f.source}</Td>
                       <Td className="text-muted-foreground">{f.rawSeverity}</Td>
                       <Td>
-                        <Badge tone={severityTone(f.mitigatedSeverity)}>
-                          {f.mitigatedSeverity}
-                        </Badge>
+                        <Badge tone={severityTone(f.mitigatedSeverity)}>{f.mitigatedSeverity}</Badge>
                       </Td>
                       <Td className="truncate">
                         <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
@@ -222,7 +226,7 @@ function FindingsPage() {
             ) : (
               <Table className="table-fixed">
                 <colgroup>
-                  <col style={{ width: "92px" }} />
+                  <col style={{ width: "112px" }} />
                   <col />
                   <col style={{ width: "128px" }} />
                   <col style={{ width: "160px" }} />
@@ -243,10 +247,18 @@ function FindingsPage() {
                 </thead>
                 <tbody>
                   {assets.map((a) => (
-                    <Tr key={a.id}>
-                      <Td>
-                        <Mono className="text-primary">{a.id}</Mono>
-                      </Td>
+                    <Tr
+                      key={a.id}
+                      className="cursor-pointer"
+                      onClick={() =>
+                        navigate({ to: "/findings/assets/$assetId", params: { assetId: a.id } })
+                      }
+                    >
+                      <IdCell
+                        id={a.id}
+                        active={preview?.kind === "asset" && preview.item.id === a.id}
+                        onPreview={() => setPreview({ kind: "asset", item: a })}
+                      />
                       <Td className="truncate font-medium">{a.name}</Td>
                       <Td className="truncate text-muted-foreground">{a.kind}</Td>
                       <Td className="truncate text-muted-foreground">{a.technology}</Td>
@@ -268,134 +280,87 @@ function FindingsPage() {
             )}
           </div>
 
-          {selected ? (
-            <aside className="border-t border-border pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
-              <div className="flex items-baseline gap-2">
-                <Mono className="text-primary">{selected.id}</Mono>
-                <button
-                  onClick={() => setSelected(null)}
-                  className="ml-auto text-[12px] text-muted-foreground hover:text-foreground"
+          {preview?.kind === "finding" ? (
+            <PreviewRail
+              id={preview.item.id}
+              title={preview.item.title}
+              onClose={() => setPreview(null)}
+              openTo={
+                <Link
+                  to="/findings/$findingId"
+                  params={{ findingId: preview.item.id }}
+                  className="text-primary hover:underline"
                 >
-                  Close
-                </button>
-              </div>
-              <h2 className="mt-1 text-[13.5px] font-semibold leading-snug">{selected.title}</h2>
-              <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
-                {selected.detail}
-              </p>
+                  Open finding →
+                </Link>
+              }
+            >
+              <RailGroup title="Join keys">
+                <KeyValue label="CCI">
+                  <Mono>{preview.item.cci}</Mono>
+                </KeyValue>
+                <KeyValue label="Control">
+                  <Mono>{preview.item.control}</Mono>
+                </KeyValue>
+                <KeyValue label="Asset">
+                  {assetById.get(preview.item.asset)?.name ?? preview.item.asset}
+                </KeyValue>
+                <KeyValue label="Rule">
+                  {preview.item.rule ? <Mono>{preview.item.rule}</Mono> : "—"}
+                </KeyValue>
+              </RailGroup>
+              <RailGroup title="Severity">
+                <KeyValue label="Raw">{preview.item.rawSeverity}</KeyValue>
+                <KeyValue label="Mitigated">
+                  <Badge tone={severityTone(preview.item.mitigatedSeverity)}>
+                    {preview.item.mitigatedSeverity}
+                  </Badge>
+                </KeyValue>
+                <KeyValue label="Lifecycle">
+                  <Badge tone={statusTone(preview.item.lifecycle)}>{preview.item.lifecycle}</Badge>
+                </KeyValue>
+              </RailGroup>
+              <RailGroup title="Rolls up to">
+                <KeyValue label="POA&M">
+                  {preview.item.poam ? <Mono>{preview.item.poam}</Mono> : "Not yet scheduled"}
+                </KeyValue>
+                <KeyValue label="Risk">
+                  {preview.item.risk ? <Mono>{preview.item.risk}</Mono> : "Not aggregated"}
+                </KeyValue>
+              </RailGroup>
+            </PreviewRail>
+          ) : null}
 
-              <div className="mt-3">
-                <RailGroup title="Join keys">
-                  <KeyValue label="CCI">
-                    <Mono>{selected.cci}</Mono>
-                  </KeyValue>
-                  <KeyValue label="Control">
-                    <Mono>{selected.control}</Mono>
-                  </KeyValue>
-                  <KeyValue label="Asset">
-                    {asset ? `${asset.name} · ${asset.technology}` : selected.asset}
-                  </KeyValue>
-                  <KeyValue label="Rule">
-                    {selected.rule ? <Mono>{selected.rule}</Mono> : "—"}
-                  </KeyValue>
-                </RailGroup>
-
-                <RailGroup title="Severity">
-                  <KeyValue label="Raw">{selected.rawSeverity}</KeyValue>
-                  <KeyValue label="Mitigated">
-                    <Badge tone={severityTone(selected.mitigatedSeverity)}>
-                      {selected.mitigatedSeverity}
-                    </Badge>
-                  </KeyValue>
-                  <KeyValue label="Lifecycle">
-                    <Badge tone={statusTone(selected.lifecycle)}>{selected.lifecycle}</Badge>
-                  </KeyValue>
-                </RailGroup>
-
-                {selected.mitigation ? (
-                  <RailGroup title="Mitigation">
-                    <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-                      {selected.mitigation}
-                    </p>
-                  </RailGroup>
-                ) : null}
-
-                <RailGroup title="Provenance">
-                  <KeyValue label="Source">{selected.source}</KeyValue>
-                  <KeyValue label="Artifact">
-                    <Mono>{selected.sourceArtifact}</Mono>
-                  </KeyValue>
-                  <KeyValue label="First seen">{selected.firstSeen}</KeyValue>
-                  <KeyValue label="Last seen">{selected.lastSeen}</KeyValue>
-                  <KeyValue label="Occurrences">{selected.occurrences}</KeyValue>
-                  <KeyValue label="Owner">{selected.owner}</KeyValue>
-                </RailGroup>
-
-                <RailGroup title="Rolls up to">
-                  <KeyValue label="POA&M">
-                    {selected.poam ? <Mono>{selected.poam}</Mono> : "Not yet scheduled"}
-                  </KeyValue>
-                  <KeyValue label="Risk">
-                    {selected.risk ? (
-                      <Link to="/risks" className="text-primary hover:underline">
-                        <Mono className="text-primary">{selected.risk}</Mono>
-                      </Link>
-                    ) : (
-                      "Not aggregated"
-                    )}
-                  </KeyValue>
-                </RailGroup>
-
-                <RailGroup title="Same CCI elsewhere" defaultOpen={false}>
-                  <div className="space-y-1.5 text-[12.5px]">
-                    {railRules.length ? (
-                      railRules.map((r) => (
-                        <div key={r.id} className="flex items-baseline justify-between gap-2">
-                          <span className="min-w-0 truncate">
-                            <Mono>{r.id}</Mono>{" "}
-                            <span className="text-muted-foreground">
-                              {benchmarkById.get(r.benchmark)?.technology}
-                            </span>
-                          </span>
-                          <span className="shrink-0 text-muted-foreground">{r.severity}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground">
-                        No STIG rule implements this CCI — verification is procedural.
-                      </p>
-                    )}
-                  </div>
-                </RailGroup>
-
-                {asset ? (
-                  <RailGroup title={`Other findings on ${asset.name}`} defaultOpen={false}>
-                    <div className="space-y-1.5 text-[12.5px]">
-                      {findingsByAsset(asset.id)
-                        .filter((f) => f.id !== selected.id)
-                        .map((f) => (
-                          <button
-                            key={f.id}
-                            onClick={() => setSelected(f)}
-                            className="flex w-full items-baseline justify-between gap-2 text-left"
-                          >
-                            <span className="min-w-0 truncate">
-                              <Mono className="text-primary">{f.id}</Mono>{" "}
-                              <span className="text-muted-foreground">{f.title}</span>
-                            </span>
-                            <span className="shrink-0 text-muted-foreground">
-                              {f.mitigatedSeverity}
-                            </span>
-                          </button>
-                        ))}
-                    </div>
-                  </RailGroup>
-                ) : null}
-              </div>
-            </aside>
+          {preview?.kind === "asset" ? (
+            <PreviewRail
+              id={preview.item.id}
+              title={preview.item.name}
+              onClose={() => setPreview(null)}
+              openTo={
+                <Link
+                  to="/findings/assets/$assetId"
+                  params={{ assetId: preview.item.id }}
+                  className="text-primary hover:underline"
+                >
+                  Open asset →
+                </Link>
+              }
+            >
+              <RailGroup title="Inventory">
+                <KeyValue label="Kind">{preview.item.kind}</KeyValue>
+                <KeyValue label="Technology">{preview.item.technology}</KeyValue>
+                <KeyValue label="Environment">{preview.item.environment}</KeyValue>
+                <KeyValue label="Last scan">{preview.item.lastScan}</KeyValue>
+              </RailGroup>
+              <RailGroup title="Open findings">
+                <KeyValue label="CAT I">{preview.item.openCatI}</KeyValue>
+                <KeyValue label="CAT II">{preview.item.openCatII}</KeyValue>
+                <KeyValue label="CAT III">{preview.item.openCatIII}</KeyValue>
+              </RailGroup>
+            </PreviewRail>
           ) : null}
         </div>
-      </div>
+      </IndexPage>
     </Shell>
   );
 }

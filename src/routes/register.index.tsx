@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Download, Search } from "lucide-react";
 
@@ -6,17 +6,20 @@ import { Shell } from "@/components/app/shell";
 import {
   Badge,
   Button,
+  IdCell,
   KeyValue,
   Meter,
   Mono,
   PageHeader,
+  PreviewRail,
   RailGroup,
+  IndexPage,
   Table,
   Td,
   Th,
   Tr,
 } from "@/components/app/ui";
-import { assetById, isOpen } from "@/lib/findings";
+import { assetById } from "@/lib/findings";
 import {
   ccisForRisk,
   findingsForPoam,
@@ -25,7 +28,6 @@ import {
   poamItems,
   poamsForRisk,
   registerRisks,
-  riskById,
   unrolledFindings,
   worstSeverity,
   type PoamItem,
@@ -33,7 +35,7 @@ import {
 } from "@/lib/register";
 import { severityTone, statusTone } from "@/lib/spine";
 
-export const Route = createFileRoute("/register")({
+export const Route = createFileRoute("/register/")({
   head: () => ({
     meta: [
       { title: "POA&M & risk register — Equinox" },
@@ -58,19 +60,17 @@ export const Route = createFileRoute("/register")({
 const tabs = ["POA&M", "Risks", "Unrolled"] as const;
 type Tab = (typeof tabs)[number];
 
-type Selection =
-  | { kind: "poam"; item: PoamItem }
-  | { kind: "risk"; item: RegisterRisk }
-  | null;
+type Preview = { kind: "poam"; item: PoamItem } | { kind: "risk"; item: RegisterRisk } | null;
 
 function residualTone(v: number) {
   return v > 60 ? "danger" : v > 30 ? "warning" : "success";
 }
 
 function RegisterPage() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("POA&M");
   const [q, setQ] = useState("");
-  const [selected, setSelected] = useState<Selection>(null);
+  const [preview, setPreview] = useState<Preview>(null);
 
   const unrolled = unrolledFindings();
 
@@ -100,25 +100,21 @@ function RegisterPage() {
     Unrolled: unrolled.length,
   };
 
-  const railFindings =
-    selected?.kind === "poam"
-      ? findingsForPoam(selected.item.id)
-      : selected?.kind === "risk"
-        ? findingsForRisk(selected.item.id)
-        : [];
-
   return (
     <Shell>
-      <div className="animate-slide-up space-y-4">
-        <PageHeader
-          title="POA&M & risk register"
-          description="A POA&M item is a dated commitment to close findings. A risk is what the AO signs. Both reach the spine only through findings — never straight to a control."
-          actions={
-            <Button variant="secondary">
-              <Download className="size-3.5" /> Export eMASS POA&M
-            </Button>
-          }
-        />
+      <IndexPage
+        header={
+          <PageHeader
+            title="POA&M & risk register"
+            description="A POA&M item is a dated commitment to close findings. A risk is what the AO signs. Both reach the spine only through findings — never straight to a control."
+            actions={
+              <Button variant="secondary">
+                <Download className="size-3.5" /> Export eMASS POA&M
+              </Button>
+            }
+          />
+        }
+      >
 
         <div className="flex items-center gap-4 border-b border-border">
           {tabs.map((t) => (
@@ -126,7 +122,7 @@ function RegisterPage() {
               key={t}
               onClick={() => {
                 setTab(t);
-                setSelected(null);
+                setPreview(null);
               }}
             >
               <span
@@ -159,12 +155,12 @@ function RegisterPage() {
           </div>
         ) : null}
 
-        <div className={selected ? "grid lg:grid-cols-[minmax(0,1fr)_272px]" : "grid"}>
+        <div className={preview ? "grid lg:grid-cols-[minmax(0,1fr)_272px]" : "grid"}>
           <div className="min-w-0 lg:pr-6">
             {tab === "POA&M" ? (
               <Table className="table-fixed">
                 <colgroup>
-                  <col style={{ width: "104px" }} />
+                  <col style={{ width: "112px" }} />
                   <col />
                   <col style={{ width: "132px" }} />
                   <col style={{ width: "84px" }} />
@@ -192,16 +188,16 @@ function RegisterPage() {
                     return (
                       <Tr
                         key={p.id}
-                        onClick={() => setSelected({ kind: "poam", item: p })}
-                        className={
-                          selected?.kind === "poam" && selected.item.id === p.id
-                            ? "cursor-pointer bg-subtle"
-                            : "cursor-pointer"
+                        className="cursor-pointer"
+                        onClick={() =>
+                          navigate({ to: "/register/poam/$poamId", params: { poamId: p.id } })
                         }
                       >
-                        <Td>
-                          <Mono className="text-primary">{p.id}</Mono>
-                        </Td>
+                        <IdCell
+                          id={p.id}
+                          active={preview?.kind === "poam" && preview.item.id === p.id}
+                          onPreview={() => setPreview({ kind: "poam", item: p })}
+                        />
                         <Td className="truncate font-medium">{p.title}</Td>
                         <Td className="truncate text-muted-foreground">{p.owner}</Td>
                         <Td className="tnum text-right text-muted-foreground">
@@ -231,7 +227,7 @@ function RegisterPage() {
             {tab === "Risks" ? (
               <Table className="table-fixed">
                 <colgroup>
-                  <col style={{ width: "96px" }} />
+                  <col style={{ width: "104px" }} />
                   <col />
                   <col style={{ width: "128px" }} />
                   <col style={{ width: "84px" }} />
@@ -258,16 +254,16 @@ function RegisterPage() {
                     return (
                       <Tr
                         key={r.id}
-                        onClick={() => setSelected({ kind: "risk", item: r })}
-                        className={
-                          selected?.kind === "risk" && selected.item.id === r.id
-                            ? "cursor-pointer bg-subtle"
-                            : "cursor-pointer"
+                        className="cursor-pointer"
+                        onClick={() =>
+                          navigate({ to: "/register/risks/$riskId", params: { riskId: r.id } })
                         }
                       >
-                        <Td>
-                          <Mono className="text-primary">{r.id}</Mono>
-                        </Td>
+                        <IdCell
+                          id={r.id}
+                          active={preview?.kind === "risk" && preview.item.id === r.id}
+                          onPreview={() => setPreview({ kind: "risk", item: r })}
+                        />
                         <Td className="truncate font-medium">{r.title}</Td>
                         <Td className="truncate text-muted-foreground">{r.owner}</Td>
                         <Td className="tnum text-right text-muted-foreground">
@@ -327,7 +323,13 @@ function RegisterPage() {
                   </thead>
                   <tbody>
                     {unrolled.map((f) => (
-                      <Tr key={f.id}>
+                      <Tr
+                        key={f.id}
+                        className="cursor-pointer"
+                        onClick={() =>
+                          navigate({ to: "/findings/$findingId", params: { findingId: f.id } })
+                        }
+                      >
                         <Td>
                           <Mono className="text-primary">{f.id}</Mono>
                         </Td>
@@ -347,7 +349,10 @@ function RegisterPage() {
                           <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
                         </Td>
                         <Td className="max-w-none text-right">
-                          <span className="inline-flex gap-1.5">
+                          <span
+                            className="inline-flex gap-1.5"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <Button size="sm" variant="secondary">
                               New POA&M
                             </Button>
@@ -364,141 +369,80 @@ function RegisterPage() {
             ) : null}
           </div>
 
-          {selected ? (
-            <aside className="border-t border-border pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
-              <div className="flex items-baseline gap-2">
-                <Mono className="text-primary">{selected.item.id}</Mono>
-                <button
-                  onClick={() => setSelected(null)}
-                  className="ml-auto text-[12px] text-muted-foreground hover:text-foreground"
+          {preview?.kind === "poam" ? (
+            <PreviewRail
+              id={preview.item.id}
+              title={preview.item.title}
+              onClose={() => setPreview(null)}
+              openTo={
+                <Link
+                  to="/register/poam/$poamId"
+                  params={{ poamId: preview.item.id }}
+                  className="text-primary hover:underline"
                 >
-                  Close
-                </button>
-              </div>
-              <h2 className="mt-1 text-[13.5px] font-semibold leading-snug">
-                {selected.item.title}
-              </h2>
-              <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
-                {selected.kind === "poam"
-                  ? selected.item.remediation
-                  : selected.item.statement}
-              </p>
+                  Open POA&M item →
+                </Link>
+              }
+            >
+              <RailGroup title="Commitment">
+                <KeyValue label="Status">
+                  <Badge tone={statusTone(preview.item.status)}>{preview.item.status}</Badge>
+                </KeyValue>
+                <KeyValue label="Owner">{preview.item.owner}</KeyValue>
+                <KeyValue label="Scheduled">{preview.item.scheduledCompletion}</KeyValue>
+                <KeyValue label="Original">{preview.item.originalCompletion}</KeyValue>
+                <KeyValue label="Findings">
+                  {openCount(findingsForPoam(preview.item.id))} open of{" "}
+                  {findingsForPoam(preview.item.id).length}
+                </KeyValue>
+              </RailGroup>
+              <RailGroup title="Latest milestone">
+                <p className="text-[12.5px] leading-relaxed text-muted-foreground">
+                  {preview.item.milestoneNote}
+                </p>
+              </RailGroup>
+            </PreviewRail>
+          ) : null}
 
-              <div className="mt-3">
-                {selected.kind === "poam" ? (
-                  <>
-                    <RailGroup title="Commitment">
-                      <KeyValue label="Status">
-                        <Badge tone={statusTone(selected.item.status)}>
-                          {selected.item.status}
-                        </Badge>
-                      </KeyValue>
-                      <KeyValue label="Owner">{selected.item.owner}</KeyValue>
-                      <KeyValue label="Resources">{selected.item.resources}</KeyValue>
-                      <KeyValue label="Scheduled">{selected.item.scheduledCompletion}</KeyValue>
-                      <KeyValue label="Original">{selected.item.originalCompletion}</KeyValue>
-                    </RailGroup>
-                    <RailGroup title="Latest milestone">
-                      <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-                        {selected.item.milestoneNote}
-                      </p>
-                    </RailGroup>
-                  </>
-                ) : (
-                  <>
-                    <RailGroup title="Adjudication">
-                      <KeyValue label="Disposition">
-                        <Badge tone={statusTone(selected.item.disposition)}>
-                          {selected.item.disposition}
-                        </Badge>
-                      </KeyValue>
-                      <KeyValue label="Owner">{selected.item.owner}</KeyValue>
-                      <KeyValue label="Treatment">{selected.item.treatment}</KeyValue>
-                      <KeyValue label="Likelihood × impact">
-                        {selected.item.likelihood} × {selected.item.impact}
-                      </KeyValue>
-                      <KeyValue label="Inherent">{selected.item.inherent}</KeyValue>
-                      <KeyValue label="Residual">{selected.item.residual}</KeyValue>
-                      <KeyValue label="Reviewed">{selected.item.reviewed}</KeyValue>
-                    </RailGroup>
-                    {selected.item.aoNote ? (
-                      <RailGroup title="AO note">
-                        <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-                          {selected.item.aoNote}
-                        </p>
-                      </RailGroup>
-                    ) : null}
-                    <RailGroup title="Reducing POA&M items">
-                      {poamsForRisk(selected.item.id).length === 0 ? (
-                        <p className="text-[12.5px] text-muted-foreground">
-                          None — residual is untreated.
-                        </p>
-                      ) : (
-                        <ul className="space-y-1.5">
-                          {poamsForRisk(selected.item.id).map((p) => (
-                            <li key={p.id} className="flex items-baseline gap-2">
-                              <Mono className="text-muted-foreground">{p.id}</Mono>
-                              <span className="truncate text-[12.5px]">{p.title}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </RailGroup>
-                    <RailGroup title="CCIs in scope">
-                      <div className="flex flex-wrap gap-1">
-                        {ccisForRisk(selected.item.id).map((c) => (
-                          <Mono key={c} className="text-muted-foreground">
-                            {c}
-                          </Mono>
-                        ))}
-                      </div>
-                    </RailGroup>
-                  </>
-                )}
-
-                <RailGroup title={`Findings (${railFindings.length})`}>
-                  <ul className="space-y-2">
-                    {railFindings.map((f) => (
-                      <li key={f.id}>
-                        <div className="flex items-baseline gap-2">
-                          <Mono className="text-muted-foreground">{f.id}</Mono>
-                          <Badge tone={severityTone(f.mitigatedSeverity)}>
-                            {f.mitigatedSeverity}
-                          </Badge>
-                          {isOpen(f) ? null : (
-                            <span className="text-[11.5px] text-muted-foreground">settled</span>
-                          )}
-                        </div>
-                        <div className="truncate text-[12.5px]">{f.title}</div>
-                        <div className="text-[11.5px] text-muted-foreground">
-                          {f.cci} · {assetById.get(f.asset)?.name ?? f.asset}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                  <Link
-                    to="/findings"
-                    className="mt-2 inline-block text-[12px] text-primary hover:underline"
-                  >
-                    Open in findings →
-                  </Link>
-                </RailGroup>
-
-                {selected.kind === "poam" && selected.item.risk ? (
-                  <RailGroup title="Rolls up to">
-                    <KeyValue label="Risk">
-                      <Mono>{selected.item.risk}</Mono>
-                    </KeyValue>
-                    <KeyValue label="Disposition">
-                      {riskById.get(selected.item.risk)?.disposition ?? "—"}
-                    </KeyValue>
-                  </RailGroup>
-                ) : null}
-              </div>
-            </aside>
+          {preview?.kind === "risk" ? (
+            <PreviewRail
+              id={preview.item.id}
+              title={preview.item.title}
+              onClose={() => setPreview(null)}
+              openTo={
+                <Link
+                  to="/register/risks/$riskId"
+                  params={{ riskId: preview.item.id }}
+                  className="text-primary hover:underline"
+                >
+                  Open risk →
+                </Link>
+              }
+            >
+              <RailGroup title="Adjudication">
+                <KeyValue label="Disposition">
+                  <Badge tone={statusTone(preview.item.disposition)}>
+                    {preview.item.disposition}
+                  </Badge>
+                </KeyValue>
+                <KeyValue label="Owner">{preview.item.owner}</KeyValue>
+                <KeyValue label="Treatment">{preview.item.treatment}</KeyValue>
+                <KeyValue label="Likelihood × impact">
+                  {preview.item.likelihood} × {preview.item.impact}
+                </KeyValue>
+                <KeyValue label="Inherent">{preview.item.inherent}</KeyValue>
+                <KeyValue label="Residual">{preview.item.residual}</KeyValue>
+                <KeyValue label="Reviewed">{preview.item.reviewed}</KeyValue>
+              </RailGroup>
+              <RailGroup title="Statement">
+                <p className="text-[12.5px] leading-relaxed text-muted-foreground">
+                  {preview.item.statement}
+                </p>
+              </RailGroup>
+            </PreviewRail>
           ) : null}
         </div>
-      </div>
+      </IndexPage>
     </Shell>
   );
 }

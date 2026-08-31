@@ -15,17 +15,26 @@ import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as ComponentsRouteImport } from './routes/components'
 import { Route as ControlsRouteImport } from './routes/controls'
 import { Route as EvidenceRouteImport } from './routes/evidence'
-import { Route as FindingsRouteImport } from './routes/findings'
-import { Route as PackagesRouteImport } from './routes/packages'
 import { Route as ProgramsRouteImport } from './routes/programs'
-import { Route as RegisterRouteImport } from './routes/register'
 import { Route as RisksRouteImport } from './routes/risks'
 import { Route as ScopeRouteImport } from './routes/scope'
 import { Route as StigsRouteImport } from './routes/stigs'
 import { Route as VendorsRouteImport } from './routes/vendors'
-import { Route as LibraryComponentsRouteImport } from './routes/library.components'
+import { Route as FindingsIndexRouteImport } from './routes/findings.index'
+import { Route as FindingsFindingIdRouteImport } from './routes/findings.$findingId'
+import { Route as PackagesIndexRouteImport } from './routes/packages.index'
+import { Route as PackagesPkgIdRouteImport } from './routes/packages.$pkgId'
+import { Route as PeoplePersonIdRouteImport } from './routes/people.$personId'
 import { Route as ProgramsProgramIdRouteImport } from './routes/programs.$programId'
+import { Route as RegisterIndexRouteImport } from './routes/register.index'
 import { Route as RisksRiskIdRouteImport } from './routes/risks.$riskId'
+import { Route as WorkstreamsWorkstreamIdRouteImport } from './routes/workstreams.$workstreamId'
+import { Route as FindingsAssetsAssetIdRouteImport } from './routes/findings.assets.$assetId'
+import { Route as LibraryComponentsIndexRouteImport } from './routes/library.components.index'
+import { Route as LibraryComponentsComponentKeyRouteImport } from './routes/library.components.$componentKey'
+import { Route as RegisterPoamPoamIdRouteImport } from './routes/register.poam.$poamId'
+import { Route as RegisterRisksRiskIdRouteImport } from './routes/register.risks.$riskId'
+import { Route as ProgramsProgramIdControlsControlIdRouteImport } from './routes/programs.$programId.controls.$controlId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -57,24 +66,9 @@ const EvidenceRoute = EvidenceRouteImport.update({
   path: '/evidence',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FindingsRoute = FindingsRouteImport.update({
-  id: '/findings',
-  path: '/findings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PackagesRoute = PackagesRouteImport.update({
-  id: '/packages',
-  path: '/packages',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ProgramsRoute = ProgramsRouteImport.update({
   id: '/programs',
   path: '/programs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RisksRoute = RisksRouteImport.update({
@@ -97,9 +91,29 @@ const VendorsRoute = VendorsRouteImport.update({
   path: '/vendors',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LibraryComponentsRoute = LibraryComponentsRouteImport.update({
-  id: '/library/components',
-  path: '/library/components',
+const FindingsIndexRoute = FindingsIndexRouteImport.update({
+  id: '/findings/',
+  path: '/findings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FindingsFindingIdRoute = FindingsFindingIdRouteImport.update({
+  id: '/findings/$findingId',
+  path: '/findings/$findingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PackagesIndexRoute = PackagesIndexRouteImport.update({
+  id: '/packages/',
+  path: '/packages/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PackagesPkgIdRoute = PackagesPkgIdRouteImport.update({
+  id: '/packages/$pkgId',
+  path: '/packages/$pkgId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PeoplePersonIdRoute = PeoplePersonIdRouteImport.update({
+  id: '/people/$personId',
+  path: '/people/$personId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProgramsProgramIdRoute = ProgramsProgramIdRouteImport.update({
@@ -107,11 +121,53 @@ const ProgramsProgramIdRoute = ProgramsProgramIdRouteImport.update({
   path: '/$programId',
   getParentRoute: () => ProgramsRoute,
 } as any)
+const RegisterIndexRoute = RegisterIndexRouteImport.update({
+  id: '/register/',
+  path: '/register/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RisksRiskIdRoute = RisksRiskIdRouteImport.update({
   id: '/$riskId',
   path: '/$riskId',
   getParentRoute: () => RisksRoute,
 } as any)
+const WorkstreamsWorkstreamIdRoute = WorkstreamsWorkstreamIdRouteImport.update({
+  id: '/workstreams/$workstreamId',
+  path: '/workstreams/$workstreamId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FindingsAssetsAssetIdRoute = FindingsAssetsAssetIdRouteImport.update({
+  id: '/findings/assets/$assetId',
+  path: '/findings/assets/$assetId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryComponentsIndexRoute = LibraryComponentsIndexRouteImport.update({
+  id: '/library/components/',
+  path: '/library/components/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryComponentsComponentKeyRoute =
+  LibraryComponentsComponentKeyRouteImport.update({
+    id: '/library/components/$componentKey',
+    path: '/library/components/$componentKey',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const RegisterPoamPoamIdRoute = RegisterPoamPoamIdRouteImport.update({
+  id: '/register/poam/$poamId',
+  path: '/register/poam/$poamId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRisksRiskIdRoute = RegisterRisksRiskIdRouteImport.update({
+  id: '/register/risks/$riskId',
+  path: '/register/risks/$riskId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgramsProgramIdControlsControlIdRoute =
+  ProgramsProgramIdControlsControlIdRouteImport.update({
+    id: '/controls/$controlId',
+    path: '/controls/$controlId',
+    getParentRoute: () => ProgramsProgramIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -120,17 +176,26 @@ export interface FileRoutesByFullPath {
   '/components': typeof ComponentsRoute
   '/controls': typeof ControlsRoute
   '/evidence': typeof EvidenceRoute
-  '/findings': typeof FindingsRoute
-  '/packages': typeof PackagesRoute
   '/programs': typeof ProgramsRouteWithChildren
-  '/register': typeof RegisterRoute
   '/risks': typeof RisksRouteWithChildren
   '/scope': typeof ScopeRoute
   '/stigs': typeof StigsRoute
   '/vendors': typeof VendorsRoute
-  '/library/components': typeof LibraryComponentsRoute
-  '/programs/$programId': typeof ProgramsProgramIdRoute
+  '/findings/$findingId': typeof FindingsFindingIdRoute
+  '/packages/$pkgId': typeof PackagesPkgIdRoute
+  '/people/$personId': typeof PeoplePersonIdRoute
+  '/programs/$programId': typeof ProgramsProgramIdRouteWithChildren
   '/risks/$riskId': typeof RisksRiskIdRoute
+  '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
+  '/findings/': typeof FindingsIndexRoute
+  '/packages/': typeof PackagesIndexRoute
+  '/register/': typeof RegisterIndexRoute
+  '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
+  '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
+  '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
+  '/library/components/': typeof LibraryComponentsIndexRoute
+  '/programs/$programId/controls/$controlId': typeof ProgramsProgramIdControlsControlIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -139,17 +204,26 @@ export interface FileRoutesByTo {
   '/components': typeof ComponentsRoute
   '/controls': typeof ControlsRoute
   '/evidence': typeof EvidenceRoute
-  '/findings': typeof FindingsRoute
-  '/packages': typeof PackagesRoute
   '/programs': typeof ProgramsRouteWithChildren
-  '/register': typeof RegisterRoute
   '/risks': typeof RisksRouteWithChildren
   '/scope': typeof ScopeRoute
   '/stigs': typeof StigsRoute
   '/vendors': typeof VendorsRoute
-  '/library/components': typeof LibraryComponentsRoute
-  '/programs/$programId': typeof ProgramsProgramIdRoute
+  '/findings/$findingId': typeof FindingsFindingIdRoute
+  '/packages/$pkgId': typeof PackagesPkgIdRoute
+  '/people/$personId': typeof PeoplePersonIdRoute
+  '/programs/$programId': typeof ProgramsProgramIdRouteWithChildren
   '/risks/$riskId': typeof RisksRiskIdRoute
+  '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
+  '/findings': typeof FindingsIndexRoute
+  '/packages': typeof PackagesIndexRoute
+  '/register': typeof RegisterIndexRoute
+  '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
+  '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
+  '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
+  '/library/components': typeof LibraryComponentsIndexRoute
+  '/programs/$programId/controls/$controlId': typeof ProgramsProgramIdControlsControlIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -159,17 +233,26 @@ export interface FileRoutesById {
   '/components': typeof ComponentsRoute
   '/controls': typeof ControlsRoute
   '/evidence': typeof EvidenceRoute
-  '/findings': typeof FindingsRoute
-  '/packages': typeof PackagesRoute
   '/programs': typeof ProgramsRouteWithChildren
-  '/register': typeof RegisterRoute
   '/risks': typeof RisksRouteWithChildren
   '/scope': typeof ScopeRoute
   '/stigs': typeof StigsRoute
   '/vendors': typeof VendorsRoute
-  '/library/components': typeof LibraryComponentsRoute
-  '/programs/$programId': typeof ProgramsProgramIdRoute
+  '/findings/$findingId': typeof FindingsFindingIdRoute
+  '/packages/$pkgId': typeof PackagesPkgIdRoute
+  '/people/$personId': typeof PeoplePersonIdRoute
+  '/programs/$programId': typeof ProgramsProgramIdRouteWithChildren
   '/risks/$riskId': typeof RisksRiskIdRoute
+  '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
+  '/findings/': typeof FindingsIndexRoute
+  '/packages/': typeof PackagesIndexRoute
+  '/register/': typeof RegisterIndexRoute
+  '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
+  '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
+  '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
+  '/library/components/': typeof LibraryComponentsIndexRoute
+  '/programs/$programId/controls/$controlId': typeof ProgramsProgramIdControlsControlIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -180,17 +263,26 @@ export interface FileRouteTypes {
     | '/components'
     | '/controls'
     | '/evidence'
-    | '/findings'
-    | '/packages'
     | '/programs'
-    | '/register'
     | '/risks'
     | '/scope'
     | '/stigs'
     | '/vendors'
-    | '/library/components'
+    | '/findings/$findingId'
+    | '/packages/$pkgId'
+    | '/people/$personId'
     | '/programs/$programId'
     | '/risks/$riskId'
+    | '/workstreams/$workstreamId'
+    | '/findings/'
+    | '/packages/'
+    | '/register/'
+    | '/findings/assets/$assetId'
+    | '/library/components/$componentKey'
+    | '/register/poam/$poamId'
+    | '/register/risks/$riskId'
+    | '/library/components/'
+    | '/programs/$programId/controls/$controlId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -199,17 +291,26 @@ export interface FileRouteTypes {
     | '/components'
     | '/controls'
     | '/evidence'
-    | '/findings'
-    | '/packages'
     | '/programs'
-    | '/register'
     | '/risks'
     | '/scope'
     | '/stigs'
     | '/vendors'
-    | '/library/components'
+    | '/findings/$findingId'
+    | '/packages/$pkgId'
+    | '/people/$personId'
     | '/programs/$programId'
     | '/risks/$riskId'
+    | '/workstreams/$workstreamId'
+    | '/findings'
+    | '/packages'
+    | '/register'
+    | '/findings/assets/$assetId'
+    | '/library/components/$componentKey'
+    | '/register/poam/$poamId'
+    | '/register/risks/$riskId'
+    | '/library/components'
+    | '/programs/$programId/controls/$controlId'
   id:
     | '__root__'
     | '/'
@@ -218,17 +319,26 @@ export interface FileRouteTypes {
     | '/components'
     | '/controls'
     | '/evidence'
-    | '/findings'
-    | '/packages'
     | '/programs'
-    | '/register'
     | '/risks'
     | '/scope'
     | '/stigs'
     | '/vendors'
-    | '/library/components'
+    | '/findings/$findingId'
+    | '/packages/$pkgId'
+    | '/people/$personId'
     | '/programs/$programId'
     | '/risks/$riskId'
+    | '/workstreams/$workstreamId'
+    | '/findings/'
+    | '/packages/'
+    | '/register/'
+    | '/findings/assets/$assetId'
+    | '/library/components/$componentKey'
+    | '/register/poam/$poamId'
+    | '/register/risks/$riskId'
+    | '/library/components/'
+    | '/programs/$programId/controls/$controlId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -238,15 +348,23 @@ export interface RootRouteChildren {
   ComponentsRoute: typeof ComponentsRoute
   ControlsRoute: typeof ControlsRoute
   EvidenceRoute: typeof EvidenceRoute
-  FindingsRoute: typeof FindingsRoute
-  PackagesRoute: typeof PackagesRoute
   ProgramsRoute: typeof ProgramsRouteWithChildren
-  RegisterRoute: typeof RegisterRoute
   RisksRoute: typeof RisksRouteWithChildren
   ScopeRoute: typeof ScopeRoute
   StigsRoute: typeof StigsRoute
   VendorsRoute: typeof VendorsRoute
-  LibraryComponentsRoute: typeof LibraryComponentsRoute
+  FindingsFindingIdRoute: typeof FindingsFindingIdRoute
+  PackagesPkgIdRoute: typeof PackagesPkgIdRoute
+  PeoplePersonIdRoute: typeof PeoplePersonIdRoute
+  WorkstreamsWorkstreamIdRoute: typeof WorkstreamsWorkstreamIdRoute
+  FindingsIndexRoute: typeof FindingsIndexRoute
+  PackagesIndexRoute: typeof PackagesIndexRoute
+  RegisterIndexRoute: typeof RegisterIndexRoute
+  FindingsAssetsAssetIdRoute: typeof FindingsAssetsAssetIdRoute
+  LibraryComponentsComponentKeyRoute: typeof LibraryComponentsComponentKeyRoute
+  RegisterPoamPoamIdRoute: typeof RegisterPoamPoamIdRoute
+  RegisterRisksRiskIdRoute: typeof RegisterRisksRiskIdRoute
+  LibraryComponentsIndexRoute: typeof LibraryComponentsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -293,32 +411,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EvidenceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/findings': {
-      id: '/findings'
-      path: '/findings'
-      fullPath: '/findings'
-      preLoaderRoute: typeof FindingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/packages': {
-      id: '/packages'
-      path: '/packages'
-      fullPath: '/packages'
-      preLoaderRoute: typeof PackagesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/programs': {
       id: '/programs'
       path: '/programs'
       fullPath: '/programs'
       preLoaderRoute: typeof ProgramsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/risks': {
@@ -349,11 +446,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VendorsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/library/components': {
-      id: '/library/components'
-      path: '/library/components'
-      fullPath: '/library/components'
-      preLoaderRoute: typeof LibraryComponentsRouteImport
+    '/findings/': {
+      id: '/findings/'
+      path: '/findings'
+      fullPath: '/findings/'
+      preLoaderRoute: typeof FindingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/findings/$findingId': {
+      id: '/findings/$findingId'
+      path: '/findings/$findingId'
+      fullPath: '/findings/$findingId'
+      preLoaderRoute: typeof FindingsFindingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/packages/': {
+      id: '/packages/'
+      path: '/packages'
+      fullPath: '/packages/'
+      preLoaderRoute: typeof PackagesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/packages/$pkgId': {
+      id: '/packages/$pkgId'
+      path: '/packages/$pkgId'
+      fullPath: '/packages/$pkgId'
+      preLoaderRoute: typeof PackagesPkgIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/people/$personId': {
+      id: '/people/$personId'
+      path: '/people/$personId'
+      fullPath: '/people/$personId'
+      preLoaderRoute: typeof PeoplePersonIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/programs/$programId': {
@@ -363,6 +488,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProgramsProgramIdRouteImport
       parentRoute: typeof ProgramsRoute
     }
+    '/register/': {
+      id: '/register/'
+      path: '/register'
+      fullPath: '/register/'
+      preLoaderRoute: typeof RegisterIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/risks/$riskId': {
       id: '/risks/$riskId'
       path: '/$riskId'
@@ -370,15 +502,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RisksRiskIdRouteImport
       parentRoute: typeof RisksRoute
     }
+    '/workstreams/$workstreamId': {
+      id: '/workstreams/$workstreamId'
+      path: '/workstreams/$workstreamId'
+      fullPath: '/workstreams/$workstreamId'
+      preLoaderRoute: typeof WorkstreamsWorkstreamIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/findings/assets/$assetId': {
+      id: '/findings/assets/$assetId'
+      path: '/findings/assets/$assetId'
+      fullPath: '/findings/assets/$assetId'
+      preLoaderRoute: typeof FindingsAssetsAssetIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library/components/': {
+      id: '/library/components/'
+      path: '/library/components'
+      fullPath: '/library/components/'
+      preLoaderRoute: typeof LibraryComponentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library/components/$componentKey': {
+      id: '/library/components/$componentKey'
+      path: '/library/components/$componentKey'
+      fullPath: '/library/components/$componentKey'
+      preLoaderRoute: typeof LibraryComponentsComponentKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register/poam/$poamId': {
+      id: '/register/poam/$poamId'
+      path: '/register/poam/$poamId'
+      fullPath: '/register/poam/$poamId'
+      preLoaderRoute: typeof RegisterPoamPoamIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register/risks/$riskId': {
+      id: '/register/risks/$riskId'
+      path: '/register/risks/$riskId'
+      fullPath: '/register/risks/$riskId'
+      preLoaderRoute: typeof RegisterRisksRiskIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/programs/$programId/controls/$controlId': {
+      id: '/programs/$programId/controls/$controlId'
+      path: '/controls/$controlId'
+      fullPath: '/programs/$programId/controls/$controlId'
+      preLoaderRoute: typeof ProgramsProgramIdControlsControlIdRouteImport
+      parentRoute: typeof ProgramsProgramIdRoute
+    }
   }
 }
 
+interface ProgramsProgramIdRouteChildren {
+  ProgramsProgramIdControlsControlIdRoute: typeof ProgramsProgramIdControlsControlIdRoute
+}
+
+const ProgramsProgramIdRouteChildren: ProgramsProgramIdRouteChildren = {
+  ProgramsProgramIdControlsControlIdRoute:
+    ProgramsProgramIdControlsControlIdRoute,
+}
+
+const ProgramsProgramIdRouteWithChildren =
+  ProgramsProgramIdRoute._addFileChildren(ProgramsProgramIdRouteChildren)
+
 interface ProgramsRouteChildren {
-  ProgramsProgramIdRoute: typeof ProgramsProgramIdRoute
+  ProgramsProgramIdRoute: typeof ProgramsProgramIdRouteWithChildren
 }
 
 const ProgramsRouteChildren: ProgramsRouteChildren = {
-  ProgramsProgramIdRoute: ProgramsProgramIdRoute,
+  ProgramsProgramIdRoute: ProgramsProgramIdRouteWithChildren,
 }
 
 const ProgramsRouteWithChildren = ProgramsRoute._addFileChildren(
@@ -402,15 +595,23 @@ const rootRouteChildren: RootRouteChildren = {
   ComponentsRoute: ComponentsRoute,
   ControlsRoute: ControlsRoute,
   EvidenceRoute: EvidenceRoute,
-  FindingsRoute: FindingsRoute,
-  PackagesRoute: PackagesRoute,
   ProgramsRoute: ProgramsRouteWithChildren,
-  RegisterRoute: RegisterRoute,
   RisksRoute: RisksRouteWithChildren,
   ScopeRoute: ScopeRoute,
   StigsRoute: StigsRoute,
   VendorsRoute: VendorsRoute,
-  LibraryComponentsRoute: LibraryComponentsRoute,
+  FindingsFindingIdRoute: FindingsFindingIdRoute,
+  PackagesPkgIdRoute: PackagesPkgIdRoute,
+  PeoplePersonIdRoute: PeoplePersonIdRoute,
+  WorkstreamsWorkstreamIdRoute: WorkstreamsWorkstreamIdRoute,
+  FindingsIndexRoute: FindingsIndexRoute,
+  PackagesIndexRoute: PackagesIndexRoute,
+  RegisterIndexRoute: RegisterIndexRoute,
+  FindingsAssetsAssetIdRoute: FindingsAssetsAssetIdRoute,
+  LibraryComponentsComponentKeyRoute: LibraryComponentsComponentKeyRoute,
+  RegisterPoamPoamIdRoute: RegisterPoamPoamIdRoute,
+  RegisterRisksRiskIdRoute: RegisterRisksRiskIdRoute,
+  LibraryComponentsIndexRoute: LibraryComponentsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

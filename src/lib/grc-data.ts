@@ -221,12 +221,16 @@ export const activity = [
 
 export type ImpactLevel = "Low" | "Moderate" | "High";
 
-export type ProgramStatus =
-  | "Draft"
-  | "In assessment"
-  | "Authorized"
-  | "POA&M open"
-  | "Expired";
+export const programStatuses = [
+  "Draft",
+  "In assessment",
+  "Authorized",
+  "POA&M open",
+  "Expired",
+] as const;
+
+export type ProgramStatus = (typeof programStatuses)[number];
+
 
 export type Program = {
   id: string;

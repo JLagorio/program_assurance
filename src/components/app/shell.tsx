@@ -185,7 +185,6 @@ function TopBar() {
   );
 }
 
-/** App frame: fixed sidebar of objects and queues, top bar, and a 1240px content column. Wrap every screen in it. @category layout */
 export function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background text-foreground">

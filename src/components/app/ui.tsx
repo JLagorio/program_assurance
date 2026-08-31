@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { createPortal } from "react-dom";
-import { useState } from "react";
-import { ChevronDown, Plus, X } from "lucide-react";
+import { Children, useState } from "react";
+import { ChevronDown, ChevronLeft, Eye, Search } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -9,26 +9,26 @@ import { cn } from "@/lib/utils";
 /* ------------------------------------------------------------------ Button */
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "link";
-type ButtonSize = "sm" | "md";
+type ButtonSize = "xs" | "sm" | "md";
 
 const buttonBase =
-  "inline-flex select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium transition-[box-shadow,background-color,color] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium transition-[box-shadow,background-color,color,transform] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 active:translate-y-px";
 
 const buttonVariants: Record<ButtonVariant, string> = {
   primary:
     "bg-primary text-primary-foreground shadow-button-primary hover:brightness-[1.07] active:brightness-95",
-  secondary: "bg-card text-foreground shadow-button hover:bg-subtle",
-  ghost: "text-muted-foreground hover:bg-muted hover:text-foreground",
+  secondary: "bg-card text-foreground shadow-button hover:bg-surface-hover",
+  ghost: "text-muted-foreground hover:bg-surface-hover hover:text-foreground",
   danger: "bg-danger text-primary-foreground shadow-button-primary hover:brightness-[1.07]",
   link: "text-primary hover:underline underline-offset-2 decoration-primary/40",
 };
 
 const buttonSizes: Record<ButtonSize, string> = {
-  sm: "h-7 px-2.5 text-[13px]",
-  md: "h-8 px-3 text-[13px]",
+  xs: "h-6 px-2 text-12",
+  sm: "h-7 px-2.5 text-13",
+  md: "h-8 px-3 text-13",
 };
 
-/** Primary action control. Variants: primary (one per view), secondary (default), ghost, danger, link. @category actions */
 export function Button({
   variant = "secondary",
   size = "md",
@@ -48,7 +48,6 @@ export function Button({
   );
 }
 
-/** Square 28px button for a single icon action - pass a lucide icon as the child. @category actions */
 export function IconButton({ className, ...props }: ComponentProps<"button">) {
   return (
     <button
@@ -74,14 +73,15 @@ const toneStyles: Record<Tone, string> = {
   info: "bg-info-soft text-info ring-info/20",
 };
 
-/** Inline status pill with semantic tone and optional leading icon. @category status */
 export function Badge({
   tone = "neutral",
+  size = "sm",
   children,
   icon,
   className,
 }: {
   tone?: Tone;
+  size?: "xs" | "sm";
   children: ReactNode;
   icon?: ReactNode;
   className?: string;
@@ -89,7 +89,8 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-[5px] px-1.5 py-0.5 text-[12px] font-medium leading-4 ring-1 ring-inset",
+        "inline-flex items-center gap-1 rounded-[5px] font-medium ring-1 ring-inset",
+        size === "xs" ? "px-1 py-px text-11" : "px-1.5 py-0.5 text-12 leading-4",
         toneStyles[tone],
         className,
       )}
@@ -100,7 +101,6 @@ export function Badge({
   );
 }
 
-/** 6px status dot for compact tone signaling in tables and lists. @category status */
 export function Dot({ tone = "neutral" }: { tone?: Tone }) {
   const map: Record<Tone, string> = {
     neutral: "bg-muted-foreground/50",
@@ -114,7 +114,6 @@ export function Dot({ tone = "neutral" }: { tone?: Tone }) {
 
 /* -------------------------------------------------------------------- Card */
 
-/** Bordered white surface; compose with CardHeader, Table, or padded content. @category layout */
 export function Card({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
@@ -127,7 +126,6 @@ export function Card({ className, ...props }: ComponentProps<"div">) {
 /* ----------------------------------------------------------------- Section */
 /* Borderless block: a rule + label, the way Stripe separates page regions. */
 
-/** Borderless page region: a rule + label, the way Stripe separates page regions. @category layout */
 export function Section({
   title,
   description,
@@ -157,7 +155,6 @@ export function Section({
   );
 }
 
-/** Title row for a Card: title, optional description, and right-aligned actions. @category layout */
 export function CardHeader({
   title,
   description,
@@ -189,7 +186,6 @@ export function CardHeader({
 
 /* ------------------------------------------------------------------- Table */
 
-/** Data table wrapper (horizontal scroll built in); compose with Th, Tr, Td. @category data */
 export function Table({ className, ...props }: ComponentProps<"table">) {
   return (
     <div className="w-full overflow-x-auto">
@@ -198,12 +194,11 @@ export function Table({ className, ...props }: ComponentProps<"table">) {
   );
 }
 
-/** Header cell: 12px muted label, bottom rule. @category data */
 export function Th({ className, ...props }: ComponentProps<"th">) {
   return (
     <th
       className={cn(
-        "h-8 whitespace-nowrap border-b border-border px-3 text-[12px] font-medium text-muted-foreground first:pl-3 last:pr-3",
+        "sticky top-0 z-10 h-8 whitespace-nowrap border-b border-border bg-background px-3 text-12 font-medium text-muted-foreground first:pl-3 last:pr-3",
         className,
       )}
       {...props}
@@ -211,7 +206,6 @@ export function Th({ className, ...props }: ComponentProps<"th">) {
   );
 }
 
-/** Body cell: 36px row height, truncating. @category data */
 export function Td({ className, ...props }: ComponentProps<"td">) {
   return (
     <td
@@ -224,12 +218,11 @@ export function Td({ className, ...props }: ComponentProps<"td">) {
   );
 }
 
-/** Body row with hover highlight and hairline divider. @category data */
 export function Tr({ className, ...props }: ComponentProps<"tr">) {
   return (
     <tr
       className={cn(
-        "border-b border-border/70 transition-colors last:border-0 hover:bg-subtle",
+        "group/row border-b border-border-subtle transition-colors duration-100 last:border-0 hover:bg-surface-hover",
         className,
       )}
       {...props}
@@ -237,9 +230,134 @@ export function Tr({ className, ...props }: ComponentProps<"tr">) {
   );
 }
 
+/* --------------------------------------------------- Row identity + preview */
+/* One pattern everywhere: the row itself opens the record page; the eye button
+   that appears on hover opens the same row in the preview rail. */
+
+export function IdCell({
+  id,
+  onPreview,
+  active,
+  tone = "primary",
+}: {
+  id: ReactNode;
+  onPreview?: () => void;
+  active?: boolean;
+  tone?: "primary" | "muted";
+}) {
+  return (
+    <Td className="max-w-none">
+      <span className="flex items-center gap-1.5">
+        <Mono className={tone === "primary" ? "text-primary" : "text-muted-foreground"}>{id}</Mono>
+        {onPreview ? (
+          <button
+            type="button"
+            aria-label="Preview row"
+            title="Preview"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPreview();
+            }}
+            className={cn(
+              "ml-auto inline-flex size-5 shrink-0 items-center justify-center rounded transition-colors focus-visible:opacity-100 focus-visible:outline-none",
+              active
+                ? "bg-primary-soft text-primary opacity-100"
+                : "text-muted-foreground opacity-0 hover:bg-muted hover:text-foreground group-hover/row:opacity-100",
+            )}
+          >
+            <Eye className="size-3.5" />
+          </button>
+        ) : null}
+      </span>
+    </Td>
+  );
+}
+
+/** The right rail is a preview surface only — never the record itself. */
+export function PreviewRail({
+  id,
+  title,
+  onClose,
+  openTo,
+  children,
+}: {
+  id: ReactNode;
+  title?: ReactNode;
+  onClose: () => void;
+  openTo?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <aside className="border-t border-border pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+          Preview
+        </span>
+        <Mono className="text-primary">{id}</Mono>
+        <button
+          onClick={onClose}
+          className="ml-auto text-[12px] text-muted-foreground hover:text-foreground"
+        >
+          Close
+        </button>
+      </div>
+      {title ? <h2 className="mt-1.5 text-[13.5px] font-semibold leading-snug">{title}</h2> : null}
+      {openTo ? <div className="mt-1.5 text-[12.5px]">{openTo}</div> : null}
+      <div className="mt-3">{children}</div>
+    </aside>
+  );
+}
+
+/** Compact record-page header: back chevron, id, title, meta — no breadcrumb. */
+export function RecordHeader({
+  backTo,
+  backParams,
+  id,
+  title,
+  meta,
+  actions,
+  below,
+}: {
+  backTo: string;
+  backParams?: Record<string, string>;
+  id: ReactNode;
+  title: ReactNode;
+  meta?: ReactNode;
+  actions?: ReactNode;
+  /** Persistent state strip rendered under the title row (e.g. lifecycle). */
+  below?: ReactNode;
+}) {
+  return (
+    <div className="space-y-2.5">
+      <div className="flex items-start gap-2.5">
+        <Link
+          to={backTo}
+          params={backParams as never}
+          aria-label="Back"
+          className="mt-1 inline-flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <ChevronLeft className="size-4" />
+        </Link>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline gap-2">
+            <Mono className="text-muted-foreground">{id}</Mono>
+            {meta ? (
+              <span className="truncate text-[12px] text-muted-foreground">{meta}</span>
+            ) : null}
+          </div>
+          <h1 className="mt-0.5 text-[18px] font-semibold leading-tight tracking-[-0.015em]">
+            {title}
+          </h1>
+        </div>
+        {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
+      </div>
+      {below}
+    </div>
+  );
+}
+
 /* -------------------------------------------------------------------- Tabs */
 
-/** Underline tab strip; items with `to` render router Links, `count` adds a chip. @category navigation */
 export function Tabs({
   items,
   active,
@@ -282,7 +400,6 @@ export function Tabs({
 
 /* ------------------------------------------------------------ Filter chips */
 
-/** Dashed add-filter chip; turns solid blue when a filter value is active. @category navigation */
 export function FilterChip({
   label,
   value,
@@ -305,7 +422,7 @@ export function FilterChip({
       )}
       {...props}
     >
-      <Plus className="size-3 shrink-0" strokeWidth={1.75} />
+      <span className="text-[13px] leading-none">+</span>
       {label}
       {value ? <span className="font-medium text-foreground">{value}</span> : null}
     </button>
@@ -314,7 +431,6 @@ export function FilterChip({
 
 /* ------------------------------------------------------------- Key / value */
 
-/** Label/value row for property lists inside RailGroup or detail rails. @category data */
 export function KeyValue({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
@@ -324,7 +440,7 @@ export function KeyValue({ label, children }: { label: string; children: ReactNo
   );
 }
 
-/** Collapsible property group for the record detail rail. @category navigation */
+/** Collapsible property group for the record detail rail. */
 export function RailGroup({
   title,
   children,
@@ -361,8 +477,6 @@ export function RailGroup({
   );
 }
 
-
-/** Monospace inline text for IDs, control numbers, and technical values. @category data */
 export function Mono({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <span className={cn("font-mono text-[12px] tracking-tight text-foreground", className)}>
@@ -373,7 +487,6 @@ export function Mono({ children, className }: { children: ReactNode; className?:
 
 /* ------------------------------------------------------------ Progress bar */
 
-/** Thin progress bar with semantic tone; value is 0-100. @category status */
 export function Meter({ value, tone = "info" }: { value: number; tone?: Tone }) {
   const map: Record<Tone, string> = {
     neutral: "bg-muted-foreground/40",
@@ -389,9 +502,62 @@ export function Meter({ value, tone = "info" }: { value: number; tone?: Tone }) 
   );
 }
 
+/** Segmented proportional bar. One primitive for every coverage read-out. */
+export function StackedBar({
+  segments,
+  height = 8,
+}: {
+  segments: {
+    key: string;
+    value: number;
+    tone: Tone;
+    title?: string;
+    onClick?: () => void;
+  }[];
+  height?: number;
+}) {
+  const map: Record<Tone, string> = {
+    neutral: "bg-muted-foreground/25",
+    success: "bg-success",
+    warning: "bg-warning",
+    danger: "bg-danger",
+    info: "bg-primary",
+  };
+  const total = segments.reduce((a, s) => a + Math.max(0, s.value), 0) || 1;
+  return (
+    <span
+      className="flex w-full overflow-hidden rounded-full bg-muted"
+      style={{ height: `${height}px` }}
+    >
+      {segments
+        .filter((s) => s.value > 0)
+        .map((s) =>
+          s.onClick ? (
+            <button
+              key={s.key}
+              type="button"
+              title={s.title}
+              onClick={s.onClick}
+              className={cn("h-full transition-[width] duration-[120ms]", map[s.tone])}
+              style={{ width: `${(s.value / total) * 100}%` }}
+            />
+          ) : (
+            <span
+              key={s.key}
+              title={s.title}
+              className={cn("h-full transition-[width] duration-[120ms]", map[s.tone])}
+              style={{ width: `${(s.value / total) * 100}%` }}
+            />
+          ),
+        )}
+    </span>
+  );
+}
+
+
+
 /* ------------------------------------------------------------- Page header */
 
-/** Page title block: optional eyebrow, 22px title, description, right-aligned actions. @category layout */
 export function PageHeader({
   eyebrow,
   title,
@@ -409,7 +575,7 @@ export function PageHeader({
         {eyebrow ? <div className="mb-1 text-[13px] text-muted-foreground">{eyebrow}</div> : null}
         <h1 className="text-[22px] font-semibold tracking-[-0.02em]">{title}</h1>
         {description ? (
-          <p className="mt-1 max-w-2xl text-[13px] text-muted-foreground">{description}</p>
+          <p className="mt-1 max-w-2xl truncate text-[13px] text-muted-foreground">{description}</p>
         ) : null}
       </div>
       {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
@@ -417,9 +583,120 @@ export function PageHeader({
   );
 }
 
+/* --------------------------------------------------------- Page archetypes */
+/* Every screen is one of these two shapes:
+ *
+ *   IndexPage — header, one filter row, one dense table. The only inline
+ *               detail surface is the preview rail (IdCell eye action).
+ *
+ *   ShowPage  — RecordHeader, one tab strip running full width, then the
+ *               tab body. The `rail` renders ONLY beside the overview tab;
+ *               every other tab is full-width and self-contained.
+ */
+
+export function IndexPage({
+  header,
+  filters,
+  children,
+}: {
+  header: ReactNode;
+  filters?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className="animate-slide-up space-y-4">
+      {header}
+      {filters ? <div className="flex flex-wrap items-center gap-2">{filters}</div> : null}
+      {children}
+    </div>
+  );
+}
+
+/** Underline tab strip; buttons for in-page tabs. Border meets the rail's rule. */
+export function TabStrip({
+  items,
+  className,
+}: {
+  items: {
+    key: string;
+    label: ReactNode;
+    active?: boolean;
+    onSelect?: () => void;
+    to?: string;
+    params?: Record<string, string>;
+    disabled?: boolean;
+    trailing?: ReactNode;
+  }[];
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn("flex items-center gap-4 overflow-x-auto border-b border-border", className)}
+    >
+      {items.map((item) => {
+        const content = (
+          <span
+            className={cn(
+              "-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-0.5 pb-2.5 pt-1 text-[13px] transition-colors",
+              item.active
+                ? "border-primary font-semibold text-primary"
+                : "border-transparent font-medium text-muted-foreground hover:text-foreground",
+              item.disabled ? "opacity-60" : null,
+            )}
+          >
+            {item.label}
+            {item.trailing}
+          </span>
+        );
+        if (item.to) {
+          return (
+            <Link key={item.key} to={item.to} params={item.params as never}>
+              {content}
+            </Link>
+          );
+        }
+        return (
+          <button key={item.key} onClick={item.onSelect} disabled={!item.onSelect}>
+            {content}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function ShowPage({
+  header,
+  tabs,
+  showRail,
+  rail,
+  children,
+}: {
+  header: ReactNode;
+  tabs?: ReactNode;
+  /** True only on the overview tab — the rail never renders elsewhere. */
+  showRail?: boolean;
+  rail?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className="animate-slide-up space-y-4">
+      {header}
+      {tabs}
+      <div className={cn("grid", showRail && rail ? "lg:grid-cols-[minmax(0,1fr)_272px]" : "")}>
+        <div className={cn("min-w-0 space-y-7 pt-6", showRail && rail ? "lg:pr-6" : "")}>
+          {children}
+        </div>
+        {showRail && rail ? (
+          <aside className="pt-6 lg:border-l lg:border-border lg:pl-6">{rail}</aside>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------ Form inputs */
 
-/** Form field wrapper: label above the control, optional hint below. @category forms */
 export function Field({
   label,
   hint,
@@ -443,22 +720,14 @@ export function Field({
 const controlBase =
   "h-8 w-full rounded-md border border-input bg-card px-2.5 text-[13px] text-foreground shadow-[0_1px_1px_oklch(0.21_0.03_264/0.04)] outline-none transition-[box-shadow,border-color] placeholder:text-muted-foreground focus:border-primary/60 focus:ring-2 focus:ring-ring/20";
 
-/** Single-line text input, 32px tall. @category forms */
 export function Input({ className, ...props }: ComponentProps<"input">) {
   return <input className={cn(controlBase, className)} {...props} />;
 }
 
-/** Native select styled to match Input; the chevron is drawn by the DS, not the OS. @category forms */
 export function Select({ className, ...props }: ComponentProps<"select">) {
-  return (
-    <span className="relative block">
-      <select className={cn(controlBase, "appearance-none pr-7", className)} {...props} />
-      <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-    </span>
-  );
+  return <select className={cn(controlBase, "pr-7", className)} {...props} />;
 }
 
-/** Multi-line input, resizable, min 68px. @category forms */
 export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
   return (
     <textarea
@@ -468,48 +737,8 @@ export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
   );
 }
 
-/* ------------------------------------------------------------ Empty state */
-
-/** Designed empty state for tables, lists, and first-run screens: optional icon, one-line reason, primary action. @category display */
-export function EmptyState({
-  icon,
-  title,
-  description,
-  action,
-  className,
-}: {
-  icon?: ReactNode;
-  title: string;
-  description?: ReactNode;
-  action?: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center px-6 py-12 text-center",
-        className,
-      )}
-    >
-      {icon ? (
-        <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-subtle text-muted-foreground [&_svg]:size-5">
-          {icon}
-        </div>
-      ) : null}
-      <h3 className="text-[13px] font-semibold">{title}</h3>
-      {description ? (
-        <p className="mt-1 max-w-[380px] text-[12.5px] leading-relaxed text-muted-foreground">
-          {description}
-        </p>
-      ) : null}
-      {action ? <div className="mt-3.5 flex items-center gap-2">{action}</div> : null}
-    </div>
-  );
-}
-
 /* ------------------------------------------------------------------ Modal */
 
-/** Centered dialog over a scrim; title/description header, optional footer actions and side rail. @category overlay */
 export function Modal({
   open,
   onClose,
@@ -558,7 +787,7 @@ export function Modal({
             aria-label="Close"
             className="-mr-1 flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            <X className="size-4" strokeWidth={1.75} />
+            ✕
           </button>
         </div>
         <div className={cn("grid", aside ? "md:grid-cols-[minmax(0,1fr)_300px]" : "")}>
@@ -575,6 +804,382 @@ export function Modal({
           </div>
         ) : null}
       </div>
+    </div>,
+    document.body,
+  );
+}
+
+/* ----------------------------------------------------------- Related card */
+/* A bordered card that owns one related object type: title, count, a few
+   dense rows, and a single link out to the full list. */
+
+export function RelatedCard({
+  title,
+  count,
+  action,
+  children,
+  empty = "Nothing linked yet",
+}: {
+  title: ReactNode;
+  count?: number;
+  action?: ReactNode;
+  children?: ReactNode;
+  empty?: string;
+}) {
+  const has = Children.count(children) > 0;
+  return (
+    <div className="flex flex-col overflow-hidden rounded-lg border border-border bg-card">
+      <div className="flex h-9 items-center gap-2 border-b border-border px-3">
+        <span className="truncate text-[12.5px] font-semibold">{title}</span>
+        {typeof count === "number" ? (
+          <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
+            {count}
+          </span>
+        ) : null}
+        {action ? <span className="ml-auto flex items-center">{action}</span> : null}
+      </div>
+      {has ? (
+        <div className="divide-y divide-border/70">{children}</div>
+      ) : (
+        <div className="px-3 py-3 text-[12.5px] text-muted-foreground">{empty}</div>
+      )}
+    </div>
+  );
+}
+
+/** One line inside a RelatedCard: label, optional meta, optional trailing value. */
+export function RelatedRow({
+  lead,
+  label,
+  meta,
+  trailing,
+  onClick,
+}: {
+  lead?: ReactNode;
+  label: ReactNode;
+  meta?: ReactNode;
+  trailing?: ReactNode;
+  onClick?: () => void;
+}) {
+  const inner = (
+    <>
+      {lead ? <span className="flex shrink-0 items-center">{lead}</span> : null}
+      <span className="min-w-0 flex-1 truncate text-[12.5px]">{label}</span>
+      {meta ? (
+        <span className="shrink-0 truncate text-[12px] text-muted-foreground">{meta}</span>
+      ) : null}
+      {trailing ? (
+        <span className="tnum shrink-0 text-[12px] text-muted-foreground">{trailing}</span>
+      ) : null}
+    </>
+  );
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex h-8 w-full items-center gap-2 px-3 text-left transition-colors hover:bg-muted/60"
+      >
+        {inner}
+      </button>
+    );
+  }
+  return <div className="flex h-8 items-center gap-2 px-3">{inner}</div>;
+}
+
+/* ------------------------------------------------------------- Avatar */
+/* People are named everywhere; text-only names read as a spreadsheet. */
+
+const avatarTones = [
+  "bg-primary-soft text-primary",
+  "bg-success-soft text-success",
+  "bg-warning-soft text-warning",
+  "bg-danger-soft text-danger",
+  "bg-muted text-muted-foreground",
+];
+
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  const first = parts[0]?.[0] ?? "";
+  const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? "") : "";
+  return (first + last).toUpperCase();
+}
+
+function hashIndex(s: string, n: number) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h % n;
+}
+
+export function Avatar({
+  name,
+  size = "sm",
+  className,
+}: {
+  name: string;
+  size?: "xs" | "sm";
+  className?: string;
+}) {
+  return (
+    <span
+      title={name}
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center rounded-full font-semibold ring-1 ring-inset ring-border-subtle",
+        size === "xs" ? "size-4 text-[9px]" : "size-5 text-[10px]",
+        avatarTones[hashIndex(name, avatarTones.length)],
+        className,
+      )}
+    >
+      {initials(name)}
+    </span>
+  );
+}
+
+export function Person({ name, className }: { name: string; className?: string }) {
+  return (
+    <span className={cn("flex min-w-0 items-center gap-1.5", className)}>
+      <Avatar name={name} size="xs" />
+      <span className="truncate text-12 text-muted-foreground">{name}</span>
+    </span>
+  );
+}
+
+export function AvatarStack({ names, max = 4 }: { names: string[]; max?: number }) {
+  const shown = names.slice(0, max);
+  const rest = names.length - shown.length;
+  return (
+    <span className="flex items-center">
+      {shown.map((n) => (
+        <Avatar key={n} name={n} size="xs" className="-ml-1 first:ml-0 ring-background" />
+      ))}
+      {rest > 0 ? (
+        <span className="-ml-1 inline-flex size-4 items-center justify-center rounded-full bg-muted text-[9px] font-semibold text-muted-foreground ring-1 ring-inset ring-border-subtle">
+          +{rest}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
+/* --------------------------------------------------------------- Kbd */
+
+export function Kbd({ children }: { children: ReactNode }) {
+  return (
+    <kbd className="inline-flex h-4 min-w-4 items-center justify-center rounded border border-border-subtle bg-surface-2 px-1 font-sans text-[10px] font-medium text-muted-foreground">
+      {children}
+    </kbd>
+  );
+}
+
+/* -------------------------------------------------------------- Menu */
+/* Small, keyboard-dismissible dropdown. No portal — anchored to trigger. */
+
+export function Menu({
+  trigger,
+  align = "start",
+  width = 200,
+  children,
+}: {
+  trigger: (props: { open: boolean; toggle: () => void }) => ReactNode;
+  align?: "start" | "end";
+  width?: number;
+  children: (close: () => void) => ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      {trigger({ open, toggle: () => setOpen((o) => !o) })}
+      {open ? (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} aria-hidden />
+          <div
+            role="menu"
+            style={{ width }}
+            className={cn(
+              "absolute top-[calc(100%+4px)] z-40 overflow-hidden rounded-lg border border-border bg-popover p-1 shadow-pop",
+              align === "end" ? "right-0" : "left-0",
+            )}
+          >
+            {children(() => setOpen(false))}
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+export function MenuItem({
+  children,
+  selected,
+  onSelect,
+  trailing,
+}: {
+  children: ReactNode;
+  selected?: boolean;
+  onSelect?: () => void;
+  trailing?: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onSelect}
+      className={cn(
+        "flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-13 transition-colors duration-100",
+        selected ? "bg-primary-soft text-primary" : "text-foreground hover:bg-surface-hover",
+      )}
+    >
+      <span className="min-w-0 flex-1 truncate">{children}</span>
+      {trailing ? <span className="shrink-0 text-11 text-muted-foreground">{trailing}</span> : null}
+    </button>
+  );
+}
+
+export function MenuLabel({ children }: { children: ReactNode }) {
+  return (
+    <div className="px-2 pb-1 pt-1.5 text-11 font-medium uppercase tracking-[0.06em] text-muted-foreground">
+      {children}
+    </div>
+  );
+}
+
+/* ------------------------------------------------- Toolbar / segmented */
+
+export function Toolbar({
+  search,
+  onSearch,
+  placeholder = "Search",
+  children,
+  actions,
+}: {
+  search?: string;
+  onSearch?: (v: string) => void;
+  placeholder?: string;
+  children?: ReactNode;
+  actions?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 pb-2.5 pt-3">
+      {onSearch ? (
+        <span className="relative">
+          <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search ?? ""}
+            onChange={(e) => onSearch(e.target.value)}
+            placeholder={placeholder}
+            className="h-7 w-[200px] pl-7 text-13"
+          />
+        </span>
+      ) : null}
+      {children}
+      {actions ? <span className="ml-auto flex items-center gap-2">{actions}</span> : null}
+    </div>
+  );
+}
+
+export function SegmentedControl<T extends string>({
+  items,
+  value,
+  onChange,
+}: {
+  items: { value: T; label: ReactNode }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="inline-flex h-7 items-center gap-0.5 rounded-md bg-muted p-0.5">
+      {items.map((i) => (
+        <button
+          key={i.value}
+          type="button"
+          onClick={() => onChange(i.value)}
+          aria-pressed={value === i.value}
+          className={cn(
+            "inline-flex h-6 items-center rounded-[5px] px-2 text-12 font-medium transition-colors duration-100",
+            value === i.value
+              ? "bg-card text-foreground shadow-hairline"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {i.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------- Empty state */
+
+export function EmptyState({
+  title,
+  description,
+  action,
+}: {
+  title: string;
+  description?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-start gap-1.5 rounded-lg border border-dashed border-border px-4 py-6">
+      <p className="text-13 font-medium">{title}</p>
+      {description ? <p className="text-12 text-muted-foreground">{description}</p> : null}
+      {action ? <div className="pt-1.5">{action}</div> : null}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ Drawer */
+/* Right-side detail surface. Used for previews and record detail that should
+   not take the user off the page. */
+
+export function Drawer({
+  open,
+  onClose,
+  title,
+  subtitle,
+  footer,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: ReactNode;
+  subtitle?: ReactNode;
+  footer?: ReactNode;
+  children: ReactNode;
+}) {
+  if (!open || typeof document === "undefined") return null;
+  return createPortal(
+    <div className="fixed inset-0 z-50">
+      <div className="absolute inset-0 bg-foreground/20" onClick={onClose} aria-hidden />
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label={typeof title === "string" ? title : undefined}
+        className="absolute inset-y-0 right-0 flex w-full max-w-[420px] flex-col bg-card shadow-pop animate-slide-up"
+      >
+        <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
+          <div className="min-w-0">
+            <h2 className="truncate text-[14px] font-semibold tracking-[-0.01em]">{title}</h2>
+            {subtitle ? (
+              <p className="mt-0.5 truncate text-12 text-muted-foreground">{subtitle}</p>
+            ) : null}
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="-mr-1 flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">{children}</div>
+        {footer ? (
+          <div className="flex items-center justify-end gap-2 border-t border-border bg-subtle px-4 py-2.5">
+            {footer}
+          </div>
+        ) : null}
+      </aside>
     </div>,
     document.body,
   );

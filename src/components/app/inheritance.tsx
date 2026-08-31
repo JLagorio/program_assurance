@@ -7,7 +7,7 @@ import {
   type SystemComponent,
 } from "@/lib/reusable-components";
 
-/** Program → source component. One affordance, used everywhere a row is inherited. @category data */
+/** Program → source component. One affordance, used everywhere a row is inherited. */
 export function InheritChip({
   component,
   stale = false,
@@ -25,8 +25,8 @@ export function InheritChip({
 
   return (
     <Link
-      to="/library/components"
-      search={{ component: component.key }}
+      to="/library/components/$componentKey"
+      params={{ componentKey: component.key }}
       className="inline-flex max-w-full items-center gap-1 rounded border border-border bg-subtle px-1.5 py-px text-[11.5px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
       title={`Inherited from ${component.name}`}
     >
@@ -44,7 +44,7 @@ export function RestrictedSourceNote({ component }: { component: SystemComponent
   );
 }
 
-/** Component → consumers. The blast radius of a change to one definition. @category data */
+/** Component → consumers. The blast radius of a change to one definition. */
 export function ConsumerTable({ component }: { component: SystemComponent }) {
   return (
     <Table className="table-fixed">
@@ -97,7 +97,6 @@ export function ConsumerTable({ component }: { component: SystemComponent }) {
   );
 }
 
-/** Controls a reusable component provides to consuming programs. @category data */
 export function ProvidedControlsTable({ component }: { component: SystemComponent }) {
   return (
     <Table className="table-fixed">

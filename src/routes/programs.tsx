@@ -14,6 +14,7 @@ import {
   Mono,
   PageHeader,
   Select,
+  IndexPage,
   Table,
   Td,
   Textarea,
@@ -81,21 +82,24 @@ function ProgramList() {
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
   return (
-    <div className="animate-slide-up space-y-4">
-      <PageHeader
-        title="Programs"
-        description="Each program scopes one system, categorizes it under FIPS-199, and assesses the tailored NIST SP 800-53 Rev. 5 baseline it inherits."
-        actions={
-          <>
-            <Button variant="secondary">
-              <Download className="size-3.5" /> Export SSP
-            </Button>
-            <Button variant="primary" onClick={() => setCreating(true)}>
-              <Plus className="size-3.5" /> New program
-            </Button>
-          </>
-        }
-      />
+    <IndexPage
+      header={
+        <PageHeader
+          title="Programs"
+          description="Each program scopes one system, categorizes it under FIPS-199, and assesses the tailored NIST SP 800-53 Rev. 5 baseline it inherits."
+          actions={
+            <>
+              <Button variant="secondary">
+                <Download className="size-3.5" /> Export SSP
+              </Button>
+              <Button variant="primary" onClick={() => setCreating(true)}>
+                <Plus className="size-3.5" /> New program
+              </Button>
+            </>
+          }
+        />
+      }
+    >
 
       <div className="flex items-center gap-4 border-b border-border">
         {tabs.map((t) => {
@@ -233,7 +237,7 @@ function ProgramList() {
       </div>
 
       <CreateProgram open={creating} onClose={() => setCreating(false)} />
-    </div>
+    </IndexPage>
   );
 }
 

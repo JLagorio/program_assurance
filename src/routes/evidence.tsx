@@ -9,6 +9,7 @@ import {
   Badge,
   Button,
   Card,
+  IndexPage,
   Mono,
   PageHeader,
   Table,
@@ -76,22 +77,24 @@ const stateTone = { Fresh: "success", Aging: "warning", Expired: "danger" } as c
 function Evidence() {
   return (
     <Shell>
-      <div className="space-y-5 animate-slide-up">
-        <PageHeader
-          title="Evidence vault"
-          description="1,402 artifacts mapped to controls. Auditors sample directly from this library — nothing is re-uploaded by hand."
-          actions={
-            <>
-              <Button variant="secondary">
-                <Filter className="size-3.5" /> Saved views
-              </Button>
-              <Button variant="primary">
-                <Upload className="size-3.5" /> Upload artifact
-              </Button>
-            </>
-          }
-        />
-
+      <IndexPage
+        header={
+          <PageHeader
+            title="Evidence vault"
+            description="1,402 artifacts mapped to controls. Auditors sample directly from this library — nothing is re-uploaded by hand."
+            actions={
+              <>
+                <Button variant="secondary">
+                  <Filter className="size-3.5" /> Saved views
+                </Button>
+                <Button variant="primary">
+                  <Upload className="size-3.5" /> Upload artifact
+                </Button>
+              </>
+            }
+          />
+        }
+      >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {captures.map((cap) => (
             <Card key={cap.title} className="overflow-hidden">
@@ -146,7 +149,7 @@ function Evidence() {
             </tbody>
           </Table>
         </Card>
-      </div>
+      </IndexPage>
     </Shell>
   );
 }

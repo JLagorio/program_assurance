@@ -8,6 +8,7 @@ import {
   Mono,
   PageHeader,
   Section,
+  IndexPage,
   Table,
   Td,
   Th,
@@ -50,12 +51,15 @@ function StigLibrary() {
 
   return (
     <Shell>
-      <div className="animate-slide-up space-y-7">
-        <PageHeader
-          title="STIG & SRG library"
-          description="Benchmarks by technology and version. Every rule declares the CCIs it satisfies, which is how a scan result reaches an authorization decision."
-          actions={<Button variant="secondary">Import benchmark</Button>}
-        />
+      <IndexPage
+        header={
+          <PageHeader
+            title="STIG & SRG library"
+            description="Benchmarks by technology and version. Every rule declares the CCIs it satisfies, which is how a scan result reaches an authorization decision."
+            actions={<Button variant="secondary">Import benchmark</Button>}
+          />
+        }
+      >
 
         <Section
           title="Benchmarks"
@@ -177,7 +181,7 @@ function StigLibrary() {
             </tbody>
           </Table>
         </Section>
-      </div>
+      </IndexPage>
     </Shell>
   );
 }

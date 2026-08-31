@@ -6,6 +6,7 @@ import { Shell } from "@/components/app/shell";
 import {
   Badge,
   Button,
+  IndexPage,
   KeyValue,
   Mono,
   PageHeader,
@@ -74,17 +75,19 @@ function CampaignsPage() {
 
   return (
     <Shell>
-      <div className="animate-slide-up space-y-4">
-        <PageHeader
-          title="Test campaigns"
-          description="A campaign is scoped work opened against a trigger. Its events prove objectives, and every objective names the CCIs it covers — that is the only place T&E and RMF meet."
-          actions={
-            <Button variant="primary">
-              <Plus className="size-3.5" /> Open campaign
-            </Button>
-          }
-        />
-
+      <IndexPage
+        header={
+          <PageHeader
+            title="Test campaigns"
+            description="A campaign is scoped work opened against a trigger. Its events prove objectives, and every objective names the CCIs it covers — that is the only place T&E and RMF meet."
+            actions={
+              <Button variant="primary">
+                <Plus className="size-3.5" /> Open campaign
+              </Button>
+            }
+          />
+        }
+      >
         <div className="flex items-center gap-4 border-b border-border">
           {tabs.map((t) => (
             <button
@@ -400,7 +403,7 @@ function CampaignsPage() {
             </aside>
           ) : null}
         </div>
-      </div>
+      </IndexPage>
     </Shell>
   );
 }

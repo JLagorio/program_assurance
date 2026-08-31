@@ -12,6 +12,7 @@ import {
   KeyValue,
   Meter,
   Mono,
+  IndexPage,
   PageHeader,
   Table,
   Td,
@@ -53,12 +54,15 @@ function Section({ title, description, children }: { title: string; description:
 function Components() {
   return (
     <Shell>
-      <div className="space-y-5 animate-slide-up">
-        <PageHeader
-          eyebrow="System"
-          title="Design system"
-          description="Every surface in Equinox is built from these primitives. Hairline borders, one accent, tabular numerals."
-        />
+      <IndexPage
+        header={
+          <PageHeader
+            eyebrow="System"
+            title="Design system"
+            description="Every surface in Equinox is built from these primitives. Hairline borders, one accent, tabular numerals."
+          />
+        }
+      >
 
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
           <Section title="Buttons" description="Two weights of emphasis and a text link. Nothing else.">
@@ -149,7 +153,7 @@ function Components() {
             <KeyValue label="Target date">Sep 04, 2026</KeyValue>
           </dl>
         </Card>
-      </div>
+      </IndexPage>
     </Shell>
   );
 }

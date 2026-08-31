@@ -6,6 +6,7 @@ import {
   Badge,
   Button,
   Card,
+  IndexPage,
   Meter,
   Mono,
   PageHeader,
@@ -59,20 +60,22 @@ const vendors: Vendor[] = [
 function Vendors() {
   return (
     <Shell>
-      <div className="space-y-5 animate-slide-up">
-        <PageHeader
-          title="Vendor registry"
-          description="Every sub-processor with access to customer data, scored on the assurance evidence we hold today."
-          actions={
-            <>
-              <Button variant="secondary">Send questionnaire</Button>
-              <Button variant="primary">
-                <Plus className="size-3.5" /> Add vendor
-              </Button>
-            </>
-          }
-        />
-
+      <IndexPage
+        header={
+          <PageHeader
+            title="Vendor registry"
+            description="Every sub-processor with access to customer data, scored on the assurance evidence we hold today."
+            actions={
+              <>
+                <Button variant="secondary">Send questionnaire</Button>
+                <Button variant="primary">
+                  <Plus className="size-3.5" /> Add vendor
+                </Button>
+              </>
+            }
+          />
+        }
+      >
         <Card className="overflow-hidden">
           <Table>
             <thead>
@@ -122,7 +125,7 @@ function Vendors() {
             </tbody>
           </Table>
         </Card>
-      </div>
+      </IndexPage>
     </Shell>
   );
 }

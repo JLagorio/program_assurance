@@ -8,6 +8,7 @@ import {
   Mono,
   PageHeader,
   Section,
+  IndexPage,
   Table,
   Td,
   Th,
@@ -55,11 +56,14 @@ function ScopeApprovals() {
 
   return (
     <Shell>
-      <div className="animate-slide-up space-y-4">
-        <PageHeader
-          title="Scope approvals"
-          description="Systems security engineers submit the tailored baseline and overlays; the program manager approves the compliance scope before engineering commits to it."
-        />
+      <IndexPage
+        header={
+          <PageHeader
+            title="Scope approvals"
+            description="Systems security engineers submit the tailored baseline and overlays; the program manager approves the compliance scope before engineering commits to it."
+          />
+        }
+      >
 
         <div className="flex items-center gap-4 border-b border-border">
           {filters.map((f) => {
@@ -164,7 +168,7 @@ function ScopeApprovals() {
         <div className="flex justify-end">
           <Button variant="secondary">Export scope decisions</Button>
         </div>
-      </div>
+      </IndexPage>
     </Shell>
   );
 }
