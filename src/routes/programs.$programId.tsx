@@ -163,6 +163,13 @@ function ProgramDetail() {
   );
 
   const matrix = useControlMatrix(program.id);
+  const matrixFamilies = useMemo(
+    () =>
+      [...new Map(matrix.map((r) => [r.family, r.familyName])).entries()]
+        .map(([id, name]) => ({ id, name }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    [matrix],
+  );
 
   const posture = useMemo(() => programPosture(program), [program]);
   const coverage = useMemo(() => coverageFromRows(matrix), [matrix]);
@@ -439,6 +446,13 @@ function ProgramDetail() {
 
       <RailGroup title="Linked records">
         <div className="space-y-1 text-[12.5px]">
+          <Link
+            to="/programs/$programId/dashboard"
+            params={{ programId: program.id }}
+            className="block text-primary hover:underline"
+          >
+            Program dashboard
+          </Link>
           <Link to="/register" className="block text-primary hover:underline">
             {programPoams.length} POA&M items
           </Link>
@@ -463,6 +477,12 @@ function ProgramDetail() {
             title={program.name}
             actions={
               <>
+                <Link to="/programs/$programId/dashboard" params={{ programId: program.id }}>
+                  <Button variant="secondary" size="sm">
+                    Dashboard
+                  </Button>
+                </Link>
+
                 <Button variant="primary" size="sm" onClick={runPrimary}>
                   {state.primaryAction}
                 </Button>
@@ -607,7 +627,7 @@ function ProgramDetail() {
               onFamily={setFamily}
               status={statusFilter}
               onStatus={setStatusFilter}
-              families={controlFamilies.map((f) => ({ id: f.id, name: f.name }))}
+              families={matrixFamilies}
             />
           </>
         ) : null}

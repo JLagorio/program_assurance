@@ -23,6 +23,7 @@ import {
   Tr,
 } from "@/components/app/ui";
 import { InlineSelect, InlineText } from "@/components/app/inline-edit";
+import { cn } from "@/lib/utils";
 import { saveProgramField } from "@/lib/program-save";
 import {
   controlStatuses,
@@ -118,6 +119,46 @@ export function FamilyCoverageTable({
         </tbody>
       </Table>
     </Section>
+  );
+}
+
+/**
+ * The findings that knocked this control down. One finding links straight to
+ * the finding record; several link to the control's Findings tab.
+ */
+function FindingsCell({ programId, row }: { programId: string; row: ControlRow }) {
+  if (row.findings.length === 0) return <span className="text-muted-foreground">—</span>;
+
+  const label = row.openFindings > 0 ? `${row.openFindings} open` : `${row.findings.length} closed`;
+
+  if (row.findings.length === 1) {
+    const only = row.findings[0]!;
+    return (
+      <Link
+        to="/findings/$findingId"
+        params={{ findingId: only.id }}
+        className="hover:underline"
+        title={only.title}
+      >
+        <Mono className={row.openFindings ? "text-danger" : "text-muted-foreground"}>
+          {only.id}
+        </Mono>
+      </Link>
+    );
+  }
+
+  return (
+    <Link
+      to="/programs/$programId/controls/$controlId"
+      params={{ programId, controlId: row.id }}
+      search={{ tab: "Findings" as const }}
+      className={cn(
+        "tnum text-12 hover:underline",
+        row.openFindings ? "text-danger" : "text-muted-foreground",
+      )}
+    >
+      {label}
+    </Link>
   );
 }
 
@@ -237,9 +278,10 @@ export function ControlMatrixSection({
               <col style={{ width: "92px" }} />
               <col />
               <col style={{ width: "176px" }} />
-              <col style={{ width: "108px" }} />
+              <col style={{ width: "96px" }} />
+              <col style={{ width: "116px" }} />
               <col style={{ width: "104px" }} />
-              <col style={{ width: "196px" }} />
+              <col style={{ width: "168px" }} />
               <col style={{ width: "112px" }} />
             </colgroup>
             <thead>
@@ -248,6 +290,7 @@ export function ControlMatrixSection({
                 <Th>Title</Th>
                 <Th>Status</Th>
                 <Th>Implementation</Th>
+                <Th>Findings</Th>
                 <Th>POA&M</Th>
                 <Th>Next action</Th>
                 <Th className="text-right">Due</Th>
@@ -273,9 +316,6 @@ export function ControlMatrixSection({
                     >
                       {r.title}
                     </Link>
-                    {r.openFindings > 0 ? (
-                      <span className="tnum ml-1.5 text-11 text-danger">{r.openFindings} open</span>
-                    ) : null}
                   </Td>
                   <Td className="overflow-visible">
                     <InlineSelect<ControlStatus>
@@ -289,6 +329,9 @@ export function ControlMatrixSection({
                   </Td>
                   <Td className="truncate text-muted-foreground" title={r.source}>
                     {r.implementation}
+                  </Td>
+                  <Td className="truncate">
+                    <FindingsCell programId={programId} row={r} />
                   </Td>
                   <Td>
                     {r.poam ? (

@@ -32,6 +32,13 @@ export function programCommands(program: Program, h: ProgramCommandHandlers): Co
 
   out.push(
     {
+      id: "act-dashboard",
+      group: "Actions",
+      label: "Open the program dashboard",
+      hint: "D",
+      run: () => h.openRecord("/programs/$programId/dashboard", { programId: program.id }),
+    },
+    {
       id: "act-assess",
       group: "Actions",
       label: "Record a control assessment",

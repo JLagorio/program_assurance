@@ -60,6 +60,7 @@ function PoamRecord() {
   const fs = findingsForPoam(item.id).slice().sort(bySeverity);
   const risk = item.risk ? riskById.get(item.risk) : undefined;
   const slipped = item.scheduledCompletion !== item.originalCompletion;
+  const controls = [...new Set(fs.map((f) => f.control))];
 
   return (
     <Shell>
@@ -122,84 +123,123 @@ function PoamRecord() {
           </>
         }
       >
-            <Section title="Planned remediation">
-              <p className="max-w-3xl text-[13px] leading-relaxed">{item.remediation}</p>
-            </Section>
+        <Section
+          title="Planned remediation"
+          description="The commitment. The dated task plan behind it lives on the control."
+          action={
+            controls.length ? (
+              <span className="flex items-center gap-2 text-12">
+                {controls.map((c) => (
+                  <Link
+                    key={c}
+                    to="/programs/$programId/controls/$controlId"
+                    params={{ programId: item.program, controlId: c }}
+                    search={{ tab: "Remediation" as const }}
+                    className="text-primary hover:underline"
+                  >
+                    {c} plan
+                  </Link>
+                ))}
+              </span>
+            ) : null
+          }
+        >
+          <p className="max-w-3xl pt-3 text-[13px] leading-relaxed">{item.remediation}</p>
+        </Section>
 
-            <Section
-              title="Latest milestone"
-              description={
-                slipped
-                  ? `Slipped from ${item.originalCompletion} to ${item.scheduledCompletion}.`
-                  : "On the original schedule."
-              }
-            >
-              <p className="max-w-3xl text-[13px] leading-relaxed text-muted-foreground">
-                {item.milestoneNote}
-              </p>
-            </Section>
+        <Section
+          title="Latest milestone"
+          description={
+            slipped
+              ? `Slipped from ${item.originalCompletion} to ${item.scheduledCompletion}.`
+              : "On the original schedule."
+          }
+        >
+          <p className="max-w-3xl text-[13px] leading-relaxed text-muted-foreground">
+            {item.milestoneNote}
+          </p>
+        </Section>
 
-            <Section
-              title="Findings this item closes"
-              description={`${openCount(fs)} still open of ${fs.length}. The item cannot complete while any row remains open.`}
-            >
-              {fs.length ? (
-                <Table className="table-fixed">
-                  <colgroup>
-                    <col style={{ width: "112px" }} />
-                    <col />
-                    <col style={{ width: "104px" }} />
-                    <col style={{ width: "140px" }} />
-                    <col style={{ width: "78px" }} />
-                    <col style={{ width: "112px" }} />
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <Th>Finding</Th>
-                      <Th>Title</Th>
-                      <Th>CCI</Th>
-                      <Th>Asset</Th>
-                      <Th>Severity</Th>
-                      <Th>Lifecycle</Th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {fs.map((f) => (
-                      <Tr key={f.id}>
-                        <Td>
-                          <Link
-                            to="/findings/$findingId"
-                            params={{ findingId: f.id }}
-                            className="hover:underline"
-                          >
-                            <Mono className="text-primary">{f.id}</Mono>
-                          </Link>
-                        </Td>
-                        <Td className="truncate">{f.title}</Td>
-                        <Td>
-                          <Mono className="text-muted-foreground">{f.cci}</Mono>
-                        </Td>
-                        <Td className="truncate text-muted-foreground">
-                          {assetById.get(f.asset)?.name ?? f.asset}
-                        </Td>
-                        <Td>
-                          <Badge tone={severityTone(f.mitigatedSeverity)}>
-                            {f.mitigatedSeverity}
-                          </Badge>
-                        </Td>
-                        <Td className="truncate">
-                          <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
-                        </Td>
-                      </Tr>
-                    ))}
-                  </tbody>
-                </Table>
-              ) : (
-                <p className="text-[13px] text-muted-foreground">
-                  No findings are attached — this commitment has nothing to close.
-                </p>
-              )}
-            </Section>
+        <Section
+          title="Findings this item closes"
+          description={`${openCount(fs)} still open of ${fs.length}. The item cannot complete while any row remains open.`}
+        >
+          {fs.length ? (
+            <Table className="table-fixed">
+              <colgroup>
+                <col style={{ width: "112px" }} />
+                <col />
+                <col style={{ width: "96px" }} />
+                <col style={{ width: "104px" }} />
+                <col style={{ width: "132px" }} />
+                <col style={{ width: "78px" }} />
+                <col style={{ width: "112px" }} />
+              </colgroup>
+              <thead>
+                <tr>
+                  <Th>Finding</Th>
+                  <Th>Title</Th>
+                  <Th>Control</Th>
+                  <Th>CCI</Th>
+                  <Th>Asset</Th>
+                  <Th>Severity</Th>
+                  <Th>Lifecycle</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {fs.map((f) => (
+                  <Tr key={f.id}>
+                    <Td>
+                      <Link
+                        to="/findings/$findingId"
+                        params={{ findingId: f.id }}
+                        className="hover:underline"
+                      >
+                        <Mono className="text-primary">{f.id}</Mono>
+                      </Link>
+                    </Td>
+                    <Td className="truncate">
+                      <Link
+                        to="/findings/$findingId"
+                        params={{ findingId: f.id }}
+                        className="hover:underline"
+                      >
+                        {f.title}
+                      </Link>
+                    </Td>
+                    <Td>
+                      <Link
+                        to="/programs/$programId/controls/$controlId"
+                        params={{ programId: item.program, controlId: f.control }}
+                        search={{ tab: "Remediation" as const }}
+                        className="hover:underline"
+                        title={`Remediation plan for ${f.control}`}
+                      >
+                        <Mono className="text-primary">{f.control}</Mono>
+                      </Link>
+                    </Td>
+                    <Td>
+                      <Mono className="text-muted-foreground">{f.cci}</Mono>
+                    </Td>
+                    <Td className="truncate text-muted-foreground">
+                      {assetById.get(f.asset)?.name ?? f.asset}
+                    </Td>
+                    <Td>
+                      <Badge tone={severityTone(f.mitigatedSeverity)}>{f.mitigatedSeverity}</Badge>
+                    </Td>
+                    <Td className="truncate">
+                      <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
+                    </Td>
+                  </Tr>
+                ))}
+              </tbody>
+            </Table>
+          ) : (
+            <p className="text-[13px] text-muted-foreground">
+              No findings are attached — this commitment has nothing to close.
+            </p>
+          )}
+        </Section>
       </ShowPage>
     </Shell>
   );

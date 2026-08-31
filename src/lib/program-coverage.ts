@@ -214,3 +214,104 @@ export function gateOutlook(program: Program, rows: ControlRow[], now = new Date
     next: remaining[0] ?? null,
   };
 }
+
+/* ------------------------------------------------- next RMF deadlines */
+
+export type DeadlineKind = "Gate" | "POA&M" | "Control";
+
+export type Deadline = {
+  id: string;
+  kind: DeadlineKind;
+  label: string;
+  date: string;
+  daysOut: number | null;
+  owner: string;
+  tone: "success" | "warning" | "danger" | "info" | "neutral";
+  note: string;
+};
+
+function toneFor(daysOut: number | null, atRisk: boolean) {
+  if (daysOut !== null && daysOut < 0) return "danger" as const;
+  if (atRisk) return "warning" as const;
+  if (daysOut !== null && daysOut < 30) return "warning" as const;
+  return "neutral" as const;
+}
+
+/**
+ * One calendar for the program: the gates it still has to pass, the POA&M
+ * sections it has committed to, and the controls carrying a remediation date.
+ * Sorted by date, which is the only order that matters to the person working it.
+ */
+export function programDeadlines(
+  program: Program,
+  rows: ControlRow[],
+  poams: {
+    id: string;
+    title: string;
+    owner: string;
+    status: string;
+    scheduledCompletion: string;
+  }[],
+  now = new Date(),
+  limit = 12,
+): Deadline[] {
+  const out: Deadline[] = [];
+
+  for (const g of gatesForProgram(program.id)) {
+    if (g.status === "Complete") continue;
+    const daysOut = daysUntil(g.planned, now);
+    out.push({
+      id: g.id,
+      kind: "Gate",
+      label: g.name,
+      date: g.planned,
+      daysOut,
+      owner: g.owner,
+      tone: g.status === "Blocked" ? "danger" : toneFor(daysOut, g.status === "At risk"),
+      note: g.cyberGate,
+    });
+  }
+
+  for (const p of poams) {
+    if (p.status === "Completed" || p.scheduledCompletion === "—") continue;
+    const daysOut = daysUntil(p.scheduledCompletion, now);
+    out.push({
+      id: p.id,
+      kind: "POA&M",
+      label: p.title,
+      date: p.scheduledCompletion,
+      daysOut,
+      owner: p.owner,
+      tone: p.status === "Overdue" ? "danger" : toneFor(daysOut, false),
+      note: `${p.status} commitment`,
+    });
+  }
+
+  const dated = rows
+    .filter((r) => r.status !== "Satisfied" && r.due !== "—" && !r.poam)
+    .map((r) => ({ row: r, daysOut: daysUntil(r.due, now) }))
+    .filter((r) => r.daysOut !== null)
+    .sort((a, b) => a.daysOut! - b.daysOut!)
+    .slice(0, 6);
+
+  for (const { row, daysOut } of dated) {
+    out.push({
+      id: row.id,
+      kind: "Control",
+      label: row.title,
+      date: row.due,
+      daysOut,
+      owner: row.owner,
+      tone: toneFor(daysOut, row.openFindings > 0),
+      note: row.nextAction,
+    });
+  }
+
+  return out
+    .sort((a, b) => {
+      const da = parseGateDate(a.date)?.getTime() ?? 0;
+      const db = parseGateDate(b.date)?.getTime() ?? 0;
+      return da - db;
+    })
+    .slice(0, limit);
+}

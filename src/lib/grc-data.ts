@@ -1,3 +1,5 @@
+import { nistFamilies } from "@/lib/nist-catalog";
+
 import type { Tone } from "@/components/app/ui";
 
 export type Risk = {
@@ -151,10 +153,28 @@ export const riskStatusTone: Record<Risk["status"], Tone> = {
 };
 
 export const frameworks = [
-  { name: "SOC 2 Type II", coverage: 94, controls: "118 / 126", window: "Window closes Oct 31", tone: "success" as const },
-  { name: "ISO 27001:2022", coverage: 81, controls: "76 / 93", window: "Stage 2 audit Nov 12", tone: "info" as const },
+  {
+    name: "SOC 2 Type II",
+    coverage: 94,
+    controls: "118 / 126",
+    window: "Window closes Oct 31",
+    tone: "success" as const,
+  },
+  {
+    name: "ISO 27001:2022",
+    coverage: 81,
+    controls: "76 / 93",
+    window: "Stage 2 audit Nov 12",
+    tone: "info" as const,
+  },
   { name: "GDPR", coverage: 88, controls: "44 / 50", window: "Continuous", tone: "info" as const },
-  { name: "HIPAA", coverage: 62, controls: "31 / 50", window: "Scoping in progress", tone: "warning" as const },
+  {
+    name: "HIPAA",
+    coverage: 62,
+    controls: "31 / 50",
+    window: "Scoping in progress",
+    tone: "warning" as const,
+  },
 ];
 
 export type Control = {
@@ -169,13 +189,76 @@ export type Control = {
 };
 
 export const controls: Control[] = [
-  { id: "CC6.1", name: "Logical access provisioning", framework: "SOC 2", owner: "Grace Hoppel", automation: "Automated", lastRun: "12 min ago", evidence: 42, state: "Failing" },
-  { id: "CC6.6", name: "Encryption in transit enforced", framework: "SOC 2", owner: "Marcus Ryde", automation: "Automated", lastRun: "12 min ago", evidence: 18, state: "Passing" },
-  { id: "CC7.2", name: "Security event logging and review", framework: "SOC 2", owner: "Grace Hoppel", automation: "Automated", lastRun: "1 hr ago", evidence: 63, state: "Needs review" },
-  { id: "A.8.9", name: "Configuration management", framework: "ISO 27001", owner: "Marcus Ryde", automation: "Manual", lastRun: "Aug 24", evidence: 9, state: "Failing" },
-  { id: "A.6.3", name: "Security awareness training", framework: "ISO 27001", owner: "Dana Whitlock", automation: "Manual", lastRun: "Aug 15", evidence: 214, state: "Passing" },
-  { id: "Art. 30", name: "Records of processing activities", framework: "GDPR", owner: "Priya Raghavan", automation: "Manual", lastRun: "Aug 02", evidence: 7, state: "Passing" },
-  { id: "CC9.2", name: "Vendor due diligence", framework: "SOC 2", owner: "Priya Raghavan", automation: "Manual", lastRun: "Jul 28", evidence: 31, state: "Needs review" },
+  {
+    id: "CC6.1",
+    name: "Logical access provisioning",
+    framework: "SOC 2",
+    owner: "Grace Hoppel",
+    automation: "Automated",
+    lastRun: "12 min ago",
+    evidence: 42,
+    state: "Failing",
+  },
+  {
+    id: "CC6.6",
+    name: "Encryption in transit enforced",
+    framework: "SOC 2",
+    owner: "Marcus Ryde",
+    automation: "Automated",
+    lastRun: "12 min ago",
+    evidence: 18,
+    state: "Passing",
+  },
+  {
+    id: "CC7.2",
+    name: "Security event logging and review",
+    framework: "SOC 2",
+    owner: "Grace Hoppel",
+    automation: "Automated",
+    lastRun: "1 hr ago",
+    evidence: 63,
+    state: "Needs review",
+  },
+  {
+    id: "A.8.9",
+    name: "Configuration management",
+    framework: "ISO 27001",
+    owner: "Marcus Ryde",
+    automation: "Manual",
+    lastRun: "Aug 24",
+    evidence: 9,
+    state: "Failing",
+  },
+  {
+    id: "A.6.3",
+    name: "Security awareness training",
+    framework: "ISO 27001",
+    owner: "Dana Whitlock",
+    automation: "Manual",
+    lastRun: "Aug 15",
+    evidence: 214,
+    state: "Passing",
+  },
+  {
+    id: "Art. 30",
+    name: "Records of processing activities",
+    framework: "GDPR",
+    owner: "Priya Raghavan",
+    automation: "Manual",
+    lastRun: "Aug 02",
+    evidence: 7,
+    state: "Passing",
+  },
+  {
+    id: "CC9.2",
+    name: "Vendor due diligence",
+    framework: "SOC 2",
+    owner: "Priya Raghavan",
+    automation: "Manual",
+    lastRun: "Jul 28",
+    evidence: 31,
+    state: "Needs review",
+  },
 ];
 
 export const controlStateTone: Record<Control["state"], Tone> = {
@@ -230,7 +313,6 @@ export const programStatuses = [
 ] as const;
 
 export type ProgramStatus = (typeof programStatuses)[number];
-
 
 export type Program = {
   id: string;
@@ -401,27 +483,59 @@ export const baselineCounts: Record<ImpactLevel, number> = {
 
 export type ControlFamily = {
   id: string;
+  /** NIST Rev. 5 family name, from the catalog. */
   name: string;
-  total: number;
-  satisfied: number;
-  other: number;
-  failing: number;
-  inherited: number;
   owner: string;
+  /**
+   * Where the family sits today, as a share of the controls the program has
+   * actually tailored in. The remainder has not been assessed yet. Real
+   * signals — an authored assessment, an open finding — override this per
+   * control; the shares only decide the shape of the rest of the family.
+   */
+  posture: { satisfied: number; partial: number; other: number };
 };
 
-export const controlFamilies: ControlFamily[] = [
-  { id: "AC", name: "Access control", total: 49, satisfied: 41, other: 5, failing: 3, inherited: 12, owner: "Grace Hoppel" },
-  { id: "AU", name: "Audit and accountability", total: 22, satisfied: 18, other: 2, failing: 2, inherited: 4, owner: "Grace Hoppel" },
-  { id: "CA", name: "Assessment, authorization, monitoring", total: 18, satisfied: 16, other: 2, failing: 0, inherited: 3, owner: "Sarah Chen" },
-  { id: "CM", name: "Configuration management", total: 31, satisfied: 24, other: 4, failing: 3, inherited: 6, owner: "Marcus Ryde" },
-  { id: "CP", name: "Contingency planning", total: 25, satisfied: 22, other: 3, failing: 0, inherited: 8, owner: "Marcus Ryde" },
-  { id: "IA", name: "Identification and authentication", total: 27, satisfied: 25, other: 1, failing: 1, inherited: 19, owner: "Dana Whitlock" },
-  { id: "IR", name: "Incident response", total: 18, satisfied: 17, other: 1, failing: 0, inherited: 5, owner: "Linus Aarto" },
-  { id: "RA", name: "Risk assessment", total: 15, satisfied: 12, other: 2, failing: 1, inherited: 2, owner: "Sarah Chen" },
-  { id: "SC", name: "System and communications protection", total: 48, satisfied: 43, other: 4, failing: 1, inherited: 14, owner: "Marcus Ryde" },
-  { id: "SI", name: "System and information integrity", total: 36, satisfied: 32, other: 4, failing: 0, inherited: 7, owner: "Grace Hoppel" },
-];
+const familyPosture: Record<
+  string,
+  { owner: string; satisfied: number; partial: number; other: number }
+> = {
+  AC: { owner: "Grace Hoppel", satisfied: 0.82, partial: 0.1, other: 0.06 },
+  AT: { owner: "Dana Whitlock", satisfied: 0.9, partial: 0.05, other: 0.03 },
+  AU: { owner: "Grace Hoppel", satisfied: 0.78, partial: 0.1, other: 0.08 },
+  CA: { owner: "Sarah Chen", satisfied: 0.86, partial: 0.1, other: 0.02 },
+  CM: { owner: "Marcus Ryde", satisfied: 0.74, partial: 0.13, other: 0.1 },
+  CP: { owner: "Marcus Ryde", satisfied: 0.84, partial: 0.12, other: 0.02 },
+  IA: { owner: "Dana Whitlock", satisfied: 0.9, partial: 0.04, other: 0.04 },
+  IR: { owner: "Linus Aarto", satisfied: 0.92, partial: 0.05, other: 0.02 },
+  MA: { owner: "Marcus Ryde", satisfied: 0.8, partial: 0.12, other: 0.05 },
+  MP: { owner: "Linus Aarto", satisfied: 0.85, partial: 0.08, other: 0.05 },
+  PE: { owner: "Linus Aarto", satisfied: 0.88, partial: 0.08, other: 0.02 },
+  PL: { owner: "Sarah Chen", satisfied: 0.86, partial: 0.1, other: 0.02 },
+  PM: { owner: "Sarah Chen", satisfied: 0.8, partial: 0.12, other: 0.05 },
+  PS: { owner: "Dana Whitlock", satisfied: 0.9, partial: 0.06, other: 0.02 },
+  PT: { owner: "Sarah Chen", satisfied: 0.75, partial: 0.15, other: 0.05 },
+  RA: { owner: "Sarah Chen", satisfied: 0.78, partial: 0.14, other: 0.06 },
+  SA: { owner: "Marcus Ryde", satisfied: 0.72, partial: 0.16, other: 0.08 },
+  SC: { owner: "Marcus Ryde", satisfied: 0.88, partial: 0.07, other: 0.03 },
+  SI: { owner: "Grace Hoppel", satisfied: 0.86, partial: 0.09, other: 0.04 },
+  SR: { owner: "Dana Whitlock", satisfied: 0.7, partial: 0.18, other: 0.08 },
+};
+
+/** Every 800-53 Rev. 5 family the catalog carries, with its program owner. */
+export const controlFamilies: ControlFamily[] = nistFamilies.map((f) => {
+  const p = familyPosture[f.id] ?? {
+    owner: "Unassigned",
+    satisfied: 0.8,
+    partial: 0.1,
+    other: 0.05,
+  };
+  return {
+    id: f.id,
+    name: f.name,
+    owner: p.owner,
+    posture: { satisfied: p.satisfied, partial: p.partial, other: p.other },
+  };
+});
 
 export type ProgramControl = {
   id: string;
@@ -434,16 +548,96 @@ export type ProgramControl = {
 };
 
 export const programControls: ProgramControl[] = [
-  { id: "AC-2", title: "Account management", family: "AC", implementation: "Implemented", assessment: "Satisfied", source: "idp-core (inherited)", assessed: "Aug 26" },
-  { id: "AC-2(3)", title: "Disable accounts", family: "AC", implementation: "Partially implemented", assessment: "Other than satisfied", source: "atlas-prod", assessed: "Aug 26" },
-  { id: "AC-6(9)", title: "Log use of privileged functions", family: "AC", implementation: "Implemented", assessment: "Other than satisfied", source: "atlas-prod", assessed: "Aug 25" },
-  { id: "AU-6", title: "Audit record review, analysis, reporting", family: "AU", implementation: "Partially implemented", assessment: "Other than satisfied", source: "atlas-prod", assessed: "Aug 25" },
-  { id: "CM-6", title: "Configuration settings", family: "CM", implementation: "Implemented", assessment: "Satisfied", source: "atlas-prod", assessed: "Aug 24" },
-  { id: "CM-8(3)", title: "Automated unauthorized component detection", family: "CM", implementation: "Planned", assessment: "Not assessed", source: "atlas-prod", assessed: "—" },
-  { id: "IA-5(1)", title: "Password-based authentication", family: "IA", implementation: "Inherited", assessment: "Satisfied", source: "idp-core (inherited)", assessed: "Aug 20" },
-  { id: "SC-13", title: "Cryptographic protection", family: "SC", implementation: "Implemented", assessment: "Satisfied", source: "atlas-prod", assessed: "Aug 19" },
-  { id: "SI-4", title: "System monitoring", family: "SI", implementation: "Implemented", assessment: "Satisfied", source: "atlas-prod", assessed: "Aug 19" },
-  { id: "RA-5", title: "Vulnerability monitoring and scanning", family: "RA", implementation: "Partially implemented", assessment: "Other than satisfied", source: "atlas-prod", assessed: "Aug 18" },
+  {
+    id: "AC-2",
+    title: "Account management",
+    family: "AC",
+    implementation: "Implemented",
+    assessment: "Satisfied",
+    source: "idp-core (inherited)",
+    assessed: "Aug 26",
+  },
+  {
+    id: "AC-2(3)",
+    title: "Disable accounts",
+    family: "AC",
+    implementation: "Partially implemented",
+    assessment: "Other than satisfied",
+    source: "atlas-prod",
+    assessed: "Aug 26",
+  },
+  {
+    id: "AC-6(9)",
+    title: "Log use of privileged functions",
+    family: "AC",
+    implementation: "Implemented",
+    assessment: "Other than satisfied",
+    source: "atlas-prod",
+    assessed: "Aug 25",
+  },
+  {
+    id: "AU-6",
+    title: "Audit record review, analysis, reporting",
+    family: "AU",
+    implementation: "Partially implemented",
+    assessment: "Other than satisfied",
+    source: "atlas-prod",
+    assessed: "Aug 25",
+  },
+  {
+    id: "CM-6",
+    title: "Configuration settings",
+    family: "CM",
+    implementation: "Implemented",
+    assessment: "Satisfied",
+    source: "atlas-prod",
+    assessed: "Aug 24",
+  },
+  {
+    id: "CM-8(3)",
+    title: "Automated unauthorized component detection",
+    family: "CM",
+    implementation: "Planned",
+    assessment: "Not assessed",
+    source: "atlas-prod",
+    assessed: "—",
+  },
+  {
+    id: "IA-5(1)",
+    title: "Password-based authentication",
+    family: "IA",
+    implementation: "Inherited",
+    assessment: "Satisfied",
+    source: "idp-core (inherited)",
+    assessed: "Aug 20",
+  },
+  {
+    id: "SC-13",
+    title: "Cryptographic protection",
+    family: "SC",
+    implementation: "Implemented",
+    assessment: "Satisfied",
+    source: "atlas-prod",
+    assessed: "Aug 19",
+  },
+  {
+    id: "SI-4",
+    title: "System monitoring",
+    family: "SI",
+    implementation: "Implemented",
+    assessment: "Satisfied",
+    source: "atlas-prod",
+    assessed: "Aug 19",
+  },
+  {
+    id: "RA-5",
+    title: "Vulnerability monitoring and scanning",
+    family: "RA",
+    implementation: "Partially implemented",
+    assessment: "Other than satisfied",
+    source: "atlas-prod",
+    assessed: "Aug 18",
+  },
 ];
 
 export const assessmentTone: Record<ProgramControl["assessment"], Tone> = {
@@ -453,11 +647,36 @@ export const assessmentTone: Record<ProgramControl["assessment"], Tone> = {
 };
 
 export const programTimeline = [
-  { tone: "info" as const, title: "Assessment window opened for AU family", time: "Aug 27, 10:12", actor: "Whitcombe LLP" },
-  { tone: "danger" as const, title: "AC-6(9) marked other than satisfied", time: "Aug 25, 15:48", actor: "Whitcombe LLP" },
-  { tone: "success" as const, title: "IA family inheritance confirmed from idp-core", time: "Aug 20, 09:31", actor: "Dana Whitlock" },
-  { tone: "neutral" as const, title: "Baseline tailored — 12 controls marked not applicable", time: "Aug 12, 14:02", actor: "Sarah Chen" },
-  { tone: "neutral" as const, title: "Program created and categorized as High", time: "Aug 04, 08:15", actor: "Sarah Chen" },
+  {
+    tone: "info" as const,
+    title: "Assessment window opened for AU family",
+    time: "Aug 27, 10:12",
+    actor: "Whitcombe LLP",
+  },
+  {
+    tone: "danger" as const,
+    title: "AC-6(9) marked other than satisfied",
+    time: "Aug 25, 15:48",
+    actor: "Whitcombe LLP",
+  },
+  {
+    tone: "success" as const,
+    title: "IA family inheritance confirmed from idp-core",
+    time: "Aug 20, 09:31",
+    actor: "Dana Whitlock",
+  },
+  {
+    tone: "neutral" as const,
+    title: "Baseline tailored — 12 controls marked not applicable",
+    time: "Aug 12, 14:02",
+    actor: "Sarah Chen",
+  },
+  {
+    tone: "neutral" as const,
+    title: "Program created and categorized as High",
+    time: "Aug 04, 08:15",
+    actor: "Sarah Chen",
+  },
 ];
 
 /* ------------------------------------------------------- POA&M (OSCAL) */
@@ -679,7 +898,11 @@ export const poamItems: PoamItem[] = [
     scheduledCompletion: "2026-11-30T17:00:00-05:00",
     props: [
       { name: "marking", value: "CUI", class: "banner" },
-      { name: "weakness-source", value: "continuous-monitoring", ns: "https://equinox.example/ns/oscal" },
+      {
+        name: "weakness-source",
+        value: "continuous-monitoring",
+        ns: "https://equinox.example/ns/oscal",
+      },
       { name: "vendor-dependency", value: "yes" },
       { name: "deviation-requested", value: "no" },
     ],
@@ -914,7 +1137,11 @@ export const poamItems: PoamItem[] = [
     scheduledCompletion: "2026-08-20T17:00:00-04:00",
     props: [
       { name: "marking", value: "CUI", class: "banner" },
-      { name: "weakness-source", value: "continuous-monitoring", ns: "https://equinox.example/ns/oscal" },
+      {
+        name: "weakness-source",
+        value: "continuous-monitoring",
+        ns: "https://equinox.example/ns/oscal",
+      },
     ],
     milestones: [
       {
@@ -960,18 +1187,9 @@ export function formatOscalDate(value: string | null, withTime = false) {
    technical reviews and the RMF/AO-SCA actions that gate each of them.
    Tracked per program so SE and cyber see one chronology. */
 
-export type GateKind =
-  | "Milestone decision"
-  | "Engineering review"
-  | "RMF action"
-  | "Operational";
+export type GateKind = "Milestone decision" | "Engineering review" | "RMF action" | "Operational";
 
-export type GateStatus =
-  | "Complete"
-  | "In progress"
-  | "At risk"
-  | "Blocked"
-  | "Planned";
+export type GateStatus = "Complete" | "In progress" | "At risk" | "Blocked" | "Planned";
 
 export type LifecycleGate = {
   id: string;
@@ -1007,25 +1225,164 @@ export const lifecyclePhases = [
 ];
 
 export const lifecycleGates: LifecycleGate[] = [
-  { id: "ASR", phase: lifecyclePhases[0]!, kind: "Engineering review", name: "Alternative Systems Review", description: "Program office evaluates candidate concepts against user requirements.", cyberGate: "Preliminary boundary and data types identified" },
-  { id: "MS-A", phase: lifecyclePhases[0]!, kind: "Milestone decision", name: "Milestone A decision", description: "Funding approved for prototyping and technology maturation.", cyberGate: "System categorization brief accepted" },
-  { id: "RMF-1", phase: lifecyclePhases[0]!, kind: "RMF action", name: "Categorize the system", description: "PM and security team set confidentiality, integrity and availability impact levels.", cyberGate: "FIPS-199 categorization signed by the AO" },
-  { id: "SRR", phase: lifecyclePhases[1]!, kind: "Engineering review", name: "System Requirements Review", description: "All system performance requirements are defined, actionable and understood.", cyberGate: "Security requirements traced into the spec" },
-  { id: "SFR", phase: lifecyclePhases[1]!, kind: "Engineering review", name: "System Functional Review", description: "Functional baseline established against the specification.", cyberGate: "Functional decomposition of the security boundary" },
-  { id: "RMF-2", phase: lifecyclePhases[1]!, kind: "RMF action", name: "Select security controls", description: "NIST SP 800-53 Rev. 5 baseline selected and tailored to the system type.", cyberGate: "Tailored baseline approved by the SCA" },
-  { id: "PDR", phase: lifecyclePhases[1]!, kind: "Engineering review", name: "Preliminary Design Review", description: "Allocated baseline reviewed for readiness to enter detailed design.", cyberGate: "SCA review of the conceptual boundary" },
-  { id: "RMF-3", phase: lifecyclePhases[1]!, kind: "RMF action", name: "AO approval of RMF strategy", description: "Authorizing Official approves the security strategy before Milestone B.", cyberGate: "Signed RMF security strategy memo" },
-  { id: "MS-B", phase: lifecyclePhases[2]!, kind: "Milestone decision", name: "Milestone B decision", description: "Formal program start; detailed engineering and manufacturing development authorized.", cyberGate: "AO-approved RMF strategy on file" },
-  { id: "RMF-4", phase: lifecyclePhases[2]!, kind: "RMF action", name: "Develop the System Security Plan", description: "Implementation statements showing how hardware and software meet each control.", cyberGate: "SSP baselined in the authorization package" },
-  { id: "CDR", phase: lifecyclePhases[2]!, kind: "Engineering review", name: "Critical Design Review", description: "Detailed design mature and stable (75–90% of drawings) and ready for fabrication.", cyberGate: "SCA assessment of the SSP — design must support selected controls" },
-  { id: "TRR", phase: lifecyclePhases[3]!, kind: "Engineering review", name: "Test Readiness Review", description: "System, facilities and safety protocols ready for formal developmental test.", cyberGate: "IATT prerequisites: scans and safety checks complete" },
-  { id: "RMF-5", phase: lifecyclePhases[3]!, kind: "RMF action", name: "Interim Authority to Test (IATT)", description: "Time-bound AO approval to connect the system to a government test range or network.", cyberGate: "Signed IATT memo with expiry" },
-  { id: "SVR", phase: lifecyclePhases[3]!, kind: "Engineering review", name: "System Verification Review", description: "Physical system verified against design specifications.", cyberGate: "Control verification results recorded" },
-  { id: "PRR", phase: lifecyclePhases[3]!, kind: "Engineering review", name: "Production Readiness Review", description: "Manufacturing line audited for the ability to produce at scale.", cyberGate: "Supply-chain risk controls (SR family) assessed" },
-  { id: "RMF-6", phase: lifecyclePhases[4]!, kind: "RMF action", name: "Final assessment & SAR", description: "Independent penetration test, code analysis and scans; SCA issues the Security Assessment Report.", cyberGate: "SAR delivered with risk recommendation to the AO" },
-  { id: "MS-C", phase: lifecyclePhases[4]!, kind: "Milestone decision", name: "Milestone C decision", description: "Low-Rate Initial Production authorized.", cyberGate: "SAR risk posture accepted" },
-  { id: "RMF-7", phase: lifecyclePhases[4]!, kind: "RMF action", name: "Authority to Operate (ATO)", description: "AO signs the ATO memo accepting residual cybersecurity risk.", cyberGate: "ATO memo with POA&M and expiry date" },
-  { id: "IOC", phase: lifecyclePhases[4]!, kind: "Operational", name: "Initial Operational Capability", description: "First units delivered to operational squadrons; continuous monitoring / cATO begins.", cyberGate: "ConMon plan and cATO pipeline controls active" },
+  {
+    id: "ASR",
+    phase: lifecyclePhases[0]!,
+    kind: "Engineering review",
+    name: "Alternative Systems Review",
+    description: "Program office evaluates candidate concepts against user requirements.",
+    cyberGate: "Preliminary boundary and data types identified",
+  },
+  {
+    id: "MS-A",
+    phase: lifecyclePhases[0]!,
+    kind: "Milestone decision",
+    name: "Milestone A decision",
+    description: "Funding approved for prototyping and technology maturation.",
+    cyberGate: "System categorization brief accepted",
+  },
+  {
+    id: "RMF-1",
+    phase: lifecyclePhases[0]!,
+    kind: "RMF action",
+    name: "Categorize the system",
+    description:
+      "PM and security team set confidentiality, integrity and availability impact levels.",
+    cyberGate: "FIPS-199 categorization signed by the AO",
+  },
+  {
+    id: "SRR",
+    phase: lifecyclePhases[1]!,
+    kind: "Engineering review",
+    name: "System Requirements Review",
+    description: "All system performance requirements are defined, actionable and understood.",
+    cyberGate: "Security requirements traced into the spec",
+  },
+  {
+    id: "SFR",
+    phase: lifecyclePhases[1]!,
+    kind: "Engineering review",
+    name: "System Functional Review",
+    description: "Functional baseline established against the specification.",
+    cyberGate: "Functional decomposition of the security boundary",
+  },
+  {
+    id: "RMF-2",
+    phase: lifecyclePhases[1]!,
+    kind: "RMF action",
+    name: "Select security controls",
+    description: "NIST SP 800-53 Rev. 5 baseline selected and tailored to the system type.",
+    cyberGate: "Tailored baseline approved by the SCA",
+  },
+  {
+    id: "PDR",
+    phase: lifecyclePhases[1]!,
+    kind: "Engineering review",
+    name: "Preliminary Design Review",
+    description: "Allocated baseline reviewed for readiness to enter detailed design.",
+    cyberGate: "SCA review of the conceptual boundary",
+  },
+  {
+    id: "RMF-3",
+    phase: lifecyclePhases[1]!,
+    kind: "RMF action",
+    name: "AO approval of RMF strategy",
+    description: "Authorizing Official approves the security strategy before Milestone B.",
+    cyberGate: "Signed RMF security strategy memo",
+  },
+  {
+    id: "MS-B",
+    phase: lifecyclePhases[2]!,
+    kind: "Milestone decision",
+    name: "Milestone B decision",
+    description:
+      "Formal program start; detailed engineering and manufacturing development authorized.",
+    cyberGate: "AO-approved RMF strategy on file",
+  },
+  {
+    id: "RMF-4",
+    phase: lifecyclePhases[2]!,
+    kind: "RMF action",
+    name: "Develop the System Security Plan",
+    description: "Implementation statements showing how hardware and software meet each control.",
+    cyberGate: "SSP baselined in the authorization package",
+  },
+  {
+    id: "CDR",
+    phase: lifecyclePhases[2]!,
+    kind: "Engineering review",
+    name: "Critical Design Review",
+    description:
+      "Detailed design mature and stable (75–90% of drawings) and ready for fabrication.",
+    cyberGate: "SCA assessment of the SSP — design must support selected controls",
+  },
+  {
+    id: "TRR",
+    phase: lifecyclePhases[3]!,
+    kind: "Engineering review",
+    name: "Test Readiness Review",
+    description: "System, facilities and safety protocols ready for formal developmental test.",
+    cyberGate: "IATT prerequisites: scans and safety checks complete",
+  },
+  {
+    id: "RMF-5",
+    phase: lifecyclePhases[3]!,
+    kind: "RMF action",
+    name: "Interim Authority to Test (IATT)",
+    description:
+      "Time-bound AO approval to connect the system to a government test range or network.",
+    cyberGate: "Signed IATT memo with expiry",
+  },
+  {
+    id: "SVR",
+    phase: lifecyclePhases[3]!,
+    kind: "Engineering review",
+    name: "System Verification Review",
+    description: "Physical system verified against design specifications.",
+    cyberGate: "Control verification results recorded",
+  },
+  {
+    id: "PRR",
+    phase: lifecyclePhases[3]!,
+    kind: "Engineering review",
+    name: "Production Readiness Review",
+    description: "Manufacturing line audited for the ability to produce at scale.",
+    cyberGate: "Supply-chain risk controls (SR family) assessed",
+  },
+  {
+    id: "RMF-6",
+    phase: lifecyclePhases[4]!,
+    kind: "RMF action",
+    name: "Final assessment & SAR",
+    description:
+      "Independent penetration test, code analysis and scans; SCA issues the Security Assessment Report.",
+    cyberGate: "SAR delivered with risk recommendation to the AO",
+  },
+  {
+    id: "MS-C",
+    phase: lifecyclePhases[4]!,
+    kind: "Milestone decision",
+    name: "Milestone C decision",
+    description: "Low-Rate Initial Production authorized.",
+    cyberGate: "SAR risk posture accepted",
+  },
+  {
+    id: "RMF-7",
+    phase: lifecyclePhases[4]!,
+    kind: "RMF action",
+    name: "Authority to Operate (ATO)",
+    description: "AO signs the ATO memo accepting residual cybersecurity risk.",
+    cyberGate: "ATO memo with POA&M and expiry date",
+  },
+  {
+    id: "IOC",
+    phase: lifecyclePhases[4]!,
+    kind: "Operational",
+    name: "Initial Operational Capability",
+    description:
+      "First units delivered to operational squadrons; continuous monitoring / cATO begins.",
+    cyberGate: "ConMon plan and cATO pipeline controls active",
+  },
 ];
 
 export type ProgramGate = LifecycleGate & {
@@ -1046,32 +1403,87 @@ type GateOverride = {
 
 const programLifecycle: Record<
   string,
-  { current: string; owners: Partial<Record<GateKind, string>>; overrides?: Record<string, GateOverride> }
+  {
+    current: string;
+    owners: Partial<Record<GateKind, string>>;
+    overrides?: Record<string, GateOverride>;
+  }
 > = {
   "PRG-1041": {
     current: "RMF-6",
-    owners: { "Engineering review": "M. Ryde", "RMF action": "Whitcombe LLP", "Milestone decision": "R. Feldman", Operational: "G. Hoppel" },
+    owners: {
+      "Engineering review": "M. Ryde",
+      "RMF action": "Whitcombe LLP",
+      "Milestone decision": "R. Feldman",
+      Operational: "G. Hoppel",
+    },
     overrides: {
       "RMF-6": { status: "At risk", planned: "Sep 18, 2026", artifact: "SAR draft v0.4" },
       "RMF-5": { artifact: "IATT-2026-114 (expired Jun 30)" },
       PRR: { status: "In progress", planned: "Sep 04, 2026" },
     },
   },
-  "PRG-1028": { current: "CDR", owners: { "Engineering review": "L. Aarto", "RMF action": "Whitcombe LLP", "Milestone decision": "R. Feldman", Operational: "M. Ryde" } },
+  "PRG-1028": {
+    current: "CDR",
+    owners: {
+      "Engineering review": "L. Aarto",
+      "RMF action": "Whitcombe LLP",
+      "Milestone decision": "R. Feldman",
+      Operational: "M. Ryde",
+    },
+  },
   "PRG-1013": {
     current: "RMF-3",
-    owners: { "Engineering review": "D. Whitlock", "RMF action": "S. Chen", "Milestone decision": "R. Feldman", Operational: "M. Ryde" },
-    overrides: { "RMF-3": { status: "Blocked", artifact: "Strategy returned by AO — boundary unclear" } },
+    owners: {
+      "Engineering review": "D. Whitlock",
+      "RMF action": "S. Chen",
+      "Milestone decision": "R. Feldman",
+      Operational: "M. Ryde",
+    },
+    overrides: {
+      "RMF-3": { status: "Blocked", artifact: "Strategy returned by AO — boundary unclear" },
+    },
   },
-  "PRG-1007": { current: "IOC", owners: { "Engineering review": "M. Ryde", "RMF action": "G. Hoppel", "Milestone decision": "R. Feldman", Operational: "G. Hoppel" } },
-  "PRG-0994": { current: "SRR", owners: { "Engineering review": "L. Aarto", "RMF action": "S. Chen", "Milestone decision": "R. Feldman", Operational: "M. Ryde" } },
+  "PRG-1007": {
+    current: "IOC",
+    owners: {
+      "Engineering review": "M. Ryde",
+      "RMF action": "G. Hoppel",
+      "Milestone decision": "R. Feldman",
+      Operational: "G. Hoppel",
+    },
+  },
+  "PRG-0994": {
+    current: "SRR",
+    owners: {
+      "Engineering review": "L. Aarto",
+      "RMF action": "S. Chen",
+      "Milestone decision": "R. Feldman",
+      Operational: "M. Ryde",
+    },
+  },
 };
 
 const gateDates = [
-  "Jan 14, 2025", "Feb 27, 2025", "Mar 11, 2025", "Apr 22, 2025", "May 30, 2025",
-  "Jun 18, 2025", "Jul 29, 2025", "Aug 21, 2025", "Sep 25, 2025", "Nov 06, 2025",
-  "Dec 12, 2025", "Feb 05, 2026", "Feb 26, 2026", "Apr 16, 2026", "May 28, 2026",
-  "Jul 09, 2026", "Aug 20, 2026", "Oct 01, 2026", "Nov 19, 2026",
+  "Jan 14, 2025",
+  "Feb 27, 2025",
+  "Mar 11, 2025",
+  "Apr 22, 2025",
+  "May 30, 2025",
+  "Jun 18, 2025",
+  "Jul 29, 2025",
+  "Aug 21, 2025",
+  "Sep 25, 2025",
+  "Nov 06, 2025",
+  "Dec 12, 2025",
+  "Feb 05, 2026",
+  "Feb 26, 2026",
+  "Apr 16, 2026",
+  "May 28, 2026",
+  "Jul 09, 2026",
+  "Aug 20, 2026",
+  "Oct 01, 2026",
+  "Nov 19, 2026",
 ];
 
 export function gatesForProgram(programId: string): ProgramGate[] {
@@ -1082,7 +1494,7 @@ export function gatesForProgram(programId: string): ProgramGate[] {
       ...gate,
       status: i < currentIndex ? "Complete" : i === currentIndex ? "In progress" : "Planned",
       planned: gateDates[i] ?? "—",
-      actual: i < currentIndex ? gateDates[i] ?? "—" : "—",
+      actual: i < currentIndex ? (gateDates[i] ?? "—") : "—",
       owner: cfg.owners[gate.kind] ?? "Unassigned",
       artifact: i < currentIndex ? `${gate.id} package` : "—",
     };

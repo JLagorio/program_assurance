@@ -1,20 +1,35 @@
 /**
  * The per-program control matrix — the object the RMF program actually turns on.
  *
+ * The control list is the real thing: the SP 800-53B baseline for the program's
+ * FIPS-199 impact level, taken from the NIST catalog, plus anything the
+ * program's own records already reference (an overlay addition, an inherited
+ * control, a control a workstream or a finding names). Ids, titles and text all
+ * come from `nist-catalog`; nothing about the requirement side is invented.
+ *
  * Every tailored control gets one row: assessment status, who implements it,
  * the POA&M section that carries the remediation, the findings that knocked it
  * down, a next action and a due date. Coverage percentages, the family
  * breakdown and the Overview coverage band are all derived from these rows, so
  * editing a control (or a finding rolling into a POA&M) moves the numbers.
  *
- * Data is deterministic mock data plus a small in-memory override store so
- * inline edits persist for the session.
+ * The program-side posture is mock data plus a small in-memory override store
+ * so inline edits persist for the session.
  */
 
 import { useSyncExternalStore } from "react";
 
-import { controlFamilies, programControls } from "@/lib/grc-data";
-import { findings, isOpen, type Finding } from "@/lib/findings";
+import { controlFamilies, programControls, programs } from "@/lib/grc-data";
+import { assetById, findings, isOpen, type Finding } from "@/lib/findings";
+import {
+  baselineControls,
+  controlTitle,
+  nistControlById,
+  nistFamilies,
+  nistFamilyName,
+  type NistBaseline,
+  type NistControl,
+} from "@/lib/nist-catalog";
 import { poamItems } from "@/lib/register";
 import { inheritanceForProgram, staleThresholdDays } from "@/lib/reusable-components";
 import { workstreamsForProgram } from "@/lib/people";
@@ -43,10 +58,18 @@ export const implementations = ["System", "Inherited", "Hybrid", "Planned"] as c
 export type Implementation = (typeof implementations)[number];
 
 export type ControlRow = {
+  /** Natural key, verbatim from the catalog: "AC-2", "AC-2(3)". */
   id: string;
+  /** Catalog title. Enhancements read "Base | Enhancement". */
   title: string;
   family: string;
   familyName: string;
+  /** True when the row is a control enhancement rather than a base control. */
+  enhancement: boolean;
+  /** Base control an enhancement extends. */
+  parent: string | null;
+  /** SP 800-53B baselines that select this control. Empty = tailored in. */
+  baselines: NistBaseline[];
   status: ControlStatus;
   implementation: Implementation;
   source: string;
@@ -64,170 +87,6 @@ export type ControlRow = {
 };
 
 /* --------------------------------------------------------- generation */
-
-const titlePool: Record<string, string[]> = {
-  AC: [
-    "Policy and procedures",
-    "Account management",
-    "Access enforcement",
-    "Information flow enforcement",
-    "Separation of duties",
-    "Least privilege",
-    "Unsuccessful logon attempts",
-    "System use notification",
-    "Concurrent session control",
-    "Session lock",
-    "Session termination",
-    "Permitted actions without identification",
-    "Remote access",
-    "Wireless access",
-    "Access control for mobile devices",
-    "Use of external systems",
-    "Information sharing",
-    "Publicly accessible content",
-    "Data mining protection",
-    "Access control decisions",
-  ],
-  AU: [
-    "Policy and procedures",
-    "Event logging",
-    "Content of audit records",
-    "Audit log storage capacity",
-    "Response to audit logging failures",
-    "Audit record review, analysis and reporting",
-    "Audit record reduction and report generation",
-    "Time stamps",
-    "Protection of audit information",
-    "Non-repudiation",
-    "Audit record retention",
-    "Audit record generation",
-  ],
-  CA: [
-    "Policy and procedures",
-    "Control assessments",
-    "Information exchange",
-    "Plan of action and milestones",
-    "Authorization",
-    "Continuous monitoring",
-    "Penetration testing",
-    "Internal system connections",
-  ],
-  CM: [
-    "Policy and procedures",
-    "Baseline configuration",
-    "Configuration change control",
-    "Impact analyses",
-    "Access restrictions for change",
-    "Configuration settings",
-    "Least functionality",
-    "System component inventory",
-    "Configuration management plan",
-    "Software usage restrictions",
-    "User-installed software",
-    "Signed components",
-  ],
-  CP: [
-    "Policy and procedures",
-    "Contingency plan",
-    "Contingency training",
-    "Contingency plan testing",
-    "Alternate storage site",
-    "Alternate processing site",
-    "Telecommunications services",
-    "System backup",
-    "System recovery and reconstitution",
-    "Alternate communications protocols",
-  ],
-  IA: [
-    "Policy and procedures",
-    "Identification and authentication (organizational users)",
-    "Device identification and authentication",
-    "Identifier management",
-    "Authenticator management",
-    "Authentication feedback",
-    "Cryptographic module authentication",
-    "Identification and authentication (non-organizational users)",
-    "Service identification and authentication",
-    "Re-authentication",
-  ],
-  IR: [
-    "Policy and procedures",
-    "Incident response training",
-    "Incident response testing",
-    "Incident handling",
-    "Incident monitoring",
-    "Incident reporting",
-    "Incident response assistance",
-    "Incident response plan",
-    "Information spillage response",
-    "Integrated information security analysis team",
-  ],
-  RA: [
-    "Policy and procedures",
-    "Security categorization",
-    "Risk assessment",
-    "Vulnerability monitoring and scanning",
-    "Technical surveillance countermeasures survey",
-    "Risk response",
-    "Criticality analysis",
-    "Threat hunting",
-  ],
-  SC: [
-    "Policy and procedures",
-    "Separation of system and user functionality",
-    "Security function isolation",
-    "Denial-of-service protection",
-    "Boundary protection",
-    "Transmission confidentiality and integrity",
-    "Network disconnect",
-    "Cryptographic key establishment and management",
-    "Cryptographic protection",
-    "Collaborative computing devices",
-    "Public key infrastructure certificates",
-    "Mobile code",
-    "Secure name/address resolution",
-    "Session authenticity",
-    "Protection of information at rest",
-    "Process isolation",
-    "Operations security",
-    "Covert channel analysis",
-  ],
-  SI: [
-    "Policy and procedures",
-    "Flaw remediation",
-    "Malicious code protection",
-    "System monitoring",
-    "Security alerts, advisories and directives",
-    "Security and privacy function verification",
-    "Software, firmware and information integrity",
-    "Spam protection",
-    "Information input validation",
-    "Error handling",
-    "Information management and retention",
-    "Memory protection",
-    "Fail-safe procedures",
-  ],
-};
-
-const genericTitles = [
-  "Policy and procedures",
-  "Implementation statement",
-  "Continuous monitoring",
-  "Supporting evidence",
-];
-
-function controlId(family: string, i: number) {
-  const base = Math.floor(i / 3) + 1;
-  const enh = i % 3;
-  return enh === 0 ? `${family}-${base}` : `${family}-${base}(${enh})`;
-}
-
-function titleFor(family: string, i: number) {
-  const pool = titlePool[family] ?? genericTitles;
-  const base = pool[Math.floor(i / 3) % pool.length]!;
-  const enh = i % 3;
-  return enh === 0 ? base : `${base} — enhancement ${enh}`;
-}
 
 const monthNames = [
   "Jan",
@@ -269,18 +128,47 @@ function nextActionFor(row: Omit<ControlRow, "nextAction">): string {
   return "—";
 }
 
+const familyOrder = new Map(nistFamilies.map((f, i) => [f.id, i]));
+const familyPosture = new Map(controlFamilies.map((f) => [f.id, f]));
+
+/** SP 800-53B selects a baseline from the FIPS-199 high-water mark. */
+export function baselineFor(programId: string): NistBaseline {
+  return programs.find((p) => p.id === programId)?.impact ?? "Moderate";
+}
+
+/**
+ * The controls this program actually carries. The baseline is the floor; a
+ * control any of the program's records already names is tailored in on top of
+ * it, the way an overlay or a system-specific addition would be.
+ */
+function tailoredControls(programId: string, inherited: Iterable<string>): NistControl[] {
+  const picked = new Map<string, NistControl>();
+  for (const c of baselineControls(baselineFor(programId))) picked.set(c.id, c);
+
+  const named = [
+    ...programControls.map((c) => c.id),
+    ...inherited,
+    ...workstreamsForProgram(programId).flatMap((w) => w.controls),
+    ...findings.filter((f) => assetById.get(f.asset)?.program === programId).map((f) => f.control),
+  ];
+  for (const id of named) {
+    if (picked.has(id)) continue;
+    const c = nistControlById.get(id);
+    if (c) picked.set(id, c);
+  }
+  return [...picked.values()];
+}
+
 function buildMatrix(programId: string): ControlRow[] {
   const inheritance = inheritanceForProgram(programId);
   const poams = poamItems.filter((p) => p.program === programId);
   const authored = new Map(programControls.map((c) => [c.id, c]));
+  const poamById = new Map(poams.map((p) => [p.id, p]));
 
   const findingsByControl = new Map<string, Finding[]>();
-  const poamById = new Map(poams.map((p) => [p.id, p]));
   for (const f of findings) {
-    if (!f.poam || !poamById.has(f.poam)) continue;
-    const list = findingsByControl.get(f.control) ?? [];
-    list.push(f);
-    findingsByControl.set(f.control, list);
+    if (assetById.get(f.asset)?.program !== programId) continue;
+    findingsByControl.set(f.control, [...(findingsByControl.get(f.control) ?? []), f]);
   }
 
   const workstreamByControl = new Map<string, string>();
@@ -293,28 +181,44 @@ function buildMatrix(programId: string): ControlRow[] {
   const anchor = (nextGate && parseGateDate(nextGate.planned)) || new Date();
   const jitter = seed(programId);
 
+  const byFamily = new Map<string, NistControl[]>();
+  for (const c of tailoredControls(programId, inheritance.keys())) {
+    byFamily.set(c.family, [...(byFamily.get(c.family) ?? []), c]);
+  }
+
   const rows: ControlRow[] = [];
 
-  for (const fam of controlFamilies) {
+  const families = [...byFamily.entries()].sort(
+    (a, b) => (familyOrder.get(a[0]) ?? 99) - (familyOrder.get(b[0]) ?? 99),
+  );
+
+  for (const [famId, famControls] of families) {
+    const posture = familyPosture.get(famId);
+    const owner = posture?.owner ?? "Unassigned";
+    const total = famControls.length;
+    const satisfiedCount = Math.round(total * (posture?.posture.satisfied ?? 0.8));
+    const partialCount = Math.round(total * (posture?.posture.partial ?? 0.1));
+    const otherCount = Math.round(total * (posture?.posture.other ?? 0.05));
+
     // Spread the family rollup across the list deterministically so the matrix
     // doesn't read as one satisfied block followed by one failing block.
-    const order = Array.from({ length: fam.total }, (_, n) => n).sort(
+    const order = Array.from({ length: total }, (_, n) => n).sort(
       (a, b) => ((a * 7919 + jitter) % 1013) - ((b * 7919 + jitter) % 1013),
     );
-    const statusByIndex = new Array<ControlStatus>(fam.total).fill("Not assessed");
+    const statusByIndex = new Array<ControlStatus>(total).fill("Not assessed");
     order.forEach((idx, rank) => {
       statusByIndex[idx] =
-        rank < fam.satisfied
+        rank < satisfiedCount
           ? "Satisfied"
-          : rank < fam.satisfied + fam.other
+          : rank < satisfiedCount + partialCount
             ? "Partial"
-            : rank < fam.satisfied + fam.other + fam.failing
+            : rank < satisfiedCount + partialCount + otherCount
               ? "Other than satisfied"
               : "Not assessed";
     });
 
-    for (let i = 0; i < fam.total; i++) {
-      const id = controlId(fam.id, i);
+    famControls.forEach((nc, i) => {
+      const id = nc.id;
       const author = authored.get(id);
       const edge = inheritance.get(id);
       const fnds = findingsByControl.get(id) ?? [];
@@ -362,15 +266,18 @@ function buildMatrix(programId: string): ControlRow[] {
 
       const partial: Omit<ControlRow, "nextAction"> = {
         id,
-        title: author?.title ?? titleFor(fam.id, i),
-        family: fam.id,
-        familyName: fam.name,
+        title: controlTitle(nc),
+        family: nc.family,
+        familyName: nistFamilyName.get(nc.family) ?? nc.family,
+        enhancement: nc.parent !== null,
+        parent: nc.parent,
+        baselines: nc.baselines,
         status,
         implementation,
         source: edge
           ? `${edge.component.name} (inherited)`
           : (author?.source ?? "System-implemented"),
-        owner: fam.owner,
+        owner,
         assessed,
         due,
         poam,
@@ -381,7 +288,7 @@ function buildMatrix(programId: string): ControlRow[] {
       };
 
       rows.push({ ...partial, nextAction: nextActionFor(partial) });
-    }
+    });
   }
 
   return rows;

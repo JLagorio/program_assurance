@@ -32,9 +32,10 @@ import { Route as WorkstreamsWorkstreamIdRouteImport } from './routes/workstream
 import { Route as FindingsAssetsAssetIdRouteImport } from './routes/findings.assets.$assetId'
 import { Route as LibraryComponentsIndexRouteImport } from './routes/library.components.index'
 import { Route as LibraryComponentsComponentKeyRouteImport } from './routes/library.components.$componentKey'
+import { Route as ProgramsProgramIdDashboardRouteImport } from './routes/programs.$programId_.dashboard'
 import { Route as RegisterPoamPoamIdRouteImport } from './routes/register.poam.$poamId'
 import { Route as RegisterRisksRiskIdRouteImport } from './routes/register.risks.$riskId'
-import { Route as ProgramsProgramIdControlsControlIdRouteImport } from './routes/programs.$programId.controls.$controlId'
+import { Route as ProgramsProgramIdControlsControlIdRouteImport } from './routes/programs.$programId_.controls.$controlId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -152,6 +153,12 @@ const LibraryComponentsComponentKeyRoute =
     path: '/library/components/$componentKey',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ProgramsProgramIdDashboardRoute =
+  ProgramsProgramIdDashboardRouteImport.update({
+    id: '/$programId_/dashboard',
+    path: '/$programId/dashboard',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
 const RegisterPoamPoamIdRoute = RegisterPoamPoamIdRouteImport.update({
   id: '/register/poam/$poamId',
   path: '/register/poam/$poamId',
@@ -164,9 +171,9 @@ const RegisterRisksRiskIdRoute = RegisterRisksRiskIdRouteImport.update({
 } as any)
 const ProgramsProgramIdControlsControlIdRoute =
   ProgramsProgramIdControlsControlIdRouteImport.update({
-    id: '/controls/$controlId',
-    path: '/controls/$controlId',
-    getParentRoute: () => ProgramsProgramIdRoute,
+    id: '/$programId_/controls/$controlId',
+    path: '/$programId/controls/$controlId',
+    getParentRoute: () => ProgramsRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -184,7 +191,7 @@ export interface FileRoutesByFullPath {
   '/findings/$findingId': typeof FindingsFindingIdRoute
   '/packages/$pkgId': typeof PackagesPkgIdRoute
   '/people/$personId': typeof PeoplePersonIdRoute
-  '/programs/$programId': typeof ProgramsProgramIdRouteWithChildren
+  '/programs/$programId': typeof ProgramsProgramIdRoute
   '/risks/$riskId': typeof RisksRiskIdRoute
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/findings/': typeof FindingsIndexRoute
@@ -192,6 +199,7 @@ export interface FileRoutesByFullPath {
   '/register/': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/programs/$programId/dashboard': typeof ProgramsProgramIdDashboardRoute
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/components/': typeof LibraryComponentsIndexRoute
@@ -212,7 +220,7 @@ export interface FileRoutesByTo {
   '/findings/$findingId': typeof FindingsFindingIdRoute
   '/packages/$pkgId': typeof PackagesPkgIdRoute
   '/people/$personId': typeof PeoplePersonIdRoute
-  '/programs/$programId': typeof ProgramsProgramIdRouteWithChildren
+  '/programs/$programId': typeof ProgramsProgramIdRoute
   '/risks/$riskId': typeof RisksRiskIdRoute
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/findings': typeof FindingsIndexRoute
@@ -220,6 +228,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/programs/$programId/dashboard': typeof ProgramsProgramIdDashboardRoute
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/components': typeof LibraryComponentsIndexRoute
@@ -241,7 +250,7 @@ export interface FileRoutesById {
   '/findings/$findingId': typeof FindingsFindingIdRoute
   '/packages/$pkgId': typeof PackagesPkgIdRoute
   '/people/$personId': typeof PeoplePersonIdRoute
-  '/programs/$programId': typeof ProgramsProgramIdRouteWithChildren
+  '/programs/$programId': typeof ProgramsProgramIdRoute
   '/risks/$riskId': typeof RisksRiskIdRoute
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/findings/': typeof FindingsIndexRoute
@@ -249,10 +258,11 @@ export interface FileRoutesById {
   '/register/': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/programs/$programId_/dashboard': typeof ProgramsProgramIdDashboardRoute
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/components/': typeof LibraryComponentsIndexRoute
-  '/programs/$programId/controls/$controlId': typeof ProgramsProgramIdControlsControlIdRoute
+  '/programs/$programId_/controls/$controlId': typeof ProgramsProgramIdControlsControlIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -279,6 +289,7 @@ export interface FileRouteTypes {
     | '/register/'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
+    | '/programs/$programId/dashboard'
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/components/'
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
+    | '/programs/$programId/dashboard'
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/components'
@@ -335,10 +347,11 @@ export interface FileRouteTypes {
     | '/register/'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
+    | '/programs/$programId_/dashboard'
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/components/'
-    | '/programs/$programId/controls/$controlId'
+    | '/programs/$programId_/controls/$controlId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -530,6 +543,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryComponentsComponentKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/programs/$programId_/dashboard': {
+      id: '/programs/$programId_/dashboard'
+      path: '/$programId/dashboard'
+      fullPath: '/programs/$programId/dashboard'
+      preLoaderRoute: typeof ProgramsProgramIdDashboardRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
     '/register/poam/$poamId': {
       id: '/register/poam/$poamId'
       path: '/register/poam/$poamId'
@@ -544,34 +564,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterRisksRiskIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/programs/$programId/controls/$controlId': {
-      id: '/programs/$programId/controls/$controlId'
-      path: '/controls/$controlId'
+    '/programs/$programId_/controls/$controlId': {
+      id: '/programs/$programId_/controls/$controlId'
+      path: '/$programId/controls/$controlId'
       fullPath: '/programs/$programId/controls/$controlId'
       preLoaderRoute: typeof ProgramsProgramIdControlsControlIdRouteImport
-      parentRoute: typeof ProgramsProgramIdRoute
+      parentRoute: typeof ProgramsRoute
     }
   }
 }
 
-interface ProgramsProgramIdRouteChildren {
+interface ProgramsRouteChildren {
+  ProgramsProgramIdRoute: typeof ProgramsProgramIdRoute
+  ProgramsProgramIdDashboardRoute: typeof ProgramsProgramIdDashboardRoute
   ProgramsProgramIdControlsControlIdRoute: typeof ProgramsProgramIdControlsControlIdRoute
 }
 
-const ProgramsProgramIdRouteChildren: ProgramsProgramIdRouteChildren = {
+const ProgramsRouteChildren: ProgramsRouteChildren = {
+  ProgramsProgramIdRoute: ProgramsProgramIdRoute,
+  ProgramsProgramIdDashboardRoute: ProgramsProgramIdDashboardRoute,
   ProgramsProgramIdControlsControlIdRoute:
     ProgramsProgramIdControlsControlIdRoute,
-}
-
-const ProgramsProgramIdRouteWithChildren =
-  ProgramsProgramIdRoute._addFileChildren(ProgramsProgramIdRouteChildren)
-
-interface ProgramsRouteChildren {
-  ProgramsProgramIdRoute: typeof ProgramsProgramIdRouteWithChildren
-}
-
-const ProgramsRouteChildren: ProgramsRouteChildren = {
-  ProgramsProgramIdRoute: ProgramsProgramIdRouteWithChildren,
 }
 
 const ProgramsRouteWithChildren = ProgramsRoute._addFileChildren(
