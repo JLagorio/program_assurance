@@ -191,7 +191,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
-        <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 py-6 lg:px-8 lg:py-8">
+        <main className="w-full flex-1 px-4 py-6 lg:px-6 lg:py-8">
           {children}
         </main>
       </div>

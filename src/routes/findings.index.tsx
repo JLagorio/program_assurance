@@ -27,6 +27,7 @@ import {
   type Asset,
   type Finding,
 } from "@/lib/findings";
+import { assetPosture } from "@/lib/graph-posture";
 import { severityTone, statusTone } from "@/lib/spine";
 
 export const Route = createFileRoute("/findings/")({
@@ -65,6 +66,33 @@ function scopeFilter(f: Finding, scope: Scope) {
 }
 
 type Preview = { kind: "finding"; item: Finding } | { kind: "asset"; item: Asset } | null;
+
+/**
+ * Register-derived open counts for an asset's composition subtree. The scanner
+ * columns beside these stay exactly as authored — the delta between the two is
+ * the reconciliation an SCA writes up, so neither side overwrites the other.
+ */
+function trackedLabel(assetId: string): string {
+  const rolled = assetPosture(assetId)?.rolled ?? null;
+  return rolled ? `${rolled.catI} / ${rolled.catII} / ${rolled.catIII}` : "—";
+}
+
+/** The register-tracked CAT triple, rendered as its own table cell. */
+function TrackedCell({ assetId }: { assetId: string }) {
+  const rolled = assetPosture(assetId)?.rolled ?? null;
+  if (!rolled) {
+    return <Td className="text-right text-muted-foreground">—</Td>;
+  }
+  return (
+    <Td className="tnum text-right">
+      <span className={rolled.catI ? "font-medium text-danger" : ""}>{rolled.catI}</span>
+      <span className="text-muted-foreground">
+        {" "}
+        / {rolled.catII} / {rolled.catIII}
+      </span>
+    </Td>
+  );
+}
 
 function FindingsPage() {
   const navigate = useNavigate();
@@ -228,11 +256,12 @@ function FindingsPage() {
                 <colgroup>
                   <col style={{ width: "112px" }} />
                   <col />
-                  <col style={{ width: "128px" }} />
-                  <col style={{ width: "160px" }} />
+                  <col style={{ width: "120px" }} />
+                  <col style={{ width: "148px" }} />
+                  <col style={{ width: "112px" }} />
                   <col style={{ width: "116px" }} />
-                  <col style={{ width: "128px" }} />
-                  <col style={{ width: "116px" }} />
+                  <col style={{ width: "124px" }} />
+                  <col style={{ width: "124px" }} />
                 </colgroup>
                 <thead>
                   <tr>
@@ -242,7 +271,8 @@ function FindingsPage() {
                     <Th>Technology</Th>
                     <Th>Environment</Th>
                     <Th>Last scan</Th>
-                    <Th className="text-right">Open I / II / III</Th>
+                    <Th className="text-right">Scanner I / II / III</Th>
+                    <Th className="text-right">Tracked I / II / III</Th>
                   </tr>
                 </thead>
                 <tbody>
@@ -273,6 +303,7 @@ function FindingsPage() {
                           / {a.openCatII} / {a.openCatIII}
                         </span>
                       </Td>
+                      <TrackedCell assetId={a.id} />
                     </Tr>
                   ))}
                 </tbody>
@@ -353,9 +384,14 @@ function FindingsPage() {
                 <KeyValue label="Last scan">{preview.item.lastScan}</KeyValue>
               </RailGroup>
               <RailGroup title="Open findings">
-                <KeyValue label="CAT I">{preview.item.openCatI}</KeyValue>
-                <KeyValue label="CAT II">{preview.item.openCatII}</KeyValue>
-                <KeyValue label="CAT III">{preview.item.openCatIII}</KeyValue>
+                <KeyValue label="Scanner declared">
+                  <span className="tnum">
+                    {preview.item.openCatI} / {preview.item.openCatII} / {preview.item.openCatIII}
+                  </span>
+                </KeyValue>
+                <KeyValue label="Register tracked">
+                  <span className="tnum">{trackedLabel(preview.item.id)}</span>
+                </KeyValue>
               </RailGroup>
             </PreviewRail>
           ) : null}

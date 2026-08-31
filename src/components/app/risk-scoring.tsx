@@ -1,0 +1,947 @@
+/**
+ * Residual risk scoring presentation — the auditable calculation trail.
+ *
+ * The load-bearing component in this file is `FactorTable`, and what it has to
+ * make legible is an argument, not a number:
+ *
+ *  - **A score with no trail launders judgement as arithmetic.** So the table
+ *    prints, per factor, the raw input that was read, the normalised value, the
+ *    weight, the points that value bought at that weight, the rationale
+ *    sentence, and the ids the rationale rests on. An AO who disagrees can name
+ *    the line they disagree with. There is no sparkline and no gauge here on
+ *    purpose: a gauge is a claim you cannot argue with.
+ *  - **The contributions sum to the score, visibly.** The footer adds the same
+ *    column the reader just read and states the total beside the published
+ *    score. If a clamp ever bit, it says so rather than absorbing the
+ *    difference — an unexplained gap between the column and the headline would
+ *    destroy the only thing this table is for.
+ *  - **A factor that could not be computed gets a ROW, not a silent absence.**
+ *    It prints "not computed", says its weight was never applied, and carries
+ *    the caveat sentence explaining why. Scoring a missing input as zero would
+ *    quietly assert "not exposed", which is a much stronger claim than "not
+ *    known"; hiding the row entirely would let the reader assume the denominator
+ *    was 100 when it was 85.
+ *  - **The mitigation credit is a negative line, never a silent adjustment.**
+ *    It reads as points taken off, next to the inherent number it was taken off
+ *    of, so the compensating control can be argued about on its own terms.
+ *  - **Authored and computed sit side by side and neither is overwritten.**
+ *    `ScoreCard` shows the assessor's register numbers beside the derived ones
+ *    and prints the disagreement as prose. Collapsing one into the other erases
+ *    the question, and the question is the product.
+ *
+ * Presentation only. Every value arrives as a prop from `@/lib/risk-scoring`;
+ * nothing here scores, weights, bands or sorts anything, and routes own links.
+ */
+
+import type { ReactNode } from "react";
+
+import { Badge, EmptyState, Meter, Mono, StackedBar, Table, Td, Th, Tr } from "@/components/app/ui";
+import {
+  bandTone,
+  factorOrder,
+  factorWeights,
+  type AuthoredComparison,
+  type FactorKey,
+  type ResidualScore,
+  type RiskBand,
+  type RiskMover,
+  type ScoreFactor,
+} from "@/lib/risk-scoring";
+import { cn } from "@/lib/utils";
+
+/* ── Shared bits ─────────────────────────────────────────────────────────── */
+
+function Dash() {
+  return <span className="text-muted-foreground">—</span>;
+}
+
+/**
+ * The labels `risk-scoring.ts` puts on its factors. They are duplicated here
+ * rather than exported because this file also has to name a factor that is
+ * ABSENT from a score — there is no `ScoreFactor` to read the label off when the
+ * whole factor could not be computed, and that row is the one worth printing.
+ */
+const factorLabel: Record<FactorKey, string> = {
+  severity: "Severity",
+  mission: "Mission impact",
+  exploitability: "Exploitability",
+  exposure: "Exposure",
+  currency: "Evidence currency",
+  mitigation: "Mitigation credit",
+};
+
+/** `-0` stringifies as "0", but rounding can still hand us one. Normalise it. */
+function zeroSafe(n: number): number {
+  return n === 0 ? 0 : n;
+}
+
+function signed(n: number): string {
+  const v = zeroSafe(n);
+  return v > 0 ? `+${v}` : String(v);
+}
+
+function fixed2(n: number): string {
+  return zeroSafe(n).toFixed(2);
+}
+
+export function BandChip({ band, size = "sm" }: { band: RiskBand; size?: "xs" | "sm" }) {
+  return (
+    <Badge size={size} tone={bandTone[band]}>
+      {band}
+    </Badge>
+  );
+}
+
+/** The ids a rationale rests on. Never a link — routes own navigation. */
+function EvidenceIds({ ids }: { ids: string[] }) {
+  if (ids.length === 0) {
+    return (
+      <span className="text-[12px] text-muted-foreground">
+        No ids recorded — this factor rests on the finding itself.
+      </span>
+    );
+  }
+  return (
+    <span className="flex flex-wrap items-center gap-1">
+      {ids.map((id) => (
+        <Mono
+          key={id}
+          className="rounded bg-muted px-1 py-px text-[11px] leading-4 text-muted-foreground"
+        >
+          {id}
+        </Mono>
+      ))}
+    </span>
+  );
+}
+
+function ProseBlock({
+  label,
+  tone = "muted",
+  children,
+}: {
+  label: string;
+  tone?: "muted" | "warning";
+  children: ReactNode;
+}) {
+  return (
+    <div>
+      <div
+        className={cn(
+          "text-[11px] font-medium uppercase tracking-[0.06em]",
+          tone === "warning" ? "text-warning" : "text-muted-foreground",
+        )}
+      >
+        {label}
+      </div>
+      <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">{children}</p>
+    </div>
+  );
+}
+
+/* ── The factor table ────────────────────────────────────────────────────── */
+
+/** The strongest positive term, which is what `leverage` is usually arguing about. */
+function topDriver(score: ResidualScore): ScoreFactor | null {
+  const positive = score.factors
+    .filter((f) => f.weight > 0)
+    .slice()
+    .sort((a, b) => b.contribution - a.contribution);
+  return positive[0] ?? null;
+}
+
+/**
+ * The calculation, line by line. Every column is arithmetic the reader can redo
+ * on paper: `contribution = value × weight × 100`, and the footer adds the
+ * column up.
+ */
+export function FactorTable({ score }: { score: ResidualScore }) {
+  const sum = score.factors.reduce((a, f) => a + f.contribution, 0);
+  const clamped = sum !== score.score;
+  const positive = score.factors.filter((f) => f.weight > 0);
+  const ceiling = Math.round(positive.reduce((a, f) => a + f.weight, 0) * 100);
+  const positiveKeys = factorOrder.filter((key) => factorWeights[key] > 0);
+  const missing = factorOrder.filter((key) => !score.factors.some((f) => f.key === key));
+
+  return (
+    <div className="space-y-2 pt-4">
+      <p className="text-[12.5px] leading-relaxed text-muted-foreground">
+        Each factor reads a raw input from the record, normalises it to 0–1, and buys{" "}
+        <span className="text-foreground">value × weight × 100</span> points. Nothing else is added:
+        the contributions below sum to the published residual, so a reader who disagrees with the
+        score can name the line they disagree with rather than the model as a whole.
+        {ceiling === 100
+          ? ` All ${positiveKeys.length} positive factors and the credit were computable here, so the score runs out of 100.`
+          : ` Only ${positive.length} of the ${positiveKeys.length} positive factors could be computed, so this score runs out of ${ceiling}, not 100.`}
+      </p>
+
+      <Table className="table-fixed">
+        <colgroup>
+          <col style={{ width: "150px" }} />
+          <col />
+          <col style={{ width: "72px" }} />
+          <col style={{ width: "76px" }} />
+          <col style={{ width: "104px" }} />
+        </colgroup>
+        <thead>
+          <tr>
+            <Th>Factor</Th>
+            <Th>Input read</Th>
+            <Th className="text-right">Value</Th>
+            <Th className="text-right">Weight</Th>
+            <Th className="text-right">Contribution</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {score.factors.map((f) => (
+            <FactorRows key={f.key} factor={f} />
+          ))}
+          {missing.map((key) => (
+            <MissingFactorRows key={key} factorKey={key} caveats={score.caveats} />
+          ))}
+        </tbody>
+        <tfoot>
+          <tr className="border-t border-border">
+            <Td className="font-semibold">Residual</Td>
+            <Td className="max-w-none whitespace-normal py-2 leading-snug text-muted-foreground">
+              {clamped
+                ? `The column sums to ${sum}, outside the 0–100 range; the published score is clamped.`
+                : `Sum of the ${score.factors.length} contributions above. The positive factors alone ceiling at ${ceiling}; the credit is what comes back off.`}
+            </Td>
+            <Td className="text-right">
+              <Dash />
+            </Td>
+            <Td className="text-right">
+              <Dash />
+            </Td>
+            <Td className="tnum text-right text-[15px] font-semibold">{score.score}</Td>
+          </tr>
+        </tfoot>
+      </Table>
+    </div>
+  );
+}
+
+/** One factor: the arithmetic row, then the sentence it rests on. */
+function FactorRows({ factor }: { factor: ScoreFactor }) {
+  const credit = factor.weight < 0;
+  return (
+    <>
+      <Tr className="border-0 align-top hover:bg-transparent">
+        <Td className="py-2 align-top font-medium">{factor.label}</Td>
+        <Td
+          className="max-w-none whitespace-normal py-2 align-top leading-snug"
+          title={factor.input}
+        >
+          {factor.input}
+        </Td>
+        <Td className="tnum py-2 align-top text-right">{fixed2(factor.value)}</Td>
+        <Td className="tnum py-2 align-top text-right text-muted-foreground">
+          {fixed2(factor.weight)}
+        </Td>
+        <Td
+          className={cn(
+            "tnum py-2 align-top text-right font-medium",
+            credit ? "text-success" : factor.contribution === 0 ? "text-muted-foreground" : "",
+          )}
+        >
+          {signed(factor.contribution)}
+        </Td>
+      </Tr>
+      <Tr className="align-top hover:bg-transparent">
+        <Td
+          className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
+          colSpan={5}
+        >
+          <span className="block text-[12.5px] text-muted-foreground">{factor.rationale}</span>
+          <span className="mt-1.5 block">
+            <EvidenceIds ids={factor.evidence} />
+          </span>
+        </Td>
+      </Tr>
+    </>
+  );
+}
+
+/**
+ * A factor with no row would silently change the denominator. This prints the
+ * absence, the weight that was never applied, and the caveat that explains it.
+ */
+function MissingFactorRows({ factorKey, caveats }: { factorKey: FactorKey; caveats: string[] }) {
+  const label = factorLabel[factorKey];
+  const weight = factorWeights[factorKey];
+  const needle = label.toLowerCase();
+  const share = Math.abs(Math.round(weight * 100));
+  // The module writes the reason itself, in two shapes: a finding-level caveat
+  // that opens with the factor's name, and a risk-level one that names the
+  // factor mid-sentence. Prefer the authored text over the generic fallback
+  // wherever either shape matches, because the authored one says WHY.
+  const caveat =
+    caveats.find((c) => c.toLowerCase().startsWith(needle)) ??
+    caveats.find(
+      (c) => c.toLowerCase().includes(needle) && /not applied|could not be computed/i.test(c),
+    ) ??
+    (weight > 0
+      ? `The ${needle} factor could not be computed for this subject, so its ${fixed2(weight)} weight was not applied and the score is out of ${100 - share} rather than 100.`
+      : `The ${needle} could not be computed for this subject, so the ${fixed2(weight)} credit was never applied and nothing came off the inherent score.`);
+  return (
+    <>
+      <Tr className="border-0 align-top hover:bg-transparent">
+        <Td className="py-2 align-top font-medium text-muted-foreground">{label}</Td>
+        <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
+          <Badge size="xs" tone="warning">
+            Not computed
+          </Badge>
+        </Td>
+        <Td className="py-2 align-top text-right">
+          <Dash />
+        </Td>
+        <Td className="tnum py-2 align-top text-right text-muted-foreground line-through">
+          {fixed2(weight)}
+        </Td>
+        <Td className="py-2 align-top text-right">
+          <Dash />
+        </Td>
+      </Tr>
+      <Tr className="align-top hover:bg-transparent">
+        <Td
+          className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
+          colSpan={5}
+        >
+          <span className="block text-[12.5px] text-muted-foreground">{caveat}</span>
+        </Td>
+      </Tr>
+    </>
+  );
+}
+
+/* ── The headline ────────────────────────────────────────────────────────── */
+
+/**
+ * Score, band, and the inherent-to-residual arithmetic — beside the authored
+ * register numbers wherever the subject has them. Both are labelled; neither is
+ * presented as correcting the other.
+ */
+export function ScoreCard({
+  score,
+  comparison,
+  subject,
+}: {
+  score: ResidualScore;
+  /** The assessor's register numbers, when the subject is a RegisterRisk. */
+  comparison?: AuthoredComparison | undefined;
+  /** Human title of the subject, printed above the numbers. */
+  subject?: string | undefined;
+}) {
+  const creditFactor = score.factors.find((f) => f.key === "mitigation");
+  const credit = zeroSafe(creditFactor?.contribution ?? 0);
+  const reconciles = score.inherent + credit === score.score;
+  const driver = topDriver(score);
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-border">
+      <div className={cn("grid", comparison ? "sm:grid-cols-2" : "")}>
+        <div className="px-4 py-3">
+          <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+            Computed residual
+          </div>
+          <div className="mt-1 flex items-baseline gap-2.5">
+            <span className="tnum text-[30px] font-semibold leading-none tracking-[-0.02em]">
+              {score.score}
+            </span>
+            <BandChip band={score.band} />
+          </div>
+          <div className="tnum mt-2 text-[12.5px] text-muted-foreground">
+            inherent {score.inherent}
+            {credit === 0 ? " · no mitigation credit claimed" : ` − ${Math.abs(credit)} credit`}
+            {reconciles && credit !== 0 ? ` = ${score.score}` : ""}
+          </div>
+          <div className="mt-0.5 text-[12px] text-muted-foreground">
+            {driver
+              ? `Largest term: ${driver.label.toLowerCase()}, ${signed(driver.contribution)} on "${driver.input}".`
+              : "No positive factor could be computed for this subject."}
+          </div>
+          {subject ? (
+            <div className="mt-1.5 truncate text-[12.5px] text-foreground" title={subject}>
+              {subject}
+            </div>
+          ) : null}
+        </div>
+
+        {comparison ? (
+          <div className="border-t border-border px-4 py-3 sm:border-l sm:border-t-0">
+            <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+              Authored in the register
+            </div>
+            <div className="mt-1 flex items-baseline gap-2.5">
+              <span className="tnum text-[30px] font-semibold leading-none tracking-[-0.02em] text-muted-foreground">
+                {comparison.authored.residual}
+              </span>
+              <span className="text-[12.5px] text-muted-foreground">residual</span>
+            </div>
+            <div className="tnum mt-2 text-[12.5px] text-muted-foreground">
+              inherent {comparison.authored.inherent} · likelihood {comparison.authored.likelihood}{" "}
+              × impact {comparison.authored.impact}
+            </div>
+            <div className="tnum mt-0.5 text-[12px] text-muted-foreground">
+              Computed sits {Math.abs(comparison.delta)} point
+              {Math.abs(comparison.delta) === 1 ? "" : "s"}{" "}
+              {comparison.delta === 0 ? "level with" : comparison.delta > 0 ? "above" : "below"} the
+              authored residual.
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="space-y-3 border-t border-border bg-subtle px-4 py-3">
+        {comparison ? (
+          <ProseBlock label="Authored against computed">{comparison.note}</ProseBlock>
+        ) : null}
+        <ProseBlock label="Leverage">{score.leverage}</ProseBlock>
+        {score.caveats.length > 0 ? (
+          <div>
+            <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-warning">
+              {score.caveats.length} caveat{score.caveats.length === 1 ? "" : "s"} — the score is
+              provisional
+            </div>
+            <ul className="mt-1 space-y-1">
+              {score.caveats.map((c) => (
+                <li key={c} className="text-[12.5px] leading-relaxed text-foreground">
+                  {c}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/* ── Distribution ────────────────────────────────────────────────────────── */
+
+/** How the scored population falls across the five bands. */
+export function BandDistribution({ byBand }: { byBand: { band: RiskBand; count: number }[] }) {
+  const total = byBand.reduce((a, b) => a + b.count, 0);
+  if (total === 0) {
+    return (
+      <div className="pt-4">
+        <EmptyState
+          title="Nothing scored"
+          description="No finding in this program resolved to a scorable record, so there is no distribution to show."
+        />
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3 pt-4">
+      <StackedBar
+        segments={byBand
+          .filter((b) => b.count > 0)
+          .map((b) => ({
+            key: b.band,
+            value: b.count,
+            tone: bandTone[b.band],
+            title: `${b.band}: ${b.count} of ${total}`,
+          }))}
+        height={10}
+      />
+      <div className="space-y-1.5">
+        {byBand.map((b) => (
+          <div key={b.band} className="grid grid-cols-[120px_44px_1fr_52px] items-center gap-3">
+            <BandChip band={b.band} size="xs" />
+            <span className="tnum text-right text-[12.5px] font-medium">{b.count}</span>
+            <Meter value={(b.count / total) * 100} tone={bandTone[b.band]} />
+            <span className="tnum text-right text-[12px] text-muted-foreground">
+              {Math.round((b.count / total) * 100)}%
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── The scored population ───────────────────────────────────────────────── */
+
+export type ScoredSubject = {
+  score: ResidualScore;
+  title: string;
+  /** Control, component and lifecycle in one line — what identifies the row. */
+  context: string;
+  /** True when the subject is not part of what the program is carrying today. */
+  excluded?: boolean;
+  /** Authored register residual, where the subject has one. */
+  authored?: number | null;
+};
+
+/**
+ * The scored population, worst first. Inherent, credit and residual are three
+ * separate columns because the credit is the number an AO argues about, and a
+ * table that prints only the residual hides it.
+ */
+export function TopRisksTable({
+  rows,
+  selected,
+  onSelect,
+  showAuthored = false,
+}: {
+  rows: ScoredSubject[];
+  selected?: string | null;
+  onSelect?: (subject: string) => void;
+  /** Adds the authored register residual beside the computed one. */
+  showAuthored?: boolean;
+}) {
+  if (rows.length === 0) {
+    return (
+      <div className="pt-4">
+        <EmptyState
+          title="Nothing to score"
+          description="No finding or register risk in this program resolves to a record the model can read, so there is no residual to publish."
+        />
+      </div>
+    );
+  }
+  return (
+    <Table className="table-fixed">
+      <colgroup>
+        <col style={{ width: "104px" }} />
+        <col />
+        <col style={{ width: "212px" }} />
+        <col style={{ width: "196px" }} />
+        <col style={{ width: "78px" }} />
+        <col style={{ width: "70px" }} />
+        {showAuthored ? <col style={{ width: "82px" }} /> : null}
+        <col style={{ width: "82px" }} />
+        <col style={{ width: "98px" }} />
+      </colgroup>
+      <thead>
+        <tr>
+          <Th>Subject</Th>
+          <Th>Title</Th>
+          <Th>Where</Th>
+          <Th>Largest term</Th>
+          <Th className="text-right">Inherent</Th>
+          <Th className="text-right">Credit</Th>
+          {showAuthored ? <Th className="text-right">Authored</Th> : null}
+          <Th className="text-right">Residual</Th>
+          <Th>Band</Th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => {
+          const driver = topDriver(row.score);
+          const credit = zeroSafe(
+            row.score.factors.find((f) => f.key === "mitigation")?.contribution ?? 0,
+          );
+          return (
+            <Tr
+              key={row.score.subject}
+              className={cn(
+                onSelect && "cursor-pointer",
+                selected === row.score.subject && "bg-primary-soft/40",
+              )}
+              onClick={onSelect ? () => onSelect(row.score.subject) : undefined}
+              title={row.excluded ? `${row.title} — not carried in the aggregate` : row.title}
+            >
+              <Td className="max-w-none">
+                <span className="flex items-center gap-1.5">
+                  <Mono className="text-primary">{row.score.subject}</Mono>
+                  {row.score.caveats.length > 0 ? (
+                    <Badge size="xs" tone="warning">
+                      {row.score.caveats.length}
+                    </Badge>
+                  ) : null}
+                </span>
+              </Td>
+              <Td className={cn("font-medium", row.excluded && "text-muted-foreground")}>
+                {row.title}
+              </Td>
+              <Td className="text-muted-foreground" title={row.context}>
+                {row.context}
+              </Td>
+              <Td className="text-muted-foreground" title={driver ? driver.rationale : undefined}>
+                {driver ? `${driver.label} ${signed(driver.contribution)}` : <Dash />}
+              </Td>
+              <Td className="tnum text-right text-muted-foreground">{row.score.inherent}</Td>
+              {/* A zero credit is a RESULT — nobody claimed a compensating
+                  control — so it prints as 0 rather than as an em dash, which
+                  would read as "not computed". */}
+              <Td
+                className={cn(
+                  "tnum text-right",
+                  credit !== 0 ? "text-success" : "text-muted-foreground",
+                )}
+              >
+                {signed(credit)}
+              </Td>
+              {showAuthored ? (
+                <Td className="tnum text-right text-muted-foreground">
+                  {typeof row.authored === "number" ? row.authored : <Dash />}
+                </Td>
+              ) : null}
+              <Td className="tnum text-right font-semibold">{row.score.score}</Td>
+              <Td>
+                <BandChip band={row.score.band} size="xs" />
+              </Td>
+            </Tr>
+          );
+        })}
+      </tbody>
+    </Table>
+  );
+}
+
+/* ── Movers ──────────────────────────────────────────────────────────────── */
+
+/**
+ * The loop between configuration management and risk, printed as movement. A
+ * score that rose because a change invalidated the evidence behind it is the
+ * whole reason the currency factor exists; it is worth its own table.
+ */
+export function MoversTable({ movers }: { movers: RiskMover[] }) {
+  if (movers.length === 0) {
+    return (
+      <div className="pt-4">
+        <EmptyState
+          title="Nothing moved"
+          description="No finding in this program carries a KEV listing or sits under an unacknowledged significant change, so no score differs from what it would have been on the evidence alone."
+        />
+      </div>
+    );
+  }
+  return (
+    <Table className="table-fixed">
+      <colgroup>
+        <col style={{ width: "112px" }} />
+        <col style={{ width: "88px" }} />
+        <col style={{ width: "76px" }} />
+        <col style={{ width: "68px" }} />
+        <col />
+      </colgroup>
+      <thead>
+        <tr>
+          <Th>Subject</Th>
+          <Th className="text-right">Without</Th>
+          <Th className="text-right">Published</Th>
+          <Th className="text-right">Move</Th>
+          <Th>Why it moved</Th>
+        </tr>
+      </thead>
+      <tbody>
+        {movers.map((m) => (
+          <Tr key={m.subject} className="align-top">
+            <Td className="py-2 align-top">
+              <Mono className="text-primary">{m.subject}</Mono>
+            </Td>
+            <Td className="tnum py-2 align-top text-right text-muted-foreground line-through">
+              {m.from}
+            </Td>
+            <Td className="tnum py-2 align-top text-right font-semibold">{m.to}</Td>
+            <Td
+              className={cn(
+                "tnum py-2 align-top text-right font-medium",
+                m.to > m.from ? "text-warning" : "text-success",
+              )}
+            >
+              {signed(m.to - m.from)}
+            </Td>
+            <Td className="max-w-none whitespace-normal py-2 align-top leading-snug text-muted-foreground">
+              {m.why}
+            </Td>
+          </Tr>
+        ))}
+      </tbody>
+    </Table>
+  );
+}
+
+/* ── Authored against computed ───────────────────────────────────────────── */
+
+export type ComparisonRow = { comparison: AuthoredComparison; title: string; treatment: string };
+
+/**
+ * The register's numbers and the derived ones, in one table, with the
+ * disagreement written out. Neither column is corrected by the other — the
+ * authored numbers are what the assessor signed for and this view never
+ * overwrites them.
+ */
+export function AuthoredComparisonTable({ rows }: { rows: ComparisonRow[] }) {
+  if (rows.length === 0) {
+    return (
+      <div className="pt-4">
+        <EmptyState
+          title="No register risk to compare"
+          description="This program carries no register risk with a finding joined to it, so there is no authored residual to set the computed one beside."
+        />
+      </div>
+    );
+  }
+  return (
+    <Table className="table-fixed">
+      <colgroup>
+        <col style={{ width: "104px" }} />
+        <col />
+        <col style={{ width: "96px" }} />
+        <col style={{ width: "84px" }} />
+        <col style={{ width: "84px" }} />
+        <col style={{ width: "88px" }} />
+        <col style={{ width: "72px" }} />
+        <col style={{ width: "98px" }} />
+      </colgroup>
+      <thead>
+        <tr>
+          <Th>Risk</Th>
+          <Th>Title</Th>
+          <Th>Treatment</Th>
+          <Th className="text-right">Authored inherent</Th>
+          <Th className="text-right">Authored residual</Th>
+          <Th className="text-right">Computed residual</Th>
+          <Th className="text-right">Delta</Th>
+          <Th>Computed band</Th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <ComparisonRows
+            key={row.comparison.risk}
+            comparison={row.comparison}
+            title={row.title}
+            treatment={row.treatment}
+          />
+        ))}
+      </tbody>
+    </Table>
+  );
+}
+
+function ComparisonRows({
+  comparison,
+  title,
+  treatment,
+}: {
+  comparison: AuthoredComparison;
+  title: string;
+  treatment: string;
+}) {
+  const agrees = Math.abs(comparison.delta) <= 5;
+  return (
+    <>
+      <Tr className="border-0 align-top hover:bg-transparent">
+        <Td className="py-2 align-top">
+          <Mono className="text-primary">{comparison.risk}</Mono>
+        </Td>
+        <Td className="py-2 align-top font-medium" title={title}>
+          {title}
+        </Td>
+        <Td className="py-2 align-top text-muted-foreground">{treatment}</Td>
+        <Td className="tnum py-2 align-top text-right text-muted-foreground">
+          {comparison.authored.inherent}
+        </Td>
+        <Td className="tnum py-2 align-top text-right text-muted-foreground">
+          {comparison.authored.residual}
+        </Td>
+        <Td className="tnum py-2 align-top text-right font-semibold">
+          {comparison.computed.residual}
+        </Td>
+        <Td
+          className={cn(
+            "tnum py-2 align-top text-right font-medium",
+            agrees ? "text-muted-foreground" : "text-warning",
+          )}
+        >
+          {signed(comparison.delta)}
+        </Td>
+        <Td className="py-2 align-top">
+          <BandChip band={comparison.computed.band} size="xs" />
+        </Td>
+      </Tr>
+      <Tr className="align-top hover:bg-transparent">
+        <Td
+          className="max-w-none whitespace-normal pb-3 pt-0 align-top text-[12.5px] leading-relaxed text-muted-foreground"
+          colSpan={8}
+        >
+          {comparison.note}
+        </Td>
+      </Tr>
+    </>
+  );
+}
+
+/* ── The model itself ────────────────────────────────────────────────────── */
+
+type ModelRow = { key: FactorKey; reads: string; scale: string };
+
+/**
+ * The six factors as documented in `risk-scoring.ts`. This table is the answer
+ * to "where did 85 come from" asked one level up from a single finding: a
+ * program that cannot inspect the model will not trust a number the model
+ * produced, however good the number is.
+ */
+const modelRows: ModelRow[] = [
+  {
+    key: "severity",
+    reads:
+      "The finding's RAW severity at discovery, not the adjudicated one. The credit for adjudication is taken once, on the mitigation line, so it can be argued with separately.",
+    scale: "CAT I 1.00 · CAT II 0.60 · CAT III 0.30",
+  },
+  {
+    key: "mission",
+    reads:
+      "The criticality of the composition node the finding sits on, and any confirmed mission effect on a threat-scenario path that runs through that node, its container or a part inside it. Where an effect exists, the harsher of the two governs and the rationale names which. Absent an effect it rests on criticality alone and says so.",
+    scale:
+      "Effect: Destroyed / Denied 1.00 · Exfiltrated 0.90 · Manipulated 0.85 · Degraded 0.70, less 0.10 when not reproduced. No effect earns a reduction. Criticality: Mission critical 0.90 · essential 0.65 · support 0.40 · non-critical 0.15",
+  },
+  {
+    key: "exploitability",
+    reads:
+      "A first-match ladder over the VEX record, the mission-effect log and the finding's own verification path — worst rung first, so the winning clause is the strongest available evidence rather than an average of everything.",
+    scale:
+      "KEV-listed 1.00 · demonstrated on this system 0.90 · exploitable VEX 0.45 + CVSS×0.05 · machine-checkable STIG rule 0.70 · remote ACAS plugin 0.60 · code scan 0.40 · manual procedure 0.20. A KEV listing against the enclosing image rather than the part adds 0.15, capped at 0.90.",
+  },
+  {
+    key: "exposure",
+    reads:
+      "`exposurePathsTo` over the composition graph: the least-trusted ground any inbound path reaches back to, widened — below the Public ceiling — by how many distinct entry points there are and whether the path runs entirely over connections with no redundant alternative. The rationale prints the actual path, hop by hop.",
+    scale:
+      "Entry zone Public 1.00 · DMZ 0.75 · Enclave 0.50 · Management 0.40 · Isolated 0.30, plus 0.05 per extra entry point to a cap of 0.10 and 0.05 for an all-critical path, the sum capped at 1.00 — a Public entry is already at the ceiling, so the widening only separates entries at DMZ or deeper. No inbound path but sitting inside a Public enclosure 0.55; a genuinely interior node 0.10.",
+  },
+  {
+    key: "currency",
+    reads:
+      "`nodeImpact` from the change log. A determination is only ever true of a configuration; when an unacknowledged significant change moves the component, the evidence stops describing the thing that is running and the residual goes UP rather than staying where the last assessor left it. Where nothing moved, it grades the age of the assessment instead.",
+    scale:
+      "Invalidated 1.00 · Suspect 0.55 · otherwise evidence older than 180 days 0.40 · older than 90 days 0.25 · recent 0.15",
+  },
+  {
+    key: "mitigation",
+    reads:
+      "The distance the adjudicated grade travelled below the raw grade, plus a smaller allowance for a written compensating control. It is the only factor that can take points off, and it shows as a negative contribution so the credit is visible rather than folded into the severity line.",
+    scale: "0.40 per severity step, plus 0.20 for a recorded compensating control, capped at 1.00",
+  },
+];
+
+export function FactorModel() {
+  const positive = factorOrder.filter((k) => factorWeights[k] > 0);
+  const positiveSum = positive.reduce((a, k) => a + factorWeights[k], 0);
+  return (
+    <div className="space-y-3 pt-4">
+      <p className="text-[12.5px] leading-relaxed text-muted-foreground">
+        The {positive.length} positive weights sum to {fixed2(positiveSum)}, so a subject that
+        maximises every one of them scores {Math.round(positiveSum * 100)}. The mitigation credit
+        sits outside that sum at {fixed2(factorWeights.mitigation)} and can take up to{" "}
+        {Math.abs(Math.round(factorWeights.mitigation * 100))} points back off, which is why an
+        adjudicated CAT I can still land below an un-mitigated CAT II. The final score is clamped to
+        0–100 and a clamp is stated as a caveat, never absorbed.
+      </p>
+      <Table className="table-fixed">
+        <colgroup>
+          <col style={{ width: "150px" }} />
+          <col style={{ width: "76px" }} />
+          <col />
+          <col style={{ width: "34%" }} />
+        </colgroup>
+        <thead>
+          <tr>
+            <Th>Factor</Th>
+            <Th className="text-right">Weight</Th>
+            <Th>What it reads</Th>
+            <Th>Normalisation</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {modelRows.map((row) => (
+            <Tr key={row.key} className="align-top">
+              <Td className="py-2 align-top font-medium">{factorLabel[row.key]}</Td>
+              <Td
+                className={cn(
+                  "tnum py-2 align-top text-right",
+                  factorWeights[row.key] < 0 ? "text-success" : "",
+                )}
+              >
+                {fixed2(factorWeights[row.key])}
+              </Td>
+              <Td className="max-w-none whitespace-normal py-2 align-top leading-relaxed text-muted-foreground">
+                {row.reads}
+              </Td>
+              <Td className="max-w-none whitespace-normal py-2 align-top leading-relaxed text-muted-foreground">
+                {row.scale}
+              </Td>
+            </Tr>
+          ))}
+        </tbody>
+      </Table>
+    </div>
+  );
+}
+
+/** Where the five bands cut. A band is a verdict, so it is the part with colour. */
+export function BandLadder({
+  byBand,
+}: {
+  byBand?: { band: RiskBand; count: number }[] | undefined;
+}) {
+  const counts = new Map((byBand ?? []).map((b) => [b.band, b.count]));
+  const ladder: { band: RiskBand; range: string; means: string }[] = [
+    {
+      band: "Very high",
+      range: "80 – 100",
+      means:
+        "Reachable, exploitable and mission-consequential at once. This is not a queue position; it is a conversation with the AO.",
+    },
+    {
+      band: "High",
+      range: "60 – 79",
+      means:
+        "Two of the three heavy terms are lit. Normally a POA&M with a date the AO has actually agreed to.",
+    },
+    {
+      band: "Moderate",
+      range: "40 – 59",
+      means:
+        "Real, bounded, and usually one factor away from moving in either direction. Left neutral on purpose — the amber has to mean something.",
+    },
+    { band: "Low", range: "20 – 39", means: "Carried, tracked, and not what is holding the ATO." },
+    {
+      band: "Very low",
+      range: "0 – 19",
+      means: "Recorded because it happened, not because it is driving anything.",
+    },
+  ];
+  return (
+    <div className="pt-4">
+      <Table className="table-fixed">
+        <colgroup>
+          <col style={{ width: "120px" }} />
+          <col style={{ width: "96px" }} />
+          {byBand ? <col style={{ width: "96px" }} /> : null}
+          <col />
+        </colgroup>
+        <thead>
+          <tr>
+            <Th>Band</Th>
+            <Th>Score</Th>
+            {byBand ? <Th className="text-right">In this program</Th> : null}
+            <Th>What it means here</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {ladder.map((row) => (
+            <Tr key={row.band} className="align-top">
+              <Td className="py-2 align-top">
+                <BandChip band={row.band} size="xs" />
+              </Td>
+              <Td className="tnum py-2 align-top text-muted-foreground">{row.range}</Td>
+              {byBand ? (
+                <Td className="tnum py-2 align-top text-right">{counts.get(row.band) ?? 0}</Td>
+              ) : null}
+              <Td className="max-w-none whitespace-normal py-2 align-top leading-relaxed text-muted-foreground">
+                {row.means}
+              </Td>
+            </Tr>
+          ))}
+        </tbody>
+      </Table>
+    </div>
+  );
+}

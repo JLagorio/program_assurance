@@ -6,6 +6,7 @@
  * the gate outlook come from the program's lifecycle gates.
  */
 
+import { datasetNow } from "@/lib/dataset-clock";
 import { controlFamilies, gatesForProgram, type Program, type ProgramGate } from "@/lib/grc-data";
 import { daysUntil, parseGateDate } from "@/lib/program-stage";
 import type { ControlRow } from "@/lib/control-matrix";
@@ -118,7 +119,7 @@ export type MilestoneNode = {
   tone: "success" | "warning" | "danger" | "info" | "neutral";
 };
 
-export function programMilestones(program: Program, now = new Date()): MilestoneNode[] {
+export function programMilestones(program: Program, now = datasetNow): MilestoneNode[] {
   const gates = gatesForProgram(program.id)
     .filter((g) => milestoneIds.includes(g.id))
     .sort((a, b) => {
@@ -178,7 +179,7 @@ export type GateOutlook = {
   next: GateOutlookRow | null;
 };
 
-export function gateOutlook(program: Program, rows: ControlRow[], now = new Date()): GateOutlook {
+export function gateOutlook(program: Program, rows: ControlRow[], now = datasetNow): GateOutlook {
   const gates = gatesForProgram(program.id);
   const openControls = rows.filter((r) => r.status !== "Satisfied");
 
@@ -252,7 +253,7 @@ export function programDeadlines(
     status: string;
     scheduledCompletion: string;
   }[],
-  now = new Date(),
+  now = datasetNow,
   limit = 12,
 ): Deadline[] {
   const out: Deadline[] = [];

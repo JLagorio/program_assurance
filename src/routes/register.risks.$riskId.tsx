@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Fragment } from "react";
 
 import { Shell } from "@/components/app/shell";
+import { TextBlock } from "@/components/app/control-text";
 import {
   Badge,
   Button,
+  EmptyState,
   KeyValue,
   Meter,
   Mono,
@@ -24,6 +27,7 @@ import {
   poamsForRisk,
   registerRisks,
 } from "@/lib/register";
+import { authoredComparison, bandTone, scoreRisk, type ScoreFactor } from "@/lib/risk-scoring";
 import { severityTone, statusTone } from "@/lib/spine";
 
 export const Route = createFileRoute("/register/risks/$riskId")({
@@ -51,6 +55,11 @@ function residualTone(v: number) {
   return v > 60 ? "danger" : v > 30 ? "warning" : "success";
 }
 
+/** `+12`, `-8`, `0` — the sign is the whole point of the mitigation credit. */
+function signed(n: number): string {
+  return n > 0 ? `+${n}` : String(n);
+}
+
 function RiskRecord() {
   const { riskId } = Route.useParams();
   const risk = registerRisks.find((r) => r.id === riskId);
@@ -71,6 +80,12 @@ function RiskRecord() {
   const fs = findingsForRisk(risk.id).slice().sort(bySeverity);
   const poams = poamsForRisk(risk.id);
   const ccis = ccisForRisk(risk.id);
+  // Computed BESIDE the authored numbers, never over them. `scoreRisk` returns
+  // null when no finding is joined to the risk: scoring it from the authored
+  // likelihood and impact would re-badge a judgement as a derivation.
+  const computed = scoreRisk(risk.id);
+  const comparison = authoredComparison(risk.id);
+  const credit = computed?.factors.find((f) => f.key === "mitigation")?.contribution ?? 0;
 
   return (
     <Shell>
@@ -100,12 +115,26 @@ function RiskRecord() {
               <KeyValue label="Likelihood × impact">
                 {risk.likelihood} × {risk.impact}
               </KeyValue>
-              <KeyValue label="Inherent">{risk.inherent}</KeyValue>
+              <KeyValue label="Inherent">
+                <span className="tnum">{risk.inherent}</span>
+                <span className="ml-1.5 text-[11.5px] text-muted-foreground">authored</span>
+              </KeyValue>
               <KeyValue label="Residual">
                 <span className="flex items-center gap-2">
                   <Meter value={risk.residual} tone={residualTone(risk.residual)} />
                   <span className="tnum text-[12px] font-medium">{risk.residual}</span>
+                  <span className="text-[11.5px] text-muted-foreground">authored</span>
                 </span>
+              </KeyValue>
+              <KeyValue label="Computed">
+                {computed ? (
+                  <span className="flex items-center gap-2">
+                    <span className="tnum text-[12px] font-medium">{computed.score}</span>
+                    <Badge tone={bandTone[computed.band]}>{computed.band}</Badge>
+                  </span>
+                ) : (
+                  "—"
+                )}
               </KeyValue>
               <KeyValue label="Treatment">{risk.treatment}</KeyValue>
             </RailGroup>
@@ -137,122 +166,329 @@ function RiskRecord() {
           </>
         }
       >
-            <Section title="Risk statement">
-              <p className="max-w-3xl text-[13px] leading-relaxed">{risk.statement}</p>
-              {risk.aoNote ? (
-                <p className="mt-3 max-w-3xl text-[12.5px] leading-relaxed text-muted-foreground">
-                  AO note — {risk.aoNote}
-                </p>
-              ) : null}
-            </Section>
+        <Section title="Risk statement">
+          <p className="max-w-3xl text-[13px] leading-relaxed">{risk.statement}</p>
+          {risk.aoNote ? (
+            <p className="mt-3 max-w-3xl text-[12.5px] leading-relaxed text-muted-foreground">
+              AO note — {risk.aoNote}
+            </p>
+          ) : null}
+        </Section>
 
-            <Section
-              title="Reducing POA&M items"
-              description={
-                poams.length
-                  ? "Each commitment below lowers the residual score when it completes."
-                  : "Nothing is scheduled against this risk — the residual is untreated."
-              }
-            >
-              {poams.length ? (
-                <Table className="table-fixed">
-                  <colgroup>
-                    <col style={{ width: "112px" }} />
-                    <col />
-                    <col style={{ width: "140px" }} />
-                    <col style={{ width: "116px" }} />
-                    <col style={{ width: "104px" }} />
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <Th>POA&M</Th>
-                      <Th>Weakness</Th>
-                      <Th>Owner</Th>
-                      <Th>Scheduled</Th>
-                      <Th>Status</Th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {poams.map((p) => (
-                      <Tr key={p.id}>
-                        <Td>
-                          <Link
-                            to="/register/poam/$poamId"
-                            params={{ poamId: p.id }}
-                            className="hover:underline"
-                          >
-                            <Mono className="text-primary">{p.id}</Mono>
-                          </Link>
-                        </Td>
-                        <Td className="truncate">{p.title}</Td>
-                        <Td className="truncate text-muted-foreground">{p.owner}</Td>
-                        <Td className="truncate text-[12px] text-muted-foreground">
-                          {p.scheduledCompletion}
-                        </Td>
-                        <Td className="truncate">
-                          <Badge tone={statusTone(p.status)}>{p.status}</Badge>
-                        </Td>
-                      </Tr>
-                    ))}
-                  </tbody>
-                </Table>
-              ) : null}
-            </Section>
+        <Section
+          title="Residual risk"
+          description={
+            computed
+              ? `Computed ${computed.score} of 100 — ${computed.band} — against the assessor's authored ${risk.residual}. Neither number replaces the other.`
+              : "No finding is joined to this risk, so there is nothing to compute a residual from."
+          }
+        >
+          {computed && comparison ? (
+            <>
+              <div className="grid gap-3 pt-4 md:grid-cols-2">
+                <div className="rounded-md border border-border p-3">
+                  <p className="text-11 font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                    Authored — risk register
+                  </p>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="tnum text-[30px] font-semibold leading-none">
+                      {comparison.authored.residual}
+                    </span>
+                    <span className="text-[12px] text-muted-foreground">residual / 100</span>
+                  </div>
+                  <div className="mt-3">
+                    <Meter
+                      value={comparison.authored.residual}
+                      tone={residualTone(risk.residual)}
+                    />
+                  </div>
+                  <dl className="mt-3 space-y-1.5 text-[12px]">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <dt className="text-muted-foreground">Likelihood × impact</dt>
+                      <dd className="tnum">
+                        {comparison.authored.likelihood} × {comparison.authored.impact}
+                      </dd>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-3">
+                      <dt className="text-muted-foreground">Inherent</dt>
+                      <dd className="tnum">{comparison.authored.inherent}</dd>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-3 border-t border-border-subtle pt-1.5">
+                      <dt className="font-medium">Residual</dt>
+                      <dd className="tnum font-medium">{comparison.authored.residual}</dd>
+                    </div>
+                  </dl>
+                  <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
+                    {risk.owner} wrote this down on {risk.reviewed}. It is the number the AO has
+                    seen, and nothing on this page overwrites it.
+                  </p>
+                </div>
 
-            <Section
-              title="Aggregated findings"
-              description={`${openCount(fs)} open of ${fs.length}, across ${ccis.length} CCI${ccis.length === 1 ? "" : "s"}.`}
-            >
-              <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "112px" }} />
-                  <col />
-                  <col style={{ width: "104px" }} />
-                  <col style={{ width: "140px" }} />
-                  <col style={{ width: "78px" }} />
-                  <col style={{ width: "112px" }} />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <Th>Finding</Th>
-                    <Th>Title</Th>
-                    <Th>CCI</Th>
-                    <Th>Asset</Th>
-                    <Th>Severity</Th>
-                    <Th>Lifecycle</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {fs.map((f) => (
-                    <Tr key={f.id}>
-                      <Td>
-                        <Link
-                          to="/findings/$findingId"
-                          params={{ findingId: f.id }}
-                          className="hover:underline"
-                        >
-                          <Mono className="text-primary">{f.id}</Mono>
-                        </Link>
-                      </Td>
-                      <Td className="truncate">{f.title}</Td>
-                      <Td>
-                        <Mono className="text-muted-foreground">{f.cci}</Mono>
-                      </Td>
-                      <Td className="truncate text-muted-foreground">
-                        {assetById.get(f.asset)?.name ?? f.asset}
-                      </Td>
-                      <Td>
-                        <Badge tone={severityTone(f.mitigatedSeverity)}>{f.mitigatedSeverity}</Badge>
-                      </Td>
-                      <Td className="truncate">
-                        <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
-                      </Td>
-                    </Tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Section>
+                <div className="rounded-md border border-border p-3">
+                  <p className="text-11 font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                    Computed — evidence trail
+                  </p>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="tnum text-[30px] font-semibold leading-none">
+                      {computed.score}
+                    </span>
+                    <span className="text-[12px] text-muted-foreground">residual / 100</span>
+                    <Badge tone={bandTone[computed.band]}>{computed.band}</Badge>
+                  </div>
+                  <div className="mt-3">
+                    <Meter value={computed.score} tone={bandTone[computed.band]} />
+                  </div>
+                  <dl className="mt-3 space-y-1.5 text-[12px]">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <dt className="text-muted-foreground">Inherent</dt>
+                      <dd className="tnum">{computed.inherent}</dd>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-3">
+                      <dt className="text-muted-foreground">Mitigation credit</dt>
+                      <dd className={credit < 0 ? "tnum text-success" : "tnum"}>
+                        {signed(credit)}
+                      </dd>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-3 border-t border-border-subtle pt-1.5">
+                      <dt className="font-medium">Residual</dt>
+                      <dd className="tnum font-medium">{computed.score}</dd>
+                    </div>
+                  </dl>
+                  <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
+                    Aggregated from the {fs.length} joined finding{fs.length === 1 ? "" : "s"} by
+                    taking the worst reading on each of the six factors — a risk is no more
+                    mitigated than its least-mitigated component.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <TextBlock label="Disagreement">{comparison.note}</TextBlock>
+                <TextBlock label="Greatest leverage">{computed.leverage}</TextBlock>
+                <TextBlock label="Caveats">
+                  {computed.caveats.length === 0 ? (
+                    <span className="text-muted-foreground">
+                      None. Every one of the six terms was computed from live evidence, so the score
+                      is not provisional.
+                    </span>
+                  ) : (
+                    <ul className="space-y-1.5">
+                      {computed.caveats.map((c) => (
+                        <li key={c} className="border-l-2 border-border pl-2">
+                          {c}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </TextBlock>
+              </div>
+            </>
+          ) : (
+            <EmptyState
+              title="Nothing to compute from"
+              description={`${risk.id} has no finding joined to it, so there is no severity, exposure or mission evidence to read. Deriving a residual from the authored likelihood and impact would re-badge the assessor's judgement as a calculation, which is exactly what the score exists to prevent. The authored ${risk.residual} stands on its own.`}
+            />
+          )}
+        </Section>
+
+        {computed ? (
+          <Section
+            title="Calculation"
+            description="Five weighted terms and one credit. Each row carries the input it read, the arithmetic, the ids it rests on, and one sentence an assessor can disagree with."
+          >
+            <FactorTrail factors={computed.factors} score={computed.score} />
+          </Section>
+        ) : null}
+
+        <Section
+          title="Reducing POA&M items"
+          description={
+            poams.length
+              ? "Each commitment below lowers the residual score when it completes."
+              : "Nothing is scheduled against this risk — the residual is untreated."
+          }
+        >
+          {poams.length ? (
+            <Table className="table-fixed">
+              <colgroup>
+                <col style={{ width: "112px" }} />
+                <col />
+                <col style={{ width: "140px" }} />
+                <col style={{ width: "116px" }} />
+                <col style={{ width: "104px" }} />
+              </colgroup>
+              <thead>
+                <tr>
+                  <Th>POA&M</Th>
+                  <Th>Weakness</Th>
+                  <Th>Owner</Th>
+                  <Th>Scheduled</Th>
+                  <Th>Status</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {poams.map((p) => (
+                  <Tr key={p.id}>
+                    <Td>
+                      <Link
+                        to="/register/poam/$poamId"
+                        params={{ poamId: p.id }}
+                        className="hover:underline"
+                      >
+                        <Mono className="text-primary">{p.id}</Mono>
+                      </Link>
+                    </Td>
+                    <Td className="truncate">{p.title}</Td>
+                    <Td className="truncate text-muted-foreground">{p.owner}</Td>
+                    <Td className="truncate text-[12px] text-muted-foreground">
+                      {p.scheduledCompletion}
+                    </Td>
+                    <Td className="truncate">
+                      <Badge tone={statusTone(p.status)}>{p.status}</Badge>
+                    </Td>
+                  </Tr>
+                ))}
+              </tbody>
+            </Table>
+          ) : null}
+        </Section>
+
+        <Section
+          title="Aggregated findings"
+          description={`${openCount(fs)} open of ${fs.length}, across ${ccis.length} CCI${ccis.length === 1 ? "" : "s"}.`}
+        >
+          <Table className="table-fixed">
+            <colgroup>
+              <col style={{ width: "112px" }} />
+              <col />
+              <col style={{ width: "104px" }} />
+              <col style={{ width: "140px" }} />
+              <col style={{ width: "78px" }} />
+              <col style={{ width: "112px" }} />
+            </colgroup>
+            <thead>
+              <tr>
+                <Th>Finding</Th>
+                <Th>Title</Th>
+                <Th>CCI</Th>
+                <Th>Asset</Th>
+                <Th>Severity</Th>
+                <Th>Lifecycle</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {fs.map((f) => (
+                <Tr key={f.id}>
+                  <Td>
+                    <Link
+                      to="/findings/$findingId"
+                      params={{ findingId: f.id }}
+                      className="hover:underline"
+                    >
+                      <Mono className="text-primary">{f.id}</Mono>
+                    </Link>
+                  </Td>
+                  <Td className="truncate">{f.title}</Td>
+                  <Td>
+                    <Mono className="text-muted-foreground">{f.cci}</Mono>
+                  </Td>
+                  <Td className="truncate text-muted-foreground">
+                    {assetById.get(f.asset)?.name ?? f.asset}
+                  </Td>
+                  <Td>
+                    <Badge tone={severityTone(f.mitigatedSeverity)}>{f.mitigatedSeverity}</Badge>
+                  </Td>
+                  <Td className="truncate">
+                    <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
+                  </Td>
+                </Tr>
+              ))}
+            </tbody>
+          </Table>
+        </Section>
       </ShowPage>
     </Shell>
+  );
+}
+
+/**
+ * The auditable trail. The numeric spine is a table because the arithmetic has
+ * to line up column by column; the rationale gets its own full-width row
+ * beneath because a truncated rationale is the same as no rationale, and the
+ * rationale is the part a human is meant to disagree with. On a risk each row
+ * also names the member finding that drove the factor.
+ */
+function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number }) {
+  const sum = factors.reduce((a, f) => a + f.contribution, 0);
+  return (
+    <div className="pt-3">
+      <Table className="table-fixed">
+        <colgroup>
+          <col style={{ width: "152px" }} />
+          <col />
+          <col style={{ width: "68px" }} />
+          <col style={{ width: "72px" }} />
+          <col style={{ width: "108px" }} />
+        </colgroup>
+        <thead>
+          <tr>
+            <Th>Factor</Th>
+            <Th>Input</Th>
+            <Th className="text-right">Value</Th>
+            <Th className="text-right">Weight</Th>
+            <Th className="text-right">Contribution</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {factors.map((f) => (
+            <Fragment key={f.key}>
+              <tr>
+                <Td className="font-medium">{f.label}</Td>
+                <Td className="truncate text-muted-foreground" title={f.input}>
+                  {f.input}
+                </Td>
+                <Td className="tnum text-right">{f.value.toFixed(2)}</Td>
+                <Td className="tnum text-right text-muted-foreground">{f.weight.toFixed(2)}</Td>
+                <Td
+                  className={
+                    f.contribution < 0
+                      ? "tnum text-right font-medium text-success"
+                      : "tnum text-right font-medium"
+                  }
+                >
+                  {signed(f.contribution)}
+                </Td>
+              </tr>
+              <tr className="border-b border-border-subtle">
+                <td colSpan={5} className="px-3 pb-2.5 align-top">
+                  <p className="max-w-3xl text-[12.5px] leading-relaxed text-muted-foreground">
+                    {f.rationale}
+                  </p>
+                  <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                    <span className="text-11 text-muted-foreground">Evidence</span>
+                    {f.evidence.length ? (
+                      f.evidence.map((id) => (
+                        <Mono key={id} className="text-[11.5px] text-muted-foreground">
+                          {id}
+                        </Mono>
+                      ))
+                    ) : (
+                      <span className="text-[11.5px] text-muted-foreground">—</span>
+                    )}
+                  </p>
+                </td>
+              </tr>
+            </Fragment>
+          ))}
+          <tr>
+            <Td colSpan={4} className="text-muted-foreground">
+              Sum of the {factors.length} contributions
+              {sum === score ? "" : `, clamped from ${sum} to the 0–100 range`}
+            </Td>
+            <Td className="tnum text-right font-semibold">{score}</Td>
+          </tr>
+        </tbody>
+      </Table>
+    </div>
   );
 }

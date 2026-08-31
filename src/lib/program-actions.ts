@@ -6,11 +6,15 @@
  * owned, dated action list so the overview stops being a reading exercise.
  */
 
+import type { ControlRow } from "@/lib/control-matrix";
+import { controlMatrix } from "@/lib/control-matrix";
+import { datasetNow } from "@/lib/dataset-clock";
 import type { Program } from "@/lib/grc-data";
 import { programState, type Stage } from "@/lib/program-stage";
 import { poamItems } from "@/lib/register";
 import { findings, isOpen } from "@/lib/findings";
-import { inheritanceForProgram, staleThresholdDays } from "@/lib/reusable-components";
+import { inheritanceForProgram } from "@/lib/inheritance";
+import { staleThresholdDays } from "@/lib/reusable-components";
 import { scopeApprovals } from "@/lib/tailoring";
 import type { Tone } from "@/components/app/ui";
 
@@ -48,10 +52,16 @@ function parseDate(value: string): Date | null {
   return new Date(Date.UTC(Number(m[3]), month, Number(m[2])));
 }
 
+/**
+ * Whole days between calendar days, not between instants — otherwise the same
+ * commitment reads "8d overdue" in the morning and "9d overdue" in the evening.
+ * Matches `daysUntil` in program-stage.ts and `daysBetween` in conmon.ts.
+ */
 function daysFromNow(value: string, now: Date): number | null {
   const d = parseDate(value);
   if (!d) return null;
-  return Math.round((d.getTime() - now.getTime()) / 86_400_000);
+  const base = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return Math.round((d.getTime() - base) / 86_400_000);
 }
 
 /** Findings reachable from this program through its POA&M items and risks. */
@@ -75,7 +85,20 @@ export type Posture = {
   inheritedControls: number;
 };
 
-export function programPosture(program: Program, now = new Date()): Posture {
+/**
+ * Posture is read off the live control matrix, not off the authored
+ * `Program` record: `controlsTotal`/`controlsFailing` there are the last signed
+ * package figures, and the coverage card, the family table and the tab badge on
+ * the same screen all derive from the rows. Callers that hold the rows pass
+ * them so the rail moves with an inline status edit; the fallback keeps a
+ * caller without rows on the same source rather than on the stale snapshot.
+ */
+export function programPosture(
+  program: Program,
+  rows?: ControlRow[],
+  now = datasetNow,
+): Posture {
+  const matrix = rows ?? controlMatrix(program.id);
   const poams = poamItems.filter((p) => p.program === program.id);
   const open = poams.filter((p) => p.status !== "Completed");
   const overdue = open.filter((p) => {
@@ -89,9 +112,9 @@ export function programPosture(program: Program, now = new Date()): Posture {
   );
 
   return {
-    controlsSatisfied: program.controlsTotal - program.controlsFailing,
-    controlsTotal: program.controlsTotal,
-    controlsFailing: program.controlsFailing,
+    controlsSatisfied: matrix.filter((r) => r.status === "Satisfied").length,
+    controlsTotal: matrix.length,
+    controlsFailing: matrix.filter((r) => r.status === "Other than satisfied").length,
     findingsOpen: fnd.length,
     catI: fnd.filter((f) => f.mitigatedSeverity === "CAT I").length,
     poamOpen: open.length,
@@ -102,8 +125,14 @@ export function programPosture(program: Program, now = new Date()): Posture {
 }
 
 /** Max five, worst first. Anything longer is a table, not a call to action. */
-export function nextActions(program: Program, now = new Date()): NextAction[] {
-  const state = programState(program, now);
+export function nextActions(
+  program: Program,
+  rows?: ControlRow[],
+  now = datasetNow,
+): NextAction[] {
+  const matrix = rows ?? controlMatrix(program.id);
+  const controlsFailing = matrix.filter((r) => r.status === "Other than satisfied").length;
+  const state = programState(program, now, controlsFailing);
   const out: NextAction[] = [];
 
   // 1. Gate blocker — the thing stopping the state machine.
@@ -158,11 +187,11 @@ export function nextActions(program: Program, now = new Date()): NextAction[] {
   }
 
   // 4. Controls other than satisfied.
-  if (program.controlsFailing > 0) {
+  if (controlsFailing > 0) {
     out.push({
       id: `controls-${program.id}`,
       tone: "danger",
-      label: `${program.controlsFailing} controls other than satisfied in the assessed baseline`,
+      label: `${controlsFailing} controls other than satisfied in the assessed baseline`,
       owner: program.assessor,
       due: program.updated,
       cta: "Record result",

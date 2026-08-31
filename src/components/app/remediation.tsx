@@ -7,6 +7,7 @@
  * window so slippage against the scheduled completion is visible at a glance.
  */
 
+import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 
@@ -286,7 +287,7 @@ export function RemediationPlanSection({
   );
 }
 
-function Fact({ label, children }: { label: string; children: React.ReactNode }) {
+function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
       <div className="text-11 uppercase tracking-[0.04em] text-muted-foreground">{label}</div>

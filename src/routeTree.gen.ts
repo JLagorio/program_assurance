@@ -20,6 +20,7 @@ import { Route as RisksRouteImport } from './routes/risks'
 import { Route as ScopeRouteImport } from './routes/scope'
 import { Route as StigsRouteImport } from './routes/stigs'
 import { Route as VendorsRouteImport } from './routes/vendors'
+import { Route as CampaignsCampaignIdRouteImport } from './routes/campaigns.$campaignId'
 import { Route as FindingsIndexRouteImport } from './routes/findings.index'
 import { Route as FindingsFindingIdRouteImport } from './routes/findings.$findingId'
 import { Route as PackagesIndexRouteImport } from './routes/packages.index'
@@ -32,7 +33,16 @@ import { Route as WorkstreamsWorkstreamIdRouteImport } from './routes/workstream
 import { Route as FindingsAssetsAssetIdRouteImport } from './routes/findings.assets.$assetId'
 import { Route as LibraryComponentsIndexRouteImport } from './routes/library.components.index'
 import { Route as LibraryComponentsComponentKeyRouteImport } from './routes/library.components.$componentKey'
+import { Route as ProgramsProgramIdBaselineRouteImport } from './routes/programs.$programId_.baseline'
+import { Route as ProgramsProgramIdCompositionRouteImport } from './routes/programs.$programId_.composition'
+import { Route as ProgramsProgramIdConmonRouteImport } from './routes/programs.$programId_.conmon'
 import { Route as ProgramsProgramIdDashboardRouteImport } from './routes/programs.$programId_.dashboard'
+import { Route as ProgramsProgramIdExportRouteImport } from './routes/programs.$programId_.export'
+import { Route as ProgramsProgramIdIngestionRouteImport } from './routes/programs.$programId_.ingestion'
+import { Route as ProgramsProgramIdInheritanceRouteImport } from './routes/programs.$programId_.inheritance'
+import { Route as ProgramsProgramIdRiskRouteImport } from './routes/programs.$programId_.risk'
+import { Route as ProgramsProgramIdSctmRouteImport } from './routes/programs.$programId_.sctm'
+import { Route as ProgramsProgramIdTePhasesRouteImport } from './routes/programs.$programId_.te-phases'
 import { Route as RegisterPoamPoamIdRouteImport } from './routes/register.poam.$poamId'
 import { Route as RegisterRisksRiskIdRouteImport } from './routes/register.risks.$riskId'
 import { Route as ProgramsProgramIdControlsControlIdRouteImport } from './routes/programs.$programId_.controls.$controlId'
@@ -91,6 +101,11 @@ const VendorsRoute = VendorsRouteImport.update({
   id: '/vendors',
   path: '/vendors',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CampaignsCampaignIdRoute = CampaignsCampaignIdRouteImport.update({
+  id: '/$campaignId',
+  path: '/$campaignId',
+  getParentRoute: () => CampaignsRoute,
 } as any)
 const FindingsIndexRoute = FindingsIndexRouteImport.update({
   id: '/findings/',
@@ -153,10 +168,60 @@ const LibraryComponentsComponentKeyRoute =
     path: '/library/components/$componentKey',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ProgramsProgramIdBaselineRoute =
+  ProgramsProgramIdBaselineRouteImport.update({
+    id: '/$programId_/baseline',
+    path: '/$programId/baseline',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
+const ProgramsProgramIdCompositionRoute =
+  ProgramsProgramIdCompositionRouteImport.update({
+    id: '/$programId_/composition',
+    path: '/$programId/composition',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
+const ProgramsProgramIdConmonRoute = ProgramsProgramIdConmonRouteImport.update({
+  id: '/$programId_/conmon',
+  path: '/$programId/conmon',
+  getParentRoute: () => ProgramsRoute,
+} as any)
 const ProgramsProgramIdDashboardRoute =
   ProgramsProgramIdDashboardRouteImport.update({
     id: '/$programId_/dashboard',
     path: '/$programId/dashboard',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
+const ProgramsProgramIdExportRoute = ProgramsProgramIdExportRouteImport.update({
+  id: '/$programId_/export',
+  path: '/$programId/export',
+  getParentRoute: () => ProgramsRoute,
+} as any)
+const ProgramsProgramIdIngestionRoute =
+  ProgramsProgramIdIngestionRouteImport.update({
+    id: '/$programId_/ingestion',
+    path: '/$programId/ingestion',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
+const ProgramsProgramIdInheritanceRoute =
+  ProgramsProgramIdInheritanceRouteImport.update({
+    id: '/$programId_/inheritance',
+    path: '/$programId/inheritance',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
+const ProgramsProgramIdRiskRoute = ProgramsProgramIdRiskRouteImport.update({
+  id: '/$programId_/risk',
+  path: '/$programId/risk',
+  getParentRoute: () => ProgramsRoute,
+} as any)
+const ProgramsProgramIdSctmRoute = ProgramsProgramIdSctmRouteImport.update({
+  id: '/$programId_/sctm',
+  path: '/$programId/sctm',
+  getParentRoute: () => ProgramsRoute,
+} as any)
+const ProgramsProgramIdTePhasesRoute =
+  ProgramsProgramIdTePhasesRouteImport.update({
+    id: '/$programId_/te-phases',
+    path: '/$programId/te-phases',
     getParentRoute: () => ProgramsRoute,
   } as any)
 const RegisterPoamPoamIdRoute = RegisterPoamPoamIdRouteImport.update({
@@ -179,7 +244,7 @@ const ProgramsProgramIdControlsControlIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/briefing': typeof BriefingRoute
-  '/campaigns': typeof CampaignsRoute
+  '/campaigns': typeof CampaignsRouteWithChildren
   '/components': typeof ComponentsRoute
   '/controls': typeof ControlsRoute
   '/evidence': typeof EvidenceRoute
@@ -188,6 +253,7 @@ export interface FileRoutesByFullPath {
   '/scope': typeof ScopeRoute
   '/stigs': typeof StigsRoute
   '/vendors': typeof VendorsRoute
+  '/campaigns/$campaignId': typeof CampaignsCampaignIdRoute
   '/findings/$findingId': typeof FindingsFindingIdRoute
   '/packages/$pkgId': typeof PackagesPkgIdRoute
   '/people/$personId': typeof PeoplePersonIdRoute
@@ -199,7 +265,16 @@ export interface FileRoutesByFullPath {
   '/register/': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/programs/$programId/baseline': typeof ProgramsProgramIdBaselineRoute
+  '/programs/$programId/composition': typeof ProgramsProgramIdCompositionRoute
+  '/programs/$programId/conmon': typeof ProgramsProgramIdConmonRoute
   '/programs/$programId/dashboard': typeof ProgramsProgramIdDashboardRoute
+  '/programs/$programId/export': typeof ProgramsProgramIdExportRoute
+  '/programs/$programId/ingestion': typeof ProgramsProgramIdIngestionRoute
+  '/programs/$programId/inheritance': typeof ProgramsProgramIdInheritanceRoute
+  '/programs/$programId/risk': typeof ProgramsProgramIdRiskRoute
+  '/programs/$programId/sctm': typeof ProgramsProgramIdSctmRoute
+  '/programs/$programId/te-phases': typeof ProgramsProgramIdTePhasesRoute
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/components/': typeof LibraryComponentsIndexRoute
@@ -208,7 +283,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/briefing': typeof BriefingRoute
-  '/campaigns': typeof CampaignsRoute
+  '/campaigns': typeof CampaignsRouteWithChildren
   '/components': typeof ComponentsRoute
   '/controls': typeof ControlsRoute
   '/evidence': typeof EvidenceRoute
@@ -217,6 +292,7 @@ export interface FileRoutesByTo {
   '/scope': typeof ScopeRoute
   '/stigs': typeof StigsRoute
   '/vendors': typeof VendorsRoute
+  '/campaigns/$campaignId': typeof CampaignsCampaignIdRoute
   '/findings/$findingId': typeof FindingsFindingIdRoute
   '/packages/$pkgId': typeof PackagesPkgIdRoute
   '/people/$personId': typeof PeoplePersonIdRoute
@@ -228,7 +304,16 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/programs/$programId/baseline': typeof ProgramsProgramIdBaselineRoute
+  '/programs/$programId/composition': typeof ProgramsProgramIdCompositionRoute
+  '/programs/$programId/conmon': typeof ProgramsProgramIdConmonRoute
   '/programs/$programId/dashboard': typeof ProgramsProgramIdDashboardRoute
+  '/programs/$programId/export': typeof ProgramsProgramIdExportRoute
+  '/programs/$programId/ingestion': typeof ProgramsProgramIdIngestionRoute
+  '/programs/$programId/inheritance': typeof ProgramsProgramIdInheritanceRoute
+  '/programs/$programId/risk': typeof ProgramsProgramIdRiskRoute
+  '/programs/$programId/sctm': typeof ProgramsProgramIdSctmRoute
+  '/programs/$programId/te-phases': typeof ProgramsProgramIdTePhasesRoute
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/components': typeof LibraryComponentsIndexRoute
@@ -238,7 +323,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/briefing': typeof BriefingRoute
-  '/campaigns': typeof CampaignsRoute
+  '/campaigns': typeof CampaignsRouteWithChildren
   '/components': typeof ComponentsRoute
   '/controls': typeof ControlsRoute
   '/evidence': typeof EvidenceRoute
@@ -247,6 +332,7 @@ export interface FileRoutesById {
   '/scope': typeof ScopeRoute
   '/stigs': typeof StigsRoute
   '/vendors': typeof VendorsRoute
+  '/campaigns/$campaignId': typeof CampaignsCampaignIdRoute
   '/findings/$findingId': typeof FindingsFindingIdRoute
   '/packages/$pkgId': typeof PackagesPkgIdRoute
   '/people/$personId': typeof PeoplePersonIdRoute
@@ -258,7 +344,16 @@ export interface FileRoutesById {
   '/register/': typeof RegisterIndexRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/programs/$programId_/baseline': typeof ProgramsProgramIdBaselineRoute
+  '/programs/$programId_/composition': typeof ProgramsProgramIdCompositionRoute
+  '/programs/$programId_/conmon': typeof ProgramsProgramIdConmonRoute
   '/programs/$programId_/dashboard': typeof ProgramsProgramIdDashboardRoute
+  '/programs/$programId_/export': typeof ProgramsProgramIdExportRoute
+  '/programs/$programId_/ingestion': typeof ProgramsProgramIdIngestionRoute
+  '/programs/$programId_/inheritance': typeof ProgramsProgramIdInheritanceRoute
+  '/programs/$programId_/risk': typeof ProgramsProgramIdRiskRoute
+  '/programs/$programId_/sctm': typeof ProgramsProgramIdSctmRoute
+  '/programs/$programId_/te-phases': typeof ProgramsProgramIdTePhasesRoute
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/components/': typeof LibraryComponentsIndexRoute
@@ -278,6 +373,7 @@ export interface FileRouteTypes {
     | '/scope'
     | '/stigs'
     | '/vendors'
+    | '/campaigns/$campaignId'
     | '/findings/$findingId'
     | '/packages/$pkgId'
     | '/people/$personId'
@@ -289,7 +385,16 @@ export interface FileRouteTypes {
     | '/register/'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
+    | '/programs/$programId/baseline'
+    | '/programs/$programId/composition'
+    | '/programs/$programId/conmon'
     | '/programs/$programId/dashboard'
+    | '/programs/$programId/export'
+    | '/programs/$programId/ingestion'
+    | '/programs/$programId/inheritance'
+    | '/programs/$programId/risk'
+    | '/programs/$programId/sctm'
+    | '/programs/$programId/te-phases'
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/components/'
@@ -307,6 +412,7 @@ export interface FileRouteTypes {
     | '/scope'
     | '/stigs'
     | '/vendors'
+    | '/campaigns/$campaignId'
     | '/findings/$findingId'
     | '/packages/$pkgId'
     | '/people/$personId'
@@ -318,7 +424,16 @@ export interface FileRouteTypes {
     | '/register'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
+    | '/programs/$programId/baseline'
+    | '/programs/$programId/composition'
+    | '/programs/$programId/conmon'
     | '/programs/$programId/dashboard'
+    | '/programs/$programId/export'
+    | '/programs/$programId/ingestion'
+    | '/programs/$programId/inheritance'
+    | '/programs/$programId/risk'
+    | '/programs/$programId/sctm'
+    | '/programs/$programId/te-phases'
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/components'
@@ -336,6 +451,7 @@ export interface FileRouteTypes {
     | '/scope'
     | '/stigs'
     | '/vendors'
+    | '/campaigns/$campaignId'
     | '/findings/$findingId'
     | '/packages/$pkgId'
     | '/people/$personId'
@@ -347,7 +463,16 @@ export interface FileRouteTypes {
     | '/register/'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
+    | '/programs/$programId_/baseline'
+    | '/programs/$programId_/composition'
+    | '/programs/$programId_/conmon'
     | '/programs/$programId_/dashboard'
+    | '/programs/$programId_/export'
+    | '/programs/$programId_/ingestion'
+    | '/programs/$programId_/inheritance'
+    | '/programs/$programId_/risk'
+    | '/programs/$programId_/sctm'
+    | '/programs/$programId_/te-phases'
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/components/'
@@ -357,7 +482,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BriefingRoute: typeof BriefingRoute
-  CampaignsRoute: typeof CampaignsRoute
+  CampaignsRoute: typeof CampaignsRouteWithChildren
   ComponentsRoute: typeof ComponentsRoute
   ControlsRoute: typeof ControlsRoute
   EvidenceRoute: typeof EvidenceRoute
@@ -459,6 +584,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VendorsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/campaigns/$campaignId': {
+      id: '/campaigns/$campaignId'
+      path: '/$campaignId'
+      fullPath: '/campaigns/$campaignId'
+      preLoaderRoute: typeof CampaignsCampaignIdRouteImport
+      parentRoute: typeof CampaignsRoute
+    }
     '/findings/': {
       id: '/findings/'
       path: '/findings'
@@ -543,11 +675,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryComponentsComponentKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/programs/$programId_/baseline': {
+      id: '/programs/$programId_/baseline'
+      path: '/$programId/baseline'
+      fullPath: '/programs/$programId/baseline'
+      preLoaderRoute: typeof ProgramsProgramIdBaselineRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
+    '/programs/$programId_/composition': {
+      id: '/programs/$programId_/composition'
+      path: '/$programId/composition'
+      fullPath: '/programs/$programId/composition'
+      preLoaderRoute: typeof ProgramsProgramIdCompositionRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
+    '/programs/$programId_/conmon': {
+      id: '/programs/$programId_/conmon'
+      path: '/$programId/conmon'
+      fullPath: '/programs/$programId/conmon'
+      preLoaderRoute: typeof ProgramsProgramIdConmonRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
     '/programs/$programId_/dashboard': {
       id: '/programs/$programId_/dashboard'
       path: '/$programId/dashboard'
       fullPath: '/programs/$programId/dashboard'
       preLoaderRoute: typeof ProgramsProgramIdDashboardRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
+    '/programs/$programId_/export': {
+      id: '/programs/$programId_/export'
+      path: '/$programId/export'
+      fullPath: '/programs/$programId/export'
+      preLoaderRoute: typeof ProgramsProgramIdExportRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
+    '/programs/$programId_/ingestion': {
+      id: '/programs/$programId_/ingestion'
+      path: '/$programId/ingestion'
+      fullPath: '/programs/$programId/ingestion'
+      preLoaderRoute: typeof ProgramsProgramIdIngestionRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
+    '/programs/$programId_/inheritance': {
+      id: '/programs/$programId_/inheritance'
+      path: '/$programId/inheritance'
+      fullPath: '/programs/$programId/inheritance'
+      preLoaderRoute: typeof ProgramsProgramIdInheritanceRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
+    '/programs/$programId_/risk': {
+      id: '/programs/$programId_/risk'
+      path: '/$programId/risk'
+      fullPath: '/programs/$programId/risk'
+      preLoaderRoute: typeof ProgramsProgramIdRiskRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
+    '/programs/$programId_/sctm': {
+      id: '/programs/$programId_/sctm'
+      path: '/$programId/sctm'
+      fullPath: '/programs/$programId/sctm'
+      preLoaderRoute: typeof ProgramsProgramIdSctmRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
+    '/programs/$programId_/te-phases': {
+      id: '/programs/$programId_/te-phases'
+      path: '/$programId/te-phases'
+      fullPath: '/programs/$programId/te-phases'
+      preLoaderRoute: typeof ProgramsProgramIdTePhasesRouteImport
       parentRoute: typeof ProgramsRoute
     }
     '/register/poam/$poamId': {
@@ -574,15 +769,45 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface CampaignsRouteChildren {
+  CampaignsCampaignIdRoute: typeof CampaignsCampaignIdRoute
+}
+
+const CampaignsRouteChildren: CampaignsRouteChildren = {
+  CampaignsCampaignIdRoute: CampaignsCampaignIdRoute,
+}
+
+const CampaignsRouteWithChildren = CampaignsRoute._addFileChildren(
+  CampaignsRouteChildren,
+)
+
 interface ProgramsRouteChildren {
   ProgramsProgramIdRoute: typeof ProgramsProgramIdRoute
+  ProgramsProgramIdBaselineRoute: typeof ProgramsProgramIdBaselineRoute
+  ProgramsProgramIdCompositionRoute: typeof ProgramsProgramIdCompositionRoute
+  ProgramsProgramIdConmonRoute: typeof ProgramsProgramIdConmonRoute
   ProgramsProgramIdDashboardRoute: typeof ProgramsProgramIdDashboardRoute
+  ProgramsProgramIdExportRoute: typeof ProgramsProgramIdExportRoute
+  ProgramsProgramIdIngestionRoute: typeof ProgramsProgramIdIngestionRoute
+  ProgramsProgramIdInheritanceRoute: typeof ProgramsProgramIdInheritanceRoute
+  ProgramsProgramIdRiskRoute: typeof ProgramsProgramIdRiskRoute
+  ProgramsProgramIdSctmRoute: typeof ProgramsProgramIdSctmRoute
+  ProgramsProgramIdTePhasesRoute: typeof ProgramsProgramIdTePhasesRoute
   ProgramsProgramIdControlsControlIdRoute: typeof ProgramsProgramIdControlsControlIdRoute
 }
 
 const ProgramsRouteChildren: ProgramsRouteChildren = {
   ProgramsProgramIdRoute: ProgramsProgramIdRoute,
+  ProgramsProgramIdBaselineRoute: ProgramsProgramIdBaselineRoute,
+  ProgramsProgramIdCompositionRoute: ProgramsProgramIdCompositionRoute,
+  ProgramsProgramIdConmonRoute: ProgramsProgramIdConmonRoute,
   ProgramsProgramIdDashboardRoute: ProgramsProgramIdDashboardRoute,
+  ProgramsProgramIdExportRoute: ProgramsProgramIdExportRoute,
+  ProgramsProgramIdIngestionRoute: ProgramsProgramIdIngestionRoute,
+  ProgramsProgramIdInheritanceRoute: ProgramsProgramIdInheritanceRoute,
+  ProgramsProgramIdRiskRoute: ProgramsProgramIdRiskRoute,
+  ProgramsProgramIdSctmRoute: ProgramsProgramIdSctmRoute,
+  ProgramsProgramIdTePhasesRoute: ProgramsProgramIdTePhasesRoute,
   ProgramsProgramIdControlsControlIdRoute:
     ProgramsProgramIdControlsControlIdRoute,
 }
@@ -604,7 +829,7 @@ const RisksRouteWithChildren = RisksRoute._addFileChildren(RisksRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BriefingRoute: BriefingRoute,
-  CampaignsRoute: CampaignsRoute,
+  CampaignsRoute: CampaignsRouteWithChildren,
   ComponentsRoute: ComponentsRoute,
   ControlsRoute: ControlsRoute,
   EvidenceRoute: EvidenceRoute,

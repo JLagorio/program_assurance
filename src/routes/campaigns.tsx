@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 
@@ -49,8 +49,19 @@ export const Route = createFileRoute("/campaigns")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: CampaignsPage,
+  component: CampaignsLayout,
 });
+
+/**
+ * `/campaigns` is both the index and the parent of `/campaigns/$campaignId`.
+ * Without this guard the index table renders over the campaign record, exactly
+ * as `programs.tsx` and `risks.tsx` guard their own children.
+ */
+function CampaignsLayout() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  if (pathname !== "/campaigns") return <Outlet />;
+  return <CampaignsPage />;
+}
 
 const tabs = ["Campaigns", "Events", "Objectives"] as const;
 type Tab = (typeof tabs)[number];
@@ -144,6 +155,7 @@ function CampaignsPage() {
                   <col style={{ width: "148px" }} />
                   <col style={{ width: "96px" }} />
                   <col style={{ width: "88px" }} />
+                  <col style={{ width: "72px" }} />
                 </colgroup>
                 <thead>
                   <tr>
@@ -155,6 +167,7 @@ function CampaignsPage() {
                     <Th>Lead</Th>
                     <Th className="text-right">Obj. run</Th>
                     <Th className="text-right">Findings</Th>
+                    <Th />
                   </tr>
                 </thead>
                 <tbody>
@@ -181,6 +194,16 @@ function CampaignsPage() {
                           {cov.run}/{cov.objectives}
                         </Td>
                         <Td className="tnum text-right text-muted-foreground">{cov.findings}</Td>
+                        <Td className="text-right">
+                          <Link
+                            to="/campaigns/$campaignId"
+                            params={{ campaignId: c.id }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-[12.5px] text-primary hover:underline"
+                          >
+                            Open →
+                          </Link>
+                        </Td>
                       </Tr>
                     );
                   })}

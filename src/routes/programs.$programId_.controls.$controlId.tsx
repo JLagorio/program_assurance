@@ -127,7 +127,7 @@ function ControlRecord() {
             backTo="/programs/$programId"
             backParams={{ programId }}
             id={row.id}
-            title={row.title}
+            title={row.fullTitle}
             meta={`${row.family} ${row.familyName} · ${catalogVersion}${
               row.baselines.length ? ` · ${row.baselines.join(" / ")} baseline` : " · tailored in"
             }`}

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
+import { BomTree, type BomTreeNode } from "@/components/app/composition";
 import { Shell } from "@/components/app/shell";
 import {
   Badge,
@@ -15,7 +16,10 @@ import {
   Th,
   Tr,
 } from "@/components/app/ui";
+import type { CompositionNode } from "@/lib/composition";
+import { childrenOf, nodeForAsset, pathOf, useCompositionGraph } from "@/lib/composition";
 import { assets, bySeverity, findingsByAsset, isOpen } from "@/lib/findings";
+import { assetPosture, postureOf } from "@/lib/graph-posture";
 import { severityTone, statusTone } from "@/lib/spine";
 
 export const Route = createFileRoute("/findings/assets/$assetId")({
@@ -39,9 +43,27 @@ export const Route = createFileRoute("/findings/assets/$assetId")({
   component: AssetRecord,
 });
 
+/**
+ * The asset's own subtree, built straight off the graph. Cycle-safe: a repeated
+ * id is dropped rather than followed, so a malformed parent chain truncates.
+ */
+function subtree(node: CompositionNode, seen: Set<string>): BomTreeNode | null {
+  if (seen.has(node.id)) return null;
+  seen.add(node.id);
+  const children: BomTreeNode[] = [];
+  for (const child of childrenOf(node.id)) {
+    const built = subtree(child, seen);
+    if (built) children.push(built);
+  }
+  return { node, posture: postureOf(node.id), children };
+}
+
 function AssetRecord() {
   const { assetId } = Route.useParams();
   const asset = assets.find((a) => a.id === assetId);
+  // Subscribes the page to the composition store so a node override re-renders
+  // the tree. Called before the guard below so hook order never varies.
+  useCompositionGraph(asset?.program ?? "");
 
   if (!asset) {
     return (
@@ -58,6 +80,13 @@ function AssetRecord() {
 
   const rows = findingsByAsset(asset.id).slice().sort(bySeverity);
   const open = rows.filter(isOpen).length;
+
+  const anchor = nodeForAsset(asset.id);
+  const trail = anchor ? pathOf(anchor.id) : [];
+  const tree = anchor ? subtree(anchor, new Set<string>()) : null;
+  const tracked = assetPosture(asset.id)?.rolled ?? null;
+  const declaredTotal = asset.openCatI + asset.openCatII + asset.openCatIII;
+  const delta = tracked ? declaredTotal - tracked.open : null;
 
   return (
     <Shell>
@@ -96,13 +125,70 @@ function AssetRecord() {
             <RailGroup title="Posture">
               <KeyValue label="Last scan">{asset.lastScan}</KeyValue>
               <KeyValue label="CCIs covered">{asset.ccisCovered}</KeyValue>
-              <KeyValue label="Open CAT I">{asset.openCatI}</KeyValue>
-              <KeyValue label="Open CAT II">{asset.openCatII}</KeyValue>
-              <KeyValue label="Open CAT III">{asset.openCatIII}</KeyValue>
+            </RailGroup>
+            <RailGroup title="Open findings">
+              <KeyValue label="Scanner declared">
+                <span className="tnum">
+                  <span className={asset.openCatI ? "font-medium text-danger" : ""}>
+                    {asset.openCatI}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {" "}
+                    / {asset.openCatII} / {asset.openCatIII}
+                  </span>
+                </span>
+              </KeyValue>
+              <KeyValue label="As of">{asset.lastScan}</KeyValue>
+              <KeyValue label="Register tracked">
+                {tracked ? (
+                  <span className="tnum">
+                    <span className={tracked.catI ? "font-medium text-danger" : ""}>
+                      {tracked.catI}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      / {tracked.catII} / {tracked.catIII}
+                    </span>
+                  </span>
+                ) : (
+                  "—"
+                )}
+              </KeyValue>
+              <KeyValue label="Delta">
+                {delta === null ? (
+                  "—"
+                ) : (
+                  <span className={delta === 0 ? "tnum" : "tnum text-warning"}>
+                    {delta > 0 ? `+${delta}` : delta}
+                  </span>
+                )}
+              </KeyValue>
             </RailGroup>
           </>
         }
       >
+            {anchor && tree ? (
+              <Section
+                title="Composition"
+                description={`${asset.name} is anchored at ${anchor.id}. Findings resolve to the exact hardware, firmware or software part beneath it, not to the host.`}
+              >
+                <div className="flex flex-wrap items-center gap-1 pb-3 pt-3 text-[12.5px]">
+                  {trail.map((n, i) => {
+                    const last = i === trail.length - 1;
+                    return (
+                      <span key={n.id} className="inline-flex items-center gap-1">
+                        {i > 0 ? <span className="text-muted-foreground">/</span> : null}
+                        <span className={last ? "font-medium" : "text-muted-foreground"}>
+                          {n.name}
+                        </span>
+                      </span>
+                    );
+                  })}
+                </div>
+                <BomTree root={tree} defaultExpandedDepth={2} />
+              </Section>
+            ) : null}
+
             <Section
               title="Findings on this asset"
               description={`${open} open of ${rows.length} raised. Every row joins to a CCI through its rule or procedure.`}

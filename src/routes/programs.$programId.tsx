@@ -55,18 +55,13 @@ import {
   Th,
   Tr,
 } from "@/components/app/ui";
-import {
-  controlFamilies,
-  programControls,
-  programStatuses,
-  programStatusTone,
-  programs,
-} from "@/lib/grc-data";
+import { programControls, programStatuses, programStatusTone, programs } from "@/lib/grc-data";
 import { poamItems as registerPoams } from "@/lib/register";
 import { statusTone } from "@/lib/spine";
 import { programState, stages, type Stage } from "@/lib/program-stage";
 import { peopleForProgram, personById, workstreamsForProgram } from "@/lib/people";
-import { inheritanceForProgram, staleThresholdDays } from "@/lib/reusable-components";
+import { inheritanceForProgram } from "@/lib/inheritance";
+import { staleThresholdDays } from "@/lib/reusable-components";
 
 export const Route = createFileRoute("/programs/$programId")({
   loader: ({ params }) => {
@@ -131,7 +126,6 @@ const segmentStatus: Record<string, ControlStatus> = {
 
 function ProgramDetail() {
   const program = Route.useLoaderData();
-  const state = useMemo(() => programState(program), [program]);
   const [tab, setTab] = useState<Tab>("Overview");
   const [stageFilter, setStageFilter] = useState<Stage | null>(null);
   const teamSize = useMemo(() => peopleForProgram(program.id).length, [program.id]);
@@ -171,7 +165,17 @@ function ProgramDetail() {
     [matrix],
   );
 
-  const posture = useMemo(() => programPosture(program), [program]);
+  // `matrix` is load-bearing in both dep lists: posture and the gate blocker
+  // read the same rows the coverage card does, so an inline status edit moves
+  // the rail with the card instead of leaving them 61 controls apart.
+  const posture = useMemo(() => programPosture(program, matrix), [program, matrix]);
+  // The Blocker reads the same deficiency count as the tab badge and the
+  // coverage legend; `program.controlsFailing` is the last signed package
+  // figure, not what this screen is showing.
+  const state = useMemo(
+    () => programState(program, undefined, posture.controlsFailing),
+    [program, posture.controlsFailing],
+  );
   const coverage = useMemo(() => coverageFromRows(matrix), [matrix]);
   const outlook = useMemo(() => gateOutlook(program, matrix), [program, matrix]);
   const milestones = useMemo(() => programMilestones(program), [program]);
@@ -179,7 +183,7 @@ function ProgramDetail() {
   const programWorkstreams = useMemo(() => workstreamsForProgram(program.id), [program.id]);
   const feed = useMemo(() => programActivity(program), [program]);
   const navigate = useNavigate();
-  const actions = useMemo(() => nextActions(program), [program]);
+  const actions = useMemo(() => nextActions(program, matrix), [program, matrix]);
 
   const ownerOptions = useMemo(() => {
     const names = peopleForProgram(program.id).map((p) => p.name);
@@ -402,8 +406,131 @@ function ProgramDetail() {
           </span>
         </KeyValue>
         <KeyValue label="Inherited">
-          <span className="tnum">{posture.inheritedControls} controls</span>
+          {/*
+            The coverage card above this rail counts matrix rows the resolution
+            designated Common; the inheritance page counts every resolved offer,
+            including the Hybrid and System-Specific ones this system still owes
+            work on. Both numbers are true and they are not the same number, so
+            this row prints them together off the same two sources rather than
+            giving the bare word "Inherited" a second, larger value.
+          */}
+          <span
+            className="tnum"
+            title={`${coverage.inherited} of ${inheritance.size} resolved offers are fully inherited (Common). The rest are Hybrid or System-Specific and still carry a consumer obligation.`}
+          >
+            {coverage.inherited} of {inheritance.size} resolved
+          </span>
         </KeyValue>
+      </RailGroup>
+
+      {/*
+        Ten sub-pages now hang off this record. Listed flat they read as an
+        undifferentiated stack of blue text, and the numbers in "Posture" got
+        lost among them — so the navigation is its own group, clustered by the
+        question each page answers: what is the system made of, was it assessed,
+        and is it still what we authorized.
+      */}
+      <RailGroup title="Program views">
+        <div className="space-y-2.5 pt-0.5">
+          <div>
+            <div className="pb-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
+              System
+            </div>
+            <div className="space-y-1 text-[12.5px]">
+              <Link
+                to="/programs/$programId/composition"
+                params={{ programId: program.id }}
+                className="block text-primary hover:underline"
+              >
+                System composition
+              </Link>
+              <Link
+                to="/programs/$programId/baseline"
+                params={{ programId: program.id }}
+                className="block text-primary hover:underline"
+              >
+                Configuration baseline
+              </Link>
+            </div>
+          </div>
+
+          <div>
+            <div className="pb-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
+              Assessment
+            </div>
+            <div className="space-y-1 text-[12.5px]">
+              <Link
+                to="/programs/$programId/sctm"
+                params={{ programId: program.id }}
+                className="block text-primary hover:underline"
+              >
+                Traceability matrix
+              </Link>
+              <Link
+                to="/programs/$programId/inheritance"
+                params={{ programId: program.id }}
+                search={{ tab: undefined, control: undefined }}
+                className="block text-primary hover:underline"
+              >
+                Inheritance resolution
+              </Link>
+              <Link
+                to="/programs/$programId/te-phases"
+                params={{ programId: program.id }}
+                search={{ tab: undefined }}
+                className="block text-primary hover:underline"
+              >
+                Cyber T&amp;E phases
+              </Link>
+              <Link
+                to="/programs/$programId/ingestion"
+                params={{ programId: program.id }}
+                className="block text-primary hover:underline"
+              >
+                Scanner ingestion
+              </Link>
+            </div>
+          </div>
+
+          <div>
+            <div className="pb-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
+              Operate and report
+            </div>
+            <div className="space-y-1 text-[12.5px]">
+              <Link
+                to="/programs/$programId/dashboard"
+                params={{ programId: program.id }}
+                className="block text-primary hover:underline"
+              >
+                Program dashboard
+              </Link>
+              <Link
+                to="/programs/$programId/conmon"
+                params={{ programId: program.id }}
+                search={{ tab: undefined }}
+                className="block text-primary hover:underline"
+              >
+                Continuous monitoring
+              </Link>
+              <Link
+                to="/programs/$programId/risk"
+                params={{ programId: program.id }}
+                search={{ tab: undefined }}
+                className="block text-primary hover:underline"
+              >
+                Residual risk scoring
+              </Link>
+              <Link
+                to="/programs/$programId/export"
+                params={{ programId: program.id }}
+                search={{ tab: undefined }}
+                className="block text-primary hover:underline"
+              >
+                OSCAL, eMASS and transfer
+              </Link>
+            </div>
+          </div>
+        </div>
       </RailGroup>
 
       <RailGroup title="Authorization">
@@ -446,13 +573,6 @@ function ProgramDetail() {
 
       <RailGroup title="Linked records">
         <div className="space-y-1 text-[12.5px]">
-          <Link
-            to="/programs/$programId/dashboard"
-            params={{ programId: program.id }}
-            className="block text-primary hover:underline"
-          >
-            Program dashboard
-          </Link>
           <Link to="/register" className="block text-primary hover:underline">
             {programPoams.length} POA&M items
           </Link>
@@ -610,6 +730,66 @@ function ProgramDetail() {
 
         {tab === "Controls" ? (
           <>
+            <Section
+              title="Traceability"
+              description="The SCTM generates live off this control set — one row per CCI or 800-53A objective, with its allocation, verification method, evidence and determination."
+              action={
+                <Link
+                  to="/programs/$programId/sctm"
+                  params={{ programId: program.id }}
+                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                >
+                  Open SCTM
+                </Link>
+              }
+            >
+              <p className="pt-2 text-[12.5px] text-muted-foreground">
+                {matrix.length} controls in scope for {program.baseline} — {program.impact} impact.
+              </p>
+            </Section>
+
+            <Section
+              title="Inheritance"
+              description="Which common control provider actually satisfies each inherited row, what this program still owes on a shared control, and where an accepted inheritance has drifted from the provider's current assessment."
+              action={
+                <Link
+                  to="/programs/$programId/inheritance"
+                  params={{ programId: program.id }}
+                  search={{ tab: undefined, control: undefined }}
+                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                >
+                  Open inheritance
+                </Link>
+              }
+            >
+              <p className="pt-2 text-[12.5px] text-muted-foreground">
+                {inheritedComponents.length} common control{" "}
+                {inheritedComponents.length === 1 ? "provider reaches" : "providers reach"}{" "}
+                {program.acronym}. Precedence between overlapping offers, applicability against this
+                program's own inventory, and the residual consumer obligations are resolved there.
+              </p>
+            </Section>
+
+            <Section
+              title="Configuration baseline"
+              description="The authorized build, the changes proposed against it, and which determinations those changes invalidate. A change the ISSE analysed as having no security impact is recorded and contained — it does not turn the matrix amber."
+              action={
+                <Link
+                  to="/programs/$programId/baseline"
+                  params={{ programId: program.id }}
+                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                >
+                  Open baseline
+                </Link>
+              }
+            >
+              <p className="pt-2 text-[12.5px] text-muted-foreground">
+                A determination is only as current as the configuration it was taken against. The
+                baseline page carries the pin diff, the CM-3(2) security impact analyses, the
+                invalidated rows and the retest queue.
+              </p>
+            </Section>
+
             <TailoringSection programId={program.id} programOwner={program.owner} />
 
             <FamilyCoverageTable
@@ -644,10 +824,75 @@ function ProgramDetail() {
           />
         ) : null}
 
-        {tab === "Findings" ? <VerificationSection programName={program.name} /> : null}
+        {tab === "Findings" ? (
+          <>
+            <Section
+              title="Cyber test and evaluation"
+              description="The six DoD Cybersecurity T&E phases, their entry and exit criteria, the threat scenarios the red team walks and the mission effects those scenarios actually achieved."
+              action={
+                <Link
+                  to="/programs/$programId/te-phases"
+                  params={{ programId: program.id }}
+                  search={{ tab: undefined }}
+                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                >
+                  Open T&amp;E phases
+                </Link>
+              }
+            >
+              <p className="pt-2 text-[12.5px] text-muted-foreground">
+                A phase gate that is a checkbox is worthless. Wherever the platform can already
+                judge a criterion it does — off {program.acronym}&apos;s own scan record, SCTM,
+                finding register and change log — and the gate page prints the computed sentence and
+                the evidence ids behind it rather than a tick.
+              </p>
+            </Section>
+
+            <Section
+              title="Verification"
+              description={`Scanner ingest, findings and assessor readiness for ${program.name}.`}
+              action={
+                <Link
+                  to="/programs/$programId/ingestion"
+                  params={{ programId: program.id }}
+                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                >
+                  Open ingestion
+                </Link>
+              }
+            >
+              <div className="pt-4">
+                <VerificationSection programName={program.name} />
+              </div>
+            </Section>
+          </>
+        ) : null}
 
         {tab === "Evidence" ? (
           <>
+            <Section
+              title="Interoperability and transfer"
+              description="The same body of evidence has to leave this platform three ways: as OSCAL 1.1.2 an assessor can import, as the eMASS CSV column sets a package submission actually requires, and as a hashed bundle that can cross an air gap and be reconciled on the far side."
+              action={
+                <Link
+                  to="/programs/$programId/export"
+                  params={{ programId: program.id }}
+                  search={{ tab: undefined }}
+                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                >
+                  Open export
+                </Link>
+              }
+            >
+              <p className="pt-2 text-[12.5px] text-muted-foreground">
+                Every artifact is generated from {program.acronym}&apos;s live SCTM, composition
+                graph and finding register rather than re-keyed, so an export taken twice is byte
+                identical and the manifest hash means something. The reconciliation view diffs a
+                bundle received from the far side against the one generated here and says, in one
+                sentence, what moved.
+              </p>
+            </Section>
+
             <LifecycleSection programId={program.id} programName={program.name} />
             <DigitalThreadSection programId={program.id} programName={program.name} />
           </>
@@ -655,6 +900,29 @@ function ProgramDetail() {
 
         {tab === "POA&M" ? (
           <>
+            <Section
+              title="Residual risk"
+              description="CAT I/II/III is a severity, not a risk. Every finding carries a 0-100 residual built from severity, mitigation credit, exploitability, exposure, mission impact and evidence currency — with the whole calculation attached to it."
+              action={
+                <Link
+                  to="/programs/$programId/risk"
+                  params={{ programId: program.id }}
+                  search={{ tab: undefined }}
+                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                >
+                  Open risk scoring
+                </Link>
+              }
+            >
+              <p className="pt-2 text-[12.5px] text-muted-foreground">
+                {posture.findingsOpen} open finding
+                {posture.findingsOpen === 1 ? " is" : "s are"} scored, banded and ranked there, and
+                the register risks show the computed residual beside the number the assessor wrote
+                down. Where the two disagree, the disagreement is the finding — the authored value
+                is never overwritten.
+              </p>
+            </Section>
+
             <Section
               title="POA&M items"
               description="Open commitments for this program. Managed in the register."
@@ -724,6 +992,28 @@ function ProgramDetail() {
 
         {tab === "Activity" ? (
           <>
+            <Section
+              title="Continuous monitoring"
+              description="After the ATO the question stops being whether this system was ever assessed and becomes whether what is running is still what was authorized. The drift score, the SLCM assessment schedule, evidence freshness against its SLA, scan cadence and POA&M slippage are all computed there."
+              action={
+                <Link
+                  to="/programs/$programId/conmon"
+                  params={{ programId: program.id }}
+                  search={{ tab: undefined }}
+                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                >
+                  Open ConMon
+                </Link>
+              }
+            >
+              <p className="pt-2 text-[12.5px] text-muted-foreground">
+                The timeline below records what happened to {program.acronym}. The ConMon page
+                records what has drifted since — an unrecorded configuration change, a determination
+                the change invalidated, evidence past its collection interval, an SLCM assessment
+                that has gone overdue — each stated with the numbers behind it and the next step.
+              </p>
+            </Section>
+
             <AuthorizationSection programId={program.id} programName={program.name} />
 
             <Section

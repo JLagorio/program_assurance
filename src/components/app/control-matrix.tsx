@@ -188,7 +188,7 @@ export function ControlMatrixSection({
       (r) =>
         (family === "All" || r.family === family) &&
         (status === "All" || r.status === status) &&
-        (!q || r.id.toLowerCase().includes(q) || r.title.toLowerCase().includes(q)),
+        (!q || r.id.toLowerCase().includes(q) || r.fullTitle.toLowerCase().includes(q)),
     );
   }, [rows, family, status, query]);
 

@@ -13,6 +13,19 @@
  * breakdown and the Overview coverage band are all derived from these rows, so
  * editing a control (or a finding rolling into a POA&M) moves the numbers.
  *
+ * Inheritance reaches this file through `resolveInheritance`, which has already
+ * run the CCP precedence ladder and the responsibility split. The row's
+ * `implementation` is therefore the resolved SECURITY CONTROL DESIGNATION, not
+ * a flat "this came from somewhere else" flag: a Common control is Inherited, a
+ * Hybrid control is Hybrid, and a control the provider merely exposes for the
+ * consumer to configure is System — the program still implements, tests and
+ * evidences it. Collapsing all three to "Inherited" told the AO the program
+ * owed nothing on SC-7, AC-2 and CM-6, which is the opposite of the truth.
+ *
+ * `stale` keeps its narrow meaning — the inherited evidence is older than
+ * `staleThresholdDays` — and says nothing about version drift or a failing
+ * provider; those live on the resolution and surface in the SCTM.
+ *
  * The program-side posture is mock data plus a small in-memory override store
  * so inline edits persist for the session.
  */
@@ -20,7 +33,7 @@
 import { useSyncExternalStore } from "react";
 
 import { controlFamilies, programControls, programs } from "@/lib/grc-data";
-import { assetById, findings, isOpen, type Finding } from "@/lib/findings";
+import { assetById, findings, isDeficiency, isOpen, type Finding } from "@/lib/findings";
 import {
   baselineControls,
   controlTitle,
@@ -30,8 +43,13 @@ import {
   type NistBaseline,
   type NistControl,
 } from "@/lib/nist-catalog";
+import {
+  resolveInheritance,
+  type ResolvedInheritance,
+  type SecurityControlDesignation,
+} from "@/lib/inheritance";
 import { poamItems } from "@/lib/register";
-import { inheritanceForProgram, staleThresholdDays } from "@/lib/reusable-components";
+import { staleThresholdDays } from "@/lib/reusable-components";
 import { workstreamsForProgram } from "@/lib/people";
 import { parseGateDate } from "@/lib/program-stage";
 import { gatesForProgram } from "@/lib/grc-data";
@@ -57,11 +75,39 @@ export const controlStatusTone: Record<
 export const implementations = ["System", "Inherited", "Hybrid", "Planned"] as const;
 export type Implementation = (typeof implementations)[number];
 
+/**
+ * The resolution's designation projected onto this table's older vocabulary.
+ * Common is fully provider-implemented; Hybrid splits the requirement; a
+ * System-Specific offer is a knob the provider exposed, so the row belongs to
+ * the consuming system exactly as an uninherited one does.
+ */
+const implementationForDesignation: Record<SecurityControlDesignation, Implementation> = {
+  Common: "Inherited",
+  Hybrid: "Hybrid",
+  "System-Specific": "System",
+};
+
+/** How the row names its provider, so the source line cannot contradict the designation. */
+function sourceLabel(edge: ResolvedInheritance): string {
+  switch (edge.designation) {
+    case "Common":
+      return `${edge.component.name} (inherited)`;
+    case "Hybrid":
+      return `${edge.component.name} (shared responsibility)`;
+    case "System-Specific":
+      return `${edge.component.name} (customer configured)`;
+    default:
+      return edge.component.name;
+  }
+}
+
 export type ControlRow = {
   /** Natural key, verbatim from the catalog: "AC-2", "AC-2(3)". */
   id: string;
-  /** Catalog title. Enhancements read "Base | Enhancement". */
+  /** Catalog title. An enhancement carries only its own half here. */
   title: string;
+  /** Full catalog title: enhancements read "Base | Enhancement". */
+  fullTitle: string;
   family: string;
   familyName: string;
   /** True when the row is a control enhancement rather than a base control. */
@@ -118,9 +164,15 @@ function seed(programId: string) {
   return h;
 }
 
-function nextActionFor(row: Omit<ControlRow, "nextAction">): string {
+/**
+ * `acceptedResidual` is true when the control's only recorded deficiencies are
+ * risk-accepted. The AO has already adjudicated those, so the row is other than
+ * satisfied but there is nothing left to remediate and no POA&M section to open.
+ */
+function nextActionFor(row: Omit<ControlRow, "nextAction">, acceptedResidual: boolean): string {
   if (row.openFindings > 0)
     return `Remediate ${row.openFindings} open finding${row.openFindings > 1 ? "s" : ""}`;
+  if (acceptedResidual) return "Revalidate accepted risk at reauthorization";
   if (row.status === "Other than satisfied") return "Open a POA&M section";
   if (row.status === "Partial") return "Complete implementation statement";
   if (row.status === "Not assessed") return "Schedule assessment";
@@ -160,7 +212,7 @@ function tailoredControls(programId: string, inherited: Iterable<string>): NistC
 }
 
 function buildMatrix(programId: string): ControlRow[] {
-  const inheritance = inheritanceForProgram(programId);
+  const inheritance = resolveInheritance(programId);
   const poams = poamItems.filter((p) => p.program === programId);
   const authored = new Map(programControls.map((c) => [c.id, c]));
   const poamById = new Map(poams.map((p) => [p.id, p]));
@@ -223,6 +275,11 @@ function buildMatrix(programId: string): ControlRow[] {
       const edge = inheritance.get(id);
       const fnds = findingsByControl.get(id) ?? [];
       const open = fnds.filter(isOpen);
+      // A risk-accepted residual is still a deficiency: acceptance is a register
+      // decision, not a re-assessment. Status follows the deficiency set so the
+      // matrix cannot report Satisfied against a control the POA&M contradicts.
+      const deficient = fnds.filter(isDeficiency);
+      const acceptedResidual = deficient.length > 0 && open.length === 0;
 
       // Baseline distribution matches the family rollup, then real signals win.
       let status: ControlStatus = statusByIndex[i]!;
@@ -237,10 +294,10 @@ function buildMatrix(programId: string): ControlRow[] {
                 ? "Partial"
                 : "Other than satisfied";
       }
-      if (open.length > 0) status = "Other than satisfied";
+      if (deficient.length > 0) status = "Other than satisfied";
 
       const implementation: Implementation = edge
-        ? "Inherited"
+        ? implementationForDesignation[edge.designation]
         : author?.implementation === "Planned"
           ? "Planned"
           : author?.implementation === "Partially implemented"
@@ -250,10 +307,11 @@ function buildMatrix(programId: string): ControlRow[] {
               : "System";
 
       const poam = open.find((f) => f.poam)?.poam ?? null;
-      const stale = !!edge && edge.control.evidenceAge > staleThresholdDays;
+      // Unchanged meaning: the inherited evidence is older than the threshold.
+      const stale = !!edge && edge.provided.evidenceAge > staleThresholdDays;
 
       const due =
-        status === "Satisfied"
+        status === "Satisfied" || acceptedResidual
           ? "—"
           : poam
             ? (poamById.get(poam)?.scheduledCompletion ?? shift(anchor, 14))
@@ -266,7 +324,8 @@ function buildMatrix(programId: string): ControlRow[] {
 
       const partial: Omit<ControlRow, "nextAction"> = {
         id,
-        title: controlTitle(nc),
+        title: nc.title,
+        fullTitle: controlTitle(nc),
         family: nc.family,
         familyName: nistFamilyName.get(nc.family) ?? nc.family,
         enhancement: nc.parent !== null,
@@ -274,9 +333,7 @@ function buildMatrix(programId: string): ControlRow[] {
         baselines: nc.baselines,
         status,
         implementation,
-        source: edge
-          ? `${edge.component.name} (inherited)`
-          : (author?.source ?? "System-implemented"),
+        source: edge ? sourceLabel(edge) : (author?.source ?? "System-implemented"),
         owner,
         assessed,
         due,
@@ -287,7 +344,7 @@ function buildMatrix(programId: string): ControlRow[] {
         stale,
       };
 
-      rows.push({ ...partial, nextAction: nextActionFor(partial) });
+      rows.push({ ...partial, nextAction: nextActionFor(partial, acceptedResidual) });
     });
   }
 

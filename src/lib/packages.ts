@@ -10,8 +10,7 @@
 
 import type { Tone } from "@/components/app/ui";
 import { ccis, rulesByCci } from "@/lib/catalog";
-import { findings, isOpen } from "@/lib/findings";
-import { objectives } from "@/lib/campaigns";
+import { traceCci } from "@/lib/sctm";
 
 export type PackageState =
   | "Assembling"
@@ -274,40 +273,20 @@ export type TraceRow = {
 
 const cciById = new Map(ccis.map((c) => [c.id, c]));
 
+/**
+ * One row per in-scope CCI. The result / gap derivation is `traceCci` in
+ * `@/lib/sctm` — the SCTM and this table have to agree about what a CCI's
+ * verification says, so there is exactly one copy of that judgement.
+ */
 export function traceability(pkg: Pkg): TraceRow[] {
   return pkg.ccisInScope.map((id) => {
     const cci = cciById.get(id);
-    const objs = objectives.filter((o) => o.ccis.includes(id));
-    const open = findings.filter((f) => f.cci === id && isOpen(f));
-    const worst =
-      open.find((f) => f.mitigatedSeverity === "CAT I")?.mitigatedSeverity ??
-      open.find((f) => f.mitigatedSeverity === "CAT II")?.mitigatedSeverity ??
-      open[0]?.mitigatedSeverity ??
-      "—";
-
-    let result: TraceRow["result"] = "Not run";
-    if (objs.some((o) => o.result === "Not met")) result = "Not met";
-    else if (objs.some((o) => o.result === "Partially met")) result = "Partially met";
-    else if (objs.length > 0 && objs.every((o) => o.result === "Met")) result = "Met";
-    else if (objs.some((o) => o.result === "Met")) result = "Partially met";
-
-    let gap: string | null = null;
-    if (objs.length === 0) gap = "No test objective names this CCI";
-    else if (result === "Not run") gap = "Objective written but never executed";
-    else if (open.length > 0 && result === "Met") gap = "Marked met while findings remain open";
-    else if (result === "Not met" && open.length === 0)
-      gap = "Failed objective with no finding recorded";
-
     return {
       cci: id,
       control: cci?.control ?? "—",
       statement: cci?.definition ?? "Statement not in the loaded catalog slice.",
       paths: (rulesByCci.get(id) ?? []).map((r) => r.id),
-      objectives: objs.map((o) => o.id),
-      result,
-      openFindings: open.length,
-      worstSeverity: worst,
-      gap,
+      ...traceCci(id),
     };
   });
 }

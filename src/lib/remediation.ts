@@ -260,7 +260,7 @@ export function remediationPlan(row: ControlRow): RemediationPlan | null {
   const workstream = row.workstream ? (workstreamById.get(row.workstream) ?? null) : null;
   const ctx: Ctx = {
     control: row.id,
-    controlTitle: row.title,
+    controlTitle: row.fullTitle,
     poam,
     findings,
     worst,
@@ -299,7 +299,7 @@ export function remediationPlan(row: ControlRow): RemediationPlan | null {
 
   return {
     control: row.id,
-    controlTitle: row.title,
+    controlTitle: row.fullTitle,
     poam,
     approach: approachFor(row, poam, worst),
     tasks,

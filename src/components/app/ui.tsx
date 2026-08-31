@@ -497,7 +497,10 @@ export function Meter({ value, tone = "info" }: { value: number; tone?: Tone }) 
   };
   return (
     <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-      <div className={cn("h-full rounded-full", map[tone])} style={{ width: `${value}%` }} />
+      <div
+        className={cn("h-full rounded-full", map[tone])}
+        style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+      />
     </div>
   );
 }

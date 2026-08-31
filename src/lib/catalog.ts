@@ -213,7 +213,7 @@ export const ccis: Cci[] = [
   },
   {
     id: "CCI-000765",
-    control: "IA-2",
+    control: "IA-2(1)",
     definition:
       "The information system implements multifactor authentication for network access to privileged accounts.",
     type: "Technical",

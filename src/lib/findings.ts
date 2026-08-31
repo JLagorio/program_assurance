@@ -21,9 +21,20 @@ export type Asset = {
   owner: string;
   lastScan: string;
   ccisCovered: number;
+  /**
+   * Scanner-declared open counts from the last full scan named in `lastScan`.
+   * These are what the tool reported against the whole host, deliberately
+   * retained: they are NOT derived from the finding register and they will not
+   * agree with it. Register-tracked counts — the ones the POA&M is built from —
+   * are derived over the composition subtree in `@/lib/graph-posture`, and the
+   * delta between the two columns is the reconciliation the package has to
+   * explain.
+   */
   openCatI: number;
   openCatII: number;
   openCatIII: number;
+  /** CN- anchor — the composition node this asset IS. */
+  node: string;
 };
 
 export type VerificationPath =
@@ -53,6 +64,7 @@ export type Finding = {
   cci: string; // CCI-
   control: string; // natural key, e.g. AC-2(3)
   asset: string; // AST-
+  node?: string; // CN- — the exact part, when known
   rule?: string; // V-
   source: VerificationPath;
   sourceArtifact: string; // EVD-
@@ -87,6 +99,7 @@ export const assets: Asset[] = [
     openCatI: 1,
     openCatII: 6,
     openCatIII: 11,
+    node: "CN-0110",
   },
   {
     id: "AST-0118",
@@ -101,6 +114,7 @@ export const assets: Asset[] = [
     openCatI: 0,
     openCatII: 4,
     openCatIII: 9,
+    node: "CN-0120",
   },
   {
     id: "AST-0203",
@@ -115,6 +129,7 @@ export const assets: Asset[] = [
     openCatI: 0,
     openCatII: 3,
     openCatIII: 5,
+    node: "CN-0210",
   },
   {
     id: "AST-0311",
@@ -129,6 +144,7 @@ export const assets: Asset[] = [
     openCatI: 1,
     openCatII: 2,
     openCatIII: 3,
+    node: "CN-0310",
   },
   {
     id: "AST-0402",
@@ -143,6 +159,7 @@ export const assets: Asset[] = [
     openCatI: 0,
     openCatII: 2,
     openCatIII: 4,
+    node: "CN-0220",
   },
   {
     id: "AST-0507",
@@ -157,6 +174,7 @@ export const assets: Asset[] = [
     openCatI: 0,
     openCatII: 5,
     openCatIII: 7,
+    node: "CN-0130",
   },
 ];
 
@@ -169,6 +187,7 @@ export const findings: Finding[] = [
     cci: "CCI-000765",
     control: "IA-2(1)",
     asset: "AST-0117",
+    node: "CN-0114",
     rule: "V-257984",
     source: "STIG checklist",
     sourceArtifact: "EVD-8841",
@@ -203,6 +222,7 @@ export const findings: Finding[] = [
     cci: "CCI-001453",
     control: "SC-8(1)",
     asset: "AST-0311",
+    node: "CN-0313",
     rule: "V-215807",
     source: "STIG checklist",
     sourceArtifact: "EVD-8846",
@@ -235,6 +255,7 @@ export const findings: Finding[] = [
     cci: "CCI-001851",
     control: "AU-4",
     asset: "AST-0507",
+    node: "CN-0132",
     source: "ACAS scan",
     sourceArtifact: "EVD-8852",
     rawSeverity: "CAT II",
@@ -267,6 +288,7 @@ export const findings: Finding[] = [
     cci: "CCI-002605",
     control: "SI-2",
     asset: "AST-0203",
+    node: "CN-0212",
     source: "Code scan",
     sourceArtifact: "EVD-8858",
     rawSeverity: "CAT II",
@@ -298,6 +320,7 @@ export const findings: Finding[] = [
     cci: "CCI-000016",
     control: "AC-2(3)",
     asset: "AST-0402",
+    node: "CN-0221",
     source: "Manual procedure",
     sourceArtifact: "EVD-8861",
     rawSeverity: "CAT II",
@@ -328,6 +351,7 @@ export const findings: Finding[] = [
     cci: "CCI-000057",
     control: "AC-11",
     asset: "AST-0118",
+    node: "CN-0122",
     rule: "V-257258",
     source: "STIG checklist",
     sourceArtifact: "EVD-8841",
@@ -360,6 +384,7 @@ export const findings: Finding[] = [
     cci: "CCI-001414",
     control: "AC-4",
     asset: "AST-0203",
+    node: "CN-0215",
     source: "Test event",
     sourceArtifact: "EVD-8866",
     rawSeverity: "CAT II",
@@ -391,6 +416,7 @@ export const findings: Finding[] = [
     cci: "CCI-003128",
     control: "SR-4",
     asset: "AST-0203",
+    node: "CN-0213",
     source: "Code scan",
     sourceArtifact: "EVD-8871",
     rawSeverity: "CAT III",
@@ -420,6 +446,7 @@ export const findings: Finding[] = [
     cci: "CCI-000765",
     control: "IA-2(1)",
     asset: "AST-0117",
+    node: "CN-0114",
     source: "ACAS scan",
     sourceArtifact: "EVD-8852",
     rawSeverity: "CAT I",
@@ -449,6 +476,7 @@ export const findings: Finding[] = [
     cci: "CCI-002617",
     control: "SI-2(3)",
     asset: "AST-0507",
+    node: "CN-0132",
     source: "ACAS scan",
     sourceArtifact: "EVD-8852",
     rawSeverity: "CAT III",
@@ -486,12 +514,32 @@ export function isOpen(f: Finding) {
   return openLifecycles.includes(f.lifecycle);
 }
 
+/**
+ * A recorded deficiency: the assessment result stands until the finding is
+ * closed or withdrawn as a false positive. AO risk acceptance is a register
+ * decision, not a re-assessment, so an accepted residual is still a deficiency
+ * even though it is no longer operationally open. Use this for 800-53A
+ * determinations; use `isOpen` for remediation queues and open-finding counts.
+ */
+export function isDeficiency(f: Finding) {
+  return f.lifecycle !== "Closed" && f.lifecycle !== "False positive";
+}
+
 export function findingsByAsset(assetId: string) {
   return findings.filter((f) => f.asset === assetId);
 }
 
 export function findingsByCci(cci: string) {
   return findings.filter((f) => f.cci === cci);
+}
+
+/**
+ * Direct matches only — a finding recorded against this exact composition node.
+ * Subtree rollup lives in `@/lib/graph-posture`, which imports this module; this
+ * module must never import it back.
+ */
+export function findingsByNode(nodeId: string): Finding[] {
+  return findings.filter((f) => f.node === nodeId);
 }
 
 const severityRank: Record<FindingSeverity, number> = { "CAT I": 0, "CAT II": 1, "CAT III": 2 };

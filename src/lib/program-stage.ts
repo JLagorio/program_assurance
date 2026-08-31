@@ -1,3 +1,4 @@
+import { datasetNow } from "@/lib/dataset-clock";
 import { gatesForProgram, type Program, type ProgramGate } from "@/lib/grc-data";
 
 /** The program IS the state machine. Everything else is reference data. */
@@ -40,10 +41,17 @@ export function parseGateDate(value: string): Date | null {
   return new Date(Date.UTC(Number(m[3]), month, Number(m[2])));
 }
 
-export function daysUntil(value: string, now = new Date()): number | null {
+/**
+ * Whole days from `now` to `value`, counted between calendar days rather than
+ * between instants: a due date is late once the day turns, not once the hour
+ * passes, and floor-to-UTC-midnight is what `conmon.ts` counts with, so the two
+ * pages agree on the same commitment.
+ */
+export function daysUntil(value: string, now = datasetNow): number | null {
   const d = parseGateDate(value);
   if (!d) return null;
-  return Math.round((d.getTime() - now.getTime()) / 86_400_000);
+  const base = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return Math.round((d.getTime() - base) / 86_400_000);
 }
 
 export type ProgramState = {
@@ -58,7 +66,19 @@ export type ProgramState = {
   stageStatus: Record<Stage, "done" | "current" | "locked">;
 };
 
-export function programState(program: Program, now = new Date()): ProgramState {
+/**
+ * `controlsFailing` is a parameter, not a read of `program.controlsFailing`:
+ * the authored record carries the last signed package figure while the live
+ * control matrix carries what the page next to this rail is showing. Callers
+ * that have the rows pass the derived count so the Blocker cannot contradict
+ * the coverage card. Control-matrix cannot be imported here — control-matrix.ts
+ * imports `parseGateDate` from this module.
+ */
+export function programState(
+  program: Program,
+  now = datasetNow,
+  controlsFailing = program.controlsFailing,
+): ProgramState {
   const gates = gatesForProgram(program.id);
   const currentGate =
     gates.find((g) => g.status === "Blocked") ??
@@ -77,8 +97,8 @@ export function programState(program: Program, now = new Date()): ProgramState {
   if (currentGate?.status === "Blocked") {
     blocker = currentGate.artifact !== "—" ? currentGate.artifact : `${currentGate.id} blocked`;
     blockerTone = "danger";
-  } else if (program.controlsFailing > 0 && currentStage !== "Scope") {
-    blocker = `${program.controlsFailing} controls other than satisfied`;
+  } else if (controlsFailing > 0 && currentStage !== "Scope") {
+    blocker = `${controlsFailing} controls other than satisfied`;
     blockerTone = currentGate?.status === "At risk" ? "danger" : "warning";
   } else if (daysOut !== null && daysOut < 0) {
     blocker = `${currentGate?.id} ${Math.abs(daysOut)} days overdue`;

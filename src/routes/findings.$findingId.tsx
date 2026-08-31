@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 
 import { Shell } from "@/components/app/shell";
 import { RemediationPlanSection } from "@/components/app/remediation";
@@ -9,6 +9,7 @@ import {
   Button,
   EmptyState,
   KeyValue,
+  Meter,
   Mono,
   Person,
   RailGroup,
@@ -23,20 +24,31 @@ import {
 } from "@/components/app/ui";
 import { ccis } from "@/lib/catalog";
 import { useControlMatrix } from "@/lib/control-matrix";
-import { assetById, findings, findingsByCci, isOpen } from "@/lib/findings";
-import { titleOf } from "@/lib/nist-catalog";
+import { assetById, findings, findingsByCci, isDeficiency, isOpen } from "@/lib/findings";
+import { controlTitle, nistControlById } from "@/lib/nist-catalog";
 import { planForFinding } from "@/lib/remediation";
 import { poamById } from "@/lib/register";
+import { bandTone, scoreFinding, type ScoreFactor } from "@/lib/risk-scoring";
 import { severityTone, statusTone } from "@/lib/spine";
 
-const findingTabs = ["Finding", "Assessment", "Remediation"] as const;
+const findingTabs = ["Finding", "Assessment", "Remediation", "Residual risk"] as const;
 type FindingTab = (typeof findingTabs)[number];
 
+/** `+12`, `-8`, `0` — the sign is the whole point of the mitigation credit. */
+function signed(n: number): string {
+  return n > 0 ? `+${n}` : String(n);
+}
+
 export const Route = createFileRoute("/findings/$findingId")({
-  validateSearch: (search: Record<string, unknown>): { tab?: FindingTab } => {
+  validateSearch: (search: Record<string, unknown>): { tab?: FindingTab | undefined } => {
     const raw = String(search["tab"] ?? "");
     const match = findingTabs.find((t) => t.toLowerCase() === raw.toLowerCase());
-    return match ? { tab: match } : {};
+    // ALWAYS emit the key. Returning `{}` for an unrecognised value makes the
+    // server answer `?tab=bogus` with an empty 200 body instead of redirecting
+    // to the canonical URL; emitting `tab: undefined` makes it a 307 onto
+    // `/findings/$findingId` and the page renders. The declared type keeps the
+    // key optional so the Links to this route elsewhere need no `search` prop.
+    return { tab: match };
   },
   head: ({ params }) => {
     const f = findings.find((x) => x.id === params.findingId);
@@ -68,6 +80,7 @@ function FindingRecord() {
   const programId = asset?.program ?? "PRG-1041";
   const rows = useControlMatrix(programId);
   const plan = useMemo(() => (finding ? planForFinding(finding, rows) : null), [finding, rows]);
+  const residual = useMemo(() => (finding ? scoreFinding(finding.id) : null), [finding]);
 
   if (!finding) {
     return (
@@ -83,10 +96,15 @@ function FindingRecord() {
   }
 
   const cci = ccis.find((c) => c.id === finding.cci);
+  const catalogEntry = nistControlById.get(finding.control);
+  const catalogTitle = catalogEntry ? controlTitle(catalogEntry) : null;
   const siblings = findingsByCci(finding.cci).filter((f) => f.id !== finding.id);
   const poam = finding.poam ? poamById.get(finding.poam) : undefined;
   const controlRow = rows.find((r) => r.id === finding.control);
   const go = (next: FindingTab) => navigate({ search: { tab: next }, replace: true });
+
+  const credit = residual?.factors.find((f) => f.key === "mitigation")?.contribution ?? 0;
+  const bandScale = "80+ Very high · 60–79 High · 40–59 Moderate · 20–39 Low · under 20 Very low.";
 
   const controlLink = controlRow ? (
     <Link
@@ -108,7 +126,7 @@ function FindingRecord() {
             backTo="/findings"
             id={finding.id}
             title={finding.title}
-            meta={`${finding.control} ${titleOf(finding.control)} · ${finding.source} · ${finding.owner}`}
+            meta={`${finding.control}${catalogTitle ? ` ${catalogTitle}` : ""} · ${finding.source} · ${finding.owner}`}
             actions={
               <>
                 <Badge tone={severityTone(finding.mitigatedSeverity)}>
@@ -137,17 +155,25 @@ function FindingRecord() {
                 ["Finding", null],
                 ["Assessment", null],
                 ["Remediation", plan ? plan.total : null],
+                ["Residual risk", null],
               ] as [FindingTab, number | null][]
             ).map(([key, count]) => ({
               key,
               label: key === "Remediation" ? "Remediation plan" : key,
               active: tab === key,
               onSelect: () => go(key),
-              trailing: count ? (
-                <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                  {count}
-                </span>
-              ) : null,
+              trailing:
+                key === "Residual risk" ? (
+                  residual ? (
+                    <Badge tone={bandTone[residual.band]} size="xs" className="tnum">
+                      {residual.score}
+                    </Badge>
+                  ) : null
+                ) : count ? (
+                  <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
+                    {count}
+                  </span>
+                ) : null,
             }))}
           />
         }
@@ -189,6 +215,23 @@ function FindingRecord() {
                 </Badge>
               </KeyValue>
               <KeyValue label="Open">{isOpen(finding) ? "Yes" : "No"}</KeyValue>
+              <KeyValue label="Residual risk">
+                {residual ? (
+                  <button
+                    type="button"
+                    onClick={() => go("Residual risk")}
+                    className="flex items-center gap-2 text-left text-primary hover:underline"
+                  >
+                    <span className="tnum text-[12px] font-medium">{residual.score}</span>
+                    <Badge tone={bandTone[residual.band]}>{residual.band}</Badge>
+                    {!isDeficiency(finding) ? (
+                      <span className="text-[11px] text-muted-foreground">not carried</span>
+                    ) : null}
+                  </button>
+                ) : (
+                  "—"
+                )}
+              </KeyValue>
             </RailGroup>
 
             <RailGroup title="Rolls up to">
@@ -252,7 +295,9 @@ function FindingRecord() {
               <div className="pt-1">
                 <TextBlock label="Control">
                   {controlLink}
-                  <span className="ml-2 text-muted-foreground">{titleOf(finding.control)}</span>
+                  {catalogTitle ? (
+                    <span className="ml-2 text-muted-foreground">{catalogTitle}</span>
+                  ) : null}
                 </TextBlock>
                 <TextBlock label="Assessment status">
                   {controlRow ? (
@@ -448,22 +493,199 @@ function FindingRecord() {
             <RemediationPlanSection
               plan={plan}
               programId={programId}
-              description={`${finding.id} closes with step ${plan.tasks.findIndex((t) => t.finding === finding.id && t.id.endsWith("-5")) + 1 || plan.total} of the plan for ${finding.control}. ${plan.complete} of ${plan.total} steps complete.`}
+              description={`The plan for ${finding.control}, which ${finding.id} closes on re-test. ${plan.complete} of ${plan.total} steps complete · ${plan.start} → ${plan.due}.`}
             />
           ) : (
             <Section title="Remediation plan">
               <EmptyState
-                title="No plan behind this finding"
-                description={
-                  poam
-                    ? `${poam.id} carries the commitment, but ${finding.control} is not in the tailored baseline for ${programId}, so there is no control plan to show.`
-                    : `${finding.control} is not in the tailored baseline for ${programId}. Add the control or attach the finding to a POA&M section to open a plan.`
+                title={
+                  controlRow
+                    ? "Nothing scheduled against this finding"
+                    : "No plan behind this finding"
                 }
+                description={
+                  !controlRow
+                    ? `${finding.control} is not in the tailored baseline for ${programId}${poam ? `, so ${poam.id} carries the commitment on its own` : ""}. Tailor the control in, or work the item from the register.`
+                    : isOpen(finding)
+                      ? `${finding.control} carries no POA&M section and no open remediation. Add ${finding.id} to a POA&M item to put a dated plan behind it.`
+                      : `${finding.id} is ${finding.lifecycle.toLowerCase()} and ${finding.control} is ${controlRow.status.toLowerCase()}, so no plan is running. ${finding.risk ? `The residual sits on ${finding.risk}.` : ""}`
+                }
+              />
+            </Section>
+          )
+        ) : null}
+
+        {tab === "Residual risk" ? (
+          residual ? (
+            <>
+              <Section
+                title="Residual risk"
+                description={
+                  isDeficiency(finding)
+                    ? `${residual.score} of 100 — ${residual.band}. CAT I/II/III grades how badly the requirement is missed; this grades what ${finding.id} is costing the program once reachability, demonstrated exploitation, mission effect and the currency of the evidence are read off the record.`
+                    : `${residual.score} of 100 — ${residual.band}. CAT I/II/III grades how badly the requirement is missed; this grades what the reported condition WOULD have cost the program once reachability, demonstrated exploitation, mission effect and the currency of the evidence are read off the record. ${finding.id} is ${finding.lifecycle.toLowerCase()}, so it is scored so the trail survives closure, not carried in the aggregate.`
+                }
+              >
+                <div className="grid gap-4 pt-4 md:grid-cols-[minmax(0,232px)_minmax(0,1fr)]">
+                  <div className="rounded-md border border-border p-3">
+                    <div className="flex items-baseline gap-2">
+                      <span className="tnum text-[30px] font-semibold leading-none">
+                        {residual.score}
+                      </span>
+                      <span className="text-[12px] text-muted-foreground">/ 100</span>
+                      <Badge tone={bandTone[residual.band]}>{residual.band}</Badge>
+                    </div>
+                    <div className="mt-3">
+                      <Meter value={residual.score} tone={bandTone[residual.band]} />
+                    </div>
+                    <dl className="mt-3 space-y-1.5 text-[12px]">
+                      <div className="flex items-baseline justify-between gap-3">
+                        <dt className="text-muted-foreground">Inherent</dt>
+                        <dd className="tnum">{residual.inherent}</dd>
+                      </div>
+                      <div className="flex items-baseline justify-between gap-3">
+                        <dt className="text-muted-foreground">Mitigation credit</dt>
+                        <dd className={credit < 0 ? "tnum text-success" : "tnum"}>
+                          {signed(credit)}
+                        </dd>
+                      </div>
+                      <div className="flex items-baseline justify-between gap-3 border-t border-border-subtle pt-1.5">
+                        <dt className="font-medium">Residual</dt>
+                        <dd className="tnum font-medium">{residual.score}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                  <div>
+                    <TextBlock label="Band">
+                      <Badge tone={bandTone[residual.band]} size="xs">
+                        {residual.band}
+                      </Badge>
+                      <span className="ml-2 text-muted-foreground">{bandScale}</span>
+                    </TextBlock>
+                    <TextBlock label="Greatest leverage">{residual.leverage}</TextBlock>
+                    <TextBlock label="Credit">
+                      {credit < 0
+                        ? `${finding.mitigation ? "The recorded compensating control" : "The gap between the raw and adjudicated grade"} buys ${Math.abs(credit)} point${Math.abs(credit) === 1 ? "" : "s"} off the inherent ${residual.inherent}. It is shown as its own negative term so it can be argued with rather than absorbed.`
+                        : "No credit is claimed — nothing on record reduces this weakness below the grade it was given."}
+                    </TextBlock>
+                    <TextBlock label="Caveats">
+                      {residual.caveats.length === 0 ? (
+                        <span className="text-muted-foreground">
+                          None. Every one of the six terms was computed from live evidence, so the
+                          score is not provisional.
+                        </span>
+                      ) : (
+                        <ul className="space-y-1.5">
+                          {residual.caveats.map((c) => (
+                            <li key={c} className="border-l-2 border-border pl-2">
+                              {c}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </TextBlock>
+                  </div>
+                </div>
+              </Section>
+
+              <Section
+                title="Calculation"
+                description="Five weighted terms and one credit. Each row carries the input it read, the arithmetic, the ids it rests on, and one sentence an assessor can disagree with."
+              >
+                <FactorTrail factors={residual.factors} score={residual.score} />
+              </Section>
+            </>
+          ) : (
+            <Section title="Residual risk">
+              <EmptyState
+                title="No residual score"
+                description={`${finding.id} carries no scored factors. A residual is only published where severity, exposure, mission impact and evidence currency can all be read from the record; scoring it without them would launder judgement as arithmetic.`}
               />
             </Section>
           )
         ) : null}
       </ShowPage>
     </Shell>
+  );
+}
+
+/**
+ * The auditable trail. The numeric spine is a table because the arithmetic has
+ * to line up column by column; the rationale gets its own full-width row
+ * beneath because a truncated rationale is the same as no rationale, and the
+ * rationale is the part a human is meant to disagree with.
+ */
+function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number }) {
+  const sum = factors.reduce((a, f) => a + f.contribution, 0);
+  return (
+    <div className="pt-3">
+      <Table className="table-fixed">
+        <colgroup>
+          <col style={{ width: "152px" }} />
+          <col />
+          <col style={{ width: "68px" }} />
+          <col style={{ width: "72px" }} />
+          <col style={{ width: "108px" }} />
+        </colgroup>
+        <thead>
+          <tr>
+            <Th>Factor</Th>
+            <Th>Input</Th>
+            <Th className="text-right">Value</Th>
+            <Th className="text-right">Weight</Th>
+            <Th className="text-right">Contribution</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {factors.map((f) => (
+            <Fragment key={f.key}>
+              <tr>
+                <Td className="font-medium">{f.label}</Td>
+                <Td className="truncate text-muted-foreground" title={f.input}>
+                  {f.input}
+                </Td>
+                <Td className="tnum text-right">{f.value.toFixed(2)}</Td>
+                <Td className="tnum text-right text-muted-foreground">{f.weight.toFixed(2)}</Td>
+                <Td
+                  className={
+                    f.contribution < 0
+                      ? "tnum text-right font-medium text-success"
+                      : "tnum text-right font-medium"
+                  }
+                >
+                  {signed(f.contribution)}
+                </Td>
+              </tr>
+              <tr className="border-b border-border-subtle">
+                <td colSpan={5} className="px-3 pb-2.5 align-top">
+                  <p className="max-w-3xl text-[12.5px] leading-relaxed text-muted-foreground">
+                    {f.rationale}
+                  </p>
+                  <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                    <span className="text-11 text-muted-foreground">Evidence</span>
+                    {f.evidence.length ? (
+                      f.evidence.map((id) => (
+                        <Mono key={id} className="text-[11.5px] text-muted-foreground">
+                          {id}
+                        </Mono>
+                      ))
+                    ) : (
+                      <span className="text-[11.5px] text-muted-foreground">—</span>
+                    )}
+                  </p>
+                </td>
+              </tr>
+            </Fragment>
+          ))}
+          <tr>
+            <Td colSpan={4} className="text-muted-foreground">
+              Sum of the {factors.length} contributions
+              {sum === score ? "" : `, clamped from ${sum} to the 0–100 range`}
+            </Td>
+            <Td className="tnum text-right font-semibold">{score}</Td>
+          </tr>
+        </tbody>
+      </Table>
+    </div>
   );
 }
