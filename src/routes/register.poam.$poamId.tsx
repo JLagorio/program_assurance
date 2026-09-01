@@ -134,7 +134,7 @@ function PoamRecord() {
                     key={c}
                     to="/programs/$programId/controls/$controlId"
                     params={{ programId: item.program, controlId: c }}
-                    search={{ tab: "Remediation" as const }}
+                    search={{ tab: "Assessment" as const }}
                     className="text-primary hover:underline"
                   >
                     {c} plan
@@ -211,7 +211,7 @@ function PoamRecord() {
                       <Link
                         to="/programs/$programId/controls/$controlId"
                         params={{ programId: item.program, controlId: f.control }}
-                        search={{ tab: "Remediation" as const }}
+                        search={{ tab: "Assessment" as const }}
                         className="hover:underline"
                         title={`Remediation plan for ${f.control}`}
                       >

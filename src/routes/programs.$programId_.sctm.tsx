@@ -39,10 +39,16 @@ type SctmTab = (typeof sctmTabs)[number];
 const PAGE = 150;
 
 export const Route = createFileRoute("/programs/$programId_/sctm")({
-  validateSearch: (search: Record<string, unknown>): { tab?: SctmTab } => {
+  // Always emit the `tab` key, even when nothing matched. TanStack merges the
+  // validated object over the raw search, so returning `{}` on a miss leaves
+  // `?tab=Bogus` in the URL and renders a header over an empty body; emitting
+  // `tab: undefined` makes the encoder drop the key and fall back to the
+  // default tab. The `| undefined` in the return type is required by
+  // `exactOptionalPropertyTypes`.
+  validateSearch: (search: Record<string, unknown>): { tab?: SctmTab | undefined } => {
     const raw = String(search["tab"] ?? "");
     const match = sctmTabs.find((t) => t.toLowerCase() === raw.toLowerCase());
-    return match ? { tab: match } : {};
+    return { tab: match };
   },
   // The 800-53A catalog text is 1.25 MB. It is imported dynamically — never
   // statically — so it stays out of the initial bundle. Loader data is also

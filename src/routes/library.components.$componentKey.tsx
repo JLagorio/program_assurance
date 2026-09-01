@@ -22,7 +22,7 @@ import {
 export const Route = createFileRoute("/library/components/$componentKey")({
   head: ({ params }) => {
     const c = systemComponents.find((x) => x.key === params.componentKey);
-    const title = c ? `${c.name} — component library` : "Component — Equinox GRC";
+    const title = c ? `${c.name} — provider library` : "Provider — Equinox GRC";
     const description = c
       ? c.summary
       : "Shared system component: the controls it provides and the programs that inherit them.";
@@ -48,7 +48,7 @@ function ComponentRecord() {
     return (
       <Shell>
         <div className="space-y-3">
-          <h1 className="text-[18px] font-semibold">Component not found</h1>
+          <h1 className="text-[18px] font-semibold">Provider not found</h1>
           <Link to="/library/components" className="text-[13px] text-primary hover:underline">
             Back to component library
           </Link>
@@ -81,7 +81,7 @@ function ComponentRecord() {
         rail={
           <>
             <RailGroup title="Definition">
-              <KeyValue label="Component">
+              <KeyValue label="Provider">
                 <Mono>{component.id}</Mono>
               </KeyValue>
               <KeyValue label="Key">
@@ -121,31 +121,31 @@ function ComponentRecord() {
           </>
         }
       >
-            <p className="max-w-3xl text-[13px] leading-relaxed text-muted-foreground">
-              {component.summary}
-            </p>
+        <p className="max-w-3xl text-[13px] leading-relaxed text-muted-foreground">
+          {component.summary}
+        </p>
 
-            <Section
-              title="Provided controls"
-              description="What consuming programs inherit, and how fresh the evidence behind it is."
-            >
-              <ProvidedControlsTable component={component} />
-            </Section>
+        <Section
+          title="Provided controls"
+          description="What consuming programs inherit, and how fresh the evidence behind it is."
+        >
+          <ProvidedControlsTable component={component} />
+        </Section>
 
-            <Section
-              title="Blast radius"
-              description={`Consumed by ${component.consumers.length} program${component.consumers.length === 1 ? "" : "s"}. Evidence or status changes here re-open every inherited row.`}
-              action={
-                stale ? (
-                  <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-warning">
-                    <AlertTriangle className="size-3.5" />
-                    {stale} stale definition{stale === 1 ? "" : "s"} propagating
-                  </span>
-                ) : null
-              }
-            >
-              <ConsumerTable component={component} />
-            </Section>
+        <Section
+          title="Blast radius"
+          description={`Consumed by ${component.consumers.length} program${component.consumers.length === 1 ? "" : "s"}. Evidence or status changes here re-open every inherited row.`}
+          action={
+            stale ? (
+              <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-warning">
+                <AlertTriangle className="size-3.5" />
+                {stale} stale definition{stale === 1 ? "" : "s"} propagating
+              </span>
+            ) : null
+          }
+        >
+          <ConsumerTable component={component} />
+        </Section>
       </ShowPage>
     </Shell>
   );

@@ -369,6 +369,26 @@ function dedupe(values: string[]): string[] {
   return [...new Set(values)];
 }
 
+/**
+ * Sets `key` on `object` only when the collection has members.
+ *
+ * Every single `"type": "array"` in OSCAL 1.1.2 carries `minItems: 1` — 137 of
+ * 137 in the SSP schema, 194 of 194 in the assessment plan, 206 of 206 in the
+ * assessment results, 199 of 199 in the POA&M. There is no array anywhere in
+ * the model where `[]` is legal, so the way to say "there is nothing here" is
+ * to omit the key, never to serialise an empty list. Every optional collection
+ * in this module goes through this or through `listOf` below, and
+ * `oscalEmptyArrays` re-checks the finished document.
+ */
+function putList(object: JsonObject, key: string, values: JsonValue[]): void {
+  if (values.length > 0) object[key] = values;
+}
+
+/** The same rule as `putList`, spread into an object literal so key order holds. */
+function listOf(key: string, values: JsonValue[]): JsonObject {
+  return values.length > 0 ? { [key]: values } : {};
+}
+
 const monthIndex: Record<string, number> = {
   Jan: 1,
   Feb: 2,
@@ -448,15 +468,67 @@ function orgParty(name: string): JsonObject {
   return { uuid: partyUuid(name), type: "organization", name };
 }
 
+/**
+ * "Whitcombe LLP (assessor)" → "Whitcombe LLP".
+ *
+ * The POA&M register records an origin as the firm plus its role in
+ * parentheses. The party of record is the firm, which is already declared, and
+ * two parties for one organization is worse for a resolver than one — so the
+ * parenthetical is stripped before the uuid is taken rather than minting a
+ * near-duplicate.
+ */
+function partyName(value: string): string {
+  return value.replace(/\s*\([^)]*\)\s*$/, "").trim();
+}
+
+/**
+ * The POA&M origin as a party, or null where the recorded origin names a
+ * detection mechanism rather than an organization.
+ *
+ * "Internal continuous monitoring" is a source, not a party. An
+ * `origins[].actors[]` entry pointing at it would be a reference that resolves
+ * to nothing, so no actor is minted and the string is carried on the item as
+ * an `origin-actor` prop instead — which is where it survives an import.
+ */
+function poamOriginParty(origin: string): string | null {
+  if (/continuous monitoring/i.test(origin)) return null;
+  const name = partyName(origin);
+  return name.length > 0 ? name : null;
+}
+
 const programOffice = "Atlas program office";
 
 type PartySet = { parties: JsonObject[]; responsible: JsonObject[] };
 
 function partySet(program: Program, providers: ResolvedInheritance[]): PartySet {
-  const assetOwners = dedupe(
-    assets.filter((a) => a.program === program.id).map((a) => a.owner),
-  ).sort();
+  const programAssets = assets.filter((a) => a.program === program.id);
+  const assetOwners = dedupe(programAssets.map((a) => a.owner)).sort();
   const providerOrgs = dedupe(providers.map((r) => r.component.provider)).sort();
+
+  /*
+   * `actor-uuid` is a reference, not a label: everyone a document names in an
+   * `origins[].actors[]` has to be a party the document declares, or an
+   * importer resolving provenance gets nothing back for who assessed the
+   * finding and who raised the POA&M item. The assessment result names the
+   * assessor of each finding, and the POA&M names the origin of each register
+   * item and the owner of each remediation item, so all three are declared
+   * here. `partySet` is shared by all four models, so the SSP and the plan
+   * carry them too: a declared party nothing references is inert, while a
+   * reference to a party nothing declares is a broken artifact.
+   */
+  const assetIds = new Set(programAssets.map((a) => a.id));
+  const findingAssessors = dedupe(
+    findings.filter((f) => assetIds.has(f.asset)).map((f) => f.assessment.assessedBy),
+  ).sort();
+  const poamOrigins = dedupe(
+    oscalPoamItems
+      .filter((i) => i.programId === program.id)
+      .map((i) => poamOriginParty(i.origin))
+      .filter((name): name is string => name !== null),
+  ).sort();
+  const poamOwners = dedupe(
+    registerPoamItems.filter((i) => i.program === program.id).map((i) => i.owner),
+  ).sort();
 
   const parties: JsonObject[] = [
     orgParty(programOffice),
@@ -465,6 +537,12 @@ function partySet(program: Program, providers: ResolvedInheritance[]): PartySet 
     orgParty(program.assessor),
     ...assetOwners.map(orgParty),
     ...providerOrgs.map(orgParty),
+    ...findingAssessors.map((name) => ({
+      ...personParty(name),
+      "member-of-organizations": [partyUuid(program.assessor)],
+    })),
+    ...poamOrigins.map(orgParty),
+    ...poamOwners.map(orgParty),
   ];
   const seen = new Set<string>();
   const unique = parties.filter((p) => {
@@ -651,6 +729,18 @@ function systemCharacteristics(program: Program): JsonObject {
     ],
     "security-sensitivity-level": program.impact.toLowerCase(),
     "system-information": {
+      /*
+       * `system-information` is a closed assembly — {props, links,
+       * information-types} — so the disclaimer rides as a prop. It is not
+       * decoration: without it a reader cannot tell an omitted
+       * `categorizations` from a forgotten one.
+       */
+      props: [
+        eq(
+          "categorization-basis",
+          "The SP 800-60 Volume 2 information-type identifiers are not carried in this dataset, so `categorizations` is omitted rather than populated with a guessed identifier. The FIPS 199 impact values are the program's own categorization of record.",
+        ),
+      ],
       "information-types": [
         {
           uuid: stableUuid(`information-type|${program.id}|primary`),
@@ -670,8 +760,6 @@ function systemCharacteristics(program: Program): JsonObject {
           },
         },
       ],
-      remarks:
-        "The SP 800-60 Volume 2 information-type identifiers are not carried in this dataset, so `categorizations` is omitted rather than populated with a guessed identifier. The FIPS 199 impact values are the program's own categorization of record.",
     },
     "security-impact-level": {
       "security-objective-confidentiality": fipsLevel(program.confidentiality),
@@ -850,7 +938,15 @@ function byComponent(
   };
 }
 
-function statementsFor(control: string, rows: SctmRow[]): JsonObject[] {
+/**
+ * The SSP statements for one control.
+ *
+ * The uuid seed carries the program: `statement|AC-1|smt` would be the same
+ * uuid in all five SSPs, and this is the key the assessment result joins back
+ * on, so a non-unique one silently binds a finding to another program's
+ * statement.
+ */
+function statementsFor(control: string, rows: SctmRow[], programId: string): JsonObject[] {
   const cid = oscalControlId(control);
   const byLetter = new Map<string, SctmRow[]>();
   for (const row of rows) {
@@ -867,7 +963,7 @@ function statementsFor(control: string, rows: SctmRow[]): JsonObject[] {
     return [
       {
         "statement-id": `${cid}_smt`,
-        uuid: stableUuid(`statement|${control}|smt`),
+        uuid: stableUuid(`statement|${programId}|${control}|smt`),
         props: [eq("requirement-rows", String(rows.length))],
         remarks: `No SP 800-53A determination statement is published for ${control} in this catalog slice, so the whole control statement is the unit of implementation. The implementation assertion is carried on the requirement.`,
       },
@@ -878,13 +974,31 @@ function statementsFor(control: string, rows: SctmRow[]): JsonObject[] {
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([letter, group]) => ({
       "statement-id": `${cid}_smt.${letter}`,
-      uuid: stableUuid(`statement|${control}|${letter}`),
+      uuid: stableUuid(`statement|${programId}|${control}|${letter}`),
       props: group.map((row) => eq("assessment-objective", row.requirement)),
       remarks: group
         .map((row) => row.statement)
         .filter((s) => s && s !== "—")
         .join(" "),
     }));
+}
+
+/**
+ * The `statement-id` → `uuid` map for one control, taken from the same builder
+ * the SSP emits so the assessment result's `implementation-statement-uuid` and
+ * the SSP's `statements[].uuid` cannot drift apart.
+ */
+function statementUuidsFor(
+  control: string,
+  rows: SctmRow[],
+  programId: string,
+): Map<string, string> {
+  return new Map(
+    statementsFor(control, rows, programId).map((s) => [
+      String(s["statement-id"]),
+      String(s["uuid"]),
+    ]),
+  );
 }
 
 function implementedRequirement(
@@ -1011,8 +1125,13 @@ function implementedRequirement(
     uuid: stableUuid(`implemented-requirement|${programId}|${control}`),
     "control-id": cid,
     props,
-    statements: statementsFor(control, rows),
-    "by-components": byComponents,
+    statements: statementsFor(control, rows, programId),
+    /*
+     * An unallocated requirement omits the key rather than emitting `[]`: the
+     * fact that nothing is allocated is disclosed in `remarks` below, which
+     * survives an import, where an empty array is simply invalid.
+     */
+    ...listOf("by-components", byComponents),
     remarks: `${
       first.assertion !== "—"
         ? first.assertion
@@ -1094,6 +1213,7 @@ export function oscalSsp(programId: string, rows: SctmRow[]): OscalDocument {
   );
 
   const build = authorizedBuild(program.id);
+  const sspResources = evidenceResources(rows);
 
   const json: JsonObject = {
     "system-security-plan": {
@@ -1107,38 +1227,43 @@ export function oscalSsp(programId: string, rows: SctmRow[]): OscalDocument {
       },
       "system-characteristics": systemCharacteristics(program),
       "system-implementation": {
-        props: build
-          ? [
-              eq("authorized-baseline", build.id),
-              eq("authorized-baseline-name", build.name),
-              eq("authorized-baseline-approved", build.approved),
-            ]
-          : [],
-        "leveraged-authorizations": providers
+        ...listOf(
+          "props",
+          build
+            ? [
+                eq("authorized-baseline", build.id),
+                eq("authorized-baseline-name", build.name),
+                eq("authorized-baseline-approved", build.approved),
+              ]
+            : [],
+        ),
+        ...listOf(
+          "leveraged-authorizations",
+          providers
           .filter(
             (r, index, all) => all.findIndex((x) => x.component.id === r.component.id) === index,
           )
-          .map((r) => ({
-            uuid: stableUuid(`leveraged-authorization|${program.id}|${r.component.id}`),
-            title: `${r.component.name} — ${r.component.authorization}`,
-            "party-uuid": partyUuid(r.component.provider),
-            "date-authorized": (oscalStamp(r.provided.assessedOn) ?? oscalNow).slice(0, 10),
-            remarks: `Accepted at ${r.component.name} ${r.accepted?.acceptedVersion ?? r.component.version}; the provider now ships ${r.component.version}.`,
-          })),
+            .map((r) => ({
+              uuid: stableUuid(`leveraged-authorization|${program.id}|${r.component.id}`),
+              title: `${r.component.name} — ${r.component.authorization}`,
+              "party-uuid": partyUuid(r.component.provider),
+              "date-authorized": (oscalStamp(r.provided.assessedOn) ?? oscalNow).slice(0, 10),
+              remarks: `Accepted at ${r.component.name} ${r.accepted?.acceptedVersion ?? r.component.version}; the provider now ships ${r.component.version}.`,
+            })),
+        ),
         users: systemUsers(program),
         components: [
           ...nodes.map((node) => nodeComponent(node, node.id === rootId)),
           ...providerComponents,
         ],
-        "inventory-items": inventoryItems(program.id),
+        ...listOf("inventory-items", inventoryItems(program.id)),
       },
       "control-implementation": {
         description: `One implemented requirement per control in the ${program.baseline} tailored baseline. Each carries the components the requirement is allocated to, the organization-defined parameter values pinned by the authorized baseline, and — for common and hybrid controls — the provider's export and this system's inherited and satisfied responsibilities.`,
         "implemented-requirements": implementedRequirements,
       },
-      "back-matter": {
-        resources: evidenceResources(rows),
-      },
+      // `back-matter` with no resources is legal but says nothing; omit both.
+      ...(sspResources.length > 0 ? { "back-matter": { resources: sspResources } } : {}),
     },
   };
 
@@ -1151,6 +1276,15 @@ function procedureActivity(procedureId: string): JsonObject | null {
   const procedure = procedures.find((p) => p.id === procedureId);
   if (!procedure) return null;
   const objective = objectiveById.get(procedure.objective);
+  /*
+   * A control-selection that includes nothing selects nothing, so the whole
+   * `related-controls` assembly is dropped rather than left hollow.
+   */
+  const includeControls = dedupe(
+    (objective?.ccis ?? []).flatMap((cci) =>
+      findings.filter((f) => f.cci === cci).map((f) => f.control),
+    ),
+  ).map((control) => ({ "control-id": oscalControlId(control) }));
   return {
     uuid: stableUuid(`activity|${procedure.id}`),
     title: `${procedure.id} — ${procedure.title}`,
@@ -1167,18 +1301,18 @@ function procedureActivity(procedureId: string): JsonObject | null {
       description: step.action,
       props: [eq("expected-result", step.expected), eq("evidence-to-collect", step.collect)],
     })),
-    "related-controls": {
-      "control-selections": [
-        {
-          description: `Controls reached through the CCIs ${objective?.ccis.join(", ") ?? "—"} that ${procedure.id} proves.`,
-          "include-controls": dedupe(
-            (objective?.ccis ?? []).flatMap((cci) =>
-              findings.filter((f) => f.cci === cci).map((f) => f.control),
-            ),
-          ).map((control) => ({ "control-id": oscalControlId(control) })),
-        },
-      ],
-    },
+    ...(includeControls.length > 0
+      ? {
+          "related-controls": {
+            "control-selections": [
+              {
+                description: `Controls reached through the CCIs ${objective?.ccis.join(", ") ?? "—"} that ${procedure.id} proves.`,
+                "include-controls": includeControls,
+              },
+            ],
+          },
+        }
+      : {}),
     "responsible-roles": [{ "role-id": "test-lead" }],
   };
 }
@@ -1199,6 +1333,61 @@ export function oscalAssessmentPlan(programId: string): OscalDocument {
   const activities = procedures
     .map((p) => procedureActivity(p.id))
     .filter((a): a is JsonObject => a !== null);
+  const programAssets = assets.filter((a) => a.program === program.id);
+
+  /*
+   * A program with no tracked assets gets no inventory-item subject at all.
+   * Omitting only `include-subjects` would leave an assessment-subject that
+   * selects nothing, which is not an improvement on an empty array.
+   */
+  const assessmentSubjects: JsonObject[] = [
+    {
+      type: "component",
+      description: `Every component in the ${program.acronym} composition graph.`,
+      "include-all": {},
+    },
+  ];
+  if (programAssets.length > 0) {
+    assessmentSubjects.push({
+      type: "inventory-item",
+      description: "The tracked boundary assets.",
+      "include-subjects": programAssets.map((a) => ({
+        "subject-uuid": stableUuid(`inventory-item|${a.id}`),
+        type: "inventory-item",
+      })),
+    });
+  }
+
+  /*
+   * `assessment-assets` is optional at the plan root and requires at least one
+   * `assessment-platforms` entry. A program with no scan runs of record has no
+   * tooling to declare, and a platform that uses no components is a platform
+   * that does nothing, so the whole assembly is dropped rather than emitted
+   * hollow.
+   */
+  const assessmentAssets: JsonObject | null =
+    tools.length > 0
+      ? {
+          components: tools.map((tool) => ({
+            uuid: componentUuid(`tool|${tool}`),
+            type: "software",
+            title: tool,
+            description: `Assessment tooling used to collect evidence against ${program.acronym}.`,
+            props: [eq("assessment-tool", "yes")],
+            status: { state: "operational" },
+          })),
+          "assessment-platforms": [
+            {
+              uuid: stableUuid(`assessment-platform|${program.id}`),
+              title: `${program.acronym} assessment platform`,
+              props: [eq("scan-runs-of-record", String(scans.length))],
+              "uses-components": tools.map((tool) => ({
+                "component-uuid": componentUuid(`tool|${tool}`),
+              })),
+            },
+          ],
+        }
+      : null;
 
   const tasks: JsonObject[] = phasesForProgram(program.id).map((phase) => {
     const range = windowRange(phase.window);
@@ -1227,8 +1416,11 @@ export function oscalAssessmentPlan(programId: string): OscalDocument {
       .filter((c) => phase.campaigns.includes(c.id))
       .flatMap(() => activities);
     if (phase.campaigns.length > 0 && phaseActivities.length > 0) {
+      /*
+       * `associated-activity` is a closed assembly with no `uuid` member: the
+       * association is identified solely by the activity it names.
+       */
       task["associated-activities"] = activities.map((activity) => ({
-        uuid: stableUuid(`associated-activity|${phase.id}|${String(activity["uuid"])}`),
         "activity-uuid": activity["uuid"] as JsonValue,
         subjects: [
           {
@@ -1311,44 +1503,9 @@ export function oscalAssessmentPlan(programId: string): OscalDocument {
           },
         ],
       },
-      "assessment-subjects": [
-        {
-          type: "component",
-          description: `Every component in the ${program.acronym} composition graph.`,
-          "include-all": {},
-        },
-        {
-          type: "inventory-item",
-          description: "The tracked boundary assets.",
-          "include-subjects": assets
-            .filter((a) => a.program === program.id)
-            .map((a) => ({
-              "subject-uuid": stableUuid(`inventory-item|${a.id}`),
-              type: "inventory-item",
-            })),
-        },
-      ],
-      "assessment-assets": {
-        components: tools.map((tool) => ({
-          uuid: componentUuid(`tool|${tool}`),
-          type: "software",
-          title: tool,
-          description: `Assessment tooling used to collect evidence against ${program.acronym}.`,
-          props: [eq("assessment-tool", "yes")],
-          status: { state: "operational" },
-        })),
-        "assessment-platforms": [
-          {
-            uuid: stableUuid(`assessment-platform|${program.id}`),
-            title: `${program.acronym} assessment platform`,
-            props: [eq("scan-runs-of-record", String(scans.length))],
-            "uses-components": tools.map((tool) => ({
-              "component-uuid": componentUuid(`tool|${tool}`),
-            })),
-          },
-        ],
-      },
-      tasks,
+      "assessment-subjects": assessmentSubjects,
+      ...(assessmentAssets ? { "assessment-assets": assessmentAssets } : {}),
+      ...listOf("tasks", tasks),
     },
   };
 
@@ -1411,7 +1568,7 @@ function findingObservation(finding: Finding): JsonObject {
         ],
       },
     ],
-    subjects,
+    ...listOf("subjects", subjects),
     "relevant-evidence": dedupe([finding.sourceArtifact, ...finding.assessment.evidence]).map(
       (id) => ({
         href: `#${stableUuid(`resource|${id}`)}`,
@@ -1434,6 +1591,46 @@ function riskStatus(disposition: string): string {
     default:
       return "open";
   }
+}
+
+/**
+ * The scoring engine, as a uuid and as a component.
+ *
+ * `riskCharacterizations` names this as the `tool` actor that computed the
+ * facets. An `actor-uuid` is a reference, not a label, so the component it
+ * names has to be declared in whatever document carries the characterization —
+ * which is both the assessment result and the POA&M, since `registerRiskEntry`
+ * is called from each.
+ */
+const riskScoringActorUuid = stableUuid("actor|equinox-risk-scoring");
+
+function riskScoringComponent(): JsonObject {
+  return {
+    uuid: riskScoringActorUuid,
+    type: "software",
+    title: "Equinox residual risk scoring",
+    description:
+      "The scoring engine that produced the residual-score facets on each risk characterization: six weighted factors, each computed from recorded evidence rather than entered by hand.",
+    props: [eq("assessment-tool", "yes")],
+    status: { state: "operational" },
+  };
+}
+
+/**
+ * One component per distinct scanner that produced an observation. Each scan
+ * observation names its tool as an `actor-uuid`, and an actor is a reference
+ * rather than a label — so every tool named has to be declared somewhere in the
+ * document or the reference dangles.
+ */
+function scanToolComponent(tool: string): JsonObject {
+  return {
+    uuid: componentUuid(`tool|${tool}`),
+    type: "software",
+    title: tool,
+    description: `Scanner of record for the observations attributed to ${tool}.`,
+    props: [eq("assessment-tool", "yes")],
+    status: { state: "operational" },
+  };
 }
 
 /**
@@ -1469,14 +1666,24 @@ function riskCharacterizations(riskId: string): JsonObject[] {
   ];
   return [
     {
+      /*
+       * `characterization` is a closed assembly — {props, links, origin,
+       * facets} — with no `remarks`. The note is about the characterization as
+       * a whole rather than about one factor, so it rides as a prop here rather
+       * than on the residual-score facet, which does define `remarks`.
+       */
+      props: [
+        eq(
+          "characterization-note",
+          score.caveats.length > 0
+            ? `Provisional: ${score.caveats.join(" ")}`
+            : "Every factor was computed from recorded evidence; no factor was defaulted.",
+        ),
+      ],
       origin: {
-        actors: [{ type: "tool", "actor-uuid": stableUuid("actor|equinox-risk-scoring") }],
+        actors: [{ type: "tool", "actor-uuid": riskScoringActorUuid }],
       },
       facets,
-      remarks:
-        score.caveats.length > 0
-          ? `Provisional: ${score.caveats.join(" ")}`
-          : "Every factor was computed from recorded evidence; no factor was defaulted.",
     },
   ];
 }
@@ -1502,10 +1709,14 @@ function registerRiskEntry(riskId: string): JsonObject | null {
       eq("last-reviewed", risk.reviewed),
     ],
     status: riskStatus(risk.disposition),
-    "related-observations": members.map((f) => ({
+  };
+  putList(
+    out,
+    "related-observations",
+    members.map((f) => ({
       "observation-uuid": stableUuid(`observation|finding|${f.id}`),
     })),
-  };
+  );
   const remarks: string[] = [];
   if (characterizations.length > 0) out["characterizations"] = characterizations;
   else {
@@ -1514,11 +1725,20 @@ function registerRiskEntry(riskId: string): JsonObject | null {
     );
   }
   if (risk.aoNote) remarks.push(`AO note: ${risk.aoNote}`);
-  if (remarks.length > 0) out["remarks"] = remarks.join(" ");
+  /*
+   * `risk` is a closed assembly with no `remarks`. The prose folds into the
+   * required `statement`, which until now was a verbatim copy of `description`
+   * and so carried nothing an importer could not already read.
+   */
+  if (remarks.length > 0) out["statement"] = `${risk.statement} ${remarks.join(" ")}`;
   return out;
 }
 
-function sctmFinding(row: SctmRow, programId: string): JsonObject | null {
+function sctmFinding(
+  row: SctmRow,
+  programId: string,
+  statementUuids: Map<string, Map<string, string>>,
+): JsonObject | null {
   if (row.determination !== "Satisfied" && row.determination !== "Other than satisfied") {
     return null;
   }
@@ -1558,6 +1778,15 @@ function sctmFinding(row: SctmRow, programId: string): JsonObject | null {
     remarks: row.determinationNote,
   };
 
+  const statementLetter =
+    row.unit === "Objective"
+      ? /^[A-Z]{2}-\d{2}(?:\(\d{2}\))?([a-z])\./.exec(row.requirement)?.[1]
+      : undefined;
+  const cid = oscalControlId(row.control);
+  const statementUuid = statementUuids
+    .get(row.control)
+    ?.get(statementLetter ? `${cid}_smt.${statementLetter}` : `${cid}_smt`);
+
   const label = row.unit === "Control" ? row.controlTitle : row.requirement;
   const out: JsonObject = {
     uuid: stableUuid(`finding|${programId}|${row.key}`),
@@ -1580,9 +1809,20 @@ function sctmFinding(row: SctmRow, programId: string): JsonObject | null {
         ? {}
         : { remarks: `Determination currency ${row.currency}: ${row.currencyReason}` }),
     },
-    "implementation-statement-uuid": stableUuid(
-      `implemented-requirement|${programId}|${row.control}`,
-    ),
+    /*
+     * The field names the SSP *statement* this result assessed, not the
+     * implemented requirement that contains it. It is resolved through the same
+     * map the SSP emits, keyed on the statement-id the finding's own `target`
+     * already names — keying on `row.unit === "Control"` instead would leave
+     * every CCI row pointing at the wrong object, since `statementsFor` builds
+     * letter buckets only from Objective rows.
+     *
+     * The guard is load-bearing: where a control mixes lettered and letter-less
+     * Objective rows only the lettered statements exist, so a letter-less row
+     * has no statement to name. Omitting an optional reference is correct
+     * there; pointing at the wrong assembly is not.
+     */
+    ...(statementUuid ? { "implementation-statement-uuid": statementUuid } : {}),
   };
   if (row.findings.length > 0) {
     out["related-observations"] = row.findings.map((id) => ({
@@ -1634,13 +1874,16 @@ export function oscalAssessmentResults(programId: string, rows: SctmRow[]): Osca
           actors: [{ type: "tool", "actor-uuid": componentUuid(`tool|${scan.tool}`) }],
         },
       ],
-      subjects: scan.targets
-        .filter((id) => nodeById.has(id))
-        .map((id) => ({
-          "subject-uuid": componentUuid(id),
-          type: "component",
-          title: nodeById.get(id)?.name ?? id,
-        })),
+      ...listOf(
+        "subjects",
+        scan.targets
+          .filter((id) => nodeById.has(id))
+          .map((id) => ({
+            "subject-uuid": componentUuid(id),
+            type: "component",
+            title: nodeById.get(id)?.name ?? id,
+          })),
+      ),
       collected: oscalStamp(scan.completed) ?? oscalNow,
     })),
   ];
@@ -1652,8 +1895,24 @@ export function oscalAssessmentResults(programId: string, rows: SctmRow[]): Osca
     .map(registerRiskEntry)
     .filter((r): r is JsonObject => r !== null);
 
+  /*
+   * The same grouping the SSP uses, over the identical rows, so the statement
+   * uuids the findings reference are the ones the SSP actually emits.
+   */
+  const byControl = new Map<string, SctmRow[]>();
+  for (const row of rows) {
+    const bucket = byControl.get(row.control);
+    if (bucket) bucket.push(row);
+    else byControl.set(row.control, [row]);
+  }
+  const statementUuids = new Map(
+    [...byControl.entries()].map(
+      ([control, group]) => [control, statementUuidsFor(control, group, program.id)] as const,
+    ),
+  );
+
   const sctmFindings = rows
-    .map((row) => sctmFinding(row, program.id))
+    .map((row) => sctmFinding(row, program.id, statementUuids))
     .filter((f): f is JsonObject => f !== null);
 
   const undetermined = rows.length - sctmFindings.length;
@@ -1674,17 +1933,27 @@ export function oscalAssessmentResults(programId: string, rows: SctmRow[]): Osca
       ],
       methods: ["TEST"],
       types: ["finding"],
-      subjects: scenario.path
-        .filter((id) => nodeById.has(id))
-        .map((id) => ({
-          "subject-uuid": componentUuid(id),
-          type: "component",
-          title: nodeById.get(id)?.name ?? id,
-        })),
+      ...listOf(
+        "subjects",
+        scenario.path
+          .filter((id) => nodeById.has(id))
+          .map((id) => ({
+            "subject-uuid": componentUuid(id),
+            type: "component",
+            title: nodeById.get(id)?.name ?? id,
+          })),
+      ),
       collected: oscalNow,
       remarks: scenario.note,
     };
   });
+
+  const resultComponents: JsonObject[] = [
+    ...(riskEntries.some((r) => r["characterizations"] !== undefined)
+      ? [riskScoringComponent()]
+      : []),
+    ...dedupe(scans.map((s) => s.tool)).map(scanToolComponent),
+  ];
 
   const results: JsonObject[] = [
     {
@@ -1698,6 +1967,16 @@ export function oscalAssessmentResults(programId: string, rows: SctmRow[]): Osca
         eq("requirement-rows", String(rows.length)),
         eq("rows-without-a-determination", String(undetermined)),
       ],
+      /*
+       * A result's `local-definitions` is the only place in the assessment
+       * results that can hold a component, and an `actor-uuid` is a REFERENCE,
+       * not a label — every actor named anywhere in this result has to resolve
+       * to something declared in the document. That means the scoring engine
+       * the characterizations name AND each scanner the observations name.
+       */
+      ...(resultComponents.length > 0
+        ? { "local-definitions": { components: resultComponents } }
+        : {}),
       "reviewed-controls": {
         description: "Every control the SCTM decomposed for this program.",
         "control-selections": [
@@ -1709,9 +1988,9 @@ export function oscalAssessmentResults(programId: string, rows: SctmRow[]): Osca
           },
         ],
       },
-      observations: cooperativeObservations,
-      risks: riskEntries,
-      findings: sctmFindings,
+      ...listOf("observations", cooperativeObservations),
+      ...listOf("risks", riskEntries),
+      ...listOf("findings", sctmFindings),
       remarks: `${undetermined} of ${rows.length} requirement rows carry no OSCAL finding: SP 800-53A recognises only "satisfied" and "not-satisfied", and a row that is Not assessed or Not applicable has neither. They are visible in the SSP with their implementation status and are not silently reported as satisfied.`,
     },
   ];
@@ -1740,6 +2019,8 @@ export function oscalAssessmentResults(programId: string, rows: SctmRow[]): Osca
     });
   }
 
+  const arResources = evidenceResources(rows);
+
   const json: JsonObject = {
     "assessment-results": {
       uuid,
@@ -1753,7 +2034,7 @@ export function oscalAssessmentResults(programId: string, rows: SctmRow[]): Osca
           "Components, inventory items and users are defined once in the System Security Plan this assessment imports; they are referenced here by uuid rather than redefined.",
       },
       results,
-      "back-matter": { resources: evidenceResources(rows) },
+      ...(arResources.length > 0 ? { "back-matter": { resources: arResources } } : {}),
     },
   };
 
@@ -1930,15 +2211,38 @@ export function oscalPoam(programId: string): OscalDocument {
           p.ns ? prop(p.name, p.value, p.ns) : prop(p.name, p.value, equinoxNs),
         ),
       ],
-      links: item.links.map((l) => link(l.href, l.rel, l.text)),
-      origins: [
-        {
-          actors: [{ type: "party", "actor-uuid": partyUuid(item.origin), "role-id": "assessor" }],
-        },
-      ],
-      "related-observations": item.relatedObservations.map((o) => ({
-        "observation-uuid": o.observationUuid,
-      })),
+      ...listOf(
+        "links",
+        item.links.map((l) => link(l.href, l.rel, l.text)),
+      ),
+      /*
+       * The actor has to be the party `partySet` actually declared, which is
+       * `poamOriginParty(origin)` — not the raw origin string. Deriving the uuid
+       * from the raw string produced a reference to a party no document holds.
+       * An origin that maps to no party (continuous monitoring is nobody) gets
+       * no origins block rather than a dangling one.
+       */
+      ...(poamOriginParty(item.origin) !== null
+        ? {
+            origins: [
+              {
+                actors: [
+                  {
+                    type: "party",
+                    "actor-uuid": partyUuid(poamOriginParty(item.origin) as string),
+                    "role-id": "assessor",
+                  },
+                ],
+              },
+            ],
+          }
+        : {}),
+      ...listOf(
+        "related-observations",
+        item.relatedObservations.map((o) => ({
+          "observation-uuid": o.observationUuid,
+        })),
+      ),
       "related-risks": relatedRisks,
       remarks: item.remarks,
     };
@@ -2052,9 +2356,12 @@ export function oscalPoam(programId: string): OscalDocument {
           ],
         },
       ],
-      "related-observations": members.map((f) => ({
-        "observation-uuid": stableUuid(`observation|finding|${f.id}`),
-      })),
+      ...listOf(
+        "related-observations",
+        members.map((f) => ({
+          "observation-uuid": stableUuid(`observation|finding|${f.id}`),
+        })),
+      ),
       "related-risks": [{ "risk-uuid": riskUuid }],
       remarks: item.milestoneNote,
     });
@@ -2062,6 +2369,52 @@ export function oscalPoam(programId: string): OscalDocument {
 
   const nodes = nodesForProgram(program.id);
   const rootId = nodes.find((n) => n.parent === null)?.id ?? null;
+
+  /*
+   * The risks carried here reuse the assessment results' characterizations, and
+   * those name the scoring engine as their actor. An actor is a reference, so
+   * the engine has to be declared in THIS document too — the assessment results
+   * declaring it does not help a POA&M transferred on its own.
+   */
+  const localComponents = [
+    ...nodes
+      .filter((n) => n.asset !== null || n.id === rootId)
+      .map((n) => nodeComponent(n, n.id === rootId)),
+    ...(risks.some((r) => r["characterizations"] !== undefined) ? [riskScoringComponent()] : []),
+  ];
+  const localInventory = inventoryItems(program.id);
+  const localDefinitions: JsonObject = {
+    ...listOf("components", localComponents),
+    ...listOf("inventory-items", localInventory),
+    remarks:
+      "Only the boundary assets, the system root and the scoring engine the risk characterizations name are redefined here so the POA&M can stand alone if the SSP is not transferred with it; the full component set lives in the SSP.",
+  };
+
+  const resources = dedupe(items.flatMap((i) => i.links.map((l) => l.text)))
+    .sort()
+    .map((title) => ({
+      uuid: stableUuid(`resource|${title}`),
+      title,
+      description: `Referenced from a POA&M item in the ${program.acronym} register.`,
+    }));
+
+  /**
+   * `poam-items` is the one collection that is BOTH required at the root and
+   * `minItems: 1`, so OSCAL simply cannot express an empty POA&M: omitting the
+   * key trades a minItems error for a required one. A program with nothing open
+   * therefore carries one item that says exactly that — a true statement, rather
+   * than an invented weakness.
+   */
+  const poamItemsOut: JsonValue[] =
+    poamItemEntries.length > 0
+      ? poamItemEntries
+      : [
+          {
+            uuid: stableUuid(`poam-item|none|${program.id}`),
+            title: "No open POA&M items",
+            description: `No open POA&M item is of record for ${program.acronym} as of ${oscalNow.slice(0, 10)}.`,
+          },
+        ];
 
   const json: JsonObject = {
     "plan-of-action-and-milestones": {
@@ -2072,26 +2425,11 @@ export function oscalPoam(programId: string): OscalDocument {
         "identifier-type": "https://equinox.example/ns/system-id",
         id: program.system,
       },
-      "local-definitions": {
-        components: nodes
-          .filter((n) => n.asset !== null || n.id === rootId)
-          .map((n) => nodeComponent(n, n.id === rootId)),
-        "inventory-items": inventoryItems(program.id),
-        remarks:
-          "Only the boundary assets and the system root are redefined here so the POA&M can stand alone if the SSP is not transferred with it; the full component set lives in the SSP.",
-      },
-      observations,
-      risks,
-      "poam-items": poamItemEntries,
-      "back-matter": {
-        resources: dedupe(items.flatMap((i) => i.links.map((l) => l.text)))
-          .sort()
-          .map((title) => ({
-            uuid: stableUuid(`resource|${title}`),
-            title,
-            description: `Referenced from a POA&M item in the ${program.acronym} register.`,
-          })),
-      },
+      "local-definitions": localDefinitions,
+      ...listOf("observations", observations),
+      ...listOf("risks", risks),
+      "poam-items": poamItemsOut,
+      ...(resources.length > 0 ? { "back-matter": { resources } } : {}),
     },
   };
 

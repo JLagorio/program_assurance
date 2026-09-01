@@ -127,10 +127,23 @@ function ProseBlock({
 
 /* ── Chips ───────────────────────────────────────────────────────────────── */
 
-export function DriftBandChip({ band, size = "sm" }: { band: DriftBand; size?: "xs" | "sm" }) {
+/**
+ * A drift band is only as good as the weight behind it. When most of the model
+ * could not be computed the band is a floor, not a verdict — so a provisional
+ * band never borrows the reassuring tone, whatever it says.
+ */
+export function DriftBandChip({
+  band,
+  size = "sm",
+  provisional = false,
+}: {
+  band: DriftBand;
+  size?: "xs" | "sm";
+  provisional?: boolean;
+}) {
   return (
-    <Badge size={size} tone={driftBandTone[band]}>
-      {band}
+    <Badge size={size} tone={provisional ? "neutral" : driftBandTone[band]}>
+      {provisional ? `${band} — provisional` : band}
     </Badge>
   );
 }

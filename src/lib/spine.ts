@@ -75,6 +75,8 @@ export type ObjectKind =
   | "build"
   | "change"
   | "requirement"
+  | "allocation"
+  | "process"
   | "control"
   | "overlay"
   | "cci"
@@ -114,9 +116,9 @@ export const objectRegistry: Record<
   },
   component: {
     prefix: "CMP-",
-    label: "Component",
-    what: "Reusable inheritable definition — an IdP, a landing zone, a platform. Not an instance.",
-    relates: "provides CCIs to many Programs",
+    label: "Provider",
+    what: "Reusable inheritable capability — an IdP, a landing zone, a signing enclave, a provisioning line. Not an instance, and not part of any one system.",
+    relates: "offers inheritable controls to many Programs; receives Requirement allocations",
   },
   asset: {
     prefix: "AST-",
@@ -126,10 +128,10 @@ export const objectRegistry: Record<
   },
   node: {
     prefix: "CN-",
-    label: "Composition node",
-    what: "One hardware, firmware or software item in the system composition — a board, a chip, a bootloader, an OS, a container, a package.",
+    label: "Component",
+    what: "One part of the system as built — a subsystem, chassis, board, chip, bootloader, OS, container or package. The line-replaceable ones are the LRUs; the taxonomy does not separate them, because what is field-swappable is a property of the part, not a different kind of thing.",
     relates:
-      "hangs beneath a parent node; anchors an Asset; carries findings and control allocation",
+      "hangs beneath a parent Component; anchors an Asset; receives Requirement allocations; reaches Controls only by derived trace",
   },
   bom: {
     prefix: "BOM-",
@@ -153,9 +155,22 @@ export const objectRegistry: Record<
   },
   requirement: {
     prefix: "REQ-",
-    label: "Capability requirement",
-    what: "CSA 01–10 with its CSRC tier, plus derived technical requirements.",
-    relates: "allocates to Controls and to Test objectives",
+    label: "Security requirement",
+    what: "An engineering shall statement the system owns, with its own provenance. Derives from a control statement, an overlay, policy, a threat, an architecture decision or a finding — never from only one of them by construction.",
+    relates:
+      "decomposes into child Requirements; allocates to Nodes, provider Components and Processes; the Controls it reaches are computed, never stored",
+  },
+  allocation: {
+    prefix: "ALC-",
+    label: "Allocation",
+    what: "One element's bounded share of one requirement — responsibility, coverage and the scope of the claim. The record that replaces a component column on a control row.",
+    relates: "joins one Requirement to one Node, provider Component or Process",
+  },
+  process: {
+    prefix: "PRC-",
+    label: "Security process",
+    what: "An operational, manufacturing or maintenance process that carries security obligations — a key ceremony, a release gate, a provisioning step. Outside the boundary, inside the argument.",
+    relates: "receives Requirement allocations; produces evidence",
   },
   control: {
     prefix: "—",
@@ -517,15 +532,7 @@ export const vocabularies = {
     object: "Program",
     field: "Authorization",
     source: "DoD authorization types",
-    values: [
-      "Not authorized",
-      "IATT",
-      "ATO with conditions",
-      "ATO",
-      "cATO",
-      "DATO",
-      "Expired",
-    ],
+    values: ["Not authorized", "IATT", "ATO with conditions", "ATO", "cATO", "DATO", "Expired"],
   },
   gateState: {
     object: "Gate",
@@ -549,8 +556,7 @@ export const vocabularies = {
 
 export type VocabularyKey = keyof typeof vocabularies;
 
-export type ControlImplementation =
-  (typeof vocabularies.controlImplementation.values)[number];
+export type ControlImplementation = (typeof vocabularies.controlImplementation.values)[number];
 export type ControlAssessment = (typeof vocabularies.controlAssessment.values)[number];
 export type ControlOrigination = (typeof vocabularies.controlOrigination.values)[number];
 export type ControlDesignation = (typeof vocabularies.controlDesignation.values)[number];

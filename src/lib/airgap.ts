@@ -196,7 +196,7 @@ function oscalFile(doc: OscalDocument): BundleFile {
   return {
     path: oscalPaths[doc.model],
     kind: oscalKinds[doc.model],
-    producer: `Equinox oscal.ts — ${doc.model}, OSCAL 1.1.2`,
+    producer: `Equinox OSCAL generator — ${doc.model}, OSCAL 1.1.2`,
     text: oscalJson(doc),
   };
 }
@@ -206,7 +206,7 @@ function emassFile(kind: EmassExportKind, programId: string, rows: SctmRow[]): B
   return {
     path: emassPaths[sheet.kind],
     kind: `eMASS ${sheet.kind} (RFC 4180 CSV)`,
-    producer: `Equinox emass.ts — ${sheet.kind}, ${sheet.columns.length} columns`,
+    producer: `Equinox eMASS ${sheet.kind} export — ${sheet.columns.length} columns`,
     text: emassCsv(sheet),
   };
 }
@@ -215,7 +215,7 @@ function sctmFile(programId: string, rows: SctmRow[]): BundleFile {
   return {
     path: "sctm/sctm.csv",
     kind: "Security Controls Traceability Matrix (RFC 4180 CSV)",
-    producer: `Equinox sctm.ts — ${rows.length} requirement rows`,
+    producer: `Equinox SCTM export — ${rows.length} requirement rows`,
     text: sctmCsv({
       program: programId,
       rows,

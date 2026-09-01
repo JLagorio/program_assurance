@@ -38,4 +38,5 @@ ds-bundle/
 *.sln
 *.sw?
 
+docs/examples.superpowers/
 docs/examples

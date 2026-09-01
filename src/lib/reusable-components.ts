@@ -94,7 +94,14 @@ export type SystemComponent = {
   id: string;
   key: string;
   name: string;
-  type: "Service" | "Platform" | "Policy" | "Facility";
+  /**
+   * "Manufacturing" is a capability that contributes to control outcomes
+   * without publishing inherited controls of its own — `§9.1` of the platform
+   * design calls these reusable capabilities, as distinct from common-control
+   * providers. `ccpTierFor` in `inheritance.ts` falls through to "Component"
+   * for it, which is correct: it offers nothing to inherit.
+   */
+  type: "Service" | "Platform" | "Policy" | "Facility" | "Manufacturing";
   owner: string;
   provider: string;
   version: string;
@@ -736,6 +743,80 @@ export const systemComponents: SystemComponent[] = [
         acceptedAssessmentVersion: "—",
         acceptedOn: "—",
         acceptedBy: "—",
+      },
+    ],
+  },
+  /*
+   * Two reusable capabilities, added for the secure boot requirement thread.
+   *
+   * Both carry `controls: []` on purpose. They contribute to requirements —
+   * the signing enclave produces the signature the bootloader authenticates,
+   * the line burns the anchor that signature chains to — but neither publishes
+   * a control a consuming system may inherit. `resolveInheritance` iterates
+   * `controls`, so an empty list means these appear in the library and can be
+   * named by an allocation without moving a single number in the control
+   * matrix or the SCTM. Giving either one a `ProvidedControl` is a separate,
+   * deliberate decision about what a consumer is entitled to claim.
+   */
+  {
+    id: "CMP-041",
+    key: "signing-enclave",
+    name: "Production code signing enclave",
+    type: "Service",
+    owner: "Victor Amsel",
+    provider: "Internal — Product Security (PKI)",
+    version: "v2.1",
+    authorization: "Pending — ceremony not yet held",
+    health: "Reassessment due",
+    updated: "Aug 29, 16:20",
+    summary:
+      "An air-gapped FIPS 140-3 Level 3 HSM pair holding the production signing hierarchy. Signature requests cross the gap on transfer media and are signed under a scripted two-person ceremony. Contributes to firmware authentication obligations; publishes no inheritable control while the hierarchy is still on development keys.",
+    sourceProgramId: null,
+    sourceAccessible: false,
+    controls: [],
+    consumers: [
+      {
+        programId: "PRG-1041",
+        programName: "Atlas payments platform",
+        system: "atlas-prod",
+        controls: 0,
+        accessible: true,
+        lastSync: "Aug 29, 16:20",
+        acceptedVersion: "—",
+        acceptedAssessmentVersion: "—",
+        acceptedOn: "—",
+        acceptedBy: "—",
+      },
+    ],
+  },
+  {
+    id: "CMP-047",
+    key: "provisioning-line",
+    name: "Module provisioning and fusing line",
+    type: "Manufacturing",
+    owner: "Elena Vasquez",
+    provider: "Internal — Manufacturing Engineering",
+    version: "Fixture Rev B",
+    authorization: "Line qualification in progress",
+    health: "Current",
+    updated: "Aug 28, 11:05",
+    summary:
+      "A powered fixture on the manufacturing line that brings the module up, burns the secure-boot and rollback fuses, flashes the signed image and writes a per-unit provisioning record — without exposing key material to line operators. Discharges the part of trust-anchor provisioning that happens before the module is a system.",
+    sourceProgramId: null,
+    sourceAccessible: false,
+    controls: [],
+    consumers: [
+      {
+        programId: "PRG-1041",
+        programName: "Atlas payments platform",
+        system: "atlas-prod",
+        controls: 0,
+        accessible: true,
+        lastSync: "Aug 28, 11:05",
+        acceptedVersion: "Fixture Rev B",
+        acceptedAssessmentVersion: "—",
+        acceptedOn: "Aug 12, 2026",
+        acceptedBy: "Grace Hoppel",
       },
     ],
   },

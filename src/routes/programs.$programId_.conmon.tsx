@@ -31,9 +31,11 @@ import {
   evidenceFreshness,
   poamSlippage,
   scanCadence,
+  setControlTextIndex,
   type ConMonAlert,
 } from "@/lib/conmon";
 import { programs } from "@/lib/grc-data";
+import { buildControlTextIndex } from "@/lib/sctm";
 import { cn } from "@/lib/utils";
 
 const conmonTabs = [
@@ -61,9 +63,19 @@ export const Route = createFileRoute("/programs/$programId_/conmon")({
     const match = conmonTabs.find((t) => t.toLowerCase() === raw.toLowerCase());
     return { tab: match };
   },
-  loader: ({ params }) => {
+  // Every ratio this page publishes is quoted per SCTM row, and a row count is
+  // only reconcilable if it is the SAME row set the SCTM tab and the retest
+  // queue publish — one row per leaf 800-53A assessment objective. That
+  // granularity only exists once the 1.25 MB catalog has been dynamic-imported,
+  // so the loader does the importing and hands `conmon.ts` the narrowed index,
+  // exactly as the baseline route does for `change-impact.ts`. The index is NOT
+  // returned: loader data is serialised into the SSR document on every request,
+  // and this page renders none of the control text.
+  loader: async ({ params }) => {
     const program = programs.find((p) => p.id.toLowerCase() === params.programId.toLowerCase());
     if (!program) throw notFound();
+    const { controlText } = await import("@/lib/nist-control-text");
+    setControlTextIndex(buildControlTextIndex(controlText));
     return program;
   },
   head: ({ loaderData }) => ({
@@ -233,7 +245,7 @@ function ProgramConMon() {
             actions={
               <>
                 <Badge tone="neutral">Drift {drift.score}</Badge>
-                <DriftBandChip band={drift.band} />
+                <DriftBandChip band={drift.band} provisional={appliedWeight < 100} />
                 <Link
                   to="/programs/$programId/baseline"
                   params={{ programId: program.id }}
@@ -340,7 +352,14 @@ function ProgramConMon() {
                 <FeedTile
                   label="Evidence freshness"
                   value={expired + stale}
-                  unit={`of ${freshness.length} past SLA`}
+                  // "Past SLA" on the Evidence freshness tab counts the rows
+                  // with no dated artifact at all as well, because a control
+                  // that has never been collected against is past its SLA under
+                  // any reading. This tile mirrors the drift factor instead —
+                  // `share(stale + expired, rows)` — so it has to name the
+                  // narrower set rather than reuse the phrase for a smaller
+                  // number. The 14 never-collected rows are in the note below.
+                  unit={`of ${freshness.length} expired or stale`}
                   alarming
                   note={
                     freshness.length === 0

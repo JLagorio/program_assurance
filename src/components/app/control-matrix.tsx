@@ -151,7 +151,7 @@ function FindingsCell({ programId, row }: { programId: string; row: ControlRow }
     <Link
       to="/programs/$programId/controls/$controlId"
       params={{ programId, controlId: row.id }}
-      search={{ tab: "Findings" as const }}
+      search={{ tab: "Assessment" as const }}
       className={cn(
         "tnum text-12 hover:underline",
         row.openFindings ? "text-danger" : "text-muted-foreground",

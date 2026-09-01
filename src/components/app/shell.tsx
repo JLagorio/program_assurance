@@ -56,7 +56,7 @@ const navGroups: {
     items: [
       { label: "Control catalog", to: "/controls", icon: FileCheck2 },
       { label: "STIG & SRG library", to: "/stigs", icon: Boxes },
-      { label: "Components", to: "/library/components", icon: Library },
+      { label: "Providers", to: "/library/components", icon: Library },
       { label: "Evidence", to: "/evidence", icon: Archive },
     ],
   },
@@ -68,7 +68,6 @@ const navGroups: {
     ],
   },
 ];
-
 
 function Logo() {
   return (
@@ -100,8 +99,7 @@ function Sidebar() {
             </div>
             <div className="space-y-px">
               {group.items.map((item) => {
-                const active =
-                  item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
+                const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
                 return (
                   <Link
                     key={item.label}
@@ -191,9 +189,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
-        <main className="w-full flex-1 px-4 py-6 lg:px-6 lg:py-8">
-          {children}
-        </main>
+        <main className="w-full flex-1 px-4 py-6 lg:px-6 lg:py-8">{children}</main>
       </div>
     </div>
   );

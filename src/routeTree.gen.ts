@@ -45,7 +45,10 @@ import { Route as ProgramsProgramIdSctmRouteImport } from './routes/programs.$pr
 import { Route as ProgramsProgramIdTePhasesRouteImport } from './routes/programs.$programId_.te-phases'
 import { Route as RegisterPoamPoamIdRouteImport } from './routes/register.poam.$poamId'
 import { Route as RegisterRisksRiskIdRouteImport } from './routes/register.risks.$riskId'
+import { Route as ProgramsProgramIdComponentsComponentIdRouteImport } from './routes/programs.$programId_.components.$componentId'
 import { Route as ProgramsProgramIdControlsControlIdRouteImport } from './routes/programs.$programId_.controls.$controlId'
+import { Route as ProgramsProgramIdRequirementsRequirementIdRouteImport } from './routes/programs.$programId_.requirements.$requirementId'
+import { Route as ProgramsProgramIdSystemsScopeIdRouteImport } from './routes/programs.$programId_.systems.$scopeId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -234,10 +237,28 @@ const RegisterRisksRiskIdRoute = RegisterRisksRiskIdRouteImport.update({
   path: '/register/risks/$riskId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProgramsProgramIdComponentsComponentIdRoute =
+  ProgramsProgramIdComponentsComponentIdRouteImport.update({
+    id: '/$programId_/components/$componentId',
+    path: '/$programId/components/$componentId',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
 const ProgramsProgramIdControlsControlIdRoute =
   ProgramsProgramIdControlsControlIdRouteImport.update({
     id: '/$programId_/controls/$controlId',
     path: '/$programId/controls/$controlId',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
+const ProgramsProgramIdRequirementsRequirementIdRoute =
+  ProgramsProgramIdRequirementsRequirementIdRouteImport.update({
+    id: '/$programId_/requirements/$requirementId',
+    path: '/$programId/requirements/$requirementId',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
+const ProgramsProgramIdSystemsScopeIdRoute =
+  ProgramsProgramIdSystemsScopeIdRouteImport.update({
+    id: '/$programId_/systems/$scopeId',
+    path: '/$programId/systems/$scopeId',
     getParentRoute: () => ProgramsRoute,
   } as any)
 
@@ -278,7 +299,10 @@ export interface FileRoutesByFullPath {
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/components/': typeof LibraryComponentsIndexRoute
+  '/programs/$programId/components/$componentId': typeof ProgramsProgramIdComponentsComponentIdRoute
   '/programs/$programId/controls/$controlId': typeof ProgramsProgramIdControlsControlIdRoute
+  '/programs/$programId/requirements/$requirementId': typeof ProgramsProgramIdRequirementsRequirementIdRoute
+  '/programs/$programId/systems/$scopeId': typeof ProgramsProgramIdSystemsScopeIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -317,7 +341,10 @@ export interface FileRoutesByTo {
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/components': typeof LibraryComponentsIndexRoute
+  '/programs/$programId/components/$componentId': typeof ProgramsProgramIdComponentsComponentIdRoute
   '/programs/$programId/controls/$controlId': typeof ProgramsProgramIdControlsControlIdRoute
+  '/programs/$programId/requirements/$requirementId': typeof ProgramsProgramIdRequirementsRequirementIdRoute
+  '/programs/$programId/systems/$scopeId': typeof ProgramsProgramIdSystemsScopeIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -357,7 +384,10 @@ export interface FileRoutesById {
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/components/': typeof LibraryComponentsIndexRoute
+  '/programs/$programId_/components/$componentId': typeof ProgramsProgramIdComponentsComponentIdRoute
   '/programs/$programId_/controls/$controlId': typeof ProgramsProgramIdControlsControlIdRoute
+  '/programs/$programId_/requirements/$requirementId': typeof ProgramsProgramIdRequirementsRequirementIdRoute
+  '/programs/$programId_/systems/$scopeId': typeof ProgramsProgramIdSystemsScopeIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -398,7 +428,10 @@ export interface FileRouteTypes {
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/components/'
+    | '/programs/$programId/components/$componentId'
     | '/programs/$programId/controls/$controlId'
+    | '/programs/$programId/requirements/$requirementId'
+    | '/programs/$programId/systems/$scopeId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -437,7 +470,10 @@ export interface FileRouteTypes {
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/components'
+    | '/programs/$programId/components/$componentId'
     | '/programs/$programId/controls/$controlId'
+    | '/programs/$programId/requirements/$requirementId'
+    | '/programs/$programId/systems/$scopeId'
   id:
     | '__root__'
     | '/'
@@ -476,7 +512,10 @@ export interface FileRouteTypes {
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/components/'
+    | '/programs/$programId_/components/$componentId'
     | '/programs/$programId_/controls/$controlId'
+    | '/programs/$programId_/requirements/$requirementId'
+    | '/programs/$programId_/systems/$scopeId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -759,11 +798,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterRisksRiskIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/programs/$programId_/components/$componentId': {
+      id: '/programs/$programId_/components/$componentId'
+      path: '/$programId/components/$componentId'
+      fullPath: '/programs/$programId/components/$componentId'
+      preLoaderRoute: typeof ProgramsProgramIdComponentsComponentIdRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
     '/programs/$programId_/controls/$controlId': {
       id: '/programs/$programId_/controls/$controlId'
       path: '/$programId/controls/$controlId'
       fullPath: '/programs/$programId/controls/$controlId'
       preLoaderRoute: typeof ProgramsProgramIdControlsControlIdRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
+    '/programs/$programId_/requirements/$requirementId': {
+      id: '/programs/$programId_/requirements/$requirementId'
+      path: '/$programId/requirements/$requirementId'
+      fullPath: '/programs/$programId/requirements/$requirementId'
+      preLoaderRoute: typeof ProgramsProgramIdRequirementsRequirementIdRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
+    '/programs/$programId_/systems/$scopeId': {
+      id: '/programs/$programId_/systems/$scopeId'
+      path: '/$programId/systems/$scopeId'
+      fullPath: '/programs/$programId/systems/$scopeId'
+      preLoaderRoute: typeof ProgramsProgramIdSystemsScopeIdRouteImport
       parentRoute: typeof ProgramsRoute
     }
   }
@@ -793,7 +853,10 @@ interface ProgramsRouteChildren {
   ProgramsProgramIdRiskRoute: typeof ProgramsProgramIdRiskRoute
   ProgramsProgramIdSctmRoute: typeof ProgramsProgramIdSctmRoute
   ProgramsProgramIdTePhasesRoute: typeof ProgramsProgramIdTePhasesRoute
+  ProgramsProgramIdComponentsComponentIdRoute: typeof ProgramsProgramIdComponentsComponentIdRoute
   ProgramsProgramIdControlsControlIdRoute: typeof ProgramsProgramIdControlsControlIdRoute
+  ProgramsProgramIdRequirementsRequirementIdRoute: typeof ProgramsProgramIdRequirementsRequirementIdRoute
+  ProgramsProgramIdSystemsScopeIdRoute: typeof ProgramsProgramIdSystemsScopeIdRoute
 }
 
 const ProgramsRouteChildren: ProgramsRouteChildren = {
@@ -808,8 +871,13 @@ const ProgramsRouteChildren: ProgramsRouteChildren = {
   ProgramsProgramIdRiskRoute: ProgramsProgramIdRiskRoute,
   ProgramsProgramIdSctmRoute: ProgramsProgramIdSctmRoute,
   ProgramsProgramIdTePhasesRoute: ProgramsProgramIdTePhasesRoute,
+  ProgramsProgramIdComponentsComponentIdRoute:
+    ProgramsProgramIdComponentsComponentIdRoute,
   ProgramsProgramIdControlsControlIdRoute:
     ProgramsProgramIdControlsControlIdRoute,
+  ProgramsProgramIdRequirementsRequirementIdRoute:
+    ProgramsProgramIdRequirementsRequirementIdRoute,
+  ProgramsProgramIdSystemsScopeIdRoute: ProgramsProgramIdSystemsScopeIdRoute,
 }
 
 const ProgramsRouteWithChildren = ProgramsRoute._addFileChildren(

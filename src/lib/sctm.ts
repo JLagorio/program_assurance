@@ -67,7 +67,7 @@
  * from `@/lib/baselines`, which is what keeps the three acyclic.
  */
 
-import { useMemo, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import type { Tone } from "@/components/app/ui";
 import { rowCurrency } from "@/lib/baselines";
@@ -1094,4 +1094,122 @@ export function useSctm(programId: string, text: ControlTextIndex | null): Sctm 
     () => buildSctm(programId, rows, text),
     [programId, rows, text, version],
   );
+}
+
+/* ── The catalog, loaded on demand ───────────────────────────────────────── */
+
+/**
+ * The 800-53A catalog is 1.25 MB and every other SCTM consumer pulls it in a
+ * route loader. The program record cannot: nine of its ten tabs never look at
+ * a requirement row, and a loader import would charge all of them for one.
+ *
+ * `buildSctm` already accepts `null` and degrades to CCI-grained rows, so the
+ * matrix renders immediately off the CCI catalog and gains its 800-53A
+ * assessment objectives when the import lands. The parsed index is cached at
+ * module scope, so a second visit — and every other consumer in the session —
+ * resolves synchronously on the first render.
+ */
+let catalogIndex: ControlTextIndex | null = null;
+let catalogPromise: Promise<ControlTextIndex> | null = null;
+
+function loadControlText(): Promise<ControlTextIndex> {
+  catalogPromise ??= import("@/lib/nist-control-text").then(({ controlText }) => {
+    catalogIndex = buildControlTextIndex(controlText);
+    return catalogIndex;
+  });
+  return catalogPromise;
+}
+
+/**
+ * `null` until the catalog arrives. Pass `enabled: false` while the surface is
+ * not on screen — the import is only worth paying for on the tab that reads it.
+ */
+export function useControlText(enabled = true): ControlTextIndex | null {
+  const [text, setText] = useState<ControlTextIndex | null>(catalogIndex);
+
+  useEffect(() => {
+    if (!enabled || text) return;
+    let live = true;
+    void loadControlText().then((next) => {
+      if (live) setText(next);
+    });
+    return () => {
+      live = false;
+    };
+  }, [enabled, text]);
+
+  return text;
+}
+
+/* ── Family grouping ─────────────────────────────────────────────────────── */
+
+export type SctmFamilyGroup = {
+  id: string;
+  name: string;
+  rows: SctmRow[];
+  /** Distinct controls in the family, not requirement rows. Both are shown. */
+  controls: number;
+  satisfied: number;
+  other: number;
+  notAssessed: number;
+  notApplicable: number;
+  /** Rows whose determination no longer describes the configuration in force. */
+  invalidated: number;
+  /** Rows that cannot ship in the package. */
+  gaps: number;
+  /**
+   * Satisfied over the rows that actually owe a determination.
+   *
+   * "Not applicable" is a scoping decision, not an unmet obligation, so it
+   * leaves the denominator — otherwise tailoring a control out would lower the
+   * family's coverage, which is exactly backwards.
+   */
+  pct: number;
+};
+
+/**
+ * The matrix grouped by control family, families in catalog order.
+ *
+ * This is the rollup the program record used to render as a separate coverage
+ * table above the matrix. It is the same numbers over the same rows, so it is
+ * computed once here and shown on the group header the rows sit under, rather
+ * than in a table the reader consults and then leaves.
+ */
+export function groupByFamily(rows: SctmRow[]): SctmFamilyGroup[] {
+  const groups = new Map<string, SctmFamilyGroup>();
+
+  for (const row of rows) {
+    let group = groups.get(row.family);
+    if (!group) {
+      group = {
+        id: row.family,
+        name: row.familyName,
+        rows: [],
+        controls: 0,
+        satisfied: 0,
+        other: 0,
+        notAssessed: 0,
+        notApplicable: 0,
+        invalidated: 0,
+        gaps: 0,
+        pct: 0,
+      };
+      groups.set(row.family, group);
+    }
+    group.rows.push(row);
+    if (row.determination === "Satisfied") group.satisfied += 1;
+    else if (row.determination === "Other than satisfied") group.other += 1;
+    else if (row.determination === "Not assessed") group.notAssessed += 1;
+    else group.notApplicable += 1;
+    if (row.currency === "Invalidated") group.invalidated += 1;
+    if (row.gap) group.gaps += 1;
+  }
+
+  for (const group of groups.values()) {
+    group.controls = new Set(group.rows.map((r) => r.control)).size;
+    const owed = group.rows.length - group.notApplicable;
+    group.pct = owed === 0 ? 100 : Math.round((group.satisfied / owed) * 100);
+  }
+
+  return [...groups.values()].sort((a, b) => a.id.localeCompare(b.id));
 }

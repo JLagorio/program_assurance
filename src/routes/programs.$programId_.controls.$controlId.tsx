@@ -1,74 +1,82 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 
-import { InlineSelect, InlineText } from "@/components/app/inline-edit";
-import { Shell } from "@/components/app/shell";
+import {
+  Comments,
+  ControlActionBar,
+  Determination,
+  EvidenceBlock,
+  GateList,
+  History,
+  Narrative,
+} from "@/components/app/control-work";
 import {
   MethodList,
   ObjectiveList,
   ParameterTable,
   ReferenceList,
   StatementList,
-  TextBlock,
 } from "@/components/app/control-text";
-import { RemediationPlanSection } from "@/components/app/remediation";
-import {
-  Badge,
-  EmptyState,
-  KeyValue,
-  Mono,
-  Person,
-  RailGroup,
-  RecordHeader,
-  Section,
-  ShowPage,
-  TabStrip,
-  Table,
-  Td,
-  Th,
-  Tr,
-} from "@/components/app/ui";
+import { ControlRequirementTable } from "@/components/app/requirements";
+import { Block, Disclosure, Inspector } from "@/components/app/shapes";
+import { Shell } from "@/components/app/shell";
+import { Badge, Mono, Select, TabStrip, Table, Td, Tr } from "@/components/app/ui";
 import { controlDetail } from "@/lib/control-detail";
 import {
-  controlStatuses,
-  controlStatusTone,
-  implementations,
-  updateControl,
-  useControlMatrix,
-} from "@/lib/control-matrix";
-import { assetById, isOpen } from "@/lib/findings";
+  currentSession,
+  implementationTone,
+  preferredScope,
+  roles,
+  setSession,
+  useWorkVersion,
+  workFor,
+} from "@/lib/control-work";
+import { useControlMatrix } from "@/lib/control-matrix";
+import { evidenceCatalog } from "@/lib/evidence-catalog";
+import { isOpen } from "@/lib/findings";
+import { programs } from "@/lib/grc-data";
 import { catalogVersion } from "@/lib/nist-catalog";
-import { remediationPlan } from "@/lib/remediation";
-import { saveProgramField } from "@/lib/program-save";
-import { severityTone, statusTone } from "@/lib/spine";
+import { allocationsFor, requirementsForControl } from "@/lib/requirements";
+import { controlSetFor, scopesForProgram } from "@/lib/scopes";
+import { severityTone } from "@/lib/spine";
 
-const controlTabs = ["Overview", "Assessment", "Findings", "Remediation"] as const;
+/**
+ * The control work surface — the reference implementation for the new shapes.
+ *
+ * What this replaced: nineteen stacked `<Section>` blocks across five tabs,
+ * 194 words of explanatory prose, the record's facts spread between a rail
+ * that only rendered on one tab and a fact row on another, and a "Work" tab
+ * that was eight more sections of the same shape.
+ *
+ * What it is now: an `ActionBar` carrying identity, both state axes and the
+ * actions that move them; a main column holding only the work; an `Inspector`
+ * holding the facts and the gates; and the catalog reference — statement,
+ * objectives, parameters, methods — behind `Disclosure`, present but closed.
+ * No component on this page takes a description.
+ */
+const controlTabs = ["Implementation", "Assessment", "Catalog", "History"] as const;
 type ControlTab = (typeof controlTabs)[number];
 
 export const Route = createFileRoute("/programs/$programId_/controls/$controlId")({
-  validateSearch: (search: Record<string, unknown>): { tab?: ControlTab } => {
+  validateSearch: (search: Record<string, unknown>): { tab?: ControlTab | undefined } => {
     const raw = String(search["tab"] ?? "");
-    const match = controlTabs.find((t) => t.toLowerCase() === raw.toLowerCase());
-    return match ? { tab: match } : {};
+    return { tab: controlTabs.find((t) => t.toLowerCase() === raw.toLowerCase()) };
   },
-  // The catalog text is large; load the one control the page needs rather than
-  // shipping the whole of 800-53 in the bundle.
   loader: async ({ params }) => {
+    const program = programs.find((p) => p.id.toLowerCase() === params.programId.toLowerCase());
+    if (!program) throw notFound();
     const { controlText } = await import("@/lib/nist-control-text");
-    return { text: controlText[params.controlId] ?? null };
+    return { program, text: controlText[params.controlId] ?? null };
   },
   head: ({ params }) => ({
     meta: [
       { title: `${params.controlId} — Equinox` },
       {
         name: "description",
-        content: `Control ${params.controlId} in program ${params.programId}: NIST SP 800-53 Rev. 5 statement, assessment objectives, findings and remediation plan.`,
+        content: `Control ${params.controlId} in program ${params.programId}: implementation statement, contributors, evidence, assessment determination and history.`,
       },
       { property: "og:title", content: `${params.controlId} — Equinox` },
-      {
-        property: "og:description",
-        content: `Control ${params.controlId} in program ${params.programId}.`,
-      },
+      { property: "og:description", content: `Control ${params.controlId}.` },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -78,33 +86,62 @@ export const Route = createFileRoute("/programs/$programId_/controls/$controlId"
 
 function ControlRecord() {
   const { programId, controlId } = Route.useParams();
-  const tab = Route.useSearch().tab ?? "Overview";
-  const { text } = Route.useLoaderData();
+  const { program, text } = Route.useLoaderData();
+  const tab = Route.useSearch().tab ?? "Implementation";
   const navigate = useNavigate({ from: Route.fullPath });
   const rows = useControlMatrix(programId);
   const row = rows.find((r) => r.id === controlId);
+
+  const workVersion = useWorkVersion();
+  const scopes = useMemo(() => scopesForProgram(programId), [programId]);
+  const [scopeId, setScopeId] = useState(
+    () =>
+      preferredScope(
+        programId,
+        controlId,
+        scopes.map((s) => s.id),
+      ) ?? "",
+  );
+  const [, tick] = useState(0);
+  const refresh = () => tick((n) => n + 1);
+  const session = currentSession();
+
+  const work = useMemo(
+    () => (scopeId ? workFor(programId, scopeId, controlId) : null),
+    [programId, scopeId, controlId, workVersion],
+  );
+  const derived = useMemo(
+    () => requirementsForControl(controlId, programId),
+    [controlId, programId],
+  );
+  const context = useMemo(() => {
+    const allocated = derived.reduce((n, r) => n + allocationsFor(r.id).length, 0);
+    return {
+      contributors: allocated,
+      contributorDetail: allocated
+        ? `${derived.length} requirements, ${allocated} allocations`
+        : "No allocated requirement",
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [derived, workVersion]);
 
   const inScope = useMemo(() => {
     const ids = new Set(rows.map((r) => r.id));
     return (id: string) => ids.has(id);
   }, [rows]);
 
-  const plan = useMemo(() => (row ? remediationPlan(row) : null), [row]);
-
-  if (!row) {
+  if (!row || !work) {
     return (
       <Shell>
         <div className="space-y-3">
-          <h1 className="text-[18px] font-semibold">Control not found</h1>
-          <p className="max-w-lg text-[13px] text-muted-foreground">
-            {controlId} is not in the tailored baseline for {programId}.
-          </p>
+          <h1 className="text-[18px] font-semibold">Control not in scope</h1>
           <Link
             to="/programs/$programId"
             params={{ programId }}
+            search={{ tab: "Controls" }}
             className="text-[13px] text-primary hover:underline"
           >
-            Back to the program
+            Back to controls
           </Link>
         </div>
       </Shell>
@@ -113,422 +150,264 @@ function ControlRecord() {
 
   const detail = controlDetail(row, text, inScope);
   const open = row.findings.filter(isOpen);
-
-  const save = (field: string) => (next: string) =>
-    saveProgramField({ programId, field: `${row.id} ${field}`, value: next });
-
-  const go = (next: ControlTab) => navigate({ search: { tab: next }, replace: true });
+  const scope = scopes.find((s) => s.id === scopeId);
+  const set = scopeId ? controlSetFor(scopeId) : null;
+  const selection = set?.controls.find((c) => c.control.id === controlId);
 
   return (
     <Shell>
-      <ShowPage
-        header={
-          <RecordHeader
-            backTo="/programs/$programId"
-            backParams={{ programId }}
-            id={row.id}
-            title={row.fullTitle}
-            meta={`${row.family} ${row.familyName} · ${catalogVersion}${
-              row.baselines.length ? ` · ${row.baselines.join(" / ")} baseline` : " · tailored in"
-            }`}
-            actions={<Badge tone={controlStatusTone[row.status]}>{row.status}</Badge>}
-          />
-        }
-        tabs={
-          <TabStrip
-            items={(
-              [
-                ["Overview", null],
-                ["Assessment", detail.objectives.length || null],
-                ["Findings", open.length || row.findings.length || null],
-                ["Remediation", plan ? plan.total : null],
-              ] as [ControlTab, number | null][]
-            ).map(([key, count]) => ({
-              key,
-              label: key === "Remediation" ? "Remediation plan" : key,
-              active: tab === key,
-              onSelect: () => go(key),
-              trailing: count ? (
-                <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                  {count}
-                </span>
-              ) : null,
-            }))}
-          />
-        }
-        showRail={tab === "Overview"}
-        rail={
-          <>
-            <RailGroup title="Matrix row">
-              <KeyValue label="Status">
-                <InlineSelect
-                  label="Assessment"
-                  options={controlStatuses}
-                  value={row.status}
-                  onChange={(next) => updateControl(programId, row.id, { status: next })}
-                  save={save("status")}
-                  render={(v) => <Badge tone={controlStatusTone[v]}>{v}</Badge>}
-                />
-              </KeyValue>
-              <KeyValue label="Implementation">
-                <InlineSelect
-                  label="Implementation"
-                  options={implementations}
-                  value={row.implementation}
-                  onChange={(next) => updateControl(programId, row.id, { implementation: next })}
-                  save={save("implementation")}
-                />
-              </KeyValue>
-              <KeyValue label="Owner">
-                <InlineText
-                  value={row.owner}
-                  onChange={(next) => updateControl(programId, row.id, { owner: next })}
-                  save={save("owner")}
-                />
-              </KeyValue>
-              <KeyValue label="Due">
-                <InlineText
-                  value={row.due}
-                  placeholder="—"
-                  onChange={(next) => updateControl(programId, row.id, { due: next })}
-                  save={save("due")}
-                />
-              </KeyValue>
-              <KeyValue label="Next action">
-                <InlineText
-                  value={row.nextAction}
-                  placeholder="Add next action"
-                  onChange={(next) => updateControl(programId, row.id, { nextAction: next })}
-                  save={save("nextAction")}
-                />
-              </KeyValue>
-            </RailGroup>
-
-            <RailGroup title="Catalog">
-              <KeyValue label="Family">
-                {row.family} — {row.familyName}
-              </KeyValue>
-              <KeyValue label="Kind">
-                {row.enhancement ? "Control enhancement" : "Base control"}
-              </KeyValue>
-              {row.parent ? (
-                <KeyValue label="Extends">
-                  <Link
-                    to="/programs/$programId/controls/$controlId"
-                    params={{ programId, controlId: row.parent }}
-                    className="text-primary hover:underline"
-                  >
-                    <Mono className="text-primary">{row.parent}</Mono>
-                  </Link>
-                </KeyValue>
-              ) : null}
-              <KeyValue label="Baselines">
-                {row.baselines.length ? row.baselines.join(", ") : "Tailored in"}
-              </KeyValue>
-              <KeyValue label="Parameters">{detail.params.length}</KeyValue>
-            </RailGroup>
-
-            <RailGroup title="Joins">
-              <KeyValue label="Program">
-                <Link
-                  to="/programs/$programId"
-                  params={{ programId }}
-                  className="text-primary hover:underline"
-                >
-                  <Mono className="text-primary">{programId}</Mono>
-                </Link>
-              </KeyValue>
-              <KeyValue label="POA&M">
-                {row.poam ? (
-                  <Link
-                    to="/register/poam/$poamId"
-                    params={{ poamId: row.poam }}
-                    className="text-primary hover:underline"
-                  >
-                    <Mono className="text-primary">{row.poam}</Mono>
-                  </Link>
-                ) : (
-                  "No open section"
-                )}
-              </KeyValue>
-              <KeyValue label="Workstream">
-                {row.workstream ? (
-                  <Link
-                    to="/workstreams/$workstreamId"
-                    params={{ workstreamId: row.workstream }}
-                    className="text-primary hover:underline"
-                  >
-                    <Mono className="text-primary">{row.workstream}</Mono>
-                  </Link>
-                ) : (
-                  "Unassigned"
-                )}
-              </KeyValue>
-              <KeyValue label="Source">{row.source}</KeyValue>
-              <KeyValue label="Assessed">{row.assessed}</KeyValue>
-              {row.stale ? (
-                <KeyValue label="Inheritance">
-                  <Badge tone="warning">Evidence stale</Badge>
-                </KeyValue>
-              ) : null}
-            </RailGroup>
-          </>
-        }
-      >
-        {tab === "Overview" ? (
-          <>
-            <Section
-              title="Control statement"
-              description={`${catalogVersion} · ${row.family} ${row.familyName} · ${
-                row.enhancement ? `enhancement of ${row.parent}` : "base control"
-              }`}
-            >
-              <div className="pt-3">
-                {detail.statement.length ? (
-                  <StatementList items={detail.statement} />
-                ) : (
-                  <p className="text-[13px] text-muted-foreground">
-                    The catalog carries no statement for this control.
-                  </p>
-                )}
-              </div>
-            </Section>
-
-            {detail.discussion.length ? (
-              <Section title="Discussion" description="SP 800-53 Rev. 5 supplemental guidance.">
-                <div className="max-w-3xl space-y-2 pt-3 text-[13px] leading-relaxed text-muted-foreground">
-                  {detail.discussion.map((p, i) => (
-                    <p key={i}>{p}</p>
-                  ))}
-                </div>
-              </Section>
-            ) : null}
-
-            <Section
-              title="Organization-defined parameters"
-              description="Values the program has to set before the control can be assessed."
-            >
-              <ParameterTable params={detail.params} />
-            </Section>
-
-            {detail.ccis.length ? (
-              <Section
-                title="CCI decomposition"
-                description={`${detail.ccis.length} control correlation identifiers join this requirement to verification.`}
+      <div className="animate-slide-up">
+        <ControlActionBar
+          work={work}
+          context={context}
+          title={row.fullTitle}
+          scopeName={scope?.name ?? "—"}
+          onChange={refresh}
+          breadcrumb={
+            <span className="flex items-center gap-1.5">
+              <Link to="/programs" className="hover:underline">
+                Programs
+              </Link>
+              <span aria-hidden>/</span>
+              <Link
+                to="/programs/$programId"
+                params={{ programId }}
+                search={{ tab: "Controls" }}
+                className="hover:underline"
               >
-                <Table className="table-fixed">
-                  <colgroup>
-                    <col style={{ width: "104px" }} />
-                    <col />
-                    <col style={{ width: "96px" }} />
-                    <col style={{ width: "108px" }} />
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <Th>CCI</Th>
-                      <Th>Definition</Th>
-                      <Th>Type</Th>
-                      <Th>Compliance</Th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {detail.ccis.map((c) => (
-                      <Tr key={c.id}>
-                        <Td>
-                          <Mono>{c.id}</Mono>
-                        </Td>
-                        <Td className="text-muted-foreground">{c.definition}</Td>
-                        <Td className="text-muted-foreground">{c.type}</Td>
-                        <Td>
-                          <Badge tone={statusTone(c.compliance)}>{c.compliance}</Badge>
-                        </Td>
-                      </Tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </Section>
+                {program.name}
+              </Link>
+              <span aria-hidden>/</span>
+              <span className="text-foreground">{row.family} controls</span>
+            </span>
+          }
+          tabs={
+            <TabStrip
+              items={(
+                [
+                  ["Implementation", work.evidence.length || null],
+                  ["Assessment", open.length || null],
+                  ["Catalog", detail.objectives.length || null],
+                  ["History", null],
+                ] as [ControlTab, number | null][]
+              ).map(([key, count]) => ({
+                key,
+                label: key,
+                active: tab === key,
+                onSelect: () => navigate({ search: { tab: key }, replace: true }),
+                trailing: count ? (
+                  <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
+                    {count}
+                  </span>
+                ) : null,
+              }))}
+            />
+          }
+        />
+
+        <div className="grid gap-x-8 pt-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="min-w-0">
+            {tab === "Implementation" ? (
+              <>
+                <Block title="Implementation statement">
+                  <Narrative work={work} onChange={refresh} />
+                </Block>
+                <Block title="Contributors" count={derived.length}>
+                  <ControlRequirementTable
+                    requirements={derived}
+                    programId={programId}
+                    controlId={controlId}
+                    allocationCount={(id: string) => allocationsFor(id).length}
+                  />
+                </Block>
+                <Block title="Evidence" count={work.evidence.length}>
+                  <EvidenceBlock work={work} available={evidenceCatalog} onChange={refresh} />
+                </Block>
+              </>
             ) : null}
 
-            <Section
-              title="Related controls"
-              description="Rev. 5 cross-references. Controls this program carries are linked."
-            >
-              <div className="space-y-2 pt-2">
-                <p className="text-[13px] text-muted-foreground">
-                  {detail.relatedInScope.length === 0 && detail.relatedOutOfScope.length === 0
-                    ? "The catalog lists no related controls."
-                    : null}
-                  {detail.relatedInScope.map((id, i) => (
-                    <span key={id}>
-                      {i > 0 && " · "}
-                      <Link
-                        to="/programs/$programId/controls/$controlId"
-                        params={{ programId, controlId: id }}
-                        className="text-primary hover:underline"
-                      >
-                        <Mono className="text-primary">{id}</Mono>
-                      </Link>
-                    </span>
-                  ))}
-                  {detail.relatedOutOfScope.length ? (
-                    <span className="ml-2">
-                      {detail.relatedInScope.length ? "· " : null}
-                      <span title="Not in this program's tailored baseline">
-                        {detail.relatedOutOfScope.join(" · ")}
-                      </span>
-                    </span>
-                  ) : null}
-                </p>
-                <ReferenceList references={detail.references} />
-              </div>
-            </Section>
-          </>
-        ) : null}
+            {tab === "Assessment" ? (
+              <>
+                <Block title="Determination">
+                  <Determination work={work} onChange={refresh} />
+                </Block>
+                <Block title="Open findings" count={open.length}>
+                  {open.length ? (
+                    <Table>
+                      <colgroup>
+                        <col style={{ width: "104px" }} />
+                        <col style={{ width: "88px" }} />
+                        <col />
+                      </colgroup>
+                      <tbody>
+                        {open.map((f) => (
+                          <Tr key={f.id}>
+                            <Td className="max-w-none">
+                              <Link
+                                to="/findings/$findingId"
+                                params={{ findingId: f.id }}
+                                className="hover:underline"
+                              >
+                                <Mono className="text-primary">{f.id}</Mono>
+                              </Link>
+                            </Td>
+                            <Td>
+                              <Badge size="xs" tone={severityTone(f.mitigatedSeverity)}>
+                                {f.mitigatedSeverity}
+                              </Badge>
+                            </Td>
+                            <Td className="truncate">{f.title}</Td>
+                          </Tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  ) : (
+                    <p className="text-[13px] text-muted-foreground">None open.</p>
+                  )}
+                </Block>
+                <Block title="Discussion" count={null}>
+                  <Comments work={work} onChange={refresh} />
+                </Block>
+              </>
+            ) : null}
 
-        {tab === "Assessment" ? (
-          <>
-            <Section
-              title="Assessment result"
-              description="What the program has recorded against this control."
-            >
-              <div className="pt-1">
-                <TextBlock label="Determination">
-                  <Badge tone={controlStatusTone[row.status]} size="xs">
-                    {row.status}
-                  </Badge>
-                  <span className="ml-2 text-muted-foreground">
-                    {row.status === "Satisfied"
-                      ? "Every assessment objective was met."
-                      : row.status === "Not assessed"
-                        ? "No assessment has been executed against this control yet."
-                        : `${open.length ? `${open.length} open finding${open.length > 1 ? "s keep" : " keeps"}` : "Objectives remain"} the control short of satisfied.`}
-                  </span>
-                </TextBlock>
-                <TextBlock label="Assessed">{row.assessed}</TextBlock>
-                <TextBlock label="Implementation">
-                  {row.implementation} · {row.source}
-                </TextBlock>
-                <TextBlock label="Owner">
-                  <Person name={row.owner} />
-                </TextBlock>
-                <TextBlock label="Next action">{row.nextAction}</TextBlock>
-              </div>
-            </Section>
-
-            <Section
-              title="Assessment objectives"
-              description="SP 800-53A determination statements. The assessor closes each one by label."
-            >
-              <div className="pt-3">
-                {detail.objectives.length ? (
+            {tab === "Catalog" ? (
+              <>
+                <Block title="Control statement">
+                  {detail.statement.length ? (
+                    <StatementList items={detail.statement} />
+                  ) : (
+                    <p className="text-[13px] text-muted-foreground">None published.</p>
+                  )}
+                </Block>
+                <Block title="Assessment objectives" count={detail.objectives.length}>
                   <ObjectiveList items={detail.objectives} />
-                ) : (
-                  <p className="text-[13px] text-muted-foreground">
-                    No assessment objectives are published for this control.
-                  </p>
-                )}
-              </div>
-            </Section>
+                </Block>
+                <Block title="Parameters" count={detail.params.length}>
+                  <ParameterTable params={detail.params} />
+                </Block>
+                <Block title="Assessment methods" count={detail.methods.length}>
+                  <MethodList methods={detail.methods} />
+                </Block>
+                <Disclosure title="Discussion and references" count={detail.discussion.length}>
+                  <div className="max-w-[76ch] space-y-2 text-[13px] leading-relaxed text-muted-foreground">
+                    {detail.discussion.map((p, i) => (
+                      <p key={i}>{p}</p>
+                    ))}
+                  </div>
+                  <div className="pt-3">
+                    <ReferenceList references={detail.references} />
+                  </div>
+                </Disclosure>
+              </>
+            ) : null}
 
-            <Section
-              title="Assessment methods"
-              description="Objects the assessor examines, the roles interviewed, and what gets tested."
-            >
-              <MethodList methods={detail.methods} />
-            </Section>
-          </>
-        ) : null}
+            {tab === "History" ? (
+              <Block title="History">
+                <History work={work} />
+              </Block>
+            ) : null}
+          </div>
 
-        {tab === "Findings" ? (
-          <Section
-            title="Findings"
-            description={
-              row.findings.length
-                ? `${open.length} open of ${row.findings.length}. Open findings keep the control other than satisfied.`
-                : "Nothing has been raised against this control."
-            }
-          >
-            {row.findings.length ? (
-              <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "112px" }} />
-                  <col />
-                  <col style={{ width: "104px" }} />
-                  <col style={{ width: "132px" }} />
-                  <col style={{ width: "78px" }} />
-                  <col style={{ width: "112px" }} />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <Th>Finding</Th>
-                    <Th>Title</Th>
-                    <Th>CCI</Th>
-                    <Th>Asset</Th>
-                    <Th>Severity</Th>
-                    <Th>Lifecycle</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {row.findings.map((f) => (
-                    <Tr key={f.id}>
-                      <Td>
-                        <Link
-                          to="/findings/$findingId"
-                          params={{ findingId: f.id }}
-                          className="hover:underline"
-                        >
-                          <Mono className="text-primary">{f.id}</Mono>
-                        </Link>
-                      </Td>
-                      <Td className="truncate">
-                        <Link
-                          to="/findings/$findingId"
-                          params={{ findingId: f.id }}
-                          className="hover:underline"
-                        >
-                          {f.title}
-                        </Link>
-                      </Td>
-                      <Td>
-                        <Mono className="text-muted-foreground">{f.cci}</Mono>
-                      </Td>
-                      <Td className="truncate text-muted-foreground">
-                        {assetById.get(f.asset)?.name ?? f.asset}
-                      </Td>
-                      <Td>
-                        <Badge tone={severityTone(f.mitigatedSeverity)}>
-                          {f.mitigatedSeverity}
-                        </Badge>
-                      </Td>
-                      <Td>
-                        <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
-                      </Td>
-                    </Tr>
-                  ))}
-                </tbody>
-              </Table>
-            ) : (
-              <EmptyState
-                title="No findings against this control"
-                description="Scans, checklists and test events that touch this control have all come back clean."
-              />
-            )}
-          </Section>
-        ) : null}
-
-        {tab === "Remediation" ? (
-          plan ? (
-            <RemediationPlanSection plan={plan} programId={programId} />
-          ) : (
-            <Section title="Remediation plan">
-              <EmptyState
-                title="Nothing to remediate"
-                description={`${row.id} is satisfied with no open findings, so there is no plan to run. A finding or a downgraded assessment opens one automatically.`}
-              />
-            </Section>
-          )
-        ) : null}
-      </ShowPage>
+          <Inspector
+            groups={[
+              {
+                title: "Working as",
+                rows: [
+                  {
+                    label: "Scope",
+                    value: (
+                      <Select
+                        className="h-7 text-[12.5px]"
+                        value={scopeId}
+                        onChange={(e) => setScopeId(e.target.value)}
+                        aria-label="Assessment scope"
+                      >
+                        {scopes.map((sc) => (
+                          <option key={sc.id} value={sc.id}>
+                            {sc.name}
+                          </option>
+                        ))}
+                      </Select>
+                    ),
+                  },
+                  {
+                    label: "Role",
+                    value: (
+                      <Select
+                        className="h-7 text-[12.5px]"
+                        value={session.role}
+                        onChange={(e) => {
+                          setSession({ role: e.target.value as (typeof roles)[number] });
+                          refresh();
+                        }}
+                        aria-label="Acting as"
+                      >
+                        {roles.map((r) => (
+                          <option key={r}>{r}</option>
+                        ))}
+                      </Select>
+                    ),
+                  },
+                  { label: "Owner", value: work.owner ?? "Unassigned" },
+                ],
+              },
+              {
+                title: "Gates",
+                rows: [{ label: "", value: <GateList work={work} context={context} /> }],
+              },
+              {
+                title: "Selection",
+                rows: [
+                  { label: "Family", value: `${row.family} — ${row.familyName}` },
+                  {
+                    label: "Selected by",
+                    value: selection?.selectedBy.length
+                      ? selection.selectedBy.join(" · ")
+                      : (selection?.source ?? "—"),
+                  },
+                  { label: "Baselines", value: row.baselines.join(", ") || "Tailored in" },
+                  { label: "Origination", value: row.implementation },
+                ],
+              },
+              {
+                title: "Linked",
+                rows: [
+                  {
+                    label: "Findings",
+                    value: open.length ? (
+                      <Badge size="xs" tone="danger">
+                        {open.length} open
+                      </Badge>
+                    ) : (
+                      "None"
+                    ),
+                  },
+                  {
+                    label: "POA&M",
+                    value: row.poam ? (
+                      <Link
+                        to="/register/poam/$poamId"
+                        params={{ poamId: row.poam }}
+                        className="hover:underline"
+                      >
+                        <Mono className="text-primary">{row.poam}</Mono>
+                      </Link>
+                    ) : (
+                      "None"
+                    ),
+                  },
+                  {
+                    label: "Revision",
+                    value: work.narrativeRevision ? `r${work.narrativeRevision}` : "—",
+                  },
+                  { label: "Catalog", value: catalogVersion },
+                ],
+              },
+            ]}
+          />
+        </div>
+      </div>
     </Shell>
   );
 }

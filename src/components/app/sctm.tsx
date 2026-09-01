@@ -21,7 +21,7 @@
 
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 
 import {
   Badge,
@@ -48,6 +48,7 @@ import {
   type Determination,
   type RowCurrency,
   type Sctm,
+  type SctmFamilyGroup,
   type SctmRow,
   type VerificationMethod,
 } from "@/lib/sctm";
@@ -102,6 +103,136 @@ function severityToneOf(severity: string): Tone {
 
 /* ── Matrix table ────────────────────────────────────────────────────────── */
 
+/** The eight columns, declared once so every SCTM surface aligns. */
+export function SctmCols() {
+  return (
+    <colgroup>
+      <col style={{ width: "104px" }} />
+      <col />
+      <col style={{ width: "116px" }} />
+      <col style={{ width: "152px" }} />
+      <col style={{ width: "120px" }} />
+      <col style={{ width: "84px" }} />
+      {/* Determination carries the retracted value struck through beside the
+          one that replaced it, so it is sized for `Satisfied -> Not assessed
+          · Invalidated`, not for a chip alone. */}
+      <col style={{ width: "264px" }} />
+      <col style={{ width: "268px" }} />
+    </colgroup>
+  );
+}
+
+export function SctmHead() {
+  return (
+    <thead>
+      <tr>
+        <Th>Control</Th>
+        <Th>Requirement</Th>
+        <Th>Origination</Th>
+        <Th>Responsible</Th>
+        <Th>Method</Th>
+        <Th className="text-right">Evidence</Th>
+        <Th>Determination</Th>
+        <Th>Gap</Th>
+      </tr>
+    </thead>
+  );
+}
+
+/**
+ * One requirement row's cells.
+ *
+ * Extracted so the standalone matrix and the family-grouped matrix on the
+ * program record render the identical row rather than drifting into two
+ * spellings of the same eight columns. `programId` is the only difference
+ * between them: given one, the control id becomes a link to the control
+ * record, because a grouped matrix is navigated rather than swept with a rail.
+ */
+export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: string }) {
+  return (
+    <>
+      <Td>
+        {programId ? (
+          <Link
+            to="/programs/$programId/controls/$controlId"
+            params={{ programId, controlId: row.control }}
+            search={{ tab: undefined }}
+            className="hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Mono className="text-primary">{row.control}</Mono>
+          </Link>
+        ) : (
+          <Mono className="text-primary">{row.control}</Mono>
+        )}
+      </Td>
+      <Td className="truncate">
+        <span className="flex min-w-0 items-center gap-1.5">
+          <Badge size="xs">{row.unit}</Badge>
+          <Mono className="shrink-0">{row.requirement}</Mono>
+          <span className="min-w-0 truncate text-12 text-muted-foreground">{row.statement}</span>
+        </span>
+      </Td>
+      <Td className="truncate text-muted-foreground">{row.origination}</Td>
+      <Td className="truncate text-muted-foreground" title={row.responsibleParty}>
+        {row.responsibleParty}
+      </Td>
+      <Td className="truncate" title={row.methodBasis}>
+        <MethodChip method={row.method} />
+      </Td>
+      <Td className="tnum text-right" title={row.evidence.join(", ")}>
+        {row.evidence.length === 0 ? (
+          <span className="text-muted-foreground">0</span>
+        ) : (
+          row.evidence.length
+        )}
+      </Td>
+      <Td className="truncate">
+        <span className="flex min-w-0 items-center gap-1.5">
+          {/* What was claimed, and that it stopped counting. The value is
+                    retained rather than overwritten precisely so it can be
+                    shown; a determination that silently changed cannot be
+                    audited. Same treatment as the change-impact table. */}
+          {row.priorDetermination !== null ? (
+            <>
+              <span
+                className="shrink-0 text-11 text-muted-foreground line-through decoration-danger/70 decoration-[1.5px]"
+                title={`${row.priorDetermination} as of ${row.assessed} — retained for the audit trail`}
+              >
+                {row.priorDetermination}
+              </span>
+              <ArrowRight className="size-3 shrink-0 text-muted-foreground" />
+            </>
+          ) : null}
+          <DeterminationChip determination={row.determination} />
+          <CurrencyMark row={row} />
+          {row.openFindings > 0 ? (
+            <span
+              className={cn(
+                "tnum shrink-0 text-11",
+                row.worstSeverity === "CAT I" ? "text-danger" : "text-muted-foreground",
+              )}
+              title={`${row.openFindings} open — worst ${row.worstSeverity}`}
+            >
+              {row.openFindings} open
+            </span>
+          ) : null}
+        </span>
+      </Td>
+      <Td className={cn("truncate", row.gap && "bg-danger-soft/40")}>
+        {row.gap ? (
+          <span className="flex min-w-0 items-center gap-1.5 text-danger" title={row.gap}>
+            <Dot tone="danger" />
+            <span className="min-w-0 truncate font-medium">{row.gap}</span>
+          </span>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        )}
+      </Td>
+    </>
+  );
+}
+
 export function SctmTable({
   rows,
   onSelect,
@@ -123,31 +254,8 @@ export function SctmTable({
 
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "104px" }} />
-        <col />
-        <col style={{ width: "116px" }} />
-        <col style={{ width: "152px" }} />
-        <col style={{ width: "120px" }} />
-        <col style={{ width: "84px" }} />
-        {/* Determination carries the retracted value struck through beside the
-            one that replaced it, so it is sized for `Satisfied -> Not assessed
-            · Invalidated`, not for a chip alone. */}
-        <col style={{ width: "264px" }} />
-        <col style={{ width: "268px" }} />
-      </colgroup>
-      <thead>
-        <tr>
-          <Th>Control</Th>
-          <Th>Requirement</Th>
-          <Th>Origination</Th>
-          <Th>Responsible</Th>
-          <Th>Method</Th>
-          <Th className="text-right">Evidence</Th>
-          <Th>Determination</Th>
-          <Th>Gap</Th>
-        </tr>
-      </thead>
+      <SctmCols />
+      <SctmHead />
       <tbody>
         {rows.map((row) => (
           <Tr
@@ -156,77 +264,130 @@ export function SctmTable({
             onClick={() => onSelect(row)}
             title={row.statement}
           >
-            <Td>
-              <Mono className="text-primary">{row.control}</Mono>
-            </Td>
-            <Td className="truncate">
-              <span className="flex min-w-0 items-center gap-1.5">
-                <Badge size="xs">{row.unit}</Badge>
-                <Mono className="shrink-0">{row.requirement}</Mono>
-                <span className="min-w-0 truncate text-12 text-muted-foreground">
-                  {row.statement}
-                </span>
-              </span>
-            </Td>
-            <Td className="truncate text-muted-foreground">{row.origination}</Td>
-            <Td className="truncate text-muted-foreground" title={row.responsibleParty}>
-              {row.responsibleParty}
-            </Td>
-            <Td className="truncate" title={row.methodBasis}>
-              <MethodChip method={row.method} />
-            </Td>
-            <Td className="tnum text-right" title={row.evidence.join(", ")}>
-              {row.evidence.length === 0 ? (
-                <span className="text-muted-foreground">0</span>
-              ) : (
-                row.evidence.length
-              )}
-            </Td>
-            <Td className="truncate">
-              <span className="flex min-w-0 items-center gap-1.5">
-                {/* What was claimed, and that it stopped counting. The value is
-                    retained rather than overwritten precisely so it can be
-                    shown; a determination that silently changed cannot be
-                    audited. Same treatment as the change-impact table. */}
-                {row.priorDetermination !== null ? (
-                  <>
-                    <span
-                      className="shrink-0 text-11 text-muted-foreground line-through decoration-danger/70 decoration-[1.5px]"
-                      title={`${row.priorDetermination} as of ${row.assessed} — retained for the audit trail`}
-                    >
-                      {row.priorDetermination}
-                    </span>
-                    <ArrowRight className="size-3 shrink-0 text-muted-foreground" />
-                  </>
-                ) : null}
-                <DeterminationChip determination={row.determination} />
-                <CurrencyMark row={row} />
-                {row.openFindings > 0 ? (
-                  <span
-                    className={cn(
-                      "tnum shrink-0 text-11",
-                      row.worstSeverity === "CAT I" ? "text-danger" : "text-muted-foreground",
-                    )}
-                    title={`${row.openFindings} open — worst ${row.worstSeverity}`}
-                  >
-                    {row.openFindings} open
-                  </span>
-                ) : null}
-              </span>
-            </Td>
-            <Td className={cn("truncate", row.gap && "bg-danger-soft/40")}>
-              {row.gap ? (
-                <span className="flex min-w-0 items-center gap-1.5 text-danger" title={row.gap}>
-                  <Dot tone="danger" />
-                  <span className="min-w-0 truncate font-medium">{row.gap}</span>
-                </span>
-              ) : (
-                <span className="text-muted-foreground">—</span>
-              )}
-            </Td>
+            <SctmRowCells row={row} />
           </Tr>
         ))}
       </tbody>
+    </Table>
+  );
+}
+
+/* ── Family-grouped matrix ───────────────────────────────────────────────── */
+
+/**
+ * The matrix grouped by control family.
+ *
+ * The group header IS the family coverage rollup that used to sit in its own
+ * table above the matrix. Reading a family's numbers and then acting on them
+ * were two separate surfaces and two separate scroll positions; here the
+ * numbers are the thing you open. A collapsed matrix therefore reads exactly
+ * as the old coverage table did, and expanding a family drops you into its
+ * requirement rows without changing page, filter or scroll.
+ */
+export function SctmFamilyTable({
+  groups,
+  programId,
+  expanded,
+  onToggle,
+}: {
+  groups: SctmFamilyGroup[];
+  programId: string;
+  expanded: ReadonlySet<string>;
+  onToggle: (familyId: string) => void;
+}) {
+  if (groups.length === 0) {
+    return (
+      <EmptyState
+        title="No requirement rows"
+        description="No control in this set decomposes into a CCI, an assessment objective or a control-level requirement."
+      />
+    );
+  }
+
+  return (
+    <Table className="table-fixed">
+      <SctmCols />
+      <SctmHead />
+      {groups.map((group) => {
+        const open = expanded.has(group.id);
+        return (
+          <tbody key={group.id} className="border-t border-border">
+            <tr
+              className="cursor-pointer bg-subtle/60 hover:bg-surface-hover"
+              onClick={() => onToggle(group.id)}
+            >
+              <td colSpan={8} className="px-2 py-1.5">
+                <span className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    aria-label={`${open ? "Collapse" : "Expand"} ${group.id}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggle(group.id);
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <ChevronDown
+                      className={cn(
+                        "size-3.5 shrink-0 text-muted-foreground transition-transform",
+                        open ? "" : "-rotate-90",
+                      )}
+                    />
+                    <Mono className="w-8 shrink-0 text-foreground">{group.id}</Mono>
+                  </button>
+
+                  <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium">
+                    {group.name}
+                  </span>
+
+                  <span className="tnum shrink-0 text-12 text-muted-foreground">
+                    {group.controls} controls
+                  </span>
+                  <span className="tnum shrink-0 text-12 text-muted-foreground">
+                    {group.rows.length} rows
+                  </span>
+
+                  {/* No gap count here on purpose. In a package this early
+                      almost every row is gapped — 1,340 of 1,391 on the seeded
+                      program — so a per-family count restates the row count in
+                      red and reads as a wall rather than as a finding. The Gap
+                      column carries the specific reason per row, which is the
+                      grain at which it can actually be acted on. Invalidation
+                      is rare, so it stays. */}
+                  {group.invalidated > 0 ? (
+                    <Badge size="xs" tone="warning">
+                      {group.invalidated} invalidated
+                    </Badge>
+                  ) : null}
+
+                  <span className="w-28 shrink-0">
+                    <StackedBar
+                      height={4}
+                      segments={[
+                        { key: "s", value: group.satisfied, tone: "success" },
+                        { key: "o", value: group.other, tone: "danger" },
+                        { key: "n", value: group.notAssessed, tone: "neutral" },
+                      ]}
+                    />
+                  </span>
+                  <span className="tnum w-24 shrink-0 text-right text-12 text-muted-foreground">
+                    {group.satisfied}/{group.rows.length - group.notApplicable} · {group.pct}%
+                  </span>
+                </span>
+              </td>
+            </tr>
+
+            {open
+              ? group.rows.map((row) => (
+                  <Tr key={row.key} title={row.statement}>
+                    <SctmRowCells row={row} programId={programId} />
+                  </Tr>
+                ))
+              : null}
+          </tbody>
+        );
+      })}
     </Table>
   );
 }

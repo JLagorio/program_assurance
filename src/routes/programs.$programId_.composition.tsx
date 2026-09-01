@@ -36,6 +36,8 @@ import {
   type CompositionNode,
 } from "@/lib/composition";
 import { assetById } from "@/lib/findings";
+import { DerivedControlTrace, ElementAllocationTable } from "@/components/app/requirements";
+import { allocationsOn, derivedControlTrace, requirementById } from "@/lib/requirements";
 import { bomStats, inventoryReconciliation, postureOf } from "@/lib/graph-posture";
 import { programs } from "@/lib/grc-data";
 import { parseGateDate } from "@/lib/program-stage";
@@ -57,12 +59,18 @@ function ageInDays(received: string): number | null {
 }
 
 export const Route = createFileRoute("/programs/$programId_/composition")({
-  validateSearch: (search: Record<string, unknown>): { tab?: CompositionTab; node?: string } => {
+  // `tab` is emitted unconditionally — the validated object is merged over the
+  // raw search, so returning it only on a match leaves `?tab=Bogus` in the URL
+  // and renders a tab strip over an empty body. `node` keeps the conditional
+  // spread: it is validated independently and an invalid node should just drop.
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { tab?: CompositionTab | undefined; node?: string } => {
     const raw = String(search["tab"] ?? "");
     const match = compositionTabs.find((t) => t.toLowerCase() === raw.toLowerCase());
     const node = search["node"];
     const selected = typeof node === "string" && /^CN-\d+$/.test(node) ? node : null;
-    return { ...(match ? { tab: match } : {}), ...(selected ? { node: selected } : {}) };
+    return { tab: match, ...(selected ? { node: selected } : {}) };
   },
   loader: ({ params }) => {
     const program = programs.find((p) => p.id.toLowerCase() === params.programId.toLowerCase());
@@ -121,6 +129,13 @@ function ProgramComposition() {
     [nodes, selectedId],
   );
   const selectedPosture = useMemo(() => (selected ? postureOf(selected.id) : null), [selected]);
+  // Requirement allocations landing on this part, and the control obligations
+  // they reach. Neither is stored on the node — see `derivedControlTrace`.
+  const selectedAllocations = useMemo(
+    () => (selected ? allocationsOn(selected.id) : []),
+    [selected],
+  );
+  const selectedTrace = useMemo(() => derivedControlTrace(selected?.id ?? ""), [selected]);
 
   // Both read the store's own version-keyed memos, so they are recomputed on
   // every render deliberately: a `useMemo` here would have to be keyed on the
@@ -209,6 +224,21 @@ function ProgramComposition() {
           selected ? (
             <>
               <NodeRail node={selected} posture={selectedPosture} />
+              <RailGroup title="Record">
+                <KeyValue label="Open">
+                  <Link
+                    to="/programs/$programId/components/$componentId"
+                    params={{ programId: program.id, componentId: selected.id }}
+                    className="text-primary hover:underline"
+                  >
+                    {selected.name}
+                  </Link>
+                </KeyValue>
+                <KeyValue label="Requirements">{selectedAllocations.length || "None"}</KeyValue>
+                <KeyValue label="Controls reached">
+                  {selectedTrace.controls.length || "None"}
+                </KeyValue>
+              </RailGroup>
               <RailGroup title="Joins">
                 <KeyValue label="Path">
                   <span className="text-[12.5px] leading-relaxed">

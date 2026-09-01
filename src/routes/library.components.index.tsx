@@ -28,13 +28,13 @@ import {
 export const Route = createFileRoute("/library/components/")({
   head: () => ({
     meta: [
-      { title: "Component library — Equinox GRC" },
+      { title: "Provider library — Equinox GRC" },
       {
         name: "description",
         content:
           "Reusable system components that programs inherit controls from: identity, landing zone, policy set and facility, with the blast radius of every change.",
       },
-      { property: "og:title", content: "Component library — Equinox GRC" },
+      { property: "og:title", content: "Provider library — Equinox GRC" },
       {
         property: "og:description",
         content:
@@ -56,8 +56,8 @@ function ComponentLibrary() {
       <IndexPage
         header={
           <PageHeader
-            title="Component library"
-            description="Definitions, not instances. Programs inherit controls from these components; changing one here propagates to every consumer."
+            title="Provider library"
+            description="Definitions, not instances. Programs inherit controls from these providers, and requirements allocate to them; changing one here propagates to every consumer."
             actions={
               <>
                 <Button variant="secondary">Export inheritance matrix</Button>
@@ -69,7 +69,6 @@ function ComponentLibrary() {
           />
         }
       >
-
         <div className={preview ? "grid lg:grid-cols-[minmax(0,1fr)_272px]" : "grid"}>
           <div className="min-w-0 lg:pr-6">
             <Table className="table-fixed">
@@ -84,7 +83,7 @@ function ComponentLibrary() {
               <thead>
                 <tr>
                   <Th>Key</Th>
-                  <Th>Component</Th>
+                  <Th>Provider</Th>
                   <Th>Owner</Th>
                   <Th className="text-right">Controls</Th>
                   <Th className="text-right">Used by</Th>
@@ -93,9 +92,7 @@ function ComponentLibrary() {
               </thead>
               <tbody>
                 {systemComponents.map((c) => {
-                  const stale = c.controls.filter(
-                    (x) => x.evidenceAge > staleThresholdDays,
-                  ).length;
+                  const stale = c.controls.filter((x) => x.evidenceAge > staleThresholdDays).length;
                   return (
                     <Tr
                       key={c.id}
@@ -114,9 +111,7 @@ function ComponentLibrary() {
                       />
                       <Td className="truncate font-medium">{c.name}</Td>
                       <Td className="truncate text-muted-foreground">{c.owner}</Td>
-                      <Td className="tnum text-right text-muted-foreground">
-                        {c.controls.length}
-                      </Td>
+                      <Td className="tnum text-right text-muted-foreground">{c.controls.length}</Td>
                       <Td className="tnum text-right text-muted-foreground">
                         {c.consumers.length}
                       </Td>

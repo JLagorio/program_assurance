@@ -64,11 +64,18 @@ type ExportTab = (typeof exportTabs)[number];
  * That is a deliberate choice about the artifacts, not a shortcut. eMASS
  * Control Information is a per-control/per-AP sheet and has no column that an
  * assessment-objective row could fill, so expanding to objectives would inflate
- * the sheet from 375 rows to 1,391 without adding a single eMASS field. The
- * same rows feed the OSCAL documents and the transfer bundle, and the far-side
- * bundle this page reconciles against was exported on the same basis: swapping
- * bases here would make every line of two artifacts differ and bury the real
- * two-determination difference the reconciliation exists to surface.
+ * the sheet by roughly four rows for every one without adding a single eMASS
+ * field. The same rows feed the OSCAL documents and the transfer bundle, and
+ * the far-side bundle this page reconciles against was exported on the same
+ * basis: swapping bases here would make every line of two artifacts differ and
+ * bury the real two-determination difference the reconciliation exists to
+ * surface.
+ *
+ * A comment is not a disclosure, though. The SCTM page rows per assessment
+ * objective and publishes a larger total for the same controls, and this page
+ * links straight to it, so the basis is stated on screen in the header strip
+ * below the title — counted off the exported rows, never called "the matrix",
+ * and never a figure hardcoded here.
  */
 const oscalDocumentFor = (model: OscalModel, programId: string, rows: SctmRow[]): OscalDocument => {
   switch (model) {
@@ -132,13 +139,37 @@ function ProgramExport() {
   const sctm = useSctm(program.id, null);
   const rows = sctm.rows;
 
+  // What a "requirement row" is on this page, counted off the rows that are
+  // actually exported rather than asserted in prose. The header strip prints
+  // it, because the SCTM link two elements away leads to a page that counts
+  // the same controls per 800-53A objective and reports a larger total.
+  const basis = useMemo(() => {
+    const controls = new Set<string>();
+    const cciControls = new Set<string>();
+    let cciRows = 0;
+    for (const row of rows) {
+      controls.add(row.control);
+      if (row.unit === "CCI") {
+        cciRows += 1;
+        cciControls.add(row.control);
+      }
+    }
+    return {
+      controls: controls.size,
+      cciRows,
+      cciControls: cciControls.size,
+      controlRows: rows.length - cciRows,
+    };
+  }, [rows]);
+
   const [model, setModel] = useState<OscalModel>("system-security-plan");
   const [sheetKind, setSheetKind] = useState<EmassExportKind>("Control Information");
   const [receivedId, setReceivedId] = useState<string | null>(null);
 
   // Each artifact set is generated only for the tab that shows it. The SSP
-  // alone serialises to 2.3 MB, and the bundle hashes every artifact it holds;
-  // neither is work to do for a tab nobody is looking at.
+  // alone serialises to megabytes — the viewer prints the exact byte count it
+  // measures rather than any figure named here — and the bundle hashes every
+  // artifact it holds; neither is work to do for a tab nobody is looking at.
   const doc = useMemo(
     () => (tab === "OSCAL" ? oscalDocumentFor(model, program.id, rows) : null),
     [tab, model, program.id, rows],
@@ -190,7 +221,7 @@ function ProgramExport() {
             meta={`${program.acronym} · OSCAL ${oscalVersion} · eMASS sheets · generated ${sctm.generated}`}
             actions={
               <>
-                <Badge tone="neutral">{sctm.counts.total} requirement rows</Badge>
+                <Badge tone="neutral">{sctm.counts.total} exported requirement rows</Badge>
                 <Link
                   to="/programs/$programId/sctm"
                   params={{ programId }}
@@ -199,6 +230,21 @@ function ProgramExport() {
                   Open SCTM →
                 </Link>
               </>
+            }
+            below={
+              <p className="max-w-3xl text-[12.5px] leading-relaxed text-muted-foreground">
+                <span className="font-medium text-foreground">Export basis.</span> Every artifact on
+                this page is generated from the same {sctm.counts.total} exported requirement rows,
+                covering {basis.controls} controls: {basis.cciRows} rows keyed to a DISA CCI across{" "}
+                {basis.cciControls} controls, and one row each for the {basis.controlRows} controls
+                the catalog publishes no CCI for. The SCTM page rows those same controls per 800-53A
+                assessment objective and so reports a larger total — a different unit, not a
+                different program. That basis is not used here because eMASS Control Information is
+                a per-control sheet with no column an objective row could fill, and the media
+                reconciled below was written on the row set above, so switching would make every
+                line of both manifests differ and bury the two-determination difference the
+                reconciliation exists to surface.
+              </p>
             }
           />
         }
@@ -350,7 +396,7 @@ function ProgramExport() {
                   </Select>
                 ) : (
                   <span className="text-12 text-muted-foreground">
-                    Received {activeReceived.created}
+                    Media created {activeReceived.created}
                   </span>
                 )
               }

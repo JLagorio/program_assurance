@@ -114,7 +114,15 @@ function ScopeApprovals() {
                     <Td className="w-[104px]">
                       <Mono>{a.programId}</Mono>
                     </Td>
-                    <Td className="truncate font-medium">{program?.name ?? a.programId}</Td>
+                    <Td className="truncate font-medium">
+                      {program ? (
+                        program.name
+                      ) : (
+                        <span className="font-normal text-muted-foreground">
+                          Not in your enclave
+                        </span>
+                      )}
+                    </Td>
                     <Td className="w-[164px]">
                       <Badge tone={approvalTone[a.state]}>{a.state}</Badge>
                     </Td>
@@ -130,13 +138,20 @@ function ScopeApprovals() {
                       {a.decidedBy ? `${a.decidedBy} · ${a.decided}` : "—"}
                     </Td>
                     <Td className="w-[92px] text-right">
-                      <Link
-                        to="/programs/$programId"
-                        params={{ programId: a.programId }}
-                        className="text-[13px] text-primary hover:underline"
-                      >
-                        Review
-                      </Link>
+                      {/* A program the viewer cannot open gets no Review link —
+                          the same treatment inheritance and the component
+                          library give an id outside the enclave. */}
+                      {program ? (
+                        <Link
+                          to="/programs/$programId"
+                          params={{ programId: a.programId }}
+                          className="text-[13px] text-primary hover:underline"
+                        >
+                          Review
+                        </Link>
+                      ) : (
+                        <span className="text-[13px] text-muted-foreground">—</span>
+                      )}
                     </Td>
                   </Tr>
                 );

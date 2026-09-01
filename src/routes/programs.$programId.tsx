@@ -14,7 +14,7 @@ import { VerificationSection } from "@/components/app/verification";
 import { TeamSection } from "@/components/app/team";
 import { LockedNotice, OpenWorkSection } from "@/components/app/program-state";
 import { CoverageBand, MilestoneTrack } from "@/components/app/coverage";
-import { ControlMatrixSection, FamilyCoverageTable } from "@/components/app/control-matrix";
+import { SctmMatrixSection } from "@/components/app/sctm-matrix";
 import { GateOutlookSection, RmfTimeline } from "@/components/app/rmf-timeline";
 import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
 import { ActivityTimeline } from "@/components/app/activity-timeline";
@@ -55,7 +55,12 @@ import {
   Th,
   Tr,
 } from "@/components/app/ui";
+import { NewRequirementModal } from "@/components/app/requirement-forms";
+import { ScopeTable } from "@/components/app/scopes";
+import { RequirementTable } from "@/components/app/requirements";
 import { programControls, programStatuses, programStatusTone, programs } from "@/lib/grc-data";
+import { allocationsFor, requirementsForProgram, useRequirementsVersion } from "@/lib/requirements";
+import { rollupControlSet, scopesForProgram, useScopesVersion } from "@/lib/scopes";
 import { poamItems as registerPoams } from "@/lib/register";
 import { statusTone } from "@/lib/spine";
 import { programState, stages, type Stage } from "@/lib/program-stage";
@@ -64,6 +69,13 @@ import { inheritanceForProgram } from "@/lib/inheritance";
 import { staleThresholdDays } from "@/lib/reusable-components";
 
 export const Route = createFileRoute("/programs/$programId")({
+  // Read-only entry point: a record page links back to the tab the reader came
+  // from. Tab clicks deliberately do NOT write here — the tab stays local
+  // state, so the eight existing `setTab` call sites are unaffected.
+  validateSearch: (search: Record<string, unknown>): { tab?: Tab | undefined } => {
+    const raw = String(search["tab"] ?? "");
+    return { tab: tabOrder.find((t) => t.toLowerCase() === raw.toLowerCase()) };
+  },
   loader: ({ params }) => {
     const program = programs.find((p) => p.id.toLowerCase() === params.programId.toLowerCase());
     if (!program) throw notFound();
@@ -94,11 +106,22 @@ export const Route = createFileRoute("/programs/$programId")({
 
 /** Object-oriented tabs. The workflow lives in the lifecycle bar, not here. */
 type Tab =
-  "Overview" | "Controls" | "Timeline" | "Findings" | "Evidence" | "POA&M" | "Team" | "Activity";
+  | "Overview"
+  | "Controls"
+  | "Systems"
+  | "Requirements"
+  | "Timeline"
+  | "Findings"
+  | "Evidence"
+  | "POA&M"
+  | "Team"
+  | "Activity";
 
 const tabOrder: Tab[] = [
   "Overview",
   "Controls",
+  "Systems",
+  "Requirements",
   "Timeline",
   "Findings",
   "Evidence",
@@ -126,9 +149,18 @@ const segmentStatus: Record<string, ControlStatus> = {
 
 function ProgramDetail() {
   const program = Route.useLoaderData();
-  const [tab, setTab] = useState<Tab>("Overview");
+  const [tab, setTab] = useState<Tab>(Route.useSearch().tab ?? "Overview");
   const [stageFilter, setStageFilter] = useState<Stage | null>(null);
   const teamSize = useMemo(() => peopleForProgram(program.id).length, [program.id]);
+  const scopesVersion = useScopesVersion();
+  const scopeRows = useMemo(() => scopesForProgram(program.id), [program.id, scopesVersion]);
+  const rollup = useMemo(() => rollupControlSet(program.id), [program.id, scopesVersion]);
+  const requirementsVersion = useRequirementsVersion();
+  const requirementRows = useMemo(
+    () => requirementsForProgram(program.id),
+    [program.id, requirementsVersion],
+  );
+  const [newRequirement, setNewRequirement] = useState(false);
   const [assessing, setAssessing] = useState(false);
   const [status, setStatus] = useState(program.status);
   const [owner, setOwner] = useState(program.owner);
@@ -157,13 +189,6 @@ function ProgramDetail() {
   );
 
   const matrix = useControlMatrix(program.id);
-  const matrixFamilies = useMemo(
-    () =>
-      [...new Map(matrix.map((r) => [r.family, r.familyName])).entries()]
-        .map(([id, name]) => ({ id, name }))
-        .sort((a, b) => a.id.localeCompare(b.id)),
-    [matrix],
-  );
 
   // `matrix` is load-bearing in both dep lists: posture and the gate blocker
   // read the same rows the coverage card does, so an inline status edit moves
@@ -664,6 +689,8 @@ function ProgramDetail() {
               [
                 ["Overview", null],
                 ["Controls", coverage.segments[2]?.value || null],
+                ["Systems", scopeRows.length || null],
+                ["Requirements", requirementRows.length || null],
                 ["Timeline", outlook.remaining.length || null],
                 ["Findings", posture.findingsOpen || null],
                 ["Evidence", posture.evidenceStale || null],
@@ -731,24 +758,6 @@ function ProgramDetail() {
         {tab === "Controls" ? (
           <>
             <Section
-              title="Traceability"
-              description="The SCTM generates live off this control set — one row per CCI or 800-53A objective, with its allocation, verification method, evidence and determination."
-              action={
-                <Link
-                  to="/programs/$programId/sctm"
-                  params={{ programId: program.id }}
-                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
-                >
-                  Open SCTM
-                </Link>
-              }
-            >
-              <p className="pt-2 text-[12.5px] text-muted-foreground">
-                {matrix.length} controls in scope for {program.baseline} — {program.impact} impact.
-              </p>
-            </Section>
-
-            <Section
               title="Inheritance"
               description="Which common control provider actually satisfies each inherited row, what this program still owes on a shared control, and where an accepted inheritance has drifted from the provider's current assessment."
               action={
@@ -792,22 +801,12 @@ function ProgramDetail() {
 
             <TailoringSection programId={program.id} programOwner={program.owner} />
 
-            <FamilyCoverageTable
-              coverage={coverage}
-              onSelectFamily={(f) => {
-                setFamily(f);
-                setStatusFilter("All");
-              }}
-            />
-
-            <ControlMatrixSection
+            <SctmMatrixSection
               programId={program.id}
-              rows={matrix}
               family={family}
               onFamily={setFamily}
               status={statusFilter}
               onStatus={setStatusFilter}
-              families={matrixFamilies}
             />
           </>
         ) : null}
@@ -988,6 +987,40 @@ function ProgramDetail() {
               )}
             </Section>
           </>
+        ) : null}
+
+        {tab === "Systems" ? (
+          <ScopeTable scopes={scopeRows} rollup={rollup} programId={program.id} />
+        ) : null}
+
+        {tab === "Requirements" ? (
+          <>
+            <div className="flex justify-end">
+              <Button variant="primary" size="sm" onClick={() => setNewRequirement(true)}>
+                New requirement
+              </Button>
+            </div>
+            <NewRequirementModal
+              open={newRequirement}
+              onClose={() => setNewRequirement(false)}
+              programId={program.id}
+            />
+          </>
+        ) : null}
+
+        {tab === "Requirements" ? (
+          requirementRows.length ? (
+            <RequirementTable
+              requirements={requirementRows}
+              programId={program.id}
+              allocationCount={(id) => allocationsFor(id).length}
+            />
+          ) : (
+            <EmptyState
+              title="No security requirements"
+              description={`${program.id} has no engineering requirements yet. Controls are obligations until a requirement states what the system must do.`}
+            />
+          )
         ) : null}
 
         {tab === "Activity" ? (

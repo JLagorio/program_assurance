@@ -83,13 +83,14 @@ import {
 } from "@/lib/baselines";
 import { descendantsOf, graphVersion, nodeById, nodesForProgram } from "@/lib/composition";
 import { controlMatrix } from "@/lib/control-matrix";
+import { datasetNow, datasetToday } from "@/lib/dataset-clock";
 import { programs, poamItems as oscalPoamItems } from "@/lib/grc-data";
 import { scansForProgram, type ScanFormat, type ScanRun } from "@/lib/ingestion";
 import { resolveInheritance, type ResolvedInheritance } from "@/lib/inheritance";
 import { controlTitle, nistControlById } from "@/lib/nist-catalog";
 import { parseGateDate } from "@/lib/program-stage";
 import { findingsForPoam, poamItems, type PoamItem } from "@/lib/register";
-import { buildSctm, type Sctm, type SctmRow } from "@/lib/sctm";
+import { buildSctm, type ControlTextIndex, type Sctm, type SctmRow } from "@/lib/sctm";
 import {
   vocabularies,
   type AssessmentStatus,
@@ -188,14 +189,17 @@ export const slcmMethodTone: Record<SlcmMethod, Tone> = {
 /* ── The dataset's as-of date ────────────────────────────────────────────── */
 
 /**
- * The fixed "today" the ConMon views run against. Routes pass this rather than
- * calling the clock, so the server-rendered page and the hydrated one agree on
- * every due date, age and slip in the document.
+ * The fixed "today" the ConMon views run against, taken from the one dataset
+ * clock rather than pinned again here. Two modules that each declare their own
+ * literal drift apart the moment one is edited, and lateness against a
+ * committed date is the load-bearing number on this page. Routes pass this
+ * rather than calling the wall clock, so the server-rendered page and the
+ * hydrated one agree on every due date, age and slip in the document.
  */
-export const conmonAsOf = new Date("2026-08-30T12:00:00Z");
+export const conmonAsOf = datasetNow;
 
 /** How that date is labelled on screen. */
-export const conmonAsOfLabel = "Aug 30, 2026";
+export const conmonAsOfLabel = datasetToday;
 
 /* ── Small date helpers ──────────────────────────────────────────────────── */
 
@@ -724,28 +728,67 @@ export function slcmProfilesFor(programId: string): SlcmProfile[] {
 
 /* ── The matrix this module reads ────────────────────────────────────────── */
 
-type SctmCacheEntry = { rows: unknown; graph: number; baseline: number; sctm: Sctm };
+/**
+ * The 800-53A text index the ConMon matrix is built from.
+ *
+ * Every ratio this module publishes — determination currency, evidence
+ * freshness, the requirement keys on an alert — is quoted per SCTM row, and a
+ * row count is only reconcilable if it is the SAME row set the assessor reads
+ * on `/programs/$id/sctm` and on the retest queue. That matrix rows per leaf
+ * 800-53A assessment objective, which only exists once the 1.25 MB catalog has
+ * been dynamic-imported. So the route that did the importing hands the narrowed
+ * index here and this module holds it, rather than importing the catalog itself
+ * and dragging it into every chunk that touches ConMon.
+ *
+ * Until it is set the matrix is control-grained — a legitimate skeleton, but a
+ * SMALLER row set. That is precisely why `textVersion` is part of the cache
+ * identity: a result computed before the index arrived must be recomputed,
+ * never reused, or the skeleton built during SSR is served forever afterwards.
+ * `change-impact.ts` documents the same trap and solves it the same way.
+ */
+let controlTextIndex: ControlTextIndex | null = null;
+let textVersion = 0;
+
+export function setControlTextIndex(next: ControlTextIndex): void {
+  if (controlTextIndex === next) return;
+  controlTextIndex = next;
+  textVersion += 1;
+}
+
+type SctmCacheEntry = {
+  rows: unknown;
+  graph: number;
+  baseline: number;
+  text: number;
+  sctm: Sctm;
+};
 
 const sctmCache = new Map<string, SctmCacheEntry>();
 
 /**
- * The SCTM for a program, built once per (control matrix, graph, baseline)
- * generation. `controlMatrix` already returns a reference-stable array, so
- * comparing it by identity is enough to notice an inline control edit; the two
- * version counters catch a node re-classification and a change acknowledgement.
- *
- * Built with a null text index on purpose. ConMon reads currency, evidence and
- * determination, none of which the 800-53A objective prose changes, and the
- * cheap skeleton keeps this module out of the 1.25 MB catalog entirely.
+ * The SCTM for a program, built once per (control matrix, graph, baseline,
+ * text) generation. `controlMatrix` already returns a reference-stable array,
+ * so comparing it by identity is enough to notice an inline control edit; the
+ * three version counters catch a node re-classification, a change
+ * acknowledgement and the arrival of the 800-53A catalog respectively.
  */
 function sctmFor(programId: string): Sctm {
   const rows = controlMatrix(programId);
   const graph = graphVersion();
   const baseline = baselineVersion();
+  const text = textVersion;
   const hit = sctmCache.get(programId);
-  if (hit && hit.rows === rows && hit.graph === graph && hit.baseline === baseline) return hit.sctm;
-  const sctm = buildSctm(programId, rows, null);
-  sctmCache.set(programId, { rows, graph, baseline, sctm });
+  if (
+    hit &&
+    hit.rows === rows &&
+    hit.graph === graph &&
+    hit.baseline === baseline &&
+    hit.text === text
+  ) {
+    return hit.sctm;
+  }
+  const sctm = buildSctm(programId, rows, controlTextIndex);
+  sctmCache.set(programId, { rows, graph, baseline, text, sctm });
   return sctm;
 }
 
@@ -808,7 +851,7 @@ function scheduleFinding(
  * deficiency visible as an unreadable schedule rather than being quietly
  * rewritten to "Never assessed".
  */
-export function assessmentSchedule(programId: string, now: Date = new Date()): ScheduleRow[] {
+export function assessmentSchedule(programId: string, now: Date = datasetNow): ScheduleRow[] {
   const today = midnight(now);
   const rows: ScheduleRow[] = [];
   for (const profile of slcmProfilesFor(programId)) {
@@ -936,7 +979,7 @@ function freshnessFinding(
  * inherited row citing the provider's own evidence label — the date the
  * provider assessed the offer.
  */
-export function evidenceFreshness(programId: string, now: Date = new Date()): EvidenceSlaRow[] {
+export function evidenceFreshness(programId: string, now: Date = datasetNow): EvidenceSlaRow[] {
   const today = midnight(now);
   const byControl = new Map(slcmProfilesFor(programId).map((p) => [p.control, p]));
   if (byControl.size === 0) return [];
@@ -1003,6 +1046,24 @@ export function evidenceFreshness(programId: string, now: Date = new Date()): Ev
       (b.ageDays ?? -1) - (a.ageDays ?? -1) ||
       a.requirement.localeCompare(b.requirement),
   );
+}
+
+/**
+ * The one row a reader should start with, so two surfaces on one page can never
+ * name two different "worst" ones.
+ *
+ * Raw age is not comparable across SLAs — five-day-old evidence on a daily
+ * control has expired while 96-day-old evidence on a quarterly one is merely
+ * stale — and `evidenceFreshness` already encodes exactly that: its sort puts
+ * Expired ahead of Stale, and the class IS the overshoot band (Stale is 1–2x
+ * the SLA, Expired is past 2x), with age descending as the tie-break inside a
+ * class. So the first actionable row in that canonical order is the worst one,
+ * and reading it with `.find` keeps the drift factor, the ConMon alert and the
+ * top of the Evidence freshness table pinned to the same row rather than
+ * inventing a third ordering.
+ */
+function worstOverdueEvidence(rows: EvidenceSlaRow[]): EvidenceSlaRow | undefined {
+  return rows.find((r) => r.freshness === "Expired" || r.freshness === "Stale");
 }
 
 /* ── Scan cadence ────────────────────────────────────────────────────────── */
@@ -1089,7 +1150,7 @@ function cadenceFinding(
  * `actualDays` is null, the row is not compliant and the finding says which run
  * is stuck and in what state.
  */
-export function scanCadence(programId: string, now: Date = new Date()): CadenceRow[] {
+export function scanCadence(programId: string, now: Date = datasetNow): CadenceRow[] {
   const today = midnight(now);
   const anchors = nodesForProgram(programId).filter((n) => n.asset !== null);
   if (anchors.length === 0) return [];
@@ -1254,7 +1315,7 @@ function slippageFinding(
  * a slip, negative is a section pulled in, zero is a commitment held. Nothing
  * is authored — the register carries both dates and this is their difference.
  */
-export function poamSlippage(programId: string, now: Date = new Date()): SlippageRow[] {
+export function poamSlippage(programId: string, now: Date = datasetNow): SlippageRow[] {
   const today = midnight(now);
   const rows: SlippageRow[] = [];
 
@@ -1438,6 +1499,55 @@ function configurationFactor(programId: string): {
   };
 }
 
+/**
+ * Which change records retracted one row's determination.
+ *
+ * The currency overlay names its driver in prose, and nearly every reason it
+ * writes leads with the `CHG-` id. One branch does not: the provider-assessment
+ * case in `@/lib/baselines` leads with the change's SUBJECT instead, so a plain
+ * `CHG-` scan attributes those rows to nothing at all — and a rationale that
+ * lists only the ids it found ends up naming one change as the cause of a count
+ * that change did not produce. The signature fallback is keyed on exactly the
+ * three fields that branch interpolates, so every invalidated row is attributed
+ * to the record that retracted it and the per-driver counts add back up to the
+ * total the matrix reports.
+ */
+function currencyDrivers(reason: string, changes: ChangeRecord[]): string[] {
+  const ids = new Set<string>();
+  for (const m of reason.matchAll(/CHG-\d+/g)) ids.add(m[0]);
+  if (ids.size === 0) {
+    for (const c of changes) {
+      if (reason.startsWith(`${c.subject} moved from ${c.from} to ${c.to};`)) ids.add(c.id);
+    }
+  }
+  return [...ids];
+}
+
+/** Invalidated rows grouped by the change that retracted them, plus the residue. */
+function invalidationsByDriver(
+  sctm: Sctm,
+  changes: ChangeRecord[],
+): { byDriver: Map<string, string[]>; unattributed: string[]; invalidated: number } {
+  const byDriver = new Map<string, string[]>();
+  const unattributed: string[] = [];
+  let invalidated = 0;
+  for (const row of sctm.rows) {
+    if (row.currency !== "Invalidated") continue;
+    invalidated += 1;
+    const drivers = currencyDrivers(row.currencyReason, changes);
+    if (drivers.length === 0) {
+      unattributed.push(row.key);
+      continue;
+    }
+    for (const id of drivers) {
+      const list = byDriver.get(id) ?? [];
+      list.push(row.key);
+      byDriver.set(id, list);
+    }
+  }
+  return { byDriver, unattributed, invalidated };
+}
+
 function determinationFactor(
   programId: string,
   sctm: Sctm,
@@ -1451,18 +1561,33 @@ function determinationFactor(
   }
   const invalidated = sctm.counts.invalidated;
   const suspect = sctm.counts.suspect;
-  const drivers = new Set<string>();
-  for (const row of sctm.rows) {
-    if (row.currency !== "Invalidated") continue;
-    for (const m of row.currencyReason.matchAll(/CHG-\d+/g)) drivers.add(m[0]);
-  }
+  const changes = changesForProgram(programId);
+  const { byDriver, unattributed } = invalidationsByDriver(sctm, changes);
+  const kindById = new Map(changes.map((c) => [c.id, c.kind]));
+  const ranked = [...byDriver].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+
+  // Each driver is quoted with the number of rows IT retracted, never with the
+  // whole invalidated total: an assessor who follows the name to that change's
+  // retest queue has to find the same count waiting there.
+  const attribution =
+    ranked.length > 0
+      ? `, driven by ${ranked.map(([id, keys]) => `${id} (${keys.length} ${plural(keys.length, "row", "rows")})`).join(", ")}`
+      : "";
+  const residue =
+    unattributed.length > 0
+      ? ` ${unattributed.length} of them ${plural(unattributed.length, "names", "name")} no change record in the currency overlay's own reason text, so ${plural(unattributed.length, "it is", "they are")} counted here but attributed to nothing.`
+      : "";
+  const inherited = ranked.some(([id]) => kindById.get(id) === "Provider assessment")
+    ? " Rows retracted by a provider-assessment movement are visible to the inheritance factor as well; the two measure different populations — matrix rows here, resolved inheritance edges there — so they are correlated by design and neither is netted out of the other."
+    : "";
+
   return {
     factor: makeFactor(
       "determination",
       share(invalidated, total),
       `${invalidated} of ${total} SCTM rows Invalidated`,
-      `${invalidated} ${plural(invalidated, "row's determination", "rows' determinations")} no longer ${plural(invalidated, "describes", "describe")} the configuration in force (${pct(invalidated, total)} of the matrix)${drivers.size > 0 ? `, driven by ${[...drivers].sort().join(", ")}` : ""}. A further ${suspect} ${plural(suspect, "row is", "rows are")} Suspect and are NOT counted here: an ancestor holding something that moved is a reason to look again, not a retracted claim.`,
-      [...drivers].sort(),
+      `${invalidated} ${plural(invalidated, "row's determination", "rows' determinations")} no longer ${plural(invalidated, "describes", "describe")} the configuration in force (${pct(invalidated, total)} of the ${total} rows the traceability matrix publishes for this program)${attribution}.${residue}${inherited} A further ${suspect} ${plural(suspect, "row is", "rows are")} Suspect and are NOT counted here: an ancestor holding something that moved is a reason to look again, not a retracted claim.`,
+      ranked.map(([id]) => id).sort(),
     ),
     caveat: null,
   };
@@ -1481,13 +1606,16 @@ function evidenceFactor(
   const stale = rows.filter((r) => r.freshness === "Stale");
   const expired = rows.filter((r) => r.freshness === "Expired");
   const never = rows.filter((r) => r.freshness === "Never collected");
-  const worst = [...expired, ...stale].sort((a, b) => (b.ageDays ?? 0) - (a.ageDays ?? 0))[0];
+  // The same pick the ConMon alert makes, from the same helper, so the factor
+  // table and the queue below it cannot name two different worst rows.
+  const worst = worstOverdueEvidence(rows);
+  const overshoot = worst ? Math.round(((worst.ageDays ?? 0) / worst.slaDays) * 10) / 10 : 0;
   return {
     factor: makeFactor(
       "evidence",
       share(stale.length + expired.length, rows.length),
       `${expired.length} expired + ${stale.length} stale of ${rows.length} monitored rows`,
-      `${expired.length + stale.length} of ${rows.length} monitored requirement rows rest on evidence older than the SLA their SLCM frequency sets${worst ? `, worst ${worst.control} at ${worst.ageDays ?? 0} days against a ${worst.slaDays}-day SLA` : ""}. ${never.length} further ${plural(never.length, "row has", "rows have")} no dated artifact at all; that is a wider gap and it is reported as unevidenced rather than folded into this ratio, which would understate it as merely old.`,
+      `${expired.length + stale.length} of ${rows.length} monitored requirement rows rest on evidence older than the SLA their SLCM frequency sets${worst ? `, worst ${worst.control}, ${worst.freshness.toLowerCase()} at ${worst.ageDays ?? 0} ${plural(worst.ageDays ?? 0, "day", "days")} against a ${worst.slaDays}-day SLA — ${overshoot}× its window, which is why it outranks an older artifact on a longer one` : ""}. ${never.length} further ${plural(never.length, "row has", "rows have")} no dated artifact at all; that is a wider gap and it is reported as unevidenced rather than folded into this ratio, which would understate it as merely old.`,
       [...expired, ...stale].slice(0, 8).map((r) => r.requirement),
     ),
     caveat: null,
@@ -1617,7 +1745,7 @@ function driftHeadline(
  * the clamped sum of exactly the factors listed, and a factor whose inputs do
  * not exist is omitted with a caveat rather than scored zero.
  */
-export function driftScore(programId: string, now: Date = new Date()): DriftScore {
+export function driftScore(programId: string, now: Date = datasetNow): DriftScore {
   const sctm = sctmFor(programId);
   const schedule = assessmentSchedule(programId, now);
   const freshness = evidenceFreshness(programId, now);
@@ -1743,7 +1871,7 @@ type DraftAlert = Omit<ConMonAlert, "id">;
  * the overdue schedule as one queue) and itemised where they are worked apart
  * (each unrecorded change is somebody's separate conversation with the board).
  */
-export function conmonAlerts(programId: string, now: Date = new Date()): ConMonAlert[] {
+export function conmonAlerts(programId: string, now: Date = datasetNow): ConMonAlert[] {
   const today = midnight(now);
   const drafts: DraftAlert[] = [];
 
@@ -1773,16 +1901,9 @@ export function conmonAlerts(programId: string, now: Date = new Date()): ConMonA
 
   /* Determination invalidated — grouped by the change that retracted them. */
   const sctm = sctmFor(programId);
-  const invalidatedBy = new Map<string, string[]>();
-  for (const row of sctm.rows) {
-    if (row.currency !== "Invalidated") continue;
-    for (const m of row.currencyReason.matchAll(/CHG-\d+/g)) {
-      const list = invalidatedBy.get(m[0]) ?? [];
-      list.push(row.key);
-      invalidatedBy.set(m[0], list);
-    }
-  }
-  const changeById = new Map(changesForProgram(programId).map((c) => [c.id, c]));
+  const programChanges = changesForProgram(programId);
+  const { byDriver: invalidatedBy } = invalidationsByDriver(sctm, programChanges);
+  const changeById = new Map(programChanges.map((c) => [c.id, c]));
   for (const [changeId, keys] of [...invalidatedBy].sort()) {
     const change = changeById.get(changeId);
     const count = keys.length;
@@ -1802,7 +1923,7 @@ export function conmonAlerts(programId: string, now: Date = new Date()): ConMonA
   const expired = freshness.filter((r) => r.freshness === "Expired");
   const stale = freshness.filter((r) => r.freshness === "Stale");
   if (expired.length > 0 || stale.length > 0) {
-    const worst = [...expired, ...stale][0];
+    const worst = worstOverdueEvidence(freshness);
     drafts.push({
       kind: "Evidence expired",
       severity: expired.length > 0 ? "High" : "Moderate",
@@ -1896,11 +2017,21 @@ export function conmonAlerts(programId: string, now: Date = new Date()): ConMonA
         ? daysBetween(scheduled, today)
         : 0;
     if (row.slipDays <= 0 && overdueBy <= 0) continue;
+    // A slip that has not yet come due is dated from the commitment it moved
+    // away from, and that original commitment can itself still be in the
+    // future — POAM-0071 moved Sep 12 to Sep 26 against an as-of of Aug 30.
+    // "since <future date>" is wrong on a page captioned as-of, and the
+    // queue's recency tiebreak sorts `since` descending, so the future date
+    // would take the top of its severity band. Clamp to the as-of: dayOf("—")
+    // is null, which the comparator sorts last and the route renders as "no
+    // start date on record" — which is what an undated slip deserves.
+    const originalMs = dayOf(row.original);
+    const sinceOriginal = originalMs !== null && originalMs <= today ? row.original : "—";
     drafts.push({
       kind: "POA&M slipped",
       severity: overdueBy > 0 ? "High" : "Moderate",
       subject: row.poam,
-      since: overdueBy > 0 ? row.scheduled : row.original,
+      since: overdueBy > 0 ? row.scheduled : sinceOriginal,
       statement:
         overdueBy > 0
           ? `${row.poam} "${row.title}" is ${overdueBy} ${plural(overdueBy, "day", "days")} past its committed completion of ${row.scheduled}${row.slipDays > 0 ? `, which had already slipped ${row.slipDays} ${plural(row.slipDays, "day", "days")} from the original ${row.original}` : ""}, and the section still reads ${row.status}.`

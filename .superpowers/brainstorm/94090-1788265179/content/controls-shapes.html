@@ -1,0 +1,372 @@
+<style>
+  .eq { --bd:#e3e5e9; --bd2:#eef0f3; --mut:#6b7280; --fg:#111418; --pri:#2563eb;
+        --pri-soft:#eef4ff; --ok:#15803d; --warn:#b45309; --bad:#b91c1c; --sub:#fafbfc;
+        font: 400 12px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        color:var(--fg); background:#fff; border:1px solid var(--bd); border-radius:10px;
+        overflow:hidden; box-shadow:0 1px 2px rgba(16,24,40,.05); }
+  .eq * { box-sizing:border-box; }
+  .eq .mono { font:400 11.5px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:-.01em; }
+  .eq .bl { color:var(--pri); }
+  .eq .m  { color:var(--mut); }
+  .eq .num{ font-variant-numeric:tabular-nums; }
+
+  /* action bar */
+  .eq .bar { padding:9px 14px 0; border-bottom:1px solid var(--bd); background:#fff; }
+  .eq .crumb { font-size:11px; color:var(--mut); padding-bottom:3px; }
+  .eq .idrow { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }
+  .eq .ttl { font-size:15px; font-weight:600; letter-spacing:-.015em; }
+  .eq .states { display:flex; flex-wrap:wrap; gap:14px; margin-top:4px; align-items:center; }
+  .eq .st { display:flex; align-items:center; gap:5px; }
+  .eq .stl { font-size:9.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--mut); }
+  .eq .btn { display:inline-flex; align-items:center; height:25px; padding:0 9px; border-radius:5px;
+             font-size:11.5px; font-weight:500; background:#fff; border:1px solid var(--bd);
+             box-shadow:0 1px 1px rgba(16,24,40,.04); white-space:nowrap; }
+  .eq .btn.pri { background:var(--pri); color:#fff; border-color:var(--pri); }
+  .eq .chip { display:inline-flex; align-items:center; padding:1px 6px; border-radius:4px;
+              font-size:10.5px; font-weight:500; border:1px solid transparent; }
+  .eq .c-ok  { background:#eaf7ee; color:var(--ok); }
+  .eq .c-warn{ background:#fdf3e3; color:var(--warn); }
+  .eq .c-bad { background:#fdecec; color:var(--bad); }
+  .eq .c-inf { background:var(--pri-soft); color:var(--pri); }
+  .eq .c-neu { background:#f1f2f4; color:var(--mut); }
+  .eq .tabs { display:flex; gap:16px; margin-top:9px; }
+  .eq .tab { font-size:11.5px; padding-bottom:6px; color:var(--mut); border-bottom:2px solid transparent; }
+  .eq .tab.on { color:var(--fg); font-weight:600; border-bottom-color:var(--fg); }
+
+  /* workpane */
+  .eq .pane { display:grid; grid-template-columns:214px minmax(0,1fr); min-height:300px; }
+  .eq .rail { border-right:1px solid var(--bd); padding:8px; background:var(--sub); }
+  .eq .body { padding:10px 14px; min-width:0; }
+  .eq .srch { height:23px; border:1px solid var(--bd); border-radius:5px; background:#fff;
+              display:flex; align-items:center; padding:0 7px; color:#9aa0a6; font-size:11px; }
+  .eq .facets { display:flex; flex-wrap:wrap; gap:3px; margin:7px 0; }
+  .eq .facet { font-size:10.5px; padding:1.5px 5px; border-radius:4px; background:#fff;
+               border:1px solid var(--bd); color:var(--mut); white-space:nowrap; }
+  .eq .facet.on { background:var(--pri); border-color:var(--pri); color:#fff; }
+  .eq .facet b { font-variant-numeric:tabular-nums; font-weight:600; margin-left:3px; }
+  .eq .grain { display:flex; background:#eceef1; border-radius:5px; padding:2px; margin:7px 0 9px; }
+  .eq .grain span { flex:1; text-align:center; font-size:10.5px; padding:2.5px 0; border-radius:3.5px; color:var(--mut); }
+  .eq .grain span.on { background:#fff; color:var(--fg); font-weight:600; box-shadow:0 1px 1.5px rgba(16,24,40,.09); }
+  .eq .fam { display:flex; align-items:center; gap:5px; padding:3.5px 3px; border-radius:4px; }
+  .eq .fam .car { color:#a4a9b0; font-size:8px; width:7px; }
+  .eq .fam .fid { width:22px; font-weight:600; }
+  .eq .barmini { flex:1; height:3px; border-radius:2px; background:#e6e8eb; display:flex; overflow:hidden; }
+  .eq .barmini i { display:block; height:100%; }
+  .eq .fcount { font-size:10px; color:var(--mut); font-variant-numeric:tabular-nums; width:36px; text-align:right; }
+  .eq .ctl { display:flex; align-items:flex-start; gap:6px; padding:3.5px 4px 3.5px 15px; border-radius:4px; }
+  .eq .ctl.on { background:var(--pri-soft); }
+  .eq .dot { width:5px; height:5px; border-radius:50%; margin-top:5px; flex:none; }
+  .eq .d-ok{background:#22a55b}.eq .d-bad{background:#dc2626}.eq .d-warn{background:#e0a12a}
+  .eq .d-inf{background:#3b82f6}.eq .d-neu{background:#c4c8cd}
+  .eq .ctl .who { font-size:10px; color:var(--mut); margin-left:auto; }
+
+  /* body blocks */
+  .eq .blk { border-top:1px solid var(--bd); padding-top:6px; margin-top:9px; }
+  .eq .blk:first-child { border-top:0; margin-top:0; }
+  .eq .bh { display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; }
+  .eq .bh .n { background:#f1f2f4; color:var(--mut); border-radius:3px; padding:0 4px;
+               font-size:10px; font-variant-numeric:tabular-nums; }
+  .eq .bh .act { margin-left:auto; font-size:10.5px; color:var(--pri); font-weight:400; }
+  .eq .prose { font-size:11.5px; line-height:1.5; margin-top:4px; color:#2b3038;
+               border:1px solid var(--bd2); border-radius:5px; padding:6px 7px; background:#fff; }
+  .eq .row { display:flex; gap:8px; align-items:center; padding:3.5px 0; border-bottom:1px solid var(--bd2); font-size:11px; }
+  .eq .row:last-child { border-bottom:0; }
+  .eq .disc { display:flex; align-items:center; gap:6px; border-top:1px solid var(--bd);
+              padding:6px 0; font-size:11.5px; font-weight:600; margin-top:0; }
+  .eq .disc .car { color:#a4a9b0; font-size:8px; }
+  .eq .disc .hint { margin-left:auto; font-size:10.5px; color:var(--mut); font-weight:400; }
+
+  /* wide table */
+  .eq table { width:100%; border-collapse:collapse; }
+  .eq th { text-align:left; font-size:9.5px; text-transform:uppercase; letter-spacing:.05em;
+           color:var(--mut); font-weight:500; padding:5px 7px; border-bottom:1px solid var(--bd); }
+  .eq td { padding:5px 7px; border-bottom:1px solid var(--bd2); font-size:11.5px; vertical-align:top; }
+  .eq tr.sel td { background:var(--pri-soft); }
+  .eq .exp td { background:#fafbfc; font-size:10.5px; color:var(--mut); }
+
+  /* queue */
+  .eq .qh { display:flex; align-items:center; gap:7px; font-size:11.5px; font-weight:600;
+            border-top:1px solid var(--bd); padding:7px 0 4px; }
+  .eq .qh .n { background:#f1f2f4; color:var(--mut); border-radius:3px; padding:0 4px; font-size:10px; }
+
+  .opthead { display:flex; align-items:baseline; gap:10px; margin:26px 0 8px; }
+  .opthead .k { width:22px; height:22px; border-radius:5px; background:#e5e5e7; color:#555;
+                display:grid; place-items:center; font-weight:700; font-size:12px; flex:none; }
+  .opthead h3 { margin:0; font-size:15px; }
+  .opthead .rec { font-size:10.5px; background:#dff3e6; color:#15803d; border-radius:4px; padding:1px 6px; font-weight:600; }
+  .verdict { font-size:12.5px; color:var(--text-secondary,#666); margin:0 0 10px 32px; max-width:78ch; }
+  .picker { margin-top:30px; }
+</style>
+
+<h2>Three shapes for the Controls tab</h2>
+<p class="subtitle">Same real PRG-1041 data in all three — Ground control segment / Mission software / Tactical edge, the eight seeded work items, the actual providers. Scroll through, then click the one you want.</p>
+
+<!-- ═══════════════════════════════ A ═══════════════════════════════ -->
+<div class="opthead"><span class="k">A</span><h3>WorkPane — the list stays, you work on the right</h3><span class="rec">your pick</span></div>
+<p class="verdict">The family rollup becomes navigation instead of a report. Selecting a control never leaves the page. SCTM is a grain toggle, inheritance and currency are disclosures on the control they belong to.</p>
+
+<div class="eq">
+  <div class="bar">
+    <div class="crumb">Programs / Orbital Ground Terminal</div>
+    <div class="idrow">
+      <div>
+        <div style="display:flex;align-items:baseline;gap:9px">
+          <span class="mono m">PRG-1041</span><span class="ttl">Controls</span>
+        </div>
+        <div class="states">
+          <span class="st"><span class="stl">In scope</span><span class="chip c-neu num">372</span></span>
+          <span class="st"><span class="stl">Satisfied</span><span class="chip c-ok num">68%</span></span>
+          <span class="st"><span class="stl">Deficient</span><span class="chip c-bad num">14</span></span>
+          <span class="st"><span class="stl">Yours</span><span class="chip c-inf num">12</span></span>
+          <span class="st"><span class="stl">Invalidated</span><span class="chip c-warn num">9</span></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex:none">
+        <span class="btn">Role: SSE ⌄</span><span class="btn pri">Export SCTM ⌄</span>
+      </div>
+    </div>
+    <div class="tabs"><span class="tab">Overview</span><span class="tab on">Controls</span><span class="tab">Systems</span><span class="tab">Requirements</span><span class="tab">Findings</span><span class="tab">Evidence</span><span class="tab">POA&amp;M</span></div>
+  </div>
+
+  <div class="pane">
+    <div class="rail">
+      <div class="srch">⌕ Search controls</div>
+      <div class="grain"><span class="on">Controls 372</span><span>Requirements 1,842</span></div>
+      <div class="facets">
+        <span class="facet on">Yours<b>12</b></span><span class="facet">Unassigned<b>88</b></span>
+        <span class="facet">With assessor<b>6</b></span><span class="facet">Deficient<b>14</b></span>
+        <span class="facet">Inherited<b>84</b></span><span class="facet">Invalidated<b>9</b></span>
+      </div>
+      <div class="fam"><span class="car">▾</span><span class="mono fid">AC</span>
+        <span class="barmini"><i class="d-ok" style="width:72%"></i><i class="d-warn" style="width:10%"></i><i class="d-bad" style="width:7%"></i><i class="d-neu" style="width:11%"></i></span>
+        <span class="fcount">21/29</span></div>
+      <div class="ctl on"><span class="dot d-ok"></span><span><span class="mono bl">AC-2</span> <span class="m">Account Management</span></span><span class="who">Priya</span></div>
+      <div class="ctl"><span class="dot d-bad"></span><span><span class="mono">AC-4</span> <span class="m">Information Flow</span></span><span class="who">Sarah</span></div>
+      <div class="ctl"><span class="dot d-inf"></span><span><span class="mono">AC-11</span> <span class="m">Device Lock</span></span><span class="who">Priya</span></div>
+      <div class="fam"><span class="car">▸</span><span class="mono fid">AU</span>
+        <span class="barmini"><i class="d-ok" style="width:55%"></i><i class="d-neu" style="width:45%"></i></span>
+        <span class="fcount">12/22</span></div>
+      <div class="fam"><span class="car">▸</span><span class="mono fid">CM</span>
+        <span class="barmini"><i class="d-ok" style="width:41%"></i><i class="d-warn" style="width:14%"></i><i class="d-neu" style="width:45%"></i></span>
+        <span class="fcount">9/22</span></div>
+      <div class="fam"><span class="car">▸</span><span class="mono fid">CP</span>
+        <span class="barmini"><i class="d-ok" style="width:10%"></i><i class="d-neu" style="width:90%"></i></span>
+        <span class="fcount">3/31</span></div>
+      <div class="fam"><span class="car">▸</span><span class="mono fid">SC</span>
+        <span class="barmini"><i class="d-ok" style="width:64%"></i><i class="d-bad" style="width:9%"></i><i class="d-neu" style="width:27%"></i></span>
+        <span class="fcount">30/47</span></div>
+      <div class="fam"><span class="car">▸</span><span class="mono fid">SI</span>
+        <span class="barmini"><i class="d-ok" style="width:48%"></i><i class="d-warn" style="width:17%"></i><i class="d-neu" style="width:35%"></i></span>
+        <span class="fcount">12/25</span></div>
+    </div>
+
+    <div class="body">
+      <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap">
+        <span class="mono bl" style="font-size:12.5px">AC-2</span>
+        <span style="font-size:13px;font-weight:600">Account Management</span>
+        <span class="chip c-inf">Implemented</span><span class="chip c-ok">Satisfied</span>
+        <span class="m" style="font-size:10.5px">SYS-0001 Ground control segment</span>
+      </div>
+
+      <div class="blk" style="margin-top:8px">
+        <div class="bh">Implementation statement <span class="n">rev 3</span>
+          <span class="act">Priya Raghavan · Aug 05</span></div>
+        <div class="prose">Interactive and service accounts on gcs-app-01, gcs-app-02 and gcs-db-01 are provisioned only through the idp-core account workflow; the sole local accounts are the platform-ops break-glass account and the PostgreSQL 15.6 service account, both reconciled against the weekly IAM export.</div>
+      </div>
+
+      <div class="blk">
+        <div class="bh">Requirements <span class="n">4</span><span class="act">Add allocation</span></div>
+        <div class="row"><span class="chip c-neu">CCI</span><span class="mono">CCI-000015</span>
+          <span class="m" style="flex:1">Automated account management</span>
+          <span class="mono bl">CN-0220</span><span class="m">Test</span></div>
+        <div class="row"><span class="chip c-neu">CCI</span><span class="mono">CCI-000018</span>
+          <span class="m" style="flex:1">Account creation audit</span>
+          <span class="mono bl">CN-0104</span><span class="m">Examine</span></div>
+      </div>
+
+      <div class="blk">
+        <div class="bh">Evidence <span class="n">2</span><span class="act">Link evidence</span></div>
+        <div class="row"><span class="mono bl">EVD-8861</span><span class="m" style="flex:1">IAM export, week of Aug 18</span><span class="chip c-ok">Current</span></div>
+        <div class="row"><span class="mono bl">EVD-8841</span><span class="m" style="flex:1">Account provisioning walkthrough</span><span class="chip c-warn">62d old</span></div>
+      </div>
+
+      <div class="blk">
+        <div class="bh">Determination<span class="act">Dana Whitlock · Aug 24</span></div>
+        <div class="prose">Sampled twelve accounts across the three hosts against the August IAM export. Provisioning path and the two declared local accounts both check out.</div>
+      </div>
+
+      <div class="disc"><span class="car">▸</span>Provider<span class="hint">Corporate identity provider · Hybrid · 2 residual obligations</span></div>
+      <div class="disc"><span class="car">▸</span>Currency<span class="hint">Invalidated by CHG-0042 — idp-core 24.0.4 upgrade</span></div>
+      <div class="disc"><span class="car">▸</span>Catalog<span class="hint">Statement, 11 objectives, 4 parameters</span></div>
+      <div class="disc"><span class="car">▸</span>History<span class="hint">5 events</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ B ═══════════════════════════════ -->
+<div class="opthead"><span class="k">B</span><h3>One dense matrix — facets on top, rows expand in place</h3></div>
+<p class="verdict">No split. Closest to the SCTM artifact people actually export, and the highest row density. But the work surface is cramped — writing a narrative inside an expanded table row is genuinely bad.</p>
+
+<div class="eq">
+  <div class="bar">
+    <div class="crumb">Programs / Orbital Ground Terminal</div>
+    <div class="idrow">
+      <div>
+        <div style="display:flex;align-items:baseline;gap:9px">
+          <span class="mono m">PRG-1041</span><span class="ttl">Controls</span>
+        </div>
+        <div class="states">
+          <span class="st"><span class="stl">In scope</span><span class="chip c-neu num">372</span></span>
+          <span class="st"><span class="stl">Satisfied</span><span class="chip c-ok num">68%</span></span>
+          <span class="st"><span class="stl">Deficient</span><span class="chip c-bad num">14</span></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex:none">
+        <span class="btn">Role: SSE ⌄</span><span class="btn pri">Export SCTM ⌄</span>
+      </div>
+    </div>
+    <div class="tabs"><span class="tab">Overview</span><span class="tab on">Controls</span><span class="tab">Systems</span><span class="tab">Requirements</span><span class="tab">Findings</span><span class="tab">Evidence</span><span class="tab">POA&amp;M</span></div>
+  </div>
+
+  <div style="padding:9px 14px 12px">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <div class="srch" style="width:190px">⌕ Search controls</div>
+      <div class="grain" style="margin:0;width:230px"><span class="on">Controls 372</span><span>Requirements 1,842</span></div>
+      <div class="facets" style="margin:0">
+        <span class="facet on">Yours<b>12</b></span><span class="facet">Unassigned<b>88</b></span>
+        <span class="facet">Deficient<b>14</b></span><span class="facet">Inherited<b>84</b></span>
+        <span class="facet">Invalidated<b>9</b></span>
+      </div>
+      <span class="btn" style="margin-left:auto">Family: All ⌄</span>
+    </div>
+
+    <table>
+      <thead><tr><th style="width:74px">Control</th><th>Title</th><th style="width:96px">Implementation</th>
+        <th style="width:104px">Assessment</th><th style="width:80px">Scope</th><th style="width:110px">Origination</th>
+        <th style="width:64px">Reqs</th><th style="width:72px">Owner</th></tr></thead>
+      <tbody>
+        <tr><td><span class="mono bl">AC-2</span></td><td>Account Management</td>
+          <td><span class="chip c-inf">Implemented</span></td><td><span class="chip c-ok">Satisfied</span></td>
+          <td class="mono m">SYS-0001</td><td class="m">Hybrid</td><td class="num m">4</td><td class="m">Priya</td></tr>
+        <tr class="sel"><td><span class="mono bl">AC-4</span></td><td>Information Flow Enforcement</td>
+          <td><span class="chip c-inf">Implemented</span></td><td><span class="chip c-bad">Other than sat.</span></td>
+          <td class="mono m">SYS-0002</td><td class="m">System</td><td class="num m">7</td><td class="m">Sarah</td></tr>
+        <tr class="exp sel"><td></td><td colspan="7">
+          <div style="display:flex;gap:18px;flex-wrap:wrap;padding:2px 0 4px">
+            <span>narrative <b>rev 2</b></span><span>evidence <span class="mono bl">EVD-8712</span></span>
+            <span>7 requirements · 3 allocated</span><span>POA&amp;M <span class="mono bl">PM-0318</span></span>
+            <span class="c-bad" style="padding:0">2 open findings</span>
+          </div>
+          <div style="border:1px solid var(--bd2);border-radius:5px;padding:5px 6px;background:#fff;color:#2b3038">
+            Cross-domain flows between the mission enclave and the ground segment traverse the SDG-3100 guard; the
+            guard ruleset has not yet been extended to the new telemetry channel added under CHG-0042.</div>
+        </td></tr>
+        <tr><td><span class="mono bl">AC-11</span></td><td>Device Lock</td>
+          <td><span class="chip c-inf">Implemented</span></td><td><span class="chip c-warn">With assessor</span></td>
+          <td class="mono m">SYS-0001</td><td class="m">System</td><td class="num m">3</td><td class="m">Priya</td></tr>
+        <tr><td><span class="mono bl">AU-4(1)</span></td><td>Transfer to Alternate Storage</td>
+          <td><span class="chip c-neu">Planned</span></td><td><span class="chip c-neu">Not assessed</span></td>
+          <td class="mono m">SYS-0003</td><td class="m">System</td><td class="num m">2</td><td class="m">Priya</td></tr>
+        <tr><td><span class="mono bl">CP-9</span></td><td>System Backup</td>
+          <td><span class="chip c-inf">Implemented</span></td><td><span class="chip c-neu">Not assessed</span></td>
+          <td class="mono m">SYS-0001</td><td class="m">Hybrid</td><td class="num m">5</td><td class="m">Priya</td></tr>
+        <tr><td><span class="mono bl">SC-7</span></td><td>Boundary Protection</td>
+          <td><span class="chip c-inf">Implemented</span></td><td><span class="chip c-ok">Satisfied</span></td>
+          <td class="mono m">SYS-0002</td><td class="m">Inherited</td><td class="num m">9</td><td class="m">Sarah</td></tr>
+        <tr><td><span class="mono bl">SC-40</span></td><td>Wireless Link Protection</td>
+          <td><span class="chip c-neu">Planned</span></td><td><span class="chip c-neu">Not assessed</span></td>
+          <td class="mono m">SYS-0003</td><td class="m">System</td><td class="num m">3</td><td class="m">Marcus</td></tr>
+        <tr><td><span class="mono bl">SI-7</span></td><td>Software &amp; Firmware Integrity</td>
+          <td><span class="chip c-inf">Implemented</span></td><td><span class="chip c-neu">Not assessed</span></td>
+          <td class="mono m">SYS-0003</td><td class="m">System</td><td class="num m">6</td><td class="m">Marcus</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ C ═══════════════════════════════ -->
+<div class="opthead"><span class="k">C</span><h3>Queue first — what you owe today, matrix as a sibling mode</h3></div>
+<p class="verdict">Strongest answer to "stop building read-only projections". But it buries both "where does the program stand" and "prove nothing was missed" behind a mode switch, and the buckets change shape per role — so two people describing the same tab describe different pages.</p>
+
+<div class="eq">
+  <div class="bar">
+    <div class="crumb">Programs / Orbital Ground Terminal</div>
+    <div class="idrow">
+      <div>
+        <div style="display:flex;align-items:baseline;gap:9px">
+          <span class="mono m">PRG-1041</span><span class="ttl">Controls</span>
+        </div>
+        <div class="states">
+          <span class="st"><span class="stl">Yours</span><span class="chip c-inf num">12</span></span>
+          <span class="st"><span class="stl">Blocked</span><span class="chip c-bad num">3</span></span>
+          <span class="st"><span class="stl">In scope</span><span class="chip c-neu num">372</span></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex:none">
+        <span class="btn">Role: SSE ⌄</span><span class="btn pri">Export SCTM ⌄</span>
+      </div>
+    </div>
+    <div class="tabs"><span class="tab">Overview</span><span class="tab on">Controls</span><span class="tab">Systems</span><span class="tab">Requirements</span><span class="tab">Findings</span><span class="tab">Evidence</span><span class="tab">POA&amp;M</span></div>
+  </div>
+
+  <div style="padding:9px 14px 14px">
+    <div class="grain" style="width:330px;margin:0 0 4px"><span class="on">Your queue 12</span><span>All controls 372</span><span>Requirements 1,842</span></div>
+
+    <div class="qh" style="border-top:0">Needs an implementation <span class="n">2</span></div>
+    <div class="row"><span class="dot d-neu"></span><span class="mono bl" style="width:56px">SC-40</span>
+      <span style="flex:1">Wireless Link Protection</span><span class="mono m">SYS-0003</span>
+      <span class="m">Marcus Ryde</span><span class="chip c-warn num">14d idle</span></div>
+    <div class="row"><span class="dot d-neu"></span><span class="mono bl" style="width:56px">AU-4(1)</span>
+      <span style="flex:1">Transfer to Alternate Storage</span><span class="mono m">SYS-0003</span>
+      <span class="m">Priya Raghavan</span><span class="chip c-neu num">3d idle</span></div>
+
+    <div class="qh">Needs evidence before it can be submitted <span class="n">2</span></div>
+    <div class="row"><span class="dot d-inf"></span><span class="mono bl" style="width:56px">CP-9</span>
+      <span style="flex:1">System Backup</span><span class="mono m">SYS-0001</span>
+      <span class="m">Priya Raghavan</span><span class="chip c-warn">0 evidence</span></div>
+    <div class="row"><span class="dot d-inf"></span><span class="mono bl" style="width:56px">SI-7</span>
+      <span style="flex:1">Software &amp; Firmware Integrity</span><span class="mono m">SYS-0003</span>
+      <span class="m">Marcus Ryde</span><span class="chip c-warn">0 evidence</span></div>
+
+    <div class="qh">With the assessor <span class="n">1</span></div>
+    <div class="row"><span class="dot d-warn"></span><span class="mono bl" style="width:56px">AC-11</span>
+      <span style="flex:1">Device Lock</span><span class="mono m">SYS-0001</span>
+      <span class="m">Dana Whitlock</span><span class="chip c-neu num">6d waiting</span></div>
+
+    <div class="qh">Came back deficient <span class="n">1</span></div>
+    <div class="row"><span class="dot d-bad"></span><span class="mono bl" style="width:56px">AC-4</span>
+      <span style="flex:1">Information Flow Enforcement</span><span class="mono m">SYS-0002</span>
+      <span class="m">Sarah Chen</span><span class="chip c-bad">POA&amp;M PM-0318</span></div>
+
+    <div class="qh">Determination invalidated by a change <span class="n">1</span></div>
+    <div class="row"><span class="dot d-warn"></span><span class="mono bl" style="width:56px">AC-2</span>
+      <span style="flex:1">Account Management</span><span class="mono m">SYS-0001</span>
+      <span class="m">Priya Raghavan</span><span class="chip c-warn">CHG-0042</span></div>
+  </div>
+</div>
+
+<div class="picker">
+  <h3>Which shape do we build?</h3>
+  <div class="options">
+    <div class="option" data-choice="a" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content"><h3>WorkPane</h3>
+        <p>List stays, work on the right. Family rollup becomes navigation; SCTM is a grain toggle; inheritance and currency are disclosures on the control.</p></div>
+    </div>
+    <div class="option" data-choice="b" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content"><h3>Dense matrix with inline expand</h3>
+        <p>One full-width table, facets on top, rows expand in place. Densest and closest to the export artifact, worst place to actually write a narrative.</p></div>
+    </div>
+    <div class="option" data-choice="c" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content"><h3>Queue first</h3>
+        <p>Role-shaped buckets of what you owe today; the full set and the requirement grain are sibling modes.</p></div>
+    </div>
+    <div class="option" data-choice="ac" onclick="toggleSelect(this)">
+      <div class="letter">A+C</div>
+      <div class="content"><h3>WorkPane, but the empty pane is the queue</h3>
+        <p>Shape A exactly — except before you pick a control, the right side is C's bucketed list rather than a flat blocker table. One page, both jobs, no mode switch.</p></div>
+    </div>
+  </div>
+</div>
