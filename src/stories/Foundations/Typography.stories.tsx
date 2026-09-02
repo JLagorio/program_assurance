@@ -39,22 +39,22 @@ const roles: { role: string; where: string; cls: string; spec: string; sample: s
   {
     role: "Modal title",
     where: "Modal",
-    cls: "text-[15px] font-semibold tracking-[-0.01em]",
-    spec: "15 · 600 · −0.01em",
+    cls: "text-[15px] font-medium tracking-[-0.01em]",
+    spec: "15 · 500 · −0.01em",
     sample: "Submit for authorization",
   },
   {
     role: "Card title",
     where: "CardHeader, Drawer",
-    cls: "text-[14px] font-semibold tracking-[-0.01em]",
-    spec: "14 · 600 · −0.01em",
+    cls: "text-[14px] font-medium tracking-[-0.01em]",
+    spec: "14 · 500 · −0.01em",
     sample: "Control status",
   },
   {
     role: "Section title",
     where: "Section, Block, Disclosure",
-    cls: "text-[13px] font-semibold tracking-[-0.005em]",
-    spec: "13 · 600 · −0.005em",
+    cls: "text-[13px] font-medium tracking-[-0.005em]",
+    spec: "13 · 500 · −0.005em",
     sample: "Implementation narrative",
   },
   {
@@ -88,8 +88,8 @@ const roles: { role: string; where: string; cls: string; spec: string; sample: s
   {
     role: "Eyebrow",
     where: "Inspector, sidebar groups",
-    cls: "text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80",
-    spec: "11 · 600 · caps · +0.06em",
+    cls: "text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground/80",
+    spec: "11 · 500 · caps · +0.06em",
     sample: "Ownership",
   },
   {
@@ -112,7 +112,7 @@ export const Roles: Story = {
   render: () => (
     <Sheet
       title="Typography"
-      lede="Inter for everything, JetBrains Mono for identifiers. Body is 13px; UI text runs smaller than web defaults. Each row is rendered with the app's own classes."
+      lede="Inter for everything, JetBrains Mono for identifiers. Body is 13px; UI text runs smaller than web defaults. Each row is rendered with the app's own classes. Weight 500 for every UI heading; 600 only for page and record titles."
     >
       <div className="divide-y divide-border-subtle">
         {roles.map((r) => (

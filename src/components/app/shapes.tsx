@@ -233,7 +233,7 @@ export function Inspector({ groups, footer }: { groups: InspectorGroup[]; footer
       <div className="space-y-4">
         {groups.map((g) => (
           <section key={g.title}>
-            <div className="pb-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
+            <div className="pb-1 text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground/80">
               {g.title}
             </div>
             <dl className="space-y-[3px]">
@@ -289,7 +289,7 @@ export function Disclosure({
             open ? "" : "-rotate-90",
           )}
         />
-        <span className="text-[13px] font-semibold tracking-[-0.005em]">{title}</span>
+        <span className="text-[13px] font-medium tracking-[-0.005em]">{title}</span>
         {count !== undefined && count !== null && count !== 0 ? (
           <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
             {count}
@@ -319,7 +319,7 @@ export function Block({
   return (
     <section className="border-t border-border pt-2.5">
       <div className="flex min-h-7 items-center gap-2">
-        <h2 className="text-[13px] font-semibold tracking-[-0.005em]">{title}</h2>
+        <h2 className="text-[13px] font-medium tracking-[-0.005em]">{title}</h2>
         {count !== undefined && count !== null && count !== 0 ? (
           <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
             {count}

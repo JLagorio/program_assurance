@@ -182,7 +182,7 @@ export function Section({
     <section className={className}>
       <div className="flex items-center justify-between gap-4 border-b border-border pb-2">
         <div className="min-w-0">
-          <h2 className="text-[13px] font-semibold tracking-[-0.005em]">{title}</h2>
+          <h2 className="text-[13px] font-medium tracking-[-0.005em]">{title}</h2>
           {description ? (
             <p className="mt-0.5 text-[12px] text-muted-foreground">{description}</p>
           ) : null}
@@ -213,7 +213,7 @@ export function CardHeader({
       )}
     >
       <div className="min-w-0">
-        <h2 className="text-[14px] font-semibold tracking-[-0.01em]">{title}</h2>
+        <h2 className="text-[14px] font-medium tracking-[-0.01em]">{title}</h2>
         {description ? (
           <p className="mt-0.5 text-[13px] text-muted-foreground">{description}</p>
         ) : null}
@@ -348,7 +348,7 @@ export function PreviewRail({
           Close
         </button>
       </div>
-      {title ? <h2 className="mt-1.5 text-[13.5px] font-semibold leading-snug">{title}</h2> : null}
+      {title ? <h2 className="mt-1.5 text-[13.5px] font-medium leading-snug">{title}</h2> : null}
       {openTo ? <div className="mt-1.5 text-[12.5px]">{openTo}</div> : null}
       <div className="mt-3">{children}</div>
     </aside>
@@ -506,7 +506,7 @@ export function RailGroup({
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className="group inline-flex items-center gap-1 text-[13px] font-semibold text-foreground"
+          className="group inline-flex items-center gap-1 text-[13px] font-medium text-foreground"
           aria-expanded={open}
         >
           {title}
@@ -811,7 +811,7 @@ export function Modal({
       >
         <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-3.5">
           <div className="min-w-0">
-            <h2 className="text-[15px] font-semibold tracking-[-0.01em]">{title}</h2>
+            <h2 className="text-[15px] font-medium tracking-[-0.01em]">{title}</h2>
             {description ? (
               <p className="mt-0.5 text-[13px] text-muted-foreground">{description}</p>
             ) : null}
@@ -864,7 +864,7 @@ export function RelatedCard({
   return (
     <div className="flex flex-col overflow-hidden rounded-lg border border-border bg-card">
       <div className="flex h-9 items-center gap-2 border-b border-border px-3">
-        <span className="truncate text-[12.5px] font-semibold">{title}</span>
+        <span className="truncate text-[12.5px] font-medium">{title}</span>
         {typeof count === "number" ? (
           <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
             {count}
@@ -1181,7 +1181,7 @@ export function Drawer({
       >
         <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
           <div className="min-w-0">
-            <h2 className="truncate text-[14px] font-semibold tracking-[-0.01em]">{title}</h2>
+            <h2 className="truncate text-[14px] font-medium tracking-[-0.01em]">{title}</h2>
             {subtitle ? (
               <p className="mt-0.5 truncate text-12 text-muted-foreground">{subtitle}</p>
             ) : null}

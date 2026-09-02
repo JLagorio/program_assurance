@@ -85,7 +85,7 @@ function Sidebar() {
       <div className="flex h-14 items-center gap-2.5 px-4">
         <Logo />
         <div className="min-w-0 leading-tight">
-          <div className="truncate text-[13px] font-semibold tracking-[-0.01em]">Equinox</div>
+          <div className="truncate text-[13px] font-medium tracking-[-0.01em]">Equinox</div>
           <div className="truncate text-[12px] text-muted-foreground">Northwind Corp</div>
         </div>
         <ChevronDown className="ml-auto size-3.5 text-muted-foreground" />
@@ -94,7 +94,7 @@ function Sidebar() {
       <nav className="flex-1 overflow-y-auto px-2.5 pb-4">
         {navGroups.map((group) => (
           <div key={group.label} className="mb-4">
-            <div className="px-2.5 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
+            <div className="px-2.5 pb-1 pt-2 text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground/80">
               {group.label}
             </div>
             <div className="space-y-px">
