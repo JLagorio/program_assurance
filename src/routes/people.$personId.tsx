@@ -121,97 +121,97 @@ function PersonDetail() {
           </>
         }
       >
-            <Section
-              title="Workstreams"
-              description="Everything this person is committed to, and what they do on it."
-            >
-              <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "104px" }} />
-                  <col />
-                  <col style={{ width: "200px" }} />
-                  <col style={{ width: "92px" }} />
-                  <col style={{ width: "88px" }} />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <Th>Workstream</Th>
-                    <Th>Title</Th>
-                    <Th>Role</Th>
-                    <Th>Status</Th>
-                    <Th className="text-right">Allocation</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {streams.map((w) => {
-                    const m = w.members.find((x) => x.person === person.id);
-                    return (
-                      <Tr key={w.id}>
-                        <Td>
-                          <Link
-                            to="/workstreams/$workstreamId"
-                            params={{ workstreamId: w.id }}
-                            className="text-primary hover:underline"
-                          >
-                            <Mono>{w.id}</Mono>
-                          </Link>
-                        </Td>
-                        <Td className="truncate font-medium">{w.title}</Td>
-                        <Td className="truncate text-muted-foreground">
-                          {m?.role ?? (w.lead === person.id ? "Workstream lead" : "—")}
-                        </Td>
-                        <Td>
-                          <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
-                        </Td>
-                        <Td className="tnum text-right text-muted-foreground">
-                          {m ? `${m.allocation}%` : "—"}
-                        </Td>
-                      </Tr>
-                    );
-                  })}
-                </tbody>
-              </Table>
-            </Section>
+        <Section
+          title="Workstreams"
+          description="Everything this person is committed to, and what they do on it."
+        >
+          <Table className="table-fixed">
+            <colgroup>
+              <col style={{ width: "104px" }} />
+              <col />
+              <col style={{ width: "200px" }} />
+              <col style={{ width: "92px" }} />
+              <col style={{ width: "88px" }} />
+            </colgroup>
+            <thead>
+              <tr>
+                <Th>Workstream</Th>
+                <Th>Title</Th>
+                <Th>Role</Th>
+                <Th>Status</Th>
+                <Th className="text-right">Allocation</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {streams.map((w) => {
+                const m = w.members.find((x) => x.person === person.id);
+                return (
+                  <Tr key={w.id}>
+                    <Td>
+                      <Link
+                        to="/workstreams/$workstreamId"
+                        params={{ workstreamId: w.id }}
+                        className="text-primary hover:underline"
+                      >
+                        <Mono>{w.id}</Mono>
+                      </Link>
+                    </Td>
+                    <Td className="truncate font-medium">{w.title}</Td>
+                    <Td className="truncate text-muted-foreground">
+                      {m?.role ?? (w.lead === person.id ? "Workstream lead" : "—")}
+                    </Td>
+                    <Td>
+                      <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
+                    </Td>
+                    <Td className="tnum text-right text-muted-foreground">
+                      {m ? `${m.allocation}%` : "—"}
+                    </Td>
+                  </Tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        </Section>
 
-            <Section
-              title="Works with"
-              description="People sharing at least one workstream — the coordination surface, not the org chart."
-            >
-              <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "104px" }} />
-                  <col style={{ width: "176px" }} />
-                  <col />
-                  <col style={{ width: "156px" }} />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <Th>Person</Th>
-                    <Th>Name</Th>
-                    <Th>Title</Th>
-                    <Th>Discipline</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {collaborators.map((c) => (
-                    <Tr key={c.id}>
-                      <Td>
-                        <Link
-                          to="/people/$personId"
-                          params={{ personId: c.id }}
-                          className="text-primary hover:underline"
-                        >
-                          <Mono>{c.id}</Mono>
-                        </Link>
-                      </Td>
-                      <Td className="truncate font-medium">{c.name}</Td>
-                      <Td className="truncate text-muted-foreground">{c.title}</Td>
-                      <Td className="truncate text-muted-foreground">{c.discipline}</Td>
-                    </Tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Section>
+        <Section
+          title="Works with"
+          description="People sharing at least one workstream — the coordination surface, not the org chart."
+        >
+          <Table className="table-fixed">
+            <colgroup>
+              <col style={{ width: "104px" }} />
+              <col style={{ width: "176px" }} />
+              <col />
+              <col style={{ width: "156px" }} />
+            </colgroup>
+            <thead>
+              <tr>
+                <Th>Person</Th>
+                <Th>Name</Th>
+                <Th>Title</Th>
+                <Th>Discipline</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {collaborators.map((c) => (
+                <Tr key={c.id}>
+                  <Td>
+                    <Link
+                      to="/people/$personId"
+                      params={{ personId: c.id }}
+                      className="text-primary hover:underline"
+                    >
+                      <Mono>{c.id}</Mono>
+                    </Link>
+                  </Td>
+                  <Td className="truncate font-medium">{c.name}</Td>
+                  <Td className="truncate text-muted-foreground">{c.title}</Td>
+                  <Td className="truncate text-muted-foreground">{c.discipline}</Td>
+                </Tr>
+              ))}
+            </tbody>
+          </Table>
+        </Section>
       </ShowPage>
     </Shell>
   );

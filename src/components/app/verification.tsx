@@ -127,17 +127,15 @@ export function VerificationSection({ programName }: { programName: string }) {
                     : "No blocking findings — IATT package is clean"}
                 </p>
                 <p className="mt-0.5 text-[12.5px] text-muted-foreground">
-                  {blocking} failing check{blocking === 1 ? "" : "s"} · {atRisk} at risk ·{" "}
-                  {passing} of {scaChecks.length} passing. TRR is{" "}
+                  {blocking} failing check{blocking === 1 ? "" : "s"} · {atRisk} at risk · {passing}{" "}
+                  of {scaChecks.length} passing. TRR is{" "}
                   {daysBetween("Aug 27, 2026", "Sep 18, 2026")} days out.
                 </p>
               </div>
             </div>
             <div className="flex w-[180px] shrink-0 items-center gap-2">
               <Meter value={readiness} tone={blocking > 0 ? "danger" : "success"} />
-              <span className="tabular-nums text-[12.5px] text-muted-foreground">
-                {readiness}%
-              </span>
+              <span className="tabular-nums text-[12.5px] text-muted-foreground">{readiness}%</span>
             </div>
           </div>
 
@@ -194,7 +192,14 @@ export function VerificationSection({ programName }: { programName: string }) {
         >
           <dl className="mt-3 grid gap-x-8 gap-y-3 border-b border-border pb-3.5 sm:grid-cols-3 lg:grid-cols-6">
             {[
-              { label: "IATT status", value: (<span className="inline-flex items-center gap-1.5"><Dot tone="warning" /> {iatt.status}</span>) },
+              {
+                label: "IATT status",
+                value: (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Dot tone="warning" /> {iatt.status}
+                  </span>
+                ),
+              },
               { label: "Requested", value: iatt.requested },
               { label: "Decision target", value: iatt.decisionTarget },
               { label: "Effective", value: iatt.effective },
@@ -203,7 +208,9 @@ export function VerificationSection({ programName }: { programName: string }) {
             ].map((f) => (
               <div key={f.label} className="min-w-0">
                 <dt className="truncate text-[12px] text-muted-foreground">{f.label}</dt>
-                <dd className="mt-0.5 truncate text-[12.5px] font-medium tabular-nums">{f.value}</dd>
+                <dd className="mt-0.5 truncate text-[12.5px] font-medium tabular-nums">
+                  {f.value}
+                </dd>
               </div>
             ))}
           </dl>
@@ -305,7 +312,9 @@ export function VerificationSection({ programName }: { programName: string }) {
                     <Badge tone={ingestTone[i.status]}>{i.status}</Badge>
                   </Td>
                   <Td className="text-right tabular-nums">
-                    <span className={i.catI > 0 ? "font-medium text-danger" : "text-muted-foreground"}>
+                    <span
+                      className={i.catI > 0 ? "font-medium text-danger" : "text-muted-foreground"}
+                    >
                       {i.catI}
                     </span>
                     <span className="text-border"> / </span>
@@ -367,11 +376,7 @@ export function VerificationSection({ programName }: { programName: string }) {
             </thead>
             <tbody>
               {rows.map((f) => (
-                <Tr
-                  key={f.id}
-                  className="cursor-pointer"
-                  onClick={() => setOpenFinding(f)}
-                >
+                <Tr key={f.id} className="cursor-pointer" onClick={() => setOpenFinding(f)}>
                   <Td>
                     <span className="flex items-center gap-1.5">
                       <Dot tone={severityTone[f.severity]} />
@@ -509,11 +514,7 @@ function FindingModal({
           </Field>
         </div>
         <Field label="Mitigation / assessor response">
-          <Textarea
-            rows={4}
-            value={mitigation}
-            onChange={(e) => setMitigation(e.target.value)}
-          />
+          <Textarea rows={4} value={mitigation} onChange={(e) => setMitigation(e.target.value)} />
         </Field>
       </div>
     </Modal>
@@ -560,7 +561,7 @@ function IngestModal({
             Ingest preview
           </p>
           <pre className="whitespace-pre-wrap break-words font-mono text-[11.5px] leading-[1.6] text-muted-foreground">
-{`parser: ${parser}
+            {`parser: ${parser}
 artifact: ${artifact || "<no file selected>"}
 asset: ${asset}
 pipeline:

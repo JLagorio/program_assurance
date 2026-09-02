@@ -96,7 +96,9 @@ export function DigitalThreadSection({
   function setEvidenceStatus(id: string, next: EvidenceStatus) {
     setEvidence((prev) =>
       prev.map((e) =>
-        e.id === id ? { ...e, status: next, reviewer: next === "Accepted" ? "Sarah Chen" : e.reviewer } : e,
+        e.id === id
+          ? { ...e, status: next, reviewer: next === "Accepted" ? "Sarah Chen" : e.reviewer }
+          : e,
       ),
     );
     setOpenEvidence(null);
@@ -104,7 +106,9 @@ export function DigitalThreadSection({
 
   function saveRule(next: MappingRule) {
     setRules((prev) =>
-      prev.some((r) => r.id === next.id) ? prev.map((r) => (r.id === next.id ? next : r)) : [next, ...prev],
+      prev.some((r) => r.id === next.id)
+        ? prev.map((r) => (r.id === next.id ? next : r))
+        : [next, ...prev],
     );
     setEditingRule(null);
     setCreatingRule(false);
@@ -230,7 +234,11 @@ export function DigitalThreadSection({
                   <Td className="w-[92px]">
                     <Badge
                       tone={
-                        r.confidence === "High" ? "success" : r.confidence === "Medium" ? "info" : "warning"
+                        r.confidence === "High"
+                          ? "success"
+                          : r.confidence === "Medium"
+                            ? "info"
+                            : "warning"
                       }
                     >
                       {r.confidence}
@@ -425,7 +433,10 @@ function RuleModal({
             </Select>
           </Field>
         </div>
-        <Field label="Match expression" hint="JQL fragment, path glob, commit trailer or stereotype.">
+        <Field
+          label="Match expression"
+          hint="JQL fragment, path glob, commit trailer or stereotype."
+        >
           <Input
             value={draft.match}
             placeholder="sec:mfa OR component = Identity"
@@ -433,7 +444,11 @@ function RuleModal({
           />
         </Field>
         <Field label="Mapped controls" hint="Comma separated NIST SP 800-53 Rev. 5 control IDs.">
-          <Input value={controls} placeholder="IA-2, IA-2(1)" onChange={(e) => setControls(e.target.value)} />
+          <Input
+            value={controls}
+            placeholder="IA-2, IA-2(1)"
+            onChange={(e) => setControls(e.target.value)}
+          />
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Confidence">
@@ -538,7 +553,10 @@ function EvidenceModal({
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Status">
-            <Select value={evidence.status} onChange={(e) => onStatus(evidence.id, e.target.value as EvidenceStatus)}>
+            <Select
+              value={evidence.status}
+              onChange={(e) => onStatus(evidence.id, e.target.value as EvidenceStatus)}
+            >
               <option>Auto-mapped</option>
               <option>Needs review</option>
               <option>Accepted</option>
@@ -597,7 +615,9 @@ export function CdrPackageModal({
             Package summary
           </p>
           <div className="mt-2">
-            <KeyValue label="Sections">{selected.length} of {sspSections.length}</KeyValue>
+            <KeyValue label="Sections">
+              {selected.length} of {sspSections.length}
+            </KeyValue>
             <KeyValue label="Controls">{controls}</KeyValue>
             <KeyValue label="Artifacts">{artifacts}</KeyValue>
             <KeyValue label="Format">{format}</KeyValue>
@@ -616,8 +636,8 @@ export function CdrPackageModal({
             </p>
           ) : (
             <p className="mt-3 border-t border-border pt-3 text-[12.5px] leading-relaxed text-muted-foreground">
-              All selected sections are review-ready. The package compiles architecture drawings, SysML
-              exports and accepted implementation statements into a government-ready SSP.
+              All selected sections are review-ready. The package compiles architecture drawings,
+              SysML exports and accepted implementation statements into a government-ready SSP.
             </p>
           )}
           {generated ? (
@@ -664,7 +684,9 @@ export function CdrPackageModal({
                 <Td className="font-medium" title={s.description}>
                   {s.name}
                 </Td>
-                <Td className="tnum w-[76px] text-right text-muted-foreground">{s.controls || "—"}</Td>
+                <Td className="tnum w-[76px] text-right text-muted-foreground">
+                  {s.controls || "—"}
+                </Td>
                 <Td className="tnum w-[76px] text-right text-muted-foreground">{s.evidence}</Td>
                 <Td className="w-[104px]">
                   <Badge tone={s.ready ? "success" : "warning"}>{s.ready ? "Ready" : "Gaps"}</Badge>

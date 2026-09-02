@@ -60,7 +60,6 @@ function StigLibrary() {
           />
         }
       >
-
         <Section
           title="Benchmarks"
           description={

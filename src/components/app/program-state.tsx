@@ -15,7 +15,6 @@ import type { ProgramState, Stage } from "@/lib/program-stage";
 import { stages } from "@/lib/program-stage";
 import type { NextAction, Posture } from "@/lib/program-actions";
 
-
 export function LifecycleBar({
   state,
   selected,
@@ -242,7 +241,6 @@ export function OpenWorkSection({
     </Section>
   );
 }
-
 
 export function LockedNotice({ stage, gate }: { stage: string; gate?: string | undefined }) {
   return (

@@ -64,12 +64,54 @@ const captures = [
 ];
 
 const files = [
-  { name: "iam_policy_export_2026-08-27.json", control: "CC6.1", collector: "Automated", size: "84 KB", added: "12 min ago", state: "Fresh" as const },
-  { name: "access_review_q3_signoff.pdf", control: "CC6.2", collector: "Dana Whitlock", size: "1.1 MB", added: "Aug 26", state: "Fresh" as const },
-  { name: "pentest_report_whitcombe.pdf", control: "CC4.1", collector: "Whitcombe LLP", size: "3.8 MB", added: "Aug 22", state: "Fresh" as const },
-  { name: "facility_badge_logs_useast2.csv", control: "A.7.2", collector: "Automated", size: "620 KB", added: "Aug 18", state: "Aging" as const },
-  { name: "training_completion_roster.xlsx", control: "A.6.3", collector: "Dana Whitlock", size: "212 KB", added: "Aug 15", state: "Aging" as const },
-  { name: "northwind_soc2_typeii_2025.pdf", control: "CC9.2", collector: "Vendor portal", size: "5.2 MB", added: "Jun 30", state: "Expired" as const },
+  {
+    name: "iam_policy_export_2026-08-27.json",
+    control: "CC6.1",
+    collector: "Automated",
+    size: "84 KB",
+    added: "12 min ago",
+    state: "Fresh" as const,
+  },
+  {
+    name: "access_review_q3_signoff.pdf",
+    control: "CC6.2",
+    collector: "Dana Whitlock",
+    size: "1.1 MB",
+    added: "Aug 26",
+    state: "Fresh" as const,
+  },
+  {
+    name: "pentest_report_whitcombe.pdf",
+    control: "CC4.1",
+    collector: "Whitcombe LLP",
+    size: "3.8 MB",
+    added: "Aug 22",
+    state: "Fresh" as const,
+  },
+  {
+    name: "facility_badge_logs_useast2.csv",
+    control: "A.7.2",
+    collector: "Automated",
+    size: "620 KB",
+    added: "Aug 18",
+    state: "Aging" as const,
+  },
+  {
+    name: "training_completion_roster.xlsx",
+    control: "A.6.3",
+    collector: "Dana Whitlock",
+    size: "212 KB",
+    added: "Aug 15",
+    state: "Aging" as const,
+  },
+  {
+    name: "northwind_soc2_typeii_2025.pdf",
+    control: "CC9.2",
+    collector: "Vendor portal",
+    size: "5.2 MB",
+    added: "Jun 30",
+    state: "Expired" as const,
+  },
 ];
 
 const stateTone = { Fresh: "success", Aging: "warning", Expired: "danger" } as const;

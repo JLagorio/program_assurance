@@ -64,7 +64,6 @@ function ScopeApprovals() {
           />
         }
       >
-
         <div className="flex items-center gap-4 border-b border-border">
           {filters.map((f) => {
             const count =

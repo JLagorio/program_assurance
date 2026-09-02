@@ -44,7 +44,6 @@ import {
   type FieldChange,
 } from "@/lib/poam-audit";
 
-
 const NOW = new Date("2026-08-27T13:28:00Z");
 
 const severityRank: Record<PoamSeverity, number> = {
@@ -96,7 +95,10 @@ function daysOut(iso: string) {
 function dueLabel(item: PoamItem) {
   const d = daysOut(item.scheduledCompletion);
   if (closedStatuses.includes(item.status))
-    return { text: formatOscalDate(item.scheduledCompletion), tone: null as null | "danger" | "warning" };
+    return {
+      text: formatOscalDate(item.scheduledCompletion),
+      tone: null as null | "danger" | "warning",
+    };
   if (d < 0) return { text: `${Math.abs(d)}d overdue`, tone: "danger" as const };
   if (d <= 30) return { text: `in ${d}d`, tone: "warning" as const };
   return { text: formatOscalDate(item.scheduledCompletion), tone: null };
@@ -137,7 +139,6 @@ export function PoamSection({
   const [editingUuid, setEditingUuid] = useState<string | null>(null);
   const [deletingUuid, setDeletingUuid] = useState<string | null>(null);
 
-
   const active = items.find((i) => i.uuid === activeUuid) ?? null;
   const editing = items.find((i) => i.uuid === editingUuid) ?? null;
   const deleting = items.find((i) => i.uuid === deletingUuid) ?? null;
@@ -145,7 +146,9 @@ export function PoamSection({
   const rows = useMemo(() => {
     let list = items;
     if (filter === "Overdue") {
-      list = list.filter((i) => !closedStatuses.includes(i.status) && daysOut(i.scheduledCompletion) < 0);
+      list = list.filter(
+        (i) => !closedStatuses.includes(i.status) && daysOut(i.scheduledCompletion) < 0,
+      );
     } else if (filter !== "All") {
       list = list.filter((i) => i.status === filter);
     }
@@ -183,7 +186,11 @@ export function PoamSection({
             </button>
           ))}
           <span className="ml-auto">
-            <FilterChip label="Hide closed" active={openOnly} onClick={() => setOpenOnly((v) => !v)} />
+            <FilterChip
+              label="Hide closed"
+              active={openOnly}
+              onClick={() => setOpenOnly((v) => !v)}
+            />
           </span>
         </div>
 
@@ -205,7 +212,11 @@ export function PoamSection({
               const due = dueLabel(i);
               const pct = milestoneProgress(i);
               return (
-                <Tr key={i.uuid} onClick={() => setActiveUuid(i.uuid)} className="group cursor-pointer">
+                <Tr
+                  key={i.uuid}
+                  onClick={() => setActiveUuid(i.uuid)}
+                  className="group cursor-pointer"
+                >
                   <Td className="w-[72px]">
                     <Mono>{i.poamId}</Mono>
                   </Td>
@@ -308,7 +319,11 @@ export function PoamSection({
                 <Td className="w-[84px]">
                   <Badge
                     tone={
-                      e.action === "Deleted" ? "danger" : e.action === "Created" ? "success" : "info"
+                      e.action === "Deleted"
+                        ? "danger"
+                        : e.action === "Created"
+                          ? "success"
+                          : "info"
                     }
                   >
                     {e.action}
@@ -325,10 +340,7 @@ export function PoamSection({
                       : e.action === "Deleted"
                         ? "Record removed"
                         : "No field changes"
-
-                    : e.changes
-                        .map((c) => `${c.field}: ${c.from} → ${c.to}`)
-                        .join("  ·  ")}
+                    : e.changes.map((c) => `${c.field}: ${c.from} → ${c.to}`).join("  ·  ")}
                 </Td>
               </Tr>
             ))}
@@ -395,7 +407,6 @@ export function PoamSection({
           setCreating(false);
         }}
       />
-
     </>
   );
 }
@@ -426,7 +437,11 @@ function PoamDetailModal({
       description={`${item.poamId} · ${item.controls.join(", ")} · ${item.origin}`}
       footer={
         <>
-          <Button variant="ghost" className="text-destructive hover:bg-destructive/10" onClick={onDelete}>
+          <Button
+            variant="ghost"
+            className="text-destructive hover:bg-destructive/10"
+            onClick={onDelete}
+          >
             <Trash2 className="size-3.5" /> Delete
           </Button>
           <span className="flex-1" />
@@ -473,7 +488,11 @@ function PoamDetailModal({
               </div>
               <div className="space-y-1 pt-2 text-[13px]">
                 {item.links.map((l) => (
-                  <Link key={l.href + l.rel} to={l.href} className="block truncate text-primary hover:underline">
+                  <Link
+                    key={l.href + l.rel}
+                    to={l.href}
+                    className="block truncate text-primary hover:underline"
+                  >
                     {l.text}
                   </Link>
                 ))}
@@ -492,7 +511,9 @@ function PoamDetailModal({
 
         <div>
           <div className="border-b border-border pb-2 text-[13px] font-semibold">Description</div>
-          <p className="pt-2 text-[13px] leading-relaxed text-muted-foreground">{item.description}</p>
+          <p className="pt-2 text-[13px] leading-relaxed text-muted-foreground">
+            {item.description}
+          </p>
           {item.remarks ? (
             <p className="pt-2 text-[13px] leading-relaxed text-muted-foreground">
               <span className="font-medium text-foreground">Remarks. </span>
@@ -505,13 +526,16 @@ function PoamDetailModal({
           <div className="flex items-center justify-between border-b border-border pb-2">
             <span className="text-[13px] font-semibold">Milestones</span>
             <span className="tnum text-[12px] text-muted-foreground">
-              {item.milestones.filter((m) => m.status === "Completed").length} of {item.milestones.length}{" "}
-              complete
+              {item.milestones.filter((m) => m.status === "Completed").length} of{" "}
+              {item.milestones.length} complete
             </span>
           </div>
           <ol className="pt-1">
             {item.milestones.map((m) => (
-              <li key={m.uuid} className="flex items-center gap-3 border-b border-border/70 py-2.5 last:border-0">
+              <li
+                key={m.uuid}
+                className="flex items-center gap-3 border-b border-border/70 py-2.5 last:border-0"
+              >
                 <Dot tone={milestoneStatusTone[m.status]} />
                 <Mono className="w-[42px] shrink-0">{m.id}</Mono>
                 <span className="min-w-0 flex-1 truncate text-[13px]">{m.title}</span>
@@ -540,7 +564,10 @@ function PoamDetailModal({
                 className="flex items-center gap-3 border-b border-border/70 py-2.5 last:border-0"
               >
                 <Badge tone="neutral">{o.method}</Badge>
-                <Link to={o.href} className="min-w-0 flex-1 truncate text-[13px] text-primary hover:underline">
+                <Link
+                  to={o.href}
+                  className="min-w-0 flex-1 truncate text-[13px] text-primary hover:underline"
+                >
                   {o.title}
                 </Link>
                 <Mono className="hidden shrink-0 text-[11px] text-muted-foreground sm:inline">
@@ -558,13 +585,18 @@ function PoamDetailModal({
         </div>
 
         <div>
-          <div className="border-b border-border pb-2 text-[13px] font-semibold">Associated risks</div>
+          <div className="border-b border-border pb-2 text-[13px] font-semibold">
+            Associated risks
+          </div>
           {item.associatedRisks.length === 0 ? (
             <p className="pt-2 text-[13px] text-muted-foreground">No risk exposure entry linked.</p>
           ) : (
             <ol className="pt-1">
               {item.associatedRisks.map((r) => (
-                <li key={r.riskUuid} className="flex items-center gap-3 border-b border-border/70 py-2.5 last:border-0">
+                <li
+                  key={r.riskUuid}
+                  className="flex items-center gap-3 border-b border-border/70 py-2.5 last:border-0"
+                >
                   <Mono className="w-[76px] shrink-0">{r.riskId}</Mono>
                   <Link
                     to="/risks/$riskId"
@@ -621,7 +653,6 @@ function PoamDetailModal({
           )}
         </div>
       </div>
-
     </Modal>
   );
 }
@@ -649,7 +680,9 @@ function PoamEditModal({
 
   const setMilestone = (uid: string, patch: Partial<Milestone>) =>
     setDraft((d) =>
-      d ? { ...d, milestones: d.milestones.map((m) => (m.uuid === uid ? { ...m, ...patch } : m)) } : d,
+      d
+        ? { ...d, milestones: d.milestones.map((m) => (m.uuid === uid ? { ...m, ...patch } : m)) }
+        : d,
     );
 
   const addMilestone = () =>
@@ -696,8 +729,7 @@ function PoamEditModal({
       .map((m) => ({
         ...m,
         title: m.title.trim(),
-        completedDate:
-          m.status === "Completed" ? (m.completedDate ?? m.targetDate) : null,
+        completedDate: m.status === "Completed" ? (m.completedDate ?? m.targetDate) : null,
       }));
     onSave({
       ...draft,
@@ -718,7 +750,11 @@ function PoamEditModal({
       description={`${item.poamId} · OSCAL poam-item · uuid preserved`}
       footer={
         <>
-          <Button variant="ghost" className="text-destructive hover:bg-destructive/10" onClick={onDelete}>
+          <Button
+            variant="ghost"
+            className="text-destructive hover:bg-destructive/10"
+            onClick={onDelete}
+          >
             <Trash2 className="size-3.5" /> Delete
           </Button>
           <span className="flex-1" />
@@ -751,8 +787,8 @@ function PoamEditModal({
             <KeyValue label="links">{item.links.length}</KeyValue>
           </dl>
           <p className="mt-4 text-[12px] leading-relaxed text-muted-foreground">
-            Editing changes the mutable assembly only. Identifiers, publication timestamp and structural
-            links stay bound so the item keeps its identity across OSCAL exports.
+            Editing changes the mutable assembly only. Identifiers, publication timestamp and
+            structural links stay bound so the item keeps its identity across OSCAL exports.
           </p>
         </div>
       }
@@ -762,7 +798,10 @@ function PoamEditModal({
           <Input autoFocus value={draft.title} onChange={(e) => set("title", e.target.value)} />
         </Field>
         <Field label="Description" hint="markup-multiline">
-          <Textarea value={draft.description} onChange={(e) => set("description", e.target.value)} />
+          <Textarea
+            value={draft.description}
+            onChange={(e) => set("description", e.target.value)}
+          />
         </Field>
         <Field label="Remarks" hint="markup-multiline — compensating controls, AO notes.">
           <Textarea value={draft.remarks} onChange={(e) => set("remarks", e.target.value)} />
@@ -784,14 +823,20 @@ function PoamEditModal({
             />
           </Field>
           <Field label="Severity">
-            <Select value={draft.severity} onChange={(e) => set("severity", e.target.value as PoamSeverity)}>
+            <Select
+              value={draft.severity}
+              onChange={(e) => set("severity", e.target.value as PoamSeverity)}
+            >
               {severities.map((s) => (
                 <option key={s}>{s}</option>
               ))}
             </Select>
           </Field>
           <Field label="Status">
-            <Select value={draft.status} onChange={(e) => set("status", e.target.value as PoamStatus)}>
+            <Select
+              value={draft.status}
+              onChange={(e) => set("status", e.target.value as PoamStatus)}
+            >
               {statuses.map((s) => (
                 <option key={s}>{s}</option>
               ))}
@@ -808,14 +853,22 @@ function PoamEditModal({
             />
           </Field>
           <Field label="Point of contact">
-            <Select value={draft.pointOfContact} onChange={(e) => set("pointOfContact", e.target.value)}>
-              {[draft.pointOfContact, ...contacts.filter((c) => c !== draft.pointOfContact)].map((c) => (
-                <option key={c}>{c}</option>
-              ))}
+            <Select
+              value={draft.pointOfContact}
+              onChange={(e) => set("pointOfContact", e.target.value)}
+            >
+              {[draft.pointOfContact, ...contacts.filter((c) => c !== draft.pointOfContact)].map(
+                (c) => (
+                  <option key={c}>{c}</option>
+                ),
+              )}
             </Select>
           </Field>
           <Field label="Detection source">
-            <Select value={draft.detectionSource} onChange={(e) => set("detectionSource", e.target.value)}>
+            <Select
+              value={draft.detectionSource}
+              onChange={(e) => set("detectionSource", e.target.value)}
+            >
               {[
                 draft.detectionSource,
                 ...detectionSources.filter((s) => s !== draft.detectionSource),
@@ -848,7 +901,9 @@ function PoamEditModal({
                 />
                 <Select
                   value={m.status}
-                  onChange={(e) => setMilestone(m.uuid, { status: e.target.value as MilestoneStatus })}
+                  onChange={(e) =>
+                    setMilestone(m.uuid, { status: e.target.value as MilestoneStatus })
+                  }
                 >
                   {milestoneStatuses.map((s) => (
                     <option key={s}>{s}</option>
@@ -967,9 +1022,9 @@ function PoamDeleteModal({
       <div className="space-y-3 text-[13px] leading-relaxed text-muted-foreground">
         <p>
           The poam-item and its {item.milestones.length} milestone
-          {item.milestones.length === 1 ? "" : "s"} are removed from the program&apos;s OSCAL POA&amp;M.
-          Related observations and the risk exposure entries stay in place — only the links from this item
-          are dropped.
+          {item.milestones.length === 1 ? "" : "s"} are removed from the program&apos;s OSCAL
+          POA&amp;M. Related observations and the risk exposure entries stay in place — only the
+          links from this item are dropped.
         </p>
         <dl className="border-t border-border pt-1">
           <KeyValue label="uuid">
@@ -1050,9 +1105,7 @@ function PoamCreateModal({
           ]
         : [],
       relatedObservations: [],
-      associatedRisks: riskId
-        ? [{ riskUuid: uuid(), riskId, title: `Linked risk ${riskId}` }]
-        : [],
+      associatedRisks: riskId ? [{ riskUuid: uuid(), riskId, title: `Linked risk ${riskId}` }] : [],
       links: [],
     };
     onCreate(item);
@@ -1121,7 +1174,8 @@ function PoamCreateModal({
             </div>
           </div>
           <p className="mt-4 text-[12px] leading-relaxed text-muted-foreground">
-            Saved entries serialize into the program&apos;s OSCAL POA&amp;M export alongside the SSP and SAR.
+            Saved entries serialize into the program&apos;s OSCAL POA&amp;M export alongside the SSP
+            and SAR.
           </p>
         </div>
       }
@@ -1135,7 +1189,10 @@ function PoamCreateModal({
             placeholder="Privileged function invocations are not forwarded to the audit sink"
           />
         </Field>
-        <Field label="Description" hint="markup-multiline — the weakness as it will read to the AO.">
+        <Field
+          label="Description"
+          hint="markup-multiline — the weakness as it will read to the AO."
+        >
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -1213,7 +1270,11 @@ function PoamCreateModal({
             />
           </Field>
           <Field label="Target date">
-            <Input type="date" value={milestoneDate} onChange={(e) => setMilestoneDate(e.target.value)} />
+            <Input
+              type="date"
+              value={milestoneDate}
+              onChange={(e) => setMilestoneDate(e.target.value)}
+            />
           </Field>
         </div>
       </div>

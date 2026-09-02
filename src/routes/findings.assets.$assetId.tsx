@@ -167,79 +167,77 @@ function AssetRecord() {
           </>
         }
       >
-            {anchor && tree ? (
-              <Section
-                title="Composition"
-                description={`${asset.name} is anchored at ${anchor.id}. Findings resolve to the exact hardware, firmware or software part beneath it, not to the host.`}
-              >
-                <div className="flex flex-wrap items-center gap-1 pb-3 pt-3 text-[12.5px]">
-                  {trail.map((n, i) => {
-                    const last = i === trail.length - 1;
-                    return (
-                      <span key={n.id} className="inline-flex items-center gap-1">
-                        {i > 0 ? <span className="text-muted-foreground">/</span> : null}
-                        <span className={last ? "font-medium" : "text-muted-foreground"}>
-                          {n.name}
-                        </span>
-                      </span>
-                    );
-                  })}
-                </div>
-                <BomTree root={tree} defaultExpandedDepth={2} />
-              </Section>
-            ) : null}
+        {anchor && tree ? (
+          <Section
+            title="Composition"
+            description={`${asset.name} is anchored at ${anchor.id}. Findings resolve to the exact hardware, firmware or software part beneath it, not to the host.`}
+          >
+            <div className="flex flex-wrap items-center gap-1 pb-3 pt-3 text-[12.5px]">
+              {trail.map((n, i) => {
+                const last = i === trail.length - 1;
+                return (
+                  <span key={n.id} className="inline-flex items-center gap-1">
+                    {i > 0 ? <span className="text-muted-foreground">/</span> : null}
+                    <span className={last ? "font-medium" : "text-muted-foreground"}>{n.name}</span>
+                  </span>
+                );
+              })}
+            </div>
+            <BomTree root={tree} defaultExpandedDepth={2} />
+          </Section>
+        ) : null}
 
-            <Section
-              title="Findings on this asset"
-              description={`${open} open of ${rows.length} raised. Every row joins to a CCI through its rule or procedure.`}
-            >
-              <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "112px" }} />
-                  <col />
-                  <col style={{ width: "104px" }} />
-                  <col style={{ width: "124px" }} />
-                  <col style={{ width: "78px" }} />
-                  <col style={{ width: "112px" }} />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <Th>Finding</Th>
-                    <Th>Title</Th>
-                    <Th>CCI</Th>
-                    <Th>Source</Th>
-                    <Th>Severity</Th>
-                    <Th>Lifecycle</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((f) => (
-                    <Tr key={f.id}>
-                      <Td>
-                        <Link
-                          to="/findings/$findingId"
-                          params={{ findingId: f.id }}
-                          className="hover:underline"
-                        >
-                          <Mono className="text-primary">{f.id}</Mono>
-                        </Link>
-                      </Td>
-                      <Td className="truncate">{f.title}</Td>
-                      <Td>
-                        <Mono className="text-muted-foreground">{f.cci}</Mono>
-                      </Td>
-                      <Td className="truncate text-muted-foreground">{f.source}</Td>
-                      <Td>
-                        <Badge tone={severityTone(f.mitigatedSeverity)}>{f.mitigatedSeverity}</Badge>
-                      </Td>
-                      <Td className="truncate">
-                        <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
-                      </Td>
-                    </Tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Section>
+        <Section
+          title="Findings on this asset"
+          description={`${open} open of ${rows.length} raised. Every row joins to a CCI through its rule or procedure.`}
+        >
+          <Table className="table-fixed">
+            <colgroup>
+              <col style={{ width: "112px" }} />
+              <col />
+              <col style={{ width: "104px" }} />
+              <col style={{ width: "124px" }} />
+              <col style={{ width: "78px" }} />
+              <col style={{ width: "112px" }} />
+            </colgroup>
+            <thead>
+              <tr>
+                <Th>Finding</Th>
+                <Th>Title</Th>
+                <Th>CCI</Th>
+                <Th>Source</Th>
+                <Th>Severity</Th>
+                <Th>Lifecycle</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((f) => (
+                <Tr key={f.id}>
+                  <Td>
+                    <Link
+                      to="/findings/$findingId"
+                      params={{ findingId: f.id }}
+                      className="hover:underline"
+                    >
+                      <Mono className="text-primary">{f.id}</Mono>
+                    </Link>
+                  </Td>
+                  <Td className="truncate">{f.title}</Td>
+                  <Td>
+                    <Mono className="text-muted-foreground">{f.cci}</Mono>
+                  </Td>
+                  <Td className="truncate text-muted-foreground">{f.source}</Td>
+                  <Td>
+                    <Badge tone={severityTone(f.mitigatedSeverity)}>{f.mitigatedSeverity}</Badge>
+                  </Td>
+                  <Td className="truncate">
+                    <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
+                  </Td>
+                </Tr>
+              ))}
+            </tbody>
+          </Table>
+        </Section>
       </ShowPage>
     </Shell>
   );

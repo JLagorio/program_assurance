@@ -41,7 +41,8 @@ export const Route = createFileRoute("/risks/$riskId")({
       { property: "og:title", content: `${loaderData?.id ?? "Risk"} — Equinox GRC` },
       {
         property: "og:description",
-        content: loaderData?.summary ?? "Risk detail, treatment plan, linked controls and evidence.",
+        content:
+          loaderData?.summary ?? "Risk detail, treatment plan, linked controls and evidence.",
       },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -51,10 +52,30 @@ export const Route = createFileRoute("/risks/$riskId")({
 });
 
 const timeline = [
-  { tone: "danger" as const, title: "Escalated to critical", time: "Aug 27, 09:41", actor: "Linus Aarto" },
-  { tone: "info" as const, title: "Evidence attached — scanner output", time: "Aug 26, 16:12", actor: "Continuous monitor" },
-  { tone: "warning" as const, title: "Treatment plan revised", time: "Aug 20, 10:02", actor: "Sarah Chen" },
-  { tone: "neutral" as const, title: "Risk opened from pentest finding", time: "Aug 12, 08:30", actor: "Whitcombe LLP" },
+  {
+    tone: "danger" as const,
+    title: "Escalated to critical",
+    time: "Aug 27, 09:41",
+    actor: "Linus Aarto",
+  },
+  {
+    tone: "info" as const,
+    title: "Evidence attached — scanner output",
+    time: "Aug 26, 16:12",
+    actor: "Continuous monitor",
+  },
+  {
+    tone: "warning" as const,
+    title: "Treatment plan revised",
+    time: "Aug 20, 10:02",
+    actor: "Sarah Chen",
+  },
+  {
+    tone: "neutral" as const,
+    title: "Risk opened from pentest finding",
+    time: "Aug 12, 08:30",
+    actor: "Whitcombe LLP",
+  },
 ];
 
 const linkedEvidence = [
@@ -102,7 +123,6 @@ function RiskDetail() {
         </div>
 
         <div className="grid grid-cols-1 gap-6 border-t border-border pt-5 xl:grid-cols-[minmax(0,1fr)_272px]">
-
           <div className="space-y-7">
             <Section title="Summary">
               <p className="pt-2.5 text-[13px] leading-relaxed">{risk.summary}</p>
@@ -147,7 +167,9 @@ function RiskDetail() {
                     </span>
                     <div className="flex items-baseline justify-between gap-3">
                       <span className="text-[13px] font-medium">{event.title}</span>
-                      <span className="shrink-0 text-[12px] text-muted-foreground">{event.time}</span>
+                      <span className="shrink-0 text-[12px] text-muted-foreground">
+                        {event.time}
+                      </span>
                     </div>
                     <div className="text-[12px] text-muted-foreground">{event.actor}</div>
                   </li>
@@ -194,7 +216,6 @@ function RiskDetail() {
               </Link>
             </RailGroup>
           </aside>
-
         </div>
       </div>
 

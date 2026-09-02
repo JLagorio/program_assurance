@@ -125,115 +125,115 @@ function WorkstreamDetail() {
           </>
         }
       >
-            <Section title="Objective">
-              <p className="max-w-3xl pt-3 text-[13px] leading-relaxed text-muted-foreground">
-                {ws.objective}
-              </p>
-              <p className="mt-3 max-w-3xl text-[12.5px] leading-relaxed">{ws.note}</p>
-            </Section>
+        <Section title="Objective">
+          <p className="max-w-3xl pt-3 text-[13px] leading-relaxed text-muted-foreground">
+            {ws.objective}
+          </p>
+          <p className="mt-3 max-w-3xl text-[12.5px] leading-relaxed">{ws.note}</p>
+        </Section>
 
-            <Section
-              title="Assigned people"
-              description="Allocation is the share of that person's time committed to this workstream."
-            >
-              <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "104px" }} />
-                  <col style={{ width: "168px" }} />
-                  <col />
-                  <col style={{ width: "148px" }} />
-                  <col style={{ width: "88px" }} />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <Th>Person</Th>
-                    <Th>Name</Th>
-                    <Th>Role on this workstream</Th>
-                    <Th>Discipline</Th>
-                    <Th className="text-right">Allocation</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ws.members.map((m) => {
-                    const p = personById.get(m.person);
-                    return (
-                      <Tr key={m.person}>
-                        <Td>
-                          <Link
-                            to="/people/$personId"
-                            params={{ personId: m.person }}
-                            className="text-primary hover:underline"
-                          >
-                            <Mono>{m.person}</Mono>
-                          </Link>
-                        </Td>
-                        <Td className="truncate font-medium">{p?.name ?? "—"}</Td>
-                        <Td className="truncate text-muted-foreground">{m.role}</Td>
-                        <Td className="truncate text-muted-foreground">{p?.discipline ?? "—"}</Td>
-                        <Td className="tnum text-right text-muted-foreground">{m.allocation}%</Td>
-                      </Tr>
-                    );
-                  })}
-                </tbody>
-              </Table>
-            </Section>
+        <Section
+          title="Assigned people"
+          description="Allocation is the share of that person's time committed to this workstream."
+        >
+          <Table className="table-fixed">
+            <colgroup>
+              <col style={{ width: "104px" }} />
+              <col style={{ width: "168px" }} />
+              <col />
+              <col style={{ width: "148px" }} />
+              <col style={{ width: "88px" }} />
+            </colgroup>
+            <thead>
+              <tr>
+                <Th>Person</Th>
+                <Th>Name</Th>
+                <Th>Role on this workstream</Th>
+                <Th>Discipline</Th>
+                <Th className="text-right">Allocation</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {ws.members.map((m) => {
+                const p = personById.get(m.person);
+                return (
+                  <Tr key={m.person}>
+                    <Td>
+                      <Link
+                        to="/people/$personId"
+                        params={{ personId: m.person }}
+                        className="text-primary hover:underline"
+                      >
+                        <Mono>{m.person}</Mono>
+                      </Link>
+                    </Td>
+                    <Td className="truncate font-medium">{p?.name ?? "—"}</Td>
+                    <Td className="truncate text-muted-foreground">{m.role}</Td>
+                    <Td className="truncate text-muted-foreground">{p?.discipline ?? "—"}</Td>
+                    <Td className="tnum text-right text-muted-foreground">{m.allocation}%</Td>
+                  </Tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        </Section>
 
-            <Section
-              title="Dependencies"
-              description="What this workstream is waiting on, and what is waiting on it."
-            >
-              <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "108px" }} />
-                  <col style={{ width: "104px" }} />
-                  <col />
-                  <col style={{ width: "96px" }} />
-                  <col style={{ width: "148px" }} />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <Th>Direction</Th>
-                    <Th>Workstream</Th>
-                    <Th>Title</Th>
-                    <Th>Status</Th>
-                    <Th>Lead</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    ...blockers.map((w) => ["Waiting on", w] as const),
-                    ...downstream.map((w) => ["Blocks", w] as const),
-                  ].map(([dir, w]) => (
-                    <Tr key={`${dir}-${w.id}`}>
-                      <Td className="text-muted-foreground">{dir}</Td>
-                      <Td>
-                        <Link
-                          to="/workstreams/$workstreamId"
-                          params={{ workstreamId: w.id }}
-                          className="text-primary hover:underline"
-                        >
-                          <Mono>{w.id}</Mono>
-                        </Link>
-                      </Td>
-                      <Td className="truncate font-medium">{w.title}</Td>
-                      <Td>
-                        <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
-                      </Td>
-                      <Td className="truncate text-muted-foreground">
-                        {personById.get(w.lead)?.name ?? "—"}
-                      </Td>
-                    </Tr>
-                  ))}
-                  {blockers.length === 0 && downstream.length === 0 ? (
-                    <Tr>
-                      <Td className="text-muted-foreground" colSpan={5}>
-                        No dependencies recorded.
-                      </Td>
-                    </Tr>
-                  ) : null}
-                </tbody>
-              </Table>
-            </Section>
+        <Section
+          title="Dependencies"
+          description="What this workstream is waiting on, and what is waiting on it."
+        >
+          <Table className="table-fixed">
+            <colgroup>
+              <col style={{ width: "108px" }} />
+              <col style={{ width: "104px" }} />
+              <col />
+              <col style={{ width: "96px" }} />
+              <col style={{ width: "148px" }} />
+            </colgroup>
+            <thead>
+              <tr>
+                <Th>Direction</Th>
+                <Th>Workstream</Th>
+                <Th>Title</Th>
+                <Th>Status</Th>
+                <Th>Lead</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                ...blockers.map((w) => ["Waiting on", w] as const),
+                ...downstream.map((w) => ["Blocks", w] as const),
+              ].map(([dir, w]) => (
+                <Tr key={`${dir}-${w.id}`}>
+                  <Td className="text-muted-foreground">{dir}</Td>
+                  <Td>
+                    <Link
+                      to="/workstreams/$workstreamId"
+                      params={{ workstreamId: w.id }}
+                      className="text-primary hover:underline"
+                    >
+                      <Mono>{w.id}</Mono>
+                    </Link>
+                  </Td>
+                  <Td className="truncate font-medium">{w.title}</Td>
+                  <Td>
+                    <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
+                  </Td>
+                  <Td className="truncate text-muted-foreground">
+                    {personById.get(w.lead)?.name ?? "—"}
+                  </Td>
+                </Tr>
+              ))}
+              {blockers.length === 0 && downstream.length === 0 ? (
+                <Tr>
+                  <Td className="text-muted-foreground" colSpan={5}>
+                    No dependencies recorded.
+                  </Td>
+                </Tr>
+              ) : null}
+            </tbody>
+          </Table>
+        </Section>
       </ShowPage>
     </Shell>
   );

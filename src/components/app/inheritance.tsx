@@ -2,10 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Lock, Share2 } from "lucide-react";
 
 import { Badge, Mono, Table, Td, Th, Tr } from "@/components/app/ui";
-import {
-  staleThresholdDays,
-  type SystemComponent,
-} from "@/lib/reusable-components";
+import { staleThresholdDays, type SystemComponent } from "@/lib/reusable-components";
 
 /** Program → source component. One affordance, used everywhere a row is inherited. */
 export function InheritChip({

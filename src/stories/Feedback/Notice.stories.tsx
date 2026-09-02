@@ -1,0 +1,95 @@
+import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { Badge, Mono, Notice } from "@/components/app/ui";
+import { Spec } from "../_lib/tokens";
+
+const meta = {
+  title: "Feedback/Notice",
+  component: Notice,
+  tags: ["autodocs"],
+  args: {
+    tone: "warning",
+    title: "The campaign record declares Pass. The run log returns Fail.",
+  },
+  argTypes: {
+    tone: {
+      control: "inline-radio",
+      options: ["neutral", "success", "warning", "danger", "info"],
+    },
+    title: { control: "text" },
+    children: { control: false },
+    className: { control: false },
+  },
+} satisfies Meta<typeof Notice>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Playground: Story = {
+  render: (args) => (
+    <div className="max-w-[272px]">
+      <Notice {...args} />
+    </div>
+  ),
+};
+
+const gaps = [
+  {
+    id: "AC-2(3)[02]",
+    statement: "accounts are disabled when they have expired",
+    declared: "Pass",
+  },
+  {
+    id: "AC-2(3)[03]",
+    statement: "accounts are disabled when they are no longer associated with a user",
+    declared: "Pass",
+  },
+];
+
+/** Every tone as a one-line rail banner, then the two body forms. */
+export const Matrix: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="max-w-[720px] space-y-8">
+      <div className="max-w-[272px] space-y-3">
+        <Spec>title only · rail width 272</Spec>
+        <Notice tone="danger" title="Shared responsibility with no consumer obligation stated." />
+        <Notice tone="warning" title="Evidence is 34 days old; the SLA is 30." />
+        <Notice tone="success" title="Every objective in scope has a signed run." />
+        <Notice tone="info" title="Derived from the composition graph, not asserted." />
+        <Notice tone="neutral" title="Not assessed in this scope." />
+      </div>
+
+      <div className="space-y-3">
+        <Spec>title + body · above a table</Spec>
+        <Notice tone="danger" title="2 objectives have no procedure written">
+          <div className="space-y-1.5 text-[12.5px]">
+            {gaps.map((g) => (
+              <div key={g.id} className="flex items-baseline gap-2">
+                <Mono className="shrink-0">{g.id}</Mono>
+                <span className="min-w-0 leading-snug text-foreground">{g.statement}</span>
+                <span className="ml-auto shrink-0">
+                  <Badge tone="success" size="xs">
+                    {g.declared}
+                  </Badge>
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="pt-2 text-[12px] leading-relaxed text-muted-foreground">
+            Nothing is written to execute against these objectives, so no run can ever move them.
+          </p>
+        </Notice>
+      </div>
+
+      <div className="max-w-[420px] space-y-3">
+        <Spec>body only · running text</Spec>
+        <Notice tone="danger" className="leading-relaxed">
+          CN-0220 keycloak-idp offers AC-2(3) as Hybrid — shared responsibility — and states no
+          consumer obligation. Until the obligation is written down, nobody implements it and no
+          assessor tests it.
+        </Notice>
+      </div>
+    </div>
+  ),
+};

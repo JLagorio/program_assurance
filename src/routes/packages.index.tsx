@@ -61,7 +61,6 @@ function PackagesIndex() {
           />
         }
       >
-
         <div className={preview ? "grid lg:grid-cols-[minmax(0,1fr)_272px]" : "grid"}>
           <div className="min-w-0 lg:pr-6">
             <Table className="table-fixed">

@@ -115,7 +115,6 @@ function RegisterPage() {
           />
         }
       >
-
         <div className="flex items-center gap-4 border-b border-border">
           {tabs.map((t) => (
             <button

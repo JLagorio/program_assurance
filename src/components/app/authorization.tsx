@@ -1,12 +1,5 @@
 import { useMemo, useState } from "react";
-import {
-  Check,
-  FileSignature,
-  Lock,
-  Plus,
-  ShieldCheck,
-  UserPlus,
-} from "lucide-react";
+import { Check, FileSignature, Lock, Plus, ShieldCheck, UserPlus } from "lucide-react";
 
 import {
   Badge,
@@ -124,9 +117,7 @@ export function AuthorizationSection({
             </div>
             <div className="flex w-[180px] shrink-0 items-center gap-2">
               <Meter value={readiness} tone={readiness >= 80 ? "success" : "info"} />
-              <span className="tabular-nums text-[12.5px] text-muted-foreground">
-                {readiness}%
-              </span>
+              <span className="tabular-nums text-[12.5px] text-muted-foreground">{readiness}%</span>
             </div>
           </div>
 
@@ -245,12 +236,7 @@ export function AuthorizationSection({
         >
           <div className="flex flex-wrap items-center gap-2 pb-2 pt-3">
             {filters.map((f) => (
-              <FilterChip
-                key={f}
-                label={f}
-                active={filter === f}
-                onClick={() => setFilter(f)}
-              />
+              <FilterChip key={f} label={f} active={filter === f} onClick={() => setFilter(f)} />
             ))}
           </div>
 
@@ -364,7 +350,7 @@ function ObservationModal({
             Downstream effect
           </p>
           <pre className="whitespace-pre-wrap break-words font-mono text-[11.5px] leading-[1.6] text-muted-foreground">
-{`program: ${programId}
+            {`program: ${programId}
 severity: ${severity}
 control: ${control || "<unmapped>"}
 creates:
@@ -476,7 +462,8 @@ function RemediationModal({
   if (!observation) return null;
 
   const jira =
-    observation.jira ?? `${project}-${4400 + (observation.id.charCodeAt(observation.id.length - 1) % 90)}`;
+    observation.jira ??
+    `${project}-${4400 + (observation.id.charCodeAt(observation.id.length - 1) % 90)}`;
 
   return (
     <Modal
@@ -491,7 +478,7 @@ function RemediationModal({
             Jira issue
           </p>
           <pre className="whitespace-pre-wrap break-words font-mono text-[11.5px] leading-[1.6] text-muted-foreground">
-{`key: ${jira}
+            {`key: ${jira}
 type: Security remediation
 assignee: ${assignee}
 due: ${due}
@@ -667,15 +654,12 @@ export function BriefingRoom() {
               </p>
               <p className="mt-0.5 text-[12.5px] text-muted-foreground">
                 {high.length} high residual · {openObservations.length} open SCA observations ·
-                briefing {authorization.briefing} · signature target{" "}
-                {authorization.targetSignature}
+                briefing {authorization.briefing} · signature target {authorization.targetSignature}
               </p>
             </div>
             <div className="flex w-[180px] shrink-0 items-center gap-2">
               <Meter value={progress} tone={pending.length > 0 ? "warning" : "success"} />
-              <span className="tabular-nums text-[12.5px] text-muted-foreground">
-                {progress}%
-              </span>
+              <span className="tabular-nums text-[12.5px] text-muted-foreground">{progress}%</span>
             </div>
           </div>
 
@@ -925,7 +909,7 @@ function MemoModal({ open, onClose }: { open: boolean; onClose: () => void }) {
             Memo preview
           </p>
           <pre className="whitespace-pre-wrap break-words font-mono text-[11.5px] leading-[1.6] text-muted-foreground">
-{`AUTHORIZATION DECISION
+            {`AUTHORIZATION DECISION
 system: Trident UUV C2
 decision: ${type}
 expires: ${expires}
@@ -967,11 +951,7 @@ conditions: |
           </Field>
         </div>
         <Field label="Conditions of authorization">
-          <Textarea
-            rows={4}
-            value={conditions}
-            onChange={(e) => setConditions(e.target.value)}
-          />
+          <Textarea rows={4} value={conditions} onChange={(e) => setConditions(e.target.value)} />
         </Field>
       </div>
     </Modal>

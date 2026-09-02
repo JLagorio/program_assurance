@@ -69,8 +69,7 @@ function Catalog() {
       controls.filter(
         (c) =>
           (family === "All" || c.family === family) &&
-          (q === "" ||
-            `${c.id} ${c.title}`.toLowerCase().includes(q.toLowerCase())),
+          (q === "" || `${c.id} ${c.title}`.toLowerCase().includes(q.toLowerCase())),
       ),
     [family, q],
   );
@@ -179,9 +178,7 @@ function Catalog() {
                       </Td>
                       <Td className="truncate font-medium">{c.title}</Td>
                       <Td className="text-muted-foreground">{c.family}</Td>
-                      <Td className="truncate text-muted-foreground">
-                        {c.baseline.join(" · ")}
-                      </Td>
+                      <Td className="truncate text-muted-foreground">{c.baseline.join(" · ")}</Td>
                       <Td className="truncate text-muted-foreground">
                         {c.addedBy.length ? <Mono>{c.addedBy.join(", ")}</Mono> : "—"}
                       </Td>
@@ -283,9 +280,7 @@ function Catalog() {
                         {c.procedures.length}
                       </Td>
                       <Td className="tnum text-right text-muted-foreground">
-                        {c.objectives.length || (
-                          <span className="text-warning">0</span>
-                        )}
+                        {c.objectives.length || <span className="text-warning">0</span>}
                       </Td>
                     </Tr>
                   ))}

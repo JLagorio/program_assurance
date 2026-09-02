@@ -477,11 +477,24 @@ export function FilterChip({
 
 /* ------------------------------------------------------------- Key / value */
 
-export function KeyValue({ label, children }: { label: string; children: ReactNode }) {
+/** One rail row. `wrap` lets a long value run to several lines instead of truncating. */
+export function KeyValue({
+  label,
+  wrap,
+  children,
+}: {
+  label: string;
+  wrap?: boolean;
+  children: ReactNode;
+}) {
   return (
     <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
       <dt className="truncate text-[12.5px] text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 truncate text-[12.5px] text-foreground">{children}</dd>
+      <dd
+        className={cn("min-w-0 text-[12.5px] text-foreground", wrap ? "leading-snug" : "truncate")}
+      >
+        {children}
+      </dd>
     </div>
   );
 }
@@ -1207,5 +1220,175 @@ export function Drawer({
       </aside>
     </div>,
     document.body,
+  );
+}
+
+/* ---------------------------------------------------------- Facts & text */
+/* The small reading primitives every rail, summary and detail body had been
+   re-declaring locally (nine copies of Dash, seven of ProseBlock, three of
+   WrapValue and IdList, three of Fact). One definition each. */
+
+/** Uppercase micro-label: 11px, weight 500, 0.06em. Tone colours it for a callout. */
+export function Label({
+  children,
+  tone = "neutral",
+  className,
+}: {
+  children: ReactNode;
+  tone?: Tone;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "text-[11px] font-medium uppercase tracking-[0.06em]",
+        tone === "neutral" ? "text-muted-foreground" : toneClasses[tone].text,
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** The absent value. */
+export function Dash() {
+  return <span className="text-muted-foreground">—</span>;
+}
+
+/** A wrapping run of Mono ids; `empty` when there are none. */
+export function IdList({ ids, empty = "—" }: { ids: string[]; empty?: string }) {
+  if (ids.length === 0) return <span className="text-[12.5px] text-muted-foreground">{empty}</span>;
+  return (
+    <span className="flex flex-wrap gap-1">
+      {ids.map((id) => (
+        <Mono key={id} className="text-[11.5px] text-muted-foreground">
+          {id}
+        </Mono>
+      ))}
+    </span>
+  );
+}
+
+/** Labelled paragraph for a rail or detail body: Label over 12.5px relaxed prose. */
+export function Prose({
+  label,
+  tone = "neutral",
+  children,
+  className,
+}: {
+  label: string;
+  tone?: Tone;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("pt-1.5", className)}>
+      <Label tone={tone}>{label}</Label>
+      <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">{children}</p>
+    </div>
+  );
+}
+
+/** Inline `label value` pair for the facts strip under a RecordHeader. Renders dt/dd; wrap a row of them in a <dl>. */
+export function Fact({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex min-w-0 items-baseline gap-1.5">
+      <dt className="shrink-0 text-[12px] text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 text-[12.5px] font-medium">{children}</dd>
+    </div>
+  );
+}
+
+/* --------------------------------------------------------------- Numbers */
+
+/** One cell of a `Tiles` grid: label, big tabular number, one-line note. Zero reads muted. */
+export function Tile({
+  label,
+  value,
+  note,
+  tone = "neutral",
+}: {
+  label: string;
+  value: ReactNode;
+  note?: string;
+  tone?: Tone;
+}) {
+  return (
+    <div className="bg-background px-4 py-3">
+      <div className="text-[12px] text-muted-foreground">{label}</div>
+      <div
+        className={cn(
+          "tnum mt-0.5 text-[20px] font-semibold tracking-[-0.02em]",
+          value === 0 ? "text-muted-foreground" : tone === "neutral" ? "" : toneClasses[tone].text,
+        )}
+      >
+        {value}
+      </div>
+      {note ? (
+        <div className="mt-0.5 text-[12px] leading-snug text-muted-foreground">{note}</div>
+      ) : null}
+    </div>
+  );
+}
+
+/** Bare number over its label, for an unframed summary row. */
+export function Stat({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string;
+  value: ReactNode;
+  tone?: Tone;
+}) {
+  return (
+    <div className="border-b border-border-subtle py-2 last:border-0 md:border-0">
+      <div
+        className={cn(
+          "tnum text-20 font-semibold leading-none",
+          tone === "neutral" ? "text-foreground" : toneClasses[tone].text,
+        )}
+      >
+        {value}
+      </div>
+      <div className="mt-1 text-12 text-muted-foreground">{label}</div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------- Notice */
+
+/** Tinted callout in a rail or above a table: Dot, a title in the tone colour, optional body. */
+export function Notice({
+  tone = "warning",
+  title,
+  children,
+  className,
+}: {
+  tone?: Tone;
+  title?: ReactNode;
+  children?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-md px-3 py-2.5 text-[12.5px] leading-snug",
+        toneClasses[tone].soft,
+        toneClasses[tone].text,
+        className,
+      )}
+    >
+      {title ? (
+        <div className="flex items-start gap-2 font-medium">
+          <span className="pt-1.5">
+            <Dot tone={tone} />
+          </span>
+          <span className="min-w-0">{title}</span>
+        </div>
+      ) : null}
+      {children ? <div className={title ? "pt-1.5" : ""}>{children}</div> : null}
+    </div>
   );
 }

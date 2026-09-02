@@ -94,7 +94,6 @@ function RiskList() {
         />
       }
     >
-
       <div className="flex items-center gap-4 border-b border-border">
         {tabs.map((t) => {
           const active = t.label === tab;
@@ -207,7 +206,9 @@ function RiskList() {
                     </span>
                     <Meter
                       value={risk.residual}
-                      tone={risk.residual > 60 ? "danger" : risk.residual > 30 ? "warning" : "success"}
+                      tone={
+                        risk.residual > 60 ? "danger" : risk.residual > 30 ? "warning" : "success"
+                      }
                     />
                     <span className="tnum w-5 shrink-0 text-right text-[12px] font-medium">
                       {risk.residual}
@@ -281,7 +282,10 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
                 <dt className="text-muted-foreground">Residual</dt>
                 <dd className="tnum font-medium">{residual}</dd>
               </div>
-              <Meter value={residual} tone={residual > 60 ? "danger" : residual > 30 ? "warning" : "success"} />
+              <Meter
+                value={residual}
+                tone={residual > 60 ? "danger" : residual > 30 ? "warning" : "success"}
+              />
             </dl>
           </div>
           <p className="mt-3 text-[12px] leading-snug text-muted-foreground">

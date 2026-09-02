@@ -40,10 +40,28 @@ export const Route = createFileRoute("/")({
 });
 
 const summary = [
-  { label: "Audit readiness", value: "92.4%", delta: "+1.8 pts", tone: "success" as const, note: "SOC 2 Type II" },
+  {
+    label: "Audit readiness",
+    value: "92.4%",
+    delta: "+1.8 pts",
+    tone: "success" as const,
+    note: "SOC 2 Type II",
+  },
   { label: "Open risks", value: "24", delta: "+3", tone: "danger" as const, note: "4 critical" },
-  { label: "Controls failing", value: "2", delta: "−1", tone: "success" as const, note: "of 118 monitored" },
-  { label: "Evidence freshness", value: "97%", delta: "±0", tone: "neutral" as const, note: "1,402 artifacts" },
+  {
+    label: "Controls failing",
+    value: "2",
+    delta: "−1",
+    tone: "success" as const,
+    note: "of 118 monitored",
+  },
+  {
+    label: "Evidence freshness",
+    value: "97%",
+    delta: "±0",
+    tone: "neutral" as const,
+    note: "1,402 artifacts",
+  },
 ];
 
 function Overview() {
@@ -137,7 +155,13 @@ function Overview() {
                         <div className="flex items-center gap-2">
                           <Meter
                             value={risk.residual}
-                            tone={risk.residual > 60 ? "danger" : risk.residual > 30 ? "warning" : "success"}
+                            tone={
+                              risk.residual > 60
+                                ? "danger"
+                                : risk.residual > 30
+                                  ? "warning"
+                                  : "success"
+                            }
                           />
                           <span className="tnum w-5 shrink-0 text-right text-[12px] text-muted-foreground">
                             {risk.residual}
@@ -200,7 +224,9 @@ function Overview() {
                       <p className="mt-0.5 text-[12px] leading-snug text-muted-foreground">
                         {item.body}
                       </p>
-                      <div className="mt-0.5 text-[12px] text-muted-foreground/80">{item.actor}</div>
+                      <div className="mt-0.5 text-[12px] text-muted-foreground/80">
+                        {item.actor}
+                      </div>
                     </div>
                   </li>
                 ))}

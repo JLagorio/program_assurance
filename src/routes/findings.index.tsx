@@ -242,7 +242,9 @@ function FindingsPage() {
                       <Td className="truncate text-muted-foreground">{f.source}</Td>
                       <Td className="text-muted-foreground">{f.rawSeverity}</Td>
                       <Td>
-                        <Badge tone={severityTone(f.mitigatedSeverity)}>{f.mitigatedSeverity}</Badge>
+                        <Badge tone={severityTone(f.mitigatedSeverity)}>
+                          {f.mitigatedSeverity}
+                        </Badge>
                       </Td>
                       <Td className="truncate">
                         <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>

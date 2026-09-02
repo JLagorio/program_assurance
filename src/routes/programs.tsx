@@ -21,12 +21,7 @@ import {
   Th,
   Tr,
 } from "@/components/app/ui";
-import {
-  baselineCounts,
-  programStatusTone,
-  programs,
-  type ImpactLevel,
-} from "@/lib/grc-data";
+import { baselineCounts, programStatusTone, programs, type ImpactLevel } from "@/lib/grc-data";
 
 export const Route = createFileRoute("/programs")({
   head: () => ({
@@ -100,7 +95,6 @@ function ProgramList() {
         />
       }
     >
-
       <div className="flex items-center gap-4 border-b border-border">
         {tabs.map((t) => {
           const active = t.label === tab;
@@ -195,7 +189,13 @@ function ProgramList() {
                 </Td>
                 <Td className="w-[104px]">
                   <Badge
-                    tone={p.impact === "High" ? "danger" : p.impact === "Moderate" ? "warning" : "neutral"}
+                    tone={
+                      p.impact === "High"
+                        ? "danger"
+                        : p.impact === "Moderate"
+                          ? "warning"
+                          : "neutral"
+                    }
                   >
                     {p.impact}
                   </Badge>
@@ -276,7 +276,11 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
       width="lg"
       title="Create a program"
       description={`Step ${step} of 3 · ${
-        step === 1 ? "System scope" : step === 2 ? "FIPS-199 categorization" : "Baseline and assessment"
+        step === 1
+          ? "System scope"
+          : step === 2
+            ? "FIPS-199 categorization"
+            : "Baseline and assessment"
       }`}
       aside={
         <div className="space-y-4">
@@ -284,9 +288,7 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
             Derived baseline
           </div>
           <div>
-            <div className="text-[20px] font-semibold tracking-[-0.02em]">
-              NIST 800-53 Rev. 5
-            </div>
+            <div className="text-[20px] font-semibold tracking-[-0.02em]">NIST 800-53 Rev. 5</div>
             <div className="mt-0.5 text-[13px] text-muted-foreground">
               {impact} baseline · high-water mark of C/I/A
             </div>
@@ -307,8 +309,8 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
             ))}
           </dl>
           <p className="text-[12px] leading-relaxed text-muted-foreground">
-            Every control in the baseline is created as an assessable item linked to this
-            program. Tailoring can mark controls not applicable after creation.
+            Every control in the baseline is created as an assessable item linked to this program.
+            Tailoring can mark controls not applicable after creation.
           </p>
         </div>
       }
@@ -378,8 +380,8 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
       {step === 2 ? (
         <div className="space-y-3">
           <p className="text-[13px] text-muted-foreground">
-            Rate the potential impact of a loss for each security objective. The baseline is
-            set by the high-water mark.
+            Rate the potential impact of a loss for each security objective. The baseline is set by
+            the high-water mark.
           </p>
           <div className="divide-y divide-border border-y border-border">
             {(
@@ -392,9 +394,7 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
               <div key={label} className="flex items-center justify-between gap-4 py-2.5">
                 <div>
                   <div className="text-[13px] font-medium">{label}</div>
-                  <div className="text-[12px] text-muted-foreground">
-                    FIPS-199 potential impact
-                  </div>
+                  <div className="text-[12px] text-muted-foreground">FIPS-199 potential impact</div>
                 </div>
                 <div className="flex items-center rounded-md shadow-button">
                   {levels.map((l) => (
@@ -428,9 +428,7 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
       {step === 3 ? (
         <div className="space-y-3">
           <div className="rounded-md border border-border px-3 py-2.5">
-            <div className="text-[13px] font-medium">
-              NIST SP 800-53 Rev. 5 — {impact} baseline
-            </div>
+            <div className="text-[13px] font-medium">NIST SP 800-53 Rev. 5 — {impact} baseline</div>
             <div className="tnum mt-0.5 text-[12px] text-muted-foreground">
               {total} controls and enhancements will be added to this program.
             </div>
@@ -447,8 +445,8 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
                 Inherit common controls from idp-core
               </span>
               <span className="block text-[12px] text-muted-foreground">
-                IA and AC family controls provided by the corporate identity provider are
-                marked inherited and satisfied.
+                IA and AC family controls provided by the corporate identity provider are marked
+                inherited and satisfied.
               </span>
             </span>
           </label>

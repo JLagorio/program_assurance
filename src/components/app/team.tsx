@@ -166,7 +166,9 @@ export function TeamSection({ programId }: { programId: string }) {
                     <Tr
                       key={p.id}
                       className="cursor-pointer"
-                      onClick={() => navigate({ to: "/people/$personId", params: { personId: p.id } })}
+                      onClick={() =>
+                        navigate({ to: "/people/$personId", params: { personId: p.id } })
+                      }
                     >
                       <IdCell
                         id={p.id}

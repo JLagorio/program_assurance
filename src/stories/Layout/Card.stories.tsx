@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Download, Plus } from "lucide-react";
-import type { ReactNode } from "react";
 
 import {
   Badge,
@@ -8,6 +7,7 @@ import {
   Card,
   CardHeader,
   Dot,
+  Fact,
   KeyValue,
   Mono,
   PageHeader,
@@ -218,15 +218,6 @@ export const Related: Story = {
     </div>
   ),
 };
-
-function Fact({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex items-baseline gap-1.5">
-      <dt className="text-[11px] uppercase tracking-[0.04em] text-muted-foreground">{label}</dt>
-      <dd className="text-[12.5px]">{children}</dd>
-    </div>
-  );
-}
 
 /** PageHeader on an index page; RecordHeader on a record page with a facts strip below. */
 export const Headers: Story = {

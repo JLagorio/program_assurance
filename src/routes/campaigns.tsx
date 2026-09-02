@@ -254,9 +254,7 @@ function CampaignsPage() {
                       <Td className="tnum text-right text-muted-foreground">
                         {ccisForEvent(e.id).length}
                       </Td>
-                      <Td className="tnum text-right text-muted-foreground">
-                        {e.findings.length}
-                      </Td>
+                      <Td className="tnum text-right text-muted-foreground">{e.findings.length}</Td>
                     </Tr>
                   ))}
                 </tbody>
@@ -345,9 +343,7 @@ function CampaignsPage() {
                       <div key={a} className="flex items-baseline justify-between gap-2">
                         <span className="min-w-0 truncate">
                           <Mono>{a}</Mono>{" "}
-                          <span className="text-muted-foreground">
-                            {assetById.get(a)?.name}
-                          </span>
+                          <span className="text-muted-foreground">{assetById.get(a)?.name}</span>
                         </span>
                         <span className="shrink-0 text-muted-foreground">
                           {assetById.get(a)?.environment}

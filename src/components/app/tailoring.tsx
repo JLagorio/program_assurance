@@ -215,9 +215,7 @@ export function TailoringSection({
                     <Td className="w-[232px] truncate font-medium">{o.name}</Td>
                     <Td className="w-[212px] truncate text-muted-foreground">{o.authority}</Td>
                     <Td className="truncate text-muted-foreground">{o.trigger}</Td>
-                    <Td className="tnum w-[76px] text-right">
-                      {delta > 0 ? `+${delta}` : delta}
-                    </Td>
+                    <Td className="tnum w-[76px] text-right">{delta > 0 ? `+${delta}` : delta}</Td>
                   </Tr>
                 );
               })}
@@ -327,9 +325,7 @@ export function TailoringSection({
             <Field label="System class">
               <Select
                 value={draft.systemClass}
-                onChange={(e) =>
-                  setDraft({ ...draft, systemClass: e.target.value as SystemClass })
-                }
+                onChange={(e) => setDraft({ ...draft, systemClass: e.target.value as SystemClass })}
               >
                 {systemClasses.map((s) => (
                   <option key={s}>{s}</option>
@@ -416,10 +412,7 @@ export function TailoringSection({
           <Field label="Approver">
             <Input defaultValue={`${programOwner} (PM)`} readOnly />
           </Field>
-          <Field
-            label="Message"
-            hint="Shown on the shared scope approvals dashboard."
-          >
+          <Field label="Message" hint="Shown on the shared scope approvals dashboard.">
             <Textarea placeholder="Tailored scope reflects the DDIL tactical profile agreed at the SRR working group." />
           </Field>
         </div>

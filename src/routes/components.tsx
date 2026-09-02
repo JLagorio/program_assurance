@@ -42,7 +42,15 @@ export const Route = createFileRoute("/components")({
   component: Components,
 });
 
-function Section({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
+function Section({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
   return (
     <Card>
       <CardHeader title={title} description={description} />
@@ -63,9 +71,11 @@ function Components() {
           />
         }
       >
-
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-          <Section title="Buttons" description="Two weights of emphasis and a text link. Nothing else.">
+          <Section
+            title="Buttons"
+            description="Two weights of emphasis and a text link. Nothing else."
+          >
             <Button variant="primary">Request evidence</Button>
             <Button variant="secondary">Export</Button>
             <Button variant="ghost">Cancel</Button>
@@ -93,7 +103,10 @@ function Components() {
             <FilterChip label="Updated" />
           </Section>
 
-          <Section title="Meters & numerals" description="Tabular figures so columns align on scan.">
+          <Section
+            title="Meters & numerals"
+            description="Tabular figures so columns align on scan."
+          >
             <div className="w-full space-y-3">
               {[
                 { label: "SOC 2", value: 94, tone: "success" as const },
@@ -111,7 +124,10 @@ function Components() {
         </div>
 
         <Card>
-          <CardHeader title="Dense table" description="13px rows, 10px vertical rhythm, hairline dividers." />
+          <CardHeader
+            title="Dense table"
+            description="13px rows, 10px vertical rhythm, hairline dividers."
+          />
           <Table>
             <thead>
               <tr>
@@ -123,9 +139,27 @@ function Components() {
             </thead>
             <tbody>
               {[
-                { id: "CTL-118", item: "Encryption in transit enforced", owner: "Marcus Ryde", tone: "success" as const, status: "Passing" },
-                { id: "CTL-104", item: "Logical access provisioning", owner: "Grace Hoppel", tone: "danger" as const, status: "Failing" },
-                { id: "CTL-092", item: "Security awareness training", owner: "Dana Whitlock", tone: "warning" as const, status: "Review" },
+                {
+                  id: "CTL-118",
+                  item: "Encryption in transit enforced",
+                  owner: "Marcus Ryde",
+                  tone: "success" as const,
+                  status: "Passing",
+                },
+                {
+                  id: "CTL-104",
+                  item: "Logical access provisioning",
+                  owner: "Grace Hoppel",
+                  tone: "danger" as const,
+                  status: "Failing",
+                },
+                {
+                  id: "CTL-092",
+                  item: "Security awareness training",
+                  owner: "Dana Whitlock",
+                  tone: "warning" as const,
+                  status: "Review",
+                },
               ].map((row) => (
                 <Tr key={row.id}>
                   <Td>

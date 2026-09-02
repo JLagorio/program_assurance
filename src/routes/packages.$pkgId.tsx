@@ -292,7 +292,11 @@ function PackageRecord() {
           </div>
 
           {preview ? (
-            <PreviewRail id={preview.cci} title={preview.statement} onClose={() => setPreview(null)}>
+            <PreviewRail
+              id={preview.cci}
+              title={preview.statement}
+              onClose={() => setPreview(null)}
+            >
               {preview.gap ? (
                 <p className="mb-3 border-l-2 border-warning bg-warning-soft px-2 py-1.5 text-[12px] leading-relaxed">
                   {preview.gap}
@@ -314,7 +318,11 @@ function PackageRecord() {
               </RailGroup>
               <RailGroup title="Verification">
                 <KeyValue label="Objectives">
-                  {preview.objectives.length ? <Mono>{preview.objectives.join(", ")}</Mono> : "None"}
+                  {preview.objectives.length ? (
+                    <Mono>{preview.objectives.join(", ")}</Mono>
+                  ) : (
+                    "None"
+                  )}
                 </KeyValue>
                 <KeyValue label="Result">
                   <Badge tone={resultTone(preview.result)}>{preview.result}</Badge>

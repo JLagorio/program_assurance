@@ -36,15 +36,9 @@ const statusFilters: Array<"All" | GateStatus> = [
   "Complete",
 ];
 
-const kindFilters = [
-  "All",
-  "Milestone decision",
-  "Engineering review",
-  "RMF action",
-] as const;
+const kindFilters = ["All", "Milestone decision", "Engineering review", "RMF action"] as const;
 
-const shortDate = (d: string) =>
-  d && d !== "—" ? d.replace(/,\s*20(\d\d)$/, " '$1") : d;
+const shortDate = (d: string) => (d && d !== "—" ? d.replace(/,\s*20(\d\d)$/, " '$1") : d);
 
 const gateKindShort: Record<GateKind, string> = {
   "Engineering review": "Engineering",
@@ -68,9 +62,7 @@ export function LifecycleSection({
   const rows = useMemo(
     () =>
       gates.filter(
-        (g) =>
-          (status === "All" || g.status === status) &&
-          (kind === "All" || g.kind === kind),
+        (g) => (status === "All" || g.status === status) && (kind === "All" || g.kind === kind),
       ),
     [gates, status, kind],
   );
@@ -79,7 +71,9 @@ export function LifecycleSection({
     .map((phase) => ({ phase, items: rows.filter((g) => g.phase === phase) }))
     .filter((p) => p.items.length > 0);
 
-  const current = gates.find((g) => g.status === "In progress" || g.status === "At risk" || g.status === "Blocked");
+  const current = gates.find(
+    (g) => g.status === "In progress" || g.status === "At risk" || g.status === "Blocked",
+  );
 
   function save(next: ProgramGate) {
     setGates((prev) => prev.map((g) => (g.id === next.id ? next : g)));
@@ -161,8 +155,12 @@ export function LifecycleSection({
                     </Td>
                     <Td className="w-[152px] text-muted-foreground">{g.cyberGate}</Td>
                     <Td className="w-[92px] text-muted-foreground">{g.owner}</Td>
-                    <Td className="tnum w-[112px] text-right text-muted-foreground">{shortDate(g.planned)}</Td>
-                    <Td className="tnum w-[112px] text-right text-muted-foreground">{shortDate(g.actual)}</Td>
+                    <Td className="tnum w-[112px] text-right text-muted-foreground">
+                      {shortDate(g.planned)}
+                    </Td>
+                    <Td className="tnum w-[112px] text-right text-muted-foreground">
+                      {shortDate(g.actual)}
+                    </Td>
                   </Tr>
                 ))}
               </Fragment>
