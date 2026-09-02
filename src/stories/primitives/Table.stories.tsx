@@ -224,3 +224,94 @@ export const NoRows: Story = {
     </Card>
   ),
 };
+
+const families: {
+  id: string;
+  name: string;
+  rows: { id: string; title: string; status: string; tone: Tone }[];
+}[] = [
+  {
+    id: "AC",
+    name: "Access control",
+    rows: [
+      { id: "AC-2", title: "Account management", status: "Satisfied", tone: "success" },
+      { id: "AC-2(3)", title: "Disable accounts", status: "Partially satisfied", tone: "warning" },
+      { id: "AC-3", title: "Access enforcement", status: "Satisfied", tone: "success" },
+    ],
+  },
+  {
+    id: "AU",
+    name: "Audit and accountability",
+    rows: [
+      { id: "AU-2", title: "Event logging", status: "Satisfied", tone: "success" },
+      { id: "AU-6", title: "Audit record review", status: "Other than satisfied", tone: "danger" },
+    ],
+  },
+  {
+    id: "CM",
+    name: "Configuration management",
+    rows: [
+      { id: "CM-6", title: "Configuration settings", status: "Not assessed", tone: "neutral" },
+    ],
+  },
+];
+
+function GroupedTable() {
+  const [open, setOpen] = useState(new Set(["AC"]));
+  const toggle = (id: string) =>
+    setOpen((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  return (
+    <Card className="max-w-[720px]">
+      <Table>
+        <thead>
+          <tr>
+            <Table.Header className="w-[104px]">Control</Table.Header>
+            <Table.Header>Title</Table.Header>
+            <Table.Header className="w-[172px]">Status</Table.Header>
+          </tr>
+        </thead>
+        {families.map((f) => (
+          <Table.Group
+            key={f.id}
+            colSpan={3}
+            open={open.has(f.id)}
+            onToggle={() => toggle(f.id)}
+            title={
+              <>
+                <Id className="w-8 shrink-0 text-foreground">{f.id}</Id>
+                <span className="truncate">{f.name}</span>
+              </>
+            }
+            count={f.rows.length}
+            trailing={
+              <span className="tnum text-12 text-muted-foreground">
+                {f.rows.filter((r) => r.tone === "success").length}/{f.rows.length} satisfied
+              </span>
+            }
+          >
+            {f.rows.map((r) => (
+              <Table.Row key={r.id}>
+                <Table.Id id={r.id} />
+                <Table.Cell>{r.title}</Table.Cell>
+                <Table.Cell>
+                  <Badge tone={r.tone}>{r.status}</Badge>
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Group>
+        ))}
+      </Table>
+    </Card>
+  );
+}
+
+/** Rows banded under family headings that open and close. Table.Group is a tbody, so groups stack. */
+export const Grouped: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => <GroupedTable />,
+};

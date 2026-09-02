@@ -1,4 +1,4 @@
-import { Eye } from "lucide-react";
+import { ChevronDown, Eye } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -99,4 +99,72 @@ function IdCell({
   );
 }
 
-export const Table = Object.assign(TableRoot, { Row: Tr, Cell: Td, Header: Th, Id: IdCell });
+/* A band of rows under one heading that opens and closes: a control family,
+   a component, a phase. The heading row spans every column; `title` is the
+   caller's composition (an Id, a name) and `trailing` its counts and bars.
+   Renders a <tbody>, so several groups stack inside one Table. */
+function TableGroup({
+  colSpan,
+  open,
+  onToggle,
+  title,
+  count,
+  trailing,
+  children,
+}: {
+  colSpan: number;
+  open: boolean;
+  onToggle: () => void;
+  title: ReactNode;
+  count?: number | string | null;
+  trailing?: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <tbody className="border-t border-border">
+      <tr
+        className="cursor-pointer bg-subtle/60 transition-colors duration-100 hover:bg-surface-hover"
+        onClick={onToggle}
+      >
+        <td colSpan={colSpan} className="px-2 py-1.5">
+          <span className="flex items-center gap-3">
+            <button
+              type="button"
+              aria-expanded={open}
+              aria-label={open ? "Collapse" : "Expand"}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggle();
+              }}
+              className="flex shrink-0 items-center rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
+            >
+              <ChevronDown
+                className={cn(
+                  "size-3.5 shrink-0 text-muted-foreground transition-transform",
+                  open ? "" : "-rotate-90",
+                )}
+              />
+            </button>
+            <span className="flex min-w-0 flex-1 items-center gap-3 text-[12.5px] font-medium">
+              {title}
+            </span>
+            {count !== undefined && count !== null && count !== 0 ? (
+              <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
+                {count}
+              </span>
+            ) : null}
+            {trailing ? <span className="flex shrink-0 items-center gap-3">{trailing}</span> : null}
+          </span>
+        </td>
+      </tr>
+      {open ? children : null}
+    </tbody>
+  );
+}
+export const Table = Object.assign(TableRoot, {
+  Row: Tr,
+  Cell: Td,
+  Header: Th,
+  Id: IdCell,
+  Group: TableGroup,
+});
