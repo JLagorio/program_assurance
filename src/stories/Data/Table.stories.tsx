@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import {
   Badge,
+  Severity as SeverityText,
   Button,
   Card,
   CardHeader,
@@ -127,19 +128,8 @@ const findings: Finding[] = [
 
 /** Badges only at the top of the ladder; the rest is text (status-vocabulary.md). */
 function SeverityCell({ severity }: { severity: Severity }) {
-  if (severity === "Critical")
-    return (
-      <Badge tone="danger" size="xs">
-        Critical
-      </Badge>
-    );
-  if (severity === "High")
-    return (
-      <Badge tone="warning" size="xs">
-        High
-      </Badge>
-    );
-  return <span className="text-muted-foreground">{severity}</span>;
+  const tone = severity === "Critical" ? "danger" : severity === "High" ? "warning" : "neutral";
+  return <SeverityText tone={tone}>{severity}</SeverityText>;
 }
 
 function Head() {

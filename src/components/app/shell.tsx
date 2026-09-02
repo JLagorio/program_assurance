@@ -107,20 +107,20 @@ function Sidebar() {
                     className={cn(
                       "group flex h-7 items-center gap-2 rounded-[6px] px-2.5 text-[13px] transition-colors",
                       active
-                        ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                        ? "bg-muted font-medium text-foreground"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
                     <item.icon
                       className={cn(
                         "size-3.5 shrink-0",
-                        active ? "text-primary" : "text-muted-foreground/80",
+                        active ? "text-foreground" : "text-muted-foreground/80",
                       )}
                       strokeWidth={2}
                     />
                     <span className="truncate">{item.label}</span>
                     {item.badge ? (
-                      <span className="tnum ml-auto rounded bg-danger-soft px-1 text-[11px] font-medium text-danger">
+                      <span className="tnum ml-auto text-[11.5px] text-muted-foreground">
                         {item.badge}
                       </span>
                     ) : null}
@@ -134,7 +134,7 @@ function Sidebar() {
 
       <div className="border-t border-border p-2.5">
         <button className="flex w-full items-center gap-2 rounded-[6px] px-2 py-1.5 text-left transition-colors hover:bg-muted">
-          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary-soft text-[11px] font-semibold text-primary">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-medium text-secondary-foreground">
             SC
           </span>
           <span className="min-w-0 leading-tight">
@@ -167,7 +167,7 @@ function TopBar() {
       </div>
 
       <div className="ml-auto flex items-center gap-1">
-        <span className="mr-2 hidden items-center gap-1.5 rounded-md bg-warning-soft px-2 py-1 text-[12px] font-medium text-warning ring-1 ring-inset ring-warning/25 sm:inline-flex">
+        <span className="mr-2 hidden items-center gap-1.5 rounded-md bg-warning-soft px-2 py-1 text-[12px] font-medium text-warning sm:inline-flex">
           Audit window open
         </span>
         {[CircleHelp, Bell, Settings].map((Icon, i) => (

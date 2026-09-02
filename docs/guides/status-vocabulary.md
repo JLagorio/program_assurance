@@ -15,4 +15,4 @@ Rules:
 - Control assessment states use the RMF phrasing: **Satisfied / Partially satisfied / Other than satisfied / Not assessed** — not pass/fail synonyms.
 - A count of problems is a `danger` or `warning` badge only when the count itself is the alarm (overdue POA&M items); otherwise counts are neutral chips (as in `Tabs` counts).
 - `neutral` is the default tone — reach for color only when state genuinely differs from "recorded".
-- Risk severity ladders (Critical / High / Moderate / Low) render as text or `Select` options, with `danger`/`warning` badges reserved for the top of the ladder in tables.
+- Risk severity ladders (Critical / High / Moderate / Low) render through `Severity` — a Dot plus text, never a pill — so the status column is the only pill in a row. `danger` for Critical, `warning` for High, neutral below.

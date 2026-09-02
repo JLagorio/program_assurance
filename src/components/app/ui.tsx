@@ -127,6 +127,30 @@ export function Dot({ tone = "neutral" }: { tone?: Tone }) {
   return <span className={cn("size-1.5 shrink-0 rounded-full", toneClasses[tone].dot)} />;
 }
 
+/** Severity as a Dot plus text — never a pill, so the status column stays the only pill in a row. */
+export function Severity({
+  tone = "neutral",
+  children,
+  className,
+}: {
+  tone?: Tone;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]",
+        tone === "neutral" ? "text-muted-foreground" : "text-foreground",
+        className,
+      )}
+    >
+      <Dot tone={tone} />
+      {children}
+    </span>
+  );
+}
+
 /* -------------------------------------------------------------------- Card */
 
 export function Card({ className, ...props }: ComponentProps<"div">) {
@@ -263,7 +287,15 @@ export function IdCell({
   return (
     <Td className="max-w-none">
       <span className="flex items-center gap-1.5">
-        <Mono className={tone === "primary" ? "text-primary" : "text-muted-foreground"}>{id}</Mono>
+        <Mono
+          className={cn(
+            "transition-colors duration-100",
+            active ? "text-primary" : "text-muted-foreground",
+            tone === "primary" && !active ? "group-hover/row:text-primary" : null,
+          )}
+        >
+          {id}
+        </Mono>
         {onPreview ? (
           <button
             type="button"
@@ -308,7 +340,7 @@ export function PreviewRail({
         <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
           Preview
         </span>
-        <Mono className="text-primary">{id}</Mono>
+        <Mono>{id}</Mono>
         <button
           onClick={onClose}
           className="ml-auto text-[12px] text-muted-foreground hover:text-foreground"
@@ -389,7 +421,7 @@ export function Tabs({
             className={cn(
               "-mb-px inline-flex items-center gap-1.5 border-b-2 px-0.5 pb-2.5 pt-1 text-[13px] transition-colors",
               isActive
-                ? "border-primary font-semibold text-primary"
+                ? "border-primary font-medium text-foreground"
                 : "border-transparent font-medium text-muted-foreground hover:text-foreground",
             )}
           >
@@ -641,7 +673,7 @@ export function TabStrip({
             className={cn(
               "-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-0.5 pb-2.5 pt-1 text-[13px] transition-colors",
               item.active
-                ? "border-primary font-semibold text-primary"
+                ? "border-primary font-medium text-foreground"
                 : "border-transparent font-medium text-muted-foreground hover:text-foreground",
               item.disabled ? "opacity-60" : null,
             )}
@@ -890,15 +922,9 @@ export function RelatedRow({
 }
 
 /* ------------------------------------------------------------- Avatar */
-/* People are named everywhere; text-only names read as a spreadsheet. */
-
-const avatarTones = [
-  "bg-primary-soft text-primary",
-  "bg-success-soft text-success",
-  "bg-warning-soft text-warning",
-  "bg-danger-soft text-danger",
-  "bg-muted text-muted-foreground",
-];
+/* People are named everywhere; text-only names read as a spreadsheet. One
+   neutral style: colour is reserved for state, and a red avatar beside a red
+   badge made the two indistinguishable. */
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -906,12 +932,6 @@ function initials(name: string) {
   const first = parts[0]?.[0] ?? "";
   const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? "") : "";
   return (first + last).toUpperCase();
-}
-
-function hashIndex(s: string, n: number) {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return h % n;
 }
 
 export function Avatar({
@@ -927,9 +947,8 @@ export function Avatar({
     <span
       title={name}
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full font-semibold ring-1 ring-inset ring-border-subtle",
+        "inline-flex shrink-0 items-center justify-center rounded-full bg-muted font-medium text-secondary-foreground ring-1 ring-inset ring-border-subtle",
         size === "xs" ? "size-4 text-[9px]" : "size-5 text-[10px]",
-        avatarTones[hashIndex(name, avatarTones.length)],
         className,
       )}
     >
@@ -956,7 +975,7 @@ export function AvatarStack({ names, max = 4 }: { names: string[]; max?: number 
         <Avatar key={n} name={n} size="xs" className="-ml-1 first:ml-0 ring-background" />
       ))}
       {rest > 0 ? (
-        <span className="-ml-1 inline-flex size-4 items-center justify-center rounded-full bg-muted text-[9px] font-semibold text-muted-foreground ring-1 ring-inset ring-border-subtle">
+        <span className="-ml-1 inline-flex size-4 items-center justify-center rounded-full bg-muted text-[9px] font-medium text-muted-foreground ring-1 ring-inset ring-border-subtle">
           +{rest}
         </span>
       ) : null}

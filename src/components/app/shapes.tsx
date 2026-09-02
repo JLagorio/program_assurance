@@ -96,7 +96,7 @@ export function WorkPaneRow({
       <span className={cn("mt-[7px] size-1.5 shrink-0 rounded-full", dot[tone ?? "neutral"])} />
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline gap-2">
-          <Mono className={active ? "text-primary" : "text-foreground"}>{id}</Mono>
+          <Mono>{id}</Mono>
           {meta ? (
             <span className="truncate text-[11.5px] text-muted-foreground">{meta}</span>
           ) : null}
