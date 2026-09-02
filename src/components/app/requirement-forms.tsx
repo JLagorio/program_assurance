@@ -11,7 +11,7 @@
 
 import { useMemo, useState } from "react";
 
-import { Badge, Button, Field, Input, Modal, Mono, Select, Textarea } from "@/components/app/ui";
+import { Badge, Button, Field, Input, Modal, Select, Textarea, Id } from "@/components/app/ui";
 import { nodesForProgram } from "@/lib/composition";
 import { systemComponents } from "@/lib/reusable-components";
 import {
@@ -473,7 +473,7 @@ export function ApplicabilityModal({
         <div className="grid gap-3">
           <div className="rounded-lg border border-border bg-subtle px-4 py-3">
             <div className="flex flex-wrap items-center gap-2">
-              <Mono>{current.id}</Mono>
+              <Id>{current.id}</Id>
               <Badge size="xs">{current.type}</Badge>
               {current.derivations.map((d) => (
                 <Badge key={d.sourceId} size="xs" tone={derivationSourceTone[d.sourceType]}>

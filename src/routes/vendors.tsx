@@ -2,19 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
 import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  Card,
-  IndexPage,
-  Meter,
-  Mono,
-  PageHeader,
-  Table,
-  Td,
-  Th,
-  Tr,
-} from "@/components/app/ui";
+import { Badge, Button, Card, IndexPage, Meter, PageHeader, Table, Id } from "@/components/app/ui";
 
 export const Route = createFileRoute("/vendors")({
   head: () => ({
@@ -134,27 +122,27 @@ function Vendors() {
           <Table>
             <thead>
               <tr>
-                <Th>Vendor</Th>
-                <Th className="w-[132px]">Data accessed</Th>
-                <Th className="w-[96px]">Tier</Th>
-                <Th className="w-[132px]">Assurance</Th>
-                <Th className="w-[148px]">Risk score</Th>
-                <Th className="w-[124px] text-right">Next review</Th>
+                <Table.Header>Vendor</Table.Header>
+                <Table.Header className="w-[132px]">Data accessed</Table.Header>
+                <Table.Header className="w-[96px]">Tier</Table.Header>
+                <Table.Header className="w-[132px]">Assurance</Table.Header>
+                <Table.Header className="w-[148px]">Risk score</Table.Header>
+                <Table.Header className="w-[124px] text-right">Next review</Table.Header>
               </tr>
             </thead>
             <tbody>
               {vendors.map((vendor) => (
-                <Tr key={vendor.name}>
-                  <Td>
+                <Table.Row key={vendor.name}>
+                  <Table.Cell>
                     <div className="font-medium">{vendor.name}</div>
-                    <Mono>{vendor.domain}</Mono>
-                  </Td>
-                  <Td>{vendor.data}</Td>
-                  <Td>{vendor.tier}</Td>
-                  <Td>
+                    <Id>{vendor.domain}</Id>
+                  </Table.Cell>
+                  <Table.Cell>{vendor.data}</Table.Cell>
+                  <Table.Cell>{vendor.tier}</Table.Cell>
+                  <Table.Cell>
                     <Badge tone={vendor.reportTone}>{vendor.report}</Badge>
-                  </Td>
-                  <Td>
+                  </Table.Cell>
+                  <Table.Cell>
                     <div className="flex items-center gap-2">
                       <Meter
                         value={vendor.score}
@@ -166,8 +154,8 @@ function Vendors() {
                         {vendor.score}
                       </span>
                     </div>
-                  </Td>
-                  <Td
+                  </Table.Cell>
+                  <Table.Cell
                     className={
                       vendor.review.startsWith("Overdue")
                         ? "text-right text-[12px] font-medium text-danger"
@@ -175,8 +163,8 @@ function Vendors() {
                     }
                   >
                     {vendor.review}
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>

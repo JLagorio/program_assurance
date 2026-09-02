@@ -5,19 +5,7 @@ import evidenceIam from "@/assets/evidence-iam.png";
 import evidenceDatacenter from "@/assets/evidence-datacenter.jpg";
 import evidenceHeaders from "@/assets/evidence-headers.png";
 import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  Card,
-  IndexPage,
-  Mono,
-  PageHeader,
-  Table,
-  Td,
-  Th,
-  Tr,
-  IdCell,
-} from "@/components/app/ui";
+import { Badge, Button, Card, IndexPage, PageHeader, Table, Id } from "@/components/app/ui";
 
 export const Route = createFileRoute("/evidence")({
   head: () => ({
@@ -164,28 +152,28 @@ function Evidence() {
           <Table>
             <thead>
               <tr>
-                <Th>Artifact</Th>
-                <Th className="w-[96px]">Control</Th>
-                <Th className="w-[148px]">Collected by</Th>
-                <Th className="w-[88px] text-right">Size</Th>
-                <Th className="w-[112px]">Added</Th>
-                <Th className="w-[96px] text-right">Freshness</Th>
+                <Table.Header>Artifact</Table.Header>
+                <Table.Header className="w-[96px]">Control</Table.Header>
+                <Table.Header className="w-[148px]">Collected by</Table.Header>
+                <Table.Header className="w-[88px] text-right">Size</Table.Header>
+                <Table.Header className="w-[112px]">Added</Table.Header>
+                <Table.Header className="w-[96px] text-right">Freshness</Table.Header>
               </tr>
             </thead>
             <tbody>
               {files.map((file) => (
-                <Tr key={file.name}>
-                  <IdCell id={file.name} />
-                  <Td>
-                    <Mono>{file.control}</Mono>
-                  </Td>
-                  <Td>{file.collector}</Td>
-                  <Td className="tnum text-right">{file.size}</Td>
-                  <Td>{file.added}</Td>
-                  <Td className="text-right">
+                <Table.Row key={file.name}>
+                  <Table.Id id={file.name} />
+                  <Table.Cell>
+                    <Id>{file.control}</Id>
+                  </Table.Cell>
+                  <Table.Cell>{file.collector}</Table.Cell>
+                  <Table.Cell className="tnum text-right">{file.size}</Table.Cell>
+                  <Table.Cell>{file.added}</Table.Cell>
+                  <Table.Cell className="text-right">
                     <Badge tone={stateTone[file.state]}>{file.state}</Badge>
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>

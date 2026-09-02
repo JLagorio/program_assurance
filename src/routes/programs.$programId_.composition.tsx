@@ -15,16 +15,13 @@ import {
   Badge,
   EmptyState,
   KeyValue,
-  Mono,
   RailGroup,
   RecordHeader,
   Section,
   ShowPage,
-  TabStrip,
   Table,
-  Td,
-  Th,
-  Tr,
+  Id,
+  Tabs,
 } from "@/components/app/ui";
 import {
   bomDocuments,
@@ -205,7 +202,7 @@ function ProgramComposition() {
           />
         }
         tabs={
-          <TabStrip
+          <Tabs
             items={compositionTabs.map((key) => ({
               key,
               label: key,
@@ -254,7 +251,7 @@ function ProgramComposition() {
                       params={{ assetId: selected.asset }}
                       className="text-primary hover:underline"
                     >
-                      <Mono className="text-primary">{selected.asset}</Mono>
+                      <Id className="text-primary">{selected.asset}</Id>
                     </Link>
                   ) : (
                     "Not a boundary asset"
@@ -267,7 +264,7 @@ function ProgramComposition() {
                       onClick={() => select(selectedPosture.worstNode ?? selected.id)}
                       className="text-primary hover:underline"
                     >
-                      <Mono className="text-primary">{nameOf(selectedPosture.worstNode)}</Mono>
+                      <Id className="text-primary">{nameOf(selectedPosture.worstNode)}</Id>
                     </button>
                   ) : (
                     "—"
@@ -279,7 +276,7 @@ function ProgramComposition() {
                     params={{ programId: program.id }}
                     className="text-primary hover:underline"
                   >
-                    <Mono className="text-primary">{program.id}</Mono>
+                    <Id className="text-primary">{program.id}</Id>
                   </Link>
                 </KeyValue>
               </RailGroup>
@@ -334,18 +331,18 @@ function ProgramComposition() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>From</Th>
-                    <Th>Relation</Th>
-                    <Th>To</Th>
-                    <Th>Via</Th>
-                    <Th>Redundancy</Th>
-                    <Th>Boundary</Th>
+                    <Table.Header>From</Table.Header>
+                    <Table.Header>Relation</Table.Header>
+                    <Table.Header>To</Table.Header>
+                    <Table.Header>Via</Table.Header>
+                    <Table.Header>Redundancy</Table.Header>
+                    <Table.Header>Boundary</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {edges.map((e) => (
-                    <Tr key={`${e.from}-${e.kind}-${e.to}`}>
-                      <Td className="truncate">
+                    <Table.Row key={`${e.from}-${e.kind}-${e.to}`}>
+                      <Table.Cell className="truncate">
                         <button
                           type="button"
                           onClick={() => select(e.from)}
@@ -353,11 +350,11 @@ function ProgramComposition() {
                         >
                           {nameOf(e.from)}
                         </button>
-                      </Td>
-                      <Td>
+                      </Table.Cell>
+                      <Table.Cell>
                         <Badge size="xs">{e.kind}</Badge>
-                      </Td>
-                      <Td className="truncate">
+                      </Table.Cell>
+                      <Table.Cell className="truncate">
                         <button
                           type="button"
                           onClick={() => select(e.to)}
@@ -365,12 +362,12 @@ function ProgramComposition() {
                         >
                           {nameOf(e.to)}
                         </button>
-                      </Td>
-                      <Td className="truncate" title={e.via}>
+                      </Table.Cell>
+                      <Table.Cell className="truncate" title={e.via}>
                         {e.via}
-                      </Td>
-                      <Td>{e.critical ? "No redundancy" : "Redundant"}</Td>
-                      <Td>
+                      </Table.Cell>
+                      <Table.Cell>{e.critical ? "No redundancy" : "Redundant"}</Table.Cell>
+                      <Table.Cell>
                         {crossesBoundary(e) ? (
                           <Badge size="xs" tone="warning">
                             {zoneOf(e.from)} → {zoneOf(e.to)}
@@ -378,8 +375,8 @@ function ProgramComposition() {
                         ) : (
                           <span className="text-muted-foreground">Same zone</span>
                         )}
-                      </Td>
-                    </Tr>
+                      </Table.Cell>
+                    </Table.Row>
                   ))}
                 </tbody>
               </Table>
@@ -440,14 +437,14 @@ function ProgramComposition() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>Document</Th>
-                    <Th>Name</Th>
-                    <Th>Format</Th>
-                    <Th>Producer</Th>
-                    <Th className="text-right">Received</Th>
-                    <Th className="text-right">Parts</Th>
-                    <Th>Subject</Th>
-                    <Th>Integrity</Th>
+                    <Table.Header>Document</Table.Header>
+                    <Table.Header>Name</Table.Header>
+                    <Table.Header>Format</Table.Header>
+                    <Table.Header>Producer</Table.Header>
+                    <Table.Header className="text-right">Received</Table.Header>
+                    <Table.Header className="text-right">Parts</Table.Header>
+                    <Table.Header>Subject</Table.Header>
+                    <Table.Header>Integrity</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
@@ -455,20 +452,20 @@ function ProgramComposition() {
                     const age = ageInDays(d.received);
                     const isStale = age !== null && age > staleAfterDays;
                     return (
-                      <Tr key={d.id}>
-                        <Td>
-                          <Mono>{d.id}</Mono>
-                        </Td>
-                        <Td className="truncate" title={d.name}>
+                      <Table.Row key={d.id}>
+                        <Table.Cell>
+                          <Id>{d.id}</Id>
+                        </Table.Cell>
+                        <Table.Cell className="truncate" title={d.name}>
                           {d.name}
-                        </Td>
-                        <Td>
+                        </Table.Cell>
+                        <Table.Cell>
                           {d.format} {d.specVersion}
-                        </Td>
-                        <Td className="truncate" title={d.producer}>
+                        </Table.Cell>
+                        <Table.Cell className="truncate" title={d.producer}>
                           {d.producer}
-                        </Td>
-                        <Td
+                        </Table.Cell>
+                        <Table.Cell
                           className={
                             isStale
                               ? "tnum text-right text-warning"
@@ -477,9 +474,9 @@ function ProgramComposition() {
                           title={age === null ? d.received : `${age} days old`}
                         >
                           {d.received}
-                        </Td>
-                        <Td className="tnum text-right">{d.components}</Td>
-                        <Td className="truncate">
+                        </Table.Cell>
+                        <Table.Cell className="tnum text-right">{d.components}</Table.Cell>
+                        <Table.Cell className="truncate">
                           <button
                             type="button"
                             onClick={() => openInTree(d.subject)}
@@ -488,18 +485,18 @@ function ProgramComposition() {
                           >
                             {nameOf(d.subject)}
                           </button>
-                        </Td>
-                        <Td>
+                        </Table.Cell>
+                        <Table.Cell>
                           <span className="flex items-center gap-1.5">
                             <Badge size="xs" tone={d.signed ? "success" : "warning"}>
                               {d.signed ? "Signed" : "Unsigned"}
                             </Badge>
                             <span title={`sha256:${d.sha256}`}>
-                              <Mono className="text-muted-foreground">{d.sha256.slice(0, 8)}…</Mono>
+                              <Id className="text-muted-foreground">{d.sha256.slice(0, 8)}…</Id>
                             </span>
                           </span>
-                        </Td>
-                      </Tr>
+                        </Table.Cell>
+                      </Table.Row>
                     );
                   })}
                 </tbody>

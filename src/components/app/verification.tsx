@@ -11,15 +11,12 @@ import {
   KeyValue,
   Meter,
   Modal,
-  Mono,
   Section,
   Select,
   Table,
-  Td,
   Textarea,
-  Th,
-  Tr,
-  Severity as SeverityText,
+  Id,
+  Indicator,
 } from "@/components/app/ui";
 import {
   findings as seedFindings,
@@ -151,31 +148,31 @@ export function VerificationSection({ programName }: { programName: string }) {
             </colgroup>
             <thead>
               <tr>
-                <Th>Check</Th>
-                <Th>Requirement</Th>
-                <Th>Verdict</Th>
-                <Th>Gate</Th>
-                <Th>Assessor note</Th>
-                <Th>Evidence</Th>
+                <Table.Header>Check</Table.Header>
+                <Table.Header>Requirement</Table.Header>
+                <Table.Header>Verdict</Table.Header>
+                <Table.Header>Gate</Table.Header>
+                <Table.Header>Assessor note</Table.Header>
+                <Table.Header>Evidence</Table.Header>
               </tr>
             </thead>
             <tbody>
               {scaChecks.map((c) => (
-                <Tr key={c.id}>
-                  <Td>
-                    <Mono>{c.id}</Mono>
-                  </Td>
-                  <Td>
+                <Table.Row key={c.id}>
+                  <Table.Cell>
+                    <Id>{c.id}</Id>
+                  </Table.Cell>
+                  <Table.Cell>
                     <span className="font-medium">{c.name}</span>
                     <span className="text-muted-foreground"> — {c.requirement}</span>
-                  </Td>
-                  <Td>
+                  </Table.Cell>
+                  <Table.Cell>
                     <Badge tone={verdictTone[c.verdict]}>{c.verdict}</Badge>
-                  </Td>
-                  <Td>{c.gate}</Td>
-                  <Td>{c.finding}</Td>
-                  <Td>{c.evidence}</Td>
-                </Tr>
+                  </Table.Cell>
+                  <Table.Cell>{c.gate}</Table.Cell>
+                  <Table.Cell>{c.finding}</Table.Cell>
+                  <Table.Cell>{c.evidence}</Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>
@@ -228,36 +225,36 @@ export function VerificationSection({ programName }: { programName: string }) {
             </colgroup>
             <thead>
               <tr>
-                <Th>Event</Th>
-                <Th>Test activity</Th>
-                <Th>Range</Th>
-                <Th>Start</Th>
-                <Th>End</Th>
-                <Th>Status</Th>
-                <Th>Against IATT</Th>
+                <Table.Header>Event</Table.Header>
+                <Table.Header>Test activity</Table.Header>
+                <Table.Header>Range</Table.Header>
+                <Table.Header>Start</Table.Header>
+                <Table.Header>End</Table.Header>
+                <Table.Header>Status</Table.Header>
+                <Table.Header>Against IATT</Table.Header>
               </tr>
             </thead>
             <tbody>
               {testEvents.map((e) => {
                 const slack = daysBetween(e.end, iatt.expires);
                 return (
-                  <Tr key={e.id}>
-                    <Td>
-                      <Mono>{e.id}</Mono>
-                    </Td>
-                    <Td>{e.name}</Td>
-                    <Td>{e.range}</Td>
-                    <Td className="tnum">{shortDate(e.start)}</Td>
-                    <Td className="tnum">{shortDate(e.end)}</Td>
-                    <Td>
+                  <Table.Row key={e.id}>
+                    <Table.Cell>
+                      <Id>{e.id}</Id>
+                    </Table.Cell>
+                    <Table.Cell>{e.name}</Table.Cell>
+                    <Table.Cell>{e.range}</Table.Cell>
+                    <Table.Cell className="tnum">{shortDate(e.start)}</Table.Cell>
+                    <Table.Cell className="tnum">{shortDate(e.end)}</Table.Cell>
+                    <Table.Cell>
                       <Badge tone={testStatusTone[e.status]}>{e.status}</Badge>
-                    </Td>
-                    <Td className={slack < 0 ? "text-danger" : undefined}>
+                    </Table.Cell>
+                    <Table.Cell className={slack < 0 ? "text-danger" : undefined}>
                       {slack < 0
                         ? `${Math.abs(slack)}d past expiry`
                         : `${slack}d slack · ${e.requires}`}
-                    </Td>
-                  </Tr>
+                    </Table.Cell>
+                  </Table.Row>
                 );
               })}
             </tbody>
@@ -287,32 +284,32 @@ export function VerificationSection({ programName }: { programName: string }) {
             </colgroup>
             <thead>
               <tr>
-                <Th>ID</Th>
-                <Th>Source</Th>
-                <Th>Artifact</Th>
-                <Th>Asset</Th>
-                <Th>Ingested</Th>
-                <Th>Status</Th>
-                <Th className="text-right">CAT I / II / III</Th>
-                <Th className="text-right">Coverage</Th>
+                <Table.Header>ID</Table.Header>
+                <Table.Header>Source</Table.Header>
+                <Table.Header>Artifact</Table.Header>
+                <Table.Header>Asset</Table.Header>
+                <Table.Header>Ingested</Table.Header>
+                <Table.Header>Status</Table.Header>
+                <Table.Header className="text-right">CAT I / II / III</Table.Header>
+                <Table.Header className="text-right">Coverage</Table.Header>
               </tr>
             </thead>
             <tbody>
               {ingests.map((i) => (
-                <Tr key={i.id}>
-                  <Td>
-                    <Mono>{i.id}</Mono>
-                  </Td>
-                  <Td>
+                <Table.Row key={i.id}>
+                  <Table.Cell>
+                    <Id>{i.id}</Id>
+                  </Table.Cell>
+                  <Table.Cell>
                     <Badge tone="neutral">{sourceShort[i.source]}</Badge>
-                  </Td>
-                  <Td>{i.artifact}</Td>
-                  <Td>{i.asset}</Td>
-                  <Td className="tnum">{shortStamp(i.ingested)}</Td>
-                  <Td>
+                  </Table.Cell>
+                  <Table.Cell>{i.artifact}</Table.Cell>
+                  <Table.Cell>{i.asset}</Table.Cell>
+                  <Table.Cell className="tnum">{shortStamp(i.ingested)}</Table.Cell>
+                  <Table.Cell>
                     <Badge tone={ingestTone[i.status]}>{i.status}</Badge>
-                  </Td>
-                  <Td className="text-right tnum">
+                  </Table.Cell>
+                  <Table.Cell className="text-right tnum">
                     <span
                       className={i.catI > 0 ? "font-medium text-danger" : "text-muted-foreground"}
                     >
@@ -322,9 +319,9 @@ export function VerificationSection({ programName }: { programName: string }) {
                     <span className="text-muted-foreground">{i.catII}</span>
                     <span className="text-border"> / </span>
                     <span className="text-muted-foreground">{i.catIII}</span>
-                  </Td>
-                  <Td className="text-right tnum">{i.coverage}%</Td>
-                </Tr>
+                  </Table.Cell>
+                  <Table.Cell className="text-right tnum">{i.coverage}%</Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>
@@ -364,41 +361,41 @@ export function VerificationSection({ programName }: { programName: string }) {
             </colgroup>
             <thead>
               <tr>
-                <Th>Reference</Th>
-                <Th>Source</Th>
-                <Th>Finding</Th>
-                <Th>Control</Th>
-                <Th>Asset</Th>
-                <Th>Status</Th>
-                <Th className="text-right">Age</Th>
-                <Th>Due</Th>
-                <Th>Owner</Th>
+                <Table.Header>Reference</Table.Header>
+                <Table.Header>Source</Table.Header>
+                <Table.Header>Finding</Table.Header>
+                <Table.Header>Control</Table.Header>
+                <Table.Header>Asset</Table.Header>
+                <Table.Header>Status</Table.Header>
+                <Table.Header className="text-right">Age</Table.Header>
+                <Table.Header>Due</Table.Header>
+                <Table.Header>Owner</Table.Header>
               </tr>
             </thead>
             <tbody>
               {rows.map((f) => (
-                <Tr key={f.id} className="cursor-pointer" onClick={() => setOpenFinding(f)}>
-                  <Td>
+                <Table.Row key={f.id} className="cursor-pointer" onClick={() => setOpenFinding(f)}>
+                  <Table.Cell>
                     <span className="flex items-center gap-1.5">
                       <Dot tone={severityTone[f.severity]} />
-                      <Mono>{f.ref}</Mono>
+                      <Id>{f.ref}</Id>
                     </span>
-                  </Td>
-                  <Td>
+                  </Table.Cell>
+                  <Table.Cell>
                     <Badge tone="neutral">{sourceShort[f.source]}</Badge>
-                  </Td>
-                  <Td>{f.title}</Td>
-                  <Td>
-                    <Mono>{f.control}</Mono>
-                  </Td>
-                  <Td>{f.asset}</Td>
-                  <Td>
+                  </Table.Cell>
+                  <Table.Cell>{f.title}</Table.Cell>
+                  <Table.Cell>
+                    <Id>{f.control}</Id>
+                  </Table.Cell>
+                  <Table.Cell>{f.asset}</Table.Cell>
+                  <Table.Cell>
                     <Badge tone={findingStatusTone[f.status]}>{f.status}</Badge>
-                  </Td>
-                  <Td className="text-right tnum">{f.age}d</Td>
-                  <Td className="tnum">{shortDate(f.due)}</Td>
-                  <Td>{f.owner}</Td>
-                </Tr>
+                  </Table.Cell>
+                  <Table.Cell className="text-right tnum">{f.age}d</Table.Cell>
+                  <Table.Cell className="tnum">{shortDate(f.due)}</Table.Cell>
+                  <Table.Cell>{f.owner}</Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>
@@ -473,10 +470,10 @@ function FindingModal({
           </div>
           <div className="space-y-1.5 border-t border-border pt-3">
             <KeyValue label="Severity">
-              <SeverityText tone={severityTone[finding.severity]}>{finding.severity}</SeverityText>
+              <Indicator tone={severityTone[finding.severity]}>{finding.severity}</Indicator>
             </KeyValue>
             <KeyValue label="Control">
-              <Mono>{finding.control}</Mono>
+              <Id>{finding.control}</Id>
             </KeyValue>
             <KeyValue label="Age">{finding.age} days</KeyValue>
             <KeyValue label="Detected by">{finding.source}</KeyValue>

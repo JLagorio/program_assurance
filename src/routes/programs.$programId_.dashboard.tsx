@@ -10,16 +10,12 @@ import {
   Badge,
   Dot,
   Meter,
-  Mono,
   Person,
   RecordHeader,
   Section,
   ShowPage,
-  StackedBar,
   Table,
-  Td,
-  Th,
-  Tr,
+  Id,
 } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
@@ -110,7 +106,7 @@ function DeadlineRow({ programId, d }: { programId: string; d: Deadline }) {
   const idCell =
     d.kind === "POA&M" ? (
       <Link to="/register/poam/$poamId" params={{ poamId: d.id }} className="hover:underline">
-        <Mono className="text-primary">{d.id}</Mono>
+        <Id className="text-primary">{d.id}</Id>
       </Link>
     ) : d.kind === "Control" ? (
       <Link
@@ -118,28 +114,28 @@ function DeadlineRow({ programId, d }: { programId: string; d: Deadline }) {
         params={{ programId, controlId: d.id }}
         className="hover:underline"
       >
-        <Mono className="text-primary">{d.id}</Mono>
+        <Id className="text-primary">{d.id}</Id>
       </Link>
     ) : (
-      <Mono>{d.id}</Mono>
+      <Id>{d.id}</Id>
     );
 
   return (
-    <Tr>
-      <Td>{idCell}</Td>
-      <Td>
+    <Table.Row>
+      <Table.Cell>{idCell}</Table.Cell>
+      <Table.Cell>
         <Badge tone={deadlineTone[d.kind] ?? "neutral"} size="xs">
           {d.kind}
         </Badge>
-      </Td>
-      <Td className="truncate" title={d.label}>
+      </Table.Cell>
+      <Table.Cell className="truncate" title={d.label}>
         {d.label}
-      </Td>
-      <Td className="truncate" title={d.note}>
+      </Table.Cell>
+      <Table.Cell className="truncate" title={d.note}>
         {d.note}
-      </Td>
-      <Td className="tnum text-right">{d.date}</Td>
-      <Td
+      </Table.Cell>
+      <Table.Cell className="tnum text-right">{d.date}</Table.Cell>
+      <Table.Cell
         className={cn(
           "tnum text-right",
           d.tone === "danger"
@@ -150,11 +146,11 @@ function DeadlineRow({ programId, d }: { programId: string; d: Deadline }) {
         )}
       >
         {timing}
-      </Td>
-      <Td className="truncate">
+      </Table.Cell>
+      <Table.Cell className="truncate">
         <Person name={d.owner} />
-      </Td>
-    </Tr>
+      </Table.Cell>
+    </Table.Row>
   );
 }
 
@@ -240,7 +236,7 @@ function ProgramDashboard() {
               hint={`${coverage.satisfied} of ${coverage.total} satisfied`}
               tone={coverage.pct >= 90 ? "success" : coverage.pct >= 75 ? "neutral" : "warning"}
             >
-              <StackedBar
+              <Meter.Stacked
                 height={4}
                 segments={coverage.segments.map((s) => ({
                   key: s.key,
@@ -330,7 +326,7 @@ function ProgramDashboard() {
             {byPhase.map((p) => (
               <span key={p.phase} className="flex min-w-[136px] items-center gap-2">
                 <span className="w-16 shrink-0">
-                  <StackedBar
+                  <Meter.Stacked
                     height={4}
                     segments={[
                       { key: "d", value: p.done, tone: "success" },
@@ -358,39 +354,39 @@ function ProgramDashboard() {
             </colgroup>
             <thead>
               <tr>
-                <Th>Gate</Th>
-                <Th>Name</Th>
-                <Th>Kind</Th>
-                <Th>Status</Th>
-                <Th className="text-right">Planned</Th>
-                <Th className="text-right">Timing</Th>
-                <Th>Blocking</Th>
+                <Table.Header>Gate</Table.Header>
+                <Table.Header>Name</Table.Header>
+                <Table.Header>Kind</Table.Header>
+                <Table.Header>Status</Table.Header>
+                <Table.Header className="text-right">Planned</Table.Header>
+                <Table.Header className="text-right">Timing</Table.Header>
+                <Table.Header>Blocking</Table.Header>
               </tr>
             </thead>
             <tbody>
               {outlook.remaining.map(({ gate, daysOut, tone, blockers }) => (
-                <Tr key={gate.id}>
-                  <Td>
+                <Table.Row key={gate.id}>
+                  <Table.Cell>
                     <span className="flex items-center gap-1.5">
                       <Dot tone={tone} />
-                      <Mono>{gate.id}</Mono>
+                      <Id>{gate.id}</Id>
                     </span>
-                  </Td>
-                  <Td className="truncate" title={gate.cyberGate}>
+                  </Table.Cell>
+                  <Table.Cell className="truncate" title={gate.cyberGate}>
                     {gate.name}
-                  </Td>
-                  <Td>
+                  </Table.Cell>
+                  <Table.Cell>
                     <Badge tone={gateKindTone[gate.kind]} size="xs">
                       {gate.kind}
                     </Badge>
-                  </Td>
-                  <Td>
+                  </Table.Cell>
+                  <Table.Cell>
                     <Badge tone={tone} size="xs">
                       {gate.status}
                     </Badge>
-                  </Td>
-                  <Td className="tnum text-right">{gate.planned}</Td>
-                  <Td
+                  </Table.Cell>
+                  <Table.Cell className="tnum text-right">{gate.planned}</Table.Cell>
+                  <Table.Cell
                     className={cn(
                       "tnum text-right",
                       tone === "danger" ? "text-danger" : "text-muted-foreground",
@@ -401,11 +397,11 @@ function ProgramDashboard() {
                       : daysOut < 0
                         ? `${Math.abs(daysOut)}d overdue`
                         : `${daysOut}d out`}
-                  </Td>
-                  <Td className="truncate">
+                  </Table.Cell>
+                  <Table.Cell className="truncate">
                     {blockers ? `${blockers} controls open` : <Person name={gate.owner} />}
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>
@@ -427,13 +423,13 @@ function ProgramDashboard() {
             </colgroup>
             <thead>
               <tr>
-                <Th>ID</Th>
-                <Th>Kind</Th>
-                <Th>What is due</Th>
-                <Th>Context</Th>
-                <Th className="text-right">Date</Th>
-                <Th className="text-right">Timing</Th>
-                <Th>Owner</Th>
+                <Table.Header>ID</Table.Header>
+                <Table.Header>Kind</Table.Header>
+                <Table.Header>What is due</Table.Header>
+                <Table.Header>Context</Table.Header>
+                <Table.Header className="text-right">Date</Table.Header>
+                <Table.Header className="text-right">Timing</Table.Header>
+                <Table.Header>Owner</Table.Header>
               </tr>
             </thead>
             <tbody>

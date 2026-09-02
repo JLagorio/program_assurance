@@ -9,18 +9,7 @@
 import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 
-import {
-  Badge,
-  Dot,
-  Mono,
-  Person,
-  Section,
-  StackedBar,
-  Table,
-  Td,
-  Th,
-  Tr,
-} from "@/components/app/ui";
+import { Badge, Dot, Person, Section, Table, Id, Meter } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import { gatesForProgram, gateKindTone, lifecyclePhases, type ProgramGate } from "@/lib/grc-data";
 import { daysUntil } from "@/lib/program-stage";
@@ -72,7 +61,7 @@ export function RmfTimeline({
       description="Acquisition phases, decision gates and the work that has to close under each."
       action={
         <span className="flex w-[240px] items-center gap-2">
-          <StackedBar
+          <Meter.Stacked
             height={4}
             segments={[
               { key: "d", value: done, tone: "success" },
@@ -112,7 +101,7 @@ export function RmfTimeline({
                   <li key={g.id} className="border-b border-border-subtle py-2 last:border-0">
                     <div className="flex items-center gap-3">
                       <Dot tone={tone} />
-                      <Mono className="w-16 shrink-0">{g.id}</Mono>
+                      <Id className="w-16 shrink-0">{g.id}</Id>
                       <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium">
                         {g.name}
                       </span>
@@ -159,19 +148,19 @@ export function RmfTimeline({
                                 (c) => c.status !== "Satisfied",
                               ).length;
                               return (
-                                <Tr key={w.id}>
-                                  <Td>
+                                <Table.Row key={w.id}>
+                                  <Table.Cell>
                                     <Link
                                       to="/workstreams/$workstreamId"
                                       params={{ workstreamId: w.id }}
                                       className="text-primary hover:underline"
                                     >
-                                      <Mono className="text-primary">{w.id}</Mono>
+                                      <Id className="text-primary">{w.id}</Id>
                                     </Link>
-                                  </Td>
-                                  <Td className="truncate">{w.title}</Td>
-                                  <Td>{w.status}</Td>
-                                  <Td>
+                                  </Table.Cell>
+                                  <Table.Cell className="truncate">{w.title}</Table.Cell>
+                                  <Table.Cell>{w.status}</Table.Cell>
+                                  <Table.Cell>
                                     {w.controls.length ? (
                                       <button
                                         type="button"
@@ -186,9 +175,9 @@ export function RmfTimeline({
                                     ) : (
                                       "—"
                                     )}
-                                  </Td>
-                                  <Td className="tnum text-right">{w.due}</Td>
-                                </Tr>
+                                  </Table.Cell>
+                                  <Table.Cell className="tnum text-right">{w.due}</Table.Cell>
+                                </Table.Row>
                               );
                             })}
                           </tbody>
@@ -248,26 +237,26 @@ export function GateOutlookSection({
         </colgroup>
         <tbody>
           {shown.map(({ gate, daysOut, tone, blockers }) => (
-            <Tr key={gate.id}>
-              <Td>
-                <Mono>{gate.id}</Mono>
-              </Td>
-              <Td className="truncate">{gate.name}</Td>
-              <Td>
+            <Table.Row key={gate.id}>
+              <Table.Cell>
+                <Id>{gate.id}</Id>
+              </Table.Cell>
+              <Table.Cell className="truncate">{gate.name}</Table.Cell>
+              <Table.Cell>
                 <Badge tone={tone} size="xs">
                   {gate.status}
                 </Badge>
-              </Td>
-              <Td className="tnum">{gate.planned}</Td>
-              <Td
+              </Table.Cell>
+              <Table.Cell className="tnum">{gate.planned}</Table.Cell>
+              <Table.Cell
                 className={cn("tnum", tone === "danger" ? "text-danger" : "text-muted-foreground")}
               >
                 {timing(gate, daysOut)}
-              </Td>
-              <Td className="truncate">
+              </Table.Cell>
+              <Table.Cell className="truncate">
                 {blockers ? `${blockers} open controls` : <Person name={gate.owner} />}
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           ))}
         </tbody>
       </Table>

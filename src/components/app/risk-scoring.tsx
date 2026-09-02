@@ -35,7 +35,7 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, EmptyState, Meter, Mono, StackedBar, Table, Td, Th, Tr } from "@/components/app/ui";
+import { Badge, EmptyState, Meter, Table, Id } from "@/components/app/ui";
 import {
   bandTone,
   factorOrder,
@@ -104,12 +104,12 @@ function EvidenceIds({ ids }: { ids: string[] }) {
   return (
     <span className="flex flex-wrap items-center gap-1">
       {ids.map((id) => (
-        <Mono
+        <Id
           key={id}
           className="rounded bg-muted px-1 py-px text-[11px] leading-4 text-muted-foreground"
         >
           {id}
-        </Mono>
+        </Id>
       ))}
     </span>
   );
@@ -185,11 +185,11 @@ export function FactorTable({ score }: { score: ResidualScore }) {
         </colgroup>
         <thead>
           <tr>
-            <Th>Factor</Th>
-            <Th>Input read</Th>
-            <Th className="text-right">Value</Th>
-            <Th className="text-right">Weight</Th>
-            <Th className="text-right">Contribution</Th>
+            <Table.Header>Factor</Table.Header>
+            <Table.Header>Input read</Table.Header>
+            <Table.Header className="text-right">Value</Table.Header>
+            <Table.Header className="text-right">Weight</Table.Header>
+            <Table.Header className="text-right">Contribution</Table.Header>
           </tr>
         </thead>
         <tbody>
@@ -202,19 +202,19 @@ export function FactorTable({ score }: { score: ResidualScore }) {
         </tbody>
         <tfoot>
           <tr className="border-t border-border">
-            <Td>Residual</Td>
-            <Td className="max-w-none whitespace-normal py-2 leading-snug">
+            <Table.Cell>Residual</Table.Cell>
+            <Table.Cell className="max-w-none whitespace-normal py-2 leading-snug">
               {clamped
                 ? `The column sums to ${sum}, outside the 0–100 range; the published score is clamped.`
                 : `Sum of the ${score.factors.length} contributions above. The positive factors alone ceiling at ${ceiling}; the credit is what comes back off.`}
-            </Td>
-            <Td className="text-right">
+            </Table.Cell>
+            <Table.Cell className="text-right">
               <Dash />
-            </Td>
-            <Td className="text-right">
+            </Table.Cell>
+            <Table.Cell className="text-right">
               <Dash />
-            </Td>
-            <Td className="tnum text-right text-[15px]">{score.score}</Td>
+            </Table.Cell>
+            <Table.Cell className="tnum text-right text-[15px]">{score.score}</Table.Cell>
           </tr>
         </tfoot>
       </Table>
@@ -227,27 +227,27 @@ function FactorRows({ factor }: { factor: ScoreFactor }) {
   const credit = factor.weight < 0;
   return (
     <>
-      <Tr className="border-0 align-top hover:bg-transparent">
-        <Td className="py-2 align-top">{factor.label}</Td>
-        <Td
+      <Table.Row className="border-0 align-top hover:bg-transparent">
+        <Table.Cell className="py-2 align-top">{factor.label}</Table.Cell>
+        <Table.Cell
           className="max-w-none whitespace-normal py-2 align-top leading-snug"
           title={factor.input}
         >
           {factor.input}
-        </Td>
-        <Td className="tnum py-2 align-top text-right">{fixed2(factor.value)}</Td>
-        <Td className="tnum py-2 align-top text-right">{fixed2(factor.weight)}</Td>
-        <Td
+        </Table.Cell>
+        <Table.Cell className="tnum py-2 align-top text-right">{fixed2(factor.value)}</Table.Cell>
+        <Table.Cell className="tnum py-2 align-top text-right">{fixed2(factor.weight)}</Table.Cell>
+        <Table.Cell
           className={cn(
             "tnum py-2 align-top text-right font-medium",
             credit ? "text-success" : factor.contribution === 0 ? "text-muted-foreground" : "",
           )}
         >
           {signed(factor.contribution)}
-        </Td>
-      </Tr>
-      <Tr className="align-top hover:bg-transparent">
-        <Td
+        </Table.Cell>
+      </Table.Row>
+      <Table.Row className="align-top hover:bg-transparent">
+        <Table.Cell
           className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
           colSpan={5}
         >
@@ -255,8 +255,8 @@ function FactorRows({ factor }: { factor: ScoreFactor }) {
           <span className="mt-1.5 block">
             <EvidenceIds ids={factor.evidence} />
           </span>
-        </Td>
-      </Tr>
+        </Table.Cell>
+      </Table.Row>
     </>
   );
 }
@@ -284,29 +284,31 @@ function MissingFactorRows({ factorKey, caveats }: { factorKey: FactorKey; cavea
       : `The ${needle} could not be computed for this subject, so the ${fixed2(weight)} credit was never applied and nothing came off the inherent score.`);
   return (
     <>
-      <Tr className="border-0 align-top hover:bg-transparent">
-        <Td className="py-2 align-top">{label}</Td>
-        <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
+      <Table.Row className="border-0 align-top hover:bg-transparent">
+        <Table.Cell className="py-2 align-top">{label}</Table.Cell>
+        <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
           <Badge size="xs" tone="warning">
             Not computed
           </Badge>
-        </Td>
-        <Td className="py-2 align-top text-right">
+        </Table.Cell>
+        <Table.Cell className="py-2 align-top text-right">
           <Dash />
-        </Td>
-        <Td className="tnum py-2 align-top text-right line-through">{fixed2(weight)}</Td>
-        <Td className="py-2 align-top text-right">
+        </Table.Cell>
+        <Table.Cell className="tnum py-2 align-top text-right line-through">
+          {fixed2(weight)}
+        </Table.Cell>
+        <Table.Cell className="py-2 align-top text-right">
           <Dash />
-        </Td>
-      </Tr>
-      <Tr className="align-top hover:bg-transparent">
-        <Td
+        </Table.Cell>
+      </Table.Row>
+      <Table.Row className="align-top hover:bg-transparent">
+        <Table.Cell
           className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
           colSpan={5}
         >
           <span className="block text-[12.5px] text-muted-foreground">{caveat}</span>
-        </Td>
-      </Tr>
+        </Table.Cell>
+      </Table.Row>
     </>
   );
 }
@@ -431,7 +433,7 @@ export function BandDistribution({ byBand }: { byBand: { band: RiskBand; count: 
   }
   return (
     <div className="space-y-3 pt-4">
-      <StackedBar
+      <Meter.Stacked
         segments={byBand
           .filter((b) => b.count > 0)
           .map((b) => ({
@@ -513,15 +515,15 @@ export function TopRisksTable({
       </colgroup>
       <thead>
         <tr>
-          <Th>Subject</Th>
-          <Th>Title</Th>
-          <Th>Where</Th>
-          <Th>Largest term</Th>
-          <Th className="text-right">Inherent</Th>
-          <Th className="text-right">Credit</Th>
-          {showAuthored ? <Th className="text-right">Authored</Th> : null}
-          <Th className="text-right">Residual</Th>
-          <Th>Band</Th>
+          <Table.Header>Subject</Table.Header>
+          <Table.Header>Title</Table.Header>
+          <Table.Header>Where</Table.Header>
+          <Table.Header>Largest term</Table.Header>
+          <Table.Header className="text-right">Inherent</Table.Header>
+          <Table.Header className="text-right">Credit</Table.Header>
+          {showAuthored ? <Table.Header className="text-right">Authored</Table.Header> : null}
+          <Table.Header className="text-right">Residual</Table.Header>
+          <Table.Header>Band</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -531,7 +533,7 @@ export function TopRisksTable({
             row.score.factors.find((f) => f.key === "mitigation")?.contribution ?? 0,
           );
           return (
-            <Tr
+            <Table.Row
               key={row.score.subject}
               className={cn(
                 onSelect && "cursor-pointer",
@@ -540,43 +542,45 @@ export function TopRisksTable({
               onClick={onSelect ? () => onSelect(row.score.subject) : undefined}
               title={row.excluded ? `${row.title} — not carried in the aggregate` : row.title}
             >
-              <Td className="max-w-none">
+              <Table.Cell className="max-w-none">
                 <span className="flex items-center gap-1.5">
-                  <Mono>{row.score.subject}</Mono>
+                  <Id>{row.score.subject}</Id>
                   {row.score.caveats.length > 0 ? (
                     <Badge size="xs" tone="warning">
                       {row.score.caveats.length}
                     </Badge>
                   ) : null}
                 </span>
-              </Td>
-              <Td className={cn(row.excluded && "text-muted-foreground")}>{row.title}</Td>
-              <Td title={row.context}>{row.context}</Td>
-              <Td title={driver ? driver.rationale : undefined}>
+              </Table.Cell>
+              <Table.Cell className={cn(row.excluded && "text-muted-foreground")}>
+                {row.title}
+              </Table.Cell>
+              <Table.Cell title={row.context}>{row.context}</Table.Cell>
+              <Table.Cell title={driver ? driver.rationale : undefined}>
                 {driver ? `${driver.label} ${signed(driver.contribution)}` : <Dash />}
-              </Td>
-              <Td className="tnum text-right">{row.score.inherent}</Td>
+              </Table.Cell>
+              <Table.Cell className="tnum text-right">{row.score.inherent}</Table.Cell>
               {/* A zero credit is a RESULT — nobody claimed a compensating
                   control — so it prints as 0 rather than as an em dash, which
                   would read as "not computed". */}
-              <Td
+              <Table.Cell
                 className={cn(
                   "tnum text-right",
                   credit !== 0 ? "text-success" : "text-muted-foreground",
                 )}
               >
                 {signed(credit)}
-              </Td>
+              </Table.Cell>
               {showAuthored ? (
-                <Td className="tnum text-right">
+                <Table.Cell className="tnum text-right">
                   {typeof row.authored === "number" ? row.authored : <Dash />}
-                </Td>
+                </Table.Cell>
               ) : null}
-              <Td className="tnum text-right">{row.score.score}</Td>
-              <Td>
+              <Table.Cell className="tnum text-right">{row.score.score}</Table.Cell>
+              <Table.Cell>
                 <BandChip band={row.score.band} size="xs" />
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           );
         })}
       </tbody>
@@ -613,31 +617,35 @@ export function MoversTable({ movers }: { movers: RiskMover[] }) {
       </colgroup>
       <thead>
         <tr>
-          <Th>Subject</Th>
-          <Th className="text-right">Without</Th>
-          <Th className="text-right">Published</Th>
-          <Th className="text-right">Move</Th>
-          <Th>Why it moved</Th>
+          <Table.Header>Subject</Table.Header>
+          <Table.Header className="text-right">Without</Table.Header>
+          <Table.Header className="text-right">Published</Table.Header>
+          <Table.Header className="text-right">Move</Table.Header>
+          <Table.Header>Why it moved</Table.Header>
         </tr>
       </thead>
       <tbody>
         {movers.map((m) => (
-          <Tr key={m.subject} className="align-top">
-            <Td className="py-2 align-top">
-              <Mono>{m.subject}</Mono>
-            </Td>
-            <Td className="tnum py-2 align-top text-right line-through">{m.from}</Td>
-            <Td className="tnum py-2 align-top text-right">{m.to}</Td>
-            <Td
+          <Table.Row key={m.subject} className="align-top">
+            <Table.Cell className="py-2 align-top">
+              <Id>{m.subject}</Id>
+            </Table.Cell>
+            <Table.Cell className="tnum py-2 align-top text-right line-through">
+              {m.from}
+            </Table.Cell>
+            <Table.Cell className="tnum py-2 align-top text-right">{m.to}</Table.Cell>
+            <Table.Cell
               className={cn(
                 "tnum py-2 align-top text-right font-medium",
                 m.to > m.from ? "text-warning" : "text-success",
               )}
             >
               {signed(m.to - m.from)}
-            </Td>
-            <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">{m.why}</Td>
-          </Tr>
+            </Table.Cell>
+            <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
+              {m.why}
+            </Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>
@@ -679,14 +687,14 @@ export function AuthoredComparisonTable({ rows }: { rows: ComparisonRow[] }) {
       </colgroup>
       <thead>
         <tr>
-          <Th>Risk</Th>
-          <Th>Title</Th>
-          <Th>Treatment</Th>
-          <Th className="text-right">Authored inherent</Th>
-          <Th className="text-right">Authored residual</Th>
-          <Th className="text-right">Computed residual</Th>
-          <Th className="text-right">Delta</Th>
-          <Th>Computed band</Th>
+          <Table.Header>Risk</Table.Header>
+          <Table.Header>Title</Table.Header>
+          <Table.Header>Treatment</Table.Header>
+          <Table.Header className="text-right">Authored inherent</Table.Header>
+          <Table.Header className="text-right">Authored residual</Table.Header>
+          <Table.Header className="text-right">Computed residual</Table.Header>
+          <Table.Header className="text-right">Delta</Table.Header>
+          <Table.Header>Computed band</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -715,37 +723,43 @@ function ComparisonRows({
   const agrees = Math.abs(comparison.delta) <= 5;
   return (
     <>
-      <Tr className="border-0 align-top hover:bg-transparent">
-        <Td className="py-2 align-top">
-          <Mono>{comparison.risk}</Mono>
-        </Td>
-        <Td className="py-2 align-top" title={title}>
+      <Table.Row className="border-0 align-top hover:bg-transparent">
+        <Table.Cell className="py-2 align-top">
+          <Id>{comparison.risk}</Id>
+        </Table.Cell>
+        <Table.Cell className="py-2 align-top" title={title}>
           {title}
-        </Td>
-        <Td className="py-2 align-top">{treatment}</Td>
-        <Td className="tnum py-2 align-top text-right">{comparison.authored.inherent}</Td>
-        <Td className="tnum py-2 align-top text-right">{comparison.authored.residual}</Td>
-        <Td className="tnum py-2 align-top text-right">{comparison.computed.residual}</Td>
-        <Td
+        </Table.Cell>
+        <Table.Cell className="py-2 align-top">{treatment}</Table.Cell>
+        <Table.Cell className="tnum py-2 align-top text-right">
+          {comparison.authored.inherent}
+        </Table.Cell>
+        <Table.Cell className="tnum py-2 align-top text-right">
+          {comparison.authored.residual}
+        </Table.Cell>
+        <Table.Cell className="tnum py-2 align-top text-right">
+          {comparison.computed.residual}
+        </Table.Cell>
+        <Table.Cell
           className={cn(
             "tnum py-2 align-top text-right font-medium",
             agrees ? "text-muted-foreground" : "text-warning",
           )}
         >
           {signed(comparison.delta)}
-        </Td>
-        <Td className="py-2 align-top">
+        </Table.Cell>
+        <Table.Cell className="py-2 align-top">
           <BandChip band={comparison.computed.band} size="xs" />
-        </Td>
-      </Tr>
-      <Tr className="align-top hover:bg-transparent">
-        <Td
+        </Table.Cell>
+      </Table.Row>
+      <Table.Row className="align-top hover:bg-transparent">
+        <Table.Cell
           className="max-w-none whitespace-normal pb-3 pt-0 align-top text-[12.5px] leading-relaxed text-muted-foreground"
           colSpan={8}
         >
           {comparison.note}
-        </Td>
-      </Tr>
+        </Table.Cell>
+      </Table.Row>
     </>
   );
 }
@@ -825,31 +839,31 @@ export function FactorModel() {
         </colgroup>
         <thead>
           <tr>
-            <Th>Factor</Th>
-            <Th className="text-right">Weight</Th>
-            <Th>What it reads</Th>
-            <Th>Normalisation</Th>
+            <Table.Header>Factor</Table.Header>
+            <Table.Header className="text-right">Weight</Table.Header>
+            <Table.Header>What it reads</Table.Header>
+            <Table.Header>Normalisation</Table.Header>
           </tr>
         </thead>
         <tbody>
           {modelRows.map((row) => (
-            <Tr key={row.key} className="align-top">
-              <Td className="py-2 align-top">{factorLabel[row.key]}</Td>
-              <Td
+            <Table.Row key={row.key} className="align-top">
+              <Table.Cell className="py-2 align-top">{factorLabel[row.key]}</Table.Cell>
+              <Table.Cell
                 className={cn(
                   "tnum py-2 align-top text-right",
                   factorWeights[row.key] < 0 ? "text-success" : "",
                 )}
               >
                 {fixed2(factorWeights[row.key])}
-              </Td>
-              <Td className="max-w-none whitespace-normal py-2 align-top leading-relaxed">
+              </Table.Cell>
+              <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-relaxed">
                 {row.reads}
-              </Td>
-              <Td className="max-w-none whitespace-normal py-2 align-top leading-relaxed">
+              </Table.Cell>
+              <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-relaxed">
                 {row.scale}
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           ))}
         </tbody>
       </Table>
@@ -901,26 +915,28 @@ export function BandLadder({
         </colgroup>
         <thead>
           <tr>
-            <Th>Band</Th>
-            <Th>Score</Th>
-            {byBand ? <Th className="text-right">In this program</Th> : null}
-            <Th>What it means here</Th>
+            <Table.Header>Band</Table.Header>
+            <Table.Header>Score</Table.Header>
+            {byBand ? <Table.Header className="text-right">In this program</Table.Header> : null}
+            <Table.Header>What it means here</Table.Header>
           </tr>
         </thead>
         <tbody>
           {ladder.map((row) => (
-            <Tr key={row.band} className="align-top">
-              <Td className="py-2 align-top">
+            <Table.Row key={row.band} className="align-top">
+              <Table.Cell className="py-2 align-top">
                 <BandChip band={row.band} size="xs" />
-              </Td>
-              <Td className="tnum py-2 align-top">{row.range}</Td>
+              </Table.Cell>
+              <Table.Cell className="tnum py-2 align-top">{row.range}</Table.Cell>
               {byBand ? (
-                <Td className="tnum py-2 align-top text-right">{counts.get(row.band) ?? 0}</Td>
+                <Table.Cell className="tnum py-2 align-top text-right">
+                  {counts.get(row.band) ?? 0}
+                </Table.Cell>
               ) : null}
-              <Td className="max-w-none whitespace-normal py-2 align-top leading-relaxed">
+              <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-relaxed">
                 {row.means}
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           ))}
         </tbody>
       </Table>

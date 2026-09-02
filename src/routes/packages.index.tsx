@@ -6,17 +6,13 @@ import { Shell } from "@/components/app/shell";
 import {
   Badge,
   Button,
-  IdCell,
   KeyValue,
-  Mono,
   IndexPage,
   PageHeader,
   PreviewRail,
   RailGroup,
   Table,
-  Td,
-  Th,
-  Tr,
+  Id,
 } from "@/components/app/ui";
 import { packageStateTone, packages, readiness, type Pkg } from "@/lib/packages";
 
@@ -76,46 +72,46 @@ function PackagesIndex() {
               </colgroup>
               <thead>
                 <tr>
-                  <Th>Package</Th>
-                  <Th>Name</Th>
-                  <Th>Ver.</Th>
-                  <Th>State</Th>
-                  <Th>Snapshot</Th>
-                  <Th>Owner</Th>
-                  <Th className="text-right">Traced</Th>
-                  <Th className="text-right">Gaps</Th>
+                  <Table.Header>Package</Table.Header>
+                  <Table.Header>Name</Table.Header>
+                  <Table.Header>Ver.</Table.Header>
+                  <Table.Header>State</Table.Header>
+                  <Table.Header>Snapshot</Table.Header>
+                  <Table.Header>Owner</Table.Header>
+                  <Table.Header className="text-right">Traced</Table.Header>
+                  <Table.Header className="text-right">Gaps</Table.Header>
                 </tr>
               </thead>
               <tbody>
                 {packages.map((p) => {
                   const r = readiness(p);
                   return (
-                    <Tr
+                    <Table.Row
                       key={p.id}
                       className="cursor-pointer"
                       onClick={() => navigate({ to: "/packages/$pkgId", params: { pkgId: p.id } })}
                     >
-                      <IdCell
+                      <Table.Id
                         id={p.id}
                         active={preview?.id === p.id}
                         onPreview={() => setPreview(p)}
                       />
-                      <Td className="truncate">{p.name}</Td>
-                      <Td className="tnum">{p.version}</Td>
-                      <Td className="truncate">
+                      <Table.Cell className="truncate">{p.name}</Table.Cell>
+                      <Table.Cell className="tnum">{p.version}</Table.Cell>
+                      <Table.Cell className="truncate">
                         <Badge tone={packageStateTone[p.state]}>{p.state}</Badge>
-                      </Td>
-                      <Td className="truncate">{p.snapshotAt}</Td>
-                      <Td className="truncate">{p.owner}</Td>
-                      <Td className="tnum text-right">{r.coverage}%</Td>
-                      <Td className="tnum text-right">
+                      </Table.Cell>
+                      <Table.Cell className="truncate">{p.snapshotAt}</Table.Cell>
+                      <Table.Cell className="truncate">{p.owner}</Table.Cell>
+                      <Table.Cell className="tnum text-right">{r.coverage}%</Table.Cell>
+                      <Table.Cell className="tnum text-right">
                         {r.gaps.length > 0 ? (
                           <span className="font-medium text-danger">{r.gaps.length}</span>
                         ) : (
                           <span className="text-muted-foreground">0</span>
                         )}
-                      </Td>
-                    </Tr>
+                      </Table.Cell>
+                    </Table.Row>
                   );
                 })}
               </tbody>
@@ -148,10 +144,10 @@ function PackagesIndex() {
               </RailGroup>
               <RailGroup title="Join keys">
                 <KeyValue label="Program">
-                  <Mono>{preview.program}</Mono>
+                  <Id>{preview.program}</Id>
                 </KeyValue>
                 <KeyValue label="System">
-                  <Mono>{preview.system}</Mono>
+                  <Id>{preview.system}</Id>
                 </KeyValue>
                 <KeyValue label="Submitted to">{preview.submittedTo}</KeyValue>
               </RailGroup>

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { BriefingRoom } from "@/components/app/authorization";
 import { Shell } from "@/components/app/shell";
-import { Badge, Button, Mono } from "@/components/app/ui";
+import { Badge, Button, Id } from "@/components/app/ui";
 import { authorization } from "@/lib/authorization";
 
 export const Route = createFileRoute("/briefing")({
@@ -39,7 +39,7 @@ function BriefingPage() {
               </h1>
               <Badge tone="warning">{authorization.decision}</Badge>
               <span className="flex min-w-0 items-center gap-2 text-[12.5px] text-muted-foreground">
-                <Mono>PRG-1041</Mono>
+                <Id>PRG-1041</Id>
                 <span className="text-border">·</span>
                 <span className="truncate">Trident UUV C2</span>
                 <span className="text-border">·</span>

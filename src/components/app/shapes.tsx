@@ -24,7 +24,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Badge, Button, Mono, Severity } from "@/components/app/ui";
+import { Badge, Button, Id, Indicator } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import type { Tone } from "@/components/app/ui";
 
@@ -97,7 +97,7 @@ export function WorkPaneRow({
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[13px] text-foreground">{title}</span>
         <span className="mt-0.5 flex items-baseline gap-2 text-[11.5px] text-muted-foreground">
-          <Mono>{id}</Mono>
+          <Id>{id}</Id>
           {meta ? <span className="truncate">{meta}</span> : null}
         </span>
       </span>
@@ -160,7 +160,7 @@ export function ActionBar({
       <div className="flex items-start justify-between gap-6">
         <div className="min-w-0">
           <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-            <Mono className="text-muted-foreground">{id}</Mono>
+            <Id className="text-muted-foreground">{id}</Id>
             <h1 className="text-[17px] font-semibold leading-tight tracking-[-0.015em]">{title}</h1>
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
@@ -175,7 +175,7 @@ export function ActionBar({
                       {s.value}
                     </Badge>
                   ) : (
-                    <Severity tone={s.tone}>{s.value}</Severity>
+                    <Indicator tone={s.tone}>{s.value}</Indicator>
                   ))}
               </span>
             ))}

@@ -39,7 +39,7 @@ import { Fragment, useMemo, useState } from "react";
 import { Download } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Badge, Button, EmptyState, Mono, Table, Td, Th, Tr } from "@/components/app/ui";
+import { Badge, Button, EmptyState, Table, Id } from "@/components/app/ui";
 import {
   digestAlgorithm,
   reconcileStateTone,
@@ -225,9 +225,9 @@ export function OscalViewer({
       <FactStrip
         items={[
           { label: "Model", value: <span className="font-medium">{label}</span> },
-          { label: "OSCAL version", value: <Mono>{oscalVersion}</Mono> },
-          { label: "Document uuid", value: <Mono>{doc.uuid}</Mono> },
-          { label: "Last modified", value: <Mono>{doc.generated}</Mono> },
+          { label: "OSCAL version", value: <Id>{oscalVersion}</Id> },
+          { label: "Document uuid", value: <Id>{doc.uuid}</Id> },
+          { label: "Last modified", value: <Id>{doc.generated}</Id> },
           { label: "Size", value: <span className="tnum">{num(bytes)} bytes (UTF-8)</span> },
           { label: "Lines", value: <span className="tnum">{num(lines.length)}</span> },
         ]}
@@ -236,8 +236,8 @@ export function OscalViewer({
       {outline.entries.length > 0 ? (
         <div className="space-y-1.5">
           <p className="text-[12.5px] text-muted-foreground">
-            <Mono>{outline.root}</Mono> carries {outline.entries.length} top-level members. Each
-            count below is read off the document, not asserted; select one to move the window there.
+            <Id>{outline.root}</Id> carries {outline.entries.length} top-level members. Each count
+            below is read off the document, not asserted; select one to move the window there.
           </p>
           <div className="flex flex-wrap gap-1.5">
             {outline.entries.map((entry) => (
@@ -382,24 +382,24 @@ export function EmassTable({ sheet, pageSize = 40 }: { sheet: EmassExport; pageS
         <thead>
           <tr>
             {sheet.columns.map((column) => (
-              <Th key={column} title={column}>
+              <Table.Header key={column} title={column}>
                 {column}
-              </Th>
+              </Table.Header>
             ))}
           </tr>
         </thead>
         <tbody>
           {shown.map((row, rowIndex) => (
-            <Tr key={`${row[0] ?? "row"}-${rowIndex}`}>
+            <Table.Row key={`${row[0] ?? "row"}-${rowIndex}`}>
               {sheet.columns.map((column, i) => {
                 const cell = (row[i] ?? "").trim();
                 return (
-                  <Td key={column} title={cell === "" ? "—" : cell}>
+                  <Table.Cell key={column} title={cell === "" ? "—" : cell}>
                     {cell === "" ? <Dash /> : cell}
-                  </Td>
+                  </Table.Cell>
                 );
               })}
-            </Tr>
+            </Table.Row>
           ))}
         </tbody>
       </Table>
@@ -436,9 +436,9 @@ export function BundleManifest({
     <div className="space-y-5">
       <FactStrip
         items={[
-          { label: "Bundle", value: <Mono>{bundle.id}</Mono> },
-          { label: "Program", value: <Mono>{bundle.program}</Mono> },
-          { label: "Baseline", value: <Mono>{bundle.build}</Mono> },
+          { label: "Bundle", value: <Id>{bundle.id}</Id> },
+          { label: "Program", value: <Id>{bundle.program}</Id> },
+          { label: "Baseline", value: <Id>{bundle.build}</Id> },
           { label: "Created", value: bundle.created },
           { label: "Created by", value: bundle.createdBy },
           { label: "Classification", value: <Badge tone="warning">{bundle.classification}</Badge> },
@@ -466,33 +466,35 @@ export function BundleManifest({
           </colgroup>
           <thead>
             <tr>
-              <Th>Path on media</Th>
-              <Th>Produced by</Th>
-              <Th className="text-right">Bytes</Th>
-              <Th>{digestAlgorithm}</Th>
-              <Th />
+              <Table.Header>Path on media</Table.Header>
+              <Table.Header>Produced by</Table.Header>
+              <Table.Header className="text-right">Bytes</Table.Header>
+              <Table.Header>{digestAlgorithm}</Table.Header>
+              <Table.Header />
             </tr>
           </thead>
           <tbody>
             {bundle.artifacts.map((artifact) => (
-              <Tr key={artifact.path} className="align-top hover:bg-transparent">
-                <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
-                  <Mono>{artifact.path}</Mono>
+              <Table.Row key={artifact.path} className="align-top hover:bg-transparent">
+                <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
+                  <Id>{artifact.path}</Id>
                   <span className="mt-0.5 block text-[11.5px] text-muted-foreground">
                     {artifact.kind}
                   </span>
-                </Td>
-                <Td
+                </Table.Cell>
+                <Table.Cell
                   className="max-w-none whitespace-normal py-2 align-top text-[12px] leading-snug text-muted-foreground"
                   title={artifact.producer}
                 >
                   {artifact.producer}
-                </Td>
-                <Td className="tnum py-2 align-top text-right">{num(artifact.bytes)}</Td>
-                <Td className="max-w-none whitespace-normal py-2 align-top">
+                </Table.Cell>
+                <Table.Cell className="tnum py-2 align-top text-right">
+                  {num(artifact.bytes)}
+                </Table.Cell>
+                <Table.Cell className="max-w-none whitespace-normal py-2 align-top">
                   <Hash value={artifact.sha256} />
-                </Td>
-                <Td className="py-2 align-top text-right">
+                </Table.Cell>
+                <Table.Cell className="py-2 align-top text-right">
                   {onDownloadArtifact ? (
                     <Button size="xs" onClick={() => onDownloadArtifact(artifact)}>
                       <Download className="size-3" /> File
@@ -500,8 +502,8 @@ export function BundleManifest({
                   ) : (
                     <Dash />
                   )}
-                </Td>
-              </Tr>
+                </Table.Cell>
+              </Table.Row>
             ))}
           </tbody>
         </Table>
@@ -600,8 +602,8 @@ export function ReconcileVerdict({ reconciliation }: { reconciliation: Reconcili
           {reconciliation.signatureValid ? "Manifest verifies" : "Manifest does not verify"}
         </Badge>
         <span className="text-[12px] text-muted-foreground">
-          <Mono>{reconciliation.received}</Mono> received, against{" "}
-          <Mono>{reconciliation.bundle}</Mono> generated here
+          <Id>{reconciliation.received}</Id> received, against <Id>{reconciliation.bundle}</Id>{" "}
+          generated here
         </span>
       </div>
       <p className="mt-2 text-[13.5px] font-medium leading-relaxed text-foreground">
@@ -639,37 +641,37 @@ export function ReconcileTable({ reconciliation }: { reconciliation: Reconciliat
       </colgroup>
       <thead>
         <tr>
-          <Th>Path</Th>
-          <Th>State</Th>
-          <Th>Digest here</Th>
-          <Th>Digest received</Th>
+          <Table.Header>Path</Table.Header>
+          <Table.Header>State</Table.Header>
+          <Table.Header>Digest here</Table.Header>
+          <Table.Header>Digest received</Table.Header>
         </tr>
       </thead>
       <tbody>
         {reconciliation.rows.map((row) => (
           <Fragment key={row.path}>
-            <Tr className="border-0 align-top hover:bg-transparent">
-              <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
-                <Mono>{row.path}</Mono>
-              </Td>
-              <Td className="py-2 align-top">
+            <Table.Row className="border-0 align-top hover:bg-transparent">
+              <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
+                <Id>{row.path}</Id>
+              </Table.Cell>
+              <Table.Cell className="py-2 align-top">
                 <Badge tone={reconcileStateTone[row.state]}>{row.state}</Badge>
-              </Td>
-              <Td className="max-w-none whitespace-normal py-2 align-top">
+              </Table.Cell>
+              <Table.Cell className="max-w-none whitespace-normal py-2 align-top">
                 <Hash value={row.localHash} />
-              </Td>
-              <Td className="max-w-none whitespace-normal py-2 align-top">
+              </Table.Cell>
+              <Table.Cell className="max-w-none whitespace-normal py-2 align-top">
                 <Hash value={row.remoteHash} />
-              </Td>
-            </Tr>
-            <Tr className="align-top hover:bg-transparent">
-              <Td
+              </Table.Cell>
+            </Table.Row>
+            <Table.Row className="align-top hover:bg-transparent">
+              <Table.Cell
                 className="max-w-none whitespace-normal pb-3 pt-0 align-top text-[12.5px] leading-relaxed text-muted-foreground"
                 colSpan={4}
               >
                 {row.detail}
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           </Fragment>
         ))}
       </tbody>

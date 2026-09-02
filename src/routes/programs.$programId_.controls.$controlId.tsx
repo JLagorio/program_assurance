@@ -20,7 +20,7 @@ import {
 import { ControlRequirementTable } from "@/components/app/requirements";
 import { Block, Disclosure, Inspector } from "@/components/app/shapes";
 import { Shell } from "@/components/app/shell";
-import { Badge, Mono, Select, TabStrip, Table, Td, Tr, Severity } from "@/components/app/ui";
+import { Badge, Select, Table, Id, Tabs, Indicator } from "@/components/app/ui";
 import { controlDetail } from "@/lib/control-detail";
 import {
   currentSession,
@@ -182,7 +182,7 @@ function ControlRecord() {
             </span>
           }
           tabs={
-            <TabStrip
+            <Tabs
               items={(
                 [
                   ["Implementation", work.evidence.length || null],
@@ -241,23 +241,23 @@ function ControlRecord() {
                       </colgroup>
                       <tbody>
                         {open.map((f) => (
-                          <Tr key={f.id}>
-                            <Td className="max-w-none">
+                          <Table.Row key={f.id}>
+                            <Table.Cell className="max-w-none">
                               <Link
                                 to="/findings/$findingId"
                                 params={{ findingId: f.id }}
                                 className="hover:underline"
                               >
-                                <Mono className="text-primary">{f.id}</Mono>
+                                <Id className="text-primary">{f.id}</Id>
                               </Link>
-                            </Td>
-                            <Td>
-                              <Severity tone={severityTone(f.mitigatedSeverity)}>
+                            </Table.Cell>
+                            <Table.Cell>
+                              <Indicator tone={severityTone(f.mitigatedSeverity)}>
                                 {f.mitigatedSeverity}
-                              </Severity>
-                            </Td>
-                            <Td className="truncate">{f.title}</Td>
-                          </Tr>
+                              </Indicator>
+                            </Table.Cell>
+                            <Table.Cell className="truncate">{f.title}</Table.Cell>
+                          </Table.Row>
                         ))}
                       </tbody>
                     </Table>
@@ -391,7 +391,7 @@ function ControlRecord() {
                         params={{ poamId: row.poam }}
                         className="hover:underline"
                       >
-                        <Mono className="text-primary">{row.poam}</Mono>
+                        <Id className="text-primary">{row.poam}</Id>
                       </Link>
                     ) : (
                       "None"

@@ -5,16 +5,13 @@ import {
   Badge,
   Button,
   KeyValue,
-  Mono,
   RailGroup,
   RecordHeader,
   Section,
   ShowPage,
   Table,
-  Td,
-  Th,
-  Tr,
-  Severity,
+  Id,
+  Indicator,
 } from "@/components/app/ui";
 import { assetById, bySeverity, isOpen } from "@/lib/findings";
 import { findingsForPoam, openCount, poamItems, riskById } from "@/lib/register";
@@ -86,7 +83,7 @@ function PoamRecord() {
           <>
             <RailGroup title="Commitment">
               <KeyValue label="POA&M">
-                <Mono>{item.id}</Mono>
+                <Id>{item.id}</Id>
               </KeyValue>
               <KeyValue label="Status">
                 <Badge tone={statusTone(item.status)}>{item.status}</Badge>
@@ -103,7 +100,7 @@ function PoamRecord() {
                   params={{ programId: item.program }}
                   className="text-primary hover:underline"
                 >
-                  <Mono className="text-primary">{item.program}</Mono>
+                  <Id className="text-primary">{item.program}</Id>
                 </Link>
               </KeyValue>
               <KeyValue label="Risk">
@@ -113,7 +110,7 @@ function PoamRecord() {
                     params={{ riskId: risk.id }}
                     className="text-primary hover:underline"
                   >
-                    <Mono className="text-primary">{risk.id}</Mono>
+                    <Id className="text-primary">{risk.id}</Id>
                   </Link>
                 ) : (
                   "Not aggregated"
@@ -178,28 +175,28 @@ function PoamRecord() {
               </colgroup>
               <thead>
                 <tr>
-                  <Th>Finding</Th>
-                  <Th>Title</Th>
-                  <Th>Control</Th>
-                  <Th>CCI</Th>
-                  <Th>Asset</Th>
-                  <Th>Severity</Th>
-                  <Th>Lifecycle</Th>
+                  <Table.Header>Finding</Table.Header>
+                  <Table.Header>Title</Table.Header>
+                  <Table.Header>Control</Table.Header>
+                  <Table.Header>CCI</Table.Header>
+                  <Table.Header>Asset</Table.Header>
+                  <Table.Header>Severity</Table.Header>
+                  <Table.Header>Lifecycle</Table.Header>
                 </tr>
               </thead>
               <tbody>
                 {fs.map((f) => (
-                  <Tr key={f.id}>
-                    <Td>
+                  <Table.Row key={f.id}>
+                    <Table.Cell>
                       <Link
                         to="/findings/$findingId"
                         params={{ findingId: f.id }}
                         className="hover:underline"
                       >
-                        <Mono className="text-primary">{f.id}</Mono>
+                        <Id className="text-primary">{f.id}</Id>
                       </Link>
-                    </Td>
-                    <Td className="truncate">
+                    </Table.Cell>
+                    <Table.Cell className="truncate">
                       <Link
                         to="/findings/$findingId"
                         params={{ findingId: f.id }}
@@ -207,8 +204,8 @@ function PoamRecord() {
                       >
                         {f.title}
                       </Link>
-                    </Td>
-                    <Td>
+                    </Table.Cell>
+                    <Table.Cell>
                       <Link
                         to="/programs/$programId/controls/$controlId"
                         params={{ programId: item.program, controlId: f.control }}
@@ -216,22 +213,24 @@ function PoamRecord() {
                         className="hover:underline"
                         title={`Remediation plan for ${f.control}`}
                       >
-                        <Mono className="text-primary">{f.control}</Mono>
+                        <Id className="text-primary">{f.control}</Id>
                       </Link>
-                    </Td>
-                    <Td>
-                      <Mono>{f.cci}</Mono>
-                    </Td>
-                    <Td className="truncate">{assetById.get(f.asset)?.name ?? f.asset}</Td>
-                    <Td>
-                      <Severity tone={severityTone(f.mitigatedSeverity)}>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Id>{f.cci}</Id>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">
+                      {assetById.get(f.asset)?.name ?? f.asset}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Indicator tone={severityTone(f.mitigatedSeverity)}>
                         {f.mitigatedSeverity}
-                      </Severity>
-                    </Td>
-                    <Td className="truncate">
+                      </Indicator>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">
                       <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
-                    </Td>
-                  </Tr>
+                    </Table.Cell>
+                  </Table.Row>
                 ))}
               </tbody>
             </Table>

@@ -6,17 +6,13 @@ import { Shell } from "@/components/app/shell";
 import {
   Badge,
   Button,
-  IdCell,
   KeyValue,
-  Mono,
   PreviewRail,
   RailGroup,
   RecordHeader,
-  TabStrip,
   Table,
-  Td,
-  Th,
-  Tr,
+  Id,
+  Tabs,
 } from "@/components/app/ui";
 import {
   packageStateTone,
@@ -120,7 +116,7 @@ function PackageRecord() {
           </div>
         ) : null}
 
-        <TabStrip
+        <Tabs
           items={tabs.map((t) => ({
             key: t,
             label: t,
@@ -173,27 +169,27 @@ function PackageRecord() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>CCI</Th>
-                    <Th>Control</Th>
-                    <Th>Statement</Th>
-                    <Th>Objectives</Th>
-                    <Th>Result</Th>
-                    <Th className="text-right">Open</Th>
-                    <Th>Worst</Th>
+                    <Table.Header>CCI</Table.Header>
+                    <Table.Header>Control</Table.Header>
+                    <Table.Header>Statement</Table.Header>
+                    <Table.Header>Objectives</Table.Header>
+                    <Table.Header>Result</Table.Header>
+                    <Table.Header className="text-right">Open</Table.Header>
+                    <Table.Header>Worst</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {traceRows.map((r) => (
-                    <Tr key={r.cci}>
-                      <IdCell
+                    <Table.Row key={r.cci}>
+                      <Table.Id
                         id={r.cci}
                         active={preview?.cci === r.cci}
                         onPreview={() => setPreview(r)}
                       />
-                      <Td>
-                        <Mono>{r.control}</Mono>
-                      </Td>
-                      <Td className="truncate">
+                      <Table.Cell>
+                        <Id>{r.control}</Id>
+                      </Table.Cell>
+                      <Table.Cell className="truncate">
                         {r.gap ? (
                           <span className="inline-flex items-center gap-1.5">
                             <AlertTriangle className="size-3 shrink-0 text-warning" />
@@ -202,20 +198,20 @@ function PackageRecord() {
                         ) : (
                           r.statement
                         )}
-                      </Td>
-                      <Td className="truncate">
+                      </Table.Cell>
+                      <Table.Cell className="truncate">
                         {r.objectives.length ? (
-                          <Mono>{r.objectives.join(", ")}</Mono>
+                          <Id>{r.objectives.join(", ")}</Id>
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
-                      </Td>
-                      <Td className="truncate">
+                      </Table.Cell>
+                      <Table.Cell className="truncate">
                         <Badge tone={resultTone(r.result)}>{r.result}</Badge>
-                      </Td>
-                      <Td className="tnum text-right">{r.openFindings}</Td>
-                      <Td>{r.worstSeverity}</Td>
-                    </Tr>
+                      </Table.Cell>
+                      <Table.Cell className="tnum text-right">{r.openFindings}</Table.Cell>
+                      <Table.Cell>{r.worstSeverity}</Table.Cell>
+                    </Table.Row>
                   ))}
                 </tbody>
               </Table>
@@ -233,29 +229,29 @@ function PackageRecord() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>Kind</Th>
-                    <Th>Artifact</Th>
-                    <Th>Format</Th>
-                    <Th>Generated</Th>
-                    <Th className="text-right">Pages</Th>
-                    <Th>State</Th>
+                    <Table.Header>Kind</Table.Header>
+                    <Table.Header>Artifact</Table.Header>
+                    <Table.Header>Format</Table.Header>
+                    <Table.Header>Generated</Table.Header>
+                    <Table.Header className="text-right">Pages</Table.Header>
+                    <Table.Header>State</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {ready.artifacts.map((a) => (
-                    <Tr key={a.id}>
-                      <Td>{a.kind}</Td>
-                      <Td className="truncate">
+                    <Table.Row key={a.id}>
+                      <Table.Cell>{a.kind}</Table.Cell>
+                      <Table.Cell className="truncate">
                         <span className="truncate">{a.name}</span>
                         <span className="ml-2 text-[12px] text-muted-foreground">{a.note}</span>
-                      </Td>
-                      <Td className="truncate">{a.format}</Td>
-                      <Td className="truncate">{a.generated}</Td>
-                      <Td className="tnum text-right">{a.pages || "—"}</Td>
-                      <Td className="truncate">
+                      </Table.Cell>
+                      <Table.Cell className="truncate">{a.format}</Table.Cell>
+                      <Table.Cell className="truncate">{a.generated}</Table.Cell>
+                      <Table.Cell className="tnum text-right">{a.pages || "—"}</Table.Cell>
+                      <Table.Cell className="truncate">
                         <Badge tone={statusTone(a.state)}>{a.state}</Badge>
-                      </Td>
-                    </Tr>
+                      </Table.Cell>
+                    </Table.Row>
                   ))}
                 </tbody>
               </Table>
@@ -271,20 +267,20 @@ function PackageRecord() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>When</Th>
-                    <Th>Actor</Th>
-                    <Th>Action</Th>
-                    <Th>Detail</Th>
+                    <Table.Header>When</Table.Header>
+                    <Table.Header>Actor</Table.Header>
+                    <Table.Header>Action</Table.Header>
+                    <Table.Header>Detail</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {log.map((s) => (
-                    <Tr key={s.id}>
-                      <Td className="truncate">{s.at}</Td>
-                      <Td className="truncate">{s.actor}</Td>
-                      <Td className="truncate">{s.action}</Td>
-                      <Td className="truncate">{s.detail}</Td>
-                    </Tr>
+                    <Table.Row key={s.id}>
+                      <Table.Cell className="truncate">{s.at}</Table.Cell>
+                      <Table.Cell className="truncate">{s.actor}</Table.Cell>
+                      <Table.Cell className="truncate">{s.action}</Table.Cell>
+                      <Table.Cell className="truncate">{s.detail}</Table.Cell>
+                    </Table.Row>
                   ))}
                 </tbody>
               </Table>
@@ -304,25 +300,21 @@ function PackageRecord() {
               ) : null}
               <RailGroup title="Join keys">
                 <KeyValue label="Control">
-                  <Mono>{preview.control}</Mono>
+                  <Id>{preview.control}</Id>
                 </KeyValue>
                 <KeyValue label="Package">
-                  <Mono>{pkg.id}</Mono>
+                  <Id>{pkg.id}</Id>
                 </KeyValue>
                 <KeyValue label="System">
-                  <Mono>{pkg.system}</Mono>
+                  <Id>{pkg.system}</Id>
                 </KeyValue>
                 <KeyValue label="Rules">
-                  {preview.paths.length ? <Mono>{preview.paths.join(", ")}</Mono> : "—"}
+                  {preview.paths.length ? <Id>{preview.paths.join(", ")}</Id> : "—"}
                 </KeyValue>
               </RailGroup>
               <RailGroup title="Verification">
                 <KeyValue label="Objectives">
-                  {preview.objectives.length ? (
-                    <Mono>{preview.objectives.join(", ")}</Mono>
-                  ) : (
-                    "None"
-                  )}
+                  {preview.objectives.length ? <Id>{preview.objectives.join(", ")}</Id> : "None"}
                 </KeyValue>
                 <KeyValue label="Result">
                   <Badge tone={resultTone(preview.result)}>{preview.result}</Badge>

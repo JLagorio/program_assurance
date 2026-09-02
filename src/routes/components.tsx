@@ -11,13 +11,10 @@ import {
   IconButton,
   KeyValue,
   Meter,
-  Mono,
   IndexPage,
   PageHeader,
   Table,
-  Td,
-  Th,
-  Tr,
+  Id,
 } from "@/components/app/ui";
 import { MoreHorizontal } from "lucide-react";
 
@@ -131,10 +128,10 @@ function Components() {
           <Table>
             <thead>
               <tr>
-                <Th className="w-[96px]">ID</Th>
-                <Th>Item</Th>
-                <Th className="w-[120px]">Owner</Th>
-                <Th className="w-[104px] text-right">Status</Th>
+                <Table.Header className="w-[96px]">ID</Table.Header>
+                <Table.Header>Item</Table.Header>
+                <Table.Header className="w-[120px]">Owner</Table.Header>
+                <Table.Header className="w-[104px] text-right">Status</Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -161,16 +158,16 @@ function Components() {
                   status: "Review",
                 },
               ].map((row) => (
-                <Tr key={row.id}>
-                  <Td>
-                    <Mono>{row.id}</Mono>
-                  </Td>
-                  <Td>{row.item}</Td>
-                  <Td>{row.owner}</Td>
-                  <Td className="text-right">
+                <Table.Row key={row.id}>
+                  <Table.Cell>
+                    <Id>{row.id}</Id>
+                  </Table.Cell>
+                  <Table.Cell>{row.item}</Table.Cell>
+                  <Table.Cell>{row.owner}</Table.Cell>
+                  <Table.Cell className="text-right">
                     <Badge tone={row.tone}>{row.status}</Badge>
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>
@@ -180,7 +177,7 @@ function Components() {
           <div className="text-[13px] font-semibold">Detail rail</div>
           <dl className="mt-2 divide-y divide-border/70">
             <KeyValue label="Risk ID">
-              <Mono>RSK-2419</Mono>
+              <Id>RSK-2419</Id>
             </KeyValue>
             <KeyValue label="Owner">Linus Aarto</KeyValue>
             <KeyValue label="Treatment">Mitigate</KeyValue>

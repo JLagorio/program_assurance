@@ -7,16 +7,13 @@ import {
   Badge,
   FilterChip,
   KeyValue,
-  Mono,
   RailGroup,
   RecordHeader,
   Section,
   ShowPage,
-  TabStrip,
   Table,
-  Td,
-  Th,
-  Tr,
+  Id,
+  Tabs,
 } from "@/components/app/ui";
 import { ancestorsOf, nodeById, nodesForProgram } from "@/lib/composition";
 import { programs } from "@/lib/grc-data";
@@ -165,7 +162,7 @@ function ScopeRecord() {
           />
         }
         tabs={
-          <TabStrip
+          <Tabs
             items={(
               [
                 ["Overview", null],
@@ -222,25 +219,25 @@ function ScopeRecord() {
                   <col />
                 </colgroup>
                 <thead>
-                  <Tr>
-                    <Th>Objective</Th>
-                    <Th>Impact</Th>
-                    <Th className="text-right">Controls</Th>
-                    <Th>Families it drives</Th>
-                  </Tr>
+                  <Table.Row>
+                    <Table.Header>Objective</Table.Header>
+                    <Table.Header>Impact</Table.Header>
+                    <Table.Header className="text-right">Controls</Table.Header>
+                    <Table.Header>Families it drives</Table.Header>
+                  </Table.Row>
                 </thead>
                 <tbody>
                   {objectives.map((o) => (
-                    <Tr key={o}>
-                      <Td>{o}</Td>
-                      <Td>
+                    <Table.Row key={o}>
+                      <Table.Cell>{o}</Table.Cell>
+                      <Table.Cell>
                         <Badge size="xs" tone={impactTone[triad[o]]}>
                           {triad[o]}
                         </Badge>
-                      </Td>
-                      <Td className="tnum text-right">{set.byObjective[o]}</Td>
-                      <Td className="truncate">{familiesFor(set, o).join(", ")}</Td>
-                    </Tr>
+                      </Table.Cell>
+                      <Table.Cell className="tnum text-right">{set.byObjective[o]}</Table.Cell>
+                      <Table.Cell className="truncate">{familiesFor(set, o).join(", ")}</Table.Cell>
+                    </Table.Row>
                   ))}
                 </tbody>
               </Table>
@@ -262,19 +259,19 @@ function ScopeRecord() {
                     <col />
                   </colgroup>
                   <thead>
-                    <Tr>
-                      <Th>Overlay</Th>
-                      <Th>Authority</Th>
-                      <Th>Why it fired</Th>
-                    </Tr>
+                    <Table.Row>
+                      <Table.Header>Overlay</Table.Header>
+                      <Table.Header>Authority</Table.Header>
+                      <Table.Header>Why it fired</Table.Header>
+                    </Table.Row>
                   </thead>
                   <tbody>
                     {set.overlays.map((o) => (
-                      <Tr key={o.id}>
-                        <Td className="truncate">{o.name}</Td>
-                        <Td className="truncate">{o.authority}</Td>
-                        <Td className="truncate">{o.trigger}</Td>
-                      </Tr>
+                      <Table.Row key={o.id}>
+                        <Table.Cell className="truncate">{o.name}</Table.Cell>
+                        <Table.Cell className="truncate">{o.authority}</Table.Cell>
+                        <Table.Cell className="truncate">{o.trigger}</Table.Cell>
+                      </Table.Row>
                     ))}
                   </tbody>
                 </Table>
@@ -341,43 +338,43 @@ function ScopeRecord() {
                   <col style={{ width: "80px" }} />
                 </colgroup>
                 <thead>
-                  <Tr>
-                    <Th>Component</Th>
-                    <Th>Name</Th>
-                    <Th>Kind</Th>
-                    <Th>Zone</Th>
-                    <Th>Reached by</Th>
-                    <Th className="text-right">Reqs</Th>
-                  </Tr>
+                  <Table.Row>
+                    <Table.Header>Component</Table.Header>
+                    <Table.Header>Name</Table.Header>
+                    <Table.Header>Kind</Table.Header>
+                    <Table.Header>Zone</Table.Header>
+                    <Table.Header>Reached by</Table.Header>
+                    <Table.Header className="text-right">Reqs</Table.Header>
+                  </Table.Row>
                 </thead>
                 <tbody>
                   {members.map((n) => {
                     const viaServes = shared.some((e) => e.component === n.id);
                     return (
-                      <Tr key={n.id}>
-                        <Td className="max-w-none">
+                      <Table.Row key={n.id}>
+                        <Table.Cell className="max-w-none">
                           <Link
                             to="/programs/$programId/components/$componentId"
                             params={{ programId, componentId: n.id }}
                             className="hover:underline"
                           >
-                            <Mono className="text-primary">{n.id}</Mono>
+                            <Id className="text-primary">{n.id}</Id>
                           </Link>
-                        </Td>
-                        <Td className="truncate">{n.name}</Td>
-                        <Td className="truncate">{n.kind}</Td>
-                        <Td className="truncate">{n.zone}</Td>
-                        <Td>
+                        </Table.Cell>
+                        <Table.Cell className="truncate">{n.name}</Table.Cell>
+                        <Table.Cell className="truncate">{n.kind}</Table.Cell>
+                        <Table.Cell className="truncate">{n.zone}</Table.Cell>
+                        <Table.Cell>
                           <Badge size="xs" tone={viaServes ? "info" : "neutral"}>
                             {viaServes ? "Serves" : "Contains"}
                           </Badge>
-                        </Td>
-                        <Td className="tnum text-right">
+                        </Table.Cell>
+                        <Table.Cell className="tnum text-right">
                           {allocationsOn(n.id).length || (
                             <span className="text-muted-foreground">—</span>
                           )}
-                        </Td>
-                      </Tr>
+                        </Table.Cell>
+                      </Table.Row>
                     );
                   })}
                 </tbody>
@@ -397,33 +394,33 @@ function ScopeRecord() {
                     <col />
                   </colgroup>
                   <thead>
-                    <Tr>
-                      <Th>Component</Th>
-                      <Th>Name</Th>
-                      <Th>Role</Th>
-                      <Th>Why it reaches this scope</Th>
-                    </Tr>
+                    <Table.Row>
+                      <Table.Header>Component</Table.Header>
+                      <Table.Header>Name</Table.Header>
+                      <Table.Header>Role</Table.Header>
+                      <Table.Header>Why it reaches this scope</Table.Header>
+                    </Table.Row>
                   </thead>
                   <tbody>
                     {shared.map((e) => {
                       const n = nodeById.get(e.component);
                       return (
-                        <Tr key={`${e.component}-${e.scope}`}>
-                          <Td className="max-w-none">
+                        <Table.Row key={`${e.component}-${e.scope}`}>
+                          <Table.Cell className="max-w-none">
                             <Link
                               to="/programs/$programId/components/$componentId"
                               params={{ programId, componentId: e.component }}
                               className="hover:underline"
                             >
-                              <Mono className="text-primary">{e.component}</Mono>
+                              <Id className="text-primary">{e.component}</Id>
                             </Link>
-                          </Td>
-                          <Td className="truncate">{n?.name ?? e.component}</Td>
-                          <Td className="truncate">{e.role}</Td>
-                          <Td className="whitespace-normal py-2 align-top leading-[1.45]">
+                          </Table.Cell>
+                          <Table.Cell className="truncate">{n?.name ?? e.component}</Table.Cell>
+                          <Table.Cell className="truncate">{e.role}</Table.Cell>
+                          <Table.Cell className="whitespace-normal py-2 align-top leading-[1.45]">
                             {e.rationale}
-                          </Td>
-                        </Tr>
+                          </Table.Cell>
+                        </Table.Row>
                       );
                     })}
                   </tbody>
@@ -465,33 +462,33 @@ function ControlTable({
         <col style={{ width: showRemoval ? "300px" : "150px" }} />
       </colgroup>
       <thead>
-        <Tr>
-          <Th>Control</Th>
-          <Th>Family</Th>
-          <Th>Title</Th>
-          <Th>Selected by</Th>
-          <Th>{showRemoval ? "Why it was removed" : "Source"}</Th>
-        </Tr>
+        <Table.Row>
+          <Table.Header>Control</Table.Header>
+          <Table.Header>Family</Table.Header>
+          <Table.Header>Title</Table.Header>
+          <Table.Header>Selected by</Table.Header>
+          <Table.Header>{showRemoval ? "Why it was removed" : "Source"}</Table.Header>
+        </Table.Row>
       </thead>
       <tbody>
         {rows.map((row) => (
-          <Tr key={row.control.id}>
-            <Td className="max-w-none">
+          <Table.Row key={row.control.id}>
+            <Table.Cell className="max-w-none">
               <Link
                 to="/programs/$programId/controls/$controlId"
                 params={{ programId, controlId: row.control.id }}
                 search={{ tab: undefined }}
                 className="hover:underline"
               >
-                <Mono className="text-primary">{row.control.id}</Mono>
+                <Id className="text-primary">{row.control.id}</Id>
               </Link>
-            </Td>
-            <Td>{row.control.family}</Td>
-            <Td className="truncate">{row.control.title}</Td>
-            <Td className="truncate">
+            </Table.Cell>
+            <Table.Cell>{row.control.family}</Table.Cell>
+            <Table.Cell className="truncate">{row.control.title}</Table.Cell>
+            <Table.Cell className="truncate">
               {row.selectedBy.length ? row.selectedBy.map((o) => o.slice(0, 1)).join(" · ") : "—"}
-            </Td>
-            <Td
+            </Table.Cell>
+            <Table.Cell
               className={
                 showRemoval
                   ? "whitespace-normal py-2 align-top leading-[1.45] text-muted-foreground"
@@ -499,8 +496,8 @@ function ControlTable({
               }
             >
               {showRemoval ? (row.tailoredOut?.rationale ?? "—") : row.source}
-            </Td>
-          </Tr>
+            </Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>

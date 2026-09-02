@@ -8,15 +8,11 @@ import {
   Button,
   IndexPage,
   KeyValue,
-  Mono,
   PageHeader,
   RailGroup,
   Table,
-  Td,
-  Th,
-  Tr,
-  IdCell,
-  Severity,
+  Id,
+  Indicator,
 } from "@/components/app/ui";
 import {
   campaignById,
@@ -161,22 +157,22 @@ function CampaignsPage() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>Campaign</Th>
-                    <Th>Name</Th>
-                    <Th>Trigger</Th>
-                    <Th>Gate</Th>
-                    <Th>State</Th>
-                    <Th>Lead</Th>
-                    <Th className="text-right">Obj. run</Th>
-                    <Th className="text-right">Findings</Th>
-                    <Th />
+                    <Table.Header>Campaign</Table.Header>
+                    <Table.Header>Name</Table.Header>
+                    <Table.Header>Trigger</Table.Header>
+                    <Table.Header>Gate</Table.Header>
+                    <Table.Header>State</Table.Header>
+                    <Table.Header>Lead</Table.Header>
+                    <Table.Header className="text-right">Obj. run</Table.Header>
+                    <Table.Header className="text-right">Findings</Table.Header>
+                    <Table.Header />
                   </tr>
                 </thead>
                 <tbody>
                   {campaigns.map((c) => {
                     const cov = campaignCoverage(c.id);
                     return (
-                      <Tr
+                      <Table.Row
                         key={c.id}
                         className="cursor-pointer"
                         onClick={() => {
@@ -184,17 +180,17 @@ function CampaignsPage() {
                           setTab("Events");
                         }}
                       >
-                        <IdCell id={c.id} />
-                        <Td className="truncate">{c.name}</Td>
-                        <Td className="truncate">{c.trigger}</Td>
-                        <Td>{c.gate}</Td>
-                        <Td className="truncate">{c.state}</Td>
-                        <Td className="truncate">{c.lead}</Td>
-                        <Td className="tnum text-right">
+                        <Table.Id id={c.id} />
+                        <Table.Cell className="truncate">{c.name}</Table.Cell>
+                        <Table.Cell className="truncate">{c.trigger}</Table.Cell>
+                        <Table.Cell>{c.gate}</Table.Cell>
+                        <Table.Cell className="truncate">{c.state}</Table.Cell>
+                        <Table.Cell className="truncate">{c.lead}</Table.Cell>
+                        <Table.Cell className="tnum text-right">
                           {cov.run}/{cov.objectives}
-                        </Td>
-                        <Td className="tnum text-right">{cov.findings}</Td>
-                        <Td className="text-right">
+                        </Table.Cell>
+                        <Table.Cell className="tnum text-right">{cov.findings}</Table.Cell>
+                        <Table.Cell className="text-right">
                           <Link
                             to="/campaigns/$campaignId"
                             params={{ campaignId: c.id }}
@@ -203,8 +199,8 @@ function CampaignsPage() {
                           >
                             Open →
                           </Link>
-                        </Td>
-                      </Tr>
+                        </Table.Cell>
+                      </Table.Row>
                     );
                   })}
                 </tbody>
@@ -224,34 +220,36 @@ function CampaignsPage() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>Event</Th>
-                    <Th>Name</Th>
-                    <Th>Type</Th>
-                    <Th>State</Th>
-                    <Th>Window</Th>
-                    <Th className="text-right">CCIs</Th>
-                    <Th className="text-right">Findings</Th>
+                    <Table.Header>Event</Table.Header>
+                    <Table.Header>Name</Table.Header>
+                    <Table.Header>Type</Table.Header>
+                    <Table.Header>State</Table.Header>
+                    <Table.Header>Window</Table.Header>
+                    <Table.Header className="text-right">CCIs</Table.Header>
+                    <Table.Header className="text-right">Findings</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {eventRows.map((e) => (
-                    <Tr
+                    <Table.Row
                       key={e.id}
                       onClick={() => setSelected(e)}
                       className={
                         selected?.id === e.id ? "cursor-pointer bg-subtle" : "cursor-pointer"
                       }
                     >
-                      <IdCell id={e.id} />
-                      <Td className="truncate">{e.name}</Td>
-                      <Td className="truncate">{e.kind}</Td>
-                      <Td className="truncate">
+                      <Table.Id id={e.id} />
+                      <Table.Cell className="truncate">{e.name}</Table.Cell>
+                      <Table.Cell className="truncate">{e.kind}</Table.Cell>
+                      <Table.Cell className="truncate">
                         <Badge tone={statusTone(e.state)}>{e.state}</Badge>
-                      </Td>
-                      <Td className="truncate">{e.window}</Td>
-                      <Td className="tnum text-right">{ccisForEvent(e.id).length}</Td>
-                      <Td className="tnum text-right">{e.findings.length}</Td>
-                    </Tr>
+                      </Table.Cell>
+                      <Table.Cell className="truncate">{e.window}</Table.Cell>
+                      <Table.Cell className="tnum text-right">
+                        {ccisForEvent(e.id).length}
+                      </Table.Cell>
+                      <Table.Cell className="tnum text-right">{e.findings.length}</Table.Cell>
+                    </Table.Row>
                   ))}
                 </tbody>
               </Table>
@@ -269,30 +267,30 @@ function CampaignsPage() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>Objective</Th>
-                    <Th>Statement</Th>
-                    <Th>CCIs covered</Th>
-                    <Th>Method</Th>
-                    <Th>Event</Th>
-                    <Th>Result</Th>
+                    <Table.Header>Objective</Table.Header>
+                    <Table.Header>Statement</Table.Header>
+                    <Table.Header>CCIs covered</Table.Header>
+                    <Table.Header>Method</Table.Header>
+                    <Table.Header>Event</Table.Header>
+                    <Table.Header>Result</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {objectives.map((o) => (
-                    <Tr key={o.id}>
-                      <Td>
-                        <Mono>{o.id}</Mono>
-                      </Td>
-                      <Td className="truncate">{o.statement}</Td>
-                      <Td className="truncate">
-                        <Mono>{o.ccis.join(", ")}</Mono>
-                      </Td>
-                      <Td className="truncate">{o.method}</Td>
-                      <Td>{o.event ? <Mono>{o.event}</Mono> : "—"}</Td>
-                      <Td className="truncate">
+                    <Table.Row key={o.id}>
+                      <Table.Cell>
+                        <Id>{o.id}</Id>
+                      </Table.Cell>
+                      <Table.Cell className="truncate">{o.statement}</Table.Cell>
+                      <Table.Cell className="truncate">
+                        <Id>{o.ccis.join(", ")}</Id>
+                      </Table.Cell>
+                      <Table.Cell className="truncate">{o.method}</Table.Cell>
+                      <Table.Cell>{o.event ? <Id>{o.event}</Id> : "—"}</Table.Cell>
+                      <Table.Cell className="truncate">
                         <Badge tone={objectiveTone(o.result)}>{o.result}</Badge>
-                      </Td>
-                    </Tr>
+                      </Table.Cell>
+                    </Table.Row>
                   ))}
                 </tbody>
               </Table>
@@ -302,7 +300,7 @@ function CampaignsPage() {
           {selected ? (
             <aside className="border-t border-border pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
               <div className="flex items-baseline gap-2">
-                <Mono>{selected.id}</Mono>
+                <Id>{selected.id}</Id>
                 <button
                   onClick={() => setSelected(null)}
                   className="ml-auto text-[12px] text-muted-foreground hover:text-foreground"
@@ -318,7 +316,7 @@ function CampaignsPage() {
               <div className="mt-3">
                 <RailGroup title="Execution">
                   <KeyValue label="Campaign">
-                    <Mono>{selected.campaign}</Mono>
+                    <Id>{selected.campaign}</Id>
                   </KeyValue>
                   <KeyValue label="Gate">
                     {campaignById.get(selected.campaign)?.gate ?? "—"}
@@ -336,7 +334,7 @@ function CampaignsPage() {
                     {selected.assets.map((a) => (
                       <div key={a} className="flex items-baseline justify-between gap-2">
                         <span className="min-w-0 truncate">
-                          <Mono>{a}</Mono>{" "}
+                          <Id>{a}</Id>{" "}
                           <span className="text-muted-foreground">{assetById.get(a)?.name}</span>
                         </span>
                         <span className="shrink-0 text-muted-foreground">
@@ -352,12 +350,12 @@ function CampaignsPage() {
                     {objectivesForEvent(selected.id).map((o) => (
                       <div key={o.id}>
                         <div className="flex items-baseline justify-between gap-2">
-                          <Mono>{o.id}</Mono>
+                          <Id>{o.id}</Id>
                           <Badge tone={objectiveTone(o.result)}>{o.result}</Badge>
                         </div>
                         <p className="mt-0.5 leading-snug text-muted-foreground">{o.statement}</p>
                         <p className="mt-0.5">
-                          <Mono className="text-muted-foreground">{o.ccis.join(", ")}</Mono>
+                          <Id className="text-muted-foreground">{o.ccis.join(", ")}</Id>
                         </p>
                       </div>
                     ))}
@@ -376,13 +374,13 @@ function CampaignsPage() {
                             className="flex items-baseline justify-between gap-2"
                           >
                             <span className="min-w-0 truncate">
-                              <Mono className="text-primary">{id}</Mono>{" "}
+                              <Id className="text-primary">{id}</Id>{" "}
                               <span className="text-muted-foreground">{f?.title}</span>
                             </span>
                             {f ? (
-                              <Severity tone={severityTone(f.mitigatedSeverity)}>
+                              <Indicator tone={severityTone(f.mitigatedSeverity)}>
                                 {f.mitigatedSeverity}
-                              </Severity>
+                              </Indicator>
                             ) : null}
                           </Link>
                         );
@@ -404,7 +402,7 @@ function CampaignsPage() {
                           className="flex w-full items-baseline justify-between gap-2 text-left"
                         >
                           <span className="min-w-0 truncate">
-                            <Mono className="text-primary">{e.id}</Mono>{" "}
+                            <Id className="text-primary">{e.id}</Id>{" "}
                             <span className="text-muted-foreground">{e.name}</span>
                           </span>
                           <span className="shrink-0 text-muted-foreground">{e.state}</span>

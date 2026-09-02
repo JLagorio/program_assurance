@@ -15,6 +15,7 @@ import { TeamSection } from "@/components/app/team";
 import { LockedNotice, OpenWorkSection } from "@/components/app/program-state";
 import { CoverageBand, MilestoneTrack } from "@/components/app/coverage";
 import { SctmMatrixSection } from "@/components/app/sctm-matrix";
+import { ControlBoard } from "@/components/app/control-board";
 import { GateOutlookSection, RmfTimeline } from "@/components/app/rmf-timeline";
 import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
 import { ActivityTimeline } from "@/components/app/activity-timeline";
@@ -32,8 +33,6 @@ import {
   EmptyState,
   Kbd,
   Menu,
-  MenuItem,
-  MenuLabel,
   Person,
   Toolbar,
   Dot,
@@ -43,17 +42,14 @@ import {
   RailGroup,
   Meter,
   Modal,
-  Mono,
   RecordHeader,
   Section,
   Select,
   ShowPage,
   Table,
-  TabStrip,
-  Td,
   Textarea,
-  Th,
-  Tr,
+  Id,
+  Tabs,
 } from "@/components/app/ui";
 import { NewRequirementModal } from "@/components/app/requirement-forms";
 import { ScopeTable } from "@/components/app/scopes";
@@ -108,6 +104,7 @@ export const Route = createFileRoute("/programs/$programId")({
 type Tab =
   | "Overview"
   | "Controls"
+  | "Controls v2"
   | "Systems"
   | "Requirements"
   | "Timeline"
@@ -120,6 +117,7 @@ type Tab =
 const tabOrder: Tab[] = [
   "Overview",
   "Controls",
+  "Controls v2",
   "Systems",
   "Requirements",
   "Timeline",
@@ -273,7 +271,7 @@ function ProgramDetail() {
         }
       >
         <KeyValue label="Program ID">
-          <Mono>{program.id}</Mono>
+          <Id>{program.id}</Id>
         </KeyValue>
         <KeyValue label="Acronym">
           <InlineText
@@ -332,9 +330,9 @@ function ProgramDetail() {
           >
             {(close) => (
               <>
-                <MenuLabel>Jump to stage</MenuLabel>
+                <Menu.Label>Jump to stage</Menu.Label>
                 {stages.map((s) => (
-                  <MenuItem
+                  <Menu.Item
                     key={s}
                     selected={s === (stageFilter ?? state.currentStage)}
                     onSelect={() => {
@@ -343,7 +341,7 @@ function ProgramDetail() {
                     }}
                   >
                     {s}
-                  </MenuItem>
+                  </Menu.Item>
                 ))}
               </>
             )}
@@ -352,7 +350,7 @@ function ProgramDetail() {
         <KeyValue label="Current gate">
           {state.currentGate ? (
             <span className="flex items-center gap-1.5">
-              <Mono className="text-muted-foreground">{state.currentGate.id}</Mono>
+              <Id className="text-muted-foreground">{state.currentGate.id}</Id>
               <span className="truncate">{state.currentGate.name}</span>
             </span>
           ) : (
@@ -649,7 +647,7 @@ function ProgramDetail() {
                 >
                   {(close) => (
                     <>
-                      <MenuItem
+                      <Menu.Item
                         onSelect={() => {
                           palette.setOpen(true);
                           close();
@@ -657,25 +655,25 @@ function ProgramDetail() {
                       >
                         Command palette
                         <Kbd>⌘K</Kbd>
-                      </MenuItem>
-                      <MenuItem
+                      </Menu.Item>
+                      <Menu.Item
                         onSelect={() => {
                           setCdrOpen(true);
                           close();
                         }}
                       >
                         Export CDR package
-                      </MenuItem>
-                      <MenuItem
+                      </Menu.Item>
+                      <Menu.Item
                         onSelect={() => {
                           setAssessing(true);
                           close();
                         }}
                       >
                         Record assessment
-                      </MenuItem>
-                      <MenuItem onSelect={close}>Duplicate program</MenuItem>
-                      <MenuItem onSelect={close}>Archive</MenuItem>
+                      </Menu.Item>
+                      <Menu.Item onSelect={close}>Duplicate program</Menu.Item>
+                      <Menu.Item onSelect={close}>Archive</Menu.Item>
                     </>
                   )}
                 </Menu>
@@ -684,11 +682,12 @@ function ProgramDetail() {
           />
         }
         tabs={
-          <TabStrip
+          <Tabs
             items={(
               [
                 ["Overview", null],
                 ["Controls", coverage.segments[2]?.value || null],
+                ["Controls v2", null],
                 ["Systems", scopeRows.length || null],
                 ["Requirements", requirementRows.length || null],
                 ["Timeline", outlook.remaining.length || null],
@@ -810,6 +809,8 @@ function ProgramDetail() {
             />
           </>
         ) : null}
+
+        {tab === "Controls v2" ? <ControlBoard programId={program.id} /> : null}
 
         {tab === "Timeline" ? (
           <RmfTimeline
@@ -951,34 +952,34 @@ function ProgramDetail() {
                   </colgroup>
                   <thead>
                     <tr>
-                      <Th>ID</Th>
-                      <Th>Weakness</Th>
-                      <Th>Status</Th>
-                      <Th>Owner</Th>
-                      <Th className="text-right">Scheduled</Th>
+                      <Table.Header>ID</Table.Header>
+                      <Table.Header>Weakness</Table.Header>
+                      <Table.Header>Status</Table.Header>
+                      <Table.Header>Owner</Table.Header>
+                      <Table.Header className="text-right">Scheduled</Table.Header>
                     </tr>
                   </thead>
                   <tbody>
                     {programPoams.map((p) => (
-                      <Tr key={p.id}>
-                        <Td>
+                      <Table.Row key={p.id}>
+                        <Table.Cell>
                           <Link
                             to="/register/poam/$poamId"
                             params={{ poamId: p.id }}
                             className="text-primary hover:underline"
                           >
-                            <Mono className="text-primary">{p.id}</Mono>
+                            <Id className="text-primary">{p.id}</Id>
                           </Link>
-                        </Td>
-                        <Td className="truncate">{p.title}</Td>
-                        <Td>
+                        </Table.Cell>
+                        <Table.Cell className="truncate">{p.title}</Table.Cell>
+                        <Table.Cell>
                           <Badge tone={statusTone(p.status)}>{p.status}</Badge>
-                        </Td>
-                        <Td className="truncate">
+                        </Table.Cell>
+                        <Table.Cell className="truncate">
                           <Person name={p.owner} />
-                        </Td>
-                        <Td className="tnum text-right">{p.scheduledCompletion}</Td>
-                      </Tr>
+                        </Table.Cell>
+                        <Table.Cell className="tnum text-right">{p.scheduledCompletion}</Table.Cell>
+                      </Table.Row>
                     ))}
                   </tbody>
                 </Table>

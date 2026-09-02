@@ -6,18 +6,14 @@ import { Shell } from "@/components/app/shell";
 import {
   Badge,
   Button,
-  IdCell,
   IndexPage,
   KeyValue,
-  Mono,
   PageHeader,
   PreviewRail,
   RailGroup,
   Table,
-  Td,
-  Th,
-  Tr,
-  Severity,
+  Id,
+  Indicator,
 } from "@/components/app/ui";
 import {
   assetById,
@@ -82,16 +78,16 @@ function trackedLabel(assetId: string): string {
 function TrackedCell({ assetId }: { assetId: string }) {
   const rolled = assetPosture(assetId)?.rolled ?? null;
   if (!rolled) {
-    return <Td className="text-right">—</Td>;
+    return <Table.Cell className="text-right">—</Table.Cell>;
   }
   return (
-    <Td className="tnum text-right">
+    <Table.Cell className="tnum text-right">
       <span className={rolled.catI ? "font-medium text-danger" : ""}>{rolled.catI}</span>
       <span className="text-muted-foreground">
         {" "}
         / {rolled.catII} / {rolled.catIII}
       </span>
-    </Td>
+    </Table.Cell>
   );
 }
 
@@ -209,46 +205,48 @@ function FindingsPage() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>Finding</Th>
-                    <Th>Title</Th>
-                    <Th>CCI</Th>
-                    <Th>Asset</Th>
-                    <Th>Source</Th>
-                    <Th>Raw</Th>
-                    <Th>Mitigated</Th>
-                    <Th>Lifecycle</Th>
+                    <Table.Header>Finding</Table.Header>
+                    <Table.Header>Title</Table.Header>
+                    <Table.Header>CCI</Table.Header>
+                    <Table.Header>Asset</Table.Header>
+                    <Table.Header>Source</Table.Header>
+                    <Table.Header>Raw</Table.Header>
+                    <Table.Header>Mitigated</Table.Header>
+                    <Table.Header>Lifecycle</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map((f) => (
-                    <Tr
+                    <Table.Row
                       key={f.id}
                       className="cursor-pointer"
                       onClick={() =>
                         navigate({ to: "/findings/$findingId", params: { findingId: f.id } })
                       }
                     >
-                      <IdCell
+                      <Table.Id
                         id={f.id}
                         active={preview?.kind === "finding" && preview.item.id === f.id}
                         onPreview={() => setPreview({ kind: "finding", item: f })}
                       />
-                      <Td className="truncate">{f.title}</Td>
-                      <Td>
-                        <Mono>{f.cci}</Mono>
-                      </Td>
-                      <Td className="truncate">{assetById.get(f.asset)?.name ?? f.asset}</Td>
-                      <Td className="truncate">{f.source}</Td>
-                      <Td>{f.rawSeverity}</Td>
-                      <Td>
-                        <Severity tone={severityTone(f.mitigatedSeverity)}>
+                      <Table.Cell className="truncate">{f.title}</Table.Cell>
+                      <Table.Cell>
+                        <Id>{f.cci}</Id>
+                      </Table.Cell>
+                      <Table.Cell className="truncate">
+                        {assetById.get(f.asset)?.name ?? f.asset}
+                      </Table.Cell>
+                      <Table.Cell className="truncate">{f.source}</Table.Cell>
+                      <Table.Cell>{f.rawSeverity}</Table.Cell>
+                      <Table.Cell>
+                        <Indicator tone={severityTone(f.mitigatedSeverity)}>
                           {f.mitigatedSeverity}
-                        </Severity>
-                      </Td>
-                      <Td className="truncate">
+                        </Indicator>
+                      </Table.Cell>
+                      <Table.Cell className="truncate">
                         <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
-                      </Td>
-                    </Tr>
+                      </Table.Cell>
+                    </Table.Row>
                   ))}
                 </tbody>
               </Table>
@@ -266,36 +264,36 @@ function FindingsPage() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>Asset</Th>
-                    <Th>Name</Th>
-                    <Th>Kind</Th>
-                    <Th>Technology</Th>
-                    <Th>Environment</Th>
-                    <Th>Last scan</Th>
-                    <Th className="text-right">Scanner I / II / III</Th>
-                    <Th className="text-right">Tracked I / II / III</Th>
+                    <Table.Header>Asset</Table.Header>
+                    <Table.Header>Name</Table.Header>
+                    <Table.Header>Kind</Table.Header>
+                    <Table.Header>Technology</Table.Header>
+                    <Table.Header>Environment</Table.Header>
+                    <Table.Header>Last scan</Table.Header>
+                    <Table.Header className="text-right">Scanner I / II / III</Table.Header>
+                    <Table.Header className="text-right">Tracked I / II / III</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {assets.map((a) => (
-                    <Tr
+                    <Table.Row
                       key={a.id}
                       className="cursor-pointer"
                       onClick={() =>
                         navigate({ to: "/findings/assets/$assetId", params: { assetId: a.id } })
                       }
                     >
-                      <IdCell
+                      <Table.Id
                         id={a.id}
                         active={preview?.kind === "asset" && preview.item.id === a.id}
                         onPreview={() => setPreview({ kind: "asset", item: a })}
                       />
-                      <Td className="truncate">{a.name}</Td>
-                      <Td className="truncate">{a.kind}</Td>
-                      <Td className="truncate">{a.technology}</Td>
-                      <Td className="truncate">{a.environment}</Td>
-                      <Td className="truncate">{a.lastScan}</Td>
-                      <Td className="tnum text-right">
+                      <Table.Cell className="truncate">{a.name}</Table.Cell>
+                      <Table.Cell className="truncate">{a.kind}</Table.Cell>
+                      <Table.Cell className="truncate">{a.technology}</Table.Cell>
+                      <Table.Cell className="truncate">{a.environment}</Table.Cell>
+                      <Table.Cell className="truncate">{a.lastScan}</Table.Cell>
+                      <Table.Cell className="tnum text-right">
                         <span className={a.openCatI ? "font-medium text-danger" : ""}>
                           {a.openCatI}
                         </span>
@@ -303,9 +301,9 @@ function FindingsPage() {
                           {" "}
                           / {a.openCatII} / {a.openCatIII}
                         </span>
-                      </Td>
+                      </Table.Cell>
                       <TrackedCell assetId={a.id} />
-                    </Tr>
+                    </Table.Row>
                   ))}
                 </tbody>
               </Table>
@@ -329,24 +327,24 @@ function FindingsPage() {
             >
               <RailGroup title="Join keys">
                 <KeyValue label="CCI">
-                  <Mono>{preview.item.cci}</Mono>
+                  <Id>{preview.item.cci}</Id>
                 </KeyValue>
                 <KeyValue label="Control">
-                  <Mono>{preview.item.control}</Mono>
+                  <Id>{preview.item.control}</Id>
                 </KeyValue>
                 <KeyValue label="Asset">
                   {assetById.get(preview.item.asset)?.name ?? preview.item.asset}
                 </KeyValue>
                 <KeyValue label="Rule">
-                  {preview.item.rule ? <Mono>{preview.item.rule}</Mono> : "—"}
+                  {preview.item.rule ? <Id>{preview.item.rule}</Id> : "—"}
                 </KeyValue>
               </RailGroup>
               <RailGroup title="Severity">
                 <KeyValue label="Raw">{preview.item.rawSeverity}</KeyValue>
                 <KeyValue label="Mitigated">
-                  <Severity tone={severityTone(preview.item.mitigatedSeverity)}>
+                  <Indicator tone={severityTone(preview.item.mitigatedSeverity)}>
                     {preview.item.mitigatedSeverity}
-                  </Severity>
+                  </Indicator>
                 </KeyValue>
                 <KeyValue label="Lifecycle">
                   <Badge tone={statusTone(preview.item.lifecycle)}>{preview.item.lifecycle}</Badge>
@@ -354,10 +352,10 @@ function FindingsPage() {
               </RailGroup>
               <RailGroup title="Rolls up to">
                 <KeyValue label="POA&M">
-                  {preview.item.poam ? <Mono>{preview.item.poam}</Mono> : "Not yet scheduled"}
+                  {preview.item.poam ? <Id>{preview.item.poam}</Id> : "Not yet scheduled"}
                 </KeyValue>
                 <KeyValue label="Risk">
-                  {preview.item.risk ? <Mono>{preview.item.risk}</Mono> : "Not aggregated"}
+                  {preview.item.risk ? <Id>{preview.item.risk}</Id> : "Not aggregated"}
                 </KeyValue>
               </RailGroup>
             </PreviewRail>

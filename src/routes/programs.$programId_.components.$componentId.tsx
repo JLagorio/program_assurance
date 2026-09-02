@@ -10,15 +10,12 @@ import {
   Badge,
   Button,
   EmptyState,
-  Mono,
   RecordHeader,
   Section,
   ShowPage,
   Table,
-  Td,
-  Th,
-  Tr,
-  Severity,
+  Id,
+  Indicator,
 } from "@/components/app/ui";
 import {
   ancestorsOf,
@@ -176,7 +173,7 @@ function ComponentRecord() {
                   {node.attested ? "Attested" : "Not attested"}
                 </Badge>
                 {posture?.worst ? (
-                  <Severity tone={severityTone(posture.worst)}>{posture.worst} open</Severity>
+                  <Indicator tone={severityTone(posture.worst)}>{posture.worst} open</Indicator>
                 ) : null}
               </>
             }
@@ -185,7 +182,7 @@ function ComponentRecord() {
                 <Fact label="Supplier">{node.supplier}</Fact>
                 {node.partNumber ? (
                   <Fact label="Part number">
-                    <Mono>{node.partNumber}</Mono>
+                    <Id>{node.partNumber}</Id>
                   </Fact>
                 ) : null}
                 <Fact label="Trust zone">{node.zone}</Fact>
@@ -232,15 +229,15 @@ function ComponentRecord() {
               <col />
             </colgroup>
             <thead>
-              <Tr>
-                <Th>Scope</Th>
-                <Th>Name</Th>
-                <Th title="Confidentiality">C</Th>
-                <Th title="Integrity">I</Th>
-                <Th title="Availability">A</Th>
-                <Th>Reached by</Th>
-                <Th>Role here</Th>
-              </Tr>
+              <Table.Row>
+                <Table.Header>Scope</Table.Header>
+                <Table.Header>Name</Table.Header>
+                <Table.Header title="Confidentiality">C</Table.Header>
+                <Table.Header title="Integrity">I</Table.Header>
+                <Table.Header title="Availability">A</Table.Header>
+                <Table.Header>Reached by</Table.Header>
+                <Table.Header>Role here</Table.Header>
+              </Table.Row>
             </thead>
             <tbody>
               {scopes.map((sc) => {
@@ -248,30 +245,30 @@ function ComponentRecord() {
                 const edge = serves.find((e) => e.scope === sc.id);
                 const set = controlSetFor(sc.id);
                 return (
-                  <Tr key={sc.id} title={edge?.rationale ?? sc.mission}>
-                    <Td className="max-w-none">
+                  <Table.Row key={sc.id} title={edge?.rationale ?? sc.mission}>
+                    <Table.Cell className="max-w-none">
                       <Link
                         to="/programs/$programId/systems/$scopeId"
                         params={{ programId, scopeId: sc.id }}
                         search={{ tab: undefined }}
                         className="hover:underline"
                       >
-                        <Mono className="text-primary">{sc.id}</Mono>
+                        <Id className="text-primary">{sc.id}</Id>
                       </Link>
-                    </Td>
-                    <Td className="truncate">{sc.name}</Td>
-                    <Td>{t.Confidentiality.slice(0, 1)}</Td>
-                    <Td>{t.Integrity.slice(0, 1)}</Td>
-                    <Td>{t.Availability.slice(0, 1)}</Td>
-                    <Td>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">{sc.name}</Table.Cell>
+                    <Table.Cell>{t.Confidentiality.slice(0, 1)}</Table.Cell>
+                    <Table.Cell>{t.Integrity.slice(0, 1)}</Table.Cell>
+                    <Table.Cell>{t.Availability.slice(0, 1)}</Table.Cell>
+                    <Table.Cell>
                       <Badge size="xs" tone={edge ? "info" : "neutral"}>
                         {edge ? "Serves" : "Contains"}
                       </Badge>
-                    </Td>
-                    <Td className="truncate">
+                    </Table.Cell>
+                    <Table.Cell className="truncate">
                       {edge ? edge.role : `${set?.total ?? 0} controls in force`}
-                    </Td>
-                  </Tr>
+                    </Table.Cell>
+                  </Table.Row>
                 );
               })}
             </tbody>
@@ -312,37 +309,37 @@ function ComponentRecord() {
                 <col style={{ width: "96px" }} />
               </colgroup>
               <thead>
-                <Tr>
-                  <Th>Component</Th>
-                  <Th>Name</Th>
-                  <Th>Kind</Th>
-                  <Th>Version</Th>
-                  <Th>Supplier</Th>
-                  <Th className="text-right">Reqs</Th>
-                </Tr>
+                <Table.Row>
+                  <Table.Header>Component</Table.Header>
+                  <Table.Header>Name</Table.Header>
+                  <Table.Header>Kind</Table.Header>
+                  <Table.Header>Version</Table.Header>
+                  <Table.Header>Supplier</Table.Header>
+                  <Table.Header className="text-right">Reqs</Table.Header>
+                </Table.Row>
               </thead>
               <tbody>
                 {children.map((child) => (
-                  <Tr key={child.id}>
-                    <Td className="max-w-none">
+                  <Table.Row key={child.id}>
+                    <Table.Cell className="max-w-none">
                       <Link
                         to="/programs/$programId/components/$componentId"
                         params={{ programId, componentId: child.id }}
                         className="hover:underline"
                       >
-                        <Mono className="text-primary">{child.id}</Mono>
+                        <Id className="text-primary">{child.id}</Id>
                       </Link>
-                    </Td>
-                    <Td className="truncate">{child.name}</Td>
-                    <Td className="truncate">{child.kind}</Td>
-                    <Td className="truncate">{child.version}</Td>
-                    <Td className="truncate">{child.supplier}</Td>
-                    <Td className="tnum text-right">
+                    </Table.Cell>
+                    <Table.Cell className="truncate">{child.name}</Table.Cell>
+                    <Table.Cell className="truncate">{child.kind}</Table.Cell>
+                    <Table.Cell className="truncate">{child.version}</Table.Cell>
+                    <Table.Cell className="truncate">{child.supplier}</Table.Cell>
+                    <Table.Cell className="tnum text-right">
                       {allocationsOn(child.id).length || (
                         <span className="text-muted-foreground">—</span>
                       )}
-                    </Td>
-                  </Tr>
+                    </Table.Cell>
+                  </Table.Row>
                 ))}
               </tbody>
             </Table>
@@ -360,13 +357,13 @@ function ComponentRecord() {
                 <col style={{ width: "108px" }} />
               </colgroup>
               <thead>
-                <Tr>
-                  <Th>Direction</Th>
-                  <Th>Component</Th>
-                  <Th>Name</Th>
-                  <Th>Relation</Th>
-                  <Th>Boundary</Th>
-                </Tr>
+                <Table.Row>
+                  <Table.Header>Direction</Table.Header>
+                  <Table.Header>Component</Table.Header>
+                  <Table.Header>Name</Table.Header>
+                  <Table.Header>Relation</Table.Header>
+                  <Table.Header>Boundary</Table.Header>
+                </Table.Row>
               </thead>
               <tbody>
                 {[
@@ -375,22 +372,22 @@ function ComponentRecord() {
                 ].map(({ edge, dir, other }, i) => {
                   const peer = nodeById.get(other);
                   return (
-                    <Tr key={`${edge.from}-${edge.to}-${i}`} title={edge.via}>
-                      <Td>{dir}</Td>
-                      <Td className="max-w-none">
+                    <Table.Row key={`${edge.from}-${edge.to}-${i}`} title={edge.via}>
+                      <Table.Cell>{dir}</Table.Cell>
+                      <Table.Cell className="max-w-none">
                         <Link
                           to="/programs/$programId/components/$componentId"
                           params={{ programId, componentId: other }}
                           className="hover:underline"
                         >
-                          <Mono className="text-primary">{other}</Mono>
+                          <Id className="text-primary">{other}</Id>
                         </Link>
-                      </Td>
-                      <Td className="truncate">{peer?.name ?? other}</Td>
-                      <Td className="truncate">
+                      </Table.Cell>
+                      <Table.Cell className="truncate">{peer?.name ?? other}</Table.Cell>
+                      <Table.Cell className="truncate">
                         {edge.kind} — {edge.via}
-                      </Td>
-                      <Td>
+                      </Table.Cell>
+                      <Table.Cell>
                         {crossesBoundary(edge) ? (
                           <Badge size="xs" tone="warning">
                             Crosses
@@ -398,8 +395,8 @@ function ComponentRecord() {
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
-                      </Td>
-                    </Tr>
+                      </Table.Cell>
+                    </Table.Row>
                   );
                 })}
               </tbody>
@@ -421,38 +418,38 @@ function ComponentRecord() {
                 <col style={{ width: "108px" }} />
               </colgroup>
               <thead>
-                <Tr>
-                  <Th>Requirement</Th>
-                  <Th>Shall statement</Th>
-                  <Th>Why it does not apply here</Th>
-                  <Th>Decided by</Th>
-                  <Th>Decided</Th>
-                </Tr>
+                <Table.Row>
+                  <Table.Header>Requirement</Table.Header>
+                  <Table.Header>Shall statement</Table.Header>
+                  <Table.Header>Why it does not apply here</Table.Header>
+                  <Table.Header>Decided by</Table.Header>
+                  <Table.Header>Decided</Table.Header>
+                </Table.Row>
               </thead>
               <tbody>
                 {skipped.map((d) => {
                   const r = getRequirement(d.requirement);
                   return (
-                    <Tr key={d.id}>
-                      <Td className="max-w-none">
+                    <Table.Row key={d.id}>
+                      <Table.Cell className="max-w-none">
                         <Link
                           to="/programs/$programId/requirements/$requirementId"
                           params={{ programId, requirementId: d.requirement }}
                           search={{ tab: undefined }}
                           className="hover:underline"
                         >
-                          <Mono className="text-primary">{d.requirement}</Mono>
+                          <Id className="text-primary">{d.requirement}</Id>
                         </Link>
-                      </Td>
-                      <Td className="truncate" title={r?.text}>
+                      </Table.Cell>
+                      <Table.Cell className="truncate" title={r?.text}>
                         {r?.text ?? "—"}
-                      </Td>
-                      <Td className="whitespace-normal py-2 align-top leading-[1.45]">
+                      </Table.Cell>
+                      <Table.Cell className="whitespace-normal py-2 align-top leading-[1.45]">
                         {d.rationale}
-                      </Td>
-                      <Td className="truncate">{d.decidedBy}</Td>
-                      <Td>{d.decidedOn}</Td>
-                    </Tr>
+                      </Table.Cell>
+                      <Table.Cell className="truncate">{d.decidedBy}</Table.Cell>
+                      <Table.Cell>{d.decidedOn}</Table.Cell>
+                    </Table.Row>
                   );
                 })}
               </tbody>
@@ -481,44 +478,44 @@ function ComponentRecord() {
                 <col style={{ width: "120px" }} />
               </colgroup>
               <thead>
-                <Tr>
-                  <Th>Finding</Th>
-                  <Th>Severity</Th>
-                  <Th>Title</Th>
-                  <Th>Control</Th>
-                  <Th>Status</Th>
-                </Tr>
+                <Table.Row>
+                  <Table.Header>Finding</Table.Header>
+                  <Table.Header>Severity</Table.Header>
+                  <Table.Header>Title</Table.Header>
+                  <Table.Header>Control</Table.Header>
+                  <Table.Header>Status</Table.Header>
+                </Table.Row>
               </thead>
               <tbody>
                 {open.map((f) => (
-                  <Tr key={f.id}>
-                    <Td className="max-w-none">
+                  <Table.Row key={f.id}>
+                    <Table.Cell className="max-w-none">
                       <Link
                         to="/findings/$findingId"
                         params={{ findingId: f.id }}
                         className="hover:underline"
                       >
-                        <Mono className="text-primary">{f.id}</Mono>
+                        <Id className="text-primary">{f.id}</Id>
                       </Link>
-                    </Td>
-                    <Td>
-                      <Severity tone={severityTone(f.mitigatedSeverity)}>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Indicator tone={severityTone(f.mitigatedSeverity)}>
                         {f.mitigatedSeverity}
-                      </Severity>
-                    </Td>
-                    <Td className="truncate">{f.title}</Td>
-                    <Td>
+                      </Indicator>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">{f.title}</Table.Cell>
+                    <Table.Cell>
                       <Link
                         to="/programs/$programId/controls/$controlId"
                         params={{ programId, controlId: f.control }}
                         search={{ tab: undefined }}
                         className="hover:underline"
                       >
-                        <Mono className="text-primary">{f.control}</Mono>
+                        <Id className="text-primary">{f.control}</Id>
                       </Link>
-                    </Td>
-                    <Td className="truncate">{f.lifecycle}</Td>
-                  </Tr>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">{f.lifecycle}</Table.Cell>
+                  </Table.Row>
                 ))}
               </tbody>
             </Table>
@@ -542,7 +539,7 @@ function ComponentRecord() {
             <Fact label="BOM document">
               {bom ? (
                 <span title={`${bom.name} · ${bom.producer} · ${bom.received}`}>
-                  <Mono>{bom.id}</Mono>
+                  <Id>{bom.id}</Id>
                 </span>
               ) : (
                 "Hand-declared"

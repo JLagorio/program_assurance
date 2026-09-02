@@ -8,14 +8,11 @@ import {
   Input,
   KeyValue,
   Modal,
-  Mono,
   Section,
   Select,
   Table,
-  Td,
   Textarea,
-  Th,
-  Tr,
+  Id,
 } from "@/components/app/ui";
 import {
   gateKindTone,
@@ -115,14 +112,14 @@ export function LifecycleSection({
         <Table className="table-fixed">
           <thead>
             <tr>
-              <Th className="w-[72px]">Gate</Th>
-              <Th>Requirement</Th>
-              <Th className="w-[116px]">Type</Th>
-              <Th className="w-[104px]">Status</Th>
-              <Th className="w-[152px]">Cyber dependency</Th>
-              <Th className="w-[92px]">Owner</Th>
-              <Th className="w-[112px] text-right">Planned</Th>
-              <Th className="w-[112px] text-right">Actual</Th>
+              <Table.Header className="w-[72px]">Gate</Table.Header>
+              <Table.Header>Requirement</Table.Header>
+              <Table.Header className="w-[116px]">Type</Table.Header>
+              <Table.Header className="w-[104px]">Status</Table.Header>
+              <Table.Header className="w-[152px]">Cyber dependency</Table.Header>
+              <Table.Header className="w-[92px]">Owner</Table.Header>
+              <Table.Header className="w-[112px] text-right">Planned</Table.Header>
+              <Table.Header className="w-[112px] text-right">Actual</Table.Header>
             </tr>
           </thead>
           <tbody>
@@ -137,36 +134,40 @@ export function LifecycleSection({
                   </td>
                 </tr>
                 {group.items.map((g) => (
-                  <Tr key={g.id} onClick={() => setSelected(g)} className="cursor-pointer">
-                    <Td className="w-[72px]">
-                      <Mono>{g.id}</Mono>
-                    </Td>
-                    <Td>{g.name}</Td>
-                    <Td className="w-[116px]">
+                  <Table.Row key={g.id} onClick={() => setSelected(g)} className="cursor-pointer">
+                    <Table.Cell className="w-[72px]">
+                      <Id>{g.id}</Id>
+                    </Table.Cell>
+                    <Table.Cell>{g.name}</Table.Cell>
+                    <Table.Cell className="w-[116px]">
                       <Badge tone={gateKindTone[g.kind]}>{gateKindShort[g.kind]}</Badge>
-                    </Td>
-                    <Td className="w-[104px]">
+                    </Table.Cell>
+                    <Table.Cell className="w-[104px]">
                       <span className="flex items-center gap-1.5">
                         <Dot tone={gateStatusTone[g.status]} />
                         <span className={g.status === "Planned" ? "text-muted-foreground" : ""}>
                           {g.status}
                         </span>
                       </span>
-                    </Td>
-                    <Td className="w-[152px]">{g.cyberGate}</Td>
-                    <Td className="w-[92px]">{g.owner}</Td>
-                    <Td className="tnum w-[112px] text-right">{shortDate(g.planned)}</Td>
-                    <Td className="tnum w-[112px] text-right">{shortDate(g.actual)}</Td>
-                  </Tr>
+                    </Table.Cell>
+                    <Table.Cell className="w-[152px]">{g.cyberGate}</Table.Cell>
+                    <Table.Cell className="w-[92px]">{g.owner}</Table.Cell>
+                    <Table.Cell className="tnum w-[112px] text-right">
+                      {shortDate(g.planned)}
+                    </Table.Cell>
+                    <Table.Cell className="tnum w-[112px] text-right">
+                      {shortDate(g.actual)}
+                    </Table.Cell>
+                  </Table.Row>
                 ))}
               </Fragment>
             ))}
             {rows.length === 0 ? (
-              <Tr>
-                <Td colSpan={8} className="text-muted-foreground">
+              <Table.Row>
+                <Table.Cell colSpan={8} className="text-muted-foreground">
                   No gates match this filter.
-                </Td>
-              </Tr>
+                </Table.Cell>
+              </Table.Row>
             ) : null}
           </tbody>
         </Table>

@@ -12,15 +12,11 @@ import {
   KeyValue,
   RailGroup,
   Modal,
-  Mono,
   Section,
   Select,
   Table,
-  Td,
   Textarea,
-  Th,
-  Tr,
-  IdCell,
+  Id,
 } from "@/components/app/ui";
 import { riskStatusTone, risks } from "@/lib/grc-data";
 
@@ -103,7 +99,7 @@ function RiskDetail() {
             <h1 className="truncate text-[19px] font-semibold tracking-[-0.02em]">{risk.title}</h1>
             <Badge tone={riskStatusTone[risk.status]}>{risk.status}</Badge>
             <span className="flex min-w-0 items-center gap-2 text-[12.5px] text-muted-foreground">
-              <Mono>{risk.id}</Mono>
+              <Id>{risk.id}</Id>
               <span className="text-border">·</span>
               <span className="truncate">
                 {risk.framework} {risk.control}
@@ -140,18 +136,18 @@ function RiskDetail() {
               <Table>
                 <thead>
                   <tr>
-                    <Th>File</Th>
-                    <Th className="w-24">Size</Th>
-                    <Th className="w-24 text-right">Added</Th>
+                    <Table.Header>File</Table.Header>
+                    <Table.Header className="w-24">Size</Table.Header>
+                    <Table.Header className="w-24 text-right">Added</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {linkedEvidence.map((file) => (
-                    <Tr key={file.name}>
-                      <IdCell id={file.name} />
-                      <Td className="tnum">{file.size}</Td>
-                      <Td className="text-right">{file.added}</Td>
-                    </Tr>
+                    <Table.Row key={file.name}>
+                      <Table.Id id={file.name} />
+                      <Table.Cell className="tnum">{file.size}</Table.Cell>
+                      <Table.Cell className="text-right">{file.added}</Table.Cell>
+                    </Table.Row>
                   ))}
                 </tbody>
               </Table>
@@ -187,7 +183,7 @@ function RiskDetail() {
               }
             >
               <KeyValue label="Risk ID">
-                <Mono>{risk.id}</Mono>
+                <Id>{risk.id}</Id>
               </KeyValue>
               <KeyValue label="Owner">{risk.owner}</KeyValue>
               <KeyValue label="Team">{risk.team}</KeyValue>

@@ -26,14 +26,10 @@ import {
   EmptyState,
   KeyValue,
   Meter,
-  Mono,
   RailGroup,
-  StackedBar,
   Table,
-  Td,
-  Th,
-  Tr,
   type Tone,
+  Id,
 } from "@/components/app/ui";
 import {
   designationTone,
@@ -175,14 +171,14 @@ export function ResolutionTable({
       </colgroup>
       <thead>
         <tr>
-          <Th>Control</Th>
-          <Th>Provider</Th>
-          <Th>Tier</Th>
-          <Th>Designation</Th>
-          <Th>Share</Th>
-          <Th>Accepted → offered</Th>
-          <Th>State</Th>
-          <Th>This system still owes</Th>
+          <Table.Header>Control</Table.Header>
+          <Table.Header>Provider</Table.Header>
+          <Table.Header>Tier</Table.Header>
+          <Table.Header>Designation</Table.Header>
+          <Table.Header>Share</Table.Header>
+          <Table.Header>Accepted → offered</Table.Header>
+          <Table.Header>State</Table.Header>
+          <Table.Header>This system still owes</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -190,7 +186,7 @@ export function ResolutionTable({
           const version = versionRead(row);
           const unstated = obligationUnstated(row);
           return (
-            <Tr
+            <Table.Row
               key={row.control}
               className={cn(
                 onSelect ? "cursor-pointer" : undefined,
@@ -198,43 +194,43 @@ export function ResolutionTable({
               )}
               onClick={onSelect ? () => onSelect(row.control) : undefined}
             >
-              <Td>
-                <Mono className={onSelect ? "text-primary" : "text-foreground"}>{row.control}</Mono>
-              </Td>
-              <Td
+              <Table.Cell>
+                <Id className={onSelect ? "text-primary" : "text-foreground"}>{row.control}</Id>
+              </Table.Cell>
+              <Table.Cell
                 className="truncate"
                 title={`${row.component.id} — ${row.component.name} (${row.component.provider})`}
               >
                 {row.component.name}
-              </Td>
-              <Td>{row.tier}</Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>{row.tier}</Table.Cell>
+              <Table.Cell>
                 <DesignationChip row={row} />
-              </Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>
                 <Badge size="xs" tone={shareTone[row.share]}>
                   {row.share}
                 </Badge>
-              </Td>
-              <Td title={version.detail}>
+              </Table.Cell>
+              <Table.Cell title={version.detail}>
                 {row.accepted ? (
                   <span className="flex items-center gap-1">
-                    <Mono>{version.accepted}</Mono>
+                    <Id>{version.accepted}</Id>
                     <span className="text-border-strong">→</span>
-                    <Mono className={version.drifted ? "text-warning" : "text-muted-foreground"}>
+                    <Id className={version.drifted ? "text-warning" : "text-muted-foreground"}>
                       {version.offered}
-                    </Mono>
+                    </Id>
                   </span>
                 ) : (
                   <Badge size="xs" tone="warning">
                     Never accepted
                   </Badge>
                 )}
-              </Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>
                 <InheritanceStateChip row={row} />
-              </Td>
-              <Td
+              </Table.Cell>
+              <Table.Cell
                 className={cn("truncate", unstated ? "text-danger" : "text-muted-foreground")}
                 title={
                   unstated
@@ -254,8 +250,8 @@ export function ResolutionTable({
                 ) : (
                   row.consumerObligation
                 )}
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           );
         })}
       </tbody>
@@ -299,7 +295,7 @@ function ProviderCard({
         {name}
       </div>
       <div className="mt-1 flex flex-wrap items-center gap-1.5">
-        <Mono className="text-muted-foreground">{id}</Mono>
+        <Id className="text-muted-foreground">{id}</Id>
         <Badge size="xs">{tier} tier</Badge>
         <Badge size="xs">{model}</Badge>
       </div>
@@ -331,7 +327,7 @@ export function ConflictList({
       {items.map((item) => (
         <article key={`${item.control}|${item.conflict.component}`} className="py-4 last:pb-0">
           <div className="flex flex-wrap items-center gap-2">
-            <Mono>{item.control}</Mono>
+            <Id>{item.control}</Id>
             <span className="min-w-0 truncate text-[13px] font-medium">
               {item.winner.provided.title}
             </span>
@@ -390,7 +386,7 @@ export function ObligationList({ rows }: { rows: ResolvedInheritance[] }) {
         return (
           <article key={row.control} className="py-4 last:pb-0">
             <div className="flex flex-wrap items-center gap-2">
-              <Mono>{row.control}</Mono>
+              <Id>{row.control}</Id>
               <span className="min-w-0 truncate text-[13px] font-medium">{row.provided.title}</span>
               <DesignationChip row={row} />
               <Badge size="xs" tone={shareTone[row.share]}>
@@ -471,32 +467,35 @@ export function NotApplicableTable({ rows }: { rows: ResolvedInheritance[] }) {
       </colgroup>
       <thead>
         <tr>
-          <Th>Control</Th>
-          <Th>Title</Th>
-          <Th>Offered by</Th>
-          <Th>Model</Th>
-          <Th>Why it does not reach this system</Th>
+          <Table.Header>Control</Table.Header>
+          <Table.Header>Title</Table.Header>
+          <Table.Header>Offered by</Table.Header>
+          <Table.Header>Model</Table.Header>
+          <Table.Header>Why it does not reach this system</Table.Header>
         </tr>
       </thead>
       <tbody>
         {rows.map((row) => (
-          <Tr key={`${row.control}|${row.component.id}`}>
-            <Td>
-              <Mono>{row.control}</Mono>
-            </Td>
-            <Td className="truncate" title={row.provided.title}>
+          <Table.Row key={`${row.control}|${row.component.id}`}>
+            <Table.Cell>
+              <Id>{row.control}</Id>
+            </Table.Cell>
+            <Table.Cell className="truncate" title={row.provided.title}>
               {row.provided.title}
-            </Td>
-            <Td className="truncate" title={`${row.component.id} — ${row.component.provider}`}>
+            </Table.Cell>
+            <Table.Cell
+              className="truncate"
+              title={`${row.component.id} — ${row.component.provider}`}
+            >
               {row.component.name}
-            </Td>
-            <Td>
+            </Table.Cell>
+            <Table.Cell>
               <Badge size="xs">{row.provided.model}</Badge>
-            </Td>
-            <Td className="truncate" title={row.applicabilityReason}>
+            </Table.Cell>
+            <Table.Cell className="truncate" title={row.applicabilityReason}>
               {isBlank(row.applicabilityReason) ? <Dash /> : row.applicabilityReason}
-            </Td>
-          </Tr>
+            </Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>
@@ -614,7 +613,7 @@ export function InheritanceSummaryStats({
       </div>
 
       <div>
-        <StackedBar
+        <Meter.Stacked
           segments={legend.map((l) => ({
             key: l.key,
             value: l.value,
@@ -741,13 +740,13 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
 
       <RailGroup title="Resolution">
         <KeyValue label="Control">
-          <Mono>{row.control}</Mono>
+          <Id>{row.control}</Id>
         </KeyValue>
         <WrapValue label="Title">{row.provided.title}</WrapValue>
         <KeyValue label="Family">{row.provided.family}</KeyValue>
         <WrapValue label="Provider">{row.component.name}</WrapValue>
         <KeyValue label="Component">
-          <Mono>{row.component.id}</Mono>
+          <Id>{row.component.id}</Id>
         </KeyValue>
         <KeyValue label="CCP tier">{row.tier}</KeyValue>
         <KeyValue label="Model">{row.provided.model}</KeyValue>
@@ -773,20 +772,20 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
 
       <RailGroup title="Acceptance">
         <KeyValue label="Accepted">
-          {row.accepted ? <Mono>{version.accepted}</Mono> : <Dash />}
+          {row.accepted ? <Id>{version.accepted}</Id> : <Dash />}
         </KeyValue>
         <KeyValue label="Assessment">
-          {row.accepted ? <Mono>{row.accepted.acceptedAssessmentVersion}</Mono> : <Dash />}
+          {row.accepted ? <Id>{row.accepted.acceptedAssessmentVersion}</Id> : <Dash />}
         </KeyValue>
         <KeyValue label="Signed">{row.accepted ? row.accepted.acceptedOn : "—"}</KeyValue>
         <WrapValue label="Signed by">{row.accepted ? row.accepted.acceptedBy : "—"}</WrapValue>
         <KeyValue label="Offered">
-          <Mono className={version.drifted ? "text-warning" : "text-foreground"}>
+          <Id className={version.drifted ? "text-warning" : "text-foreground"}>
             {version.offered}
-          </Mono>
+          </Id>
         </KeyValue>
         <KeyValue label="Offered under">
-          <Mono>{row.provided.assessmentVersion}</Mono>
+          <Id>{row.provided.assessmentVersion}</Id>
         </KeyValue>
         <KeyValue label="Assessed">{row.provided.assessedOn}</KeyValue>
         {row.accepted && !isBlank(row.accepted.note) ? (
@@ -837,7 +836,7 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
           {row.conflicts.map((conflict) => (
             <div key={conflict.component} className="pt-1.5 first:pt-0.5">
               <div className="flex flex-wrap items-center gap-1.5">
-                <Mono className="text-muted-foreground">{conflict.component}</Mono>
+                <Id className="text-muted-foreground">{conflict.component}</Id>
                 <Badge size="xs">{conflict.tier} tier</Badge>
                 <Badge size="xs">{conflict.model}</Badge>
               </div>

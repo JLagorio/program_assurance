@@ -20,8 +20,8 @@ import {
   Select,
   ShowPage,
   RecordHeader,
-  TabStrip,
   Toolbar,
+  Tabs,
 } from "@/components/app/ui";
 import { useCompositionGraph } from "@/lib/composition";
 import { programs } from "@/lib/grc-data";
@@ -240,7 +240,7 @@ function ProgramIngestion() {
           />
         }
         tabs={
-          <TabStrip
+          <Tabs
             items={ingestionTabs.map((key) => ({
               key,
               label: key,

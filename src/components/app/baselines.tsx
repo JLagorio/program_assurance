@@ -39,16 +39,12 @@ import {
   Dot,
   EmptyState,
   KeyValue,
-  Mono,
   RailGroup,
   Section,
   Table,
-  Td,
-  Th,
   Toolbar,
-  Tr,
   type Tone,
-  IdCell,
+  Id,
 } from "@/components/app/ui";
 import {
   buildStateTone,
@@ -114,7 +110,7 @@ function NodeRef({ id, nodeName }: { id: string; nodeName?: NodeNamer | undefine
   const full = name && name !== id ? `${id} — ${name}` : id;
   return (
     <span className="flex min-w-0 items-center gap-1.5" title={full}>
-      <Mono className="shrink-0 text-muted-foreground">{id}</Mono>
+      <Id className="shrink-0 text-muted-foreground">{id}</Id>
       {name && name !== id ? <span className="min-w-0 truncate">{name}</span> : null}
     </span>
   );
@@ -262,19 +258,19 @@ export function BuildTable({
       </colgroup>
       <thead>
         <tr>
-          <Th>Build</Th>
-          <Th>Name</Th>
-          <Th>State</Th>
-          <Th>Approved</Th>
-          <Th>Change control board</Th>
-          <Th>Supersedes</Th>
-          <Th className="text-right">Pins</Th>
-          <Th className="text-right">Parameters</Th>
+          <Table.Header>Build</Table.Header>
+          <Table.Header>Name</Table.Header>
+          <Table.Header>State</Table.Header>
+          <Table.Header>Approved</Table.Header>
+          <Table.Header>Change control board</Table.Header>
+          <Table.Header>Supersedes</Table.Header>
+          <Table.Header className="text-right">Pins</Table.Header>
+          <Table.Header className="text-right">Parameters</Table.Header>
         </tr>
       </thead>
       <tbody>
         {builds.map((build) => (
-          <Tr
+          <Table.Row
             key={build.id}
             className={cn(
               onSelect && "cursor-pointer",
@@ -283,17 +279,17 @@ export function BuildTable({
             onClick={onSelect ? () => onSelect(build.id) : undefined}
             title={build.note}
           >
-            <IdCell id={build.id} />
-            <Td>{build.name}</Td>
-            <Td>
+            <Table.Id id={build.id} />
+            <Table.Cell>{build.name}</Table.Cell>
+            <Table.Cell>
               <BuildStateChip state={build.state} />
-            </Td>
-            <Td className="tnum">{build.approved}</Td>
-            <Td title={build.ccb}>{build.ccb}</Td>
-            <Td>{build.supersedes ? <Mono>{build.supersedes}</Mono> : <Dash />}</Td>
-            <Td className="tnum text-right">{build.pins.length}</Td>
-            <Td className="tnum text-right">{build.parameters.length}</Td>
-          </Tr>
+            </Table.Cell>
+            <Table.Cell className="tnum">{build.approved}</Table.Cell>
+            <Table.Cell title={build.ccb}>{build.ccb}</Table.Cell>
+            <Table.Cell>{build.supersedes ? <Id>{build.supersedes}</Id> : <Dash />}</Table.Cell>
+            <Table.Cell className="tnum text-right">{build.pins.length}</Table.Cell>
+            <Table.Cell className="tnum text-right">{build.parameters.length}</Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>
@@ -321,18 +317,18 @@ export function ParameterTable({ parameters }: { parameters: ParameterPin[] }) {
       </colgroup>
       <thead>
         <tr>
-          <Th>Control</Th>
-          <Th>Parameter</Th>
-          <Th>Value in force</Th>
+          <Table.Header>Control</Table.Header>
+          <Table.Header>Parameter</Table.Header>
+          <Table.Header>Value in force</Table.Header>
         </tr>
       </thead>
       <tbody>
         {parameters.map((p) => (
-          <Tr key={`${p.control}|${p.parameter}`} title={`${p.parameter} — ${p.value}`}>
-            <IdCell id={p.control} />
-            <Td>{p.parameter}</Td>
-            <Td>{p.value}</Td>
-          </Tr>
+          <Table.Row key={`${p.control}|${p.parameter}`} title={`${p.parameter} — ${p.value}`}>
+            <Table.Id id={p.control} />
+            <Table.Cell>{p.parameter}</Table.Cell>
+            <Table.Cell>{p.value}</Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>
@@ -353,7 +349,7 @@ export function BuildRail({
     <div>
       <RailGroup title="Baseline">
         <KeyValue label="Build">
-          <Mono>{build.id}</Mono>
+          <Id>{build.id}</Id>
         </KeyValue>
         <KeyValue label="Name">{build.name}</KeyValue>
         <KeyValue label="State">
@@ -363,7 +359,7 @@ export function BuildRail({
           <span className="tnum">{build.approved}</span>
         </KeyValue>
         <KeyValue label="Supersedes">
-          {build.supersedes ? <Mono>{build.supersedes}</Mono> : <Dash />}
+          {build.supersedes ? <Id>{build.supersedes}</Id> : <Dash />}
         </KeyValue>
         <KeyValue label="Pinned">
           <span className="tnum">
@@ -430,7 +426,7 @@ export function UnrecordedChangeNotice({
           </p>
           <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">
             {rows.length === 1 ? "This pin" : "These pins"} differ{rows.length === 1 ? "s" : ""}{" "}
-            between {from} and {to} and no <Mono>CHG-</Mono> was ever filed against{" "}
+            between {from} and {to} and no <Id>CHG-</Id> was ever filed against{" "}
             {rows.length === 1 ? "it" : "them"}. The movement was not proposed, so it was not
             analysed under CM-3(2), so it was not approved by the change control board — and no
             security impact verdict exists to say whether the determinations allocated to{" "}
@@ -441,7 +437,7 @@ export function UnrecordedChangeNotice({
             {rows.map((row) => (
               <li key={`${row.node}|${row.label}`} className="text-[12.5px] leading-snug">
                 <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-                  {row.node === "—" ? null : <Mono className="text-danger">{row.node}</Mono>}
+                  {row.node === "—" ? null : <Id className="text-danger">{row.node}</Id>}
                   <span className="font-medium">
                     {row.node === "—" ? row.label : (nodeName?.(row.node) ?? row.label)}
                   </span>
@@ -487,18 +483,18 @@ export function PinDiffTable({
       </colgroup>
       <thead>
         <tr>
-          <Th>Component</Th>
-          <Th>Item</Th>
-          <Th>Kind</Th>
-          <Th>Movement</Th>
-          <Th>Change record</Th>
+          <Table.Header>Component</Table.Header>
+          <Table.Header>Item</Table.Header>
+          <Table.Header>Kind</Table.Header>
+          <Table.Header>Movement</Table.Header>
+          <Table.Header>Change record</Table.Header>
         </tr>
       </thead>
       <tbody>
         {rows.map((row) => {
           const unrecorded = row.recorded === null;
           return (
-            <Tr
+            <Table.Row
               key={`${row.node}|${row.label}`}
               className={cn(unrecorded && "bg-danger-soft/40")}
               title={
@@ -507,37 +503,39 @@ export function PinDiffTable({
                   : `${row.label} moved from ${row.from} to ${row.to} under ${row.recorded}.`
               }
             >
-              <Td>
+              <Table.Cell>
                 {row.node === "—" ? (
                   <Dash />
                 ) : (
-                  <Mono className={unrecorded ? "text-danger" : "text-muted-foreground"}>
+                  <Id className={unrecorded ? "text-danger" : "text-muted-foreground"}>
                     {row.node}
-                  </Mono>
+                  </Id>
                 )}
-              </Td>
+              </Table.Cell>
               {/* The Component column one cell left already carries the id, and
                   `NodeRef` marks the id `shrink-0` and the name `truncate`, so
                   repeating it here protects the duplicate and truncates the only
                   unique string in the row. Name only. */}
-              <Td>{row.node === "—" ? row.label : (nodeName?.(row.node) ?? row.label)}</Td>
-              <Td>
+              <Table.Cell>
+                {row.node === "—" ? row.label : (nodeName?.(row.node) ?? row.label)}
+              </Table.Cell>
+              <Table.Cell>
                 <ChangeKindChip kind={row.kind} />
-              </Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>
                 <Movement from={row.from} to={row.to} />
-              </Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>
                 {unrecorded ? (
                   <span className="flex items-center gap-1.5">
                     <Dot tone="danger" />
                     <span className="truncate font-medium text-danger">No change record</span>
                   </span>
                 ) : (
-                  <Mono className="text-muted-foreground">{row.recorded}</Mono>
+                  <Id className="text-muted-foreground">{row.recorded}</Id>
                 )}
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           );
         })}
       </tbody>
@@ -594,13 +592,13 @@ export function ChangeTable({
       </colgroup>
       <thead>
         <tr>
-          <Th>Change</Th>
-          <Th>Kind</Th>
-          <Th>Subject</Th>
-          <Th>Movement</Th>
-          <Th>Requested</Th>
-          <Th>CM-3(2)</Th>
-          <Th>Effect</Th>
+          <Table.Header>Change</Table.Header>
+          <Table.Header>Kind</Table.Header>
+          <Table.Header>Subject</Table.Header>
+          <Table.Header>Movement</Table.Header>
+          <Table.Header>Requested</Table.Header>
+          <Table.Header>CM-3(2)</Table.Header>
+          <Table.Header>Effect</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -608,7 +606,7 @@ export function ChangeTable({
           const impact = impacts.get(change.id) ?? null;
           const effect = effectLabel(impact);
           return (
-            <Tr
+            <Table.Row
               key={change.id}
               className={cn(
                 onSelect && "cursor-pointer",
@@ -618,34 +616,34 @@ export function ChangeTable({
               onClick={onSelect ? () => onSelect(change.id) : undefined}
               title={change.analysis}
             >
-              <Td>
+              <Table.Cell>
                 <span className="flex items-center gap-1.5">
-                  <Mono>{change.id}</Mono>
+                  <Id>{change.id}</Id>
                   {change.acknowledged ? (
                     <Badge size="xs" tone="neutral">
                       Ack
                     </Badge>
                   ) : null}
                 </span>
-              </Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>
                 <ChangeKindChip kind={change.kind} />
-              </Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>
                 {change.node === "—" ? (
-                  <Mono>{change.subject}</Mono>
+                  <Id>{change.subject}</Id>
                 ) : (
                   <NodeRef id={change.node} nodeName={nodeName} />
                 )}
-              </Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>
                 <Movement from={change.from} to={change.to} />
-              </Td>
-              <Td className="tnum">{change.requested}</Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell className="tnum">{change.requested}</Table.Cell>
+              <Table.Cell>
                 <ImpactChip impact={change.impact} />
-              </Td>
-              <Td
+              </Table.Cell>
+              <Table.Cell
                 className={cn(
                   effect.tone === "danger"
                     ? "text-danger"
@@ -655,8 +653,8 @@ export function ChangeTable({
                 )}
               >
                 {effect.text}
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           );
         })}
       </tbody>
@@ -679,16 +677,16 @@ export function ChangeRail({
     <div>
       <RailGroup title="Change">
         <KeyValue label="Record">
-          <Mono>{change.id}</Mono>
+          <Id>{change.id}</Id>
         </KeyValue>
         <KeyValue label="Kind">
           <ChangeKindChip kind={change.kind} />
         </KeyValue>
         <KeyValue label="Subject">
-          <Mono>{change.subject}</Mono>
+          <Id>{change.subject}</Id>
         </KeyValue>
         <KeyValue label="Against">
-          <Mono>{change.build}</Mono>
+          <Id>{change.build}</Id>
         </KeyValue>
         <KeyValue label="From">{change.from}</KeyValue>
         <KeyValue label="To">{change.to}</KeyValue>
@@ -823,7 +821,7 @@ function TouchedGroup({
               className={cn("border-l-2 pl-2.5", danger ? "border-danger/50" : "border-warning/50")}
             >
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <Mono className={danger ? "text-danger" : "text-warning"}>{node.node}</Mono>
+                <Id className={danger ? "text-danger" : "text-warning"}>{node.node}</Id>
                 <span className="text-[12.5px] font-medium">
                   {nodeName?.(node.node) ?? node.node}
                 </span>
@@ -894,28 +892,28 @@ function InvalidatedRowTable({ records }: { records: AuditRecord[] }) {
         </colgroup>
         <thead>
           <tr>
-            <Th>Control</Th>
-            <Th>Unit</Th>
-            <Th>Requirement</Th>
-            <Th>Determination</Th>
+            <Table.Header>Control</Table.Header>
+            <Table.Header>Unit</Table.Header>
+            <Table.Header>Requirement</Table.Header>
+            <Table.Header>Determination</Table.Header>
           </tr>
         </thead>
         <tbody>
           {cap.shown.map((record) => {
             const row = splitRowKey(record.ref);
             return (
-              <Tr key={record.id} title={record.why}>
-                <IdCell id={row.control} />
-                <Td>
+              <Table.Row key={record.id} title={record.why}>
+                <Table.Id id={row.control} />
+                <Table.Cell>
                   <Badge size="xs">{row.unit}</Badge>
-                </Td>
-                <Td>
-                  <Mono>{row.requirement}</Mono>
-                </Td>
-                <Td>
+                </Table.Cell>
+                <Table.Cell>
+                  <Id>{row.requirement}</Id>
+                </Table.Cell>
+                <Table.Cell>
                   <DeterminationOutcome record={record} />
-                </Td>
-              </Tr>
+                </Table.Cell>
+              </Table.Row>
             );
           })}
         </tbody>
@@ -943,33 +941,33 @@ function SuspectRowTable({ records }: { records: AuditRecord[] }) {
         </colgroup>
         <thead>
           <tr>
-            <Th>Control</Th>
-            <Th>Unit</Th>
-            <Th>Requirement</Th>
-            <Th>Determination</Th>
+            <Table.Header>Control</Table.Header>
+            <Table.Header>Unit</Table.Header>
+            <Table.Header>Requirement</Table.Header>
+            <Table.Header>Determination</Table.Header>
           </tr>
         </thead>
         <tbody>
           {cap.shown.map((record) => {
             const row = splitRowKey(record.ref);
             return (
-              <Tr key={record.id} title={record.why}>
-                <IdCell id={row.control} />
-                <Td>
+              <Table.Row key={record.id} title={record.why}>
+                <Table.Id id={row.control} />
+                <Table.Cell>
                   <Badge size="xs">{row.unit}</Badge>
-                </Td>
-                <Td>
-                  <Mono>{row.requirement}</Mono>
-                </Td>
-                <Td>
+                </Table.Cell>
+                <Table.Cell>
+                  <Id>{row.requirement}</Id>
+                </Table.Cell>
+                <Table.Cell>
                   <span className="flex items-center gap-1.5">
                     <span className="shrink-0 text-[12px]">{record.from}</span>
                     <Badge size="xs" tone="warning">
                       {record.outcome ?? "Stands — flagged"}
                     </Badge>
                   </span>
-                </Td>
-              </Tr>
+                </Table.Cell>
+              </Table.Row>
             );
           })}
         </tbody>
@@ -998,26 +996,26 @@ function AuditTrail({ records }: { records: AuditRecord[] }) {
         </colgroup>
         <thead>
           <tr>
-            <Th>Record</Th>
-            <Th>Scope</Th>
-            <Th>Reference</Th>
-            <Th>Transition</Th>
-            <Th>Basis</Th>
+            <Table.Header>Record</Table.Header>
+            <Table.Header>Scope</Table.Header>
+            <Table.Header>Reference</Table.Header>
+            <Table.Header>Transition</Table.Header>
+            <Table.Header>Basis</Table.Header>
           </tr>
         </thead>
         <tbody>
           {cap.shown.map((record) => (
-            <Tr key={record.id} title={record.why}>
-              <IdCell id={record.id} />
-              <Td>{record.scope}</Td>
-              <Td>
-                <Mono>{record.ref}</Mono>
-              </Td>
-              <Td>
+            <Table.Row key={record.id} title={record.why}>
+              <Table.Id id={record.id} />
+              <Table.Cell>{record.scope}</Table.Cell>
+              <Table.Cell>
+                <Id>{record.ref}</Id>
+              </Table.Cell>
+              <Table.Cell>
                 <Movement from={record.from} to={record.to} />
-              </Td>
-              <Td>{record.why}</Td>
-            </Tr>
+              </Table.Cell>
+              <Table.Cell>{record.why}</Table.Cell>
+            </Table.Row>
           ))}
         </tbody>
       </Table>
@@ -1139,7 +1137,7 @@ export function ImpactView({
             {contained ? "Contained" : "Cascaded"}
           </Badge>
           <span className="ml-auto flex items-center gap-2">
-            <Mono>{change.id}</Mono>
+            <Id>{change.id}</Id>
             {change.acknowledged ? <Badge size="xs">Acknowledged</Badge> : null}
           </span>
         </div>
@@ -1381,21 +1379,21 @@ export function ImpactView({
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>Provider</Th>
-                    <Th>Control</Th>
-                    <Th>State</Th>
+                    <Table.Header>Provider</Table.Header>
+                    <Table.Header>Control</Table.Header>
+                    <Table.Header>State</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {impact.invalidatedInheritance.map((reference) => {
                     const parsed = splitInheritanceKey(reference);
                     return (
-                      <Tr key={reference}>
-                        <Td>
-                          <Mono>{parsed.component}</Mono>
-                        </Td>
-                        <IdCell id={parsed.control} />
-                        <Td>
+                      <Table.Row key={reference}>
+                        <Table.Cell>
+                          <Id>{parsed.component}</Id>
+                        </Table.Cell>
+                        <Table.Id id={parsed.control} />
+                        <Table.Cell>
                           <span className="flex items-center gap-1.5">
                             <span className="text-[12px] text-muted-foreground line-through decoration-danger/70">
                               Accepted
@@ -1405,8 +1403,8 @@ export function ImpactView({
                               Invalidated
                             </Badge>
                           </span>
-                        </Td>
-                      </Tr>
+                        </Table.Cell>
+                      </Table.Row>
                     );
                   })}
                 </tbody>
@@ -1502,39 +1500,39 @@ export function RetestQueueTable({
         </colgroup>
         <thead>
           <tr>
-            <Th>Control</Th>
-            <Th>Requirement</Th>
-            <Th>Component</Th>
-            <Th>Method</Th>
-            <Th>Procedure</Th>
-            <Th>Why it is owed</Th>
+            <Table.Header>Control</Table.Header>
+            <Table.Header>Requirement</Table.Header>
+            <Table.Header>Component</Table.Header>
+            <Table.Header>Method</Table.Header>
+            <Table.Header>Procedure</Table.Header>
+            <Table.Header>Why it is owed</Table.Header>
           </tr>
         </thead>
         <tbody>
           {shown.map((item) => (
-            <Tr
+            <Table.Row
               key={`${item.control}|${item.requirement}|${item.node}|${item.method}`}
               title={item.reason}
             >
-              <IdCell id={item.control} />
-              <Td>
-                <Mono>{item.requirement}</Mono>
-              </Td>
-              <Td>
+              <Table.Id id={item.control} />
+              <Table.Cell>
+                <Id>{item.requirement}</Id>
+              </Table.Cell>
+              <Table.Cell>
                 <NodeRef id={item.node} nodeName={nodeName} />
-              </Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>
                 <Badge size="xs">{item.method}</Badge>
-              </Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>
                 {item.procedure ? (
-                  <Mono>{item.procedure}</Mono>
+                  <Id>{item.procedure}</Id>
                 ) : (
                   <span className="text-[12px] text-muted-foreground">None — by hand</span>
                 )}
-              </Td>
-              <Td>{item.reason}</Td>
-            </Tr>
+              </Table.Cell>
+              <Table.Cell>{item.reason}</Table.Cell>
+            </Table.Row>
           ))}
         </tbody>
       </Table>

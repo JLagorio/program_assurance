@@ -10,14 +10,11 @@ import {
   KeyValue,
   Meter,
   Modal,
-  Mono,
   Section,
   Select,
   Table,
-  Td,
   Textarea,
-  Th,
-  Tr,
+  Id,
 } from "@/components/app/ui";
 import {
   artifactShort,
@@ -135,37 +132,37 @@ export function DigitalThreadSection({
           <Table className="table-fixed">
             <thead>
               <tr>
-                <Th className="w-[60px]">ID</Th>
-                <Th className="w-[124px]">Tool</Th>
-                <Th className="w-[196px]">Project</Th>
-                <Th>Ingest scope</Th>
-                <Th className="w-[112px]">Health</Th>
-                <Th className="w-[84px] text-right">Ingested</Th>
-                <Th className="w-[76px] text-right">Mapped</Th>
-                <Th className="w-[96px] text-right">Last sync</Th>
+                <Table.Header className="w-[60px]">ID</Table.Header>
+                <Table.Header className="w-[124px]">Tool</Table.Header>
+                <Table.Header className="w-[196px]">Project</Table.Header>
+                <Table.Header>Ingest scope</Table.Header>
+                <Table.Header className="w-[112px]">Health</Table.Header>
+                <Table.Header className="w-[84px] text-right">Ingested</Table.Header>
+                <Table.Header className="w-[76px] text-right">Mapped</Table.Header>
+                <Table.Header className="w-[96px] text-right">Last sync</Table.Header>
               </tr>
             </thead>
             <tbody>
               {seedConnectors.map((c) => (
-                <Tr key={c.id}>
-                  <Td className="w-[60px]">
-                    <Mono>{c.id}</Mono>
-                  </Td>
-                  <Td className="w-[124px]">{c.kind}</Td>
-                  <Td className="w-[196px]">
-                    <Mono>{c.project}</Mono>
-                  </Td>
-                  <Td>{c.scope}</Td>
-                  <Td className="w-[112px]">
+                <Table.Row key={c.id}>
+                  <Table.Cell className="w-[60px]">
+                    <Id>{c.id}</Id>
+                  </Table.Cell>
+                  <Table.Cell className="w-[124px]">{c.kind}</Table.Cell>
+                  <Table.Cell className="w-[196px]">
+                    <Id>{c.project}</Id>
+                  </Table.Cell>
+                  <Table.Cell>{c.scope}</Table.Cell>
+                  <Table.Cell className="w-[112px]">
                     <span className="flex items-center gap-1.5">
                       <Dot tone={healthTone[c.health]} />
                       {c.health}
                     </span>
-                  </Td>
-                  <Td className="tnum w-[84px] text-right">{c.ingested}</Td>
-                  <Td className="tnum w-[76px] text-right">{c.mapped}</Td>
-                  <Td className="w-[96px] text-right">{c.lastSync}</Td>
-                </Tr>
+                  </Table.Cell>
+                  <Table.Cell className="tnum w-[84px] text-right">{c.ingested}</Table.Cell>
+                  <Table.Cell className="tnum w-[76px] text-right">{c.mapped}</Table.Cell>
+                  <Table.Cell className="w-[96px] text-right">{c.lastSync}</Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>
@@ -201,37 +198,37 @@ export function DigitalThreadSection({
           <Table className="table-fixed">
             <thead>
               <tr>
-                <Th className="w-[60px]">Rule</Th>
-                <Th className="w-[200px]">Name</Th>
-                <Th className="w-[108px]">Source</Th>
-                <Th className="w-[128px]">Signal</Th>
-                <Th>Match expression</Th>
-                <Th className="w-[172px]">Controls</Th>
-                <Th className="w-[92px]">Confidence</Th>
-                <Th className="w-[64px] text-right">Hits</Th>
+                <Table.Header className="w-[60px]">Rule</Table.Header>
+                <Table.Header className="w-[200px]">Name</Table.Header>
+                <Table.Header className="w-[108px]">Source</Table.Header>
+                <Table.Header className="w-[128px]">Signal</Table.Header>
+                <Table.Header>Match expression</Table.Header>
+                <Table.Header className="w-[172px]">Controls</Table.Header>
+                <Table.Header className="w-[92px]">Confidence</Table.Header>
+                <Table.Header className="w-[64px] text-right">Hits</Table.Header>
               </tr>
             </thead>
             <tbody>
               {rules.map((r) => (
-                <Tr key={r.id} onClick={() => setEditingRule(r)} className="cursor-pointer">
-                  <Td className="w-[60px]">
-                    <Mono>{r.id}</Mono>
-                  </Td>
-                  <Td className="w-[200px]">
+                <Table.Row key={r.id} onClick={() => setEditingRule(r)} className="cursor-pointer">
+                  <Table.Cell className="w-[60px]">
+                    <Id>{r.id}</Id>
+                  </Table.Cell>
+                  <Table.Cell className="w-[200px]">
                     <span className="flex items-center gap-1.5">
                       <Dot tone={r.enabled ? "success" : "neutral"} />
                       <span className="truncate">{r.name}</span>
                     </span>
-                  </Td>
-                  <Td className="w-[108px]">{r.source}</Td>
-                  <Td className="w-[128px]">{r.signal}</Td>
-                  <Td>
-                    <Mono>{r.match}</Mono>
-                  </Td>
-                  <Td className="w-[172px]">
-                    <Mono>{r.controls.join(", ")}</Mono>
-                  </Td>
-                  <Td className="w-[92px]">
+                  </Table.Cell>
+                  <Table.Cell className="w-[108px]">{r.source}</Table.Cell>
+                  <Table.Cell className="w-[128px]">{r.signal}</Table.Cell>
+                  <Table.Cell>
+                    <Id>{r.match}</Id>
+                  </Table.Cell>
+                  <Table.Cell className="w-[172px]">
+                    <Id>{r.controls.join(", ")}</Id>
+                  </Table.Cell>
+                  <Table.Cell className="w-[92px]">
                     <Badge
                       tone={
                         r.confidence === "High"
@@ -243,9 +240,9 @@ export function DigitalThreadSection({
                     >
                       {r.confidence}
                     </Badge>
-                  </Td>
-                  <Td className="tnum w-[64px] text-right">{r.hits}</Td>
-                </Tr>
+                  </Table.Cell>
+                  <Table.Cell className="tnum w-[64px] text-right">{r.hits}</Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>
@@ -272,49 +269,49 @@ export function DigitalThreadSection({
           <Table className="table-fixed">
             <thead>
               <tr>
-                <Th className="w-[76px]">Evidence</Th>
-                <Th className="w-[152px]">Artifact</Th>
-                <Th>Title</Th>
-                <Th className="w-[80px]">Type</Th>
-                <Th className="w-[132px]">Controls</Th>
-                <Th className="w-[64px]">Rule</Th>
-                <Th className="w-[124px]">Status</Th>
-                <Th className="w-[104px]">Engineer</Th>
-                <Th className="w-[92px] text-right">Closed</Th>
+                <Table.Header className="w-[76px]">Evidence</Table.Header>
+                <Table.Header className="w-[152px]">Artifact</Table.Header>
+                <Table.Header>Title</Table.Header>
+                <Table.Header className="w-[80px]">Type</Table.Header>
+                <Table.Header className="w-[132px]">Controls</Table.Header>
+                <Table.Header className="w-[64px]">Rule</Table.Header>
+                <Table.Header className="w-[124px]">Status</Table.Header>
+                <Table.Header className="w-[104px]">Engineer</Table.Header>
+                <Table.Header className="w-[92px] text-right">Closed</Table.Header>
               </tr>
             </thead>
             <tbody>
               {rows.map((e) => (
-                <Tr key={e.id} onClick={() => setOpenEvidence(e)} className="cursor-pointer">
-                  <Td className="w-[76px]">
-                    <Mono>{e.id}</Mono>
-                  </Td>
-                  <Td className="w-[152px]">
-                    <Mono>{e.ref}</Mono>
-                  </Td>
-                  <Td>{e.title}</Td>
-                  <Td className="w-[80px]">
+                <Table.Row key={e.id} onClick={() => setOpenEvidence(e)} className="cursor-pointer">
+                  <Table.Cell className="w-[76px]">
+                    <Id>{e.id}</Id>
+                  </Table.Cell>
+                  <Table.Cell className="w-[152px]">
+                    <Id>{e.ref}</Id>
+                  </Table.Cell>
+                  <Table.Cell>{e.title}</Table.Cell>
+                  <Table.Cell className="w-[80px]">
                     <Badge tone={artifactTone[e.kind]}>{artifactShort[e.kind]}</Badge>
-                  </Td>
-                  <Td className="w-[132px]">
-                    <Mono>{e.controls.join(", ")}</Mono>
-                  </Td>
-                  <Td className="w-[64px]">
-                    <Mono>{e.rule}</Mono>
-                  </Td>
-                  <Td className="w-[124px]">
+                  </Table.Cell>
+                  <Table.Cell className="w-[132px]">
+                    <Id>{e.controls.join(", ")}</Id>
+                  </Table.Cell>
+                  <Table.Cell className="w-[64px]">
+                    <Id>{e.rule}</Id>
+                  </Table.Cell>
+                  <Table.Cell className="w-[124px]">
                     <Badge tone={evidenceStatusTone[e.status]}>{e.status}</Badge>
-                  </Td>
-                  <Td className="w-[104px]">{e.engineer}</Td>
-                  <Td className="tnum w-[92px] text-right">{e.closed}</Td>
-                </Tr>
+                  </Table.Cell>
+                  <Table.Cell className="w-[104px]">{e.engineer}</Table.Cell>
+                  <Table.Cell className="tnum w-[92px] text-right">{e.closed}</Table.Cell>
+                </Table.Row>
               ))}
               {rows.length === 0 ? (
-                <Tr>
-                  <Td colSpan={9} className="text-muted-foreground">
+                <Table.Row>
+                  <Table.Cell colSpan={9} className="text-muted-foreground">
                     No evidence matches this filter.
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                </Table.Row>
               ) : null}
             </tbody>
           </Table>
@@ -511,11 +508,11 @@ function EvidenceModal({
           </p>
           <div className="mt-2">
             <KeyValue label="Evidence">
-              <Mono>{evidence.id}</Mono>
+              <Id>{evidence.id}</Id>
             </KeyValue>
             <KeyValue label="Artifact">{evidence.kind}</KeyValue>
             <KeyValue label="Controls">
-              <Mono>{evidence.controls.join(", ")}</Mono>
+              <Id>{evidence.controls.join(", ")}</Id>
             </KeyValue>
             <KeyValue label="Engineer">{evidence.engineer}</KeyValue>
             <KeyValue label="Reviewer">{evidence.reviewer ?? "—"}</KeyValue>
@@ -642,7 +639,7 @@ export function CdrPackageModal({
           )}
           {generated ? (
             <p className="mt-3 text-[12.5px] text-success">
-              Package built — <Mono>{programId}-CDR-SSP.zip</Mono>
+              Package built — <Id>{programId}-CDR-SSP.zip</Id>
             </p>
           ) : null}
         </div>
@@ -662,17 +659,17 @@ export function CdrPackageModal({
         <Table className="table-fixed">
           <thead>
             <tr>
-              <Th className="w-[34px] pr-0" aria-label="Include" />
-              <Th>Section</Th>
-              <Th className="w-[76px] text-right">Controls</Th>
-              <Th className="w-[76px] text-right">Evidence</Th>
-              <Th className="w-[104px]">State</Th>
+              <Table.Header className="w-[34px] pr-0" aria-label="Include" />
+              <Table.Header>Section</Table.Header>
+              <Table.Header className="w-[76px] text-right">Controls</Table.Header>
+              <Table.Header className="w-[76px] text-right">Evidence</Table.Header>
+              <Table.Header className="w-[104px]">State</Table.Header>
             </tr>
           </thead>
           <tbody>
             {sspSections.map((s) => (
-              <Tr key={s.id}>
-                <Td className="w-[34px] overflow-visible pr-0 text-clip">
+              <Table.Row key={s.id}>
+                <Table.Cell className="w-[34px] overflow-visible pr-0 text-clip">
                   <input
                     type="checkbox"
                     className="size-3.5 accent-[oklch(0.55_0.19_258)]"
@@ -680,14 +677,14 @@ export function CdrPackageModal({
                     onChange={() => toggle(s.id)}
                     aria-label={`Include ${s.name}`}
                   />
-                </Td>
-                <Td title={s.description}>{s.name}</Td>
-                <Td className="tnum w-[76px] text-right">{s.controls || "—"}</Td>
-                <Td className="tnum w-[76px] text-right">{s.evidence}</Td>
-                <Td className="w-[104px]">
+                </Table.Cell>
+                <Table.Cell title={s.description}>{s.name}</Table.Cell>
+                <Table.Cell className="tnum w-[76px] text-right">{s.controls || "—"}</Table.Cell>
+                <Table.Cell className="tnum w-[76px] text-right">{s.evidence}</Table.Cell>
+                <Table.Cell className="w-[104px]">
                   <Badge tone={s.ready ? "success" : "warning"}>{s.ready ? "Ready" : "Gaps"}</Badge>
-                </Td>
-              </Tr>
+                </Table.Cell>
+              </Table.Row>
             ))}
           </tbody>
         </Table>

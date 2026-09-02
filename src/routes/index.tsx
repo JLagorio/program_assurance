@@ -2,19 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Download } from "lucide-react";
 
 import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  Dot,
-  Meter,
-  Mono,
-  PageHeader,
-  Section,
-  Table,
-  Td,
-  Th,
-  Tr,
-} from "@/components/app/ui";
+import { Badge, Button, Dot, Meter, PageHeader, Section, Table, Id } from "@/components/app/ui";
 import { activity, frameworks, riskStatusTone, risks } from "@/lib/grc-data";
 
 export const Route = createFileRoute("/")({
@@ -126,21 +114,21 @@ function Overview() {
               <Table>
                 <thead>
                   <tr>
-                    <Th className="w-[88px]">ID</Th>
-                    <Th>Risk</Th>
-                    <Th className="w-[92px]">Framework</Th>
-                    <Th className="w-[120px]">Owner</Th>
-                    <Th className="w-[124px]">Residual</Th>
-                    <Th className="w-[100px] text-right">Status</Th>
+                    <Table.Header className="w-[88px]">ID</Table.Header>
+                    <Table.Header>Risk</Table.Header>
+                    <Table.Header className="w-[92px]">Framework</Table.Header>
+                    <Table.Header className="w-[120px]">Owner</Table.Header>
+                    <Table.Header className="w-[124px]">Residual</Table.Header>
+                    <Table.Header className="w-[100px] text-right">Status</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {risks.slice(0, 5).map((risk) => (
-                    <Tr key={risk.id} className="group">
-                      <Td>
-                        <Mono>{risk.id}</Mono>
-                      </Td>
-                      <Td>
+                    <Table.Row key={risk.id} className="group">
+                      <Table.Cell>
+                        <Id>{risk.id}</Id>
+                      </Table.Cell>
+                      <Table.Cell>
                         <Link
                           to="/risks/$riskId"
                           params={{ riskId: risk.id }}
@@ -148,10 +136,10 @@ function Overview() {
                         >
                           {risk.title}
                         </Link>
-                      </Td>
-                      <Td>{risk.framework}</Td>
-                      <Td>{risk.owner}</Td>
-                      <Td>
+                      </Table.Cell>
+                      <Table.Cell>{risk.framework}</Table.Cell>
+                      <Table.Cell>{risk.owner}</Table.Cell>
+                      <Table.Cell>
                         <div className="flex items-center gap-2">
                           <Meter
                             value={risk.residual}
@@ -167,11 +155,11 @@ function Overview() {
                             {risk.residual}
                           </span>
                         </div>
-                      </Td>
-                      <Td className="text-right">
+                      </Table.Cell>
+                      <Table.Cell className="text-right">
                         <Badge tone={riskStatusTone[risk.status]}>{risk.status}</Badge>
-                      </Td>
-                    </Tr>
+                      </Table.Cell>
+                    </Table.Row>
                   ))}
                 </tbody>
               </Table>
@@ -181,27 +169,27 @@ function Overview() {
               <Table>
                 <thead>
                   <tr>
-                    <Th>Framework</Th>
-                    <Th className="w-[180px]">Coverage</Th>
-                    <Th className="w-[92px] text-right">Controls</Th>
-                    <Th className="w-[176px] text-right">Window</Th>
+                    <Table.Header>Framework</Table.Header>
+                    <Table.Header className="w-[180px]">Coverage</Table.Header>
+                    <Table.Header className="w-[92px] text-right">Controls</Table.Header>
+                    <Table.Header className="w-[176px] text-right">Window</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {frameworks.map((fw) => (
-                    <Tr key={fw.name}>
-                      <Td>{fw.name}</Td>
-                      <Td>
+                    <Table.Row key={fw.name}>
+                      <Table.Cell>{fw.name}</Table.Cell>
+                      <Table.Cell>
                         <div className="flex items-center gap-2">
                           <Meter value={fw.coverage} tone={fw.tone} />
                           <span className="tnum w-8 shrink-0 text-right text-[12px] font-medium">
                             {fw.coverage}%
                           </span>
                         </div>
-                      </Td>
-                      <Td className="tnum text-right">{fw.controls}</Td>
-                      <Td className="text-right">{fw.window}</Td>
-                    </Tr>
+                      </Table.Cell>
+                      <Table.Cell className="tnum text-right">{fw.controls}</Table.Cell>
+                      <Table.Cell className="text-right">{fw.window}</Table.Cell>
+                    </Table.Row>
                   ))}
                 </tbody>
               </Table>
@@ -219,7 +207,7 @@ function Overview() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline justify-between gap-2">
                         <span className="truncate text-[13px] font-medium">{item.title}</span>
-                        <Mono className="shrink-0 text-muted-foreground">{item.time}</Mono>
+                        <Id className="shrink-0 text-muted-foreground">{item.time}</Id>
                       </div>
                       <p className="mt-0.5 text-[12px] leading-snug text-muted-foreground">
                         {item.body}

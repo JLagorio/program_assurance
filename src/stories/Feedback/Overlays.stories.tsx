@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 
 import {
   Avatar,
-  AvatarStack,
   Badge,
   Button,
   Card,
@@ -13,19 +12,13 @@ import {
   Field,
   KeyValue,
   Menu,
-  MenuItem,
-  MenuLabel,
   Modal,
-  IdCell,
-  Mono,
   PageHeader,
   Person,
   Select,
   Table,
-  Td,
-  Th,
   Textarea,
-  Tr,
+  Id,
 } from "@/components/app/ui";
 import { Spec } from "../_lib/tokens";
 
@@ -83,20 +76,20 @@ export const MenuOpen: Story = {
       >
         {(close) => (
           <>
-            <MenuLabel>Assign to</MenuLabel>
+            <Menu.Label>Assign to</Menu.Label>
             {people.slice(0, 4).map((p) => (
-              <MenuItem key={p} selected={p === "D. Reyes"} onSelect={close}>
+              <Menu.Item key={p} selected={p === "D. Reyes"} onSelect={close}>
                 <span className="flex items-center gap-2">
                   <Avatar name={p} size="xs" />
                   {p}
                 </span>
-              </MenuItem>
+              </Menu.Item>
             ))}
-            <MenuLabel>More</MenuLabel>
-            <MenuItem onSelect={close} trailing="⌘E">
+            <Menu.Label>More</Menu.Label>
+            <Menu.Item onSelect={close} trailing="⌘E">
               Request evidence
-            </MenuItem>
-            <MenuItem onSelect={close}>Mark not applicable</MenuItem>
+            </Menu.Item>
+            <Menu.Item onSelect={close}>Mark not applicable</Menu.Item>
           </>
         )}
       </Menu>
@@ -156,7 +149,7 @@ export const ModalOpen: Story = {
     aside: (
       <dl>
         <KeyValue label="Package">
-          <Mono>PKG-2026-114</Mono>
+          <Id>PKG-2026-114</Id>
         </KeyValue>
         <KeyValue label="Controls">
           <span className="tnum">340</span>
@@ -195,21 +188,21 @@ export const ModalLarge: Story = {
       <Table>
         <thead>
           <tr>
-            <Th className="w-[96px]">Evidence</Th>
-            <Th>Title</Th>
-            <Th className="w-[120px]">Kind</Th>
-            <Th className="w-[72px] text-right">Age</Th>
+            <Table.Header className="w-[96px]">Evidence</Table.Header>
+            <Table.Header>Title</Table.Header>
+            <Table.Header className="w-[120px]">Kind</Table.Header>
+            <Table.Header className="w-[72px] text-right">Age</Table.Header>
           </tr>
         </thead>
         <tbody>
           {evidence.map((e) => (
-            <Tr key={e.id}>
-              <IdCell id={e.id} />
-              <Td>{e.title}</Td>
-              <Td>
+            <Table.Row key={e.id}>
+              <Table.Id id={e.id} />
+              <Table.Cell>{e.title}</Table.Cell>
+              <Table.Cell>
                 <Badge size="xs">{e.kind}</Badge>
-              </Td>
-              <Td className="text-right">
+              </Table.Cell>
+              <Table.Cell className="text-right">
                 {e.age.endsWith("d") && parseInt(e.age, 10) > 30 ? (
                   <Badge tone="warning" size="xs">
                     {e.age}
@@ -217,8 +210,8 @@ export const ModalLarge: Story = {
                 ) : (
                   <span className="tnum text-muted-foreground">{e.age}</span>
                 )}
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           ))}
         </tbody>
       </Table>
@@ -251,7 +244,7 @@ export const DrawerOpen: Story = {
     >
       <dl>
         <KeyValue label="Control">
-          <Mono>AC-2(3)</Mono>
+          <Id>AC-2(3)</Id>
         </KeyValue>
         <KeyValue label="Severity">
           <Badge tone="danger" size="xs">
@@ -313,7 +306,7 @@ export const People: Story = {
       </div>
       <div className="space-y-2">
         <Spec>AvatarStack · 6 names, max 4</Spec>
-        <AvatarStack names={people} />
+        <Avatar.Stack names={people} />
       </div>
     </div>
   ),

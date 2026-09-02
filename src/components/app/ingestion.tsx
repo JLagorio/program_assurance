@@ -22,14 +22,11 @@ import {
   Dot,
   EmptyState,
   KeyValue,
-  Mono,
   RailGroup,
   Table,
-  Td,
-  Th,
-  Tr,
   type Tone,
-  Severity,
+  Id,
+  Indicator,
 } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import {
@@ -81,7 +78,7 @@ function labelNode(id: string | null, nodeName?: (nodeId: string) => string): Re
   const name = nodeName?.(id);
   return (
     <span className="flex min-w-0 items-center gap-1.5" title={name ? `${id} — ${name}` : id}>
-      <Mono className="shrink-0 text-muted-foreground">{id}</Mono>
+      <Id className="shrink-0 text-muted-foreground">{id}</Id>
       {name && name !== id ? <span className="min-w-0 truncate">{name}</span> : null}
     </span>
   );
@@ -210,7 +207,7 @@ export function IngestSummary({ batch, scan }: { batch: IngestBatch; scan?: Scan
           {batch.closable.map((id, i) => (
             <span key={id}>
               {i > 0 ? ", " : null}
-              <Mono className="text-foreground">{id}</Mono>
+              <Id className="text-foreground">{id}</Id>
             </span>
           ))}
           .
@@ -240,7 +237,7 @@ export function IngestSummary({ batch, scan }: { batch: IngestBatch; scan?: Scan
                   <Dot tone="warning" />
                 </span>
                 <span className="min-w-0 text-[12.5px] leading-relaxed text-foreground">
-                  <Mono className="text-foreground">{c.finding}</Mono> — {c.basis}
+                  <Id className="text-foreground">{c.finding}</Id> — {c.basis}
                 </span>
               </li>
             ))}
@@ -293,14 +290,14 @@ export function ScanTable({
       </colgroup>
       <thead>
         <tr>
-          <Th>Scan</Th>
-          <Th>Format</Th>
-          <Th>Tool</Th>
-          <Th>Targets</Th>
-          <Th className="text-right">Raw</Th>
-          <Th>State</Th>
-          <Th>Chain</Th>
-          <Th className="text-right">Completed</Th>
+          <Table.Header>Scan</Table.Header>
+          <Table.Header>Format</Table.Header>
+          <Table.Header>Tool</Table.Header>
+          <Table.Header>Targets</Table.Header>
+          <Table.Header className="text-right">Raw</Table.Header>
+          <Table.Header>State</Table.Header>
+          <Table.Header>Chain</Table.Header>
+          <Table.Header className="text-right">Completed</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -308,7 +305,7 @@ export function ScanTable({
           const replacedBy = supersededBy?.get(s.id) ?? null;
           const targets = s.targets.map((t) => nodeName?.(t) ?? t).join(", ");
           return (
-            <Tr
+            <Table.Row
               key={s.id}
               className={cn(
                 onSelect ? "cursor-pointer" : undefined,
@@ -316,25 +313,25 @@ export function ScanTable({
               )}
               onClick={onSelect ? () => onSelect(s.id) : undefined}
             >
-              <Td>
-                <Mono className={onSelect ? "text-primary" : "text-muted-foreground"}>{s.id}</Mono>
-              </Td>
-              <Td>
+              <Table.Cell>
+                <Id className={onSelect ? "text-primary" : "text-muted-foreground"}>{s.id}</Id>
+              </Table.Cell>
+              <Table.Cell>
                 <FormatChip format={s.format} />
-              </Td>
-              <Td className="truncate" title={`${s.tool} · ${s.benchmark}`}>
+              </Table.Cell>
+              <Table.Cell className="truncate" title={`${s.tool} · ${s.benchmark}`}>
                 {s.tool}
-              </Td>
-              <Td className="truncate" title={`${targets} — ${s.file}`}>
+              </Table.Cell>
+              <Table.Cell className="truncate" title={`${targets} — ${s.file}`}>
                 {targets}
-              </Td>
-              <Td className="tnum text-right">{s.rawItems}</Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell className="tnum text-right">{s.rawItems}</Table.Cell>
+              <Table.Cell>
                 <Badge size="xs" tone={scanStateTone[s.state]}>
                   {s.state}
                 </Badge>
-              </Td>
-              <Td
+              </Table.Cell>
+              <Table.Cell
                 className="truncate text-muted-foreground"
                 title={
                   replacedBy
@@ -348,20 +345,20 @@ export function ScanTable({
                   <span className="flex items-center gap-1.5">
                     <Dot tone="neutral" />
                     <span>Superseded by</span>
-                    <Mono className="text-muted-foreground">{replacedBy}</Mono>
+                    <Id className="text-muted-foreground">{replacedBy}</Id>
                   </span>
                 ) : s.supersedes ? (
                   <span className="flex items-center gap-1.5">
                     <Dot tone="success" />
                     <span>Replaces</span>
-                    <Mono className="text-muted-foreground">{s.supersedes}</Mono>
+                    <Id className="text-muted-foreground">{s.supersedes}</Id>
                   </span>
                 ) : (
                   <span>First run</span>
                 )}
-              </Td>
-              <Td className="tnum truncate text-right">{s.completed}</Td>
-            </Tr>
+              </Table.Cell>
+              <Table.Cell className="tnum truncate text-right">{s.completed}</Table.Cell>
+            </Table.Row>
           );
         })}
       </tbody>
@@ -386,7 +383,7 @@ export function ScanRail({
     <div>
       <RailGroup title="Run">
         <KeyValue label="Scan">
-          <Mono>{scan.id}</Mono>
+          <Id>{scan.id}</Id>
         </KeyValue>
         <KeyValue label="Format">
           <FormatChip format={scan.format} />
@@ -409,12 +406,12 @@ export function ScanRail({
         <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
           <dt className="truncate text-[12.5px] text-muted-foreground">File</dt>
           <dd className="min-w-0 text-[12.5px] leading-snug">
-            <Mono className="break-all">{scan.file}</Mono>
+            <Id className="break-all">{scan.file}</Id>
           </dd>
         </div>
         <KeyValue label="sha256">
           <span title={scan.sha256}>
-            <Mono className="text-muted-foreground">{shortHash(scan.sha256)}</Mono>
+            <Id className="text-muted-foreground">{shortHash(scan.sha256)}</Id>
           </span>
         </KeyValue>
         <KeyValue label="Native rows">
@@ -434,17 +431,17 @@ export function ScanRail({
           <dd className="min-w-0 space-y-0.5 text-[12.5px] leading-snug">
             {scan.targets.map((t) => (
               <div key={t} className="flex min-w-0 items-baseline gap-1.5">
-                <Mono className="shrink-0 text-muted-foreground">{t}</Mono>
+                <Id className="shrink-0 text-muted-foreground">{t}</Id>
                 <span className="min-w-0 break-words">{nodeName?.(t) ?? ""}</span>
               </div>
             ))}
           </dd>
         </div>
         <KeyValue label="Supersedes">
-          {scan.supersedes ? <Mono>{scan.supersedes}</Mono> : <Dash />}
+          {scan.supersedes ? <Id>{scan.supersedes}</Id> : <Dash />}
         </KeyValue>
         <KeyValue label="Superseded by">
-          {supersededBy ? <Mono>{supersededBy}</Mono> : <Dash />}
+          {supersededBy ? <Id>{supersededBy}</Id> : <Dash />}
         </KeyValue>
       </RailGroup>
 
@@ -618,7 +615,7 @@ function NativeRow({ field }: { field: NativeField }) {
         )}
       >
         {field.mono ? (
-          <Mono className="break-all text-[12px]">{field.value}</Mono>
+          <Id className="break-all text-[12px]">{field.value}</Id>
         ) : (
           <span className="break-words">{field.value}</span>
         )}
@@ -691,31 +688,31 @@ export function NormalizationAudit({
           />
           <dl>
             <NormalizedRow label="id">
-              <Mono className="break-all text-[12px]">{normalized.id}</Mono>
+              <Id className="break-all text-[12px]">{normalized.id}</Id>
             </NormalizedRow>
             <NormalizedRow label="format">
               <FormatChip format={normalized.format} />
             </NormalizedRow>
             <NormalizedRow label="native id">
-              <Mono className="break-all text-[12px]">{normalized.nativeId}</Mono>
+              <Id className="break-all text-[12px]">{normalized.nativeId}</Id>
             </NormalizedRow>
             <NormalizedRow label="cci">
               {normalized.cci ? (
-                <Mono className="text-[12px]">{normalized.cci}</Mono>
+                <Id className="text-[12px]">{normalized.cci}</Id>
               ) : (
                 <span className="text-warning">null — not asserted by this format</span>
               )}
             </NormalizedRow>
             <NormalizedRow label="control">
               {normalized.control ? (
-                <Mono className="text-[12px]">{normalized.control}</Mono>
+                <Id className="text-[12px]">{normalized.control}</Id>
               ) : (
                 <span className="text-muted-foreground">null</span>
               )}
             </NormalizedRow>
             <NormalizedRow label="rule">
               {normalized.rule ? (
-                <Mono className="text-[12px]">{normalized.rule}</Mono>
+                <Id className="text-[12px]">{normalized.rule}</Id>
               ) : (
                 <span className="text-muted-foreground">null</span>
               )}
@@ -723,9 +720,9 @@ export function NormalizationAudit({
             <NormalizedRow label="node">{labelNode(normalized.node, nodeName)}</NormalizedRow>
             <NormalizedRow label="severity">
               <span className="flex items-center gap-1.5">
-                <Severity tone={severityToneOf(normalized.severity)}>
+                <Indicator tone={severityToneOf(normalized.severity)}>
                   {normalized.severity}
-                </Severity>
+                </Indicator>
                 <Badge size="xs" tone={normalized.clean ? "success" : "neutral"}>
                   {normalized.clean ? "Clean" : "Reportable"}
                 </Badge>
@@ -835,18 +832,18 @@ export function NormalizationView({
         </colgroup>
         <thead>
           <tr>
-            <Th>Native id</Th>
-            <Th>Title</Th>
-            <Th>Severity</Th>
-            <Th>Result</Th>
-            <Th>CCI</Th>
-            <Th>Component</Th>
-            <Th className="text-right">Held</Th>
+            <Table.Header>Native id</Table.Header>
+            <Table.Header>Title</Table.Header>
+            <Table.Header>Severity</Table.Header>
+            <Table.Header>Result</Table.Header>
+            <Table.Header>CCI</Table.Header>
+            <Table.Header>Component</Table.Header>
+            <Table.Header className="text-right">Held</Table.Header>
           </tr>
         </thead>
         <tbody>
           {rows.map(({ normalized }) => (
-            <Tr
+            <Table.Row
               key={normalized.id}
               className={cn(
                 onSelect ? "cursor-pointer" : undefined,
@@ -854,35 +851,33 @@ export function NormalizationView({
               )}
               onClick={onSelect ? () => onSelect(normalized.id) : undefined}
             >
-              <Td>
-                <Mono
-                  className={cn("truncate", onSelect ? "text-primary" : "text-muted-foreground")}
-                >
+              <Table.Cell>
+                <Id className={cn("truncate", onSelect ? "text-primary" : "text-muted-foreground")}>
                   {normalized.nativeId}
-                </Mono>
-              </Td>
-              <Td className="truncate" title={normalized.title}>
+                </Id>
+              </Table.Cell>
+              <Table.Cell className="truncate" title={normalized.title}>
                 {normalized.title}
-              </Td>
-              <Td>
-                <Severity tone={severityToneOf(normalized.severity)}>
+              </Table.Cell>
+              <Table.Cell>
+                <Indicator tone={severityToneOf(normalized.severity)}>
                   {normalized.severity}
-                </Severity>
-              </Td>
-              <Td>
+                </Indicator>
+              </Table.Cell>
+              <Table.Cell>
                 <Badge size="xs" tone={normalized.clean ? "success" : "neutral"}>
                   {normalized.clean ? "Clean" : "Reportable"}
                 </Badge>
-              </Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>
                 {normalized.cci ? (
-                  <Mono>{normalized.cci}</Mono>
+                  <Id>{normalized.cci}</Id>
                 ) : (
                   <span className="text-muted-foreground">Not asserted</span>
                 )}
-              </Td>
-              <Td className="truncate">{labelNode(normalized.node, nodeName)}</Td>
-              <Td className="text-right">
+              </Table.Cell>
+              <Table.Cell className="truncate">{labelNode(normalized.node, nodeName)}</Table.Cell>
+              <Table.Cell className="text-right">
                 {normalized.unresolved.length > 0 ? (
                   <Badge size="xs" tone="warning">
                     {normalized.unresolved.length}
@@ -890,8 +885,8 @@ export function NormalizationView({
                 ) : (
                   <span className="text-muted-foreground">—</span>
                 )}
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           ))}
         </tbody>
       </Table>
@@ -977,18 +972,18 @@ export function DedupTable({
       </colgroup>
       <thead>
         <tr>
-          <Th>Dedup key</Th>
-          <Th>Kept from</Th>
-          <Th>Title</Th>
-          <Th className="text-right">Severity</Th>
-          <Th>Result</Th>
-          <Th>Folded in</Th>
-          <Th>Register</Th>
+          <Table.Header>Dedup key</Table.Header>
+          <Table.Header>Kept from</Table.Header>
+          <Table.Header>Title</Table.Header>
+          <Table.Header className="text-right">Severity</Table.Header>
+          <Table.Header>Result</Table.Header>
+          <Table.Header>Folded in</Table.Header>
+          <Table.Header>Register</Table.Header>
         </tr>
       </thead>
       <tbody>
         {groups.map((g) => (
-          <Tr
+          <Table.Row
             key={g.key}
             className={cn(
               onSelect ? "cursor-pointer" : undefined,
@@ -996,32 +991,35 @@ export function DedupTable({
             )}
             onClick={onSelect ? () => onSelect(g.key) : undefined}
           >
-            <Td className="truncate" title={`${g.key} — ${nodeName?.(g.primary.node ?? "") ?? ""}`}>
-              <Mono className={onSelect ? "text-primary" : "text-muted-foreground"}>{g.key}</Mono>
-            </Td>
-            <Td className="truncate" title={`${g.primary.format} · ${g.primary.scan}`}>
+            <Table.Cell
+              className="truncate"
+              title={`${g.key} — ${nodeName?.(g.primary.node ?? "") ?? ""}`}
+            >
+              <Id className={onSelect ? "text-primary" : "text-muted-foreground"}>{g.key}</Id>
+            </Table.Cell>
+            <Table.Cell className="truncate" title={`${g.primary.format} · ${g.primary.scan}`}>
               <span className="flex min-w-0 items-center gap-1.5">
                 <FormatChip format={g.primary.format} />
-                <Mono>{g.primary.scan}</Mono>
+                <Id>{g.primary.scan}</Id>
               </span>
-            </Td>
-            <Td className="truncate" title={g.primary.title}>
+            </Table.Cell>
+            <Table.Cell className="truncate" title={g.primary.title}>
               {g.primary.title}
-            </Td>
-            <Td className="text-right">
-              <Severity tone={severityToneOf(g.primary.severity)}>{g.primary.severity}</Severity>
-            </Td>
+            </Table.Cell>
+            <Table.Cell className="text-right">
+              <Indicator tone={severityToneOf(g.primary.severity)}>{g.primary.severity}</Indicator>
+            </Table.Cell>
             {/* Without this the CAT chip is the loudest thing on a passing row
                 and says the opposite of what the row means — the only clean
                 signal was a muted "Coverage only" in the last column. Mirrors
                 the Normalization table rather than neutering the severity
                 tone, which is CAT III's colour and would collide. */}
-            <Td>
+            <Table.Cell>
               <Badge size="xs" tone={g.primary.clean ? "success" : "neutral"}>
                 {g.primary.clean ? "Clean" : "Reportable"}
               </Badge>
-            </Td>
-            <Td
+            </Table.Cell>
+            <Table.Cell
               className="truncate text-muted-foreground"
               title={g.duplicates.map((d) => `${d.format} — ${d.id}`).join(", ")}
             >
@@ -1033,11 +1031,11 @@ export function DedupTable({
                   <span className="min-w-0 truncate">{foldedInLabel(g.duplicates)}</span>
                 </span>
               )}
-            </Td>
-            <Td className="truncate" title={g.existingAll.join(", ")}>
+            </Table.Cell>
+            <Table.Cell className="truncate" title={g.existingAll.join(", ")}>
               <FindingChips group={g} />
-            </Td>
-          </Tr>
+            </Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>
@@ -1052,7 +1050,7 @@ function MemberLine({ result, role }: { result: NormalizedResult; role: "Primary
       <Badge size="xs" tone={role === "Primary" ? "info" : "neutral"}>
         {result.format}
       </Badge>
-      <Mono className="shrink-0 text-muted-foreground">{result.scan}</Mono>
+      <Id className="shrink-0 text-muted-foreground">{result.scan}</Id>
       <span className="min-w-0 break-all text-[12px] text-muted-foreground">{result.nativeId}</span>
     </div>
   );
@@ -1072,15 +1070,15 @@ export function DedupRail({
         <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
           <dt className="truncate text-[12.5px] text-muted-foreground">Key</dt>
           <dd className="min-w-0 text-[12.5px] leading-snug">
-            <Mono className="break-all">{group.key}</Mono>
+            <Id className="break-all">{group.key}</Id>
           </dd>
         </div>
         <KeyValue label="Component">{labelNode(group.primary.node, nodeName)}</KeyValue>
         <KeyValue label="Severity">
           <span className="flex items-center gap-1.5">
-            <Severity tone={severityToneOf(group.primary.severity)}>
+            <Indicator tone={severityToneOf(group.primary.severity)}>
               {group.primary.severity}
-            </Severity>
+            </Indicator>
             <Badge size="xs" tone={group.primary.clean ? "success" : "neutral"}>
               {group.primary.clean ? "Clean" : "Reportable"}
             </Badge>
@@ -1104,15 +1102,15 @@ export function DedupRail({
 
       <RailGroup title="Register">
         <KeyValue label="Filed as">
-          {group.existing ? <Mono>{group.existing}</Mono> : <Dash />}
+          {group.existing ? <Id>{group.existing}</Id> : <Dash />}
         </KeyValue>
         <KeyValue label="Also filed">
           {folded.length > 0 ? (
             <span className="flex flex-wrap gap-1">
               {folded.map((id) => (
-                <Mono key={id} className="text-muted-foreground">
+                <Id key={id} className="text-muted-foreground">
                   {id}
-                </Mono>
+                </Id>
               ))}
             </span>
           ) : (
@@ -1213,38 +1211,38 @@ export function ScanDiffTable({
           </colgroup>
           <thead>
             <tr>
-              <Th>State</Th>
-              <Th>Condition</Th>
-              <Th className="text-right">Severity</Th>
-              <Th>Component</Th>
-              <Th>First seen</Th>
-              <Th>Last seen</Th>
-              <Th className="text-right">Runs</Th>
+              <Table.Header>State</Table.Header>
+              <Table.Header>Condition</Table.Header>
+              <Table.Header className="text-right">Severity</Table.Header>
+              <Table.Header>Component</Table.Header>
+              <Table.Header>First seen</Table.Header>
+              <Table.Header>Last seen</Table.Header>
+              <Table.Header className="text-right">Runs</Table.Header>
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => (
-              <Tr key={r.key}>
-                <Td>
+              <Table.Row key={r.key}>
+                <Table.Cell>
                   <Badge size="xs" tone={diffStateTone[r.state]}>
                     {r.state}
                   </Badge>
-                </Td>
-                <Td className="truncate" title={`${r.title} — ${r.key}`}>
+                </Table.Cell>
+                <Table.Cell className="truncate" title={`${r.title} — ${r.key}`}>
                   {r.title}
-                </Td>
-                <Td className="text-right">
-                  <Severity tone={severityToneOf(r.severity)}>{r.severity}</Severity>
-                </Td>
-                <Td className="truncate">{labelNode(r.node, nodeName)}</Td>
-                <Td>
-                  <Mono>{r.firstSeen}</Mono>
-                </Td>
-                <Td>
-                  <Mono>{r.lastSeen}</Mono>
-                </Td>
-                <Td className="tnum text-right">{r.occurrences}</Td>
-              </Tr>
+                </Table.Cell>
+                <Table.Cell className="text-right">
+                  <Indicator tone={severityToneOf(r.severity)}>{r.severity}</Indicator>
+                </Table.Cell>
+                <Table.Cell className="truncate">{labelNode(r.node, nodeName)}</Table.Cell>
+                <Table.Cell>
+                  <Id>{r.firstSeen}</Id>
+                </Table.Cell>
+                <Table.Cell>
+                  <Id>{r.lastSeen}</Id>
+                </Table.Cell>
+                <Table.Cell className="tnum text-right">{r.occurrences}</Table.Cell>
+              </Table.Row>
             ))}
           </tbody>
         </Table>

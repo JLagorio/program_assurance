@@ -29,16 +29,12 @@ import {
   EmptyState,
   KeyValue,
   Meter,
-  Mono,
   RailGroup,
   Section,
-  StackedBar,
   Table,
-  Td,
-  Th,
-  Tr,
   type Tone,
-  Severity,
+  Id,
+  Indicator,
 } from "@/components/app/ui";
 import { inheritanceStateTone } from "@/lib/inheritance";
 import { cn } from "@/lib/utils";
@@ -127,14 +123,14 @@ export function SctmHead() {
   return (
     <thead>
       <tr>
-        <Th>Control</Th>
-        <Th>Requirement</Th>
-        <Th>Origination</Th>
-        <Th>Responsible</Th>
-        <Th>Method</Th>
-        <Th className="text-right">Evidence</Th>
-        <Th>Determination</Th>
-        <Th>Gap</Th>
+        <Table.Header>Control</Table.Header>
+        <Table.Header>Requirement</Table.Header>
+        <Table.Header>Origination</Table.Header>
+        <Table.Header>Responsible</Table.Header>
+        <Table.Header>Method</Table.Header>
+        <Table.Header className="text-right">Evidence</Table.Header>
+        <Table.Header>Determination</Table.Header>
+        <Table.Header>Gap</Table.Header>
       </tr>
     </thead>
   );
@@ -152,7 +148,7 @@ export function SctmHead() {
 export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: string }) {
   return (
     <>
-      <Td>
+      <Table.Cell>
         {programId ? (
           <Link
             to="/programs/$programId/controls/$controlId"
@@ -161,34 +157,34 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
             className="hover:underline"
             onClick={(e) => e.stopPropagation()}
           >
-            <Mono className="text-primary">{row.control}</Mono>
+            <Id className="text-primary">{row.control}</Id>
           </Link>
         ) : (
-          <Mono>{row.control}</Mono>
+          <Id>{row.control}</Id>
         )}
-      </Td>
-      <Td className="truncate">
+      </Table.Cell>
+      <Table.Cell className="truncate">
         <span className="flex min-w-0 items-center gap-1.5">
           <Badge size="xs">{row.unit}</Badge>
-          <Mono className="shrink-0">{row.requirement}</Mono>
+          <Id className="shrink-0">{row.requirement}</Id>
           <span className="min-w-0 truncate text-12 text-muted-foreground">{row.statement}</span>
         </span>
-      </Td>
-      <Td className="truncate">{row.origination}</Td>
-      <Td className="truncate" title={row.responsibleParty}>
+      </Table.Cell>
+      <Table.Cell className="truncate">{row.origination}</Table.Cell>
+      <Table.Cell className="truncate" title={row.responsibleParty}>
         {row.responsibleParty}
-      </Td>
-      <Td className="truncate" title={row.methodBasis}>
+      </Table.Cell>
+      <Table.Cell className="truncate" title={row.methodBasis}>
         <MethodChip method={row.method} />
-      </Td>
-      <Td className="tnum text-right" title={row.evidence.join(", ")}>
+      </Table.Cell>
+      <Table.Cell className="tnum text-right" title={row.evidence.join(", ")}>
         {row.evidence.length === 0 ? (
           <span className="text-muted-foreground">0</span>
         ) : (
           row.evidence.length
         )}
-      </Td>
-      <Td className="truncate">
+      </Table.Cell>
+      <Table.Cell className="truncate">
         <span className="flex min-w-0 items-center gap-1.5">
           {/* What was claimed, and that it stopped counting. The value is
                     retained rather than overwritten precisely so it can be
@@ -219,8 +215,8 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
             </span>
           ) : null}
         </span>
-      </Td>
-      <Td className={cn("truncate", row.gap && "bg-danger-soft/40")}>
+      </Table.Cell>
+      <Table.Cell className={cn("truncate", row.gap && "bg-danger-soft/40")}>
         {row.gap ? (
           <span className="flex min-w-0 items-center gap-1.5 text-danger" title={row.gap}>
             <Dot tone="danger" />
@@ -229,7 +225,7 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
         ) : (
           <span className="text-muted-foreground">—</span>
         )}
-      </Td>
+      </Table.Cell>
     </>
   );
 }
@@ -259,14 +255,14 @@ export function SctmTable({
       <SctmHead />
       <tbody>
         {rows.map((row) => (
-          <Tr
+          <Table.Row
             key={row.key}
             className={cn("cursor-pointer", selected === row.key && "bg-primary-soft/40")}
             onClick={() => onSelect(row)}
             title={row.statement}
           >
             <SctmRowCells row={row} />
-          </Tr>
+          </Table.Row>
         ))}
       </tbody>
     </Table>
@@ -335,7 +331,7 @@ export function SctmFamilyTable({
                         open ? "" : "-rotate-90",
                       )}
                     />
-                    <Mono className="w-8 shrink-0 text-foreground">{group.id}</Mono>
+                    <Id className="w-8 shrink-0 text-foreground">{group.id}</Id>
                   </button>
 
                   <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium">
@@ -363,7 +359,7 @@ export function SctmFamilyTable({
                   ) : null}
 
                   <span className="w-28 shrink-0">
-                    <StackedBar
+                    <Meter.Stacked
                       height={4}
                       segments={[
                         { key: "s", value: group.satisfied, tone: "success" },
@@ -381,9 +377,9 @@ export function SctmFamilyTable({
 
             {open
               ? group.rows.map((row) => (
-                  <Tr key={row.key} title={row.statement}>
+                  <Table.Row key={row.key} title={row.statement}>
                     <SctmRowCells row={row} programId={programId} />
-                  </Tr>
+                  </Table.Row>
                 ))
               : null}
           </tbody>
@@ -412,9 +408,9 @@ function IdList({ ids, empty = "—" }: { ids: string[]; empty?: string }) {
   return (
     <div className="flex flex-wrap gap-1 pt-0.5">
       {ids.map((id) => (
-        <Mono key={id} className="text-[11.5px] text-muted-foreground">
+        <Id key={id} className="text-[11.5px] text-muted-foreground">
           {id}
-        </Mono>
+        </Id>
       ))}
     </div>
   );
@@ -448,7 +444,7 @@ export function SctmRail({ row }: { row: SctmRow }) {
 
       <RailGroup title="Requirement">
         <KeyValue label="Control">
-          <Mono>{row.control}</Mono>
+          <Id>{row.control}</Id>
         </KeyValue>
         <WrapValue label="Title">{row.controlTitle}</WrapValue>
         <KeyValue label="Family">
@@ -458,7 +454,7 @@ export function SctmRail({ row }: { row: SctmRow }) {
           <Badge size="xs">{row.unit}</Badge>
         </KeyValue>
         <KeyValue label="Requirement">
-          <Mono>{row.requirement}</Mono>
+          <Id>{row.requirement}</Id>
         </KeyValue>
         <ProseBlock label="Statement">{row.statement}</ProseBlock>
       </RailGroup>
@@ -539,7 +535,7 @@ export function SctmRail({ row }: { row: SctmRow }) {
           <span className="flex items-center gap-1.5">
             <span className="tnum">{row.openFindings}</span>
             {row.openFindings > 0 ? (
-              <Severity tone={severityToneOf(row.worstSeverity)}>{row.worstSeverity}</Severity>
+              <Indicator tone={severityToneOf(row.worstSeverity)}>{row.worstSeverity}</Indicator>
             ) : null}
           </span>
         </KeyValue>
@@ -622,7 +618,7 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
           <Meter value={sctm.coverage} tone={coverageTone} />
 
           <div className="pt-3">
-            <StackedBar
+            <Meter.Stacked
               segments={[
                 {
                   key: "satisfied",

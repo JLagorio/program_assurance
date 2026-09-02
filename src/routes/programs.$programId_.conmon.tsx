@@ -20,7 +20,7 @@ import {
   Section,
   SegmentedControl,
   ShowPage,
-  TabStrip,
+  Tabs,
 } from "@/components/app/ui";
 import {
   assessmentSchedule,
@@ -273,7 +273,7 @@ function ProgramConMon() {
           />
         }
         tabs={
-          <TabStrip
+          <Tabs
             items={conmonTabs.map((key) => ({
               key,
               label: key,

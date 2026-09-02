@@ -8,7 +8,7 @@
 
 import { Check } from "lucide-react";
 
-import { Section, StackedBar, Mono } from "@/components/app/ui";
+import { Section, Meter, Id } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import type { Coverage, MilestoneNode } from "@/lib/program-coverage";
 
@@ -57,7 +57,7 @@ export function CoverageBand({
           </span>
         </div>
 
-        <StackedBar
+        <Meter.Stacked
           segments={coverage.segments.map((s) => ({
             key: s.key,
             value: s.value,
@@ -91,12 +91,12 @@ export function CoverageBand({
                 onClick={() => onSelectFamily(f.id)}
                 className="group flex items-center gap-3 border-b border-border-subtle py-1.5 text-left last:border-0"
               >
-                <Mono className="w-8 shrink-0 text-muted-foreground">{f.id}</Mono>
+                <Id className="w-8 shrink-0 text-muted-foreground">{f.id}</Id>
                 <span className="min-w-0 flex-1 truncate text-12 group-hover:underline">
                   {f.name}
                 </span>
                 <span className="w-24 shrink-0">
-                  <StackedBar
+                  <Meter.Stacked
                     height={4}
                     segments={[
                       { key: "s", value: f.satisfied, tone: "success" },

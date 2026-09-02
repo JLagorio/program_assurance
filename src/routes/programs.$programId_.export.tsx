@@ -14,13 +14,13 @@ import { Shell } from "@/components/app/shell";
 import {
   Badge,
   EmptyState,
-  Mono,
   RecordHeader,
   Section,
   Select,
   ShowPage,
-  TabStrip,
   Toolbar,
+  Id,
+  Tabs,
 } from "@/components/app/ui";
 import {
   bundleArtifactText,
@@ -249,7 +249,7 @@ function ProgramExport() {
           />
         }
         tabs={
-          <TabStrip
+          <Tabs
             items={exportTabs.map((t) => ({
               key: t,
               label: t,
@@ -407,18 +407,17 @@ function ProgramExport() {
                 <div className="flex flex-wrap gap-x-8 gap-y-2 text-[12.5px]">
                   <span>
                     <span className="text-muted-foreground">Received bundle</span>{" "}
-                    <Mono>{activeReceived.id}</Mono>
+                    <Id>{activeReceived.id}</Id>
                   </span>
                   <span>
                     <span className="text-muted-foreground">From</span> {activeReceived.createdBy}
                   </span>
                   <span>
                     <span className="text-muted-foreground">Baseline</span>{" "}
-                    <Mono>{activeReceived.build}</Mono>
+                    <Id>{activeReceived.build}</Id>
                   </span>
                   <span>
-                    <span className="text-muted-foreground">Local bundle</span>{" "}
-                    <Mono>{bundle.id}</Mono>
+                    <span className="text-muted-foreground">Local bundle</span> <Id>{bundle.id}</Id>
                   </span>
                 </div>
 

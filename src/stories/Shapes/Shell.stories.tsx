@@ -7,14 +7,10 @@ import {
   Button,
   Card,
   CardHeader,
-  IdCell,
-  Mono,
   PageHeader,
   Person,
   Table,
-  Td,
-  Th,
-  Tr,
+  Id,
 } from "@/components/app/ui";
 
 const meta = {
@@ -90,28 +86,28 @@ export const Default: Story = {
           <Table>
             <thead>
               <tr>
-                <Th className="w-[104px]">Finding</Th>
-                <Th>Title</Th>
-                <Th className="w-[96px]">Control</Th>
-                <Th className="w-[140px]">Status</Th>
-                <Th className="w-[140px]">Owner</Th>
+                <Table.Header className="w-[104px]">Finding</Table.Header>
+                <Table.Header>Title</Table.Header>
+                <Table.Header className="w-[96px]">Control</Table.Header>
+                <Table.Header className="w-[140px]">Status</Table.Header>
+                <Table.Header className="w-[140px]">Owner</Table.Header>
               </tr>
             </thead>
             <tbody>
               {findings.map((f) => (
-                <Tr key={f.id}>
-                  <IdCell id={f.id} />
-                  <Td>{f.title}</Td>
-                  <Td>
-                    <Mono>{f.control}</Mono>
-                  </Td>
-                  <Td>
+                <Table.Row key={f.id}>
+                  <Table.Id id={f.id} />
+                  <Table.Cell>{f.title}</Table.Cell>
+                  <Table.Cell>
+                    <Id>{f.control}</Id>
+                  </Table.Cell>
+                  <Table.Cell>
                     <Badge tone={f.tone}>{f.status}</Badge>
-                  </Td>
-                  <Td>
+                  </Table.Cell>
+                  <Table.Cell>
                     <Person name={f.owner} />
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>

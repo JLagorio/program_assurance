@@ -11,15 +11,12 @@ import {
   Input,
   Meter,
   Modal,
-  Mono,
   PageHeader,
   Select,
   IndexPage,
   Table,
-  Td,
   Textarea,
-  Th,
-  Tr,
+  Id,
 } from "@/components/app/ui";
 import { riskStatusTone, risks } from "@/lib/grc-data";
 
@@ -149,7 +146,7 @@ function RiskList() {
         <Table>
           <thead>
             <tr>
-              <Th className="w-8">
+              <Table.Header className="w-8">
                 <input
                   type="checkbox"
                   aria-label="Select all"
@@ -157,22 +154,22 @@ function RiskList() {
                   onChange={(e) => setSelected(e.target.checked ? rows.map((r) => r.id) : [])}
                   className="size-3.5 accent-[var(--primary)]"
                 />
-              </Th>
-              <Th className="w-[92px]">ID</Th>
-              <Th>Risk</Th>
-              <Th className="w-[88px]">Framework</Th>
-              <Th className="w-[76px]">Control</Th>
-              <Th className="w-[118px]">Owner</Th>
-              <Th className="w-[88px]">Treatment</Th>
-              <Th className="w-[130px]">Residual</Th>
-              <Th className="w-[128px]">Updated</Th>
-              <Th className="w-[96px] text-right">Status</Th>
+              </Table.Header>
+              <Table.Header className="w-[92px]">ID</Table.Header>
+              <Table.Header>Risk</Table.Header>
+              <Table.Header className="w-[88px]">Framework</Table.Header>
+              <Table.Header className="w-[76px]">Control</Table.Header>
+              <Table.Header className="w-[118px]">Owner</Table.Header>
+              <Table.Header className="w-[88px]">Treatment</Table.Header>
+              <Table.Header className="w-[130px]">Residual</Table.Header>
+              <Table.Header className="w-[128px]">Updated</Table.Header>
+              <Table.Header className="w-[96px] text-right">Status</Table.Header>
             </tr>
           </thead>
           <tbody>
             {rows.map((risk) => (
-              <Tr key={risk.id} className="group">
-                <Td>
+              <Table.Row key={risk.id} className="group">
+                <Table.Cell>
                   <input
                     type="checkbox"
                     aria-label={`Select ${risk.id}`}
@@ -180,11 +177,11 @@ function RiskList() {
                     onChange={() => toggle(risk.id)}
                     className="size-3.5 accent-[var(--primary)]"
                   />
-                </Td>
-                <Td>
-                  <Mono>{risk.id}</Mono>
-                </Td>
-                <Td>
+                </Table.Cell>
+                <Table.Cell>
+                  <Id>{risk.id}</Id>
+                </Table.Cell>
+                <Table.Cell>
                   <Link
                     to="/risks/$riskId"
                     params={{ riskId: risk.id }}
@@ -192,14 +189,14 @@ function RiskList() {
                   >
                     {risk.title}
                   </Link>
-                </Td>
-                <Td>{risk.framework}</Td>
-                <Td>
-                  <Mono>{risk.control}</Mono>
-                </Td>
-                <Td>{risk.owner}</Td>
-                <Td>{risk.treatment}</Td>
-                <Td>
+                </Table.Cell>
+                <Table.Cell>{risk.framework}</Table.Cell>
+                <Table.Cell>
+                  <Id>{risk.control}</Id>
+                </Table.Cell>
+                <Table.Cell>{risk.owner}</Table.Cell>
+                <Table.Cell>{risk.treatment}</Table.Cell>
+                <Table.Cell>
                   <div className="flex items-center gap-2">
                     <span className="tnum w-5 text-right text-[12px] text-muted-foreground/70 line-through">
                       {risk.inherent}
@@ -214,12 +211,12 @@ function RiskList() {
                       {risk.residual}
                     </span>
                   </div>
-                </Td>
-                <Td>{risk.updated}</Td>
-                <Td className="text-right">
+                </Table.Cell>
+                <Table.Cell>{risk.updated}</Table.Cell>
+                <Table.Cell className="text-right">
                   <Badge tone={riskStatusTone[risk.status]}>{risk.status}</Badge>
-                </Td>
-              </Tr>
+                </Table.Cell>
+              </Table.Row>
             ))}
           </tbody>
         </Table>
@@ -266,7 +263,7 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
             Preview
           </div>
           <div className="mt-3 rounded-md border border-border bg-card p-3">
-            <Mono className="text-muted-foreground">RSK-2431</Mono>
+            <Id className="text-muted-foreground">RSK-2431</Id>
             <div className="mt-1 text-[13px] font-medium leading-snug">
               {title || "Untitled risk"}
             </div>

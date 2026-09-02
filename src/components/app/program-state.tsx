@@ -9,7 +9,7 @@
 import { useState } from "react";
 import { Check, ChevronRight, Lock } from "lucide-react";
 
-import { Badge, Dot, Mono, Person, Section, Table, Td, Tr } from "@/components/app/ui";
+import { Badge, Dot, Person, Section, Table, Id } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import type { ProgramState, Stage } from "@/lib/program-stage";
 import { stages } from "@/lib/program-stage";
@@ -67,7 +67,7 @@ export function LifecycleBar({
 
       <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-12">
         <span className="flex items-center gap-1.5">
-          <Mono className="text-muted-foreground">{state.currentGate?.id ?? "—"}</Mono>
+          <Id className="text-muted-foreground">{state.currentGate?.id ?? "—"}</Id>
           <span className="truncate">{state.currentGate?.name}</span>
         </span>
         {state.daysOut !== null ? (
@@ -201,29 +201,29 @@ export function OpenWorkSection({
             </colgroup>
             <tbody>
               {shown.map((a) => (
-                <Tr key={a.id} onClick={() => onRun(a)} className="group cursor-pointer">
-                  <Td className="w-6">
+                <Table.Row key={a.id} onClick={() => onRun(a)} className="group cursor-pointer">
+                  <Table.Cell className="w-6">
                     <Dot tone={a.tone} />
-                  </Td>
-                  <Td className="truncate">{a.label}</Td>
-                  <Td className="w-[168px]">
+                  </Table.Cell>
+                  <Table.Cell className="truncate">{a.label}</Table.Cell>
+                  <Table.Cell className="w-[168px]">
                     <Person name={a.owner} />
-                  </Td>
-                  <Td
+                  </Table.Cell>
+                  <Table.Cell
                     className={cn(
                       "tnum w-[110px] text-right",
                       a.tone === "danger" ? "font-medium text-danger" : "text-muted-foreground",
                     )}
                   >
                     {a.due}
-                  </Td>
-                  <Td className="w-[132px] text-right">
+                  </Table.Cell>
+                  <Table.Cell className="w-[132px] text-right">
                     <span className="inline-flex items-center gap-1 text-12 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
                       {a.cta}
                       <ChevronRight className="size-3.5" />
                     </span>
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>

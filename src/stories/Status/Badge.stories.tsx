@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Check, CircleDashed, Clock, TriangleAlert, X } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Badge, Card, Dot, Meter, Mono, StackedBar, Table, Td, Th, Tr } from "@/components/app/ui";
+import { Badge, Card, Dot, Meter, Table, Id } from "@/components/app/ui";
 import type { Tone } from "@/components/app/ui";
 import { Spec } from "../_lib/tokens";
 
@@ -159,7 +159,7 @@ export const Meters: Story = {
         <Spec>
           StackedBar · height 8 (default) · satisfied / partial / other than / not assessed
         </Spec>
-        <StackedBar segments={coverage} />
+        <Meter.Stacked segments={coverage} />
         <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12px] text-muted-foreground">
           {coverage.map((s) => (
             <span key={s.key} className="inline-flex items-center gap-1.5">
@@ -175,7 +175,7 @@ export const Meters: Story = {
           <Spec>height 4 · table cell, w-20 + pct</Spec>
           <span className="flex items-center gap-2">
             <span className="w-20">
-              <StackedBar height={4} segments={coverage} />
+              <Meter.Stacked height={4} segments={coverage} />
             </span>
             <span className="tnum text-12 text-muted-foreground">62%</span>
           </span>
@@ -183,13 +183,13 @@ export const Meters: Story = {
         <div className="space-y-1.5">
           <Spec>height 4 · toolbar, w-[220px]</Spec>
           <span className="flex w-[220px] items-center gap-2">
-            <StackedBar height={4} segments={coverage} />
+            <Meter.Stacked height={4} segments={coverage} />
             <span className="tnum shrink-0 text-12 text-muted-foreground">62%</span>
           </span>
         </div>
         <div className="w-[320px] space-y-1.5">
           <Spec>height 10 · risk scoring</Spec>
-          <StackedBar height={10} segments={coverage} />
+          <Meter.Stacked height={10} segments={coverage} />
         </div>
       </div>
     </div>
@@ -247,25 +247,25 @@ export const InContext: Story = {
       <Table>
         <thead>
           <tr>
-            <Th className="w-[104px]">Control</Th>
-            <Th>Title</Th>
-            <Th className="w-[104px]">Method</Th>
-            <Th className="w-[88px] text-right">Evidence</Th>
-            <Th className="w-[172px]">Status</Th>
+            <Table.Header className="w-[104px]">Control</Table.Header>
+            <Table.Header>Title</Table.Header>
+            <Table.Header className="w-[104px]">Method</Table.Header>
+            <Table.Header className="w-[88px] text-right">Evidence</Table.Header>
+            <Table.Header className="w-[172px]">Status</Table.Header>
           </tr>
         </thead>
         <tbody>
           {rows.map((r) => (
-            <Tr key={r.id}>
-              <Td>
+            <Table.Row key={r.id}>
+              <Table.Cell>
                 <span className="flex items-center gap-1.5">
                   <Dot tone={r.tone} />
-                  <Mono>{r.id}</Mono>
+                  <Id>{r.id}</Id>
                 </span>
-              </Td>
-              <Td>{r.control}</Td>
-              <Td>{r.method ? <Badge size="xs">{r.method}</Badge> : null}</Td>
-              <Td className="text-right">
+              </Table.Cell>
+              <Table.Cell>{r.control}</Table.Cell>
+              <Table.Cell>{r.method ? <Badge size="xs">{r.method}</Badge> : null}</Table.Cell>
+              <Table.Cell className="text-right">
                 {r.stale ? (
                   <Badge tone="warning" size="xs">
                     {r.age}
@@ -273,11 +273,11 @@ export const InContext: Story = {
                 ) : (
                   <span className="tnum text-muted-foreground">{r.age}</span>
                 )}
-              </Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>
                 <Badge tone={r.tone}>{labels[r.tone]}</Badge>
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           ))}
         </tbody>
       </Table>

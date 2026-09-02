@@ -12,7 +12,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 
 import { InlineSelect, InlineText } from "@/components/app/inline-edit";
-import { Badge, Mono, Table, Td, Th, Tr } from "@/components/app/ui";
+import { Badge, Table, Id } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import {
   allocationStateTone,
@@ -153,53 +153,53 @@ export function RequirementTable({
         <col style={{ width: "104px" }} />
       </colgroup>
       <thead>
-        <Tr>
-          <Th>Requirement</Th>
-          <Th>Type</Th>
-          <Th>Shall statement</Th>
-          <Th>Derives from</Th>
-          <Th className="text-right">Alloc</Th>
-          <Th>Method</Th>
-          <Th>Owner</Th>
-          <Th>State</Th>
-        </Tr>
+        <Table.Row>
+          <Table.Header>Requirement</Table.Header>
+          <Table.Header>Type</Table.Header>
+          <Table.Header>Shall statement</Table.Header>
+          <Table.Header>Derives from</Table.Header>
+          <Table.Header className="text-right">Alloc</Table.Header>
+          <Table.Header>Method</Table.Header>
+          <Table.Header>Owner</Table.Header>
+          <Table.Header>State</Table.Header>
+        </Table.Row>
       </thead>
       <tbody>
         {rows.map(({ requirement, depth }) => {
           const count = allocationCount(requirement.id);
           return (
-            <Tr
+            <Table.Row
               key={requirement.id}
               className={cn(selected === requirement.id && "bg-primary-soft/40")}
               title={requirement.text}
             >
-              <Td className="max-w-none">
+              <Table.Cell className="max-w-none">
                 <span style={{ paddingLeft: `${depth * 12}px` }}>
                   <Link
                     to="/programs/$programId/requirements/$requirementId"
                     params={{ programId, requirementId: requirement.id }}
                     className="hover:underline"
                   >
-                    <Mono className="text-primary">{requirement.id}</Mono>
+                    <Id className="text-primary">{requirement.id}</Id>
                   </Link>
                 </span>
-              </Td>
-              <Td className="truncate">{requirement.type}</Td>
-              <Td className="truncate">{requirement.text}</Td>
-              <Td className="truncate">
+              </Table.Cell>
+              <Table.Cell className="truncate">{requirement.type}</Table.Cell>
+              <Table.Cell className="truncate">{requirement.text}</Table.Cell>
+              <Table.Cell className="truncate">
                 <SourceCell derivations={requirement.derivations} />
-              </Td>
-              <Td className="tnum text-right">
+              </Table.Cell>
+              <Table.Cell className="tnum text-right">
                 {count === 0 ? <span className="text-muted-foreground">—</span> : count}
-              </Td>
-              <Td className="truncate">{requirement.method}</Td>
-              <Td className="truncate">{requirement.owner}</Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell className="truncate">{requirement.method}</Table.Cell>
+              <Table.Cell className="truncate">{requirement.owner}</Table.Cell>
+              <Table.Cell>
                 <Badge size="xs" tone={requirementStateTone[requirement.state]}>
                   {requirement.state}
                 </Badge>
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           );
         })}
       </tbody>
@@ -233,27 +233,27 @@ export function ProvenanceTable({
         <col />
       </colgroup>
       <thead>
-        <Tr>
-          <Th>Source type</Th>
-          <Th>Source</Th>
-          <Th>Name</Th>
-          <Th>Why it produces this requirement</Th>
-        </Tr>
+        <Table.Row>
+          <Table.Header>Source type</Table.Header>
+          <Table.Header>Source</Table.Header>
+          <Table.Header>Name</Table.Header>
+          <Table.Header>Why it produces this requirement</Table.Header>
+        </Table.Row>
       </thead>
       <tbody>
         {derivations.map((d) => (
-          <Tr key={`${d.sourceType}-${d.sourceId}`}>
-            <Td className="align-top py-2">
+          <Table.Row key={`${d.sourceType}-${d.sourceId}`}>
+            <Table.Cell className="align-top py-2">
               <Badge size="xs" tone={derivationSourceTone[d.sourceType]}>
                 {d.sourceType}
               </Badge>
-            </Td>
-            <Td className="align-top py-2">
+            </Table.Cell>
+            <Table.Cell className="align-top py-2">
               <SourceLink derivation={d} programId={programId} />
-            </Td>
-            <Td className={wrap}>{d.sourceLabel}</Td>
-            <Td className={wrap}>{d.rationale}</Td>
-          </Tr>
+            </Table.Cell>
+            <Table.Cell className={wrap}>{d.sourceLabel}</Table.Cell>
+            <Table.Cell className={wrap}>{d.rationale}</Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>
@@ -271,7 +271,7 @@ function SourceLink({ derivation, programId }: { derivation: Derivation; program
         search={{ tab: undefined }}
         className="hover:underline"
       >
-        <Mono className="text-primary">{sourceId}</Mono>
+        <Id className="text-primary">{sourceId}</Id>
       </Link>
     );
   }
@@ -284,7 +284,7 @@ function SourceLink({ derivation, programId }: { derivation: Derivation; program
         search={{ tab: "Threat scenarios", scenario: sourceId }}
         className="hover:underline"
       >
-        <Mono className="text-primary">{sourceId}</Mono>
+        <Id className="text-primary">{sourceId}</Id>
       </Link>
     );
   }
@@ -298,12 +298,12 @@ function SourceLink({ derivation, programId }: { derivation: Derivation; program
       : { workstreamId: sourceId };
     return (
       <Link to={to} params={params as never} className="hover:underline">
-        <Mono className="text-primary">{sourceId}</Mono>
+        <Id className="text-primary">{sourceId}</Id>
       </Link>
     );
   }
 
-  return <Mono className="text-muted-foreground">{sourceId}</Mono>;
+  return <Id className="text-muted-foreground">{sourceId}</Id>;
 }
 
 /* -------------------------------------------------------------- Allocation */
@@ -339,24 +339,24 @@ export function AllocationTable({
         <col style={{ width: "104px" }} />
       </colgroup>
       <thead>
-        <Tr>
-          <Th>Allocated to</Th>
-          <Th>Kind</Th>
-          <Th>Responsibility</Th>
-          <Th>Coverage</Th>
-          <Th>Scope of the claim</Th>
-          <Th>Owner</Th>
-          <Th>State</Th>
-        </Tr>
+        <Table.Row>
+          <Table.Header>Allocated to</Table.Header>
+          <Table.Header>Kind</Table.Header>
+          <Table.Header>Responsibility</Table.Header>
+          <Table.Header>Coverage</Table.Header>
+          <Table.Header>Scope of the claim</Table.Header>
+          <Table.Header>Owner</Table.Header>
+          <Table.Header>State</Table.Header>
+        </Table.Row>
       </thead>
       <tbody>
         {allocations.map((a) => (
-          <Tr key={a.id} title={a.rationale}>
-            <Td className="truncate">
+          <Table.Row key={a.id} title={a.rationale}>
+            <Table.Cell className="truncate">
               <TargetLink allocation={a} programId={programId} />
-            </Td>
-            <Td>{targetKindLabel(a)}</Td>
-            <Td>
+            </Table.Cell>
+            <Table.Cell>{targetKindLabel(a)}</Table.Cell>
+            <Table.Cell>
               {editable ? (
                 <InlineSelect
                   label="Responsibility"
@@ -375,8 +375,8 @@ export function AllocationTable({
                   {a.responsibility}
                 </Badge>
               )}
-            </Td>
-            <Td>
+            </Table.Cell>
+            <Table.Cell>
               {editable ? (
                 <InlineSelect
                   label="Coverage"
@@ -395,8 +395,8 @@ export function AllocationTable({
                   {a.coverage}
                 </Badge>
               )}
-            </Td>
-            <Td className="truncate" title={a.scope}>
+            </Table.Cell>
+            <Table.Cell className="truncate" title={a.scope}>
               {editable ? (
                 <InlineText
                   value={a.scope}
@@ -406,8 +406,8 @@ export function AllocationTable({
               ) : (
                 a.scope
               )}
-            </Td>
-            <Td className="truncate">
+            </Table.Cell>
+            <Table.Cell className="truncate">
               {editable ? (
                 <InlineText
                   value={a.owner}
@@ -417,8 +417,8 @@ export function AllocationTable({
               ) : (
                 a.owner
               )}
-            </Td>
-            <Td>
+            </Table.Cell>
+            <Table.Cell>
               {editable ? (
                 <InlineSelect
                   label="State"
@@ -437,8 +437,8 @@ export function AllocationTable({
                   {a.state}
                 </Badge>
               )}
-            </Td>
-          </Tr>
+            </Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>
@@ -473,53 +473,53 @@ export function ElementAllocationTable({
         <col style={{ width: "104px" }} />
       </colgroup>
       <thead>
-        <Tr>
-          <Th>Requirement</Th>
-          <Th>Shall statement</Th>
-          <Th>Responsibility</Th>
-          <Th>Coverage</Th>
-          <Th>Scope of the claim</Th>
-          <Th>Owner</Th>
-          <Th>State</Th>
-        </Tr>
+        <Table.Row>
+          <Table.Header>Requirement</Table.Header>
+          <Table.Header>Shall statement</Table.Header>
+          <Table.Header>Responsibility</Table.Header>
+          <Table.Header>Coverage</Table.Header>
+          <Table.Header>Scope of the claim</Table.Header>
+          <Table.Header>Owner</Table.Header>
+          <Table.Header>State</Table.Header>
+        </Table.Row>
       </thead>
       <tbody>
         {allocations.map((a) => {
           const requirement = requirementFor(a.requirement);
           return (
-            <Tr key={a.id} title={a.rationale}>
-              <Td className="max-w-none">
+            <Table.Row key={a.id} title={a.rationale}>
+              <Table.Cell className="max-w-none">
                 <Link
                   to="/programs/$programId/requirements/$requirementId"
                   params={{ programId, requirementId: a.requirement }}
                   className="hover:underline"
                 >
-                  <Mono className="text-primary">{a.requirement}</Mono>
+                  <Id className="text-primary">{a.requirement}</Id>
                 </Link>
-              </Td>
-              <Td className="truncate" title={requirement?.text}>
+              </Table.Cell>
+              <Table.Cell className="truncate" title={requirement?.text}>
                 {requirement?.text ?? "—"}
-              </Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>
                 <Badge size="xs" tone={responsibilityTone[a.responsibility]}>
                   {a.responsibility}
                 </Badge>
-              </Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>
                 <Badge size="xs" tone={coverageTone[a.coverage]}>
                   {a.coverage}
                 </Badge>
-              </Td>
-              <Td className="truncate" title={a.scope}>
+              </Table.Cell>
+              <Table.Cell className="truncate" title={a.scope}>
                 {a.scope}
-              </Td>
-              <Td className="truncate">{a.owner}</Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell className="truncate">{a.owner}</Table.Cell>
+              <Table.Cell>
                 <Badge size="xs" tone={allocationStateTone[a.state]}>
                   {a.state}
                 </Badge>
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           );
         })}
       </tbody>
@@ -558,14 +558,14 @@ export function DerivedControlTrace({
             <col />
           </colgroup>
           <thead>
-            <Tr>
-              <Th>Control</Th>
-              <Th>Via requirement</Th>
-              <Th>Path</Th>
-              <Th>Responsibility</Th>
-              <Th>Coverage</Th>
-              <Th>Scope of the claim</Th>
-            </Tr>
+            <Table.Row>
+              <Table.Header>Control</Table.Header>
+              <Table.Header>Via requirement</Table.Header>
+              <Table.Header>Path</Table.Header>
+              <Table.Header>Responsibility</Table.Header>
+              <Table.Header>Coverage</Table.Header>
+              <Table.Header>Scope of the claim</Table.Header>
+            </Table.Row>
           </thead>
           <tbody>
             {trace.hops.map((hop, i) => (
@@ -599,7 +599,7 @@ export function DerivedControlTrace({
                   params={{ programId, requirementId: r.id }}
                   className="shrink-0 hover:underline"
                 >
-                  <Mono className="text-primary">{r.id}</Mono>
+                  <Id className="text-primary">{r.id}</Id>
                 </Link>
                 <span className="min-w-0 truncate text-[12.5px] text-muted-foreground">
                   {r.text}
@@ -615,48 +615,48 @@ export function DerivedControlTrace({
 
 function TraceRow({ hop, programId }: { hop: ControlTraceHop; programId: string }) {
   return (
-    <Tr title={hop.rationale}>
-      <Td>
+    <Table.Row title={hop.rationale}>
+      <Table.Cell>
         <Link
           to="/programs/$programId/controls/$controlId"
           params={{ programId, controlId: hop.control }}
           search={{ tab: undefined }}
           className="hover:underline"
         >
-          <Mono className="text-primary">{hop.control}</Mono>
+          <Id className="text-primary">{hop.control}</Id>
         </Link>
-      </Td>
-      <Td>
+      </Table.Cell>
+      <Table.Cell>
         <Link
           to="/programs/$programId/requirements/$requirementId"
           params={{ programId, requirementId: hop.requirement }}
           className="hover:underline"
         >
-          <Mono className="text-primary">{hop.requirement}</Mono>
+          <Id className="text-primary">{hop.requirement}</Id>
         </Link>
-      </Td>
-      <Td>
+      </Table.Cell>
+      <Table.Cell>
         {hop.via === "direct" ? (
           "Direct"
         ) : (
           <span className="flex items-center gap-1" title={`Inherited from ${hop.through}`}>
             <ArrowRight className="size-3 shrink-0" />
-            <Mono className="text-muted-foreground">{hop.through}</Mono>
+            <Id className="text-muted-foreground">{hop.through}</Id>
           </span>
         )}
-      </Td>
-      <Td>
+      </Table.Cell>
+      <Table.Cell>
         <Badge size="xs" tone={responsibilityTone[hop.allocation.responsibility]}>
           {hop.allocation.responsibility}
         </Badge>
-      </Td>
-      <Td>
+      </Table.Cell>
+      <Table.Cell>
         <Badge size="xs" tone={coverageTone[hop.allocation.coverage]}>
           {hop.allocation.coverage}
         </Badge>
-      </Td>
-      <Td className="truncate">{hop.allocation.scope}</Td>
-    </Tr>
+      </Table.Cell>
+      <Table.Cell className="truncate">{hop.allocation.scope}</Table.Cell>
+    </Table.Row>
   );
 }
 
@@ -693,14 +693,14 @@ export function ControlRequirementTable({
         <col style={{ width: "104px" }} />
       </colgroup>
       <thead>
-        <Tr>
-          <Th>Requirement</Th>
-          <Th>Type</Th>
-          <Th>Shall statement</Th>
-          <Th>Path</Th>
-          <Th className="text-right">Alloc</Th>
-          <Th>State</Th>
-        </Tr>
+        <Table.Row>
+          <Table.Header>Requirement</Table.Header>
+          <Table.Header>Type</Table.Header>
+          <Table.Header>Shall statement</Table.Header>
+          <Table.Header>Path</Table.Header>
+          <Table.Header className="text-right">Alloc</Table.Header>
+          <Table.Header>State</Table.Header>
+        </Table.Row>
       </thead>
       <tbody>
         {requirements.map((r) => {
@@ -711,37 +711,37 @@ export function ControlRequirementTable({
           );
           const count = allocationCount(r.id);
           return (
-            <Tr key={r.id} title={r.text}>
-              <Td className="max-w-none">
+            <Table.Row key={r.id} title={r.text}>
+              <Table.Cell className="max-w-none">
                 <Link
                   to="/programs/$programId/requirements/$requirementId"
                   params={{ programId, requirementId: r.id }}
                   className="hover:underline"
                 >
-                  <Mono className="text-primary">{r.id}</Mono>
+                  <Id className="text-primary">{r.id}</Id>
                 </Link>
-              </Td>
-              <Td className="truncate">{r.type}</Td>
-              <Td className="truncate">{r.text}</Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell className="truncate">{r.type}</Table.Cell>
+              <Table.Cell className="truncate">{r.text}</Table.Cell>
+              <Table.Cell>
                 {direct ? (
                   "Direct"
                 ) : (
                   <span className="flex items-center gap-1" title={`Inherited from ${r.parent}`}>
                     <ArrowRight className="size-3 shrink-0" />
-                    <Mono className="text-muted-foreground">{r.parent}</Mono>
+                    <Id className="text-muted-foreground">{r.parent}</Id>
                   </span>
                 )}
-              </Td>
-              <Td className="tnum text-right">
+              </Table.Cell>
+              <Table.Cell className="tnum text-right">
                 {count === 0 ? <span className="text-muted-foreground">—</span> : count}
-              </Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>
                 <Badge size="xs" tone={requirementStateTone[r.state]}>
                   {r.state}
                 </Badge>
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           );
         })}
       </tbody>

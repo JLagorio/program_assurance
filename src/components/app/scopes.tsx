@@ -5,7 +5,7 @@
 
 import { Link } from "@tanstack/react-router";
 
-import { Badge, Mono, Table, Td, Th, Tr } from "@/components/app/ui";
+import { Badge, Table, Id } from "@/components/app/ui";
 import { controlSetFor, objectives, triadOf } from "@/lib/scopes";
 import type { AssessmentScope, ProgramRollup } from "@/lib/scopes";
 
@@ -35,19 +35,19 @@ export function ScopeTable({
           <col style={{ width: "120px" }} />
         </colgroup>
         <thead>
-          <Tr>
-            <Th>Scope</Th>
-            <Th>Name</Th>
+          <Table.Row>
+            <Table.Header>Scope</Table.Header>
+            <Table.Header>Name</Table.Header>
             {objectives.map((o) => (
-              <Th key={o} title={o}>
+              <Table.Header key={o} title={o}>
                 {o.slice(0, 1)}
-              </Th>
+              </Table.Header>
             ))}
-            <Th className="text-right">Controls</Th>
-            <Th className="text-right">Only here</Th>
-            <Th>Overlays</Th>
-            <Th>Authorization</Th>
-          </Tr>
+            <Table.Header className="text-right">Controls</Table.Header>
+            <Table.Header className="text-right">Only here</Table.Header>
+            <Table.Header>Overlays</Table.Header>
+            <Table.Header>Authorization</Table.Header>
+          </Table.Row>
         </thead>
         <tbody>
           {scopes.map((scope) => {
@@ -60,34 +60,36 @@ export function ScopeTable({
                 ).length
               : 0;
             return (
-              <Tr key={scope.id} title={scope.mission}>
-                <Td className="max-w-none">
+              <Table.Row key={scope.id} title={scope.mission}>
+                <Table.Cell className="max-w-none">
                   <Link
                     to="/programs/$programId/systems/$scopeId"
                     params={{ programId, scopeId: scope.id }}
                     search={{ tab: undefined }}
                     className="hover:underline"
                   >
-                    <Mono className="text-primary">{scope.id}</Mono>
+                    <Id className="text-primary">{scope.id}</Id>
                   </Link>
-                </Td>
-                <Td className="truncate">{scope.name}</Td>
+                </Table.Cell>
+                <Table.Cell className="truncate">{scope.name}</Table.Cell>
                 {objectives.map((o) => (
-                  <Td key={o}>
+                  <Table.Cell key={o}>
                     <Badge size="xs" tone={impactTone[triad[o]]}>
                       {triad[o].slice(0, 1)}
                     </Badge>
-                  </Td>
+                  </Table.Cell>
                 ))}
-                <Td className="tnum text-right">{set?.total ?? 0}</Td>
-                <Td className="tnum text-right">
+                <Table.Cell className="tnum text-right">{set?.total ?? 0}</Table.Cell>
+                <Table.Cell className="tnum text-right">
                   {unique || <span className="text-muted-foreground">—</span>}
-                </Td>
-                <Td className="truncate">{set?.overlays.map((o) => o.name).join(", ") || "—"}</Td>
-                <Td className="truncate">
+                </Table.Cell>
+                <Table.Cell className="truncate">
+                  {set?.overlays.map((o) => o.name).join(", ") || "—"}
+                </Table.Cell>
+                <Table.Cell className="truncate">
                   {scope.independentlyAuthorized ? "Separate ATO" : "Program ATO"}
-                </Td>
-              </Tr>
+                </Table.Cell>
+              </Table.Row>
             );
           })}
         </tbody>

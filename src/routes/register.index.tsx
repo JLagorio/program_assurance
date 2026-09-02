@@ -6,19 +6,15 @@ import { Shell } from "@/components/app/shell";
 import {
   Badge,
   Button,
-  IdCell,
   KeyValue,
   Meter,
-  Mono,
   PageHeader,
   PreviewRail,
   RailGroup,
   IndexPage,
   Table,
-  Td,
-  Th,
-  Tr,
-  Severity,
+  Id,
+  Indicator,
 } from "@/components/app/ui";
 import { assetById } from "@/lib/findings";
 import {
@@ -171,14 +167,14 @@ function RegisterPage() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>POA&M</Th>
-                    <Th>Weakness</Th>
-                    <Th>Owner</Th>
-                    <Th className="text-right">Findings</Th>
-                    <Th>Worst</Th>
-                    <Th>Scheduled</Th>
-                    <Th>Risk</Th>
-                    <Th>Status</Th>
+                    <Table.Header>POA&M</Table.Header>
+                    <Table.Header>Weakness</Table.Header>
+                    <Table.Header>Owner</Table.Header>
+                    <Table.Header className="text-right">Findings</Table.Header>
+                    <Table.Header>Worst</Table.Header>
+                    <Table.Header>Scheduled</Table.Header>
+                    <Table.Header>Risk</Table.Header>
+                    <Table.Header>Status</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
@@ -186,38 +182,38 @@ function RegisterPage() {
                     const fs = findingsForPoam(p.id);
                     const worst = worstSeverity(fs);
                     return (
-                      <Tr
+                      <Table.Row
                         key={p.id}
                         className="cursor-pointer"
                         onClick={() =>
                           navigate({ to: "/register/poam/$poamId", params: { poamId: p.id } })
                         }
                       >
-                        <IdCell
+                        <Table.Id
                           id={p.id}
                           active={preview?.kind === "poam" && preview.item.id === p.id}
                           onPreview={() => setPreview({ kind: "poam", item: p })}
                         />
-                        <Td className="truncate">{p.title}</Td>
-                        <Td className="truncate">{p.owner}</Td>
-                        <Td className="tnum text-right">
+                        <Table.Cell className="truncate">{p.title}</Table.Cell>
+                        <Table.Cell className="truncate">{p.owner}</Table.Cell>
+                        <Table.Cell className="tnum text-right">
                           {openCount(fs)} / {fs.length}
-                        </Td>
-                        <Td>
-                          {worst ? <Severity tone={severityTone(worst)}>{worst}</Severity> : "—"}
-                        </Td>
-                        <Td className="truncate">{p.scheduledCompletion}</Td>
-                        <Td className="truncate">
+                        </Table.Cell>
+                        <Table.Cell>
+                          {worst ? <Indicator tone={severityTone(worst)}>{worst}</Indicator> : "—"}
+                        </Table.Cell>
+                        <Table.Cell className="truncate">{p.scheduledCompletion}</Table.Cell>
+                        <Table.Cell className="truncate">
                           {p.risk ? (
-                            <Mono>{p.risk}</Mono>
+                            <Id>{p.risk}</Id>
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
-                        </Td>
-                        <Td className="truncate">
+                        </Table.Cell>
+                        <Table.Cell className="truncate">
                           <Badge tone={statusTone(p.status)}>{p.status}</Badge>
-                        </Td>
-                      </Tr>
+                        </Table.Cell>
+                      </Table.Row>
                     );
                   })}
                 </tbody>
@@ -238,40 +234,42 @@ function RegisterPage() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>Risk</Th>
-                    <Th>Statement</Th>
-                    <Th>Owner</Th>
-                    <Th className="text-right">Findings</Th>
-                    <Th className="text-right">CCIs</Th>
-                    <Th>POA&M</Th>
-                    <Th>Residual</Th>
-                    <Th>Disposition</Th>
+                    <Table.Header>Risk</Table.Header>
+                    <Table.Header>Statement</Table.Header>
+                    <Table.Header>Owner</Table.Header>
+                    <Table.Header className="text-right">Findings</Table.Header>
+                    <Table.Header className="text-right">CCIs</Table.Header>
+                    <Table.Header>POA&M</Table.Header>
+                    <Table.Header>Residual</Table.Header>
+                    <Table.Header>Disposition</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {registerRisks.map((r) => {
                     const fs = findingsForRisk(r.id);
                     return (
-                      <Tr
+                      <Table.Row
                         key={r.id}
                         className="cursor-pointer"
                         onClick={() =>
                           navigate({ to: "/register/risks/$riskId", params: { riskId: r.id } })
                         }
                       >
-                        <IdCell
+                        <Table.Id
                           id={r.id}
                           active={preview?.kind === "risk" && preview.item.id === r.id}
                           onPreview={() => setPreview({ kind: "risk", item: r })}
                         />
-                        <Td className="truncate">{r.title}</Td>
-                        <Td className="truncate">{r.owner}</Td>
-                        <Td className="tnum text-right">
+                        <Table.Cell className="truncate">{r.title}</Table.Cell>
+                        <Table.Cell className="truncate">{r.owner}</Table.Cell>
+                        <Table.Cell className="tnum text-right">
                           {openCount(fs)} / {fs.length}
-                        </Td>
-                        <Td className="tnum text-right">{ccisForRisk(r.id).length}</Td>
-                        <Td className="tnum">{poamsForRisk(r.id).length}</Td>
-                        <Td>
+                        </Table.Cell>
+                        <Table.Cell className="tnum text-right">
+                          {ccisForRisk(r.id).length}
+                        </Table.Cell>
+                        <Table.Cell className="tnum">{poamsForRisk(r.id).length}</Table.Cell>
+                        <Table.Cell>
                           <div className="flex items-center gap-2">
                             <span className="tnum w-5 text-right text-[12px] text-muted-foreground/70 line-through">
                               {r.inherent}
@@ -281,11 +279,11 @@ function RegisterPage() {
                               {r.residual}
                             </span>
                           </div>
-                        </Td>
-                        <Td className="truncate">
+                        </Table.Cell>
+                        <Table.Cell className="truncate">
                           <Badge tone={statusTone(r.disposition)}>{r.disposition}</Badge>
-                        </Td>
-                      </Tr>
+                        </Table.Cell>
+                      </Table.Row>
                     );
                   })}
                 </tbody>
@@ -310,39 +308,41 @@ function RegisterPage() {
                   </colgroup>
                   <thead>
                     <tr>
-                      <Th>Finding</Th>
-                      <Th>Title</Th>
-                      <Th>CCI</Th>
-                      <Th>Asset</Th>
-                      <Th>Mitigated</Th>
-                      <Th>Lifecycle</Th>
-                      <Th className="text-right">Roll up</Th>
+                      <Table.Header>Finding</Table.Header>
+                      <Table.Header>Title</Table.Header>
+                      <Table.Header>CCI</Table.Header>
+                      <Table.Header>Asset</Table.Header>
+                      <Table.Header>Mitigated</Table.Header>
+                      <Table.Header>Lifecycle</Table.Header>
+                      <Table.Header className="text-right">Roll up</Table.Header>
                     </tr>
                   </thead>
                   <tbody>
                     {unrolled.map((f) => (
-                      <Tr
+                      <Table.Row
                         key={f.id}
                         className="cursor-pointer"
                         onClick={() =>
                           navigate({ to: "/findings/$findingId", params: { findingId: f.id } })
                         }
                       >
-                        <IdCell id={f.id} />
-                        <Td className="truncate">{f.title}</Td>
-                        <Td>
-                          <Mono>{f.cci}</Mono>
-                        </Td>
-                        <Td className="truncate">{assetById.get(f.asset)?.name ?? f.asset}</Td>
-                        <Td>
-                          <Severity tone={severityTone(f.mitigatedSeverity)}>
+                        <Table.Id id={f.id} />
+                        <Table.Cell className="truncate">{f.title}</Table.Cell>
+                        <Table.Cell>
+                          <Id>{f.cci}</Id>
+                        </Table.Cell>
+                        <Table.Cell className="truncate">
+                          {assetById.get(f.asset)?.name ?? f.asset}
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Indicator tone={severityTone(f.mitigatedSeverity)}>
                             {f.mitigatedSeverity}
-                          </Severity>
-                        </Td>
-                        <Td className="truncate">
+                          </Indicator>
+                        </Table.Cell>
+                        <Table.Cell className="truncate">
                           <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
-                        </Td>
-                        <Td className="max-w-none text-right">
+                        </Table.Cell>
+                        <Table.Cell className="max-w-none text-right">
                           <span
                             className="inline-flex gap-1.5"
                             onClick={(e) => e.stopPropagation()}
@@ -354,8 +354,8 @@ function RegisterPage() {
                               Attach risk
                             </Button>
                           </span>
-                        </Td>
-                      </Tr>
+                        </Table.Cell>
+                      </Table.Row>
                     ))}
                   </tbody>
                 </Table>

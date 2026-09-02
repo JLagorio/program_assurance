@@ -9,16 +9,13 @@ import {
   EmptyState,
   KeyValue,
   Meter,
-  Mono,
   RailGroup,
   RecordHeader,
   Section,
   ShowPage,
   Table,
-  Td,
-  Th,
-  Tr,
-  Severity,
+  Id,
+  Indicator,
 } from "@/components/app/ui";
 import { assetById, bySeverity } from "@/lib/findings";
 import {
@@ -111,7 +108,7 @@ function RiskRecord() {
           <>
             <RailGroup title="Exposure">
               <KeyValue label="Risk">
-                <Mono>{risk.id}</Mono>
+                <Id>{risk.id}</Id>
               </KeyValue>
               <KeyValue label="Likelihood × impact">
                 {risk.likelihood} × {risk.impact}
@@ -151,16 +148,16 @@ function RiskRecord() {
                   params={{ programId: risk.program }}
                   className="text-primary hover:underline"
                 >
-                  <Mono className="text-primary">{risk.program}</Mono>
+                  <Id className="text-primary">{risk.program}</Id>
                 </Link>
               </KeyValue>
             </RailGroup>
             <RailGroup title="CCIs in scope">
               <div className="flex flex-wrap gap-1">
                 {ccis.map((c) => (
-                  <Mono key={c} className="text-[11.5px] text-muted-foreground">
+                  <Id key={c} className="text-[11.5px] text-muted-foreground">
                     {c}
-                  </Mono>
+                  </Id>
                 ))}
               </div>
             </RailGroup>
@@ -320,32 +317,32 @@ function RiskRecord() {
               </colgroup>
               <thead>
                 <tr>
-                  <Th>POA&M</Th>
-                  <Th>Weakness</Th>
-                  <Th>Owner</Th>
-                  <Th>Scheduled</Th>
-                  <Th>Status</Th>
+                  <Table.Header>POA&M</Table.Header>
+                  <Table.Header>Weakness</Table.Header>
+                  <Table.Header>Owner</Table.Header>
+                  <Table.Header>Scheduled</Table.Header>
+                  <Table.Header>Status</Table.Header>
                 </tr>
               </thead>
               <tbody>
                 {poams.map((p) => (
-                  <Tr key={p.id}>
-                    <Td>
+                  <Table.Row key={p.id}>
+                    <Table.Cell>
                       <Link
                         to="/register/poam/$poamId"
                         params={{ poamId: p.id }}
                         className="hover:underline"
                       >
-                        <Mono className="text-primary">{p.id}</Mono>
+                        <Id className="text-primary">{p.id}</Id>
                       </Link>
-                    </Td>
-                    <Td className="truncate">{p.title}</Td>
-                    <Td className="truncate">{p.owner}</Td>
-                    <Td className="truncate">{p.scheduledCompletion}</Td>
-                    <Td className="truncate">
+                    </Table.Cell>
+                    <Table.Cell className="truncate">{p.title}</Table.Cell>
+                    <Table.Cell className="truncate">{p.owner}</Table.Cell>
+                    <Table.Cell className="truncate">{p.scheduledCompletion}</Table.Cell>
+                    <Table.Cell className="truncate">
                       <Badge tone={statusTone(p.status)}>{p.status}</Badge>
-                    </Td>
-                  </Tr>
+                    </Table.Cell>
+                  </Table.Row>
                 ))}
               </tbody>
             </Table>
@@ -367,40 +364,42 @@ function RiskRecord() {
             </colgroup>
             <thead>
               <tr>
-                <Th>Finding</Th>
-                <Th>Title</Th>
-                <Th>CCI</Th>
-                <Th>Asset</Th>
-                <Th>Severity</Th>
-                <Th>Lifecycle</Th>
+                <Table.Header>Finding</Table.Header>
+                <Table.Header>Title</Table.Header>
+                <Table.Header>CCI</Table.Header>
+                <Table.Header>Asset</Table.Header>
+                <Table.Header>Severity</Table.Header>
+                <Table.Header>Lifecycle</Table.Header>
               </tr>
             </thead>
             <tbody>
               {fs.map((f) => (
-                <Tr key={f.id}>
-                  <Td>
+                <Table.Row key={f.id}>
+                  <Table.Cell>
                     <Link
                       to="/findings/$findingId"
                       params={{ findingId: f.id }}
                       className="hover:underline"
                     >
-                      <Mono className="text-primary">{f.id}</Mono>
+                      <Id className="text-primary">{f.id}</Id>
                     </Link>
-                  </Td>
-                  <Td className="truncate">{f.title}</Td>
-                  <Td>
-                    <Mono>{f.cci}</Mono>
-                  </Td>
-                  <Td className="truncate">{assetById.get(f.asset)?.name ?? f.asset}</Td>
-                  <Td>
-                    <Severity tone={severityTone(f.mitigatedSeverity)}>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">{f.title}</Table.Cell>
+                  <Table.Cell>
+                    <Id>{f.cci}</Id>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">
+                    {assetById.get(f.asset)?.name ?? f.asset}
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Indicator tone={severityTone(f.mitigatedSeverity)}>
                       {f.mitigatedSeverity}
-                    </Severity>
-                  </Td>
-                  <Td className="truncate">
+                    </Indicator>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">
                     <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>
@@ -431,24 +430,24 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
         </colgroup>
         <thead>
           <tr>
-            <Th>Factor</Th>
-            <Th>Input</Th>
-            <Th className="text-right">Value</Th>
-            <Th className="text-right">Weight</Th>
-            <Th className="text-right">Contribution</Th>
+            <Table.Header>Factor</Table.Header>
+            <Table.Header>Input</Table.Header>
+            <Table.Header className="text-right">Value</Table.Header>
+            <Table.Header className="text-right">Weight</Table.Header>
+            <Table.Header className="text-right">Contribution</Table.Header>
           </tr>
         </thead>
         <tbody>
           {factors.map((f) => (
             <Fragment key={f.key}>
               <tr>
-                <Td>{f.label}</Td>
-                <Td className="truncate" title={f.input}>
+                <Table.Cell>{f.label}</Table.Cell>
+                <Table.Cell className="truncate" title={f.input}>
                   {f.input}
-                </Td>
-                <Td className="tnum text-right">{f.value.toFixed(2)}</Td>
-                <Td className="tnum text-right">{f.weight.toFixed(2)}</Td>
-                <Td
+                </Table.Cell>
+                <Table.Cell className="tnum text-right">{f.value.toFixed(2)}</Table.Cell>
+                <Table.Cell className="tnum text-right">{f.weight.toFixed(2)}</Table.Cell>
+                <Table.Cell
                   className={
                     f.contribution < 0
                       ? "tnum text-right font-medium text-success"
@@ -456,7 +455,7 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
                   }
                 >
                   {signed(f.contribution)}
-                </Td>
+                </Table.Cell>
               </tr>
               <tr className="border-b border-border-subtle">
                 <td colSpan={5} className="px-3 pb-2.5 align-top">
@@ -467,9 +466,9 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
                     <span className="text-11 text-muted-foreground">Evidence</span>
                     {f.evidence.length ? (
                       f.evidence.map((id) => (
-                        <Mono key={id} className="text-[11.5px] text-muted-foreground">
+                        <Id key={id} className="text-[11.5px] text-muted-foreground">
                           {id}
-                        </Mono>
+                        </Id>
                       ))
                     ) : (
                       <span className="text-[11.5px] text-muted-foreground">—</span>
@@ -480,11 +479,11 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
             </Fragment>
           ))}
           <tr>
-            <Td colSpan={4} className="text-muted-foreground">
+            <Table.Cell colSpan={4} className="text-muted-foreground">
               Sum of the {factors.length} contributions
               {sum === score ? "" : `, clamped from ${sum} to the 0–100 range`}
-            </Td>
-            <Td className="tnum text-right">{score}</Td>
+            </Table.Cell>
+            <Table.Cell className="tnum text-right">{score}</Table.Cell>
           </tr>
         </tbody>
       </Table>

@@ -5,15 +5,12 @@ import { Shell } from "@/components/app/shell";
 import {
   Badge,
   Button,
-  Mono,
   PageHeader,
   Section,
   IndexPage,
   Table,
-  Td,
-  Th,
-  Tr,
-  Severity,
+  Id,
+  Indicator,
 } from "@/components/app/ui";
 import { benchmarkById, benchmarks, rules } from "@/lib/catalog";
 import { severityTone } from "@/lib/spine";
@@ -82,40 +79,40 @@ function StigLibrary() {
             </colgroup>
             <thead>
               <tr>
-                <Th>ID</Th>
-                <Th>Benchmark</Th>
-                <Th>Technology</Th>
-                <Th>Current</Th>
-                <Th>Released</Th>
-                <Th>Applied</Th>
-                <Th className="text-right">Rules</Th>
-                <Th className="text-right">CAT I / II / III</Th>
+                <Table.Header>ID</Table.Header>
+                <Table.Header>Benchmark</Table.Header>
+                <Table.Header>Technology</Table.Header>
+                <Table.Header>Current</Table.Header>
+                <Table.Header>Released</Table.Header>
+                <Table.Header>Applied</Table.Header>
+                <Table.Header className="text-right">Rules</Table.Header>
+                <Table.Header className="text-right">CAT I / II / III</Table.Header>
               </tr>
             </thead>
             <tbody>
               {benchmarks.map((b) => (
-                <Tr key={b.id}>
-                  <Td>
-                    <Mono>{b.id}</Mono>
-                  </Td>
-                  <Td className="truncate">{b.name}</Td>
-                  <Td className="truncate">{b.technology}</Td>
-                  <Td>
-                    <Mono>{b.version}</Mono>
-                  </Td>
-                  <Td>{b.released}</Td>
-                  <Td>
+                <Table.Row key={b.id}>
+                  <Table.Cell>
+                    <Id>{b.id}</Id>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">{b.name}</Table.Cell>
+                  <Table.Cell className="truncate">{b.technology}</Table.Cell>
+                  <Table.Cell>
+                    <Id>{b.version}</Id>
+                  </Table.Cell>
+                  <Table.Cell>{b.released}</Table.Cell>
+                  <Table.Cell>
                     {b.appliedVersion === b.version ? (
                       <span className="text-muted-foreground">{b.appliedVersion}</span>
                     ) : (
                       <Badge tone="warning">{b.appliedVersion} behind</Badge>
                     )}
-                  </Td>
-                  <Td className="tnum text-right">{b.rules}</Td>
-                  <Td className="tnum text-right">
+                  </Table.Cell>
+                  <Table.Cell className="tnum text-right">{b.rules}</Table.Cell>
+                  <Table.Cell className="tnum text-right">
                     {b.catI} / {b.catII} / {b.catIII}
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>
@@ -149,32 +146,34 @@ function StigLibrary() {
             </colgroup>
             <thead>
               <tr>
-                <Th>Rule</Th>
-                <Th>Title</Th>
-                <Th>Technology</Th>
-                <Th>Severity</Th>
-                <Th>Satisfies CCI</Th>
+                <Table.Header>Rule</Table.Header>
+                <Table.Header>Title</Table.Header>
+                <Table.Header>Technology</Table.Header>
+                <Table.Header>Severity</Table.Header>
+                <Table.Header>Satisfies CCI</Table.Header>
               </tr>
             </thead>
             <tbody>
               {visibleRules.map((r) => (
-                <Tr key={r.id}>
-                  <Td>
-                    <Mono>{r.id}</Mono>
-                  </Td>
-                  <Td className="truncate">{r.title}</Td>
-                  <Td className="truncate">{benchmarkById.get(r.benchmark)?.technology}</Td>
-                  <Td>
+                <Table.Row key={r.id}>
+                  <Table.Cell>
+                    <Id>{r.id}</Id>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">{r.title}</Table.Cell>
+                  <Table.Cell className="truncate">
+                    {benchmarkById.get(r.benchmark)?.technology}
+                  </Table.Cell>
+                  <Table.Cell>
                     {r.severity === "CAT III" ? (
                       <span className="text-muted-foreground">CAT III</span>
                     ) : (
-                      <Severity tone={severityTone(r.severity)}>{r.severity}</Severity>
+                      <Indicator tone={severityTone(r.severity)}>{r.severity}</Indicator>
                     )}
-                  </Td>
-                  <Td className="truncate">
-                    <Mono>{r.ccis.join(", ")}</Mono>
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">
+                    <Id>{r.ccis.join(", ")}</Id>
+                  </Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>

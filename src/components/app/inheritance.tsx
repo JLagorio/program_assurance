@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Lock, Share2 } from "lucide-react";
 
-import { Badge, Mono, Table, Td, Th, Tr } from "@/components/app/ui";
+import { Badge, Table, Id } from "@/components/app/ui";
 import { staleThresholdDays, type SystemComponent } from "@/lib/reusable-components";
 
 /** Program → source component. One affordance, used everywhere a row is inherited. */
@@ -54,20 +54,20 @@ export function ConsumerTable({ component }: { component: SystemComponent }) {
       </colgroup>
       <thead>
         <tr>
-          <Th>Program</Th>
-          <Th>Name</Th>
-          <Th>System</Th>
-          <Th className="text-right">Controls</Th>
-          <Th className="text-right">Last sync</Th>
+          <Table.Header>Program</Table.Header>
+          <Table.Header>Name</Table.Header>
+          <Table.Header>System</Table.Header>
+          <Table.Header className="text-right">Controls</Table.Header>
+          <Table.Header className="text-right">Last sync</Table.Header>
         </tr>
       </thead>
       <tbody>
         {component.consumers.map((c) => (
-          <Tr key={c.programId}>
-            <Td>
-              <Mono>{c.programId}</Mono>
-            </Td>
-            <Td className="truncate">
+          <Table.Row key={c.programId}>
+            <Table.Cell>
+              <Id>{c.programId}</Id>
+            </Table.Cell>
+            <Table.Cell className="truncate">
               {c.accessible ? (
                 <Link
                   to="/programs/$programId"
@@ -81,11 +81,11 @@ export function ConsumerTable({ component }: { component: SystemComponent }) {
                   <Lock className="size-3" /> Not in your enclave
                 </span>
               )}
-            </Td>
-            <Td className="truncate">{c.accessible ? <Mono>{c.system}</Mono> : "—"}</Td>
-            <Td className="tnum text-right">{c.controls}</Td>
-            <Td className="tnum text-right">{c.lastSync}</Td>
-          </Tr>
+            </Table.Cell>
+            <Table.Cell className="truncate">{c.accessible ? <Id>{c.system}</Id> : "—"}</Table.Cell>
+            <Table.Cell className="tnum text-right">{c.controls}</Table.Cell>
+            <Table.Cell className="tnum text-right">{c.lastSync}</Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>
@@ -104,32 +104,32 @@ export function ProvidedControlsTable({ component }: { component: SystemComponen
       </colgroup>
       <thead>
         <tr>
-          <Th>Control</Th>
-          <Th>Title</Th>
-          <Th>Model</Th>
-          <Th>Evidence</Th>
-          <Th className="text-right">Age</Th>
+          <Table.Header>Control</Table.Header>
+          <Table.Header>Title</Table.Header>
+          <Table.Header>Model</Table.Header>
+          <Table.Header>Evidence</Table.Header>
+          <Table.Header className="text-right">Age</Table.Header>
         </tr>
       </thead>
       <tbody>
         {component.controls.map((c) => {
           const stale = c.evidenceAge > staleThresholdDays;
           return (
-            <Tr key={c.id}>
-              <Td>
-                <Mono>{c.id}</Mono>
-              </Td>
-              <Td className="truncate">{c.title}</Td>
-              <Td>{c.model}</Td>
-              <Td className="truncate">{c.evidence}</Td>
-              <Td className="tnum whitespace-nowrap text-right">
+            <Table.Row key={c.id}>
+              <Table.Cell>
+                <Id>{c.id}</Id>
+              </Table.Cell>
+              <Table.Cell className="truncate">{c.title}</Table.Cell>
+              <Table.Cell>{c.model}</Table.Cell>
+              <Table.Cell className="truncate">{c.evidence}</Table.Cell>
+              <Table.Cell className="tnum whitespace-nowrap text-right">
                 {stale ? (
                   <Badge tone="warning">{c.evidenceAge}d</Badge>
                 ) : (
                   <span className="text-muted-foreground">{c.evidenceAge}d</span>
                 )}
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           );
         })}
       </tbody>

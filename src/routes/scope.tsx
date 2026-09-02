@@ -2,18 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
 import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  Mono,
-  PageHeader,
-  Section,
-  IndexPage,
-  Table,
-  Td,
-  Th,
-  Tr,
-} from "@/components/app/ui";
+import { Badge, Button, PageHeader, Section, IndexPage, Table, Id } from "@/components/app/ui";
 import { programs } from "@/lib/grc-data";
 import { approvalTone, scopeApprovals, type ApprovalState } from "@/lib/tailoring";
 
@@ -94,26 +83,26 @@ function ScopeApprovals() {
           <Table className="table-fixed">
             <thead>
               <tr>
-                <Th className="w-[104px]">Program</Th>
-                <Th>System</Th>
-                <Th className="w-[164px]">Scope state</Th>
-                <Th className="w-[168px]">Submitted by</Th>
-                <Th className="w-[112px]">Submitted</Th>
-                <Th className="w-[76px] text-right">Ctrls</Th>
-                <Th className="w-[76px] text-right">Ovl</Th>
-                <Th className="w-[168px]">Decision</Th>
-                <Th className="w-[92px] text-right">Action</Th>
+                <Table.Header className="w-[104px]">Program</Table.Header>
+                <Table.Header>System</Table.Header>
+                <Table.Header className="w-[164px]">Scope state</Table.Header>
+                <Table.Header className="w-[168px]">Submitted by</Table.Header>
+                <Table.Header className="w-[112px]">Submitted</Table.Header>
+                <Table.Header className="w-[76px] text-right">Ctrls</Table.Header>
+                <Table.Header className="w-[76px] text-right">Ovl</Table.Header>
+                <Table.Header className="w-[168px]">Decision</Table.Header>
+                <Table.Header className="w-[92px] text-right">Action</Table.Header>
               </tr>
             </thead>
             <tbody>
               {rows.map((a) => {
                 const program = programs.find((p) => p.id === a.programId);
                 return (
-                  <Tr key={a.programId}>
-                    <Td className="w-[104px]">
-                      <Mono>{a.programId}</Mono>
-                    </Td>
-                    <Td className="truncate">
+                  <Table.Row key={a.programId}>
+                    <Table.Cell className="w-[104px]">
+                      <Id>{a.programId}</Id>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">
                       {program ? (
                         program.name
                       ) : (
@@ -121,18 +110,18 @@ function ScopeApprovals() {
                           Not in your enclave
                         </span>
                       )}
-                    </Td>
-                    <Td className="w-[164px]">
+                    </Table.Cell>
+                    <Table.Cell className="w-[164px]">
                       <Badge tone={approvalTone[a.state]}>{a.state}</Badge>
-                    </Td>
-                    <Td className="w-[168px] truncate">{a.submittedBy}</Td>
-                    <Td className="tnum w-[112px]">{a.submitted}</Td>
-                    <Td className="tnum w-[76px] text-right">{a.controlCount}</Td>
-                    <Td className="tnum w-[76px] text-right">{a.overlayCount}</Td>
-                    <Td className="w-[168px] truncate">
+                    </Table.Cell>
+                    <Table.Cell className="w-[168px] truncate">{a.submittedBy}</Table.Cell>
+                    <Table.Cell className="tnum w-[112px]">{a.submitted}</Table.Cell>
+                    <Table.Cell className="tnum w-[76px] text-right">{a.controlCount}</Table.Cell>
+                    <Table.Cell className="tnum w-[76px] text-right">{a.overlayCount}</Table.Cell>
+                    <Table.Cell className="w-[168px] truncate">
                       {a.decidedBy ? `${a.decidedBy} · ${a.decided}` : "—"}
-                    </Td>
-                    <Td className="w-[92px] text-right">
+                    </Table.Cell>
+                    <Table.Cell className="w-[92px] text-right">
                       {/* A program the viewer cannot open gets no Review link —
                           the same treatment inheritance and the component
                           library give an id outside the enclave. */}
@@ -147,8 +136,8 @@ function ScopeApprovals() {
                       ) : (
                         <span className="text-[13px] text-muted-foreground">—</span>
                       )}
-                    </Td>
-                  </Tr>
+                    </Table.Cell>
+                  </Table.Row>
                 );
               })}
             </tbody>
@@ -164,7 +153,7 @@ function ScopeApprovals() {
                   key={a.programId}
                   className="flex gap-3 border-b border-border/70 py-2.5 last:border-0"
                 >
-                  <Mono className="w-[88px] shrink-0">{a.programId}</Mono>
+                  <Id className="w-[88px] shrink-0">{a.programId}</Id>
                   <span className="min-w-0 flex-1 truncate text-[13px]">{a.note}</span>
                   <span className="shrink-0 text-[12px] text-muted-foreground">{a.decidedBy}</span>
                   <span className="tnum w-[104px] shrink-0 text-right text-[12px] text-muted-foreground">

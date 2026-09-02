@@ -18,15 +18,7 @@ import {
   type ProcedureListRow,
   type RunListRow,
 } from "@/components/app/test-execution";
-import {
-  Badge,
-  EmptyState,
-  Mono,
-  RecordHeader,
-  Section,
-  ShowPage,
-  TabStrip,
-} from "@/components/app/ui";
+import { Badge, EmptyState, RecordHeader, Section, ShowPage, Id, Tabs } from "@/components/app/ui";
 import {
   campaignById,
   eventsByCampaign,
@@ -270,7 +262,7 @@ function CampaignRecord() {
           />
         }
         tabs={
-          <TabStrip
+          <Tabs
             items={campaignTabs.map((t) => ({
               key: t,
               label: t,
@@ -293,7 +285,7 @@ function CampaignRecord() {
                 <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
                   {railTitle}
                 </span>
-                <Mono>{railId}</Mono>
+                <Id>{railId}</Id>
                 <button
                   onClick={closeRail}
                   className="ml-auto text-[12px] text-muted-foreground hover:text-foreground"
@@ -366,7 +358,7 @@ function CampaignRecord() {
                 <Section
                   title={
                     <span className="flex flex-wrap items-center gap-2">
-                      <Mono>{selectedProcedure.procedure.id}</Mono>
+                      <Id>{selectedProcedure.procedure.id}</Id>
                       <span>Preconditions</span>
                     </span>
                   }
@@ -464,7 +456,7 @@ function CampaignRecord() {
                     className="shrink-0 hover:underline"
                     aria-label={`Back to campaigns for ${e.id}`}
                   >
-                    <Mono className="text-primary">{e.id}</Mono>
+                    <Id className="text-primary">{e.id}</Id>
                   </Link>
                   <span className="text-[13px] font-medium">{e.name}</span>
                   <Badge tone={statusTone(e.state)}>{e.state}</Badge>

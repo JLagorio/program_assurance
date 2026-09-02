@@ -9,7 +9,7 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, Mono, Table, Td, Th, Tr } from "@/components/app/ui";
+import { Badge, Table, Id } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import type {
   NistMethod,
@@ -73,7 +73,7 @@ export function ObjectiveList({ items, depth = 0 }: { items: NistObjective[]; de
     <ol className={cn("max-w-3xl space-y-1.5 text-[13px] leading-relaxed", depth > 0 && "pt-1.5")}>
       {items.map((item, i) => (
         <li key={item.label || i} className="flex gap-3">
-          <Mono className="w-[132px] shrink-0 text-11 text-muted-foreground">{item.label}</Mono>
+          <Id className="w-[132px] shrink-0 text-11 text-muted-foreground">{item.label}</Id>
           <div className="min-w-0">
             {item.prose ? <Prose>{item.prose}</Prose> : null}
             {item.items?.length ? <ObjectiveList items={item.items} depth={depth + 1} /> : null}
@@ -127,22 +127,22 @@ export function ParameterTable({ params }: { params: NistParameter[] }) {
       </colgroup>
       <thead>
         <tr>
-          <Th>Parameter</Th>
-          <Th>Kind</Th>
-          <Th>Value the program must set</Th>
+          <Table.Header>Parameter</Table.Header>
+          <Table.Header>Kind</Table.Header>
+          <Table.Header>Value the program must set</Table.Header>
         </tr>
       </thead>
       <tbody>
         {params.map((p) => (
-          <Tr key={p.id}>
-            <Td>
-              <Mono className="text-11">{p.id}</Mono>
-            </Td>
-            <Td>{p.kind}</Td>
-            <Td>
+          <Table.Row key={p.id}>
+            <Table.Cell>
+              <Id className="text-11">{p.id}</Id>
+            </Table.Cell>
+            <Table.Cell>{p.kind}</Table.Cell>
+            <Table.Cell>
               {p.guideline ? `${p.guideline[0]!.toUpperCase()}${p.guideline.slice(1)}.` : p.value}
-            </Td>
-          </Tr>
+            </Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>

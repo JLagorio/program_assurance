@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, Circle } from "lucide-react";
 
-import { Avatar, Button, Drawer, EmptyState, Menu, MenuItem, MenuLabel } from "@/components/app/ui";
+import { Avatar, Button, Drawer, EmptyState, Menu } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import { useActivityFilters, useReadState } from "@/lib/activity-prefs";
 import {
@@ -281,9 +281,9 @@ function FilterMenu({
     >
       {(close) => (
         <>
-          <MenuLabel>{label}</MenuLabel>
+          <Menu.Label>{label}</Menu.Label>
           {options.map((o) => (
-            <MenuItem
+            <Menu.Item
               key={o}
               selected={o === value}
               onSelect={() => {
@@ -292,7 +292,7 @@ function FilterMenu({
               }}
             >
               {o}
-            </MenuItem>
+            </Menu.Item>
           ))}
         </>
       )}

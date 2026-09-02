@@ -10,18 +10,15 @@ import {
   EmptyState,
   KeyValue,
   Meter,
-  Mono,
   Person,
   RailGroup,
   RecordHeader,
   Section,
   ShowPage,
-  TabStrip,
   Table,
-  Td,
-  Th,
-  Tr,
-  Severity,
+  Id,
+  Tabs,
+  Indicator,
 } from "@/components/app/ui";
 import { ccis } from "@/lib/catalog";
 import { useControlMatrix } from "@/lib/control-matrix";
@@ -113,10 +110,10 @@ function FindingRecord() {
       params={{ programId, controlId: finding.control }}
       className="text-primary hover:underline"
     >
-      <Mono className="text-primary">{finding.control}</Mono>
+      <Id className="text-primary">{finding.control}</Id>
     </Link>
   ) : (
-    <Mono>{finding.control}</Mono>
+    <Id>{finding.control}</Id>
   );
 
   return (
@@ -130,9 +127,9 @@ function FindingRecord() {
             meta={`${finding.control}${catalogTitle ? ` ${catalogTitle}` : ""} · ${finding.source} · ${finding.owner}`}
             actions={
               <>
-                <Severity tone={severityTone(finding.mitigatedSeverity)}>
+                <Indicator tone={severityTone(finding.mitigatedSeverity)}>
                   {finding.mitigatedSeverity}
-                </Severity>
+                </Indicator>
                 <Badge tone={statusTone(finding.lifecycle)}>{finding.lifecycle}</Badge>
                 {finding.poam ? (
                   <Link to="/register/poam/$poamId" params={{ poamId: finding.poam }}>
@@ -150,7 +147,7 @@ function FindingRecord() {
           />
         }
         tabs={
-          <TabStrip
+          <Tabs
             items={(
               [
                 ["Finding", null],
@@ -183,7 +180,7 @@ function FindingRecord() {
           <>
             <RailGroup title="Join keys">
               <KeyValue label="CCI">
-                <Mono>{finding.cci}</Mono>
+                <Id>{finding.cci}</Id>
               </KeyValue>
               <KeyValue label="Control">{controlLink}</KeyValue>
               <KeyValue label="Asset">
@@ -195,13 +192,13 @@ function FindingRecord() {
                   {asset?.name ?? finding.asset}
                 </Link>
               </KeyValue>
-              <KeyValue label="Rule">{finding.rule ? <Mono>{finding.rule}</Mono> : "—"}</KeyValue>
+              <KeyValue label="Rule">{finding.rule ? <Id>{finding.rule}</Id> : "—"}</KeyValue>
             </RailGroup>
 
             <RailGroup title="Provenance">
               <KeyValue label="Source">{finding.source}</KeyValue>
               <KeyValue label="Artifact">
-                <Mono>{finding.sourceArtifact}</Mono>
+                <Id>{finding.sourceArtifact}</Id>
               </KeyValue>
               <KeyValue label="First seen">{finding.firstSeen}</KeyValue>
               <KeyValue label="Last seen">{finding.lastSeen}</KeyValue>
@@ -211,9 +208,9 @@ function FindingRecord() {
             <RailGroup title="Severity">
               <KeyValue label="Raw">{finding.rawSeverity}</KeyValue>
               <KeyValue label="Mitigated">
-                <Severity tone={severityTone(finding.mitigatedSeverity)}>
+                <Indicator tone={severityTone(finding.mitigatedSeverity)}>
                   {finding.mitigatedSeverity}
-                </Severity>
+                </Indicator>
               </KeyValue>
               <KeyValue label="Open">{isOpen(finding) ? "Yes" : "No"}</KeyValue>
               <KeyValue label="Residual risk">
@@ -243,7 +240,7 @@ function FindingRecord() {
                     params={{ poamId: finding.poam }}
                     className="text-primary hover:underline"
                   >
-                    <Mono className="text-primary">{finding.poam}</Mono>
+                    <Id className="text-primary">{finding.poam}</Id>
                   </Link>
                 ) : (
                   "Not yet scheduled"
@@ -256,7 +253,7 @@ function FindingRecord() {
                     params={{ riskId: finding.risk }}
                     className="text-primary hover:underline"
                   >
-                    <Mono className="text-primary">{finding.risk}</Mono>
+                    <Id className="text-primary">{finding.risk}</Id>
                   </Link>
                 ) : (
                   "Not aggregated"
@@ -268,7 +265,7 @@ function FindingRecord() {
                   params={{ programId }}
                   className="text-primary hover:underline"
                 >
-                  <Mono className="text-primary">{programId}</Mono>
+                  <Id className="text-primary">{programId}</Id>
                 </Link>
               </KeyValue>
             </RailGroup>
@@ -284,7 +281,7 @@ function FindingRecord() {
               <p className="max-w-3xl pt-3 text-[13px] leading-relaxed">{finding.detail}</p>
               {cci ? (
                 <p className="mt-3 max-w-3xl border-l-2 border-border pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
-                  <Mono className="text-muted-foreground">{cci.id}</Mono> — {cci.definition}
+                  <Id className="text-muted-foreground">{cci.id}</Id> — {cci.definition}
                 </p>
               ) : null}
             </Section>
@@ -355,36 +352,38 @@ function FindingRecord() {
                   </colgroup>
                   <thead>
                     <tr>
-                      <Th>Finding</Th>
-                      <Th>Title</Th>
-                      <Th>Asset</Th>
-                      <Th>Severity</Th>
-                      <Th>Lifecycle</Th>
+                      <Table.Header>Finding</Table.Header>
+                      <Table.Header>Title</Table.Header>
+                      <Table.Header>Asset</Table.Header>
+                      <Table.Header>Severity</Table.Header>
+                      <Table.Header>Lifecycle</Table.Header>
                     </tr>
                   </thead>
                   <tbody>
                     {siblings.map((f) => (
-                      <Tr key={f.id}>
-                        <Td>
+                      <Table.Row key={f.id}>
+                        <Table.Cell>
                           <Link
                             to="/findings/$findingId"
                             params={{ findingId: f.id }}
                             className="hover:underline"
                           >
-                            <Mono className="text-primary">{f.id}</Mono>
+                            <Id className="text-primary">{f.id}</Id>
                           </Link>
-                        </Td>
-                        <Td className="truncate">{f.title}</Td>
-                        <Td className="truncate">{assetById.get(f.asset)?.name ?? f.asset}</Td>
-                        <Td>
-                          <Severity tone={severityTone(f.mitigatedSeverity)}>
+                        </Table.Cell>
+                        <Table.Cell className="truncate">{f.title}</Table.Cell>
+                        <Table.Cell className="truncate">
+                          {assetById.get(f.asset)?.name ?? f.asset}
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Indicator tone={severityTone(f.mitigatedSeverity)}>
                             {f.mitigatedSeverity}
-                          </Severity>
-                        </Td>
-                        <Td className="truncate">
+                          </Indicator>
+                        </Table.Cell>
+                        <Table.Cell className="truncate">
                           <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
-                        </Td>
-                      </Tr>
+                        </Table.Cell>
+                      </Table.Row>
                     ))}
                   </tbody>
                 </Table>
@@ -431,7 +430,7 @@ function FindingRecord() {
                       <span key={id}>
                         {i > 0 && " · "}
                         <Link to="/evidence" className="text-primary hover:underline">
-                          <Mono className="text-primary">{id}</Mono>
+                          <Id className="text-primary">{id}</Id>
                         </Link>
                       </span>
                     ))}
@@ -458,14 +457,14 @@ function FindingRecord() {
             >
               <div className="pt-1">
                 <TextBlock label="Raw">
-                  <Severity tone={severityTone(finding.rawSeverity)}>
+                  <Indicator tone={severityTone(finding.rawSeverity)}>
                     {finding.rawSeverity}
-                  </Severity>
+                  </Indicator>
                 </TextBlock>
                 <TextBlock label="Mitigated">
-                  <Severity tone={severityTone(finding.mitigatedSeverity)}>
+                  <Indicator tone={severityTone(finding.mitigatedSeverity)}>
                     {finding.mitigatedSeverity}
-                  </Severity>
+                  </Indicator>
                 </TextBlock>
                 <TextBlock label="Mitigation">
                   {finding.mitigation ?? (
@@ -628,24 +627,24 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
         </colgroup>
         <thead>
           <tr>
-            <Th>Factor</Th>
-            <Th>Input</Th>
-            <Th className="text-right">Value</Th>
-            <Th className="text-right">Weight</Th>
-            <Th className="text-right">Contribution</Th>
+            <Table.Header>Factor</Table.Header>
+            <Table.Header>Input</Table.Header>
+            <Table.Header className="text-right">Value</Table.Header>
+            <Table.Header className="text-right">Weight</Table.Header>
+            <Table.Header className="text-right">Contribution</Table.Header>
           </tr>
         </thead>
         <tbody>
           {factors.map((f) => (
             <Fragment key={f.key}>
               <tr>
-                <Td>{f.label}</Td>
-                <Td className="truncate" title={f.input}>
+                <Table.Cell>{f.label}</Table.Cell>
+                <Table.Cell className="truncate" title={f.input}>
                   {f.input}
-                </Td>
-                <Td className="tnum text-right">{f.value.toFixed(2)}</Td>
-                <Td className="tnum text-right">{f.weight.toFixed(2)}</Td>
-                <Td
+                </Table.Cell>
+                <Table.Cell className="tnum text-right">{f.value.toFixed(2)}</Table.Cell>
+                <Table.Cell className="tnum text-right">{f.weight.toFixed(2)}</Table.Cell>
+                <Table.Cell
                   className={
                     f.contribution < 0
                       ? "tnum text-right font-medium text-success"
@@ -653,7 +652,7 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
                   }
                 >
                   {signed(f.contribution)}
-                </Td>
+                </Table.Cell>
               </tr>
               <tr className="border-b border-border-subtle">
                 <td colSpan={5} className="px-3 pb-2.5 align-top">
@@ -664,9 +663,9 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
                     <span className="text-11 text-muted-foreground">Evidence</span>
                     {f.evidence.length ? (
                       f.evidence.map((id) => (
-                        <Mono key={id} className="text-[11.5px] text-muted-foreground">
+                        <Id key={id} className="text-[11.5px] text-muted-foreground">
                           {id}
-                        </Mono>
+                        </Id>
                       ))
                     ) : (
                       <span className="text-[11.5px] text-muted-foreground">—</span>
@@ -677,11 +676,11 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
             </Fragment>
           ))}
           <tr>
-            <Td colSpan={4} className="text-muted-foreground">
+            <Table.Cell colSpan={4} className="text-muted-foreground">
               Sum of the {factors.length} contributions
               {sum === score ? "" : `, clamped from ${sum} to the 0–100 range`}
-            </Td>
-            <Td className="tnum text-right">{score}</Td>
+            </Table.Cell>
+            <Table.Cell className="tnum text-right">{score}</Table.Cell>
           </tr>
         </tbody>
       </Table>

@@ -7,15 +7,12 @@ import {
   Dot,
   Field,
   Input,
-  Mono,
   Modal,
   Section,
   Select,
   Table,
-  Td,
   Textarea,
-  Th,
-  Tr,
+  Id,
 } from "@/components/app/ui";
 import {
   approvalTone,
@@ -195,11 +192,11 @@ export function TailoringSection({
           <Table className="table-fixed">
             <thead>
               <tr>
-                <Th className="w-[164px]">Overlay ID</Th>
-                <Th className="w-[232px]">Name</Th>
-                <Th className="w-[212px]">Authority</Th>
-                <Th>Trigger</Th>
-                <Th className="w-[76px] text-right">Δ ctrl</Th>
+                <Table.Header className="w-[164px]">Overlay ID</Table.Header>
+                <Table.Header className="w-[232px]">Name</Table.Header>
+                <Table.Header className="w-[212px]">Authority</Table.Header>
+                <Table.Header>Trigger</Table.Header>
+                <Table.Header className="w-[76px] text-right">Δ ctrl</Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -208,21 +205,25 @@ export function TailoringSection({
                   o.controls.filter((c) => c.action === "Added").length -
                   o.controls.filter((c) => c.action === "Tailored out").length;
                 return (
-                  <Tr key={o.id}>
-                    <Td className="w-[164px]">
-                      <Mono>{o.id}</Mono>
-                    </Td>
-                    <Td className="w-[232px] truncate">{o.name}</Td>
-                    <Td className="w-[212px] truncate">{o.authority}</Td>
-                    <Td className="truncate">{o.trigger}</Td>
-                    <Td className="tnum w-[76px] text-right">{delta > 0 ? `+${delta}` : delta}</Td>
-                  </Tr>
+                  <Table.Row key={o.id}>
+                    <Table.Cell className="w-[164px]">
+                      <Id>{o.id}</Id>
+                    </Table.Cell>
+                    <Table.Cell className="w-[232px] truncate">{o.name}</Table.Cell>
+                    <Table.Cell className="w-[212px] truncate">{o.authority}</Table.Cell>
+                    <Table.Cell className="truncate">{o.trigger}</Table.Cell>
+                    <Table.Cell className="tnum w-[76px] text-right">
+                      {delta > 0 ? `+${delta}` : delta}
+                    </Table.Cell>
+                  </Table.Row>
                 );
               })}
               {result.overlays.length === 0 ? (
-                <Tr>
-                  <Td colSpan={5}>No overlays apply — the stock baseline stands.</Td>
-                </Tr>
+                <Table.Row>
+                  <Table.Cell colSpan={5}>
+                    No overlays apply — the stock baseline stands.
+                  </Table.Cell>
+                </Table.Row>
               ) : null}
             </tbody>
           </Table>
@@ -236,27 +237,27 @@ export function TailoringSection({
           <Table className="table-fixed">
             <thead>
               <tr>
-                <Th className="w-[96px]">Control</Th>
-                <Th className="w-[292px]">Title</Th>
-                <Th className="w-[132px]">Action</Th>
-                <Th className="w-[188px]">Overlay</Th>
-                <Th>Rationale</Th>
+                <Table.Header className="w-[96px]">Control</Table.Header>
+                <Table.Header className="w-[292px]">Title</Table.Header>
+                <Table.Header className="w-[132px]">Action</Table.Header>
+                <Table.Header className="w-[188px]">Overlay</Table.Header>
+                <Table.Header>Rationale</Table.Header>
               </tr>
             </thead>
             <tbody>
               {result.overlays.flatMap((o) =>
                 o.controls.map((c) => (
-                  <Tr key={`${o.id}-${c.id}`}>
-                    <Td className="w-[96px]">
-                      <Mono>{c.id}</Mono>
-                    </Td>
-                    <Td className="w-[292px] truncate">{c.title}</Td>
-                    <Td className="w-[132px]">
+                  <Table.Row key={`${o.id}-${c.id}`}>
+                    <Table.Cell className="w-[96px]">
+                      <Id>{c.id}</Id>
+                    </Table.Cell>
+                    <Table.Cell className="w-[292px] truncate">{c.title}</Table.Cell>
+                    <Table.Cell className="w-[132px]">
                       <Badge tone={actionTone[c.action]}>{c.action}</Badge>
-                    </Td>
-                    <Td className="w-[188px] truncate">{o.name}</Td>
-                    <Td className="truncate">{c.rationale}</Td>
-                  </Tr>
+                    </Table.Cell>
+                    <Table.Cell className="w-[188px] truncate">{o.name}</Table.Cell>
+                    <Table.Cell className="truncate">{c.rationale}</Table.Cell>
+                  </Table.Row>
                 )),
               )}
             </tbody>

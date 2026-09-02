@@ -9,13 +9,13 @@ import {
   Dot,
   Fact,
   KeyValue,
-  Mono,
   PageHeader,
   Person,
   RecordHeader,
   RelatedCard,
   RelatedRow,
   Section,
+  Id,
 } from "@/components/app/ui";
 import { Spec } from "../_lib/tokens";
 
@@ -137,7 +137,7 @@ export const KeyValues: Story = {
     <Card className="max-w-[400px] px-4 py-2">
       <dl>
         <KeyValue label="Control">
-          <Mono>AC-2(3)</Mono>
+          <Id>AC-2(3)</Id>
         </KeyValue>
         <KeyValue label="Status">
           <Badge tone="warning" size="xs">
@@ -148,7 +148,7 @@ export const KeyValues: Story = {
           <Person name="D. Reyes" />
         </KeyValue>
         <KeyValue label="Package">
-          <Mono>PKG-2026-114</Mono>
+          <Id>PKG-2026-114</Id>
         </KeyValue>
         <KeyValue label="Last assessed">
           <span className="tnum">2026-08-14</span>
@@ -190,7 +190,7 @@ export const Related: Story = {
               key={r.id}
               lead={<Dot tone={r.tone} />}
               label={r.title}
-              meta={<Mono className="text-muted-foreground">{r.id}</Mono>}
+              meta={<Id className="text-muted-foreground">{r.id}</Id>}
               trailing={r.age}
               onClick={() => {}}
             />
@@ -199,7 +199,7 @@ export const Related: Story = {
               key={r.id}
               lead={<Dot tone={r.tone} />}
               label={r.title}
-              meta={<Mono className="text-muted-foreground">{r.id}</Mono>}
+              meta={<Id className="text-muted-foreground">{r.id}</Id>}
               trailing={r.age}
             />
           ),
@@ -269,7 +269,7 @@ export const Headers: Story = {
                 <Person name="D. Reyes" />
               </Fact>
               <Fact label="Package">
-                <Mono>PKG-2026-114</Mono>
+                <Id>PKG-2026-114</Id>
               </Fact>
               <Fact label="Next assessment">
                 <span className="tnum">2026-09-14</span>

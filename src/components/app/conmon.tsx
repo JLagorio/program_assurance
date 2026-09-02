@@ -35,7 +35,7 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, EmptyState, Mono, Table, Td, Th, Tr } from "@/components/app/ui";
+import { Badge, EmptyState, Table, Id } from "@/components/app/ui";
 import {
   alertSeverityTone,
   assessmentStatusTone,
@@ -90,12 +90,12 @@ function EvidenceIds({ ids, empty }: { ids: string[]; empty: string }) {
   return (
     <span className="flex flex-wrap items-center gap-1">
       {ids.map((id) => (
-        <Mono
+        <Id
           key={id}
           className="rounded bg-muted px-1 py-px text-[11px] leading-4 text-muted-foreground"
         >
           {id}
-        </Mono>
+        </Id>
       ))}
     </span>
   );
@@ -329,11 +329,11 @@ export function DriftFactorTable({ score }: { score: DriftScore }) {
         </colgroup>
         <thead>
           <tr>
-            <Th>Factor</Th>
-            <Th>Input read</Th>
-            <Th className="text-right">Value</Th>
-            <Th className="text-right">Weight</Th>
-            <Th className="text-right">Contribution</Th>
+            <Table.Header>Factor</Table.Header>
+            <Table.Header>Input read</Table.Header>
+            <Table.Header className="text-right">Value</Table.Header>
+            <Table.Header className="text-right">Weight</Table.Header>
+            <Table.Header className="text-right">Contribution</Table.Header>
           </tr>
         </thead>
         <tbody>
@@ -346,19 +346,19 @@ export function DriftFactorTable({ score }: { score: DriftScore }) {
         </tbody>
         <tfoot>
           <tr className="border-t border-border">
-            <Td>Drift</Td>
-            <Td className="max-w-none whitespace-normal py-2 leading-snug">
+            <Table.Cell>Drift</Table.Cell>
+            <Table.Cell className="max-w-none whitespace-normal py-2 leading-snug">
               {clamped
                 ? `The column sums to ${sum}, outside the 0–100 range; the published score is clamped.`
                 : `Sum of the ${factors.length} contribution${factors.length === 1 ? "" : "s"} above, against a ceiling of ${applied}.`}
-            </Td>
-            <Td className="text-right">
+            </Table.Cell>
+            <Table.Cell className="text-right">
               <Dash />
-            </Td>
-            <Td className="text-right">
+            </Table.Cell>
+            <Table.Cell className="text-right">
               <Dash />
-            </Td>
-            <Td className="tnum text-right text-[15px]">{score.score}</Td>
+            </Table.Cell>
+            <Table.Cell className="tnum text-right text-[15px]">{score.score}</Table.Cell>
           </tr>
         </tfoot>
       </Table>
@@ -370,27 +370,27 @@ export function DriftFactorTable({ score }: { score: DriftScore }) {
 function DriftFactorRows({ factor }: { factor: DriftFactor }) {
   return (
     <>
-      <Tr className="border-0 align-top hover:bg-transparent">
-        <Td className="py-2 align-top">{factor.label}</Td>
-        <Td
+      <Table.Row className="border-0 align-top hover:bg-transparent">
+        <Table.Cell className="py-2 align-top">{factor.label}</Table.Cell>
+        <Table.Cell
           className="max-w-none whitespace-normal py-2 align-top leading-snug"
           title={factor.input}
         >
           {factor.input}
-        </Td>
-        <Td className="tnum py-2 align-top text-right">{fixed2(factor.value)}</Td>
-        <Td className="tnum py-2 align-top text-right">{fixed2(factor.weight)}</Td>
-        <Td
+        </Table.Cell>
+        <Table.Cell className="tnum py-2 align-top text-right">{fixed2(factor.value)}</Table.Cell>
+        <Table.Cell className="tnum py-2 align-top text-right">{fixed2(factor.weight)}</Table.Cell>
+        <Table.Cell
           className={cn(
             "tnum py-2 align-top text-right font-medium",
             factor.contribution === 0 ? "text-muted-foreground" : null,
           )}
         >
           {zeroSafe(factor.contribution)}
-        </Td>
-      </Tr>
-      <Tr className="align-top hover:bg-transparent">
-        <Td
+        </Table.Cell>
+      </Table.Row>
+      <Table.Row className="align-top hover:bg-transparent">
+        <Table.Cell
           className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
           colSpan={5}
         >
@@ -401,8 +401,8 @@ function DriftFactorRows({ factor }: { factor: DriftFactor }) {
               empty="No ids recorded — this factor rests on a count over the whole matrix rather than on named records."
             />
           </span>
-        </Td>
-      </Tr>
+        </Table.Cell>
+      </Table.Row>
     </>
   );
 }
@@ -429,29 +429,31 @@ function MissingDriftFactorRows({
     `The ${label.toLowerCase()} factor could not be computed for this program, so its ${fixed2(weight)} weight was not applied and the score runs out of ${100 - Math.round(weight * 100)} rather than 100. That is an absence of data, not an aligned configuration.`;
   return (
     <>
-      <Tr className="border-0 align-top hover:bg-transparent">
-        <Td className="py-2 align-top">{label}</Td>
-        <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
+      <Table.Row className="border-0 align-top hover:bg-transparent">
+        <Table.Cell className="py-2 align-top">{label}</Table.Cell>
+        <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
           <Badge size="xs" tone="warning">
             Not measured
           </Badge>
-        </Td>
-        <Td className="py-2 align-top text-right">
+        </Table.Cell>
+        <Table.Cell className="py-2 align-top text-right">
           <Dash />
-        </Td>
-        <Td className="tnum py-2 align-top text-right line-through">{fixed2(weight)}</Td>
-        <Td className="py-2 align-top text-right">
+        </Table.Cell>
+        <Table.Cell className="tnum py-2 align-top text-right line-through">
+          {fixed2(weight)}
+        </Table.Cell>
+        <Table.Cell className="py-2 align-top text-right">
           <Dash />
-        </Td>
-      </Tr>
-      <Tr className="align-top hover:bg-transparent">
-        <Td
+        </Table.Cell>
+      </Table.Row>
+      <Table.Row className="align-top hover:bg-transparent">
+        <Table.Cell
           className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
           colSpan={5}
         >
           <span className="block text-[12.5px] text-muted-foreground">{caveat}</span>
-        </Td>
-      </Tr>
+        </Table.Cell>
+      </Table.Row>
     </>
   );
 }
@@ -539,13 +541,13 @@ export function AlertList({
               {alert.severity}
             </Badge>
             <span className="text-[13px] font-semibold tracking-[-0.005em]">{alert.kind}</span>
-            <Mono>{alert.subject}</Mono>
+            <Id>{alert.subject}</Id>
             <span className="text-[12px] text-muted-foreground">
               {alert.since === "—" ? "no start date on record" : `since ${alert.since}`}
             </span>
             <span className="ml-auto flex items-center gap-2">
               {action ? action(alert) : null}
-              <Mono className="text-muted-foreground">{alert.id}</Mono>
+              <Id className="text-muted-foreground">{alert.id}</Id>
             </span>
           </div>
           <p className="mt-1.5 text-[12.5px] leading-relaxed text-foreground">{alert.statement}</p>
@@ -600,15 +602,15 @@ export function ScheduleTable({ rows }: { rows: ScheduleRow[] }) {
       </colgroup>
       <thead>
         <tr>
-          <Th>Control</Th>
-          <Th>Title</Th>
-          <Th>Frequency</Th>
-          <Th>Method</Th>
-          <Th>Responsible</Th>
-          <Th>Last assessed</Th>
-          <Th>Next due</Th>
-          <Th className="text-right">Days out</Th>
-          <Th>Status</Th>
+          <Table.Header>Control</Table.Header>
+          <Table.Header>Title</Table.Header>
+          <Table.Header>Frequency</Table.Header>
+          <Table.Header>Method</Table.Header>
+          <Table.Header>Responsible</Table.Header>
+          <Table.Header>Last assessed</Table.Header>
+          <Table.Header>Next due</Table.Header>
+          <Table.Header className="text-right">Days out</Table.Header>
+          <Table.Header>Status</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -623,48 +625,50 @@ export function ScheduleTable({ rows }: { rows: ScheduleRow[] }) {
 function ScheduleRows({ row, explain }: { row: ScheduleRow; explain: boolean }) {
   return (
     <>
-      <Tr
+      <Table.Row
         className={cn("align-top", explain ? "border-0 hover:bg-transparent" : null)}
         title={explain ? undefined : row.finding}
       >
-        <Td className="py-2 align-top">
-          <Mono>{row.control}</Mono>
-        </Td>
-        <Td className="py-2 align-top" title={row.controlTitle}>
+        <Table.Cell className="py-2 align-top">
+          <Id>{row.control}</Id>
+        </Table.Cell>
+        <Table.Cell className="py-2 align-top" title={row.controlTitle}>
           {row.controlTitle === "—" ? <Dash /> : row.controlTitle}
-        </Td>
-        <Td className="py-2 align-top">{row.frequency}</Td>
-        <Td className="py-2 align-top">
+        </Table.Cell>
+        <Table.Cell className="py-2 align-top">{row.frequency}</Table.Cell>
+        <Table.Cell className="py-2 align-top">
           <MethodChip method={row.method} />
-        </Td>
-        <Td className="py-2 align-top" title={row.responsible}>
+        </Table.Cell>
+        <Table.Cell className="py-2 align-top" title={row.responsible}>
           {row.responsible}
-        </Td>
-        <Td className="tnum py-2 align-top">
+        </Table.Cell>
+        <Table.Cell className="tnum py-2 align-top">
           {row.lastAssessed === "—" ? <Dash /> : row.lastAssessed}
-        </Td>
-        <Td className="tnum py-2 align-top">{row.nextDue === "—" ? <Dash /> : row.nextDue}</Td>
-        <Td
+        </Table.Cell>
+        <Table.Cell className="tnum py-2 align-top">
+          {row.nextDue === "—" ? <Dash /> : row.nextDue}
+        </Table.Cell>
+        <Table.Cell
           className={cn(
             "py-2 align-top text-right font-medium",
             row.daysOut !== null && row.daysOut < 0 ? "text-danger" : "text-muted-foreground",
           )}
         >
           <Days value={row.daysOut} />
-        </Td>
-        <Td className="py-2 align-top">
+        </Table.Cell>
+        <Table.Cell className="py-2 align-top">
           <AssessmentStatusChip status={row.status} />
-        </Td>
-      </Tr>
+        </Table.Cell>
+      </Table.Row>
       {explain ? (
-        <Tr className="align-top hover:bg-transparent">
-          <Td
+        <Table.Row className="align-top hover:bg-transparent">
+          <Table.Cell
             className="max-w-none whitespace-normal pb-3 pt-0 align-top text-[12.5px] leading-relaxed text-muted-foreground"
             colSpan={9}
           >
             {row.finding}
-          </Td>
-        </Tr>
+          </Table.Cell>
+        </Table.Row>
       ) : null}
     </>
   );
@@ -702,13 +706,13 @@ export function FreshnessTable({ rows }: { rows: EvidenceSlaRow[] }) {
       </colgroup>
       <thead>
         <tr>
-          <Th>Control</Th>
-          <Th>Requirement</Th>
-          <Th>Newest evidence</Th>
-          <Th>Collected</Th>
-          <Th className="text-right">Age</Th>
-          <Th className="text-right">SLA</Th>
-          <Th>Freshness</Th>
+          <Table.Header>Control</Table.Header>
+          <Table.Header>Requirement</Table.Header>
+          <Table.Header>Newest evidence</Table.Header>
+          <Table.Header>Collected</Table.Header>
+          <Table.Header className="text-right">Age</Table.Header>
+          <Table.Header className="text-right">SLA</Table.Header>
+          <Table.Header>Freshness</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -725,51 +729,53 @@ function FreshnessRows({ row, explain }: { row: EvidenceSlaRow; explain: boolean
   const overdue = row.ageDays !== null && row.ageDays > row.slaDays;
   return (
     <>
-      <Tr
+      <Table.Row
         className={cn("align-top", explain ? "border-0 hover:bg-transparent" : null)}
         title={explain ? undefined : row.finding}
       >
-        <Td className="py-2 align-top">
-          <Mono>{row.control}</Mono>
-        </Td>
-        <Td className="py-2 align-top" title={row.requirement}>
+        <Table.Cell className="py-2 align-top">
+          <Id>{row.control}</Id>
+        </Table.Cell>
+        <Table.Cell className="py-2 align-top" title={row.requirement}>
           <span className="flex items-center gap-1.5">
             <Badge size="xs" tone="neutral">
               {unit}
             </Badge>
             <span className="min-w-0 truncate">{requirement}</span>
           </span>
-        </Td>
-        <Td className="py-2 align-top" title={row.evidence.join(", ")}>
+        </Table.Cell>
+        <Table.Cell className="py-2 align-top" title={row.evidence.join(", ")}>
           {row.evidence.length === 0 ? (
             <Dash />
           ) : (
             `${row.evidence[0]}${row.evidence.length > 1 ? ` +${row.evidence.length - 1} more` : ""}`
           )}
-        </Td>
-        <Td className="tnum py-2 align-top">{row.collected === "—" ? <Dash /> : row.collected}</Td>
-        <Td
+        </Table.Cell>
+        <Table.Cell className="tnum py-2 align-top">
+          {row.collected === "—" ? <Dash /> : row.collected}
+        </Table.Cell>
+        <Table.Cell
           className={cn(
             "py-2 align-top text-right font-medium",
             overdue ? "text-danger" : "text-muted-foreground",
           )}
         >
           <Days value={row.ageDays} />
-        </Td>
-        <Td className="tnum py-2 align-top text-right">{row.slaDays}d</Td>
-        <Td className="py-2 align-top">
+        </Table.Cell>
+        <Table.Cell className="tnum py-2 align-top text-right">{row.slaDays}d</Table.Cell>
+        <Table.Cell className="py-2 align-top">
           <FreshnessChip freshness={row.freshness} />
-        </Td>
-      </Tr>
+        </Table.Cell>
+      </Table.Row>
       {explain ? (
-        <Tr className="align-top hover:bg-transparent">
-          <Td
+        <Table.Row className="align-top hover:bg-transparent">
+          <Table.Cell
             className="max-w-none whitespace-normal pb-3 pt-0 align-top text-[12.5px] leading-relaxed text-muted-foreground"
             colSpan={7}
           >
             {row.finding}
-          </Td>
-        </Tr>
+          </Table.Cell>
+        </Table.Row>
       ) : null}
     </>
   );
@@ -823,39 +829,41 @@ export function CadenceTable({ rows }: { rows: CadenceRow[] }) {
       </colgroup>
       <thead>
         <tr>
-          <Th>Target</Th>
-          <Th>Name</Th>
-          <Th>Format</Th>
-          <Th className="text-right">Window</Th>
-          <Th>Last scan</Th>
-          <Th className="text-right">Actual</Th>
-          <Th>State</Th>
-          <Th>What the window says</Th>
+          <Table.Header>Target</Table.Header>
+          <Table.Header>Name</Table.Header>
+          <Table.Header>Format</Table.Header>
+          <Table.Header className="text-right">Window</Table.Header>
+          <Table.Header>Last scan</Table.Header>
+          <Table.Header className="text-right">Actual</Table.Header>
+          <Table.Header>State</Table.Header>
+          <Table.Header>What the window says</Table.Header>
         </tr>
       </thead>
       <tbody>
         {rows.map((row) => {
           const label = cadenceLabel(row);
           return (
-            <Tr key={`${row.target}|${row.format}`} className="align-top">
-              <Td className="py-2 align-top">
-                <Mono>{row.target}</Mono>
-              </Td>
-              <Td className="py-2 align-top" title={row.targetName}>
+            <Table.Row key={`${row.target}|${row.format}`} className="align-top">
+              <Table.Cell className="py-2 align-top">
+                <Id>{row.target}</Id>
+              </Table.Cell>
+              <Table.Cell className="py-2 align-top" title={row.targetName}>
                 {row.targetName}
-              </Td>
-              <Td className="py-2 align-top">{row.format === "—" ? <Dash /> : row.format}</Td>
-              <Td className="py-2 align-top text-right">
+              </Table.Cell>
+              <Table.Cell className="py-2 align-top">
+                {row.format === "—" ? <Dash /> : row.format}
+              </Table.Cell>
+              <Table.Cell className="py-2 align-top text-right">
                 {row.expectedDays > 0 ? (
                   <span className="tnum">{row.expectedDays}d</span>
                 ) : (
                   <Dash />
                 )}
-              </Td>
-              <Td className="tnum py-2 align-top">
+              </Table.Cell>
+              <Table.Cell className="tnum py-2 align-top">
                 {row.lastScan === "—" ? <Dash /> : row.lastScan}
-              </Td>
-              <Td
+              </Table.Cell>
+              <Table.Cell
                 className={cn(
                   "py-2 align-top text-right font-medium",
                   row.actualDays !== null &&
@@ -866,16 +874,16 @@ export function CadenceTable({ rows }: { rows: CadenceRow[] }) {
                 )}
               >
                 <Days value={row.actualDays} />
-              </Td>
-              <Td className="py-2 align-top">
+              </Table.Cell>
+              <Table.Cell className="py-2 align-top">
                 <Badge size="xs" tone={label.tone}>
                   {label.text}
                 </Badge>
-              </Td>
-              <Td className="max-w-none whitespace-normal py-2 align-top leading-relaxed">
+              </Table.Cell>
+              <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-relaxed">
                 {row.finding}
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           );
         })}
       </tbody>
@@ -915,13 +923,13 @@ export function SlippageTable({ rows }: { rows: SlippageRow[] }) {
       </colgroup>
       <thead>
         <tr>
-          <Th>POA&amp;M</Th>
-          <Th>Title</Th>
-          <Th>Original</Th>
-          <Th>Scheduled</Th>
-          <Th className="text-right">Slip</Th>
-          <Th className="text-right">Revisions</Th>
-          <Th>Status</Th>
+          <Table.Header>POA&amp;M</Table.Header>
+          <Table.Header>Title</Table.Header>
+          <Table.Header>Original</Table.Header>
+          <Table.Header>Scheduled</Table.Header>
+          <Table.Header className="text-right">Slip</Table.Header>
+          <Table.Header className="text-right">Revisions</Table.Header>
+          <Table.Header>Status</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -936,38 +944,42 @@ export function SlippageTable({ rows }: { rows: SlippageRow[] }) {
 function SlippageRows({ row }: { row: SlippageRow }) {
   return (
     <>
-      <Tr className="border-0 align-top hover:bg-transparent">
-        <Td className="py-2 align-top">
-          <Mono>{row.poam}</Mono>
-        </Td>
-        <Td className="py-2 align-top" title={row.title}>
+      <Table.Row className="border-0 align-top hover:bg-transparent">
+        <Table.Cell className="py-2 align-top">
+          <Id>{row.poam}</Id>
+        </Table.Cell>
+        <Table.Cell className="py-2 align-top" title={row.title}>
           {row.title}
-        </Td>
-        <Td className="tnum py-2 align-top">{row.original === "—" ? <Dash /> : row.original}</Td>
-        <Td className="tnum py-2 align-top">{row.scheduled === "—" ? <Dash /> : row.scheduled}</Td>
-        <Td
+        </Table.Cell>
+        <Table.Cell className="tnum py-2 align-top">
+          {row.original === "—" ? <Dash /> : row.original}
+        </Table.Cell>
+        <Table.Cell className="tnum py-2 align-top">
+          {row.scheduled === "—" ? <Dash /> : row.scheduled}
+        </Table.Cell>
+        <Table.Cell
           className={cn(
             "tnum py-2 align-top text-right font-medium",
             row.slipDays > 0 ? "text-warning" : "text-muted-foreground",
           )}
         >
           {row.slipDays > 0 ? `+${row.slipDays}d` : `${zeroSafe(row.slipDays)}d`}
-        </Td>
-        <Td className="tnum py-2 align-top text-right">{row.revisions}</Td>
-        <Td className="py-2 align-top">
+        </Table.Cell>
+        <Table.Cell className="tnum py-2 align-top text-right">{row.revisions}</Table.Cell>
+        <Table.Cell className="py-2 align-top">
           <Badge size="xs" tone={statusTone(row.status)}>
             {row.status}
           </Badge>
-        </Td>
-      </Tr>
-      <Tr className="align-top hover:bg-transparent">
-        <Td
+        </Table.Cell>
+      </Table.Row>
+      <Table.Row className="align-top hover:bg-transparent">
+        <Table.Cell
           className="max-w-none whitespace-normal pb-3 pt-0 align-top text-[12.5px] leading-relaxed text-muted-foreground"
           colSpan={7}
         >
           {row.finding}
-        </Td>
-      </Tr>
+        </Table.Cell>
+      </Table.Row>
     </>
   );
 }

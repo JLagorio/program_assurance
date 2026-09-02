@@ -6,16 +6,13 @@ import {
   Badge,
   Button,
   KeyValue,
-  Mono,
   RailGroup,
   RecordHeader,
   ShowPage,
   Section,
   Table,
-  Td,
-  Th,
-  Tr,
-  Severity,
+  Id,
+  Indicator,
 } from "@/components/app/ui";
 import type { CompositionNode } from "@/lib/composition";
 import { childrenOf, nodeForAsset, pathOf, useCompositionGraph } from "@/lib/composition";
@@ -107,7 +104,7 @@ function AssetRecord() {
           <>
             <RailGroup title="Inventory">
               <KeyValue label="Asset">
-                <Mono>{asset.id}</Mono>
+                <Id>{asset.id}</Id>
               </KeyValue>
               <KeyValue label="Kind">{asset.kind}</KeyValue>
               <KeyValue label="Technology">{asset.technology}</KeyValue>
@@ -119,7 +116,7 @@ function AssetRecord() {
                   params={{ programId: asset.program }}
                   className="text-primary hover:underline"
                 >
-                  <Mono className="text-primary">{asset.program}</Mono>
+                  <Id className="text-primary">{asset.program}</Id>
                 </Link>
               </KeyValue>
             </RailGroup>
@@ -203,40 +200,40 @@ function AssetRecord() {
             </colgroup>
             <thead>
               <tr>
-                <Th>Finding</Th>
-                <Th>Title</Th>
-                <Th>CCI</Th>
-                <Th>Source</Th>
-                <Th>Severity</Th>
-                <Th>Lifecycle</Th>
+                <Table.Header>Finding</Table.Header>
+                <Table.Header>Title</Table.Header>
+                <Table.Header>CCI</Table.Header>
+                <Table.Header>Source</Table.Header>
+                <Table.Header>Severity</Table.Header>
+                <Table.Header>Lifecycle</Table.Header>
               </tr>
             </thead>
             <tbody>
               {rows.map((f) => (
-                <Tr key={f.id}>
-                  <Td>
+                <Table.Row key={f.id}>
+                  <Table.Cell>
                     <Link
                       to="/findings/$findingId"
                       params={{ findingId: f.id }}
                       className="hover:underline"
                     >
-                      <Mono className="text-primary">{f.id}</Mono>
+                      <Id className="text-primary">{f.id}</Id>
                     </Link>
-                  </Td>
-                  <Td className="truncate">{f.title}</Td>
-                  <Td>
-                    <Mono>{f.cci}</Mono>
-                  </Td>
-                  <Td className="truncate">{f.source}</Td>
-                  <Td>
-                    <Severity tone={severityTone(f.mitigatedSeverity)}>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">{f.title}</Table.Cell>
+                  <Table.Cell>
+                    <Id>{f.cci}</Id>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">{f.source}</Table.Cell>
+                  <Table.Cell>
+                    <Indicator tone={severityTone(f.mitigatedSeverity)}>
                       {f.mitigatedSeverity}
-                    </Severity>
-                  </Td>
-                  <Td className="truncate">
+                    </Indicator>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">
                     <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>

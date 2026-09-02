@@ -11,7 +11,7 @@ import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 
-import { Badge, Meter, Mono, Person, Section, Table, Td, Th, Tr } from "@/components/app/ui";
+import { Badge, Meter, Person, Section, Table, Id } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import { planDay, spanDays, taskStatusTone, type RemediationPlan } from "@/lib/remediation";
 import { statusTone } from "@/lib/spine";
@@ -30,7 +30,7 @@ function PoamLink({ id }: { id: string }) {
       params={{ poamId: id }}
       className="text-primary hover:underline"
     >
-      <Mono className="text-primary">{id}</Mono>
+      <Id className="text-primary">{id}</Id>
     </Link>
   );
 }
@@ -109,7 +109,7 @@ export function RemediationPlanSection({
                   params={{ workstreamId: plan.workstream.id }}
                   className="text-primary hover:underline"
                 >
-                  <Mono className="text-primary">{plan.workstream.id}</Mono>
+                  <Id className="text-primary">{plan.workstream.id}</Id>
                 </Link>
               ) : (
                 <span className="text-muted-foreground">Unassigned</span>
@@ -155,21 +155,21 @@ export function RemediationPlanSection({
           </colgroup>
           <thead>
             <tr>
-              <Th>Task</Th>
-              <Th>Step</Th>
-              <Th>Owner</Th>
-              <Th className="text-right">Start</Th>
-              <Th className="text-right">Due</Th>
-              <Th>Status</Th>
+              <Table.Header>Task</Table.Header>
+              <Table.Header>Step</Table.Header>
+              <Table.Header>Owner</Table.Header>
+              <Table.Header className="text-right">Start</Table.Header>
+              <Table.Header className="text-right">Due</Table.Header>
+              <Table.Header>Status</Table.Header>
             </tr>
           </thead>
           <tbody>
             {plan.tasks.map((t) => (
-              <Tr key={t.id}>
-                <Td>
-                  <Mono className="text-11 text-muted-foreground">{t.id}</Mono>
-                </Td>
-                <Td>
+              <Table.Row key={t.id}>
+                <Table.Cell>
+                  <Id className="text-11 text-muted-foreground">{t.id}</Id>
+                </Table.Cell>
+                <Table.Cell>
                   <span className="block font-medium">{t.title}</span>
                   <span className="mt-0.5 block text-12 leading-relaxed text-muted-foreground">
                     {t.detail}
@@ -189,8 +189,8 @@ export function RemediationPlanSection({
                       </>
                     ) : null}
                   </span>
-                </Td>
-                <Td className="truncate">
+                </Table.Cell>
+                <Table.Cell className="truncate">
                   {t.ownerId ? (
                     <Link
                       to="/people/$personId"
@@ -203,15 +203,15 @@ export function RemediationPlanSection({
                     <Person name={t.owner} />
                   )}
                   <span className="mt-0.5 block text-11 text-muted-foreground">{t.role}</span>
-                </Td>
-                <Td className="tnum text-right">{t.start}</Td>
-                <Td className="tnum text-right">{t.due}</Td>
-                <Td>
+                </Table.Cell>
+                <Table.Cell className="tnum text-right">{t.start}</Table.Cell>
+                <Table.Cell className="tnum text-right">{t.due}</Table.Cell>
+                <Table.Cell>
                   <Badge tone={taskStatusTone[t.status]} size="xs">
                     {t.status}
                   </Badge>
-                </Td>
-              </Tr>
+                </Table.Cell>
+              </Table.Row>
             ))}
           </tbody>
         </Table>

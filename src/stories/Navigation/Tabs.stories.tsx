@@ -2,42 +2,10 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-import {
-  Button,
-  FilterChip,
-  Kbd,
-  SegmentedControl,
-  TabStrip,
-  Tabs,
-  Toolbar,
-} from "@/components/app/ui";
+import { Button, FilterChip, Kbd, SegmentedControl, Tabs, Toolbar } from "@/components/app/ui";
 import { Spec } from "../_lib/tokens";
 
-const tabItems = [
-  { label: "Overview" },
-  { label: "Findings", count: 7 },
-  { label: "Evidence", count: 12 },
-  { label: "History" },
-];
-
-const meta = {
-  title: "Navigation/Tabs",
-  component: Tabs,
-  tags: ["autodocs"],
-  args: { items: tabItems, active: "Findings" },
-  argTypes: {
-    active: { control: "inline-radio", options: tabItems.map((t) => t.label) },
-    items: { control: false },
-  },
-} satisfies Meta<typeof Tabs>;
-
-export default meta;
-type Story = StoryObj<typeof meta>;
-
 const noop = () => {};
-
-/** Button-mode Tabs with neutral count chips; the active tab is the only blue. */
-export const Basic: Story = { name: "Tabs" };
 
 function Count({ n }: { n: number }) {
   return (
@@ -47,17 +15,36 @@ function Count({ n }: { n: number }) {
   );
 }
 
-/** TabStrip in button mode: one active, counts as trailing chips, one disabled item (no onSelect). */
-export const Strip: Story = {
-  name: "TabStrip",
+const tabItems = [
+  { key: "overview", label: "Overview", active: true, onSelect: noop },
+  { key: "findings", label: "Findings", onSelect: noop, trailing: <Count n={7} /> },
+  { key: "evidence", label: "Evidence", onSelect: noop, trailing: <Count n={12} /> },
+  { key: "history", label: "History", disabled: true },
+];
+
+const meta = {
+  title: "Navigation/Tabs",
+  component: Tabs,
+  tags: ["autodocs"],
+  args: { items: tabItems },
+  argTypes: { items: { control: false }, className: { control: false } },
+} satisfies Meta<typeof Tabs>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+/** One Tabs for links and buttons: the active tab is the only blue, counts ride as trailing chips, a disabled item has no onSelect. */
+export const Basic: Story = { name: "Tabs" };
+
+/** Link mode: each item carries a route instead of a handler. */
+export const Links: Story = {
   parameters: { controls: { disable: true } },
   render: () => (
-    <TabStrip
+    <Tabs
       items={[
-        { key: "overview", label: "Overview", active: true, onSelect: noop },
-        { key: "findings", label: "Findings", onSelect: noop, trailing: <Count n={7} /> },
-        { key: "evidence", label: "Evidence", onSelect: noop, trailing: <Count n={12} /> },
-        { key: "history", label: "History", disabled: true },
+        { key: "overview", label: "Overview", to: "/", active: true },
+        { key: "findings", label: "Findings", to: "/", trailing: <Count n={7} /> },
+        { key: "history", label: "History", to: "/" },
       ]}
     />
   ),

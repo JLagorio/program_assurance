@@ -12,14 +12,11 @@ import {
   KeyValue,
   Meter,
   Modal,
-  Mono,
   Section,
   Select,
   Table,
-  Td,
   Textarea,
-  Th,
-  Tr,
+  Id,
 } from "@/components/app/ui";
 import {
   formatOscalDate,
@@ -197,14 +194,14 @@ export function PoamSection({
         <Table>
           <thead>
             <tr>
-              <Th className="w-[72px]">Item</Th>
-              <Th>Weakness</Th>
-              <Th className="w-[104px]">Controls</Th>
-              <Th className="w-[92px]">Severity</Th>
-              <Th className="w-[112px]">Status</Th>
-              <Th className="w-[128px]">Milestones</Th>
-              <Th className="w-[110px] text-right">Scheduled</Th>
-              <Th className="w-[72px] text-right">Actions</Th>
+              <Table.Header className="w-[72px]">Item</Table.Header>
+              <Table.Header>Weakness</Table.Header>
+              <Table.Header className="w-[104px]">Controls</Table.Header>
+              <Table.Header className="w-[92px]">Severity</Table.Header>
+              <Table.Header className="w-[112px]">Status</Table.Header>
+              <Table.Header className="w-[128px]">Milestones</Table.Header>
+              <Table.Header className="w-[110px] text-right">Scheduled</Table.Header>
+              <Table.Header className="w-[72px] text-right">Actions</Table.Header>
             </tr>
           </thead>
           <tbody>
@@ -212,26 +209,26 @@ export function PoamSection({
               const due = dueLabel(i);
               const pct = milestoneProgress(i);
               return (
-                <Tr
+                <Table.Row
                   key={i.uuid}
                   onClick={() => setActiveUuid(i.uuid)}
                   className="group cursor-pointer"
                 >
-                  <Td className="w-[72px]">
-                    <Mono>{i.poamId}</Mono>
-                  </Td>
-                  <Td>{i.title}</Td>
-                  <Td className="w-[104px]">{i.controls.join(", ")}</Td>
-                  <Td className="w-[92px]">
+                  <Table.Cell className="w-[72px]">
+                    <Id>{i.poamId}</Id>
+                  </Table.Cell>
+                  <Table.Cell>{i.title}</Table.Cell>
+                  <Table.Cell className="w-[104px]">{i.controls.join(", ")}</Table.Cell>
+                  <Table.Cell className="w-[92px]">
                     <Badge tone={poamSeverityTone[i.severity]}>{i.severity}</Badge>
-                  </Td>
-                  <Td className="w-[112px]">
+                  </Table.Cell>
+                  <Table.Cell className="w-[112px]">
                     <span className="flex items-center gap-1.5">
                       <Dot tone={poamStatusTone[i.status]} />
                       <span className="truncate">{i.status}</span>
                     </span>
-                  </Td>
-                  <Td className="w-[128px]">
+                  </Table.Cell>
+                  <Table.Cell className="w-[128px]">
                     <span className="flex items-center gap-2">
                       <span className="w-12">
                         <Meter value={pct} tone={pct === 100 ? "success" : "info"} />
@@ -241,8 +238,8 @@ export function PoamSection({
                         {i.milestones.length}
                       </span>
                     </span>
-                  </Td>
-                  <Td
+                  </Table.Cell>
+                  <Table.Cell
                     className={
                       due.tone === "danger"
                         ? "tnum w-[110px] text-right font-medium text-destructive"
@@ -252,8 +249,8 @@ export function PoamSection({
                     }
                   >
                     {due.text}
-                  </Td>
-                  <Td className="w-[72px] text-right">
+                  </Table.Cell>
+                  <Table.Cell className="w-[72px] text-right">
                     <span className="flex items-center justify-end gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
                       <button
                         aria-label={`Edit ${i.poamId}`}
@@ -276,16 +273,16 @@ export function PoamSection({
                         <Trash2 className="size-3.5" />
                       </button>
                     </span>
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                </Table.Row>
               );
             })}
             {rows.length === 0 ? (
-              <Tr>
-                <Td colSpan={8} className="text-muted-foreground">
+              <Table.Row>
+                <Table.Cell colSpan={8} className="text-muted-foreground">
                   No POA&amp;M items match this view.
-                </Td>
-              </Tr>
+                </Table.Cell>
+              </Table.Row>
             ) : null}
           </tbody>
         </Table>
@@ -303,18 +300,20 @@ export function PoamSection({
         <Table>
           <thead>
             <tr>
-              <Th className="w-[150px]">Timestamp</Th>
-              <Th className="w-[84px]">Action</Th>
-              <Th className="w-[72px]">Item</Th>
-              <Th className="w-[150px]">User</Th>
-              <Th>Changed fields</Th>
+              <Table.Header className="w-[150px]">Timestamp</Table.Header>
+              <Table.Header className="w-[84px]">Action</Table.Header>
+              <Table.Header className="w-[72px]">Item</Table.Header>
+              <Table.Header className="w-[150px]">User</Table.Header>
+              <Table.Header>Changed fields</Table.Header>
             </tr>
           </thead>
           <tbody>
             {audit.map((e) => (
-              <Tr key={e.uuid}>
-                <Td className="tnum w-[150px]">{formatOscalDate(e.timestamp, true)}</Td>
-                <Td className="w-[84px]">
+              <Table.Row key={e.uuid}>
+                <Table.Cell className="tnum w-[150px]">
+                  {formatOscalDate(e.timestamp, true)}
+                </Table.Cell>
+                <Table.Cell className="w-[84px]">
                   <Badge
                     tone={
                       e.action === "Deleted"
@@ -326,12 +325,12 @@ export function PoamSection({
                   >
                     {e.action}
                   </Badge>
-                </Td>
-                <Td className="w-[72px]">
-                  <Mono>{e.poamId}</Mono>
-                </Td>
-                <Td className="w-[150px]">{e.actor}</Td>
-                <Td>
+                </Table.Cell>
+                <Table.Cell className="w-[72px]">
+                  <Id>{e.poamId}</Id>
+                </Table.Cell>
+                <Table.Cell className="w-[150px]">{e.actor}</Table.Cell>
+                <Table.Cell>
                   {e.changes.length === 0
                     ? e.action === "Created"
                       ? "New poam-item recorded"
@@ -339,15 +338,15 @@ export function PoamSection({
                         ? "Record removed"
                         : "No field changes"
                     : e.changes.map((c) => `${c.field}: ${c.from} → ${c.to}`).join("  ·  ")}
-                </Td>
-              </Tr>
+                </Table.Cell>
+              </Table.Row>
             ))}
             {audit.length === 0 ? (
-              <Tr>
-                <Td colSpan={5} className="text-muted-foreground">
+              <Table.Row>
+                <Table.Cell colSpan={5} className="text-muted-foreground">
                   No POA&amp;M changes recorded yet.
-                </Td>
-              </Tr>
+                </Table.Cell>
+              </Table.Row>
             ) : null}
           </tbody>
         </Table>
@@ -458,7 +457,7 @@ function PoamDetailModal({
           </div>
           <dl className="pt-1">
             <KeyValue label="uuid">
-              <Mono className="break-all">{item.uuid}</Mono>
+              <Id className="break-all">{item.uuid}</Id>
             </KeyValue>
             <KeyValue label="published">{formatOscalDate(item.published, true)}</KeyValue>
             <KeyValue label="last-modified">{formatOscalDate(item.lastModified, true)}</KeyValue>
@@ -473,7 +472,7 @@ function PoamDetailModal({
           <div className="space-y-1 pt-2">
             {item.props.map((p) => (
               <div key={p.name} className="flex items-baseline justify-between gap-2 text-[12px]">
-                <Mono>{p.name}</Mono>
+                <Id>{p.name}</Id>
                 <span className="truncate text-right text-muted-foreground">{p.value}</span>
               </div>
             ))}
@@ -535,7 +534,7 @@ function PoamDetailModal({
                 className="flex items-center gap-3 border-b border-border/70 py-2.5 last:border-0"
               >
                 <Dot tone={milestoneStatusTone[m.status]} />
-                <Mono className="w-[42px] shrink-0">{m.id}</Mono>
+                <Id className="w-[42px] shrink-0">{m.id}</Id>
                 <span className="min-w-0 flex-1 truncate text-[13px]">{m.title}</span>
                 <span className="w-[92px] shrink-0 text-right text-[12px] text-muted-foreground">
                   {m.status}
@@ -568,9 +567,9 @@ function PoamDetailModal({
                 >
                   {o.title}
                 </Link>
-                <Mono className="hidden shrink-0 text-[11px] text-muted-foreground sm:inline">
+                <Id className="hidden shrink-0 text-[11px] text-muted-foreground sm:inline">
                   {o.observationUuid.slice(0, 8)}
-                </Mono>
+                </Id>
                 <span className="tnum w-[92px] shrink-0 text-right text-[12px] text-muted-foreground">
                   {formatOscalDate(o.collected)}
                 </span>
@@ -595,7 +594,7 @@ function PoamDetailModal({
                   key={r.riskUuid}
                   className="flex items-center gap-3 border-b border-border/70 py-2.5 last:border-0"
                 >
-                  <Mono className="w-[76px] shrink-0">{r.riskId}</Mono>
+                  <Id className="w-[76px] shrink-0">{r.riskId}</Id>
                   <Link
                     to="/risks/$riskId"
                     params={{ riskId: r.riskId }}
@@ -603,9 +602,9 @@ function PoamDetailModal({
                   >
                     {r.title}
                   </Link>
-                  <Mono className="hidden shrink-0 text-[11px] text-muted-foreground sm:inline">
+                  <Id className="hidden shrink-0 text-[11px] text-muted-foreground sm:inline">
                     {r.riskUuid.slice(0, 8)}
-                  </Mono>
+                  </Id>
                 </li>
               ))}
             </ol>
@@ -635,7 +634,7 @@ function PoamDetailModal({
                     <ul className="mt-1 space-y-0.5">
                       {e.changes.map((c) => (
                         <li key={c.field} className="flex items-baseline gap-2 text-[12px]">
-                          <Mono className="shrink-0 text-[11px]">{c.field}</Mono>
+                          <Id className="shrink-0 text-[11px]">{c.field}</Id>
                           <span className="min-w-0 truncate text-muted-foreground line-through">
                             {c.from}
                           </span>
@@ -771,10 +770,10 @@ function PoamEditModal({
           </div>
           <dl className="pt-1">
             <KeyValue label="uuid">
-              <Mono className="break-all">{item.uuid}</Mono>
+              <Id className="break-all">{item.uuid}</Id>
             </KeyValue>
             <KeyValue label="poam-id">
-              <Mono>{item.poamId}</Mono>
+              <Id>{item.poamId}</Id>
             </KeyValue>
             <KeyValue label="published">{formatOscalDate(item.published, true)}</KeyValue>
             <KeyValue label="last-modified">
@@ -891,7 +890,7 @@ function PoamEditModal({
                 key={m.uuid}
                 className="grid grid-cols-[42px_minmax(0,1fr)_128px_132px_24px] items-center gap-2 border-b border-border/70 py-2 last:border-0"
               >
-                <Mono className="text-[12px] text-muted-foreground">{m.id}</Mono>
+                <Id className="text-[12px] text-muted-foreground">{m.id}</Id>
                 <Input
                   value={m.title}
                   placeholder="Milestone title"
@@ -1026,7 +1025,7 @@ function PoamDeleteModal({
         </p>
         <dl className="border-t border-border pt-1">
           <KeyValue label="uuid">
-            <Mono className="break-all">{item.uuid}</Mono>
+            <Id className="break-all">{item.uuid}</Id>
           </KeyValue>
           <KeyValue label="status">{item.status}</KeyValue>
           <KeyValue label="scheduled">{formatOscalDate(item.scheduledCompletion, true)}</KeyValue>
@@ -1137,37 +1136,37 @@ function PoamCreateModal({
           </div>
           <dl className="pt-1">
             <KeyValue label="uuid">
-              <Mono>generated on save</Mono>
+              <Id>generated on save</Id>
             </KeyValue>
             <KeyValue label="poam-id">
-              <Mono>{nextId}</Mono>
+              <Id>{nextId}</Id>
             </KeyValue>
             <KeyValue label="title">{title || "—"}</KeyValue>
             <KeyValue label="control">
-              <Mono>{control}</Mono>
+              <Id>{control}</Id>
             </KeyValue>
             <KeyValue label="scheduled">{formatOscalDate(toOscalDateTime(scheduled))}</KeyValue>
             <KeyValue label="milestones">{milestone ? "1 planned" : "0"}</KeyValue>
-            <KeyValue label="associated-risk">{riskId ? <Mono>{riskId}</Mono> : "none"}</KeyValue>
+            <KeyValue label="associated-risk">{riskId ? <Id>{riskId}</Id> : "none"}</KeyValue>
           </dl>
           <div className="mt-4 text-[12px] font-semibold uppercase tracking-wide text-muted-foreground">
             props
           </div>
           <div className="space-y-1 pt-2 text-[12px]">
             <div className="flex justify-between gap-2">
-              <Mono>marking</Mono>
+              <Id>marking</Id>
               <span className="text-muted-foreground">{marking}</span>
             </div>
             <div className="flex justify-between gap-2">
-              <Mono>weakness-source</Mono>
+              <Id>weakness-source</Id>
               <span className="truncate text-muted-foreground">{source}</span>
             </div>
             <div className="flex justify-between gap-2">
-              <Mono>severity</Mono>
+              <Id>severity</Id>
               <span className="text-muted-foreground">{severity}</span>
             </div>
             <div className="flex justify-between gap-2">
-              <Mono>status</Mono>
+              <Id>status</Id>
               <span className="text-muted-foreground">{status}</span>
             </div>
           </div>

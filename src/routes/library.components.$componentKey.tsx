@@ -7,11 +7,11 @@ import {
   Badge,
   Button,
   KeyValue,
-  Mono,
   RailGroup,
   RecordHeader,
   ShowPage,
   Section,
+  Id,
 } from "@/components/app/ui";
 import {
   componentHealthTone,
@@ -82,10 +82,10 @@ function ComponentRecord() {
           <>
             <RailGroup title="Definition">
               <KeyValue label="Provider">
-                <Mono>{component.id}</Mono>
+                <Id>{component.id}</Id>
               </KeyValue>
               <KeyValue label="Key">
-                <Mono>{component.key}</Mono>
+                <Id>{component.key}</Id>
               </KeyValue>
               <KeyValue label="Type">{component.type}</KeyValue>
               <KeyValue label="Version">{component.version}</KeyValue>
@@ -108,7 +108,7 @@ function ComponentRecord() {
                       params={{ programId: component.sourceProgramId }}
                       className="text-primary hover:underline"
                     >
-                      <Mono className="text-primary">{component.sourceProgramId}</Mono>
+                      <Id className="text-primary">{component.sourceProgramId}</Id>
                     </Link>
                   ) : (
                     "Not in your enclave"

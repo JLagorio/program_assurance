@@ -6,17 +6,13 @@ import { Shell } from "@/components/app/shell";
 import {
   Badge,
   Button,
-  IdCell,
   KeyValue,
-  Mono,
   IndexPage,
   PageHeader,
   PreviewRail,
   RailGroup,
   Table,
-  Td,
-  Th,
-  Tr,
+  Id,
 } from "@/components/app/ui";
 import {
   componentHealthTone,
@@ -82,19 +78,19 @@ function ComponentLibrary() {
               </colgroup>
               <thead>
                 <tr>
-                  <Th>Key</Th>
-                  <Th>Provider</Th>
-                  <Th>Owner</Th>
-                  <Th className="text-right">Controls</Th>
-                  <Th className="text-right">Used by</Th>
-                  <Th className="text-right">Health</Th>
+                  <Table.Header>Key</Table.Header>
+                  <Table.Header>Provider</Table.Header>
+                  <Table.Header>Owner</Table.Header>
+                  <Table.Header className="text-right">Controls</Table.Header>
+                  <Table.Header className="text-right">Used by</Table.Header>
+                  <Table.Header className="text-right">Health</Table.Header>
                 </tr>
               </thead>
               <tbody>
                 {systemComponents.map((c) => {
                   const stale = c.controls.filter((x) => x.evidenceAge > staleThresholdDays).length;
                   return (
-                    <Tr
+                    <Table.Row
                       key={c.id}
                       className="cursor-pointer"
                       onClick={() =>
@@ -104,16 +100,16 @@ function ComponentLibrary() {
                         })
                       }
                     >
-                      <IdCell
+                      <Table.Id
                         id={c.key}
                         active={preview?.key === c.key}
                         onPreview={() => setPreview(c)}
                       />
-                      <Td className="truncate">{c.name}</Td>
-                      <Td className="truncate">{c.owner}</Td>
-                      <Td className="tnum text-right">{c.controls.length}</Td>
-                      <Td className="tnum text-right">{c.consumers.length}</Td>
-                      <Td className="truncate text-right">
+                      <Table.Cell className="truncate">{c.name}</Table.Cell>
+                      <Table.Cell className="truncate">{c.owner}</Table.Cell>
+                      <Table.Cell className="tnum text-right">{c.controls.length}</Table.Cell>
+                      <Table.Cell className="tnum text-right">{c.consumers.length}</Table.Cell>
+                      <Table.Cell className="truncate text-right">
                         {c.health === "Current" ? (
                           <span className="text-muted-foreground">
                             Current{stale ? ` · ${stale} stale` : ""}
@@ -121,8 +117,8 @@ function ComponentLibrary() {
                         ) : (
                           <Badge tone={componentHealthTone[c.health]}>{c.health}</Badge>
                         )}
-                      </Td>
-                    </Tr>
+                      </Table.Cell>
+                    </Table.Row>
                   );
                 })}
               </tbody>
@@ -146,7 +142,7 @@ function ComponentLibrary() {
             >
               <RailGroup title="Definition">
                 <KeyValue label="Key">
-                  <Mono>{preview.key}</Mono>
+                  <Id>{preview.key}</Id>
                 </KeyValue>
                 <KeyValue label="Type">{preview.type}</KeyValue>
                 <KeyValue label="Version">{preview.version}</KeyValue>

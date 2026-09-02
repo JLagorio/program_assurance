@@ -8,18 +8,14 @@ import {
   Badge,
   Button,
   Meter,
-  Mono,
   RecordHeader,
   Section,
   Select,
   ShowPage,
-  TabStrip,
   Table,
-  Td,
-  Th,
   Toolbar,
-  Tr,
-  IdCell,
+  Id,
+  Tabs,
 } from "@/components/app/ui";
 import { controlMatrix } from "@/lib/control-matrix";
 import { programs } from "@/lib/grc-data";
@@ -271,7 +267,7 @@ function ProgramSctm() {
           />
         }
         tabs={
-          <TabStrip
+          <Tabs
             items={sctmTabs.map((t) => ({
               key: t,
               label: t,
@@ -294,7 +290,7 @@ function ProgramSctm() {
                 <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
                   Requirement
                 </span>
-                <Mono>{selectedRow.requirement}</Mono>
+                <Id>{selectedRow.requirement}</Id>
                 <button
                   onClick={() => setSelected(null)}
                   className="ml-auto text-[12px] text-muted-foreground hover:text-foreground"
@@ -428,19 +424,19 @@ function ProgramSctm() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>Family</Th>
-                    <Th>Name</Th>
-                    <Th className="text-right">Rows</Th>
-                    <Th className="text-right">Satisfied</Th>
-                    <Th className="text-right">Other</Th>
-                    <Th className="text-right">Not assessed</Th>
-                    <Th className="text-right">Gaps</Th>
-                    <Th>Coverage</Th>
+                    <Table.Header>Family</Table.Header>
+                    <Table.Header>Name</Table.Header>
+                    <Table.Header className="text-right">Rows</Table.Header>
+                    <Table.Header className="text-right">Satisfied</Table.Header>
+                    <Table.Header className="text-right">Other</Table.Header>
+                    <Table.Header className="text-right">Not assessed</Table.Header>
+                    <Table.Header className="text-right">Gaps</Table.Header>
+                    <Table.Header>Coverage</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {familyStats.map((f) => (
-                    <Tr
+                    <Table.Row
                       key={f.id}
                       className="cursor-pointer"
                       onClick={() => {
@@ -451,21 +447,21 @@ function ProgramSctm() {
                         navigate({ search: { tab: "Matrix" }, replace: true });
                       }}
                     >
-                      <IdCell id={f.id} />
-                      <Td className="truncate">{f.name}</Td>
-                      <Td className="tnum text-right">{f.rows}</Td>
-                      <Td className="tnum text-right">{f.satisfied}</Td>
-                      <Td className="tnum text-right">{f.other}</Td>
-                      <Td className="tnum text-right">{f.notAssessed}</Td>
-                      <Td
+                      <Table.Id id={f.id} />
+                      <Table.Cell className="truncate">{f.name}</Table.Cell>
+                      <Table.Cell className="tnum text-right">{f.rows}</Table.Cell>
+                      <Table.Cell className="tnum text-right">{f.satisfied}</Table.Cell>
+                      <Table.Cell className="tnum text-right">{f.other}</Table.Cell>
+                      <Table.Cell className="tnum text-right">{f.notAssessed}</Table.Cell>
+                      <Table.Cell
                         className={cn(
                           "tnum text-right",
                           f.gaps > 0 ? "font-medium text-danger" : "text-muted-foreground",
                         )}
                       >
                         {f.gaps}
-                      </Td>
-                      <Td>
+                      </Table.Cell>
+                      <Table.Cell>
                         <span className="flex items-center gap-2">
                           <span className="min-w-0 flex-1">
                             <Meter
@@ -483,8 +479,8 @@ function ProgramSctm() {
                             {f.coverage}%
                           </span>
                         </span>
-                      </Td>
-                    </Tr>
+                      </Table.Cell>
+                    </Table.Row>
                   ))}
                 </tbody>
               </Table>
@@ -511,14 +507,14 @@ function ProgramSctm() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>Gap</Th>
-                    <Th className="text-right">Rows</Th>
-                    <Th>Share of all rows</Th>
+                    <Table.Header>Gap</Table.Header>
+                    <Table.Header className="text-right">Rows</Table.Header>
+                    <Table.Header>Share of all rows</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {gapReasons.map((g) => (
-                    <Tr
+                    <Table.Row
                       key={g.reason}
                       className={cn(
                         "cursor-pointer",
@@ -528,25 +524,25 @@ function ProgramSctm() {
                         refilter(() => setGapReason(gapReason === g.reason ? null : g.reason))
                       }
                     >
-                      <Td className="truncate text-danger">{g.reason}</Td>
-                      <Td className="tnum text-right">{g.count}</Td>
-                      <Td>
+                      <Table.Cell className="truncate text-danger">{g.reason}</Table.Cell>
+                      <Table.Cell className="tnum text-right">{g.count}</Table.Cell>
+                      <Table.Cell>
                         <Meter
                           value={Math.round((g.count / (sctm.counts.total || 1)) * 100)}
                           tone="danger"
                         />
-                      </Td>
-                    </Tr>
+                      </Table.Cell>
+                    </Table.Row>
                   ))}
                   {gapReasons.length === 0 ? (
-                    <Tr>
-                      <Td>
+                    <Table.Row>
+                      <Table.Cell>
                         Every requirement row carries a determination, an assertion, an allocation
                         and evidence.
-                      </Td>
-                      <Td className="tnum text-right">0</Td>
-                      <Td>—</Td>
-                    </Tr>
+                      </Table.Cell>
+                      <Table.Cell className="tnum text-right">0</Table.Cell>
+                      <Table.Cell>—</Table.Cell>
+                    </Table.Row>
                   ) : null}
                 </tbody>
               </Table>

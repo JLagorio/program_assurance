@@ -23,17 +23,12 @@ import {
   EmptyState,
   KeyValue,
   Meter,
-  Mono,
   Person,
   RailGroup,
   Section,
-  StackedBar,
   Table,
-  Td,
-  Th,
-  Tr,
   type Tone,
-  IdCell,
+  Id,
 } from "@/components/app/ui";
 import { objectiveTone, type ObjectiveResult } from "@/lib/campaigns";
 import {
@@ -121,9 +116,9 @@ function IdList({ ids, empty = "—" }: { ids: string[]; empty?: string }) {
   return (
     <span className="flex flex-wrap gap-1">
       {ids.map((id) => (
-        <Mono key={id} className="text-[11.5px] text-muted-foreground">
+        <Id key={id} className="text-[11.5px] text-muted-foreground">
           {id}
-        </Mono>
+        </Id>
       ))}
     </span>
   );
@@ -207,7 +202,7 @@ export function ExecutionSummary({
           <div className="space-y-1 text-[12.5px]">
             {disagreements.map((d) => (
               <div key={d.id} className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <Mono>{d.id}</Mono>
+                <Id>{d.id}</Id>
                 <span className="text-muted-foreground">declared</span>
                 <ResultChip result={d.declared} />
                 <span className="text-muted-foreground">·</span>
@@ -215,7 +210,7 @@ export function ExecutionSummary({
                 <ResultChip result={d.executed} />
                 {d.run ? (
                   <span className="text-muted-foreground">
-                    decided by <Mono className="text-muted-foreground">{d.run}</Mono>
+                    decided by <Id className="text-muted-foreground">{d.run}</Id>
                   </span>
                 ) : null}
               </div>
@@ -234,7 +229,7 @@ export function ExecutionSummary({
           <div className="space-y-1.5 text-[12.5px]">
             {gaps.map((g) => (
               <div key={g.id} className="flex items-baseline gap-2">
-                <Mono className="shrink-0">{g.id}</Mono>
+                <Id className="shrink-0">{g.id}</Id>
                 <span className="min-w-0 leading-snug text-foreground">{g.statement}</span>
                 <span className="ml-auto shrink-0">
                   <ResultChip result={g.declared} />
@@ -259,7 +254,7 @@ export function ExecutionSummary({
         }
       >
         <div className="pt-3">
-          <StackedBar
+          <Meter.Stacked
             segments={[
               {
                 key: "met",
@@ -380,17 +375,17 @@ export function ObjectiveExecutionTable({
       </colgroup>
       <thead>
         <tr>
-          <Th>Objective</Th>
-          <Th>Statement</Th>
-          <Th>Procedures</Th>
-          <Th>Declared</Th>
-          <Th>Executed</Th>
-          <Th>Decided by</Th>
+          <Table.Header>Objective</Table.Header>
+          <Table.Header>Statement</Table.Header>
+          <Table.Header>Procedures</Table.Header>
+          <Table.Header>Declared</Table.Header>
+          <Table.Header>Executed</Table.Header>
+          <Table.Header>Decided by</Table.Header>
         </tr>
       </thead>
       <tbody>
         {rows.map((row) => (
-          <Tr
+          <Table.Row
             key={row.objective}
             className={cn(
               "cursor-pointer",
@@ -400,37 +395,37 @@ export function ObjectiveExecutionTable({
             onClick={() => onSelect(row)}
             title={row.basis}
           >
-            <IdCell id={row.objective} />
-            <Td className="truncate">{row.statement}</Td>
-            <Td className="truncate">
+            <Table.Id id={row.objective} />
+            <Table.Cell className="truncate">{row.statement}</Table.Cell>
+            <Table.Cell className="truncate">
               {row.procedures.length === 0 ? (
                 <span className="text-danger">None written</span>
               ) : (
-                <Mono className="text-muted-foreground">{row.procedures.join(", ")}</Mono>
+                <Id className="text-muted-foreground">{row.procedures.join(", ")}</Id>
               )}
-            </Td>
-            <Td>
+            </Table.Cell>
+            <Table.Cell>
               <ResultChip result={row.declared} />
-            </Td>
-            <Td>
+            </Table.Cell>
+            <Table.Cell>
               <span className="flex items-center gap-1.5">
                 <ResultChip result={row.executed} />
                 {row.disagrees ? (
                   <span className="shrink-0 text-11 font-medium text-warning">≠</span>
                 ) : null}
               </span>
-            </Td>
-            <Td className="truncate">
+            </Table.Cell>
+            <Table.Cell className="truncate">
               {row.source === "Run" && row.run ? (
                 <span className="flex items-center gap-1.5">
-                  <Mono>{row.run}</Mono>
+                  <Id>{row.run}</Id>
                   <span className="text-11">run log</span>
                 </span>
               ) : (
                 <span className="text-11">Declared — nothing completed</span>
               )}
-            </Td>
-          </Tr>
+            </Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>
@@ -454,13 +449,13 @@ export function ObjectiveRail({ row }: { row: ObjectiveExecutionRow }) {
 
       <RailGroup title="Objective">
         <KeyValue label="Objective">
-          <Mono>{row.objective}</Mono>
+          <Id>{row.objective}</Id>
         </KeyValue>
         <WrapValue label="Statement">{row.statement}</WrapValue>
         <WrapValue label="CCIs">
           <IdList ids={row.ccis} />
         </WrapValue>
-        <KeyValue label="Event">{row.event ? <Mono>{row.event}</Mono> : <Dash />}</KeyValue>
+        <KeyValue label="Event">{row.event ? <Id>{row.event}</Id> : <Dash />}</KeyValue>
       </RailGroup>
 
       <RailGroup title="Result">
@@ -471,7 +466,7 @@ export function ObjectiveRail({ row }: { row: ObjectiveExecutionRow }) {
           <ResultChip result={row.executed} />
         </KeyValue>
         <KeyValue label="Source">{row.source === "Run" ? "Run log" : "Campaign record"}</KeyValue>
-        <KeyValue label="Decided by">{row.run ? <Mono>{row.run}</Mono> : <Dash />}</KeyValue>
+        <KeyValue label="Decided by">{row.run ? <Id>{row.run}</Id> : <Dash />}</KeyValue>
         <ProseBlock label="Basis">{row.basis}</ProseBlock>
       </RailGroup>
 
@@ -521,44 +516,44 @@ export function ProcedureList({
       </colgroup>
       <thead>
         <tr>
-          <Th>Procedure</Th>
-          <Th>Title</Th>
-          <Th>Objective</Th>
-          <Th>Method</Th>
-          <Th className="text-right">Steps</Th>
-          <Th className="text-right">Minutes</Th>
-          <Th className="text-right">Runs</Th>
-          <Th>Latest verdict</Th>
+          <Table.Header>Procedure</Table.Header>
+          <Table.Header>Title</Table.Header>
+          <Table.Header>Objective</Table.Header>
+          <Table.Header>Method</Table.Header>
+          <Table.Header className="text-right">Steps</Table.Header>
+          <Table.Header className="text-right">Minutes</Table.Header>
+          <Table.Header className="text-right">Runs</Table.Header>
+          <Table.Header>Latest verdict</Table.Header>
         </tr>
       </thead>
       <tbody>
         {rows.map(({ procedure, runs, verdict }) => (
-          <Tr
+          <Table.Row
             key={procedure.id}
             className={cn("cursor-pointer", selected === procedure.id && "bg-primary-soft/40")}
             onClick={() => onSelect({ procedure, runs, verdict })}
             title={procedure.title}
           >
-            <Td>
+            <Table.Cell>
               <span className="flex items-baseline gap-1.5">
-                <Mono>{procedure.id}</Mono>
+                <Id>{procedure.id}</Id>
                 <span className="shrink-0 text-11 text-muted-foreground">{procedure.version}</span>
               </span>
-            </Td>
-            <Td className="truncate">{procedure.title}</Td>
-            <Td>
-              <Mono>{procedure.objective}</Mono>
-            </Td>
-            <Td className="truncate">
+            </Table.Cell>
+            <Table.Cell className="truncate">{procedure.title}</Table.Cell>
+            <Table.Cell>
+              <Id>{procedure.objective}</Id>
+            </Table.Cell>
+            <Table.Cell className="truncate">
               <Badge>{procedure.method}</Badge>
-            </Td>
-            <Td className="tnum text-right">{procedure.steps.length}</Td>
-            <Td className="tnum text-right">{procedure.duration}</Td>
-            <Td className="tnum text-right">{runs}</Td>
-            <Td className="truncate" title={verdict?.basis}>
+            </Table.Cell>
+            <Table.Cell className="tnum text-right">{procedure.steps.length}</Table.Cell>
+            <Table.Cell className="tnum text-right">{procedure.duration}</Table.Cell>
+            <Table.Cell className="tnum text-right">{runs}</Table.Cell>
+            <Table.Cell className="truncate" title={verdict?.basis}>
               {verdict ? <ResultChip result={verdict.result} /> : <Dash />}
-            </Td>
-          </Tr>
+            </Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>
@@ -598,37 +593,39 @@ export function StepTable({
       </colgroup>
       <thead>
         <tr>
-          <Th className="text-right">#</Th>
-          <Th>Action</Th>
-          <Th>Expected</Th>
-          <Th>Collect</Th>
-          {records ? <Th>Recorded</Th> : null}
+          <Table.Header className="text-right">#</Table.Header>
+          <Table.Header>Action</Table.Header>
+          <Table.Header>Expected</Table.Header>
+          <Table.Header>Collect</Table.Header>
+          {records ? <Table.Header>Recorded</Table.Header> : null}
         </tr>
       </thead>
       <tbody>
         {steps.map((step) => {
           const record = records?.get(step.id);
           return (
-            <Tr key={step.id} className="align-top">
-              <Td className="tnum whitespace-normal py-2 align-top text-right">{step.n}</Td>
-              <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
-                <Mono className="text-[11px] text-muted-foreground">{step.id}</Mono>
+            <Table.Row key={step.id} className="align-top">
+              <Table.Cell className="tnum whitespace-normal py-2 align-top text-right">
+                {step.n}
+              </Table.Cell>
+              <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
+                <Id className="text-[11px] text-muted-foreground">{step.id}</Id>
                 <span className="mt-0.5 block">{step.action}</span>
-              </Td>
-              <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
+              </Table.Cell>
+              <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
                 {step.expected}
-              </Td>
-              <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
+              </Table.Cell>
+              <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
                 {step.collect}
-              </Td>
+              </Table.Cell>
               {records ? (
-                <Td className="whitespace-normal py-2 align-top">
+                <Table.Cell className="whitespace-normal py-2 align-top">
                   <Badge tone={stepResultTone[record?.result ?? "Not run"]}>
                     {record?.result ?? "Not run"}
                   </Badge>
-                </Td>
+                </Table.Cell>
               ) : null}
-            </Tr>
+            </Table.Row>
           );
         })}
       </tbody>
@@ -642,11 +639,11 @@ export function ProcedureRail({ row }: { row: ProcedureListRow }) {
     <div>
       <RailGroup title="Procedure">
         <KeyValue label="Procedure">
-          <Mono>{procedure.id}</Mono>
+          <Id>{procedure.id}</Id>
         </KeyValue>
         <WrapValue label="Title">{procedure.title}</WrapValue>
         <KeyValue label="Objective">
-          <Mono>{procedure.objective}</Mono>
+          <Id>{procedure.objective}</Id>
         </KeyValue>
         <KeyValue label="Method">
           <Badge>{procedure.method}</Badge>
@@ -732,27 +729,27 @@ export function RunTable({
       </colgroup>
       <thead>
         <tr>
-          <Th>Run</Th>
-          <Th>Procedure</Th>
-          <Th>Build under test</Th>
-          <Th>Operator</Th>
-          <Th>State</Th>
-          <Th>Verdict</Th>
-          <Th className="text-right">P/F/I</Th>
-          <Th>Started</Th>
+          <Table.Header>Run</Table.Header>
+          <Table.Header>Procedure</Table.Header>
+          <Table.Header>Build under test</Table.Header>
+          <Table.Header>Operator</Table.Header>
+          <Table.Header>State</Table.Header>
+          <Table.Header>Verdict</Table.Header>
+          <Table.Header className="text-right">P/F/I</Table.Header>
+          <Table.Header>Started</Table.Header>
         </tr>
       </thead>
       <tbody>
         {rows.map(({ run, procedure, verdict }) => (
-          <Tr
+          <Table.Row
             key={run.id}
             className={cn("cursor-pointer", selected === run.id && "bg-primary-soft/40")}
             onClick={() => onSelect({ run, procedure, verdict })}
             title={verdict?.basis ?? run.notes}
           >
-            <Td>
+            <Table.Cell>
               <span className="flex items-baseline gap-1.5">
-                <Mono>{run.id}</Mono>
+                <Id>{run.id}</Id>
                 {run.retestOf ? (
                   <span
                     className="shrink-0 text-11 text-muted-foreground"
@@ -762,26 +759,26 @@ export function RunTable({
                   </span>
                 ) : null}
               </span>
-            </Td>
-            <Td>
-              <Mono>{run.procedure}</Mono>
-            </Td>
-            <Td className="truncate">{run.build}</Td>
-            <Td className="truncate">{run.operator}</Td>
-            <Td className="truncate">
+            </Table.Cell>
+            <Table.Cell>
+              <Id>{run.procedure}</Id>
+            </Table.Cell>
+            <Table.Cell className="truncate">{run.build}</Table.Cell>
+            <Table.Cell className="truncate">{run.operator}</Table.Cell>
+            <Table.Cell className="truncate">
               <Badge tone={runStateTone[run.state]}>{run.state}</Badge>
-            </Td>
-            <Td className="truncate">
+            </Table.Cell>
+            <Table.Cell className="truncate">
               {verdict ? <ResultChip result={verdict.result} /> : <Dash />}
-            </Td>
-            <Td className="tnum text-right">
+            </Table.Cell>
+            <Table.Cell className="tnum text-right">
               {verdict ? `${verdict.pass}/${verdict.fail}/${verdict.inconclusive}` : "—"}
-            </Td>
-            <Td className="tnum truncate">
+            </Table.Cell>
+            <Table.Cell className="tnum truncate">
               {run.started}
               {procedure ? "" : " · procedure missing"}
-            </Td>
-          </Tr>
+            </Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>
@@ -819,7 +816,7 @@ export function RunRecordView({
       <Section
         title={
           <span className="flex flex-wrap items-center gap-2">
-            <Mono>{run.id}</Mono>
+            <Id>{run.id}</Id>
             <span>{procedure?.title ?? run.procedure}</span>
           </span>
         }
@@ -918,7 +915,7 @@ export function RunRecordView({
                 <div key={step.id} className="grid gap-x-6 gap-y-2 py-3 md:grid-cols-[1fr_1fr]">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Mono className="text-[11.5px] text-muted-foreground">{step.id}</Mono>
+                      <Id className="text-[11.5px] text-muted-foreground">{step.id}</Id>
                       <Badge tone={stepResultTone[result]}>{result}</Badge>
                       <span className="tnum text-11 text-muted-foreground">
                         {record?.at ?? "—"}
@@ -962,24 +959,22 @@ export function RunRail({ row }: { row: RunListRow }) {
     <div>
       <RailGroup title="Run">
         <KeyValue label="Run">
-          <Mono>{run.id}</Mono>
+          <Id>{run.id}</Id>
         </KeyValue>
         <KeyValue label="Procedure">
-          <Mono>{run.procedure}</Mono>
+          <Id>{run.procedure}</Id>
         </KeyValue>
         <KeyValue label="Objective">
-          {procedure ? <Mono>{procedure.objective}</Mono> : <Dash />}
+          {procedure ? <Id>{procedure.objective}</Id> : <Dash />}
         </KeyValue>
-        <KeyValue label="Event">{run.event ? <Mono>{run.event}</Mono> : <Dash />}</KeyValue>
+        <KeyValue label="Event">{run.event ? <Id>{run.event}</Id> : <Dash />}</KeyValue>
         <KeyValue label="State">
           <Badge tone={runStateTone[run.state]}>{run.state}</Badge>
         </KeyValue>
         <KeyValue label="Verdict">
           {verdict ? <ResultChip result={verdict.result} /> : <Dash />}
         </KeyValue>
-        <KeyValue label="Retest of">
-          {run.retestOf ? <Mono>{run.retestOf}</Mono> : <Dash />}
-        </KeyValue>
+        <KeyValue label="Retest of">{run.retestOf ? <Id>{run.retestOf}</Id> : <Dash />}</KeyValue>
       </RailGroup>
 
       <RailGroup title="Conduct">
@@ -1037,44 +1032,44 @@ export function RegressionTable({ rows }: { rows: RegressionRow[] }) {
       </colgroup>
       <thead>
         <tr>
-          <Th>Procedure</Th>
-          <Th>Step</Th>
-          <Th>Prior run</Th>
-          <Th>Prior result</Th>
-          <Th>Current run</Th>
-          <Th>Current result</Th>
-          <Th>Movement</Th>
-          <Th>Reading</Th>
+          <Table.Header>Procedure</Table.Header>
+          <Table.Header>Step</Table.Header>
+          <Table.Header>Prior run</Table.Header>
+          <Table.Header>Prior result</Table.Header>
+          <Table.Header>Current run</Table.Header>
+          <Table.Header>Current result</Table.Header>
+          <Table.Header>Movement</Table.Header>
+          <Table.Header>Reading</Table.Header>
         </tr>
       </thead>
       <tbody>
         {rows.map((row) => (
-          <Tr
+          <Table.Row
             key={`${row.currentRun}|${row.step}`}
             className={cn(row.state === "Regressed" && "bg-danger-soft/40")}
           >
-            <Td>
-              <Mono>{row.procedure}</Mono>
-            </Td>
-            <Td>
-              <Mono>{row.step}</Mono>
-            </Td>
-            <Td>
-              <Mono>{row.priorRun}</Mono>
-            </Td>
-            <Td>
+            <Table.Cell>
+              <Id>{row.procedure}</Id>
+            </Table.Cell>
+            <Table.Cell>
+              <Id>{row.step}</Id>
+            </Table.Cell>
+            <Table.Cell>
+              <Id>{row.priorRun}</Id>
+            </Table.Cell>
+            <Table.Cell>
               <Badge tone={stepResultTone[row.priorResult]}>{row.priorResult}</Badge>
-            </Td>
-            <Td>
-              <Mono>{row.currentRun}</Mono>
-            </Td>
-            <Td>
+            </Table.Cell>
+            <Table.Cell>
+              <Id>{row.currentRun}</Id>
+            </Table.Cell>
+            <Table.Cell>
               <Badge tone={stepResultTone[row.currentResult]}>{row.currentResult}</Badge>
-            </Td>
-            <Td>
+            </Table.Cell>
+            <Table.Cell>
               <Badge tone={regressionStateTone[row.state]}>{row.state}</Badge>
-            </Td>
-            <Td className="truncate">
+            </Table.Cell>
+            <Table.Cell className="truncate">
               {row.state === "Regressed"
                 ? `${row.step} passed in ${row.priorRun} and fails in ${row.currentRun}.`
                 : row.state === "Fixed"
@@ -1082,8 +1077,8 @@ export function RegressionTable({ rows }: { rows: RegressionRow[] }) {
                   : row.state === "Still failing"
                     ? `${row.step} has failed in both runs — the retest did not move it.`
                     : `${row.step} passed in both runs.`}
-            </Td>
-          </Tr>
+            </Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>

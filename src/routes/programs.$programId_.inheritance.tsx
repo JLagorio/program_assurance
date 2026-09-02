@@ -15,12 +15,12 @@ import { Shell } from "@/components/app/shell";
 import {
   Badge,
   KeyValue,
-  Mono,
   RailGroup,
   RecordHeader,
   Section,
   ShowPage,
-  TabStrip,
+  Id,
+  Tabs,
 } from "@/components/app/ui";
 import { programs } from "@/lib/grc-data";
 import {
@@ -162,7 +162,7 @@ function ProgramInheritance() {
           />
         }
         tabs={
-          <TabStrip
+          <Tabs
             items={inheritanceTabs.map((key) => ({
               key,
               label: key,
@@ -188,7 +188,7 @@ function ProgramInheritance() {
                     params={{ componentKey: selected.component.key }}
                     className="text-primary hover:underline"
                   >
-                    <Mono className="text-primary">{selected.component.key}</Mono>
+                    <Id className="text-primary">{selected.component.key}</Id>
                   </Link>
                 </KeyValue>
                 <KeyValue label="Control">
@@ -197,7 +197,7 @@ function ProgramInheritance() {
                     params={{ programId: program.id, controlId: selected.control }}
                     className="text-primary hover:underline"
                   >
-                    <Mono className="text-primary">{selected.control}</Mono>
+                    <Id className="text-primary">{selected.control}</Id>
                   </Link>
                 </KeyValue>
                 <KeyValue label="Matrix">
@@ -215,7 +215,7 @@ function ProgramInheritance() {
                     params={{ programId: program.id }}
                     className="text-primary hover:underline"
                   >
-                    <Mono className="text-primary">{program.id}</Mono>
+                    <Id className="text-primary">{program.id}</Id>
                   </Link>
                 </KeyValue>
               </RailGroup>

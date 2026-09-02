@@ -19,13 +19,13 @@ import { Shell } from "@/components/app/shell";
 import {
   Badge,
   EmptyState,
-  Mono,
   RecordHeader,
   Section,
   Select,
   ShowPage,
-  TabStrip,
   Toolbar,
+  Id,
+  Tabs,
 } from "@/components/app/ui";
 import { assetById, findings, isDeficiency } from "@/lib/findings";
 import { programs } from "@/lib/grc-data";
@@ -219,7 +219,7 @@ function ProgramRisk() {
           />
         }
         tabs={
-          <TabStrip
+          <Tabs
             items={riskTabs.map((key) => ({
               key,
               label: key,
@@ -420,14 +420,13 @@ function ProgramRisk() {
                   <ScoreCard score={worked.score} subject={worked.title} />
                   <FactorTable score={worked.score} />
                   <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-                    Read as one line:{" "}
-                    <Mono className="text-foreground">{sumLine(worked.score)}</Mono>. Every term
-                    above is a number this platform already holds somewhere else — the severity from
-                    the finding register, the mission term from the confirmed effect record, the
-                    exposure from the composition graph, the currency from the change log. The model
-                    invents nothing; it weighs what is already written down, and it shows its
-                    working so an authorizing official can disagree with a line rather than with the
-                    idea of scoring.
+                    Read as one line: <Id className="text-foreground">{sumLine(worked.score)}</Id>.
+                    Every term above is a number this platform already holds somewhere else — the
+                    severity from the finding register, the mission term from the confirmed effect
+                    record, the exposure from the composition graph, the currency from the change
+                    log. The model invents nothing; it weighs what is already written down, and it
+                    shows its working so an authorizing official can disagree with a line rather
+                    than with the idea of scoring.
                   </p>
                 </div>
               </Section>

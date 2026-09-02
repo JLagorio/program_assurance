@@ -2,15 +2,14 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import {
   Badge,
-  Dash,
   Fact,
-  IdList,
   KeyValue,
-  Label,
-  Mono,
   Person,
   Prose,
   RailGroup,
+  Empty,
+  Id,
+  Eyebrow,
 } from "@/components/app/ui";
 import { Spec } from "../_lib/tokens";
 
@@ -46,11 +45,11 @@ export const Labels: Story = {
   render: () => (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-6">
-        <Label>Assessment</Label>
-        <Label tone="success">Entry criteria met</Label>
-        <Label tone="warning">Evidence stale</Label>
-        <Label tone="danger">Blocker</Label>
-        <Label tone="info">Derived</Label>
+        <Eyebrow>Assessment</Eyebrow>
+        <Eyebrow tone="success">Entry criteria met</Eyebrow>
+        <Eyebrow tone="warning">Evidence stale</Eyebrow>
+        <Eyebrow tone="danger">Blocker</Eyebrow>
+        <Eyebrow tone="info">Derived</Eyebrow>
       </div>
       <Spec>text-[11px] · 500 · uppercase · 0.06em · one spec for every file</Spec>
     </div>
@@ -65,7 +64,7 @@ export const FactStrip: Story = {
       <Fact label="Owner">D. Reyes</Fact>
       <Fact label="Supplier">Northwind Avionics</Fact>
       <Fact label="Part">
-        <Mono>NA-7731-B</Mono>
+        <Id>NA-7731-B</Id>
       </Fact>
       <Fact label="Criticality">
         <Badge size="xs" tone="danger">
@@ -73,7 +72,7 @@ export const FactStrip: Story = {
         </Badge>
       </Fact>
       <Fact label="Attestation">
-        <Dash />
+        <Empty />
       </Fact>
     </dl>
   ),
@@ -86,7 +85,7 @@ export const Rail: Story = {
     <div className="max-w-[272px]">
       <RailGroup title="Requirement">
         <KeyValue label="Control">
-          <Mono>AC-2(3)</Mono>
+          <Id>AC-2(3)</Id>
         </KeyValue>
         <KeyValue label="Title" wrap>
           Disable accounts after an organization-defined period of inactivity
@@ -96,10 +95,10 @@ export const Rail: Story = {
           <Badge size="xs">Objective</Badge>
         </KeyValue>
         <KeyValue label="CCIs" wrap>
-          <IdList ids={["CCI-000017", "CCI-000217", "CCI-001682"]} />
+          <Id.List ids={["CCI-000017", "CCI-000217", "CCI-001682"]} />
         </KeyValue>
         <KeyValue label="Event">
-          <Dash />
+          <Empty />
         </KeyValue>
         <Prose label="Statement">{statement}</Prose>
       </RailGroup>
@@ -108,7 +107,7 @@ export const Rail: Story = {
           <Person name="D. Reyes" />
         </KeyValue>
         <KeyValue label="Components" wrap>
-          <IdList ids={[]} empty="Not allocated" />
+          <Id.List ids={[]} empty="Not allocated" />
         </KeyValue>
         <Prose label="Gap" tone="danger">
           No procedure is written against objective [03]; the row cannot be assessed.

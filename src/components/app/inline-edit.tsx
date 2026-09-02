@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AlertCircle, Check, ChevronDown, Loader2 } from "lucide-react";
 
-import { Menu, MenuItem, MenuLabel } from "@/components/app/ui";
+import { Menu } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
@@ -179,9 +179,9 @@ export function InlineSelect<T extends string>({
       >
         {(close) => (
           <>
-            <MenuLabel>{label}</MenuLabel>
+            <Menu.Label>{label}</Menu.Label>
             {options.map((o) => (
-              <MenuItem
+              <Menu.Item
                 key={o}
                 selected={o === props.value}
                 onSelect={() => {
@@ -190,7 +190,7 @@ export function InlineSelect<T extends string>({
                 }}
               >
                 {render ? render(o) : o}
-              </MenuItem>
+              </Menu.Item>
             ))}
           </>
         )}

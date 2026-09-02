@@ -15,7 +15,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Search } from "lucide-react";
 
-import { Badge, Mono } from "@/components/app/ui";
+import { Badge, Id } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 
 export type PickerRecord = {
@@ -152,9 +152,7 @@ export function RecordPicker({
                   i === cursor ? "bg-primary-soft" : "hover:bg-surface-hover",
                 )}
               >
-                <Mono className={i === cursor ? "text-primary" : "text-muted-foreground"}>
-                  {r.id}
-                </Mono>
+                <Id className={i === cursor ? "text-primary" : "text-muted-foreground"}>{r.id}</Id>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13px]">{r.title}</span>
                   {r.meta ? (

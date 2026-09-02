@@ -6,6 +6,8 @@ import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
+import { Tiles } from "./compositions";
+
 /* ------------------------------------------------------------------ Button */
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "link";
@@ -130,7 +132,7 @@ export function Dot({ tone = "neutral" }: { tone?: Tone }) {
 }
 
 /** Severity as a Dot plus text — never a pill, so the status column stays the only pill in a row. */
-export function Severity({
+export function Indicator({
   tone = "neutral",
   children,
   className,
@@ -227,7 +229,7 @@ export function CardHeader({
 
 /* ------------------------------------------------------------------- Table */
 
-export function Table({ className, ...props }: ComponentProps<"table">) {
+function TableRoot({ className, ...props }: ComponentProps<"table">) {
   return (
     <div className="w-full overflow-x-auto">
       <table className={cn("w-full border-collapse text-left text-[13px]", className)} {...props} />
@@ -235,7 +237,7 @@ export function Table({ className, ...props }: ComponentProps<"table">) {
   );
 }
 
-export function Th({ className, ...props }: ComponentProps<"th">) {
+function Th({ className, ...props }: ComponentProps<"th">) {
   return (
     <th
       className={cn(
@@ -247,7 +249,7 @@ export function Th({ className, ...props }: ComponentProps<"th">) {
   );
 }
 
-export function Td({ className, ...props }: ComponentProps<"td">) {
+function Td({ className, ...props }: ComponentProps<"td">) {
   return (
     <td
       className={cn(
@@ -259,7 +261,7 @@ export function Td({ className, ...props }: ComponentProps<"td">) {
   );
 }
 
-export function Tr({ className, ...props }: ComponentProps<"tr">) {
+function Tr({ className, ...props }: ComponentProps<"tr">) {
   return (
     <tr
       className={cn(
@@ -275,7 +277,7 @@ export function Tr({ className, ...props }: ComponentProps<"tr">) {
 /* One pattern everywhere: the row itself opens the record page; the eye button
    that appears on hover opens the same row in the preview rail. */
 
-export function IdCell({
+function IdCell({
   id,
   onPreview,
   active,
@@ -287,9 +289,9 @@ export function IdCell({
   tone?: "primary" | "muted";
 }) {
   return (
-    <Td className="max-w-none">
+    <Table.Cell className="max-w-none">
       <span className="flex items-center gap-1.5">
-        <Mono
+        <Id
           className={cn(
             "transition-colors duration-100",
             active ? "text-primary" : null,
@@ -297,7 +299,7 @@ export function IdCell({
           )}
         >
           {id}
-        </Mono>
+        </Id>
         {onPreview ? (
           <button
             type="button"
@@ -318,7 +320,7 @@ export function IdCell({
           </button>
         ) : null}
       </span>
-    </Td>
+    </Table.Cell>
   );
 }
 
@@ -342,7 +344,7 @@ export function PreviewRail({
         <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
           Preview
         </span>
-        <Mono>{id}</Mono>
+        <Id>{id}</Id>
         <button
           onClick={onClose}
           className="ml-auto text-[12px] text-muted-foreground hover:text-foreground"
@@ -389,7 +391,7 @@ export function RecordHeader({
         </Link>
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
-            <Mono className="text-muted-foreground">{id}</Mono>
+            <Id className="text-muted-foreground">{id}</Id>
             {meta ? (
               <span className="truncate text-[12px] text-muted-foreground">{meta}</span>
             ) : null}
@@ -401,48 +403,6 @@ export function RecordHeader({
         {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
       </div>
       {below}
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------- Tabs */
-
-export function Tabs({
-  items,
-  active,
-}: {
-  items: { label: string; to?: string; count?: number }[];
-  active: string;
-}) {
-  return (
-    <div className="flex items-center gap-4 border-b border-border">
-      {items.map((item) => {
-        const isActive = item.label === active;
-        const content = (
-          <span
-            className={cn(
-              "-mb-px inline-flex items-center gap-1.5 border-b-2 px-0.5 pb-2.5 pt-1 text-[13px] transition-colors",
-              isActive
-                ? "border-primary font-medium text-foreground"
-                : "border-transparent font-medium text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {item.label}
-            {typeof item.count === "number" ? (
-              <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                {item.count}
-              </span>
-            ) : null}
-          </span>
-        );
-        return item.to ? (
-          <Link key={item.label} to={item.to}>
-            {content}
-          </Link>
-        ) : (
-          <button key={item.label}>{content}</button>
-        );
-      })}
     </div>
   );
 }
@@ -541,13 +501,13 @@ export function RailGroup({
 
 /** Identifier wrapper. One typeface app-wide since 2026-09-01: it inherits the surrounding
    font, size and colour and only adds tabular numerals. Kept for semantics and grep-ability. */
-export function Mono({ children, className }: { children: ReactNode; className?: string }) {
+function Mono({ children, className }: { children: ReactNode; className?: string }) {
   return <span className={cn("tnum", className)}>{children}</span>;
 }
 
 /* ------------------------------------------------------------ Progress bar */
 
-export function Meter({ value, tone = "info" }: { value: number; tone?: Tone }) {
+function MeterRoot({ value, tone = "info" }: { value: number; tone?: Tone }) {
   return (
     <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
       <div
@@ -559,7 +519,7 @@ export function Meter({ value, tone = "info" }: { value: number; tone?: Tone }) 
 }
 
 /** Segmented proportional bar. One primitive for every coverage read-out. */
-export function StackedBar({
+function StackedBar({
   segments,
   height = 8,
 }: {
@@ -660,7 +620,7 @@ export function IndexPage({
 }
 
 /** Underline tab strip; buttons for in-page tabs. Border meets the rail's rule. */
-export function TabStrip({
+export function Tabs({
   items,
   className,
 }: {
@@ -952,7 +912,7 @@ function initials(name: string) {
   return (first + last).toUpperCase();
 }
 
-export function Avatar({
+function AvatarRoot({
   name,
   size = "sm",
   className,
@@ -984,7 +944,7 @@ export function Person({ name, className }: { name: string; className?: string }
   );
 }
 
-export function AvatarStack({ names, max = 4 }: { names: string[]; max?: number }) {
+function AvatarStack({ names, max = 4 }: { names: string[]; max?: number }) {
   const shown = names.slice(0, max);
   const rest = names.length - shown.length;
   return (
@@ -1014,7 +974,7 @@ export function Kbd({ children }: { children: ReactNode }) {
 /* -------------------------------------------------------------- Menu */
 /* Small, keyboard-dismissible dropdown. No portal — anchored to trigger. */
 
-export function Menu({
+function MenuRoot({
   trigger,
   align = "start",
   width = 200,
@@ -1048,7 +1008,7 @@ export function Menu({
   );
 }
 
-export function MenuItem({
+function MenuItem({
   children,
   selected,
   onSelect,
@@ -1075,7 +1035,7 @@ export function MenuItem({
   );
 }
 
-export function MenuLabel({ children }: { children: ReactNode }) {
+function MenuLabel({ children }: { children: ReactNode }) {
   return (
     <div className="px-2 pb-1 pt-1.5 text-11 font-medium uppercase tracking-[0.06em] text-muted-foreground">
       {children}
@@ -1230,7 +1190,7 @@ export function Drawer({
    WrapValue and IdList, three of Fact). One definition each. */
 
 /** Uppercase micro-label: 11px, weight 500, 0.06em. Tone colours it for a callout. */
-export function Label({
+export function Eyebrow({
   children,
   tone = "neutral",
   className,
@@ -1253,19 +1213,19 @@ export function Label({
 }
 
 /** The absent value. */
-export function Dash() {
+export function Empty() {
   return <span className="text-muted-foreground">—</span>;
 }
 
 /** A wrapping run of Mono ids; `empty` when there are none. */
-export function IdList({ ids, empty = "—" }: { ids: string[]; empty?: string }) {
+function IdList({ ids, empty = "—" }: { ids: string[]; empty?: string }) {
   if (ids.length === 0) return <span className="text-[12.5px] text-muted-foreground">{empty}</span>;
   return (
     <span className="flex flex-wrap gap-1">
       {ids.map((id) => (
-        <Mono key={id} className="text-[11.5px] text-muted-foreground">
+        <Id key={id} className="text-[11.5px] text-muted-foreground">
           {id}
-        </Mono>
+        </Id>
       ))}
     </span>
   );
@@ -1285,7 +1245,7 @@ export function Prose({
 }) {
   return (
     <div className={cn("pt-1.5", className)}>
-      <Label tone={tone}>{label}</Label>
+      <Eyebrow tone={tone}>{label}</Eyebrow>
       <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">{children}</p>
     </div>
   );
@@ -1304,7 +1264,7 @@ export function Fact({ label, children }: { label: string; children: ReactNode }
 /* --------------------------------------------------------------- Numbers */
 
 /** One cell of a `Tiles` grid: label, big tabular number, one-line note. Zero reads muted. */
-export function Tile({
+function Tile({
   label,
   value,
   note,
@@ -1334,7 +1294,7 @@ export function Tile({
 }
 
 /** Bare number over its label, for an unframed summary row. */
-export function Stat({
+function StatRoot({
   label,
   value,
   tone = "neutral",
@@ -1393,3 +1353,13 @@ export function Notice({
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ Compounds */
+/* Families export one root with their parts hung off it: <Table.Cell>, <Id.List>, <Stat.Tile>. */
+
+export const Table = Object.assign(TableRoot, { Row: Tr, Cell: Td, Header: Th, Id: IdCell });
+export const Id = Object.assign(Mono, { List: IdList });
+export const Menu = Object.assign(MenuRoot, { Item: MenuItem, Label: MenuLabel });
+export const Meter = Object.assign(MeterRoot, { Stacked: StackedBar });
+export const Avatar = Object.assign(AvatarRoot, { Stack: AvatarStack });
+export const Stat = Object.assign(StatRoot, { Tile, Grid: Tiles });

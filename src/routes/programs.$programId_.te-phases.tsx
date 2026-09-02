@@ -19,18 +19,15 @@ import {
   Badge,
   EmptyState,
   KeyValue,
-  Mono,
   RailGroup,
   RecordHeader,
   Section,
   Select,
   ShowPage,
-  TabStrip,
   Table,
-  Td,
-  Th,
   Toolbar,
-  Tr,
+  Id,
+  Tabs,
 } from "@/components/app/ui";
 import { useBaselines } from "@/lib/baselines";
 import { campaignById } from "@/lib/campaigns";
@@ -337,7 +334,7 @@ function ProgramTePhases() {
     ) : tab === "Threat scenarios" && selectedScenario ? (
       <RailGroup title="Scenario">
         <KeyValue label="Scenario">
-          <Mono>{selectedScenario.id}</Mono>
+          <Id>{selectedScenario.id}</Id>
         </KeyValue>
         <KeyValue label="Phase">
           {phaseShort(selectedScenario.phase)} · {selectedScenario.phase}
@@ -347,7 +344,7 @@ function ProgramTePhases() {
           <TierChip tier={selectedScenario.tier} />
         </KeyValue>
         <KeyValue label="Entry point">
-          <Mono>{selectedScenario.entryPoint}</Mono>
+          <Id>{selectedScenario.entryPoint}</Id>
         </KeyValue>
         <KeyValue label="Mission">{selectedScenario.missionFunction}</KeyValue>
         <KeyValue label="Event">
@@ -357,7 +354,7 @@ function ProgramTePhases() {
               params={{ campaignId: selectedScenario.event }}
               className="text-primary hover:underline"
             >
-              <Mono className="text-primary">{selectedScenario.event}</Mono>
+              <Id className="text-primary">{selectedScenario.event}</Id>
             </Link>
           ) : (
             "—"
@@ -425,7 +422,7 @@ function ProgramTePhases() {
           />
         }
         tabs={
-          <TabStrip
+          <Tabs
             items={teTabs.map((key) => ({
               key,
               label: key,
@@ -489,54 +486,56 @@ function ProgramTePhases() {
                   </colgroup>
                   <thead>
                     <tr>
-                      <Th>Phase</Th>
-                      <Th>Regime</Th>
-                      <Th>Campaign</Th>
-                      <Th>Scope</Th>
-                      <Th>Campaign lead</Th>
-                      <Th>Campaign state</Th>
+                      <Table.Header>Phase</Table.Header>
+                      <Table.Header>Regime</Table.Header>
+                      <Table.Header>Campaign</Table.Header>
+                      <Table.Header>Scope</Table.Header>
+                      <Table.Header>Campaign lead</Table.Header>
+                      <Table.Header>Campaign state</Table.Header>
                     </tr>
                   </thead>
                   <tbody>
                     {phases.flatMap((phase) =>
                       phase.campaigns.length === 0
                         ? [
-                            <Tr key={phase.id}>
-                              <Td>
-                                <Mono>{phase.id}</Mono>
-                              </Td>
-                              <Td>{phase.kind}</Td>
-                              <Td>—</Td>
-                              <Td className="truncate">
+                            <Table.Row key={phase.id}>
+                              <Table.Cell>
+                                <Id>{phase.id}</Id>
+                              </Table.Cell>
+                              <Table.Cell>{phase.kind}</Table.Cell>
+                              <Table.Cell>—</Table.Cell>
+                              <Table.Cell className="truncate">
                                 No campaign — {phase.short} produces the record later phases are
                                 judged against
-                              </Td>
-                              <Td>—</Td>
-                              <Td>—</Td>
-                            </Tr>,
+                              </Table.Cell>
+                              <Table.Cell>—</Table.Cell>
+                              <Table.Cell>—</Table.Cell>
+                            </Table.Row>,
                           ]
                         : phase.campaigns.map((id) => {
                             const campaign = campaignById.get(id) ?? null;
                             return (
-                              <Tr key={`${phase.id}-${id}`}>
-                                <Td>
-                                  <Mono>{phase.id}</Mono>
-                                </Td>
-                                <Td>{phase.kind}</Td>
-                                <Td>
+                              <Table.Row key={`${phase.id}-${id}`}>
+                                <Table.Cell>
+                                  <Id>{phase.id}</Id>
+                                </Table.Cell>
+                                <Table.Cell>{phase.kind}</Table.Cell>
+                                <Table.Cell>
                                   <Link
                                     to="/campaigns/$campaignId"
                                     params={{ campaignId: id }}
                                     className="text-primary hover:underline"
                                   >
-                                    <Mono className="text-primary">{id}</Mono>
+                                    <Id className="text-primary">{id}</Id>
                                   </Link>
-                                </Td>
-                                <Td className="truncate" title={campaign?.scope ?? ""}>
+                                </Table.Cell>
+                                <Table.Cell className="truncate" title={campaign?.scope ?? ""}>
                                   {campaign ? `${campaign.name} — ${campaign.scope}` : "—"}
-                                </Td>
-                                <Td className="truncate">{campaign?.lead ?? "—"}</Td>
-                                <Td>
+                                </Table.Cell>
+                                <Table.Cell className="truncate">
+                                  {campaign?.lead ?? "—"}
+                                </Table.Cell>
+                                <Table.Cell>
                                   {campaign ? (
                                     <Badge tone={statusTone(campaign.state)}>
                                       {campaign.state}
@@ -544,8 +543,8 @@ function ProgramTePhases() {
                                   ) : (
                                     <span className="text-muted-foreground">—</span>
                                   )}
-                                </Td>
-                              </Tr>
+                                </Table.Cell>
+                              </Table.Row>
                             );
                           }),
                     )}
@@ -861,7 +860,7 @@ function PhaseRail({
     <>
       <RailGroup title="Phase">
         <KeyValue label="Phase">
-          <Mono>{phase.id}</Mono>
+          <Id>{phase.id}</Id>
         </KeyValue>
         <KeyValue label="Short">{phase.short}</KeyValue>
         <KeyValue label="Regime">{phase.kind}</KeyValue>
@@ -998,20 +997,20 @@ function MissionFunctionTable({
       </colgroup>
       <thead>
         <tr>
-          <Th>Mission function</Th>
-          <Th>Worst outcome</Th>
-          <Th className="text-right">Effects</Th>
-          <Th className="text-right">Scenarios</Th>
-          <Th>Operator recourse</Th>
+          <Table.Header>Mission function</Table.Header>
+          <Table.Header>Worst outcome</Table.Header>
+          <Table.Header className="text-right">Effects</Table.Header>
+          <Table.Header className="text-right">Scenarios</Table.Header>
+          <Table.Header>Operator recourse</Table.Header>
         </tr>
       </thead>
       <tbody>
         {rows.map((r) => (
-          <Tr key={r.fn}>
-            <Td className="truncate" title={r.fn}>
+          <Table.Row key={r.fn}>
+            <Table.Cell className="truncate" title={r.fn}>
               {r.fn}
-            </Td>
-            <Td>
+            </Table.Cell>
+            <Table.Cell>
               <Badge
                 tone={
                   r.worst === "No effect"
@@ -1023,17 +1022,17 @@ function MissionFunctionTable({
               >
                 {r.worst}
               </Badge>
-            </Td>
-            <Td className="tnum text-right">{r.count}</Td>
-            <Td className="tnum text-right">{r.scenarios.size}</Td>
-            <Td className={r.noWorkaround > 0 ? "text-danger" : undefined}>
+            </Table.Cell>
+            <Table.Cell className="tnum text-right">{r.count}</Table.Cell>
+            <Table.Cell className="tnum text-right">{r.scenarios.size}</Table.Cell>
+            <Table.Cell className={r.noWorkaround > 0 ? "text-danger" : undefined}>
               {r.noWorkaround > 0
                 ? `${r.noWorkaround} with none identified`
                 : r.worst === "No effect"
                   ? "Not required — the mission held"
                   : "A workaround exists for every effect"}
-            </Td>
-          </Tr>
+            </Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>

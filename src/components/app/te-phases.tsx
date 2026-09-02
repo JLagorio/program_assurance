@@ -34,7 +34,7 @@ import { Fragment, useState } from "react";
 import type { ReactNode } from "react";
 import { ArrowRight, Calculator, CornerDownRight, PenLine, TriangleAlert } from "lucide-react";
 
-import { Badge, Button, Card, Mono, Table, Td, Th, Tr, type Tone } from "@/components/app/ui";
+import { Badge, Button, Card, Table, type Tone, Id } from "@/components/app/ui";
 import {
   effectTone,
   phaseStateTone,
@@ -247,7 +247,7 @@ function PhaseCard({
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <span className="text-[13px] font-semibold">{phase.short}</span>
-            <Mono className="text-muted-foreground">{phase.id}</Mono>
+            <Id className="text-muted-foreground">{phase.id}</Id>
             <span className="min-w-0 truncate text-[12px] text-muted-foreground">{phase.name}</span>
             <span className="ml-auto flex shrink-0 items-center gap-2">
               {readiness ? (
@@ -513,7 +513,7 @@ function CriterionRow({
       )}
     >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <Mono>{criterion.id}</Mono>
+        <Id>{criterion.id}</Id>
         <Badge size="xs">{criterion.kind}</Badge>
         <BasisChip criterion={criterion} />
         <span className="ml-auto flex items-center gap-2">
@@ -681,15 +681,15 @@ export function ScenarioTable({
       </colgroup>
       <thead>
         <tr>
-          <Th>Scenario</Th>
-          <Th>Name</Th>
-          {showPhase ? <Th>Phase</Th> : null}
-          <Th>Tier</Th>
-          <Th>Mission function</Th>
-          <Th>Chain</Th>
-          <Th className="text-right">Path</Th>
-          <Th>Event</Th>
-          <Th>Status</Th>
+          <Table.Header>Scenario</Table.Header>
+          <Table.Header>Name</Table.Header>
+          {showPhase ? <Table.Header>Phase</Table.Header> : null}
+          <Table.Header>Tier</Table.Header>
+          <Table.Header>Mission function</Table.Header>
+          <Table.Header>Chain</Table.Header>
+          <Table.Header className="text-right">Path</Table.Header>
+          <Table.Header>Event</Table.Header>
+          <Table.Header>Status</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -699,7 +699,7 @@ export function ScenarioTable({
           const last = s.chain[s.chain.length - 1];
           const chainTitle = s.chain.map((step) => `${step.id} ${step.name}`).join(" → ");
           return (
-            <Tr
+            <Table.Row
               key={s.id}
               className={cn(
                 onSelect ? "cursor-pointer" : "",
@@ -707,22 +707,24 @@ export function ScenarioTable({
               )}
               onClick={onSelect ? () => onSelect(s.id) : undefined}
             >
-              <Td>
-                <Mono className={onSelect ? "text-primary" : "text-muted-foreground"}>{s.id}</Mono>
-              </Td>
-              <Td className="truncate" title={`${s.name} — ${s.objective}`}>
+              <Table.Cell>
+                <Id className={onSelect ? "text-primary" : "text-muted-foreground"}>{s.id}</Id>
+              </Table.Cell>
+              <Table.Cell className="truncate" title={`${s.name} — ${s.objective}`}>
                 {s.name}
-              </Td>
+              </Table.Cell>
               {showPhase ? (
-                <Td className="truncate">{phaseShort ? phaseShort(s.phase) : s.phase}</Td>
+                <Table.Cell className="truncate">
+                  {phaseShort ? phaseShort(s.phase) : s.phase}
+                </Table.Cell>
               ) : null}
-              <Td>
+              <Table.Cell>
                 <TierChip tier={s.tier} />
-              </Td>
-              <Td className="truncate" title={s.missionFunction}>
+              </Table.Cell>
+              <Table.Cell className="truncate" title={s.missionFunction}>
                 {s.missionFunction}
-              </Td>
-              <Td className="truncate" title={chainTitle}>
+              </Table.Cell>
+              <Table.Cell className="truncate" title={chainTitle}>
                 <span className="flex items-center gap-1.5">
                   <span className="tnum text-muted-foreground">{s.chain.length}</span>
                   <span className="min-w-0 truncate text-[12px] text-muted-foreground">
@@ -735,15 +737,15 @@ export function ScenarioTable({
                     </Badge>
                   ) : null}
                 </span>
-              </Td>
-              <Td className="tnum text-right" title={s.path.join(" → ")}>
+              </Table.Cell>
+              <Table.Cell className="tnum text-right" title={s.path.join(" → ")}>
                 {s.path.length} nodes
-              </Td>
-              <Td>{s.event ? <Mono>{s.event}</Mono> : <Dash />}</Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell>{s.event ? <Id>{s.event}</Id> : <Dash />}</Table.Cell>
+              <Table.Cell>
                 <Badge tone={scenarioStatusTone[s.status]}>{s.status}</Badge>
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           );
         })}
       </tbody>
@@ -806,7 +808,7 @@ function TechniqueStep({ step, n }: { step: ThreatScenario["chain"][number]; n: 
         ) : null}
       </div>
       <div className="mt-1 flex items-baseline gap-1.5">
-        <Mono>{step.id}</Mono>
+        <Id>{step.id}</Id>
       </div>
       <div className="mt-0.5 text-[12.5px] font-medium leading-snug">{step.name}</div>
     </div>
@@ -842,14 +844,14 @@ export function AttackChain({
   return (
     <Card className="p-4">
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <Mono>{scenario.id}</Mono>
+        <Id>{scenario.id}</Id>
         <h3 className="text-[13.5px] font-semibold">{scenario.name}</h3>
         <TierChip tier={scenario.tier} />
         <Badge tone={scenarioStatusTone[scenario.status]}>{scenario.status}</Badge>
         <span className="ml-auto text-[12px] text-muted-foreground">
           {scenario.event ? (
             <>
-              Executed by <Mono className="text-muted-foreground">{scenario.event}</Mono>
+              Executed by <Id className="text-muted-foreground">{scenario.event}</Id>
             </>
           ) : (
             "No test event assigned"
@@ -868,7 +870,7 @@ export function AttackChain({
           <span className="font-medium text-foreground">{scenario.missionFunction}</span>
         </span>
         <span>
-          Assumed start: <Mono className="text-muted-foreground">{scenario.entryPoint}</Mono>
+          Assumed start: <Id className="text-muted-foreground">{scenario.entryPoint}</Id>
           {entry && !entry.missing ? ` — ${entry.name}` : ""}
         </span>
         <span className="tnum">
@@ -969,7 +971,7 @@ export function AttackChain({
                     {i + 1}
                   </span>
                   <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                    <Mono className="text-muted-foreground">{node.id}</Mono>
+                    <Id className="text-muted-foreground">{node.id}</Id>
                     <span className="text-[12.5px] font-medium">
                       {node.missing ? "Not in the graph" : node.name}
                     </span>
@@ -1059,13 +1061,13 @@ export function MissionEffectTable({
       </colgroup>
       <thead>
         <tr>
-          <Th>Effect</Th>
-          <Th>Kind</Th>
-          <Th>Mission function</Th>
-          <Th>Scenario</Th>
-          <Th>Confirmed by</Th>
-          <Th>Reproduced</Th>
-          <Th>Findings</Th>
+          <Table.Header>Effect</Table.Header>
+          <Table.Header>Kind</Table.Header>
+          <Table.Header>Mission function</Table.Header>
+          <Table.Header>Scenario</Table.Header>
+          <Table.Header>Confirmed by</Table.Header>
+          <Table.Header>Reproduced</Table.Header>
+          <Table.Header>Findings</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -1074,28 +1076,28 @@ export function MissionEffectTable({
           const noWorkaround = e.workaround === "None identified";
           return (
             <Fragment key={e.id}>
-              <Tr className="border-0 hover:bg-transparent">
-                <Td>
-                  <Mono>{e.id}</Mono>
-                </Td>
-                <Td>
+              <Table.Row className="border-0 hover:bg-transparent">
+                <Table.Cell>
+                  <Id>{e.id}</Id>
+                </Table.Cell>
+                <Table.Cell>
                   <Badge tone={effectTone[e.effect]}>{e.effect}</Badge>
-                </Td>
-                <Td className="truncate" title={e.missionFunction}>
+                </Table.Cell>
+                <Table.Cell className="truncate" title={e.missionFunction}>
                   {e.missionFunction}
-                </Td>
-                <Td title={scenarioName?.(e.scenario) ?? e.scenario}>
-                  <Mono>{e.scenario}</Mono>
-                </Td>
-                <Td>
-                  <Mono>{e.confirmedBy}</Mono>
-                </Td>
-                <Td>
+                </Table.Cell>
+                <Table.Cell title={scenarioName?.(e.scenario) ?? e.scenario}>
+                  <Id>{e.scenario}</Id>
+                </Table.Cell>
+                <Table.Cell>
+                  <Id>{e.confirmedBy}</Id>
+                </Table.Cell>
+                <Table.Cell>
                   <Badge size="xs" tone={e.reproduced ? "neutral" : "warning"}>
                     {e.reproduced ? "Reproduced" : "Single observation"}
                   </Badge>
-                </Td>
-                <Td>
+                </Table.Cell>
+                <Table.Cell>
                   {e.findings.length === 0 ? (
                     <Badge size="xs" tone={none ? "neutral" : "danger"}>
                       {none ? "None needed" : "None raised"}
@@ -1103,14 +1105,14 @@ export function MissionEffectTable({
                   ) : (
                     <span className="flex flex-wrap gap-1">
                       {e.findings.map((f) => (
-                        <Mono key={f} className="text-muted-foreground">
+                        <Id key={f} className="text-muted-foreground">
                           {f}
-                        </Mono>
+                        </Id>
                       ))}
                     </span>
                   )}
-                </Td>
-              </Tr>
+                </Table.Cell>
+              </Table.Row>
               <tr className="border-b border-border-subtle last:border-0">
                 <td colSpan={7} className="px-3 pb-4 pt-0 align-top">
                   <div

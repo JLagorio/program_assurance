@@ -11,15 +11,12 @@ import {
   KeyValue,
   Meter,
   Modal,
-  Mono,
   Section,
   Select,
   Table,
-  Td,
   Textarea,
-  Th,
-  Tr,
-  Severity,
+  Id,
+  Indicator,
 } from "@/components/app/ui";
 import {
   authorization,
@@ -135,35 +132,35 @@ export function AuthorizationSection({
             </colgroup>
             <thead>
               <tr>
-                <Th>ID</Th>
-                <Th>Kind</Th>
-                <Th>Artifact</Th>
-                <Th>Version</Th>
-                <Th>Status</Th>
-                <Th className="text-right">Pages</Th>
-                <Th>Updated</Th>
-                <Th>Owner</Th>
+                <Table.Header>ID</Table.Header>
+                <Table.Header>Kind</Table.Header>
+                <Table.Header>Artifact</Table.Header>
+                <Table.Header>Version</Table.Header>
+                <Table.Header>Status</Table.Header>
+                <Table.Header className="text-right">Pages</Table.Header>
+                <Table.Header>Updated</Table.Header>
+                <Table.Header>Owner</Table.Header>
               </tr>
             </thead>
             <tbody>
               {packageArtifacts.map((a) => (
-                <Tr key={a.id}>
-                  <Td>
-                    <Mono>{a.id}</Mono>
-                  </Td>
-                  <Td>{a.kind}</Td>
-                  <Td>
+                <Table.Row key={a.id}>
+                  <Table.Cell>
+                    <Id>{a.id}</Id>
+                  </Table.Cell>
+                  <Table.Cell>{a.kind}</Table.Cell>
+                  <Table.Cell>
                     <span className="font-medium">{a.name}</span>
                     <span className="text-muted-foreground"> — {a.note}</span>
-                  </Td>
-                  <Td className="tnum">{a.version}</Td>
-                  <Td>
+                  </Table.Cell>
+                  <Table.Cell className="tnum">{a.version}</Table.Cell>
+                  <Table.Cell>
                     <Badge tone={packageStatusTone[a.status]}>{a.status}</Badge>
-                  </Td>
-                  <Td className="tnum text-right">{a.pages}</Td>
-                  <Td className="tnum">{a.updated}</Td>
-                  <Td>{a.owner}</Td>
-                </Tr>
+                  </Table.Cell>
+                  <Table.Cell className="tnum text-right">{a.pages}</Table.Cell>
+                  <Table.Cell className="tnum">{a.updated}</Table.Cell>
+                  <Table.Cell>{a.owner}</Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>
@@ -191,30 +188,30 @@ export function AuthorizationSection({
             </colgroup>
             <thead>
               <tr>
-                <Th>Grant</Th>
-                <Th>Person</Th>
-                <Th>Organization</Th>
-                <Th>Role</Th>
-                <Th>Access</Th>
-                <Th>Last viewed</Th>
-                <Th>Status</Th>
+                <Table.Header>Grant</Table.Header>
+                <Table.Header>Person</Table.Header>
+                <Table.Header>Organization</Table.Header>
+                <Table.Header>Role</Table.Header>
+                <Table.Header>Access</Table.Header>
+                <Table.Header>Last viewed</Table.Header>
+                <Table.Header>Status</Table.Header>
               </tr>
             </thead>
             <tbody>
               {enclaveGrants.map((g) => (
-                <Tr key={g.id}>
-                  <Td>
-                    <Mono>{g.id}</Mono>
-                  </Td>
-                  <Td>{g.person}</Td>
-                  <Td>{g.org}</Td>
-                  <Td>{g.role}</Td>
-                  <Td>{g.access}</Td>
-                  <Td className="tnum">{g.lastViewed}</Td>
-                  <Td>
+                <Table.Row key={g.id}>
+                  <Table.Cell>
+                    <Id>{g.id}</Id>
+                  </Table.Cell>
+                  <Table.Cell>{g.person}</Table.Cell>
+                  <Table.Cell>{g.org}</Table.Cell>
+                  <Table.Cell>{g.role}</Table.Cell>
+                  <Table.Cell>{g.access}</Table.Cell>
+                  <Table.Cell className="tnum">{g.lastViewed}</Table.Cell>
+                  <Table.Cell>
                     <Badge tone={grantTone[g.status]}>{g.status}</Badge>
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>
@@ -254,39 +251,39 @@ export function AuthorizationSection({
             </colgroup>
             <thead>
               <tr>
-                <Th>ID</Th>
-                <Th>Observation</Th>
-                <Th>Severity</Th>
-                <Th>Control</Th>
-                <Th>Status</Th>
-                <Th>Jira</Th>
-                <Th>Assignee</Th>
-                <Th className="text-right">Due</Th>
+                <Table.Header>ID</Table.Header>
+                <Table.Header>Observation</Table.Header>
+                <Table.Header>Severity</Table.Header>
+                <Table.Header>Control</Table.Header>
+                <Table.Header>Status</Table.Header>
+                <Table.Header>Jira</Table.Header>
+                <Table.Header>Assignee</Table.Header>
+                <Table.Header className="text-right">Due</Table.Header>
               </tr>
             </thead>
             <tbody>
               {rows.map((o) => (
-                <Tr key={o.id} className="cursor-pointer" onClick={() => setJiraFor(o)}>
-                  <Td>
-                    <Mono>{o.id}</Mono>
-                  </Td>
-                  <Td>
+                <Table.Row key={o.id} className="cursor-pointer" onClick={() => setJiraFor(o)}>
+                  <Table.Cell>
+                    <Id>{o.id}</Id>
+                  </Table.Cell>
+                  <Table.Cell>
                     <span className="font-medium">{o.title}</span>
                     <span className="text-muted-foreground"> — {o.loggedBy}</span>
-                  </Td>
-                  <Td>
-                    <Severity tone={severityTone[o.severity]}>{o.severity}</Severity>
-                  </Td>
-                  <Td>
-                    <Mono>{o.control}</Mono>
-                  </Td>
-                  <Td>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Indicator tone={severityTone[o.severity]}>{o.severity}</Indicator>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Id>{o.control}</Id>
+                  </Table.Cell>
+                  <Table.Cell>
                     <Badge tone={observationTone[o.status]}>{o.status}</Badge>
-                  </Td>
-                  <Td>{o.jira ? <Mono>{o.jira}</Mono> : "Not assigned"}</Td>
-                  <Td>{o.assignee}</Td>
-                  <Td className="tnum text-right">{o.due}</Td>
-                </Tr>
+                  </Table.Cell>
+                  <Table.Cell>{o.jira ? <Id>{o.jira}</Id> : "Not assigned"}</Table.Cell>
+                  <Table.Cell>{o.assignee}</Table.Cell>
+                  <Table.Cell className="tnum text-right">{o.due}</Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>
@@ -488,7 +485,9 @@ links:
           </pre>
           <div className="space-y-1.5 border-t border-border pt-3">
             <KeyValue label="Severity">
-              <Severity tone={severityTone[observation.severity]}>{observation.severity}</Severity>
+              <Indicator tone={severityTone[observation.severity]}>
+                {observation.severity}
+              </Indicator>
             </KeyValue>
             <KeyValue label="Current">
               <Badge tone={observationTone[observation.status]}>{observation.status}</Badge>
@@ -704,39 +703,39 @@ export function BriefingRoom() {
             </colgroup>
             <thead>
               <tr>
-                <Th>Risk</Th>
-                <Th>Title</Th>
-                <Th>Control</Th>
-                <Th>Likelihood</Th>
-                <Th>Residual</Th>
-                <Th>POA&M</Th>
-                <Th>Decision</Th>
+                <Table.Header>Risk</Table.Header>
+                <Table.Header>Title</Table.Header>
+                <Table.Header>Control</Table.Header>
+                <Table.Header>Likelihood</Table.Header>
+                <Table.Header>Residual</Table.Header>
+                <Table.Header>POA&M</Table.Header>
+                <Table.Header>Decision</Table.Header>
               </tr>
             </thead>
             <tbody>
               {risks.map((r) => (
-                <Tr key={r.id} className="cursor-pointer" onClick={() => setDeciding(r)}>
-                  <Td>
-                    <Mono>{r.id}</Mono>
-                  </Td>
-                  <Td>
+                <Table.Row key={r.id} className="cursor-pointer" onClick={() => setDeciding(r)}>
+                  <Table.Cell>
+                    <Id>{r.id}</Id>
+                  </Table.Cell>
+                  <Table.Cell>
                     <span className="font-medium">{r.title}</span>
                     <span className="text-muted-foreground"> — {r.mitigation}</span>
-                  </Td>
-                  <Td>
-                    <Mono>{r.control}</Mono>
-                  </Td>
-                  <Td>{r.likelihood}</Td>
-                  <Td>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Id>{r.control}</Id>
+                  </Table.Cell>
+                  <Table.Cell>{r.likelihood}</Table.Cell>
+                  <Table.Cell>
                     <Badge tone={residualTone[r.residual]}>{r.residual}</Badge>
-                  </Td>
-                  <Td>
-                    <Mono>{r.poam}</Mono>
-                  </Td>
-                  <Td>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Id>{r.poam}</Id>
+                  </Table.Cell>
+                  <Table.Cell>
                     <Badge tone={decisionTone[r.decision]}>{r.decision}</Badge>
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>
@@ -757,30 +756,30 @@ export function BriefingRoom() {
             </colgroup>
             <thead>
               <tr>
-                <Th>ID</Th>
-                <Th>Observation</Th>
-                <Th>Severity</Th>
-                <Th>Status</Th>
-                <Th>Jira</Th>
-                <Th className="text-right">Due</Th>
+                <Table.Header>ID</Table.Header>
+                <Table.Header>Observation</Table.Header>
+                <Table.Header>Severity</Table.Header>
+                <Table.Header>Status</Table.Header>
+                <Table.Header>Jira</Table.Header>
+                <Table.Header className="text-right">Due</Table.Header>
               </tr>
             </thead>
             <tbody>
               {openObservations.map((o) => (
-                <Tr key={o.id}>
-                  <Td>
-                    <Mono>{o.id}</Mono>
-                  </Td>
-                  <Td>{o.title}</Td>
-                  <Td>
-                    <Severity tone={severityTone[o.severity]}>{o.severity}</Severity>
-                  </Td>
-                  <Td>
+                <Table.Row key={o.id}>
+                  <Table.Cell>
+                    <Id>{o.id}</Id>
+                  </Table.Cell>
+                  <Table.Cell>{o.title}</Table.Cell>
+                  <Table.Cell>
+                    <Indicator tone={severityTone[o.severity]}>{o.severity}</Indicator>
+                  </Table.Cell>
+                  <Table.Cell>
                     <Badge tone={observationTone[o.status]}>{o.status}</Badge>
-                  </Td>
-                  <Td>{o.jira ? <Mono>{o.jira}</Mono> : "Not assigned"}</Td>
-                  <Td className="tnum text-right">{o.due}</Td>
-                </Tr>
+                  </Table.Cell>
+                  <Table.Cell>{o.jira ? <Id>{o.jira}</Id> : "Not assigned"}</Table.Cell>
+                  <Table.Cell className="tnum text-right">{o.due}</Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>
@@ -839,7 +838,7 @@ function RiskDecisionModal({
               <Badge tone={residualTone[risk.residual]}>{risk.residual}</Badge>
             </KeyValue>
             <KeyValue label="POA&M">
-              <Mono>{risk.poam}</Mono>
+              <Id>{risk.poam}</Id>
             </KeyValue>
           </div>
           <p className="border-t border-border pt-3 text-[12px] text-muted-foreground">

@@ -10,12 +10,12 @@ import {
   Badge,
   Button,
   KeyValue,
-  Mono,
   RailGroup,
   RecordHeader,
   Section,
   ShowPage,
-  TabStrip,
+  Id,
+  Tabs,
 } from "@/components/app/ui";
 import { programs } from "@/lib/grc-data";
 import {
@@ -182,7 +182,7 @@ function RequirementRecord() {
                           search={{ tab: undefined }}
                           className="hover:underline"
                         >
-                          <Mono className="text-primary">{d.sourceId}</Mono>
+                          <Id className="text-primary">{d.sourceId}</Id>
                         </Link>
                       ))}
                     </span>
@@ -195,7 +195,7 @@ function RequirementRecord() {
           />
         }
         tabs={
-          <TabStrip
+          <Tabs
             items={(
               [
                 ["Overview", allocations.length || null],
@@ -248,7 +248,7 @@ function RequirementRecord() {
                     search={{ tab: undefined }}
                     className="hover:underline"
                   >
-                    <Mono className="text-primary">{parent.id}</Mono>
+                    <Id className="text-primary">{parent.id}</Id>
                   </Link>
                 ) : (
                   "Top level"
@@ -263,7 +263,7 @@ function RequirementRecord() {
                     params={{ workstreamId: requirement.workstream }}
                     className="hover:underline"
                   >
-                    <Mono className="text-primary">{requirement.workstream}</Mono>
+                    <Id className="text-primary">{requirement.workstream}</Id>
                   </Link>
                 ) : (
                   "—"
@@ -276,7 +276,7 @@ function RequirementRecord() {
                   search={{ tab: "Requirements" }}
                   className="hover:underline"
                 >
-                  <Mono className="text-primary">{programId}</Mono>
+                  <Id className="text-primary">{programId}</Id>
                 </Link>
               </KeyValue>
             </RailGroup>
@@ -362,7 +362,7 @@ function SourceRef({
         search={{ tab: undefined }}
         className="hover:underline"
       >
-        <Mono className="text-primary">{sourceId}</Mono>
+        <Id className="text-primary">{sourceId}</Id>
       </Link>
     );
   }
@@ -374,7 +374,7 @@ function SourceRef({
         search={{ tab: "Threat scenarios", scenario: sourceId }}
         className="hover:underline"
       >
-        <Mono className="text-primary">{sourceId}</Mono>
+        <Id className="text-primary">{sourceId}</Id>
       </Link>
     );
   }
@@ -385,7 +385,7 @@ function SourceRef({
         params={{ componentKey: sourceId }}
         className="hover:underline"
       >
-        <Mono className="text-primary">{sourceId}</Mono>
+        <Id className="text-primary">{sourceId}</Id>
       </Link>
     );
   }
@@ -396,7 +396,7 @@ function SourceRef({
         params={{ workstreamId: sourceId }}
         className="hover:underline"
       >
-        <Mono className="text-primary">{sourceId}</Mono>
+        <Id className="text-primary">{sourceId}</Id>
       </Link>
     );
   }

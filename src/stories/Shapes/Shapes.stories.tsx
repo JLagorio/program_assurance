@@ -10,19 +10,7 @@ import {
   WorkPane,
   WorkPaneRow,
 } from "@/components/app/shapes";
-import {
-  Badge,
-  Button,
-  EmptyState,
-  IdCell,
-  Mono,
-  Person,
-  TabStrip,
-  Table,
-  Td,
-  Th,
-  Tr,
-} from "@/components/app/ui";
+import { Badge, Button, EmptyState, Person, Table, Id, Tabs } from "@/components/app/ui";
 import type { Tone } from "@/components/app/ui";
 import { Spec } from "../_lib/tokens";
 
@@ -96,20 +84,20 @@ function FindingsTable() {
     <Table>
       <thead>
         <tr>
-          <Th className="w-[104px]">Finding</Th>
-          <Th>Title</Th>
-          <Th className="w-[128px]">Status</Th>
+          <Table.Header className="w-[104px]">Finding</Table.Header>
+          <Table.Header>Title</Table.Header>
+          <Table.Header className="w-[128px]">Status</Table.Header>
         </tr>
       </thead>
       <tbody>
         {findings.map((f) => (
-          <Tr key={f.id}>
-            <IdCell id={f.id} />
-            <Td>{f.title}</Td>
-            <Td>
+          <Table.Row key={f.id}>
+            <Table.Id id={f.id} />
+            <Table.Cell>{f.title}</Table.Cell>
+            <Table.Cell>
               <Badge tone={f.tone}>{f.status}</Badge>
-            </Td>
-          </Tr>
+            </Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>
@@ -149,7 +137,7 @@ function WorkPaneDemo() {
           <div className="space-y-6">
             <div>
               <div className="flex items-baseline gap-2.5">
-                <Mono className="text-muted-foreground">{current.id}</Mono>
+                <Id className="text-muted-foreground">{current.id}</Id>
                 <h1 className="text-[17px] font-semibold leading-tight tracking-[-0.015em]">
                   {current.title}
                 </h1>
@@ -188,7 +176,7 @@ export const WorkPaneStory: Story = {
 };
 
 const tabs = (
-  <TabStrip
+  <Tabs
     items={[
       { key: "overview", label: "Overview", active: true, onSelect: noop },
       { key: "objectives", label: "Objectives", onSelect: noop },
@@ -263,7 +251,7 @@ export const InspectorStory: Story = {
             rows: [
               { label: "Owner", value: <Person name="D. Reyes" /> },
               { label: "Assessor", value: <Person name="K. Lund" /> },
-              { label: "Package", value: <Mono>PKG-2026-114</Mono> },
+              { label: "Package", value: <Id>PKG-2026-114</Id> },
             ],
           },
           {
@@ -315,7 +303,7 @@ export const DisclosureAndBlock: Story = {
         <ol className="space-y-1.5 text-[13px]">
           {objectives.map((o, i) => (
             <li key={o} className="flex items-baseline gap-2">
-              <Mono className="text-muted-foreground">AC-2(3)[0{i + 1}]</Mono>
+              <Id className="text-muted-foreground">AC-2(3)[0{i + 1}]</Id>
               <span>{o}</span>
             </li>
           ))}

@@ -3,17 +3,13 @@ import { useMemo, useState } from "react";
 
 import {
   Badge,
-  IdCell,
   KeyValue,
   Meter,
-  Mono,
   PreviewRail,
   RailGroup,
   Section,
   Table,
-  Td,
-  Th,
-  Tr,
+  Id,
 } from "@/components/app/ui";
 import {
   allocationFor,
@@ -94,42 +90,44 @@ export function TeamSection({ programId }: { programId: string }) {
               </colgroup>
               <thead>
                 <tr>
-                  <Th>Workstream</Th>
-                  <Th>Title</Th>
-                  <Th>Lead</Th>
-                  <Th>Status</Th>
-                  <Th className="text-right">Team</Th>
-                  <Th>Depends on</Th>
-                  <Th className="text-right">Gate · due</Th>
+                  <Table.Header>Workstream</Table.Header>
+                  <Table.Header>Title</Table.Header>
+                  <Table.Header>Lead</Table.Header>
+                  <Table.Header>Status</Table.Header>
+                  <Table.Header className="text-right">Team</Table.Header>
+                  <Table.Header>Depends on</Table.Header>
+                  <Table.Header className="text-right">Gate · due</Table.Header>
                 </tr>
               </thead>
               <tbody>
                 {streams.map((w) => (
-                  <Tr
+                  <Table.Row
                     key={w.id}
                     className="cursor-pointer"
                     onClick={() =>
                       navigate({ to: "/workstreams/$workstreamId", params: { workstreamId: w.id } })
                     }
                   >
-                    <IdCell id={w.id} active={ws?.id === w.id} onPreview={() => setWs(w)} />
-                    <Td className="truncate">{w.title}</Td>
-                    <Td className="truncate">{personById.get(w.lead)?.name ?? "—"}</Td>
-                    <Td>
+                    <Table.Id id={w.id} active={ws?.id === w.id} onPreview={() => setWs(w)} />
+                    <Table.Cell className="truncate">{w.title}</Table.Cell>
+                    <Table.Cell className="truncate">
+                      {personById.get(w.lead)?.name ?? "—"}
+                    </Table.Cell>
+                    <Table.Cell>
                       <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
-                    </Td>
-                    <Td className="tnum text-right">{w.members.length}</Td>
-                    <Td className="truncate">
+                    </Table.Cell>
+                    <Table.Cell className="tnum text-right">{w.members.length}</Table.Cell>
+                    <Table.Cell className="truncate">
                       {w.dependsOn.length ? (
-                        <Mono>{w.dependsOn.join(", ")}</Mono>
+                        <Id>{w.dependsOn.join(", ")}</Id>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
-                    </Td>
-                    <Td className="truncate text-right">
+                    </Table.Cell>
+                    <Table.Cell className="truncate text-right">
                       {w.gate} · {w.due}
-                    </Td>
-                  </Tr>
+                    </Table.Cell>
+                  </Table.Row>
                 ))}
               </tbody>
             </Table>
@@ -148,37 +146,39 @@ export function TeamSection({ programId }: { programId: string }) {
               </colgroup>
               <thead>
                 <tr>
-                  <Th>Person</Th>
-                  <Th>Name</Th>
-                  <Th>Title</Th>
-                  <Th>Discipline</Th>
-                  <Th>Clearance</Th>
-                  <Th className="text-right">WS</Th>
-                  <Th>Allocation</Th>
+                  <Table.Header>Person</Table.Header>
+                  <Table.Header>Name</Table.Header>
+                  <Table.Header>Title</Table.Header>
+                  <Table.Header>Discipline</Table.Header>
+                  <Table.Header>Clearance</Table.Header>
+                  <Table.Header className="text-right">WS</Table.Header>
+                  <Table.Header>Allocation</Table.Header>
                 </tr>
               </thead>
               <tbody>
                 {roster.map((p) => {
                   const alloc = allocationFor(p.id);
                   return (
-                    <Tr
+                    <Table.Row
                       key={p.id}
                       className="cursor-pointer"
                       onClick={() =>
                         navigate({ to: "/people/$personId", params: { personId: p.id } })
                       }
                     >
-                      <IdCell
+                      <Table.Id
                         id={p.id}
                         active={person?.id === p.id}
                         onPreview={() => setPerson(p)}
                       />
-                      <Td className="truncate">{p.name}</Td>
-                      <Td className="truncate">{p.title}</Td>
-                      <Td className="truncate">{p.discipline}</Td>
-                      <Td className="truncate">{p.clearance}</Td>
-                      <Td className="tnum text-right">{workstreamsForPerson(p.id).length}</Td>
-                      <Td>
+                      <Table.Cell className="truncate">{p.name}</Table.Cell>
+                      <Table.Cell className="truncate">{p.title}</Table.Cell>
+                      <Table.Cell className="truncate">{p.discipline}</Table.Cell>
+                      <Table.Cell className="truncate">{p.clearance}</Table.Cell>
+                      <Table.Cell className="tnum text-right">
+                        {workstreamsForPerson(p.id).length}
+                      </Table.Cell>
+                      <Table.Cell>
                         <span className="flex items-center gap-2">
                           <span className="w-12">
                             <Meter
@@ -196,8 +196,8 @@ export function TeamSection({ programId }: { programId: string }) {
                             {alloc}%
                           </span>
                         </span>
-                      </Td>
-                    </Tr>
+                      </Table.Cell>
+                    </Table.Row>
                   );
                 })}
               </tbody>
@@ -214,19 +214,19 @@ export function TeamSection({ programId }: { programId: string }) {
               </colgroup>
               <thead>
                 <tr>
-                  <Th>Discipline</Th>
-                  <Th>Works with</Th>
-                  <Th className="text-right">Shared</Th>
-                  <Th>Via workstreams</Th>
+                  <Table.Header>Discipline</Table.Header>
+                  <Table.Header>Works with</Table.Header>
+                  <Table.Header className="text-right">Shared</Table.Header>
+                  <Table.Header>Via workstreams</Table.Header>
                 </tr>
               </thead>
               <tbody>
                 {edges.map((e) => (
-                  <Tr key={`${e.a}-${e.b}`}>
-                    <Td className="truncate">{e.a}</Td>
-                    <Td className="truncate">{e.b}</Td>
-                    <Td className="tnum text-right">{e.via.length}</Td>
-                    <Td className="truncate">
+                  <Table.Row key={`${e.a}-${e.b}`}>
+                    <Table.Cell className="truncate">{e.a}</Table.Cell>
+                    <Table.Cell className="truncate">{e.b}</Table.Cell>
+                    <Table.Cell className="tnum text-right">{e.via.length}</Table.Cell>
+                    <Table.Cell className="truncate">
                       <span className="flex flex-wrap items-center gap-x-2">
                         {e.via.map((id) => (
                           <Link
@@ -235,12 +235,12 @@ export function TeamSection({ programId }: { programId: string }) {
                             params={{ workstreamId: id }}
                             className="text-primary hover:underline"
                           >
-                            <Mono>{id}</Mono>
+                            <Id>{id}</Id>
                           </Link>
                         ))}
                       </span>
-                    </Td>
-                  </Tr>
+                    </Table.Cell>
+                  </Table.Row>
                 ))}
               </tbody>
             </Table>
@@ -275,13 +275,13 @@ export function TeamSection({ programId }: { programId: string }) {
               </RailGroup>
               <RailGroup title="Joins">
                 <KeyValue label="Controls">
-                  <Mono>{ws.controls.join(", ")}</Mono>
+                  <Id>{ws.controls.join(", ")}</Id>
                 </KeyValue>
                 <KeyValue label="CCIs">
-                  {ws.ccis.length ? <Mono>{ws.ccis.join(", ")}</Mono> : "—"}
+                  {ws.ccis.length ? <Id>{ws.ccis.join(", ")}</Id> : "—"}
                 </KeyValue>
                 <KeyValue label="Depends on">
-                  {ws.dependsOn.length ? <Mono>{ws.dependsOn.join(", ")}</Mono> : "—"}
+                  {ws.dependsOn.length ? <Id>{ws.dependsOn.join(", ")}</Id> : "—"}
                 </KeyValue>
               </RailGroup>
             </div>

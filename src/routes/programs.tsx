@@ -11,15 +11,12 @@ import {
   Input,
   Meter,
   Modal,
-  Mono,
   PageHeader,
   Select,
   IndexPage,
   Table,
-  Td,
   Textarea,
-  Th,
-  Tr,
+  Id,
 } from "@/components/app/ui";
 import { baselineCounts, programStatusTone, programs, type ImpactLevel } from "@/lib/grc-data";
 
@@ -149,23 +146,23 @@ function ProgramList() {
       <Table>
         <thead>
           <tr>
-            <Th className="w-8 pr-0" />
-            <Th className="w-[92px]">Program</Th>
-            <Th>System</Th>
-            <Th className="w-[104px]">Impact</Th>
-            <Th className="w-[132px]">Baseline</Th>
-            <Th className="w-[168px]">Assessment</Th>
-            <Th className="w-[124px]">Status</Th>
-            <Th className="w-[120px]">Owner</Th>
-            <Th className="w-[112px] text-right">Expires</Th>
+            <Table.Header className="w-8 pr-0" />
+            <Table.Header className="w-[92px]">Program</Table.Header>
+            <Table.Header>System</Table.Header>
+            <Table.Header className="w-[104px]">Impact</Table.Header>
+            <Table.Header className="w-[132px]">Baseline</Table.Header>
+            <Table.Header className="w-[168px]">Assessment</Table.Header>
+            <Table.Header className="w-[124px]">Status</Table.Header>
+            <Table.Header className="w-[120px]">Owner</Table.Header>
+            <Table.Header className="w-[112px] text-right">Expires</Table.Header>
           </tr>
         </thead>
         <tbody>
           {rows.map((p) => {
             const pct = Math.round((p.controlsAssessed / p.controlsTotal) * 100);
             return (
-              <Tr key={p.id} className="group">
-                <Td className="w-8 pr-0">
+              <Table.Row key={p.id} className="group">
+                <Table.Cell className="w-8 pr-0">
                   <input
                     type="checkbox"
                     aria-label={`Select ${p.id}`}
@@ -173,11 +170,11 @@ function ProgramList() {
                     onChange={() => toggle(p.id)}
                     className="size-3.5 accent-[oklch(0.55_0.19_258)]"
                   />
-                </Td>
-                <Td className="w-[92px]">
-                  <Mono>{p.id}</Mono>
-                </Td>
-                <Td>
+                </Table.Cell>
+                <Table.Cell className="w-[92px]">
+                  <Id>{p.id}</Id>
+                </Table.Cell>
+                <Table.Cell>
                   <Link
                     to="/programs/$programId"
                     params={{ programId: p.id }}
@@ -186,8 +183,8 @@ function ProgramList() {
                     {p.name}
                   </Link>
                   <span className="ml-2 text-muted-foreground">{p.system}</span>
-                </Td>
-                <Td className="w-[104px]">
+                </Table.Cell>
+                <Table.Cell className="w-[104px]">
                   <Badge
                     tone={
                       p.impact === "High"
@@ -199,9 +196,9 @@ function ProgramList() {
                   >
                     {p.impact}
                   </Badge>
-                </Td>
-                <Td className="w-[132px]">Rev. 5 · {p.impact}</Td>
-                <Td className="w-[168px]">
+                </Table.Cell>
+                <Table.Cell className="w-[132px]">Rev. 5 · {p.impact}</Table.Cell>
+                <Table.Cell className="w-[168px]">
                   <span className="flex items-center gap-2">
                     <span className="w-16">
                       <Meter value={pct} tone={pct === 100 ? "success" : "info"} />
@@ -210,13 +207,13 @@ function ProgramList() {
                       {p.controlsAssessed}/{p.controlsTotal}
                     </span>
                   </span>
-                </Td>
-                <Td className="w-[124px]">
+                </Table.Cell>
+                <Table.Cell className="w-[124px]">
                   <Badge tone={programStatusTone[p.status]}>{p.status}</Badge>
-                </Td>
-                <Td className="w-[120px]">{p.owner}</Td>
-                <Td className="tnum w-[112px] text-right">{p.expires}</Td>
-              </Tr>
+                </Table.Cell>
+                <Table.Cell className="w-[120px]">{p.owner}</Table.Cell>
+                <Table.Cell className="tnum w-[112px] text-right">{p.expires}</Table.Cell>
+              </Table.Row>
             );
           })}
         </tbody>

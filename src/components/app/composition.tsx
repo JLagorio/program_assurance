@@ -23,16 +23,12 @@ import {
   Dot,
   KeyValue,
   Meter,
-  Mono,
   RailGroup,
-  StackedBar,
   Table,
-  Td,
-  Th,
   Toolbar,
-  Tr,
   type Tone,
-  Severity,
+  Id,
+  Indicator,
 } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import type { CompositionNode } from "@/lib/composition";
@@ -336,10 +332,10 @@ function BomTreeRow({
         {node.kind}
       </Badge>
       {node.version === "—" ? null : (
-        <Mono className="shrink-0 text-muted-foreground">{node.version}</Mono>
+        <Id className="shrink-0 text-muted-foreground">{node.version}</Id>
       )}
       {node.asset ? (
-        <Mono className="hidden shrink-0 text-muted-foreground sm:inline">{node.asset}</Mono>
+        <Id className="hidden shrink-0 text-muted-foreground sm:inline">{node.asset}</Id>
       ) : null}
     </>
   );
@@ -447,18 +443,18 @@ export function NodeRail({
     <>
       <RailGroup title="Component">
         <KeyValue label="Node">
-          <Mono>{node.id}</Mono>
+          <Id>{node.id}</Id>
         </KeyValue>
         <KeyValue label="Kind">{node.kind}</KeyValue>
         <KeyValue label="Class">{node.class}</KeyValue>
         <KeyValue label="Version">
-          {node.version === "—" ? <Dash /> : <Mono>{node.version}</Mono>}
+          {node.version === "—" ? <Dash /> : <Id>{node.version}</Id>}
         </KeyValue>
         <KeyValue label="Criticality">{node.criticality}</KeyValue>
         <KeyValue label="Trust zone">{node.zone}</KeyValue>
         {node.asset ? (
           <KeyValue label="Asset">
-            <Mono>{node.asset}</Mono>
+            <Id>{node.asset}</Id>
           </KeyValue>
         ) : null}
       </RailGroup>
@@ -468,24 +464,24 @@ export function NodeRail({
         <KeyValue label="Origin">{node.origin}</KeyValue>
         <KeyValue label="Part key">
           <span title={node.partKey}>
-            <Mono>{node.partKey}</Mono>
+            <Id>{node.partKey}</Id>
           </span>
         </KeyValue>
         {node.partNumber ? (
           <KeyValue label="Part number">
-            <Mono>{node.partNumber}</Mono>
+            <Id>{node.partNumber}</Id>
           </KeyValue>
         ) : null}
         {node.digest ? (
           <KeyValue label="Digest">
             <span title={node.digest}>
-              <Mono>{shortDigest(node.digest)}</Mono>
+              <Id>{shortDigest(node.digest)}</Id>
             </span>
           </KeyValue>
         ) : null}
         {node.eol ? <KeyValue label="End of life">{node.eol}</KeyValue> : null}
         <KeyValue label="BOM source">{node.bomSource}</KeyValue>
-        <KeyValue label="BOM document">{node.bom ? <Mono>{node.bom}</Mono> : <Dash />}</KeyValue>
+        <KeyValue label="BOM document">{node.bom ? <Id>{node.bom}</Id> : <Dash />}</KeyValue>
         <KeyValue label="Attested">
           <Badge size="xs" tone={node.attested ? "success" : "warning"}>
             {node.attested ? "On file" : "Not on file"}
@@ -503,7 +499,7 @@ export function NodeRail({
           </KeyValue>
           <KeyValue label="Worst">
             {posture.worst ? (
-              <Severity tone={severityToneOf(posture.worst)}>{posture.worst}</Severity>
+              <Indicator tone={severityToneOf(posture.worst)}>{posture.worst}</Indicator>
             ) : (
               <Dash />
             )}
@@ -555,12 +551,12 @@ export function PostureStrip({ posture }: { posture: NodePosture }) {
         </span>
         {posture.worst ? (
           <span className="ml-auto flex items-center">
-            <Severity tone={severityToneOf(posture.worst)}>Worst {posture.worst}</Severity>
+            <Indicator tone={severityToneOf(posture.worst)}>Worst {posture.worst}</Indicator>
           </span>
         ) : null}
       </div>
 
-      <StackedBar
+      <Meter.Stacked
         segments={legend.map((l) => ({
           key: l.key,
           value: l.value,
@@ -638,61 +634,61 @@ export function ReconciliationTable({
       </colgroup>
       <thead>
         <tr>
-          <Th>Asset</Th>
-          <Th>Component</Th>
-          <Th>Scanner declared</Th>
-          <Th>Register tracked</Th>
-          <Th className="text-right">Delta</Th>
-          <Th>State</Th>
-          <Th>Note</Th>
+          <Table.Header>Asset</Table.Header>
+          <Table.Header>Component</Table.Header>
+          <Table.Header>Scanner declared</Table.Header>
+          <Table.Header>Register tracked</Table.Header>
+          <Table.Header className="text-right">Delta</Table.Header>
+          <Table.Header>State</Table.Header>
+          <Table.Header>Note</Table.Header>
         </tr>
       </thead>
       <tbody>
         {rows.map((r) => (
-          <Tr
+          <Table.Row
             key={r.asset}
             className={onSelect ? "cursor-pointer" : undefined}
             onClick={onSelect ? () => onSelect(r.asset) : undefined}
           >
-            <Td>
-              <Mono className={onSelect ? "text-primary" : "text-muted-foreground"}>{r.asset}</Mono>
-            </Td>
-            <Td className="truncate" title={r.name}>
+            <Table.Cell>
+              <Id className={onSelect ? "text-primary" : "text-muted-foreground"}>{r.asset}</Id>
+            </Table.Cell>
+            <Table.Cell className="truncate" title={r.name}>
               {r.name}
-            </Td>
-            <Td>
+            </Table.Cell>
+            <Table.Cell>
               <CatTriple
                 catI={r.declared.catI}
                 catII={r.declared.catII}
                 catIII={r.declared.catIII}
                 total={r.declared.total}
               />
-            </Td>
-            <Td>
+            </Table.Cell>
+            <Table.Cell>
               <CatTriple
                 catI={r.derived.catI}
                 catII={r.derived.catII}
                 catIII={r.derived.catIII}
                 total={r.derived.total}
               />
-            </Td>
-            <Td
+            </Table.Cell>
+            <Table.Cell
               className={cn(
                 "tnum text-right",
                 r.delta === 0 ? "text-muted-foreground" : "font-medium text-warning",
               )}
             >
               {r.delta > 0 ? `+${r.delta}` : r.delta}
-            </Td>
-            <Td>
+            </Table.Cell>
+            <Table.Cell>
               <Badge size="xs" tone={r.agrees ? "success" : "warning"}>
                 {r.agrees ? "Reconciled" : "Unreconciled"}
               </Badge>
-            </Td>
-            <Td className="truncate" title={r.note}>
+            </Table.Cell>
+            <Table.Cell className="truncate" title={r.note}>
               {r.note}
-            </Td>
-          </Tr>
+            </Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>
@@ -906,13 +902,13 @@ export function SupplyChainTable({
       </colgroup>
       <thead>
         <tr>
-          <Th>Supplier</Th>
-          <Th>Origin</Th>
-          <Th className="text-right">Parts</Th>
-          <Th className="text-right">Critical</Th>
-          <Th>Attestation</Th>
-          <Th className="text-right">Unattested</Th>
-          <Th>Earliest EOL</Th>
+          <Table.Header>Supplier</Table.Header>
+          <Table.Header>Origin</Table.Header>
+          <Table.Header className="text-right">Parts</Table.Header>
+          <Table.Header className="text-right">Critical</Table.Header>
+          <Table.Header>Attestation</Table.Header>
+          <Table.Header className="text-right">Unattested</Table.Header>
+          <Table.Header>Earliest EOL</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -920,21 +916,21 @@ export function SupplyChainTable({
           const origin = r.origins[0] ?? "Unknown";
           const past = r.eolKey <= today;
           return (
-            <Tr key={r.supplier}>
-              <Td className="truncate" title={r.supplier}>
+            <Table.Row key={r.supplier}>
+              <Table.Cell className="truncate" title={r.supplier}>
                 {r.supplier}
-              </Td>
-              <Td className="truncate" title={r.origins.join(", ")}>
+              </Table.Cell>
+              <Table.Cell className="truncate" title={r.origins.join(", ")}>
                 <Badge size="xs" tone={originTone[origin] ?? "neutral"}>
                   {r.origins.length > 1 ? `${origin} +${r.origins.length - 1}` : origin}
                 </Badge>
-              </Td>
-              <Td className="tnum text-right">{r.parts}</Td>
-              <Td className="tnum text-right">{r.critical}</Td>
-              <Td>
+              </Table.Cell>
+              <Table.Cell className="tnum text-right">{r.parts}</Table.Cell>
+              <Table.Cell className="tnum text-right">{r.critical}</Table.Cell>
+              <Table.Cell>
                 <span className="flex items-center gap-2">
                   <span className="w-20">
-                    <StackedBar
+                    <Meter.Stacked
                       height={4}
                       segments={[
                         { key: "a", value: r.attested, tone: "success" },
@@ -946,20 +942,20 @@ export function SupplyChainTable({
                     {r.attested}/{r.parts}
                   </span>
                 </span>
-              </Td>
-              <Td
+              </Table.Cell>
+              <Table.Cell
                 className={cn(
                   "tnum text-right",
                   r.unattested > 0 ? "font-medium text-warning" : "text-muted-foreground",
                 )}
               >
                 {r.unattested}
-              </Td>
-              <Td className={cn("tnum", past && "text-danger")}>
+              </Table.Cell>
+              <Table.Cell className={cn("tnum", past && "text-danger")}>
                 {r.eol === "—" ? <Dash /> : r.eol}
                 {past ? <span className="pl-1 text-11">past</span> : null}
-              </Td>
-            </Tr>
+              </Table.Cell>
+            </Table.Row>
           );
         })}
       </tbody>

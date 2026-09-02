@@ -21,8 +21,8 @@ import {
   Section,
   Select,
   ShowPage,
-  TabStrip,
   Toolbar,
+  Tabs,
 } from "@/components/app/ui";
 import {
   acknowledgeChange,
@@ -293,7 +293,7 @@ function ProgramBaseline() {
           />
         }
         tabs={
-          <TabStrip
+          <Tabs
             items={baselineTabs.map((key) => ({
               key,
               label: key,

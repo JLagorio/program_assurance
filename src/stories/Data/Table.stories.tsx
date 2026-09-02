@@ -4,18 +4,14 @@ import { useState } from "react";
 
 import {
   Badge,
-  Severity as SeverityText,
   Button,
   Card,
   CardHeader,
   EmptyState,
-  IdCell,
-  Mono,
   Person,
   Table,
-  Td,
-  Th,
-  Tr,
+  Indicator,
+  Id,
 } from "@/components/app/ui";
 import type { Tone } from "@/components/app/ui";
 import { Spec } from "../_lib/tokens";
@@ -129,20 +125,20 @@ const findings: Finding[] = [
 /** Badges only at the top of the ladder; the rest is text (status-vocabulary.md). */
 function SeverityCell({ severity }: { severity: Severity }) {
   const tone = severity === "Critical" ? "danger" : severity === "High" ? "warning" : "neutral";
-  return <SeverityText tone={tone}>{severity}</SeverityText>;
+  return <Indicator tone={tone}>{severity}</Indicator>;
 }
 
 function Head() {
   return (
     <thead>
       <tr>
-        <Th className="w-[104px]">Finding</Th>
-        <Th>Title</Th>
-        <Th className="w-[96px]">Control</Th>
-        <Th className="w-[96px]">Severity</Th>
-        <Th className="w-[140px]">Status</Th>
-        <Th className="w-[140px]">Owner</Th>
-        <Th className="w-[120px] text-right">Due</Th>
+        <Table.Header className="w-[104px]">Finding</Table.Header>
+        <Table.Header>Title</Table.Header>
+        <Table.Header className="w-[96px]">Control</Table.Header>
+        <Table.Header className="w-[96px]">Severity</Table.Header>
+        <Table.Header className="w-[140px]">Status</Table.Header>
+        <Table.Header className="w-[140px]">Owner</Table.Header>
+        <Table.Header className="w-[120px] text-right">Due</Table.Header>
       </tr>
     </thead>
   );
@@ -151,20 +147,20 @@ function Head() {
 function Cells({ f }: { f: Finding }) {
   return (
     <>
-      <Td>{f.title}</Td>
-      <Td>
-        <Mono>{f.control}</Mono>
-      </Td>
-      <Td>
+      <Table.Cell>{f.title}</Table.Cell>
+      <Table.Cell>
+        <Id>{f.control}</Id>
+      </Table.Cell>
+      <Table.Cell>
         <SeverityCell severity={f.severity} />
-      </Td>
-      <Td>
+      </Table.Cell>
+      <Table.Cell>
         <Badge tone={f.tone}>{f.status}</Badge>
-      </Td>
-      <Td>
+      </Table.Cell>
+      <Table.Cell>
         <Person name={f.owner} />
-      </Td>
-      <Td className="tnum text-right">{f.due}</Td>
+      </Table.Cell>
+      <Table.Cell className="tnum text-right">{f.due}</Table.Cell>
     </>
   );
 }
@@ -178,10 +174,10 @@ export const Dense: Story = {
         <Head />
         <tbody>
           {findings.map((f) => (
-            <Tr key={f.id}>
-              <IdCell id={f.id} />
+            <Table.Row key={f.id}>
+              <Table.Id id={f.id} />
               <Cells f={f} />
-            </Tr>
+            </Table.Row>
           ))}
         </tbody>
       </Table>
@@ -198,10 +194,10 @@ function PreviewTable() {
           <Head />
           <tbody>
             {findings.map((f) => (
-              <Tr key={f.id}>
-                <IdCell id={f.id} active={f.id === active} onPreview={() => setActive(f.id)} />
+              <Table.Row key={f.id}>
+                <Table.Id id={f.id} active={f.id === active} onPreview={() => setActive(f.id)} />
                 <Cells f={f} />
-              </Tr>
+              </Table.Row>
             ))}
           </tbody>
         </Table>

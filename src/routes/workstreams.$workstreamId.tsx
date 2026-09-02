@@ -4,15 +4,12 @@ import { Shell } from "@/components/app/shell";
 import {
   Badge,
   KeyValue,
-  Mono,
   RailGroup,
   RecordHeader,
   ShowPage,
   Section,
   Table,
-  Td,
-  Th,
-  Tr,
+  Id,
 } from "@/components/app/ui";
 import {
   dependentsOf,
@@ -81,7 +78,7 @@ function WorkstreamDetail() {
                   params={{ programId: ws.program }}
                   className="text-primary hover:underline"
                 >
-                  <Mono>{ws.program}</Mono>
+                  <Id>{ws.program}</Id>
                 </Link>
               </KeyValue>
               <KeyValue label="Lead">
@@ -115,10 +112,10 @@ function WorkstreamDetail() {
 
             <RailGroup title="Joins">
               <KeyValue label="Controls">
-                <Mono>{ws.controls.join(", ")}</Mono>
+                <Id>{ws.controls.join(", ")}</Id>
               </KeyValue>
               <KeyValue label="CCIs">
-                {ws.ccis.length ? <Mono>{ws.ccis.join(", ")}</Mono> : "—"}
+                {ws.ccis.length ? <Id>{ws.ccis.join(", ")}</Id> : "—"}
               </KeyValue>
               <KeyValue label="Sibling streams">{workstreams.length}</KeyValue>
             </RailGroup>
@@ -146,32 +143,32 @@ function WorkstreamDetail() {
             </colgroup>
             <thead>
               <tr>
-                <Th>Person</Th>
-                <Th>Name</Th>
-                <Th>Role on this workstream</Th>
-                <Th>Discipline</Th>
-                <Th className="text-right">Allocation</Th>
+                <Table.Header>Person</Table.Header>
+                <Table.Header>Name</Table.Header>
+                <Table.Header>Role on this workstream</Table.Header>
+                <Table.Header>Discipline</Table.Header>
+                <Table.Header className="text-right">Allocation</Table.Header>
               </tr>
             </thead>
             <tbody>
               {ws.members.map((m) => {
                 const p = personById.get(m.person);
                 return (
-                  <Tr key={m.person}>
-                    <Td>
+                  <Table.Row key={m.person}>
+                    <Table.Cell>
                       <Link
                         to="/people/$personId"
                         params={{ personId: m.person }}
                         className="text-primary hover:underline"
                       >
-                        <Mono>{m.person}</Mono>
+                        <Id>{m.person}</Id>
                       </Link>
-                    </Td>
-                    <Td className="truncate">{p?.name ?? "—"}</Td>
-                    <Td className="truncate">{m.role}</Td>
-                    <Td className="truncate">{p?.discipline ?? "—"}</Td>
-                    <Td className="tnum text-right">{m.allocation}%</Td>
-                  </Tr>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">{p?.name ?? "—"}</Table.Cell>
+                    <Table.Cell className="truncate">{m.role}</Table.Cell>
+                    <Table.Cell className="truncate">{p?.discipline ?? "—"}</Table.Cell>
+                    <Table.Cell className="tnum text-right">{m.allocation}%</Table.Cell>
+                  </Table.Row>
                 );
               })}
             </tbody>
@@ -192,11 +189,11 @@ function WorkstreamDetail() {
             </colgroup>
             <thead>
               <tr>
-                <Th>Direction</Th>
-                <Th>Workstream</Th>
-                <Th>Title</Th>
-                <Th>Status</Th>
-                <Th>Lead</Th>
+                <Table.Header>Direction</Table.Header>
+                <Table.Header>Workstream</Table.Header>
+                <Table.Header>Title</Table.Header>
+                <Table.Header>Status</Table.Header>
+                <Table.Header>Lead</Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -204,28 +201,30 @@ function WorkstreamDetail() {
                 ...blockers.map((w) => ["Waiting on", w] as const),
                 ...downstream.map((w) => ["Blocks", w] as const),
               ].map(([dir, w]) => (
-                <Tr key={`${dir}-${w.id}`}>
-                  <Td>{dir}</Td>
-                  <Td>
+                <Table.Row key={`${dir}-${w.id}`}>
+                  <Table.Cell>{dir}</Table.Cell>
+                  <Table.Cell>
                     <Link
                       to="/workstreams/$workstreamId"
                       params={{ workstreamId: w.id }}
                       className="text-primary hover:underline"
                     >
-                      <Mono>{w.id}</Mono>
+                      <Id>{w.id}</Id>
                     </Link>
-                  </Td>
-                  <Td className="truncate">{w.title}</Td>
-                  <Td>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">{w.title}</Table.Cell>
+                  <Table.Cell>
                     <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
-                  </Td>
-                  <Td className="truncate">{personById.get(w.lead)?.name ?? "—"}</Td>
-                </Tr>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">
+                    {personById.get(w.lead)?.name ?? "—"}
+                  </Table.Cell>
+                </Table.Row>
               ))}
               {blockers.length === 0 && downstream.length === 0 ? (
-                <Tr>
-                  <Td colSpan={5}>No dependencies recorded.</Td>
-                </Tr>
+                <Table.Row>
+                  <Table.Cell colSpan={5}>No dependencies recorded.</Table.Cell>
+                </Table.Row>
               ) : null}
             </tbody>
           </Table>

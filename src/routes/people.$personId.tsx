@@ -5,15 +5,12 @@ import {
   Badge,
   KeyValue,
   Meter,
-  Mono,
   RailGroup,
   RecordHeader,
   ShowPage,
   Section,
   Table,
-  Td,
-  Th,
-  Tr,
+  Id,
 } from "@/components/app/ui";
 import {
   allocationFor,
@@ -109,9 +106,9 @@ function PersonDetail() {
               <div className="flex flex-wrap gap-1.5 py-1">
                 {controls.length ? (
                   controls.map((c) => (
-                    <Mono key={c} className="text-muted-foreground">
+                    <Id key={c} className="text-muted-foreground">
                       {c}
-                    </Mono>
+                    </Id>
                   ))
                 ) : (
                   <span className="text-[12.5px] text-muted-foreground">—</span>
@@ -135,36 +132,38 @@ function PersonDetail() {
             </colgroup>
             <thead>
               <tr>
-                <Th>Workstream</Th>
-                <Th>Title</Th>
-                <Th>Role</Th>
-                <Th>Status</Th>
-                <Th className="text-right">Allocation</Th>
+                <Table.Header>Workstream</Table.Header>
+                <Table.Header>Title</Table.Header>
+                <Table.Header>Role</Table.Header>
+                <Table.Header>Status</Table.Header>
+                <Table.Header className="text-right">Allocation</Table.Header>
               </tr>
             </thead>
             <tbody>
               {streams.map((w) => {
                 const m = w.members.find((x) => x.person === person.id);
                 return (
-                  <Tr key={w.id}>
-                    <Td>
+                  <Table.Row key={w.id}>
+                    <Table.Cell>
                       <Link
                         to="/workstreams/$workstreamId"
                         params={{ workstreamId: w.id }}
                         className="text-primary hover:underline"
                       >
-                        <Mono>{w.id}</Mono>
+                        <Id>{w.id}</Id>
                       </Link>
-                    </Td>
-                    <Td className="truncate">{w.title}</Td>
-                    <Td className="truncate">
+                    </Table.Cell>
+                    <Table.Cell className="truncate">{w.title}</Table.Cell>
+                    <Table.Cell className="truncate">
                       {m?.role ?? (w.lead === person.id ? "Workstream lead" : "—")}
-                    </Td>
-                    <Td>
+                    </Table.Cell>
+                    <Table.Cell>
                       <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
-                    </Td>
-                    <Td className="tnum text-right">{m ? `${m.allocation}%` : "—"}</Td>
-                  </Tr>
+                    </Table.Cell>
+                    <Table.Cell className="tnum text-right">
+                      {m ? `${m.allocation}%` : "—"}
+                    </Table.Cell>
+                  </Table.Row>
                 );
               })}
             </tbody>
@@ -184,28 +183,28 @@ function PersonDetail() {
             </colgroup>
             <thead>
               <tr>
-                <Th>Person</Th>
-                <Th>Name</Th>
-                <Th>Title</Th>
-                <Th>Discipline</Th>
+                <Table.Header>Person</Table.Header>
+                <Table.Header>Name</Table.Header>
+                <Table.Header>Title</Table.Header>
+                <Table.Header>Discipline</Table.Header>
               </tr>
             </thead>
             <tbody>
               {collaborators.map((c) => (
-                <Tr key={c.id}>
-                  <Td>
+                <Table.Row key={c.id}>
+                  <Table.Cell>
                     <Link
                       to="/people/$personId"
                       params={{ personId: c.id }}
                       className="text-primary hover:underline"
                     >
-                      <Mono>{c.id}</Mono>
+                      <Id>{c.id}</Id>
                     </Link>
-                  </Td>
-                  <Td className="truncate">{c.name}</Td>
-                  <Td className="truncate">{c.title}</Td>
-                  <Td className="truncate">{c.discipline}</Td>
-                </Tr>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">{c.name}</Table.Cell>
+                  <Table.Cell className="truncate">{c.title}</Table.Cell>
+                  <Table.Cell className="truncate">{c.discipline}</Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>

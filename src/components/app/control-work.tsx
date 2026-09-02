@@ -11,19 +11,7 @@ import { useState } from "react";
 
 import { RecordPicker } from "@/components/app/record-picker";
 import { ActionBar, Block, type BarAction } from "@/components/app/shapes";
-import {
-  Badge,
-  Button,
-  Field,
-  Modal,
-  Select,
-  Table,
-  Td,
-  Textarea,
-  Th,
-  Tr,
-  IdCell,
-} from "@/components/app/ui";
+import { Badge, Button, Field, Modal, Select, Table, Textarea } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import {
   activityFor,
@@ -256,11 +244,13 @@ export function EvidenceBlock({
             {work.evidence.map((id) => {
               const meta = available.find((a) => a.id === id);
               return (
-                <Tr key={id}>
-                  <IdCell id={id} />
-                  <Td className="truncate">{meta?.label ?? "Not in the evidence store"}</Td>
-                  <Td>{meta?.collected ?? "—"}</Td>
-                  <Td>
+                <Table.Row key={id}>
+                  <Table.Id id={id} />
+                  <Table.Cell className="truncate">
+                    {meta?.label ?? "Not in the evidence store"}
+                  </Table.Cell>
+                  <Table.Cell>{meta?.collected ?? "—"}</Table.Cell>
+                  <Table.Cell>
                     <Button
                       size="xs"
                       variant="ghost"
@@ -271,8 +261,8 @@ export function EvidenceBlock({
                     >
                       Unlink
                     </Button>
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                </Table.Row>
               );
             })}
           </tbody>
@@ -402,14 +392,14 @@ export function History({ work }: { work: ControlWork }) {
       </colgroup>
       <tbody>
         {events.map((e) => (
-          <Tr key={e.id}>
-            <Td>{e.at}</Td>
-            <Td className="truncate">{e.actor}</Td>
-            <Td className="truncate">{e.summary}</Td>
-            <Td className="truncate" title={e.note}>
+          <Table.Row key={e.id}>
+            <Table.Cell>{e.at}</Table.Cell>
+            <Table.Cell className="truncate">{e.actor}</Table.Cell>
+            <Table.Cell className="truncate">{e.summary}</Table.Cell>
+            <Table.Cell className="truncate" title={e.note}>
               {e.note ?? "—"}
-            </Td>
-          </Tr>
+            </Table.Cell>
+          </Table.Row>
         ))}
       </tbody>
     </Table>

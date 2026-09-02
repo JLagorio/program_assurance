@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Badge, Mono, Notice } from "@/components/app/ui";
+import { Badge, Notice, Id } from "@/components/app/ui";
 import { Spec } from "../_lib/tokens";
 
 const meta = {
@@ -66,7 +66,7 @@ export const Matrix: Story = {
           <div className="space-y-1.5 text-[12.5px]">
             {gaps.map((g) => (
               <div key={g.id} className="flex items-baseline gap-2">
-                <Mono className="shrink-0">{g.id}</Mono>
+                <Id className="shrink-0">{g.id}</Id>
                 <span className="min-w-0 leading-snug text-foreground">{g.statement}</span>
                 <span className="ml-auto shrink-0">
                   <Badge tone="success" size="xs">

@@ -12,15 +12,12 @@ import {
   Badge,
   Button,
   EmptyState,
-  Mono,
   Section,
   Select,
-  StackedBar,
   Table,
-  Td,
-  Th,
   Toolbar,
-  Tr,
+  Id,
+  Meter,
 } from "@/components/app/ui";
 import { InlineSelect, InlineText } from "@/components/app/inline-edit";
 import { cn } from "@/lib/utils";
@@ -67,40 +64,40 @@ export function FamilyCoverageTable({
         </colgroup>
         <thead>
           <tr>
-            <Th>ID</Th>
-            <Th>Family</Th>
-            <Th className="text-right">Total</Th>
-            <Th className="text-right">Satisfied</Th>
-            <Th className="text-right">Partial</Th>
-            <Th className="text-right">Other</Th>
-            <Th className="text-right">Inherited</Th>
-            <Th>Coverage</Th>
-            <Th>Owner</Th>
+            <Table.Header>ID</Table.Header>
+            <Table.Header>Family</Table.Header>
+            <Table.Header className="text-right">Total</Table.Header>
+            <Table.Header className="text-right">Satisfied</Table.Header>
+            <Table.Header className="text-right">Partial</Table.Header>
+            <Table.Header className="text-right">Other</Table.Header>
+            <Table.Header className="text-right">Inherited</Table.Header>
+            <Table.Header>Coverage</Table.Header>
+            <Table.Header>Owner</Table.Header>
           </tr>
         </thead>
         <tbody>
           {[...coverage.families]
             .sort((a, b) => a.id.localeCompare(b.id))
             .map((f) => (
-              <Tr
+              <Table.Row
                 key={f.id}
                 className="cursor-pointer"
                 onClick={() => onSelectFamily(f.id)}
                 title={`Filter the matrix to ${f.id}`}
               >
-                <Td>
-                  <Mono>{f.id}</Mono>
-                </Td>
-                <Td className="truncate">{f.name}</Td>
-                <Td className="tnum text-right">{f.total}</Td>
-                <Td className="tnum text-right">{f.satisfied}</Td>
-                <Td className="tnum text-right">{f.partial}</Td>
-                <Td className="tnum text-right">{f.other}</Td>
-                <Td className="tnum text-right">{f.inherited}</Td>
-                <Td>
+                <Table.Cell>
+                  <Id>{f.id}</Id>
+                </Table.Cell>
+                <Table.Cell className="truncate">{f.name}</Table.Cell>
+                <Table.Cell className="tnum text-right">{f.total}</Table.Cell>
+                <Table.Cell className="tnum text-right">{f.satisfied}</Table.Cell>
+                <Table.Cell className="tnum text-right">{f.partial}</Table.Cell>
+                <Table.Cell className="tnum text-right">{f.other}</Table.Cell>
+                <Table.Cell className="tnum text-right">{f.inherited}</Table.Cell>
+                <Table.Cell>
                   <span className="flex items-center gap-2">
                     <span className="w-20">
-                      <StackedBar
+                      <Meter.Stacked
                         height={4}
                         segments={[
                           { key: "s", value: f.satisfied, tone: "success" },
@@ -112,9 +109,9 @@ export function FamilyCoverageTable({
                     </span>
                     <span className="tnum text-12 text-muted-foreground">{f.pct}%</span>
                   </span>
-                </Td>
-                <Td className="truncate">{f.owner}</Td>
-              </Tr>
+                </Table.Cell>
+                <Table.Cell className="truncate">{f.owner}</Table.Cell>
+              </Table.Row>
             ))}
         </tbody>
       </Table>
@@ -140,9 +137,7 @@ function FindingsCell({ programId, row }: { programId: string; row: ControlRow }
         className="hover:underline"
         title={only.title}
       >
-        <Mono className={row.openFindings ? "text-danger" : "text-muted-foreground"}>
-          {only.id}
-        </Mono>
+        <Id className={row.openFindings ? "text-danger" : "text-muted-foreground"}>{only.id}</Id>
       </Link>
     );
   }
@@ -214,7 +209,7 @@ export function ControlMatrixSection({
         placeholder="Search controls"
         actions={
           <span className="flex w-[220px] items-center gap-2">
-            <StackedBar
+            <Meter.Stacked
               height={4}
               segments={scoped.segments.map((s) => ({ key: s.key, value: s.value, tone: s.tone }))}
             />
@@ -286,29 +281,29 @@ export function ControlMatrixSection({
             </colgroup>
             <thead>
               <tr>
-                <Th>Control</Th>
-                <Th>Title</Th>
-                <Th>Status</Th>
-                <Th>Implementation</Th>
-                <Th>Findings</Th>
-                <Th>POA&M</Th>
-                <Th>Next action</Th>
-                <Th className="text-right">Due</Th>
+                <Table.Header>Control</Table.Header>
+                <Table.Header>Title</Table.Header>
+                <Table.Header>Status</Table.Header>
+                <Table.Header>Implementation</Table.Header>
+                <Table.Header>Findings</Table.Header>
+                <Table.Header>POA&M</Table.Header>
+                <Table.Header>Next action</Table.Header>
+                <Table.Header className="text-right">Due</Table.Header>
               </tr>
             </thead>
             <tbody>
               {visible.map((r) => (
-                <Tr key={r.id}>
-                  <Td>
+                <Table.Row key={r.id}>
+                  <Table.Cell>
                     <Link
                       to="/programs/$programId/controls/$controlId"
                       params={{ programId, controlId: r.id }}
                       className="hover:underline"
                     >
-                      <Mono className="text-primary">{r.id}</Mono>
+                      <Id className="text-primary">{r.id}</Id>
                     </Link>
-                  </Td>
-                  <Td className="truncate" title={r.title}>
+                  </Table.Cell>
+                  <Table.Cell className="truncate" title={r.title}>
                     <Link
                       to="/programs/$programId/controls/$controlId"
                       params={{ programId, controlId: r.id }}
@@ -316,8 +311,8 @@ export function ControlMatrixSection({
                     >
                       {r.title}
                     </Link>
-                  </Td>
-                  <Td className="overflow-visible">
+                  </Table.Cell>
+                  <Table.Cell className="overflow-visible">
                     <InlineSelect<ControlStatus>
                       label="Assessment"
                       options={controlStatuses}
@@ -326,43 +321,43 @@ export function ControlMatrixSection({
                       save={save(r.id, "status")}
                       render={(v) => <Badge tone={controlStatusTone[v]}>{v}</Badge>}
                     />
-                  </Td>
-                  <Td className="truncate" title={r.source}>
+                  </Table.Cell>
+                  <Table.Cell className="truncate" title={r.source}>
                     {r.implementation}
-                  </Td>
-                  <Td className="truncate">
+                  </Table.Cell>
+                  <Table.Cell className="truncate">
                     <FindingsCell programId={programId} row={r} />
-                  </Td>
-                  <Td>
+                  </Table.Cell>
+                  <Table.Cell>
                     {r.poam ? (
                       <Link
                         to="/register/poam/$poamId"
                         params={{ poamId: r.poam }}
                         className="text-primary hover:underline"
                       >
-                        <Mono className="text-primary">{r.poam}</Mono>
+                        <Id className="text-primary">{r.poam}</Id>
                       </Link>
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
-                  </Td>
-                  <Td className="overflow-visible">
+                  </Table.Cell>
+                  <Table.Cell className="overflow-visible">
                     <InlineText
                       value={r.nextAction}
                       placeholder="Add next action"
                       onChange={(next) => updateControl(programId, r.id, { nextAction: next })}
                       save={save(r.id, "nextAction")}
                     />
-                  </Td>
-                  <Td className="tnum overflow-visible text-right">
+                  </Table.Cell>
+                  <Table.Cell className="tnum overflow-visible text-right">
                     <InlineText
                       value={r.due}
                       placeholder="—"
                       onChange={(next) => updateControl(programId, r.id, { due: next })}
                       save={save(r.id, "due")}
                     />
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                </Table.Row>
               ))}
             </tbody>
           </Table>

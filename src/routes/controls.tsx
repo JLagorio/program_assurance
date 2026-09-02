@@ -7,14 +7,11 @@ import {
   Badge,
   Button,
   KeyValue,
-  Mono,
   PageHeader,
   RailGroup,
   Table,
-  Td,
-  Th,
-  Tr,
-  Severity,
+  Id,
+  Indicator,
 } from "@/components/app/ui";
 import {
   benchmarkById,
@@ -163,28 +160,28 @@ function Catalog() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>Control</Th>
-                    <Th>Title</Th>
-                    <Th>Family</Th>
-                    <Th>Baseline</Th>
-                    <Th>Added by overlay</Th>
-                    <Th className="text-right">CCIs</Th>
+                    <Table.Header>Control</Table.Header>
+                    <Table.Header>Title</Table.Header>
+                    <Table.Header>Family</Table.Header>
+                    <Table.Header>Baseline</Table.Header>
+                    <Table.Header>Added by overlay</Table.Header>
+                    <Table.Header className="text-right">CCIs</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredControls.map((c) => (
-                    <Tr key={c.id}>
-                      <Td>
-                        <Mono>{c.id}</Mono>
-                      </Td>
-                      <Td className="truncate">{c.title}</Td>
-                      <Td>{c.family}</Td>
-                      <Td className="truncate">{c.baseline.join(" · ")}</Td>
-                      <Td className="truncate">
-                        {c.addedBy.length ? <Mono>{c.addedBy.join(", ")}</Mono> : "—"}
-                      </Td>
-                      <Td className="tnum text-right">{c.cciCount}</Td>
-                    </Tr>
+                    <Table.Row key={c.id}>
+                      <Table.Cell>
+                        <Id>{c.id}</Id>
+                      </Table.Cell>
+                      <Table.Cell className="truncate">{c.title}</Table.Cell>
+                      <Table.Cell>{c.family}</Table.Cell>
+                      <Table.Cell className="truncate">{c.baseline.join(" · ")}</Table.Cell>
+                      <Table.Cell className="truncate">
+                        {c.addedBy.length ? <Id>{c.addedBy.join(", ")}</Id> : "—"}
+                      </Table.Cell>
+                      <Table.Cell className="tnum text-right">{c.cciCount}</Table.Cell>
+                    </Table.Row>
                   ))}
                 </tbody>
               </Table>
@@ -203,28 +200,28 @@ function Catalog() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>ID</Th>
-                    <Th>Overlay</Th>
-                    <Th>Applicability</Th>
-                    <Th>Authority</Th>
-                    <Th className="text-right">Adds</Th>
-                    <Th className="text-right">Removes</Th>
-                    <Th className="text-right">Params</Th>
+                    <Table.Header>ID</Table.Header>
+                    <Table.Header>Overlay</Table.Header>
+                    <Table.Header>Applicability</Table.Header>
+                    <Table.Header>Authority</Table.Header>
+                    <Table.Header className="text-right">Adds</Table.Header>
+                    <Table.Header className="text-right">Removes</Table.Header>
+                    <Table.Header className="text-right">Params</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {overlays.map((o) => (
-                    <Tr key={o.id}>
-                      <Td>
-                        <Mono>{o.id}</Mono>
-                      </Td>
-                      <Td className="truncate">{o.name}</Td>
-                      <Td className="truncate">{o.applicability}</Td>
-                      <Td className="truncate">{o.authority}</Td>
-                      <Td className="tnum text-right">+{o.adds}</Td>
-                      <Td className="tnum text-right">−{o.removes}</Td>
-                      <Td className="tnum text-right">{o.parameters}</Td>
-                    </Tr>
+                    <Table.Row key={o.id}>
+                      <Table.Cell>
+                        <Id>{o.id}</Id>
+                      </Table.Cell>
+                      <Table.Cell className="truncate">{o.name}</Table.Cell>
+                      <Table.Cell className="truncate">{o.applicability}</Table.Cell>
+                      <Table.Cell className="truncate">{o.authority}</Table.Cell>
+                      <Table.Cell className="tnum text-right">+{o.adds}</Table.Cell>
+                      <Table.Cell className="tnum text-right">−{o.removes}</Table.Cell>
+                      <Table.Cell className="tnum text-right">{o.parameters}</Table.Cell>
+                    </Table.Row>
                   ))}
                 </tbody>
               </Table>
@@ -243,31 +240,31 @@ function Catalog() {
                 </colgroup>
                 <thead>
                   <tr>
-                    <Th>CCI</Th>
-                    <Th>Control</Th>
-                    <Th>Statement</Th>
-                    <Th>Compliance</Th>
-                    <Th className="text-right">Rules</Th>
-                    <Th className="text-right">Procs</Th>
-                    <Th className="text-right">Objectives</Th>
+                    <Table.Header>CCI</Table.Header>
+                    <Table.Header>Control</Table.Header>
+                    <Table.Header>Statement</Table.Header>
+                    <Table.Header>Compliance</Table.Header>
+                    <Table.Header className="text-right">Rules</Table.Header>
+                    <Table.Header className="text-right">Procs</Table.Header>
+                    <Table.Header className="text-right">Objectives</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredCcis.map((c) => (
-                    <Tr
+                    <Table.Row
                       key={c.id}
                       onClick={() => setSelected(c)}
                       className="cursor-pointer"
                       data-selected={selected?.id === c.id ? "" : undefined}
                     >
-                      <Td>
-                        <Mono>{c.id}</Mono>
-                      </Td>
-                      <Td>
-                        <Mono>{c.control}</Mono>
-                      </Td>
-                      <Td className="truncate">{c.definition}</Td>
-                      <Td>
+                      <Table.Cell>
+                        <Id>{c.id}</Id>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Id>{c.control}</Id>
+                      </Table.Cell>
+                      <Table.Cell className="truncate">{c.definition}</Table.Cell>
+                      <Table.Cell>
                         {c.compliance === "Non-compliant" ? (
                           <Badge tone="danger">Non-compliant</Badge>
                         ) : c.compliance === "Compliant" ? (
@@ -275,13 +272,13 @@ function Catalog() {
                         ) : (
                           <span className="text-muted-foreground">{c.compliance}</span>
                         )}
-                      </Td>
-                      <Td className="tnum text-right">{c.rules.length}</Td>
-                      <Td className="tnum text-right">{c.procedures.length}</Td>
-                      <Td className="tnum text-right">
+                      </Table.Cell>
+                      <Table.Cell className="tnum text-right">{c.rules.length}</Table.Cell>
+                      <Table.Cell className="tnum text-right">{c.procedures.length}</Table.Cell>
+                      <Table.Cell className="tnum text-right">
                         {c.objectives.length || <span className="text-warning">0</span>}
-                      </Td>
-                    </Tr>
+                      </Table.Cell>
+                    </Table.Row>
                   ))}
                 </tbody>
               </Table>
@@ -291,7 +288,7 @@ function Catalog() {
           {selected ? (
             <aside className="pt-1 lg:border-l lg:border-border lg:pl-6">
               <div className="flex items-center justify-between gap-2 pb-1">
-                <Mono className="text-[12.5px] font-medium">{selected.id}</Mono>
+                <Id className="text-[12.5px] font-medium">{selected.id}</Id>
                 <button
                   onClick={() => setSelected(null)}
                   className="text-muted-foreground transition-colors hover:text-foreground"
@@ -307,7 +304,7 @@ function Catalog() {
 
               <RailGroup title="Identity">
                 <KeyValue label="Parent control">
-                  <Mono>{selected.control}</Mono>
+                  <Id>{selected.control}</Id>
                 </KeyValue>
                 <KeyValue label="Statement type">{selected.type}</KeyValue>
                 <KeyValue label="Compliance">
@@ -323,12 +320,12 @@ function Catalog() {
                   {(rulesByCci.get(selected.id) ?? []).map((r) => (
                     <div key={r.id} className="flex items-baseline justify-between gap-2">
                       <span className="min-w-0">
-                        <Mono>{r.id}</Mono>{" "}
+                        <Id>{r.id}</Id>{" "}
                         <span className="text-muted-foreground">
                           {benchmarkById.get(r.benchmark)?.technology}
                         </span>
                       </span>
-                      <Severity tone={severityTone(r.severity)}>{r.severity}</Severity>
+                      <Indicator tone={severityTone(r.severity)}>{r.severity}</Indicator>
                     </div>
                   ))}
                   {selected.rules.length === 0 ? (
@@ -341,7 +338,7 @@ function Catalog() {
                 <div className="space-y-1 text-[12.5px] text-muted-foreground">
                   {selected.procedures.map((p) => (
                     <div key={p}>
-                      <Mono>{p}</Mono> · 800-53A procedure
+                      <Id>{p}</Id> · 800-53A procedure
                     </div>
                   ))}
                 </div>
