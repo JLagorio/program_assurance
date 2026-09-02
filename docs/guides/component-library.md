@@ -56,9 +56,20 @@ dependency graph stays visible. A layer only imports from layers below it.
 | Inspector | `Inspector`, `.Group`                            | Sticky facts. `.Group` is also the group in legacy rails.                                   |
 | ActionBar | `ActionBar`, `ActionBarState`, `ActionBarAction` | First state is the bar's only pill; the rest are dot plus text.                             |
 | Text      | `Eyebrow`, `Empty`, `Prose`, `Fact`, `KeyValue`  | `Eyebrow` is the 11px caps micro-label. `Empty` is the absent value.                        |
+| Choice    | `Checkbox`, `Switch`, `Radio`, `.Item`           | Children become the label. A checked state is the selection use of the blue budget.         |
+| Tooltip   | `Tooltip`                                        | Short label on hover or focus; wraps its trigger.                                           |
+| Popover   | `Popover`, `.Close`                              | Anchored surface for a small task: a filter form, a picker.                                 |
+| Toast     | `Toaster`, `toast`                               | One Toaster near the root; confirmations from anywhere.                                     |
+| Skeleton  | `Skeleton`                                       | Loading placeholder; `lines` stacks bars.                                                   |
+| Separator | `Separator`                                      | Hairline, horizontal or vertical.                                                           |
 
 Legacy, no new uses: `Section`, `IndexPage`, `ShowPage`. They retire route by route as screens
 move to shapes.
+
+Overlays and choice controls (`Modal`, `Drawer`, `Menu`, `Popover`, `Tooltip`, `Checkbox`, `Switch`,
+`Radio`) are Radix underneath. Focus, Escape, outside-click, keyboard and aria come from there; the
+kit owns the API and the look. A `Menu` trigger opens the menu itself; the `toggle` in its render
+prop is inert and stays only so existing triggers compile.
 
 ## Rules that lint enforces
 

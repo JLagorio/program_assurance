@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import type { ReactNode } from "react";
 
-import { Button, Field, Input, Select, Textarea } from "@/ds/primitives";
+import { Button, Checkbox, Field, Input, Radio, Select, Switch, Textarea } from "@/ds/primitives";
 import { Card } from "@/ds/patterns";
+import { Spec } from "../_lib/tokens";
 
 const meta = {
   title: "Primitives/Field",
@@ -223,5 +224,49 @@ export const Form: Story = {
         <Button variant="primary">Save changes</Button>
       </div>
     </Card>
+  ),
+};
+
+/** Checkbox, Switch and Radio in every state, bare and with a label that toggles them. */
+export const Choices: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="grid max-w-[760px] grid-cols-1 gap-8 md:grid-cols-3">
+      <div className="flex flex-col items-start gap-3">
+        <Spec>Checkbox</Spec>
+        <div className="flex items-center gap-3">
+          <Checkbox aria-label="Unchecked" />
+          <Checkbox defaultChecked aria-label="Checked" />
+          <Checkbox checked="indeterminate" aria-label="Mixed" />
+          <Checkbox disabled aria-label="Disabled" />
+          <Checkbox disabled defaultChecked aria-label="Disabled, checked" />
+        </div>
+        <Checkbox defaultChecked>Include inherited controls</Checkbox>
+        <Checkbox>Include withdrawn controls</Checkbox>
+        <Checkbox disabled>Include tailored-out controls</Checkbox>
+      </div>
+      <div className="flex flex-col items-start gap-3">
+        <Spec>Switch</Spec>
+        <div className="flex items-center gap-3">
+          <Switch aria-label="Off" />
+          <Switch defaultChecked aria-label="On" />
+          <Switch disabled aria-label="Disabled" />
+          <Switch disabled defaultChecked aria-label="Disabled, on" />
+        </div>
+        <Switch defaultChecked>Notify the ISSO on change</Switch>
+        <Switch>Require evidence before closing</Switch>
+      </div>
+      <div className="flex flex-col items-start gap-3">
+        <Spec>Radio</Spec>
+        <Radio defaultValue="test" aria-label="Assessment method">
+          <Radio.Item value="examine">Examine</Radio.Item>
+          <Radio.Item value="interview">Interview</Radio.Item>
+          <Radio.Item value="test">Test</Radio.Item>
+          <Radio.Item value="na" disabled>
+            Not applicable
+          </Radio.Item>
+        </Radio>
+      </div>
+    </div>
   ),
 };
