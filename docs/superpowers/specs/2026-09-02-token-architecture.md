@@ -179,12 +179,12 @@ What self-contained and portable mean, each of them checkable:
 One commit each; Josef signs off in the package's Storybook, in both modes from step 1 on.
 
 0. **Foundation.** Package, DTCG source for every tier, the build and its outputs, the CSS entries, `cn`, the token sheets, the Design × Mode toolbar. Landed 2026-09-02.
-1. **Ramps.** Tune the six draft ramps on the Palette sheet. Contrast test wired. Sign-off.
+1. **Ramps.** Tune the six draft ramps on the Palette sheet. Contrast test wired. Contrast test landed 2026-09-02 (162 pairings, both modes, all passing after the neutral ramps were re-spaced); the visual sign-off on the Palette sheet is still Josef's.
 2. **Semantic colour and elevation.** Atlassian's mapping on our ramps, both modes. Sign-off on the Color sheets.
 3. **Type, space, shape, dimension, motion.** Sign-off on the specimen and sheets. Snap the half-pixel sizes here.
-4. **Primitives.** Box, Stack, Inline, Flex, Grid, Bleed, Text, Heading ported from FitBodyFusion onto the tokens, with stories.
-5. **Lint plugin, portability check.** The package's ESLint preset; `npm pack` into a throwaway app renders in both modes.
-6. **Families migrate**, in the kit's priority order: Button and IconButton, Badge and Indicator, the controls, Table, Tabs, overlays, then the rest, then patterns and shapes. For each: move the file into the package, rewrite its class strings onto token utilities, relative imports and the package `cn`, move its story, re-export it from the prototype's façade barrel, sign off light and dark. Link-bearing components get the link slot here.
+4. **Primitives.** Box, Stack, Inline, Flex, Grid, Bleed, Text, Heading ported from FitBodyFusion onto the tokens, with stories. Landed 2026-09-02.
+5. **Lint plugin, portability check.** The package's ESLint preset; `npm pack` into a throwaway app renders in both modes. Landed 2026-09-02: eight rules, two presets, the package lints clean; the tarball installs into a plain Vite + Tailwind app, its classes generate from node_modules, and a server render shows them.
+6. **Families migrate** (Button and IconButton landed 2026-09-02; the prototype façade still needs a go), in the kit's priority order: Button and IconButton, Badge and Indicator, the controls, Table, Tabs, overlays, then the rest, then patterns and shapes. For each: move the file into the package, rewrite its class strings onto token utilities, relative imports and the package `cn`, move its story, re-export it from the prototype's façade barrel, sign off light and dark. Link-bearing components get the link slot here.
 7. **Mode switch.** Provider, three-state control, storage function, and the before-paint script as a snippet consumers paste into their document head.
 8. **Prototype cutover.** `base.css` and `reset.css` imported, the old tokens file deleted, imports codemodded from `@/ds/*` to the package, the façade deleted, the lint preset adopted. The shell either becomes a slot-based component in the package or stays prototype-only; decided when reached.
 9. **Publishable build** with type declarations, when the second project appears.
