@@ -21,7 +21,7 @@ const heights: { name: string; where: string; today: number; linear: number | nu
   { name: "Input", where: "h-8", today: 32, linear: 30 },
   { name: "Menu item", where: "h-7", today: 28, linear: 32 },
   { name: "Table header", where: "h-8", today: 32, linear: 36 },
-  { name: "Table row", where: "h-9", today: 36, linear: 44 },
+  { name: "Table row", where: "h-10", today: 40, linear: 44 },
   { name: "Top bar", where: "h-14", today: 56, linear: null },
 ];
 
@@ -116,7 +116,7 @@ export const Spacing: Story = {
           <div className="border-b border-border px-3 py-2 text-[12px] font-medium text-muted-foreground">
             Table cell · px-3
           </div>
-          <div className="h-9 px-3 text-[13px] leading-9">AC-2 Account Management</div>
+          <div className="h-10 px-3 text-[13px] leading-10">AC-2 Account Management</div>
         </div>
         <div className="rounded-lg border border-border bg-card">
           <div className="border-b border-border px-4 py-3 text-[14px] font-semibold tracking-[-0.01em]">

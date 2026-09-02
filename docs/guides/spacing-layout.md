@@ -5,7 +5,7 @@
 Compact, data-dense, never cramped:
 
 - Controls (Button md, Input, Select): **32px** tall (`h-8`); small buttons and chips **28px** (`h-7`).
-- Table rows: **36px** (`h-9`); header rows **32px** (`h-8`); cell padding `px-3`.
+- Table rows: **40px** (`h-10`), the midpoint between the old 36 and Linear's 44; header rows **32px** (`h-8`); cell padding `px-3`.
 - Card padding: `px-4 py-3` headers, `px-5 py-3.5`–`py-4` in modals.
 - Property rows (`KeyValue`): 104px label column, `py-[5px]` rows.
 

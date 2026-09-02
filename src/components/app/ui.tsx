@@ -248,7 +248,7 @@ export function Td({ className, ...props }: ComponentProps<"td">) {
   return (
     <td
       className={cn(
-        "h-9 max-w-0 truncate whitespace-nowrap px-3 align-middle first:pl-3 last:pr-3",
+        "h-10 max-w-0 truncate whitespace-nowrap px-3 align-middle first:pl-3 last:pr-3",
         className,
       )}
       {...props}
