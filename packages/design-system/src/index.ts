@@ -3,3 +3,4 @@ export type { TokenName } from "./generated/tokens";
 export { mergeConfig } from "./generated/merge-config";
 export { cn } from "./lib/cn";
 export * from "./primitives";
+export * from "./components";
