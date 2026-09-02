@@ -23,7 +23,7 @@ Each status color has a solid and a `-soft` fill; text sits at the solid value o
 | Pair                         | Solid                  | Soft                     |
 | ---------------------------- | ---------------------- | ------------------------ |
 | `--success`                  | `oklch(0.52 0.13 158)` | `oklch(0.955 0.035 158)` |
-| `--warning`                  | `oklch(0.55 0.12 72)`  | `oklch(0.958 0.045 85)`  |
+| `--warning`                  | `oklch(0.54 0.13 64)`  | `oklch(0.965 0.028 76)`  |
 | `--danger` / `--destructive` | `oklch(0.55 0.2 22)`   | `oklch(0.955 0.03 22)`   |
 | `--info`                     | = primary              | = primary-soft           |
 
