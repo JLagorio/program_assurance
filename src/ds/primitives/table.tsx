@@ -1,8 +1,9 @@
-import { ChevronDown, Eye } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, ChevronsUpDown, Eye } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
+import { Checkbox } from "./controls";
 import { Id } from "./id";
 
 function TableRoot({ className, ...props }: ComponentProps<"table">) {
@@ -13,23 +14,63 @@ function TableRoot({ className, ...props }: ComponentProps<"table">) {
   );
 }
 
-function Th({ className, ...props }: ComponentProps<"th">) {
+/* A column heading. `sort` makes it a button that reports its direction
+   (aria-sort) and shows the arrow; `sticky` pins the column to the left edge
+   of a table that scrolls sideways. */
+function Th({
+  className,
+  sort,
+  onSort,
+  sticky,
+  children,
+  ...props
+}: ComponentProps<"th"> & {
+  sort?: "asc" | "desc" | false;
+  onSort?: () => void;
+  sticky?: boolean;
+}) {
+  const sortable = sort !== undefined || onSort !== undefined;
   return (
     <th
+      aria-sort={sort === "asc" ? "ascending" : sort === "desc" ? "descending" : undefined}
       className={cn(
         "sticky top-0 z-10 h-8 whitespace-nowrap border-b border-border bg-background px-3 text-12 font-medium text-muted-foreground first:pl-3 last:pr-3",
+        sticky && "left-0 z-20",
         className,
       )}
       {...props}
-    />
+    >
+      {sortable ? (
+        <button
+          type="button"
+          onClick={onSort}
+          className={cn(
+            "group/sort -mx-1 inline-flex h-6 items-center gap-1 rounded px-1 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35",
+            sort && "text-foreground",
+          )}
+        >
+          {children}
+          {sort === "asc" ? (
+            <ArrowUp className="size-3" />
+          ) : sort === "desc" ? (
+            <ArrowDown className="size-3" />
+          ) : (
+            <ChevronsUpDown className="size-3 opacity-0 transition-opacity group-hover/sort:opacity-60" />
+          )}
+        </button>
+      ) : (
+        children
+      )}
+    </th>
   );
 }
 
-function Td({ className, ...props }: ComponentProps<"td">) {
+function Td({ className, sticky, ...props }: ComponentProps<"td"> & { sticky?: boolean }) {
   return (
     <td
       className={cn(
         "h-10 max-w-0 truncate whitespace-nowrap px-3 align-middle first:pl-3 last:pr-3",
+        sticky && "sticky left-0 z-[1] bg-background group-hover/row:bg-surface-hover",
         className,
       )}
       {...props}
@@ -37,11 +78,13 @@ function Td({ className, ...props }: ComponentProps<"td">) {
   );
 }
 
-function Tr({ className, ...props }: ComponentProps<"tr">) {
+function Tr({ className, selected, ...props }: ComponentProps<"tr"> & { selected?: boolean }) {
   return (
     <tr
+      data-selected={selected ? "" : undefined}
       className={cn(
         "group/row border-b border-border-subtle transition-colors duration-100 last:border-0 hover:bg-surface-hover",
+        selected && "bg-primary-soft/60 hover:bg-primary-soft/60",
         className,
       )}
       {...props}
@@ -95,6 +138,41 @@ function IdCell({
           </button>
         ) : null}
       </span>
+    </Table.Cell>
+  );
+}
+
+/* The checkbox column. In the header it selects every row and reads mixed when
+   only some are; in a row it selects that row. 32px wide, click stays in the box. */
+function SelectionCell({
+  header = false,
+  checked,
+  onCheckedChange,
+  label,
+  disabled,
+}: {
+  header?: boolean;
+  checked: boolean | "indeterminate";
+  onCheckedChange: (checked: boolean) => void;
+  label: string;
+  disabled?: boolean;
+}) {
+  const box = (
+    <Checkbox
+      checked={checked}
+      onCheckedChange={(next) => onCheckedChange(next === true)}
+      aria-label={label}
+      {...(disabled ? { disabled } : {})}
+      onClick={(e) => e.stopPropagation()}
+    />
+  );
+  return header ? (
+    <Table.Header className="w-8 pr-0">
+      <span className="flex items-center">{box}</span>
+    </Table.Header>
+  ) : (
+    <Table.Cell className="w-8 max-w-none pr-0">
+      <span className="flex items-center">{box}</span>
     </Table.Cell>
   );
 }
@@ -161,10 +239,12 @@ function TableGroup({
     </tbody>
   );
 }
+
 export const Table = Object.assign(TableRoot, {
   Row: Tr,
   Cell: Td,
   Header: Th,
   Id: IdCell,
+  Selection: SelectionCell,
   Group: TableGroup,
 });

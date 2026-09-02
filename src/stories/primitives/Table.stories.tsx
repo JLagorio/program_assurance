@@ -315,3 +315,192 @@ export const Grouped: Story = {
   parameters: { controls: { disable: true } },
   render: () => <GroupedTable />,
 };
+
+const inventory = [
+  {
+    id: "AC-2",
+    title: "Account management",
+    owner: "R. Okafor",
+    evidence: 12,
+    tone: "success" as const,
+    status: "Satisfied",
+  },
+  {
+    id: "AC-6(1)",
+    title: "Authorize access to security functions",
+    owner: "M. Tran",
+    evidence: 4,
+    tone: "warning" as const,
+    status: "Partially satisfied",
+  },
+  {
+    id: "AU-6",
+    title: "Audit record review, analysis, and reporting",
+    owner: "R. Okafor",
+    evidence: 0,
+    tone: "danger" as const,
+    status: "Other than satisfied",
+  },
+  {
+    id: "CM-6",
+    title: "Configuration settings",
+    owner: "J. Ibarra",
+    evidence: 9,
+    tone: "info" as const,
+    status: "In assessment",
+  },
+  {
+    id: "IR-4",
+    title: "Incident handling",
+    owner: "M. Tran",
+    evidence: 2,
+    tone: "neutral" as const,
+    status: "Not assessed",
+  },
+  {
+    id: "SC-7",
+    title: "Boundary protection",
+    owner: "J. Ibarra",
+    evidence: 7,
+    tone: "success" as const,
+    status: "Satisfied",
+  },
+];
+
+type SortKey = "id" | "title" | "evidence";
+
+function InteractiveDemo() {
+  const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" }>({
+    key: "id",
+    dir: "asc",
+  });
+  const [selected, setSelected] = useState<string[]>([]);
+  const sorted = [...inventory].sort((a, b) => {
+    const av = a[sort.key];
+    const bv = b[sort.key];
+    const cmp =
+      typeof av === "number" && typeof bv === "number"
+        ? av - bv
+        : String(av).localeCompare(String(bv));
+    return sort.dir === "asc" ? cmp : -cmp;
+  });
+  const flip = (key: SortKey) =>
+    setSort((s) =>
+      s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" },
+    );
+  const dir = (key: SortKey) => (sort.key === key ? sort.dir : false);
+  const all = selected.length === sorted.length;
+  const some = selected.length > 0 && !all;
+  const toggle = (id: string) =>
+    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+  return (
+    <div className="space-y-2">
+      <Table>
+        <thead>
+          <tr>
+            <Table.Selection
+              header
+              checked={all ? true : some ? "indeterminate" : false}
+              onCheckedChange={(next) => setSelected(next ? sorted.map((r) => r.id) : [])}
+              label="Select all controls"
+            />
+            <Table.Header className="w-[104px]" sort={dir("id")} onSort={() => flip("id")}>
+              Control
+            </Table.Header>
+            <Table.Header sort={dir("title")} onSort={() => flip("title")}>
+              Title
+            </Table.Header>
+            <Table.Header className="w-[120px]">Owner</Table.Header>
+            <Table.Header
+              className="w-[96px] text-right"
+              sort={dir("evidence")}
+              onSort={() => flip("evidence")}
+            >
+              Evidence
+            </Table.Header>
+            <Table.Header className="w-[172px]">Status</Table.Header>
+          </tr>
+        </thead>
+        <tbody>
+          {sorted.map((r) => (
+            <Table.Row key={r.id} selected={selected.includes(r.id)}>
+              <Table.Selection
+                checked={selected.includes(r.id)}
+                onCheckedChange={() => toggle(r.id)}
+                label={`Select ${r.id}`}
+              />
+              <Table.Cell>
+                <Id>{r.id}</Id>
+              </Table.Cell>
+              <Table.Cell>{r.title}</Table.Cell>
+              <Table.Cell>{r.owner}</Table.Cell>
+              <Table.Cell className="tnum text-right">{r.evidence}</Table.Cell>
+              <Table.Cell>
+                <Badge tone={r.tone}>{r.status}</Badge>
+              </Table.Cell>
+            </Table.Row>
+          ))}
+        </tbody>
+      </Table>
+      <Spec>
+        {selected.length} selected · sort {sort.key} {sort.dir} · header sort is a button with
+        aria-sort; the idle arrow shows on hover
+      </Spec>
+    </div>
+  );
+}
+
+/** Sortable headers and a selection column. Selected rows tint primary-soft; the header box reads mixed. */
+export const Interactive: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Card className="max-w-[820px]">
+      <InteractiveDemo />
+    </Card>
+  ),
+};
+
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** A wide table in a narrow card: the first column pins to the left edge while the rest scroll under it. */
+export const Pinned: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="space-y-2">
+      <Card className="max-w-[560px]">
+        <Table>
+          <thead>
+            <tr>
+              <Table.Header sticky className="w-[120px]">
+                Control
+              </Table.Header>
+              {months.map((m) => (
+                <Table.Header key={m} className="w-[72px] text-right">
+                  {m}
+                </Table.Header>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {inventory.map((r, i) => (
+              <Table.Row key={r.id}>
+                <Table.Cell sticky className="max-w-none">
+                  <Id>{r.id}</Id>
+                </Table.Cell>
+                {months.map((m, j) => (
+                  <Table.Cell key={m} className="tnum text-right">
+                    {(i * 7 + j * 3) % 11}
+                  </Table.Cell>
+                ))}
+              </Table.Row>
+            ))}
+          </tbody>
+        </Table>
+      </Card>
+      <Spec>
+        scroll the table sideways · pinned cell keeps the row's hover colour · header z-20 over
+        cells z-1
+      </Spec>
+    </div>
+  ),
+};
