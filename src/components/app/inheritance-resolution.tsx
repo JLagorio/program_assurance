@@ -207,7 +207,7 @@ export function ResolutionTable({
               >
                 {row.component.name}
               </Td>
-              <Td className="text-muted-foreground">{row.tier}</Td>
+              <Td>{row.tier}</Td>
               <Td>
                 <DesignationChip row={row} />
               </Td>
@@ -219,7 +219,7 @@ export function ResolutionTable({
               <Td title={version.detail}>
                 {row.accepted ? (
                   <span className="flex items-center gap-1">
-                    <Mono className="text-muted-foreground">{version.accepted}</Mono>
+                    <Mono>{version.accepted}</Mono>
                     <span className="text-border-strong">→</span>
                     <Mono className={version.drifted ? "text-warning" : "text-muted-foreground"}>
                       {version.offered}
@@ -493,7 +493,7 @@ export function NotApplicableTable({ rows }: { rows: ResolvedInheritance[] }) {
             <Td>
               <Badge size="xs">{row.provided.model}</Badge>
             </Td>
-            <Td className="truncate text-muted-foreground" title={row.applicabilityReason}>
+            <Td className="truncate" title={row.applicabilityReason}>
               {isBlank(row.applicabilityReason) ? <Dash /> : row.applicabilityReason}
             </Td>
           </Tr>

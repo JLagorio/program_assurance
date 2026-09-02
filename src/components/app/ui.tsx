@@ -12,14 +12,17 @@ type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "link";
 type ButtonSize = "xs" | "sm" | "md";
 
 const buttonBase =
-  "inline-flex select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium transition-[box-shadow,background-color,color] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium transition-[box-shadow,background-color,color] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none";
 
 const buttonVariants: Record<ButtonVariant, string> = {
-  primary: "bg-primary text-primary-foreground shadow-button-primary hover:bg-primary-hover",
-  secondary: "bg-card text-foreground shadow-button hover:bg-surface-hover",
-  ghost: "text-muted-foreground hover:bg-surface-hover hover:text-foreground",
-  danger: "bg-danger text-primary-foreground shadow-button-primary hover:bg-danger-hover",
-  link: "text-primary hover:underline underline-offset-2 decoration-primary/40",
+  primary:
+    "bg-primary text-primary-foreground shadow-button-primary hover:bg-primary-hover disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none",
+  secondary:
+    "bg-card text-foreground shadow-button hover:bg-surface-hover disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none",
+  ghost: "text-muted-foreground hover:bg-surface-hover hover:text-foreground disabled:opacity-50",
+  danger:
+    "bg-danger text-primary-foreground shadow-button-primary hover:bg-danger-hover disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none",
+  link: "text-primary hover:underline underline-offset-2 decoration-primary/40 disabled:opacity-50",
 };
 
 const buttonSizes: Record<ButtonSize, string> = {
@@ -289,7 +292,7 @@ export function IdCell({
         <Mono
           className={cn(
             "transition-colors duration-100",
-            active ? "text-primary" : "text-muted-foreground",
+            active ? "text-primary" : null,
             tone === "primary" && !active ? "group-hover/row:text-primary" : null,
           )}
         >
@@ -536,12 +539,10 @@ export function RailGroup({
   );
 }
 
+/** Identifier wrapper. One typeface app-wide since 2026-09-01: it inherits the surrounding
+   font, size and colour and only adds tabular numerals. Kept for semantics and grep-ability. */
 export function Mono({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <span className={cn("font-mono text-[12px] tracking-tight text-foreground", className)}>
-      {children}
-    </span>
-  );
+  return <span className={cn("tnum", className)}>{children}</span>;
 }
 
 /* ------------------------------------------------------------ Progress bar */
@@ -978,7 +979,7 @@ export function Person({ name, className }: { name: string; className?: string }
   return (
     <span className={cn("flex min-w-0 items-center gap-1.5", className)}>
       <Avatar name={name} size="xs" />
-      <span className="truncate text-12 text-muted-foreground">{name}</span>
+      <span className="truncate">{name}</span>
     </span>
   );
 }

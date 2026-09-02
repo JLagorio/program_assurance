@@ -147,10 +147,10 @@ function Vendors() {
                 <Tr key={vendor.name}>
                   <Td>
                     <div className="font-medium">{vendor.name}</div>
-                    <Mono className="text-muted-foreground">{vendor.domain}</Mono>
+                    <Mono>{vendor.domain}</Mono>
                   </Td>
-                  <Td className="text-muted-foreground">{vendor.data}</Td>
-                  <Td className="text-muted-foreground">{vendor.tier}</Td>
+                  <Td>{vendor.data}</Td>
+                  <Td>{vendor.tier}</Td>
                   <Td>
                     <Badge tone={vendor.reportTone}>{vendor.report}</Badge>
                   </Td>

@@ -163,10 +163,10 @@ function Components() {
               ].map((row) => (
                 <Tr key={row.id}>
                   <Td>
-                    <Mono className="text-muted-foreground">{row.id}</Mono>
+                    <Mono>{row.id}</Mono>
                   </Td>
-                  <Td className="font-medium">{row.item}</Td>
-                  <Td className="text-muted-foreground">{row.owner}</Td>
+                  <Td>{row.item}</Td>
+                  <Td>{row.owner}</Td>
                   <Td className="text-right">
                     <Badge tone={row.tone}>{row.status}</Badge>
                   </Td>

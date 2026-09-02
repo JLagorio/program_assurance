@@ -1,6 +1,6 @@
 # Typography
 
-Two families, loaded from Google Fonts: **Inter** (`--font-sans`, with `cv11`/`ss01` feature settings) for everything, **JetBrains Mono** (`--font-mono`) for identifiers.
+One family: **Inter** (`--font-sans`, with `cv11`/`ss01` feature settings) for everything, identifiers included. `--font-mono` (JetBrains Mono) survives only for `<pre>` code and data previews; no UI text uses it.
 
 ## Scale
 
@@ -19,7 +19,7 @@ Negative tracking tightens as size grows: `-0.005em` at 13px headings, `-0.01em`
 
 ## Monospace
 
-Control numbers, finding IDs, package IDs, hashes, and STIG rule IDs always render in JetBrains Mono via the `Mono` component (12px, tight tracking) — e.g. `AC-2`, `F-2031`, `PKG-2026-114`.
+Control numbers, finding IDs, package IDs, hashes, and STIG rule IDs are wrapped in the `Mono` component for semantics, but since 2026-09-01 it only adds tabular numerals: an identifier takes the font, size and colour of the text around it. Table cells are one style — 13px regular foreground — and only a Badge, Dot or Severity is allowed to differ.
 
 ## Numerals
 

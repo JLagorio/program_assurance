@@ -167,10 +167,10 @@ function WorkstreamDetail() {
                         <Mono>{m.person}</Mono>
                       </Link>
                     </Td>
-                    <Td className="truncate font-medium">{p?.name ?? "—"}</Td>
-                    <Td className="truncate text-muted-foreground">{m.role}</Td>
-                    <Td className="truncate text-muted-foreground">{p?.discipline ?? "—"}</Td>
-                    <Td className="tnum text-right text-muted-foreground">{m.allocation}%</Td>
+                    <Td className="truncate">{p?.name ?? "—"}</Td>
+                    <Td className="truncate">{m.role}</Td>
+                    <Td className="truncate">{p?.discipline ?? "—"}</Td>
+                    <Td className="tnum text-right">{m.allocation}%</Td>
                   </Tr>
                 );
               })}
@@ -205,7 +205,7 @@ function WorkstreamDetail() {
                 ...downstream.map((w) => ["Blocks", w] as const),
               ].map(([dir, w]) => (
                 <Tr key={`${dir}-${w.id}`}>
-                  <Td className="text-muted-foreground">{dir}</Td>
+                  <Td>{dir}</Td>
                   <Td>
                     <Link
                       to="/workstreams/$workstreamId"
@@ -215,20 +215,16 @@ function WorkstreamDetail() {
                       <Mono>{w.id}</Mono>
                     </Link>
                   </Td>
-                  <Td className="truncate font-medium">{w.title}</Td>
+                  <Td className="truncate">{w.title}</Td>
                   <Td>
                     <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
                   </Td>
-                  <Td className="truncate text-muted-foreground">
-                    {personById.get(w.lead)?.name ?? "—"}
-                  </Td>
+                  <Td className="truncate">{personById.get(w.lead)?.name ?? "—"}</Td>
                 </Tr>
               ))}
               {blockers.length === 0 && downstream.length === 0 ? (
                 <Tr>
-                  <Td className="text-muted-foreground" colSpan={5}>
-                    No dependencies recorded.
-                  </Td>
+                  <Td colSpan={5}>No dependencies recorded.</Td>
                 </Tr>
               ) : null}
             </tbody>

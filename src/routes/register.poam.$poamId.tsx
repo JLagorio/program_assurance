@@ -220,11 +220,9 @@ function PoamRecord() {
                       </Link>
                     </Td>
                     <Td>
-                      <Mono className="text-muted-foreground">{f.cci}</Mono>
+                      <Mono>{f.cci}</Mono>
                     </Td>
-                    <Td className="truncate text-muted-foreground">
-                      {assetById.get(f.asset)?.name ?? f.asset}
-                    </Td>
+                    <Td className="truncate">{assetById.get(f.asset)?.name ?? f.asset}</Td>
                     <Td>
                       <Severity tone={severityTone(f.mitigatedSeverity)}>
                         {f.mitigatedSeverity}

@@ -152,10 +152,8 @@ export const Maps: Story = {
         <tbody>
           {vocabularies.map((v) => (
             <tr key={`${v.source}/${v.name}`} className="border-t border-border-subtle">
-              <td className="py-2 pr-6 align-top font-mono text-[11px] text-foreground">
-                {v.name}
-              </td>
-              <td className="py-2 pr-6 align-top font-mono text-[11px] text-muted-foreground">
+              <td className="py-2 pr-6 align-top text-[11px] text-foreground">{v.name}</td>
+              <td className="py-2 pr-6 align-top text-[11px] text-muted-foreground">
                 lib/{v.source}
               </td>
               <td className="py-2 pr-6">

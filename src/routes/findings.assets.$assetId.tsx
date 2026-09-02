@@ -225,9 +225,9 @@ function AssetRecord() {
                   </Td>
                   <Td className="truncate">{f.title}</Td>
                   <Td>
-                    <Mono className="text-muted-foreground">{f.cci}</Mono>
+                    <Mono>{f.cci}</Mono>
                   </Td>
-                  <Td className="truncate text-muted-foreground">{f.source}</Td>
+                  <Td className="truncate">{f.source}</Td>
                   <Td>
                     <Severity tone={severityTone(f.mitigatedSeverity)}>
                       {f.mitigatedSeverity}

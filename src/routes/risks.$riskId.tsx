@@ -149,8 +149,8 @@ function RiskDetail() {
                   {linkedEvidence.map((file) => (
                     <Tr key={file.name}>
                       <IdCell id={file.name} />
-                      <Td className="tnum text-muted-foreground">{file.size}</Td>
-                      <Td className="text-right text-muted-foreground">{file.added}</Td>
+                      <Td className="tnum">{file.size}</Td>
+                      <Td className="text-right">{file.added}</Td>
                     </Tr>
                   ))}
                 </tbody>

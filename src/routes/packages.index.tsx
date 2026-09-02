@@ -100,14 +100,14 @@ function PackagesIndex() {
                         active={preview?.id === p.id}
                         onPreview={() => setPreview(p)}
                       />
-                      <Td className="truncate font-medium">{p.name}</Td>
-                      <Td className="tnum text-muted-foreground">{p.version}</Td>
+                      <Td className="truncate">{p.name}</Td>
+                      <Td className="tnum">{p.version}</Td>
                       <Td className="truncate">
                         <Badge tone={packageStateTone[p.state]}>{p.state}</Badge>
                       </Td>
-                      <Td className="truncate text-[12px] text-muted-foreground">{p.snapshotAt}</Td>
-                      <Td className="truncate text-muted-foreground">{p.owner}</Td>
-                      <Td className="tnum text-right text-muted-foreground">{r.coverage}%</Td>
+                      <Td className="truncate">{p.snapshotAt}</Td>
+                      <Td className="truncate">{p.owner}</Td>
+                      <Td className="tnum text-right">{r.coverage}%</Td>
                       <Td className="tnum text-right">
                         {r.gaps.length > 0 ? (
                           <span className="font-medium text-danger">{r.gaps.length}</span>

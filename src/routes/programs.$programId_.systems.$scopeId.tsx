@@ -239,9 +239,7 @@ function ScopeRecord() {
                         </Badge>
                       </Td>
                       <Td className="tnum text-right">{set.byObjective[o]}</Td>
-                      <Td className="truncate text-muted-foreground">
-                        {familiesFor(set, o).join(", ")}
-                      </Td>
+                      <Td className="truncate">{familiesFor(set, o).join(", ")}</Td>
                     </Tr>
                   ))}
                 </tbody>
@@ -274,8 +272,8 @@ function ScopeRecord() {
                     {set.overlays.map((o) => (
                       <Tr key={o.id}>
                         <Td className="truncate">{o.name}</Td>
-                        <Td className="truncate text-muted-foreground">{o.authority}</Td>
-                        <Td className="truncate text-muted-foreground">{o.trigger}</Td>
+                        <Td className="truncate">{o.authority}</Td>
+                        <Td className="truncate">{o.trigger}</Td>
                       </Tr>
                     ))}
                   </tbody>
@@ -367,8 +365,8 @@ function ScopeRecord() {
                           </Link>
                         </Td>
                         <Td className="truncate">{n.name}</Td>
-                        <Td className="truncate text-muted-foreground">{n.kind}</Td>
-                        <Td className="truncate text-muted-foreground">{n.zone}</Td>
+                        <Td className="truncate">{n.kind}</Td>
+                        <Td className="truncate">{n.zone}</Td>
                         <Td>
                           <Badge size="xs" tone={viaServes ? "info" : "neutral"}>
                             {viaServes ? "Serves" : "Contains"}
@@ -421,8 +419,8 @@ function ScopeRecord() {
                             </Link>
                           </Td>
                           <Td className="truncate">{n?.name ?? e.component}</Td>
-                          <Td className="truncate text-muted-foreground">{e.role}</Td>
-                          <Td className="whitespace-normal py-2 align-top leading-[1.45] text-muted-foreground">
+                          <Td className="truncate">{e.role}</Td>
+                          <Td className="whitespace-normal py-2 align-top leading-[1.45]">
                             {e.rationale}
                           </Td>
                         </Tr>
@@ -488,9 +486,9 @@ function ControlTable({
                 <Mono className="text-primary">{row.control.id}</Mono>
               </Link>
             </Td>
-            <Td className="text-muted-foreground">{row.control.family}</Td>
+            <Td>{row.control.family}</Td>
             <Td className="truncate">{row.control.title}</Td>
-            <Td className="truncate text-muted-foreground">
+            <Td className="truncate">
               {row.selectedBy.length ? row.selectedBy.map((o) => o.slice(0, 1)).join(" · ") : "—"}
             </Td>
             <Td

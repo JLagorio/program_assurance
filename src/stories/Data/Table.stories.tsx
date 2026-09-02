@@ -151,9 +151,9 @@ function Head() {
 function Cells({ f }: { f: Finding }) {
   return (
     <>
-      <Td className="font-medium">{f.title}</Td>
+      <Td>{f.title}</Td>
       <Td>
-        <Mono className="text-muted-foreground">{f.control}</Mono>
+        <Mono>{f.control}</Mono>
       </Td>
       <Td>
         <SeverityCell severity={f.severity} />
@@ -164,7 +164,7 @@ function Cells({ f }: { f: Finding }) {
       <Td>
         <Person name={f.owner} />
       </Td>
-      <Td className="tnum text-right text-muted-foreground">{f.due}</Td>
+      <Td className="tnum text-right">{f.due}</Td>
     </>
   );
 }

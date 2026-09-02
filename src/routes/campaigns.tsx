@@ -185,15 +185,15 @@ function CampaignsPage() {
                         }}
                       >
                         <IdCell id={c.id} />
-                        <Td className="truncate font-medium">{c.name}</Td>
-                        <Td className="truncate text-muted-foreground">{c.trigger}</Td>
-                        <Td className="text-muted-foreground">{c.gate}</Td>
-                        <Td className="truncate text-muted-foreground">{c.state}</Td>
-                        <Td className="truncate text-muted-foreground">{c.lead}</Td>
-                        <Td className="tnum text-right text-muted-foreground">
+                        <Td className="truncate">{c.name}</Td>
+                        <Td className="truncate">{c.trigger}</Td>
+                        <Td>{c.gate}</Td>
+                        <Td className="truncate">{c.state}</Td>
+                        <Td className="truncate">{c.lead}</Td>
+                        <Td className="tnum text-right">
                           {cov.run}/{cov.objectives}
                         </Td>
-                        <Td className="tnum text-right text-muted-foreground">{cov.findings}</Td>
+                        <Td className="tnum text-right">{cov.findings}</Td>
                         <Td className="text-right">
                           <Link
                             to="/campaigns/$campaignId"
@@ -243,16 +243,14 @@ function CampaignsPage() {
                       }
                     >
                       <IdCell id={e.id} />
-                      <Td className="truncate font-medium">{e.name}</Td>
-                      <Td className="truncate text-muted-foreground">{e.kind}</Td>
+                      <Td className="truncate">{e.name}</Td>
+                      <Td className="truncate">{e.kind}</Td>
                       <Td className="truncate">
                         <Badge tone={statusTone(e.state)}>{e.state}</Badge>
                       </Td>
-                      <Td className="truncate text-[12px] text-muted-foreground">{e.window}</Td>
-                      <Td className="tnum text-right text-muted-foreground">
-                        {ccisForEvent(e.id).length}
-                      </Td>
-                      <Td className="tnum text-right text-muted-foreground">{e.findings.length}</Td>
+                      <Td className="truncate">{e.window}</Td>
+                      <Td className="tnum text-right">{ccisForEvent(e.id).length}</Td>
+                      <Td className="tnum text-right">{e.findings.length}</Td>
                     </Tr>
                   ))}
                 </tbody>
@@ -287,12 +285,10 @@ function CampaignsPage() {
                       </Td>
                       <Td className="truncate">{o.statement}</Td>
                       <Td className="truncate">
-                        <Mono className="text-muted-foreground">{o.ccis.join(", ")}</Mono>
+                        <Mono>{o.ccis.join(", ")}</Mono>
                       </Td>
-                      <Td className="truncate text-muted-foreground">{o.method}</Td>
-                      <Td>
-                        {o.event ? <Mono className="text-muted-foreground">{o.event}</Mono> : "—"}
-                      </Td>
+                      <Td className="truncate">{o.method}</Td>
+                      <Td>{o.event ? <Mono>{o.event}</Mono> : "—"}</Td>
                       <Td className="truncate">
                         <Badge tone={objectiveTone(o.result)}>{o.result}</Badge>
                       </Td>

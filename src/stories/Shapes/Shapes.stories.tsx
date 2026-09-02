@@ -105,7 +105,7 @@ function FindingsTable() {
         {findings.map((f) => (
           <Tr key={f.id}>
             <IdCell id={f.id} />
-            <Td className="font-medium">{f.title}</Td>
+            <Td>{f.title}</Td>
             <Td>
               <Badge tone={f.tone}>{f.status}</Badge>
             </Td>

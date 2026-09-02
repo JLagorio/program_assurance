@@ -15,7 +15,7 @@ export function InheritChip({
   const label = (
     <>
       <Share2 className="size-3 shrink-0 opacity-70" strokeWidth={2} />
-      <span className="truncate font-mono text-[11.5px]">{component.key}</span>
+      <span className="truncate text-[11.5px]">{component.key}</span>
       {stale ? <span className="shrink-0 text-warning">· stale</span> : null}
     </>
   );
@@ -82,11 +82,9 @@ export function ConsumerTable({ component }: { component: SystemComponent }) {
                 </span>
               )}
             </Td>
-            <Td className="truncate text-muted-foreground">
-              {c.accessible ? <Mono className="text-muted-foreground">{c.system}</Mono> : "—"}
-            </Td>
-            <Td className="tnum text-right text-muted-foreground">{c.controls}</Td>
-            <Td className="tnum text-right text-muted-foreground">{c.lastSync}</Td>
+            <Td className="truncate">{c.accessible ? <Mono>{c.system}</Mono> : "—"}</Td>
+            <Td className="tnum text-right">{c.controls}</Td>
+            <Td className="tnum text-right">{c.lastSync}</Td>
           </Tr>
         ))}
       </tbody>
@@ -121,9 +119,9 @@ export function ProvidedControlsTable({ component }: { component: SystemComponen
               <Td>
                 <Mono>{c.id}</Mono>
               </Td>
-              <Td className="truncate font-medium">{c.title}</Td>
-              <Td className="text-muted-foreground">{c.model}</Td>
-              <Td className="truncate text-muted-foreground">{c.evidence}</Td>
+              <Td className="truncate">{c.title}</Td>
+              <Td>{c.model}</Td>
+              <Td className="truncate">{c.evidence}</Td>
               <Td className="tnum whitespace-nowrap text-right">
                 {stale ? (
                   <Badge tone="warning">{c.evidenceAge}d</Badge>

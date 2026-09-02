@@ -82,7 +82,7 @@ function Sidebar() {
 
   return (
     <aside className="sticky top-0 hidden h-screen w-[228px] shrink-0 flex-col border-r border-border bg-sidebar lg:flex">
-      <div className="flex h-14 items-center gap-2.5 px-4">
+      <div className="flex h-12 items-center gap-2.5 px-4">
         <Logo />
         <div className="min-w-0 leading-tight">
           <div className="truncate text-[13px] font-medium tracking-[-0.01em]">Equinox</div>
@@ -152,16 +152,16 @@ function Sidebar() {
 
 function TopBar() {
   return (
-    <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card/85 px-4 backdrop-blur supports-[backdrop-filter]:bg-card/70 lg:px-6">
+    <header className="sticky top-0 z-20 flex h-12 shrink-0 items-center gap-3 border-b border-border bg-card/85 px-4 backdrop-blur supports-[backdrop-filter]:bg-card/70 lg:px-6">
       <div className="relative w-full max-w-[420px]">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
         <input
           type="search"
           placeholder="Search risks, controls, evidence…"
           aria-label="Search"
-          className="h-8 w-full rounded-md border border-input bg-background pl-8 pr-14 text-[13px] placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-ring/20"
+          className="h-7 w-full rounded-md border-0 bg-muted pl-8 pr-12 text-[13px] text-foreground outline-none transition-[background-color,box-shadow] placeholder:text-muted-foreground focus:bg-card focus:ring-2 focus:ring-ring/20"
         />
-        <span className="pointer-events-none absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-0.5 rounded border border-border bg-muted px-1 text-[11px] text-muted-foreground">
+        <span className="pointer-events-none absolute right-2.5 top-1/2 flex -translate-y-1/2 items-center gap-0.5 text-[11px] text-muted-foreground">
           <CommandIcon className="size-2.5" />K
         </span>
       </div>

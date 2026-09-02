@@ -198,20 +198,18 @@ function RegisterPage() {
                           active={preview?.kind === "poam" && preview.item.id === p.id}
                           onPreview={() => setPreview({ kind: "poam", item: p })}
                         />
-                        <Td className="truncate font-medium">{p.title}</Td>
-                        <Td className="truncate text-muted-foreground">{p.owner}</Td>
-                        <Td className="tnum text-right text-muted-foreground">
+                        <Td className="truncate">{p.title}</Td>
+                        <Td className="truncate">{p.owner}</Td>
+                        <Td className="tnum text-right">
                           {openCount(fs)} / {fs.length}
                         </Td>
                         <Td>
                           {worst ? <Severity tone={severityTone(worst)}>{worst}</Severity> : "—"}
                         </Td>
-                        <Td className="truncate text-[12px] text-muted-foreground">
-                          {p.scheduledCompletion}
-                        </Td>
+                        <Td className="truncate">{p.scheduledCompletion}</Td>
                         <Td className="truncate">
                           {p.risk ? (
-                            <Mono className="text-muted-foreground">{p.risk}</Mono>
+                            <Mono>{p.risk}</Mono>
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
@@ -266,15 +264,13 @@ function RegisterPage() {
                           active={preview?.kind === "risk" && preview.item.id === r.id}
                           onPreview={() => setPreview({ kind: "risk", item: r })}
                         />
-                        <Td className="truncate font-medium">{r.title}</Td>
-                        <Td className="truncate text-muted-foreground">{r.owner}</Td>
-                        <Td className="tnum text-right text-muted-foreground">
+                        <Td className="truncate">{r.title}</Td>
+                        <Td className="truncate">{r.owner}</Td>
+                        <Td className="tnum text-right">
                           {openCount(fs)} / {fs.length}
                         </Td>
-                        <Td className="tnum text-right text-muted-foreground">
-                          {ccisForRisk(r.id).length}
-                        </Td>
-                        <Td className="tnum text-muted-foreground">{poamsForRisk(r.id).length}</Td>
+                        <Td className="tnum text-right">{ccisForRisk(r.id).length}</Td>
+                        <Td className="tnum">{poamsForRisk(r.id).length}</Td>
                         <Td>
                           <div className="flex items-center gap-2">
                             <span className="tnum w-5 text-right text-[12px] text-muted-foreground/70 line-through">
@@ -333,13 +329,11 @@ function RegisterPage() {
                         }
                       >
                         <IdCell id={f.id} />
-                        <Td className="truncate font-medium">{f.title}</Td>
+                        <Td className="truncate">{f.title}</Td>
                         <Td>
-                          <Mono className="text-muted-foreground">{f.cci}</Mono>
+                          <Mono>{f.cci}</Mono>
                         </Td>
-                        <Td className="truncate text-muted-foreground">
-                          {assetById.get(f.asset)?.name ?? f.asset}
-                        </Td>
+                        <Td className="truncate">{assetById.get(f.asset)?.name ?? f.asset}</Td>
                         <Td>
                           <Severity tone={severityTone(f.mitigatedSeverity)}>
                             {f.mitigatedSeverity}

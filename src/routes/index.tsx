@@ -138,7 +138,7 @@ function Overview() {
                   {risks.slice(0, 5).map((risk) => (
                     <Tr key={risk.id} className="group">
                       <Td>
-                        <Mono className="text-muted-foreground">{risk.id}</Mono>
+                        <Mono>{risk.id}</Mono>
                       </Td>
                       <Td>
                         <Link
@@ -149,8 +149,8 @@ function Overview() {
                           {risk.title}
                         </Link>
                       </Td>
-                      <Td className="text-muted-foreground">{risk.framework}</Td>
-                      <Td className="text-muted-foreground">{risk.owner}</Td>
+                      <Td>{risk.framework}</Td>
+                      <Td>{risk.owner}</Td>
                       <Td>
                         <div className="flex items-center gap-2">
                           <Meter
@@ -190,7 +190,7 @@ function Overview() {
                 <tbody>
                   {frameworks.map((fw) => (
                     <Tr key={fw.name}>
-                      <Td className="font-medium">{fw.name}</Td>
+                      <Td>{fw.name}</Td>
                       <Td>
                         <div className="flex items-center gap-2">
                           <Meter value={fw.coverage} tone={fw.tone} />
@@ -199,8 +199,8 @@ function Overview() {
                           </span>
                         </div>
                       </Td>
-                      <Td className="tnum text-right text-muted-foreground">{fw.controls}</Td>
-                      <Td className="text-right text-[12px] text-muted-foreground">{fw.window}</Td>
+                      <Td className="tnum text-right">{fw.controls}</Td>
+                      <Td className="text-right">{fw.window}</Td>
                     </Tr>
                   ))}
                 </tbody>

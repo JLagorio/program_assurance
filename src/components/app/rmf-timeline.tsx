@@ -170,8 +170,8 @@ export function RmfTimeline({
                                     </Link>
                                   </Td>
                                   <Td className="truncate">{w.title}</Td>
-                                  <Td className="text-muted-foreground">{w.status}</Td>
-                                  <Td className="text-muted-foreground">
+                                  <Td>{w.status}</Td>
+                                  <Td>
                                     {w.controls.length ? (
                                       <button
                                         type="button"
@@ -187,7 +187,7 @@ export function RmfTimeline({
                                       "—"
                                     )}
                                   </Td>
-                                  <Td className="tnum text-right text-muted-foreground">{w.due}</Td>
+                                  <Td className="tnum text-right">{w.due}</Td>
                                 </Tr>
                               );
                             })}
@@ -252,19 +252,19 @@ export function GateOutlookSection({
               <Td>
                 <Mono>{gate.id}</Mono>
               </Td>
-              <Td className="truncate font-medium">{gate.name}</Td>
+              <Td className="truncate">{gate.name}</Td>
               <Td>
                 <Badge tone={tone} size="xs">
                   {gate.status}
                 </Badge>
               </Td>
-              <Td className="tnum text-muted-foreground">{gate.planned}</Td>
+              <Td className="tnum">{gate.planned}</Td>
               <Td
                 className={cn("tnum", tone === "danger" ? "text-danger" : "text-muted-foreground")}
               >
                 {timing(gate, daysOut)}
               </Td>
-              <Td className="truncate text-muted-foreground">
+              <Td className="truncate">
                 {blockers ? `${blockers} open controls` : <Person name={gate.owner} />}
               </Td>
             </Tr>

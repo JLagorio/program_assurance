@@ -260,15 +260,15 @@ function ComponentRecord() {
                       </Link>
                     </Td>
                     <Td className="truncate">{sc.name}</Td>
-                    <Td className="text-muted-foreground">{t.Confidentiality.slice(0, 1)}</Td>
-                    <Td className="text-muted-foreground">{t.Integrity.slice(0, 1)}</Td>
-                    <Td className="text-muted-foreground">{t.Availability.slice(0, 1)}</Td>
+                    <Td>{t.Confidentiality.slice(0, 1)}</Td>
+                    <Td>{t.Integrity.slice(0, 1)}</Td>
+                    <Td>{t.Availability.slice(0, 1)}</Td>
                     <Td>
                       <Badge size="xs" tone={edge ? "info" : "neutral"}>
                         {edge ? "Serves" : "Contains"}
                       </Badge>
                     </Td>
-                    <Td className="truncate text-muted-foreground">
+                    <Td className="truncate">
                       {edge ? edge.role : `${set?.total ?? 0} controls in force`}
                     </Td>
                   </Tr>
@@ -334,9 +334,9 @@ function ComponentRecord() {
                       </Link>
                     </Td>
                     <Td className="truncate">{child.name}</Td>
-                    <Td className="truncate text-muted-foreground">{child.kind}</Td>
-                    <Td className="truncate text-muted-foreground">{child.version}</Td>
-                    <Td className="truncate text-muted-foreground">{child.supplier}</Td>
+                    <Td className="truncate">{child.kind}</Td>
+                    <Td className="truncate">{child.version}</Td>
+                    <Td className="truncate">{child.supplier}</Td>
                     <Td className="tnum text-right">
                       {allocationsOn(child.id).length || (
                         <span className="text-muted-foreground">—</span>
@@ -376,7 +376,7 @@ function ComponentRecord() {
                   const peer = nodeById.get(other);
                   return (
                     <Tr key={`${edge.from}-${edge.to}-${i}`} title={edge.via}>
-                      <Td className="text-muted-foreground">{dir}</Td>
+                      <Td>{dir}</Td>
                       <Td className="max-w-none">
                         <Link
                           to="/programs/$programId/components/$componentId"
@@ -387,7 +387,7 @@ function ComponentRecord() {
                         </Link>
                       </Td>
                       <Td className="truncate">{peer?.name ?? other}</Td>
-                      <Td className="truncate text-muted-foreground">
+                      <Td className="truncate">
                         {edge.kind} — {edge.via}
                       </Td>
                       <Td>
@@ -444,14 +444,14 @@ function ComponentRecord() {
                           <Mono className="text-primary">{d.requirement}</Mono>
                         </Link>
                       </Td>
-                      <Td className="truncate text-muted-foreground" title={r?.text}>
+                      <Td className="truncate" title={r?.text}>
                         {r?.text ?? "—"}
                       </Td>
-                      <Td className="whitespace-normal py-2 align-top leading-[1.45] text-muted-foreground">
+                      <Td className="whitespace-normal py-2 align-top leading-[1.45]">
                         {d.rationale}
                       </Td>
-                      <Td className="truncate text-muted-foreground">{d.decidedBy}</Td>
-                      <Td className="text-muted-foreground">{d.decidedOn}</Td>
+                      <Td className="truncate">{d.decidedBy}</Td>
+                      <Td>{d.decidedOn}</Td>
                     </Tr>
                   );
                 })}
@@ -517,7 +517,7 @@ function ComponentRecord() {
                         <Mono className="text-primary">{f.control}</Mono>
                       </Link>
                     </Td>
-                    <Td className="truncate text-muted-foreground">{f.lifecycle}</Td>
+                    <Td className="truncate">{f.lifecycle}</Td>
                   </Tr>
                 ))}
               </tbody>

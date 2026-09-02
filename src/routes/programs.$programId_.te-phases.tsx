@@ -503,16 +503,16 @@ function ProgramTePhases() {
                         ? [
                             <Tr key={phase.id}>
                               <Td>
-                                <Mono className="text-muted-foreground">{phase.id}</Mono>
+                                <Mono>{phase.id}</Mono>
                               </Td>
-                              <Td className="text-muted-foreground">{phase.kind}</Td>
-                              <Td className="text-muted-foreground">—</Td>
-                              <Td className="truncate text-muted-foreground">
+                              <Td>{phase.kind}</Td>
+                              <Td>—</Td>
+                              <Td className="truncate">
                                 No campaign — {phase.short} produces the record later phases are
                                 judged against
                               </Td>
-                              <Td className="text-muted-foreground">—</Td>
-                              <Td className="text-muted-foreground">—</Td>
+                              <Td>—</Td>
+                              <Td>—</Td>
                             </Tr>,
                           ]
                         : phase.campaigns.map((id) => {
@@ -520,9 +520,9 @@ function ProgramTePhases() {
                             return (
                               <Tr key={`${phase.id}-${id}`}>
                                 <Td>
-                                  <Mono className="text-muted-foreground">{phase.id}</Mono>
+                                  <Mono>{phase.id}</Mono>
                                 </Td>
-                                <Td className="text-muted-foreground">{phase.kind}</Td>
+                                <Td>{phase.kind}</Td>
                                 <Td>
                                   <Link
                                     to="/campaigns/$campaignId"
@@ -535,9 +535,7 @@ function ProgramTePhases() {
                                 <Td className="truncate" title={campaign?.scope ?? ""}>
                                   {campaign ? `${campaign.name} — ${campaign.scope}` : "—"}
                                 </Td>
-                                <Td className="truncate text-muted-foreground">
-                                  {campaign?.lead ?? "—"}
-                                </Td>
+                                <Td className="truncate">{campaign?.lead ?? "—"}</Td>
                                 <Td>
                                   {campaign ? (
                                     <Badge tone={statusTone(campaign.state)}>
@@ -1010,7 +1008,7 @@ function MissionFunctionTable({
       <tbody>
         {rows.map((r) => (
           <Tr key={r.fn}>
-            <Td className="truncate font-medium" title={r.fn}>
+            <Td className="truncate" title={r.fn}>
               {r.fn}
             </Td>
             <Td>
@@ -1026,9 +1024,9 @@ function MissionFunctionTable({
                 {r.worst}
               </Badge>
             </Td>
-            <Td className="tnum text-right text-muted-foreground">{r.count}</Td>
-            <Td className="tnum text-right text-muted-foreground">{r.scenarios.size}</Td>
-            <Td className={r.noWorkaround > 0 ? "text-danger" : "text-muted-foreground"}>
+            <Td className="tnum text-right">{r.count}</Td>
+            <Td className="tnum text-right">{r.scenarios.size}</Td>
+            <Td className={r.noWorkaround > 0 ? "text-danger" : undefined}>
               {r.noWorkaround > 0
                 ? `${r.noWorkaround} with none identified`
                 : r.worst === "No effect"

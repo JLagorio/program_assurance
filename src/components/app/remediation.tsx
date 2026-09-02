@@ -204,8 +204,8 @@ export function RemediationPlanSection({
                   )}
                   <span className="mt-0.5 block text-11 text-muted-foreground">{t.role}</span>
                 </Td>
-                <Td className="tnum text-right text-muted-foreground">{t.start}</Td>
-                <Td className="tnum text-right text-muted-foreground">{t.due}</Td>
+                <Td className="tnum text-right">{t.start}</Td>
+                <Td className="tnum text-right">{t.due}</Td>
                 <Td>
                   <Badge tone={taskStatusTone[t.status]} size="xs">
                     {t.status}

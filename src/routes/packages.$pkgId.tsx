@@ -191,7 +191,7 @@ function PackageRecord() {
                         onPreview={() => setPreview(r)}
                       />
                       <Td>
-                        <Mono className="text-muted-foreground">{r.control}</Mono>
+                        <Mono>{r.control}</Mono>
                       </Td>
                       <Td className="truncate">
                         {r.gap ? (
@@ -205,7 +205,7 @@ function PackageRecord() {
                       </Td>
                       <Td className="truncate">
                         {r.objectives.length ? (
-                          <Mono className="text-muted-foreground">{r.objectives.join(", ")}</Mono>
+                          <Mono>{r.objectives.join(", ")}</Mono>
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
@@ -213,8 +213,8 @@ function PackageRecord() {
                       <Td className="truncate">
                         <Badge tone={resultTone(r.result)}>{r.result}</Badge>
                       </Td>
-                      <Td className="tnum text-right text-muted-foreground">{r.openFindings}</Td>
-                      <Td className="text-muted-foreground">{r.worstSeverity}</Td>
+                      <Td className="tnum text-right">{r.openFindings}</Td>
+                      <Td>{r.worstSeverity}</Td>
                     </Tr>
                   ))}
                 </tbody>
@@ -244,14 +244,14 @@ function PackageRecord() {
                 <tbody>
                   {ready.artifacts.map((a) => (
                     <Tr key={a.id}>
-                      <Td className="font-medium">{a.kind}</Td>
+                      <Td>{a.kind}</Td>
                       <Td className="truncate">
                         <span className="truncate">{a.name}</span>
                         <span className="ml-2 text-[12px] text-muted-foreground">{a.note}</span>
                       </Td>
-                      <Td className="truncate text-muted-foreground">{a.format}</Td>
-                      <Td className="truncate text-[12px] text-muted-foreground">{a.generated}</Td>
-                      <Td className="tnum text-right text-muted-foreground">{a.pages || "—"}</Td>
+                      <Td className="truncate">{a.format}</Td>
+                      <Td className="truncate">{a.generated}</Td>
+                      <Td className="tnum text-right">{a.pages || "—"}</Td>
                       <Td className="truncate">
                         <Badge tone={statusTone(a.state)}>{a.state}</Badge>
                       </Td>
@@ -280,10 +280,10 @@ function PackageRecord() {
                 <tbody>
                   {log.map((s) => (
                     <Tr key={s.id}>
-                      <Td className="truncate text-[12px] text-muted-foreground">{s.at}</Td>
+                      <Td className="truncate">{s.at}</Td>
                       <Td className="truncate">{s.actor}</Td>
-                      <Td className="truncate font-medium">{s.action}</Td>
-                      <Td className="truncate text-muted-foreground">{s.detail}</Td>
+                      <Td className="truncate">{s.action}</Td>
+                      <Td className="truncate">{s.detail}</Td>
                     </Tr>
                   ))}
                 </tbody>

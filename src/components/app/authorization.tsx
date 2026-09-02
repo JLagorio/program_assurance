@@ -151,18 +151,18 @@ export function AuthorizationSection({
                   <Td>
                     <Mono>{a.id}</Mono>
                   </Td>
-                  <Td className="text-muted-foreground">{a.kind}</Td>
+                  <Td>{a.kind}</Td>
                   <Td>
                     <span className="font-medium">{a.name}</span>
                     <span className="text-muted-foreground"> — {a.note}</span>
                   </Td>
-                  <Td className="tabular-nums text-muted-foreground">{a.version}</Td>
+                  <Td className="tnum">{a.version}</Td>
                   <Td>
                     <Badge tone={packageStatusTone[a.status]}>{a.status}</Badge>
                   </Td>
-                  <Td className="tabular-nums text-right text-muted-foreground">{a.pages}</Td>
-                  <Td className="tabular-nums text-muted-foreground">{a.updated}</Td>
-                  <Td className="text-muted-foreground">{a.owner}</Td>
+                  <Td className="tnum text-right">{a.pages}</Td>
+                  <Td className="tnum">{a.updated}</Td>
+                  <Td>{a.owner}</Td>
                 </Tr>
               ))}
             </tbody>
@@ -206,11 +206,11 @@ export function AuthorizationSection({
                   <Td>
                     <Mono>{g.id}</Mono>
                   </Td>
-                  <Td className="font-medium">{g.person}</Td>
-                  <Td className="text-muted-foreground">{g.org}</Td>
-                  <Td className="text-muted-foreground">{g.role}</Td>
-                  <Td className="text-muted-foreground">{g.access}</Td>
-                  <Td className="tabular-nums text-muted-foreground">{g.lastViewed}</Td>
+                  <Td>{g.person}</Td>
+                  <Td>{g.org}</Td>
+                  <Td>{g.role}</Td>
+                  <Td>{g.access}</Td>
+                  <Td className="tnum">{g.lastViewed}</Td>
                   <Td>
                     <Badge tone={grantTone[g.status]}>{g.status}</Badge>
                   </Td>
@@ -283,11 +283,9 @@ export function AuthorizationSection({
                   <Td>
                     <Badge tone={observationTone[o.status]}>{o.status}</Badge>
                   </Td>
-                  <Td className="text-muted-foreground">
-                    {o.jira ? <Mono>{o.jira}</Mono> : "Not assigned"}
-                  </Td>
-                  <Td className="text-muted-foreground">{o.assignee}</Td>
-                  <Td className="tabular-nums text-right text-muted-foreground">{o.due}</Td>
+                  <Td>{o.jira ? <Mono>{o.jira}</Mono> : "Not assigned"}</Td>
+                  <Td>{o.assignee}</Td>
+                  <Td className="tnum text-right">{o.due}</Td>
                 </Tr>
               ))}
             </tbody>
@@ -728,7 +726,7 @@ export function BriefingRoom() {
                   <Td>
                     <Mono>{r.control}</Mono>
                   </Td>
-                  <Td className="text-muted-foreground">{r.likelihood}</Td>
+                  <Td>{r.likelihood}</Td>
                   <Td>
                     <Badge tone={residualTone[r.residual]}>{r.residual}</Badge>
                   </Td>
@@ -773,17 +771,15 @@ export function BriefingRoom() {
                   <Td>
                     <Mono>{o.id}</Mono>
                   </Td>
-                  <Td className="font-medium">{o.title}</Td>
+                  <Td>{o.title}</Td>
                   <Td>
                     <Severity tone={severityTone[o.severity]}>{o.severity}</Severity>
                   </Td>
                   <Td>
                     <Badge tone={observationTone[o.status]}>{o.status}</Badge>
                   </Td>
-                  <Td className="text-muted-foreground">
-                    {o.jira ? <Mono>{o.jira}</Mono> : "Not assigned"}
-                  </Td>
-                  <Td className="tabular-nums text-right text-muted-foreground">{o.due}</Td>
+                  <Td>{o.jira ? <Mono>{o.jira}</Mono> : "Not assigned"}</Td>
+                  <Td className="tnum text-right">{o.due}</Td>
                 </Tr>
               ))}
             </tbody>

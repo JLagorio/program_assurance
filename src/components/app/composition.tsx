@@ -657,7 +657,7 @@ export function ReconciliationTable({
             <Td>
               <Mono className={onSelect ? "text-primary" : "text-muted-foreground"}>{r.asset}</Mono>
             </Td>
-            <Td className="truncate font-medium" title={r.name}>
+            <Td className="truncate" title={r.name}>
               {r.name}
             </Td>
             <Td>
@@ -689,7 +689,7 @@ export function ReconciliationTable({
                 {r.agrees ? "Reconciled" : "Unreconciled"}
               </Badge>
             </Td>
-            <Td className="truncate text-muted-foreground" title={r.note}>
+            <Td className="truncate" title={r.note}>
               {r.note}
             </Td>
           </Tr>
@@ -921,7 +921,7 @@ export function SupplyChainTable({
           const past = r.eolKey <= today;
           return (
             <Tr key={r.supplier}>
-              <Td className="truncate font-medium" title={r.supplier}>
+              <Td className="truncate" title={r.supplier}>
                 {r.supplier}
               </Td>
               <Td className="truncate" title={r.origins.join(", ")}>
@@ -929,8 +929,8 @@ export function SupplyChainTable({
                   {r.origins.length > 1 ? `${origin} +${r.origins.length - 1}` : origin}
                 </Badge>
               </Td>
-              <Td className="tnum text-right text-muted-foreground">{r.parts}</Td>
-              <Td className="tnum text-right text-muted-foreground">{r.critical}</Td>
+              <Td className="tnum text-right">{r.parts}</Td>
+              <Td className="tnum text-right">{r.critical}</Td>
               <Td>
                 <span className="flex items-center gap-2">
                   <span className="w-20">
@@ -955,7 +955,7 @@ export function SupplyChainTable({
               >
                 {r.unattested}
               </Td>
-              <Td className={cn("tnum", past ? "text-danger" : "text-muted-foreground")}>
+              <Td className={cn("tnum", past && "text-danger")}>
                 {r.eol === "—" ? <Dash /> : r.eol}
                 {past ? <span className="pl-1 text-11">past</span> : null}
               </Td>

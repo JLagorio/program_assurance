@@ -205,7 +205,7 @@ export const ModalLarge: Story = {
           {evidence.map((e) => (
             <Tr key={e.id}>
               <IdCell id={e.id} />
-              <Td className="font-medium">{e.title}</Td>
+              <Td>{e.title}</Td>
               <Td>
                 <Badge size="xs">{e.kind}</Badge>
               </Td>

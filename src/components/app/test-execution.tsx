@@ -412,7 +412,7 @@ export function ObjectiveExecutionTable({
             <Td>
               <ResultChip result={row.declared} />
             </Td>
-            <Td className={cn(row.disagrees && "font-medium")}>
+            <Td>
               <span className="flex items-center gap-1.5">
                 <ResultChip result={row.executed} />
                 {row.disagrees ? (
@@ -420,10 +420,10 @@ export function ObjectiveExecutionTable({
                 ) : null}
               </span>
             </Td>
-            <Td className="truncate text-muted-foreground">
+            <Td className="truncate">
               {row.source === "Run" && row.run ? (
                 <span className="flex items-center gap-1.5">
-                  <Mono className="text-muted-foreground">{row.run}</Mono>
+                  <Mono>{row.run}</Mono>
                   <span className="text-11">run log</span>
                 </span>
               ) : (
@@ -541,20 +541,20 @@ export function ProcedureList({
           >
             <Td>
               <span className="flex items-baseline gap-1.5">
-                <Mono className="text-muted-foreground">{procedure.id}</Mono>
+                <Mono>{procedure.id}</Mono>
                 <span className="shrink-0 text-11 text-muted-foreground">{procedure.version}</span>
               </span>
             </Td>
             <Td className="truncate">{procedure.title}</Td>
             <Td>
-              <Mono className="text-muted-foreground">{procedure.objective}</Mono>
+              <Mono>{procedure.objective}</Mono>
             </Td>
             <Td className="truncate">
               <Badge>{procedure.method}</Badge>
             </Td>
-            <Td className="tnum text-right text-muted-foreground">{procedure.steps.length}</Td>
-            <Td className="tnum text-right text-muted-foreground">{procedure.duration}</Td>
-            <Td className="tnum text-right text-muted-foreground">{runs}</Td>
+            <Td className="tnum text-right">{procedure.steps.length}</Td>
+            <Td className="tnum text-right">{procedure.duration}</Td>
+            <Td className="tnum text-right">{runs}</Td>
             <Td className="truncate" title={verdict?.basis}>
               {verdict ? <ResultChip result={verdict.result} /> : <Dash />}
             </Td>
@@ -610,17 +610,15 @@ export function StepTable({
           const record = records?.get(step.id);
           return (
             <Tr key={step.id} className="align-top">
-              <Td className="tnum whitespace-normal py-2 align-top text-right text-muted-foreground">
-                {step.n}
-              </Td>
+              <Td className="tnum whitespace-normal py-2 align-top text-right">{step.n}</Td>
               <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
                 <Mono className="text-[11px] text-muted-foreground">{step.id}</Mono>
                 <span className="mt-0.5 block">{step.action}</span>
               </Td>
-              <Td className="max-w-none whitespace-normal py-2 align-top leading-snug text-muted-foreground">
+              <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
                 {step.expected}
               </Td>
-              <Td className="max-w-none whitespace-normal py-2 align-top leading-snug text-muted-foreground">
+              <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
                 {step.collect}
               </Td>
               {records ? (
@@ -754,7 +752,7 @@ export function RunTable({
           >
             <Td>
               <span className="flex items-baseline gap-1.5">
-                <Mono className="text-muted-foreground">{run.id}</Mono>
+                <Mono>{run.id}</Mono>
                 {run.retestOf ? (
                   <span
                     className="shrink-0 text-11 text-muted-foreground"
@@ -766,20 +764,20 @@ export function RunTable({
               </span>
             </Td>
             <Td>
-              <Mono className="text-muted-foreground">{run.procedure}</Mono>
+              <Mono>{run.procedure}</Mono>
             </Td>
-            <Td className="truncate text-muted-foreground">{run.build}</Td>
-            <Td className="truncate text-muted-foreground">{run.operator}</Td>
+            <Td className="truncate">{run.build}</Td>
+            <Td className="truncate">{run.operator}</Td>
             <Td className="truncate">
               <Badge tone={runStateTone[run.state]}>{run.state}</Badge>
             </Td>
             <Td className="truncate">
               {verdict ? <ResultChip result={verdict.result} /> : <Dash />}
             </Td>
-            <Td className="tnum text-right text-muted-foreground">
+            <Td className="tnum text-right">
               {verdict ? `${verdict.pass}/${verdict.fail}/${verdict.inconclusive}` : "—"}
             </Td>
-            <Td className="tnum truncate text-[12px] text-muted-foreground">
+            <Td className="tnum truncate">
               {run.started}
               {procedure ? "" : " · procedure missing"}
             </Td>
@@ -1056,19 +1054,19 @@ export function RegressionTable({ rows }: { rows: RegressionRow[] }) {
             className={cn(row.state === "Regressed" && "bg-danger-soft/40")}
           >
             <Td>
-              <Mono className="text-muted-foreground">{row.procedure}</Mono>
+              <Mono>{row.procedure}</Mono>
             </Td>
             <Td>
               <Mono>{row.step}</Mono>
             </Td>
             <Td>
-              <Mono className="text-muted-foreground">{row.priorRun}</Mono>
+              <Mono>{row.priorRun}</Mono>
             </Td>
             <Td>
               <Badge tone={stepResultTone[row.priorResult]}>{row.priorResult}</Badge>
             </Td>
             <Td>
-              <Mono className="text-muted-foreground">{row.currentRun}</Mono>
+              <Mono>{row.currentRun}</Mono>
             </Td>
             <Td>
               <Badge tone={stepResultTone[row.currentResult]}>{row.currentResult}</Badge>
@@ -1076,7 +1074,7 @@ export function RegressionTable({ rows }: { rows: RegressionRow[] }) {
             <Td>
               <Badge tone={regressionStateTone[row.state]}>{row.state}</Badge>
             </Td>
-            <Td className="truncate text-muted-foreground">
+            <Td className="truncate">
               {row.state === "Regressed"
                 ? `${row.step} passed in ${row.priorRun} and fails in ${row.currentRun}.`
                 : row.state === "Fixed"

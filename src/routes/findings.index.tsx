@@ -82,7 +82,7 @@ function trackedLabel(assetId: string): string {
 function TrackedCell({ assetId }: { assetId: string }) {
   const rolled = assetPosture(assetId)?.rolled ?? null;
   if (!rolled) {
-    return <Td className="text-right text-muted-foreground">—</Td>;
+    return <Td className="text-right">—</Td>;
   }
   return (
     <Td className="tnum text-right">
@@ -233,15 +233,13 @@ function FindingsPage() {
                         active={preview?.kind === "finding" && preview.item.id === f.id}
                         onPreview={() => setPreview({ kind: "finding", item: f })}
                       />
-                      <Td className="truncate font-medium">{f.title}</Td>
+                      <Td className="truncate">{f.title}</Td>
                       <Td>
-                        <Mono className="text-muted-foreground">{f.cci}</Mono>
+                        <Mono>{f.cci}</Mono>
                       </Td>
-                      <Td className="truncate text-muted-foreground">
-                        {assetById.get(f.asset)?.name ?? f.asset}
-                      </Td>
-                      <Td className="truncate text-muted-foreground">{f.source}</Td>
-                      <Td className="text-muted-foreground">{f.rawSeverity}</Td>
+                      <Td className="truncate">{assetById.get(f.asset)?.name ?? f.asset}</Td>
+                      <Td className="truncate">{f.source}</Td>
+                      <Td>{f.rawSeverity}</Td>
                       <Td>
                         <Severity tone={severityTone(f.mitigatedSeverity)}>
                           {f.mitigatedSeverity}
@@ -292,11 +290,11 @@ function FindingsPage() {
                         active={preview?.kind === "asset" && preview.item.id === a.id}
                         onPreview={() => setPreview({ kind: "asset", item: a })}
                       />
-                      <Td className="truncate font-medium">{a.name}</Td>
-                      <Td className="truncate text-muted-foreground">{a.kind}</Td>
-                      <Td className="truncate text-muted-foreground">{a.technology}</Td>
-                      <Td className="truncate text-muted-foreground">{a.environment}</Td>
-                      <Td className="truncate text-[12px] text-muted-foreground">{a.lastScan}</Td>
+                      <Td className="truncate">{a.name}</Td>
+                      <Td className="truncate">{a.kind}</Td>
+                      <Td className="truncate">{a.technology}</Td>
+                      <Td className="truncate">{a.environment}</Td>
+                      <Td className="truncate">{a.lastScan}</Td>
                       <Td className="tnum text-right">
                         <span className={a.openCatI ? "font-medium text-danger" : ""}>
                           {a.openCatI}

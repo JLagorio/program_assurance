@@ -258,10 +258,8 @@ export function EvidenceBlock({
               return (
                 <Tr key={id}>
                   <IdCell id={id} />
-                  <Td className="truncate text-muted-foreground">
-                    {meta?.label ?? "Not in the evidence store"}
-                  </Td>
-                  <Td className="text-muted-foreground">{meta?.collected ?? "—"}</Td>
+                  <Td className="truncate">{meta?.label ?? "Not in the evidence store"}</Td>
+                  <Td>{meta?.collected ?? "—"}</Td>
                   <Td>
                     <Button
                       size="xs"
@@ -405,10 +403,10 @@ export function History({ work }: { work: ControlWork }) {
       <tbody>
         {events.map((e) => (
           <Tr key={e.id}>
-            <Td className="text-muted-foreground">{e.at}</Td>
+            <Td>{e.at}</Td>
             <Td className="truncate">{e.actor}</Td>
             <Td className="truncate">{e.summary}</Td>
-            <Td className="truncate text-muted-foreground" title={e.note}>
+            <Td className="truncate" title={e.note}>
               {e.note ?? "—"}
             </Td>
           </Tr>

@@ -212,18 +212,16 @@ export function TailoringSection({
                     <Td className="w-[164px]">
                       <Mono>{o.id}</Mono>
                     </Td>
-                    <Td className="w-[232px] truncate font-medium">{o.name}</Td>
-                    <Td className="w-[212px] truncate text-muted-foreground">{o.authority}</Td>
-                    <Td className="truncate text-muted-foreground">{o.trigger}</Td>
+                    <Td className="w-[232px] truncate">{o.name}</Td>
+                    <Td className="w-[212px] truncate">{o.authority}</Td>
+                    <Td className="truncate">{o.trigger}</Td>
                     <Td className="tnum w-[76px] text-right">{delta > 0 ? `+${delta}` : delta}</Td>
                   </Tr>
                 );
               })}
               {result.overlays.length === 0 ? (
                 <Tr>
-                  <Td className="text-muted-foreground" colSpan={5}>
-                    No overlays apply — the stock baseline stands.
-                  </Td>
+                  <Td colSpan={5}>No overlays apply — the stock baseline stands.</Td>
                 </Tr>
               ) : null}
             </tbody>
@@ -252,12 +250,12 @@ export function TailoringSection({
                     <Td className="w-[96px]">
                       <Mono>{c.id}</Mono>
                     </Td>
-                    <Td className="w-[292px] truncate font-medium">{c.title}</Td>
+                    <Td className="w-[292px] truncate">{c.title}</Td>
                     <Td className="w-[132px]">
                       <Badge tone={actionTone[c.action]}>{c.action}</Badge>
                     </Td>
-                    <Td className="w-[188px] truncate text-muted-foreground">{o.name}</Td>
-                    <Td className="truncate text-muted-foreground">{c.rationale}</Td>
+                    <Td className="w-[188px] truncate">{o.name}</Td>
+                    <Td className="truncate">{c.rationale}</Td>
                   </Tr>
                 )),
               )}

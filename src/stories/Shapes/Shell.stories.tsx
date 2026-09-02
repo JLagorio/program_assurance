@@ -101,9 +101,9 @@ export const Default: Story = {
               {findings.map((f) => (
                 <Tr key={f.id}>
                   <IdCell id={f.id} />
-                  <Td className="font-medium">{f.title}</Td>
+                  <Td>{f.title}</Td>
                   <Td>
-                    <Mono className="text-muted-foreground">{f.control}</Mono>
+                    <Mono>{f.control}</Mono>
                   </Td>
                   <Td>
                     <Badge tone={f.tone}>{f.status}</Badge>

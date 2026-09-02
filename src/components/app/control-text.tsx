@@ -138,8 +138,8 @@ export function ParameterTable({ params }: { params: NistParameter[] }) {
             <Td>
               <Mono className="text-11">{p.id}</Mono>
             </Td>
-            <Td className="text-muted-foreground">{p.kind}</Td>
-            <Td className="text-muted-foreground">
+            <Td>{p.kind}</Td>
+            <Td>
               {p.guideline ? `${p.guideline[0]!.toUpperCase()}${p.guideline.slice(1)}.` : p.value}
             </Td>
           </Tr>

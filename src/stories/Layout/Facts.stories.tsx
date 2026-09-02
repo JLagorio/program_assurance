@@ -86,7 +86,7 @@ export const Rail: Story = {
     <div className="max-w-[272px]">
       <RailGroup title="Requirement">
         <KeyValue label="Control">
-          <Mono className="text-primary">AC-2(3)</Mono>
+          <Mono>AC-2(3)</Mono>
         </KeyValue>
         <KeyValue label="Title" wrap>
           Disable accounts after an organization-defined period of inactivity

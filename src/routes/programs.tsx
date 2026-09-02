@@ -200,7 +200,7 @@ function ProgramList() {
                     {p.impact}
                   </Badge>
                 </Td>
-                <Td className="w-[132px] text-muted-foreground">Rev. 5 · {p.impact}</Td>
+                <Td className="w-[132px]">Rev. 5 · {p.impact}</Td>
                 <Td className="w-[168px]">
                   <span className="flex items-center gap-2">
                     <span className="w-16">
@@ -214,8 +214,8 @@ function ProgramList() {
                 <Td className="w-[124px]">
                   <Badge tone={programStatusTone[p.status]}>{p.status}</Badge>
                 </Td>
-                <Td className="w-[120px] text-muted-foreground">{p.owner}</Td>
-                <Td className="tnum w-[112px] text-right text-muted-foreground">{p.expires}</Td>
+                <Td className="w-[120px]">{p.owner}</Td>
+                <Td className="tnum w-[112px] text-right">{p.expires}</Td>
               </Tr>
             );
           })}

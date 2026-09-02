@@ -37,10 +37,7 @@ export const Matrix: Story = {
           <tr>
             <th className="h-8 pr-6 text-[12px] font-medium text-muted-foreground">variant</th>
             {sizes.map((s) => (
-              <th
-                key={s}
-                className="h-8 pr-6 font-mono text-[11px] font-medium text-muted-foreground"
-              >
+              <th key={s} className="h-8 pr-6 text-[11px] font-medium text-muted-foreground">
                 {s}
               </th>
             ))}
@@ -51,7 +48,7 @@ export const Matrix: Story = {
         <tbody>
           {variants.map((v) => (
             <tr key={v} className="border-t border-border-subtle">
-              <td className="py-3 pr-6 font-mono text-[11px] text-muted-foreground">{v}</td>
+              <td className="py-3 pr-6 text-[11px] text-muted-foreground">{v}</td>
               {sizes.map((s) => (
                 <td key={s} className="py-3 pr-6">
                   <Button variant={v} size={s}>

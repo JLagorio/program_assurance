@@ -346,8 +346,8 @@ export function DriftFactorTable({ score }: { score: DriftScore }) {
         </tbody>
         <tfoot>
           <tr className="border-t border-border">
-            <Td className="font-semibold">Drift</Td>
-            <Td className="max-w-none whitespace-normal py-2 leading-snug text-muted-foreground">
+            <Td>Drift</Td>
+            <Td className="max-w-none whitespace-normal py-2 leading-snug">
               {clamped
                 ? `The column sums to ${sum}, outside the 0–100 range; the published score is clamped.`
                 : `Sum of the ${factors.length} contribution${factors.length === 1 ? "" : "s"} above, against a ceiling of ${applied}.`}
@@ -358,7 +358,7 @@ export function DriftFactorTable({ score }: { score: DriftScore }) {
             <Td className="text-right">
               <Dash />
             </Td>
-            <Td className="tnum text-right text-[15px] font-semibold">{score.score}</Td>
+            <Td className="tnum text-right text-[15px]">{score.score}</Td>
           </tr>
         </tfoot>
       </Table>
@@ -371,7 +371,7 @@ function DriftFactorRows({ factor }: { factor: DriftFactor }) {
   return (
     <>
       <Tr className="border-0 align-top hover:bg-transparent">
-        <Td className="py-2 align-top font-medium">{factor.label}</Td>
+        <Td className="py-2 align-top">{factor.label}</Td>
         <Td
           className="max-w-none whitespace-normal py-2 align-top leading-snug"
           title={factor.input}
@@ -379,9 +379,7 @@ function DriftFactorRows({ factor }: { factor: DriftFactor }) {
           {factor.input}
         </Td>
         <Td className="tnum py-2 align-top text-right">{fixed2(factor.value)}</Td>
-        <Td className="tnum py-2 align-top text-right text-muted-foreground">
-          {fixed2(factor.weight)}
-        </Td>
+        <Td className="tnum py-2 align-top text-right">{fixed2(factor.weight)}</Td>
         <Td
           className={cn(
             "tnum py-2 align-top text-right font-medium",
@@ -432,7 +430,7 @@ function MissingDriftFactorRows({
   return (
     <>
       <Tr className="border-0 align-top hover:bg-transparent">
-        <Td className="py-2 align-top font-medium text-muted-foreground">{label}</Td>
+        <Td className="py-2 align-top">{label}</Td>
         <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
           <Badge size="xs" tone="warning">
             Not measured
@@ -441,9 +439,7 @@ function MissingDriftFactorRows({
         <Td className="py-2 align-top text-right">
           <Dash />
         </Td>
-        <Td className="tnum py-2 align-top text-right text-muted-foreground line-through">
-          {fixed2(weight)}
-        </Td>
+        <Td className="tnum py-2 align-top text-right line-through">{fixed2(weight)}</Td>
         <Td className="py-2 align-top text-right">
           <Dash />
         </Td>
@@ -632,19 +628,19 @@ function ScheduleRows({ row, explain }: { row: ScheduleRow; explain: boolean }) 
         title={explain ? undefined : row.finding}
       >
         <Td className="py-2 align-top">
-          <Mono className="text-muted-foreground">{row.control}</Mono>
+          <Mono>{row.control}</Mono>
         </Td>
         <Td className="py-2 align-top" title={row.controlTitle}>
           {row.controlTitle === "—" ? <Dash /> : row.controlTitle}
         </Td>
-        <Td className="py-2 align-top text-muted-foreground">{row.frequency}</Td>
+        <Td className="py-2 align-top">{row.frequency}</Td>
         <Td className="py-2 align-top">
           <MethodChip method={row.method} />
         </Td>
-        <Td className="py-2 align-top text-muted-foreground" title={row.responsible}>
+        <Td className="py-2 align-top" title={row.responsible}>
           {row.responsible}
         </Td>
-        <Td className="tnum py-2 align-top text-muted-foreground">
+        <Td className="tnum py-2 align-top">
           {row.lastAssessed === "—" ? <Dash /> : row.lastAssessed}
         </Td>
         <Td className="tnum py-2 align-top">{row.nextDue === "—" ? <Dash /> : row.nextDue}</Td>
@@ -734,7 +730,7 @@ function FreshnessRows({ row, explain }: { row: EvidenceSlaRow; explain: boolean
         title={explain ? undefined : row.finding}
       >
         <Td className="py-2 align-top">
-          <Mono className="text-muted-foreground">{row.control}</Mono>
+          <Mono>{row.control}</Mono>
         </Td>
         <Td className="py-2 align-top" title={row.requirement}>
           <span className="flex items-center gap-1.5">
@@ -744,16 +740,14 @@ function FreshnessRows({ row, explain }: { row: EvidenceSlaRow; explain: boolean
             <span className="min-w-0 truncate">{requirement}</span>
           </span>
         </Td>
-        <Td className="py-2 align-top text-muted-foreground" title={row.evidence.join(", ")}>
+        <Td className="py-2 align-top" title={row.evidence.join(", ")}>
           {row.evidence.length === 0 ? (
             <Dash />
           ) : (
             `${row.evidence[0]}${row.evidence.length > 1 ? ` +${row.evidence.length - 1} more` : ""}`
           )}
         </Td>
-        <Td className="tnum py-2 align-top text-muted-foreground">
-          {row.collected === "—" ? <Dash /> : row.collected}
-        </Td>
+        <Td className="tnum py-2 align-top">{row.collected === "—" ? <Dash /> : row.collected}</Td>
         <Td
           className={cn(
             "py-2 align-top text-right font-medium",
@@ -762,7 +756,7 @@ function FreshnessRows({ row, explain }: { row: EvidenceSlaRow; explain: boolean
         >
           <Days value={row.ageDays} />
         </Td>
-        <Td className="tnum py-2 align-top text-right text-muted-foreground">{row.slaDays}d</Td>
+        <Td className="tnum py-2 align-top text-right">{row.slaDays}d</Td>
         <Td className="py-2 align-top">
           <FreshnessChip freshness={row.freshness} />
         </Td>
@@ -845,22 +839,20 @@ export function CadenceTable({ rows }: { rows: CadenceRow[] }) {
           return (
             <Tr key={`${row.target}|${row.format}`} className="align-top">
               <Td className="py-2 align-top">
-                <Mono className="text-muted-foreground">{row.target}</Mono>
+                <Mono>{row.target}</Mono>
               </Td>
               <Td className="py-2 align-top" title={row.targetName}>
                 {row.targetName}
               </Td>
-              <Td className="py-2 align-top text-muted-foreground">
-                {row.format === "—" ? <Dash /> : row.format}
-              </Td>
-              <Td className="py-2 align-top text-right text-muted-foreground">
+              <Td className="py-2 align-top">{row.format === "—" ? <Dash /> : row.format}</Td>
+              <Td className="py-2 align-top text-right">
                 {row.expectedDays > 0 ? (
                   <span className="tnum">{row.expectedDays}d</span>
                 ) : (
                   <Dash />
                 )}
               </Td>
-              <Td className="tnum py-2 align-top text-muted-foreground">
+              <Td className="tnum py-2 align-top">
                 {row.lastScan === "—" ? <Dash /> : row.lastScan}
               </Td>
               <Td
@@ -880,7 +872,7 @@ export function CadenceTable({ rows }: { rows: CadenceRow[] }) {
                   {label.text}
                 </Badge>
               </Td>
-              <Td className="max-w-none whitespace-normal py-2 align-top leading-relaxed text-muted-foreground">
+              <Td className="max-w-none whitespace-normal py-2 align-top leading-relaxed">
                 {row.finding}
               </Td>
             </Tr>
@@ -946,14 +938,12 @@ function SlippageRows({ row }: { row: SlippageRow }) {
     <>
       <Tr className="border-0 align-top hover:bg-transparent">
         <Td className="py-2 align-top">
-          <Mono className="text-muted-foreground">{row.poam}</Mono>
+          <Mono>{row.poam}</Mono>
         </Td>
-        <Td className="py-2 align-top font-medium" title={row.title}>
+        <Td className="py-2 align-top" title={row.title}>
           {row.title}
         </Td>
-        <Td className="tnum py-2 align-top text-muted-foreground">
-          {row.original === "—" ? <Dash /> : row.original}
-        </Td>
+        <Td className="tnum py-2 align-top">{row.original === "—" ? <Dash /> : row.original}</Td>
         <Td className="tnum py-2 align-top">{row.scheduled === "—" ? <Dash /> : row.scheduled}</Td>
         <Td
           className={cn(
@@ -963,7 +953,7 @@ function SlippageRows({ row }: { row: SlippageRow }) {
         >
           {row.slipDays > 0 ? `+${row.slipDays}d` : `${zeroSafe(row.slipDays)}d`}
         </Td>
-        <Td className="tnum py-2 align-top text-right text-muted-foreground">{row.revisions}</Td>
+        <Td className="tnum py-2 align-top text-right">{row.revisions}</Td>
         <Td className="py-2 align-top">
           <Badge size="xs" tone={statusTone(row.status)}>
             {row.status}

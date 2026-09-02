@@ -113,22 +113,20 @@ export function TeamSection({ programId }: { programId: string }) {
                     }
                   >
                     <IdCell id={w.id} active={ws?.id === w.id} onPreview={() => setWs(w)} />
-                    <Td className="truncate font-medium">{w.title}</Td>
-                    <Td className="truncate text-muted-foreground">
-                      {personById.get(w.lead)?.name ?? "—"}
-                    </Td>
+                    <Td className="truncate">{w.title}</Td>
+                    <Td className="truncate">{personById.get(w.lead)?.name ?? "—"}</Td>
                     <Td>
                       <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
                     </Td>
-                    <Td className="tnum text-right text-muted-foreground">{w.members.length}</Td>
+                    <Td className="tnum text-right">{w.members.length}</Td>
                     <Td className="truncate">
                       {w.dependsOn.length ? (
-                        <Mono className="text-muted-foreground">{w.dependsOn.join(", ")}</Mono>
+                        <Mono>{w.dependsOn.join(", ")}</Mono>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
                     </Td>
-                    <Td className="truncate text-right text-[12px] text-muted-foreground">
+                    <Td className="truncate text-right">
                       {w.gate} · {w.due}
                     </Td>
                   </Tr>
@@ -175,13 +173,11 @@ export function TeamSection({ programId }: { programId: string }) {
                         active={person?.id === p.id}
                         onPreview={() => setPerson(p)}
                       />
-                      <Td className="truncate font-medium">{p.name}</Td>
-                      <Td className="truncate text-muted-foreground">{p.title}</Td>
-                      <Td className="truncate text-muted-foreground">{p.discipline}</Td>
-                      <Td className="truncate text-muted-foreground">{p.clearance}</Td>
-                      <Td className="tnum text-right text-muted-foreground">
-                        {workstreamsForPerson(p.id).length}
-                      </Td>
+                      <Td className="truncate">{p.name}</Td>
+                      <Td className="truncate">{p.title}</Td>
+                      <Td className="truncate">{p.discipline}</Td>
+                      <Td className="truncate">{p.clearance}</Td>
+                      <Td className="tnum text-right">{workstreamsForPerson(p.id).length}</Td>
                       <Td>
                         <span className="flex items-center gap-2">
                           <span className="w-12">
@@ -227,9 +223,9 @@ export function TeamSection({ programId }: { programId: string }) {
               <tbody>
                 {edges.map((e) => (
                   <Tr key={`${e.a}-${e.b}`}>
-                    <Td className="truncate font-medium">{e.a}</Td>
-                    <Td className="truncate font-medium">{e.b}</Td>
-                    <Td className="tnum text-right text-muted-foreground">{e.via.length}</Td>
+                    <Td className="truncate">{e.a}</Td>
+                    <Td className="truncate">{e.b}</Td>
+                    <Td className="tnum text-right">{e.via.length}</Td>
                     <Td className="truncate">
                       <span className="flex flex-wrap items-center gap-x-2">
                         {e.via.map((id) => (

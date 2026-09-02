@@ -174,8 +174,8 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
           <span className="min-w-0 truncate text-12 text-muted-foreground">{row.statement}</span>
         </span>
       </Td>
-      <Td className="truncate text-muted-foreground">{row.origination}</Td>
-      <Td className="truncate text-muted-foreground" title={row.responsibleParty}>
+      <Td className="truncate">{row.origination}</Td>
+      <Td className="truncate" title={row.responsibleParty}>
         {row.responsibleParty}
       </Td>
       <Td className="truncate" title={row.methodBasis}>

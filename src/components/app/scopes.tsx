@@ -83,10 +83,8 @@ export function ScopeTable({
                 <Td className="tnum text-right">
                   {unique || <span className="text-muted-foreground">—</span>}
                 </Td>
-                <Td className="truncate text-muted-foreground">
-                  {set?.overlays.map((o) => o.name).join(", ") || "—"}
-                </Td>
-                <Td className="truncate text-muted-foreground">
+                <Td className="truncate">{set?.overlays.map((o) => o.name).join(", ") || "—"}</Td>
+                <Td className="truncate">
                   {scope.independentlyAuthorized ? "Separate ATO" : "Program ATO"}
                 </Td>
               </Tr>

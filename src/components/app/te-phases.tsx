@@ -83,7 +83,7 @@ function IdChips({ ids, tone = "neutral" }: { ids: string[]; tone?: Tone }) {
     <div className="flex flex-wrap gap-1.5">
       {ids.map((id) => (
         <Badge key={id} tone={tone}>
-          <span className="font-mono text-[11.5px]">{id}</span>
+          <span className="text-[11.5px]">{id}</span>
         </Badge>
       ))}
     </div>
@@ -272,7 +272,7 @@ function PhaseCard({
               ) : (
                 phase.campaigns.map((id) => (
                   <Badge key={id} size="xs">
-                    <span className="font-mono text-[11.5px]" title={campaignName?.(id) ?? id}>
+                    <span className="text-[11.5px]" title={campaignName?.(id) ?? id}>
                       {id}
                     </span>
                   </Badge>
@@ -710,13 +710,11 @@ export function ScenarioTable({
               <Td>
                 <Mono className={onSelect ? "text-primary" : "text-muted-foreground"}>{s.id}</Mono>
               </Td>
-              <Td className="truncate font-medium" title={`${s.name} — ${s.objective}`}>
+              <Td className="truncate" title={`${s.name} — ${s.objective}`}>
                 {s.name}
               </Td>
               {showPhase ? (
-                <Td className="truncate text-muted-foreground">
-                  {phaseShort ? phaseShort(s.phase) : s.phase}
-                </Td>
+                <Td className="truncate">{phaseShort ? phaseShort(s.phase) : s.phase}</Td>
               ) : null}
               <Td>
                 <TierChip tier={s.tier} />
@@ -738,12 +736,10 @@ export function ScenarioTable({
                   ) : null}
                 </span>
               </Td>
-              <Td className="tnum text-right text-muted-foreground" title={s.path.join(" → ")}>
+              <Td className="tnum text-right" title={s.path.join(" → ")}>
                 {s.path.length} nodes
               </Td>
-              <Td>
-                {s.event ? <Mono className="text-muted-foreground">{s.event}</Mono> : <Dash />}
-              </Td>
+              <Td>{s.event ? <Mono>{s.event}</Mono> : <Dash />}</Td>
               <Td>
                 <Badge tone={scenarioStatusTone[s.status]}>{s.status}</Badge>
               </Td>
@@ -1080,7 +1076,7 @@ export function MissionEffectTable({
             <Fragment key={e.id}>
               <Tr className="border-0 hover:bg-transparent">
                 <Td>
-                  <Mono className="text-muted-foreground">{e.id}</Mono>
+                  <Mono>{e.id}</Mono>
                 </Td>
                 <Td>
                   <Badge tone={effectTone[e.effect]}>{e.effect}</Badge>
@@ -1089,10 +1085,10 @@ export function MissionEffectTable({
                   {e.missionFunction}
                 </Td>
                 <Td title={scenarioName?.(e.scenario) ?? e.scenario}>
-                  <Mono className="text-muted-foreground">{e.scenario}</Mono>
+                  <Mono>{e.scenario}</Mono>
                 </Td>
                 <Td>
-                  <Mono className="text-muted-foreground">{e.confirmedBy}</Mono>
+                  <Mono>{e.confirmedBy}</Mono>
                 </Td>
                 <Td>
                   <Badge size="xs" tone={e.reproduced ? "neutral" : "warning"}>

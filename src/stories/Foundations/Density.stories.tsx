@@ -30,8 +30,8 @@ function Bar({ px, tone }: { px: number; tone: "today" | "linear" }) {
     <div
       className={
         tone === "today"
-          ? "flex w-[72px] items-center justify-center rounded-md bg-primary-soft font-mono text-[11px] text-primary"
-          : "flex w-[72px] items-center justify-center rounded-md bg-muted font-mono text-[11px] text-muted-foreground"
+          ? "flex w-[72px] items-center justify-center rounded-md bg-primary-soft text-[11px] text-primary"
+          : "flex w-[72px] items-center justify-center rounded-md bg-muted text-[11px] text-muted-foreground"
       }
       style={{ height: px }}
     >
@@ -61,7 +61,7 @@ export const ControlHeights: Story = {
               {h.linear !== null ? (
                 <Bar px={h.linear} tone="linear" />
               ) : (
-                <div className="flex h-6 w-[72px] items-center justify-center font-mono text-[11px] text-muted-foreground">
+                <div className="flex h-6 w-[72px] items-center justify-center text-[11px] text-muted-foreground">
                   —
                 </div>
               )}

@@ -172,9 +172,9 @@ export function VerificationSection({ programName }: { programName: string }) {
                   <Td>
                     <Badge tone={verdictTone[c.verdict]}>{c.verdict}</Badge>
                   </Td>
-                  <Td className="text-muted-foreground">{c.gate}</Td>
-                  <Td className="text-muted-foreground">{c.finding}</Td>
-                  <Td className="text-muted-foreground">{c.evidence}</Td>
+                  <Td>{c.gate}</Td>
+                  <Td>{c.finding}</Td>
+                  <Td>{c.evidence}</Td>
                 </Tr>
               ))}
             </tbody>
@@ -245,14 +245,14 @@ export function VerificationSection({ programName }: { programName: string }) {
                     <Td>
                       <Mono>{e.id}</Mono>
                     </Td>
-                    <Td className="font-medium">{e.name}</Td>
-                    <Td className="text-muted-foreground">{e.range}</Td>
-                    <Td className="tabular-nums text-muted-foreground">{shortDate(e.start)}</Td>
-                    <Td className="tabular-nums text-muted-foreground">{shortDate(e.end)}</Td>
+                    <Td>{e.name}</Td>
+                    <Td>{e.range}</Td>
+                    <Td className="tnum">{shortDate(e.start)}</Td>
+                    <Td className="tnum">{shortDate(e.end)}</Td>
                     <Td>
                       <Badge tone={testStatusTone[e.status]}>{e.status}</Badge>
                     </Td>
-                    <Td className={slack < 0 ? "text-danger" : "text-muted-foreground"}>
+                    <Td className={slack < 0 ? "text-danger" : undefined}>
                       {slack < 0
                         ? `${Math.abs(slack)}d past expiry`
                         : `${slack}d slack · ${e.requires}`}
@@ -306,13 +306,13 @@ export function VerificationSection({ programName }: { programName: string }) {
                   <Td>
                     <Badge tone="neutral">{sourceShort[i.source]}</Badge>
                   </Td>
-                  <Td className="font-medium">{i.artifact}</Td>
-                  <Td className="text-muted-foreground">{i.asset}</Td>
-                  <Td className="tabular-nums text-muted-foreground">{shortStamp(i.ingested)}</Td>
+                  <Td>{i.artifact}</Td>
+                  <Td>{i.asset}</Td>
+                  <Td className="tnum">{shortStamp(i.ingested)}</Td>
                   <Td>
                     <Badge tone={ingestTone[i.status]}>{i.status}</Badge>
                   </Td>
-                  <Td className="text-right tabular-nums">
+                  <Td className="text-right tnum">
                     <span
                       className={i.catI > 0 ? "font-medium text-danger" : "text-muted-foreground"}
                     >
@@ -323,7 +323,7 @@ export function VerificationSection({ programName }: { programName: string }) {
                     <span className="text-border"> / </span>
                     <span className="text-muted-foreground">{i.catIII}</span>
                   </Td>
-                  <Td className="text-right tabular-nums text-muted-foreground">{i.coverage}%</Td>
+                  <Td className="text-right tnum">{i.coverage}%</Td>
                 </Tr>
               ))}
             </tbody>
@@ -387,17 +387,17 @@ export function VerificationSection({ programName }: { programName: string }) {
                   <Td>
                     <Badge tone="neutral">{sourceShort[f.source]}</Badge>
                   </Td>
-                  <Td className="font-medium">{f.title}</Td>
+                  <Td>{f.title}</Td>
                   <Td>
                     <Mono>{f.control}</Mono>
                   </Td>
-                  <Td className="text-muted-foreground">{f.asset}</Td>
+                  <Td>{f.asset}</Td>
                   <Td>
                     <Badge tone={findingStatusTone[f.status]}>{f.status}</Badge>
                   </Td>
-                  <Td className="text-right tabular-nums text-muted-foreground">{f.age}d</Td>
-                  <Td className="tabular-nums text-muted-foreground">{shortDate(f.due)}</Td>
-                  <Td className="text-muted-foreground">{f.owner}</Td>
+                  <Td className="text-right tnum">{f.age}d</Td>
+                  <Td className="tnum">{shortDate(f.due)}</Td>
+                  <Td>{f.owner}</Td>
                 </Tr>
               ))}
             </tbody>

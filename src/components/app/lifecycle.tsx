@@ -141,7 +141,7 @@ export function LifecycleSection({
                     <Td className="w-[72px]">
                       <Mono>{g.id}</Mono>
                     </Td>
-                    <Td className="font-medium">{g.name}</Td>
+                    <Td>{g.name}</Td>
                     <Td className="w-[116px]">
                       <Badge tone={gateKindTone[g.kind]}>{gateKindShort[g.kind]}</Badge>
                     </Td>
@@ -153,14 +153,10 @@ export function LifecycleSection({
                         </span>
                       </span>
                     </Td>
-                    <Td className="w-[152px] text-muted-foreground">{g.cyberGate}</Td>
-                    <Td className="w-[92px] text-muted-foreground">{g.owner}</Td>
-                    <Td className="tnum w-[112px] text-right text-muted-foreground">
-                      {shortDate(g.planned)}
-                    </Td>
-                    <Td className="tnum w-[112px] text-right text-muted-foreground">
-                      {shortDate(g.actual)}
-                    </Td>
+                    <Td className="w-[152px]">{g.cyberGate}</Td>
+                    <Td className="w-[92px]">{g.owner}</Td>
+                    <Td className="tnum w-[112px] text-right">{shortDate(g.planned)}</Td>
+                    <Td className="tnum w-[112px] text-right">{shortDate(g.actual)}</Td>
                   </Tr>
                 ))}
               </Fragment>

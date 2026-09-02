@@ -24,7 +24,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Badge, Mono } from "@/components/app/ui";
+import { Badge, Button, Mono, Severity } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import type { Tone } from "@/components/app/ui";
 
@@ -95,13 +95,11 @@ export function WorkPaneRow({
     >
       <span className={cn("mt-[7px] size-1.5 shrink-0 rounded-full", dot[tone ?? "neutral"])} />
       <span className="min-w-0 flex-1">
-        <span className="flex items-baseline gap-2">
+        <span className="block truncate text-[13px] text-foreground">{title}</span>
+        <span className="mt-0.5 flex items-baseline gap-2 text-[11.5px] text-muted-foreground">
           <Mono>{id}</Mono>
-          {meta ? (
-            <span className="truncate text-[11.5px] text-muted-foreground">{meta}</span>
-          ) : null}
+          {meta ? <span className="truncate">{meta}</span> : null}
         </span>
-        <span className="mt-0.5 block truncate text-[12.5px] text-muted-foreground">{title}</span>
       </span>
     </button>
   );
@@ -167,16 +165,18 @@ export function ActionBar({
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
             {context ? <span className="text-[12px] text-muted-foreground">{context}</span> : null}
-            {states.map((s) => (
+            {/* The first state is the headline status and the bar's only pill; the rest read as dot + text. */}
+            {states.map((s, i) => (
               <span key={s.label} className="flex items-center gap-1.5">
-                <span className="text-[11px] uppercase tracking-[0.04em] text-muted-foreground">
-                  {s.label}
-                </span>
-                {s.control ?? (
-                  <Badge size="xs" tone={s.tone}>
-                    {s.value}
-                  </Badge>
-                )}
+                <span className="text-[12px] text-muted-foreground">{s.label}</span>
+                {s.control ??
+                  (i === 0 ? (
+                    <Badge size="xs" tone={s.tone}>
+                      {s.value}
+                    </Badge>
+                  ) : (
+                    <Severity tone={s.tone}>{s.value}</Severity>
+                  ))}
               </span>
             ))}
           </div>
@@ -186,21 +186,15 @@ export function ActionBar({
           <div className="flex shrink-0 flex-col items-end gap-1">
             <div className="flex items-center gap-2">
               {actions.map((a) => (
-                <button
+                <Button
                   key={a.label}
-                  type="button"
+                  variant={a.primary ? "primary" : "secondary"}
                   onClick={a.onSelect}
                   disabled={!!a.blocked}
                   title={a.blocked ?? undefined}
-                  className={cn(
-                    "inline-flex h-8 select-none items-center whitespace-nowrap rounded-md px-3 text-[13px] font-medium transition-[box-shadow,background-color,color] duration-100 disabled:pointer-events-none disabled:opacity-45",
-                    a.primary
-                      ? "bg-primary text-primary-foreground shadow-button-primary hover:bg-primary-hover"
-                      : "bg-card text-foreground shadow-button hover:bg-surface-hover",
-                  )}
                 >
                   {a.label}
-                </button>
+                </Button>
               ))}
             </div>
             {!anyAllowed && blockedReason ? (
@@ -229,7 +223,7 @@ export type InspectorGroup = { title: string; rows: InspectorRow[] };
  */
 export function Inspector({ groups, footer }: { groups: InspectorGroup[]; footer?: ReactNode }) {
   return (
-    <aside className="lg:sticky lg:top-[112px] lg:max-h-[calc(100vh-140px)] lg:self-start lg:overflow-y-auto">
+    <aside className="lg:sticky lg:top-[104px] lg:max-h-[calc(100vh-140px)] lg:self-start lg:overflow-y-auto">
       <div className="space-y-4">
         {groups.map((g) => (
           <section key={g.title}>

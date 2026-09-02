@@ -98,12 +98,12 @@ function StigLibrary() {
                   <Td>
                     <Mono>{b.id}</Mono>
                   </Td>
-                  <Td className="truncate font-medium">{b.name}</Td>
-                  <Td className="truncate text-muted-foreground">{b.technology}</Td>
+                  <Td className="truncate">{b.name}</Td>
+                  <Td className="truncate">{b.technology}</Td>
                   <Td>
                     <Mono>{b.version}</Mono>
                   </Td>
-                  <Td className="text-muted-foreground">{b.released}</Td>
+                  <Td>{b.released}</Td>
                   <Td>
                     {b.appliedVersion === b.version ? (
                       <span className="text-muted-foreground">{b.appliedVersion}</span>
@@ -111,8 +111,8 @@ function StigLibrary() {
                       <Badge tone="warning">{b.appliedVersion} behind</Badge>
                     )}
                   </Td>
-                  <Td className="tnum text-right text-muted-foreground">{b.rules}</Td>
-                  <Td className="tnum text-right text-muted-foreground">
+                  <Td className="tnum text-right">{b.rules}</Td>
+                  <Td className="tnum text-right">
                     {b.catI} / {b.catII} / {b.catIII}
                   </Td>
                 </Tr>
@@ -163,9 +163,7 @@ function StigLibrary() {
                     <Mono>{r.id}</Mono>
                   </Td>
                   <Td className="truncate">{r.title}</Td>
-                  <Td className="truncate text-muted-foreground">
-                    {benchmarkById.get(r.benchmark)?.technology}
-                  </Td>
+                  <Td className="truncate">{benchmarkById.get(r.benchmark)?.technology}</Td>
                   <Td>
                     {r.severity === "CAT III" ? (
                       <span className="text-muted-foreground">CAT III</span>
@@ -174,7 +172,7 @@ function StigLibrary() {
                     )}
                   </Td>
                   <Td className="truncate">
-                    <Mono className="text-muted-foreground">{r.ccis.join(", ")}</Mono>
+                    <Mono>{r.ccis.join(", ")}</Mono>
                   </Td>
                 </Tr>
               ))}

@@ -113,7 +113,7 @@ function ScopeApprovals() {
                     <Td className="w-[104px]">
                       <Mono>{a.programId}</Mono>
                     </Td>
-                    <Td className="truncate font-medium">
+                    <Td className="truncate">
                       {program ? (
                         program.name
                       ) : (
@@ -125,15 +125,11 @@ function ScopeApprovals() {
                     <Td className="w-[164px]">
                       <Badge tone={approvalTone[a.state]}>{a.state}</Badge>
                     </Td>
-                    <Td className="w-[168px] truncate text-muted-foreground">{a.submittedBy}</Td>
-                    <Td className="tnum w-[112px] text-muted-foreground">{a.submitted}</Td>
-                    <Td className="tnum w-[76px] text-right text-muted-foreground">
-                      {a.controlCount}
-                    </Td>
-                    <Td className="tnum w-[76px] text-right text-muted-foreground">
-                      {a.overlayCount}
-                    </Td>
-                    <Td className="w-[168px] truncate text-muted-foreground">
+                    <Td className="w-[168px] truncate">{a.submittedBy}</Td>
+                    <Td className="tnum w-[112px]">{a.submitted}</Td>
+                    <Td className="tnum w-[76px] text-right">{a.controlCount}</Td>
+                    <Td className="tnum w-[76px] text-right">{a.overlayCount}</Td>
+                    <Td className="w-[168px] truncate">
                       {a.decidedBy ? `${a.decidedBy} · ${a.decided}` : "—"}
                     </Td>
                     <Td className="w-[92px] text-right">

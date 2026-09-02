@@ -184,7 +184,7 @@ export function RequirementTable({
                   </Link>
                 </span>
               </Td>
-              <Td className="truncate text-muted-foreground">{requirement.type}</Td>
+              <Td className="truncate">{requirement.type}</Td>
               <Td className="truncate">{requirement.text}</Td>
               <Td className="truncate">
                 <SourceCell derivations={requirement.derivations} />
@@ -192,8 +192,8 @@ export function RequirementTable({
               <Td className="tnum text-right">
                 {count === 0 ? <span className="text-muted-foreground">—</span> : count}
               </Td>
-              <Td className="truncate text-muted-foreground">{requirement.method}</Td>
-              <Td className="truncate text-muted-foreground">{requirement.owner}</Td>
+              <Td className="truncate">{requirement.method}</Td>
+              <Td className="truncate">{requirement.owner}</Td>
               <Td>
                 <Badge size="xs" tone={requirementStateTone[requirement.state]}>
                   {requirement.state}
@@ -251,8 +251,8 @@ export function ProvenanceTable({
             <Td className="align-top py-2">
               <SourceLink derivation={d} programId={programId} />
             </Td>
-            <Td className={cn(wrap, "text-muted-foreground")}>{d.sourceLabel}</Td>
-            <Td className={cn(wrap, "text-muted-foreground")}>{d.rationale}</Td>
+            <Td className={wrap}>{d.sourceLabel}</Td>
+            <Td className={wrap}>{d.rationale}</Td>
           </Tr>
         ))}
       </tbody>
@@ -355,7 +355,7 @@ export function AllocationTable({
             <Td className="truncate">
               <TargetLink allocation={a} programId={programId} />
             </Td>
-            <Td className="text-muted-foreground">{targetKindLabel(a)}</Td>
+            <Td>{targetKindLabel(a)}</Td>
             <Td>
               {editable ? (
                 <InlineSelect
@@ -396,7 +396,7 @@ export function AllocationTable({
                 </Badge>
               )}
             </Td>
-            <Td className="truncate text-muted-foreground" title={a.scope}>
+            <Td className="truncate" title={a.scope}>
               {editable ? (
                 <InlineText
                   value={a.scope}
@@ -407,7 +407,7 @@ export function AllocationTable({
                 a.scope
               )}
             </Td>
-            <Td className="truncate text-muted-foreground">
+            <Td className="truncate">
               {editable ? (
                 <InlineText
                   value={a.owner}
@@ -510,10 +510,10 @@ export function ElementAllocationTable({
                   {a.coverage}
                 </Badge>
               </Td>
-              <Td className="truncate text-muted-foreground" title={a.scope}>
+              <Td className="truncate" title={a.scope}>
                 {a.scope}
               </Td>
-              <Td className="truncate text-muted-foreground">{a.owner}</Td>
+              <Td className="truncate">{a.owner}</Td>
               <Td>
                 <Badge size="xs" tone={allocationStateTone[a.state]}>
                   {a.state}
@@ -635,7 +635,7 @@ function TraceRow({ hop, programId }: { hop: ControlTraceHop; programId: string 
           <Mono className="text-primary">{hop.requirement}</Mono>
         </Link>
       </Td>
-      <Td className="text-muted-foreground">
+      <Td>
         {hop.via === "direct" ? (
           "Direct"
         ) : (
@@ -655,7 +655,7 @@ function TraceRow({ hop, programId }: { hop: ControlTraceHop; programId: string 
           {hop.allocation.coverage}
         </Badge>
       </Td>
-      <Td className="truncate text-muted-foreground">{hop.allocation.scope}</Td>
+      <Td className="truncate">{hop.allocation.scope}</Td>
     </Tr>
   );
 }
@@ -721,9 +721,9 @@ export function ControlRequirementTable({
                   <Mono className="text-primary">{r.id}</Mono>
                 </Link>
               </Td>
-              <Td className="truncate text-muted-foreground">{r.type}</Td>
+              <Td className="truncate">{r.type}</Td>
               <Td className="truncate">{r.text}</Td>
-              <Td className="text-muted-foreground">
+              <Td>
                 {direct ? (
                   "Direct"
                 ) : (

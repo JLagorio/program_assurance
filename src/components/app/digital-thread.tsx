@@ -151,20 +151,20 @@ export function DigitalThreadSection({
                   <Td className="w-[60px]">
                     <Mono>{c.id}</Mono>
                   </Td>
-                  <Td className="w-[124px] font-medium">{c.kind}</Td>
-                  <Td className="w-[196px] text-muted-foreground">
+                  <Td className="w-[124px]">{c.kind}</Td>
+                  <Td className="w-[196px]">
                     <Mono>{c.project}</Mono>
                   </Td>
-                  <Td className="text-muted-foreground">{c.scope}</Td>
+                  <Td>{c.scope}</Td>
                   <Td className="w-[112px]">
                     <span className="flex items-center gap-1.5">
                       <Dot tone={healthTone[c.health]} />
                       {c.health}
                     </span>
                   </Td>
-                  <Td className="tnum w-[84px] text-right text-muted-foreground">{c.ingested}</Td>
-                  <Td className="tnum w-[76px] text-right text-muted-foreground">{c.mapped}</Td>
-                  <Td className="w-[96px] text-right text-muted-foreground">{c.lastSync}</Td>
+                  <Td className="tnum w-[84px] text-right">{c.ingested}</Td>
+                  <Td className="tnum w-[76px] text-right">{c.mapped}</Td>
+                  <Td className="w-[96px] text-right">{c.lastSync}</Td>
                 </Tr>
               ))}
             </tbody>
@@ -217,18 +217,18 @@ export function DigitalThreadSection({
                   <Td className="w-[60px]">
                     <Mono>{r.id}</Mono>
                   </Td>
-                  <Td className="w-[200px] font-medium">
+                  <Td className="w-[200px]">
                     <span className="flex items-center gap-1.5">
                       <Dot tone={r.enabled ? "success" : "neutral"} />
                       <span className="truncate">{r.name}</span>
                     </span>
                   </Td>
-                  <Td className="w-[108px] text-muted-foreground">{r.source}</Td>
-                  <Td className="w-[128px] text-muted-foreground">{r.signal}</Td>
-                  <Td className="text-muted-foreground">
+                  <Td className="w-[108px]">{r.source}</Td>
+                  <Td className="w-[128px]">{r.signal}</Td>
+                  <Td>
                     <Mono>{r.match}</Mono>
                   </Td>
-                  <Td className="w-[172px] text-muted-foreground">
+                  <Td className="w-[172px]">
                     <Mono>{r.controls.join(", ")}</Mono>
                   </Td>
                   <Td className="w-[92px]">
@@ -244,7 +244,7 @@ export function DigitalThreadSection({
                       {r.confidence}
                     </Badge>
                   </Td>
-                  <Td className="tnum w-[64px] text-right text-muted-foreground">{r.hits}</Td>
+                  <Td className="tnum w-[64px] text-right">{r.hits}</Td>
                 </Tr>
               ))}
             </tbody>
@@ -292,21 +292,21 @@ export function DigitalThreadSection({
                   <Td className="w-[152px]">
                     <Mono>{e.ref}</Mono>
                   </Td>
-                  <Td className="font-medium">{e.title}</Td>
+                  <Td>{e.title}</Td>
                   <Td className="w-[80px]">
                     <Badge tone={artifactTone[e.kind]}>{artifactShort[e.kind]}</Badge>
                   </Td>
-                  <Td className="w-[132px] text-muted-foreground">
+                  <Td className="w-[132px]">
                     <Mono>{e.controls.join(", ")}</Mono>
                   </Td>
-                  <Td className="w-[64px] text-muted-foreground">
+                  <Td className="w-[64px]">
                     <Mono>{e.rule}</Mono>
                   </Td>
                   <Td className="w-[124px]">
                     <Badge tone={evidenceStatusTone[e.status]}>{e.status}</Badge>
                   </Td>
-                  <Td className="w-[104px] text-muted-foreground">{e.engineer}</Td>
-                  <Td className="tnum w-[92px] text-right text-muted-foreground">{e.closed}</Td>
+                  <Td className="w-[104px]">{e.engineer}</Td>
+                  <Td className="tnum w-[92px] text-right">{e.closed}</Td>
                 </Tr>
               ))}
               {rows.length === 0 ? (
@@ -681,13 +681,9 @@ export function CdrPackageModal({
                     aria-label={`Include ${s.name}`}
                   />
                 </Td>
-                <Td className="font-medium" title={s.description}>
-                  {s.name}
-                </Td>
-                <Td className="tnum w-[76px] text-right text-muted-foreground">
-                  {s.controls || "—"}
-                </Td>
-                <Td className="tnum w-[76px] text-right text-muted-foreground">{s.evidence}</Td>
+                <Td title={s.description}>{s.name}</Td>
+                <Td className="tnum w-[76px] text-right">{s.controls || "—"}</Td>
+                <Td className="tnum w-[76px] text-right">{s.evidence}</Td>
                 <Td className="w-[104px]">
                   <Badge tone={s.ready ? "success" : "warning"}>{s.ready ? "Ready" : "Gaps"}</Badge>
                 </Td>

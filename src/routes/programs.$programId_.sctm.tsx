@@ -452,11 +452,11 @@ function ProgramSctm() {
                       }}
                     >
                       <IdCell id={f.id} />
-                      <Td className="truncate text-muted-foreground">{f.name}</Td>
+                      <Td className="truncate">{f.name}</Td>
                       <Td className="tnum text-right">{f.rows}</Td>
-                      <Td className="tnum text-right text-muted-foreground">{f.satisfied}</Td>
-                      <Td className="tnum text-right text-muted-foreground">{f.other}</Td>
-                      <Td className="tnum text-right text-muted-foreground">{f.notAssessed}</Td>
+                      <Td className="tnum text-right">{f.satisfied}</Td>
+                      <Td className="tnum text-right">{f.other}</Td>
+                      <Td className="tnum text-right">{f.notAssessed}</Td>
                       <Td
                         className={cn(
                           "tnum text-right",
@@ -528,7 +528,7 @@ function ProgramSctm() {
                         refilter(() => setGapReason(gapReason === g.reason ? null : g.reason))
                       }
                     >
-                      <Td className="truncate font-medium text-danger">{g.reason}</Td>
+                      <Td className="truncate text-danger">{g.reason}</Td>
                       <Td className="tnum text-right">{g.count}</Td>
                       <Td>
                         <Meter
@@ -540,12 +540,12 @@ function ProgramSctm() {
                   ))}
                   {gapReasons.length === 0 ? (
                     <Tr>
-                      <Td className="text-muted-foreground">
+                      <Td>
                         Every requirement row carries a determination, an assertion, an allocation
                         and evidence.
                       </Td>
-                      <Td className="tnum text-right text-muted-foreground">0</Td>
-                      <Td className="text-muted-foreground">—</Td>
+                      <Td className="tnum text-right">0</Td>
+                      <Td>—</Td>
                     </Tr>
                   ) : null}
                 </tbody>

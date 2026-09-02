@@ -205,7 +205,7 @@ export function OpenWorkSection({
                   <Td className="w-6">
                     <Dot tone={a.tone} />
                   </Td>
-                  <Td className="truncate font-medium">{a.label}</Td>
+                  <Td className="truncate">{a.label}</Td>
                   <Td className="w-[168px]">
                     <Person name={a.owner} />
                   </Td>

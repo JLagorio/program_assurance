@@ -375,9 +375,7 @@ function FindingRecord() {
                           </Link>
                         </Td>
                         <Td className="truncate">{f.title}</Td>
-                        <Td className="truncate text-muted-foreground">
-                          {assetById.get(f.asset)?.name ?? f.asset}
-                        </Td>
+                        <Td className="truncate">{assetById.get(f.asset)?.name ?? f.asset}</Td>
                         <Td>
                           <Severity tone={severityTone(f.mitigatedSeverity)}>
                             {f.mitigatedSeverity}
@@ -641,12 +639,12 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
           {factors.map((f) => (
             <Fragment key={f.key}>
               <tr>
-                <Td className="font-medium">{f.label}</Td>
-                <Td className="truncate text-muted-foreground" title={f.input}>
+                <Td>{f.label}</Td>
+                <Td className="truncate" title={f.input}>
                   {f.input}
                 </Td>
                 <Td className="tnum text-right">{f.value.toFixed(2)}</Td>
-                <Td className="tnum text-right text-muted-foreground">{f.weight.toFixed(2)}</Td>
+                <Td className="tnum text-right">{f.weight.toFixed(2)}</Td>
                 <Td
                   className={
                     f.contribution < 0
@@ -683,7 +681,7 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
               Sum of the {factors.length} contributions
               {sum === score ? "" : `, clamped from ${sum} to the 0–100 range`}
             </Td>
-            <Td className="tnum text-right font-semibold">{score}</Td>
+            <Td className="tnum text-right">{score}</Td>
           </tr>
         </tbody>
       </Table>

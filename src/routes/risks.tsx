@@ -182,7 +182,7 @@ function RiskList() {
                   />
                 </Td>
                 <Td>
-                  <Mono className="text-muted-foreground">{risk.id}</Mono>
+                  <Mono>{risk.id}</Mono>
                 </Td>
                 <Td>
                   <Link
@@ -193,12 +193,12 @@ function RiskList() {
                     {risk.title}
                   </Link>
                 </Td>
-                <Td className="text-muted-foreground">{risk.framework}</Td>
+                <Td>{risk.framework}</Td>
                 <Td>
-                  <Mono className="text-muted-foreground">{risk.control}</Mono>
+                  <Mono>{risk.control}</Mono>
                 </Td>
-                <Td className="text-muted-foreground">{risk.owner}</Td>
-                <Td className="text-muted-foreground">{risk.treatment}</Td>
+                <Td>{risk.owner}</Td>
+                <Td>{risk.treatment}</Td>
                 <Td>
                   <div className="flex items-center gap-2">
                     <span className="tnum w-5 text-right text-[12px] text-muted-foreground/70 line-through">
@@ -215,7 +215,7 @@ function RiskList() {
                     </span>
                   </div>
                 </Td>
-                <Td className="text-[12px] text-muted-foreground">{risk.updated}</Td>
+                <Td>{risk.updated}</Td>
                 <Td className="text-right">
                   <Badge tone={riskStatusTone[risk.status]}>{risk.status}</Badge>
                 </Td>

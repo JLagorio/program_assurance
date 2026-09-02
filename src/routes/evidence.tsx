@@ -177,11 +177,11 @@ function Evidence() {
                 <Tr key={file.name}>
                   <IdCell id={file.name} />
                   <Td>
-                    <Mono className="text-muted-foreground">{file.control}</Mono>
+                    <Mono>{file.control}</Mono>
                   </Td>
-                  <Td className="text-muted-foreground">{file.collector}</Td>
-                  <Td className="tnum text-right text-muted-foreground">{file.size}</Td>
-                  <Td className="text-[12px] text-muted-foreground">{file.added}</Td>
+                  <Td>{file.collector}</Td>
+                  <Td className="tnum text-right">{file.size}</Td>
+                  <Td>{file.added}</Td>
                   <Td className="text-right">
                     <Badge tone={stateTone[file.state]}>{file.state}</Badge>
                   </Td>

@@ -366,12 +366,10 @@ function ProgramComposition() {
                           {nameOf(e.to)}
                         </button>
                       </Td>
-                      <Td className="truncate text-muted-foreground" title={e.via}>
+                      <Td className="truncate" title={e.via}>
                         {e.via}
                       </Td>
-                      <Td className="text-muted-foreground">
-                        {e.critical ? "No redundancy" : "Redundant"}
-                      </Td>
+                      <Td>{e.critical ? "No redundancy" : "Redundant"}</Td>
                       <Td>
                         {crossesBoundary(e) ? (
                           <Badge size="xs" tone="warning">
@@ -461,13 +459,13 @@ function ProgramComposition() {
                         <Td>
                           <Mono>{d.id}</Mono>
                         </Td>
-                        <Td className="truncate font-medium" title={d.name}>
+                        <Td className="truncate" title={d.name}>
                           {d.name}
                         </Td>
-                        <Td className="text-muted-foreground">
+                        <Td>
                           {d.format} {d.specVersion}
                         </Td>
-                        <Td className="truncate text-muted-foreground" title={d.producer}>
+                        <Td className="truncate" title={d.producer}>
                           {d.producer}
                         </Td>
                         <Td
@@ -480,7 +478,7 @@ function ProgramComposition() {
                         >
                           {d.received}
                         </Td>
-                        <Td className="tnum text-right text-muted-foreground">{d.components}</Td>
+                        <Td className="tnum text-right">{d.components}</Td>
                         <Td className="truncate">
                           <button
                             type="button"

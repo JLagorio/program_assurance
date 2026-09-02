@@ -156,16 +156,14 @@ function PersonDetail() {
                         <Mono>{w.id}</Mono>
                       </Link>
                     </Td>
-                    <Td className="truncate font-medium">{w.title}</Td>
-                    <Td className="truncate text-muted-foreground">
+                    <Td className="truncate">{w.title}</Td>
+                    <Td className="truncate">
                       {m?.role ?? (w.lead === person.id ? "Workstream lead" : "—")}
                     </Td>
                     <Td>
                       <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
                     </Td>
-                    <Td className="tnum text-right text-muted-foreground">
-                      {m ? `${m.allocation}%` : "—"}
-                    </Td>
+                    <Td className="tnum text-right">{m ? `${m.allocation}%` : "—"}</Td>
                   </Tr>
                 );
               })}
@@ -204,9 +202,9 @@ function PersonDetail() {
                       <Mono>{c.id}</Mono>
                     </Link>
                   </Td>
-                  <Td className="truncate font-medium">{c.name}</Td>
-                  <Td className="truncate text-muted-foreground">{c.title}</Td>
-                  <Td className="truncate text-muted-foreground">{c.discipline}</Td>
+                  <Td className="truncate">{c.name}</Td>
+                  <Td className="truncate">{c.title}</Td>
+                  <Td className="truncate">{c.discipline}</Td>
                 </Tr>
               ))}
             </tbody>

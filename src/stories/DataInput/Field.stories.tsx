@@ -128,7 +128,7 @@ const rows: { key: string; render: (state: Cell) => ReactNode }[] = [
 ];
 
 const th = "h-8 pr-6 text-[12px] font-medium text-muted-foreground";
-const rowLabel = "py-3 pr-6 align-top font-mono text-[11px] text-muted-foreground";
+const rowLabel = "py-3 pr-6 align-top text-[11px] text-muted-foreground";
 
 /** Each control in every state, plus the same control wrapped in a Field. This is the contract. */
 export const Matrix: Story = {

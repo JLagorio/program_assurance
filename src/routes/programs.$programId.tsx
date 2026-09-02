@@ -970,16 +970,14 @@ function ProgramDetail() {
                             <Mono className="text-primary">{p.id}</Mono>
                           </Link>
                         </Td>
-                        <Td className="truncate font-medium">{p.title}</Td>
+                        <Td className="truncate">{p.title}</Td>
                         <Td>
                           <Badge tone={statusTone(p.status)}>{p.status}</Badge>
                         </Td>
                         <Td className="truncate">
                           <Person name={p.owner} />
                         </Td>
-                        <Td className="tnum text-right text-muted-foreground">
-                          {p.scheduledCompletion}
-                        </Td>
+                        <Td className="tnum text-right">{p.scheduledCompletion}</Td>
                       </Tr>
                     ))}
                   </tbody>

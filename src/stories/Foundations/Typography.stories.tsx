@@ -100,10 +100,10 @@ const roles: { role: string; where: string; cls: string; spec: string; sample: s
     sample: "37",
   },
   {
-    role: "Mono value",
-    where: "Mono, IdCell, Kbd",
-    cls: "font-mono text-[12px] tracking-tight",
-    spec: "12 · mono · tight",
+    role: "Identifier",
+    where: "Mono, IdCell",
+    cls: "tnum text-[13px]",
+    spec: "13 · 400 · tnum · inherits",
     sample: "FND-2231 · AC-2(3) · PKG-2026-114",
   },
 ];
@@ -112,7 +112,7 @@ export const Roles: Story = {
   render: () => (
     <Sheet
       title="Typography"
-      lede="Inter for everything, JetBrains Mono for identifiers. Body is 13px; UI text runs smaller than web defaults. Each row is rendered with the app's own classes. Weight 500 for every UI heading; 600 only for page and record titles."
+      lede="Inter for everything, identifiers included. Body is 13px; UI text runs smaller than web defaults. Each row is rendered with the app's own classes. Weight 500 for every UI heading; 600 only for page and record titles."
     >
       <div className="divide-y divide-border-subtle">
         {roles.map((r) => (
@@ -145,7 +145,7 @@ const ladder = [
 
 export const Families: Story = {
   render: () => (
-    <Sheet title="Families & ladder">
+    <Sheet title="Family & ladder">
       <Group title="Inter" note="font-sans · cv11 ss01" cols={1}>
         <div className="space-y-1">
           <div className="text-[22px] font-semibold tracking-[-0.02em]">
@@ -161,8 +161,8 @@ export const Families: Story = {
         </div>
       </Group>
 
-      <Group title="JetBrains Mono" note="font-mono · identifiers and values" cols={1}>
-        <div className="space-y-1 font-mono text-[12px] tracking-tight">
+      <Group title="Identifiers & values" note="same face · tnum only" cols={1}>
+        <div className="tnum space-y-1 text-[13px]">
           <div>AC-2(3) · SC-8(1) · IA-2(1) · AU-11 · SR-4</div>
           <div>FND-2231 · POAM-0042 · PKG-2026-114 · CCI-002418</div>
           <div className="text-muted-foreground">0123456789 · 99.982% · 2026-08-27T14:02Z</div>

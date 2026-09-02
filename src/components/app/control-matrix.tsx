@@ -91,12 +91,12 @@ export function FamilyCoverageTable({
                 <Td>
                   <Mono>{f.id}</Mono>
                 </Td>
-                <Td className="truncate font-medium">{f.name}</Td>
-                <Td className="tnum text-right text-muted-foreground">{f.total}</Td>
-                <Td className="tnum text-right text-muted-foreground">{f.satisfied}</Td>
-                <Td className="tnum text-right text-muted-foreground">{f.partial}</Td>
-                <Td className="tnum text-right text-muted-foreground">{f.other}</Td>
-                <Td className="tnum text-right text-muted-foreground">{f.inherited}</Td>
+                <Td className="truncate">{f.name}</Td>
+                <Td className="tnum text-right">{f.total}</Td>
+                <Td className="tnum text-right">{f.satisfied}</Td>
+                <Td className="tnum text-right">{f.partial}</Td>
+                <Td className="tnum text-right">{f.other}</Td>
+                <Td className="tnum text-right">{f.inherited}</Td>
                 <Td>
                   <span className="flex items-center gap-2">
                     <span className="w-20">
@@ -113,7 +113,7 @@ export function FamilyCoverageTable({
                     <span className="tnum text-12 text-muted-foreground">{f.pct}%</span>
                   </span>
                 </Td>
-                <Td className="truncate text-muted-foreground">{f.owner}</Td>
+                <Td className="truncate">{f.owner}</Td>
               </Tr>
             ))}
         </tbody>
@@ -308,7 +308,7 @@ export function ControlMatrixSection({
                       <Mono className="text-primary">{r.id}</Mono>
                     </Link>
                   </Td>
-                  <Td className="truncate font-medium" title={r.title}>
+                  <Td className="truncate" title={r.title}>
                     <Link
                       to="/programs/$programId/controls/$controlId"
                       params={{ programId, controlId: r.id }}
@@ -327,7 +327,7 @@ export function ControlMatrixSection({
                       render={(v) => <Badge tone={controlStatusTone[v]}>{v}</Badge>}
                     />
                   </Td>
-                  <Td className="truncate text-muted-foreground" title={r.source}>
+                  <Td className="truncate" title={r.source}>
                     {r.implementation}
                   </Td>
                   <Td className="truncate">

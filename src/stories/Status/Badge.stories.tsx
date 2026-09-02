@@ -63,7 +63,7 @@ const meterRows = [
 ];
 
 const th = "h-8 pr-6 text-[12px] font-medium text-muted-foreground";
-const rowLabel = "py-3 pr-6 font-mono text-[11px] text-muted-foreground";
+const rowLabel = "py-3 pr-6 text-[11px] text-muted-foreground";
 
 /** Every tone by both sizes, plus a with-icon column. Labels are the RMF vocabulary. */
 export const Matrix: Story = {
@@ -75,10 +75,7 @@ export const Matrix: Story = {
           <tr>
             <th className={th}>tone</th>
             {sizes.map((s) => (
-              <th
-                key={s}
-                className="h-8 pr-6 font-mono text-[11px] font-medium text-muted-foreground"
-              >
+              <th key={s} className="h-8 pr-6 text-[11px] font-medium text-muted-foreground">
                 {s}
               </th>
             ))}
@@ -263,10 +260,10 @@ export const InContext: Story = {
               <Td>
                 <span className="flex items-center gap-1.5">
                   <Dot tone={r.tone} />
-                  <Mono className="text-muted-foreground">{r.id}</Mono>
+                  <Mono>{r.id}</Mono>
                 </span>
               </Td>
-              <Td className="font-medium">{r.control}</Td>
+              <Td>{r.control}</Td>
               <Td>{r.method ? <Badge size="xs">{r.method}</Badge> : null}</Td>
               <Td className="text-right">
                 {r.stale ? (

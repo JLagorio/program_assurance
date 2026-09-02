@@ -322,13 +322,13 @@ export function ScanTable({
               <Td>
                 <FormatChip format={s.format} />
               </Td>
-              <Td className="truncate text-muted-foreground" title={`${s.tool} · ${s.benchmark}`}>
+              <Td className="truncate" title={`${s.tool} · ${s.benchmark}`}>
                 {s.tool}
               </Td>
               <Td className="truncate" title={`${targets} — ${s.file}`}>
                 {targets}
               </Td>
-              <Td className="tnum text-right text-muted-foreground">{s.rawItems}</Td>
+              <Td className="tnum text-right">{s.rawItems}</Td>
               <Td>
                 <Badge size="xs" tone={scanStateTone[s.state]}>
                   {s.state}
@@ -360,7 +360,7 @@ export function ScanTable({
                   <span>First run</span>
                 )}
               </Td>
-              <Td className="tnum truncate text-right text-muted-foreground">{s.completed}</Td>
+              <Td className="tnum truncate text-right">{s.completed}</Td>
             </Tr>
           );
         })}
@@ -876,7 +876,7 @@ export function NormalizationView({
               </Td>
               <Td>
                 {normalized.cci ? (
-                  <Mono className="text-muted-foreground">{normalized.cci}</Mono>
+                  <Mono>{normalized.cci}</Mono>
                 ) : (
                   <span className="text-muted-foreground">Not asserted</span>
                 )}
@@ -1002,7 +1002,7 @@ export function DedupTable({
             <Td className="truncate" title={`${g.primary.format} · ${g.primary.scan}`}>
               <span className="flex min-w-0 items-center gap-1.5">
                 <FormatChip format={g.primary.format} />
-                <Mono className="text-muted-foreground">{g.primary.scan}</Mono>
+                <Mono>{g.primary.scan}</Mono>
               </span>
             </Td>
             <Td className="truncate" title={g.primary.title}>
@@ -1238,12 +1238,12 @@ export function ScanDiffTable({
                 </Td>
                 <Td className="truncate">{labelNode(r.node, nodeName)}</Td>
                 <Td>
-                  <Mono className="text-muted-foreground">{r.firstSeen}</Mono>
+                  <Mono>{r.firstSeen}</Mono>
                 </Td>
                 <Td>
-                  <Mono className="text-muted-foreground">{r.lastSeen}</Mono>
+                  <Mono>{r.lastSeen}</Mono>
                 </Td>
-                <Td className="tnum text-right text-muted-foreground">{r.occurrences}</Td>
+                <Td className="tnum text-right">{r.occurrences}</Td>
               </Tr>
             ))}
           </tbody>

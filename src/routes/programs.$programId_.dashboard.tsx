@@ -132,13 +132,13 @@ function DeadlineRow({ programId, d }: { programId: string; d: Deadline }) {
           {d.kind}
         </Badge>
       </Td>
-      <Td className="truncate font-medium" title={d.label}>
+      <Td className="truncate" title={d.label}>
         {d.label}
       </Td>
-      <Td className="truncate text-muted-foreground" title={d.note}>
+      <Td className="truncate" title={d.note}>
         {d.note}
       </Td>
-      <Td className="tnum text-right text-muted-foreground">{d.date}</Td>
+      <Td className="tnum text-right">{d.date}</Td>
       <Td
         className={cn(
           "tnum text-right",
@@ -376,7 +376,7 @@ function ProgramDashboard() {
                       <Mono>{gate.id}</Mono>
                     </span>
                   </Td>
-                  <Td className="truncate font-medium" title={gate.cyberGate}>
+                  <Td className="truncate" title={gate.cyberGate}>
                     {gate.name}
                   </Td>
                   <Td>
@@ -389,7 +389,7 @@ function ProgramDashboard() {
                       {gate.status}
                     </Badge>
                   </Td>
-                  <Td className="tnum text-right text-muted-foreground">{gate.planned}</Td>
+                  <Td className="tnum text-right">{gate.planned}</Td>
                   <Td
                     className={cn(
                       "tnum text-right",
@@ -402,7 +402,7 @@ function ProgramDashboard() {
                         ? `${Math.abs(daysOut)}d overdue`
                         : `${daysOut}d out`}
                   </Td>
-                  <Td className="truncate text-muted-foreground">
+                  <Td className="truncate">
                     {blockers ? `${blockers} controls open` : <Person name={gate.owner} />}
                   </Td>
                 </Tr>

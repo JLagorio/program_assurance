@@ -220,8 +220,8 @@ export function PoamSection({
                   <Td className="w-[72px]">
                     <Mono>{i.poamId}</Mono>
                   </Td>
-                  <Td className="font-medium">{i.title}</Td>
-                  <Td className="w-[104px] text-muted-foreground">{i.controls.join(", ")}</Td>
+                  <Td>{i.title}</Td>
+                  <Td className="w-[104px]">{i.controls.join(", ")}</Td>
                   <Td className="w-[92px]">
                     <Badge tone={poamSeverityTone[i.severity]}>{i.severity}</Badge>
                   </Td>
@@ -313,9 +313,7 @@ export function PoamSection({
           <tbody>
             {audit.map((e) => (
               <Tr key={e.uuid}>
-                <Td className="tnum w-[150px] text-muted-foreground">
-                  {formatOscalDate(e.timestamp, true)}
-                </Td>
+                <Td className="tnum w-[150px]">{formatOscalDate(e.timestamp, true)}</Td>
                 <Td className="w-[84px]">
                   <Badge
                     tone={
@@ -333,7 +331,7 @@ export function PoamSection({
                   <Mono>{e.poamId}</Mono>
                 </Td>
                 <Td className="w-[150px]">{e.actor}</Td>
-                <Td className="text-muted-foreground">
+                <Td>
                   {e.changes.length === 0
                     ? e.action === "Created"
                       ? "New poam-item recorded"

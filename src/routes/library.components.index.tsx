@@ -109,12 +109,10 @@ function ComponentLibrary() {
                         active={preview?.key === c.key}
                         onPreview={() => setPreview(c)}
                       />
-                      <Td className="truncate font-medium">{c.name}</Td>
-                      <Td className="truncate text-muted-foreground">{c.owner}</Td>
-                      <Td className="tnum text-right text-muted-foreground">{c.controls.length}</Td>
-                      <Td className="tnum text-right text-muted-foreground">
-                        {c.consumers.length}
-                      </Td>
+                      <Td className="truncate">{c.name}</Td>
+                      <Td className="truncate">{c.owner}</Td>
+                      <Td className="tnum text-right">{c.controls.length}</Td>
+                      <Td className="tnum text-right">{c.consumers.length}</Td>
                       <Td className="truncate text-right">
                         {c.health === "Current" ? (
                           <span className="text-muted-foreground">

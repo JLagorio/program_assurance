@@ -202,8 +202,8 @@ export function FactorTable({ score }: { score: ResidualScore }) {
         </tbody>
         <tfoot>
           <tr className="border-t border-border">
-            <Td className="font-semibold">Residual</Td>
-            <Td className="max-w-none whitespace-normal py-2 leading-snug text-muted-foreground">
+            <Td>Residual</Td>
+            <Td className="max-w-none whitespace-normal py-2 leading-snug">
               {clamped
                 ? `The column sums to ${sum}, outside the 0–100 range; the published score is clamped.`
                 : `Sum of the ${score.factors.length} contributions above. The positive factors alone ceiling at ${ceiling}; the credit is what comes back off.`}
@@ -214,7 +214,7 @@ export function FactorTable({ score }: { score: ResidualScore }) {
             <Td className="text-right">
               <Dash />
             </Td>
-            <Td className="tnum text-right text-[15px] font-semibold">{score.score}</Td>
+            <Td className="tnum text-right text-[15px]">{score.score}</Td>
           </tr>
         </tfoot>
       </Table>
@@ -228,7 +228,7 @@ function FactorRows({ factor }: { factor: ScoreFactor }) {
   return (
     <>
       <Tr className="border-0 align-top hover:bg-transparent">
-        <Td className="py-2 align-top font-medium">{factor.label}</Td>
+        <Td className="py-2 align-top">{factor.label}</Td>
         <Td
           className="max-w-none whitespace-normal py-2 align-top leading-snug"
           title={factor.input}
@@ -236,9 +236,7 @@ function FactorRows({ factor }: { factor: ScoreFactor }) {
           {factor.input}
         </Td>
         <Td className="tnum py-2 align-top text-right">{fixed2(factor.value)}</Td>
-        <Td className="tnum py-2 align-top text-right text-muted-foreground">
-          {fixed2(factor.weight)}
-        </Td>
+        <Td className="tnum py-2 align-top text-right">{fixed2(factor.weight)}</Td>
         <Td
           className={cn(
             "tnum py-2 align-top text-right font-medium",
@@ -287,7 +285,7 @@ function MissingFactorRows({ factorKey, caveats }: { factorKey: FactorKey; cavea
   return (
     <>
       <Tr className="border-0 align-top hover:bg-transparent">
-        <Td className="py-2 align-top font-medium text-muted-foreground">{label}</Td>
+        <Td className="py-2 align-top">{label}</Td>
         <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
           <Badge size="xs" tone="warning">
             Not computed
@@ -296,9 +294,7 @@ function MissingFactorRows({ factorKey, caveats }: { factorKey: FactorKey; cavea
         <Td className="py-2 align-top text-right">
           <Dash />
         </Td>
-        <Td className="tnum py-2 align-top text-right text-muted-foreground line-through">
-          {fixed2(weight)}
-        </Td>
+        <Td className="tnum py-2 align-top text-right line-through">{fixed2(weight)}</Td>
         <Td className="py-2 align-top text-right">
           <Dash />
         </Td>
@@ -546,7 +542,7 @@ export function TopRisksTable({
             >
               <Td className="max-w-none">
                 <span className="flex items-center gap-1.5">
-                  <Mono className="text-muted-foreground">{row.score.subject}</Mono>
+                  <Mono>{row.score.subject}</Mono>
                   {row.score.caveats.length > 0 ? (
                     <Badge size="xs" tone="warning">
                       {row.score.caveats.length}
@@ -554,16 +550,12 @@ export function TopRisksTable({
                   ) : null}
                 </span>
               </Td>
-              <Td className={cn("font-medium", row.excluded && "text-muted-foreground")}>
-                {row.title}
-              </Td>
-              <Td className="text-muted-foreground" title={row.context}>
-                {row.context}
-              </Td>
-              <Td className="text-muted-foreground" title={driver ? driver.rationale : undefined}>
+              <Td className={cn(row.excluded && "text-muted-foreground")}>{row.title}</Td>
+              <Td title={row.context}>{row.context}</Td>
+              <Td title={driver ? driver.rationale : undefined}>
                 {driver ? `${driver.label} ${signed(driver.contribution)}` : <Dash />}
               </Td>
-              <Td className="tnum text-right text-muted-foreground">{row.score.inherent}</Td>
+              <Td className="tnum text-right">{row.score.inherent}</Td>
               {/* A zero credit is a RESULT — nobody claimed a compensating
                   control — so it prints as 0 rather than as an em dash, which
                   would read as "not computed". */}
@@ -576,11 +568,11 @@ export function TopRisksTable({
                 {signed(credit)}
               </Td>
               {showAuthored ? (
-                <Td className="tnum text-right text-muted-foreground">
+                <Td className="tnum text-right">
                   {typeof row.authored === "number" ? row.authored : <Dash />}
                 </Td>
               ) : null}
-              <Td className="tnum text-right font-semibold">{row.score.score}</Td>
+              <Td className="tnum text-right">{row.score.score}</Td>
               <Td>
                 <BandChip band={row.score.band} size="xs" />
               </Td>
@@ -632,12 +624,10 @@ export function MoversTable({ movers }: { movers: RiskMover[] }) {
         {movers.map((m) => (
           <Tr key={m.subject} className="align-top">
             <Td className="py-2 align-top">
-              <Mono className="text-muted-foreground">{m.subject}</Mono>
+              <Mono>{m.subject}</Mono>
             </Td>
-            <Td className="tnum py-2 align-top text-right text-muted-foreground line-through">
-              {m.from}
-            </Td>
-            <Td className="tnum py-2 align-top text-right font-semibold">{m.to}</Td>
+            <Td className="tnum py-2 align-top text-right line-through">{m.from}</Td>
+            <Td className="tnum py-2 align-top text-right">{m.to}</Td>
             <Td
               className={cn(
                 "tnum py-2 align-top text-right font-medium",
@@ -646,9 +636,7 @@ export function MoversTable({ movers }: { movers: RiskMover[] }) {
             >
               {signed(m.to - m.from)}
             </Td>
-            <Td className="max-w-none whitespace-normal py-2 align-top leading-snug text-muted-foreground">
-              {m.why}
-            </Td>
+            <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">{m.why}</Td>
           </Tr>
         ))}
       </tbody>
@@ -729,21 +717,15 @@ function ComparisonRows({
     <>
       <Tr className="border-0 align-top hover:bg-transparent">
         <Td className="py-2 align-top">
-          <Mono className="text-muted-foreground">{comparison.risk}</Mono>
+          <Mono>{comparison.risk}</Mono>
         </Td>
-        <Td className="py-2 align-top font-medium" title={title}>
+        <Td className="py-2 align-top" title={title}>
           {title}
         </Td>
-        <Td className="py-2 align-top text-muted-foreground">{treatment}</Td>
-        <Td className="tnum py-2 align-top text-right text-muted-foreground">
-          {comparison.authored.inherent}
-        </Td>
-        <Td className="tnum py-2 align-top text-right text-muted-foreground">
-          {comparison.authored.residual}
-        </Td>
-        <Td className="tnum py-2 align-top text-right font-semibold">
-          {comparison.computed.residual}
-        </Td>
+        <Td className="py-2 align-top">{treatment}</Td>
+        <Td className="tnum py-2 align-top text-right">{comparison.authored.inherent}</Td>
+        <Td className="tnum py-2 align-top text-right">{comparison.authored.residual}</Td>
+        <Td className="tnum py-2 align-top text-right">{comparison.computed.residual}</Td>
         <Td
           className={cn(
             "tnum py-2 align-top text-right font-medium",
@@ -852,7 +834,7 @@ export function FactorModel() {
         <tbody>
           {modelRows.map((row) => (
             <Tr key={row.key} className="align-top">
-              <Td className="py-2 align-top font-medium">{factorLabel[row.key]}</Td>
+              <Td className="py-2 align-top">{factorLabel[row.key]}</Td>
               <Td
                 className={cn(
                   "tnum py-2 align-top text-right",
@@ -861,10 +843,10 @@ export function FactorModel() {
               >
                 {fixed2(factorWeights[row.key])}
               </Td>
-              <Td className="max-w-none whitespace-normal py-2 align-top leading-relaxed text-muted-foreground">
+              <Td className="max-w-none whitespace-normal py-2 align-top leading-relaxed">
                 {row.reads}
               </Td>
-              <Td className="max-w-none whitespace-normal py-2 align-top leading-relaxed text-muted-foreground">
+              <Td className="max-w-none whitespace-normal py-2 align-top leading-relaxed">
                 {row.scale}
               </Td>
             </Tr>
@@ -931,11 +913,11 @@ export function BandLadder({
               <Td className="py-2 align-top">
                 <BandChip band={row.band} size="xs" />
               </Td>
-              <Td className="tnum py-2 align-top text-muted-foreground">{row.range}</Td>
+              <Td className="tnum py-2 align-top">{row.range}</Td>
               {byBand ? (
                 <Td className="tnum py-2 align-top text-right">{counts.get(row.band) ?? 0}</Td>
               ) : null}
-              <Td className="max-w-none whitespace-normal py-2 align-top leading-relaxed text-muted-foreground">
+              <Td className="max-w-none whitespace-normal py-2 align-top leading-relaxed">
                 {row.means}
               </Td>
             </Tr>

@@ -284,21 +284,13 @@ export function BuildTable({
             title={build.note}
           >
             <IdCell id={build.id} />
-            <Td className="font-medium">{build.name}</Td>
+            <Td>{build.name}</Td>
             <Td>
               <BuildStateChip state={build.state} />
             </Td>
-            <Td className="tnum text-muted-foreground">{build.approved}</Td>
-            <Td className="text-muted-foreground" title={build.ccb}>
-              {build.ccb}
-            </Td>
-            <Td>
-              {build.supersedes ? (
-                <Mono className="text-muted-foreground">{build.supersedes}</Mono>
-              ) : (
-                <Dash />
-              )}
-            </Td>
+            <Td className="tnum">{build.approved}</Td>
+            <Td title={build.ccb}>{build.ccb}</Td>
+            <Td>{build.supersedes ? <Mono>{build.supersedes}</Mono> : <Dash />}</Td>
             <Td className="tnum text-right">{build.pins.length}</Td>
             <Td className="tnum text-right">{build.parameters.length}</Td>
           </Tr>
@@ -338,8 +330,8 @@ export function ParameterTable({ parameters }: { parameters: ParameterPin[] }) {
         {parameters.map((p) => (
           <Tr key={`${p.control}|${p.parameter}`} title={`${p.parameter} — ${p.value}`}>
             <IdCell id={p.control} />
-            <Td className="text-muted-foreground">{p.parameter}</Td>
-            <Td className="font-medium">{p.value}</Td>
+            <Td>{p.parameter}</Td>
+            <Td>{p.value}</Td>
           </Tr>
         ))}
       </tbody>
@@ -528,9 +520,7 @@ export function PinDiffTable({
                   `NodeRef` marks the id `shrink-0` and the name `truncate`, so
                   repeating it here protects the duplicate and truncates the only
                   unique string in the row. Name only. */}
-              <Td className="font-medium">
-                {row.node === "—" ? row.label : (nodeName?.(row.node) ?? row.label)}
-              </Td>
+              <Td>{row.node === "—" ? row.label : (nodeName?.(row.node) ?? row.label)}</Td>
               <Td>
                 <ChangeKindChip kind={row.kind} />
               </Td>
@@ -630,7 +620,7 @@ export function ChangeTable({
             >
               <Td>
                 <span className="flex items-center gap-1.5">
-                  <Mono className="text-muted-foreground">{change.id}</Mono>
+                  <Mono>{change.id}</Mono>
                   {change.acknowledged ? (
                     <Badge size="xs" tone="neutral">
                       Ack
@@ -643,7 +633,7 @@ export function ChangeTable({
               </Td>
               <Td>
                 {change.node === "—" ? (
-                  <Mono className="text-muted-foreground">{change.subject}</Mono>
+                  <Mono>{change.subject}</Mono>
                 ) : (
                   <NodeRef id={change.node} nodeName={nodeName} />
                 )}
@@ -651,7 +641,7 @@ export function ChangeTable({
               <Td>
                 <Movement from={change.from} to={change.to} />
               </Td>
-              <Td className="tnum text-muted-foreground">{change.requested}</Td>
+              <Td className="tnum">{change.requested}</Td>
               <Td>
                 <ImpactChip impact={change.impact} />
               </Td>
@@ -920,7 +910,7 @@ function InvalidatedRowTable({ records }: { records: AuditRecord[] }) {
                   <Badge size="xs">{row.unit}</Badge>
                 </Td>
                 <Td>
-                  <Mono className="text-muted-foreground">{row.requirement}</Mono>
+                  <Mono>{row.requirement}</Mono>
                 </Td>
                 <Td>
                   <DeterminationOutcome record={record} />
@@ -969,7 +959,7 @@ function SuspectRowTable({ records }: { records: AuditRecord[] }) {
                   <Badge size="xs">{row.unit}</Badge>
                 </Td>
                 <Td>
-                  <Mono className="text-muted-foreground">{row.requirement}</Mono>
+                  <Mono>{row.requirement}</Mono>
                 </Td>
                 <Td>
                   <span className="flex items-center gap-1.5">
@@ -1019,14 +1009,14 @@ function AuditTrail({ records }: { records: AuditRecord[] }) {
           {cap.shown.map((record) => (
             <Tr key={record.id} title={record.why}>
               <IdCell id={record.id} />
-              <Td className="text-muted-foreground">{record.scope}</Td>
+              <Td>{record.scope}</Td>
               <Td>
-                <Mono className="text-muted-foreground">{record.ref}</Mono>
+                <Mono>{record.ref}</Mono>
               </Td>
               <Td>
                 <Movement from={record.from} to={record.to} />
               </Td>
-              <Td className="text-muted-foreground">{record.why}</Td>
+              <Td>{record.why}</Td>
             </Tr>
           ))}
         </tbody>
@@ -1046,7 +1036,7 @@ function IdChips({ ids, tone = "neutral" }: { ids: string[]; tone?: Tone }) {
     <div className="flex flex-wrap gap-1.5 pt-3">
       {ids.map((id) => (
         <Badge key={id} tone={tone}>
-          <span className="font-mono text-[11.5px]">{id}</span>
+          <span className="text-[11.5px]">{id}</span>
         </Badge>
       ))}
     </div>
@@ -1402,7 +1392,7 @@ export function ImpactView({
                     return (
                       <Tr key={reference}>
                         <Td>
-                          <Mono className="text-muted-foreground">{parsed.component}</Mono>
+                          <Mono>{parsed.component}</Mono>
                         </Td>
                         <IdCell id={parsed.control} />
                         <Td>
@@ -1528,7 +1518,7 @@ export function RetestQueueTable({
             >
               <IdCell id={item.control} />
               <Td>
-                <Mono className="text-muted-foreground">{item.requirement}</Mono>
+                <Mono>{item.requirement}</Mono>
               </Td>
               <Td>
                 <NodeRef id={item.node} nodeName={nodeName} />
@@ -1538,12 +1528,12 @@ export function RetestQueueTable({
               </Td>
               <Td>
                 {item.procedure ? (
-                  <Mono className="text-muted-foreground">{item.procedure}</Mono>
+                  <Mono>{item.procedure}</Mono>
                 ) : (
                   <span className="text-[12px] text-muted-foreground">None — by hand</span>
                 )}
               </Td>
-              <Td className="text-muted-foreground">{item.reason}</Td>
+              <Td>{item.reason}</Td>
             </Tr>
           ))}
         </tbody>

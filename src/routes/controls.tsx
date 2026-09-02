@@ -177,13 +177,13 @@ function Catalog() {
                       <Td>
                         <Mono>{c.id}</Mono>
                       </Td>
-                      <Td className="truncate font-medium">{c.title}</Td>
-                      <Td className="text-muted-foreground">{c.family}</Td>
-                      <Td className="truncate text-muted-foreground">{c.baseline.join(" · ")}</Td>
-                      <Td className="truncate text-muted-foreground">
+                      <Td className="truncate">{c.title}</Td>
+                      <Td>{c.family}</Td>
+                      <Td className="truncate">{c.baseline.join(" · ")}</Td>
+                      <Td className="truncate">
                         {c.addedBy.length ? <Mono>{c.addedBy.join(", ")}</Mono> : "—"}
                       </Td>
-                      <Td className="tnum text-right text-muted-foreground">{c.cciCount}</Td>
+                      <Td className="tnum text-right">{c.cciCount}</Td>
                     </Tr>
                   ))}
                 </tbody>
@@ -218,12 +218,12 @@ function Catalog() {
                       <Td>
                         <Mono>{o.id}</Mono>
                       </Td>
-                      <Td className="truncate font-medium">{o.name}</Td>
-                      <Td className="truncate text-muted-foreground">{o.applicability}</Td>
-                      <Td className="truncate text-muted-foreground">{o.authority}</Td>
-                      <Td className="tnum text-right text-muted-foreground">+{o.adds}</Td>
-                      <Td className="tnum text-right text-muted-foreground">−{o.removes}</Td>
-                      <Td className="tnum text-right text-muted-foreground">{o.parameters}</Td>
+                      <Td className="truncate">{o.name}</Td>
+                      <Td className="truncate">{o.applicability}</Td>
+                      <Td className="truncate">{o.authority}</Td>
+                      <Td className="tnum text-right">+{o.adds}</Td>
+                      <Td className="tnum text-right">−{o.removes}</Td>
+                      <Td className="tnum text-right">{o.parameters}</Td>
                     </Tr>
                   ))}
                 </tbody>
@@ -264,7 +264,7 @@ function Catalog() {
                         <Mono>{c.id}</Mono>
                       </Td>
                       <Td>
-                        <Mono className="text-muted-foreground">{c.control}</Mono>
+                        <Mono>{c.control}</Mono>
                       </Td>
                       <Td className="truncate">{c.definition}</Td>
                       <Td>
@@ -276,11 +276,9 @@ function Catalog() {
                           <span className="text-muted-foreground">{c.compliance}</span>
                         )}
                       </Td>
-                      <Td className="tnum text-right text-muted-foreground">{c.rules.length}</Td>
-                      <Td className="tnum text-right text-muted-foreground">
-                        {c.procedures.length}
-                      </Td>
-                      <Td className="tnum text-right text-muted-foreground">
+                      <Td className="tnum text-right">{c.rules.length}</Td>
+                      <Td className="tnum text-right">{c.procedures.length}</Td>
+                      <Td className="tnum text-right">
                         {c.objectives.length || <span className="text-warning">0</span>}
                       </Td>
                     </Tr>

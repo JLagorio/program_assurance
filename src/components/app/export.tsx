@@ -262,7 +262,7 @@ export function OscalViewer({
                     : "text-muted-foreground hover:border-border-strong hover:text-foreground",
                 )}
               >
-                <span className="font-mono text-[11.5px]">{entry.key}</span>
+                <span className="text-[11.5px]">{entry.key}</span>
                 <span className="tnum text-[11px] text-muted-foreground">{entry.summary}</span>
               </button>
             ))}
@@ -413,7 +413,7 @@ export function EmassTable({ sheet, pageSize = 40 }: { sheet: EmassExport; pageS
 function Hash({ value }: { value: string }) {
   if (value === "—") return <Dash />;
   return (
-    <span className="block break-all font-mono text-[10.5px] leading-[1.45] text-muted-foreground">
+    <span className="block break-all text-[10.5px] leading-[1.45] text-muted-foreground">
       {value}
     </span>
   );
@@ -477,7 +477,7 @@ export function BundleManifest({
             {bundle.artifacts.map((artifact) => (
               <Tr key={artifact.path} className="align-top hover:bg-transparent">
                 <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
-                  <Mono className="text-muted-foreground">{artifact.path}</Mono>
+                  <Mono>{artifact.path}</Mono>
                   <span className="mt-0.5 block text-[11.5px] text-muted-foreground">
                     {artifact.kind}
                   </span>
@@ -650,7 +650,7 @@ export function ReconcileTable({ reconciliation }: { reconciliation: Reconciliat
           <Fragment key={row.path}>
             <Tr className="border-0 align-top hover:bg-transparent">
               <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
-                <Mono className="text-muted-foreground">{row.path}</Mono>
+                <Mono>{row.path}</Mono>
               </Td>
               <Td className="py-2 align-top">
                 <Badge tone={reconcileStateTone[row.state]}>{row.state}</Badge>
