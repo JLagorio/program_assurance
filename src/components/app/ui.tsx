@@ -65,14 +65,35 @@ export function IconButton({ className, ...props }: ComponentProps<"button">) {
 
 export type Tone = "neutral" | "success" | "warning" | "danger" | "info";
 
-const toneStyles: Record<Tone, string> = {
-  neutral: "bg-muted text-muted-foreground ring-border-strong/70",
-  success: "bg-success-soft text-success ring-success/20",
-  warning: "bg-warning-soft text-warning ring-warning/25",
-  danger: "bg-danger-soft text-danger ring-danger/20",
-  info: "bg-info-soft text-info ring-info/20",
+/* One tone table for every status primitive (Badge, Dot, Meter, StackedBar).
+   `text` and `fill` are the solid token; `soft` is the tinted surface a Badge
+   sits on. Neutral has no solid token: fills use one alpha of muted-foreground
+   and the dot one step darker so it still reads at 6px. Info stays on `info`,
+   not `primary`, so data bars do not spend the blue budget. */
+const toneClasses: Record<Tone, { text: string; soft: string; fill: string; dot: string }> = {
+  neutral: {
+    text: "text-muted-foreground",
+    soft: "bg-muted",
+    fill: "bg-muted-foreground/40",
+    dot: "bg-muted-foreground/50",
+  },
+  success: {
+    text: "text-success",
+    soft: "bg-success-soft",
+    fill: "bg-success",
+    dot: "bg-success",
+  },
+  warning: {
+    text: "text-warning",
+    soft: "bg-warning-soft",
+    fill: "bg-warning",
+    dot: "bg-warning",
+  },
+  danger: { text: "text-danger", soft: "bg-danger-soft", fill: "bg-danger", dot: "bg-danger" },
+  info: { text: "text-info", soft: "bg-info-soft", fill: "bg-info", dot: "bg-info" },
 };
 
+/** Soft fill, solid text, no ring: the Stripe badge, the Linear tag. */
 export function Badge({
   tone = "neutral",
   size = "sm",
@@ -89,9 +110,10 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-[5px] font-medium ring-1 ring-inset",
+        "inline-flex items-center gap-1 rounded-sm font-medium",
         size === "xs" ? "px-1 py-px text-11" : "px-1.5 py-0.5 text-12 leading-4",
-        toneStyles[tone],
+        toneClasses[tone].soft,
+        toneClasses[tone].text,
         className,
       )}
     >
@@ -102,14 +124,7 @@ export function Badge({
 }
 
 export function Dot({ tone = "neutral" }: { tone?: Tone }) {
-  const map: Record<Tone, string> = {
-    neutral: "bg-muted-foreground/50",
-    success: "bg-success",
-    warning: "bg-warning",
-    danger: "bg-danger",
-    info: "bg-info",
-  };
-  return <span className={cn("size-1.5 shrink-0 rounded-full", map[tone])} />;
+  return <span className={cn("size-1.5 shrink-0 rounded-full", toneClasses[tone].dot)} />;
 }
 
 /* -------------------------------------------------------------------- Card */
@@ -488,17 +503,10 @@ export function Mono({ children, className }: { children: ReactNode; className?:
 /* ------------------------------------------------------------ Progress bar */
 
 export function Meter({ value, tone = "info" }: { value: number; tone?: Tone }) {
-  const map: Record<Tone, string> = {
-    neutral: "bg-muted-foreground/40",
-    success: "bg-success",
-    warning: "bg-warning",
-    danger: "bg-danger",
-    info: "bg-primary",
-  };
   return (
     <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
       <div
-        className={cn("h-full rounded-full", map[tone])}
+        className={cn("h-full rounded-full", toneClasses[tone].fill)}
         style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
       />
     </div>
@@ -519,13 +527,6 @@ export function StackedBar({
   }[];
   height?: number;
 }) {
-  const map: Record<Tone, string> = {
-    neutral: "bg-muted-foreground/25",
-    success: "bg-success",
-    warning: "bg-warning",
-    danger: "bg-danger",
-    info: "bg-primary",
-  };
   const total = segments.reduce((a, s) => a + Math.max(0, s.value), 0) || 1;
   return (
     <span
@@ -541,14 +542,14 @@ export function StackedBar({
               type="button"
               title={s.title}
               onClick={s.onClick}
-              className={cn("h-full transition-[width] duration-[120ms]", map[s.tone])}
+              className={cn("h-full transition-[width] duration-[120ms]", toneClasses[s.tone].fill)}
               style={{ width: `${(s.value / total) * 100}%` }}
             />
           ) : (
             <span
               key={s.key}
               title={s.title}
-              className={cn("h-full transition-[width] duration-[120ms]", map[s.tone])}
+              className={cn("h-full transition-[width] duration-[120ms]", toneClasses[s.tone].fill)}
               style={{ width: `${(s.value / total) * 100}%` }}
             />
           ),

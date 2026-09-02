@@ -1,14 +1,14 @@
 # Status vocabulary
 
-Status is always expressed through the five-value `tone` system (`Badge`, `Dot`, `Meter`) with domain vocabulary — soft fill, solid text, 1px inset ring. Vocabulary the product actually uses:
+Status is always expressed through the five-value `tone` system (`Badge`, `Dot`, `Meter`) with domain vocabulary — soft fill, solid text, no ring, 4px radius. One `toneClasses` table in `ui.tsx` feeds all of them. Vocabulary the product actually uses:
 
-| Tone | Meaning | Examples from the app |
-|---|---|---|
-| `success` | Meets the bar | Compliant · Passing · Satisfied |
+| Tone      | Meaning                                  | Examples from the app                                                                        |
+| --------- | ---------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `success` | Meets the bar                            | Compliant · Passing · Satisfied                                                              |
 | `warning` | Needs human attention, not yet a failure | Needs review · Partially satisfied · In remediation · evidence age ("34d") · versions behind |
-| `danger` | Failing the bar | Failing · Non-compliant · Other than satisfied · Overdue |
-| `info` | Informational / automated | Automated · In assessment · info counts |
-| `neutral` | No judgment | Not assessed · Accepted · source/method labels |
+| `danger`  | Failing the bar                          | Failing · Non-compliant · Other than satisfied · Overdue                                     |
+| `info`    | Informational / automated                | Automated · In assessment · info counts                                                      |
+| `neutral` | No judgment                              | Not assessed · Accepted · source/method labels                                               |
 
 Rules:
 
