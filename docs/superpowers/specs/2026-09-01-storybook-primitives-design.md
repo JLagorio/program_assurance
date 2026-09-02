@@ -12,8 +12,8 @@ step. The app is a prototype; the visual style is the point. Nothing here adds p
 
 A deliberate blend, not either kit sheet wholesale:
 
-- **Keep Ledger's surface.** White canvas, Inter + JetBrains Mono, one blue at hue 258, the Stripe "lit"
-  primary button (`shadow-button-primary`). Every current light token keeps its value until a primitive
+- **Keep Ledger's surface.** White canvas, Inter + JetBrains Mono, one blue at hue 258. Filled buttons are a flat fill with a soft 1px drop — no ring, no inner
+  highlight, no press-down (Josef, 2026-09-01, first Storybook pass). Every current light token keeps its value until a primitive
   step deliberately changes it.
 - **Adopt Linear's metrics and discipline** as each primitive is visited: measured control heights
   (24 / 28 / 32, inputs 30), weight-400 labels on secondary controls, inset hairlines instead of borders
@@ -22,7 +22,7 @@ A deliberate blend, not either kit sheet wholesale:
 - **Defer Nightwatch dark mode** until the light primitives are signed off. Token names do not change, so
   the handoff sheet stays drop-in.
 
-Rejected: switching to Geist (Linear's own file is Inter); going fully flat on the primary button.
+Rejected: switching to Geist (Linear's own file is Inter).
 
 ## Storybook setup
 

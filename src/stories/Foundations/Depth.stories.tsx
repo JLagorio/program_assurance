@@ -96,8 +96,8 @@ export const Elevation: Story = {
       </div>
 
       <Group
-        title="The lit button"
-        note="shadow-button-primary · the one Stripe-ism we keep"
+        title="Filled buttons"
+        note="shadow-button-primary · flat fill, soft drop, no ring"
         cols={3}
       >
         <div className="space-y-2">
@@ -110,13 +110,11 @@ export const Elevation: Story = {
         </div>
         <div className="space-y-2">
           <div className="flex h-20 items-center justify-center rounded-lg bg-surface-2">
-            <span className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-[13px] font-medium text-primary-foreground">
-              Submit package
+            <span className="inline-flex h-8 items-center rounded-md bg-danger px-3 text-[13px] font-medium text-primary-foreground shadow-button-primary">
+              Delete finding
             </span>
           </div>
-          <div className="text-[11.5px] text-muted-foreground">
-            same fill, no shadow, for contrast
-          </div>
+          <div className="text-[11.5px] text-muted-foreground">danger · same token</div>
         </div>
         <div className="space-y-2">
           <div className="flex h-20 items-center justify-center rounded-lg bg-surface-2">
