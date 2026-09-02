@@ -6,7 +6,7 @@ import { Card, PageHeader, RecordHeader, Section, Related } from "@/ds/patterns"
 import { Spec } from "../_lib/tokens";
 
 const meta = {
-  title: "Layout/Card",
+  title: "Patterns/Card",
   component: Card,
   tags: ["autodocs"],
   argTypes: { className: { control: false }, children: { control: false } },

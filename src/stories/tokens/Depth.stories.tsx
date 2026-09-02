@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Group, Sheet, Spec, useComputed, useCssVar } from "../_lib/tokens";
 
 const meta = {
-  title: "Foundations/Depth",
+  title: "Tokens/Depth",
   parameters: { layout: "padded" },
 } satisfies Meta;
 

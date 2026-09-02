@@ -8,7 +8,7 @@ import { Card } from "@/ds/patterns";
 import { Spec } from "../_lib/tokens";
 
 const meta = {
-  title: "Status/Badge",
+  title: "Primitives/Badge",
   component: Badge,
   tags: ["autodocs"],
   args: { children: "Satisfied", tone: "success", size: "sm" },

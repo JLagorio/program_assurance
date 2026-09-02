@@ -36,8 +36,9 @@ Rejected: switching to Geist (Linear's own file is Inter).
 - **Theme toolbar** (optional, preview-only): Ledger (default) · Nightwatch · Linear-refined. The two
   overlays are copied from the kit into `.storybook/themes/` and applied by the decorator; they never
   enter `src/styles.css`.
-- Stories live in `src/stories/<Group>/<Name>.stories.tsx`, grouped by the RFC-001 filing system:
-  Foundations, Actions, Status, Data Input, Layout, Data, Navigation, Feedback, Shapes.
+- Stories live in `src/stories/<layer>/<Name>.stories.tsx` and are titled by design-system layer, so
+  the Storybook sidebar is the vocabulary: Tokens, Primitives, Patterns, Shapes, Shell (retitled
+  2026-09-02; the RFC-001 groups Foundations / Actions / Status / … are gone).
 - Each component story is a **variant matrix**: every variant × size, with hover / focus / disabled /
   loading as static rows (forced via `parameters.pseudo` is out — keep it lightweight; use explicit
   className states where the component exposes them, otherwise just the natural states), plus one

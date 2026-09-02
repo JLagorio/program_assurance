@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Group, Sheet, Spec } from "../_lib/tokens";
 
 const meta = {
-  title: "Foundations/Typography",
+  title: "Tokens/Typography",
   parameters: { layout: "padded" },
 } satisfies Meta;
 

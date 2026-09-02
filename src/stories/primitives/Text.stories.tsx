@@ -5,7 +5,7 @@ import { Inspector } from "@/ds/shapes";
 import { Spec } from "../_lib/tokens";
 
 const meta = {
-  title: "Layout/Facts",
+  title: "Primitives/Text",
   component: KeyValue,
   tags: ["autodocs"],
   args: { label: "Owner", wrap: false, children: "D. Reyes" },

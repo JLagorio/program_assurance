@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Group, Sheet, Spec } from "../_lib/tokens";
 
 const meta = {
-  title: "Foundations/Density",
+  title: "Tokens/Density",
   parameters: { layout: "padded" },
 } satisfies Meta;
 

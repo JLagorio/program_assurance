@@ -5,7 +5,7 @@ import { Button, Field, Input, Select, Textarea } from "@/ds/primitives";
 import { Card } from "@/ds/patterns";
 
 const meta = {
-  title: "Data Input/Field",
+  title: "Primitives/Field",
   component: Input,
   tags: ["autodocs"],
   args: { placeholder: "Search controls…", disabled: false, type: "text" },

@@ -4,7 +4,7 @@ import { Stat } from "@/ds/primitives";
 import { Spec } from "../_lib/tokens";
 
 const meta = {
-  title: "Data/Stats",
+  title: "Primitives/Stat",
   component: Stat.Tile,
   tags: ["autodocs"],
   args: { label: "Re-tests owed", value: 400, note: "distinct requirement and component" },

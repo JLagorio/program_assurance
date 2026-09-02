@@ -4,7 +4,7 @@ import { Download, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import { Button, IconButton } from "@/ds/primitives";
 
 const meta = {
-  title: "Actions/Button",
+  title: "Primitives/Button",
   component: Button,
   tags: ["autodocs"],
   args: { children: "Request evidence", variant: "secondary", size: "md", disabled: false },

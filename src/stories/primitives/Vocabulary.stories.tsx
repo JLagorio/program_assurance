@@ -59,7 +59,7 @@ import {
 } from "@/lib/verification";
 
 const meta = {
-  title: "Status/Vocabulary",
+  title: "Primitives/Status vocabulary",
   component: Badge,
   tags: ["autodocs"],
   args: { children: "Satisfied", size: "sm" },

@@ -6,7 +6,7 @@ import { Card, PageHeader } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 
 const meta = {
-  title: "Shapes/Shell",
+  title: "Shell/Shell",
   component: Shell,
   tags: ["autodocs"],
   parameters: { layout: "fullscreen" },

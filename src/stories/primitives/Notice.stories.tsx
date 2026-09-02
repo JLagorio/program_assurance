@@ -4,7 +4,7 @@ import { Badge, Notice, Id } from "@/ds/primitives";
 import { Spec } from "../_lib/tokens";
 
 const meta = {
-  title: "Feedback/Notice",
+  title: "Primitives/Notice",
   component: Notice,
   tags: ["autodocs"],
   args: {

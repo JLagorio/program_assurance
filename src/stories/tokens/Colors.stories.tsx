@@ -6,7 +6,7 @@ import type { Tone } from "@/ds/primitives";
 import { Group, Sheet, Swatch } from "../_lib/tokens";
 
 const meta = {
-  title: "Foundations/Colors",
+  title: "Tokens/Colors",
   parameters: { layout: "padded" },
 } satisfies Meta;
 

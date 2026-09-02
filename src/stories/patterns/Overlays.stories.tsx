@@ -21,7 +21,7 @@ import { Spec } from "../_lib/tokens";
 const noop = () => {};
 
 const meta = {
-  title: "Feedback/Overlays",
+  title: "Patterns/Overlays",
   component: Modal,
   tags: ["autodocs"],
   args: { open: true, onClose: noop, title: "Submit for authorization", children: null },

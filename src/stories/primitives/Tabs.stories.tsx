@@ -23,7 +23,7 @@ const tabItems = [
 ];
 
 const meta = {
-  title: "Navigation/Tabs",
+  title: "Primitives/Tabs",
   component: Tabs,
   tags: ["autodocs"],
   args: { items: tabItems },

@@ -8,7 +8,7 @@ import { Card, EmptyState } from "@/ds/patterns";
 import { Spec } from "../_lib/tokens";
 
 const meta = {
-  title: "Data/Table",
+  title: "Primitives/Table",
   component: Table,
   tags: ["autodocs"],
   argTypes: { className: { control: false }, children: { control: false } },
