@@ -26,7 +26,8 @@ export function Field({
   );
 }
 
-const controlBase =
+/** The hairline control: shared by Input, NativeSelect, Textarea and the button triggers of Select, Combobox and DatePicker. */
+export const controlBase =
   "h-8 w-full rounded-md border border-input bg-card px-2.5 text-[13px] text-foreground outline-none transition-[box-shadow,border-color] placeholder:text-muted-foreground focus:border-primary/60 focus:ring-2 focus:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-60";
 
 export function Input({ className, ...props }: ComponentProps<"input">) {

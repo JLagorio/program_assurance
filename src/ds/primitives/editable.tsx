@@ -1,17 +1,20 @@
-/**
- * Inline property editing for the record rail: click a value, edit in place,
- * commit optimistically, and show a per-field validation / save state.
- */
-
+import { AlertCircle, Check, ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { AlertCircle, Check, ChevronDown, Loader2 } from "lucide-react";
+import type { ReactNode } from "react";
 
-import { DropdownMenu } from "@/ds/primitives";
 import { cn } from "@/lib/utils";
+
+import { DropdownMenu } from "./dropdown-menu";
+import { Spinner } from "./spinner";
+
+/* A value you edit where it sits: click, change, and it saves. Commits
+   optimistically, rolls back on failure, and shows the save state beside the
+   value. Editable.Text is a one-line input; Editable.Select is a DropdownMenu
+   of the allowed values. */
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
-export type InlineFieldProps<T extends string> = {
+export type EditableProps<T extends string> = {
   /** Committed value shown when not editing. */
   value: T;
   onChange: (next: T) => void;
@@ -25,7 +28,7 @@ function useOptimisticCommit<T extends string>({
   onChange,
   validate,
   save,
-}: InlineFieldProps<T>) {
+}: EditableProps<T>) {
   const [state, setState] = useState<SaveState>("idle");
   const [error, setError] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -70,18 +73,13 @@ function useOptimisticCommit<T extends string>({
 }
 
 function StateIcon({ state }: { state: SaveState }) {
-  if (state === "saving") return <Loader2 className="size-3 animate-spin text-muted-foreground" />;
+  if (state === "saving") return <Spinner />;
   if (state === "saved") return <Check className="size-3 text-success" />;
   if (state === "error") return <AlertCircle className="size-3 text-danger" />;
   return null;
 }
 
-/* ------------------------------------------------------------- Inline text */
-
-export function InlineText({
-  placeholder,
-  ...props
-}: InlineFieldProps<string> & { placeholder?: string }) {
+function EditableText({ placeholder, ...props }: EditableProps<string> & { placeholder?: string }) {
   const { state, error, setError, setState, commit } = useOptimisticCommit(props);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(props.value);
@@ -141,17 +139,15 @@ export function InlineText({
   );
 }
 
-/* ----------------------------------------------------------- Inline select */
-
-export function InlineSelect<T extends string>({
+function EditableSelect<T extends string>({
   label,
   options,
   render,
   ...props
-}: InlineFieldProps<T> & {
+}: EditableProps<T> & {
   label: string;
   options: readonly T[];
-  render?: (v: T) => React.ReactNode;
+  render?: (value: T) => ReactNode;
 }) {
   const { state, error, commit } = useOptimisticCommit(props);
 
@@ -160,10 +156,9 @@ export function InlineSelect<T extends string>({
       <DropdownMenu
         align="start"
         width={220}
-        trigger={({ toggle }) => (
+        trigger={
           <button
             type="button"
-            onClick={toggle}
             className={cn(
               "-mx-1 flex w-[calc(100%+8px)] items-center gap-1.5 rounded px-1 py-0.5 text-left transition-colors hover:bg-muted",
               error && "ring-1 ring-danger/50",
@@ -175,27 +170,21 @@ export function InlineSelect<T extends string>({
               <ChevronDown className="size-3 text-muted-foreground" />
             </span>
           </button>
-        )}
+        }
       >
-        {(close) => (
-          <>
-            <DropdownMenu.Label>{label}</DropdownMenu.Label>
-            {options.map((o) => (
-              <DropdownMenu.Item
-                key={o}
-                selected={o === props.value}
-                onSelect={() => {
-                  commit(o);
-                  close();
-                }}
-              >
-                {render ? render(o) : o}
-              </DropdownMenu.Item>
-            ))}
-          </>
-        )}
+        <DropdownMenu.Label>{label}</DropdownMenu.Label>
+        {options.map((o) => (
+          <DropdownMenu.Item key={o} selected={o === props.value} onSelect={() => commit(o)}>
+            {render ? render(o) : o}
+          </DropdownMenu.Item>
+        ))}
       </DropdownMenu>
       {error ? <p className="mt-0.5 text-11 text-danger">{error}</p> : null}
     </div>
   );
 }
+
+export const Editable = Object.assign({}, { Text: EditableText, Select: EditableSelect }) as {
+  Text: typeof EditableText;
+  Select: typeof EditableSelect;
+};
