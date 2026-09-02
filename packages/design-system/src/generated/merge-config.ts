@@ -13,7 +13,7 @@ export const mergeConfig = {
     "rounded": [{ "rounded": ["xsmall","small","medium","large","xlarge","xxlarge","full"] }],
     "shadow": [{ "shadow": ["raised","overlay","overflow"] }],
     "h": [{ "h": ["control-xsmall","control-small","control-medium","control-large","row-compact","row","row-header","row-menu"] }],
-    "size": [{ "size": ["icon-small","icon-medium"] }],
+    "size": [{ "size": ["control-xsmall","control-small","control-medium","control-large","icon-small","icon-medium"] }],
     "opacity": [{ "opacity": ["disabled","loading"] }],
     "duration": [{ "duration": ["fast","medium"] }],
     "ease": [{ "ease": ["standard"] }],

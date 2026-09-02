@@ -356,13 +356,29 @@
 @utility h-control-xsmall {
   height: var(--ds-dimension-control-xsmall);
 }
+@utility size-control-xsmall {
+  width: var(--ds-dimension-control-xsmall);
+  height: var(--ds-dimension-control-xsmall);
+}
 @utility h-control-small {
+  height: var(--ds-dimension-control-small);
+}
+@utility size-control-small {
+  width: var(--ds-dimension-control-small);
   height: var(--ds-dimension-control-small);
 }
 @utility h-control-medium {
   height: var(--ds-dimension-control-medium);
 }
+@utility size-control-medium {
+  width: var(--ds-dimension-control-medium);
+  height: var(--ds-dimension-control-medium);
+}
 @utility h-control-large {
+  height: var(--ds-dimension-control-large);
+}
+@utility size-control-large {
+  width: var(--ds-dimension-control-large);
   height: var(--ds-dimension-control-large);
 }
 @utility h-row-compact {
@@ -470,4 +486,9 @@
 }
 @utility border-w-default {
   border-width: var(--ds-border-width);
+}
+/* Composed from border.width.focused, color.border.focused and space.025: the one focus indicator. */
+@utility outline-focused {
+  outline: var(--ds-border-width-focused) solid var(--ds-color-border-focused);
+  outline-offset: var(--ds-space-025);
 }
