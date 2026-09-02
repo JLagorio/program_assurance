@@ -195,7 +195,7 @@ export function ActionBar({
                   className={cn(
                     "inline-flex h-8 select-none items-center whitespace-nowrap rounded-md px-3 text-[13px] font-medium transition-[box-shadow,background-color,color] duration-100 disabled:pointer-events-none disabled:opacity-45",
                     a.primary
-                      ? "bg-primary text-primary-foreground shadow-button-primary hover:brightness-[1.07]"
+                      ? "bg-primary text-primary-foreground shadow-button-primary hover:bg-primary-hover"
                       : "bg-card text-foreground shadow-button hover:bg-surface-hover",
                   )}
                 >

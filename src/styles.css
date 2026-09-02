@@ -41,6 +41,7 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-soft: var(--primary-soft);
+  --color-primary-hover: var(--primary-hover);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -61,6 +62,7 @@
   --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
+  --color-danger-hover: var(--danger-hover);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
   --color-sidebar: var(--sidebar);
@@ -91,6 +93,7 @@
   --primary: oklch(0.55 0.19 258);
   --primary-foreground: oklch(0.99 0.002 250);
   --primary-soft: oklch(0.957 0.021 258);
+  --primary-hover: oklch(0.5 0.185 258);
 
   --secondary: oklch(0.972 0.004 250);
   --secondary-foreground: oklch(0.36 0.024 264);
@@ -112,6 +115,7 @@
   --warning-soft: oklch(0.958 0.045 85);
   --danger: oklch(0.55 0.2 22);
   --danger-soft: oklch(0.955 0.03 22);
+  --danger-hover: oklch(0.5 0.19 22);
   --info: oklch(0.55 0.19 258);
   --info-soft: oklch(0.957 0.021 258);
   --destructive: oklch(0.55 0.2 22);

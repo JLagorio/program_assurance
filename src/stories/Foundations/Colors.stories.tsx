@@ -42,9 +42,10 @@ export const Palette: Story = {
         <Swatch token="--input" />
       </Group>
 
-      <Group title="Blue" note="the only accent hue" cols={5}>
+      <Group title="Blue" note="the only accent hue" cols={6}>
         <Swatch token="--primary" />
         <Swatch token="--primary-soft" />
+        <Swatch token="--primary-hover" note="hover / pressed" />
         <Swatch token="--ring" />
         <Swatch token="--sidebar-accent" />
         <Swatch token="--sidebar-accent-foreground" />

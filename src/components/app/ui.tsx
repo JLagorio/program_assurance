@@ -15,11 +15,10 @@ const buttonBase =
   "inline-flex select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium transition-[box-shadow,background-color,color] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50";
 
 const buttonVariants: Record<ButtonVariant, string> = {
-  primary:
-    "bg-primary text-primary-foreground shadow-button-primary hover:brightness-[1.07] active:brightness-95",
+  primary: "bg-primary text-primary-foreground shadow-button-primary hover:bg-primary-hover",
   secondary: "bg-card text-foreground shadow-button hover:bg-surface-hover",
   ghost: "text-muted-foreground hover:bg-surface-hover hover:text-foreground",
-  danger: "bg-danger text-primary-foreground shadow-button-primary hover:brightness-[1.07]",
+  danger: "bg-danger text-primary-foreground shadow-button-primary hover:bg-danger-hover",
   link: "text-primary hover:underline underline-offset-2 decoration-primary/40",
 };
 

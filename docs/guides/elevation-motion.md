@@ -18,7 +18,7 @@ Scrims: modal backdrop is `bg-foreground/25` with `backdrop-blur-[1px]`.
 
 Fast and quiet:
 
-- Buttons: `transition-[box-shadow,background-color,color] duration-100`; no press-down movement; `hover:brightness-[1.07]` on filled variants.
+- Buttons: `transition-[box-shadow,background-color,color] duration-100`; no press-down movement; filled variants hover to `--primary-hover` / `--danger-hover`, never a brightness filter.
 - Rows, chips, tabs: `transition-colors` only.
 - Entry animation: `animate-slide-up` — 6px rise + fade over 0.42s on `cubic-bezier(0.16, 1, 0.3, 1)`; use sparingly, for page-level content appearing.
 - Collapse (RailGroup): chevron rotates `-rotate-90`; content mounts/unmounts without animation.
