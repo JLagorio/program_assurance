@@ -16,6 +16,7 @@ import {
   MenuItem,
   MenuLabel,
   Modal,
+  IdCell,
   Mono,
   PageHeader,
   Person,
@@ -203,9 +204,7 @@ export const ModalLarge: Story = {
         <tbody>
           {evidence.map((e) => (
             <Tr key={e.id}>
-              <Td>
-                <Mono className="text-primary">{e.id}</Mono>
-              </Td>
+              <IdCell id={e.id} />
               <Td className="font-medium">{e.title}</Td>
               <Td>
                 <Badge size="xs">{e.kind}</Badge>

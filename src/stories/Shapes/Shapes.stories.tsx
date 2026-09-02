@@ -14,6 +14,7 @@ import {
   Badge,
   Button,
   EmptyState,
+  IdCell,
   Mono,
   Person,
   TabStrip,
@@ -103,9 +104,7 @@ function FindingsTable() {
       <tbody>
         {findings.map((f) => (
           <Tr key={f.id}>
-            <Td>
-              <Mono className="text-primary">{f.id}</Mono>
-            </Td>
+            <IdCell id={f.id} />
             <Td className="font-medium">{f.title}</Td>
             <Td>
               <Badge tone={f.tone}>{f.status}</Badge>

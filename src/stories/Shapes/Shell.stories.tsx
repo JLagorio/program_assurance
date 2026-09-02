@@ -7,6 +7,7 @@ import {
   Button,
   Card,
   CardHeader,
+  IdCell,
   Mono,
   PageHeader,
   Person,
@@ -99,9 +100,7 @@ export const Default: Story = {
             <tbody>
               {findings.map((f) => (
                 <Tr key={f.id}>
-                  <Td>
-                    <Mono className="text-primary">{f.id}</Mono>
-                  </Td>
+                  <IdCell id={f.id} />
                   <Td className="font-medium">{f.title}</Td>
                   <Td>
                     <Mono className="text-muted-foreground">{f.control}</Mono>

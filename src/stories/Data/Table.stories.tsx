@@ -179,9 +179,7 @@ export const Dense: Story = {
         <tbody>
           {findings.map((f) => (
             <Tr key={f.id}>
-              <Td>
-                <Mono className="text-primary">{f.id}</Mono>
-              </Td>
+              <IdCell id={f.id} />
               <Cells f={f} />
             </Tr>
           ))}
