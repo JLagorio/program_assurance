@@ -6,7 +6,16 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi", "src/lib/nist-catalog.ts", "src/lib/nist-control-text.ts"] },
+  {
+    ignores: [
+      "dist",
+      ".output",
+      ".vinxi",
+      "storybook-static",
+      "src/lib/nist-catalog.ts",
+      "src/lib/nist-control-text.ts",
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
@@ -35,6 +44,12 @@ export default tseslint.config(
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
     },
+  },
+  {
+    // Stories export a default meta object plus named story objects by design;
+    // story helpers export hooks alongside components.
+    files: ["src/stories/**/*.{ts,tsx}", ".storybook/**/*.{ts,tsx}"],
+    rules: { "react-refresh/only-export-components": "off" },
   },
   eslintPluginPrettier,
 );

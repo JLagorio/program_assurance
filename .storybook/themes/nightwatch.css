@@ -1,0 +1,133 @@
+/* ===========================================================================
+   Program Assurance UI — unified theme
+   Direction: LEDGER (light) + NIGHTWATCH (dark), approved from Restyle Directions v2.
+   One system, two modes. Token NAMES are unchanged from the current bundle, so this
+   is a drop-in: light values are the existing palette plus the four additive
+   families below; dark values are new.
+
+   Repo integration: import after the existing token layer, then set
+   <html data-theme="dark"> (or media-query the block at the bottom).
+   =========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   1 · ADDITIVE — shared by both modes. No existing token changes value.
+   --------------------------------------------------------------------------- */
+:root {
+  /* control heights — previously implicit per component; required for
+     InputGroup / ButtonGroup / SegmentedControl alignment  @kind spacing */
+  --control-xs: 24px; /* @kind spacing */
+  --control-sm: 28px; /* @kind spacing */
+  --control-md: 32px; /* @kind spacing */
+  --control-lg: 36px; /* @kind spacing */
+
+  /* motion — one vocabulary, enforced in code rather than in review */
+  --dur-fast: 120ms; /* @kind other */
+  --dur-overlay: 180ms; /* @kind other */
+  --ease-standard: cubic-bezier(0.2, 0, 0.2, 1); /* @kind other */
+}
+
+/* ---------------------------------------------------------------------------
+   2 · LEDGER (light) — unchanged existing values, plus series colours.
+       Chart and label series are the ONLY place a second hue is legitimate,
+       and only inside charts / user-created taxonomies.
+   --------------------------------------------------------------------------- */
+:root {
+  --chart-1: oklch(0.55 0.19 258); /* @kind color */
+  --chart-2: oklch(0.55 0.19 218); /* @kind color */
+  --chart-3: oklch(0.55 0.19 178); /* @kind color */
+  --chart-4: oklch(0.55 0.19 298); /* @kind color */
+  --chart-5: oklch(0.55 0.19 338); /* @kind color */
+
+  --label-1: oklch(0.58 0.17 258); /* @kind color */
+  --label-2: oklch(0.58 0.17 303); /* @kind color */
+  --label-3: oklch(0.58 0.17 348); /* @kind color */
+  --label-4: oklch(0.58 0.17 33); /* @kind color */
+  --label-5: oklch(0.58 0.17 78); /* @kind color */
+  --label-6: oklch(0.58 0.17 123); /* @kind color */
+  --label-7: oklch(0.58 0.17 168); /* @kind color */
+  --label-8: oklch(0.58 0.17 213); /* @kind color */
+}
+
+/* ---------------------------------------------------------------------------
+   3 · NIGHTWATCH (dark) — Linear-derived violet-grey ink.
+       Same token names, same semantic contract: every *-soft stays the fill
+       its solid pair sits on, so no component logic changes.
+   --------------------------------------------------------------------------- */
+[data-theme="nightwatch"] {
+  --background: oklch(0.176 0.014 285);
+  --card: oklch(0.213 0.016 285);
+  --card-foreground: oklch(0.945 0.008 285);
+  --popover: oklch(0.232 0.017 285);
+  --popover-foreground: oklch(0.945 0.008 285);
+  --foreground: oklch(0.945 0.008 285);
+
+  --primary: oklch(0.62 0.19 278);
+  --primary-foreground: oklch(0.155 0.02 285);
+  --primary-soft: oklch(0.29 0.055 278);
+
+  --secondary: oklch(0.243 0.018 285);
+  --secondary-foreground: oklch(0.9 0.01 285);
+  --muted: oklch(0.243 0.018 285);
+  --muted-foreground: oklch(0.66 0.02 285);
+  --subtle: oklch(0.205 0.015 285);
+  --accent: oklch(0.255 0.019 285);
+  --accent-foreground: oklch(0.945 0.008 285);
+
+  --border: oklch(0.295 0.018 285);
+  --border-strong: oklch(0.36 0.02 285);
+  --input: oklch(0.33 0.019 285);
+  --ring: oklch(0.62 0.19 278);
+
+  --success: oklch(0.7 0.14 160);
+  --success-soft: oklch(0.285 0.055 160);
+  --warning: oklch(0.78 0.14 78);
+  --warning-soft: oklch(0.31 0.055 78);
+  --danger: oklch(0.66 0.19 20);
+  --danger-soft: oklch(0.3 0.07 20);
+  --info: oklch(0.62 0.19 278);
+  --info-soft: oklch(0.29 0.055 278);
+  --destructive: oklch(0.66 0.19 20);
+  --destructive-foreground: oklch(0.155 0.02 285);
+
+  --sidebar: oklch(0.196 0.015 285);
+  --sidebar-foreground: oklch(0.945 0.008 285);
+  --sidebar-accent: oklch(0.29 0.055 278);
+  --sidebar-accent-foreground: oklch(0.845 0.075 278);
+  --sidebar-border: oklch(0.285 0.018 285);
+
+  /* elevation inverts: the hairline becomes light-on-dark and the shadow
+     carries the depth. Same three-tier construction, no extra shadow. */
+  --shadow-hairline: 0 0 0 1px oklch(1 0 0 / 0.07);
+  --shadow-raised: 0 0 0 1px oklch(1 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.4);
+  --shadow-pop:
+    0 0 0 1px oklch(1 0 0 / 0.07), 0 6px 16px -4px oklch(0 0 0 / 0.55),
+    0 18px 40px -12px oklch(0 0 0 / 0.5);
+  --shadow-button:
+    inset 0 1px 0 oklch(1 0 0 / 0.06), 0 1px 1px oklch(0 0 0 / 0.35), 0 0 0 1px oklch(1 0 0 / 0.06);
+  --shadow-button-primary:
+    0 1px 1px oklch(0 0 0 / 0.4), 0 0 0 1px oklch(0.62 0.19 278 / 0.6),
+    inset 0 1px 0 oklch(1 0 0 / 0.18);
+
+  /* series lift for legibility on ink */
+  --chart-1: oklch(0.7 0.17 278);
+  --chart-2: oklch(0.7 0.17 238);
+  --chart-3: oklch(0.7 0.17 198);
+  --chart-4: oklch(0.7 0.17 318);
+  --chart-5: oklch(0.7 0.17 358);
+
+  --label-1: oklch(0.72 0.15 278);
+  --label-2: oklch(0.72 0.15 323);
+  --label-3: oklch(0.72 0.15 8);
+  --label-4: oklch(0.72 0.15 53);
+  --label-5: oklch(0.72 0.15 98);
+  --label-6: oklch(0.72 0.15 143);
+  --label-7: oklch(0.72 0.15 188);
+  --label-8: oklch(0.72 0.15 233);
+}
+
+/* Storybook copy of Program Assurance UI Kit/handoff/theme-ledger-nightwatch.css.
+   Rescoped from [data-theme="dark"] to [data-theme="nightwatch"] (the toolbar value)
+   and the prefers-color-scheme block removed so Ledger never auto-flips. */
+[data-theme="nightwatch"] {
+  color-scheme: dark;
+}
