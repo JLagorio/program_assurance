@@ -438,9 +438,7 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
                 <Table.Cell className="tnum text-right">{f.weight.toFixed(2)}</Table.Cell>
                 <Table.Cell
                   className={
-                    f.contribution < 0
-                      ? "tnum text-right font-medium text-success"
-                      : "tnum text-right font-medium"
+                    f.contribution < 0 ? "tnum text-right text-success" : "tnum text-right"
                   }
                 >
                   {signed(f.contribution)}
@@ -468,7 +466,7 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
             </Fragment>
           ))}
           <tr>
-            <Table.Cell colSpan={4} className="text-muted-foreground">
+            <Table.Cell colSpan={4}>
               Sum of the {factors.length} contributions
               {sum === score ? "" : `, clamped from ${sum} to the 0–100 range`}
             </Table.Cell>

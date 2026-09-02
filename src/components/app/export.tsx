@@ -39,7 +39,7 @@ import { Fragment, useMemo, useState } from "react";
 import { Download } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Badge, Button, Table, Id } from "@/ds/primitives";
+import { Badge, Button, Table, Id, Empty } from "@/ds/primitives";
 import { EmptyState } from "@/ds/patterns";
 import {
   digestAlgorithm,
@@ -64,10 +64,6 @@ function utf8Bytes(text: string): number {
 
 function num(n: number): string {
   return n.toLocaleString("en-US");
-}
-
-function Dash() {
-  return <span className="text-muted-foreground">—</span>;
 }
 
 /** A short, uniform facts strip: label above value, wrapping on narrow screens. */
@@ -396,7 +392,7 @@ export function EmassTable({ sheet, pageSize = 40 }: { sheet: EmassExport; pageS
                 const cell = (row[i] ?? "").trim();
                 return (
                   <Table.Cell key={column} title={cell === "" ? "—" : cell}>
-                    {cell === "" ? <Dash /> : cell}
+                    {cell === "" ? <Empty /> : cell}
                   </Table.Cell>
                 );
               })}
@@ -412,7 +408,7 @@ export function EmassTable({ sheet, pageSize = 40 }: { sheet: EmassExport; pageS
 
 /** The full digest, wrapped rather than elided — a truncated hash checks nothing. */
 function Hash({ value }: { value: string }) {
-  if (value === "—") return <Dash />;
+  if (value === "—") return <Empty />;
   return (
     <span className="block break-all text-[10.5px] leading-[1.45] text-muted-foreground">
       {value}
@@ -484,7 +480,7 @@ export function BundleManifest({
                   </span>
                 </Table.Cell>
                 <Table.Cell
-                  className="max-w-none whitespace-normal py-2 align-top text-[12px] leading-snug text-muted-foreground"
+                  className="max-w-none whitespace-normal py-2 align-top leading-snug"
                   title={artifact.producer}
                 >
                   {artifact.producer}
@@ -501,7 +497,7 @@ export function BundleManifest({
                       <Download className="size-3" /> File
                     </Button>
                   ) : (
-                    <Dash />
+                    <Empty />
                   )}
                 </Table.Cell>
               </Table.Row>
@@ -667,7 +663,7 @@ export function ReconcileTable({ reconciliation }: { reconciliation: Reconciliat
             </Table.Row>
             <Table.Row className="align-top hover:bg-transparent">
               <Table.Cell
-                className="max-w-none whitespace-normal pb-3 pt-0 align-top text-[12.5px] leading-relaxed text-muted-foreground"
+                className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
                 colSpan={4}
               >
                 {row.detail}

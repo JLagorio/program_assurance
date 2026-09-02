@@ -16,7 +16,18 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, Button, Dot, KeyValue, Meter, Person, Table, Id } from "@/ds/primitives";
+import {
+  Badge,
+  Button,
+  Dot,
+  KeyValue,
+  Meter,
+  Person,
+  Table,
+  Id,
+  Empty,
+  Stat,
+} from "@/ds/primitives";
 import type { Tone } from "@/ds/primitives";
 import { EmptyState, Section } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
@@ -76,10 +87,6 @@ export function ResultChip({ result }: { result: ObjectiveResult }) {
   return <Badge tone={objectiveTone(result)}>{result}</Badge>;
 }
 
-function Dash() {
-  return <span className="text-muted-foreground">—</span>;
-}
-
 function ProseBlock({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="pt-1.5">
@@ -97,35 +104,6 @@ function WrapValue({ label, children }: { label: string; children: ReactNode }) 
     <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
       <dt className="truncate text-[12.5px] text-muted-foreground">{label}</dt>
       <dd className="min-w-0 text-[12.5px] leading-snug text-foreground">{children}</dd>
-    </div>
-  );
-}
-
-function IdList({ ids, empty = "—" }: { ids: string[]; empty?: string }) {
-  if (ids.length === 0) return <span className="text-[12.5px] text-muted-foreground">{empty}</span>;
-  return (
-    <span className="flex flex-wrap gap-1">
-      {ids.map((id) => (
-        <Id key={id} className="text-[11.5px] text-muted-foreground">
-          {id}
-        </Id>
-      ))}
-    </span>
-  );
-}
-
-function Stat({ label, value, tone = "neutral" }: { label: string; value: number; tone?: Tone }) {
-  const text: Record<Tone, string> = {
-    neutral: "text-foreground",
-    success: "text-success",
-    warning: "text-warning",
-    danger: "text-danger",
-    info: "text-primary",
-  };
-  return (
-    <div className="border-b border-border-subtle py-2 last:border-0 md:border-0">
-      <div className={cn("tnum text-20 font-semibold leading-none", text[tone])}>{value}</div>
-      <div className="mt-1 text-12 text-muted-foreground">{label}</div>
     </div>
   );
 }
@@ -443,9 +421,9 @@ export function ObjectiveRail({ row }: { row: ObjectiveExecutionRow }) {
         </KeyValue>
         <WrapValue label="Statement">{row.statement}</WrapValue>
         <WrapValue label="CCIs">
-          <IdList ids={row.ccis} />
+          <Id.List ids={row.ccis} />
         </WrapValue>
-        <KeyValue label="Event">{row.event ? <Id>{row.event}</Id> : <Dash />}</KeyValue>
+        <KeyValue label="Event">{row.event ? <Id>{row.event}</Id> : <Empty />}</KeyValue>
       </Inspector.Group>
 
       <Inspector.Group title="Result">
@@ -456,13 +434,13 @@ export function ObjectiveRail({ row }: { row: ObjectiveExecutionRow }) {
           <ResultChip result={row.executed} />
         </KeyValue>
         <KeyValue label="Source">{row.source === "Run" ? "Run log" : "Campaign record"}</KeyValue>
-        <KeyValue label="Decided by">{row.run ? <Id>{row.run}</Id> : <Dash />}</KeyValue>
+        <KeyValue label="Decided by">{row.run ? <Id>{row.run}</Id> : <Empty />}</KeyValue>
         <ProseBlock label="Basis">{row.basis}</ProseBlock>
       </Inspector.Group>
 
       <Inspector.Group title="Execution">
         <WrapValue label="Procedures">
-          <IdList ids={row.procedures} empty="No procedure written" />
+          <Id.List ids={row.procedures} empty="No procedure written" />
         </WrapValue>
         <KeyValue label="Runs">
           <span className="tnum">{row.runs}</span>
@@ -541,7 +519,7 @@ export function ProcedureList({
             <Table.Cell className="tnum text-right">{procedure.duration}</Table.Cell>
             <Table.Cell className="tnum text-right">{runs}</Table.Cell>
             <Table.Cell className="truncate" title={verdict?.basis}>
-              {verdict ? <ResultChip result={verdict.result} /> : <Dash />}
+              {verdict ? <ResultChip result={verdict.result} /> : <Empty />}
             </Table.Cell>
           </Table.Row>
         ))}
@@ -652,7 +630,7 @@ export function ProcedureRail({ row }: { row: ProcedureListRow }) {
 
       <Inspector.Group title="Written against">
         <WrapValue label="Components">
-          <IdList ids={procedure.nodes} empty="Not allocated" />
+          <Id.List ids={procedure.nodes} empty="Not allocated" />
         </WrapValue>
       </Inspector.Group>
 
@@ -661,7 +639,7 @@ export function ProcedureRail({ row }: { row: ProcedureListRow }) {
           <span className="tnum">{runs}</span>
         </KeyValue>
         <KeyValue label="Latest">
-          {verdict ? <ResultChip result={verdict.result} /> : <Dash />}
+          {verdict ? <ResultChip result={verdict.result} /> : <Empty />}
         </KeyValue>
         {verdict ? <ProseBlock label="Basis">{verdict.basis}</ProseBlock> : null}
       </Inspector.Group>
@@ -759,7 +737,7 @@ export function RunTable({
               <Badge tone={runStateTone[run.state]}>{run.state}</Badge>
             </Table.Cell>
             <Table.Cell className="truncate">
-              {verdict ? <ResultChip result={verdict.result} /> : <Dash />}
+              {verdict ? <ResultChip result={verdict.result} /> : <Empty />}
             </Table.Cell>
             <Table.Cell className="tnum text-right">
               {verdict ? `${verdict.pass}/${verdict.fail}/${verdict.inconclusive}` : "—"}
@@ -836,13 +814,13 @@ export function RunRecordView({
             <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
               <dt className="truncate text-[12.5px] text-muted-foreground">Components</dt>
               <dd className="min-w-0 text-[12.5px] leading-snug">
-                <IdList ids={run.nodes} />
+                <Id.List ids={run.nodes} />
               </dd>
             </div>
             <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
               <dt className="truncate text-[12.5px] text-muted-foreground">Findings raised</dt>
               <dd className="min-w-0 text-[12.5px] leading-snug">
-                <IdList ids={run.findings} empty="None" />
+                <Id.List ids={run.findings} empty="None" />
               </dd>
             </div>
           </div>
@@ -925,7 +903,7 @@ export function RunRecordView({
                     </p>
                     <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[12px]">
                       <span className="text-muted-foreground">Evidence</span>
-                      <IdList ids={record?.evidence ?? []} empty="None collected" />
+                      <Id.List ids={record?.evidence ?? []} empty="None collected" />
                       {unevidenced ? (
                         <Badge tone="warning" size="xs">
                           Recorded without the artifact the step demands
@@ -955,16 +933,16 @@ export function RunRail({ row }: { row: RunListRow }) {
           <Id>{run.procedure}</Id>
         </KeyValue>
         <KeyValue label="Objective">
-          {procedure ? <Id>{procedure.objective}</Id> : <Dash />}
+          {procedure ? <Id>{procedure.objective}</Id> : <Empty />}
         </KeyValue>
-        <KeyValue label="Event">{run.event ? <Id>{run.event}</Id> : <Dash />}</KeyValue>
+        <KeyValue label="Event">{run.event ? <Id>{run.event}</Id> : <Empty />}</KeyValue>
         <KeyValue label="State">
           <Badge tone={runStateTone[run.state]}>{run.state}</Badge>
         </KeyValue>
         <KeyValue label="Verdict">
-          {verdict ? <ResultChip result={verdict.result} /> : <Dash />}
+          {verdict ? <ResultChip result={verdict.result} /> : <Empty />}
         </KeyValue>
-        <KeyValue label="Retest of">{run.retestOf ? <Id>{run.retestOf}</Id> : <Dash />}</KeyValue>
+        <KeyValue label="Retest of">{run.retestOf ? <Id>{run.retestOf}</Id> : <Empty />}</KeyValue>
       </Inspector.Group>
 
       <Inspector.Group title="Conduct">
@@ -972,7 +950,7 @@ export function RunRail({ row }: { row: RunListRow }) {
           <Person name={run.operator} />
         </KeyValue>
         <KeyValue label="Witness">
-          {run.witness === "—" ? <Dash /> : <Person name={run.witness} />}
+          {run.witness === "—" ? <Empty /> : <Person name={run.witness} />}
         </KeyValue>
         <KeyValue label="Started">
           <span className="tnum">{run.started}</span>
@@ -981,10 +959,10 @@ export function RunRail({ row }: { row: RunListRow }) {
           <span className="tnum">{run.completed}</span>
         </KeyValue>
         <WrapValue label="Components">
-          <IdList ids={run.nodes} />
+          <Id.List ids={run.nodes} />
         </WrapValue>
         <WrapValue label="Findings">
-          <IdList ids={run.findings} empty="None raised" />
+          <Id.List ids={run.findings} empty="None raised" />
         </WrapValue>
       </Inspector.Group>
 

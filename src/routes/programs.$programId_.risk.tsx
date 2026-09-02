@@ -236,7 +236,7 @@ function ProgramRisk() {
               }
             >
               <div className="grid gap-3 pt-4 sm:grid-cols-4">
-                <Tile
+                <RiskTile
                   label="Aggregate residual"
                   value={posture.aggregate}
                   trailing={hasScores ? <BandChip band={aggregateBand} size="xs" /> : null}
@@ -246,7 +246,7 @@ function ProgramRisk() {
                       : "Nothing was scored, so this zero is an absence of data and carries no band. It is not a low residual and must not be read as one."
                   }
                 />
-                <Tile
+                <RiskTile
                   label="Scored"
                   value={posture.scored}
                   note={
@@ -258,13 +258,13 @@ function ProgramRisk() {
                     (posture.unscored > 0 ? ` ${posture.unscored} could not be scored at all.` : "")
                   }
                 />
-                <Tile
+                <RiskTile
                   label="Moved on live evidence"
                   value={posture.movers.length}
                   alarming
                   note="Scores that differ from what the finding alone would carry, because a KEV listing or an unacknowledged significant change moved the input."
                 />
-                <Tile
+                <RiskTile
                   label="Disagree with the register"
                   value={posture.disagreements.length}
                   alarming
@@ -461,7 +461,7 @@ function sumLine(score: ResidualScore): string {
  * nothing disagrees are both good outcomes, and colouring a zero would make the
  * page look busy where it is actually quiet.
  */
-function Tile({
+function RiskTile({
   label,
   value,
   note,

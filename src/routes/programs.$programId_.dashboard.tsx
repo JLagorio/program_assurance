@@ -48,7 +48,7 @@ export const Route = createFileRoute("/programs/$programId_/dashboard")({
 });
 
 /** A single headline number. No plot, so no hover layer — the number is the mark. */
-function Stat({
+function DashboardStat({
   label,
   value,
   hint,
@@ -129,11 +129,7 @@ function DeadlineRow({ programId, d }: { programId: string; d: Deadline }) {
       <Table.Cell
         className={cn(
           "tnum text-right",
-          d.tone === "danger"
-            ? "text-danger"
-            : d.tone === "warning"
-              ? "text-warning"
-              : "text-muted-foreground",
+          d.tone === "danger" ? "text-danger" : d.tone === "warning" ? "text-warning" : "",
         )}
       >
         {timing}
@@ -221,7 +217,7 @@ function ProgramDashboard() {
           description="Everything below is derived from the live matrix, the lifecycle gates and the register."
         >
           <div className="grid grid-cols-2 gap-x-4 gap-y-5 pt-4 md:grid-cols-3 lg:grid-cols-5">
-            <Stat
+            <DashboardStat
               label="Control coverage"
               value={`${coverage.pct}%`}
               hint={`${coverage.satisfied} of ${coverage.total} satisfied`}
@@ -236,26 +232,26 @@ function ProgramDashboard() {
                   title: `${s.label} — ${s.value}`,
                 }))}
               />
-            </Stat>
-            <Stat
+            </DashboardStat>
+            <DashboardStat
               label="Not satisfied"
               value={coverage.total - coverage.satisfied}
               hint={`${coverage.segments[2]?.value ?? 0} other than satisfied · ${coverage.segments[1]?.value ?? 0} partial`}
               tone={(coverage.segments[2]?.value ?? 0) > 0 ? "warning" : "neutral"}
             />
-            <Stat
+            <DashboardStat
               label="Open findings"
               value={openFindings.length}
               hint={catI ? `${catI} CAT I` : "No CAT I open"}
               tone={catI > 0 ? "danger" : openFindings.length ? "warning" : "success"}
             />
-            <Stat
+            <DashboardStat
               label="POA&M open"
               value={posture.poamOpen}
               hint={posture.poamOverdue ? `${posture.poamOverdue} overdue` : "None overdue"}
               tone={posture.poamOverdue > 0 ? "danger" : "neutral"}
             />
-            <Stat
+            <DashboardStat
               label="Gates remaining"
               value={`${outlook.remaining.length}`}
               hint={
@@ -269,7 +265,7 @@ function ProgramDashboard() {
                 value={outlook.total ? (outlook.completed / outlook.total) * 100 : 0}
                 tone={overdueGates > 0 ? "danger" : "success"}
               />
-            </Stat>
+            </DashboardStat>
           </div>
         </Section>
 
@@ -378,10 +374,7 @@ function ProgramDashboard() {
                   </Table.Cell>
                   <Table.Cell className="tnum text-right">{gate.planned}</Table.Cell>
                   <Table.Cell
-                    className={cn(
-                      "tnum text-right",
-                      tone === "danger" ? "text-danger" : "text-muted-foreground",
-                    )}
+                    className={cn("tnum text-right", tone === "danger" ? "text-danger" : "")}
                   >
                     {daysOut === null
                       ? "—"

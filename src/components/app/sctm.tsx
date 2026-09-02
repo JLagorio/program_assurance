@@ -23,7 +23,7 @@ import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown } from "lucide-react";
 
-import { Badge, Dot, KeyValue, Meter, Table, Id, Indicator } from "@/ds/primitives";
+import { Badge, Dot, KeyValue, Meter, Table, Id, Indicator, Stat } from "@/ds/primitives";
 import type { Tone } from "@/ds/primitives";
 import { EmptyState, Section } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
@@ -393,20 +393,6 @@ function ProseBlock({ label, children }: { label: string; children: string }) {
   );
 }
 
-/** Rail values are narrow; ids wrap as chips rather than truncating to nothing. */
-function IdList({ ids, empty = "—" }: { ids: string[]; empty?: string }) {
-  if (ids.length === 0) return <span className="text-[12.5px] text-muted-foreground">{empty}</span>;
-  return (
-    <div className="flex flex-wrap gap-1 pt-0.5">
-      {ids.map((id) => (
-        <Id key={id} className="text-[11.5px] text-muted-foreground">
-          {id}
-        </Id>
-      ))}
-    </div>
-  );
-}
-
 /**
  * `KeyValue` truncates its value to one line, which is right for an id and
  * wrong for a control title or a component list. This is the same grid with a
@@ -479,7 +465,7 @@ export function SctmRail({ row }: { row: SctmRow }) {
 
       <Inspector.Group title="Allocation">
         <WrapValue label="Components">
-          <IdList ids={row.responsibleNodes} empty="Not allocated" />
+          <Id.List ids={row.responsibleNodes} empty="Not allocated" />
         </WrapValue>
         <ProseBlock label="Basis">{row.allocationBasis}</ProseBlock>
       </Inspector.Group>
@@ -489,7 +475,7 @@ export function SctmRail({ row }: { row: SctmRow }) {
           <MethodChip method={row.method} />
         </KeyValue>
         <WrapValue label="Evidence">
-          <IdList ids={row.evidence} empty="None recorded" />
+          <Id.List ids={row.evidence} empty="None recorded" />
         </WrapValue>
         <ProseBlock label="Method basis">{row.methodBasis}</ProseBlock>
       </Inspector.Group>
@@ -520,7 +506,7 @@ export function SctmRail({ row }: { row: SctmRow }) {
           <span className="tnum">{row.assessed}</span>
         </KeyValue>
         <WrapValue label="Findings">
-          <IdList ids={row.findings} />
+          <Id.List ids={row.findings} />
         </WrapValue>
         <KeyValue label="Open">
           <span className="flex items-center gap-1.5">
@@ -537,22 +523,6 @@ export function SctmRail({ row }: { row: SctmRow }) {
 }
 
 /* ── Summary ─────────────────────────────────────────────────────────────── */
-
-function Stat({ label, value, tone = "neutral" }: { label: string; value: number; tone?: Tone }) {
-  const text: Record<Tone, string> = {
-    neutral: "text-foreground",
-    success: "text-success",
-    warning: "text-warning",
-    danger: "text-danger",
-    info: "text-primary",
-  };
-  return (
-    <div className="border-b border-border-subtle py-2 last:border-0 md:border-0">
-      <div className={cn("tnum text-20 font-semibold leading-none", text[tone])}>{value}</div>
-      <div className="mt-1 text-12 text-muted-foreground">{label}</div>
-    </div>
-  );
-}
 
 function BreakdownRow({
   label,

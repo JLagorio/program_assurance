@@ -35,7 +35,7 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, Meter, Table, Id } from "@/ds/primitives";
+import { Badge, Meter, Table, Id, Empty } from "@/ds/primitives";
 import { EmptyState } from "@/ds/patterns";
 import {
   bandTone,
@@ -51,10 +51,6 @@ import {
 import { cn } from "@/lib/utils";
 
 /* ── Shared bits ─────────────────────────────────────────────────────────── */
-
-function Dash() {
-  return <span className="text-muted-foreground">—</span>;
-}
 
 /**
  * The labels `risk-scoring.ts` puts on its factors. They are duplicated here
@@ -210,12 +206,12 @@ export function FactorTable({ score }: { score: ResidualScore }) {
                 : `Sum of the ${score.factors.length} contributions above. The positive factors alone ceiling at ${ceiling}; the credit is what comes back off.`}
             </Table.Cell>
             <Table.Cell className="text-right">
-              <Dash />
+              <Empty />
             </Table.Cell>
             <Table.Cell className="text-right">
-              <Dash />
+              <Empty />
             </Table.Cell>
-            <Table.Cell className="tnum text-right text-[15px]">{score.score}</Table.Cell>
+            <Table.Cell className="tnum text-right">{score.score}</Table.Cell>
           </tr>
         </tfoot>
       </Table>
@@ -240,8 +236,8 @@ function FactorRows({ factor }: { factor: ScoreFactor }) {
         <Table.Cell className="tnum py-2 align-top text-right">{fixed2(factor.weight)}</Table.Cell>
         <Table.Cell
           className={cn(
-            "tnum py-2 align-top text-right font-medium",
-            credit ? "text-success" : factor.contribution === 0 ? "text-muted-foreground" : "",
+            "tnum py-2 align-top text-right",
+            credit ? "text-success" : factor.contribution === 0 ? "" : "",
           )}
         >
           {signed(factor.contribution)}
@@ -293,13 +289,13 @@ function MissingFactorRows({ factorKey, caveats }: { factorKey: FactorKey; cavea
           </Badge>
         </Table.Cell>
         <Table.Cell className="py-2 align-top text-right">
-          <Dash />
+          <Empty />
         </Table.Cell>
         <Table.Cell className="tnum py-2 align-top text-right line-through">
           {fixed2(weight)}
         </Table.Cell>
         <Table.Cell className="py-2 align-top text-right">
-          <Dash />
+          <Empty />
         </Table.Cell>
       </Table.Row>
       <Table.Row className="align-top hover:bg-transparent">
@@ -553,28 +549,21 @@ export function TopRisksTable({
                   ) : null}
                 </span>
               </Table.Cell>
-              <Table.Cell className={cn(row.excluded && "text-muted-foreground")}>
-                {row.title}
-              </Table.Cell>
+              <Table.Cell className={cn(row.excluded && "")}>{row.title}</Table.Cell>
               <Table.Cell title={row.context}>{row.context}</Table.Cell>
               <Table.Cell title={driver ? driver.rationale : undefined}>
-                {driver ? `${driver.label} ${signed(driver.contribution)}` : <Dash />}
+                {driver ? `${driver.label} ${signed(driver.contribution)}` : <Empty />}
               </Table.Cell>
               <Table.Cell className="tnum text-right">{row.score.inherent}</Table.Cell>
               {/* A zero credit is a RESULT — nobody claimed a compensating
                   control — so it prints as 0 rather than as an em dash, which
                   would read as "not computed". */}
-              <Table.Cell
-                className={cn(
-                  "tnum text-right",
-                  credit !== 0 ? "text-success" : "text-muted-foreground",
-                )}
-              >
+              <Table.Cell className={cn("tnum text-right", credit !== 0 ? "text-success" : "")}>
                 {signed(credit)}
               </Table.Cell>
               {showAuthored ? (
                 <Table.Cell className="tnum text-right">
-                  {typeof row.authored === "number" ? row.authored : <Dash />}
+                  {typeof row.authored === "number" ? row.authored : <Empty />}
                 </Table.Cell>
               ) : null}
               <Table.Cell className="tnum text-right">{row.score.score}</Table.Cell>
@@ -637,7 +626,7 @@ export function MoversTable({ movers }: { movers: RiskMover[] }) {
             <Table.Cell className="tnum py-2 align-top text-right">{m.to}</Table.Cell>
             <Table.Cell
               className={cn(
-                "tnum py-2 align-top text-right font-medium",
+                "tnum py-2 align-top text-right",
                 m.to > m.from ? "text-warning" : "text-success",
               )}
             >
@@ -741,12 +730,7 @@ function ComparisonRows({
         <Table.Cell className="tnum py-2 align-top text-right">
           {comparison.computed.residual}
         </Table.Cell>
-        <Table.Cell
-          className={cn(
-            "tnum py-2 align-top text-right font-medium",
-            agrees ? "text-muted-foreground" : "text-warning",
-          )}
-        >
+        <Table.Cell className={cn("tnum py-2 align-top text-right", agrees ? "" : "text-warning")}>
           {signed(comparison.delta)}
         </Table.Cell>
         <Table.Cell className="py-2 align-top">
@@ -755,7 +739,7 @@ function ComparisonRows({
       </Table.Row>
       <Table.Row className="align-top hover:bg-transparent">
         <Table.Cell
-          className="max-w-none whitespace-normal pb-3 pt-0 align-top text-[12.5px] leading-relaxed text-muted-foreground"
+          className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
           colSpan={8}
         >
           {comparison.note}

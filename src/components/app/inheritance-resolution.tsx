@@ -20,7 +20,7 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, Dot, KeyValue, Meter, Table, Id } from "@/ds/primitives";
+import { Badge, Dot, KeyValue, Meter, Table, Id, Empty, Stat } from "@/ds/primitives";
 import type { Tone } from "@/ds/primitives";
 import { EmptyState } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
@@ -45,10 +45,6 @@ export type ConflictEntry = {
   winner: ResolvedInheritance;
   conflict: InheritanceConflict;
 };
-
-function Dash() {
-  return <span className="text-muted-foreground">—</span>;
-}
 
 function isBlank(value: string): boolean {
   const trimmed = value.trim();
@@ -187,9 +183,7 @@ export function ResolutionTable({
               )}
               onClick={onSelect ? () => onSelect(row.control) : undefined}
             >
-              <Table.Cell>
-                <Id className={onSelect ? "text-primary" : "text-foreground"}>{row.control}</Id>
-              </Table.Cell>
+              <Table.Id id={row.control} tone={onSelect ? "primary" : "muted"} />
               <Table.Cell
                 className="truncate"
                 title={`${row.component.id} — ${row.component.name} (${row.component.provider})`}
@@ -224,7 +218,7 @@ export function ResolutionTable({
                 <InheritanceStateChip row={row} />
               </Table.Cell>
               <Table.Cell
-                className={cn("truncate", unstated ? "text-danger" : "text-muted-foreground")}
+                className={cn("truncate", unstated ? "text-danger" : "")}
                 title={
                   unstated
                     ? `${row.component.name} offers ${row.control} as ${row.provided.model} but states no consumer obligation.`
@@ -486,7 +480,7 @@ export function NotApplicableTable({ rows }: { rows: ResolvedInheritance[] }) {
               <Badge size="xs">{row.provided.model}</Badge>
             </Table.Cell>
             <Table.Cell className="truncate" title={row.applicabilityReason}>
-              {isBlank(row.applicabilityReason) ? <Dash /> : row.applicabilityReason}
+              {isBlank(row.applicabilityReason) ? <Empty /> : row.applicabilityReason}
             </Table.Cell>
           </Table.Row>
         ))}
@@ -496,35 +490,6 @@ export function NotApplicableTable({ rows }: { rows: ResolvedInheritance[] }) {
 }
 
 /* ── InheritanceSummaryStats ─────────────────────────────────────────────── */
-
-function Stat({
-  label,
-  value,
-  note,
-  tone = "neutral",
-}: {
-  label: string;
-  value: number;
-  note: string;
-  tone?: Tone;
-}) {
-  const text: Record<Tone, string> = {
-    neutral: "text-foreground",
-    success: "text-success",
-    warning: "text-warning",
-    danger: "text-danger",
-    info: "text-primary",
-  };
-  return (
-    <div className="border-b border-border px-4 py-3 first:pl-0 md:border-b-0 md:border-r md:last:border-r-0">
-      <div className="text-[12px] text-muted-foreground">{label}</div>
-      <div className={cn("tnum mt-0.5 text-[20px] font-semibold tracking-[-0.02em]", text[tone])}>
-        {value}
-      </div>
-      <div className="mt-0.5 text-[12px] text-muted-foreground">{note}</div>
-    </div>
-  );
-}
 
 function BreakdownRow({
   label,
@@ -578,26 +543,26 @@ export function InheritanceSummaryStats({
   return (
     <div className="space-y-5 pt-3">
       <div className="grid grid-cols-2 border-y border-border md:grid-cols-5">
-        <Stat label="Resolved" value={summary.total} note="controls inherited" />
-        <Stat
+        <Stat.Tile label="Resolved" value={summary.total} note="controls inherited" />
+        <Stat.Tile
           label="Current"
           value={summary.current}
           note="accepted and fresh"
           tone={summary.current > 0 ? "success" : "neutral"}
         />
-        <Stat
+        <Stat.Tile
           label="Version drift"
           value={summary.drifted}
           note="provider has moved"
           tone={summary.drifted > 0 ? "warning" : "neutral"}
         />
-        <Stat
+        <Stat.Tile
           label="Provider failed or revoked"
           value={summary.failedOrRevoked}
           note="the provider offer no longer holds"
           tone={summary.failedOrRevoked > 0 ? "danger" : "neutral"}
         />
-        <Stat
+        <Stat.Tile
           label="Unstated obligation"
           value={unstated}
           note="shared, nothing written down"
@@ -765,10 +730,10 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
 
       <Inspector.Group title="Acceptance">
         <KeyValue label="Accepted">
-          {row.accepted ? <Id>{version.accepted}</Id> : <Dash />}
+          {row.accepted ? <Id>{version.accepted}</Id> : <Empty />}
         </KeyValue>
         <KeyValue label="Assessment">
-          {row.accepted ? <Id>{row.accepted.acceptedAssessmentVersion}</Id> : <Dash />}
+          {row.accepted ? <Id>{row.accepted.acceptedAssessmentVersion}</Id> : <Empty />}
         </KeyValue>
         <KeyValue label="Signed">{row.accepted ? row.accepted.acceptedOn : "—"}</KeyValue>
         <WrapValue label="Signed by">{row.accepted ? row.accepted.acceptedBy : "—"}</WrapValue>

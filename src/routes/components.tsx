@@ -36,7 +36,7 @@ export const Route = createFileRoute("/components")({
   component: Components,
 });
 
-function Section({
+function CardSection({
   title,
   description,
   children,
@@ -66,7 +66,7 @@ function Components() {
         }
       >
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-          <Section
+          <CardSection
             title="Buttons"
             description="Two weights of emphasis and a text link. Nothing else."
           >
@@ -78,9 +78,9 @@ function Components() {
             <IconButton aria-label="More">
               <MoreHorizontal className="size-4" />
             </IconButton>
-          </Section>
+          </CardSection>
 
-          <Section title="Status" description="Tone carries meaning; shape stays constant.">
+          <CardSection title="Status" description="Tone carries meaning; shape stays constant.">
             <Badge tone="success">Passing</Badge>
             <Badge tone="warning">Needs review</Badge>
             <Badge tone="danger">Failing</Badge>
@@ -89,15 +89,15 @@ function Components() {
             <span className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
               <Dot tone="success" /> Live check
             </span>
-          </Section>
+          </CardSection>
 
-          <Section title="Filters" description="Dashed chips until a value is applied.">
+          <CardSection title="Filters" description="Dashed chips until a value is applied.">
             <FilterChip label="Framework" value="SOC 2" active />
             <FilterChip label="Owner" />
             <FilterChip label="Updated" />
-          </Section>
+          </CardSection>
 
-          <Section
+          <CardSection
             title="Meters & numerals"
             description="Tabular figures so columns align on scan."
           >
@@ -114,7 +114,7 @@ function Components() {
                 </div>
               ))}
             </div>
-          </Section>
+          </CardSection>
         </div>
 
         <Card>

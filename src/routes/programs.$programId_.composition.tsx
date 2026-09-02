@@ -457,11 +457,7 @@ function ProgramComposition() {
                           {d.producer}
                         </Table.Cell>
                         <Table.Cell
-                          className={
-                            isStale
-                              ? "tnum text-right text-warning"
-                              : "tnum text-right text-muted-foreground"
-                          }
+                          className={isStale ? "tnum text-right text-warning" : "tnum text-right"}
                           title={age === null ? d.received : `${age} days old`}
                         >
                           {d.received}

@@ -17,7 +17,7 @@
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 
-import { Badge, Dot, KeyValue, Table, Id, Indicator } from "@/ds/primitives";
+import { Badge, Dot, KeyValue, Table, Id, Indicator, Empty, Stat } from "@/ds/primitives";
 import type { Tone } from "@/ds/primitives";
 import { EmptyState } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
@@ -43,10 +43,6 @@ function severityToneOf(severity: string): Tone {
   if (severity === "CAT I") return "danger";
   if (severity === "CAT II") return "warning";
   return "neutral";
-}
-
-function Dash() {
-  return <span className="text-muted-foreground">—</span>;
 }
 
 export function FormatChip({ format }: { format: ScanFormat }) {
@@ -107,33 +103,6 @@ function ProseBlock({
 
 /* ── IngestSummary ───────────────────────────────────────────────────────── */
 
-function Tile({
-  label,
-  value,
-  note,
-  tone = "neutral",
-}: {
-  label: string;
-  value: number;
-  note: string;
-  tone?: Tone;
-}) {
-  return (
-    <div className="bg-background px-4 py-3">
-      <div className="text-[12px] text-muted-foreground">{label}</div>
-      <div
-        className={cn(
-          "tnum mt-0.5 text-[20px] font-semibold tracking-[-0.02em]",
-          tone === "warning" ? "text-warning" : tone === "danger" ? "text-danger" : "",
-        )}
-      >
-        {value}
-      </div>
-      <div className="mt-0.5 text-[12px] leading-snug text-muted-foreground">{note}</div>
-    </div>
-  );
-}
-
 /**
  * The batch read-out. `deduped` counts results folded in as duplicates, not
  * groups, and `unresolved` counts this scan's own rows that still need an
@@ -163,25 +132,33 @@ export function IngestSummary({ batch, scan }: { batch: IngestBatch; scan?: Scan
   return (
     <div className="space-y-3 pt-4">
       <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-3 lg:grid-cols-6">
-        <Tile
+        <Stat.Tile
           label="Native records"
           value={counts.raw}
           note={scan ? `read from ${scan.file}` : "read from the delivered file"}
         />
-        <Tile label="Normalized" value={counts.normalized} note="mapped to the common record" />
-        <Tile label="Clean" value={counts.clean} note="passing checks kept as coverage evidence" />
-        <Tile
+        <Stat.Tile
+          label="Normalized"
+          value={counts.normalized}
+          note="mapped to the common record"
+        />
+        <Stat.Tile
+          label="Clean"
+          value={counts.clean}
+          note="passing checks kept as coverage evidence"
+        />
+        <Stat.Tile
           label="Folded in"
           value={counts.deduped}
           note="results another source already reported"
         />
-        <Tile
+        <Stat.Tile
           label="Held for analyst"
           value={counts.unresolved}
           note={`${heldPlural} the normalizer would not guess at`}
           tone={counts.unresolved > 0 ? "warning" : "neutral"}
         />
-        <Tile
+        <Stat.Tile
           label="Proposed"
           value={batch.proposed.length}
           note="conditions with no finding in the register"
@@ -306,9 +283,7 @@ export function ScanTable({
               )}
               onClick={onSelect ? () => onSelect(s.id) : undefined}
             >
-              <Table.Cell>
-                <Id className={onSelect ? "text-primary" : "text-muted-foreground"}>{s.id}</Id>
-              </Table.Cell>
+              <Table.Id id={s.id} tone={onSelect ? "primary" : "muted"} />
               <Table.Cell>
                 <FormatChip format={s.format} />
               </Table.Cell>
@@ -325,7 +300,7 @@ export function ScanTable({
                 </Badge>
               </Table.Cell>
               <Table.Cell
-                className="truncate text-muted-foreground"
+                className="truncate"
                 title={
                   replacedBy
                     ? `Superseded by ${replacedBy}`
@@ -390,7 +365,11 @@ export function ScanRail({
           <span title={scan.tool}>{scan.tool}</span>
         </KeyValue>
         <KeyValue label="Benchmark">
-          {scan.benchmark === "—" ? <Dash /> : <span title={scan.benchmark}>{scan.benchmark}</span>}
+          {scan.benchmark === "—" ? (
+            <Empty />
+          ) : (
+            <span title={scan.benchmark}>{scan.benchmark}</span>
+          )}
         </KeyValue>
         <KeyValue label="Operator">{scan.operator}</KeyValue>
       </Inspector.Group>
@@ -431,10 +410,10 @@ export function ScanRail({
           </dd>
         </div>
         <KeyValue label="Supersedes">
-          {scan.supersedes ? <Id>{scan.supersedes}</Id> : <Dash />}
+          {scan.supersedes ? <Id>{scan.supersedes}</Id> : <Empty />}
         </KeyValue>
         <KeyValue label="Superseded by">
-          {supersededBy ? <Id>{supersededBy}</Id> : <Dash />}
+          {supersededBy ? <Id>{supersededBy}</Id> : <Empty />}
         </KeyValue>
       </Inspector.Group>
 
@@ -463,7 +442,7 @@ export function ScanRail({
             {batch.closable.length > 0 ? (
               <span title={batch.closable.join(", ")}>{batch.closable.join(", ")}</span>
             ) : (
-              <Dash />
+              <Empty />
             )}
           </KeyValue>
           <KeyValue label="Contested">
@@ -472,7 +451,7 @@ export function ScanRail({
                 {batch.contested.map((c) => c.finding).join(", ")}
               </span>
             ) : (
-              <Dash />
+              <Empty />
             )}
           </KeyValue>
           {batch.contested.map((c) => (
@@ -845,9 +824,7 @@ export function NormalizationView({
               onClick={onSelect ? () => onSelect(normalized.id) : undefined}
             >
               <Table.Cell>
-                <Id className={cn("truncate", onSelect ? "text-primary" : "text-muted-foreground")}>
-                  {normalized.nativeId}
-                </Id>
+                <Id className="truncate">{normalized.nativeId}</Id>
               </Table.Cell>
               <Table.Cell className="truncate" title={normalized.title}>
                 {normalized.title}
@@ -988,7 +965,7 @@ export function DedupTable({
               className="truncate"
               title={`${g.key} — ${nodeName?.(g.primary.node ?? "") ?? ""}`}
             >
-              <Id className={onSelect ? "text-primary" : "text-muted-foreground"}>{g.key}</Id>
+              <Id>{g.key}</Id>
             </Table.Cell>
             <Table.Cell className="truncate" title={`${g.primary.format} · ${g.primary.scan}`}>
               <span className="flex min-w-0 items-center gap-1.5">
@@ -1013,7 +990,7 @@ export function DedupTable({
               </Badge>
             </Table.Cell>
             <Table.Cell
-              className="truncate text-muted-foreground"
+              className="truncate"
               title={g.duplicates.map((d) => `${d.format} — ${d.id}`).join(", ")}
             >
               {g.duplicates.length === 0 ? (
@@ -1095,7 +1072,7 @@ export function DedupRail({
 
       <Inspector.Group title="Register">
         <KeyValue label="Filed as">
-          {group.existing ? <Id>{group.existing}</Id> : <Dash />}
+          {group.existing ? <Id>{group.existing}</Id> : <Empty />}
         </KeyValue>
         <KeyValue label="Also filed">
           {folded.length > 0 ? (
@@ -1107,7 +1084,7 @@ export function DedupRail({
               ))}
             </span>
           ) : (
-            <Dash />
+            <Empty />
           )}
         </KeyValue>
         <ProseBlock label="Reading">

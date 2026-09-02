@@ -34,7 +34,7 @@ import { Fragment, useState } from "react";
 import type { ReactNode } from "react";
 import { ArrowRight, Calculator, CornerDownRight, PenLine, TriangleAlert } from "lucide-react";
 
-import { Badge, Button, Table, Id } from "@/ds/primitives";
+import { Badge, Button, Table, Id, Empty, Stat, Eyebrow } from "@/ds/primitives";
 import type { Tone } from "@/ds/primitives";
 import { Card } from "@/ds/patterns";
 import {
@@ -53,32 +53,6 @@ import {
 import { cn } from "@/lib/utils";
 
 /* ── Shared bits ─────────────────────────────────────────────────────────── */
-
-function Dash() {
-  return <span className="text-muted-foreground">—</span>;
-}
-
-/** A short label above a value or a paragraph. The house eyebrow. */
-function Eyebrow({ children, tone = "neutral" }: { children: ReactNode; tone?: Tone }) {
-  return (
-    <div
-      className={cn(
-        "text-[11px] font-medium uppercase tracking-[0.06em]",
-        tone === "danger"
-          ? "text-danger"
-          : tone === "warning"
-            ? "text-warning"
-            : tone === "success"
-              ? "text-success"
-              : tone === "info"
-                ? "text-primary"
-                : "text-muted-foreground",
-      )}
-    >
-      {children}
-    </div>
-  );
-}
 
 function IdChips({ ids, tone = "neutral" }: { ids: string[]; tone?: Tone }) {
   return (
@@ -320,39 +294,6 @@ function PhaseCard({
 
 /* ── PhaseReadinessSummary ───────────────────────────────────────────────── */
 
-function Tile({
-  label,
-  value,
-  note,
-  tone = "neutral",
-}: {
-  label: string;
-  value: string;
-  note: string;
-  tone?: Tone;
-}) {
-  return (
-    <div className="bg-background px-4 py-3">
-      <div className="text-[12px] text-muted-foreground">{label}</div>
-      <div
-        className={cn(
-          "tnum mt-0.5 text-[20px] font-semibold tracking-[-0.02em]",
-          tone === "danger"
-            ? "text-danger"
-            : tone === "warning"
-              ? "text-warning"
-              : tone === "success"
-                ? "text-success"
-                : "",
-        )}
-      >
-        {value}
-      </div>
-      <div className="mt-0.5 text-[12px] leading-snug text-muted-foreground">{note}</div>
-    </div>
-  );
-}
-
 /**
  * The verdict, and above everything else the ONE sentence that is stopping the
  * gate. A reader who takes nothing else off this page should still be able to
@@ -427,31 +368,31 @@ export function PhaseReadinessSummary({
       </div>
 
       <div className="grid grid-cols-2 gap-px border-y border-border bg-border md:grid-cols-5">
-        <Tile
+        <Stat.Tile
           label="Entry"
           value={`${readiness.entryMet}/${readiness.entryTotal}`}
           note="criteria met"
           tone={readiness.canEnter ? "success" : "danger"}
         />
-        <Tile
+        <Stat.Tile
           label="Exit"
           value={`${readiness.exitMet}/${readiness.exitTotal}`}
           note="criteria met"
           tone={readiness.canExit ? "success" : "warning"}
         />
-        <Tile
+        <Stat.Tile
           label="Derived"
           value={`${derived.length}`}
           note="computed from the record"
           tone="neutral"
         />
-        <Tile
+        <Stat.Tile
           label="Attested"
           value={`${attested.length}`}
           note="a person has to sign"
           tone="neutral"
         />
-        <Tile
+        <Stat.Tile
           label="Unsigned"
           value={`${unsigned.length}`}
           note={unsigned.length === 0 ? "every attestation on file" : "attestation missing"}
@@ -709,9 +650,7 @@ export function ScenarioTable({
               )}
               onClick={onSelect ? () => onSelect(s.id) : undefined}
             >
-              <Table.Cell>
-                <Id className={onSelect ? "text-primary" : "text-muted-foreground"}>{s.id}</Id>
-              </Table.Cell>
+              <Table.Id id={s.id} tone={onSelect ? "primary" : "muted"} />
               <Table.Cell className="truncate" title={`${s.name} — ${s.objective}`}>
                 {s.name}
               </Table.Cell>
@@ -743,7 +682,7 @@ export function ScenarioTable({
               <Table.Cell className="tnum text-right" title={s.path.join(" → ")}>
                 {s.path.length} nodes
               </Table.Cell>
-              <Table.Cell>{s.event ? <Id>{s.event}</Id> : <Dash />}</Table.Cell>
+              <Table.Cell>{s.event ? <Id>{s.event}</Id> : <Empty />}</Table.Cell>
               <Table.Cell>
                 <Badge tone={scenarioStatusTone[s.status]}>{s.status}</Badge>
               </Table.Cell>
@@ -1137,7 +1076,7 @@ export function MissionEffectTable({
                       <div>
                         <Eyebrow>Persistence</Eyebrow>
                         <p className="mt-0.5 whitespace-normal text-[12.5px] leading-relaxed text-muted-foreground">
-                          {e.duration === "—" ? <Dash /> : e.duration}
+                          {e.duration === "—" ? <Empty /> : e.duration}
                         </p>
                       </div>
                       <div>
@@ -1195,28 +1134,28 @@ export function AttackSurfaceSummary({
   return (
     <div className="space-y-4 pt-4">
       <div className="grid grid-cols-2 gap-px border-y border-border bg-border md:grid-cols-5">
-        <Tile
+        <Stat.Tile
           label="Scenarios"
           value={`${scenarios.length}`}
           note={`${coverage.exercised} executed · ${ics} written against the ICS matrix`}
         />
-        <Tile
+        <Stat.Tile
           label="Techniques"
           value={`${coverage.techniques}`}
           note={`distinct ATT&CK ids across ${coverage.tactics.length} tactics`}
         />
-        <Tile
+        <Stat.Tile
           label="Nodes reached"
           value={`${coverage.nodesTargeted}`}
           note={`of ${total} in the composition graph`}
         />
-        <Tile
+        <Stat.Tile
           label="Never targeted"
           value={`${coverage.nodesUntargeted}`}
           note="no scenario path touches them"
           tone={coverage.nodesUntargeted > 0 ? "warning" : "neutral"}
         />
-        <Tile
+        <Stat.Tile
           label="Unexercised"
           value={`${coverage.unexercised.length}`}
           note="written but not executed"

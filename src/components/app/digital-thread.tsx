@@ -307,9 +307,7 @@ export function DigitalThreadSection({
               ))}
               {rows.length === 0 ? (
                 <Table.Row>
-                  <Table.Cell colSpan={9} className="text-muted-foreground">
-                    No evidence matches this filter.
-                  </Table.Cell>
+                  <Table.Cell colSpan={9}>No evidence matches this filter.</Table.Cell>
                 </Table.Row>
               ) : null}
             </tbody>

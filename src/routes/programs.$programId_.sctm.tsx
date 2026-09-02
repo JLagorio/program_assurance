@@ -443,10 +443,7 @@ function ProgramSctm() {
                       <Table.Cell className="tnum text-right">{f.other}</Table.Cell>
                       <Table.Cell className="tnum text-right">{f.notAssessed}</Table.Cell>
                       <Table.Cell
-                        className={cn(
-                          "tnum text-right",
-                          f.gaps > 0 ? "font-medium text-danger" : "text-muted-foreground",
-                        )}
+                        className={cn("tnum text-right", f.gaps > 0 ? "text-danger" : "")}
                       >
                         {f.gaps}
                       </Table.Cell>

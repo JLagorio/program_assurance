@@ -33,7 +33,7 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ArrowRight, TriangleAlert } from "lucide-react";
 
-import { Badge, Button, Dot, KeyValue, Table, Toolbar, Id } from "@/ds/primitives";
+import { Badge, Button, Dot, KeyValue, Table, Toolbar, Id, Empty, Stat } from "@/ds/primitives";
 import type { Tone } from "@/ds/primitives";
 import { EmptyState, Section } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
@@ -60,10 +60,6 @@ type NodeNamer = (nodeId: string) => string;
 type AuditRecord = ChangeImpact["records"][number];
 
 /* ── Shared bits ─────────────────────────────────────────────────────────── */
-
-function Dash() {
-  return <span className="text-muted-foreground">—</span>;
-}
 
 export function BuildStateChip({ state }: { state: BuildState }) {
   return (
@@ -96,7 +92,7 @@ export function ImpactStateChip({ state }: { state: ImpactState }) {
 
 /** Node ids read as noise alone; the part name is what the reader recognises. */
 function NodeRef({ id, nodeName }: { id: string; nodeName?: NodeNamer | undefined }) {
-  if (id === "—") return <Dash />;
+  if (id === "—") return <Empty />;
   const name = nodeName?.(id);
   const full = name && name !== id ? `${id} — ${name}` : id;
   return (
@@ -148,39 +144,6 @@ function ProseBlock({
         {label}
       </div>
       <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">{children}</p>
-    </div>
-  );
-}
-
-function Tile({
-  label,
-  value,
-  note,
-  tone = "neutral",
-}: {
-  label: string;
-  value: number;
-  note: string;
-  tone?: Tone;
-}) {
-  return (
-    <div className="bg-background px-4 py-3">
-      <div className="text-[12px] text-muted-foreground">{label}</div>
-      <div
-        className={cn(
-          "tnum mt-0.5 text-[20px] font-semibold tracking-[-0.02em]",
-          value === 0
-            ? "text-muted-foreground"
-            : tone === "danger"
-              ? "text-danger"
-              : tone === "warning"
-                ? "text-warning"
-                : "",
-        )}
-      >
-        {value}
-      </div>
-      <div className="mt-0.5 text-[12px] leading-snug text-muted-foreground">{note}</div>
     </div>
   );
 }
@@ -277,7 +240,7 @@ export function BuildTable({
             </Table.Cell>
             <Table.Cell className="tnum">{build.approved}</Table.Cell>
             <Table.Cell title={build.ccb}>{build.ccb}</Table.Cell>
-            <Table.Cell>{build.supersedes ? <Id>{build.supersedes}</Id> : <Dash />}</Table.Cell>
+            <Table.Cell>{build.supersedes ? <Id>{build.supersedes}</Id> : <Empty />}</Table.Cell>
             <Table.Cell className="tnum text-right">{build.pins.length}</Table.Cell>
             <Table.Cell className="tnum text-right">{build.parameters.length}</Table.Cell>
           </Table.Row>
@@ -350,7 +313,7 @@ export function BuildRail({
           <span className="tnum">{build.approved}</span>
         </KeyValue>
         <KeyValue label="Supersedes">
-          {build.supersedes ? <Id>{build.supersedes}</Id> : <Dash />}
+          {build.supersedes ? <Id>{build.supersedes}</Id> : <Empty />}
         </KeyValue>
         <KeyValue label="Pinned">
           <span className="tnum">
@@ -496,7 +459,7 @@ export function PinDiffTable({
             >
               <Table.Cell>
                 {row.node === "—" ? (
-                  <Dash />
+                  <Empty />
                 ) : (
                   <Id className={unrecorded ? "text-danger" : "text-muted-foreground"}>
                     {row.node}
@@ -640,7 +603,7 @@ export function ChangeTable({
                     ? "text-danger"
                     : effect.tone === "warning"
                       ? "text-warning"
-                      : "text-muted-foreground",
+                      : "",
                 )}
               >
                 {effect.text}
@@ -1184,13 +1147,13 @@ export function ImpactView({
 
       {/* Effect tiles */}
       <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-3 lg:grid-cols-6">
-        <Tile
+        <Stat.Tile
           label="Nodes touched"
           value={impact.touched.length}
           note={`${invalidatedNodes.length} invalidated · ${suspectNodes.length} suspect`}
           tone="warning"
         />
-        <Tile
+        <Stat.Tile
           label="Rows invalidated"
           value={impact.invalidatedRows.length}
           note={
@@ -1200,25 +1163,25 @@ export function ImpactView({
           }
           tone="danger"
         />
-        <Tile
+        <Stat.Tile
           label="Rows suspect"
           value={impact.suspectRows.length}
           note="determination stands, assessor flagged"
           tone="warning"
         />
-        <Tile
+        <Stat.Tile
           label="Evidence superseded"
           value={impact.invalidatedEvidence.length}
           note="collected before the change was requested"
           tone="warning"
         />
-        <Tile
+        <Stat.Tile
           label="Findings to re-check"
           value={impact.reopenCandidates.length}
           note="closed against a configuration that moved"
           tone="warning"
         />
-        <Tile
+        <Stat.Tile
           label="Re-tests owed"
           value={impact.retests.length}
           note="distinct requirement, component and method"
@@ -1563,7 +1526,7 @@ export function RetestSummary({ items }: { items: RetestItem[] }) {
           whole-queue method split belongs on the whole-queue tile and nowhere
           else — beside `automatable` it read "9 with a procedure, of which 377
           inspection and 50 test". */}
-      <Tile
+      <Stat.Tile
         label="Re-tests owed"
         value={items.length}
         note={
@@ -1572,9 +1535,9 @@ export function RetestSummary({ items }: { items: RetestItem[] }) {
             : byMethod.map(([m, n]) => `${n} ${m.toLowerCase()}`).join(" · ")
         }
       />
-      <Tile label="Controls" value={controls} note="carrying at least one invalidated row" />
-      <Tile label="Components" value={components} note="the work is allocated to" />
-      <Tile
+      <Stat.Tile label="Controls" value={controls} note="carrying at least one invalidated row" />
+      <Stat.Tile label="Components" value={components} note="the work is allocated to" />
+      <Stat.Tile
         label="With a procedure"
         value={automatable}
         note={`${items.length - automatable} done by hand`}

@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { NodeRail } from "@/components/app/composition";
 import { DerivedControlTrace, ElementAllocationTable } from "@/components/app/requirements";
 import { ApplicabilityModal } from "@/components/app/requirement-forms";
-import { Badge, Button, Table, Id, Indicator } from "@/ds/primitives";
+import { Badge, Button, Table, Id, Indicator, Fact } from "@/ds/primitives";
 import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import {
@@ -550,14 +550,5 @@ function ComponentRecord() {
         </Section>
       </ShowPage>
     </Shell>
-  );
-}
-
-function Fact({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex min-w-0 items-baseline gap-1.5">
-      <dt className="shrink-0 text-[12px] text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 text-[12.5px] font-medium">{children}</dd>
-    </div>
   );
 }

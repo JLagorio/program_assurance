@@ -20,7 +20,7 @@ import type {
 } from "@/lib/nist-catalog";
 
 /** Assignment / Selection brackets, set apart from the surrounding sentence. */
-export function Prose({ children }: { children: string }) {
+export function ControlStatement({ children }: { children: string }) {
   const parts = children.split(/(\[(?:Assignment|Selection)[^\]]*\])/g);
   return (
     <>
@@ -58,7 +58,7 @@ export function StatementList({
             {item.label ?? ""}
           </span>
           <div className="min-w-0">
-            <Prose>{item.prose}</Prose>
+            <ControlStatement>{item.prose}</ControlStatement>
             {item.items?.length ? <StatementList items={item.items} depth={depth + 1} /> : null}
           </div>
         </li>
@@ -75,7 +75,7 @@ export function ObjectiveList({ items, depth = 0 }: { items: NistObjective[]; de
         <li key={item.label || i} className="flex gap-3">
           <Id className="w-[132px] shrink-0 text-11 text-muted-foreground">{item.label}</Id>
           <div className="min-w-0">
-            {item.prose ? <Prose>{item.prose}</Prose> : null}
+            {item.prose ? <ControlStatement>{item.prose}</ControlStatement> : null}
             {item.items?.length ? <ObjectiveList items={item.items} depth={depth + 1} /> : null}
           </div>
         </li>

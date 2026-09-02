@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { AllocationTable, ProvenanceTable, RequirementTable } from "@/components/app/requirements";
 import { InlineSelect, InlineText } from "@/components/app/inline-edit";
 import { AllocateModal } from "@/components/app/requirement-forms";
-import { Badge, Button, KeyValue, Id, Tabs } from "@/ds/primitives";
+import { Badge, Button, KeyValue, Id, Tabs, Fact } from "@/ds/primitives";
 import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { Shell } from "@/ds/shell";
@@ -396,15 +396,5 @@ function SourceRef({
     <Badge size="xs" tone={tone}>
       {sourceId}
     </Badge>
-  );
-}
-
-/** One label/value pair on a horizontal fact row. */
-function Fact({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex min-w-0 items-baseline gap-1.5">
-      <dt className="shrink-0 text-[12px] text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 text-[12.5px] font-medium">{children}</dd>
-    </div>
   );
 }

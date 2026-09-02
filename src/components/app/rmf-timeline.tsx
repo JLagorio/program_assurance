@@ -249,9 +249,7 @@ export function GateOutlookSection({
                 </Badge>
               </Table.Cell>
               <Table.Cell className="tnum">{gate.planned}</Table.Cell>
-              <Table.Cell
-                className={cn("tnum", tone === "danger" ? "text-danger" : "text-muted-foreground")}
-              >
+              <Table.Cell className={cn("tnum", tone === "danger" ? "text-danger" : "")}>
                 {timing(gate, daysOut)}
               </Table.Cell>
               <Table.Cell className="truncate">

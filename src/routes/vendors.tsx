@@ -158,9 +158,7 @@ function Vendors() {
                   </Table.Cell>
                   <Table.Cell
                     className={
-                      vendor.review.startsWith("Overdue")
-                        ? "text-right text-[12px] font-medium text-danger"
-                        : "text-right text-[12px] text-muted-foreground"
+                      vendor.review.startsWith("Overdue") ? "text-right text-danger" : "text-right"
                     }
                   >
                     {vendor.review}

@@ -83,15 +83,15 @@ export function RemediationPlanSection({
           <p className="max-w-3xl text-[13px] leading-relaxed">{plan.approach}</p>
 
           <div className="grid grid-cols-2 gap-x-8 gap-y-2 md:grid-cols-4">
-            <Fact label="Plan owner">
+            <StackedFact label="Plan owner">
               <Person name={plan.owner} />
-            </Fact>
-            <Fact label="Scheduled completion">
+            </StackedFact>
+            <StackedFact label="Scheduled completion">
               <span className={cn("tnum", plan.slipped && "text-warning")}>
                 {plan.poam?.scheduledCompletion ?? plan.due}
               </span>
-            </Fact>
-            <Fact label="POA&M section">
+            </StackedFact>
+            <StackedFact label="POA&M section">
               {plan.poam ? (
                 <span className="flex items-center gap-1.5">
                   <PoamLink id={plan.poam.id} />
@@ -102,8 +102,8 @@ export function RemediationPlanSection({
               ) : (
                 <span className="text-muted-foreground">Not yet opened</span>
               )}
-            </Fact>
-            <Fact label="Workstream">
+            </StackedFact>
+            <StackedFact label="Workstream">
               {plan.workstream ? (
                 <Link
                   to="/workstreams/$workstreamId"
@@ -115,7 +115,7 @@ export function RemediationPlanSection({
               ) : (
                 <span className="text-muted-foreground">Unassigned</span>
               )}
-            </Fact>
+            </StackedFact>
           </div>
 
           <div className="flex items-center gap-3 pt-1">
@@ -288,7 +288,7 @@ export function RemediationPlanSection({
   );
 }
 
-function Fact({ label, children }: { label: string; children: ReactNode }) {
+function StackedFact({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
       <div className="text-11 uppercase tracking-[0.04em] text-muted-foreground">{label}</div>

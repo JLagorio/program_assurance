@@ -163,9 +163,7 @@ export function LifecycleSection({
             ))}
             {rows.length === 0 ? (
               <Table.Row>
-                <Table.Cell colSpan={8} className="text-muted-foreground">
-                  No gates match this filter.
-                </Table.Cell>
+                <Table.Cell colSpan={8}>No gates match this filter.</Table.Cell>
               </Table.Row>
             ) : null}
           </tbody>

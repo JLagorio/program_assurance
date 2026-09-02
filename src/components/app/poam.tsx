@@ -241,10 +241,10 @@ export function PoamSection({
                   <Table.Cell
                     className={
                       due.tone === "danger"
-                        ? "tnum w-[110px] text-right font-medium text-destructive"
+                        ? "tnum w-[110px] text-right text-destructive"
                         : due.tone === "warning"
                           ? "tnum w-[110px] text-right text-warning-foreground"
-                          : "tnum w-[110px] text-right text-muted-foreground"
+                          : "tnum w-[110px] text-right"
                     }
                   >
                     {due.text}
@@ -278,9 +278,7 @@ export function PoamSection({
             })}
             {rows.length === 0 ? (
               <Table.Row>
-                <Table.Cell colSpan={8} className="text-muted-foreground">
-                  No POA&amp;M items match this view.
-                </Table.Cell>
+                <Table.Cell colSpan={8}>No POA&amp;M items match this view.</Table.Cell>
               </Table.Row>
             ) : null}
           </tbody>
@@ -342,9 +340,7 @@ export function PoamSection({
             ))}
             {audit.length === 0 ? (
               <Table.Row>
-                <Table.Cell colSpan={5} className="text-muted-foreground">
-                  No POA&amp;M changes recorded yet.
-                </Table.Cell>
+                <Table.Cell colSpan={5}>No POA&amp;M changes recorded yet.</Table.Cell>
               </Table.Row>
             ) : null}
           </tbody>

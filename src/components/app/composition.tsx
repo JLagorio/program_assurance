@@ -26,6 +26,7 @@ import {
   Toolbar,
   Id,
   Indicator,
+  Empty,
 } from "@/ds/primitives";
 import type { Tone } from "@/ds/primitives";
 import { Card } from "@/ds/patterns";
@@ -78,10 +79,6 @@ function dateKey(value: string): number {
   const month = months.indexOf(m[1] ?? "");
   if (month < 0) return Number.POSITIVE_INFINITY;
   return Number(m[3]) * 10000 + (month + 1) * 100 + Number(m[2]);
-}
-
-function Dash() {
-  return <span className="text-muted-foreground">—</span>;
 }
 
 /* ----------------------------------------------------------------- BomTree */
@@ -448,7 +445,7 @@ export function NodeRail({
         <KeyValue label="Kind">{node.kind}</KeyValue>
         <KeyValue label="Class">{node.class}</KeyValue>
         <KeyValue label="Version">
-          {node.version === "—" ? <Dash /> : <Id>{node.version}</Id>}
+          {node.version === "—" ? <Empty /> : <Id>{node.version}</Id>}
         </KeyValue>
         <KeyValue label="Criticality">{node.criticality}</KeyValue>
         <KeyValue label="Trust zone">{node.zone}</KeyValue>
@@ -481,7 +478,7 @@ export function NodeRail({
         ) : null}
         {node.eol ? <KeyValue label="End of life">{node.eol}</KeyValue> : null}
         <KeyValue label="BOM source">{node.bomSource}</KeyValue>
-        <KeyValue label="BOM document">{node.bom ? <Id>{node.bom}</Id> : <Dash />}</KeyValue>
+        <KeyValue label="BOM document">{node.bom ? <Id>{node.bom}</Id> : <Empty />}</KeyValue>
         <KeyValue label="Attested">
           <Badge size="xs" tone={node.attested ? "success" : "warning"}>
             {node.attested ? "On file" : "Not on file"}
@@ -501,7 +498,7 @@ export function NodeRail({
             {posture.worst ? (
               <Indicator tone={severityToneOf(posture.worst)}>{posture.worst}</Indicator>
             ) : (
-              <Dash />
+              <Empty />
             )}
           </KeyValue>
           <KeyValue label="On this part">
@@ -650,9 +647,7 @@ export function ReconciliationTable({
             className={onSelect ? "cursor-pointer" : undefined}
             onClick={onSelect ? () => onSelect(r.asset) : undefined}
           >
-            <Table.Cell>
-              <Id className={onSelect ? "text-primary" : "text-muted-foreground"}>{r.asset}</Id>
-            </Table.Cell>
+            <Table.Id id={r.asset} tone={onSelect ? "primary" : "muted"} />
             <Table.Cell className="truncate" title={r.name}>
               {r.name}
             </Table.Cell>
@@ -672,12 +667,7 @@ export function ReconciliationTable({
                 total={r.derived.total}
               />
             </Table.Cell>
-            <Table.Cell
-              className={cn(
-                "tnum text-right",
-                r.delta === 0 ? "text-muted-foreground" : "font-medium text-warning",
-              )}
-            >
+            <Table.Cell className={cn("tnum text-right", r.delta === 0 ? "" : "text-warning")}>
               {r.delta > 0 ? `+${r.delta}` : r.delta}
             </Table.Cell>
             <Table.Cell>
@@ -943,16 +933,11 @@ export function SupplyChainTable({
                   </span>
                 </span>
               </Table.Cell>
-              <Table.Cell
-                className={cn(
-                  "tnum text-right",
-                  r.unattested > 0 ? "font-medium text-warning" : "text-muted-foreground",
-                )}
-              >
+              <Table.Cell className={cn("tnum text-right", r.unattested > 0 ? "text-warning" : "")}>
                 {r.unattested}
               </Table.Cell>
               <Table.Cell className={cn("tnum", past && "text-danger")}>
-                {r.eol === "—" ? <Dash /> : r.eol}
+                {r.eol === "—" ? <Empty /> : r.eol}
                 {past ? <span className="pl-1 text-11">past</span> : null}
               </Table.Cell>
             </Table.Row>

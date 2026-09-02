@@ -213,7 +213,7 @@ export function OpenWorkSection({
                   <Table.Cell
                     className={cn(
                       "tnum w-[110px] text-right",
-                      a.tone === "danger" ? "font-medium text-danger" : "text-muted-foreground",
+                      a.tone === "danger" ? "text-danger" : "",
                     )}
                   >
                     {a.due}
