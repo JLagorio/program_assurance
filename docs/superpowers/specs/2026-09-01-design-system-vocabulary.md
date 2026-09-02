@@ -118,3 +118,14 @@ Proposal, 2026-09-01. Every component the kit exports today, placed in a layer a
 ## Then
 
 On a go: one codemod commit per layer (rename, then move), lint rules in a fourth commit, Storybook titles in a fifth. Type-check, lint and Storybook stay green after each.
+
+## Applied
+
+Landed 2026-09-02 on main in six commits: primitives renamed, patterns and shapes renamed, kit
+moved into `src/ds` by layer, local copies folded and cells finished going plain, rules as lint plus
+`ds:check`, Storybook retitled, shadcn deleted. Deviations from the table above: `ActionBar.State`
+and `ActionBar.Action` are the flat types `ActionBarState` and `ActionBarAction` (the repo's lint
+forbids TypeScript namespaces); `InspectorGroup` the type became `InspectorGroupData`. The five open
+questions resolved to the defaults: folder `src/ds`, system name Ledger, compound names, legacy
+archetypes retire route by route, shadcn deleted. The current vocabulary lives in
+`docs/guides/component-library.md`.
