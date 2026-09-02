@@ -161,7 +161,7 @@ export const Maps: Story = {
               <td className="py-2 pr-6">
                 <div className="flex flex-wrap gap-1.5">
                   {Object.entries(v.map).map(([value, tone]) => (
-                    <Badge key={value} tone={tone} size={args.size}>
+                    <Badge key={value} tone={tone} size={args.size ?? "sm"}>
                       {value}
                     </Badge>
                   ))}
