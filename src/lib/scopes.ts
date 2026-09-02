@@ -317,11 +317,15 @@ export function triadOf(scope: AssessmentScope): Triad {
 export function controlSetFor(scopeId: string): ScopeControlSet | null {
   const scope = scopeById.get(scopeId);
   if (!scope) return null;
+  return { scope, ...resolveSelection(triadOf(scope), tailoringFor(scope)) };
+}
 
-  const triad = triadOf(scope);
-  const tailoring = computeTailoring(scope.parameters);
-  const removedById = new Map(tailoring.removed.map((c) => [c.id, c]));
-  const addedById = new Map(tailoring.added.map((c) => [c.id, c]));
+/** A control set without its scope — what a draft resolves to before it is registered. */
+export type Selection = Omit<ScopeControlSet, "scope">;
+
+/** The selection algorithm on its own, so an unregistered draft resolves the same way a scope does. */
+export function resolveSelection(triad: Triad, deltas: TailoringDeltas): Selection {
+  const { overlays, removedById, addedById } = deltas;
 
   const controls: ScopeControl[] = [];
   const removed: ScopeControl[] = [];
@@ -366,14 +370,91 @@ export function controlSetFor(scopeId: string): ScopeControlSet | null {
   }
 
   return {
-    scope,
     triad,
-    overlays: tailoring.overlays,
+    overlays,
     controls,
     removed,
     added,
     byObjective,
     total: controls.length,
+  };
+}
+
+/* ---------------------------------------------------- Recorded tailoring */
+
+/**
+ * What a control-set revision decided for a scope, once approved: the overlays
+ * it applied (recommended or not) and the controls it tailored out or in by
+ * hand. `§5.1`: rules produce recommendations; the authority records the
+ * decision. When nothing is recorded the scope falls back to the predicate
+ * path, which is what every seeded scope does today.
+ */
+export type RecordedTailoring = {
+  overlays: Overlay[];
+  /** Control id → rationale. */
+  excluded: Map<string, string>;
+  /** Control id → rationale. */
+  included: Map<string, string>;
+};
+
+const TAILORING_SOURCE = "Program tailoring";
+
+const tailorings = new Map<string, RecordedTailoring>();
+
+export function recordTailoring(
+  scopeId: string,
+  t: RecordedTailoring,
+  opts: { silent?: boolean } = {},
+) {
+  if (!scopeById.has(scopeId)) return;
+  tailorings.set(scopeId, {
+    overlays: [...t.overlays],
+    excluded: new Map(t.excluded),
+    included: new Map(t.included),
+  });
+  if (!opts.silent) bumpScopes();
+}
+
+export function recordedTailoring(scopeId: string): RecordedTailoring | null {
+  return tailorings.get(scopeId) ?? null;
+}
+
+export type TailoringDeltas = {
+  overlays: Overlay[];
+  removedById: Map<string, OverlayControl>;
+  addedById: Map<string, OverlayControl>;
+};
+
+/** The deltas a recorded decision produces: applied overlays, then explicit exclusions and inclusions winning. */
+export function tailoringDeltas(
+  overlays: Overlay[],
+  excluded: Map<string, string>,
+  included: Map<string, string>,
+): TailoringDeltas {
+  const all = overlays.flatMap((o) => o.controls);
+  const removedById = new Map(all.filter((c) => c.action === "Tailored out").map((c) => [c.id, c]));
+  const addedById = new Map(all.filter((c) => c.action === "Added").map((c) => [c.id, c]));
+  for (const [id, rationale] of excluded) {
+    addedById.delete(id);
+    removedById.set(id, { id, title: TAILORING_SOURCE, action: "Tailored out", rationale });
+  }
+  for (const [id, rationale] of included) {
+    removedById.delete(id);
+    if (!addedById.has(id)) {
+      addedById.set(id, { id, title: TAILORING_SOURCE, action: "Added", rationale });
+    }
+  }
+  return { overlays, removedById, addedById };
+}
+
+function tailoringFor(scope: AssessmentScope): TailoringDeltas {
+  const rec = tailorings.get(scope.id);
+  if (rec) return tailoringDeltas(rec.overlays, rec.excluded, rec.included);
+  const t = computeTailoring(scope.parameters);
+  return {
+    overlays: t.overlays,
+    removedById: new Map(t.removed.map((c) => [c.id, c])),
+    addedById: new Map(t.added.map((c) => [c.id, c])),
   };
 }
 
@@ -446,6 +527,40 @@ const listeners = new Set<() => void>();
 let version = 0;
 const overrides = new Map<string, Partial<SystemParameters>>();
 
+function bumpScopes() {
+  version += 1;
+  for (const l of listeners) l();
+}
+
+export function nextScopeId(): string {
+  const max = assessmentScopes.reduce(
+    (m, s) => Math.max(m, Number(s.id.replace(/^SYS-/, "")) || 0),
+    0,
+  );
+  return `SYS-${String(max + 1).padStart(4, "0")}`;
+}
+
+/**
+ * Register scopes created at runtime — the wizard's leaves, or a subsystem
+ * added to a program later. Pushes onto the seed array so every selector that
+ * filters it sees them, and bumps once for the batch.
+ */
+export function addScopes(
+  inputs: (Omit<AssessmentScope, "id"> & { id?: string })[],
+): AssessmentScope[] {
+  const out = inputs.map((input) => {
+    const id = input.id ?? nextScopeId();
+    const hit = scopeById.get(id);
+    if (hit) return hit;
+    const scope: AssessmentScope = { ...input, id, parameters: { ...input.parameters } };
+    assessmentScopes.push(scope);
+    scopeById.set(id, scope);
+    return scope;
+  });
+  bumpScopes();
+  return out;
+}
+
 export function subscribeScopes(cb: () => void): () => void {
   listeners.add(cb);
   return () => {
@@ -467,6 +582,5 @@ export function setScopeParameter(scopeId: string, patch: Partial<SystemParamete
   if (!scope) return;
   overrides.set(scopeId, { ...overrides.get(scopeId), ...patch });
   Object.assign(scope.parameters, patch);
-  version += 1;
-  for (const l of listeners) l();
+  bumpScopes();
 }

@@ -2,11 +2,13 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
+import { ControlSetRevisions, RevisionStrip } from "@/components/app/control-set-revisions";
 import { Badge, FilterChip, KeyValue, Table, Id, Tabs, Fact } from "@/ds/primitives";
 import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { Shell } from "@/ds/shell";
 import { ancestorsOf, nodeById, nodesForProgram } from "@/lib/composition";
+import { revisionsForScope, useControlSetVersion } from "@/lib/control-set";
 import { programs } from "@/lib/grc-data";
 import { allocationsOn } from "@/lib/requirements";
 import {
@@ -21,7 +23,7 @@ import {
   type Objective,
 } from "@/lib/scopes";
 
-const scopeTabs = ["Overview", "Control set", "Components"] as const;
+const scopeTabs = ["Overview", "Control set", "Revisions", "Components"] as const;
 type ScopeTab = (typeof scopeTabs)[number];
 
 const impactTone = { Low: "neutral", Moderate: "warning", High: "danger" } as const;
@@ -58,11 +60,13 @@ function ScopeRecord() {
   const program = Route.useLoaderData();
   const navigate = useNavigate({ from: Route.fullPath });
   const version = useScopesVersion();
+  const revisionVersion = useControlSetVersion();
   const [family, setFamily] = useState("All");
 
   const scope = scopeById.get(scopeId) ?? null;
   const set = useMemo(() => controlSetFor(scopeId), [scopeId, version]);
   const rollup = useMemo(() => rollupControlSet(program.id), [program.id, version]);
+  const revisions = useMemo(() => revisionsForScope(scopeId), [scopeId, revisionVersion]);
 
   const members = useMemo(() => {
     if (!scope) return [];
@@ -123,32 +127,35 @@ function ScopeRecord() {
               </Badge>
             }
             below={
-              <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 border-t border-border pt-2.5">
-                {objectives.map((o) => (
-                  <Fact key={o} label={o.slice(0, 1)}>
-                    <Badge size="xs" tone={impactTone[triad[o]]}>
-                      {triad[o]}
-                    </Badge>
+              <div className="space-y-2">
+                <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 border-t border-border pt-2.5">
+                  {objectives.map((o) => (
+                    <Fact key={o} label={o.slice(0, 1)}>
+                      <Badge size="xs" tone={impactTone[triad[o]]}>
+                        {triad[o]}
+                      </Badge>
+                    </Fact>
+                  ))}
+                  <Fact label="Controls">{set.total}</Fact>
+                  <Fact label="Overlays">{set.overlays.length}</Fact>
+                  <Fact label="Only here">{unique.length}</Fact>
+                  <Fact label="Components">{members.length}</Fact>
+                  <Fact label="Anchored to">
+                    {element ? (
+                      <Link
+                        to="/programs/$programId/components/$componentId"
+                        params={{ programId, componentId: element.id }}
+                        className="hover:underline"
+                      >
+                        {element.name}
+                      </Link>
+                    ) : (
+                      scope.element
+                    )}
                   </Fact>
-                ))}
-                <Fact label="Controls">{set.total}</Fact>
-                <Fact label="Overlays">{set.overlays.length}</Fact>
-                <Fact label="Only here">{unique.length}</Fact>
-                <Fact label="Components">{members.length}</Fact>
-                <Fact label="Anchored to">
-                  {element ? (
-                    <Link
-                      to="/programs/$programId/components/$componentId"
-                      params={{ programId, componentId: element.id }}
-                      className="hover:underline"
-                    >
-                      {element.name}
-                    </Link>
-                  ) : (
-                    scope.element
-                  )}
-                </Fact>
-              </dl>
+                </dl>
+                <RevisionStrip scopeId={scope.id} />
+              </div>
             }
           />
         }
@@ -158,6 +165,7 @@ function ScopeRecord() {
               [
                 ["Overview", null],
                 ["Control set", set.total],
+                ["Revisions", revisions.length],
                 ["Components", members.length],
               ] as [ScopeTab, number | null][]
             ).map(([key, count]) => ({
@@ -311,6 +319,10 @@ function ScopeRecord() {
           >
             <ControlTable rows={rows} programId={programId} />
           </Section>
+        ) : null}
+
+        {tab === "Revisions" ? (
+          <ControlSetRevisions programId={program.id} scopeId={scope.id} />
         ) : null}
 
         {tab === "Components" ? (

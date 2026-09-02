@@ -1093,6 +1093,67 @@ export function setNodeField(nodeId: string, patch: NodePatch) {
   for (const l of listeners) l();
 }
 
+/* ── Creation ────────────────────────────────────────────────────────────── */
+
+export type NewCompositionNode = Pick<
+  CompositionNode,
+  "id" | "name" | "kind" | "class" | "parent" | "program"
+> &
+  Partial<Omit<CompositionNode, "id" | "name" | "kind" | "class" | "parent" | "program">>;
+
+export function nextNodeId(): string {
+  const max = compositionNodes.reduce(
+    (m, n) => Math.max(m, Number(n.id.replace(/^CN-/, "")) || 0),
+    0,
+  );
+  return `CN-${String(max + 1).padStart(4, "0")}`;
+}
+
+function insertNode(input: NewCompositionNode): CompositionNode {
+  const hit = nodeById.get(input.id);
+  if (hit) return hit;
+  const node: CompositionNode = {
+    version: "—",
+    supplier: "—",
+    origin: "Internal",
+    criticality: "Mission support",
+    zone: "Enclave",
+    bomSource: "Declared",
+    bom: null,
+    partKey: `sys:${input.program.toLowerCase()}/${input.id.toLowerCase()}`,
+    asset: null,
+    attested: false,
+    note: "",
+    ...input,
+  };
+  compositionNodes.push(node);
+  nodeById.set(node.id, node);
+  if (node.parent) {
+    const kids = childIndex.get(node.parent);
+    if (kids) kids.push(node);
+    else childIndex.set(node.parent, [node]);
+  }
+  if (node.asset && !assetIndex.has(node.asset)) assetIndex.set(node.asset, node);
+  const peers = partKeyIndex.get(node.partKey);
+  if (peers) peers.push(node);
+  else partKeyIndex.set(node.partKey, [node]);
+  return node;
+}
+
+/**
+ * Declare system elements at runtime — a program's systems and subsystems as
+ * the wizard drew them. Parents must precede their children. One bump for the
+ * batch; the per-program snapshot cache is cleared so `nodesForProgram` sees
+ * the new rows.
+ */
+export function addCompositionNodes(inputs: NewCompositionNode[]): CompositionNode[] {
+  const out = inputs.map(insertNode);
+  cache.clear();
+  version += 1;
+  for (const l of listeners) l();
+  return out;
+}
+
 /* ── Selectors ───────────────────────────────────────────────────────────── */
 
 export function nodesForProgram(programId: string): CompositionNode[] {

@@ -1,42 +1,29 @@
-import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Download, ListFilter, Plus } from "lucide-react";
 
 import {
   Badge,
   Button,
-  Field,
   FilterChip,
-  Input,
   Progress,
-  NativeSelect,
   Table,
-  Textarea,
   Id,
   Dialog,
-  DatePicker,
   Checkbox,
-  Combobox,
   HoverCard,
   Pagination,
   Popover,
   RadioGroup,
-  ToggleGroup,
   Calendar,
   Spinner,
-  Stepper,
   Tabs,
   toast,
 } from "@/ds/primitives";
 import { PageHeader, IndexPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
-import {
-  baselineCounts,
-  programStatusTone,
-  programs,
-  type ImpactLevel,
-  type Program,
-} from "@/lib/grc-data";
+import { programStatusTone, programs, type Program } from "@/lib/grc-data";
+import { useProgramsVersion } from "@/lib/program-store";
 import { usePage, useSort } from "@/lib/table-state";
 
 export const Route = createFileRoute("/programs")({
@@ -71,13 +58,7 @@ function ProgramsLayout() {
   );
 }
 
-const tabs = [
-  { label: "All", count: programs.length },
-  { label: "In assessment", count: 1 },
-  { label: "Authorized", count: 1 },
-  { label: "POA&M open", count: 1 },
-  { label: "Draft", count: 1 },
-];
+const tabLabels = ["All", "In assessment", "Authorized", "POA&M open", "Draft"] as const;
 
 const programSort = {
   id: (p: Program) => p.id,
@@ -100,8 +81,6 @@ const columns = [
   { key: "expires", label: "Expires" },
 ] as const;
 type ColumnKey = (typeof columns)[number]["key"];
-
-const createSteps = ["System scope", "Categorization", "Confirm"];
 
 function ProgramPeek({ program: p }: { program: Program }) {
   return (
@@ -134,9 +113,10 @@ function ProgramPeek({ program: p }: { program: Program }) {
 }
 
 function ProgramList() {
+  const navigate = useNavigate();
+  const programsVersion = useProgramsVersion();
   const [tab, setTab] = useState("All");
   const [selected, setSelected] = useState<string[]>([]);
-  const [creating, setCreating] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [scheduling, setScheduling] = useState(false);
   const [scheduleDate, setScheduleDate] = useState<Date | undefined>(undefined);
@@ -145,12 +125,25 @@ function ProgramList() {
 
   const [impact, setImpact] = useState<(typeof impactLevels)[number]>("All");
 
+  const tabs = useMemo(
+    () =>
+      tabLabels.map((label) => ({
+        label,
+        count:
+          label === "All" ? programs.length : programs.filter((p) => p.status === label).length,
+      })),
+    // The seed array is mutated in place when a program is created.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [programsVersion],
+  );
+
   const filtered = useMemo(
     () =>
       programs.filter(
         (p) => (tab === "All" || p.status === tab) && (impact === "All" || p.impact === impact),
       ),
-    [tab, impact],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tab, impact, programsVersion],
   );
   const sort = useSort(filtered, programSort, { key: "id", dir: "asc" });
   const paged = usePage(sort.rows, 25);
@@ -164,7 +157,7 @@ function ProgramList() {
       header={
         <PageHeader
           title="Programs"
-          description="Each program scopes one system, categorizes it under FIPS-199, and assesses the tailored NIST SP 800-53 Rev. 5 baseline it inherits."
+          description="Each program scopes one or more systems, categorizes each under CNSSI 1253, and assesses the tailored NIST SP 800-53 Rev. 5 control set it selects."
           actions={
             <>
               <Button
@@ -182,7 +175,7 @@ function ProgramList() {
               >
                 {exporting ? <Spinner /> : <Download className="size-3.5" />} Export SSP
               </Button>
-              <Button variant="primary" onClick={() => setCreating(true)}>
+              <Button variant="primary" onClick={() => void navigate({ to: "/programs/new" })}>
                 <Plus className="size-3.5" /> New program
               </Button>
             </>
@@ -469,243 +462,6 @@ function ProgramList() {
           <Calendar mode="single" selected={scheduleDate} onSelect={setScheduleDate} />
         </div>
       </Dialog>
-
-      <CreateProgram open={creating} onClose={() => setCreating(false)} />
     </IndexPage>
-  );
-}
-
-/* ------------------------------------------------------- Create program */
-
-const levels: ImpactLevel[] = ["Low", "Moderate", "High"];
-const rank: Record<ImpactLevel, number> = { Low: 0, Moderate: 1, High: 2 };
-
-function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [step, setStep] = useState(1);
-  const [name, setName] = useState("");
-  const [system, setSystem] = useState("");
-  const [type, setType] = useState("Major application");
-  const [environment, setEnvironment] = useState("AWS GovCloud");
-  const [owner, setOwner] = useState("Grace Hoppel");
-  const [assessor, setAssessor] = useState("Whitcombe LLP");
-  const [c, setC] = useState<ImpactLevel>("Moderate");
-  const [i, setI] = useState<ImpactLevel>("Moderate");
-  const [a, setA] = useState<ImpactLevel>("Low");
-  const [inherit, setInherit] = useState(true);
-  const [notes, setNotes] = useState("");
-
-  const impact = levels[Math.max(rank[c], rank[i], rank[a])] as ImpactLevel;
-  const total = baselineCounts[impact];
-  const inherited = inherit ? Math.round(total * 0.16) : 0;
-
-  const close = () => {
-    onClose();
-    setStep(1);
-  };
-
-  return (
-    <Dialog
-      open={open}
-      onClose={close}
-      width="lg"
-      title="Create a program"
-      description={`Step ${step} of 3 · ${
-        step === 1
-          ? "System scope"
-          : step === 2
-            ? "FIPS-199 categorization"
-            : "Baseline and assessment"
-      }`}
-      aside={
-        <div className="space-y-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
-            Derived baseline
-          </div>
-          <div>
-            <div className="text-[20px] font-semibold tracking-[-0.02em]">NIST 800-53 Rev. 5</div>
-            <div className="mt-0.5 text-[13px] text-muted-foreground">
-              {impact} baseline · high-water mark of C/I/A
-            </div>
-          </div>
-          <dl className="divide-y divide-border border-y border-border">
-            {[
-              ["Controls in baseline", String(total)],
-              ["Inherited from idp-core", String(inherited)],
-              ["To assess", String(total - inherited)],
-              ["Confidentiality", c],
-              ["Integrity", i],
-              ["Availability", a],
-            ].map(([k, v]) => (
-              <div key={k} className="flex items-center justify-between gap-3 py-1.5">
-                <dt className="text-[12px] text-muted-foreground">{k}</dt>
-                <dd className="tnum text-[12px] font-medium text-foreground">{v}</dd>
-              </div>
-            ))}
-          </dl>
-          <p className="text-[12px] leading-relaxed text-muted-foreground">
-            Every control in the baseline is created as an assessable item linked to this program.
-            Tailoring can mark controls not applicable after creation.
-          </p>
-        </div>
-      }
-      footer={
-        <>
-          <Button variant="ghost" onClick={step === 1 ? close : () => setStep(step - 1)}>
-            {step === 1 ? "Cancel" : "Back"}
-          </Button>
-          {step < 3 ? (
-            <Button variant="primary" onClick={() => setStep(step + 1)}>
-              Continue
-            </Button>
-          ) : (
-            <Button variant="primary" onClick={close}>
-              Create program
-            </Button>
-          )}
-        </>
-      }
-    >
-      <div className="mb-4">
-        <Stepper>
-          {createSteps.map((label, i) => (
-            <Stepper.Item
-              key={label}
-              state={i + 1 < step ? "done" : i + 1 === step ? "current" : "upcoming"}
-              label={label}
-              meta={`Step ${i + 1} of ${createSteps.length}`}
-              first={i === 0}
-              last={i === createSteps.length - 1}
-              {...(i + 1 < step ? { onSelect: () => setStep(i + 1) } : {})}
-            />
-          ))}
-        </Stepper>
-      </div>
-
-      {step === 1 ? (
-        <div className="space-y-3">
-          <Field label="Program name">
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Atlas payments platform"
-            />
-          </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="System identifier" hint="Matches the inventory record.">
-              <Input
-                value={system}
-                onChange={(e) => setSystem(e.target.value)}
-                placeholder="atlas-prod"
-              />
-            </Field>
-            <Field label="System type">
-              <NativeSelect value={type} onChange={(e) => setType(e.target.value)}>
-                <option>Major application</option>
-                <option>General support system</option>
-                <option>Minor application</option>
-              </NativeSelect>
-            </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Environment">
-              <NativeSelect value={environment} onChange={(e) => setEnvironment(e.target.value)}>
-                <option>AWS GovCloud</option>
-                <option>AWS Commercial</option>
-                <option>Azure</option>
-                <option>On-premise</option>
-              </NativeSelect>
-            </Field>
-            <Field label="System owner">
-              <Combobox
-                value={owner}
-                onChange={setOwner}
-                options={["Grace Hoppel", "Marcus Ryde", "Dana Whitlock", "Priya Raghavan"].map(
-                  (name) => ({ value: name, label: name }),
-                )}
-                placeholder="Choose an owner"
-                searchPlaceholder="Search people…"
-                className="w-full"
-              />
-            </Field>
-          </div>
-        </div>
-      ) : null}
-
-      {step === 2 ? (
-        <div className="space-y-3">
-          <p className="text-[13px] text-muted-foreground">
-            Rate the potential impact of a loss for each security objective. The baseline is set by
-            the high-water mark.
-          </p>
-          <div className="divide-y divide-border border-y border-border">
-            {(
-              [
-                ["Confidentiality", c, setC],
-                ["Integrity", i, setI],
-                ["Availability", a, setA],
-              ] as const
-            ).map(([label, value, set]) => (
-              <div key={label} className="flex items-center justify-between gap-4 py-2.5">
-                <div>
-                  <div className="text-[13px] font-medium">{label}</div>
-                  <div className="text-[12px] text-muted-foreground">FIPS-199 potential impact</div>
-                </div>
-                <ToggleGroup
-                  aria-label={`${label} impact`}
-                  value={value}
-                  onChange={(v) => set(v as ImpactLevel)}
-                  items={levels.map((l) => ({ value: l, label: l }))}
-                />
-              </div>
-            ))}
-          </div>
-          <Field label="Categorization rationale">
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Processes cardholder data for settlement; loss of confidentiality has severe financial and reputational impact."
-            />
-          </Field>
-        </div>
-      ) : null}
-
-      {step === 3 ? (
-        <div className="space-y-3">
-          <div className="rounded-md border border-border px-3 py-2.5">
-            <div className="text-[13px] font-medium">NIST SP 800-53 Rev. 5 — {impact} baseline</div>
-            <div className="tnum mt-0.5 text-[12px] text-muted-foreground">
-              {total} controls and enhancements will be added to this program.
-            </div>
-          </div>
-          <Checkbox
-            checked={inherit}
-            onCheckedChange={(v) => setInherit(v === true)}
-            className="mt-0.5"
-          >
-            <span>
-              <span className="block text-[13px] font-medium">
-                Inherit common controls from idp-core
-              </span>
-              <span className="block text-[12px] text-muted-foreground">
-                IA and AC family controls provided by the corporate identity provider are marked
-                inherited and satisfied.
-              </span>
-            </span>
-          </Checkbox>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Assessor">
-              <NativeSelect value={assessor} onChange={(e) => setAssessor(e.target.value)}>
-                <option>Whitcombe LLP</option>
-                <option>Internal assessment team</option>
-                <option>Unassigned</option>
-              </NativeSelect>
-            </Field>
-            <Field label="Target authorization date">
-              <DatePicker defaultValue="2026-12-15" />
-            </Field>
-          </div>
-        </div>
-      ) : null}
-    </Dialog>
   );
 }

@@ -1487,7 +1487,13 @@ const gateDates = [
 ];
 
 export function gatesForProgram(programId: string): ProgramGate[] {
-  const cfg = programLifecycle[programId] ?? programLifecycle["PRG-1028"]!;
+  // A program created at runtime has no seeded lifecycle. A Draft one sits at
+  // the first gate with nobody assigned; anything else borrows the reference
+  // configuration as before.
+  const draft = programs.find((p) => p.id === programId)?.status === "Draft";
+  const cfg =
+    programLifecycle[programId] ??
+    (draft ? { current: lifecycleGates[0]!.id, owners: {} } : programLifecycle["PRG-1028"]!);
   const currentIndex = lifecycleGates.findIndex((g) => g.id === cfg.current);
   return lifecycleGates.map((gate, i) => {
     const base: ProgramGate = {

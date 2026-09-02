@@ -244,13 +244,17 @@ function buildMatrix(programId: string): ControlRow[] {
     (a, b) => (familyOrder.get(a[0]) ?? 99) - (familyOrder.get(b[0]) ?? 99),
   );
 
+  // A Draft program has assessed nothing; the synthetic family posture is for
+  // the seeded programs mid-assessment.
+  const draft = programs.find((p) => p.id === programId)?.status === "Draft";
+
   for (const [famId, famControls] of families) {
     const posture = familyPosture.get(famId);
-    const owner = posture?.owner ?? "Unassigned";
+    const owner = draft ? "Unassigned" : (posture?.owner ?? "Unassigned");
     const total = famControls.length;
-    const satisfiedCount = Math.round(total * (posture?.posture.satisfied ?? 0.8));
-    const partialCount = Math.round(total * (posture?.posture.partial ?? 0.1));
-    const otherCount = Math.round(total * (posture?.posture.other ?? 0.05));
+    const satisfiedCount = draft ? 0 : Math.round(total * (posture?.posture.satisfied ?? 0.8));
+    const partialCount = draft ? 0 : Math.round(total * (posture?.posture.partial ?? 0.1));
+    const otherCount = draft ? 0 : Math.round(total * (posture?.posture.other ?? 0.05));
 
     // Spread the family rollup across the list deterministically so the matrix
     // doesn't read as one satisfied block followed by one failing block.

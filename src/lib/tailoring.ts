@@ -387,6 +387,26 @@ export function overlayFor(control: OverlayControl, result: TailoringResult) {
   return result.overlays.find((o) => o.controls.includes(control));
 }
 
+/**
+ * Every overlay in the catalog with whether the parameters recommend it.
+ * `§5.1`: rules produce recommendations; the authority records the decision —
+ * so a tailoring surface offers the unrecommended ones too, and a decision
+ * that disagrees with the recommendation carries a rationale.
+ */
+export function overlayOptions(p: SystemParameters): { overlay: Overlay; recommended: boolean }[] {
+  return overlayCatalog.map(({ applies, ...overlay }) => ({
+    overlay,
+    recommended: applies(p),
+  }));
+}
+
+export function overlayById(id: string): Overlay | null {
+  const hit = overlayCatalog.find((o) => o.id === id);
+  if (!hit) return null;
+  const { applies: _applies, ...overlay } = hit;
+  return overlay;
+}
+
 /* ------------------------------------------------------- Scope approval */
 
 export type ApprovalState = "Draft" | "Pending PM approval" | "Approved" | "Changes requested";

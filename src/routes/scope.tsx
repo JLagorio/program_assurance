@@ -1,26 +1,35 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Badge, Button, Table, Id, Item, Tabs } from "@/ds/primitives";
+import { Badge, Table, Id, Item, Tabs } from "@/ds/primitives";
 import { PageHeader, Section, IndexPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
+import {
+  decidedRevisions,
+  pendingRevisions,
+  resolveDraft,
+  revisionTone,
+  useControlSetVersion,
+  type ControlSetRevision,
+  type RevisionState,
+} from "@/lib/control-set";
 import { programs } from "@/lib/grc-data";
-import { approvalTone, scopeApprovals, type ApprovalState } from "@/lib/tailoring";
+import { scopeById } from "@/lib/scopes";
 
 export const Route = createFileRoute("/scope")({
   head: () => ({
     meta: [
-      { title: "Scope approvals — Equinox GRC" },
+      { title: "Control-set approvals — Equinox GRC" },
       {
         name: "description",
         content:
-          "Shared dashboard where program managers approve the tailored NIST SP 800-53 control scope and DoD overlays before engineering begins.",
+          "The approver's queue: control-set revisions awaiting the program manager, and the ones recently decided, across every program.",
       },
-      { property: "og:title", content: "Scope approvals — Equinox GRC" },
+      { property: "og:title", content: "Control-set approvals — Equinox GRC" },
       {
         property: "og:description",
         content:
-          "Program managers review and approve tailored control baselines and CNSSI 1253 overlays per program.",
+          "Program managers approve each scope's categorization, overlays and tailoring as a versioned control-set revision.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -29,19 +38,31 @@ export const Route = createFileRoute("/scope")({
   component: ScopeApprovals,
 });
 
-const filters: (ApprovalState | "All")[] = [
+const filters: (RevisionState | "All")[] = [
   "All",
-  "Pending PM approval",
+  "Pending approval",
   "Approved",
   "Changes requested",
 ];
 
 function ScopeApprovals() {
+  const version = useControlSetVersion();
   const [tab, setTab] = useState<(typeof filters)[number]>("All");
 
+  const all = useMemo(() => {
+    const seen = new Set<string>();
+    const out: ControlSetRevision[] = [];
+    for (const r of [...pendingRevisions(), ...decidedRevisions()]) {
+      if (seen.has(r.id)) continue;
+      seen.add(r.id);
+      out.push(r);
+    }
+    return out;
+  }, [version]);
+
   const rows = useMemo(
-    () => (tab === "All" ? scopeApprovals : scopeApprovals.filter((a) => a.state === tab)),
-    [tab],
+    () => (tab === "All" ? all : all.filter((r) => r.state === tab)),
+    [all, tab],
   );
 
   return (
@@ -49,8 +70,8 @@ function ScopeApprovals() {
       <IndexPage
         header={
           <PageHeader
-            title="Scope approvals"
-            description="Systems security engineers submit the tailored baseline and overlays; the program manager approves the compliance scope before engineering commits to it."
+            title="Control-set approvals"
+            description="Engineers propose a scope's categorization, overlays and tailoring as a revision; the program manager approves it before it takes effect."
           />
         }
       >
@@ -62,67 +83,66 @@ function ScopeApprovals() {
             onSelect: () => setTab(f),
             trailing: (
               <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                {f === "All"
-                  ? scopeApprovals.length
-                  : scopeApprovals.filter((a) => a.state === f).length}
+                {f === "All" ? all.length : all.filter((r) => r.state === f).length}
               </span>
             ),
           }))}
         />
 
         <Section
-          title="Awaiting decision"
-          description="Engineering should not baseline controls until the scope is approved."
+          title="Revisions"
+          description="Nothing below the revision in force moves until the proposal is decided."
         >
           <Table className="table-fixed">
             <thead>
               <tr>
                 <Table.Header className="w-[104px]">Program</Table.Header>
-                <Table.Header>System</Table.Header>
-                <Table.Header className="w-[164px]">Scope state</Table.Header>
-                <Table.Header className="w-[168px]">Submitted by</Table.Header>
+                <Table.Header className="w-[200px]">Scope</Table.Header>
+                <Table.Header className="w-[52px]">Rev</Table.Header>
+                <Table.Header className="w-[150px]">State</Table.Header>
+                <Table.Header>Reason</Table.Header>
+                <Table.Header className="w-[130px]">Author</Table.Header>
                 <Table.Header className="w-[112px]">Submitted</Table.Header>
-                <Table.Header className="w-[76px] text-right">Ctrls</Table.Header>
-                <Table.Header className="w-[76px] text-right">Ovl</Table.Header>
+                <Table.Header className="w-[72px] text-right">Ctrls</Table.Header>
                 <Table.Header className="w-[168px]">Decision</Table.Header>
-                <Table.Header className="w-[92px] text-right">Action</Table.Header>
+                <Table.Header className="w-[76px] text-right">Action</Table.Header>
               </tr>
             </thead>
             <tbody>
-              {rows.map((a) => {
-                const program = programs.find((p) => p.id === a.programId);
+              {rows.map((r) => {
+                const program = programs.find((p) => p.id === r.program);
+                const scope = scopeById.get(r.scope);
                 return (
-                  <Table.Row key={a.programId}>
+                  <Table.Row key={r.id}>
                     <Table.Cell className="w-[104px]">
-                      <Id>{a.programId}</Id>
+                      <Id>{r.program}</Id>
                     </Table.Cell>
-                    <Table.Cell className="truncate">
-                      {program ? (
-                        program.name
-                      ) : (
-                        <span className="font-normal text-muted-foreground">
-                          Not in your enclave
-                        </span>
-                      )}
+                    <Table.Cell className="w-[200px] truncate">{scope?.name ?? r.scope}</Table.Cell>
+                    <Table.Cell className="w-[52px]">
+                      <Id>v{r.number}</Id>
                     </Table.Cell>
-                    <Table.Cell className="w-[164px]">
-                      <Badge tone={approvalTone[a.state]}>{a.state}</Badge>
+                    <Table.Cell className="w-[150px]">
+                      <Badge tone={revisionTone[r.state]}>{r.state}</Badge>
                     </Table.Cell>
-                    <Table.Cell className="w-[168px] truncate">{a.submittedBy}</Table.Cell>
-                    <Table.Cell className="tnum w-[112px]">{a.submitted}</Table.Cell>
-                    <Table.Cell className="tnum w-[76px] text-right">{a.controlCount}</Table.Cell>
-                    <Table.Cell className="tnum w-[76px] text-right">{a.overlayCount}</Table.Cell>
+                    <Table.Cell className="truncate" title={r.reason}>
+                      {r.reason}
+                    </Table.Cell>
+                    <Table.Cell className="w-[130px] truncate">{r.author}</Table.Cell>
+                    <Table.Cell className="tnum w-[112px]">{r.submitted ?? "—"}</Table.Cell>
+                    <Table.Cell className="tnum w-[72px] text-right">
+                      {resolveDraft(r).total}
+                    </Table.Cell>
                     <Table.Cell className="w-[168px] truncate">
-                      {a.decidedBy ? `${a.decidedBy} · ${a.decided}` : "—"}
+                      {r.decidedBy
+                        ? `${r.decidedBy.replace(/\s*\(.*\)$/, "")} · ${r.decided}`
+                        : "—"}
                     </Table.Cell>
-                    <Table.Cell className="w-[92px] text-right">
-                      {/* A program the viewer cannot open gets no Review link —
-                          the same treatment inheritance and the component
-                          library give an id outside the enclave. */}
-                      {program ? (
+                    <Table.Cell className="w-[76px] text-right">
+                      {program && scope ? (
                         <Link
-                          to="/programs/$programId"
-                          params={{ programId: a.programId }}
+                          to="/programs/$programId/systems/$scopeId"
+                          params={{ programId: r.program, scopeId: r.scope }}
+                          search={{ tab: "Revisions" }}
                           className="text-[13px] text-primary hover:underline"
                         >
                           Review
@@ -139,25 +159,21 @@ function ScopeApprovals() {
         </Section>
 
         <Section title="Decision notes">
-          <Item.Group>
-            {scopeApprovals
-              .filter((a) => a.note)
-              .map((a) => (
+          <Item.Group empty="No decision has carried a note yet.">
+            {all
+              .filter((r) => r.note)
+              .map((r) => (
                 <Item
-                  key={a.programId}
-                  id={a.programId}
-                  idWidth={88}
-                  title={a.note}
-                  meta={a.decidedBy}
-                  trailing={a.decided}
+                  key={r.id}
+                  id={`${r.scope} v${r.number}`}
+                  idWidth={120}
+                  title={r.note}
+                  meta={r.decidedBy ?? undefined}
+                  trailing={r.decided ?? undefined}
                 />
               ))}
           </Item.Group>
         </Section>
-
-        <div className="flex justify-end">
-          <Button variant="secondary">Export scope decisions</Button>
-        </div>
       </IndexPage>
     </Shell>
   );

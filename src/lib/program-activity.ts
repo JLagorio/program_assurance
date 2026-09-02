@@ -72,7 +72,8 @@ function timestamp(value: string, fallback: number): number {
 export function programActivity(program: Program, now = Date.now()): ActivityEvent[] {
   const out: ActivityEvent[] = [];
 
-  programTimeline.forEach((e, i) => {
+  // The assessment log is seeded for Atlas only; other programs have none.
+  (program.id === "PRG-1041" ? programTimeline : []).forEach((e, i) => {
     out.push({
       id: `tl-${i}`,
       kind: "Assessment",

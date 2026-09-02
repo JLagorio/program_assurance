@@ -27,6 +27,7 @@ import { Route as PackagesIndexRouteImport } from './routes/packages.index'
 import { Route as PackagesPkgIdRouteImport } from './routes/packages.$pkgId'
 import { Route as PeoplePersonIdRouteImport } from './routes/people.$personId'
 import { Route as ProgramsProgramIdRouteImport } from './routes/programs.$programId'
+import { Route as ProgramsNewRouteImport } from './routes/programs.new'
 import { Route as RegisterIndexRouteImport } from './routes/register.index'
 import { Route as RisksRiskIdRouteImport } from './routes/risks.$riskId'
 import { Route as WorkstreamsWorkstreamIdRouteImport } from './routes/workstreams.$workstreamId'
@@ -138,6 +139,11 @@ const PeoplePersonIdRoute = PeoplePersonIdRouteImport.update({
 const ProgramsProgramIdRoute = ProgramsProgramIdRouteImport.update({
   id: '/$programId',
   path: '/$programId',
+  getParentRoute: () => ProgramsRoute,
+} as any)
+const ProgramsNewRoute = ProgramsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
   getParentRoute: () => ProgramsRoute,
 } as any)
 const RegisterIndexRoute = RegisterIndexRouteImport.update({
@@ -279,6 +285,7 @@ export interface FileRoutesByFullPath {
   '/packages/$pkgId': typeof PackagesPkgIdRoute
   '/people/$personId': typeof PeoplePersonIdRoute
   '/programs/$programId': typeof ProgramsProgramIdRoute
+  '/programs/new': typeof ProgramsNewRoute
   '/risks/$riskId': typeof RisksRiskIdRoute
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/findings/': typeof FindingsIndexRoute
@@ -321,6 +328,7 @@ export interface FileRoutesByTo {
   '/packages/$pkgId': typeof PackagesPkgIdRoute
   '/people/$personId': typeof PeoplePersonIdRoute
   '/programs/$programId': typeof ProgramsProgramIdRoute
+  '/programs/new': typeof ProgramsNewRoute
   '/risks/$riskId': typeof RisksRiskIdRoute
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/findings': typeof FindingsIndexRoute
@@ -364,6 +372,7 @@ export interface FileRoutesById {
   '/packages/$pkgId': typeof PackagesPkgIdRoute
   '/people/$personId': typeof PeoplePersonIdRoute
   '/programs/$programId': typeof ProgramsProgramIdRoute
+  '/programs/new': typeof ProgramsNewRoute
   '/risks/$riskId': typeof RisksRiskIdRoute
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/findings/': typeof FindingsIndexRoute
@@ -408,6 +417,7 @@ export interface FileRouteTypes {
     | '/packages/$pkgId'
     | '/people/$personId'
     | '/programs/$programId'
+    | '/programs/new'
     | '/risks/$riskId'
     | '/workstreams/$workstreamId'
     | '/findings/'
@@ -450,6 +460,7 @@ export interface FileRouteTypes {
     | '/packages/$pkgId'
     | '/people/$personId'
     | '/programs/$programId'
+    | '/programs/new'
     | '/risks/$riskId'
     | '/workstreams/$workstreamId'
     | '/findings'
@@ -492,6 +503,7 @@ export interface FileRouteTypes {
     | '/packages/$pkgId'
     | '/people/$personId'
     | '/programs/$programId'
+    | '/programs/new'
     | '/risks/$riskId'
     | '/workstreams/$workstreamId'
     | '/findings/'
@@ -672,6 +684,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProgramsProgramIdRouteImport
       parentRoute: typeof ProgramsRoute
     }
+    '/programs/new': {
+      id: '/programs/new'
+      path: '/new'
+      fullPath: '/programs/new'
+      preLoaderRoute: typeof ProgramsNewRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
     '/register/': {
       id: '/register/'
       path: '/register'
@@ -843,6 +862,7 @@ const CampaignsRouteWithChildren = CampaignsRoute._addFileChildren(
 
 interface ProgramsRouteChildren {
   ProgramsProgramIdRoute: typeof ProgramsProgramIdRoute
+  ProgramsNewRoute: typeof ProgramsNewRoute
   ProgramsProgramIdBaselineRoute: typeof ProgramsProgramIdBaselineRoute
   ProgramsProgramIdCompositionRoute: typeof ProgramsProgramIdCompositionRoute
   ProgramsProgramIdConmonRoute: typeof ProgramsProgramIdConmonRoute
@@ -861,6 +881,7 @@ interface ProgramsRouteChildren {
 
 const ProgramsRouteChildren: ProgramsRouteChildren = {
   ProgramsProgramIdRoute: ProgramsProgramIdRoute,
+  ProgramsNewRoute: ProgramsNewRoute,
   ProgramsProgramIdBaselineRoute: ProgramsProgramIdBaselineRoute,
   ProgramsProgramIdCompositionRoute: ProgramsProgramIdCompositionRoute,
   ProgramsProgramIdConmonRoute: ProgramsProgramIdConmonRoute,
