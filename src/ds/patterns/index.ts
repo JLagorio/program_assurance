@@ -2,6 +2,7 @@ export * from "./archetypes";
 export * from "./card";
 export * from "./empty";
 export * from "./page-header";
+export * from "./page-skeleton";
 export * from "./preview-rail";
 export * from "./record-header";
 export * from "./related";

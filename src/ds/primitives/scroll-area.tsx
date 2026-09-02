@@ -16,8 +16,11 @@ export function ScrollArea({
   children: ReactNode;
 }) {
   return (
-    <ScrollAreaPrimitive.Root type="hover" className={cn("relative overflow-hidden", className)}>
-      <ScrollAreaPrimitive.Viewport className="size-full rounded-[inherit]">
+    <ScrollAreaPrimitive.Root
+      type="hover"
+      className={cn("relative flex flex-col overflow-hidden", className)}
+    >
+      <ScrollAreaPrimitive.Viewport className="size-full min-h-0 flex-1 rounded-[inherit]">
         {children}
       </ScrollAreaPrimitive.Viewport>
       {orientation !== "horizontal" ? <Bar orientation="vertical" /> : null}

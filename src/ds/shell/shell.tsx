@@ -25,8 +25,10 @@ import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
+import { IconButton } from "../primitives/button";
 import { Input } from "../primitives/controls";
 import { InputGroup } from "../primitives/input-group";
+import { Tooltip } from "../primitives/tooltip";
 
 /**
  * The sidebar holds objects and queues. It never holds phases — a phase is a
@@ -177,13 +179,18 @@ function TopBar() {
         <span className="mr-2 hidden items-center gap-1.5 rounded-md bg-warning-soft px-2 py-1 text-[12px] font-medium text-warning sm:inline-flex">
           Audit window open
         </span>
-        {[CircleHelp, Bell, Settings].map((Icon, i) => (
-          <button
-            key={i}
-            className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <Icon className="size-4" strokeWidth={1.9} />
-          </button>
+        {(
+          [
+            [CircleHelp, "Help and shortcuts"],
+            [Bell, "Notifications"],
+            [Settings, "Settings"],
+          ] as const
+        ).map(([Icon, label]) => (
+          <Tooltip key={label} content={label}>
+            <IconButton aria-label={label} className="shadow-none hover:bg-muted">
+              <Icon className="size-4" strokeWidth={1.9} />
+            </IconButton>
+          </Tooltip>
         ))}
       </div>
     </header>

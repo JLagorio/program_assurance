@@ -3,11 +3,14 @@ import { ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Id } from "../primitives/id";
+import { Tooltip } from "../primitives/tooltip";
 
-/** Compact record-page header: back chevron, id, title, meta — no breadcrumb. */
+/** Compact record-page header: back chevron, id, title, meta. A `breadcrumb`
+    above the row places a sub-page under its parent record. */
 export function RecordHeader({
   backTo,
   backParams,
+  breadcrumb,
   id,
   title,
   meta,
@@ -16,6 +19,7 @@ export function RecordHeader({
 }: {
   backTo: string;
   backParams?: Record<string, string>;
+  breadcrumb?: ReactNode;
   id: ReactNode;
   title: ReactNode;
   meta?: ReactNode;
@@ -25,15 +29,18 @@ export function RecordHeader({
 }) {
   return (
     <div className="space-y-2.5">
+      {breadcrumb ? <div className="pl-[34px]">{breadcrumb}</div> : null}
       <div className="flex items-start gap-2.5">
-        <Link
-          to={backTo}
-          params={backParams as never}
-          aria-label="Back"
-          className="mt-1 inline-flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <ChevronLeft className="size-4" />
-        </Link>
+        <Tooltip content="Back">
+          <Link
+            to={backTo}
+            params={backParams as never}
+            aria-label="Back"
+            className="mt-1 inline-flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <ChevronLeft className="size-4" />
+          </Link>
+        </Tooltip>
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
             <Id className="text-muted-foreground">{id}</Id>

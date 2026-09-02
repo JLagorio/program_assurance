@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 
 import { Checkbox } from "./controls";
 import { Id } from "./id";
+import { Tooltip } from "./tooltip";
 
 function TableRoot({ className, ...props }: ComponentProps<"table">) {
   return (
@@ -119,23 +120,24 @@ function IdCell({
           {id}
         </Id>
         {onPreview ? (
-          <button
-            type="button"
-            aria-label="Preview row"
-            title="Preview"
-            onClick={(e) => {
-              e.stopPropagation();
-              onPreview();
-            }}
-            className={cn(
-              "ml-auto inline-flex size-5 shrink-0 items-center justify-center rounded transition-colors focus-visible:opacity-100 focus-visible:outline-none",
-              active
-                ? "bg-primary-soft text-primary opacity-100"
-                : "text-muted-foreground opacity-0 hover:bg-muted hover:text-foreground group-hover/row:opacity-100",
-            )}
-          >
-            <Eye className="size-3.5" />
-          </button>
+          <Tooltip content="Preview">
+            <button
+              type="button"
+              aria-label="Preview row"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPreview();
+              }}
+              className={cn(
+                "ml-auto inline-flex size-5 shrink-0 items-center justify-center rounded transition-colors focus-visible:opacity-100 focus-visible:outline-none",
+                active
+                  ? "bg-primary-soft text-primary opacity-100"
+                  : "text-muted-foreground opacity-0 hover:bg-muted hover:text-foreground group-hover/row:opacity-100",
+              )}
+            >
+              <Eye className="size-3.5" />
+            </button>
+          </Tooltip>
         ) : null}
       </span>
     </Table.Cell>

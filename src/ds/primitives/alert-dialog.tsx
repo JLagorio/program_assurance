@@ -72,8 +72,8 @@ export function AlertDialog({
                   variant={tone === "danger" ? "danger" : "primary"}
                   disabled={pending}
                   onClick={(e) => {
-                    if (pending) e.preventDefault();
-                    onConfirm();
+                    e.preventDefault();
+                    if (!pending) onConfirm();
                   }}
                 >
                   {pending ? <Spinner className="text-primary-foreground" /> : null}
