@@ -15,6 +15,7 @@ import {
   Id,
   Dialog,
   DatePicker,
+  Checkbox,
 } from "@/ds/primitives";
 import { PageHeader, IndexPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
@@ -146,7 +147,18 @@ function ProgramList() {
       <Table>
         <thead>
           <tr>
-            <Table.Header className="w-8 pr-0" />
+            <Table.Selection
+              header
+              checked={
+                selected.length > 0 && selected.length === rows.length
+                  ? true
+                  : selected.length > 0
+                    ? "indeterminate"
+                    : false
+              }
+              onCheckedChange={(next) => setSelected(next ? rows.map((r) => r.id) : [])}
+              label="Select all programs"
+            />
             <Table.Header className="w-[92px]">Program</Table.Header>
             <Table.Header>System</Table.Header>
             <Table.Header className="w-[104px]">Impact</Table.Header>
@@ -161,16 +173,12 @@ function ProgramList() {
           {rows.map((p) => {
             const pct = Math.round((p.controlsAssessed / p.controlsTotal) * 100);
             return (
-              <Table.Row key={p.id} className="group">
-                <Table.Cell className="w-8 pr-0">
-                  <input
-                    type="checkbox"
-                    aria-label={`Select ${p.id}`}
-                    checked={selected.includes(p.id)}
-                    onChange={() => toggle(p.id)}
-                    className="size-3.5 accent-[oklch(0.55_0.19_258)]"
-                  />
-                </Table.Cell>
+              <Table.Row key={p.id} className="group" selected={selected.includes(p.id)}>
+                <Table.Selection
+                  checked={selected.includes(p.id)}
+                  onCheckedChange={() => toggle(p.id)}
+                  label={`Select ${p.id}`}
+                />
                 <Table.Cell className="w-[92px]">
                   <Id>{p.id}</Id>
                 </Table.Cell>
@@ -430,13 +438,11 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
               {total} controls and enhancements will be added to this program.
             </div>
           </div>
-          <label className="flex items-start gap-2.5 py-1">
-            <input
-              type="checkbox"
-              checked={inherit}
-              onChange={(e) => setInherit(e.target.checked)}
-              className="mt-0.5 size-3.5 accent-[oklch(0.55_0.19_258)]"
-            />
+          <Checkbox
+            checked={inherit}
+            onCheckedChange={(v) => setInherit(v === true)}
+            className="mt-0.5"
+          >
             <span>
               <span className="block text-[13px] font-medium">
                 Inherit common controls from idp-core
@@ -446,7 +452,7 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
                 inherited and satisfied.
               </span>
             </span>
-          </label>
+          </Checkbox>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Assessor">
               <NativeSelect value={assessor} onChange={(e) => setAssessor(e.target.value)}>

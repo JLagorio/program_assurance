@@ -657,7 +657,18 @@ export function CdrPackageModal({
         <Table className="table-fixed">
           <thead>
             <tr>
-              <Table.Header className="w-[34px] pr-0" aria-label="Include" />
+              <Table.Selection
+                header
+                checked={
+                  included.length > 0 && included.length === sspSections.length
+                    ? true
+                    : included.length > 0
+                      ? "indeterminate"
+                      : false
+                }
+                onCheckedChange={(next) => setIncluded(next ? sspSections.map((s) => s.id) : [])}
+                label="Include all sections"
+              />
               <Table.Header>Section</Table.Header>
               <Table.Header className="w-[76px] text-right">Controls</Table.Header>
               <Table.Header className="w-[76px] text-right">Evidence</Table.Header>
@@ -667,15 +678,11 @@ export function CdrPackageModal({
           <tbody>
             {sspSections.map((s) => (
               <Table.Row key={s.id}>
-                <Table.Cell className="w-[34px] overflow-visible pr-0 text-clip">
-                  <input
-                    type="checkbox"
-                    className="size-3.5 accent-[oklch(0.55_0.19_258)]"
-                    checked={included.includes(s.id)}
-                    onChange={() => toggle(s.id)}
-                    aria-label={`Include ${s.name}`}
-                  />
-                </Table.Cell>
+                <Table.Selection
+                  checked={included.includes(s.id)}
+                  onCheckedChange={() => toggle(s.id)}
+                  label={`Include ${s.name}`}
+                />
                 <Table.Cell title={s.description}>{s.name}</Table.Cell>
                 <Table.Cell className="tnum w-[76px] text-right">{s.controls || "—"}</Table.Cell>
                 <Table.Cell className="tnum w-[76px] text-right">{s.evidence}</Table.Cell>

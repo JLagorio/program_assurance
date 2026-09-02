@@ -39,7 +39,7 @@ import { Fragment, useMemo, useState } from "react";
 import { Download } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Badge, Button, Table, Id, Absent } from "@/ds/primitives";
+import { Badge, Button, Table, Id, Absent, CodeBlock } from "@/ds/primitives";
 import { Empty } from "@/ds/patterns";
 import {
   digestAlgorithm,
@@ -298,20 +298,12 @@ export function OscalViewer({
         </span>
       </div>
 
-      <div className="max-h-[560px] overflow-auto rounded-md border border-border bg-subtle">
-        <pre className="w-max min-w-full py-1 font-mono text-[11.5px] leading-[1.55]">
-          {slice.map((line, i) => (
-            <div key={from + i} className="flex">
-              <span className="sticky left-0 w-[68px] shrink-0 select-none border-r border-border bg-subtle px-2 text-right text-muted-foreground">
-                {from + i + 1}
-              </span>
-              <span className="px-3">
-                <JsonLine line={line} />
-              </span>
-            </div>
-          ))}
-        </pre>
-      </div>
+      <CodeBlock
+        start={from + 1}
+        lines={slice.map((line) => (
+          <JsonLine line={line} />
+        ))}
+      />
 
       <p className="text-[12px] text-muted-foreground">
         The block above is the serialised document itself — two-space indent and a trailing newline,

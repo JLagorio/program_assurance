@@ -145,15 +145,18 @@ function RiskList() {
         <Table>
           <thead>
             <tr>
-              <Table.Header className="w-8">
-                <input
-                  type="checkbox"
-                  aria-label="Select all"
-                  checked={selected.length === rows.length && rows.length > 0}
-                  onChange={(e) => setSelected(e.target.checked ? rows.map((r) => r.id) : [])}
-                  className="size-3.5 accent-[var(--primary)]"
-                />
-              </Table.Header>
+              <Table.Selection
+                header
+                checked={
+                  selected.length > 0 && selected.length === rows.length
+                    ? true
+                    : selected.length > 0
+                      ? "indeterminate"
+                      : false
+                }
+                onCheckedChange={(next) => setSelected(next ? rows.map((r) => r.id) : [])}
+                label="Select all risks"
+              />
               <Table.Header className="w-[92px]">ID</Table.Header>
               <Table.Header>Risk</Table.Header>
               <Table.Header className="w-[88px]">Framework</Table.Header>
@@ -167,16 +170,12 @@ function RiskList() {
           </thead>
           <tbody>
             {rows.map((risk) => (
-              <Table.Row key={risk.id} className="group">
-                <Table.Cell>
-                  <input
-                    type="checkbox"
-                    aria-label={`Select ${risk.id}`}
-                    checked={selected.includes(risk.id)}
-                    onChange={() => toggle(risk.id)}
-                    className="size-3.5 accent-[var(--primary)]"
-                  />
-                </Table.Cell>
+              <Table.Row key={risk.id} className="group" selected={selected.includes(risk.id)}>
+                <Table.Selection
+                  checked={selected.includes(risk.id)}
+                  onCheckedChange={() => toggle(risk.id)}
+                  label={`Select ${risk.id}`}
+                />
                 <Table.Cell>
                   <Id>{risk.id}</Id>
                 </Table.Cell>

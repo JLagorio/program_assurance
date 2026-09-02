@@ -13,6 +13,7 @@ import {
   Id,
   Dialog,
   Timeline,
+  Checkbox,
 } from "@/ds/primitives";
 import { Section } from "@/ds/patterns";
 import {
@@ -371,15 +372,13 @@ export function TailoringSection({
                 ["safetyCritical", "Safety-critical function"],
               ] as const
             ).map(([key, label]) => (
-              <label key={key} className="flex items-center gap-2 text-[12.5px]">
-                <input
-                  type="checkbox"
-                  className="size-3.5 accent-[oklch(0.55_0.19_255)]"
-                  checked={draft[key]}
-                  onChange={(e) => setDraft({ ...draft, [key]: e.target.checked })}
-                />
+              <Checkbox
+                key={key}
+                checked={draft[key]}
+                onCheckedChange={(v) => setDraft({ ...draft, [key]: v === true })}
+              >
                 {label}
-              </label>
+              </Checkbox>
             ))}
           </div>
         </div>
