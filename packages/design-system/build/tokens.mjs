@@ -189,6 +189,9 @@ for (const token of all) {
       utilityBlocks.push(`@utility ${u.cls} {\n  height: var(${v});\n}`);
       utilityBlocks.push(`@utility ${u.sizeCls} {\n  width: var(${v});\n  height: var(${v});\n}`);
       allClasses.push(u.sizeCls);
+      const minW = `min-w-${u.cls.slice(2)}`; // a control that grows with its content but never below square
+      utilityBlocks.push(`@utility ${minW} {\n  min-width: var(${v});\n}`);
+      allClasses.push(minW);
       groups.h.push(u.cls.slice(2));
       groups.size.push(u.sizeCls.slice(5));
     } else {

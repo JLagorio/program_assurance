@@ -1,0 +1,34 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Overlays.stories";
+
+<Meta of={Stories} />
+
+# Overlays
+
+Everything that floats over the page, from the smallest label to a full task. Every one is Radix (or vaul for the Drawer) underneath: focus moves in and back, Escape closes, the page behind stops scrolling where it should. The surfaces share one recipe: `elevation.surface.overlay`, the overlay shadow, the large radius, the enter and exit motion.
+
+<Canvas of={Stories.Anchored} />
+
+## Which one
+
+| Need | Use | Opens on |
+| --- | --- | --- |
+| A short label | **Tooltip** | Hover or focus, after a delay |
+| A peek at a record: a few facts, no actions | **HoverCard** | Hover or focus, after a longer delay |
+| A small task: a filter form, a picker, a confirmation | **Popover** | Click |
+| A list of actions or options | **DropdownMenu** | Click, Enter, Space, ArrowDown |
+| A focused task over the page | **Dialog** | The caller's state |
+| A detail surface that leaves the page visible | **Sheet** | The caller's state |
+| The bottom sheet, for narrow screens and quick actions | **Drawer** | The caller's state |
+| A decision that needs a word before it happens | **AlertDialog** | The caller's state |
+
+<Canvas of={Stories.Modal} />
+
+## Rules
+
+- A Dialog has a title, a body, and a footer of actions with the primary on the right. Header and footer stay put while a long body scrolls. An `aside` puts facts beside the body.
+- An AlertDialog has no close button and does not close on an outside click. `pending` holds it open with the confirm button busy while the caller saves. Use `tone="danger"` when the action destroys.
+- A Sheet defaults to the end edge at 420px. Use it for a record's detail when the list behind should stay in view.
+- The blanket is `color.blanket`; nothing else paints it.
+- Triggers are elements: `trigger={<Button>…</Button>}` or the child of a Tooltip. The component clones the element and adds the aria; the element must take a ref and spread its props.

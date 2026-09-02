@@ -12,3 +12,4 @@
 @import "../generated/theme.css";
 @import "../generated/tokens.css";
 @import "../generated/utilities.css";
+@import "./motion.css";

@@ -8,7 +8,7 @@ export const mergeConfig = {
     "icon": [{ "icon": ["default","subtle","subtlest","disabled","inverse","selected","brand","danger","warning","warning-inverse","success","information"] }],
     "border-color": [{ "border": ["default","bold","disabled","focused","input","inverse","selected","brand","danger","danger-subtle","warning","warning-subtle","success","success-subtle","information","information-subtle"] }],
     "border-w": [{ "border-w": ["selected","focused","default"] }],
-    "font-family": [{ "font": ["body-large","body-small","body-xsmall","body","heading-medium","heading-small","heading-xsmall","code"] }],
+    "font-family": [{ "font": ["body-large","body-small","body-xsmall","body","heading-medium","heading-small","heading-xsmall","heading-xxsmall","code"] }],
     "font-weight": [{ "font": ["regular","medium","semibold"] }],
     "rounded": [{ "rounded": ["xsmall","small","medium","large","xlarge","xxlarge","full"] }],
     "shadow": [{ "shadow": ["raised","overlay","overflow"] }],

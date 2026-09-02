@@ -1,0 +1,84 @@
+/* Motion on the motion tokens. Radix and vaul set data-state on what they open, so a component
+   pairs data-[state=open]:animate-enter with data-[state=closed]:animate-exit. The durations and
+   the easing are the tokens; nothing here names a number. */
+@keyframes ds-enter {
+  from { opacity: 0; transform: scale(0.98); }
+}
+@keyframes ds-exit {
+  to { opacity: 0; transform: scale(0.98); }
+}
+@keyframes ds-fade-in {
+  from { opacity: 0; }
+}
+@keyframes ds-fade-out {
+  to { opacity: 0; }
+}
+@keyframes ds-slide-in-end {
+  from { transform: translateX(100%); }
+}
+@keyframes ds-slide-out-end {
+  to { transform: translateX(100%); }
+}
+@keyframes ds-slide-in-start {
+  from { transform: translateX(-100%); }
+}
+@keyframes ds-slide-out-start {
+  to { transform: translateX(-100%); }
+}
+@keyframes ds-slide-in-bottom {
+  from { transform: translateY(100%); }
+}
+@keyframes ds-slide-out-bottom {
+  to { transform: translateY(100%); }
+}
+@keyframes ds-slide-in-top {
+  from { transform: translateY(-100%); }
+}
+@keyframes ds-slide-out-top {
+  to { transform: translateY(-100%); }
+}
+
+@utility animate-enter {
+  animation: ds-enter var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+}
+@utility animate-exit {
+  animation: ds-exit var(--ds-motion-duration-fast) var(--ds-motion-easing-standard) both;
+}
+@utility animate-fade-in {
+  animation: ds-fade-in var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+}
+@utility animate-fade-out {
+  animation: ds-fade-out var(--ds-motion-duration-fast) var(--ds-motion-easing-standard) both;
+}
+@utility animate-slide-in-end {
+  animation: ds-slide-in-end var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+}
+@utility animate-slide-out-end {
+  animation: ds-slide-out-end var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+}
+@utility animate-slide-in-start {
+  animation: ds-slide-in-start var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+}
+@utility animate-slide-out-start {
+  animation: ds-slide-out-start var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+}
+@utility animate-slide-in-bottom {
+  animation: ds-slide-in-bottom var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+}
+@utility animate-slide-out-bottom {
+  animation: ds-slide-out-bottom var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+}
+@utility animate-slide-in-top {
+  animation: ds-slide-in-top var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+}
+@utility animate-slide-out-top {
+  animation: ds-slide-out-top var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-enter, .animate-exit, .animate-fade-in, .animate-fade-out,
+  .animate-slide-in-end, .animate-slide-out-end, .animate-slide-in-start, .animate-slide-out-start,
+  .animate-slide-in-bottom, .animate-slide-out-bottom, .animate-slide-in-top, .animate-slide-out-top {
+    animation-duration: 0.01ms;
+  }
+}

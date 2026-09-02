@@ -1,0 +1,87 @@
+import * as AccordionPrimitive from "@radix-ui/react-accordion";
+import * as CollapsiblePrimitive from "@radix-ui/react-collapsible";
+import { ChevronDown } from "lucide-react";
+import type { ReactNode } from "react";
+
+import { cn } from "../lib/cn";
+import { Count } from "./badge";
+
+/* Reference material: present, addressable, closed. Collapsible is one section; Accordion is
+   several that know about each other. Both share one trigger row so a page can mix them. */
+
+const trigger = "group/disclosure flex w-full items-center gap-100 rounded-small py-100 text-left outline-none focus-visible:outline-focused";
+
+function TriggerRow({ title, count }: { title: ReactNode; count?: number | string | null | undefined }) {
+  return (
+    <>
+      <ChevronDown className="size-icon-small shrink-0 -rotate-90 icon-subtle transition-transform duration-fast ease-standard group-data-[state=open]/disclosure:rotate-0" />
+      <span className="font-body font-medium text-default">{title}</span>
+      {count !== undefined && count !== null && count !== 0 ? <Count value={typeof count === "number" ? count : Number(count) || 0} /> : null}
+    </>
+  );
+}
+
+export type CollapsibleProps = {
+  title: ReactNode;
+  count?: number | string | null | undefined;
+  defaultOpen?: boolean | undefined;
+  open?: boolean | undefined;
+  onOpenChange?: ((open: boolean) => void) | undefined;
+  className?: string | undefined;
+  children: ReactNode;
+};
+
+/** One section that opens and closes. Radix underneath for aria-expanded and the keyboard; uncontrolled unless `open` is passed. */
+export function Collapsible({ title, count, defaultOpen = false, open, onOpenChange, className, children }: CollapsibleProps) {
+  return (
+    <CollapsiblePrimitive.Root {...(open === undefined ? { defaultOpen } : { open })} {...(onOpenChange ? { onOpenChange } : {})} className={cn("border-t border-default", className)}>
+      <CollapsiblePrimitive.Trigger className={trigger}>
+        <TriggerRow title={title} count={count} />
+      </CollapsiblePrimitive.Trigger>
+      <CollapsiblePrimitive.Content className="pb-200">{children}</CollapsiblePrimitive.Content>
+    </CollapsiblePrimitive.Root>
+  );
+}
+
+export type AccordionProps = {
+  /** `single` opens one at a time and lets the open one close; `multiple` is independent sections with one keyboard model. */
+  type?: "single" | "multiple" | undefined;
+  defaultValue?: string | string[] | undefined;
+  value?: string | string[] | undefined;
+  onValueChange?: ((value: string | string[]) => void) | undefined;
+  className?: string | undefined;
+  children: ReactNode;
+};
+
+function AccordionRoot({ type = "single", defaultValue, value, onValueChange, className, children }: AccordionProps) {
+  const shared = { className: cn("border-b border-default", className), children };
+  if (type === "multiple") {
+    const many = (v: string | string[] | undefined) => (v === undefined ? undefined : Array.isArray(v) ? v : [v]);
+    return (
+      <AccordionPrimitive.Root type="multiple" {...(value === undefined ? { defaultValue: many(defaultValue) ?? [] } : { value: many(value) ?? [] })} {...(onValueChange ? { onValueChange } : {})} {...shared} />
+    );
+  }
+  const one = (v: string | string[] | undefined) => (v === undefined ? undefined : Array.isArray(v) ? (v[0] ?? "") : v);
+  return (
+    <AccordionPrimitive.Root type="single" collapsible {...(value === undefined ? { defaultValue: one(defaultValue) ?? "" } : { value: one(value) ?? "" })} {...(onValueChange ? { onValueChange } : {})} {...shared} />
+  );
+}
+
+function AccordionItem({ value, title, count, children }: { value: string; title: ReactNode; count?: number | string | null | undefined; children: ReactNode }) {
+  return (
+    <AccordionPrimitive.Item value={value} className="border-t border-default">
+      <AccordionPrimitive.Header asChild>
+        <div>
+          <AccordionPrimitive.Trigger className={trigger}>
+            <TriggerRow title={title} count={count} />
+          </AccordionPrimitive.Trigger>
+        </div>
+      </AccordionPrimitive.Header>
+      <AccordionPrimitive.Content className="overflow-hidden data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out">
+        <div className="pb-200">{children}</div>
+      </AccordionPrimitive.Content>
+    </AccordionPrimitive.Item>
+  );
+}
+
+export const Accordion = Object.assign(AccordionRoot, { Item: AccordionItem });

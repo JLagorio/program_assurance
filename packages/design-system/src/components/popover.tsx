@@ -1,0 +1,48 @@
+import * as PopoverPrimitive from "@radix-ui/react-popover";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
+
+import { cn } from "../lib/cn";
+import { menuMotion } from "./menu";
+
+type Side = NonNullable<ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>["side"]>;
+type Align = NonNullable<ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>["align"]>;
+
+export type PopoverProps = {
+  trigger: ReactNode;
+  side?: Side | undefined;
+  align?: Align | undefined;
+  width?: number | undefined;
+  defaultOpen?: boolean | undefined;
+  open?: boolean | undefined;
+  onOpenChange?: ((open: boolean) => void) | undefined;
+  className?: string | undefined;
+  children: ReactNode;
+};
+
+/** An anchored surface for a small task: a filter form, a picker, a confirmation. Closes on Escape, an outside click, or Popover.Close. */
+function PopoverRoot({ trigger, side = "bottom", align = "start", width, defaultOpen = false, open, onOpenChange, className, children }: PopoverProps) {
+  return (
+    <PopoverPrimitive.Root {...(open === undefined ? { defaultOpen } : { open })} {...(onOpenChange ? { onOpenChange } : {})}>
+      <PopoverPrimitive.Trigger asChild>{trigger}</PopoverPrimitive.Trigger>
+      <PopoverPrimitive.Portal>
+        <PopoverPrimitive.Content
+          side={side}
+          align={align}
+          sideOffset={4}
+          collisionPadding={8}
+          style={width ? { width } : undefined}
+          className={cn("z-50 rounded-large border border-default bg-surface-overlay p-150 font-body text-default shadow-overlay outline-none", menuMotion, className)}
+        >
+          {children}
+        </PopoverPrimitive.Content>
+      </PopoverPrimitive.Portal>
+    </PopoverPrimitive.Root>
+  );
+}
+
+/** Closes the popover it sits in. Wraps one element, usually a Button. */
+function PopoverClose({ children }: { children: ReactNode }) {
+  return <PopoverPrimitive.Close asChild>{children}</PopoverPrimitive.Close>;
+}
+
+export const Popover = Object.assign(PopoverRoot, { Close: PopoverClose });

@@ -1,0 +1,26 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Table.stories";
+
+<Meta of={Stories} />
+
+# Table
+
+The register. Header cells are sticky and sit on the current surface; rows are `dimension.row` tall with a hairline between; the header is `dimension.row.header`. Text is the body size with tabular numerals where a column is numbers.
+
+<Canvas of={Stories.RegisterStory} />
+
+## Parts
+
+| Part | Does |
+| --- | --- |
+| `Table.Header` | A column heading. `sort` makes it a button that reports its direction through `aria-sort` and shows the arrow; `sticky` pins it to the leading edge of a table that scrolls sideways. |
+| `Table.Row` | `isSelected` paints the selected role and sets `data-selected`. The row is a `group/row` so cells can react to its hover. |
+| `Table.Cell` | Truncates by default. `sticky` pins the column and keeps it opaque over the rows behind. |
+| `Table.Id` | The id column. The row opens the record; the eye that appears on hover opens the same row in the preview rail. |
+| `Table.Selection` | The checkbox column. In the header it selects every row and reads mixed when only some are. |
+| `Table.Group` | A band of rows under one heading that opens and closes. It renders a `tbody`, so several stack in one Table. |
+
+Toolbar sits above (search, filters, actions on the right); Pagination sits below (range on the left, pages on the right).
+
+<Canvas of={Stories.Groups} />

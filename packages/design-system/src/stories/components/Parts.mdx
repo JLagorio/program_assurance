@@ -1,0 +1,19 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Parts.stories";
+
+<Meta of={Stories} />
+
+# Small parts
+
+## Toggle, ToggleGroup, ButtonGroup
+
+A Toggle is one thing on or off: the subtle button with a recessed on state. A ToggleGroup is one of several views, always exactly one on: the recessed segmented control. A ButtonGroup joins Buttons that belong together with a hairline between.
+
+<Canvas of={Stories.TogglesStory} />
+
+## Kbd, Separator, Spinner, Skeleton
+
+<Canvas of={Stories.Small} />
+
+A Skeleton holds the layout still while content loads; size it with className. A Spinner is `small` beside text and `medium` on its own.

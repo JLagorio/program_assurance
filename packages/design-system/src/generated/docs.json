@@ -3332,6 +3332,20 @@
     "utility": null
   },
   {
+    "name": "font.letterSpacing.500",
+    "cssVar": "--ds-font-letter-spacing-500",
+    "type": "dimension",
+    "group": "font",
+    "description": "Uppercase micro labels: eyebrows, group headings.",
+    "light": "0.06em",
+    "dark": null,
+    "lightResolved": "0.06em",
+    "darkResolved": null,
+    "introduced": null,
+    "deprecated": null,
+    "utility": null
+  },
+  {
     "name": "font.body.large",
     "cssVar": "--ds-font-body-large",
     "type": "typography",
@@ -3428,6 +3442,20 @@
     "introduced": null,
     "deprecated": null,
     "utility": "font-heading-xsmall"
+  },
+  {
+    "name": "font.heading.xxsmall",
+    "cssVar": "--ds-font-heading-xxsmall",
+    "type": "typography",
+    "group": "font",
+    "description": "Eyebrows, group headings and menu section labels. The component adds the uppercase.",
+    "light": "var(--ds-font-weight-medium) 11px/14px var(--ds-font-family-heading)",
+    "dark": null,
+    "lightResolved": "var(--ds-font-weight-medium) 11px/14px var(--ds-font-family-heading)",
+    "darkResolved": null,
+    "introduced": null,
+    "deprecated": null,
+    "utility": "font-heading-xxsmall"
   },
   {
     "name": "font.code",

@@ -238,6 +238,7 @@
   --ds-font-letter-spacing-200: -0.008em;
   --ds-font-letter-spacing-300: -0.015em;
   --ds-font-letter-spacing-400: -0.02em;
+  --ds-font-letter-spacing-500: 0.06em;
   --ds-font-body-large: var(--ds-font-weight-regular) 15px/22px var(--ds-font-family-body);
   --ds-font-body-large-letter-spacing: var(--ds-font-letter-spacing-200);
   --ds-font-body-small: var(--ds-font-weight-regular) 12px/16px var(--ds-font-family-body);
@@ -252,6 +253,8 @@
   --ds-font-heading-small-letter-spacing: var(--ds-font-letter-spacing-300);
   --ds-font-heading-xsmall: var(--ds-font-weight-medium) 15px/22px var(--ds-font-family-heading);
   --ds-font-heading-xsmall-letter-spacing: var(--ds-font-letter-spacing-300);
+  --ds-font-heading-xxsmall: var(--ds-font-weight-medium) 11px/14px var(--ds-font-family-heading);
+  --ds-font-heading-xxsmall-letter-spacing: var(--ds-font-letter-spacing-500);
   --ds-font-code: var(--ds-font-weight-regular) 12px/18px var(--ds-font-family-code);
   --ds-font-code-letter-spacing: var(--ds-font-letter-spacing-0);
   --ds-motion-duration-fast: 120ms;

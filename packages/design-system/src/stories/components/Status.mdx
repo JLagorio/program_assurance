@@ -1,0 +1,27 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Status.stories";
+
+<Meta of={Stories} />
+
+# Status surfaces
+
+Alert, Progress and Stat read the same tone table as Badge, so a tone means one thing everywhere.
+
+## Alert
+
+A tinted callout in a rail or above a table: a Dot, a title in the tone colour, an optional body. Danger announces itself (`role="alert"`); the others are polite.
+
+<Canvas of={Stories.Alerts} />
+
+## Progress
+
+One value out of 100 as a thin bar, or a Stacked bar of segments for a coverage read-out. The track is `color.background.neutral`; a segment is the tone's bold fill, as Atlassian's ProgressBar.
+
+<Canvas of={Stories.Bars} />
+
+## Stat and Tiles
+
+A Tile is label, big tabular number, one-line note; zero reads muted. Tiles is a row of them separated by hairlines, framed as a card or run edge to edge as a band. A bare Stat is the number over its label for an unframed summary row.
+
+<Canvas of={Stories.Stats} />

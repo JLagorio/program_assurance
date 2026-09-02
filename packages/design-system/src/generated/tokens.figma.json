@@ -1886,6 +1886,10 @@
         "$value": "-0.02em",
         "$description": "Display sizes."
       },
+      "500": {
+        "$value": "0.06em",
+        "$description": "Uppercase micro labels: eyebrows, group headings."
+      },
       "$type": "dimension"
     },
     "body": {
@@ -1962,6 +1966,16 @@
           "letterSpacing": "{font.letterSpacing.300}"
         },
         "$description": "Dialog and card titles."
+      },
+      "xxsmall": {
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.medium}",
+          "fontSize": "11px",
+          "lineHeight": "14px",
+          "letterSpacing": "{font.letterSpacing.500}"
+        },
+        "$description": "Eyebrows, group headings and menu section labels. The component adds the uppercase."
       }
     },
     "code": {

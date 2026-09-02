@@ -1,0 +1,13 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Command.stories";
+
+<Meta of={Stories} />
+
+# Command
+
+A list you filter from the keyboard: the ⌘K palette, a record picker, the search behind a Combobox. cmdk underneath for filtering, arrow keys, typeahead and aria; the tokens own the look. Compose it from Input, List, Group, Item, Empty, Separator, a Footer of hints, and Dialog for the overlay form. `Command.Count` reads the live filtered count.
+
+<Canvas of={Stories.Inline_} />
+
+<Canvas of={Stories.AsDialog} />

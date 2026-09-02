@@ -153,6 +153,7 @@ export const classByToken = {
   "font.heading.medium": "font-heading-medium",
   "font.heading.small": "font-heading-small",
   "font.heading.xsmall": "font-heading-xsmall",
+  "font.heading.xxsmall": "font-heading-xxsmall",
   "font.code": "font-code",
   "motion.duration.fast": "duration-fast",
   "motion.duration.medium": "duration-medium",

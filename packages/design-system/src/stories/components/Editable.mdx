@@ -1,0 +1,11 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Editable.stories";
+
+<Meta of={Stories} />
+
+# Editable
+
+A value you edit where it sits: click, change, and it saves. It commits optimistically, rolls back on failure, and shows the save state beside the value. `Editable.Text` is a one-line input; `Editable.Select` is a DropdownMenu of the allowed values. `validate` blocks a commit with a message; `save` returns a promise.
+
+<Canvas of={Stories.Rail} />
