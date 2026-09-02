@@ -9,7 +9,8 @@ import { PreviewRouter } from "./router";
 /**
  * Theme toolbar. "ledger" is the app as shipped. The other two are preview-only
  * token overlays copied from the UI kit so a component can be flipped between
- * candidates while we decide; nothing here touches src/styles.css.
+ * candidates while we decide; nothing here touches src/styles.css. Storybook
+ * opens in Linear-refined, the current leaning.
  */
 function ThemeSync({ theme }: { theme: string }) {
   useEffect(() => {
@@ -54,7 +55,7 @@ const preview: Preview = {
       },
     },
   },
-  initialGlobals: { theme: "ledger" },
+  initialGlobals: { theme: "linear" },
   decorators: [withTheme, withRouter],
 };
 

@@ -115,14 +115,10 @@
 [data-theme="linear"] kbd,
 [data-theme="linear"] samp,
 [data-theme="linear"] pre,
+/* The kit's one-typeface rule holds here too: inputs and textareas stay in the
+   sans face. The source file set them in Geist Mono. */
 [data-theme="linear"] .tabular-nums,
-[data-theme="linear"] [data-value],
-[data-theme="linear"] input[type="text"],
-[data-theme="linear"] input[type="number"],
-[data-theme="linear"] input[type="search"],
-[data-theme="linear"] textarea {
-  font-family: var(--font-mono);
-  letter-spacing: -0.02em;
+[data-theme="linear"] [data-value] {
   font-variant-numeric: tabular-nums;
 }
 
