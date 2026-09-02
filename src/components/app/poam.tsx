@@ -18,6 +18,7 @@ import {
   Dialog,
   Item,
   Timeline,
+  DatePicker,
 } from "@/ds/primitives";
 import { Section } from "@/ds/patterns";
 import {
@@ -805,10 +806,9 @@ function PoamEditModal({
 
         <div className="grid grid-cols-3 gap-3">
           <Field label="Scheduled completion" hint="date-time-with-timezone">
-            <Input
-              type="date"
+            <DatePicker
               value={toDateInput(draft.scheduledCompletion)}
-              onChange={(e) => set("scheduledCompletion", toOscalDateTime(e.target.value))}
+              onChange={(iso) => set("scheduledCompletion", toOscalDateTime(iso))}
             />
           </Field>
           <Field label="Point of contact">
@@ -868,15 +868,14 @@ function PoamEditModal({
                     <option key={s}>{s}</option>
                   ))}
                 </NativeSelect>
-                <Input
-                  type="date"
+                <DatePicker
                   value={toDateInput(m.completedDate ?? m.targetDate)}
-                  onChange={(e) =>
+                  onChange={(iso) =>
                     setMilestone(
                       m.uuid,
                       m.status === "Completed"
-                        ? { completedDate: toOscalDateTime(e.target.value) }
-                        : { targetDate: toOscalDateTime(e.target.value) },
+                        ? { completedDate: toOscalDateTime(iso) }
+                        : { targetDate: toOscalDateTime(iso) },
                     )
                   }
                 />
@@ -1187,7 +1186,7 @@ function PoamCreateModal({
         </div>
         <div className="grid grid-cols-3 gap-3">
           <Field label="Scheduled completion">
-            <Input type="date" value={scheduled} onChange={(e) => setScheduled(e.target.value)} />
+            <DatePicker value={scheduled} onChange={setScheduled} />
           </Field>
           <Field label="Point of contact">
             <NativeSelect value={contact} onChange={(e) => setContact(e.target.value)}>
@@ -1232,11 +1231,7 @@ function PoamCreateModal({
             />
           </Field>
           <Field label="Target date">
-            <Input
-              type="date"
-              value={milestoneDate}
-              onChange={(e) => setMilestoneDate(e.target.value)}
-            />
+            <DatePicker value={milestoneDate} onChange={setMilestoneDate} />
           </Field>
         </div>
       </div>

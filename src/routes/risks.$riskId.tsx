@@ -14,6 +14,7 @@ import {
   Id,
   Dialog,
   Timeline,
+  DatePicker,
 } from "@/ds/primitives";
 import { Section } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
@@ -245,7 +246,7 @@ function RiskDetail() {
               </NativeSelect>
             </Field>
             <Field label="Due date">
-              <Input type="date" defaultValue="2026-03-31" />
+              <DatePicker defaultValue="2026-03-31" />
             </Field>
           </div>
         </div>

@@ -14,6 +14,7 @@ import {
   Textarea,
   Id,
   Dialog,
+  DatePicker,
 } from "@/ds/primitives";
 import { PageHeader, IndexPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
@@ -455,7 +456,7 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
               </NativeSelect>
             </Field>
             <Field label="Target authorization date">
-              <Input type="date" defaultValue="2026-12-15" />
+              <DatePicker defaultValue="2026-12-15" />
             </Field>
           </div>
         </div>

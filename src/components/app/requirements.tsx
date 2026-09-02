@@ -11,8 +11,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 
-import { InlineSelect, InlineText } from "@/components/app/inline-edit";
-import { Badge, Table, Id } from "@/ds/primitives";
+import { Badge, Table, Id, Editable } from "@/ds/primitives";
 import { cn } from "@/lib/utils";
 import {
   allocationStateTone,
@@ -358,7 +357,7 @@ export function AllocationTable({
             <Table.Cell>{targetKindLabel(a)}</Table.Cell>
             <Table.Cell>
               {editable ? (
-                <InlineSelect
+                <Editable.Select
                   label="Responsibility"
                   options={responsibilities}
                   value={a.responsibility}
@@ -378,7 +377,7 @@ export function AllocationTable({
             </Table.Cell>
             <Table.Cell>
               {editable ? (
-                <InlineSelect
+                <Editable.Select
                   label="Coverage"
                   options={coverages}
                   value={a.coverage}
@@ -398,7 +397,7 @@ export function AllocationTable({
             </Table.Cell>
             <Table.Cell className="truncate" title={a.scope}>
               {editable ? (
-                <InlineText
+                <Editable.Text
                   value={a.scope}
                   onChange={(next) => setAllocationField(a.id, { scope: next })}
                   save={(next) => saveRequirementField(`${a.id} scope`, next)}
@@ -409,7 +408,7 @@ export function AllocationTable({
             </Table.Cell>
             <Table.Cell className="truncate">
               {editable ? (
-                <InlineText
+                <Editable.Text
                   value={a.owner}
                   onChange={(next) => setAllocationField(a.id, { owner: next })}
                   save={(next) => saveRequirementField(`${a.id} owner`, next)}
@@ -420,7 +419,7 @@ export function AllocationTable({
             </Table.Cell>
             <Table.Cell>
               {editable ? (
-                <InlineSelect
+                <Editable.Select
                   label="State"
                   options={allocationStates}
                   value={a.state}

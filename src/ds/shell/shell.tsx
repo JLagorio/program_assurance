@@ -25,6 +25,9 @@ import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
+import { Input } from "../primitives/controls";
+import { InputGroup } from "../primitives/input-group";
+
 /**
  * The sidebar holds objects and queues. It never holds phases — a phase is a
  * state of a program, reached by opening that program.
@@ -153,18 +156,22 @@ function Sidebar() {
 function TopBar() {
   return (
     <header className="sticky top-0 z-20 flex h-12 shrink-0 items-center gap-3 border-b border-border bg-card/85 px-4 backdrop-blur supports-[backdrop-filter]:bg-card/70 lg:px-6">
-      <div className="relative w-full max-w-[420px]">
-        <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-        <input
+      <InputGroup
+        leading={<Search />}
+        trailing={
+          <span className="pointer-events-none flex items-center gap-0.5">
+            <CommandIcon className="size-2.5" />K
+          </span>
+        }
+        className="w-full max-w-[420px]"
+      >
+        <Input
           type="search"
           placeholder="Search risks, controls, evidence…"
           aria-label="Search"
-          className="h-7 w-full rounded-md border-0 bg-muted pl-8 pr-12 text-[13px] text-foreground outline-none transition-[background-color,box-shadow] placeholder:text-muted-foreground focus:bg-card focus:ring-2 focus:ring-ring/20"
+          className="h-7 border-0 bg-muted shadow-none transition-[background-color,box-shadow] focus:border-0 focus:bg-card"
         />
-        <span className="pointer-events-none absolute right-2.5 top-1/2 flex -translate-y-1/2 items-center gap-0.5 text-[11px] text-muted-foreground">
-          <CommandIcon className="size-2.5" />K
-        </span>
-      </div>
+      </InputGroup>
 
       <div className="ml-auto flex items-center gap-1">
         <span className="mr-2 hidden items-center gap-1.5 rounded-md bg-warning-soft px-2 py-1 text-[12px] font-medium text-warning sm:inline-flex">

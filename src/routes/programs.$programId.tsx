@@ -16,7 +16,6 @@ import {
   Toolbar,
   Dot,
   Field,
-  Input,
   KeyValue,
   Progress,
   NativeSelect,
@@ -25,6 +24,8 @@ import {
   Id,
   Tabs,
   Dialog,
+  Editable,
+  DatePicker,
 } from "@/ds/primitives";
 import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
@@ -40,7 +41,6 @@ import { ControlBoard } from "@/components/app/control-board";
 import { GateOutlookSection, RmfTimeline } from "@/components/app/rmf-timeline";
 import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
 import { ActivityTimeline } from "@/components/app/activity-timeline";
-import { InlineSelect, InlineText } from "@/components/app/inline-edit";
 import { saveProgramField } from "@/lib/program-save";
 import { findingsForProgram, nextActions, programPosture } from "@/lib/program-actions";
 import { programActivity } from "@/lib/program-activity";
@@ -271,7 +271,7 @@ function ProgramDetail() {
           <Id>{program.id}</Id>
         </KeyValue>
         <KeyValue label="Acronym">
-          <InlineText
+          <Editable.Text
             value={fields.acronym}
             onChange={(v) => setFields((f) => ({ ...f, acronym: v }))}
             validate={(v) =>
@@ -287,7 +287,7 @@ function ProgramDetail() {
         <KeyValue label="System type">{program.type}</KeyValue>
         <KeyValue label="Environment">{program.environment}</KeyValue>
         <KeyValue label="Owner">
-          <InlineSelect
+          <Editable.Select
             label="Owner"
             value={owner}
             options={ownerOptions}
@@ -297,7 +297,7 @@ function ProgramDetail() {
           />
         </KeyValue>
         <KeyValue label="Status">
-          <InlineSelect
+          <Editable.Select
             label="Status"
             value={status}
             options={programStatuses}
@@ -385,7 +385,7 @@ function ProgramDetail() {
           {program.summary}
         </p>
         <KeyValue label="System">
-          <InlineText
+          <Editable.Text
             value={fields.system}
             onChange={(v) => setFields((f) => ({ ...f, system: v }))}
             validate={required("System")}
@@ -556,7 +556,7 @@ function ProgramDetail() {
       <Inspector.Group title="Authorization">
         <KeyValue label="Baseline">{program.baseline}</KeyValue>
         <KeyValue label="Assessor">
-          <InlineText
+          <Editable.Text
             value={fields.assessor}
             onChange={(v) => setFields((f) => ({ ...f, assessor: v }))}
             validate={required("Assessor")}
@@ -1113,7 +1113,7 @@ function ProgramDetail() {
               </NativeSelect>
             </Field>
             <Field label="Assessed on">
-              <Input type="date" defaultValue="2026-08-27" />
+              <DatePicker defaultValue="2026-08-27" />
             </Field>
           </div>
           <Field label="Assessor findings" hint="Included verbatim in the SAR export.">

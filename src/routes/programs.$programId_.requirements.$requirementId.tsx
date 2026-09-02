@@ -3,9 +3,8 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import { AllocationTable, ProvenanceTable, RequirementTable } from "@/components/app/requirements";
-import { InlineSelect, InlineText } from "@/components/app/inline-edit";
 import { AllocateModal } from "@/components/app/requirement-forms";
-import { Badge, Button, KeyValue, Id, Tabs, Fact } from "@/ds/primitives";
+import { Badge, Button, KeyValue, Id, Tabs, Fact, Editable } from "@/ds/primitives";
 import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { Shell } from "@/ds/shell";
@@ -132,7 +131,7 @@ function RequirementRecord() {
             title={requirement.text}
             meta={`${program.acronym} · ${requirement.type} · revision ${requirement.revision}`}
             actions={
-              <InlineSelect
+              <Editable.Select
                 label="State"
                 options={requirementStates}
                 value={requirement.state}
@@ -147,14 +146,14 @@ function RequirementRecord() {
               // panel to find out who owns a requirement is the problem.
               <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 border-t border-border pt-2.5">
                 <Fact label="Owner">
-                  <InlineText
+                  <Editable.Text
                     value={requirement.owner}
                     onChange={(next) => setRequirementField(requirement.id, { owner: next })}
                     save={(next) => saveRequirementField(`${requirement.id} owner`, next)}
                   />
                 </Fact>
                 <Fact label="Method">
-                  <InlineSelect
+                  <Editable.Select
                     label="Verification method"
                     options={verificationMethods}
                     value={requirement.method}
@@ -309,7 +308,7 @@ function RequirementRecord() {
                 <Fact label="Method">{requirement.method}</Fact>
                 <Fact label="Success criteria">
                   <span className="text-[13px] font-normal">
-                    <InlineText
+                    <Editable.Text
                       value={requirement.successCriteria}
                       onChange={(next) =>
                         setRequirementField(requirement.id, { successCriteria: next })

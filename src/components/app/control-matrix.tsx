@@ -8,9 +8,17 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
-import { Badge, Button, NativeSelect, Table, Toolbar, Id, Progress } from "@/ds/primitives";
+import {
+  Badge,
+  Button,
+  NativeSelect,
+  Table,
+  Toolbar,
+  Id,
+  Progress,
+  Editable,
+} from "@/ds/primitives";
 import { Empty, Section } from "@/ds/patterns";
-import { InlineSelect, InlineText } from "@/components/app/inline-edit";
 import { cn } from "@/lib/utils";
 import { saveProgramField } from "@/lib/program-save";
 import {
@@ -304,7 +312,7 @@ export function ControlMatrixSection({
                     </Link>
                   </Table.Cell>
                   <Table.Cell className="overflow-visible">
-                    <InlineSelect<ControlStatus>
+                    <Editable.Select<ControlStatus>
                       label="Assessment"
                       options={controlStatuses}
                       value={r.status}
@@ -333,7 +341,7 @@ export function ControlMatrixSection({
                     )}
                   </Table.Cell>
                   <Table.Cell className="overflow-visible">
-                    <InlineText
+                    <Editable.Text
                       value={r.nextAction}
                       placeholder="Add next action"
                       onChange={(next) => updateControl(programId, r.id, { nextAction: next })}
@@ -341,7 +349,7 @@ export function ControlMatrixSection({
                     />
                   </Table.Cell>
                   <Table.Cell className="tnum overflow-visible text-right">
-                    <InlineText
+                    <Editable.Text
                       value={r.due}
                       placeholder="—"
                       onChange={(next) => updateControl(programId, r.id, { due: next })}

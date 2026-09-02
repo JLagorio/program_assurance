@@ -1,9 +1,8 @@
 import { Search } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { cn } from "@/lib/utils";
-
 import { Input } from "./controls";
+import { InputGroup } from "./input-group";
 
 export function Toolbar({
   search,
@@ -21,15 +20,14 @@ export function Toolbar({
   return (
     <div className="flex flex-wrap items-center gap-2 pb-2.5 pt-3">
       {onSearch ? (
-        <span className="relative">
-          <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+        <InputGroup leading={<Search />} className="w-[200px]">
           <Input
             value={search ?? ""}
             onChange={(e) => onSearch(e.target.value)}
             placeholder={placeholder}
-            className="h-7 w-[200px] pl-7 text-13"
+            className="h-7 text-13"
           />
-        </span>
+        </InputGroup>
       ) : null}
       {children}
       {actions ? <span className="ml-auto flex items-center gap-2">{actions}</span> : null}
