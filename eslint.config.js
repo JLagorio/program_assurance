@@ -227,11 +227,7 @@ export default tseslint.config(
       ".output",
       ".vinxi",
       "storybook-static",
-      // gitignored tooling output; not source
-      ".ds-sync",
-      "ds-bundle",
-      ".design-sync/.cache",
-      ".design-sync/learnings",
+      // gitignored output; not source
       ".wrangler",
       ".tanstack",
       ".nitro",

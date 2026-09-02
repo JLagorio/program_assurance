@@ -31,8 +31,8 @@ Rejected: switching to Geist (Linear's own file is Inter).
 - `.storybook/vite.config.ts` — a dedicated config (React, Tailwind 4, tsconfig paths). The app's Vite
   config is the Lovable TanStack Start bundle (Nitro, SSR) and must not be inherited.
 - `.storybook/preview.tsx` imports `src/styles.css`; `.storybook/preview-head.html` carries the same
-  Google Fonts link as `__root.tsx`. A global decorator wraps stories in a memory router (same pattern as
-  `.design-sync/preview-support/router-shim.tsx`) so Tabs, TabStrip, RecordHeader and Shell render.
+  Google Fonts link as `__root.tsx`. A global decorator wraps stories in a memory router (`.storybook/router.tsx`)
+  so Tabs, TabStrip, RecordHeader and Shell render.
 - **Theme toolbar** (optional, preview-only): Ledger (default) · Nightwatch · Linear-refined. The two
   overlays are copied from the kit into `.storybook/themes/` and applied by the decorator; they never
   enter `src/styles.css`.
@@ -64,4 +64,4 @@ proposed change, then Josef's sign-off.
 ## Out of scope
 
 Vitest / interaction tests, visual regression, Chromatic, dark mode, deleting the shadcn folder,
-touching the design-sync pipeline, any change to app routes.
+any change to app routes.
