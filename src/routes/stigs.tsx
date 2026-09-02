@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Badge, Button, Table, Id, Indicator } from "@/ds/primitives";
+import { Badge, Button, Table, Id, Indicator, NativeSelect } from "@/ds/primitives";
 import { PageHeader, Section, IndexPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import { benchmarkById, benchmarks, rules } from "@/lib/catalog";
@@ -114,10 +114,11 @@ function StigLibrary() {
           title="Rule to CCI mapping"
           description="The join. A failed rule becomes a finding against the CCI it maps to, and the parent control's assessment recalculates from there."
           action={
-            <select
+            <NativeSelect
               value={benchmark}
               onChange={(e) => setBenchmark(e.target.value)}
-              className="h-7 w-[224px] rounded-md border border-border bg-background px-2 text-[13px] outline-none focus:border-primary/40"
+              aria-label="Benchmark"
+              className="w-[224px]"
             >
               <option value="All">All benchmarks</option>
               {benchmarks.map((b) => (
@@ -125,7 +126,7 @@ function StigLibrary() {
                   {b.technology} · {b.version}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           }
         >
           <Table className="table-fixed">

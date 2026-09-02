@@ -13,7 +13,7 @@ import {
   RetestSummary,
   UnrecordedChangeNotice,
 } from "@/components/app/baselines";
-import { Badge, NativeSelect, Toolbar, Tabs } from "@/ds/primitives";
+import { Badge, NativeSelect, Toolbar, Tabs, Breadcrumb } from "@/ds/primitives";
 import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import {
@@ -258,6 +258,19 @@ function ProgramBaseline() {
           <RecordHeader
             backTo="/programs/$programId"
             backParams={{ programId: program.id }}
+            breadcrumb={
+              <Breadcrumb
+                items={[
+                  { label: "Programs", to: "/programs" },
+                  {
+                    label: program.name,
+                    to: "/programs/$programId",
+                    params: { programId: program.id },
+                  },
+                  { label: "Configuration baseline" },
+                ]}
+              />
+            }
             id={program.id}
             title={`${program.name} — configuration baseline`}
             meta={`${builds.length} builds · ${changes.length} change records · ${diff.length} pins moved · ${retests.length} re-tests owed`}

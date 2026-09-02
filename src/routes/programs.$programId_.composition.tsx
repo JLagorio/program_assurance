@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 
-import { Badge, KeyValue, Table, Id, Tabs } from "@/ds/primitives";
+import { Badge, KeyValue, Table, Id, Tabs, Breadcrumb } from "@/ds/primitives";
 import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { Shell } from "@/ds/shell";
@@ -173,6 +173,19 @@ function ProgramComposition() {
           <RecordHeader
             backTo="/programs/$programId"
             backParams={{ programId: program.id }}
+            breadcrumb={
+              <Breadcrumb
+                items={[
+                  { label: "Programs", to: "/programs" },
+                  {
+                    label: program.name,
+                    to: "/programs/$programId",
+                    params: { programId: program.id },
+                  },
+                  { label: "System composition" },
+                ]}
+              />
+            }
             id={program.id}
             title={`${program.name} — system composition`}
             meta={`${program.system} · ${program.environment} · ${stats.nodes} components · ${stats.suppliers} suppliers`}

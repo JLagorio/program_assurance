@@ -14,6 +14,9 @@ import {
   Textarea,
   Id,
   Dialog,
+  AlertDialog,
+  Select,
+  toast,
 } from "@/ds/primitives";
 import { Section } from "@/ds/patterns";
 import {
@@ -583,6 +586,8 @@ export function CdrPackageModal({
   const [included, setIncluded] = useState<string[]>(sspSections.map((s) => s.id));
   const [format, setFormat] = useState("OSCAL SSP (JSON) + PDF");
   const [generated, setGenerated] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [pending, setPending] = useState(false);
 
   const selected = sspSections.filter((s) => included.includes(s.id));
   const controls = selected.reduce((n, s) => n + s.controls, 0);
@@ -598,119 +603,162 @@ export function CdrPackageModal({
   }
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      width="lg"
-      title="Generate CDR package"
-      description={`${programName} · ${programId} · Critical Design Review submission`}
-      aside={
-        <div>
-          <p className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
-            Package summary
-          </p>
-          <div className="mt-2">
-            <KeyValue label="Sections">
-              {selected.length} of {sspSections.length}
-            </KeyValue>
-            <KeyValue label="Controls">{controls}</KeyValue>
-            <KeyValue label="Artifacts">{artifacts}</KeyValue>
-            <KeyValue label="Format">{format}</KeyValue>
-            <KeyValue label="Readiness">
-              <span className="flex items-center gap-2">
-                <span className="w-14">
-                  <Progress value={readiness} tone={readiness === 100 ? "success" : "warning"} />
+    <>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        width="lg"
+        title="Generate CDR package"
+        description={`${programName} · ${programId} · Critical Design Review submission`}
+        aside={
+          <div>
+            <p className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
+              Package summary
+            </p>
+            <div className="mt-2">
+              <KeyValue label="Sections">
+                {selected.length} of {sspSections.length}
+              </KeyValue>
+              <KeyValue label="Controls">{controls}</KeyValue>
+              <KeyValue label="Artifacts">{artifacts}</KeyValue>
+              <KeyValue label="Format">{format}</KeyValue>
+              <KeyValue label="Readiness">
+                <span className="flex items-center gap-2">
+                  <span className="w-14">
+                    <Progress value={readiness} tone={readiness === 100 ? "success" : "warning"} />
+                  </span>
+                  <span className="tnum">{readiness}%</span>
                 </span>
-                <span className="tnum">{readiness}%</span>
-              </span>
-            </KeyValue>
+              </KeyValue>
+            </div>
+            {blockers.length ? (
+              <p className="mt-3 border-t border-border pt-3 text-[12.5px] leading-relaxed text-warning">
+                {blockers.map((b) => b.blocker).join(" · ")}
+              </p>
+            ) : (
+              <p className="mt-3 border-t border-border pt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+                All selected sections are review-ready. The package compiles architecture drawings,
+                SysML exports and accepted implementation statements into a government-ready SSP.
+              </p>
+            )}
+            {generated ? (
+              <p className="mt-3 text-[12.5px] text-success">
+                Package built — <Id>{programId}-CDR-SSP.zip</Id>
+              </p>
+            ) : null}
           </div>
-          {blockers.length ? (
-            <p className="mt-3 border-t border-border pt-3 text-[12.5px] leading-relaxed text-warning">
-              {blockers.map((b) => b.blocker).join(" · ")}
-            </p>
-          ) : (
-            <p className="mt-3 border-t border-border pt-3 text-[12.5px] leading-relaxed text-muted-foreground">
-              All selected sections are review-ready. The package compiles architecture drawings,
-              SysML exports and accepted implementation statements into a government-ready SSP.
-            </p>
-          )}
-          {generated ? (
-            <p className="mt-3 text-[12.5px] text-success">
-              Package built — <Id>{programId}-CDR-SSP.zip</Id>
-            </p>
-          ) : null}
-        </div>
-      }
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={() => setGenerated(true)}>
-            <Download className="size-3.5" /> {generated ? "Download package" : "Generate package"}
-          </Button>
-        </>
-      }
-    >
-      <div className="space-y-3">
-        <Table className="table-fixed">
-          <thead>
-            <tr>
-              <Table.Selection
-                header
-                checked={
-                  included.length > 0 && included.length === sspSections.length
-                    ? true
-                    : included.length > 0
-                      ? "indeterminate"
-                      : false
-                }
-                onCheckedChange={(next) => setIncluded(next ? sspSections.map((s) => s.id) : [])}
-                label="Include all sections"
-              />
-              <Table.Header>Section</Table.Header>
-              <Table.Header className="w-[76px] text-right">Controls</Table.Header>
-              <Table.Header className="w-[76px] text-right">Evidence</Table.Header>
-              <Table.Header className="w-[104px]">State</Table.Header>
-            </tr>
-          </thead>
-          <tbody>
-            {sspSections.map((s) => (
-              <Table.Row key={s.id}>
+        }
+        footer={
+          <>
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                if (generated)
+                  toast.info("Download started", { description: `${programId}-CDR-SSP.zip` });
+                else setConfirming(true);
+              }}
+            >
+              <Download className="size-3.5" />{" "}
+              {generated ? "Download package" : "Generate package"}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <Table className="table-fixed">
+            <thead>
+              <tr>
                 <Table.Selection
-                  checked={included.includes(s.id)}
-                  onCheckedChange={() => toggle(s.id)}
-                  label={`Include ${s.name}`}
+                  header
+                  checked={
+                    included.length > 0 && included.length === sspSections.length
+                      ? true
+                      : included.length > 0
+                        ? "indeterminate"
+                        : false
+                  }
+                  onCheckedChange={(next) => setIncluded(next ? sspSections.map((s) => s.id) : [])}
+                  label="Include all sections"
                 />
-                <Table.Cell title={s.description}>{s.name}</Table.Cell>
-                <Table.Cell className="tnum w-[76px] text-right">{s.controls || "—"}</Table.Cell>
-                <Table.Cell className="tnum w-[76px] text-right">{s.evidence}</Table.Cell>
-                <Table.Cell className="w-[104px]">
-                  <Badge tone={s.ready ? "success" : "warning"}>{s.ready ? "Ready" : "Gaps"}</Badge>
-                </Table.Cell>
-              </Table.Row>
-            ))}
-          </tbody>
-        </Table>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Output format">
-            <NativeSelect value={format} onChange={(e) => setFormat(e.target.value)}>
-              <option>OSCAL SSP (JSON) + PDF</option>
-              <option>OSCAL SSP (XML)</option>
-              <option>eMASS import bundle</option>
-              <option>PDF only</option>
-            </NativeSelect>
-          </Field>
-          <Field label="Review gate">
-            <NativeSelect defaultValue="CDR — Critical Design Review">
-              <option>PDR — Preliminary Design Review</option>
-              <option>CDR — Critical Design Review</option>
-              <option>TRR — Test Readiness Review</option>
-            </NativeSelect>
-          </Field>
+                <Table.Header>Section</Table.Header>
+                <Table.Header className="w-[76px] text-right">Controls</Table.Header>
+                <Table.Header className="w-[76px] text-right">Evidence</Table.Header>
+                <Table.Header className="w-[104px]">State</Table.Header>
+              </tr>
+            </thead>
+            <tbody>
+              {sspSections.map((s) => (
+                <Table.Row key={s.id}>
+                  <Table.Selection
+                    checked={included.includes(s.id)}
+                    onCheckedChange={() => toggle(s.id)}
+                    label={`Include ${s.name}`}
+                  />
+                  <Table.Cell title={s.description}>{s.name}</Table.Cell>
+                  <Table.Cell className="tnum w-[76px] text-right">{s.controls || "—"}</Table.Cell>
+                  <Table.Cell className="tnum w-[76px] text-right">{s.evidence}</Table.Cell>
+                  <Table.Cell className="w-[104px]">
+                    <Badge tone={s.ready ? "success" : "warning"}>
+                      {s.ready ? "Ready" : "Gaps"}
+                    </Badge>
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </tbody>
+          </Table>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Output format">
+              <Select value={format} onValueChange={setFormat} aria-label="Output format">
+                {[
+                  "OSCAL SSP (JSON) + PDF",
+                  "OSCAL SSP (XML)",
+                  "eMASS import bundle",
+                  "PDF only",
+                ].map((f) => (
+                  <Select.Item key={f} value={f}>
+                    {f}
+                  </Select.Item>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Review gate">
+              <Select defaultValue="CDR — Critical Design Review" aria-label="Review gate">
+                {[
+                  "PDR — Preliminary Design Review",
+                  "CDR — Critical Design Review",
+                  "TRR — Test Readiness Review",
+                ].map((g) => (
+                  <Select.Item key={g} value={g}>
+                    {g}
+                  </Select.Item>
+                ))}
+              </Select>
+            </Field>
+          </div>
         </div>
-      </div>
-    </Dialog>
+      </Dialog>
+      <AlertDialog
+        open={confirming}
+        onClose={() => setConfirming(false)}
+        onConfirm={() => {
+          setPending(true);
+          window.setTimeout(() => {
+            setPending(false);
+            setConfirming(false);
+            setGenerated(true);
+            toast.success("CDR package built", {
+              description: `${programId}-CDR-SSP.zip · ${controls} controls · ${artifacts} artifacts`,
+            });
+          }, 900);
+        }}
+        pending={pending}
+        title="Generate and sign the CDR package?"
+        description={`${selected.length} of ${sspSections.length} sections as ${format}. The package is hashed and logged against ${programId}; a section left out needs a waiver at the gate.`}
+        confirmLabel="Generate package"
+      />
+    </>
   );
 }

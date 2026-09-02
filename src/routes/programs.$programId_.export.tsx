@@ -10,7 +10,7 @@ import {
   ReconcileVerdict,
   downloadText,
 } from "@/components/app/export";
-import { Badge, NativeSelect, Toolbar, Id, Tabs } from "@/ds/primitives";
+import { Badge, Select, Toolbar, Id, Tabs, Breadcrumb } from "@/ds/primitives";
 import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import {
@@ -207,6 +207,19 @@ function ProgramExport() {
           <RecordHeader
             backTo="/programs/$programId"
             backParams={{ programId }}
+            breadcrumb={
+              <Breadcrumb
+                items={[
+                  { label: "Programs", to: "/programs" },
+                  {
+                    label: program.name,
+                    to: "/programs/$programId",
+                    params: { programId: program.id },
+                  },
+                  { label: "Export and transfer" },
+                ]}
+              />
+            }
             id={program.id}
             title="Export and cross-domain transfer"
             meta={`${program.acronym} · OSCAL ${oscalVersion} · eMASS sheets · generated ${sctm.generated}`}
@@ -268,17 +281,18 @@ function ProgramExport() {
                 </span>
               }
             >
-              <NativeSelect
+              <Select
                 value={model}
-                onChange={(e) => setModel(e.target.value as OscalModel)}
-                className="h-7 w-[268px] text-13"
+                onValueChange={(v) => setModel(v as OscalModel)}
+                aria-label="OSCAL model"
+                className="w-[268px]"
               >
                 {oscalModels.map((m) => (
-                  <option key={m} value={m}>
+                  <Select.Item key={m} value={m}>
                     {oscalModelLabels[m]}
-                  </option>
+                  </Select.Item>
                 ))}
-              </NativeSelect>
+              </Select>
             </Toolbar>
 
             <div className="pt-2">
@@ -311,17 +325,18 @@ function ProgramExport() {
                 <span className="text-12 text-muted-foreground">RFC 4180, CRLF line endings</span>
               }
             >
-              <NativeSelect
+              <Select
                 value={sheetKind}
-                onChange={(e) => setSheetKind(e.target.value as EmassExportKind)}
-                className="h-7 w-[224px] text-13"
+                onValueChange={(v) => setSheetKind(v as EmassExportKind)}
+                aria-label="eMASS sheet"
+                className="w-[224px]"
               >
                 {emassExportKinds.map((kind) => (
-                  <option key={kind} value={kind}>
+                  <Select.Item key={kind} value={kind}>
                     {kind}
-                  </option>
+                  </Select.Item>
                 ))}
-              </NativeSelect>
+              </Select>
             </Toolbar>
 
             <div className="pt-2">
@@ -374,17 +389,18 @@ function ProgramExport() {
               description={`Every path on either manifest, compared by ${digestAlgorithm}. The verdict is what a receiving ISSM acts on; the rows underneath are the comparison it rests on, down to the first differing line of each artifact this side also holds.`}
               action={
                 received.length > 1 ? (
-                  <NativeSelect
+                  <Select
                     value={activeReceived.id}
-                    onChange={(e) => setReceivedId(e.target.value)}
-                    className="h-7 w-[200px] text-13"
+                    onValueChange={setReceivedId}
+                    aria-label="Received media"
+                    className="w-[200px]"
                   >
                     {received.map((b) => (
-                      <option key={b.id} value={b.id}>
+                      <Select.Item key={b.id} value={b.id}>
                         {b.id} · {b.created}
-                      </option>
+                      </Select.Item>
                     ))}
-                  </NativeSelect>
+                  </Select>
                 ) : (
                   <span className="text-12 text-muted-foreground">
                     Media created {activeReceived.created}

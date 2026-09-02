@@ -1,10 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 
-import { Badge, Button, KeyValue, Table, Id, Indicator } from "@/ds/primitives";
-import { PageHeader } from "@/ds/patterns";
+import {
+  Badge,
+  Button,
+  KeyValue,
+  Table,
+  Id,
+  Indicator,
+  Tabs,
+  ToggleGroup,
+  Input,
+  InputGroup,
+} from "@/ds/primitives";
+import { PageHeader, PreviewRail } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
+import { PreviewSplit } from "@/components/app/preview-split";
 import { Shell } from "@/ds/shell";
 import {
   benchmarkById,
@@ -85,61 +97,44 @@ function Catalog() {
           actions={<Button variant="secondary">Import catalog</Button>}
         />
 
-        <div className="flex items-center gap-4 border-b border-border">
-          {tabs.map((t) => (
-            <button
-              key={t}
-              onClick={() => {
-                setTab(t);
-                setSelected(null);
-              }}
-            >
-              <span
-                className={
-                  t === tab
-                    ? "-mb-px inline-flex items-center gap-1.5 border-b-2 border-primary px-0.5 pb-2.5 pt-1 text-[13px] font-semibold text-primary"
-                    : "-mb-px inline-flex items-center gap-1.5 border-b-2 border-transparent px-0.5 pb-2.5 pt-1 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-                }
-              >
-                {t}
-                <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                  {counts[t]}
-                </span>
+        <Tabs
+          items={tabs.map((t) => ({
+            key: t,
+            label: t,
+            active: tab === t,
+            onSelect: () => {
+              setTab(t);
+              setSelected(null);
+            },
+            trailing: (
+              <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
+                {counts[t]}
               </span>
-            </button>
-          ))}
-        </div>
+            ),
+          }))}
+        />
 
         {tab !== "Overlays" ? (
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <label className="relative">
-              <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-              <input
+            <InputGroup leading={<Search />}>
+              <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder={tab === "Controls" ? "Search controls" : "Search CCIs"}
-                className="h-7 w-[240px] rounded-md border border-border bg-background pl-7 pr-2 text-[13px] outline-none placeholder:text-muted-foreground focus:border-primary/40"
+                aria-label="Search"
+                className="w-[240px]"
               />
-            </label>
-            <div className="flex items-center gap-1">
-              {["All", ...families.map((f) => f.id)].map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFamily(f)}
-                  className={
-                    f === family
-                      ? "h-7 rounded-md bg-primary-soft px-2 text-[12.5px] font-medium text-primary"
-                      : "h-7 rounded-md px-2 text-[12.5px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  }
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
+            </InputGroup>
+            <ToggleGroup
+              aria-label="Family"
+              value={family}
+              onChange={setFamily}
+              items={["All", ...families.map((f) => f.id)].map((f) => ({ value: f, label: f }))}
+            />
           </div>
         ) : null}
 
-        <div className={selected ? "grid lg:grid-cols-[minmax(0,1fr)_272px]" : "grid"}>
+        <PreviewSplit open={selected !== null}>
           <div className="min-w-0 lg:pr-6">
             {tab === "Controls" ? (
               <Table className="table-fixed">
@@ -279,18 +274,7 @@ function Catalog() {
           </div>
 
           {selected ? (
-            <aside className="pt-1 lg:border-l lg:border-border lg:pl-6">
-              <div className="flex items-center justify-between gap-2 pb-1">
-                <Id className="text-[12.5px] font-medium">{selected.id}</Id>
-                <button
-                  onClick={() => setSelected(null)}
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                  aria-label="Close CCI detail"
-                >
-                  <X className="size-3.5" />
-                </button>
-              </div>
-
+            <PreviewRail id={selected.id} onClose={() => setSelected(null)}>
               <p className="pb-3 text-[12.5px] leading-relaxed text-muted-foreground">
                 {selected.definition}
               </p>
@@ -350,9 +334,9 @@ function Catalog() {
                   )}
                 </div>
               </Inspector.Group>
-            </aside>
+            </PreviewRail>
           ) : null}
-        </div>
+        </PreviewSplit>
       </div>
     </Shell>
   );

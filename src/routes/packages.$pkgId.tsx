@@ -2,9 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AlertTriangle, FileDown } from "lucide-react";
 
-import { Badge, Button, KeyValue, Table, Id, Tabs } from "@/ds/primitives";
+import { Badge, Button, KeyValue, Table, Id, Tabs, Alert, ToggleGroup } from "@/ds/primitives";
 import { PreviewRail, RecordHeader } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
+import { PreviewSplit } from "@/components/app/preview-split";
 import { Shell } from "@/ds/shell";
 import {
   packageStateTone,
@@ -95,17 +96,13 @@ function PackageRecord() {
         />
 
         {ready.gaps.length > 0 || ready.stale.length > 0 ? (
-          <div className="flex items-start gap-2 border-l-2 border-warning bg-warning-soft px-3 py-2 text-[12.5px]">
-            <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-warning" />
-            <p className="leading-relaxed">
-              <span className="font-medium">{pkg.id} is not shippable.</span> {ready.gaps.length} of{" "}
-              {ready.rows.length} in-scope CCIs have a traceability gap
-              {ready.stale.length > 0
-                ? ` and ${ready.stale.length} generated artifact${ready.stale.length === 1 ? " is" : "s are"} out of date with the snapshot`
-                : ""}
-              .
-            </p>
-          </div>
+          <Alert tone="warning" title={`${pkg.id} is not shippable`}>
+            {ready.gaps.length} of {ready.rows.length} in-scope CCIs have a traceability gap
+            {ready.stale.length > 0
+              ? ` and ${ready.stale.length} generated artifact${ready.stale.length === 1 ? " is" : "s are"} out of date with the snapshot`
+              : ""}
+            .
+          </Alert>
         ) : null}
 
         <Tabs
@@ -126,27 +123,20 @@ function PackageRecord() {
         />
 
         {tab === "Traceability" ? (
-          <div className="flex items-center gap-1 pt-1">
-            {[
-              { label: "All CCIs", on: false },
-              { label: `Gaps only (${ready.gaps.length})`, on: true },
-            ].map((f) => (
-              <button
-                key={f.label}
-                onClick={() => setGapsOnly(f.on)}
-                className={
-                  f.on === gapsOnly
-                    ? "h-7 rounded-md bg-primary-soft px-2 text-[12.5px] font-medium text-primary"
-                    : "h-7 rounded-md px-2 text-[12.5px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                }
-              >
-                {f.label}
-              </button>
-            ))}
+          <div className="pt-1">
+            <ToggleGroup
+              aria-label="Traceability filter"
+              value={gapsOnly ? "gaps" : "all"}
+              onChange={(v) => setGapsOnly(v === "gaps")}
+              items={[
+                { value: "all", label: "All CCIs" },
+                { value: "gaps", label: `Gaps only (${ready.gaps.length})` },
+              ]}
+            />
           </div>
         ) : null}
 
-        <div className={preview ? "grid lg:grid-cols-[minmax(0,1fr)_272px]" : "grid"}>
+        <PreviewSplit open={preview !== null}>
           <div className="min-w-0 lg:pr-6">
             {tab === "Traceability" ? (
               <Table className="table-fixed">
@@ -316,7 +306,7 @@ function PackageRecord() {
               </Inspector.Group>
             </PreviewRail>
           ) : null}
-        </div>
+        </PreviewSplit>
       </div>
     </Shell>
   );

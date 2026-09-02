@@ -2,10 +2,22 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Download, Search } from "lucide-react";
 
-import { Badge, Button, KeyValue, Progress, Table, Id, Indicator } from "@/ds/primitives";
+import {
+  Badge,
+  Button,
+  KeyValue,
+  Progress,
+  Table,
+  Id,
+  Indicator,
+  Tabs,
+  Input,
+  InputGroup,
+} from "@/ds/primitives";
 import { PageHeader, PreviewRail, IndexPage } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { Shell } from "@/ds/shell";
+import { PreviewSplit } from "@/components/app/preview-split";
 import { assetById } from "@/lib/findings";
 import {
   ccisForRisk,
@@ -102,46 +114,38 @@ function RegisterPage() {
           />
         }
       >
-        <div className="flex items-center gap-4 border-b border-border">
-          {tabs.map((t) => (
-            <button
-              key={t}
-              onClick={() => {
-                setTab(t);
-                setPreview(null);
-              }}
-            >
-              <span
-                className={
-                  t === tab
-                    ? "-mb-px inline-flex items-center gap-1.5 border-b-2 border-primary px-0.5 pb-2.5 pt-1 text-[13px] font-semibold text-primary"
-                    : "-mb-px inline-flex items-center gap-1.5 border-b-2 border-transparent px-0.5 pb-2.5 pt-1 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-                }
-              >
-                {t}
-                <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                  {counts[t]}
-                </span>
+        <Tabs
+          items={tabs.map((t) => ({
+            key: t,
+            label: t,
+            active: tab === t,
+            onSelect: () => {
+              setTab(t);
+              setPreview(null);
+            },
+            trailing: (
+              <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
+                {counts[t]}
               </span>
-            </button>
-          ))}
-        </div>
+            ),
+          }))}
+        />
 
         {tab === "POA&M" ? (
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <label className="relative">
-              <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-              <input
+            <InputGroup leading={<Search />}>
+              <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search POA&M items, owners"
-                className="h-7 w-[240px] rounded-md border border-border bg-background pl-7 pr-2 text-[13px] outline-none placeholder:text-muted-foreground focus:border-primary/40"
+                aria-label="Search"
+                className="w-[240px]"
               />
-            </label>
+            </InputGroup>
           </div>
         ) : null}
 
-        <div className={preview ? "grid lg:grid-cols-[minmax(0,1fr)_272px]" : "grid"}>
+        <PreviewSplit open={preview !== null}>
           <div className="min-w-0 lg:pr-6">
             {tab === "POA&M" ? (
               <Table className="table-fixed">
@@ -425,7 +429,7 @@ function RegisterPage() {
               </Inspector.Group>
             </PreviewRail>
           ) : null}
-        </div>
+        </PreviewSplit>
       </IndexPage>
     </Shell>
   );

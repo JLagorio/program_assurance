@@ -5,6 +5,7 @@ import { RefreshCw } from "lucide-react";
 import { Badge, Button, KeyValue, Table, Id } from "@/ds/primitives";
 import { IndexPage, PageHeader, PreviewRail } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
+import { PreviewSplit } from "@/components/app/preview-split";
 import { Shell } from "@/ds/shell";
 import { packageStateTone, packages, readiness, type Pkg } from "@/lib/packages";
 
@@ -49,7 +50,7 @@ function PackagesIndex() {
           />
         }
       >
-        <div className={preview ? "grid lg:grid-cols-[minmax(0,1fr)_272px]" : "grid"}>
+        <PreviewSplit open={preview !== null}>
           <div className="min-w-0 lg:pr-6">
             <Table className="table-fixed">
               <colgroup>
@@ -152,7 +153,7 @@ function PackagesIndex() {
               </Inspector.Group>
             </PreviewRail>
           ) : null}
-        </div>
+        </PreviewSplit>
       </IndexPage>
     </Shell>
   );

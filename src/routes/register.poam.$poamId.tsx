@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { Badge, Button, KeyValue, Table, Id, Indicator } from "@/ds/primitives";
-import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { RecordHeader, Section, ShowPage, Empty } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { Shell } from "@/ds/shell";
 import { assetById, bySeverity, isOpen } from "@/lib/findings";
@@ -226,9 +226,10 @@ function PoamRecord() {
               </tbody>
             </Table>
           ) : (
-            <p className="text-[13px] text-muted-foreground">
-              No findings are attached — this commitment has nothing to close.
-            </p>
+            <Empty
+              title="No findings attached"
+              description="This commitment has nothing to close."
+            />
           )}
         </Section>
       </ShowPage>

@@ -2,9 +2,10 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 
-import { Badge, Button, KeyValue, Table, Id, Indicator } from "@/ds/primitives";
-import { IndexPage, PageHeader } from "@/ds/patterns";
+import { Badge, Button, KeyValue, Table, Id, Indicator, Tabs, ToggleGroup } from "@/ds/primitives";
+import { IndexPage, PageHeader, PreviewRail } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
+import { PreviewSplit } from "@/components/app/preview-split";
 import { Shell } from "@/ds/shell";
 import {
   campaignById,
@@ -89,50 +90,35 @@ function CampaignsPage() {
           />
         }
       >
-        <div className="flex items-center gap-4 border-b border-border">
-          {tabs.map((t) => (
-            <button
-              key={t}
-              onClick={() => {
-                setTab(t);
-                setSelected(null);
-              }}
-            >
-              <span
-                className={
-                  t === tab
-                    ? "-mb-px inline-flex items-center gap-1.5 border-b-2 border-primary px-0.5 pb-2.5 pt-1 text-[13px] font-semibold text-primary"
-                    : "-mb-px inline-flex items-center gap-1.5 border-b-2 border-transparent px-0.5 pb-2.5 pt-1 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-                }
-              >
-                {t}
-                <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                  {counts[t]}
-                </span>
+        <Tabs
+          items={tabs.map((t) => ({
+            key: t,
+            label: t,
+            active: tab === t,
+            onSelect: () => {
+              setTab(t);
+              setSelected(null);
+            },
+            trailing: (
+              <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
+                {counts[t]}
               </span>
-            </button>
-          ))}
-        </div>
+            ),
+          }))}
+        />
 
         {tab === "Events" ? (
           <div className="flex flex-wrap items-center gap-1 pt-1">
-            {["All", ...campaigns.map((c) => c.id)].map((c) => (
-              <button
-                key={c}
-                onClick={() => setCampaign(c)}
-                className={
-                  c === campaign
-                    ? "h-7 rounded-md bg-primary-soft px-2 text-[12.5px] font-medium text-primary"
-                    : "h-7 rounded-md px-2 text-[12.5px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                }
-              >
-                {c}
-              </button>
-            ))}
+            <ToggleGroup
+              aria-label="Campaign"
+              value={campaign}
+              onChange={setCampaign}
+              items={["All", ...campaigns.map((c) => c.id)].map((c) => ({ value: c, label: c }))}
+            />
           </div>
         ) : null}
 
-        <div className={selected ? "grid lg:grid-cols-[minmax(0,1fr)_272px]" : "grid"}>
+        <PreviewSplit open={selected !== null}>
           <div className="min-w-0 lg:pr-6">
             {tab === "Campaigns" ? (
               <Table className="table-fixed">
@@ -290,18 +276,8 @@ function CampaignsPage() {
           </div>
 
           {selected ? (
-            <aside className="border-t border-border pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
-              <div className="flex items-baseline gap-2">
-                <Id>{selected.id}</Id>
-                <button
-                  onClick={() => setSelected(null)}
-                  className="ml-auto text-[12px] text-muted-foreground hover:text-foreground"
-                >
-                  Close
-                </button>
-              </div>
-              <h2 className="mt-1 text-[13.5px] font-semibold leading-snug">{selected.name}</h2>
-              <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
+            <PreviewRail id={selected.id} title={selected.name} onClose={() => setSelected(null)}>
+              <p className="text-[12.5px] leading-relaxed text-muted-foreground">
                 {selected.notes}
               </p>
 
@@ -403,9 +379,9 @@ function CampaignsPage() {
                   </div>
                 </Inspector.Group>
               </div>
-            </aside>
+            </PreviewRail>
           ) : null}
-        </div>
+        </PreviewSplit>
       </IndexPage>
     </Shell>
   );

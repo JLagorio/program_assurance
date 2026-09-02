@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Badge, Button, Table, Id, Item } from "@/ds/primitives";
+import { Badge, Button, Table, Id, Item, Tabs } from "@/ds/primitives";
 import { PageHeader, Section, IndexPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import { programs } from "@/lib/grc-data";
@@ -54,28 +54,21 @@ function ScopeApprovals() {
           />
         }
       >
-        <div className="flex items-center gap-4 border-b border-border">
-          {filters.map((f) => {
-            const count =
-              f === "All"
-                ? scopeApprovals.length
-                : scopeApprovals.filter((a) => a.state === f).length;
-            return (
-              <button key={f} onClick={() => setTab(f)}>
-                <span
-                  className={
-                    f === tab
-                      ? "-mb-px inline-flex items-center gap-1.5 border-b-2 border-primary px-0.5 pb-2.5 pt-1 text-[13px] font-semibold text-primary"
-                      : "-mb-px inline-flex items-center gap-1.5 border-b-2 border-transparent px-0.5 pb-2.5 pt-1 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-                  }
-                >
-                  {f}
-                  <span className="tnum text-[12px] text-muted-foreground">{count}</span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <Tabs
+          items={filters.map((f) => ({
+            key: f,
+            label: f,
+            active: tab === f,
+            onSelect: () => setTab(f),
+            trailing: (
+              <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
+                {f === "All"
+                  ? scopeApprovals.length
+                  : scopeApprovals.filter((a) => a.state === f).length}
+              </span>
+            ),
+          }))}
+        />
 
         <Section
           title="Awaiting decision"

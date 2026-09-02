@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, Circle } from "lucide-react";
 
-import { Avatar, Button, DropdownMenu, Sheet, Timeline } from "@/ds/primitives";
+import { Avatar, Button, DropdownMenu, Sheet, Timeline, ToggleGroup } from "@/ds/primitives";
 import { Empty } from "@/ds/patterns";
 import { cn } from "@/lib/utils";
 import { useActivityFilters, useReadState } from "@/lib/activity-prefs";
@@ -70,23 +70,20 @@ export function ActivityTimeline({
   return (
     <div>
       <div className="flex flex-wrap items-center gap-1.5 pb-3 pt-3">
-        {(["All", ...activityKinds] as const).map((k) => (
-          <button
-            key={k}
-            type="button"
-            onClick={() => update({ kind: k })}
-            aria-pressed={filters.kind === k}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[3px] text-12 font-medium transition-colors duration-100",
-              filters.kind === k
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border text-muted-foreground hover:bg-surface-hover",
-            )}
-          >
-            {k}
-            <span className="tnum opacity-70">{counts[k] ?? 0}</span>
-          </button>
-        ))}
+        <ToggleGroup
+          aria-label="Activity type"
+          value={filters.kind}
+          onChange={(k) => update({ kind: k })}
+          items={(["All", ...activityKinds] as const).map((k) => ({
+            value: k,
+            label: (
+              <span className="inline-flex items-center gap-1.5">
+                {k}
+                <span className="tnum opacity-70">{counts[k] ?? 0}</span>
+              </span>
+            ),
+          }))}
+        />
 
         <span className="ml-auto flex items-center gap-1.5">
           <FilterMenu

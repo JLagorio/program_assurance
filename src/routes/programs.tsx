@@ -16,10 +16,28 @@ import {
   Dialog,
   DatePicker,
   Checkbox,
+  Combobox,
+  HoverCard,
+  Pagination,
+  Popover,
+  RadioGroup,
+  ToggleGroup,
+  Calendar,
+  Spinner,
+  Stepper,
+  Tabs,
+  toast,
 } from "@/ds/primitives";
 import { PageHeader, IndexPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
-import { baselineCounts, programStatusTone, programs, type ImpactLevel } from "@/lib/grc-data";
+import {
+  baselineCounts,
+  programStatusTone,
+  programs,
+  type ImpactLevel,
+  type Program,
+} from "@/lib/grc-data";
+import { usePage, useSort } from "@/lib/table-state";
 
 export const Route = createFileRoute("/programs")({
   head: () => ({
@@ -61,15 +79,82 @@ const tabs = [
   { label: "Draft", count: 1 },
 ];
 
+const programSort = {
+  id: (p: Program) => p.id,
+  system: (p: Program) => p.name,
+  impact: (p: Program) => ({ Low: 0, Moderate: 1, High: 2 })[p.impact] ?? 0,
+  assessed: (p: Program) => p.controlsAssessed / Math.max(p.controlsTotal, 1),
+  status: (p: Program) => p.status,
+  owner: (p: Program) => p.owner,
+  expires: (p: Program) => p.expires,
+};
+
+const impactLevels = ["All", "High", "Moderate", "Low"] as const;
+
+const columns = [
+  { key: "impact", label: "Impact" },
+  { key: "baseline", label: "Baseline" },
+  { key: "assessment", label: "Assessment" },
+  { key: "status", label: "Status" },
+  { key: "owner", label: "Owner" },
+  { key: "expires", label: "Expires" },
+] as const;
+type ColumnKey = (typeof columns)[number]["key"];
+
+const createSteps = ["System scope", "Categorization", "Confirm"];
+
+function ProgramPeek({ program: p }: { program: Program }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="truncate font-medium">{p.name}</div>
+          <div className="text-12 text-muted-foreground">
+            {p.system} · {p.environment}
+          </div>
+        </div>
+        <Badge tone={programStatusTone[p.status]} size="xs">
+          {p.status}
+        </Badge>
+      </div>
+      <dl className="grid grid-cols-[88px_1fr] gap-y-1 text-12">
+        <dt className="text-muted-foreground">Owner</dt>
+        <dd>{p.owner}</dd>
+        <dt className="text-muted-foreground">Assessor</dt>
+        <dd>{p.assessor}</dd>
+        <dt className="text-muted-foreground">Assessed</dt>
+        <dd className="tnum">
+          {p.controlsAssessed}/{p.controlsTotal} · {p.controlsFailing} failing
+        </dd>
+        <dt className="text-muted-foreground">Expires</dt>
+        <dd className="tnum">{p.expires}</dd>
+      </dl>
+    </div>
+  );
+}
+
 function ProgramList() {
   const [tab, setTab] = useState("All");
   const [selected, setSelected] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [scheduling, setScheduling] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState<Date | undefined>(undefined);
+  const [hidden, setHidden] = useState<ColumnKey[]>([]);
+  const show = (key: ColumnKey) => !hidden.includes(key);
 
-  const rows = useMemo(
-    () => (tab === "All" ? programs : programs.filter((p) => p.status === tab)),
-    [tab],
+  const [impact, setImpact] = useState<(typeof impactLevels)[number]>("All");
+
+  const filtered = useMemo(
+    () =>
+      programs.filter(
+        (p) => (tab === "All" || p.status === tab) && (impact === "All" || p.impact === impact),
+      ),
+    [tab, impact],
   );
+  const sort = useSort(filtered, programSort, { key: "id", dir: "asc" });
+  const paged = usePage(sort.rows, 25);
+  const rows = paged.rows;
 
   const toggle = (id: string) =>
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
@@ -82,8 +167,20 @@ function ProgramList() {
           description="Each program scopes one system, categorizes it under FIPS-199, and assesses the tailored NIST SP 800-53 Rev. 5 baseline it inherits."
           actions={
             <>
-              <Button variant="secondary">
-                <Download className="size-3.5" /> Export SSP
+              <Button
+                variant="secondary"
+                disabled={exporting}
+                onClick={() => {
+                  setExporting(true);
+                  window.setTimeout(() => {
+                    setExporting(false);
+                    toast.success("SSP export ready", {
+                      description: `${filtered.length} programs · OSCAL 1.1.2 JSON`,
+                    });
+                  }, 900);
+                }}
+              >
+                {exporting ? <Spinner /> : <Download className="size-3.5" />} Export SSP
               </Button>
               <Button variant="primary" onClick={() => setCreating(true)}>
                 <Plus className="size-3.5" /> New program
@@ -93,37 +190,76 @@ function ProgramList() {
         />
       }
     >
-      <div className="flex items-center gap-4 border-b border-border">
-        {tabs.map((t) => {
-          const active = t.label === tab;
-          return (
-            <button key={t.label} onClick={() => setTab(t.label)}>
-              <span
-                className={
-                  active
-                    ? "-mb-px inline-flex items-center gap-1.5 border-b-2 border-primary px-0.5 pb-2.5 pt-1 text-[13px] font-semibold text-primary"
-                    : "-mb-px inline-flex items-center gap-1.5 border-b-2 border-transparent px-0.5 pb-2.5 pt-1 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-                }
-              >
-                {t.label}
-                <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                  {t.count}
-                </span>
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      <Tabs
+        items={tabs.map((t) => ({
+          key: t.label,
+          label: t.label,
+          active: tab === t.label,
+          onSelect: () => setTab(t.label),
+          trailing: (
+            <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
+              {t.count}
+            </span>
+          ),
+        }))}
+      />
 
       <div className="flex flex-wrap items-center gap-2">
         <FilterChip label="Baseline" value="Rev. 5" active />
-        <FilterChip label="Impact" />
+        <Popover
+          width={180}
+          trigger={
+            <FilterChip
+              label="Impact"
+              {...(impact === "All" ? {} : { value: impact, active: true })}
+            />
+          }
+        >
+          <RadioGroup
+            value={impact}
+            onValueChange={(v) => setImpact(v as (typeof impactLevels)[number])}
+            aria-label="Impact"
+            className="space-y-2"
+          >
+            {impactLevels.map((l) => (
+              <RadioGroup.Item key={l} value={l}>
+                {l === "All" ? "Any impact" : l}
+              </RadioGroup.Item>
+            ))}
+          </RadioGroup>
+        </Popover>
         <FilterChip label="Owner" />
         <FilterChip label="Assessor" />
         <div className="ml-auto flex items-center gap-2">
-          <Button variant="secondary" size="sm">
-            <ListFilter className="size-3.5" /> Columns
-          </Button>
+          <Popover
+            width={200}
+            align="end"
+            trigger={
+              <Button variant="secondary" size="sm">
+                <ListFilter className="size-3.5" /> Columns
+                {hidden.length ? (
+                  <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
+                    {columns.length - hidden.length}/{columns.length}
+                  </span>
+                ) : null}
+              </Button>
+            }
+          >
+            <div className="space-y-2">
+              {columns.map((c) => (
+                <div key={c.key}>
+                  <Checkbox
+                    checked={show(c.key)}
+                    onCheckedChange={(v) =>
+                      setHidden((h) => (v === true ? h.filter((x) => x !== c.key) : [...h, c.key]))
+                    }
+                  >
+                    {c.label}
+                  </Checkbox>
+                </div>
+              ))}
+            </div>
+          </Popover>
         </div>
       </div>
 
@@ -134,7 +270,7 @@ function ProgramList() {
             <Button variant="secondary" size="sm">
               Reassign assessor
             </Button>
-            <Button variant="secondary" size="sm">
+            <Button variant="secondary" size="sm" onClick={() => setScheduling(true)}>
               Schedule assessment
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setSelected([])}>
@@ -159,14 +295,62 @@ function ProgramList() {
               onCheckedChange={(next) => setSelected(next ? rows.map((r) => r.id) : [])}
               label="Select all programs"
             />
-            <Table.Header className="w-[92px]">Program</Table.Header>
-            <Table.Header>System</Table.Header>
-            <Table.Header className="w-[104px]">Impact</Table.Header>
-            <Table.Header className="w-[132px]">Baseline</Table.Header>
-            <Table.Header className="w-[168px]">Assessment</Table.Header>
-            <Table.Header className="w-[124px]">Status</Table.Header>
-            <Table.Header className="w-[120px]">Owner</Table.Header>
-            <Table.Header className="w-[112px] text-right">Expires</Table.Header>
+            <Table.Header
+              className="w-[92px]"
+              sort={sort.dir("id")}
+              onSort={() => sort.toggle("id")}
+            >
+              Program
+            </Table.Header>
+            <Table.Header sort={sort.dir("system")} onSort={() => sort.toggle("system")}>
+              System
+            </Table.Header>
+            {show("impact") ? (
+              <Table.Header
+                className="w-[104px]"
+                sort={sort.dir("impact")}
+                onSort={() => sort.toggle("impact")}
+              >
+                Impact
+              </Table.Header>
+            ) : null}
+            {show("baseline") ? <Table.Header className="w-[132px]">Baseline</Table.Header> : null}
+            {show("assessment") ? (
+              <Table.Header
+                className="w-[168px]"
+                sort={sort.dir("assessed")}
+                onSort={() => sort.toggle("assessed")}
+              >
+                Assessment
+              </Table.Header>
+            ) : null}
+            {show("status") ? (
+              <Table.Header
+                className="w-[124px]"
+                sort={sort.dir("status")}
+                onSort={() => sort.toggle("status")}
+              >
+                Status
+              </Table.Header>
+            ) : null}
+            {show("owner") ? (
+              <Table.Header
+                className="w-[120px]"
+                sort={sort.dir("owner")}
+                onSort={() => sort.toggle("owner")}
+              >
+                Owner
+              </Table.Header>
+            ) : null}
+            {show("expires") ? (
+              <Table.Header
+                className="w-[112px] text-right"
+                sort={sort.dir("expires")}
+                onSort={() => sort.toggle("expires")}
+              >
+                Expires
+              </Table.Header>
+            ) : null}
           </tr>
         </thead>
         <tbody>
@@ -180,7 +364,14 @@ function ProgramList() {
                   label={`Select ${p.id}`}
                 />
                 <Table.Cell className="w-[92px]">
-                  <Id>{p.id}</Id>
+                  <HoverCard content={<ProgramPeek program={p} />}>
+                    <span
+                      tabIndex={0}
+                      className="inline-flex rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
+                    >
+                      <Id>{p.id}</Id>
+                    </span>
+                  </HoverCard>
                 </Table.Cell>
                 <Table.Cell>
                   <Link
@@ -192,54 +383,92 @@ function ProgramList() {
                   </Link>
                   <span className="ml-2 text-muted-foreground">{p.system}</span>
                 </Table.Cell>
-                <Table.Cell className="w-[104px]">
-                  <Badge
-                    tone={
-                      p.impact === "High"
-                        ? "danger"
-                        : p.impact === "Moderate"
-                          ? "warning"
-                          : "neutral"
-                    }
-                  >
-                    {p.impact}
-                  </Badge>
-                </Table.Cell>
-                <Table.Cell className="w-[132px]">Rev. 5 · {p.impact}</Table.Cell>
-                <Table.Cell className="w-[168px]">
-                  <span className="flex items-center gap-2">
-                    <span className="w-16">
-                      <Progress value={pct} tone={pct === 100 ? "success" : "info"} />
+                {show("impact") ? (
+                  <Table.Cell className="w-[104px]">
+                    <Badge
+                      tone={
+                        p.impact === "High"
+                          ? "danger"
+                          : p.impact === "Moderate"
+                            ? "warning"
+                            : "neutral"
+                      }
+                    >
+                      {p.impact}
+                    </Badge>
+                  </Table.Cell>
+                ) : null}
+                {show("baseline") ? (
+                  <Table.Cell className="w-[132px]">Rev. 5 · {p.impact}</Table.Cell>
+                ) : null}
+                {show("assessment") ? (
+                  <Table.Cell className="w-[168px]">
+                    <span className="flex items-center gap-2">
+                      <span className="w-16">
+                        <Progress value={pct} tone={pct === 100 ? "success" : "info"} />
+                      </span>
+                      <span className="tnum text-muted-foreground">
+                        {p.controlsAssessed}/{p.controlsTotal}
+                      </span>
                     </span>
-                    <span className="tnum text-muted-foreground">
-                      {p.controlsAssessed}/{p.controlsTotal}
-                    </span>
-                  </span>
-                </Table.Cell>
-                <Table.Cell className="w-[124px]">
-                  <Badge tone={programStatusTone[p.status]}>{p.status}</Badge>
-                </Table.Cell>
-                <Table.Cell className="w-[120px]">{p.owner}</Table.Cell>
-                <Table.Cell className="tnum w-[112px] text-right">{p.expires}</Table.Cell>
+                  </Table.Cell>
+                ) : null}
+                {show("status") ? (
+                  <Table.Cell className="w-[124px]">
+                    <Badge tone={programStatusTone[p.status]}>{p.status}</Badge>
+                  </Table.Cell>
+                ) : null}
+                {show("owner") ? <Table.Cell className="w-[120px]">{p.owner}</Table.Cell> : null}
+                {show("expires") ? (
+                  <Table.Cell className="tnum w-[112px] text-right">{p.expires}</Table.Cell>
+                ) : null}
               </Table.Row>
             );
           })}
         </tbody>
       </Table>
 
-      <div className="flex items-center justify-between border-t border-border pt-3 text-[13px] text-muted-foreground">
-        <span className="tnum">
-          {rows.length} of {programs.length} programs
-        </span>
-        <span className="flex items-center gap-2">
-          <Button variant="secondary" size="sm" disabled>
-            Previous
-          </Button>
-          <Button variant="secondary" size="sm" disabled>
-            Next
-          </Button>
-        </span>
-      </div>
+      <Pagination
+        page={paged.page}
+        pageCount={paged.pageCount}
+        onPageChange={paged.setPage}
+        total={paged.total}
+        pageSize={paged.pageSize}
+        className="border-t border-border pt-3"
+      />
+
+      <Dialog
+        open={scheduling}
+        onClose={() => setScheduling(false)}
+        title="Schedule assessment"
+        description={`${selected.length} ${selected.length === 1 ? "program" : "programs"} · the assessor is notified with the date`}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setScheduling(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              disabled={!scheduleDate}
+              onClick={() => {
+                const d = scheduleDate;
+                if (!d) return;
+                setScheduling(false);
+                toast.success(
+                  `Assessment scheduled for ${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`,
+                  { description: selected.join(", ") },
+                );
+              }}
+            >
+              Schedule
+            </Button>
+          </>
+        }
+      >
+        <div className="flex justify-center">
+          <Calendar mode="single" selected={scheduleDate} onSelect={setScheduleDate} />
+        </div>
+      </Dialog>
 
       <CreateProgram open={creating} onClose={() => setCreating(false)} />
     </IndexPage>
@@ -336,6 +565,22 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
         </>
       }
     >
+      <div className="mb-4">
+        <Stepper>
+          {createSteps.map((label, i) => (
+            <Stepper.Item
+              key={label}
+              state={i + 1 < step ? "done" : i + 1 === step ? "current" : "upcoming"}
+              label={label}
+              meta={`Step ${i + 1} of ${createSteps.length}`}
+              first={i === 0}
+              last={i === createSteps.length - 1}
+              {...(i + 1 < step ? { onSelect: () => setStep(i + 1) } : {})}
+            />
+          ))}
+        </Stepper>
+      </div>
+
       {step === 1 ? (
         <div className="space-y-3">
           <Field label="Program name">
@@ -371,12 +616,16 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
               </NativeSelect>
             </Field>
             <Field label="System owner">
-              <NativeSelect value={owner} onChange={(e) => setOwner(e.target.value)}>
-                <option>Grace Hoppel</option>
-                <option>Marcus Ryde</option>
-                <option>Dana Whitlock</option>
-                <option>Priya Raghavan</option>
-              </NativeSelect>
+              <Combobox
+                value={owner}
+                onChange={setOwner}
+                options={["Grace Hoppel", "Marcus Ryde", "Dana Whitlock", "Priya Raghavan"].map(
+                  (name) => ({ value: name, label: name }),
+                )}
+                placeholder="Choose an owner"
+                searchPlaceholder="Search people…"
+                className="w-full"
+              />
             </Field>
           </div>
         </div>
@@ -401,22 +650,12 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
                   <div className="text-[13px] font-medium">{label}</div>
                   <div className="text-[12px] text-muted-foreground">FIPS-199 potential impact</div>
                 </div>
-                <div className="flex items-center rounded-md shadow-button">
-                  {levels.map((l) => (
-                    <button
-                      key={l}
-                      onClick={() => set(l)}
-                      className={
-                        (value === l
-                          ? "bg-primary-soft font-medium text-primary "
-                          : "text-muted-foreground hover:text-foreground ") +
-                        "h-7 px-2.5 text-[12px] transition-colors first:rounded-l-md last:rounded-r-md"
-                      }
-                    >
-                      {l}
-                    </button>
-                  ))}
-                </div>
+                <ToggleGroup
+                  aria-label={`${label} impact`}
+                  value={value}
+                  onChange={(v) => set(v as ImpactLevel)}
+                  items={levels.map((l) => ({ value: l, label: l }))}
+                />
               </div>
             ))}
           </div>

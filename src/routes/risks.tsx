@@ -14,10 +14,19 @@ import {
   Textarea,
   Id,
   Dialog,
+  Combobox,
+  HoverCard,
+  Pagination,
+  Popover,
+  RadioGroup,
+  Spinner,
+  Tabs,
+  toast,
 } from "@/ds/primitives";
 import { PageHeader, IndexPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
-import { riskStatusTone, risks } from "@/lib/grc-data";
+import { riskStatusTone, risks, type Risk } from "@/lib/grc-data";
+import { usePage, useSort } from "@/lib/table-state";
 
 export const Route = createFileRoute("/risks")({
   head: () => ({
@@ -58,15 +67,67 @@ function RisksLayout() {
   );
 }
 
+const riskSort = {
+  id: (r: Risk) => r.id,
+  title: (r: Risk) => r.title,
+  framework: (r: Risk) => r.framework,
+  owner: (r: Risk) => r.owner,
+  treatment: (r: Risk) => r.treatment,
+  residual: (r: Risk) => r.residual,
+  status: (r: Risk) => r.status,
+};
+
+const treatments = ["All", "Mitigate", "Transfer", "Accept"] as const;
+
+function RiskPeek({ risk: r }: { risk: Risk }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="font-medium leading-snug">{r.title}</div>
+          <div className="text-12 text-muted-foreground">
+            {r.framework} · {r.control} · {r.team}
+          </div>
+        </div>
+        <Badge tone={riskStatusTone[r.status]} size="xs">
+          {r.status}
+        </Badge>
+      </div>
+      <dl className="grid grid-cols-[88px_1fr] gap-y-1 text-12">
+        <dt className="text-muted-foreground">Owner</dt>
+        <dd>{r.owner}</dd>
+        <dt className="text-muted-foreground">Treatment</dt>
+        <dd>{r.treatment}</dd>
+        <dt className="text-muted-foreground">Residual</dt>
+        <dd className="tnum">
+          {r.residual} of {r.inherent} inherent
+        </dd>
+        <dt className="text-muted-foreground">Due</dt>
+        <dd className="tnum">{r.due}</dd>
+      </dl>
+    </div>
+  );
+}
+
 function RiskList() {
   const [tab, setTab] = useState("All");
   const [selected, setSelected] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
-  const rows = useMemo(
-    () => (tab === "All" ? risks : risks.filter((r) => r.status === tab)),
-    [tab],
+  const [treatment, setTreatment] = useState<(typeof treatments)[number]>("All");
+
+  const filtered = useMemo(
+    () =>
+      risks.filter(
+        (r) =>
+          (tab === "All" || r.status === tab) && (treatment === "All" || r.treatment === treatment),
+      ),
+    [tab, treatment],
   );
+  const sort = useSort(filtered, riskSort, { key: "id", dir: "desc" });
+  const paged = usePage(sort.rows, 5);
+  const rows = paged.rows;
 
   const toggle = (id: string) =>
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
@@ -79,8 +140,20 @@ function RiskList() {
           description="24 tracked risks across 4 frameworks. Residual scores recalculate when linked controls change state."
           actions={
             <>
-              <Button variant="secondary">
-                <Download className="size-3.5" /> Export
+              <Button
+                variant="secondary"
+                disabled={exporting}
+                onClick={() => {
+                  setExporting(true);
+                  window.setTimeout(() => {
+                    setExporting(false);
+                    toast.success("Risk register exported", {
+                      description: `${filtered.length} risks · CSV with inherent and residual scores`,
+                    });
+                  }, 900);
+                }}
+              >
+                {exporting ? <Spinner /> : <Download className="size-3.5" />} Export
               </Button>
               <Button variant="primary" onClick={() => setCreating(true)}>
                 <Plus className="size-3.5" /> New risk
@@ -90,32 +163,45 @@ function RiskList() {
         />
       }
     >
-      <div className="flex items-center gap-4 border-b border-border">
-        {tabs.map((t) => {
-          const active = t.label === tab;
-          return (
-            <button key={t.label} onClick={() => setTab(t.label)}>
-              <span
-                className={
-                  active
-                    ? "-mb-px inline-flex items-center gap-1.5 border-b-2 border-primary px-0.5 pb-2.5 pt-1 text-[13px] font-semibold text-primary"
-                    : "-mb-px inline-flex items-center gap-1.5 border-b-2 border-transparent px-0.5 pb-2.5 pt-1 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-                }
-              >
-                {t.label}
-                <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                  {t.count}
-                </span>
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      <Tabs
+        items={tabs.map((t) => ({
+          key: t.label,
+          label: t.label,
+          active: tab === t.label,
+          onSelect: () => setTab(t.label),
+          trailing: (
+            <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
+              {t.count}
+            </span>
+          ),
+        }))}
+      />
 
       <div className="flex flex-wrap items-center gap-2">
         <FilterChip label="Framework" value="SOC 2" active />
         <FilterChip label="Owner" />
-        <FilterChip label="Treatment" />
+        <Popover
+          width={180}
+          trigger={
+            <FilterChip
+              label="Treatment"
+              {...(treatment === "All" ? {} : { value: treatment, active: true })}
+            />
+          }
+        >
+          <RadioGroup
+            value={treatment}
+            onValueChange={(v) => setTreatment(v as (typeof treatments)[number])}
+            aria-label="Treatment"
+            className="space-y-2"
+          >
+            {treatments.map((t) => (
+              <RadioGroup.Item key={t} value={t}>
+                {t === "All" ? "Any treatment" : t}
+              </RadioGroup.Item>
+            ))}
+          </RadioGroup>
+        </Popover>
         <FilterChip label="Updated" />
         <div className="ml-auto flex items-center gap-2">
           <Button variant="secondary" size="sm">
@@ -157,15 +243,53 @@ function RiskList() {
                 onCheckedChange={(next) => setSelected(next ? rows.map((r) => r.id) : [])}
                 label="Select all risks"
               />
-              <Table.Header className="w-[92px]">ID</Table.Header>
-              <Table.Header>Risk</Table.Header>
-              <Table.Header className="w-[88px]">Framework</Table.Header>
+              <Table.Header
+                className="w-[92px]"
+                sort={sort.dir("id")}
+                onSort={() => sort.toggle("id")}
+              >
+                ID
+              </Table.Header>
+              <Table.Header sort={sort.dir("title")} onSort={() => sort.toggle("title")}>
+                Risk
+              </Table.Header>
+              <Table.Header
+                className="w-[88px]"
+                sort={sort.dir("framework")}
+                onSort={() => sort.toggle("framework")}
+              >
+                Framework
+              </Table.Header>
               <Table.Header className="w-[76px]">Control</Table.Header>
-              <Table.Header className="w-[118px]">Owner</Table.Header>
-              <Table.Header className="w-[88px]">Treatment</Table.Header>
-              <Table.Header className="w-[130px]">Residual</Table.Header>
+              <Table.Header
+                className="w-[118px]"
+                sort={sort.dir("owner")}
+                onSort={() => sort.toggle("owner")}
+              >
+                Owner
+              </Table.Header>
+              <Table.Header
+                className="w-[88px]"
+                sort={sort.dir("treatment")}
+                onSort={() => sort.toggle("treatment")}
+              >
+                Treatment
+              </Table.Header>
+              <Table.Header
+                className="w-[130px]"
+                sort={sort.dir("residual")}
+                onSort={() => sort.toggle("residual")}
+              >
+                Residual
+              </Table.Header>
               <Table.Header className="w-[128px]">Updated</Table.Header>
-              <Table.Header className="w-[96px] text-right">Status</Table.Header>
+              <Table.Header
+                className="w-[96px] text-right"
+                sort={sort.dir("status")}
+                onSort={() => sort.toggle("status")}
+              >
+                Status
+              </Table.Header>
             </tr>
           </thead>
           <tbody>
@@ -177,7 +301,14 @@ function RiskList() {
                   label={`Select ${risk.id}`}
                 />
                 <Table.Cell>
-                  <Id>{risk.id}</Id>
+                  <HoverCard content={<RiskPeek risk={risk} />} width={300}>
+                    <span
+                      tabIndex={0}
+                      className="inline-flex rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
+                    >
+                      <Id>{risk.id}</Id>
+                    </span>
+                  </HoverCard>
                 </Table.Cell>
                 <Table.Cell>
                   <Link
@@ -218,17 +349,14 @@ function RiskList() {
             ))}
           </tbody>
         </Table>
-        <div className="flex items-center justify-between border-t border-border px-3 py-2 text-[12px] text-muted-foreground">
-          <span className="tnum">{rows.length} of 24 results</span>
-          <div className="flex gap-2">
-            <Button size="sm" variant="secondary" disabled>
-              Previous
-            </Button>
-            <Button size="sm" variant="secondary">
-              Next
-            </Button>
-          </div>
-        </div>
+        <Pagination
+          page={paged.page}
+          pageCount={paged.pageCount}
+          onPageChange={paged.setPage}
+          total={paged.total}
+          pageSize={paged.pageSize}
+          className="border-t border-border px-3 py-2"
+        />
       </div>
 
       <CreateRiskModal open={creating} onClose={() => setCreating(false)} />
@@ -329,11 +457,16 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
             </NativeSelect>
           </Field>
           <Field label="Owner">
-            <NativeSelect value={owner} onChange={(e) => setOwner(e.target.value)}>
-              {["Sarah Chen", "Linus Aarto", "Marcus Ryde", "Priya Raghavan"].map((o) => (
-                <option key={o}>{o}</option>
-              ))}
-            </NativeSelect>
+            <Combobox
+              value={owner}
+              onChange={setOwner}
+              options={["Sarah Chen", "Linus Aarto", "Marcus Ryde", "Priya Raghavan"].map(
+                (name) => ({ value: name, label: name }),
+              )}
+              placeholder="Choose an owner"
+              searchPlaceholder="Search people…"
+              className="w-full"
+            />
           </Field>
           <Field label="Treatment">
             <NativeSelect value={treatment} onChange={(e) => setTreatment(e.target.value)}>

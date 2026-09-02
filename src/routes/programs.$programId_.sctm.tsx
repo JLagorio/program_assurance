@@ -2,7 +2,17 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useMemo, useState } from "react";
 import { FileDown } from "lucide-react";
 
-import { Badge, Button, Progress, NativeSelect, Table, Toolbar, Id, Tabs } from "@/ds/primitives";
+import {
+  Badge,
+  Button,
+  Progress,
+  NativeSelect,
+  Table,
+  Toolbar,
+  Id,
+  Tabs,
+  Breadcrumb,
+} from "@/ds/primitives";
 import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import { SctmRail, SctmSummary, SctmTable } from "@/components/app/sctm";
@@ -237,6 +247,19 @@ function ProgramSctm() {
           <RecordHeader
             backTo="/programs/$programId"
             backParams={{ programId }}
+            breadcrumb={
+              <Breadcrumb
+                items={[
+                  { label: "Programs", to: "/programs" },
+                  {
+                    label: program.name,
+                    to: "/programs/$programId",
+                    params: { programId: program.id },
+                  },
+                  { label: "SCTM" },
+                ]}
+              />
+            }
             id={program.id}
             title="Security controls traceability matrix"
             meta={`${program.acronym} · ${program.impact} baseline · ${catalogVersion} · generated ${sctm.generated}`}

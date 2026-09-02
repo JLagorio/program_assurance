@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import { ChevronDown, ChevronRight, Lock, MoreHorizontal, Pencil } from "lucide-react";
+import { ChevronDown, ChevronRight, Lock, Pencil } from "lucide-react";
 
 import { CdrPackageModal, DigitalThreadSection } from "@/components/app/digital-thread";
 import { InheritChip } from "@/components/app/inheritance";
@@ -18,7 +18,6 @@ import {
   Field,
   KeyValue,
   Progress,
-  NativeSelect,
   Table,
   Textarea,
   Id,
@@ -26,6 +25,11 @@ import {
   Dialog,
   Editable,
   DatePicker,
+  AlertDialog,
+  ButtonGroup,
+  toast,
+  Combobox,
+  Select,
 } from "@/ds/primitives";
 import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
@@ -157,6 +161,8 @@ function ProgramDetail() {
   );
   const [newRequirement, setNewRequirement] = useState(false);
   const [assessing, setAssessing] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+  const [assessControl, setAssessControl] = useState("AC-6(9)");
   const [status, setStatus] = useState(program.status);
   const [owner, setOwner] = useState(program.owner);
   const palette = useCommandPalette();
@@ -623,57 +629,64 @@ function ProgramDetail() {
                   </Button>
                 </Link>
 
-                <Button variant="primary" size="sm" onClick={runPrimary}>
-                  {state.primaryAction}
-                </Button>
-
-                <DropdownMenu
-                  align="end"
-                  width={200}
-                  trigger={({ toggle }) => (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="w-7 px-0"
-                      aria-label="More actions"
-                      onClick={toggle}
-                    >
-                      <MoreHorizontal className="size-4" />
-                    </Button>
-                  )}
-                >
-                  {(close) => (
-                    <>
-                      <DropdownMenu.Item
-                        onSelect={() => {
-                          palette.setOpen(true);
-                          close();
-                        }}
+                <ButtonGroup>
+                  <Button variant="primary" size="sm" onClick={runPrimary}>
+                    {state.primaryAction}
+                  </Button>
+                  <DropdownMenu
+                    align="end"
+                    width={200}
+                    trigger={
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="w-7 px-0"
+                        aria-label="More actions"
                       >
-                        Command palette
-                        <Kbd>⌘K</Kbd>
-                      </DropdownMenu.Item>
-                      <DropdownMenu.Item
-                        onSelect={() => {
-                          setCdrOpen(true);
-                          close();
-                        }}
-                      >
-                        Export CDR package
-                      </DropdownMenu.Item>
-                      <DropdownMenu.Item
-                        onSelect={() => {
-                          setAssessing(true);
-                          close();
-                        }}
-                      >
-                        Record assessment
-                      </DropdownMenu.Item>
-                      <DropdownMenu.Item onSelect={close}>Duplicate program</DropdownMenu.Item>
-                      <DropdownMenu.Item onSelect={close}>Archive</DropdownMenu.Item>
-                    </>
-                  )}
-                </DropdownMenu>
+                        <ChevronDown className="size-3.5" />
+                      </Button>
+                    }
+                  >
+                    {(close) => (
+                      <>
+                        <DropdownMenu.Item
+                          onSelect={() => {
+                            palette.setOpen(true);
+                            close();
+                          }}
+                        >
+                          Command palette
+                          <Kbd>⌘K</Kbd>
+                        </DropdownMenu.Item>
+                        <DropdownMenu.Item
+                          onSelect={() => {
+                            setCdrOpen(true);
+                            close();
+                          }}
+                        >
+                          Export CDR package
+                        </DropdownMenu.Item>
+                        <DropdownMenu.Item
+                          onSelect={() => {
+                            setAssessing(true);
+                            close();
+                          }}
+                        >
+                          Record assessment
+                        </DropdownMenu.Item>
+                        <DropdownMenu.Item onSelect={close}>Duplicate program</DropdownMenu.Item>
+                        <DropdownMenu.Item
+                          onSelect={() => {
+                            setArchiving(true);
+                            close();
+                          }}
+                        >
+                          Archive
+                        </DropdownMenu.Item>
+                      </>
+                    )}
+                  </DropdownMenu>
+                </ButtonGroup>
               </>
             }
           />
@@ -1071,6 +1084,19 @@ function ProgramDetail() {
         programName={program.name}
       />
 
+      <AlertDialog
+        open={archiving}
+        onClose={() => setArchiving(false)}
+        onConfirm={() => {
+          setArchiving(false);
+          toast.success("Program archived", { description: `${program.id} · ${program.name}` });
+        }}
+        tone="danger"
+        title={`Archive ${program.name}?`}
+        description="The program leaves every queue and dashboard. Its SCTM, evidence and package history stay readable, and an admin can restore it."
+        confirmLabel="Archive program"
+      />
+
       <Dialog
         open={assessing}
         onClose={() => setAssessing(false)}
@@ -1081,7 +1107,15 @@ function ProgramDetail() {
             <Button variant="ghost" onClick={() => setAssessing(false)}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={() => setAssessing(false)}>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setAssessing(false);
+                toast.success("Assessment recorded", {
+                  description: `${program.id} · result saved to the SCTM`,
+                });
+              }}
+            >
               Save assessment
             </Button>
           </>
@@ -1090,27 +1124,40 @@ function ProgramDetail() {
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <Field label="Control">
-              <NativeSelect defaultValue="AC-6(9)">
-                {programControls.map((c) => (
-                  <option key={c.id}>{c.id}</option>
-                ))}
-              </NativeSelect>
+              <Combobox
+                value={assessControl}
+                onChange={setAssessControl}
+                options={programControls.map((c) => ({
+                  value: c.id,
+                  label: c.id,
+                  meta: c.title,
+                  keywords: `${c.title} ${c.family}`,
+                }))}
+                placeholder="Choose a control"
+                searchPlaceholder="Search controls…"
+                width={380}
+                className="w-full"
+              />
             </Field>
             <Field label="Result">
-              <NativeSelect defaultValue="Other than satisfied">
-                <option>Satisfied</option>
-                <option>Other than satisfied</option>
-                <option>Not applicable</option>
-              </NativeSelect>
+              <Select defaultValue="Other than satisfied" aria-label="Result">
+                {["Satisfied", "Other than satisfied", "Not applicable"].map((r) => (
+                  <Select.Item key={r} value={r}>
+                    {r}
+                  </Select.Item>
+                ))}
+              </Select>
             </Field>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Assessment method">
-              <NativeSelect defaultValue="Test">
-                <option>Examine</option>
-                <option>Interview</option>
-                <option>Test</option>
-              </NativeSelect>
+              <Select defaultValue="Test" aria-label="Assessment method">
+                {["Examine", "Interview", "Test"].map((m) => (
+                  <Select.Item key={m} value={m}>
+                    {m}
+                  </Select.Item>
+                ))}
+              </Select>
             </Field>
             <Field label="Assessed on">
               <DatePicker defaultValue="2026-08-27" />

@@ -1,9 +1,10 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Badge, KeyValue, Progress, Table, Id } from "@/ds/primitives";
+import { Badge, KeyValue, Progress, Table, Id, Tabs } from "@/ds/primitives";
 import { PreviewRail, Section } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
+import { PreviewSplit } from "@/components/app/preview-split";
 import {
   allocationFor,
   crossDisciplineEdges,
@@ -42,33 +43,26 @@ export function TeamSection({ programId }: { programId: string }) {
       title="Team"
       description="Who is building what. A workstream is the unit of work — it has a lead, the disciplines it pulls in, the controls it satisfies, and the workstreams it cannot finish without."
     >
-      <div className="mt-1 flex items-center gap-4 border-b border-border">
-        {tabs.map((t) => (
-          <button
-            key={t}
-            onClick={() => {
-              setTab(t);
-              setWs(null);
-              setPerson(null);
-            }}
-          >
-            <span
-              className={
-                t === tab
-                  ? "-mb-px inline-flex items-center gap-1.5 border-b-2 border-primary px-0.5 pb-2.5 pt-1 text-[13px] font-semibold text-primary"
-                  : "-mb-px inline-flex items-center gap-1.5 border-b-2 border-transparent px-0.5 pb-2.5 pt-1 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-              }
-            >
-              {t}
-              <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                {counts[t]}
-              </span>
+      <Tabs
+        className="mt-1"
+        items={tabs.map((t) => ({
+          key: t,
+          label: t,
+          active: tab === t,
+          onSelect: () => {
+            setTab(t);
+            setWs(null);
+            setPerson(null);
+          },
+          trailing: (
+            <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
+              {counts[t]}
             </span>
-          </button>
-        ))}
-      </div>
+          ),
+        }))}
+      />
 
-      <div className={railOpen ? "grid lg:grid-cols-[minmax(0,1fr)_272px]" : "grid"}>
+      <PreviewSplit open={Boolean(railOpen)}>
         <div className="min-w-0 pt-4 lg:pr-6">
           {tab === "Workstreams" ? (
             <Table className="table-fixed">
@@ -323,7 +317,7 @@ export function TeamSection({ programId }: { programId: string }) {
             </div>
           </PreviewRail>
         ) : null}
-      </div>
+      </PreviewSplit>
     </Section>
   );
 }

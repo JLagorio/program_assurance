@@ -14,6 +14,8 @@ import {
   Dialog,
   Timeline,
   Checkbox,
+  AlertDialog,
+  toast,
 } from "@/ds/primitives";
 import { Section } from "@/ds/patterns";
 import {
@@ -96,6 +98,9 @@ export function TailoringSection({
       "Sarah Chen (SSE)",
       "info",
     );
+    toast.success("Scope sent for PM approval", {
+      description: `${programId} · ${result.total} controls · ${result.overlays.length} overlays`,
+    });
   }
 
   function decide(kind: "approve" | "changes") {
@@ -385,21 +390,13 @@ export function TailoringSection({
       </Dialog>
 
       {/* --------------------------------------------------- submit modal */}
-      <Dialog
+      <AlertDialog
         open={submitting}
         onClose={() => setSubmitting(false)}
+        onConfirm={submit}
         title="Submit scope for PM approval"
-        description={`${programId} · ${result.total} controls · ${result.overlays.length} overlays`}
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setSubmitting(false)}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={submit}>
-              Send for approval
-            </Button>
-          </>
-        }
+        description={`${programId} · ${result.total} controls · ${result.overlays.length} overlays. The PM sees the tailored scope on the approvals dashboard and every stage below Categorize locks until they decide.`}
+        confirmLabel="Send for approval"
       >
         <div className="space-y-3">
           <Field label="Approver">
@@ -409,7 +406,7 @@ export function TailoringSection({
             <Textarea placeholder="Tailored scope reflects the DDIL tactical profile agreed at the SRR working group." />
           </Field>
         </div>
-      </Dialog>
+      </AlertDialog>
 
       {/* -------------------------------------------------- decision modal */}
       <Dialog

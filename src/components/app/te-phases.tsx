@@ -32,9 +32,9 @@
 
 import { Fragment, useState } from "react";
 import type { ReactNode } from "react";
-import { ArrowRight, Calculator, CornerDownRight, PenLine, TriangleAlert } from "lucide-react";
+import { ArrowRight, Calculator, CornerDownRight, PenLine } from "lucide-react";
 
-import { Badge, Button, Table, Id, Absent, Stat, Eyebrow, type Tone } from "@/ds/primitives";
+import { Badge, Button, Table, Id, Absent, Stat, Eyebrow, type Tone, Alert } from "@/ds/primitives";
 import { Card } from "@/ds/patterns";
 import {
   effectTone,
@@ -844,15 +844,11 @@ export function AttackChain({
         </p>
 
         {unwalkable.length > 0 ? (
-          <div className="mt-2 flex items-start gap-2 rounded-md border border-danger/30 bg-danger-soft/40 px-3 py-2">
-            <TriangleAlert className="mt-0.5 size-3.5 shrink-0 text-danger" />
-            <p className="text-[12.5px] leading-relaxed text-foreground">
-              {unwalkable.length} {unwalkable.length === 1 ? "step is" : "steps are"} not
-              traversable in the composition graph —{" "}
-              {unwalkable.map((h) => `${h.from} → ${h.to}`).join(", ")}. The scenario cannot be
-              executed as written against this system.
-            </p>
-          </div>
+          <Alert tone="danger" className="mt-2">
+            {unwalkable.length} {unwalkable.length === 1 ? "step is" : "steps are"} not traversable
+            in the composition graph — {unwalkable.map((h) => `${h.from} → ${h.to}`).join(", ")}.
+            The scenario cannot be executed as written against this system.
+          </Alert>
         ) : null}
 
         <ol className="mt-2.5">
