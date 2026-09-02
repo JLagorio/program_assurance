@@ -13,7 +13,10 @@ export function Cells() {
         </thead>
         <tbody>
           <Tr>
-            <Td>Quarterly account review export — Active Directory, all privileged accounts, signed by ISSO</Td>
+            <Td>
+              Quarterly account review export — Active Directory, all privileged accounts, signed by
+              ISSO
+            </Td>
             <Td>
               <Mono>AC-2(3)</Mono>
             </Td>

@@ -1240,9 +1240,9 @@ export function oscalSsp(programId: string, rows: SctmRow[]): OscalDocument {
         ...listOf(
           "leveraged-authorizations",
           providers
-          .filter(
-            (r, index, all) => all.findIndex((x) => x.component.id === r.component.id) === index,
-          )
+            .filter(
+              (r, index, all) => all.findIndex((x) => x.component.id === r.component.id) === index,
+            )
             .map((r) => ({
               uuid: stableUuid(`leveraged-authorization|${program.id}|${r.component.id}`),
               title: `${r.component.name} — ${r.component.authorization}`,

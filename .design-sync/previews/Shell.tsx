@@ -31,7 +31,11 @@ export function AppFrame() {
           <CardHeader
             title="Open findings"
             description="Weaknesses awaiting remediation or risk acceptance."
-            action={<Button variant="secondary" size="sm">Add finding</Button>}
+            action={
+              <Button variant="secondary" size="sm">
+                Add finding
+              </Button>
+            }
           />
           <Table>
             <thead>

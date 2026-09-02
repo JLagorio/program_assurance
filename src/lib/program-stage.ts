@@ -29,8 +29,18 @@ const gateStage: Record<string, Stage> = {
 };
 
 const monthIndex: Record<string, number> = {
-  Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-  Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+  Jan: 0,
+  Feb: 1,
+  Mar: 2,
+  Apr: 3,
+  May: 4,
+  Jun: 5,
+  Jul: 6,
+  Aug: 7,
+  Sep: 8,
+  Oct: 9,
+  Nov: 10,
+  Dec: 11,
 };
 
 export function parseGateDate(value: string): Date | null {
@@ -87,8 +97,7 @@ export function programState(
     gates.find((g) => g.status === "Planned") ??
     null;
 
-  const currentStage: Stage =
-    (currentGate ? gateStage[currentGate.id] : undefined) ?? "Operate";
+  const currentStage: Stage = (currentGate ? gateStage[currentGate.id] : undefined) ?? "Operate";
 
   const daysOut = currentGate ? daysUntil(currentGate.planned, now) : null;
 

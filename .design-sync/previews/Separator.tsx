@@ -20,7 +20,10 @@ export function Horizontal() {
 
 export function Vertical() {
   return (
-    <div className="flex items-center gap-3 text-[13px] text-muted-foreground" style={{ height: 20 }}>
+    <div
+      className="flex items-center gap-3 text-[13px] text-muted-foreground"
+      style={{ height: 20 }}
+    >
       <span>GovCloud Payroll</span>
       <Separator orientation="vertical" />
       <span>Moderate baseline</span>

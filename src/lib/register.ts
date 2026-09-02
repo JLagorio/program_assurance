@@ -183,9 +183,7 @@ export function findingsForPoam(id: string): Finding[] {
 
 export function findingsForRisk(id: string): Finding[] {
   const direct = findings.filter((f) => f.risk === id);
-  const viaPoam = findings.filter(
-    (f) => !f.risk && f.poam && poamById.get(f.poam)?.risk === id,
-  );
+  const viaPoam = findings.filter((f) => !f.risk && f.poam && poamById.get(f.poam)?.risk === id);
   return [...direct, ...viaPoam];
 }
 

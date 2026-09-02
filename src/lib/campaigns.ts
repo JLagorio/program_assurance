@@ -10,11 +10,7 @@
 import type { TestEventState } from "@/lib/spine";
 
 export type CampaignTrigger =
-  | "Gate entry"
-  | "Baseline change"
-  | "Major release"
-  | "Incident"
-  | "Annual assessment";
+  "Gate entry" | "Baseline change" | "Major release" | "Incident" | "Annual assessment";
 
 export type CampaignState = "Planning" | "Executing" | "Reporting" | "Closed";
 
@@ -299,4 +295,10 @@ export function campaignCoverage(id: string) {
 }
 
 export const objectiveTone = (r: ObjectiveResult) =>
-  r === "Met" ? "success" : r === "Not met" ? "danger" : r === "Partially met" ? "warning" : "neutral";
+  r === "Met"
+    ? "success"
+    : r === "Not met"
+      ? "danger"
+      : r === "Partially met"
+        ? "warning"
+        : "neutral";

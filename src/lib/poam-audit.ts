@@ -61,7 +61,8 @@ export function diffPoamItems(prev: PoamItem, next: PoamItem): FieldChange[] {
     const b = next[key];
     const from = Array.isArray(a) ? a.join(", ") : String(a ?? "");
     const to = Array.isArray(b) ? b.join(", ") : String(b ?? "");
-    if (from !== to) changes.push({ field: labels[key as string]!, from: short(from), to: short(to) });
+    if (from !== to)
+      changes.push({ field: labels[key as string]!, from: short(from), to: short(to) });
   }
 
   // milestones
@@ -74,7 +75,11 @@ export function diffPoamItems(prev: PoamItem, next: PoamItem): FieldChange[] {
       continue;
     }
     if (before.title !== m.title)
-      changes.push({ field: `milestone[${key}].title`, from: short(before.title), to: short(m.title) });
+      changes.push({
+        field: `milestone[${key}].title`,
+        from: short(before.title),
+        to: short(m.title),
+      });
     if (before.status !== m.status)
       changes.push({ field: `milestone[${key}].status`, from: before.status, to: m.status });
     if (before.targetDate !== m.targetDate)

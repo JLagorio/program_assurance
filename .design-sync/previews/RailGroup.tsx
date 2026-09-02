@@ -3,7 +3,14 @@ import { Badge, Button, KeyValue, Mono, RailGroup } from "program-assurance";
 export function DetailRail() {
   return (
     <div style={{ width: 300 }}>
-      <RailGroup title="Details" action={<Button variant="ghost" size="sm">Edit</Button>}>
+      <RailGroup
+        title="Details"
+        action={
+          <Button variant="ghost" size="sm">
+            Edit
+          </Button>
+        }
+      >
         <KeyValue label="Status">
           <Badge tone="info">In assessment</Badge>
         </KeyValue>

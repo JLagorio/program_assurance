@@ -227,8 +227,7 @@ export const workstreams: Workstream[] = [
     ccis: ["CCI-001749", "CCI-002696"],
     gate: "CDR",
     due: "Oct 09, 2026",
-    note:
-      "Blocked on production signing keys — the boot chain cannot be closed against a development key, so CDR evidence stays provisional until the ceremony in WS-0103 completes.",
+    note: "Blocked on production signing keys — the boot chain cannot be closed against a development key, so CDR evidence stays provisional until the ceremony in WS-0103 completes.",
   },
   {
     id: "WS-0102",
@@ -251,8 +250,7 @@ export const workstreams: Workstream[] = [
     ccis: ["CCI-002696", "CCI-000919"],
     gate: "CDR",
     due: "Sep 26, 2026",
-    note:
-      "Second fixture revision powers the module from the fixture rather than the flight harness, which removes the hot-plug risk seen in the first bring-up.",
+    note: "Second fixture revision powers the module from the fixture rather than the flight harness, which removes the hot-plug risk seen in the first bring-up.",
   },
   {
     id: "WS-0103",
@@ -276,8 +274,7 @@ export const workstreams: Workstream[] = [
     ccis: ["CCI-002696", "CCI-001199"],
     gate: "CDR",
     due: "Sep 18, 2026",
-    note:
-      "Blocked on the SCIF slot for the ceremony. Key custodians are named but the second custodian has not cleared the facility read-on yet.",
+    note: "Blocked on the SCIF slot for the ceremony. Key custodians are named but the second custodian has not cleared the facility read-on yet.",
   },
   {
     id: "WS-0104",

@@ -33,7 +33,8 @@ export function Rows() {
           <Tr>
             <Td>
               <span className="flex items-center gap-2">
-                <Dot tone="success" /> Session lock timeout</span>
+                <Dot tone="success" /> Session lock timeout
+              </span>
             </Td>
             <Td>Low</Td>
             <Td>Closed</Td>

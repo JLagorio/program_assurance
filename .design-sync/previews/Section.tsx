@@ -5,7 +5,11 @@ export function Actions() {
     <Section
       title="Continuous monitoring"
       description="Signals collected from connected scanners over the last 30 days."
-      action={<Button variant="secondary" size="sm">Configure</Button>}
+      action={
+        <Button variant="secondary" size="sm">
+          Configure
+        </Button>
+      }
     >
       <div className="flex gap-3 pt-4">
         <Card className="flex-1 p-4">
