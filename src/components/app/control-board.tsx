@@ -3,15 +3,17 @@
  *
  * A funnel across the top says how far the baseline has gotten along the
  * canonical path. Every row below is one control, and the row IS its pipeline:
- * six segments, filled, empty or broken. Colour appears only where the strip
- * breaks. Selecting a row opens the control's work beside the board, with the
- * same six stages as the editor's spine — click a stage, work that stage.
+ * six segments, filled, empty, hatched or broken. Colour appears only where the
+ * strip breaks; a control that is through carries no words at all, because
+ * Satisfied is the absence of a badge. Selecting a row opens the control's work
+ * beside the board, with the same six stages as the editor's spine — click a
+ * stage, work that stage — and ends with why the control is here at all.
  *
  * Presentation over `buildBoard`. The only stores touched are the ones the
  * existing control record already writes to, through the same components.
  */
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { X } from "lucide-react";
 
@@ -28,7 +30,7 @@ import {
   Textarea,
   Toolbar,
   Id,
-  Indicator,
+  NativeSelect,
 } from "@/ds/primitives";
 import { Empty } from "@/ds/patterns";
 import { Block } from "@/ds/shapes";
@@ -42,17 +44,21 @@ import {
   type Lens,
   type Stage,
   type StageKey,
+  type Bucket,
 } from "@/lib/control-board";
 import {
+  assignOwner,
   currentSession,
   offersFor,
   perform,
   preferredScope,
   useWorkVersion,
   workFor,
+  type ControlWork,
   type WorkContext,
 } from "@/lib/control-work";
 import { evidenceCatalog } from "@/lib/evidence-catalog";
+import { peopleForProgram } from "@/lib/people";
 import { allocationsFor, requirementsForControl } from "@/lib/requirements";
 import { determinationTone, rowCurrencyTone, useControlText, useSctm } from "@/lib/sctm";
 import { controlSetFor, scopesForProgram } from "@/lib/scopes";
@@ -67,7 +73,21 @@ const segment: Record<Stage["state"], string> = {
   full: "bg-muted-foreground/60",
   broken: "bg-danger",
   suspect: "bg-warning",
+  unknown: "bg-transparent text-muted-foreground/55",
 };
+
+/**
+ * Unknown is hatched, never a flat grey: it reads as a hole in the record, not
+ * as a neutral outcome. Drawn in currentColor so the tone class decides how
+ * loud it is.
+ */
+const hatch: CSSProperties = {
+  backgroundImage: "repeating-linear-gradient(135deg, transparent 0 2px, currentColor 2px 3px)",
+};
+
+function segmentStyle(state: Stage["state"]): CSSProperties | undefined {
+  return state === "unknown" ? hatch : undefined;
+}
 
 /**
  * Six segments, one per stage. Neutral fill graded by how much of the control
@@ -96,6 +116,7 @@ export function StageStrip({
             key={s.key}
             title={`${s.label} · ${s.note}`}
             className={cn("relative block h-2 w-5 overflow-hidden rounded-[2px]", segment[s.state])}
+            style={segmentStyle(s.state)}
           >
             {s.state === "partial" ? (
               <span
@@ -127,6 +148,7 @@ export function StageStrip({
                 "relative block h-2.5 w-full overflow-hidden rounded-[3px]",
                 segment[s.state],
               )}
+              style={segmentStyle(s.state)}
             >
               {s.state === "partial" ? (
                 <span
@@ -165,6 +187,7 @@ export function Funnel({
   total,
   hollow,
   through,
+  unknown,
   active,
   onSelect,
 }: {
@@ -172,6 +195,7 @@ export function Funnel({
   total: number;
   hollow: number;
   through: number;
+  unknown: number;
   active: StageKey | null;
   onSelect: (key: StageKey | null) => void;
 }) {
@@ -203,8 +227,18 @@ export function Funnel({
                 />
               </div>
               <div className="mt-1.5 flex min-h-4 flex-wrap gap-x-3 text-11">
+                {f.note ? <span className="tnum text-muted-foreground">{f.note}</span> : null}
                 {f.stuck ? (
                   <span className="tnum text-muted-foreground">{f.stuck} stuck</span>
+                ) : null}
+                {f.unknown ? (
+                  <span className="tnum inline-flex items-center gap-1 text-muted-foreground">
+                    <span
+                      className="inline-block size-2 rounded-[2px] text-muted-foreground/55"
+                      style={hatch}
+                    />
+                    {f.unknown} unknown
+                  </span>
                 ) : null}
                 {f.broken ? <span className="tnum text-danger">{f.broken} broken</span> : null}
                 {f.suspect ? <span className="tnum text-warning">{f.suspect} suspect</span> : null}
@@ -216,6 +250,9 @@ export function Funnel({
       <div className="flex items-center gap-4 border-t border-border px-4 py-2 text-12 text-muted-foreground">
         <span className="tnum">
           <span className="text-foreground">{through}</span> through every stage
+        </span>
+        <span className="tnum">
+          <span className="text-foreground">{unknown}</span> unknown
         </span>
         <span className="tnum">{hollow} tailored out</span>
         <span className="ml-auto">Click a stage to see what is stuck before it</span>
@@ -249,7 +286,7 @@ function BoardHeader({ narrow }: { narrow: boolean }) {
       <span>Title</span>
       <span>Path</span>
       {narrow ? null : <span>Owner</span>}
-      {narrow ? null : <span>Needs</span>}
+      {narrow ? null : <span>Next</span>}
     </div>
   );
 }
@@ -258,11 +295,14 @@ function BoardRow({
   control,
   active,
   narrow,
+  muted,
   onSelect,
 }: {
   control: BoardControl;
   active: boolean;
   narrow: boolean;
+  /** Whether this row's colour has been spent by the badge budget. */
+  muted: boolean;
   onSelect: () => void;
 }) {
   const c = control;
@@ -293,9 +333,34 @@ function BoardRow({
           {ownerLabel(c)}
         </span>
       )}
-      {narrow ? null : <Indicator tone={c.nextTone}>{c.next}</Indicator>}
+      {narrow ? null : <NextCell control={c} muted={muted} />}
     </button>
   );
+}
+
+/**
+ * The badge budget: a control that is through says nothing, an ask is muted
+ * text, and only a break carries colour. The strip already encodes the state,
+ * so this cell never repeats it as a second coloured element.
+ */
+function NextCell({ control: c, muted }: { control: BoardControl; muted: boolean }) {
+  if (c.bucket === "through") return <span aria-label="Through" />;
+  if (muted) return <span className="truncate text-muted-foreground">{c.next}</span>;
+  const tone: Record<Bucket, string> = {
+    other: "text-danger",
+    invalidated: "text-danger",
+    suspect: "text-warning",
+    unknown: "text-muted-foreground",
+    through: "",
+    hollow: "text-muted-foreground",
+    selected: "text-muted-foreground",
+    allocated: "text-muted-foreground",
+    implemented: "text-muted-foreground",
+    evidenced: "text-muted-foreground",
+    assessed: "text-muted-foreground",
+    current: "text-muted-foreground",
+  };
+  return <span className={cn("truncate", tone[c.bucket])}>{c.next}</span>;
 }
 
 /* ── Detail ──────────────────────────────────────────────────────────────── */
@@ -316,6 +381,7 @@ function StageLine({
     full: "bg-muted-foreground/80",
     broken: "bg-danger",
     suspect: "bg-warning",
+    unknown: "text-muted-foreground/70 rounded-[2px]",
   };
   return (
     <button
@@ -327,15 +393,17 @@ function StageLine({
         active ? "bg-muted" : "hover:bg-surface-hover",
       )}
     >
-      <span className={cn("mt-[6px] size-1.5 shrink-0 rounded-full", dot[stage.state])} />
+      <span
+        className={cn(
+          "mt-[6px] shrink-0 rounded-full",
+          stage.state === "unknown" ? "size-2" : "size-1.5",
+          dot[stage.state],
+        )}
+        style={segmentStyle(stage.state)}
+      />
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline gap-2">
           <span className="text-12 text-foreground">{stage.label}</span>
-          {stage.inferred ? (
-            <Badge size="xs" tone="warning">
-              inferred
-            </Badge>
-          ) : null}
         </span>
         <span className="block truncate text-[11.5px] text-muted-foreground">{stage.note}</span>
       </span>
@@ -395,6 +463,8 @@ function BoardDetail({
 
   const session = currentSession();
   const offers = work ? offersFor(work, context, session.role) : [];
+  const people = useMemo(() => peopleForProgram(programId).map((p) => p.name), [programId]);
+  const [ownerDraft, setOwnerDraft] = useState("");
   const [pending, setPending] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -412,6 +482,8 @@ function BoardDetail({
 
   const owed = control.rows.filter((r) => r.determination !== "Not applicable");
   const stale = owed.filter((r) => r.currency !== "Current");
+  const first = owed[0] ?? control.rows[0]!;
+  const whoCanChange = [...new Set(offers.flatMap((o) => o.def.roles))];
 
   return (
     <aside className="rounded-md border border-border bg-card lg:sticky lg:top-4 lg:max-h-[calc(100vh-120px)] lg:self-start lg:overflow-y-auto">
@@ -457,6 +529,44 @@ function BoardDetail({
         ))}
       </div>
 
+      {/* An unknown has an owner and a resolution path, or it is not an
+          unknown — it is a blank. Claiming the control is the first act, and
+          it happens where the hole is seen, not on another page. */}
+      {work && !work.owner && control.origination !== "Common" ? (
+        <div className="border-b border-border px-4 py-3">
+          <div className="pb-1.5 text-12 text-muted-foreground">
+            Nobody is accountable for {control.id}. Every later action needs an owner first.
+          </div>
+          <div className="flex items-center gap-2">
+            <NativeSelect
+              aria-label="Owner"
+              value={ownerDraft}
+              onChange={(e) => setOwnerDraft(e.target.value)}
+              className="h-7 max-w-[260px] text-13"
+            >
+              <option value="">Choose a person</option>
+              {people.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </NativeSelect>
+            <Button
+              size="sm"
+              variant="primary"
+              disabled={!ownerDraft}
+              onClick={() => {
+                assignOwner(work.id, ownerDraft);
+                setOwnerDraft("");
+                refresh();
+              }}
+            >
+              Assign owner
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
       {work && offers.length ? (
         <div className="border-b border-border px-4 py-3">
           <div className="flex flex-wrap gap-2">
@@ -498,6 +608,18 @@ function BoardDetail({
               <div className="text-12 text-muted-foreground">
                 {chosen.def.label} · {session.name} · {session.role}
               </div>
+              {/* An authority-bearing action names its consequence before it
+                  is taken. A one-click state change is how a workflow turns
+                  into folklore. */}
+              <p className="text-13">
+                {consequenceOf(
+                  chosen.def.key,
+                  work!,
+                  control,
+                  context,
+                  scope?.name ?? "this scope",
+                )}
+              </p>
               <Field label={chosen.def.note === "required" ? "Reason (required)" : "Note"}>
                 <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} />
               </Field>
@@ -571,25 +693,45 @@ function BoardDetail({
         ) : null}
 
         {stage === "implemented" ? (
-          control.origination === "Common" ? (
-            <Block title="Implemented by provider">
-              <p className="text-13">{control.responsibleParty}</p>
-              {control.rows[0]?.inheritanceReason && control.rows[0].inheritanceReason !== "—" ? (
-                <p className="pt-1 text-12 text-muted-foreground">
-                  {control.rows[0].inheritanceReason}
-                </p>
-              ) : null}
-            </Block>
-          ) : work ? (
-            <>
-              <Block title="Implementation statement">
-                <Narrative work={work} onChange={refresh} />
-              </Block>
-              <Block title="Gates">
-                <GateList work={work} context={context} />
-              </Block>
-            </>
-          ) : null
+          <>
+            {/* Inherited is not locally implemented. Anything inherited shows
+                the provider's half and the half that stays with the program in
+                the same view, so a reader never mistakes the first for both. */}
+            {control.origination !== "System specific" ? (
+              <>
+                <Block title="What the provider gives">
+                  <p className="text-13">{control.responsibleParty}</p>
+                  {first.inheritanceReason !== "—" ? (
+                    <p className="pt-1 text-12 text-muted-foreground">{first.inheritanceReason}</p>
+                  ) : null}
+                </Block>
+                <Block title="What stays with you">
+                  <p
+                    className={cn(
+                      "text-13",
+                      first.consumerResponsibility === "—" ? "text-muted-foreground" : null,
+                    )}
+                  >
+                    {first.consumerResponsibility === "—"
+                      ? control.origination === "Common"
+                        ? "Nothing. The provider's determination is reused, not copied — see why it is here."
+                        : "Not stated. A hybrid control without a stated consumer half is an unknown."
+                      : first.consumerResponsibility}
+                  </p>
+                </Block>
+              </>
+            ) : null}
+            {work && control.origination !== "Common" ? (
+              <>
+                <Block title="Implementation statement">
+                  <Narrative work={work} onChange={refresh} />
+                </Block>
+                <Block title="Gates">
+                  <GateList work={work} context={context} />
+                </Block>
+              </>
+            ) : null}
+          </>
         ) : null}
 
         {stage === "evidenced" ? (
@@ -673,6 +815,71 @@ function BoardDetail({
             </div>
           </Block>
         ) : null}
+
+        {/* Every derived state can explain itself. This is the bridge in
+            words: which scope selected the control, whose claim it stands on,
+            why it is allocated where it is, what would take the determination
+            away, and who may change any of it. */}
+        <Block title="Why is this here?">
+          <dl className="space-y-[3px]">
+            <DetailRow label="Selected by">
+              {control.selectedBy.length ? (
+                <ul className="space-y-0.5">
+                  {control.selectedBy.map((s) => (
+                    <li key={s.scope}>
+                      {s.scopeName}
+                      <span className="text-muted-foreground">
+                        {" · "}
+                        {s.objectives.length ? s.objectives.join(", ") : s.source}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <span className="text-muted-foreground">
+                  No scope's categorization selects it. It is here from the legacy matrix.
+                </span>
+              )}
+            </DetailRow>
+            <DetailRow label="Stands on">
+              {control.origination === "System specific"
+                ? "This program's own implementation"
+                : `${control.responsibleParty} (${control.origination})`}
+              {first.inheritanceReason !== "—" ? (
+                <span className="block text-12 text-muted-foreground">
+                  {first.inheritanceReason}
+                </span>
+              ) : null}
+            </DetailRow>
+            <DetailRow label="Allocated because">
+              <span className={first.allocationBasis === "—" ? "text-muted-foreground" : undefined}>
+                {first.allocationBasis === "—" ? "No basis recorded" : first.allocationBasis}
+              </span>
+            </DetailRow>
+            <DetailRow label="Verified by">
+              {first.method}
+              {first.methodBasis !== "—" ? (
+                <span className="block text-12 text-muted-foreground">{first.methodBasis}</span>
+              ) : null}
+            </DetailRow>
+            <DetailRow label="Taken away by">
+              {stale.length ? (
+                <span className="text-danger">{stale[0]!.currencyReason}</span>
+              ) : (
+                `A change to ${
+                  control.nodes.length ? nodeNames(control.nodes) : "the system as a whole"
+                }, a parameter change, or a provider reassessment`
+              )}
+            </DetailRow>
+            <DetailRow label="Changed by">
+              {whoCanChange.length ? (
+                whoCanChange.join(", ")
+              ) : (
+                <span className="text-muted-foreground">Nobody, until an owner is assigned</span>
+              )}
+            </DetailRow>
+          </dl>
+        </Block>
       </div>
     </aside>
   );
@@ -722,6 +929,48 @@ function nodeName(id: string): string {
   return nodeById.get(id)?.name ?? "";
 }
 
+function nodeNames(ids: string[]): string {
+  const names = ids.slice(0, 2).map((id) => nodeById.get(id)?.name ?? id);
+  return ids.length > 2 ? `${names.join(", ")} and ${ids.length - 2} more` : names.join(" and ");
+}
+
+/**
+ * What the click legally does, in one sentence, before it is taken. The
+ * numbers come from the record so the sentence cannot drift from the gates.
+ */
+function consequenceOf(
+  key: string,
+  work: ControlWork,
+  control: BoardControl,
+  context: WorkContext,
+  scopeName: string,
+): string {
+  const id = control.id;
+  const rev = work.narrativeRevision;
+  const artifacts = `${work.evidence.length} ${work.evidence.length === 1 ? "artifact" : "artifacts"}`;
+  const parts = control.nodes.length ? nodeNames(control.nodes) : "the system as a whole";
+  switch (key) {
+    case "plan":
+      return `Marks ${id} in ${scopeName} as planned. Nothing is claimed yet and nobody is notified.`;
+    case "partial":
+      return `Claims ${id} is partially implemented. Revision ${rev} of the statement becomes the claim on record.`;
+    case "implement":
+      return `Claims ${id} is implemented in ${scopeName}, on revision ${rev} of the statement, ${artifacts} and ${context.contributors} ${context.contributors === 1 ? "contributor" : "contributors"}.`;
+    case "submit":
+      return `Hands ${id} to the assessor. Revision ${rev} and ${artifacts} are what they will judge; any edit after this is a new revision.`;
+    case "withdraw":
+      return `Takes ${id} back from the assessor. A determination in progress is dropped, not recorded.`;
+    case "satisfy":
+      return `Records Satisfied for ${id} against the configuration in force. A later change to ${parts} invalidates it.`;
+    case "fail":
+      return `Records Other than satisfied for ${id}. The program owes a finding and a POA&M item, and ${id} cannot ship until risk is accepted.`;
+    case "accept-risk":
+      return `Accepts the residual risk on ${id} as the authorizing official. The acceptance carries your name and today's date into the package.`;
+    default:
+      return `Changes ${id} in ${scopeName}.`;
+  }
+}
+
 /* ── Board ───────────────────────────────────────────────────────────────── */
 
 const lenses: Lens[] = ["family", "stage", "owner", "component"];
@@ -758,6 +1007,16 @@ export function ControlBoard({ programId }: { programId: string }) {
   }, [board.controls, stage, gapsOnly, unassigned, mine, query, session.name]);
 
   const groups = useMemo(() => groupBoard(filtered, lens), [filtered, lens]);
+
+  // The badge budget: at most a third of a collection may carry colour. Past
+  // that a tone says nothing about any one row, so it falls to muted text and
+  // the funnel carries the count instead.
+  const overBudget = useMemo(() => {
+    const limit = filtered.length / 3;
+    const count = (tone: BoardControl["nextTone"]) =>
+      filtered.filter((c) => c.nextTone === tone && c.bucket !== "through").length;
+    return { danger: count("danger") > limit, warning: count("warning") > limit };
+  }, [filtered]);
   const selectedControl = selected ? (board.controls.find((c) => c.id === selected) ?? null) : null;
   const narrow = selectedControl !== null;
 
@@ -768,6 +1027,7 @@ export function ControlBoard({ programId }: { programId: string }) {
         total={board.total}
         hollow={board.hollow}
         through={board.through}
+        unknown={board.unknown}
         active={stage}
         onSelect={setStage}
       />
@@ -835,6 +1095,10 @@ export function ControlBoard({ programId }: { programId: string }) {
                       control={c}
                       active={c.id === selected}
                       narrow={narrow}
+                      muted={
+                        (c.nextTone === "danger" && overBudget.danger) ||
+                        (c.nextTone === "warning" && overBudget.warning)
+                      }
                       onSelect={() => setSelected(c.id === selected ? null : c.id)}
                     />
                   ))}

@@ -1,0 +1,46 @@
+import { Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Button.stories";
+
+<Meta of={Stories} />
+
+# Button
+
+A button starts an action. The recipe is Atlassian's: one fill per variant, hovered and pressed as their own tokens, disabled as tokens rather than an opacity, one focus outline. The look is Ledger's: a flat brand fill for primary and a raised surface with the raised shadow for secondary.
+
+<Canvas of={Stories.Matrix} />
+
+## Variants
+
+| Variant | Use |
+| --- | --- |
+| `primary` | The one action the screen is for. At most one per view. |
+| `secondary` | The default. Any action that is not the main one. |
+| `subtle` | Toolbars and dense rows, where a raised button would be noise. |
+| `danger` | An action that destroys or cannot be undone. Pair with a confirmation. |
+| `warning` | An action that needs attention but is recoverable. |
+| `link` | Reads as text. Navigation inside prose or a table cell. |
+
+## Sizes
+
+`medium` (32px) is the default for forms and pages. `small` (28px) is for toolbars, table rows and rails. `xsmall` (24px) is for the densest chrome and drops to the small body size.
+
+## Icon buttons
+
+An IconButton holds one icon and nothing else. `label` is required: it is the accessible name and the tooltip.
+
+<Canvas of={Stories.IconButtons} />
+
+## As a link
+
+Pass `asChild` and the child element takes the button's classes. This is how a router's Link becomes a button without the package depending on the router.
+
+<Canvas of={Stories.AsLink} />
+
+## Selected
+
+`isSelected` marks a toggle that is on: a filter that is applied, a view that is chosen. It sets `aria-pressed` and paints the selected role.
+
+## Props
+
+<Controls of={Stories.Playground} />

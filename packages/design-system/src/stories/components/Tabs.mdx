@@ -1,0 +1,26 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Tabs.stories";
+
+<Meta of={Stories} />
+
+# Tabs
+
+An underline tab strip. **Tabs** is the rail: a tablist with a rule underneath. **Tabs.Tab** is one tab.
+
+Which tab is selected is the caller's state. In this product a tab is a route far more often than an in-page panel, so Tabs does not manage panels; it draws the strip and reports the selection through aria.
+
+<Canvas of={Stories.Buttons} />
+
+## As links
+
+Pass `asChild` and the child element takes the tab's classes and aria. This is how a router's Link becomes a tab.
+
+<Canvas of={Stories.AsLinks} />
+
+## Details
+
+- Tabs are 32px tall, on `dimension.control.medium`, so a strip lines up with a row of small controls beside it.
+- `trailing` takes a Count or a Badge after the label.
+- A disabled tab keeps its place and loses its pointer.
+- The underline is `color.background.brand.bold`, two pixels, sitting on the rail's rule.

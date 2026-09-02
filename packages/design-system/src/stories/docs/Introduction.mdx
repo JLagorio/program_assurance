@@ -1,0 +1,24 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Introduction" />
+
+# Ledger
+
+Ledger is the design system behind the programme assurance product: one set of decisions about colour, type, space, shape, motion and behaviour, shipped as a package that any React and Tailwind project can install.
+
+It is built on three ideas.
+
+**Every design value is a token.** A colour is `color.text.subtle`, not a hex code and not a Tailwind grey. A space is `space.200`, not `16px`. A control is `dimension.control.medium` tall. Tokens are named for their role, so a screen reads as intent and the visual DNA lives in one place. Change a token and every screen follows; add a colour mode and no component changes.
+
+**States are tokens too.** Hovered, pressed, selected and disabled are their own tokens, never alpha on a base colour. That is what makes dark mode a mechanical flip instead of a redesign, and it is the rule the lint enforces most strictly.
+
+**Layout goes through primitives.** Box, Stack, Inline, Flex and Grid take token-typed props. Product code says `<Stack space="space.200">` and never writes a margin.
+
+## Where things are
+
+- **Tokens** are the sheets: the palette ramps, the semantic colours in both modes, the type ramp, the space scale, shape and the control metrics. Each sheet is read from the generated docs, so it is the build, not a drawing of it.
+- **Primitives** are the layout and text elements every screen is made from.
+- **Components** are the parts: buttons, badges, controls, tabs and the rest, each with a matrix of variants and states and a docs page with usage guidance.
+- **Guidance** covers the grammar, the lint rules and how to install the package.
+
+Switch the **Mode** toolbar above to see any page in dark.

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import "../src/styles.css";
 import "./themes/nightwatch.css";
 import "./themes/linear-refined.css";
+import "./themes/nova.css";
 import { PreviewRouter } from "./router";
 
 /**
@@ -51,6 +52,7 @@ const preview: Preview = {
           { value: "ledger", title: "Ledger (current)" },
           { value: "nightwatch", title: "Nightwatch (dark)" },
           { value: "linear", title: "Linear-refined" },
+          { value: "nova", title: "Nova (shadcn preset)" },
         ],
       },
     },

@@ -1,0 +1,47 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guidance/Token grammar" />
+
+# Token grammar
+
+Tokens are named on Atlassian's grammar: **property . role . emphasis . state**.
+
+| Segment | Examples | What it says |
+| --- | --- | --- |
+| property | `color.background`, `color.text`, `color.icon`, `color.border`, `elevation.surface`, `space`, `font`, `shape.radius` | What is being painted. Text, icon, border and background are separate properties because they need different contrast. |
+| role | `brand`, `neutral`, `selected`, `success`, `warning`, `danger`, `information`, `disabled`, `input`, `inverse` | Why. A role names the meaning, not the colour. |
+| emphasis | `subtlest`, `subtler`, `subtle`, (default), `bold`, `bolder`, `boldest` | How loud. Default sits in the middle; bold is a solid fill with inverse text. |
+| state | `hovered`, `pressed`, `selected`, `focused` | Interaction. A state is always its own token, never alpha on the default. |
+
+Every token has one CSS variable, `--ds-<name with dashes>`, and most have one Tailwind utility.
+
+| Token | CSS | Utility |
+| --- | --- | --- |
+| `color.background.brand.bold.hovered` | `--ds-color-background-brand-bold-hovered` | `bg-brand-bold-hovered` |
+| `color.text.subtle` | `--ds-color-text-subtle` | `text-subtle` |
+| `color.icon.danger` | `--ds-color-icon-danger` | `icon-danger` |
+| `color.border.focused` | `--ds-color-border-focused` | `border-focused` |
+| `elevation.surface.raised` | `--ds-elevation-surface-raised` | `bg-surface-raised` |
+| `elevation.shadow.overlay` | `--ds-elevation-shadow-overlay` | `shadow-overlay` |
+| `space.200` | `--ds-space-200` | `p-200`, `gap-200`, `h-200` … |
+| `shape.radius.medium` | `--ds-shape-radius-medium` | `rounded-medium` |
+| `font.body.small` | `--ds-font-body-small` | `font-body-small` |
+| `dimension.control.medium` | `--ds-dimension-control-medium` | `h-control-medium`, `size-control-medium` |
+| `motion.duration.fast` | `--ds-motion-duration-fast` | `duration-fast` |
+
+## Tiers
+
+1. **Palette.** Six ramps (neutral, dark neutral, blue, green, orange, red) with Atlassian's step names, plus alpha steps for translucent fills. Never used directly.
+2. **Semantic.** Colour and elevation tokens that reference the ramps. Each has a light value and a dark value. This is the only tier a component reads for colour.
+3. **Typography, space, shape, dimension, motion.** Mode independent.
+4. **Component.** Where a component needs a value no semantic token gives it, the value is added to the tokens, not written in the component.
+
+## Where a value comes from
+
+- **Surface.** `elevation.surface` is the page; `raised` is a card; `overlay` is a menu or dialog; `sunken` is a well. Box sets `utility.elevation.surface.current` when it paints a surface, so children can read the surface they sit on.
+- **Text.** `default` for content, `subtle` for secondary, `subtlest` for hints and captions, `disabled` for off. Status text (`success`, `warning`, `danger`, `information`) sits on the matching status background.
+- **Border.** `default` for hairlines, `bold` for emphasis, `input` for fields, `focused` and `selected` for those states.
+- **Type.** Composite tokens: `body` (13/18) for interface text, `body.small` (12/16) for captions, `body.xsmall` (11/14) for micro labels, `body.large` (15/22) for reading; three heading sizes; `code`.
+- **Space.** 0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80. Names are the value in quarter-rems: `space.100` is 8px.
+- **Shape.** `xsmall` 2, `small` 3, `medium` 5, `large` 7, `xlarge` 9, `xxlarge` 12, `full`.
+- **Metrics.** Controls are 24, 28, 32, 36 tall; rows 36 with compact, header and menu variants; icons 14 and 16.

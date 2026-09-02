@@ -1,0 +1,71 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guidance/Getting started" />
+
+# Getting started
+
+The package is `@ledger/design-system`. It ships TypeScript source, a generated CSS layer and an ESLint preset. Its only peers are React and Tailwind 4.
+
+## Install
+
+```sh
+npm install @ledger/design-system
+```
+
+## CSS
+
+One stylesheet, in this order. The reset must come before the system: it clears Tailwind's default namespaces (colours, spacing, radii, shadows, fonts) so that only token utilities exist, and it would clear the system's own mappings if it came after them.
+
+```css
+@import "tailwindcss";
+@import "@ledger/design-system/reset.css";
+@import "@ledger/design-system/ledger.css";
+@import "@ledger/design-system/base.css";
+```
+
+`ledger.css` carries an `@source` directive pointing at the package, so Tailwind generates the classes the components use even though they live in `node_modules`. `base.css` is optional: it sets the colour scheme, the default border colour and the body's type and colour.
+
+## Components
+
+```tsx
+import { Button, Stack, Text } from "@ledger/design-system";
+
+export function Empty() {
+  return (
+    <Stack space="space.200" alignInline="center">
+      <Text color="color.text.subtle">No controls match these filters.</Text>
+      <Button variant="primary">Clear filters</Button>
+    </Stack>
+  );
+}
+```
+
+Components never import a router. Where a component renders a link (Button, Tabs.Tab, later Breadcrumb), pass `asChild` and the child element takes the component's classes and aria:
+
+```tsx
+<Button asChild variant="primary">
+  <Link to="/controls/new">New control</Link>
+</Button>
+```
+
+## Colour mode
+
+Tokens flip on `data-color-mode="dark"` on the root element, or on the system preference when no attribute is set. Nothing in a component knows which mode it is in.
+
+```html
+<html data-color-mode="dark">
+```
+
+## Lint
+
+The package exports an ESLint flat config. `recommended` makes every token rule an error and layout-through-primitives a warning.
+
+```js
+import ledger from "@ledger/design-system/eslint";
+
+export default [...ledger.configs.recommended];
+```
+
+## Utilities in product code
+
+Token utilities (`bg-surface-raised`, `text-subtle`, `p-200`, `rounded-medium`) are legal in product code; primitives are preferred for layout. Tailwind's own design utilities (`bg-blue-500`, `text-sm`, `p-4`, `rounded-md`) do not exist after the reset and the lint reports them.

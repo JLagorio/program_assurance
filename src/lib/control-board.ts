@@ -6,16 +6,17 @@
  *
  * Nothing is stored here. Selected, Allocated, Evidenced, Assessed and Current
  * are aggregated from the SCTM's requirement rows; Implemented reads the work
- * store. Where a control has no work record yet, Implemented is inferred from
- * the legacy matrix status and flagged `inferred`, so the seam between the two
- * stores is visible on the board instead of hidden by it.
+ * store. Where a control has no work record, Implemented is `unknown` — drawn
+ * hatched and counted, never inferred from the legacy matrix status. An
+ * unknown is a hole in the record with an owner to find, not a neutral outcome,
+ * and the seam between the two stores is shown rather than smoothed over.
  */
 
 import type { Tone } from "@/ds/primitives";
 import { nodeById, pathLabel } from "@/lib/composition";
 import { positionOf, workForScope, type ControlWork } from "@/lib/control-work";
 import type { ControlOrigination, Sctm, SctmRow } from "@/lib/sctm";
-import { scopesForProgram } from "@/lib/scopes";
+import { rollupControlSet, scopesForProgram, type Objective } from "@/lib/scopes";
 
 /* ── Stages ──────────────────────────────────────────────────────────────── */
 
@@ -38,23 +39,27 @@ export const stageLabels: Record<StageKey, string> = {
   current: "Current",
 };
 
-/** What a control stuck at this stage needs next. */
+/**
+ * What a control stuck at this stage needs next, as the ask rather than the
+ * state: a work row leads with the verb, and the framework id is metadata.
+ */
 export const stageNeeds: Record<StageKey, string> = {
   selected: "Not selected",
-  allocated: "Needs allocation",
-  implemented: "Needs implementation",
-  evidenced: "Needs evidence",
-  assessed: "Needs assessment",
-  current: "Needs re-assessment",
+  allocated: "Allocate to a component",
+  implemented: "Write the implementation",
+  evidenced: "Link evidence",
+  assessed: "Record a determination",
+  current: "Reassess",
 };
 
 /**
  * `hollow` is a tailored-out control: the strip keeps its shape so the family
  * keeps its catalog shape, but nothing is owed. `broken` is a determination of
  * Other than satisfied or an invalidated row; `suspect` is a row the assessor
- * has been asked to look at again.
+ * has been asked to look at again. `unknown` is missing knowledge — nobody has
+ * said whether the control is implemented — and is never read as empty.
  */
-export type StageState = "hollow" | "empty" | "partial" | "full" | "broken" | "suspect";
+export type StageState = "hollow" | "empty" | "partial" | "full" | "broken" | "suspect" | "unknown";
 
 export type Stage = {
   key: StageKey;
@@ -64,8 +69,6 @@ export type Stage = {
   fill: number;
   /** One line: what is there, or what is missing. */
   note: string;
-  /** True when the value was read from the legacy matrix status, not the work record. */
-  inferred: boolean;
 };
 
 export const stageStateTone: Record<StageState, Tone> = {
@@ -75,6 +78,16 @@ export const stageStateTone: Record<StageState, Tone> = {
   full: "neutral",
   broken: "danger",
   suspect: "warning",
+  unknown: "neutral",
+};
+
+/** Which scope put the control in the set, and on what basis. */
+export type SelectedBy = {
+  scope: string;
+  scopeName: string;
+  objectives: Objective[];
+  /** "Categorization" or the overlay that added it. */
+  source: string;
 };
 
 /* ── Controls ────────────────────────────────────────────────────────────── */
@@ -102,6 +115,8 @@ export type BoardControl = {
   boundary: boolean;
   /** Where the row sits in words — the bucket the Stage lens groups by. */
   bucket: Bucket;
+  /** Why the control is in this program's set. Empty for legacy matrix rows. */
+  selectedBy: SelectedBy[];
   stages: Stage[];
   hollow: boolean;
   /** First stage that is not full; null when the control is through, or hollow. */
@@ -113,13 +128,15 @@ export type BoardControl = {
   gap: string | null;
 };
 
-export type Bucket = StageKey | "other" | "invalidated" | "suspect" | "through" | "hollow";
+export type Bucket =
+  StageKey | "other" | "invalidated" | "suspect" | "unknown" | "through" | "hollow";
 
 export const bucketLabels: Record<Bucket, string> = {
   ...stageNeeds,
   other: "Other than satisfied",
   invalidated: "Invalidated",
   suspect: "Suspect",
+  unknown: "Unknown",
   through: "Through",
   hollow: "Tailored out",
 };
@@ -128,6 +145,7 @@ const bucketOrder: Bucket[] = [
   "other",
   "invalidated",
   "suspect",
+  "unknown",
   ...stageKeys,
   "through",
   "hollow",
@@ -144,6 +162,10 @@ export type FunnelStage = {
   broken: number;
   /** Controls the assessor has been asked to look at again. */
   suspect: number;
+  /** Controls where nobody has said — a hole in the record, not a zero. */
+  unknown: number;
+  /** One extra line of honesty for the tile, when a single count would mislead. */
+  note: string | null;
 };
 
 export type Board = {
@@ -153,6 +175,7 @@ export type Board = {
   total: number;
   hollow: number;
   through: number;
+  unknown: number;
 };
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
@@ -174,14 +197,8 @@ function nodeNames(ids: string[]): string {
   return ids.length > 2 ? `${names.join(", ")} +${ids.length - 2}` : names.join(", ");
 }
 
-function stage(
-  key: StageKey,
-  state: StageState,
-  fill: number,
-  note: string,
-  inferred = false,
-): Stage {
-  return { key, label: stageLabels[key], state, fill, note, inferred };
+function stage(key: StageKey, state: StageState, fill: number, note: string): Stage {
+  return { key, label: stageLabels[key], state, fill, note };
 }
 
 /** Catalog order: family, base number, enhancement number. */
@@ -214,7 +231,12 @@ export function workIndex(programId: string): Map<string, ControlWork> {
 
 /* ── Projection ──────────────────────────────────────────────────────────── */
 
-function projectControl(id: string, rows: SctmRow[], work: ControlWork | null): BoardControl {
+function projectControl(
+  id: string,
+  rows: SctmRow[],
+  work: ControlWork | null,
+  selectedBy: SelectedBy[],
+): BoardControl {
   const first = rows[0]!;
   const owed = rows.filter((r) => r.determination !== "Not applicable");
   const hollow = owed.length === 0;
@@ -279,15 +301,17 @@ function projectControl(id: string, rows: SctmRow[], work: ControlWork | null): 
       }`,
     );
   } else {
-    const sat = owed.filter((r) => r.determination === "Satisfied").length;
-    const other = owed.filter((r) => r.determination === "Other than satisfied").length;
-    const f = sat === owed.length ? 1 : sat + other > 0 ? 0.5 : 0;
+    // No work record: nobody has said. The matrix may still carry a
+    // determination from before the work model existed; that is the seam, and
+    // it is stated rather than smoothed into a fill.
+    const claimed = owed.filter((r) => r.determination === "Satisfied").length;
     implemented = stage(
       "implemented",
-      stateOf(f),
-      f,
-      f > 0 ? "Inferred from matrix status · no work record" : "No work record",
-      true,
+      "unknown",
+      0,
+      claimed
+        ? `Unknown · matrix says Satisfied on ${claimed} of ${owed.length}, no implementation statement on file`
+        : "Unknown · no work record and no owner",
     );
   }
 
@@ -376,6 +400,9 @@ function projectControl(id: string, rows: SctmRow[], work: ControlWork | null): 
   } else if (!stuck) {
     bucket = "through";
     nextTone = "success";
+  } else if (stuck.state === "unknown") {
+    bucket = "unknown";
+    nextTone = "neutral";
   } else {
     bucket = stuck.key;
     nextTone = "neutral";
@@ -399,6 +426,7 @@ function projectControl(id: string, rows: SctmRow[], work: ControlWork | null): 
     nodes,
     boundary,
     bucket,
+    selectedBy,
     stages,
     hollow,
     stuckAt,
@@ -418,18 +446,38 @@ export function buildBoard(programId: string, sctm: Sctm): Board {
   }
 
   const works = workIndex(programId);
+
+  // Why each control is in the set: the scopes whose categorization or
+  // overlay selected it. Computed once for the program, not per row.
+  const selection = new Map<string, SelectedBy[]>();
+  for (const rc of rollupControlSet(programId).controls) {
+    selection.set(
+      rc.control.id,
+      rc.scopes.map((s) => ({
+        scope: s.scope.id,
+        scopeName: s.scope.name,
+        objectives: s.selectedBy,
+        source: s.source,
+      })),
+    );
+  }
+
   const controls = [...byControl.entries()]
-    .map(([id, rows]) => projectControl(id, rows, works.get(id) ?? null))
+    .map(([id, rows]) => projectControl(id, rows, works.get(id) ?? null, selection.get(id) ?? []))
     .sort((a, b) => byCatalog(a.id, b.id));
 
   const owed = controls.filter((c) => !c.hollow);
+  const toParts = owed.filter((c) => c.nodes.length > 0).length;
+  const toBoundary = owed.filter((c) => c.nodes.length === 0 && c.boundary).length;
   const funnel: FunnelStage[] = stageKeys.map((key, i) => ({
     key,
     label: stageLabels[key],
     reached: owed.filter((c) => c.stages[i]!.state === "full").length,
-    stuck: owed.filter((c) => c.stuckAt === key).length,
+    stuck: owed.filter((c) => c.stuckAt === key && c.stages[i]!.state !== "unknown").length,
     broken: owed.filter((c) => c.stages[i]!.state === "broken").length,
     suspect: owed.filter((c) => c.stages[i]!.state === "suspect").length,
+    unknown: owed.filter((c) => c.stages[i]!.state === "unknown").length,
+    note: key === "allocated" ? `${toParts} to parts · ${toBoundary} to the boundary` : null,
   }));
 
   return {
@@ -438,6 +486,7 @@ export function buildBoard(programId: string, sctm: Sctm): Board {
     total: owed.length,
     hollow: controls.length - owed.length,
     through: owed.filter((c) => c.stuckAt === null).length,
+    unknown: owed.filter((c) => c.stages.some((s) => s.state === "unknown")).length,
   };
 }
 

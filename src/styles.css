@@ -2,6 +2,7 @@
 @source "../src";
 @import "tw-animate-css";
 @import "./ds/tokens.css";
+@import "./components/ui/theme.css"; /* shadcn preset reference, scoped to .theme-shadcn-nova */
 
 @custom-variant dark (&:is(.dark *));
 

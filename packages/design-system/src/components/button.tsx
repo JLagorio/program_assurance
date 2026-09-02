@@ -35,9 +35,9 @@ export type ButtonProps = {
   variant?: keyof typeof variants;
   size?: keyof typeof sizes;
   /** Render the child element instead of a <button>, keeping the button's classes. This is how a router's Link becomes a button. */
-  asChild?: boolean;
+  asChild?: boolean | undefined;
   /** Marks the button as the current choice (aria-pressed) and paints it selected. */
-  isSelected?: boolean;
+  isSelected?: boolean | undefined;
   children?: ReactNode;
   className?: string;
 } & Omit<ComponentPropsWithoutRef<"button">, "children" | "className">;
@@ -68,8 +68,8 @@ export type IconButtonProps = {
   label: string;
   variant?: "secondary" | "subtle";
   size?: "small" | "medium";
-  asChild?: boolean;
-  isSelected?: boolean;
+  asChild?: boolean | undefined;
+  isSelected?: boolean | undefined;
   children?: ReactNode;
   className?: string;
 } & Omit<ComponentPropsWithoutRef<"button">, "children" | "className" | "aria-label">;

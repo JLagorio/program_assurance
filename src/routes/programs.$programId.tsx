@@ -42,6 +42,7 @@ import { LockedNotice, OpenWorkSection } from "@/components/app/program-state";
 import { CoverageBand, MilestoneTrack } from "@/components/app/coverage";
 import { SctmMatrixSection } from "@/components/app/sctm-matrix";
 import { ControlBoard } from "@/components/app/control-board";
+import { ControlWorkspace } from "@/components/app/control-workspace";
 import { GateOutlookSection, RmfTimeline } from "@/components/app/rmf-timeline";
 import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
 import { ActivityTimeline } from "@/components/app/activity-timeline";
@@ -106,6 +107,7 @@ type Tab =
   | "Overview"
   | "Controls"
   | "Controls v2"
+  | "Controls v3"
   | "Systems"
   | "Requirements"
   | "Timeline"
@@ -119,6 +121,7 @@ const tabOrder: Tab[] = [
   "Overview",
   "Controls",
   "Controls v2",
+  "Controls v3",
   "Systems",
   "Requirements",
   "Timeline",
@@ -698,6 +701,7 @@ function ProgramDetail() {
                 ["Overview", null],
                 ["Controls", coverage.segments[2]?.value || null],
                 ["Controls v2", null],
+                ["Controls v3", null],
                 ["Systems", scopeRows.length || null],
                 ["Requirements", requirementRows.length || null],
                 ["Timeline", outlook.remaining.length || null],
@@ -821,6 +825,7 @@ function ProgramDetail() {
         ) : null}
 
         {tab === "Controls v2" ? <ControlBoard programId={program.id} /> : null}
+        {tab === "Controls v3" ? <ControlWorkspace programId={program.id} /> : null}
 
         {tab === "Timeline" ? (
           <RmfTimeline

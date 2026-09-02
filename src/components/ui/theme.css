@@ -1,0 +1,146 @@
+/* shadcn preset b1Yobwku1 — style base-nova, base colour mist, remixicon, Inter —
+   kept as a look-and-feel REFERENCE next to the kit in src/ds. Nothing in the app
+   or the kit imports from src/components/ui.
+
+   Isolation: the preset's tokens live on `.theme-shadcn-nova` instead of `:root`,
+   so they only apply under an element carrying that class. The reference story
+   (src/stories/reference/ShadcnNova.stories.tsx) puts the class on <body>, not on
+   a wrapper, because Base UI portals every popup — Select, DropdownMenu, Popover,
+   Dialog, Tooltip — into document.body. Dark tokens key on `.dark`, matching the
+   `dark:` variant in styles.css; they also apply to `.dark` elements *inside* the
+   scope, which is how the preset's "inverted" menus work (each popup carries the
+   class). Tailwind utilities are shared with the kit; only the variables they
+   resolve, and the inherited typography, are swapped in scope.
+
+   Radius caveat: the kit's rounded-* ladder is inlined as `--radius ± px`, the
+   preset's as `--radius × factor`. We set --radius so the kit's rounded-lg lands
+   exactly on the preset's 0.45rem (its most-used step: buttons, inputs, cards);
+   the other steps are within a pixel. The preset's own ladder values are also
+   declared for components that read var(--radius-md) directly. */
+
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
+
+/* Utilities the preset uses that the kit's tokens.css does not map. Inline, so the
+   utility resolves the variable where it is used, i.e. only inside the scope. */
+@theme inline {
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* Class doubled on purpose: (0,2,0) outranks the kit's body rules and the
+   Storybook theme overlays (unlayered, (0,1,1)) without !important. */
+.theme-shadcn-nova.theme-shadcn-nova {
+  --radius: calc(0.45rem - 2px);
+  --radius-sm: 0.27rem;
+  --radius-md: 0.36rem;
+  --radius-lg: 0.45rem;
+  --radius-xl: 0.63rem;
+  --radius-2xl: 0.81rem;
+  --radius-3xl: 0.99rem;
+  --radius-4xl: 1.17rem;
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.148 0.004 228.8);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.148 0.004 228.8);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.148 0.004 228.8);
+  --primary: oklch(0.488 0.243 264.376);
+  --primary-foreground: oklch(0.97 0.014 254.604);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.963 0.002 197.1);
+  --muted-foreground: oklch(0.56 0.021 213.5);
+  --accent: oklch(0.488 0.243 264.376);
+  --accent-foreground: oklch(0.97 0.014 254.604);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.925 0.005 214.3);
+  --input: oklch(0.925 0.005 214.3);
+  --ring: oklch(0.723 0.014 214.4);
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  --sidebar: oklch(0.987 0.002 197.1);
+  --sidebar-foreground: oklch(0.148 0.004 228.8);
+  --sidebar-primary: oklch(0.546 0.245 262.881);
+  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
+  --sidebar-accent: oklch(0.963 0.002 197.1);
+  --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
+  --sidebar-border: oklch(0.925 0.005 214.3);
+  --sidebar-ring: oklch(0.723 0.014 214.4);
+
+  /* The preset's typography is Tailwind's default body plus Inter Variable. The
+     kit's body sets 14px / 1.45 / -0.006em tracking / cv11+ss01 and tabular
+     figures on tables; all of that is inherited, so reset it here. */
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  letter-spacing: normal;
+  font-feature-settings: normal;
+}
+
+.theme-shadcn-nova .font-sans {
+  font-family: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+.theme-shadcn-nova table {
+  font-variant-numeric: normal;
+}
+
+.dark .theme-shadcn-nova,
+.theme-shadcn-nova.dark,
+.theme-shadcn-nova .dark {
+  --background: oklch(0.148 0.004 228.8);
+  --foreground: oklch(0.987 0.002 197.1);
+  --card: oklch(0.218 0.008 223.9);
+  --card-foreground: oklch(0.987 0.002 197.1);
+  --popover: oklch(0.218 0.008 223.9);
+  --popover-foreground: oklch(0.987 0.002 197.1);
+  --primary: oklch(0.424 0.199 265.638);
+  --primary-foreground: oklch(0.97 0.014 254.604);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.275 0.011 216.9);
+  --muted-foreground: oklch(0.723 0.014 214.4);
+  --accent: oklch(0.424 0.199 265.638);
+  --accent-foreground: oklch(0.97 0.014 254.604);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.56 0.021 213.5);
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  --sidebar: oklch(0.218 0.008 223.9);
+  --sidebar-foreground: oklch(0.987 0.002 197.1);
+  --sidebar-primary: oklch(0.623 0.214 259.815);
+  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
+  --sidebar-accent: oklch(0.275 0.011 216.9);
+  --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.56 0.021 213.5);
+}
+
+/* The preset's base-layer additions (`outline-ring/50` on everything and the
+   --pointer flag), confined to the scope. */
+@layer base {
+  .theme-shadcn-nova,
+  .theme-shadcn-nova * {
+    outline-color: color-mix(in oklab, var(--ring) 50%, transparent);
+  }
+  .theme-shadcn-nova :is(button, [role="button"]):not(:disabled) {
+    cursor: pointer;
+  }
+}

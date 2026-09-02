@@ -29,6 +29,11 @@ const preview: Preview = {
   parameters: {
     layout: "padded",
     backgrounds: { disable: true },
+    options: {
+      storySort: {
+        order: ["Introduction", "Guidance", ["Getting started", "Token grammar", "Lint rules"], "Tokens", "Primitives", ["Overview"], "Components"],
+      },
+    },
   },
   globalTypes: {
     design: {

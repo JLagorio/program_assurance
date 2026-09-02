@@ -1,0 +1,25 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Primitives/Overview" />
+
+# Primitives
+
+Layout and text, modelled on `@atlaskit/primitives`. Every prop that carries a design value is typed to a token, so an invalid value is a type error and a valid one is a literal class the scanner sees.
+
+| Primitive | For | Key props |
+| --- | --- | --- |
+| **Box** | Padding and a surface. No margins, ever. | `padding`, `paddingInline`, `paddingBlock` (space tokens), `backgroundColor` (a background or surface token) |
+| **Stack** | A column with one gap. | `space`, `alignInline`, `alignBlock`, `spread`, `grow` |
+| **Inline** | A row with one gap, optionally wrapping. | `space`, `rowSpace`, `alignBlock`, `alignInline`, `spread`, `shouldWrap`, `separator`, `grow` |
+| **Flex** | The escape hatch when Stack and Inline are not enough. | `direction`, `gap`, `alignItems`, `justifyContent`, `wrap` |
+| **Grid** | Columns or rows on a template. | `templateColumns`, `templateRows`, `gap`, `alignItems`, `justifyContent` |
+| **Bleed** | The one place a negative margin is written: pulling a child out to the edge of its parent's padding. | `all`, `inline`, `block` |
+| **Text** | Interface text on the body ramp. | `size` (large, medium, small, xsmall), `weight`, `color` (a text token), `align`, `maxLines`, `as` |
+| **Heading** | Section and page titles. | `size` (medium, small, xsmall), `as` |
+
+## Rules of thumb
+
+- A component decides its inside; its parent decides the space around it. That is why Box has no margin props and Stack and Inline own the gaps.
+- Reach for Stack and Inline first. Flex and Grid are for the layouts those cannot express.
+- Text and Heading take colour tokens, not classes. `color="color.text.subtle"` is checked by the compiler.
+- When a Box paints a surface it records that surface, so a child that needs "the surface I am on" can read `bg-surface-current`.

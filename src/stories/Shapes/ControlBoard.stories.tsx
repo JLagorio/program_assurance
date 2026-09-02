@@ -11,7 +11,6 @@ function strip(states: Stage["state"][], fills?: number[]): Stage[] {
     state: states[i] ?? "empty",
     fill: fills?.[i] ?? (states[i] === "full" ? 1 : 0),
     note: `${stageLabels[key]} · example`,
-    inferred: false,
   }));
 }
 
@@ -30,6 +29,10 @@ const examples: { label: string; stages: Stage[] }[] = [
     stages: strip(["full", "full", "full", "full", "partial", "broken"], [1, 1, 1, 1, 0.5, 0.5]),
   },
   { label: "Suspect", stages: strip(["full", "full", "full", "full", "full", "suspect"]) },
+  {
+    label: "Unknown · no work record",
+    stages: strip(["full", "full", "unknown", "empty", "full", "full"], [1, 1, 0, 0, 1, 1]),
+  },
   {
     label: "Unassigned",
     stages: strip(["full", "partial", "empty", "empty", "empty", "empty"], [1, 0.3, 0, 0, 0, 0]),
@@ -93,23 +96,71 @@ function FunnelDemo() {
   return (
     <Funnel
       funnel={[
-        { key: "selected", label: "Selected", reached: 341, stuck: 0, broken: 0, suspect: 0 },
-        { key: "allocated", label: "Allocated", reached: 296, stuck: 45, broken: 0, suspect: 0 },
+        {
+          key: "selected",
+          label: "Selected",
+          reached: 341,
+          stuck: 0,
+          broken: 0,
+          suspect: 0,
+          unknown: 0,
+          note: null,
+        },
+        {
+          key: "allocated",
+          label: "Allocated",
+          reached: 296,
+          stuck: 45,
+          broken: 0,
+          suspect: 0,
+          unknown: 0,
+          note: "212 to parts · 84 to the boundary",
+        },
         {
           key: "implemented",
           label: "Implemented",
           reached: 210,
-          stuck: 86,
+          stuck: 12,
           broken: 0,
           suspect: 0,
+          unknown: 74,
+          note: null,
         },
-        { key: "evidenced", label: "Evidenced", reached: 154, stuck: 56, broken: 0, suspect: 0 },
-        { key: "assessed", label: "Assessed", reached: 98, stuck: 39, broken: 17, suspect: 0 },
-        { key: "current", label: "Current", reached: 91, stuck: 3, broken: 4, suspect: 12 },
+        {
+          key: "evidenced",
+          label: "Evidenced",
+          reached: 154,
+          stuck: 56,
+          broken: 0,
+          suspect: 0,
+          unknown: 0,
+          note: null,
+        },
+        {
+          key: "assessed",
+          label: "Assessed",
+          reached: 98,
+          stuck: 39,
+          broken: 17,
+          suspect: 0,
+          unknown: 0,
+          note: null,
+        },
+        {
+          key: "current",
+          label: "Current",
+          reached: 91,
+          stuck: 3,
+          broken: 4,
+          suspect: 12,
+          unknown: 0,
+          note: null,
+        },
       ]}
       total={341}
       hollow={32}
       through={91}
+      unknown={74}
       active={active}
       onSelect={setActive}
     />

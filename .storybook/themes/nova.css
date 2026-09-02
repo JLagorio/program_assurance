@@ -1,0 +1,90 @@
+/* Storybook overlay: the shadcn "Nova" preset (b1Yobwku1: style nova, base colour mist,
+   Inter) expressed as a Ledger token sheet. Scoped under [data-theme="nova"] so it only
+   applies when the Theme toolbar selects it. Preview-only: never enters src/styles.css.
+
+   What this can and cannot show. Ledger's colours, radius base, shadows and body type
+   are variables, so they swap here. Per-primitive metrics are not: control heights
+   (h-6/7/8), paddings (px-2/2.5/3), the 11–20 text ladder and weights are Tailwind
+   utilities baked into each primitive, so under this sheet you see Nova's palette on
+   Ledger's metrics. For Nova's own metrics (14px text, 32px default control, 7px
+   radius, icon padding trims) look at Reference / shadcn Nova, which renders the
+   preset's generated components. Values are copied from src/components/ui/theme.css. */
+
+[data-theme="nova"] {
+  /* Kit controls use rounded-md, which is --radius; Nova's buttons/inputs are 0.45rem. */
+  --radius: 0.45rem;
+
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* surfaces */
+  --surface-1: oklch(1 0 0);
+  --surface-2: oklch(0.987 0.002 197.1);
+  --surface-hover: oklch(0.963 0.002 197.1);
+  --border-subtle: color-mix(in oklch, oklch(0.925 0.005 214.3) 60%, white);
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.148 0.004 228.8);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.148 0.004 228.8);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.148 0.004 228.8);
+
+  /* Nova's one blue; hover is primary at 80% (bg-primary/80), soft is primary at 10%. */
+  --primary: oklch(0.488 0.243 264.376);
+  --primary-foreground: oklch(0.97 0.014 254.604);
+  --primary-soft: color-mix(in oklch, oklch(0.488 0.243 264.376) 10%, white);
+  --primary-hover: oklch(0.488 0.243 264.376 / 0.8);
+
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.963 0.002 197.1);
+  --muted-foreground: oklch(0.56 0.021 213.5);
+  --subtle: oklch(0.987 0.002 197.1);
+  /* Nova sets accent = primary ("menuAccent: bold"). The kit does not use accent today. */
+  --accent: oklch(0.488 0.243 264.376);
+  --accent-foreground: oklch(0.97 0.014 254.604);
+
+  --border: oklch(0.925 0.005 214.3);
+  --border-strong: oklch(0.723 0.014 214.4);
+  --input: oklch(0.925 0.005 214.3);
+  --ring: oklch(0.723 0.014 214.4);
+
+  /* Nova defines only destructive; success and warning stay Ledger's. */
+  --danger: oklch(0.577 0.245 27.325);
+  --danger-soft: color-mix(in oklch, oklch(0.577 0.245 27.325) 10%, white);
+  --danger-hover: oklch(0.577 0.245 27.325 / 0.9);
+  --destructive: oklch(0.577 0.245 27.325);
+  --info: oklch(0.488 0.243 264.376);
+  --info-soft: color-mix(in oklch, oklch(0.488 0.243 264.376) 10%, white);
+
+  --sidebar: oklch(0.987 0.002 197.1);
+  --sidebar-foreground: oklch(0.148 0.004 228.8);
+  --sidebar-accent: oklch(0.963 0.002 197.1);
+  --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
+  --sidebar-border: oklch(0.925 0.005 214.3);
+
+  /* Nova: flat controls (no button shadow), Tailwind shadow-sm on raised surfaces,
+     shadow-md plus a 10% foreground ring on popups. */
+  --shadow-hairline: 0 0 0 1px oklch(0.148 0.004 228.8 / 0.1);
+  --shadow-raised: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-pop:
+    0 0 0 1px oklch(0.148 0.004 228.8 / 0.1), 0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  /* Kit secondary buttons draw their border with this shadow, so keep the hairline, drop the drop. */
+  --shadow-button: 0 0 0 1px var(--border);
+  --shadow-button-primary: none;
+}
+
+/* Unlayered on purpose, like the Linear sheet: these outrank @layer base. */
+[data-theme="nova"] body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: normal;
+  font-feature-settings: normal;
+}
+
+/* The font-* utilities inline Inter from tokens.css; re-point them at the variable. */
+[data-theme="nova"] .font-sans {
+  font-family: var(--font-sans);
+}
