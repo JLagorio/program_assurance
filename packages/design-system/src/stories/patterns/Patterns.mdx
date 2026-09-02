@@ -1,0 +1,32 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Patterns.stories";
+
+<Meta of={Stories} />
+
+# Pages
+
+The two page archetypes and the parts they are assembled from.
+
+**IndexPage** is a header, one filter row, one dense table. The only inline detail surface is the PreviewRail, opened from the eye in a Table.Id cell.
+
+<Canvas of={Stories.Index} />
+
+**ShowPage** is a RecordHeader, one tab strip running full width, then the tab body. The rail renders only beside the overview tab; every other tab is full width and self-contained. The rail column is `dimension.layout.rail`.
+
+<Canvas of={Stories.ShowStory} />
+
+| Part | Does |
+| --- | --- |
+| **PageHeader** | Eyebrow, title on `font.heading.medium`, one line, actions on the right. |
+| **RecordHeader** | Back chevron (`back` takes a link element), id and meta, title, actions, and `below` for a persistent state strip. |
+| **Section** | A titled region with a rule under its heading. Prefer Block for work and Collapsible for reference. |
+| **Card** | A framed block on the raised surface, with an optional header row. It records its surface so a sticky table header inside it stays opaque. |
+| **Related** | A small card of linked records with a count and rows that may be buttons. |
+| **Empty** | A dashed frame with a title, one line of why, and the action that fills it. |
+| **PreviewRail** | The right rail as a preview of a row, never the record itself. |
+| **PageSkeleton** | The page before its data: a title, a tab strip, rows. |
+
+<Canvas of={Stories.Preview} />
+
+<Canvas of={Stories.Loading} />

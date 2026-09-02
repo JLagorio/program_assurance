@@ -12,7 +12,7 @@ export const mergeConfig = {
     "font-weight": [{ "font": ["regular","medium","semibold"] }],
     "rounded": [{ "rounded": ["xsmall","small","medium","large","xlarge","xxlarge","full"] }],
     "shadow": [{ "shadow": ["raised","overlay","overflow"] }],
-    "h": [{ "h": ["control-xsmall","control-small","control-medium","control-large","row-compact","row","row-header","row-menu"] }],
+    "h": [{ "h": ["control-xsmall","control-small","control-medium","control-large","row-compact","row","row-header","row-menu","layout-topbar"] }],
     "size": [{ "size": ["control-xsmall","control-small","control-medium","control-large","icon-small","icon-medium"] }],
     "opacity": [{ "opacity": ["disabled","loading"] }],
     "duration": [{ "duration": ["fast","medium"] }],

@@ -1,0 +1,19 @@
+/* Page-level layout on the layout dimension tokens. These are the few templates a class string
+   cannot say without an arbitrary value; each reads a token, so the widths stay in one place. */
+@utility grid-cols-main-rail {
+  grid-template-columns: minmax(0, 1fr) var(--ds-dimension-layout-rail);
+}
+@utility grid-cols-list-detail {
+  grid-template-columns: var(--ds-dimension-layout-list) minmax(0, 1fr);
+}
+/* A rail that stays put under the shell's top bar and scrolls inside itself. */
+@utility sticky-rail {
+  position: sticky;
+  top: calc(var(--ds-dimension-layout-topbar) + var(--ds-space-300));
+  align-self: flex-start;
+  max-height: calc(100vh - var(--ds-dimension-layout-topbar) - var(--ds-space-600));
+}
+/* A work surface that fills the viewport under the shell's top bar and a page header. */
+@utility min-h-work {
+  min-height: calc(100vh - var(--ds-dimension-layout-topbar) - var(--ds-space-1000) - var(--ds-space-600));
+}

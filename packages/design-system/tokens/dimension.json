@@ -2,20 +2,68 @@
   "dimension": {
     "$type": "dimension",
     "control": {
-      "xsmall": { "$value": "24px", "$description": "Extra-small control height. Button xs." },
-      "small": { "$value": "28px", "$description": "Small control height. Button sm, chips, menu items, sidebar items." },
-      "medium": { "$value": "32px", "$description": "Default control height. Button md, inputs, selects, combobox triggers." },
-      "large": { "$value": "36px", "$description": "Large control height. Reserved for hero forms." }
+      "xsmall": {
+        "$value": "24px",
+        "$description": "Extra-small control height. Button xs."
+      },
+      "small": {
+        "$value": "28px",
+        "$description": "Small control height. Button sm, chips, menu items, sidebar items."
+      },
+      "medium": {
+        "$value": "32px",
+        "$description": "Default control height. Button md, inputs, selects, combobox triggers."
+      },
+      "large": {
+        "$value": "36px",
+        "$description": "Large control height. Reserved for hero forms."
+      }
     },
     "row": {
-      "compact": { "$value": "36px", "$description": "Compact table row." },
-      "default": { "$value": "40px", "$description": "Default table row." },
-      "header": { "$value": "32px", "$description": "Table header row." },
-      "menu": { "$value": "28px", "$description": "Menu, command and tree rows." }
+      "compact": {
+        "$value": "36px",
+        "$description": "Compact table row."
+      },
+      "default": {
+        "$value": "40px",
+        "$description": "Default table row."
+      },
+      "header": {
+        "$value": "32px",
+        "$description": "Table header row."
+      },
+      "menu": {
+        "$value": "28px",
+        "$description": "Menu, command and tree rows."
+      }
     },
     "icon": {
-      "small": { "$value": "14px", "$description": "Icon inside a small or medium control." },
-      "medium": { "$value": "16px", "$description": "Standalone icon, icon button glyph." }
+      "small": {
+        "$value": "14px",
+        "$description": "Icon inside a small or medium control."
+      },
+      "medium": {
+        "$value": "16px",
+        "$description": "Standalone icon, icon button glyph."
+      }
+    },
+    "layout": {
+      "sidebar": {
+        "$value": "228px",
+        "$description": "The shell sidebar."
+      },
+      "list": {
+        "$value": "340px",
+        "$description": "The list column of a WorkPane."
+      },
+      "rail": {
+        "$value": "272px",
+        "$description": "The rail beside a record page: PreviewRail, the Inspector, the ShowPage rail."
+      },
+      "topbar": {
+        "$value": "48px",
+        "$description": "The shell top bar."
+      }
     }
   }
 }

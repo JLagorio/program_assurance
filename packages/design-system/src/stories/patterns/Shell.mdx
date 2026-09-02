@@ -1,0 +1,30 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Shell.stories";
+
+<Meta of={Stories} />
+
+# Shell
+
+The application frame: a sidebar of objects and queues, a top bar, the page. The package owns the frame and the look of a nav item; the product owns the nav data and the router. A `Shell.NavItem` is `asChild` around the router's Link, and `isActive` is the product's call from the current route.
+
+The sidebar is `dimension.layout.sidebar` wide on the sunken surface and hides below the large breakpoint; the top bar is `dimension.layout.topbar` tall and sticky. The sidebar never holds phases: a phase is a state of a programme, reached by opening that programme.
+
+<Canvas of={Stories.Frame} />
+
+```tsx
+<Shell
+  sidebar={
+    <Shell.Sidebar brand={<Shell.Brand mark={<Shell.Mark />} name="Equinox" detail="Northwind Corp" />}>
+      <Shell.NavGroup label="Work">
+        <Shell.NavItem asChild icon={ShieldCheck} isActive={pathname.startsWith("/scope")}>
+          <Link to="/scope">My queue</Link>
+        </Shell.NavItem>
+      </Shell.NavGroup>
+    </Shell.Sidebar>
+  }
+  topBar={<Shell.TopBar actions={…}>{search}</Shell.TopBar>}
+>
+  <Outlet />
+</Shell>
+```

@@ -413,6 +413,18 @@
   width: var(--ds-dimension-icon-medium);
   height: var(--ds-dimension-icon-medium);
 }
+@utility w-layout-sidebar {
+  width: var(--ds-dimension-layout-sidebar);
+}
+@utility w-layout-list {
+  width: var(--ds-dimension-layout-list);
+}
+@utility w-layout-rail {
+  width: var(--ds-dimension-layout-rail);
+}
+@utility h-layout-topbar {
+  height: var(--ds-dimension-layout-topbar);
+}
 @utility bg-surface {
   background-color: var(--ds-elevation-surface);
 }

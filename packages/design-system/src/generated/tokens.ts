@@ -213,6 +213,10 @@ export const tokens = {
   "dimension.row.menu": "--ds-dimension-row-menu",
   "dimension.icon.small": "--ds-dimension-icon-small",
   "dimension.icon.medium": "--ds-dimension-icon-medium",
+  "dimension.layout.sidebar": "--ds-dimension-layout-sidebar",
+  "dimension.layout.list": "--ds-dimension-layout-list",
+  "dimension.layout.rail": "--ds-dimension-layout-rail",
+  "dimension.layout.topbar": "--ds-dimension-layout-topbar",
   "elevation.surface": "--ds-elevation-surface",
   "elevation.surface.hovered": "--ds-elevation-surface-hovered",
   "elevation.surface.pressed": "--ds-elevation-surface-pressed",
@@ -425,6 +429,7 @@ export const utilities = [
   "h-control-medium",
   "h-control-small",
   "h-control-xsmall",
+  "h-layout-topbar",
   "h-row",
   "h-row-compact",
   "h-row-header",
@@ -479,5 +484,8 @@ export const utilities = [
   "text-success-bolder",
   "text-warning",
   "text-warning-bolder",
-  "text-warning-inverse"
+  "text-warning-inverse",
+  "w-layout-list",
+  "w-layout-rail",
+  "w-layout-sidebar"
 ] as const;

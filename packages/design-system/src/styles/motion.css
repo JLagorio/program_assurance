@@ -31,6 +31,9 @@
 @keyframes ds-slide-out-bottom {
   to { transform: translateY(100%); }
 }
+@keyframes ds-rise {
+  from { opacity: 0; transform: translateY(var(--ds-space-075)); }
+}
 @keyframes ds-slide-in-top {
   from { transform: translateY(-100%); }
 }
@@ -68,6 +71,10 @@
 @utility animate-slide-out-bottom {
   animation: ds-slide-out-bottom var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
 }
+/* A page arriving. */
+@utility animate-rise {
+  animation: ds-rise var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+}
 @utility animate-slide-in-top {
   animation: ds-slide-in-top var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
 }
@@ -76,7 +83,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-enter, .animate-exit, .animate-fade-in, .animate-fade-out,
+  .animate-rise, .animate-enter, .animate-exit, .animate-fade-in, .animate-fade-out,
   .animate-slide-in-end, .animate-slide-out-end, .animate-slide-in-start, .animate-slide-out-start,
   .animate-slide-in-bottom, .animate-slide-out-bottom, .animate-slide-in-top, .animate-slide-out-top {
     animation-duration: 0.01ms;

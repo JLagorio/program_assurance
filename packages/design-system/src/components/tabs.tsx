@@ -1,4 +1,4 @@
-import { Slot } from "@radix-ui/react-slot";
+import { Slot, Slottable } from "@radix-ui/react-slot";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 import { cn } from "../lib/cn";
@@ -53,7 +53,7 @@ function Tab({ isSelected, asChild, disabled, trailing, className, children, typ
       )}
       {...rest}
     >
-      {children}
+      <Slottable>{children}</Slottable>
       {trailing}
     </Comp>
   );

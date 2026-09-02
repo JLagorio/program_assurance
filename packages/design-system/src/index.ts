@@ -4,3 +4,6 @@ export { mergeConfig } from "./generated/merge-config";
 export { cn } from "./lib/cn";
 export * from "./primitives";
 export * from "./components";
+export * from "./patterns";
+export * from "./shapes";
+export * from "./shell";

@@ -1,0 +1,22 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Shapes.stories";
+
+<Meta of={Stories} />
+
+# Shapes
+
+The layer between the parts and a screen. A traceability matrix, a work surface, a decision queue and a reference document are different jobs; pouring all of them into "header, tab strip, stack of sections" is why every screen looked the same. Four shapes, each answering a job the page archetypes could not. None takes a description prop: a heading plus a count is the whole label.
+
+| Shape | Job |
+| --- | --- |
+| **WorkPane** | You are working through a list. The list stays; only the detail changes. The list column is `dimension.layout.list`. |
+| **Inspector** | The facts stay put while the content scrolls: sticky under the top bar, every group open until the reader folds it. |
+| **ActionBar** | Identity, current state, and the actions that change it, pinned above the work. A blocked action carries its reason instead of hiding it. The first state is the headline and the bar's only pill; the rest read as dot and text. |
+| **Block** | A block of work, always open. Collapsible is its closed twin. |
+
+<Canvas of={Stories.WorkPaneStory} />
+
+`Inspector.Group` is one group of facts on its own, for a rail that stacks several.
+
+<Canvas of={Stories.InspectorGroups} />

@@ -123,6 +123,7 @@
     "h-control-medium",
     "h-control-small",
     "h-control-xsmall",
+    "h-layout-topbar",
     "h-row",
     "h-row-compact",
     "h-row-header",
@@ -177,7 +178,10 @@
     "text-success-bolder",
     "text-warning",
     "text-warning-bolder",
-    "text-warning-inverse"
+    "text-warning-inverse",
+    "w-layout-list",
+    "w-layout-rail",
+    "w-layout-sidebar"
   ],
   "spaceKeys": [
     "0",

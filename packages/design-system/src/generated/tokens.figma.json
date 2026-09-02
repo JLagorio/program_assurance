@@ -1657,6 +1657,24 @@
         "$value": "16px",
         "$description": "Standalone icon, icon button glyph."
       }
+    },
+    "layout": {
+      "sidebar": {
+        "$value": "228px",
+        "$description": "The shell sidebar."
+      },
+      "list": {
+        "$value": "340px",
+        "$description": "The list column of a WorkPane."
+      },
+      "rail": {
+        "$value": "272px",
+        "$description": "The rail beside a record page: PreviewRail, the Inspector, the ShowPage rail."
+      },
+      "topbar": {
+        "$value": "48px",
+        "$description": "The shell top bar."
+      }
     }
   },
   "elevation": {
