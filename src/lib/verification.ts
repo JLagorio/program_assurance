@@ -1,12 +1,8 @@
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 
 /* ------------------------------------------------------------------ types */
 
-export type ScanSource =
-  | "STIG Viewer"
-  | "ACAS / Nessus"
-  | "SonarQube"
-  | "Manual statement";
+export type ScanSource = "STIG Viewer" | "ACAS / Nessus" | "SonarQube" | "Manual statement";
 
 export type IngestStatus = "Parsed" | "Parsing" | "Stale" | "Failed";
 
@@ -270,7 +266,8 @@ export const findings: Finding[] = [
     due: "Oct 15, 2026",
     owner: "S. Chen",
     detail: "Vendor firmware pins the OpenSSL build; no upstream patch until Q1.",
-    mitigation: "Compensating control: segment isolation + IDS signature; accepted by AO through IATT.",
+    mitigation:
+      "Compensating control: segment isolation + IDS signature; accepted by AO through IATT.",
   },
   {
     id: "F-9006",

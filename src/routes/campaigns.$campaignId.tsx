@@ -1,7 +1,9 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Shell } from "@/components/app/shell";
+import { Badge, Id, Tabs } from "@/ds/primitives";
+import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Shell } from "@/ds/shell";
 import {
   ExecutionSummary,
   ObjectiveExecutionTable,
@@ -18,7 +20,6 @@ import {
   type ProcedureListRow,
   type RunListRow,
 } from "@/components/app/test-execution";
-import { Badge, EmptyState, RecordHeader, Section, ShowPage, Id, Tabs } from "@/components/app/ui";
 import {
   campaignById,
   eventsByCampaign,

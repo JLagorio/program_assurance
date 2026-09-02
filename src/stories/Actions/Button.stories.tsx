@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Download, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 
-import { Button, IconButton } from "@/components/app/ui";
+import { Button, IconButton } from "@/ds/primitives";
 
 const meta = {
   title: "Actions/Button",

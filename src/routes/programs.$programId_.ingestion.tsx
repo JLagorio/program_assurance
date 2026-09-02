@@ -1,7 +1,9 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Shell } from "@/components/app/shell";
+import { Badge, Select, Toolbar, Tabs } from "@/ds/primitives";
+import { EmptyState, Section, ShowPage, RecordHeader } from "@/ds/patterns";
+import { Shell } from "@/ds/shell";
 import {
   DedupRail,
   DedupTable,
@@ -13,16 +15,6 @@ import {
   ScanTable,
   type NormalizationRow,
 } from "@/components/app/ingestion";
-import {
-  Badge,
-  EmptyState,
-  Section,
-  Select,
-  ShowPage,
-  RecordHeader,
-  Toolbar,
-  Tabs,
-} from "@/components/app/ui";
 import { useCompositionGraph } from "@/lib/composition";
 import { programs } from "@/lib/grc-data";
 import {

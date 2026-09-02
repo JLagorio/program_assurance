@@ -2,19 +2,10 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Download, Search } from "lucide-react";
 
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  KeyValue,
-  Meter,
-  PageHeader,
-  PreviewRail,
-  IndexPage,
-  Table,
-  Id,
-  Indicator,
-} from "@/components/app/ui";
+import { Badge, Button, KeyValue, Meter, Table, Id, Indicator } from "@/ds/primitives";
+import { PageHeader, PreviewRail, IndexPage } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import { assetById } from "@/lib/findings";
 import {
   ccisForRisk,
@@ -30,7 +21,6 @@ import {
   type RegisterRisk,
 } from "@/lib/register";
 import { severityTone, statusTone } from "@/lib/spine";
-import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/register/")({
   head: () => ({

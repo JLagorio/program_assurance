@@ -8,17 +8,8 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
-import {
-  Badge,
-  Button,
-  EmptyState,
-  Section,
-  Select,
-  Table,
-  Toolbar,
-  Id,
-  Meter,
-} from "@/components/app/ui";
+import { Badge, Button, Select, Table, Toolbar, Id, Meter } from "@/ds/primitives";
+import { EmptyState, Section } from "@/ds/patterns";
 import { InlineSelect, InlineText } from "@/components/app/inline-edit";
 import { cn } from "@/lib/utils";
 import { saveProgramField } from "@/lib/program-save";

@@ -1,17 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  PageHeader,
-  Section,
-  IndexPage,
-  Table,
-  Id,
-  Indicator,
-} from "@/components/app/ui";
+import { Badge, Button, Table, Id, Indicator } from "@/ds/primitives";
+import { PageHeader, Section, IndexPage } from "@/ds/patterns";
+import { Shell } from "@/ds/shell";
 import { benchmarkById, benchmarks, rules } from "@/lib/catalog";
 import { severityTone } from "@/lib/spine";
 

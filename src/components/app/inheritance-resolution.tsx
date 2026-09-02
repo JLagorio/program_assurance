@@ -20,7 +20,10 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, Dot, EmptyState, KeyValue, Meter, Table, type Tone, Id } from "@/components/app/ui";
+import { Badge, Dot, KeyValue, Meter, Table, Id } from "@/ds/primitives";
+import type { Tone } from "@/ds/primitives";
+import { EmptyState } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
 import {
   designationTone,
   inheritanceStateTone,
@@ -30,7 +33,6 @@ import {
   type ResolvedInheritance,
 } from "@/lib/inheritance";
 import { cn } from "@/lib/utils";
-import { Inspector } from "@/components/app/shapes";
 
 /* ── Shared reads ────────────────────────────────────────────────────────── */
 

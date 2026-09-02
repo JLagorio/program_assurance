@@ -2,21 +2,10 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useMemo, useState } from "react";
 import { FileDown } from "lucide-react";
 
-import { Shell } from "@/components/app/shell";
+import { Badge, Button, Meter, Select, Table, Toolbar, Id, Tabs } from "@/ds/primitives";
+import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Shell } from "@/ds/shell";
 import { SctmRail, SctmSummary, SctmTable } from "@/components/app/sctm";
-import {
-  Badge,
-  Button,
-  Meter,
-  RecordHeader,
-  Section,
-  Select,
-  ShowPage,
-  Table,
-  Toolbar,
-  Id,
-  Tabs,
-} from "@/components/app/ui";
 import { controlMatrix } from "@/lib/control-matrix";
 import { programs } from "@/lib/grc-data";
 import { catalogVersion } from "@/lib/nist-catalog";

@@ -1,4 +1,4 @@
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 import type { Environment } from "@/lib/findings";
 
 /* Reusable system components — the "1" in the 1+n architecture.

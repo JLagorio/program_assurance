@@ -38,7 +38,7 @@
 
 import { useSyncExternalStore } from "react";
 
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 import {
   eventsByCampaign,
   objectiveById,

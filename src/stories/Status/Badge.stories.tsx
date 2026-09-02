@@ -2,8 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Check, CircleDashed, Clock, TriangleAlert, X } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Badge, Card, Dot, Meter, Table, Id } from "@/components/app/ui";
-import type { Tone } from "@/components/app/ui";
+import { Badge, Dot, Meter, Table, Id } from "@/ds/primitives";
+import type { Tone } from "@/ds/primitives";
+import { Card } from "@/ds/patterns";
 import { Spec } from "../_lib/tokens";
 
 const meta = {

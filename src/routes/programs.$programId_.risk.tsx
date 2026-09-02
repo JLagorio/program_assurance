@@ -15,18 +15,9 @@ import {
   type ComparisonRow,
   type ScoredSubject,
 } from "@/components/app/risk-scoring";
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  EmptyState,
-  RecordHeader,
-  Section,
-  Select,
-  ShowPage,
-  Toolbar,
-  Id,
-  Tabs,
-} from "@/components/app/ui";
+import { Badge, Select, Toolbar, Id, Tabs } from "@/ds/primitives";
+import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Shell } from "@/ds/shell";
 import { assetById, findings, isDeficiency } from "@/lib/findings";
 import { programs } from "@/lib/grc-data";
 import { registerRisks } from "@/lib/register";

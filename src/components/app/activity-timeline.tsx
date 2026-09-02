@@ -7,7 +7,8 @@ import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, Circle } from "lucide-react";
 
-import { Avatar, Button, Drawer, EmptyState, Menu } from "@/components/app/ui";
+import { Avatar, Button, Menu } from "@/ds/primitives";
+import { Drawer, EmptyState } from "@/ds/patterns";
 import { cn } from "@/lib/utils";
 import { useActivityFilters, useReadState } from "@/lib/activity-prefs";
 import {

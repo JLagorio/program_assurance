@@ -2,8 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-import { Badge, Button, Card, EmptyState, Person, Table, Indicator, Id } from "@/components/app/ui";
-import type { Tone } from "@/components/app/ui";
+import { Badge, Button, Person, Table, Indicator, Id } from "@/ds/primitives";
+import type { Tone } from "@/ds/primitives";
+import { Card, EmptyState } from "@/ds/patterns";
 import { Spec } from "../_lib/tokens";
 
 const meta = {

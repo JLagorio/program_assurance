@@ -8,17 +8,12 @@
  * snapshot, which is why each one names the objects it was assembled from.
  */
 
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 import { ccis, rulesByCci } from "@/lib/catalog";
 import { traceCci } from "@/lib/sctm";
 
 export type PackageState =
-  | "Assembling"
-  | "Internal review"
-  | "Submitted"
-  | "SCA review"
-  | "Returned"
-  | "Authorized";
+  "Assembling" | "Internal review" | "Submitted" | "SCA review" | "Returned" | "Authorized";
 
 export type Pkg = {
   id: string; // PKG-

@@ -39,7 +39,8 @@ import { Fragment, useMemo, useState } from "react";
 import { Download } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Badge, Button, EmptyState, Table, Id } from "@/components/app/ui";
+import { Badge, Button, Table, Id } from "@/ds/primitives";
+import { EmptyState } from "@/ds/patterns";
 import {
   digestAlgorithm,
   reconcileStateTone,

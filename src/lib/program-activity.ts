@@ -8,7 +8,7 @@ import { gatesForProgram, programTimeline, type Program } from "@/lib/grc-data";
 import { poamItems } from "@/lib/register";
 import { personById, workstreamsForProgram } from "@/lib/people";
 import { parseGateDate } from "@/lib/program-stage";
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 
 export const activityKinds = ["Assessment", "POA&M", "Gates", "Workstreams"] as const;
 export type ActivityKind = (typeof activityKinds)[number];

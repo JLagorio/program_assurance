@@ -2,7 +2,6 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState } from "react";
 import { ChevronLeft, MoreHorizontal, Paperclip, Pencil } from "lucide-react";
 
-import { Shell } from "@/components/app/shell";
 import {
   Badge,
   Button,
@@ -10,15 +9,15 @@ import {
   Field,
   Input,
   KeyValue,
-  Modal,
-  Section,
   Select,
   Table,
   Textarea,
   Id,
-} from "@/components/app/ui";
+} from "@/ds/primitives";
+import { Modal, Section } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import { riskStatusTone, risks } from "@/lib/grc-data";
-import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/risks/$riskId")({
   loader: ({ params }) => {

@@ -2,17 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AlertTriangle, FileDown } from "lucide-react";
 
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  KeyValue,
-  PreviewRail,
-  RecordHeader,
-  Table,
-  Id,
-  Tabs,
-} from "@/components/app/ui";
+import { Badge, Button, KeyValue, Table, Id, Tabs } from "@/ds/primitives";
+import { PreviewRail, RecordHeader } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import {
   packageStateTone,
   packages,
@@ -21,7 +14,6 @@ import {
   type TraceRow,
 } from "@/lib/packages";
 import { statusTone } from "@/lib/spine";
-import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/packages/$pkgId")({
   head: ({ params }) => {

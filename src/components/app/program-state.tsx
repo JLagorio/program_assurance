@@ -9,7 +9,8 @@
 import { useState } from "react";
 import { Check, ChevronRight, Lock } from "lucide-react";
 
-import { Badge, Dot, Person, Section, Table, Id } from "@/components/app/ui";
+import { Badge, Dot, Person, Table, Id } from "@/ds/primitives";
+import { Section } from "@/ds/patterns";
 import { cn } from "@/lib/utils";
 import type { ProgramState, Stage } from "@/lib/program-stage";
 import { stages } from "@/lib/program-stage";

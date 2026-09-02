@@ -2,8 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 
-import { Shell } from "@/components/app/shell";
-import { Badge, Button, KeyValue, PageHeader, Table, Id, Indicator } from "@/components/app/ui";
+import { Badge, Button, KeyValue, Table, Id, Indicator } from "@/ds/primitives";
+import { PageHeader } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import {
   benchmarkById,
   ccis,
@@ -15,7 +17,6 @@ import {
   type Cci,
 } from "@/lib/catalog";
 import { severityTone, statusTone } from "@/lib/spine";
-import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/controls")({
   head: () => ({

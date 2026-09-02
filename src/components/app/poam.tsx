@@ -11,13 +11,12 @@ import {
   Input,
   KeyValue,
   Meter,
-  Modal,
-  Section,
   Select,
   Table,
   Textarea,
   Id,
-} from "@/components/app/ui";
+} from "@/ds/primitives";
+import { Modal, Section } from "@/ds/patterns";
 import {
   formatOscalDate,
   milestoneStatusTone,

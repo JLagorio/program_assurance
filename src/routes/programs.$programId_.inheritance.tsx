@@ -11,8 +11,10 @@ import {
   carriesObligation,
   obligationUnstated,
 } from "@/components/app/inheritance-resolution";
-import { Shell } from "@/components/app/shell";
-import { Badge, KeyValue, RecordHeader, Section, ShowPage, Id, Tabs } from "@/components/app/ui";
+import { Badge, KeyValue, Id, Tabs } from "@/ds/primitives";
+import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import { programs } from "@/lib/grc-data";
 import {
   inheritanceConflicts,
@@ -21,7 +23,6 @@ import {
   resolveInheritance,
 } from "@/lib/inheritance";
 import { systemComponents } from "@/lib/reusable-components";
-import { Inspector } from "@/components/app/shapes";
 
 const inheritanceTabs = ["Resolved", "Conflicts", "Obligations", "Not applicable"] as const;
 type InheritanceTab = (typeof inheritanceTabs)[number];

@@ -5,21 +5,14 @@
    manager then approves the resulting compliance scope before engineering
    commits to it. */
 
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 import { baselineCounts, type ImpactLevel } from "./grc-data";
 
 export type SystemClass =
-  | "Tactical / deployed"
-  | "Enterprise IT"
-  | "Space platform"
-  | "Embedded weapon system";
+  "Tactical / deployed" | "Enterprise IT" | "Space platform" | "Embedded weapon system";
 
 export type Hosting =
-  | "Hardware / platform"
-  | "Cloud (IL4)"
-  | "Cloud (IL5)"
-  | "SaaS component"
-  | "Hybrid";
+  "Hardware / platform" | "Cloud (IL4)" | "Cloud (IL5)" | "SaaS component" | "Hybrid";
 
 export type Classification = "Unclassified" | "CUI" | "Secret" | "TS/SCI";
 
@@ -98,11 +91,36 @@ const overlayCatalog: (Overlay & { applies: (p: SystemParameters) => boolean })[
     trigger: "System class is a space platform",
     applies: (p) => p.systemClass === "Space platform",
     controls: [
-      { id: "AC-17(9)", title: "Disconnect or disable access", action: "Added", rationale: "Ground segment must sever remote links on command." },
-      { id: "CP-2(6)", title: "Alternate processing / storage site", action: "Added", rationale: "Alternate TT&C ground station required." },
-      { id: "SC-40", title: "Wireless link protection", action: "Added", rationale: "Uplink/downlink anti-jam and spoofing protection." },
-      { id: "SI-4(18)", title: "Analyze traffic / covert exfiltration", action: "Added", rationale: "Bus telemetry monitored for anomalous command traffic." },
-      { id: "PE-3", title: "Physical access control", action: "Tailored out", rationale: "On-orbit segment has no reachable physical perimeter." },
+      {
+        id: "AC-17(9)",
+        title: "Disconnect or disable access",
+        action: "Added",
+        rationale: "Ground segment must sever remote links on command.",
+      },
+      {
+        id: "CP-2(6)",
+        title: "Alternate processing / storage site",
+        action: "Added",
+        rationale: "Alternate TT&C ground station required.",
+      },
+      {
+        id: "SC-40",
+        title: "Wireless link protection",
+        action: "Added",
+        rationale: "Uplink/downlink anti-jam and spoofing protection.",
+      },
+      {
+        id: "SI-4(18)",
+        title: "Analyze traffic / covert exfiltration",
+        action: "Added",
+        rationale: "Bus telemetry monitored for anomalous command traffic.",
+      },
+      {
+        id: "PE-3",
+        title: "Physical access control",
+        action: "Tailored out",
+        rationale: "On-orbit segment has no reachable physical perimeter.",
+      },
     ],
   },
   {
@@ -114,11 +132,36 @@ const overlayCatalog: (Overlay & { applies: (p: SystemParameters) => boolean })[
       (p.systemClass === "Tactical / deployed" || p.systemClass === "Embedded weapon system") &&
       p.connectivity !== "Continuous",
     controls: [
-      { id: "AU-4(1)", title: "Transfer to alternate storage", action: "Added", rationale: "Audit offload deferred until reachback is restored." },
-      { id: "CP-10(4)", title: "Restore within time period", action: "Added", rationale: "Mission-defined restore window in degraded comms." },
-      { id: "IA-5(2)", title: "PKI-based authentication", action: "Parameter set", rationale: "Cached credential validity set to mission duration." },
-      { id: "SI-2(5)", title: "Automatic security-relevant updates", action: "Tailored out", rationale: "Push updates infeasible without persistent link." },
-      { id: "MA-4", title: "Nonlocal maintenance", action: "Tailored out", rationale: "No nonlocal maintenance path exists in the field." },
+      {
+        id: "AU-4(1)",
+        title: "Transfer to alternate storage",
+        action: "Added",
+        rationale: "Audit offload deferred until reachback is restored.",
+      },
+      {
+        id: "CP-10(4)",
+        title: "Restore within time period",
+        action: "Added",
+        rationale: "Mission-defined restore window in degraded comms.",
+      },
+      {
+        id: "IA-5(2)",
+        title: "PKI-based authentication",
+        action: "Parameter set",
+        rationale: "Cached credential validity set to mission duration.",
+      },
+      {
+        id: "SI-2(5)",
+        title: "Automatic security-relevant updates",
+        action: "Tailored out",
+        rationale: "Push updates infeasible without persistent link.",
+      },
+      {
+        id: "MA-4",
+        title: "Nonlocal maintenance",
+        action: "Tailored out",
+        rationale: "No nonlocal maintenance path exists in the field.",
+      },
     ],
   },
   {
@@ -128,10 +171,30 @@ const overlayCatalog: (Overlay & { applies: (p: SystemParameters) => boolean })[
     trigger: "System processes Secret or higher",
     applies: (p) => p.classification === "Secret" || p.classification === "TS/SCI",
     controls: [
-      { id: "AC-4(6)", title: "Metadata-based flow control", action: "Added", rationale: "Classification labels enforced on all flows." },
-      { id: "MP-6(2)", title: "Equipment testing (sanitization)", action: "Added", rationale: "Classified media destruction verification." },
-      { id: "PE-19(1)", title: "National emissions policies", action: "Added", rationale: "TEMPEST controls per CNSSAM TEMPEST 01-02." },
-      { id: "SC-8(3)", title: "Cryptographic protection for message externals", action: "Added", rationale: "NSA type-1 protection of header data." },
+      {
+        id: "AC-4(6)",
+        title: "Metadata-based flow control",
+        action: "Added",
+        rationale: "Classification labels enforced on all flows.",
+      },
+      {
+        id: "MP-6(2)",
+        title: "Equipment testing (sanitization)",
+        action: "Added",
+        rationale: "Classified media destruction verification.",
+      },
+      {
+        id: "PE-19(1)",
+        title: "National emissions policies",
+        action: "Added",
+        rationale: "TEMPEST controls per CNSSAM TEMPEST 01-02.",
+      },
+      {
+        id: "SC-8(3)",
+        title: "Cryptographic protection for message externals",
+        action: "Added",
+        rationale: "NSA type-1 protection of header data.",
+      },
     ],
   },
   {
@@ -141,9 +204,24 @@ const overlayCatalog: (Overlay & { applies: (p: SystemParameters) => boolean })[
     trigger: "System transfers data between security domains",
     applies: (p) => p.crossDomain,
     controls: [
-      { id: "AC-4(2)", title: "Flow control — protected processing domains", action: "Added", rationale: "Filter enforcement on the high-to-low path." },
-      { id: "AC-4(8)", title: "Security / privacy policy filters", action: "Added", rationale: "Dirty-word and format filters required by RTB." },
-      { id: "SC-7(21)", title: "Isolation of system components", action: "Added", rationale: "Physically separated upgrade / downgrade paths." },
+      {
+        id: "AC-4(2)",
+        title: "Flow control — protected processing domains",
+        action: "Added",
+        rationale: "Filter enforcement on the high-to-low path.",
+      },
+      {
+        id: "AC-4(8)",
+        title: "Security / privacy policy filters",
+        action: "Added",
+        rationale: "Dirty-word and format filters required by RTB.",
+      },
+      {
+        id: "SC-7(21)",
+        title: "Isolation of system components",
+        action: "Added",
+        rationale: "Physically separated upgrade / downgrade paths.",
+      },
     ],
   },
   {
@@ -153,9 +231,24 @@ const overlayCatalog: (Overlay & { applies: (p: SystemParameters) => boolean })[
     trigger: "System stores or processes PII",
     applies: (p) => p.handlesPii,
     controls: [
-      { id: "PT-3", title: "PII processing purposes", action: "Added", rationale: "Documented authorized processing purposes." },
-      { id: "PT-5", title: "Privacy notice", action: "Added", rationale: "Notice required at collection points." },
-      { id: "SI-18", title: "PII quality operations", action: "Added", rationale: "Correction workflow for inaccurate records." },
+      {
+        id: "PT-3",
+        title: "PII processing purposes",
+        action: "Added",
+        rationale: "Documented authorized processing purposes.",
+      },
+      {
+        id: "PT-5",
+        title: "Privacy notice",
+        action: "Added",
+        rationale: "Notice required at collection points.",
+      },
+      {
+        id: "SI-18",
+        title: "PII quality operations",
+        action: "Added",
+        rationale: "Correction workflow for inaccurate records.",
+      },
     ],
   },
   {
@@ -164,11 +257,29 @@ const overlayCatalog: (Overlay & { applies: (p: SystemParameters) => boolean })[
     authority: "DISA CC SRG v1r4",
     trigger: "Hosted on cloud or SaaS infrastructure",
     applies: (p) =>
-      p.hosting === "Cloud (IL4)" || p.hosting === "Cloud (IL5)" || p.hosting === "SaaS component" || p.hosting === "Hybrid",
+      p.hosting === "Cloud (IL4)" ||
+      p.hosting === "Cloud (IL5)" ||
+      p.hosting === "SaaS component" ||
+      p.hosting === "Hybrid",
     controls: [
-      { id: "SA-9(5)", title: "Processing, storage and service location", action: "Added", rationale: "US-only regions with cleared personnel." },
-      { id: "SC-7(4)", title: "External telecommunications services", action: "Added", rationale: "BCAP / CAP connection through the DISN." },
-      { id: "CA-3(6)", title: "Transfer authorizations", action: "Added", rationale: "Inherited CSP boundary documented in the SSP." },
+      {
+        id: "SA-9(5)",
+        title: "Processing, storage and service location",
+        action: "Added",
+        rationale: "US-only regions with cleared personnel.",
+      },
+      {
+        id: "SC-7(4)",
+        title: "External telecommunications services",
+        action: "Added",
+        rationale: "BCAP / CAP connection through the DISN.",
+      },
+      {
+        id: "CA-3(6)",
+        title: "Transfer authorizations",
+        action: "Added",
+        rationale: "Inherited CSP boundary documented in the SSP.",
+      },
     ],
   },
   {
@@ -178,9 +289,24 @@ const overlayCatalog: (Overlay & { applies: (p: SystemParameters) => boolean })[
     trigger: "System performs a safety-critical function",
     applies: (p) => p.safetyCritical,
     controls: [
-      { id: "SA-11(1)", title: "Static code analysis", action: "Added", rationale: "Safety-critical software assurance evidence." },
-      { id: "SI-10(3)", title: "Predictable behavior on invalid input", action: "Added", rationale: "Fail-safe behavior for weapon release logic." },
-      { id: "SR-4(3)", title: "Validate as genuine and not altered", action: "Added", rationale: "Anti-tamper of mission-critical components." },
+      {
+        id: "SA-11(1)",
+        title: "Static code analysis",
+        action: "Added",
+        rationale: "Safety-critical software assurance evidence.",
+      },
+      {
+        id: "SI-10(3)",
+        title: "Predictable behavior on invalid input",
+        action: "Added",
+        rationale: "Fail-safe behavior for weapon release logic.",
+      },
+      {
+        id: "SR-4(3)",
+        title: "Validate as genuine and not altered",
+        action: "Added",
+        rationale: "Anti-tamper of mission-critical components.",
+      },
     ],
   },
   {
@@ -190,9 +316,24 @@ const overlayCatalog: (Overlay & { applies: (p: SystemParameters) => boolean })[
     trigger: "System has no external network connection",
     applies: (p) => p.connectivity === "Standalone",
     controls: [
-      { id: "SC-7", title: "Boundary protection", action: "Tailored out", rationale: "No external boundary exists." },
-      { id: "AC-17", title: "Remote access", action: "Tailored out", rationale: "Remote access is not permitted or possible." },
-      { id: "MP-5", title: "Media transport", action: "Added", rationale: "Sneakernet is the only data path; transport is controlled." },
+      {
+        id: "SC-7",
+        title: "Boundary protection",
+        action: "Tailored out",
+        rationale: "No external boundary exists.",
+      },
+      {
+        id: "AC-17",
+        title: "Remote access",
+        action: "Tailored out",
+        rationale: "Remote access is not permitted or possible.",
+      },
+      {
+        id: "MP-5",
+        title: "Media transport",
+        action: "Added",
+        rationale: "Sneakernet is the only data path; transport is controlled.",
+      },
     ],
   },
 ];
@@ -309,8 +450,23 @@ export type ScopeEvent = { at: string; actor: string; text: string; tone: Tone }
 
 export const scopeHistory: Record<string, ScopeEvent[]> = {
   "PRG-1041": [
-    { at: "Aug 26, 09:14", actor: "Sarah Chen (SSE)", text: "Submitted tailored scope for PM approval — 383 controls, 4 overlays", tone: "info" },
-    { at: "Aug 26, 09:02", actor: "Sarah Chen (SSE)", text: "Applied classified information overlay after classification changed to Secret", tone: "neutral" },
-    { at: "Aug 24, 15:41", actor: "Sarah Chen (SSE)", text: "Categorized C:High I:High A:Moderate — High baseline selected", tone: "neutral" },
+    {
+      at: "Aug 26, 09:14",
+      actor: "Sarah Chen (SSE)",
+      text: "Submitted tailored scope for PM approval — 383 controls, 4 overlays",
+      tone: "info",
+    },
+    {
+      at: "Aug 26, 09:02",
+      actor: "Sarah Chen (SSE)",
+      text: "Applied classified information overlay after classification changed to Secret",
+      tone: "neutral",
+    },
+    {
+      at: "Aug 24, 15:41",
+      actor: "Sarah Chen (SSE)",
+      text: "Categorized C:High I:High A:Moderate — High baseline selected",
+      tone: "neutral",
+    },
   ],
 };

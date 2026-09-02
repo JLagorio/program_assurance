@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Shell } from "@/components/app/shell";
-import { Badge, Button, PageHeader, Section, IndexPage, Table, Id } from "@/components/app/ui";
+import { Badge, Button, Table, Id } from "@/ds/primitives";
+import { PageHeader, Section, IndexPage } from "@/ds/patterns";
+import { Shell } from "@/ds/shell";
 import { programs } from "@/lib/grc-data";
 import { approvalTone, scopeApprovals, type ApprovalState } from "@/lib/tailoring";
 

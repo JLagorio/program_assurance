@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Lock, Share2 } from "lucide-react";
 
-import { Badge, Table, Id } from "@/components/app/ui";
+import { Badge, Table, Id } from "@/ds/primitives";
 import { staleThresholdDays, type SystemComponent } from "@/lib/reusable-components";
 
 /** Program → source component. One affordance, used everywhere a row is inherited. */

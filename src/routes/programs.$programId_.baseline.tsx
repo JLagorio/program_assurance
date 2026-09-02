@@ -13,17 +13,9 @@ import {
   RetestSummary,
   UnrecordedChangeNotice,
 } from "@/components/app/baselines";
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  EmptyState,
-  RecordHeader,
-  Section,
-  Select,
-  ShowPage,
-  Toolbar,
-  Tabs,
-} from "@/components/app/ui";
+import { Badge, Select, Toolbar, Tabs } from "@/ds/primitives";
+import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Shell } from "@/ds/shell";
 import {
   acknowledgeChange,
   authorizedBuild,

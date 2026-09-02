@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-import { Button, FilterChip, Kbd, SegmentedControl, Tabs, Toolbar } from "@/components/app/ui";
+import { Button, FilterChip, Kbd, SegmentedControl, Tabs, Toolbar } from "@/ds/primitives";
 import { Spec } from "../_lib/tokens";
 
 const noop = () => {};

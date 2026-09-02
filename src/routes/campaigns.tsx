@@ -2,17 +2,10 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  IndexPage,
-  KeyValue,
-  PageHeader,
-  Table,
-  Id,
-  Indicator,
-} from "@/components/app/ui";
+import { Badge, Button, KeyValue, Table, Id, Indicator } from "@/ds/primitives";
+import { IndexPage, PageHeader } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import {
   campaignById,
   campaignCoverage,
@@ -27,7 +20,6 @@ import {
 } from "@/lib/campaigns";
 import { assetById, findings } from "@/lib/findings";
 import { severityTone, statusTone } from "@/lib/spine";
-import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/campaigns")({
   head: () => ({

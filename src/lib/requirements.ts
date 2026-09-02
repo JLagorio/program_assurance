@@ -40,7 +40,7 @@
 
 import { useSyncExternalStore } from "react";
 
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 import { nodeById, pathLabel, type CompositionNode } from "@/lib/composition";
 import { componentByKey, type SystemComponent } from "@/lib/reusable-components";
 import { datasetToday } from "@/lib/dataset-clock";

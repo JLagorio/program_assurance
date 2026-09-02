@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
-import { Shell } from "@/components/app/shell";
-import { Badge, Button, Card, IndexPage, Meter, PageHeader, Table, Id } from "@/components/app/ui";
+import { Badge, Button, Meter, Table, Id } from "@/ds/primitives";
+import { Card, IndexPage, PageHeader } from "@/ds/patterns";
+import { Shell } from "@/ds/shell";
 
 export const Route = createFileRoute("/vendors")({
   head: () => ({

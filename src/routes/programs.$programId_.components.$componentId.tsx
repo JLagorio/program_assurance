@@ -5,18 +5,9 @@ import type { ReactNode } from "react";
 import { NodeRail } from "@/components/app/composition";
 import { DerivedControlTrace, ElementAllocationTable } from "@/components/app/requirements";
 import { ApplicabilityModal } from "@/components/app/requirement-forms";
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  EmptyState,
-  RecordHeader,
-  Section,
-  ShowPage,
-  Table,
-  Id,
-  Indicator,
-} from "@/components/app/ui";
+import { Badge, Button, Table, Id, Indicator } from "@/ds/primitives";
+import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Shell } from "@/ds/shell";
 import {
   ancestorsOf,
   bomForNode,

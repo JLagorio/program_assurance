@@ -1,17 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  KeyValue,
-  Meter,
-  RecordHeader,
-  ShowPage,
-  Section,
-  Table,
-  Id,
-} from "@/components/app/ui";
-import { Inspector } from "@/components/app/shapes";
+import { Badge, KeyValue, Meter, Table, Id } from "@/ds/primitives";
+import { RecordHeader, ShowPage, Section } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import {
   allocationFor,
   personById,

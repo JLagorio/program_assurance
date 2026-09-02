@@ -2,9 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle } from "lucide-react";
 
 import { ConsumerTable, ProvidedControlsTable } from "@/components/app/inheritance";
-import { Shell } from "@/components/app/shell";
-import { Badge, Button, KeyValue, RecordHeader, ShowPage, Section, Id } from "@/components/app/ui";
-import { Inspector } from "@/components/app/shapes";
+import { Badge, Button, KeyValue, Id } from "@/ds/primitives";
+import { RecordHeader, ShowPage, Section } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import {
   componentHealthTone,
   systemComponents,

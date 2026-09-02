@@ -1,20 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { Shell } from "@/components/app/shell";
 import {
   Badge,
   Button,
-  Card,
   Dot,
   FilterChip,
   IconButton,
   KeyValue,
   Meter,
-  IndexPage,
-  PageHeader,
   Table,
   Id,
-} from "@/components/app/ui";
+} from "@/ds/primitives";
+import { Card, IndexPage, PageHeader } from "@/ds/patterns";
+import { Shell } from "@/ds/shell";
 import { MoreHorizontal } from "lucide-react";
 
 export const Route = createFileRoute("/components")({

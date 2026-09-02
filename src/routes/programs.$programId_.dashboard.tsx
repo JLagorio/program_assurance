@@ -3,20 +3,11 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 
-import { Shell } from "@/components/app/shell";
+import { Badge, Dot, Meter, Person, Table, Id } from "@/ds/primitives";
+import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Shell } from "@/ds/shell";
 import { ControlMatrixSection, FamilyCoverageTable } from "@/components/app/control-matrix";
 import { CoverageBand } from "@/components/app/coverage";
-import {
-  Badge,
-  Dot,
-  Meter,
-  Person,
-  RecordHeader,
-  Section,
-  ShowPage,
-  Table,
-  Id,
-} from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
 import { gatesForProgram, lifecyclePhases, programs, gateKindTone } from "@/lib/grc-data";

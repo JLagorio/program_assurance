@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import type { ReactNode } from "react";
 
-import { Button, Card, Field, Input, Select, Textarea } from "@/components/app/ui";
+import { Button, Field, Input, Select, Textarea } from "@/ds/primitives";
+import { Card } from "@/ds/patterns";
 
 const meta = {
   title: "Data Input/Field",

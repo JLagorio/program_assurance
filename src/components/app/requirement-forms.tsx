@@ -11,7 +11,8 @@
 
 import { useMemo, useState } from "react";
 
-import { Badge, Button, Field, Input, Modal, Select, Textarea, Id } from "@/components/app/ui";
+import { Badge, Button, Field, Input, Select, Textarea, Id } from "@/ds/primitives";
+import { Modal } from "@/ds/patterns";
 import { nodesForProgram } from "@/lib/composition";
 import { systemComponents } from "@/lib/reusable-components";
 import {

@@ -6,19 +6,16 @@ import {
   Avatar,
   Badge,
   Button,
-  Card,
-  Drawer,
   Field,
   KeyValue,
   Menu,
-  Modal,
-  PageHeader,
   Person,
   Select,
   Table,
   Textarea,
   Id,
-} from "@/components/app/ui";
+} from "@/ds/primitives";
+import { Card, Drawer, Modal, PageHeader } from "@/ds/patterns";
 import { Spec } from "../_lib/tokens";
 
 const noop = () => {};

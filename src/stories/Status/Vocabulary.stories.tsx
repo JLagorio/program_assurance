@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Badge } from "@/components/app/ui";
-import type { Tone } from "@/components/app/ui";
+import { Badge } from "@/ds/primitives";
+import type { Tone } from "@/ds/primitives";
 import { reconcileStateTone } from "@/lib/airgap";
 import {
   decisionTone,

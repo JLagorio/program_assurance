@@ -5,7 +5,7 @@
 
 import { Link } from "@tanstack/react-router";
 
-import { Badge, Table, Id } from "@/components/app/ui";
+import { Badge, Table, Id } from "@/ds/primitives";
 import { controlSetFor, objectives, triadOf } from "@/lib/scopes";
 import type { AssessmentScope, ProgramRollup } from "@/lib/scopes";
 

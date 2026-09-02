@@ -13,15 +13,9 @@ import {
   ScheduleTable,
   SlippageTable,
 } from "@/components/app/conmon";
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  RecordHeader,
-  Section,
-  SegmentedControl,
-  ShowPage,
-  Tabs,
-} from "@/components/app/ui";
+import { Badge, SegmentedControl, Tabs } from "@/ds/primitives";
+import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Shell } from "@/ds/shell";
 import {
   assessmentSchedule,
   conmonAlerts,

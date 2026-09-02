@@ -1,7 +1,10 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 
-import { Shell } from "@/components/app/shell";
+import { Badge, KeyValue, Table, Id, Tabs } from "@/ds/primitives";
+import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import {
   BomSummary,
   BomTree,
@@ -11,17 +14,6 @@ import {
   SupplyChainTable,
   type BomTreeNode,
 } from "@/components/app/composition";
-import {
-  Badge,
-  EmptyState,
-  KeyValue,
-  RecordHeader,
-  Section,
-  ShowPage,
-  Table,
-  Id,
-  Tabs,
-} from "@/components/app/ui";
 import {
   bomDocuments,
   childrenOf,
@@ -37,7 +29,6 @@ import { allocationsOn, derivedControlTrace, requirementById } from "@/lib/requi
 import { bomStats, inventoryReconciliation, postureOf } from "@/lib/graph-posture";
 import { programs } from "@/lib/grc-data";
 import { parseGateDate } from "@/lib/program-stage";
-import { Inspector } from "@/components/app/shapes";
 
 const compositionTabs = ["Tree", "Supply chain", "Reconciliation", "BOM documents"] as const;
 type CompositionTab = (typeof compositionTabs)[number];

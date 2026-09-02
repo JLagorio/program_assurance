@@ -5,19 +5,11 @@ import type { ReactNode } from "react";
 import { AllocationTable, ProvenanceTable, RequirementTable } from "@/components/app/requirements";
 import { InlineSelect, InlineText } from "@/components/app/inline-edit";
 import { AllocateModal } from "@/components/app/requirement-forms";
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  KeyValue,
-  RecordHeader,
-  Section,
-  ShowPage,
-  Id,
-  Tabs,
-} from "@/components/app/ui";
+import { Badge, Button, KeyValue, Id, Tabs } from "@/ds/primitives";
+import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import { programs } from "@/lib/grc-data";
-import { Inspector } from "@/components/app/shapes";
 import {
   allocationsFor,
   ancestorsOfRequirement,

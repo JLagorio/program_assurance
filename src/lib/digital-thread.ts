@@ -1,4 +1,4 @@
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 
 /* ------------------------------------------------------------------ types */
 
@@ -16,7 +16,8 @@ export type Connector = {
   mapped: number;
 };
 
-export type MappingRuleSignal = "Label" | "Path glob" | "Commit trailer" | "SysML stereotype" | "Issue type";
+export type MappingRuleSignal =
+  "Label" | "Path glob" | "Commit trailer" | "SysML stereotype" | "Issue type";
 
 export type MappingRule = {
   id: string;
@@ -32,7 +33,8 @@ export type MappingRule = {
 };
 
 export type EvidenceStatus = "Auto-mapped" | "Accepted" | "Needs review" | "Rejected";
-export type ArtifactKind = "Jira issue" | "Pull request" | "Merge request" | "SysML model" | "Drawing";
+export type ArtifactKind =
+  "Jira issue" | "Pull request" | "Merge request" | "SysML model" | "Drawing";
 
 export type ThreadEvidence = {
   id: string;

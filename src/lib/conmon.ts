@@ -70,7 +70,7 @@
  * CSR agree on every date in the page.
  */
 
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 import {
   authorizedBuild,
   candidateBuild,
@@ -1564,7 +1564,9 @@ function determinationFactor(
   const changes = changesForProgram(programId);
   const { byDriver, unattributed } = invalidationsByDriver(sctm, changes);
   const kindById = new Map(changes.map((c) => [c.id, c.kind]));
-  const ranked = [...byDriver].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+  const ranked = [...byDriver].sort(
+    (a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]),
+  );
 
   // Each driver is quoted with the number of rows IT retracted, never with the
   // whole invalidated total: an assessor who follows the name to that change's

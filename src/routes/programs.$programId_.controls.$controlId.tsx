@@ -18,9 +18,9 @@ import {
   StatementList,
 } from "@/components/app/control-text";
 import { ControlRequirementTable } from "@/components/app/requirements";
-import { Block, Disclosure, Inspector } from "@/components/app/shapes";
-import { Shell } from "@/components/app/shell";
-import { Badge, Select, Table, Id, Tabs, Indicator } from "@/components/app/ui";
+import { Badge, Select, Table, Id, Tabs, Indicator } from "@/ds/primitives";
+import { Block, Disclosure, Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import { controlDetail } from "@/lib/control-detail";
 import {
   currentSession,

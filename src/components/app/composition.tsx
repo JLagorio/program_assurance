@@ -19,21 +19,21 @@ import { ChevronRight } from "lucide-react";
 import {
   Badge,
   Button,
-  Card,
   Dot,
   KeyValue,
   Meter,
   Table,
   Toolbar,
-  type Tone,
   Id,
   Indicator,
-} from "@/components/app/ui";
+} from "@/ds/primitives";
+import type { Tone } from "@/ds/primitives";
+import { Card } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
 import { cn } from "@/lib/utils";
 import type { CompositionNode } from "@/lib/composition";
 import { datasetToday } from "@/lib/dataset-clock";
 import type { BomStats, NodePosture, ReconciliationRow } from "@/lib/graph-posture";
-import { Inspector } from "@/components/app/shapes";
 
 /* ------------------------------------------------------------- Shared bits */
 

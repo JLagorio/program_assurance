@@ -9,7 +9,8 @@
 import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 
-import { Badge, Dot, Person, Section, Table, Id, Meter } from "@/components/app/ui";
+import { Badge, Dot, Person, Table, Id, Meter } from "@/ds/primitives";
+import { Section } from "@/ds/patterns";
 import { cn } from "@/lib/utils";
 import { gatesForProgram, gateKindTone, lifecyclePhases, type ProgramGate } from "@/lib/grc-data";
 import { daysUntil } from "@/lib/program-stage";

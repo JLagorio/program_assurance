@@ -9,7 +9,7 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, Table, Id } from "@/components/app/ui";
+import { Badge, Table, Id } from "@/ds/primitives";
 import { cn } from "@/lib/utils";
 import type {
   NistMethod,

@@ -18,11 +18,9 @@ import { X } from "lucide-react";
 import { nodeById } from "@/lib/composition";
 import { Determination, EvidenceBlock, GateList, Narrative } from "@/components/app/control-work";
 import { ControlRequirementTable } from "@/components/app/requirements";
-import { Block } from "@/components/app/shapes";
 import {
   Badge,
   Button,
-  EmptyState,
   Field,
   FilterChip,
   SegmentedControl,
@@ -31,7 +29,9 @@ import {
   Toolbar,
   Id,
   Indicator,
-} from "@/components/app/ui";
+} from "@/ds/primitives";
+import { EmptyState } from "@/ds/patterns";
+import { Block } from "@/ds/shapes";
 import {
   buildBoard,
   groupBoard,

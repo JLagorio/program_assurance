@@ -2,18 +2,10 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Download, Search } from "lucide-react";
 
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  IndexPage,
-  KeyValue,
-  PageHeader,
-  PreviewRail,
-  Table,
-  Id,
-  Indicator,
-} from "@/components/app/ui";
+import { Badge, Button, KeyValue, Table, Id, Indicator } from "@/ds/primitives";
+import { IndexPage, PageHeader, PreviewRail } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import {
   assetById,
   assets,
@@ -25,7 +17,6 @@ import {
 } from "@/lib/findings";
 import { assetPosture } from "@/lib/graph-posture";
 import { severityTone, statusTone } from "@/lib/spine";
-import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/findings/")({
   head: () => ({

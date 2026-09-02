@@ -1,21 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  KeyValue,
-  RecordHeader,
-  Section,
-  ShowPage,
-  Table,
-  Id,
-  Indicator,
-} from "@/components/app/ui";
+import { Badge, Button, KeyValue, Table, Id, Indicator } from "@/ds/primitives";
+import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import { assetById, bySeverity, isOpen } from "@/lib/findings";
 import { findingsForPoam, openCount, poamItems, riskById } from "@/lib/register";
 import { severityTone, statusTone } from "@/lib/spine";
-import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/register/poam/$poamId")({
   head: ({ params }) => {

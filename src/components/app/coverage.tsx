@@ -8,7 +8,8 @@
 
 import { Check } from "lucide-react";
 
-import { Section, Meter, Id } from "@/components/app/ui";
+import { Meter, Id } from "@/ds/primitives";
+import { Section } from "@/ds/patterns";
 import { cn } from "@/lib/utils";
 import type { Coverage, MilestoneNode } from "@/lib/program-coverage";
 

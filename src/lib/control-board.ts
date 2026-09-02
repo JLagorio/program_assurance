@@ -11,7 +11,7 @@
  * stores is visible on the board instead of hidden by it.
  */
 
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 import { nodeById, pathLabel } from "@/lib/composition";
 import { positionOf, workForScope, type ControlWork } from "@/lib/control-work";
 import type { ControlOrigination, Sctm, SctmRow } from "@/lib/sctm";

@@ -7,7 +7,27 @@ import { ChevronDown, ChevronRight, Lock, MoreHorizontal, Pencil } from "lucide-
 import { CdrPackageModal, DigitalThreadSection } from "@/components/app/digital-thread";
 import { InheritChip } from "@/components/app/inheritance";
 import { LifecycleSection } from "@/components/app/lifecycle";
-import { Shell } from "@/components/app/shell";
+import {
+  Badge,
+  Button,
+  Kbd,
+  Menu,
+  Person,
+  Toolbar,
+  Dot,
+  Field,
+  Input,
+  KeyValue,
+  Meter,
+  Select,
+  Table,
+  Textarea,
+  Id,
+  Tabs,
+} from "@/ds/primitives";
+import { EmptyState, Modal, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import { TailoringSection } from "@/components/app/tailoring";
 import { AuthorizationSection } from "@/components/app/authorization";
 import { VerificationSection } from "@/components/app/verification";
@@ -27,29 +47,6 @@ import { coverageFromRows, gateOutlook, programMilestones } from "@/lib/program-
 import { isOpen } from "@/lib/findings";
 import { CommandPalette, useCommandPalette } from "@/components/app/command-palette";
 import { programCommands } from "@/lib/program-commands";
-import {
-  Badge,
-  Button,
-  EmptyState,
-  Kbd,
-  Menu,
-  Person,
-  Toolbar,
-  Dot,
-  Field,
-  Input,
-  KeyValue,
-  Meter,
-  Modal,
-  RecordHeader,
-  Section,
-  Select,
-  ShowPage,
-  Table,
-  Textarea,
-  Id,
-  Tabs,
-} from "@/components/app/ui";
 import { NewRequirementModal } from "@/components/app/requirement-forms";
 import { ScopeTable } from "@/components/app/scopes";
 import { RequirementTable } from "@/components/app/requirements";
@@ -62,7 +59,6 @@ import { programState, stages, type Stage } from "@/lib/program-stage";
 import { peopleForProgram, personById, workstreamsForProgram } from "@/lib/people";
 import { inheritanceForProgram } from "@/lib/inheritance";
 import { staleThresholdDays } from "@/lib/reusable-components";
-import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/programs/$programId")({
   // Read-only entry point: a record page links back to the tab the reader came

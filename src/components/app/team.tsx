@@ -1,8 +1,9 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Badge, KeyValue, Meter, PreviewRail, Section, Table, Id } from "@/components/app/ui";
-import { Inspector } from "@/components/app/shapes";
+import { Badge, KeyValue, Meter, Table, Id } from "@/ds/primitives";
+import { PreviewRail, Section } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
 import {
   allocationFor,
   crossDisciplineEdges,

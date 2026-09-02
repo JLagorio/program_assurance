@@ -2,22 +2,13 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  FilterChip,
-  KeyValue,
-  RecordHeader,
-  Section,
-  ShowPage,
-  Table,
-  Id,
-  Tabs,
-} from "@/components/app/ui";
+import { Badge, FilterChip, KeyValue, Table, Id, Tabs } from "@/ds/primitives";
+import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import { ancestorsOf, nodeById, nodesForProgram } from "@/lib/composition";
 import { programs } from "@/lib/grc-data";
 import { allocationsOn } from "@/lib/requirements";
-import { Inspector } from "@/components/app/shapes";
 import {
   componentsServing,
   controlSetFor,

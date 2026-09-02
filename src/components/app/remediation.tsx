@@ -11,7 +11,8 @@ import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 
-import { Badge, Meter, Person, Section, Table, Id } from "@/components/app/ui";
+import { Badge, Meter, Person, Table, Id } from "@/ds/primitives";
+import { Section } from "@/ds/patterns";
 import { cn } from "@/lib/utils";
 import { planDay, spanDays, taskStatusTone, type RemediationPlan } from "@/lib/remediation";
 import { statusTone } from "@/lib/spine";

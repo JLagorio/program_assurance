@@ -16,16 +16,10 @@ import { findings, isOpen } from "@/lib/findings";
 import { inheritanceForProgram } from "@/lib/inheritance";
 import { staleThresholdDays } from "@/lib/reusable-components";
 import { scopeApprovals } from "@/lib/tailoring";
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 
 /** Which tab the action resolves into. */
-export type ActionTarget =
-  | "Controls"
-  | "Findings"
-  | "Evidence"
-  | "POA&M"
-  | "Activity"
-  | "Team";
+export type ActionTarget = "Controls" | "Findings" | "Evidence" | "POA&M" | "Activity" | "Team";
 
 export type NextAction = {
   id: string;
@@ -40,8 +34,18 @@ export type NextAction = {
 };
 
 const monthIndex: Record<string, number> = {
-  Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-  Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+  Jan: 0,
+  Feb: 1,
+  Mar: 2,
+  Apr: 3,
+  May: 4,
+  Jun: 5,
+  Jul: 6,
+  Aug: 7,
+  Sep: 8,
+  Oct: 9,
+  Nov: 10,
+  Dec: 11,
 };
 
 function parseDate(value: string): Date | null {
@@ -93,11 +97,7 @@ export type Posture = {
  * them so the rail moves with an inline status edit; the fallback keeps a
  * caller without rows on the same source rather than on the stale snapshot.
  */
-export function programPosture(
-  program: Program,
-  rows?: ControlRow[],
-  now = datasetNow,
-): Posture {
+export function programPosture(program: Program, rows?: ControlRow[], now = datasetNow): Posture {
   const matrix = rows ?? controlMatrix(program.id);
   const poams = poamItems.filter((p) => p.program === program.id);
   const open = poams.filter((p) => p.status !== "Completed");
@@ -107,9 +107,7 @@ export function programPosture(
   });
   const fnd = findingsForProgram(program.id).filter(isOpen);
   const inheritance = inheritanceForProgram(program.id);
-  const stale = [...inheritance.values()].filter(
-    (e) => e.control.evidenceAge > staleThresholdDays,
-  );
+  const stale = [...inheritance.values()].filter((e) => e.control.evidenceAge > staleThresholdDays);
 
   return {
     controlsSatisfied: matrix.filter((r) => r.status === "Satisfied").length,
@@ -125,11 +123,7 @@ export function programPosture(
 }
 
 /** Max five, worst first. Anything longer is a table, not a call to action. */
-export function nextActions(
-  program: Program,
-  rows?: ControlRow[],
-  now = datasetNow,
-): NextAction[] {
+export function nextActions(program: Program, rows?: ControlRow[], now = datasetNow): NextAction[] {
   const matrix = rows ?? controlMatrix(program.id);
   const controlsFailing = matrix.filter((r) => r.status === "Other than satisfied").length;
   const state = programState(program, now, controlsFailing);
@@ -172,7 +166,7 @@ export function nextActions(
     .filter((p) => p.program === program.id && p.status !== "Completed")
     .map((p) => ({ p, d: daysFromNow(p.scheduledCompletion, now) }))
     .filter((x) => x.d !== null && x.d < 45)
-    .sort((a, b) => (a.d! - b.d!));
+    .sort((a, b) => a.d! - b.d!);
   for (const { p, d } of poams.slice(0, 2)) {
     out.push({
       id: p.id,
@@ -202,9 +196,7 @@ export function nextActions(
 
   // 5. Stale inherited evidence.
   const inheritance = inheritanceForProgram(program.id);
-  const stale = [...inheritance.values()].filter(
-    (e) => e.control.evidenceAge > staleThresholdDays,
-  );
+  const stale = [...inheritance.values()].filter((e) => e.control.evidenceAge > staleThresholdDays);
   if (stale.length > 0) {
     const worst = stale.sort((a, b) => b.control.evidenceAge - a.control.evidenceAge)[0]!;
     out.push({

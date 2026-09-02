@@ -17,18 +17,11 @@
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 
-import {
-  Badge,
-  Dot,
-  EmptyState,
-  KeyValue,
-  Table,
-  type Tone,
-  Id,
-  Indicator,
-} from "@/components/app/ui";
+import { Badge, Dot, KeyValue, Table, Id, Indicator } from "@/ds/primitives";
+import type { Tone } from "@/ds/primitives";
+import { EmptyState } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
 import { cn } from "@/lib/utils";
-import { Inspector } from "@/components/app/shapes";
 import {
   diffStateTone,
   formatTone,

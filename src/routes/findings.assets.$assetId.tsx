@@ -1,24 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { BomTree, type BomTreeNode } from "@/components/app/composition";
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  KeyValue,
-  RecordHeader,
-  ShowPage,
-  Section,
-  Table,
-  Id,
-  Indicator,
-} from "@/components/app/ui";
+import { Badge, Button, KeyValue, Table, Id, Indicator } from "@/ds/primitives";
+import { RecordHeader, ShowPage, Section } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import type { CompositionNode } from "@/lib/composition";
 import { childrenOf, nodeForAsset, pathOf, useCompositionGraph } from "@/lib/composition";
 import { assets, bySeverity, findingsByAsset, isOpen } from "@/lib/findings";
 import { assetPosture, postureOf } from "@/lib/graph-posture";
 import { severityTone, statusTone } from "@/lib/spine";
-import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/findings/assets/$assetId")({
   head: ({ params }) => {

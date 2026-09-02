@@ -12,7 +12,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 
 import { InlineSelect, InlineText } from "@/components/app/inline-edit";
-import { Badge, Table, Id } from "@/components/app/ui";
+import { Badge, Table, Id } from "@/ds/primitives";
 import { cn } from "@/lib/utils";
 import {
   allocationStateTone,

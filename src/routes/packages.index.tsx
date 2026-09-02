@@ -2,19 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  KeyValue,
-  IndexPage,
-  PageHeader,
-  PreviewRail,
-  Table,
-  Id,
-} from "@/components/app/ui";
+import { Badge, Button, KeyValue, Table, Id } from "@/ds/primitives";
+import { IndexPage, PageHeader, PreviewRail } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import { packageStateTone, packages, readiness, type Pkg } from "@/lib/packages";
-import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/packages/")({
   head: () => ({

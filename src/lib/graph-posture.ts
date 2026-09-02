@@ -26,7 +26,7 @@
  *    `graphVersion()` so a runtime re-classification is never served stale.
  */
 
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 import type {
   BomSource,
   CompositionEdge,

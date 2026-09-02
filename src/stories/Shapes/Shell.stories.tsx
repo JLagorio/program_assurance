@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Download, Plus } from "lucide-react";
 
-import { Shell } from "@/components/app/shell";
-import { Badge, Button, Card, PageHeader, Person, Table, Id } from "@/components/app/ui";
+import { Badge, Button, Person, Table, Id } from "@/ds/primitives";
+import { Card, PageHeader } from "@/ds/patterns";
+import { Shell } from "@/ds/shell";
 
 const meta = {
   title: "Shapes/Shell",

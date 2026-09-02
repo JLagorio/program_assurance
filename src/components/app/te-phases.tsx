@@ -34,7 +34,9 @@ import { Fragment, useState } from "react";
 import type { ReactNode } from "react";
 import { ArrowRight, Calculator, CornerDownRight, PenLine, TriangleAlert } from "lucide-react";
 
-import { Badge, Button, Card, Table, type Tone, Id } from "@/components/app/ui";
+import { Badge, Button, Table, Id } from "@/ds/primitives";
+import type { Tone } from "@/ds/primitives";
+import { Card } from "@/ds/patterns";
 import {
   effectTone,
   phaseStateTone,

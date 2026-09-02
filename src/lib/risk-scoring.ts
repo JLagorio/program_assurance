@@ -72,7 +72,7 @@
  * defaulting to the dataset's own today, Aug 30, 2026, so SSR and CSR agree.
  */
 
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 import { datasetToday } from "@/lib/dataset-clock";
 import { nodeImpact, stampOf, type ImpactState } from "@/lib/baselines";
 import type { CompositionNode, Criticality } from "@/lib/composition";

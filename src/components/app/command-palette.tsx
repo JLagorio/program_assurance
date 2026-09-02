@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Search } from "lucide-react";
 
-import { Kbd } from "@/components/app/ui";
+import { Kbd } from "@/ds/primitives";
 import { cn } from "@/lib/utils";
 
 export type Command = {

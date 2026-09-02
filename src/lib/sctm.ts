@@ -69,7 +69,7 @@
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 import { rowCurrency } from "@/lib/baselines";
 import { objectivesForCci, type TestObjective } from "@/lib/campaigns";
 import { ccis, ccisByControl, rulesByCci, type Cci } from "@/lib/catalog";

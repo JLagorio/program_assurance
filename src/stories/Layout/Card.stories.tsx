@@ -1,20 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Download, Plus } from "lucide-react";
 
-import {
-  Badge,
-  Button,
-  Card,
-  Dot,
-  Fact,
-  KeyValue,
-  PageHeader,
-  Person,
-  RecordHeader,
-  Section,
-  Id,
-  Related,
-} from "@/components/app/ui";
+import { Badge, Button, Dot, Fact, KeyValue, Person, Id } from "@/ds/primitives";
+import { Card, PageHeader, RecordHeader, Section, Related } from "@/ds/patterns";
 import { Spec } from "../_lib/tokens";
 
 const meta = {

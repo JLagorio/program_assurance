@@ -2,7 +2,6 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { useMemo, useState } from "react";
 import { Download, ListFilter, Plus } from "lucide-react";
 
-import { Shell } from "@/components/app/shell";
 import {
   Badge,
   Button,
@@ -10,14 +9,13 @@ import {
   FilterChip,
   Input,
   Meter,
-  Modal,
-  PageHeader,
   Select,
-  IndexPage,
   Table,
   Textarea,
   Id,
-} from "@/components/app/ui";
+} from "@/ds/primitives";
+import { Modal, PageHeader, IndexPage } from "@/ds/patterns";
+import { Shell } from "@/ds/shell";
 import { riskStatusTone, risks } from "@/lib/grc-data";
 
 export const Route = createFileRoute("/risks")({

@@ -1,4 +1,4 @@
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 
 /* ------------------------------------------------------------------ types */
 
@@ -29,12 +29,7 @@ export type EnclaveGrant = {
 };
 
 export type ScaObservationStatus =
-  | "Logged"
-  | "Triaged"
-  | "Jira assigned"
-  | "In remediation"
-  | "Remediated"
-  | "Risk accepted";
+  "Logged" | "Triaged" | "Jira assigned" | "In remediation" | "Remediated" | "Risk accepted";
 
 export type ScaObservation = {
   id: string;

@@ -1,24 +1,22 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Fragment, useMemo } from "react";
 
-import { Shell } from "@/components/app/shell";
-import { RemediationPlanSection } from "@/components/app/remediation";
-import { TextBlock } from "@/components/app/control-text";
 import {
   Badge,
   Button,
-  EmptyState,
   KeyValue,
   Meter,
   Person,
-  RecordHeader,
-  Section,
-  ShowPage,
   Table,
   Id,
   Tabs,
   Indicator,
-} from "@/components/app/ui";
+} from "@/ds/primitives";
+import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
+import { RemediationPlanSection } from "@/components/app/remediation";
+import { TextBlock } from "@/components/app/control-text";
 import { ccis } from "@/lib/catalog";
 import { useControlMatrix } from "@/lib/control-matrix";
 import { assetById, findings, findingsByCci, isDeficiency, isOpen } from "@/lib/findings";
@@ -27,7 +25,6 @@ import { planForFinding } from "@/lib/remediation";
 import { poamById } from "@/lib/register";
 import { bandTone, scoreFinding, type ScoreFactor } from "@/lib/risk-scoring";
 import { severityTone, statusTone } from "@/lib/spine";
-import { Inspector } from "@/components/app/shapes";
 
 const findingTabs = ["Finding", "Assessment", "Remediation", "Residual risk"] as const;
 type FindingTab = (typeof findingTabs)[number];

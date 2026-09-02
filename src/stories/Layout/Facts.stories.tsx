@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Badge, Fact, KeyValue, Person, Prose, Empty, Id, Eyebrow } from "@/components/app/ui";
+import { Badge, Fact, KeyValue, Person, Prose, Empty, Id, Eyebrow } from "@/ds/primitives";
+import { Inspector } from "@/ds/shapes";
 import { Spec } from "../_lib/tokens";
-import { Inspector } from "@/components/app/shapes";
 
 const meta = {
   title: "Layout/Facts",

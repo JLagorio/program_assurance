@@ -16,19 +16,10 @@
 
 import type { ReactNode } from "react";
 
-import {
-  Badge,
-  Button,
-  Dot,
-  EmptyState,
-  KeyValue,
-  Meter,
-  Person,
-  Section,
-  Table,
-  type Tone,
-  Id,
-} from "@/components/app/ui";
+import { Badge, Button, Dot, KeyValue, Meter, Person, Table, Id } from "@/ds/primitives";
+import type { Tone } from "@/ds/primitives";
+import { EmptyState, Section } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
 import { objectiveTone, type ObjectiveResult } from "@/lib/campaigns";
 import {
   regressionStateTone,
@@ -43,7 +34,6 @@ import {
   type TestRun,
 } from "@/lib/test-execution";
 import { cn } from "@/lib/utils";
-import { Inspector } from "@/components/app/shapes";
 
 /* ── Row shapes the route assembles ──────────────────────────────────────── */
 

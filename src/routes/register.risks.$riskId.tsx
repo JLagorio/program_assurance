@@ -1,21 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Fragment } from "react";
 
-import { Shell } from "@/components/app/shell";
+import { Badge, Button, KeyValue, Meter, Table, Id, Indicator } from "@/ds/primitives";
+import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import { TextBlock } from "@/components/app/control-text";
-import {
-  Badge,
-  Button,
-  EmptyState,
-  KeyValue,
-  Meter,
-  RecordHeader,
-  Section,
-  ShowPage,
-  Table,
-  Id,
-  Indicator,
-} from "@/components/app/ui";
 import { assetById, bySeverity } from "@/lib/findings";
 import {
   ccisForRisk,
@@ -26,7 +16,6 @@ import {
 } from "@/lib/register";
 import { authoredComparison, bandTone, scoreRisk, type ScoreFactor } from "@/lib/risk-scoring";
 import { severityTone, statusTone } from "@/lib/spine";
-import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/register/risks/$riskId")({
   head: ({ params }) => {

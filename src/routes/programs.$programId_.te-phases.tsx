@@ -1,7 +1,10 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 
-import { Shell } from "@/components/app/shell";
+import { Badge, KeyValue, Select, Table, Toolbar, Id, Tabs } from "@/ds/primitives";
+import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import {
   AttackChain,
   AttackSurfaceSummary,
@@ -15,19 +18,6 @@ import {
   type ChainHop,
   type ChainNode,
 } from "@/components/app/te-phases";
-import {
-  Badge,
-  EmptyState,
-  KeyValue,
-  RecordHeader,
-  Section,
-  Select,
-  ShowPage,
-  Table,
-  Toolbar,
-  Id,
-  Tabs,
-} from "@/components/app/ui";
 import { useBaselines } from "@/lib/baselines";
 import { campaignById } from "@/lib/campaigns";
 import {
@@ -40,7 +30,6 @@ import {
 } from "@/lib/composition";
 import { programs } from "@/lib/grc-data";
 import { statusTone } from "@/lib/spine";
-import { Inspector } from "@/components/app/shapes";
 import {
   attackSurfaceCoverage,
   criteria as allCriteria,

@@ -17,7 +17,8 @@
 import { useMemo, useState } from "react";
 
 import { SctmFamilyTable } from "@/components/app/sctm";
-import { Button, EmptyState, Section, Select, Toolbar } from "@/components/app/ui";
+import { Button, Select, Toolbar } from "@/ds/primitives";
+import { EmptyState, Section } from "@/ds/patterns";
 import { controlStatuses, type ControlStatus } from "@/lib/control-matrix";
 import { groupByFamily, useControlText, useSctm, type Determination } from "@/lib/sctm";
 

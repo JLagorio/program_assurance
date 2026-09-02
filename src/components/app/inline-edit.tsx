@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AlertCircle, Check, ChevronDown, Loader2 } from "lucide-react";
 
-import { Menu } from "@/components/app/ui";
+import { Menu } from "@/ds/primitives";
 import { cn } from "@/lib/utils";
 
 type SaveState = "idle" | "saving" | "saved" | "error";

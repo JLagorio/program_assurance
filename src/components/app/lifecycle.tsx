@@ -7,13 +7,12 @@ import {
   Field,
   Input,
   KeyValue,
-  Modal,
-  Section,
   Select,
   Table,
   Textarea,
   Id,
-} from "@/components/app/ui";
+} from "@/ds/primitives";
+import { Modal, Section } from "@/ds/patterns";
 import {
   gateKindTone,
   gateStatusTone,

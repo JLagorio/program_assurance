@@ -2,18 +2,10 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus } from "lucide-react";
 
-import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  KeyValue,
-  IndexPage,
-  PageHeader,
-  PreviewRail,
-  Table,
-  Id,
-} from "@/components/app/ui";
-import { Inspector } from "@/components/app/shapes";
+import { Badge, Button, KeyValue, Table, Id } from "@/ds/primitives";
+import { IndexPage, PageHeader, PreviewRail } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
+import { Shell } from "@/ds/shell";
 import {
   componentHealthTone,
   systemComponents,

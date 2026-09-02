@@ -10,8 +10,10 @@
 import { useState } from "react";
 
 import { RecordPicker } from "@/components/app/record-picker";
-import { ActionBar, Block, type ActionBarAction } from "@/components/app/shapes";
-import { Badge, Button, Field, Modal, Select, Table, Textarea } from "@/components/app/ui";
+import { Badge, Button, Field, Select, Table, Textarea } from "@/ds/primitives";
+import { Modal } from "@/ds/patterns";
+import { ActionBar, Block } from "@/ds/shapes";
+import type { ActionBarAction } from "@/ds/shapes";
 import { cn } from "@/lib/utils";
 import {
   activityFor,

@@ -15,7 +15,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Search } from "lucide-react";
 
-import { Badge, Id } from "@/components/app/ui";
+import { Badge, Id } from "@/ds/primitives";
 import { cn } from "@/lib/utils";
 
 export type PickerRecord = {

@@ -1,19 +1,8 @@
 import { useMemo, useState } from "react";
 import { Check, Pencil, Send, X } from "lucide-react";
 
-import {
-  Badge,
-  Button,
-  Dot,
-  Field,
-  Input,
-  Modal,
-  Section,
-  Select,
-  Table,
-  Textarea,
-  Id,
-} from "@/components/app/ui";
+import { Badge, Button, Dot, Field, Input, Select, Table, Textarea, Id } from "@/ds/primitives";
+import { Modal, Section } from "@/ds/patterns";
 import {
   approvalTone,
   classifications,

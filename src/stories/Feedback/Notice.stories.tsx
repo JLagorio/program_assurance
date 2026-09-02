@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Badge, Notice, Id } from "@/components/app/ui";
+import { Badge, Notice, Id } from "@/ds/primitives";
 import { Spec } from "../_lib/tokens";
 
 const meta = {

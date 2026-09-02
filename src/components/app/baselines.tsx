@@ -33,18 +33,10 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ArrowRight, TriangleAlert } from "lucide-react";
 
-import {
-  Badge,
-  Button,
-  Dot,
-  EmptyState,
-  KeyValue,
-  Section,
-  Table,
-  Toolbar,
-  type Tone,
-  Id,
-} from "@/components/app/ui";
+import { Badge, Button, Dot, KeyValue, Table, Toolbar, Id } from "@/ds/primitives";
+import type { Tone } from "@/ds/primitives";
+import { EmptyState, Section } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
 import {
   buildStateTone,
   changeKindTone,
@@ -63,7 +55,6 @@ import {
   type TouchedNode,
 } from "@/lib/baselines";
 import { cn } from "@/lib/utils";
-import { Inspector } from "@/components/app/shapes";
 
 type NodeNamer = (nodeId: string) => string;
 type AuditRecord = ChangeImpact["records"][number];

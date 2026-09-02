@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { BriefingRoom } from "@/components/app/authorization";
-import { Shell } from "@/components/app/shell";
-import { Badge, Button, Id } from "@/components/app/ui";
+import { Badge, Button, Id } from "@/ds/primitives";
+import { Shell } from "@/ds/shell";
 import { authorization } from "@/lib/authorization";
 
 export const Route = createFileRoute("/briefing")({

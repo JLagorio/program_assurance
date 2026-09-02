@@ -10,14 +10,13 @@ import {
   Input,
   KeyValue,
   Meter,
-  Modal,
-  Section,
   Select,
   Table,
   Textarea,
   Id,
   Indicator,
-} from "@/components/app/ui";
+} from "@/ds/primitives";
+import { Modal, Section } from "@/ds/patterns";
 import {
   findings as seedFindings,
   findingStatusTone,

@@ -63,7 +63,7 @@
  *    Green means only "settled and good". Everything else is a neutral chip.
  */
 
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 
 export type ObjectKind =
   | "program"

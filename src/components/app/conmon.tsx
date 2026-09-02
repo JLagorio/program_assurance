@@ -35,7 +35,8 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, EmptyState, Table, Id } from "@/components/app/ui";
+import { Badge, Table, Id } from "@/ds/primitives";
+import { EmptyState } from "@/ds/patterns";
 import {
   alertSeverityTone,
   assessmentStatusTone,

@@ -35,7 +35,8 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, EmptyState, Meter, Table, Id } from "@/components/app/ui";
+import { Badge, Meter, Table, Id } from "@/ds/primitives";
+import { EmptyState } from "@/ds/patterns";
 import {
   bandTone,
   factorOrder,

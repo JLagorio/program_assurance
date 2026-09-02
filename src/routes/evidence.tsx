@@ -4,8 +4,9 @@ import { Filter, Upload } from "lucide-react";
 import evidenceIam from "@/assets/evidence-iam.png";
 import evidenceDatacenter from "@/assets/evidence-datacenter.jpg";
 import evidenceHeaders from "@/assets/evidence-headers.png";
-import { Shell } from "@/components/app/shell";
-import { Badge, Button, Card, IndexPage, PageHeader, Table, Id } from "@/components/app/ui";
+import { Badge, Button, Table, Id } from "@/ds/primitives";
+import { Card, IndexPage, PageHeader } from "@/ds/patterns";
+import { Shell } from "@/ds/shell";
 
 export const Route = createFileRoute("/evidence")({
   head: () => ({

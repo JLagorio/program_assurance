@@ -23,21 +23,12 @@ import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown } from "lucide-react";
 
-import {
-  Badge,
-  Dot,
-  EmptyState,
-  KeyValue,
-  Meter,
-  Section,
-  Table,
-  type Tone,
-  Id,
-  Indicator,
-} from "@/components/app/ui";
+import { Badge, Dot, KeyValue, Meter, Table, Id, Indicator } from "@/ds/primitives";
+import type { Tone } from "@/ds/primitives";
+import { EmptyState, Section } from "@/ds/patterns";
+import { Inspector } from "@/ds/shapes";
 import { inheritanceStateTone } from "@/lib/inheritance";
 import { cn } from "@/lib/utils";
-import { Inspector } from "@/components/app/shapes";
 import {
   determinationTone,
   rowCurrencyTone,

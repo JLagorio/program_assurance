@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Download } from "lucide-react";
 
-import { Shell } from "@/components/app/shell";
-import { Badge, Button, Dot, Meter, PageHeader, Section, Table, Id } from "@/components/app/ui";
+import { Badge, Button, Dot, Meter, Table, Id } from "@/ds/primitives";
+import { PageHeader, Section } from "@/ds/patterns";
+import { Shell } from "@/ds/shell";
 import { activity, frameworks, riskStatusTone, risks } from "@/lib/grc-data";
 
 export const Route = createFileRoute("/")({

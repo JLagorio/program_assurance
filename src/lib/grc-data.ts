@@ -1,6 +1,6 @@
 import { nistFamilies } from "@/lib/nist-catalog";
 
-import type { Tone } from "@/components/app/ui";
+import type { Tone } from "@/ds/primitives";
 
 export type Risk = {
   id: string;
