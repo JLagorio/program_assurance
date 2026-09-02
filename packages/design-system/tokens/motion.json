@@ -1,0 +1,13 @@
+{
+  "motion": {
+    "duration": {
+      "$type": "duration",
+      "fast": { "$value": "120ms", "$description": "Hover and press colour changes." },
+      "medium": { "$value": "180ms", "$description": "Overlays entering and leaving." }
+    },
+    "easing": {
+      "$type": "cubicBezier",
+      "standard": { "$value": [0.2, 0, 0.2, 1], "$description": "The one curve." }
+    }
+  }
+}

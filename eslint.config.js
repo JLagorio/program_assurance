@@ -231,6 +231,8 @@ const layer = (dir, above, message) => ({
 export default tseslint.config(
   {
     ignores: [
+      // @ledger/design-system lints with its own plugin (spec step 5); the kit rules below do not apply to it
+      "packages",
       "dist",
       ".output",
       ".vinxi",

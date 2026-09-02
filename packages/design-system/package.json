@@ -1,0 +1,43 @@
+{
+  "name": "@ledger/design-system",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ledger: tokens, primitives and components. DTCG source in tokens/, generated outputs in src/generated/.",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./cn": "./src/lib/cn.ts",
+    "./ledger.css": "./src/styles/ledger.css",
+    "./base.css": "./src/styles/base.css",
+    "./reset.css": "./src/styles/reset.css",
+    "./tokens.css": "./src/generated/tokens.css",
+    "./tokens.json": "./src/generated/tokens.figma.json"
+  },
+  "scripts": {
+    "build:tokens": "node build/tokens.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "storybook": "storybook dev -p 6007",
+    "build-storybook": "storybook build"
+  },
+  "devDependencies": {
+    "style-dictionary": "^5.5.2"
+  },
+  "files": [
+    "src",
+    "tokens",
+    "build",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.0"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.0.0"
+  }
+}

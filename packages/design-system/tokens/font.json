@@ -1,0 +1,160 @@
+{
+  "font": {
+    "family": {
+      "$type": "fontFamily",
+      "body": {
+        "$value": [
+          "Geist",
+          "Inter",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif"
+        ],
+        "$description": "The one UI face. Identifiers, dates and numbers use it too."
+      },
+      "heading": {
+        "$value": [
+          "Geist",
+          "Inter",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif"
+        ],
+        "$description": "Same face as body today; a token so a theme may split them."
+      },
+      "code": {
+        "$value": [
+          "Geist Mono",
+          "JetBrains Mono",
+          "ui-monospace",
+          "monospace"
+        ],
+        "$description": "Code blocks and data previews only. Never UI text."
+      }
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "regular": {
+        "$value": 400,
+        "$description": "Body, cells, controls."
+      },
+      "medium": {
+        "$value": 500,
+        "$description": "Labels, UI headings, emphasis inside body text."
+      },
+      "semibold": {
+        "$value": 600,
+        "$description": "Page and record titles only."
+      }
+    },
+    "letterSpacing": {
+      "$type": "dimension",
+      "0": {
+        "$value": "0em"
+      },
+      "100": {
+        "$value": "-0.004em",
+        "$description": "Smallest sizes."
+      },
+      "200": {
+        "$value": "-0.008em",
+        "$description": "Body sizes."
+      },
+      "300": {
+        "$value": "-0.015em",
+        "$description": "Headings up to 20px."
+      },
+      "400": {
+        "$value": "-0.02em",
+        "$description": "Display sizes."
+      }
+    },
+    "body": {
+      "$type": "typography",
+      "large": {
+        "$value": {
+          "fontFamily": "{font.family.body}",
+          "fontWeight": "{font.weight.regular}",
+          "fontSize": "15px",
+          "lineHeight": "22px",
+          "letterSpacing": "{font.letterSpacing.200}"
+        },
+        "$description": "Reading text and dialog body."
+      },
+      "small": {
+        "$value": {
+          "fontFamily": "{font.family.body}",
+          "fontWeight": "{font.weight.regular}",
+          "fontSize": "12px",
+          "lineHeight": "16px",
+          "letterSpacing": "{font.letterSpacing.100}"
+        },
+        "$description": "Table headers, field labels, badges, KeyValue. Labels add font.weight.medium."
+      },
+      "xsmall": {
+        "$value": {
+          "fontFamily": "{font.family.body}",
+          "fontWeight": "{font.weight.regular}",
+          "fontSize": "11px",
+          "lineHeight": "14px",
+          "letterSpacing": "{font.letterSpacing.100}"
+        },
+        "$description": "Eyebrow, counts, metadata."
+      },
+      "default": {
+        "$value": {
+          "fontFamily": "{font.family.body}",
+          "fontWeight": "{font.weight.regular}",
+          "fontSize": "13px",
+          "lineHeight": "18px",
+          "letterSpacing": "{font.letterSpacing.200}"
+        },
+        "$description": "Controls, cells, tabs, inputs, menu items. The UI size."
+      }
+    },
+    "heading": {
+      "$type": "typography",
+      "medium": {
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": "22px",
+          "lineHeight": "28px",
+          "letterSpacing": "{font.letterSpacing.400}"
+        },
+        "$description": "Page and record titles. The only semibold."
+      },
+      "small": {
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.medium}",
+          "fontSize": "20px",
+          "lineHeight": "26px",
+          "letterSpacing": "{font.letterSpacing.300}"
+        },
+        "$description": "Section headings."
+      },
+      "xsmall": {
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.medium}",
+          "fontSize": "15px",
+          "lineHeight": "22px",
+          "letterSpacing": "{font.letterSpacing.300}"
+        },
+        "$description": "Dialog and card titles."
+      }
+    },
+    "code": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.code}",
+        "fontWeight": "{font.weight.regular}",
+        "fontSize": "12px",
+        "lineHeight": "18px",
+        "letterSpacing": "{font.letterSpacing.0}"
+      },
+      "$description": "Code blocks only."
+    }
+  }
+}

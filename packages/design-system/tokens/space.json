@@ -1,0 +1,30 @@
+{
+  "space": {
+    "$type": "dimension",
+    "0": { "$value": "0px", "$description": "No space." },
+    "025": { "$value": "2px", "$description": "Hairline." },
+    "050": { "$value": "4px", "$description": "Tight: icon-to-text, dot-to-text." },
+    "075": { "$value": "6px", "$description": "Compact: control gap." },
+    "100": { "$value": "8px", "$description": "Standard small: control clusters, chip rows." },
+    "150": { "$value": "12px", "$description": "Standard medium: cell padding, card header inset." },
+    "200": { "$value": "16px", "$description": "Standard large: card padding, form grids." },
+    "250": { "$value": "20px", "$description": "Comfortable." },
+    "300": { "$value": "24px", "$description": "Relaxed: between header and actions." },
+    "400": { "$value": "32px", "$description": "Spacious: page gutters." },
+    "500": { "$value": "40px" },
+    "600": { "$value": "48px", "$description": "Section spacing." },
+    "800": { "$value": "64px", "$description": "Page section." },
+    "1000": { "$value": "80px", "$description": "Hero." },
+    "negative": {
+      "025": { "$value": "-2px" },
+      "050": { "$value": "-4px" },
+      "075": { "$value": "-6px" },
+      "100": { "$value": "-8px" },
+      "150": { "$value": "-12px" },
+      "200": { "$value": "-16px" },
+      "250": { "$value": "-20px" },
+      "300": { "$value": "-24px" },
+      "400": { "$value": "-32px" }
+    }
+  }
+}

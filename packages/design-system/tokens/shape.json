@@ -1,0 +1,50 @@
+{
+  "radius": {
+    "$type": "dimension",
+    "xsmall": {
+      "$value": "2px",
+      "$description": "Draft, seeded from Linear-refined (base 5px). Checkbox, tiny chips."
+    },
+    "small": {
+      "$value": "3px",
+      "$description": "Draft. Badges, count chips, Kbd, skeleton, inline hit targets."
+    },
+    "medium": {
+      "$value": "5px",
+      "$description": "Draft. Buttons, inputs, chips, menu items."
+    },
+    "large": {
+      "$value": "7px",
+      "$description": "Draft. Cards, popovers."
+    },
+    "xlarge": {
+      "$value": "9px",
+      "$description": "Draft. Dialogs, sheets."
+    },
+    "xxlarge": {
+      "$value": "12px",
+      "$description": "Draft. Large surfaces, spotlight cards."
+    },
+    "full": {
+      "$value": "9999px",
+      "$description": "Dots, avatars, pills, meters."
+    }
+  },
+  "border": {
+    "width": {
+      "$type": "dimension",
+      "selected": {
+        "$value": "2px",
+        "$description": "The width used to indicate a selected element, such as an active tab or a chosen item."
+      },
+      "focused": {
+        "$value": "2px",
+        "$description": "The width used for the focus ring on interactive elements."
+      },
+      "default": {
+        "$value": "1px",
+        "$description": "The default width for all standard component borders and dividers."
+      }
+    }
+  }
+}

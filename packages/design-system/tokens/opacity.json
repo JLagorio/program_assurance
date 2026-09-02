@@ -1,0 +1,13 @@
+{
+  "opacity": {
+    "$type": "number",
+    "disabled": {
+      "$value": 0.4,
+      "$description": "Use for the opacity of disabled elements when a disabled token does not exist."
+    },
+    "loading": {
+      "$value": 0.2,
+      "$description": "Use for the opacity of content in a loading state."
+    }
+  }
+}

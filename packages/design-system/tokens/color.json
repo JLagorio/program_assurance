@@ -1,0 +1,1261 @@
+{
+  "color": {
+    "$type": "color",
+    "background": {
+      "neutral": {
+        "default": {
+          "$value": "{color.neutral.200A}",
+          "$description": "The default background for neutral elements, such as default buttons.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.200A}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.neutral.300A}",
+          "$description": "Hovered state of the default neutral background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.300A}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.neutral.400A}",
+          "$description": "Pressed state of the default neutral background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.400A}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtle": {
+          "default": {
+            "$value": "transparent",
+            "$description": "Use for the background of elements that appear to have no background in a resting state, such as subtle buttons and menu items.",
+            "$extensions": {
+              "ledger": {
+                "dark": "transparent",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.neutral.200A}",
+            "$description": "Hovered state of elements that have no background at rest, such as subtle buttons and menu items.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.darkNeutral.200A}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.neutral.300A}",
+            "$description": "Pressed state of elements that have no background at rest.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.darkNeutral.300A}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        },
+        "bold": {
+          "default": {
+            "$value": "{color.neutral.1000}",
+            "$description": "A vibrant background option for neutral UI elements, such as announcement banners.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.darkNeutral.1000}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.neutral.900}",
+            "$description": "Hovered state of the bold neutral background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.darkNeutral.900}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.neutral.800}",
+            "$description": "Pressed state of the bold neutral background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.darkNeutral.800}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        }
+      },
+      "brand": {
+        "subtlest": {
+          "default": {
+            "$value": "{color.blue.100}",
+            "$description": "Use for the background of elements used to reinforce our brand, but with less emphasis.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.1000}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.blue.200}",
+            "$description": "Hovered state of the subtlest brand background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.900}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.blue.250}",
+            "$description": "Pressed state of the subtlest brand background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.850}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        },
+        "bold": {
+          "default": {
+            "$value": "{color.blue.700}",
+            "$description": "Use for the background of elements used to reinforce our brand, but with more emphasis. The primary button.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.400}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.blue.800}",
+            "$description": "Hovered state of the bold brand background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.300}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.blue.850}",
+            "$description": "Pressed state of the bold brand background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.250}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        },
+        "boldest": {
+          "default": {
+            "$value": "{color.blue.1000}",
+            "$description": "Use for the background of elements used to reinforce our brand, that need to stand out a lot.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.100}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.blue.900}",
+            "$description": "Hovered state of the boldest brand background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.200}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.blue.850}",
+            "$description": "Pressed state of the boldest brand background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.250}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        }
+      },
+      "selected": {
+        "default": {
+          "$value": "{color.blue.100}",
+          "$description": "Use for the background of elements in a selected state, such as the active row, the checked menu item, an opened dropdown button.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.1000}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.blue.200}",
+          "$description": "Hovered state of the selected background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.900}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.blue.300}",
+          "$description": "Pressed state of the selected background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bold": {
+          "default": {
+            "$value": "{color.blue.700}",
+            "$description": "Use for the backgrounds of elements in a selected state, such as checkboxes and radio buttons.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.400}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.blue.800}",
+            "$description": "Hovered state of the bold selected background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.300}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.blue.900}",
+            "$description": "Pressed state of the bold selected background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.200}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        }
+      },
+      "danger": {
+        "default": {
+          "$value": "{color.red.100}",
+          "$description": "Use for backgrounds communicating critical information, such as in section messages.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.1000}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.red.200}",
+          "$description": "Hovered state of the critical information background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.900}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.red.250}",
+          "$description": "Pressed state of the critical information background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.850}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtler": {
+          "default": {
+            "$value": "{color.red.200}",
+            "$description": "Use for backgrounds of critical information lozenges and badges.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.red.900}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.red.250}",
+            "$description": "Hovered state of the subtler critical information background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.red.850}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.red.300}",
+            "$description": "Pressed state of the subtler critical information background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.red.800}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        },
+        "subtle": {
+          "$value": "{color.red.300}",
+          "$description": "Non-interactive critical information fill, between subtler and bold. Status pills, callout chips.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bold": {
+          "default": {
+            "$value": "{color.red.700}",
+            "$description": "A vibrant background for critical information, such as buttons and banners.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.red.400}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.red.800}",
+            "$description": "Hovered state of the bold critical information background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.red.300}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.red.850}",
+            "$description": "Pressed state of the bold critical information background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.red.250}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        }
+      },
+      "warning": {
+        "default": {
+          "$value": "{color.orange.100}",
+          "$description": "Use for backgrounds communicating caution, such as in section messages.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.1000}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.orange.200}",
+          "$description": "Hovered state of the caution background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.900}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.orange.250}",
+          "$description": "Pressed state of the caution background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.850}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtler": {
+          "default": {
+            "$value": "{color.orange.200}",
+            "$description": "Use for backgrounds of caution lozenges and badges.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.orange.900}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.orange.250}",
+            "$description": "Hovered state of the subtler caution background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.orange.850}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.orange.300}",
+            "$description": "Pressed state of the subtler caution background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.orange.800}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        },
+        "subtle": {
+          "$value": "{color.orange.250}",
+          "$description": "Non-interactive caution fill, between subtler and bold. Status pills, callout chips.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bold": {
+          "default": {
+            "$value": "{color.orange.300}",
+            "$description": "A vibrant background for caution, such as buttons and banners.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.orange.300}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.orange.400}",
+            "$description": "Hovered state of the bold caution background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.orange.400}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.orange.500}",
+            "$description": "Pressed state of the bold caution background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.orange.500}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        }
+      },
+      "success": {
+        "default": {
+          "$value": "{color.green.100}",
+          "$description": "Use for backgrounds communicating a favorable outcome, such as in section messages.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.1000}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.green.200}",
+          "$description": "Hovered state of the a favorable outcome background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.900}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.green.250}",
+          "$description": "Pressed state of the a favorable outcome background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.850}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtler": {
+          "default": {
+            "$value": "{color.green.200}",
+            "$description": "Use for backgrounds of a favorable outcome lozenges and badges.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.green.900}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.green.250}",
+            "$description": "Hovered state of the subtler a favorable outcome background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.green.850}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.green.300}",
+            "$description": "Pressed state of the subtler a favorable outcome background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.green.800}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        },
+        "subtle": {
+          "$value": "{color.green.300}",
+          "$description": "Non-interactive a favorable outcome fill, between subtler and bold. Status pills, callout chips.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bold": {
+          "default": {
+            "$value": "{color.green.700}",
+            "$description": "A vibrant background for a favorable outcome, such as buttons and banners.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.green.400}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.green.800}",
+            "$description": "Hovered state of the bold a favorable outcome background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.green.300}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.green.850}",
+            "$description": "Pressed state of the bold a favorable outcome background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.green.250}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        }
+      },
+      "information": {
+        "default": {
+          "$value": "{color.blue.100}",
+          "$description": "Use for backgrounds communicating information or something in progress, such as in section messages.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.1000}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.blue.200}",
+          "$description": "Hovered state of the information or something in progress background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.900}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.blue.250}",
+          "$description": "Pressed state of the information or something in progress background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.850}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtler": {
+          "default": {
+            "$value": "{color.blue.200}",
+            "$description": "Use for backgrounds of information or something in progress lozenges and badges.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.900}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.blue.250}",
+            "$description": "Hovered state of the subtler information or something in progress background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.850}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.blue.300}",
+            "$description": "Pressed state of the subtler information or something in progress background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.800}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        },
+        "subtle": {
+          "$value": "{color.blue.300}",
+          "$description": "Non-interactive information or something in progress fill, between subtler and bold. Status pills, callout chips.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bold": {
+          "default": {
+            "$value": "{color.blue.700}",
+            "$description": "A vibrant background for information or something in progress, such as buttons and banners.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.400}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.blue.800}",
+            "$description": "Hovered state of the bold information or something in progress background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.300}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.blue.850}",
+            "$description": "Pressed state of the bold information or something in progress background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.250}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        }
+      },
+      "disabled": {
+        "$value": "{color.neutral.200A}",
+        "$description": "Use for backgrounds of elements in a disabled state.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.300A}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "input": {
+        "default": {
+          "$value": "{color.neutral.0}",
+          "$description": "Use for background of form UI elements, such as text fields, checkboxes, and radio buttons.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.200}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.neutral.100}",
+          "$description": "Hovered state of form UI element backgrounds.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.250}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.neutral.0}",
+          "$description": "Pressed state of form UI element backgrounds.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.200}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "inverse": {
+        "subtle": {
+          "default": {
+            "$value": "oklch(0 0 0 / 0.16)",
+            "$description": "Use for backgrounds of elements on a bold background, such as buttons on spotlight cards.",
+            "$extensions": {
+              "ledger": {
+                "dark": "oklch(1 0 0 / 0.16)",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "oklch(0 0 0 / 0.24)",
+            "$description": "Hovered state of the inverse subtle background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "oklch(1 0 0 / 0.24)",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "oklch(0 0 0 / 0.32)",
+            "$description": "Pressed state of the inverse subtle background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "oklch(1 0 0 / 0.32)",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        }
+      }
+    },
+    "text": {
+      "default": {
+        "$value": "{color.neutral.1000}",
+        "$description": "Use for primary text, such as body copy, sentence case headers, and buttons.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.1000}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "subtle": {
+        "$value": "{color.neutral.800}",
+        "$description": "Use for secondary text, such as navigation, subtle button links, input field labels, and all caps subheadings.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.800}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "subtlest": {
+        "$value": "{color.neutral.700}",
+        "$description": "Use for tertiary text, such as metadata, breadcrumbs, placeholder and helper text.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.700}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "disabled": {
+        "$value": "{color.neutral.400A}",
+        "$description": "Use for text in a disabled state.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.400A}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "inverse": {
+        "$value": "{color.neutral.0}",
+        "$description": "Use for text on bold backgrounds.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.100}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "selected": {
+        "$value": "{color.blue.700}",
+        "$description": "Use for text in selected or opened states, such as tabs and dropdown buttons.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.400}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "brand": {
+        "$value": "{color.blue.700}",
+        "$description": "Use for text that reinforces our brand.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.400}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "danger": {
+        "default": {
+          "$value": "{color.red.800}",
+          "$description": "Use for critical text, such as input field error messaging.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.300}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bolder": {
+          "$value": "{color.red.900}",
+          "$description": "Use for text on top of danger semantic labels.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.200}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "warning": {
+        "default": {
+          "$value": "{color.orange.800}",
+          "$description": "Use for text to emphasize caution.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.300}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "inverse": {
+          "$value": "{color.neutral.1000}",
+          "$description": "Use for text when on bold warning backgrounds.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.100}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bolder": {
+          "$value": "{color.orange.900}",
+          "$description": "Use for text on top of warning semantic labels.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.200}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "success": {
+        "default": {
+          "$value": "{color.green.800}",
+          "$description": "Use for text to communicate a favorable outcome.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.300}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bolder": {
+          "$value": "{color.green.900}",
+          "$description": "Use for text on top of success semantic labels.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.200}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "information": {
+        "default": {
+          "$value": "{color.blue.800}",
+          "$description": "Use for informative text or to communicate something is in progress.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.300}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bolder": {
+          "$value": "{color.blue.900}",
+          "$description": "Use for text on top of information semantic labels.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.200}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      }
+    },
+    "icon": {
+      "default": {
+        "$value": "{color.neutral.1000}",
+        "$description": "Use for icon-only buttons, or icons paired with color.text.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.1000}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "subtle": {
+        "$value": "{color.neutral.800}",
+        "$description": "Use for icons paired with color.text.subtle.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.800}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "subtlest": {
+        "$value": "{color.neutral.700}",
+        "$description": "Use for icons paired with color.text.subtlest.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.700}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "disabled": {
+        "$value": "{color.neutral.400A}",
+        "$description": "Use for icons in a disabled state.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.400A}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "inverse": {
+        "$value": "{color.neutral.0}",
+        "$description": "Use for icons on bold backgrounds.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.100}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "selected": {
+        "$value": "{color.blue.700}",
+        "$description": "Use for icons in selected or opened states.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.400}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "brand": {
+        "$value": "{color.blue.700}",
+        "$description": "Use for icons that reinforce our brand.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.400}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "danger": {
+        "$value": "{color.red.700}",
+        "$description": "Use for icons communicating critical information.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.red.500}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "warning": {
+        "default": {
+          "$value": "{color.orange.600}",
+          "$description": "Use for icons communicating caution.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.300}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "inverse": {
+          "$value": "{color.neutral.1000}",
+          "$description": "Use for icons when on bold warning backgrounds.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.100}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "success": {
+        "$value": "{color.green.600}",
+        "$description": "Use for icons communicating a favorable outcome.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.green.500}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "information": {
+        "$value": "{color.blue.600}",
+        "$description": "Use for icons communicating information or something in progress.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.500}",
+            "introduced": "0.1.0"
+          }
+        }
+      }
+    },
+    "border": {
+      "default": {
+        "$value": "{color.neutral.300A}",
+        "$description": "Use to visually group or separate UI elements, such as flat cards or side panel dividers.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.300A}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "bold": {
+        "$value": "{color.neutral.600}",
+        "$description": "A neutral border option that passes min 3:1 contrast ratios.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.600}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "disabled": {
+        "$value": "{color.neutral.200A}",
+        "$description": "Use for borders of elements in a disabled state.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.200A}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "focused": {
+        "$value": "{color.blue.500}",
+        "$description": "Use for focus rings of elements in a focus state.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.300}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "input": {
+        "$value": "{color.neutral.500}",
+        "$description": "Use for borders of form UI elements, such as text fields, checkboxes, and radio buttons.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.600}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "inverse": {
+        "$value": "{color.neutral.0}",
+        "$description": "Use for borders on bold backgrounds.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.0}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "selected": {
+        "$value": "{color.blue.700}",
+        "$description": "Use for borders or visual indicators of elements in a selected or opened state, such as tabs or menu items.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.400}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "brand": {
+        "$value": "{color.blue.700}",
+        "$description": "Use for borders of elements that reinforce our brand, such as primary buttons.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.400}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "danger": {
+        "default": {
+          "$value": "{color.red.600}",
+          "$description": "Use for borders communicating critical information.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.500}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtle": {
+          "$value": "{color.red.300}",
+          "$description": "Use for decorative critical information borders that do not need to meet 3:1 contrast.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "warning": {
+        "default": {
+          "$value": "{color.orange.600}",
+          "$description": "Use for borders communicating caution.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.500}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtle": {
+          "$value": "{color.orange.300}",
+          "$description": "Use for decorative caution borders that do not need to meet 3:1 contrast.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "success": {
+        "default": {
+          "$value": "{color.green.600}",
+          "$description": "Use for borders communicating a favorable outcome.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.500}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtle": {
+          "$value": "{color.green.300}",
+          "$description": "Use for decorative a favorable outcome borders that do not need to meet 3:1 contrast.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "information": {
+        "default": {
+          "$value": "{color.blue.600}",
+          "$description": "Use for borders communicating information.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.500}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtle": {
+          "$value": "{color.blue.300}",
+          "$description": "Use for decorative information borders that do not need to meet 3:1 contrast.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      }
+    },
+    "blanket": {
+      "$value": "oklch(0.22 0.024 258 / 0.5)",
+      "$description": "Use for the screen overlay that appears with modal dialogs.",
+      "$extensions": {
+        "ledger": {
+          "dark": "oklch(0.1 0.01 285 / 0.6)",
+          "introduced": "0.1.0"
+        }
+      }
+    },
+    "skeleton": {
+      "default": {
+        "$value": "{color.neutral.200A}",
+        "$description": "Use for skeleton loading states.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.200A}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "subtle": {
+        "$value": "{color.neutral.100A}",
+        "$description": "Use for the pulse or shimmer effect in skeleton loading states.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.100A}",
+            "introduced": "0.1.0"
+          }
+        }
+      }
+    }
+  }
+}

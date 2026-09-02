@@ -1,0 +1,34 @@
+/* @ledger/design-system — document defaults. Nothing here names a colour, a size or a font. */
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  [data-color-mode="dark"] {
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-color-mode="light"]) {
+      color-scheme: dark;
+    }
+  }
+
+  * {
+    border-color: var(--ds-color-border);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--ds-elevation-surface);
+    color: var(--ds-color-text);
+    font: var(--ds-font-body);
+    letter-spacing: var(--ds-font-body-letter-spacing);
+  }
+
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+}

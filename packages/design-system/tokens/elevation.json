@@ -1,0 +1,161 @@
+{
+  "elevation": {
+    "surface": {
+      "$type": "color",
+      "default": {
+        "$value": "{color.neutral.0}",
+        "$description": "Use as the primary background for the UI.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.100}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "hovered": {
+        "$value": "{color.neutral.100}",
+        "$description": "Hovered state of the primary surface.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.200}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "pressed": {
+        "$value": "{color.neutral.200}",
+        "$description": "Pressed state of the primary surface.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.250}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "sunken": {
+        "$value": "{color.neutral.100}",
+        "$description": "A secondary background for the UI commonly used for grouping items, such as a sidebar.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.-100}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "raised": {
+        "default": {
+          "$value": "{color.neutral.0}",
+          "$description": "Use for the background of raised cards, with elevation.shadow.raised.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.200}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.neutral.100}",
+          "$description": "Hovered state of raised surfaces.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.250}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.neutral.200}",
+          "$description": "Pressed state of raised surfaces.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.300}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "overlay": {
+        "default": {
+          "$value": "{color.neutral.0}",
+          "$description": "Use for the background of elements that sit on top of the UI, such as modals, dropdown menus, flags and inline dialogs, with elevation.shadow.overlay.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.250}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.neutral.100}",
+          "$description": "Hovered state of overlay surfaces.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.300}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.neutral.200}",
+          "$description": "Pressed state of overlay surfaces.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.350}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      }
+    },
+    "shadow": {
+      "$type": "shadow",
+      "raised": {
+        "$value": "0 0 0 1px oklch(0.22 0.024 258 / 0.08), 0 1px 2px oklch(0.22 0.024 258 / 0.06)",
+        "$description": "Use for the box shadow of raised card elements, such as cards on a board.",
+        "$extensions": {
+          "ledger": {
+            "dark": "0 0 0 1px oklch(1 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.4)",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "overlay": {
+        "$value": "0 0 0 1px oklch(0.22 0.024 258 / 0.08), 0 7px 32px oklch(0.22 0.024 258 / 0.14)",
+        "$description": "Use for the box shadow of elements that sit on top of the UI, such as modals, menus and popovers.",
+        "$extensions": {
+          "ledger": {
+            "dark": "0 0 0 1px oklch(1 0 0 / 0.07), 0 6px 16px -4px oklch(0 0 0 / 0.55), 0 18px 40px -12px oklch(0 0 0 / 0.5)",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "overflow": {
+        "$value": "0 0 8px oklch(0.22 0.024 258 / 0.16), 0 0 1px oklch(0.22 0.024 258 / 0.12)",
+        "$description": "Use to create a shadow when content scrolls under other content, such as a scrolling table.",
+        "$extensions": {
+          "ledger": {
+            "dark": "0 0 8px oklch(0 0 0 / 0.5), 0 0 1px oklch(1 0 0 / 0.08)",
+            "introduced": "0.1.0"
+          }
+        }
+      }
+    }
+  },
+  "utility": {
+    "elevation": {
+      "surface": {
+        "current": {
+          "$type": "color",
+          "$value": "{elevation.surface.default}",
+          "$description": "The surface an element currently sits on. Surface-owning components set this variable; sticky and masking children read it.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{elevation.surface.default}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      }
+    }
+  }
+}

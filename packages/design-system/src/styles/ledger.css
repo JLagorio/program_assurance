@@ -1,0 +1,14 @@
+/* @ledger/design-system — the consumer entry.
+   Import after Tailwind in your own stylesheet:
+     @import "tailwindcss" source(none);
+     @source "./src";
+     @import "@ledger/design-system/ledger.css";
+   This brings the variables (both modes), the theme mapping and the per-token utilities, and
+   tells Tailwind to scan the package's own components so their classes are generated.
+   Opt into base.css (document defaults) and reset.css (Tailwind's default namespaces removed)
+   separately, when your code uses only token utilities. reset.css must be imported BEFORE this
+   file: a namespace reset wipes everything defined in that namespace so far, mappings included. */
+@source "../";
+@import "../generated/theme.css";
+@import "../generated/tokens.css";
+@import "../generated/utilities.css";

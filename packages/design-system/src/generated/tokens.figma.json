@@ -1,0 +1,2150 @@
+{
+  "color": {
+    "$type": "color",
+    "background": {
+      "neutral": {
+        "default": {
+          "$value": "{color.neutral.200A}",
+          "$description": "The default background for neutral elements, such as default buttons.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.200A}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.neutral.300A}",
+          "$description": "Hovered state of the default neutral background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.300A}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.neutral.400A}",
+          "$description": "Pressed state of the default neutral background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.400A}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtle": {
+          "default": {
+            "$value": "transparent",
+            "$description": "Use for the background of elements that appear to have no background in a resting state, such as subtle buttons and menu items.",
+            "$extensions": {
+              "ledger": {
+                "dark": "transparent",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.neutral.200A}",
+            "$description": "Hovered state of elements that have no background at rest, such as subtle buttons and menu items.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.darkNeutral.200A}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.neutral.300A}",
+            "$description": "Pressed state of elements that have no background at rest.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.darkNeutral.300A}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        },
+        "bold": {
+          "default": {
+            "$value": "{color.neutral.1000}",
+            "$description": "A vibrant background option for neutral UI elements, such as announcement banners.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.darkNeutral.1000}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.neutral.900}",
+            "$description": "Hovered state of the bold neutral background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.darkNeutral.900}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.neutral.800}",
+            "$description": "Pressed state of the bold neutral background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.darkNeutral.800}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        }
+      },
+      "brand": {
+        "subtlest": {
+          "default": {
+            "$value": "{color.blue.100}",
+            "$description": "Use for the background of elements used to reinforce our brand, but with less emphasis.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.1000}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.blue.200}",
+            "$description": "Hovered state of the subtlest brand background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.900}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.blue.250}",
+            "$description": "Pressed state of the subtlest brand background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.850}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        },
+        "bold": {
+          "default": {
+            "$value": "{color.blue.700}",
+            "$description": "Use for the background of elements used to reinforce our brand, but with more emphasis. The primary button.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.400}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.blue.800}",
+            "$description": "Hovered state of the bold brand background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.300}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.blue.850}",
+            "$description": "Pressed state of the bold brand background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.250}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        },
+        "boldest": {
+          "default": {
+            "$value": "{color.blue.1000}",
+            "$description": "Use for the background of elements used to reinforce our brand, that need to stand out a lot.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.100}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.blue.900}",
+            "$description": "Hovered state of the boldest brand background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.200}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.blue.850}",
+            "$description": "Pressed state of the boldest brand background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.250}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        }
+      },
+      "selected": {
+        "default": {
+          "$value": "{color.blue.100}",
+          "$description": "Use for the background of elements in a selected state, such as the active row, the checked menu item, an opened dropdown button.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.1000}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.blue.200}",
+          "$description": "Hovered state of the selected background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.900}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.blue.300}",
+          "$description": "Pressed state of the selected background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bold": {
+          "default": {
+            "$value": "{color.blue.700}",
+            "$description": "Use for the backgrounds of elements in a selected state, such as checkboxes and radio buttons.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.400}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.blue.800}",
+            "$description": "Hovered state of the bold selected background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.300}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.blue.900}",
+            "$description": "Pressed state of the bold selected background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.200}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        }
+      },
+      "danger": {
+        "default": {
+          "$value": "{color.red.100}",
+          "$description": "Use for backgrounds communicating critical information, such as in section messages.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.1000}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.red.200}",
+          "$description": "Hovered state of the critical information background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.900}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.red.250}",
+          "$description": "Pressed state of the critical information background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.850}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtler": {
+          "default": {
+            "$value": "{color.red.200}",
+            "$description": "Use for backgrounds of critical information lozenges and badges.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.red.900}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.red.250}",
+            "$description": "Hovered state of the subtler critical information background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.red.850}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.red.300}",
+            "$description": "Pressed state of the subtler critical information background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.red.800}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        },
+        "subtle": {
+          "$value": "{color.red.300}",
+          "$description": "Non-interactive critical information fill, between subtler and bold. Status pills, callout chips.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bold": {
+          "default": {
+            "$value": "{color.red.700}",
+            "$description": "A vibrant background for critical information, such as buttons and banners.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.red.400}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.red.800}",
+            "$description": "Hovered state of the bold critical information background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.red.300}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.red.850}",
+            "$description": "Pressed state of the bold critical information background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.red.250}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        }
+      },
+      "warning": {
+        "default": {
+          "$value": "{color.orange.100}",
+          "$description": "Use for backgrounds communicating caution, such as in section messages.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.1000}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.orange.200}",
+          "$description": "Hovered state of the caution background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.900}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.orange.250}",
+          "$description": "Pressed state of the caution background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.850}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtler": {
+          "default": {
+            "$value": "{color.orange.200}",
+            "$description": "Use for backgrounds of caution lozenges and badges.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.orange.900}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.orange.250}",
+            "$description": "Hovered state of the subtler caution background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.orange.850}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.orange.300}",
+            "$description": "Pressed state of the subtler caution background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.orange.800}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        },
+        "subtle": {
+          "$value": "{color.orange.250}",
+          "$description": "Non-interactive caution fill, between subtler and bold. Status pills, callout chips.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bold": {
+          "default": {
+            "$value": "{color.orange.300}",
+            "$description": "A vibrant background for caution, such as buttons and banners.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.orange.300}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.orange.400}",
+            "$description": "Hovered state of the bold caution background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.orange.400}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.orange.500}",
+            "$description": "Pressed state of the bold caution background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.orange.500}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        }
+      },
+      "success": {
+        "default": {
+          "$value": "{color.green.100}",
+          "$description": "Use for backgrounds communicating a favorable outcome, such as in section messages.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.1000}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.green.200}",
+          "$description": "Hovered state of the a favorable outcome background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.900}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.green.250}",
+          "$description": "Pressed state of the a favorable outcome background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.850}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtler": {
+          "default": {
+            "$value": "{color.green.200}",
+            "$description": "Use for backgrounds of a favorable outcome lozenges and badges.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.green.900}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.green.250}",
+            "$description": "Hovered state of the subtler a favorable outcome background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.green.850}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.green.300}",
+            "$description": "Pressed state of the subtler a favorable outcome background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.green.800}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        },
+        "subtle": {
+          "$value": "{color.green.300}",
+          "$description": "Non-interactive a favorable outcome fill, between subtler and bold. Status pills, callout chips.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bold": {
+          "default": {
+            "$value": "{color.green.700}",
+            "$description": "A vibrant background for a favorable outcome, such as buttons and banners.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.green.400}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.green.800}",
+            "$description": "Hovered state of the bold a favorable outcome background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.green.300}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.green.850}",
+            "$description": "Pressed state of the bold a favorable outcome background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.green.250}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        }
+      },
+      "information": {
+        "default": {
+          "$value": "{color.blue.100}",
+          "$description": "Use for backgrounds communicating information or something in progress, such as in section messages.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.1000}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.blue.200}",
+          "$description": "Hovered state of the information or something in progress background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.900}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.blue.250}",
+          "$description": "Pressed state of the information or something in progress background.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.850}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtler": {
+          "default": {
+            "$value": "{color.blue.200}",
+            "$description": "Use for backgrounds of information or something in progress lozenges and badges.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.900}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.blue.250}",
+            "$description": "Hovered state of the subtler information or something in progress background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.850}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.blue.300}",
+            "$description": "Pressed state of the subtler information or something in progress background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.800}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        },
+        "subtle": {
+          "$value": "{color.blue.300}",
+          "$description": "Non-interactive information or something in progress fill, between subtler and bold. Status pills, callout chips.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bold": {
+          "default": {
+            "$value": "{color.blue.700}",
+            "$description": "A vibrant background for information or something in progress, such as buttons and banners.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.400}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.blue.800}",
+            "$description": "Hovered state of the bold information or something in progress background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.300}",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "{color.blue.850}",
+            "$description": "Pressed state of the bold information or something in progress background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.250}",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        }
+      },
+      "disabled": {
+        "$value": "{color.neutral.200A}",
+        "$description": "Use for backgrounds of elements in a disabled state.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.300A}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "input": {
+        "default": {
+          "$value": "{color.neutral.0}",
+          "$description": "Use for background of form UI elements, such as text fields, checkboxes, and radio buttons.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.200}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.neutral.100}",
+          "$description": "Hovered state of form UI element backgrounds.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.250}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.neutral.0}",
+          "$description": "Pressed state of form UI element backgrounds.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.200}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "inverse": {
+        "subtle": {
+          "default": {
+            "$value": "oklch(0 0 0 / 0.16)",
+            "$description": "Use for backgrounds of elements on a bold background, such as buttons on spotlight cards.",
+            "$extensions": {
+              "ledger": {
+                "dark": "oklch(1 0 0 / 0.16)",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "oklch(0 0 0 / 0.24)",
+            "$description": "Hovered state of the inverse subtle background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "oklch(1 0 0 / 0.24)",
+                "introduced": "0.1.0"
+              }
+            }
+          },
+          "pressed": {
+            "$value": "oklch(0 0 0 / 0.32)",
+            "$description": "Pressed state of the inverse subtle background.",
+            "$extensions": {
+              "ledger": {
+                "dark": "oklch(1 0 0 / 0.32)",
+                "introduced": "0.1.0"
+              }
+            }
+          }
+        }
+      }
+    },
+    "text": {
+      "default": {
+        "$value": "{color.neutral.1000}",
+        "$description": "Use for primary text, such as body copy, sentence case headers, and buttons.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.1000}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "subtle": {
+        "$value": "{color.neutral.800}",
+        "$description": "Use for secondary text, such as navigation, subtle button links, input field labels, and all caps subheadings.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.800}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "subtlest": {
+        "$value": "{color.neutral.700}",
+        "$description": "Use for tertiary text, such as metadata, breadcrumbs, placeholder and helper text.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.700}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "disabled": {
+        "$value": "{color.neutral.400A}",
+        "$description": "Use for text in a disabled state.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.400A}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "inverse": {
+        "$value": "{color.neutral.0}",
+        "$description": "Use for text on bold backgrounds.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.100}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "selected": {
+        "$value": "{color.blue.700}",
+        "$description": "Use for text in selected or opened states, such as tabs and dropdown buttons.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.400}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "brand": {
+        "$value": "{color.blue.700}",
+        "$description": "Use for text that reinforces our brand.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.400}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "danger": {
+        "default": {
+          "$value": "{color.red.800}",
+          "$description": "Use for critical text, such as input field error messaging.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.300}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bolder": {
+          "$value": "{color.red.900}",
+          "$description": "Use for text on top of danger semantic labels.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.200}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "warning": {
+        "default": {
+          "$value": "{color.orange.800}",
+          "$description": "Use for text to emphasize caution.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.300}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "inverse": {
+          "$value": "{color.neutral.1000}",
+          "$description": "Use for text when on bold warning backgrounds.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.100}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bolder": {
+          "$value": "{color.orange.900}",
+          "$description": "Use for text on top of warning semantic labels.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.200}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "success": {
+        "default": {
+          "$value": "{color.green.800}",
+          "$description": "Use for text to communicate a favorable outcome.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.300}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bolder": {
+          "$value": "{color.green.900}",
+          "$description": "Use for text on top of success semantic labels.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.200}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "information": {
+        "default": {
+          "$value": "{color.blue.800}",
+          "$description": "Use for informative text or to communicate something is in progress.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.300}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "bolder": {
+          "$value": "{color.blue.900}",
+          "$description": "Use for text on top of information semantic labels.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.200}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      }
+    },
+    "icon": {
+      "default": {
+        "$value": "{color.neutral.1000}",
+        "$description": "Use for icon-only buttons, or icons paired with color.text.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.1000}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "subtle": {
+        "$value": "{color.neutral.800}",
+        "$description": "Use for icons paired with color.text.subtle.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.800}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "subtlest": {
+        "$value": "{color.neutral.700}",
+        "$description": "Use for icons paired with color.text.subtlest.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.700}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "disabled": {
+        "$value": "{color.neutral.400A}",
+        "$description": "Use for icons in a disabled state.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.400A}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "inverse": {
+        "$value": "{color.neutral.0}",
+        "$description": "Use for icons on bold backgrounds.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.100}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "selected": {
+        "$value": "{color.blue.700}",
+        "$description": "Use for icons in selected or opened states.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.400}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "brand": {
+        "$value": "{color.blue.700}",
+        "$description": "Use for icons that reinforce our brand.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.400}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "danger": {
+        "$value": "{color.red.700}",
+        "$description": "Use for icons communicating critical information.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.red.500}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "warning": {
+        "default": {
+          "$value": "{color.orange.600}",
+          "$description": "Use for icons communicating caution.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.300}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "inverse": {
+          "$value": "{color.neutral.1000}",
+          "$description": "Use for icons when on bold warning backgrounds.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.100}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "success": {
+        "$value": "{color.green.600}",
+        "$description": "Use for icons communicating a favorable outcome.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.green.500}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "information": {
+        "$value": "{color.blue.600}",
+        "$description": "Use for icons communicating information or something in progress.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.500}",
+            "introduced": "0.1.0"
+          }
+        }
+      }
+    },
+    "border": {
+      "default": {
+        "$value": "{color.neutral.300A}",
+        "$description": "Use to visually group or separate UI elements, such as flat cards or side panel dividers.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.300A}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "bold": {
+        "$value": "{color.neutral.600}",
+        "$description": "A neutral border option that passes min 3:1 contrast ratios.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.600}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "disabled": {
+        "$value": "{color.neutral.200A}",
+        "$description": "Use for borders of elements in a disabled state.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.200A}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "focused": {
+        "$value": "{color.blue.500}",
+        "$description": "Use for focus rings of elements in a focus state.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.300}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "input": {
+        "$value": "{color.neutral.500}",
+        "$description": "Use for borders of form UI elements, such as text fields, checkboxes, and radio buttons.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.600}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "inverse": {
+        "$value": "{color.neutral.0}",
+        "$description": "Use for borders on bold backgrounds.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.0}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "selected": {
+        "$value": "{color.blue.700}",
+        "$description": "Use for borders or visual indicators of elements in a selected or opened state, such as tabs or menu items.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.400}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "brand": {
+        "$value": "{color.blue.700}",
+        "$description": "Use for borders of elements that reinforce our brand, such as primary buttons.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.400}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "danger": {
+        "default": {
+          "$value": "{color.red.600}",
+          "$description": "Use for borders communicating critical information.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.500}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtle": {
+          "$value": "{color.red.300}",
+          "$description": "Use for decorative critical information borders that do not need to meet 3:1 contrast.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "warning": {
+        "default": {
+          "$value": "{color.orange.600}",
+          "$description": "Use for borders communicating caution.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.500}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtle": {
+          "$value": "{color.orange.300}",
+          "$description": "Use for decorative caution borders that do not need to meet 3:1 contrast.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "success": {
+        "default": {
+          "$value": "{color.green.600}",
+          "$description": "Use for borders communicating a favorable outcome.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.500}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtle": {
+          "$value": "{color.green.300}",
+          "$description": "Use for decorative a favorable outcome borders that do not need to meet 3:1 contrast.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "information": {
+        "default": {
+          "$value": "{color.blue.600}",
+          "$description": "Use for borders communicating information.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.500}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "subtle": {
+          "$value": "{color.blue.300}",
+          "$description": "Use for decorative information borders that do not need to meet 3:1 contrast.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.800}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      }
+    },
+    "blanket": {
+      "$value": "oklch(0.22 0.024 258 / 0.5)",
+      "$description": "Use for the screen overlay that appears with modal dialogs.",
+      "$extensions": {
+        "ledger": {
+          "dark": "oklch(0.1 0.01 285 / 0.6)",
+          "introduced": "0.1.0"
+        }
+      }
+    },
+    "skeleton": {
+      "default": {
+        "$value": "{color.neutral.200A}",
+        "$description": "Use for skeleton loading states.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.200A}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "subtle": {
+        "$value": "{color.neutral.100A}",
+        "$description": "Use for the pulse or shimmer effect in skeleton loading states.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.100A}",
+            "introduced": "0.1.0"
+          }
+        }
+      }
+    },
+    "neutral": {
+      "0": {
+        "$value": "oklch(1 0 0)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "100": {
+        "$value": "oklch(0.985 0.002 258)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "200": {
+        "$value": "oklch(0.972 0.003 258)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "300": {
+        "$value": "oklch(0.955 0.004 258)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "400": {
+        "$value": "oklch(0.935 0.005 258)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "500": {
+        "$value": "oklch(0.908 0.006 258)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "600": {
+        "$value": "oklch(0.86 0.008 258)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "700": {
+        "$value": "oklch(0.6 0.016 258)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "800": {
+        "$value": "oklch(0.44 0.02 258)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "900": {
+        "$value": "oklch(0.3 0.022 258)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "1000": {
+        "$value": "oklch(0.22 0.024 258)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "1100": {
+        "$value": "oklch(0.15 0.024 258)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "100A": {
+        "$value": "oklch(0.22 0.024 258 / 0.04)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "200A": {
+        "$value": "oklch(0.22 0.024 258 / 0.06)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "300A": {
+        "$value": "oklch(0.22 0.024 258 / 0.1)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "400A": {
+        "$value": "oklch(0.22 0.024 258 / 0.16)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "500A": {
+        "$value": "oklch(0.22 0.024 258 / 0.26)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      }
+    },
+    "darkNeutral": {
+      "0": {
+        "$value": "oklch(0.176 0.014 285)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "100": {
+        "$value": "oklch(0.196 0.015 285)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "200": {
+        "$value": "oklch(0.213 0.016 285)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "250": {
+        "$value": "oklch(0.232 0.017 285)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "300": {
+        "$value": "oklch(0.243 0.018 285)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "350": {
+        "$value": "oklch(0.255 0.019 285)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "400": {
+        "$value": "oklch(0.295 0.018 285)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "500": {
+        "$value": "oklch(0.36 0.02 285)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "600": {
+        "$value": "oklch(0.44 0.02 285)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "700": {
+        "$value": "oklch(0.66 0.02 285)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "800": {
+        "$value": "oklch(0.78 0.015 285)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "900": {
+        "$value": "oklch(0.86 0.012 285)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "1000": {
+        "$value": "oklch(0.945 0.008 285)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "1100": {
+        "$value": "oklch(0.98 0.004 285)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "-100": {
+        "$value": "oklch(0.15 0.014 285)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "100A": {
+        "$value": "oklch(1 0 0 / 0.04)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "200A": {
+        "$value": "oklch(1 0 0 / 0.07)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "300A": {
+        "$value": "oklch(1 0 0 / 0.11)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "400A": {
+        "$value": "oklch(1 0 0 / 0.18)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "500A": {
+        "$value": "oklch(1 0 0 / 0.3)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      }
+    },
+    "blue": {
+      "100": {
+        "$value": "oklch(0.965 0.025 254)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "200": {
+        "$value": "oklch(0.935 0.045 254)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "250": {
+        "$value": "oklch(0.905 0.065 254)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "300": {
+        "$value": "oklch(0.84 0.1 254)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "400": {
+        "$value": "oklch(0.73 0.145 254)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "500": {
+        "$value": "oklch(0.635 0.17 254)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "600": {
+        "$value": "oklch(0.585 0.185 254)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "700": {
+        "$value": "oklch(0.545 0.19 254)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "800": {
+        "$value": "oklch(0.49 0.185 254)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "850": {
+        "$value": "oklch(0.44 0.17 254)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "900": {
+        "$value": "oklch(0.38 0.145 254)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "1000": {
+        "$value": "oklch(0.3 0.1 254)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      }
+    },
+    "green": {
+      "100": {
+        "$value": "oklch(0.965 0.02 162)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "200": {
+        "$value": "oklch(0.935 0.04 162)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "250": {
+        "$value": "oklch(0.9 0.06 162)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "300": {
+        "$value": "oklch(0.84 0.09 162)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "400": {
+        "$value": "oklch(0.74 0.12 162)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "500": {
+        "$value": "oklch(0.65 0.13 162)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "600": {
+        "$value": "oklch(0.58 0.125 162)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "700": {
+        "$value": "oklch(0.52 0.115 162)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "800": {
+        "$value": "oklch(0.46 0.105 162)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "850": {
+        "$value": "oklch(0.41 0.095 162)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "900": {
+        "$value": "oklch(0.35 0.08 162)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "1000": {
+        "$value": "oklch(0.28 0.06 162)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      }
+    },
+    "orange": {
+      "100": {
+        "$value": "oklch(0.97 0.03 78)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "200": {
+        "$value": "oklch(0.945 0.055 75)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "250": {
+        "$value": "oklch(0.915 0.08 72)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "300": {
+        "$value": "oklch(0.86 0.11 70)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "400": {
+        "$value": "oklch(0.78 0.14 68)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "500": {
+        "$value": "oklch(0.71 0.15 66)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "600": {
+        "$value": "oklch(0.64 0.145 64)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "700": {
+        "$value": "oklch(0.57 0.135 62)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "800": {
+        "$value": "oklch(0.5 0.12 60)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "850": {
+        "$value": "oklch(0.45 0.11 58)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "900": {
+        "$value": "oklch(0.39 0.095 56)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "1000": {
+        "$value": "oklch(0.31 0.07 54)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      }
+    },
+    "red": {
+      "100": {
+        "$value": "oklch(0.965 0.02 26)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "200": {
+        "$value": "oklch(0.935 0.04 26)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "250": {
+        "$value": "oklch(0.905 0.06 26)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "300": {
+        "$value": "oklch(0.84 0.1 26)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "400": {
+        "$value": "oklch(0.73 0.15 26)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "500": {
+        "$value": "oklch(0.64 0.18 26)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "600": {
+        "$value": "oklch(0.58 0.19 26)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "700": {
+        "$value": "oklch(0.53 0.18 26)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "800": {
+        "$value": "oklch(0.47 0.17 26)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "850": {
+        "$value": "oklch(0.42 0.155 26)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "900": {
+        "$value": "oklch(0.36 0.13 26)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      },
+      "1000": {
+        "$value": "oklch(0.28 0.09 26)",
+        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+      }
+    }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "control": {
+      "xsmall": {
+        "$value": "24px",
+        "$description": "Extra-small control height. Button xs."
+      },
+      "small": {
+        "$value": "28px",
+        "$description": "Small control height. Button sm, chips, menu items, sidebar items."
+      },
+      "medium": {
+        "$value": "32px",
+        "$description": "Default control height. Button md, inputs, selects, combobox triggers."
+      },
+      "large": {
+        "$value": "36px",
+        "$description": "Large control height. Reserved for hero forms."
+      }
+    },
+    "row": {
+      "compact": {
+        "$value": "36px",
+        "$description": "Compact table row."
+      },
+      "default": {
+        "$value": "40px",
+        "$description": "Default table row."
+      },
+      "header": {
+        "$value": "32px",
+        "$description": "Table header row."
+      },
+      "menu": {
+        "$value": "28px",
+        "$description": "Menu, command and tree rows."
+      }
+    },
+    "icon": {
+      "small": {
+        "$value": "14px",
+        "$description": "Icon inside a small or medium control."
+      },
+      "medium": {
+        "$value": "16px",
+        "$description": "Standalone icon, icon button glyph."
+      }
+    }
+  },
+  "elevation": {
+    "surface": {
+      "$type": "color",
+      "default": {
+        "$value": "{color.neutral.0}",
+        "$description": "Use as the primary background for the UI.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.100}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "hovered": {
+        "$value": "{color.neutral.100}",
+        "$description": "Hovered state of the primary surface.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.200}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "pressed": {
+        "$value": "{color.neutral.200}",
+        "$description": "Pressed state of the primary surface.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.250}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "sunken": {
+        "$value": "{color.neutral.100}",
+        "$description": "A secondary background for the UI commonly used for grouping items, such as a sidebar.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.-100}",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "raised": {
+        "default": {
+          "$value": "{color.neutral.0}",
+          "$description": "Use for the background of raised cards, with elevation.shadow.raised.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.200}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.neutral.100}",
+          "$description": "Hovered state of raised surfaces.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.250}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.neutral.200}",
+          "$description": "Pressed state of raised surfaces.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.300}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "overlay": {
+        "default": {
+          "$value": "{color.neutral.0}",
+          "$description": "Use for the background of elements that sit on top of the UI, such as modals, dropdown menus, flags and inline dialogs, with elevation.shadow.overlay.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.250}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.neutral.100}",
+          "$description": "Hovered state of overlay surfaces.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.300}",
+              "introduced": "0.1.0"
+            }
+          }
+        },
+        "pressed": {
+          "$value": "{color.neutral.200}",
+          "$description": "Pressed state of overlay surfaces.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.350}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      }
+    },
+    "shadow": {
+      "$type": "shadow",
+      "raised": {
+        "$value": "0 0 0 1px oklch(0.22 0.024 258 / 0.08), 0 1px 2px oklch(0.22 0.024 258 / 0.06)",
+        "$description": "Use for the box shadow of raised card elements, such as cards on a board.",
+        "$extensions": {
+          "ledger": {
+            "dark": "0 0 0 1px oklch(1 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.4)",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "overlay": {
+        "$value": "0 0 0 1px oklch(0.22 0.024 258 / 0.08), 0 7px 32px oklch(0.22 0.024 258 / 0.14)",
+        "$description": "Use for the box shadow of elements that sit on top of the UI, such as modals, menus and popovers.",
+        "$extensions": {
+          "ledger": {
+            "dark": "0 0 0 1px oklch(1 0 0 / 0.07), 0 6px 16px -4px oklch(0 0 0 / 0.55), 0 18px 40px -12px oklch(0 0 0 / 0.5)",
+            "introduced": "0.1.0"
+          }
+        }
+      },
+      "overflow": {
+        "$value": "0 0 8px oklch(0.22 0.024 258 / 0.16), 0 0 1px oklch(0.22 0.024 258 / 0.12)",
+        "$description": "Use to create a shadow when content scrolls under other content, such as a scrolling table.",
+        "$extensions": {
+          "ledger": {
+            "dark": "0 0 8px oklch(0 0 0 / 0.5), 0 0 1px oklch(1 0 0 / 0.08)",
+            "introduced": "0.1.0"
+          }
+        }
+      }
+    }
+  },
+  "utility": {
+    "elevation": {
+      "surface": {
+        "current": {
+          "$type": "color",
+          "$value": "{elevation.surface.default}",
+          "$description": "The surface an element currently sits on. Surface-owning components set this variable; sticky and masking children read it.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{elevation.surface.default}",
+              "introduced": "0.1.0"
+            }
+          }
+        }
+      }
+    }
+  },
+  "font": {
+    "family": {
+      "$type": "fontFamily",
+      "body": {
+        "$value": [
+          "Geist",
+          "Inter",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif"
+        ],
+        "$description": "The one UI face. Identifiers, dates and numbers use it too."
+      },
+      "heading": {
+        "$value": [
+          "Geist",
+          "Inter",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif"
+        ],
+        "$description": "Same face as body today; a token so a theme may split them."
+      },
+      "code": {
+        "$value": [
+          "Geist Mono",
+          "JetBrains Mono",
+          "ui-monospace",
+          "monospace"
+        ],
+        "$description": "Code blocks and data previews only. Never UI text."
+      }
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "regular": {
+        "$value": 400,
+        "$description": "Body, cells, controls."
+      },
+      "medium": {
+        "$value": 500,
+        "$description": "Labels, UI headings, emphasis inside body text."
+      },
+      "semibold": {
+        "$value": 600,
+        "$description": "Page and record titles only."
+      }
+    },
+    "letterSpacing": {
+      "0": {
+        "$value": "0em"
+      },
+      "100": {
+        "$value": "-0.004em",
+        "$description": "Smallest sizes."
+      },
+      "200": {
+        "$value": "-0.008em",
+        "$description": "Body sizes."
+      },
+      "300": {
+        "$value": "-0.015em",
+        "$description": "Headings up to 20px."
+      },
+      "400": {
+        "$value": "-0.02em",
+        "$description": "Display sizes."
+      },
+      "$type": "dimension"
+    },
+    "body": {
+      "$type": "typography",
+      "large": {
+        "$value": {
+          "fontFamily": "{font.family.body}",
+          "fontWeight": "{font.weight.regular}",
+          "fontSize": "15px",
+          "lineHeight": "22px",
+          "letterSpacing": "{font.letterSpacing.200}"
+        },
+        "$description": "Reading text and dialog body."
+      },
+      "small": {
+        "$value": {
+          "fontFamily": "{font.family.body}",
+          "fontWeight": "{font.weight.regular}",
+          "fontSize": "12px",
+          "lineHeight": "16px",
+          "letterSpacing": "{font.letterSpacing.100}"
+        },
+        "$description": "Table headers, field labels, badges, KeyValue. Labels add font.weight.medium."
+      },
+      "xsmall": {
+        "$value": {
+          "fontFamily": "{font.family.body}",
+          "fontWeight": "{font.weight.regular}",
+          "fontSize": "11px",
+          "lineHeight": "14px",
+          "letterSpacing": "{font.letterSpacing.100}"
+        },
+        "$description": "Eyebrow, counts, metadata."
+      },
+      "default": {
+        "$value": {
+          "fontFamily": "{font.family.body}",
+          "fontWeight": "{font.weight.regular}",
+          "fontSize": "13px",
+          "lineHeight": "18px",
+          "letterSpacing": "{font.letterSpacing.200}"
+        },
+        "$description": "Controls, cells, tabs, inputs, menu items. The UI size."
+      }
+    },
+    "heading": {
+      "$type": "typography",
+      "medium": {
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": "22px",
+          "lineHeight": "28px",
+          "letterSpacing": "{font.letterSpacing.400}"
+        },
+        "$description": "Page and record titles. The only semibold."
+      },
+      "small": {
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.medium}",
+          "fontSize": "20px",
+          "lineHeight": "26px",
+          "letterSpacing": "{font.letterSpacing.300}"
+        },
+        "$description": "Section headings."
+      },
+      "xsmall": {
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.medium}",
+          "fontSize": "15px",
+          "lineHeight": "22px",
+          "letterSpacing": "{font.letterSpacing.300}"
+        },
+        "$description": "Dialog and card titles."
+      }
+    },
+    "code": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.code}",
+        "fontWeight": "{font.weight.regular}",
+        "fontSize": "12px",
+        "lineHeight": "18px",
+        "letterSpacing": "{font.letterSpacing.0}"
+      },
+      "$description": "Code blocks only."
+    }
+  },
+  "motion": {
+    "duration": {
+      "$type": "duration",
+      "fast": {
+        "$value": "120ms",
+        "$description": "Hover and press colour changes."
+      },
+      "medium": {
+        "$value": "180ms",
+        "$description": "Overlays entering and leaving."
+      }
+    },
+    "easing": {
+      "$type": "cubicBezier",
+      "standard": {
+        "$value": [
+          0.2,
+          0,
+          0.2,
+          1
+        ],
+        "$description": "The one curve."
+      }
+    }
+  },
+  "opacity": {
+    "$type": "number",
+    "disabled": {
+      "$value": 0.4,
+      "$description": "Use for the opacity of disabled elements when a disabled token does not exist."
+    },
+    "loading": {
+      "$value": 0.2,
+      "$description": "Use for the opacity of content in a loading state."
+    }
+  },
+  "radius": {
+    "$type": "dimension",
+    "xsmall": {
+      "$value": "2px",
+      "$description": "Draft, seeded from Linear-refined (base 5px). Checkbox, tiny chips."
+    },
+    "small": {
+      "$value": "3px",
+      "$description": "Draft. Badges, count chips, Kbd, skeleton, inline hit targets."
+    },
+    "medium": {
+      "$value": "5px",
+      "$description": "Draft. Buttons, inputs, chips, menu items."
+    },
+    "large": {
+      "$value": "7px",
+      "$description": "Draft. Cards, popovers."
+    },
+    "xlarge": {
+      "$value": "9px",
+      "$description": "Draft. Dialogs, sheets."
+    },
+    "xxlarge": {
+      "$value": "12px",
+      "$description": "Draft. Large surfaces, spotlight cards."
+    },
+    "full": {
+      "$value": "9999px",
+      "$description": "Dots, avatars, pills, meters."
+    }
+  },
+  "border": {
+    "width": {
+      "$type": "dimension",
+      "selected": {
+        "$value": "2px",
+        "$description": "The width used to indicate a selected element, such as an active tab or a chosen item."
+      },
+      "focused": {
+        "$value": "2px",
+        "$description": "The width used for the focus ring on interactive elements."
+      },
+      "default": {
+        "$value": "1px",
+        "$description": "The default width for all standard component borders and dividers."
+      }
+    }
+  },
+  "space": {
+    "0": {
+      "$value": "0px",
+      "$description": "No space."
+    },
+    "100": {
+      "$value": "8px",
+      "$description": "Standard small: control clusters, chip rows."
+    },
+    "150": {
+      "$value": "12px",
+      "$description": "Standard medium: cell padding, card header inset."
+    },
+    "200": {
+      "$value": "16px",
+      "$description": "Standard large: card padding, form grids."
+    },
+    "250": {
+      "$value": "20px",
+      "$description": "Comfortable."
+    },
+    "300": {
+      "$value": "24px",
+      "$description": "Relaxed: between header and actions."
+    },
+    "400": {
+      "$value": "32px",
+      "$description": "Spacious: page gutters."
+    },
+    "500": {
+      "$value": "40px"
+    },
+    "600": {
+      "$value": "48px",
+      "$description": "Section spacing."
+    },
+    "800": {
+      "$value": "64px",
+      "$description": "Page section."
+    },
+    "1000": {
+      "$value": "80px",
+      "$description": "Hero."
+    },
+    "$type": "dimension",
+    "025": {
+      "$value": "2px",
+      "$description": "Hairline."
+    },
+    "050": {
+      "$value": "4px",
+      "$description": "Tight: icon-to-text, dot-to-text."
+    },
+    "075": {
+      "$value": "6px",
+      "$description": "Compact: control gap."
+    },
+    "negative": {
+      "100": {
+        "$value": "-8px"
+      },
+      "150": {
+        "$value": "-12px"
+      },
+      "200": {
+        "$value": "-16px"
+      },
+      "250": {
+        "$value": "-20px"
+      },
+      "300": {
+        "$value": "-24px"
+      },
+      "400": {
+        "$value": "-32px"
+      },
+      "025": {
+        "$value": "-2px"
+      },
+      "050": {
+        "$value": "-4px"
+      },
+      "075": {
+        "$value": "-6px"
+      }
+    }
+  }
+}

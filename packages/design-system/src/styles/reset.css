@@ -1,0 +1,2 @@
+/* @ledger/design-system — re-export of the generated namespace reset, so consumers import a stable path. */
+@import "../generated/reset.css";
