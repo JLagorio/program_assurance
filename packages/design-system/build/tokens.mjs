@@ -10,6 +10,8 @@
 //   merge-config.ts  tailwind-merge class groups for the generated utilities
 //   docs.json        name, description, light/dark values (reference and resolved), utility, metadata — for the Storybook sheets
 //   tokens.figma.json the merged DTCG source, for Figma / Tokens Studio
+//   classes.ts       token name → generated class, for primitive props (backgroundColor, color, size)
+//   space.ts         space token → spacing class per property, for Box / Stack / Inline / Bleed props
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -131,6 +133,8 @@ const docs = [];
 const names = {}; // dotName -> cssVar
 const groups = { bg: [], text: [], icon: [], border: [], "border-w": [], font: [], "font-weight": [], rounded: [], shadow: [], h: [], size: [], opacity: [], duration: [], ease: [] };
 const allClasses = [];
+const classByToken = {};
+const spaceKeys = [];
 
 const groupOf = (token) => {
   const p = publicPath(token);
@@ -165,6 +169,8 @@ for (const token of all) {
 
   const u = utilityFor(token);
   if (u) {
+    if (u.kind === "theme" && u.ns === "spacing") spaceKeys.push([name, u.key]);
+    else classByToken[name] = u.cls;
     allClasses.push(...(u.kind === "theme" && u.ns === "spacing" ? [] : [u.cls]));
     if (u.kind === "theme") {
       themeLines.push(`  --${u.ns}-${u.key}: var(${v});`);
@@ -298,6 +304,39 @@ ${groupEntries.join("\n")}
 );
 
 fs.writeFileSync(path.join(outDir, "docs.json"), JSON.stringify(docs, null, 2) + "\n");
+
+fs.writeFileSync(
+  path.join(outDir, "classes.ts"),
+  tsHeader +
+    `/** Token name → the one generated class that reaches it. Primitive props are typed on these keys. */
+export const classByToken = ${JSON.stringify(classByToken, null, 2)} as const;
+
+export type ClassToken = keyof typeof classByToken;
+`,
+);
+
+const spaceProps = { p: "p", px: "px", py: "py", pt: "pt", pb: "pb", ps: "ps", pe: "pe", gap: "gap", gapX: "gap-x", gapY: "gap-y" };
+const bleedProps = { m: "-m", mx: "-mx", my: "-my", mt: "-mt", mb: "-mb", ms: "-ms", me: "-me" };
+spaceKeys.sort((a, b) => Number(a[1]) - Number(b[1]));
+const mapFor = (prefix) => Object.fromEntries(spaceKeys.map(([name, key]) => [name, `${prefix}-${key}`]));
+fs.writeFileSync(
+  path.join(outDir, "space.ts"),
+  tsHeader +
+    `/** The space scale as primitive prop values. Every class string is literal so Tailwind's scanner sees it. */
+export const spaceTokens = ${JSON.stringify(spaceKeys.map(([n]) => n))} as const;
+
+export type SpaceToken = (typeof spaceTokens)[number];
+
+export const spaceClasses = {
+${Object.entries(spaceProps).map(([k, prefix]) => `  ${k}: ${JSON.stringify(mapFor(prefix))},`).join("\n")}
+} as const;
+
+/** Negative margins for Bleed, keyed by the positive token the caller names. */
+export const bleedClasses = {
+${Object.entries(bleedProps).map(([k, prefix]) => `  ${k}: ${JSON.stringify(mapFor(prefix))},`).join("\n")}
+} as const;
+`,
+);
 
 // Figma export: the merged DTCG source, untouched.
 const merged = {};

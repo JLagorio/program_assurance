@@ -20,7 +20,9 @@
     "build:tokens": "node build/tokens.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "storybook": "storybook dev -p 6007",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "test": "node --test test/",
+    "test:report": "CONTRAST_REPORT=1 node --test test/"
   },
   "devDependencies": {
     "style-dictionary": "^5.5.2"

@@ -1260,158 +1260,158 @@
     "neutral": {
       "0": {
         "$value": "oklch(1 0 0)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "100": {
         "$value": "oklch(0.985 0.002 258)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "200": {
         "$value": "oklch(0.972 0.003 258)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "300": {
-        "$value": "oklch(0.955 0.004 258)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$value": "oklch(0.93 0.005 258)",
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "400": {
-        "$value": "oklch(0.935 0.005 258)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$value": "oklch(0.8 0.008 258)",
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "500": {
-        "$value": "oklch(0.908 0.006 258)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$value": "oklch(0.65 0.012 258)",
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "600": {
-        "$value": "oklch(0.86 0.008 258)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$value": "oklch(0.6 0.014 258)",
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "700": {
-        "$value": "oklch(0.6 0.016 258)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$value": "oklch(0.545 0.018 258)",
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "800": {
         "$value": "oklch(0.44 0.02 258)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "900": {
         "$value": "oklch(0.3 0.022 258)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "1000": {
         "$value": "oklch(0.22 0.024 258)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "1100": {
         "$value": "oklch(0.15 0.024 258)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "100A": {
         "$value": "oklch(0.22 0.024 258 / 0.04)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "200A": {
         "$value": "oklch(0.22 0.024 258 / 0.06)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "300A": {
         "$value": "oklch(0.22 0.024 258 / 0.1)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "400A": {
-        "$value": "oklch(0.22 0.024 258 / 0.16)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$value": "oklch(0.22 0.024 258 / 0.3)",
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "500A": {
-        "$value": "oklch(0.22 0.024 258 / 0.26)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$value": "oklch(0.22 0.024 258 / 0.5)",
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       }
     },
     "darkNeutral": {
       "0": {
         "$value": "oklch(0.176 0.014 285)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "100": {
         "$value": "oklch(0.196 0.015 285)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "200": {
         "$value": "oklch(0.213 0.016 285)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "250": {
         "$value": "oklch(0.232 0.017 285)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "300": {
         "$value": "oklch(0.243 0.018 285)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "350": {
         "$value": "oklch(0.255 0.019 285)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "400": {
         "$value": "oklch(0.295 0.018 285)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "500": {
-        "$value": "oklch(0.36 0.02 285)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$value": "oklch(0.42 0.02 285)",
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "600": {
-        "$value": "oklch(0.44 0.02 285)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$value": "oklch(0.55 0.02 285)",
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "700": {
         "$value": "oklch(0.66 0.02 285)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "800": {
-        "$value": "oklch(0.78 0.015 285)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$value": "oklch(0.81 0.015 285)",
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "900": {
         "$value": "oklch(0.86 0.012 285)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "1000": {
         "$value": "oklch(0.945 0.008 285)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "1100": {
         "$value": "oklch(0.98 0.004 285)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "-100": {
         "$value": "oklch(0.15 0.014 285)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "100A": {
         "$value": "oklch(1 0 0 / 0.04)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "200A": {
         "$value": "oklch(1 0 0 / 0.07)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "300A": {
         "$value": "oklch(1 0 0 / 0.11)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "400A": {
-        "$value": "oklch(1 0 0 / 0.18)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$value": "oklch(1 0 0 / 0.3)",
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       },
       "500A": {
-        "$value": "oklch(1 0 0 / 0.3)",
-        "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
+        "$value": "oklch(1 0 0 / 0.5)",
+        "$description": "Draft ramp step, re-spaced 2026-09-02 so the Atlassian mapping meets AA on it. Tune in step 1."
       }
     },
     "blue": {
       "100": {
-        "$value": "oklch(0.965 0.025 254)",
+        "$value": "oklch(0.97 0.022 254)",
         "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
       },
       "200": {
@@ -1439,7 +1439,7 @@
         "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
       },
       "700": {
-        "$value": "oklch(0.545 0.19 254)",
+        "$value": "oklch(0.54 0.19 254)",
         "$description": "Draft ramp step, seeded from Linear-refined light / Nightwatch dark. Tune in step 1."
       },
       "800": {
