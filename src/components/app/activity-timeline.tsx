@@ -7,8 +7,8 @@ import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, Circle } from "lucide-react";
 
-import { Avatar, Button, Menu } from "@/ds/primitives";
-import { Drawer, EmptyState } from "@/ds/patterns";
+import { Avatar, Button, DropdownMenu, Sheet } from "@/ds/primitives";
+import { Empty } from "@/ds/patterns";
 import { cn } from "@/lib/utils";
 import { useActivityFilters, useReadState } from "@/lib/activity-prefs";
 import {
@@ -118,7 +118,7 @@ export function ActivityTimeline({
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState
+        <Empty
           title="No activity matches these filters"
           description="Adjust the type, owner, or date range to see more of this program's history."
           action={
@@ -204,7 +204,7 @@ export function ActivityTimeline({
         </button>
       ) : null}
 
-      <Drawer
+      <Sheet
         open={active !== null}
         onClose={() => setOpenId(null)}
         title={active?.title ?? ""}
@@ -244,7 +244,7 @@ export function ActivityTimeline({
             ))}
           </dl>
         ) : null}
-      </Drawer>
+      </Sheet>
     </div>
   );
 }
@@ -270,7 +270,7 @@ function FilterMenu({
   onSelect: (v: string) => void;
 }) {
   return (
-    <Menu
+    <DropdownMenu
       align="end"
       width={220}
       trigger={({ toggle }) => (
@@ -282,9 +282,9 @@ function FilterMenu({
     >
       {(close) => (
         <>
-          <Menu.Label>{label}</Menu.Label>
+          <DropdownMenu.Label>{label}</DropdownMenu.Label>
           {options.map((o) => (
-            <Menu.Item
+            <DropdownMenu.Item
               key={o}
               selected={o === value}
               onSelect={() => {
@@ -293,10 +293,10 @@ function FilterMenu({
               }}
             >
               {o}
-            </Menu.Item>
+            </DropdownMenu.Item>
           ))}
         </>
       )}
-    </Menu>
+    </DropdownMenu>
   );
 }

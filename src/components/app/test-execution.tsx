@@ -21,15 +21,15 @@ import {
   Button,
   Dot,
   KeyValue,
-  Meter,
+  Progress,
   Person,
   Table,
   Id,
-  Empty,
+  Absent,
   Stat,
+  type Tone,
 } from "@/ds/primitives";
-import type { Tone } from "@/ds/primitives";
-import { EmptyState, Section } from "@/ds/patterns";
+import { Empty, Section } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { objectiveTone, type ObjectiveResult } from "@/lib/campaigns";
 import {
@@ -222,7 +222,7 @@ export function ExecutionSummary({
         }
       >
         <div className="pt-3">
-          <Meter.Stacked
+          <Progress.Stacked
             segments={[
               {
                 key: "met",
@@ -279,7 +279,7 @@ export function ExecutionSummary({
                 of the campaign&rsquo;s objectives have a procedure written against them
               </span>
             </div>
-            <Meter
+            <Progress
               value={coverage}
               tone={
                 execution.unproceduredObjectives.length === 0
@@ -324,7 +324,7 @@ export function ObjectiveExecutionTable({
 }) {
   if (rows.length === 0) {
     return (
-      <EmptyState
+      <Empty
         title="This campaign covers no objectives"
         description="No event under the campaign names an objective, so there is nothing for a procedure to execute against and nothing for the run log to contradict."
       />
@@ -423,7 +423,7 @@ export function ObjectiveRail({ row }: { row: ObjectiveExecutionRow }) {
         <WrapValue label="CCIs">
           <Id.List ids={row.ccis} />
         </WrapValue>
-        <KeyValue label="Event">{row.event ? <Id>{row.event}</Id> : <Empty />}</KeyValue>
+        <KeyValue label="Event">{row.event ? <Id>{row.event}</Id> : <Absent />}</KeyValue>
       </Inspector.Group>
 
       <Inspector.Group title="Result">
@@ -434,7 +434,7 @@ export function ObjectiveRail({ row }: { row: ObjectiveExecutionRow }) {
           <ResultChip result={row.executed} />
         </KeyValue>
         <KeyValue label="Source">{row.source === "Run" ? "Run log" : "Campaign record"}</KeyValue>
-        <KeyValue label="Decided by">{row.run ? <Id>{row.run}</Id> : <Empty />}</KeyValue>
+        <KeyValue label="Decided by">{row.run ? <Id>{row.run}</Id> : <Absent />}</KeyValue>
         <ProseBlock label="Basis">{row.basis}</ProseBlock>
       </Inspector.Group>
 
@@ -463,7 +463,7 @@ export function ProcedureList({
 }) {
   if (rows.length === 0) {
     return (
-      <EmptyState
+      <Empty
         title="No procedure is written for this campaign"
         description="Every objective the campaign covers is still an assertion — there is no written action, no pass criterion and no artifact to collect."
       />
@@ -519,7 +519,7 @@ export function ProcedureList({
             <Table.Cell className="tnum text-right">{procedure.duration}</Table.Cell>
             <Table.Cell className="tnum text-right">{runs}</Table.Cell>
             <Table.Cell className="truncate" title={verdict?.basis}>
-              {verdict ? <ResultChip result={verdict.result} /> : <Empty />}
+              {verdict ? <ResultChip result={verdict.result} /> : <Absent />}
             </Table.Cell>
           </Table.Row>
         ))}
@@ -543,7 +543,7 @@ export function StepTable({
 }) {
   if (steps.length === 0) {
     return (
-      <EmptyState
+      <Empty
         title="This procedure declares no steps"
         description="There is nothing to record and nothing a run of it could ever prove."
       />
@@ -639,7 +639,7 @@ export function ProcedureRail({ row }: { row: ProcedureListRow }) {
           <span className="tnum">{runs}</span>
         </KeyValue>
         <KeyValue label="Latest">
-          {verdict ? <ResultChip result={verdict.result} /> : <Empty />}
+          {verdict ? <ResultChip result={verdict.result} /> : <Absent />}
         </KeyValue>
         {verdict ? <ProseBlock label="Basis">{verdict.basis}</ProseBlock> : null}
       </Inspector.Group>
@@ -676,7 +676,7 @@ export function RunTable({
 }) {
   if (rows.length === 0) {
     return (
-      <EmptyState
+      <Empty
         title="Nothing has been run"
         description="No procedure under this campaign has been executed against a build, so every objective result here is still a declaration."
       />
@@ -737,7 +737,7 @@ export function RunTable({
               <Badge tone={runStateTone[run.state]}>{run.state}</Badge>
             </Table.Cell>
             <Table.Cell className="truncate">
-              {verdict ? <ResultChip result={verdict.result} /> : <Empty />}
+              {verdict ? <ResultChip result={verdict.result} /> : <Absent />}
             </Table.Cell>
             <Table.Cell className="tnum text-right">
               {verdict ? `${verdict.pass}/${verdict.fail}/${verdict.inconclusive}` : "—"}
@@ -869,7 +869,7 @@ export function RunRecordView({
         }
       >
         {steps.length === 0 ? (
-          <EmptyState
+          <Empty
             title="No steps to record"
             description={`${run.procedure} is not in the procedure library, so this run has nothing to be judged against.`}
           />
@@ -933,16 +933,16 @@ export function RunRail({ row }: { row: RunListRow }) {
           <Id>{run.procedure}</Id>
         </KeyValue>
         <KeyValue label="Objective">
-          {procedure ? <Id>{procedure.objective}</Id> : <Empty />}
+          {procedure ? <Id>{procedure.objective}</Id> : <Absent />}
         </KeyValue>
-        <KeyValue label="Event">{run.event ? <Id>{run.event}</Id> : <Empty />}</KeyValue>
+        <KeyValue label="Event">{run.event ? <Id>{run.event}</Id> : <Absent />}</KeyValue>
         <KeyValue label="State">
           <Badge tone={runStateTone[run.state]}>{run.state}</Badge>
         </KeyValue>
         <KeyValue label="Verdict">
-          {verdict ? <ResultChip result={verdict.result} /> : <Empty />}
+          {verdict ? <ResultChip result={verdict.result} /> : <Absent />}
         </KeyValue>
-        <KeyValue label="Retest of">{run.retestOf ? <Id>{run.retestOf}</Id> : <Empty />}</KeyValue>
+        <KeyValue label="Retest of">{run.retestOf ? <Id>{run.retestOf}</Id> : <Absent />}</KeyValue>
       </Inspector.Group>
 
       <Inspector.Group title="Conduct">
@@ -950,7 +950,7 @@ export function RunRail({ row }: { row: RunListRow }) {
           <Person name={run.operator} />
         </KeyValue>
         <KeyValue label="Witness">
-          {run.witness === "—" ? <Empty /> : <Person name={run.witness} />}
+          {run.witness === "—" ? <Absent /> : <Person name={run.witness} />}
         </KeyValue>
         <KeyValue label="Started">
           <span className="tnum">{run.started}</span>
@@ -979,7 +979,7 @@ export function RunRail({ row }: { row: RunListRow }) {
 export function RegressionTable({ rows }: { rows: RegressionRow[] }) {
   if (rows.length === 0) {
     return (
-      <EmptyState
+      <Empty
         title="No step has been compared against a prior run"
         description="A regression row needs a retest and a decisive record on both sides. Nothing under this campaign re-executes a procedure with two Pass-or-Fail observations of the same step."
       />

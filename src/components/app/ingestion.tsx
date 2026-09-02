@@ -17,9 +17,18 @@
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 
-import { Badge, Dot, KeyValue, Table, Id, Indicator, Empty, Stat } from "@/ds/primitives";
-import type { Tone } from "@/ds/primitives";
-import { EmptyState } from "@/ds/patterns";
+import {
+  Badge,
+  Dot,
+  KeyValue,
+  Table,
+  Id,
+  Indicator,
+  Absent,
+  Stat,
+  type Tone,
+} from "@/ds/primitives";
+import { Empty } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { cn } from "@/lib/utils";
 import {
@@ -238,7 +247,7 @@ export function ScanTable({
   if (scans.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="No scans delivered"
           description="A checklist, SCAP result, ACAS export, SAST report, SBOM or firmware report delivered against this program appears here."
         />
@@ -366,7 +375,7 @@ export function ScanRail({
         </KeyValue>
         <KeyValue label="Benchmark">
           {scan.benchmark === "—" ? (
-            <Empty />
+            <Absent />
           ) : (
             <span title={scan.benchmark}>{scan.benchmark}</span>
           )}
@@ -410,10 +419,10 @@ export function ScanRail({
           </dd>
         </div>
         <KeyValue label="Supersedes">
-          {scan.supersedes ? <Id>{scan.supersedes}</Id> : <Empty />}
+          {scan.supersedes ? <Id>{scan.supersedes}</Id> : <Absent />}
         </KeyValue>
         <KeyValue label="Superseded by">
-          {supersededBy ? <Id>{supersededBy}</Id> : <Empty />}
+          {supersededBy ? <Id>{supersededBy}</Id> : <Absent />}
         </KeyValue>
       </Inspector.Group>
 
@@ -442,7 +451,7 @@ export function ScanRail({
             {batch.closable.length > 0 ? (
               <span title={batch.closable.join(", ")}>{batch.closable.join(", ")}</span>
             ) : (
-              <Empty />
+              <Absent />
             )}
           </KeyValue>
           <KeyValue label="Contested">
@@ -451,7 +460,7 @@ export function ScanRail({
                 {batch.contested.map((c) => c.finding).join(", ")}
               </span>
             ) : (
-              <Empty />
+              <Absent />
             )}
           </KeyValue>
           {batch.contested.map((c) => (
@@ -780,7 +789,7 @@ export function NormalizationView({
   if (rows.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="No native records on this run"
           description="The delivered file carried no result rows, so there is nothing to normalize."
         />
@@ -921,7 +930,7 @@ export function DedupTable({
   if (groups.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="Nothing to reconcile"
           description="No two results in the program's current scans share a requirement, a component and a rule."
         />
@@ -1072,7 +1081,7 @@ export function DedupRail({
 
       <Inspector.Group title="Register">
         <KeyValue label="Filed as">
-          {group.existing ? <Id>{group.existing}</Id> : <Empty />}
+          {group.existing ? <Id>{group.existing}</Id> : <Absent />}
         </KeyValue>
         <KeyValue label="Also filed">
           {folded.length > 0 ? (
@@ -1084,7 +1093,7 @@ export function DedupRail({
               ))}
             </span>
           ) : (
-            <Empty />
+            <Absent />
           )}
         </KeyValue>
         <ProseBlock label="Reading">
@@ -1160,7 +1169,7 @@ export function ScanDiffTable({
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState
+        <Empty
           title="Nothing to compare"
           description={
             previous

@@ -6,7 +6,7 @@ import { NodeRail } from "@/components/app/composition";
 import { DerivedControlTrace, ElementAllocationTable } from "@/components/app/requirements";
 import { ApplicabilityModal } from "@/components/app/requirement-forms";
 import { Badge, Button, Table, Id, Indicator, Fact } from "@/ds/primitives";
-import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import {
   ancestorsOf,
@@ -512,7 +512,7 @@ function ComponentRecord() {
             </Table>
           ) : (
             <div className="pt-3">
-              <EmptyState
+              <Empty
                 title="No open findings"
                 description={
                   node.asset

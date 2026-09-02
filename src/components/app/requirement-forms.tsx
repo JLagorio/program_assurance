@@ -11,8 +11,7 @@
 
 import { useMemo, useState } from "react";
 
-import { Badge, Button, Field, Input, Select, Textarea, Id } from "@/ds/primitives";
-import { Modal } from "@/ds/patterns";
+import { Badge, Button, Field, Input, NativeSelect, Textarea, Id, Dialog } from "@/ds/primitives";
 import { nodesForProgram } from "@/lib/composition";
 import { systemComponents } from "@/lib/reusable-components";
 import {
@@ -121,7 +120,7 @@ export function NewRequirementModal({
   };
 
   return (
-    <Modal
+    <Dialog
       open={open}
       onClose={onClose}
       title="New security requirement"
@@ -147,21 +146,21 @@ export function NewRequirementModal({
         </Field>
         <div className="grid gap-3 sm:grid-cols-3">
           <Field label="Type">
-            <Select value={type} onChange={(e) => setType(e.target.value as RequirementType)}>
+            <NativeSelect value={type} onChange={(e) => setType(e.target.value as RequirementType)}>
               {requirementTypes.map((t) => (
                 <option key={t}>{t}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Decomposes" hint="Leave blank for a top-level obligation.">
-            <Select value={parent} onChange={(e) => setParent(e.target.value)}>
+            <NativeSelect value={parent} onChange={(e) => setParent(e.target.value)}>
               <option value="">— none —</option>
               {candidates.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.id}
                 </option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Owner">
             <Input
@@ -173,14 +172,14 @@ export function NewRequirementModal({
         </div>
         <div className="grid gap-3 sm:grid-cols-[140px_minmax(0,1fr)]">
           <Field label="Verification method">
-            <Select
+            <NativeSelect
               value={method}
               onChange={(e) => setMethod(e.target.value as VerificationMethod)}
             >
               {verificationMethods.map((m) => (
                 <option key={m}>{m}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Success criteria">
             <Input
@@ -197,14 +196,14 @@ export function NewRequirementModal({
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <Field label="Source type">
-              <Select
+              <NativeSelect
                 value={sourceType}
                 onChange={(e) => setSourceType(e.target.value as DerivationSource)}
               >
                 {derivationSources.map((d) => (
                   <option key={d}>{d}</option>
                 ))}
-              </Select>
+              </NativeSelect>
             </Field>
             <Field label="Source" hint="SI-7(1), THR-0309, CMP-008 …">
               <Input value={sourceId} onChange={(e) => setSourceId(e.target.value)} />
@@ -222,7 +221,7 @@ export function NewRequirementModal({
           </Field>
         </div>
       </div>
-    </Modal>
+    </Dialog>
   );
 }
 
@@ -291,7 +290,7 @@ export function AllocateModal({
   };
 
   return (
-    <Modal
+    <Dialog
       open={open}
       onClose={onClose}
       title={`Allocate ${requirement.id}`}
@@ -309,31 +308,34 @@ export function AllocateModal({
     >
       <div className="grid gap-3">
         <Field label="Allocate to">
-          <Select value={target} onChange={(e) => setTarget(e.target.value)}>
+          <NativeSelect value={target} onChange={(e) => setTarget(e.target.value)}>
             {options.map((o) => (
               <option key={`${o.kind}-${o.id}`} value={o.id}>
                 {o.label}
               </option>
             ))}
-          </Select>
+          </NativeSelect>
         </Field>
         <div className="grid gap-3 sm:grid-cols-3">
           <Field label="Responsibility">
-            <Select
+            <NativeSelect
               value={responsibility}
               onChange={(e) => setResponsibility(e.target.value as Responsibility)}
             >
               {responsibilities.map((r) => (
                 <option key={r}>{r}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Coverage">
-            <Select value={coverage} onChange={(e) => setCoverage(e.target.value as Coverage)}>
+            <NativeSelect
+              value={coverage}
+              onChange={(e) => setCoverage(e.target.value as Coverage)}
+            >
               {coverages.map((c) => (
                 <option key={c}>{c}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Owner">
             <Input value={owner} onChange={(e) => setOwner(e.target.value)} />
@@ -350,7 +352,7 @@ export function AllocateModal({
           <Textarea value={rationale} onChange={(e) => setRationale(e.target.value)} />
         </Field>
       </div>
-    </Modal>
+    </Dialog>
   );
 }
 
@@ -443,7 +445,7 @@ export function ApplicabilityModal({
   };
 
   return (
-    <Modal
+    <Dialog
       open={open}
       onClose={onClose}
       title={`Applicability — ${targetName}`}
@@ -495,21 +497,24 @@ export function ApplicabilityModal({
 
           <div className="grid gap-3 sm:grid-cols-[140px_140px_minmax(0,1fr)]">
             <Field label="Responsibility">
-              <Select
+              <NativeSelect
                 value={responsibility}
                 onChange={(e) => setResponsibility(e.target.value as Responsibility)}
               >
                 {responsibilities.map((r) => (
                   <option key={r}>{r}</option>
                 ))}
-              </Select>
+              </NativeSelect>
             </Field>
             <Field label="Coverage">
-              <Select value={coverage} onChange={(e) => setCoverage(e.target.value as Coverage)}>
+              <NativeSelect
+                value={coverage}
+                onChange={(e) => setCoverage(e.target.value as Coverage)}
+              >
                 {coverages.map((c) => (
                   <option key={c}>{c}</option>
                 ))}
-              </Select>
+              </NativeSelect>
             </Field>
             <Field label="Scope of the claim" hint="Needed only when it applies.">
               <Input value={scope} onChange={(e) => setScope(e.target.value)} />
@@ -521,6 +526,6 @@ export function ApplicabilityModal({
           Nothing left to answer for {targetName}.
         </p>
       )}
-    </Modal>
+    </Dialog>
   );
 }

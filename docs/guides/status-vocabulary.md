@@ -1,6 +1,6 @@
 # Status vocabulary
 
-Status is always expressed through the five-value `tone` system (`Badge`, `Dot`, `Meter`) with domain vocabulary — soft fill, solid text, no ring, 4px radius. One `toneClasses` table in `ui.tsx` feeds all of them. Vocabulary the product actually uses:
+Status is always expressed through the five-value `tone` system (`Badge`, `Dot`, `Alert`, `Progress`) with domain vocabulary — soft fill, solid text, no ring, 4px radius. One `toneClasses` table in `src/ds/primitives/tone.ts` feeds all of them. Vocabulary the product actually uses:
 
 | Tone      | Meaning                                  | Examples from the app                                                                        |
 | --------- | ---------------------------------------- | -------------------------------------------------------------------------------------------- |

@@ -34,8 +34,7 @@ import { Fragment, useState } from "react";
 import type { ReactNode } from "react";
 import { ArrowRight, Calculator, CornerDownRight, PenLine, TriangleAlert } from "lucide-react";
 
-import { Badge, Button, Table, Id, Empty, Stat, Eyebrow } from "@/ds/primitives";
-import type { Tone } from "@/ds/primitives";
+import { Badge, Button, Table, Id, Absent, Stat, Eyebrow, type Tone } from "@/ds/primitives";
 import { Card } from "@/ds/patterns";
 import {
   effectTone,
@@ -682,7 +681,7 @@ export function ScenarioTable({
               <Table.Cell className="tnum text-right" title={s.path.join(" → ")}>
                 {s.path.length} nodes
               </Table.Cell>
-              <Table.Cell>{s.event ? <Id>{s.event}</Id> : <Empty />}</Table.Cell>
+              <Table.Cell>{s.event ? <Id>{s.event}</Id> : <Absent />}</Table.Cell>
               <Table.Cell>
                 <Badge tone={scenarioStatusTone[s.status]}>{s.status}</Badge>
               </Table.Cell>
@@ -1076,7 +1075,7 @@ export function MissionEffectTable({
                       <div>
                         <Eyebrow>Persistence</Eyebrow>
                         <p className="mt-0.5 whitespace-normal text-[12.5px] leading-relaxed text-muted-foreground">
-                          {e.duration === "—" ? <Empty /> : e.duration}
+                          {e.duration === "—" ? <Absent /> : e.duration}
                         </p>
                       </div>
                       <div>

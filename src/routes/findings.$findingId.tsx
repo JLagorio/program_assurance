@@ -5,14 +5,14 @@ import {
   Badge,
   Button,
   KeyValue,
-  Meter,
+  Progress,
   Person,
   Table,
   Id,
   Tabs,
   Indicator,
 } from "@/ds/primitives";
-import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { Shell } from "@/ds/shell";
 import { RemediationPlanSection } from "@/components/app/remediation";
@@ -492,7 +492,7 @@ function FindingRecord() {
             />
           ) : (
             <Section title="Remediation plan">
-              <EmptyState
+              <Empty
                 title={
                   controlRow
                     ? "Nothing scheduled against this finding"
@@ -531,7 +531,7 @@ function FindingRecord() {
                       <Badge tone={bandTone[residual.band]}>{residual.band}</Badge>
                     </div>
                     <div className="mt-3">
-                      <Meter value={residual.score} tone={bandTone[residual.band]} />
+                      <Progress value={residual.score} tone={bandTone[residual.band]} />
                     </div>
                     <dl className="mt-3 space-y-1.5 text-[12px]">
                       <div className="flex items-baseline justify-between gap-3">
@@ -592,7 +592,7 @@ function FindingRecord() {
             </>
           ) : (
             <Section title="Residual risk">
-              <EmptyState
+              <Empty
                 title="No residual score"
                 description={`${finding.id} carries no scored factors. A residual is only published where severity, exposure, mission impact and evidence currency can all be read from the record; scoring it without them would launder judgement as arithmetic.`}
               />

@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 
-import { Badge, Dot, Meter, Person, Table, Id } from "@/ds/primitives";
+import { Badge, Dot, Progress, Person, Table, Id } from "@/ds/primitives";
 import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import { ControlMatrixSection, FamilyCoverageTable } from "@/components/app/control-matrix";
@@ -223,7 +223,7 @@ function ProgramDashboard() {
               hint={`${coverage.satisfied} of ${coverage.total} satisfied`}
               tone={coverage.pct >= 90 ? "success" : coverage.pct >= 75 ? "neutral" : "warning"}
             >
-              <Meter.Stacked
+              <Progress.Stacked
                 height={4}
                 segments={coverage.segments.map((s) => ({
                   key: s.key,
@@ -261,7 +261,7 @@ function ProgramDashboard() {
               }
               tone={overdueGates > 0 ? "danger" : "neutral"}
             >
-              <Meter
+              <Progress
                 value={outlook.total ? (outlook.completed / outlook.total) * 100 : 0}
                 tone={overdueGates > 0 ? "danger" : "success"}
               />
@@ -313,7 +313,7 @@ function ProgramDashboard() {
             {byPhase.map((p) => (
               <span key={p.phase} className="flex min-w-[136px] items-center gap-2">
                 <span className="w-16 shrink-0">
-                  <Meter.Stacked
+                  <Progress.Stacked
                     height={4}
                     segments={[
                       { key: "d", value: p.done, tone: "success" },

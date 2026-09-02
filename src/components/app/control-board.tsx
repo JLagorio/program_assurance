@@ -23,14 +23,14 @@ import {
   Button,
   Field,
   FilterChip,
-  SegmentedControl,
+  ToggleGroup,
   Table,
   Textarea,
   Toolbar,
   Id,
   Indicator,
 } from "@/ds/primitives";
-import { EmptyState } from "@/ds/patterns";
+import { Empty } from "@/ds/patterns";
 import { Block } from "@/ds/shapes";
 import {
   buildBoard,
@@ -782,7 +782,7 @@ export function ControlBoard({ programId }: { programId: string }) {
           </span>
         }
       >
-        <SegmentedControl
+        <ToggleGroup
           items={lenses.map((l) => ({ value: l, label: lensLabels[l] }))}
           value={lens}
           onChange={setLens}
@@ -817,10 +817,7 @@ export function ControlBoard({ programId }: { programId: string }) {
       >
         <div className="min-w-0">
           {groups.length === 0 ? (
-            <EmptyState
-              title="No controls match"
-              description="Clear a filter or the stage selection."
-            />
+            <Empty title="No controls match" description="Clear a filter or the stage selection." />
           ) : (
             <>
               <BoardHeader narrow={narrow} />

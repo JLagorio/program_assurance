@@ -2,9 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-import { Badge, Button, Person, Table, Indicator, Id } from "@/ds/primitives";
-import type { Tone } from "@/ds/primitives";
-import { Card, EmptyState } from "@/ds/patterns";
+import { Badge, Button, Person, Table, Indicator, Id, type Tone } from "@/ds/primitives";
+import { Card, Empty } from "@/ds/patterns";
 import { Spec } from "../_lib/tokens";
 
 const meta = {
@@ -204,14 +203,14 @@ export const WithPreview: Story = {
   render: () => <PreviewTable />,
 };
 
-/** No rows: EmptyState inside the Card the table would have filled. */
-export const Empty: Story = {
+/** No rows: Empty inside the Card the table would have filled. */
+export const NoRows: Story = {
   parameters: { controls: { disable: true } },
   render: () => (
     <Card className="max-w-[720px]">
       <Card.Header title="Findings" description="Nothing open against AC-2(3)" />
       <div className="p-4">
-        <EmptyState
+        <Empty
           title="No findings"
           description="Assessments that fail an objective create a finding here."
           action={

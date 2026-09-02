@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
-export function EmptyState({
+/** Nothing here yet: a dashed frame with a title, one line of why, and the action that fills it. */
+export function Empty({
   title,
   description,
   action,
@@ -17,6 +18,3 @@ export function EmptyState({
     </div>
   );
 }
-
-/* Right-side detail surface. Used for previews and record detail that should
-   not take the user off the page. */

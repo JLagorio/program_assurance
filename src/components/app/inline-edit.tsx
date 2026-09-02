@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AlertCircle, Check, ChevronDown, Loader2 } from "lucide-react";
 
-import { Menu } from "@/ds/primitives";
+import { DropdownMenu } from "@/ds/primitives";
 import { cn } from "@/lib/utils";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
@@ -157,7 +157,7 @@ export function InlineSelect<T extends string>({
 
   return (
     <div className="min-w-0">
-      <Menu
+      <DropdownMenu
         align="start"
         width={220}
         trigger={({ toggle }) => (
@@ -179,9 +179,9 @@ export function InlineSelect<T extends string>({
       >
         {(close) => (
           <>
-            <Menu.Label>{label}</Menu.Label>
+            <DropdownMenu.Label>{label}</DropdownMenu.Label>
             {options.map((o) => (
-              <Menu.Item
+              <DropdownMenu.Item
                 key={o}
                 selected={o === props.value}
                 onSelect={() => {
@@ -190,11 +190,11 @@ export function InlineSelect<T extends string>({
                 }}
               >
                 {render ? render(o) : o}
-              </Menu.Item>
+              </DropdownMenu.Item>
             ))}
           </>
         )}
-      </Menu>
+      </DropdownMenu>
       {error ? <p className="mt-0.5 text-11 text-danger">{error}</p> : null}
     </div>
   );

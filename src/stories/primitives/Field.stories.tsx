@@ -1,7 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import type { ReactNode } from "react";
 
-import { Button, Checkbox, Field, Input, Radio, Select, Switch, Textarea } from "@/ds/primitives";
+import {
+  Button,
+  Checkbox,
+  Field,
+  Input,
+  RadioGroup,
+  NativeSelect,
+  Switch,
+  Textarea,
+} from "@/ds/primitives";
 import { Card } from "@/ds/patterns";
 import { Spec } from "../_lib/tokens";
 
@@ -73,32 +82,32 @@ function select(state: Cell) {
   ));
   switch (state) {
     case "default":
-      return <Select aria-label="Status">{options}</Select>;
+      return <NativeSelect aria-label="Status">{options}</NativeSelect>;
     case "placeholder":
       return (
-        <Select aria-label="Status" defaultValue="">
+        <NativeSelect aria-label="Status" defaultValue="">
           <option value="" disabled>
             Choose a status
           </option>
           {options}
-        </Select>
+        </NativeSelect>
       );
     case "value":
       return (
-        <Select aria-label="Status" defaultValue="Partially satisfied">
+        <NativeSelect aria-label="Status" defaultValue="Partially satisfied">
           {options}
-        </Select>
+        </NativeSelect>
       );
     case "disabled":
       return (
-        <Select aria-label="Status" defaultValue="Satisfied" disabled>
+        <NativeSelect aria-label="Status" defaultValue="Satisfied" disabled>
           {options}
-        </Select>
+        </NativeSelect>
       );
     case "field":
       return (
         <Field label="Assessment status" hint="RMF vocabulary; see the status guide.">
-          <Select defaultValue="Partially satisfied">{options}</Select>
+          <NativeSelect defaultValue="Partially satisfied">{options}</NativeSelect>
         </Field>
       );
   }
@@ -125,7 +134,7 @@ function textarea(state: Cell) {
 
 const rows: { key: string; render: (state: Cell) => ReactNode }[] = [
   { key: "Input", render: input },
-  { key: "Select", render: select },
+  { key: "NativeSelect", render: select },
   { key: "Textarea", render: textarea },
 ];
 
@@ -182,31 +191,31 @@ export const Form: Story = {
           <Input defaultValue="Disable accounts" />
         </Field>
         <Field label="Assessment status">
-          <Select defaultValue="Partially satisfied">
+          <NativeSelect defaultValue="Partially satisfied">
             {statuses.map((s) => (
               <option key={s} value={s}>
                 {s}
               </option>
             ))}
-          </Select>
+          </NativeSelect>
         </Field>
         <Field label="Owner">
-          <Select defaultValue="D. Reyes">
+          <NativeSelect defaultValue="D. Reyes">
             {owners.map((o) => (
               <option key={o} value={o}>
                 {o}
               </option>
             ))}
-          </Select>
+          </NativeSelect>
         </Field>
         <Field label="Assessment method" hint="Per SP 800-53A: examine, interview, test.">
-          <Select defaultValue="Test">
+          <NativeSelect defaultValue="Test">
             {methods.map((m) => (
               <option key={m} value={m}>
                 {m}
               </option>
             ))}
-          </Select>
+          </NativeSelect>
         </Field>
         <Field label="Next assessment">
           <Input type="date" defaultValue="2026-09-14" />
@@ -257,15 +266,15 @@ export const Choices: Story = {
         <Switch>Require evidence before closing</Switch>
       </div>
       <div className="flex flex-col items-start gap-3">
-        <Spec>Radio</Spec>
-        <Radio defaultValue="test" aria-label="Assessment method">
-          <Radio.Item value="examine">Examine</Radio.Item>
-          <Radio.Item value="interview">Interview</Radio.Item>
-          <Radio.Item value="test">Test</Radio.Item>
-          <Radio.Item value="na" disabled>
+        <Spec>RadioGroup</Spec>
+        <RadioGroup defaultValue="test" aria-label="Assessment method">
+          <RadioGroup.Item value="examine">Examine</RadioGroup.Item>
+          <RadioGroup.Item value="interview">Interview</RadioGroup.Item>
+          <RadioGroup.Item value="test">Test</RadioGroup.Item>
+          <RadioGroup.Item value="na" disabled>
             Not applicable
-          </Radio.Item>
-        </Radio>
+          </RadioGroup.Item>
+        </RadioGroup>
       </div>
     </div>
   ),

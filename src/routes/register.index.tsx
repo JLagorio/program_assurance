@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Download, Search } from "lucide-react";
 
-import { Badge, Button, KeyValue, Meter, Table, Id, Indicator } from "@/ds/primitives";
+import { Badge, Button, KeyValue, Progress, Table, Id, Indicator } from "@/ds/primitives";
 import { PageHeader, PreviewRail, IndexPage } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { Shell } from "@/ds/shell";
@@ -264,7 +264,7 @@ function RegisterPage() {
                             <span className="tnum w-5 text-right text-[12px] text-muted-foreground/70 line-through">
                               {r.inherent}
                             </span>
-                            <Meter value={r.residual} tone={residualTone(r.residual)} />
+                            <Progress value={r.residual} tone={residualTone(r.residual)} />
                             <span className="tnum w-5 shrink-0 text-right text-[12px] font-medium">
                               {r.residual}
                             </span>

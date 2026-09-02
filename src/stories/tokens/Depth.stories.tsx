@@ -3,7 +3,7 @@ import { useRef } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { Group, Sheet, Spec, useComputed, useCssVar } from "../_lib/tokens";
+import { Group, Page, Spec, useComputed, useCssVar } from "../_lib/tokens";
 
 const meta = {
   title: "Tokens/Depth",
@@ -38,7 +38,7 @@ function RadiusBox({ cls, where }: { cls: string; where: string }) {
 
 export const Radius: Story = {
   render: () => (
-    <Sheet
+    <Page
       title="Radius"
       lede="One base radius drives the scale. Measured values are read from the rendered box, so the Theme toolbar shows each sheet's real corners."
     >
@@ -47,7 +47,7 @@ export const Radius: Story = {
           <RadiusBox key={r.cls} {...r} />
         ))}
       </Group>
-    </Sheet>
+    </Page>
   ),
 };
 
@@ -83,7 +83,7 @@ function ShadowBox({ cls, token, where }: { cls: string; token: string; where: s
 
 export const Elevation: Story = {
   render: () => (
-    <Sheet
+    <Page
       title="Elevation"
       lede="Hairline plus soft lift, never heavy. Shown on the page's second surface so the lift reads."
     >
@@ -125,7 +125,7 @@ export const Elevation: Story = {
           <div className="text-[11.5px] text-muted-foreground">secondary · shadow-button</div>
         </div>
       </Group>
-    </Sheet>
+    </Page>
   ),
 };
 

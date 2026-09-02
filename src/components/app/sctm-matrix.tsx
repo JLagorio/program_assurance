@@ -17,8 +17,8 @@
 import { useMemo, useState } from "react";
 
 import { SctmFamilyTable } from "@/components/app/sctm";
-import { Button, Select, Toolbar } from "@/ds/primitives";
-import { EmptyState, Section } from "@/ds/patterns";
+import { Button, NativeSelect, Toolbar } from "@/ds/primitives";
+import { Empty, Section } from "@/ds/patterns";
 import { controlStatuses, type ControlStatus } from "@/lib/control-matrix";
 import { groupByFamily, useControlText, useSctm, type Determination } from "@/lib/sctm";
 
@@ -157,15 +157,19 @@ export function SctmMatrixSection({
           </Button>
         }
       >
-        <Select value={family} onChange={(e) => onFamily(e.target.value)} className="h-7 w-[188px]">
+        <NativeSelect
+          value={family}
+          onChange={(e) => onFamily(e.target.value)}
+          className="h-7 w-[188px]"
+        >
           <option value="All">All families</option>
           {families.map((f) => (
             <option key={f.id} value={f.id}>
               {f.id} — {f.name}
             </option>
           ))}
-        </Select>
-        <Select
+        </NativeSelect>
+        <NativeSelect
           value={status}
           onChange={(e) => onStatus(e.target.value as ControlStatus | "All")}
           className="h-7 w-[176px]"
@@ -176,11 +180,11 @@ export function SctmMatrixSection({
               {s}
             </option>
           ))}
-        </Select>
+        </NativeSelect>
       </Toolbar>
 
       {groups.length === 0 ? (
-        <EmptyState
+        <Empty
           title="No requirement rows match this filter"
           description="Clear the search or pick another family."
           action={

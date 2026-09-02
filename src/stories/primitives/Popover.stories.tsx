@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ChevronDown, ListFilter } from "lucide-react";
 
-import { Button, Checkbox, Field, Popover, Select } from "@/ds/primitives";
+import { Button, Checkbox, Field, Popover, NativeSelect } from "@/ds/primitives";
 
 const meta = {
   title: "Primitives/Popover",
@@ -44,18 +44,18 @@ export const Filters: Story = {
       >
         <div className="space-y-3">
           <Field label="Status">
-            <Select defaultValue="Open">
+            <NativeSelect defaultValue="Open">
               {statuses.map((s) => (
                 <option key={s}>{s}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Owner">
-            <Select defaultValue="Anyone">
+            <NativeSelect defaultValue="Anyone">
               {owners.map((o) => (
                 <option key={o}>{o}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Checkbox defaultChecked>Include inherited controls</Checkbox>
           <div className="flex items-center justify-end gap-2 border-t border-border pt-3">

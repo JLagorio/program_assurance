@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Badge, Button, Dot } from "@/ds/primitives";
 import type { Tone } from "@/ds/primitives";
 
-import { Group, Sheet, Swatch } from "../_lib/tokens";
+import { Group, Page, Swatch } from "../_lib/tokens";
 
 const meta = {
   title: "Tokens/Colors",
@@ -15,7 +15,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Palette: Story = {
   render: () => (
-    <Sheet
+    <Page
       title="Colors"
       lede="White canvas, one blue, soft semantic fills. Values are live — flip the Theme toolbar to compare sheets."
     >
@@ -61,7 +61,7 @@ export const Palette: Story = {
         <Swatch token="--info" />
         <Swatch token="--info-soft" />
       </Group>
-    </Sheet>
+    </Page>
   ),
 };
 
@@ -76,7 +76,7 @@ const tones: { tone: Tone; label: string }[] = [
 /** The two places colour is actually spent: the five-tone status system and the blue budget. */
 export const InUse: Story = {
   render: () => (
-    <Sheet
+    <Page
       title="Colour in use"
       lede="Status reaches colour only through tone. Blue has four permitted uses."
     >
@@ -117,6 +117,6 @@ export const InUse: Story = {
           <div className="text-[11.5px] text-muted-foreground">Link</div>
         </div>
       </Group>
-    </Sheet>
+    </Page>
   ),
 };

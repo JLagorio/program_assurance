@@ -38,7 +38,7 @@ export function useComputed<T extends HTMLElement>(ref: RefObject<T | null>, pro
   return value;
 }
 
-export function Sheet({
+export function Page({
   title,
   lede,
   children,

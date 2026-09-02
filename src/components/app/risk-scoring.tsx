@@ -35,8 +35,8 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, Meter, Table, Id, Empty } from "@/ds/primitives";
-import { EmptyState } from "@/ds/patterns";
+import { Badge, Progress, Table, Id, Absent } from "@/ds/primitives";
+import { Empty } from "@/ds/patterns";
 import {
   bandTone,
   factorOrder,
@@ -206,10 +206,10 @@ export function FactorTable({ score }: { score: ResidualScore }) {
                 : `Sum of the ${score.factors.length} contributions above. The positive factors alone ceiling at ${ceiling}; the credit is what comes back off.`}
             </Table.Cell>
             <Table.Cell className="text-right">
-              <Empty />
+              <Absent />
             </Table.Cell>
             <Table.Cell className="text-right">
-              <Empty />
+              <Absent />
             </Table.Cell>
             <Table.Cell className="tnum text-right">{score.score}</Table.Cell>
           </tr>
@@ -289,13 +289,13 @@ function MissingFactorRows({ factorKey, caveats }: { factorKey: FactorKey; cavea
           </Badge>
         </Table.Cell>
         <Table.Cell className="py-2 align-top text-right">
-          <Empty />
+          <Absent />
         </Table.Cell>
         <Table.Cell className="tnum py-2 align-top text-right line-through">
           {fixed2(weight)}
         </Table.Cell>
         <Table.Cell className="py-2 align-top text-right">
-          <Empty />
+          <Absent />
         </Table.Cell>
       </Table.Row>
       <Table.Row className="align-top hover:bg-transparent">
@@ -421,7 +421,7 @@ export function BandDistribution({ byBand }: { byBand: { band: RiskBand; count: 
   if (total === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="Nothing scored"
           description="No finding in this program resolved to a scorable record, so there is no distribution to show."
         />
@@ -430,7 +430,7 @@ export function BandDistribution({ byBand }: { byBand: { band: RiskBand; count: 
   }
   return (
     <div className="space-y-3 pt-4">
-      <Meter.Stacked
+      <Progress.Stacked
         segments={byBand
           .filter((b) => b.count > 0)
           .map((b) => ({
@@ -446,7 +446,7 @@ export function BandDistribution({ byBand }: { byBand: { band: RiskBand; count: 
           <div key={b.band} className="grid grid-cols-[120px_44px_1fr_52px] items-center gap-3">
             <BandChip band={b.band} size="xs" />
             <span className="tnum text-right text-[12.5px] font-medium">{b.count}</span>
-            <Meter value={(b.count / total) * 100} tone={bandTone[b.band]} />
+            <Progress value={(b.count / total) * 100} tone={bandTone[b.band]} />
             <span className="tnum text-right text-[12px] text-muted-foreground">
               {Math.round((b.count / total) * 100)}%
             </span>
@@ -490,7 +490,7 @@ export function TopRisksTable({
   if (rows.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="Nothing to score"
           description="No finding or register risk in this program resolves to a record the model can read, so there is no residual to publish."
         />
@@ -552,7 +552,7 @@ export function TopRisksTable({
               <Table.Cell className={cn(row.excluded && "")}>{row.title}</Table.Cell>
               <Table.Cell title={row.context}>{row.context}</Table.Cell>
               <Table.Cell title={driver ? driver.rationale : undefined}>
-                {driver ? `${driver.label} ${signed(driver.contribution)}` : <Empty />}
+                {driver ? `${driver.label} ${signed(driver.contribution)}` : <Absent />}
               </Table.Cell>
               <Table.Cell className="tnum text-right">{row.score.inherent}</Table.Cell>
               {/* A zero credit is a RESULT — nobody claimed a compensating
@@ -563,7 +563,7 @@ export function TopRisksTable({
               </Table.Cell>
               {showAuthored ? (
                 <Table.Cell className="tnum text-right">
-                  {typeof row.authored === "number" ? row.authored : <Empty />}
+                  {typeof row.authored === "number" ? row.authored : <Absent />}
                 </Table.Cell>
               ) : null}
               <Table.Cell className="tnum text-right">{row.score.score}</Table.Cell>
@@ -589,7 +589,7 @@ export function MoversTable({ movers }: { movers: RiskMover[] }) {
   if (movers.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="Nothing moved"
           description="No finding in this program carries a KEV listing or sits under an unacknowledged significant change, so no score differs from what it would have been on the evidence alone."
         />
@@ -656,7 +656,7 @@ export function AuthoredComparisonTable({ rows }: { rows: ComparisonRow[] }) {
   if (rows.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="No register risk to compare"
           description="This program carries no register risk with a finding joined to it, so there is no authored residual to set the computed one beside."
         />

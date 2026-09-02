@@ -33,7 +33,8 @@ export function Input({ className, ...props }: ComponentProps<"input">) {
   return <input className={cn(controlBase, className)} {...props} />;
 }
 
-export function Select({ className, ...props }: ComponentProps<"select">) {
+/** The browser's own select with the kit's look. For options that carry a Dot or a Badge, see Select. */
+export function NativeSelect({ className, ...props }: ComponentProps<"select">) {
   return (
     <select
       className={cn(controlBase, "select-chevron appearance-none pr-8", className)}
@@ -140,11 +141,11 @@ export function Switch({
   );
 }
 
-function RadioRoot({ className, ...props }: ComponentProps<typeof RadioGroupPrimitive.Root>) {
+function RadioGroupRoot({ className, ...props }: ComponentProps<typeof RadioGroupPrimitive.Root>) {
   return <RadioGroupPrimitive.Root className={cn("grid gap-2", className)} {...props} />;
 }
 
-function RadioItem({
+function RadioGroupItem({
   children,
   className,
   ...props
@@ -172,4 +173,4 @@ function RadioItem({
   );
 }
 
-export const Radio = Object.assign(RadioRoot, { Item: RadioItem });
+export const RadioGroup = Object.assign(RadioGroupRoot, { Item: RadioGroupItem });

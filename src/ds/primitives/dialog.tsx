@@ -1,4 +1,4 @@
-import * as Dialog from "@radix-ui/react-dialog";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
    aside of facts, footer actions. Focus moves in on open and back on close;
    Escape and the scrim close it; the page behind stops scrolling. Header and
    footer stay put while a long body scrolls. */
-export function Modal({
+export function Dialog({
   open,
   onClose,
   title,
@@ -28,16 +28,16 @@ export function Modal({
   width?: "md" | "lg";
 }) {
   return (
-    <Dialog.Root
+    <DialogPrimitive.Root
       open={open}
       onOpenChange={(next) => {
         if (!next) onClose();
       }}
     >
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-foreground/25 backdrop-blur-[1px] animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-foreground/25 backdrop-blur-[1px] animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-10">
-          <Dialog.Content
+          <DialogPrimitive.Content
             {...(description ? {} : { "aria-describedby": undefined })}
             className={cn(
               "relative flex max-h-full w-full flex-col overflow-hidden rounded-xl bg-card shadow-pop outline-none",
@@ -46,13 +46,13 @@ export function Modal({
             )}
           >
             <div className="shrink-0 border-b border-border py-3.5 pl-5 pr-14">
-              <Dialog.Title className="text-[15px] font-medium tracking-[-0.01em]">
+              <DialogPrimitive.Title className="text-[15px] font-medium tracking-[-0.01em]">
                 {title}
-              </Dialog.Title>
+              </DialogPrimitive.Title>
               {description ? (
-                <Dialog.Description className="mt-0.5 text-[13px] text-muted-foreground">
+                <DialogPrimitive.Description className="mt-0.5 text-[13px] text-muted-foreground">
                   {description}
-                </Dialog.Description>
+                </DialogPrimitive.Description>
               ) : null}
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto">
@@ -70,7 +70,7 @@ export function Modal({
                 {footer}
               </div>
             ) : null}
-            <Dialog.Close asChild>
+            <DialogPrimitive.Close asChild>
               <button
                 type="button"
                 aria-label="Close"
@@ -78,10 +78,10 @@ export function Modal({
               >
                 <X className="size-3.5" />
               </button>
-            </Dialog.Close>
-          </Dialog.Content>
+            </DialogPrimitive.Close>
+          </DialogPrimitive.Content>
         </div>
-      </Dialog.Portal>
-    </Dialog.Root>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   );
 }

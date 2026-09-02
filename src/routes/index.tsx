@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Download } from "lucide-react";
 
-import { Badge, Button, Dot, Meter, Table, Id } from "@/ds/primitives";
+import { Badge, Button, Dot, Progress, Table, Id } from "@/ds/primitives";
 import { PageHeader, Section } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import { activity, frameworks, riskStatusTone, risks } from "@/lib/grc-data";
@@ -142,7 +142,7 @@ function Overview() {
                       <Table.Cell>{risk.owner}</Table.Cell>
                       <Table.Cell>
                         <div className="flex items-center gap-2">
-                          <Meter
+                          <Progress
                             value={risk.residual}
                             tone={
                               risk.residual > 60
@@ -182,7 +182,7 @@ function Overview() {
                       <Table.Cell>{fw.name}</Table.Cell>
                       <Table.Cell>
                         <div className="flex items-center gap-2">
-                          <Meter value={fw.coverage} tone={fw.tone} />
+                          <Progress value={fw.coverage} tone={fw.tone} />
                           <span className="tnum w-8 shrink-0 text-right text-[12px] font-medium">
                             {fw.coverage}%
                           </span>

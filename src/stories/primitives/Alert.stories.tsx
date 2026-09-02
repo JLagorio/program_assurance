@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Badge, Notice, Id } from "@/ds/primitives";
+import { Badge, Alert, Id } from "@/ds/primitives";
 import { Spec } from "../_lib/tokens";
 
 const meta = {
-  title: "Primitives/Notice",
-  component: Notice,
+  title: "Primitives/Alert",
+  component: Alert,
   tags: ["autodocs"],
   args: {
     tone: "warning",
@@ -20,7 +20,7 @@ const meta = {
     children: { control: false },
     className: { control: false },
   },
-} satisfies Meta<typeof Notice>;
+} satisfies Meta<typeof Alert>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -28,7 +28,7 @@ type Story = StoryObj<typeof meta>;
 export const Playground: Story = {
   render: (args) => (
     <div className="max-w-[272px]">
-      <Notice {...args} />
+      <Alert {...args} />
     </div>
   ),
 };
@@ -53,16 +53,16 @@ export const Matrix: Story = {
     <div className="max-w-[720px] space-y-8">
       <div className="max-w-[272px] space-y-3">
         <Spec>title only · rail width 272</Spec>
-        <Notice tone="danger" title="Shared responsibility with no consumer obligation stated." />
-        <Notice tone="warning" title="Evidence is 34 days old; the SLA is 30." />
-        <Notice tone="success" title="Every objective in scope has a signed run." />
-        <Notice tone="info" title="Derived from the composition graph, not asserted." />
-        <Notice tone="neutral" title="Not assessed in this scope." />
+        <Alert tone="danger" title="Shared responsibility with no consumer obligation stated." />
+        <Alert tone="warning" title="Evidence is 34 days old; the SLA is 30." />
+        <Alert tone="success" title="Every objective in scope has a signed run." />
+        <Alert tone="info" title="Derived from the composition graph, not asserted." />
+        <Alert tone="neutral" title="Not assessed in this scope." />
       </div>
 
       <div className="space-y-3">
         <Spec>title + body · above a table</Spec>
-        <Notice tone="danger" title="2 objectives have no procedure written">
+        <Alert tone="danger" title="2 objectives have no procedure written">
           <div className="space-y-1.5 text-[12.5px]">
             {gaps.map((g) => (
               <div key={g.id} className="flex items-baseline gap-2">
@@ -79,16 +79,16 @@ export const Matrix: Story = {
           <p className="pt-2 text-[12px] leading-relaxed text-muted-foreground">
             Nothing is written to execute against these objectives, so no run can ever move them.
           </p>
-        </Notice>
+        </Alert>
       </div>
 
       <div className="max-w-[420px] space-y-3">
         <Spec>body only · running text</Spec>
-        <Notice tone="danger" className="leading-relaxed">
+        <Alert tone="danger" className="leading-relaxed">
           CN-0220 keycloak-idp offers AC-2(3) as Hybrid — shared responsibility — and states no
           consumer obligation. Until the obligation is written down, nobody implements it and no
           assessor tests it.
-        </Notice>
+        </Alert>
       </div>
     </div>
   ),

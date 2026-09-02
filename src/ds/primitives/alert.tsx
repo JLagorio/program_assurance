@@ -7,7 +7,7 @@ import { toneClasses } from "./tone";
 import type { Tone } from "./tone";
 
 /** Tinted callout in a rail or above a table: Dot, a title in the tone colour, optional body. */
-export function Notice({
+export function Alert({
   tone = "warning",
   title,
   children,
@@ -20,6 +20,7 @@ export function Notice({
 }) {
   return (
     <div
+      role={tone === "danger" ? "alert" : "status"}
       className={cn(
         "rounded-md px-3 py-2.5 text-[12.5px] leading-snug",
         toneClasses[tone].soft,
@@ -39,5 +40,3 @@ export function Notice({
     </div>
   );
 }
-
-/* Families export one root with their parts hung off it: <Table.Cell>, <Id.List>, <Stat.Tile>. */

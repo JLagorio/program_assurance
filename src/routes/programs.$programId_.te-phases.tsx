@@ -1,8 +1,8 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 
-import { Badge, KeyValue, Select, Table, Toolbar, Id, Tabs } from "@/ds/primitives";
-import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Badge, KeyValue, NativeSelect, Table, Toolbar, Id, Tabs } from "@/ds/primitives";
+import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { Shell } from "@/ds/shell";
 import {
@@ -443,7 +443,7 @@ function ProgramTePhases() {
             >
               {phases.length === 0 ? (
                 <div className="pt-4">
-                  <EmptyState
+                  <Empty
                     title="No cyber T&E phases recorded"
                     description={`${program.id} carries no phase record, so there is no gate to judge and no threat portrayal to execute against.`}
                   />
@@ -556,7 +556,7 @@ function ProgramTePhases() {
                   }
                 >
                   <span className="text-[12px] text-muted-foreground">Phase</span>
-                  <Select
+                  <NativeSelect
                     value={selectedPhase.id}
                     onChange={(e) => {
                       const next = e.target.value;
@@ -576,7 +576,7 @@ function ProgramTePhases() {
                         </option>
                       );
                     })}
-                  </Select>
+                  </NativeSelect>
                 </Toolbar>
 
                 <Section
@@ -649,7 +649,7 @@ function ProgramTePhases() {
               </>
             ) : (
               <div className="pt-4">
-                <EmptyState
+                <Empty
                   title="No phase to judge"
                   description={`${program.id} carries no cyber T&E phase record, so there is no entry or exit criterion to evaluate.`}
                 />
@@ -661,7 +661,7 @@ function ProgramTePhases() {
         {tab === "Threat scenarios" ? (
           scenarios.length === 0 ? (
             <div className="pt-4">
-              <EmptyState
+              <Empty
                 title="No threat scenario written"
                 description={`${program.id} carries no threat portrayal, so there is no attack surface characterised and nothing for a red team to execute against.`}
               />
@@ -737,7 +737,7 @@ function ProgramTePhases() {
         {tab === "Mission effects" ? (
           effects.length === 0 ? (
             <div className="pt-4">
-              <EmptyState
+              <Empty
                 title="No mission effect recorded"
                 description={`${program.id} has executed no scenario against a mission function, so there is nothing to score. An adversarial assessment with no recorded effect has not been run — it is not a clean result.`}
               />

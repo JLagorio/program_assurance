@@ -8,13 +8,14 @@ import {
   Field,
   FilterChip,
   Input,
-  Meter,
-  Select,
+  Progress,
+  NativeSelect,
   Table,
   Textarea,
   Id,
+  Dialog,
 } from "@/ds/primitives";
-import { Modal, PageHeader, IndexPage } from "@/ds/patterns";
+import { PageHeader, IndexPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import { riskStatusTone, risks } from "@/lib/grc-data";
 
@@ -199,7 +200,7 @@ function RiskList() {
                     <span className="tnum w-5 text-right text-[12px] text-muted-foreground/70 line-through">
                       {risk.inherent}
                     </span>
-                    <Meter
+                    <Progress
                       value={risk.residual}
                       tone={
                         risk.residual > 60 ? "danger" : risk.residual > 30 ? "warning" : "success"
@@ -249,7 +250,7 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
   const residual = Math.round(inherent * (treatment === "Accept" ? 0.95 : 0.55));
 
   return (
-    <Modal
+    <Dialog
       open={open}
       onClose={onClose}
       width="lg"
@@ -277,7 +278,7 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
                 <dt className="text-muted-foreground">Residual</dt>
                 <dd className="tnum font-medium">{residual}</dd>
               </div>
-              <Meter
+              <Progress
                 value={residual}
                 tone={residual > 60 ? "danger" : residual > 30 ? "warning" : "success"}
               />
@@ -315,32 +316,32 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Framework">
-            <Select value={framework} onChange={(e) => setFramework(e.target.value)}>
+            <NativeSelect value={framework} onChange={(e) => setFramework(e.target.value)}>
               {["SOC 2", "ISO 27001", "GDPR", "PCI DSS"].map((f) => (
                 <option key={f}>{f}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Linked control">
-            <Select value={control} onChange={(e) => setControl(e.target.value)}>
+            <NativeSelect value={control} onChange={(e) => setControl(e.target.value)}>
               {["CC6.1", "CC6.2", "CC7.2", "CC9.2", "A.8.9"].map((c) => (
                 <option key={c}>{c}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Owner">
-            <Select value={owner} onChange={(e) => setOwner(e.target.value)}>
+            <NativeSelect value={owner} onChange={(e) => setOwner(e.target.value)}>
               {["Sarah Chen", "Linus Aarto", "Marcus Ryde", "Priya Raghavan"].map((o) => (
                 <option key={o}>{o}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Treatment">
-            <Select value={treatment} onChange={(e) => setTreatment(e.target.value)}>
+            <NativeSelect value={treatment} onChange={(e) => setTreatment(e.target.value)}>
               {["Mitigate", "Accept", "Transfer", "Avoid"].map((t) => (
                 <option key={t}>{t}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Likelihood (1–5)">
             <Input
@@ -362,6 +363,6 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
           </Field>
         </div>
       </div>
-    </Modal>
+    </Dialog>
   );
 }

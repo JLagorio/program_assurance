@@ -15,8 +15,8 @@ import {
   type ComparisonRow,
   type ScoredSubject,
 } from "@/components/app/risk-scoring";
-import { Badge, Select, Toolbar, Id, Tabs } from "@/ds/primitives";
-import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Badge, NativeSelect, Toolbar, Id, Tabs } from "@/ds/primitives";
+import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import { assetById, findings, isDeficiency } from "@/lib/findings";
 import { programs } from "@/lib/grc-data";
@@ -343,7 +343,7 @@ function ProgramRisk() {
               >
                 <Toolbar>
                   <span className="text-[12px] text-muted-foreground">Finding</span>
-                  <Select
+                  <NativeSelect
                     value={selected.score.subject}
                     onChange={(e) => selectSubject(e.target.value)}
                     aria-label="Scored finding"
@@ -354,7 +354,7 @@ function ProgramRisk() {
                         {r.score.subject} — {r.score.score} {r.score.band} — {r.title}
                       </option>
                     ))}
-                  </Select>
+                  </NativeSelect>
                 </Toolbar>
                 <div className="space-y-4">
                   <ScoreCard score={selected.score} subject={selected.title} />
@@ -367,7 +367,7 @@ function ProgramRisk() {
                 description="Select a finding above to read the arithmetic behind its residual."
               >
                 <div className="pt-4">
-                  <EmptyState
+                  <Empty
                     title="Nothing selected"
                     description={`${program.id} has no scored finding to open, so there is no factor table to read.`}
                   />
@@ -427,7 +427,7 @@ function ProgramRisk() {
                 description="A worked example has to be worked on a real finding, and this program has none."
               >
                 <div className="pt-4">
-                  <EmptyState
+                  <Empty
                     title="No finding to work through"
                     description={`${program.id} carries no scorable finding, so any example on this page would be a fabrication.`}
                   />

@@ -9,12 +9,13 @@ import {
   Field,
   Input,
   KeyValue,
-  Select,
+  NativeSelect,
   Table,
   Textarea,
   Id,
+  Dialog,
 } from "@/ds/primitives";
-import { Modal, Section } from "@/ds/patterns";
+import { Section } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { Shell } from "@/ds/shell";
 import { riskStatusTone, risks } from "@/lib/grc-data";
@@ -213,7 +214,7 @@ function RiskDetail() {
         </div>
       </div>
 
-      <Modal
+      <Dialog
         open={treating}
         onClose={() => setTreating(false)}
         title="Add treatment"
@@ -231,29 +232,29 @@ function RiskDetail() {
       >
         <div className="space-y-3.5">
           <Field label="Action">
-            <Select defaultValue="Mitigate">
+            <NativeSelect defaultValue="Mitigate">
               {["Mitigate", "Accept", "Transfer", "Avoid"].map((t) => (
                 <option key={t}>{t}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Plan" hint="Include the control change and how it will be verified.">
             <Textarea placeholder="Enforce tenant scoping in the export resolver and add a regression test." />
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Assignee">
-              <Select defaultValue={risk.owner}>
+              <NativeSelect defaultValue={risk.owner}>
                 {["Sarah Chen", "Linus Aarto", "Marcus Ryde", "Priya Raghavan"].map((o) => (
                   <option key={o}>{o}</option>
                 ))}
-              </Select>
+              </NativeSelect>
             </Field>
             <Field label="Due date">
               <Input type="date" defaultValue="2026-03-31" />
             </Field>
           </div>
         </div>
-      </Modal>
+      </Dialog>
     </Shell>
   );
 }

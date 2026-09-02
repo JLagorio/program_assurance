@@ -8,7 +8,7 @@
 
 import { Check } from "lucide-react";
 
-import { Meter, Id } from "@/ds/primitives";
+import { Progress, Id } from "@/ds/primitives";
 import { Section } from "@/ds/patterns";
 import { cn } from "@/lib/utils";
 import type { Coverage, MilestoneNode } from "@/lib/program-coverage";
@@ -58,7 +58,7 @@ export function CoverageBand({
           </span>
         </div>
 
-        <Meter.Stacked
+        <Progress.Stacked
           segments={coverage.segments.map((s) => ({
             key: s.key,
             value: s.value,
@@ -97,7 +97,7 @@ export function CoverageBand({
                   {f.name}
                 </span>
                 <span className="w-24 shrink-0">
-                  <Meter.Stacked
+                  <Progress.Stacked
                     height={4}
                     segments={[
                       { key: "s", value: f.satisfied, tone: "success" },

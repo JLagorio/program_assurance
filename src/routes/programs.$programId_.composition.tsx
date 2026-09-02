@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useMemo } from "react";
 
 import { Badge, KeyValue, Table, Id, Tabs } from "@/ds/primitives";
-import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { Shell } from "@/ds/shell";
 import {
@@ -281,7 +281,7 @@ function ProgramComposition() {
             description="No hardware, firmware or software items have been declared for this program."
           >
             <div className="pt-4">
-              <EmptyState
+              <Empty
                 title="Nothing in the composition"
                 description={`${program.id} carries no BOM. A CycloneDX, SPDX, hardware part list or firmware manifest delivery populates this page.`}
               />
@@ -490,7 +490,7 @@ function ProgramComposition() {
               </Table>
             ) : (
               <div className="pt-4">
-                <EmptyState
+                <Empty
                   title="No BOM deliveries on file"
                   description="Every component below was hand-declared. A signed CycloneDX or SPDX delivery replaces the declaration with an assertion."
                 />

@@ -39,8 +39,8 @@ import { Fragment, useMemo, useState } from "react";
 import { Download } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Badge, Button, Table, Id, Empty } from "@/ds/primitives";
-import { EmptyState } from "@/ds/patterns";
+import { Badge, Button, Table, Id, Absent } from "@/ds/primitives";
+import { Empty } from "@/ds/patterns";
 import {
   digestAlgorithm,
   reconcileStateTone,
@@ -344,7 +344,7 @@ export function EmassTable({ sheet, pageSize = 40 }: { sheet: EmassExport; pageS
 
   if (sheet.rows.length === 0) {
     return (
-      <EmptyState
+      <Empty
         title={`The ${sheet.kind} sheet has no rows for this program`}
         description={sheet.note}
       />
@@ -392,7 +392,7 @@ export function EmassTable({ sheet, pageSize = 40 }: { sheet: EmassExport; pageS
                 const cell = (row[i] ?? "").trim();
                 return (
                   <Table.Cell key={column} title={cell === "" ? "—" : cell}>
-                    {cell === "" ? <Empty /> : cell}
+                    {cell === "" ? <Absent /> : cell}
                   </Table.Cell>
                 );
               })}
@@ -408,7 +408,7 @@ export function EmassTable({ sheet, pageSize = 40 }: { sheet: EmassExport; pageS
 
 /** The full digest, wrapped rather than elided — a truncated hash checks nothing. */
 function Hash({ value }: { value: string }) {
-  if (value === "—") return <Empty />;
+  if (value === "—") return <Absent />;
   return (
     <span className="block break-all text-[10.5px] leading-[1.45] text-muted-foreground">
       {value}
@@ -497,7 +497,7 @@ export function BundleManifest({
                       <Download className="size-3" /> File
                     </Button>
                   ) : (
-                    <Empty />
+                    <Absent />
                   )}
                 </Table.Cell>
               </Table.Row>

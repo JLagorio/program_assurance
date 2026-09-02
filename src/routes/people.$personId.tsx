@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 
-import { Badge, KeyValue, Meter, Table, Id } from "@/ds/primitives";
+import { Badge, KeyValue, Progress, Table, Id } from "@/ds/primitives";
 import { RecordHeader, ShowPage, Section } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { Shell } from "@/ds/shell";
@@ -84,7 +84,7 @@ function PersonDetail() {
               <KeyValue label="Allocation">
                 <span className="flex items-center gap-2">
                   <span className="w-12">
-                    <Meter
+                    <Progress
                       value={Math.min(alloc, 100)}
                       tone={alloc > 100 ? "danger" : alloc > 85 ? "warning" : "info"}
                     />

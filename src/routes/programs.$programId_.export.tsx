@@ -10,8 +10,8 @@ import {
   ReconcileVerdict,
   downloadText,
 } from "@/components/app/export";
-import { Badge, Select, Toolbar, Id, Tabs } from "@/ds/primitives";
-import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Badge, NativeSelect, Toolbar, Id, Tabs } from "@/ds/primitives";
+import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import {
   bundleArtifactText,
@@ -268,7 +268,7 @@ function ProgramExport() {
                 </span>
               }
             >
-              <Select
+              <NativeSelect
                 value={model}
                 onChange={(e) => setModel(e.target.value as OscalModel)}
                 className="h-7 w-[268px] text-13"
@@ -278,7 +278,7 @@ function ProgramExport() {
                     {oscalModelLabels[m]}
                   </option>
                 ))}
-              </Select>
+              </NativeSelect>
             </Toolbar>
 
             <div className="pt-2">
@@ -311,7 +311,7 @@ function ProgramExport() {
                 <span className="text-12 text-muted-foreground">RFC 4180, CRLF line endings</span>
               }
             >
-              <Select
+              <NativeSelect
                 value={sheetKind}
                 onChange={(e) => setSheetKind(e.target.value as EmassExportKind)}
                 className="h-7 w-[224px] text-13"
@@ -321,7 +321,7 @@ function ProgramExport() {
                     {kind}
                   </option>
                 ))}
-              </Select>
+              </NativeSelect>
             </Toolbar>
 
             <div className="pt-2">
@@ -374,7 +374,7 @@ function ProgramExport() {
               description={`Every path on either manifest, compared by ${digestAlgorithm}. The verdict is what a receiving ISSM acts on; the rows underneath are the comparison it rests on, down to the first differing line of each artifact this side also holds.`}
               action={
                 received.length > 1 ? (
-                  <Select
+                  <NativeSelect
                     value={activeReceived.id}
                     onChange={(e) => setReceivedId(e.target.value)}
                     className="h-7 w-[200px] text-13"
@@ -384,7 +384,7 @@ function ProgramExport() {
                         {b.id} · {b.created}
                       </option>
                     ))}
-                  </Select>
+                  </NativeSelect>
                 ) : (
                   <span className="text-12 text-muted-foreground">
                     Media created {activeReceived.created}
@@ -425,7 +425,7 @@ function ProgramExport() {
               description="Reconciliation compares a manifest that arrived on media against the bundle this side generates, path by path."
             >
               <div className="pt-3">
-                <EmptyState
+                <Empty
                   title={`No media has been received for ${program.id}`}
                   description="When a bundle arrives from the far side, its manifest is registered here and every path on either side is compared by digest — identical, changed, present only here, or present only on the media — with the manifest's own digest re-derived rather than trusted."
                 />

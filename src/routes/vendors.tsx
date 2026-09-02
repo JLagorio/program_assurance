@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
-import { Badge, Button, Meter, Table, Id } from "@/ds/primitives";
+import { Badge, Button, Progress, Table, Id } from "@/ds/primitives";
 import { Card, IndexPage, PageHeader } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 
@@ -145,7 +145,7 @@ function Vendors() {
                   </Table.Cell>
                   <Table.Cell>
                     <div className="flex items-center gap-2">
-                      <Meter
+                      <Progress
                         value={vendor.score}
                         tone={
                           vendor.score > 60 ? "danger" : vendor.score > 30 ? "warning" : "success"

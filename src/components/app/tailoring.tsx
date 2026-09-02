@@ -1,8 +1,19 @@
 import { useMemo, useState } from "react";
 import { Check, Pencil, Send, X } from "lucide-react";
 
-import { Badge, Button, Dot, Field, Input, Select, Table, Textarea, Id } from "@/ds/primitives";
-import { Modal, Section } from "@/ds/patterns";
+import {
+  Badge,
+  Button,
+  Dot,
+  Field,
+  Input,
+  NativeSelect,
+  Table,
+  Textarea,
+  Id,
+  Dialog,
+} from "@/ds/primitives";
+import { Section } from "@/ds/patterns";
 import {
   approvalTone,
   classifications,
@@ -276,7 +287,7 @@ export function TailoringSection({
       </div>
 
       {/* ------------------------------------------------ parameters modal */}
-      <Modal
+      <Dialog
         open={editing}
         onClose={() => setEditing(false)}
         width="lg"
@@ -298,42 +309,42 @@ export function TailoringSection({
           <div className="grid grid-cols-3 gap-3">
             {(["confidentiality", "integrity", "availability"] as const).map((k) => (
               <Field key={k} label={k.charAt(0).toUpperCase() + k.slice(1)}>
-                <Select
+                <NativeSelect
                   value={draft[k]}
                   onChange={(e) => setDraft({ ...draft, [k]: e.target.value as ImpactLevel })}
                 >
                   {impactLevels.map((l) => (
                     <option key={l}>{l}</option>
                   ))}
-                </Select>
+                </NativeSelect>
               </Field>
             ))}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Field label="System class">
-              <Select
+              <NativeSelect
                 value={draft.systemClass}
                 onChange={(e) => setDraft({ ...draft, systemClass: e.target.value as SystemClass })}
               >
                 {systemClasses.map((s) => (
                   <option key={s}>{s}</option>
                 ))}
-              </Select>
+              </NativeSelect>
             </Field>
             <Field label="Hosting">
-              <Select
+              <NativeSelect
                 value={draft.hosting}
                 onChange={(e) => setDraft({ ...draft, hosting: e.target.value as Hosting })}
               >
                 {hostingOptions.map((s) => (
                   <option key={s}>{s}</option>
                 ))}
-              </Select>
+              </NativeSelect>
             </Field>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Classification">
-              <Select
+              <NativeSelect
                 value={draft.classification}
                 onChange={(e) =>
                   setDraft({ ...draft, classification: e.target.value as Classification })
@@ -342,10 +353,10 @@ export function TailoringSection({
                 {classifications.map((s) => (
                   <option key={s}>{s}</option>
                 ))}
-              </Select>
+              </NativeSelect>
             </Field>
             <Field label="Connectivity">
-              <Select
+              <NativeSelect
                 value={draft.connectivity}
                 onChange={(e) =>
                   setDraft({ ...draft, connectivity: e.target.value as Connectivity })
@@ -354,7 +365,7 @@ export function TailoringSection({
                 {connectivityOptions.map((s) => (
                   <option key={s}>{s}</option>
                 ))}
-              </Select>
+              </NativeSelect>
             </Field>
           </div>
           <div className="flex flex-wrap items-center gap-5 border-t border-border pt-3">
@@ -377,10 +388,10 @@ export function TailoringSection({
             ))}
           </div>
         </div>
-      </Modal>
+      </Dialog>
 
       {/* --------------------------------------------------- submit modal */}
-      <Modal
+      <Dialog
         open={submitting}
         onClose={() => setSubmitting(false)}
         title="Submit scope for PM approval"
@@ -404,10 +415,10 @@ export function TailoringSection({
             <Textarea placeholder="Tailored scope reflects the DDIL tactical profile agreed at the SRR working group." />
           </Field>
         </div>
-      </Modal>
+      </Dialog>
 
       {/* -------------------------------------------------- decision modal */}
-      <Modal
+      <Dialog
         open={deciding !== null}
         onClose={() => setDeciding(null)}
         title={deciding === "approve" ? "Approve compliance scope" : "Request changes"}
@@ -436,7 +447,7 @@ export function TailoringSection({
         >
           <Textarea value={note} onChange={(e) => setNote(e.target.value)} />
         </Field>
-      </Modal>
+      </Dialog>
     </>
   );
 }

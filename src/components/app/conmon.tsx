@@ -35,8 +35,8 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, Table, Id, Empty } from "@/ds/primitives";
-import { EmptyState } from "@/ds/patterns";
+import { Badge, Table, Id, Absent } from "@/ds/primitives";
+import { Empty } from "@/ds/patterns";
 import {
   alertSeverityTone,
   assessmentStatusTone,
@@ -70,7 +70,7 @@ function fixed2(n: number): string {
 
 /** A day count that is genuinely absent renders as an em dash, never as 0. */
 function Days({ value, suffix = "d" }: { value: number | null; suffix?: string }) {
-  if (value === null) return <Empty />;
+  if (value === null) return <Absent />;
   return (
     <span className="tnum">
       {value}
@@ -350,10 +350,10 @@ export function DriftFactorTable({ score }: { score: DriftScore }) {
                 : `Sum of the ${factors.length} contribution${factors.length === 1 ? "" : "s"} above, against a ceiling of ${applied}.`}
             </Table.Cell>
             <Table.Cell className="text-right">
-              <Empty />
+              <Absent />
             </Table.Cell>
             <Table.Cell className="text-right">
-              <Empty />
+              <Absent />
             </Table.Cell>
             <Table.Cell className="tnum text-right">{score.score}</Table.Cell>
           </tr>
@@ -431,13 +431,13 @@ function MissingDriftFactorRows({
           </Badge>
         </Table.Cell>
         <Table.Cell className="py-2 align-top text-right">
-          <Empty />
+          <Absent />
         </Table.Cell>
         <Table.Cell className="tnum py-2 align-top text-right line-through">
           {fixed2(weight)}
         </Table.Cell>
         <Table.Cell className="py-2 align-top text-right">
-          <Empty />
+          <Absent />
         </Table.Cell>
       </Table.Row>
       <Table.Row className="align-top hover:bg-transparent">
@@ -516,7 +516,7 @@ export function AlertList({
   if (alerts.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title={empty?.title ?? "Nothing has diverged"}
           description={
             empty?.description ??
@@ -574,7 +574,7 @@ export function ScheduleTable({ rows }: { rows: ScheduleRow[] }) {
   if (rows.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="No continuous monitoring strategy on file"
           description="No control in this program carries an SLCM frequency, method or responsible entity, so there is no schedule to fall behind. An empty ConMon strategy is a finding in its own right — it is not the same as a program that is up to date."
         />
@@ -627,7 +627,7 @@ function ScheduleRows({ row, explain }: { row: ScheduleRow; explain: boolean }) 
           <Id>{row.control}</Id>
         </Table.Cell>
         <Table.Cell className="py-2 align-top" title={row.controlTitle}>
-          {row.controlTitle === "—" ? <Empty /> : row.controlTitle}
+          {row.controlTitle === "—" ? <Absent /> : row.controlTitle}
         </Table.Cell>
         <Table.Cell className="py-2 align-top">{row.frequency}</Table.Cell>
         <Table.Cell className="py-2 align-top">
@@ -637,10 +637,10 @@ function ScheduleRows({ row, explain }: { row: ScheduleRow; explain: boolean }) 
           {row.responsible}
         </Table.Cell>
         <Table.Cell className="tnum py-2 align-top">
-          {row.lastAssessed === "—" ? <Empty /> : row.lastAssessed}
+          {row.lastAssessed === "—" ? <Absent /> : row.lastAssessed}
         </Table.Cell>
         <Table.Cell className="tnum py-2 align-top">
-          {row.nextDue === "—" ? <Empty /> : row.nextDue}
+          {row.nextDue === "—" ? <Absent /> : row.nextDue}
         </Table.Cell>
         <Table.Cell
           className={cn(
@@ -680,7 +680,7 @@ export function FreshnessTable({ rows }: { rows: EvidenceSlaRow[] }) {
   if (rows.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="No monitored requirement to age"
           description="No requirement in this program's matrix maps to a control the ConMon strategy covers, so no evidence SLA applies and there is nothing to measure an artifact's age against."
         />
@@ -740,13 +740,13 @@ function FreshnessRows({ row, explain }: { row: EvidenceSlaRow; explain: boolean
         </Table.Cell>
         <Table.Cell className="py-2 align-top" title={row.evidence.join(", ")}>
           {row.evidence.length === 0 ? (
-            <Empty />
+            <Absent />
           ) : (
             `${row.evidence[0]}${row.evidence.length > 1 ? ` +${row.evidence.length - 1} more` : ""}`
           )}
         </Table.Cell>
         <Table.Cell className="tnum py-2 align-top">
-          {row.collected === "—" ? <Empty /> : row.collected}
+          {row.collected === "—" ? <Absent /> : row.collected}
         </Table.Cell>
         <Table.Cell className={cn("py-2 align-top text-right", overdue ? "text-danger" : "")}>
           <Days value={row.ageDays} />
@@ -797,7 +797,7 @@ export function CadenceTable({ rows }: { rows: CadenceRow[] }) {
   if (rows.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="No scan target to measure"
           description="No tracked asset in this program anchors a composition node, so there is no target a scan window could be measured against. Nothing here is being monitored automatically."
         />
@@ -840,17 +840,17 @@ export function CadenceTable({ rows }: { rows: CadenceRow[] }) {
                 {row.targetName}
               </Table.Cell>
               <Table.Cell className="py-2 align-top">
-                {row.format === "—" ? <Empty /> : row.format}
+                {row.format === "—" ? <Absent /> : row.format}
               </Table.Cell>
               <Table.Cell className="py-2 align-top text-right">
                 {row.expectedDays > 0 ? (
                   <span className="tnum">{row.expectedDays}d</span>
                 ) : (
-                  <Empty />
+                  <Absent />
                 )}
               </Table.Cell>
               <Table.Cell className="tnum py-2 align-top">
-                {row.lastScan === "—" ? <Empty /> : row.lastScan}
+                {row.lastScan === "—" ? <Absent /> : row.lastScan}
               </Table.Cell>
               <Table.Cell
                 className={cn(
@@ -892,7 +892,7 @@ export function SlippageTable({ rows }: { rows: SlippageRow[] }) {
   if (rows.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="No POA&M item to track"
           description="This program carries no plan of action and milestones item with a scheduled completion date, so there is no commitment for a slip to be measured against."
         />
@@ -941,10 +941,10 @@ function SlippageRows({ row }: { row: SlippageRow }) {
           {row.title}
         </Table.Cell>
         <Table.Cell className="tnum py-2 align-top">
-          {row.original === "—" ? <Empty /> : row.original}
+          {row.original === "—" ? <Absent /> : row.original}
         </Table.Cell>
         <Table.Cell className="tnum py-2 align-top">
-          {row.scheduled === "—" ? <Empty /> : row.scheduled}
+          {row.scheduled === "—" ? <Absent /> : row.scheduled}
         </Table.Cell>
         <Table.Cell
           className={cn("tnum py-2 align-top text-right", row.slipDays > 0 ? "text-warning" : "")}

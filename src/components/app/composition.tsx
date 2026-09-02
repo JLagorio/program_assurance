@@ -21,14 +21,14 @@ import {
   Button,
   Dot,
   KeyValue,
-  Meter,
+  Progress,
   Table,
   Toolbar,
   Id,
   Indicator,
-  Empty,
+  Absent,
+  type Tone,
 } from "@/ds/primitives";
-import type { Tone } from "@/ds/primitives";
 import { Card } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { cn } from "@/lib/utils";
@@ -445,7 +445,7 @@ export function NodeRail({
         <KeyValue label="Kind">{node.kind}</KeyValue>
         <KeyValue label="Class">{node.class}</KeyValue>
         <KeyValue label="Version">
-          {node.version === "—" ? <Empty /> : <Id>{node.version}</Id>}
+          {node.version === "—" ? <Absent /> : <Id>{node.version}</Id>}
         </KeyValue>
         <KeyValue label="Criticality">{node.criticality}</KeyValue>
         <KeyValue label="Trust zone">{node.zone}</KeyValue>
@@ -478,7 +478,7 @@ export function NodeRail({
         ) : null}
         {node.eol ? <KeyValue label="End of life">{node.eol}</KeyValue> : null}
         <KeyValue label="BOM source">{node.bomSource}</KeyValue>
-        <KeyValue label="BOM document">{node.bom ? <Id>{node.bom}</Id> : <Empty />}</KeyValue>
+        <KeyValue label="BOM document">{node.bom ? <Id>{node.bom}</Id> : <Absent />}</KeyValue>
         <KeyValue label="Attested">
           <Badge size="xs" tone={node.attested ? "success" : "warning"}>
             {node.attested ? "On file" : "Not on file"}
@@ -498,7 +498,7 @@ export function NodeRail({
             {posture.worst ? (
               <Indicator tone={severityToneOf(posture.worst)}>{posture.worst}</Indicator>
             ) : (
-              <Empty />
+              <Absent />
             )}
           </KeyValue>
           <KeyValue label="On this part">
@@ -553,7 +553,7 @@ export function PostureStrip({ posture }: { posture: NodePosture }) {
         ) : null}
       </div>
 
-      <Meter.Stacked
+      <Progress.Stacked
         segments={legend.map((l) => ({
           key: l.key,
           value: l.value,
@@ -703,7 +703,7 @@ function MeterRow({
     <div className="flex items-center gap-3 py-1">
       <span className="w-[108px] shrink-0 truncate text-12 text-muted-foreground">{label}</span>
       <span className="min-w-0 flex-1">
-        <Meter value={pct} tone={tone} />
+        <Progress value={pct} tone={tone} />
       </span>
       <span className="tnum w-8 shrink-0 text-right text-12 font-medium">{value}</span>
       <span className="tnum w-9 shrink-0 text-right text-12 text-muted-foreground">{pct}%</span>
@@ -920,7 +920,7 @@ export function SupplyChainTable({
               <Table.Cell>
                 <span className="flex items-center gap-2">
                   <span className="w-20">
-                    <Meter.Stacked
+                    <Progress.Stacked
                       height={4}
                       segments={[
                         { key: "a", value: r.attested, tone: "success" },
@@ -937,7 +937,7 @@ export function SupplyChainTable({
                 {r.unattested}
               </Table.Cell>
               <Table.Cell className={cn("tnum", past && "text-danger")}>
-                {r.eol === "—" ? <Empty /> : r.eol}
+                {r.eol === "—" ? <Absent /> : r.eol}
                 {past ? <span className="pl-1 text-11">past</span> : null}
               </Table.Cell>
             </Table.Row>

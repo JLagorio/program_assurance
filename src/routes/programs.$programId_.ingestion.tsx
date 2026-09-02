@@ -1,8 +1,8 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Badge, Select, Toolbar, Tabs } from "@/ds/primitives";
-import { EmptyState, Section, ShowPage, RecordHeader } from "@/ds/patterns";
+import { Badge, NativeSelect, Toolbar, Tabs } from "@/ds/primitives";
+import { Empty, Section, ShowPage, RecordHeader } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import {
   DedupRail,
@@ -178,7 +178,7 @@ function ProgramIngestion() {
         }
       >
         <span className="text-[12px] text-muted-foreground">Run</span>
-        <Select
+        <NativeSelect
           value={scan.id}
           onChange={(e) => selectScan(e.target.value)}
           aria-label="Scan run"
@@ -189,7 +189,7 @@ function ProgramIngestion() {
               {s.id} — {s.format} — {s.file}
             </option>
           ))}
-        </Select>
+        </NativeSelect>
       </Toolbar>
     ) : null;
 
@@ -255,7 +255,7 @@ function ProgramIngestion() {
             description="No scanner output has been delivered against this program."
           >
             <div className="pt-4">
-              <EmptyState
+              <Empty
                 title="Nothing ingested"
                 description={`${program.id} has no delivered checklists, SCAP results, ACAS exports, SAST reports, SBOMs or firmware reports. Ingestion begins when a run is filed against a component in the composition.`}
               />

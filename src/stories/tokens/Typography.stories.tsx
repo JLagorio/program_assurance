@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { cn } from "@/lib/utils";
 
-import { Group, Sheet, Spec } from "../_lib/tokens";
+import { Group, Page, Spec } from "../_lib/tokens";
 
 const meta = {
   title: "Tokens/Typography",
@@ -37,22 +37,22 @@ const roles: { role: string; where: string; cls: string; spec: string; sample: s
     sample: "Account Management",
   },
   {
-    role: "Modal title",
-    where: "Modal",
+    role: "Dialog title",
+    where: "Dialog",
     cls: "text-[15px] font-medium tracking-[-0.01em]",
     spec: "15 · 500 · −0.01em",
     sample: "Submit for authorization",
   },
   {
     role: "Card title",
-    where: "CardHeader, Drawer",
+    where: "Card.Header, Sheet",
     cls: "text-[14px] font-medium tracking-[-0.01em]",
     spec: "14 · 500 · −0.01em",
     sample: "Control status",
   },
   {
     role: "Section title",
-    where: "Section, Block, Disclosure",
+    where: "Section, Block, Collapsible",
     cls: "text-[13px] font-medium tracking-[-0.005em]",
     spec: "13 · 500 · −0.005em",
     sample: "Implementation narrative",
@@ -101,7 +101,7 @@ const roles: { role: string; where: string; cls: string; spec: string; sample: s
   },
   {
     role: "Identifier",
-    where: "Mono, IdCell",
+    where: "Id, Table.Id",
     cls: "tnum text-[13px]",
     spec: "13 · 400 · tnum · inherits",
     sample: "FND-2231 · AC-2(3) · PKG-2026-114",
@@ -110,7 +110,7 @@ const roles: { role: string; where: string; cls: string; spec: string; sample: s
 
 export const Roles: Story = {
   render: () => (
-    <Sheet
+    <Page
       title="Typography"
       lede="Inter for everything, identifiers included. Body is 13px; UI text runs smaller than web defaults. Each row is rendered with the app's own classes. Weight 500 for every UI heading; 600 only for page and record titles."
     >
@@ -131,7 +131,7 @@ export const Roles: Story = {
           </div>
         ))}
       </div>
-    </Sheet>
+    </Page>
   ),
 };
 
@@ -145,7 +145,7 @@ const ladder = [
 
 export const Families: Story = {
   render: () => (
-    <Sheet title="Family & ladder">
+    <Page title="Family & ladder">
       <Group title="Inter" note="font-sans · cv11 ss01" cols={1}>
         <div className="space-y-1">
           <div className="text-[22px] font-semibold tracking-[-0.02em]">
@@ -200,6 +200,6 @@ export const Families: Story = {
           </div>
         </div>
       </Group>
-    </Sheet>
+    </Page>
   ),
 };

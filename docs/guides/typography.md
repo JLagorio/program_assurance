@@ -9,7 +9,7 @@ The body base is **14px / 1.45** with −0.006em tracking, ink is `oklch(0.27 0.
 | Size                          | Weight                         | Use                                                          |
 | ----------------------------- | ------------------------------ | ------------------------------------------------------------ |
 | `text-[22px]`                 | semibold, `tracking-[-0.02em]` | Page titles (`PageHeader`)                                   |
-| `text-[15px]`                 | medium                         | Modal titles                                                 |
+| `text-[15px]`                 | medium                         | Dialog titles                                                |
 | `text-[14px]`                 | medium                         | Card titles (`CardHeader`), section and block titles at 13px |
 | `text-[13px]`                 | regular / medium               | Body, buttons, table cells, tabs, descriptions               |
 | `text-[12px]`–`text-[12.5px]` | medium                         | Table headers, field labels, badges, KeyValue rows           |

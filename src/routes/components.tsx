@@ -7,7 +7,7 @@ import {
   FilterChip,
   IconButton,
   KeyValue,
-  Meter,
+  Progress,
   Table,
   Id,
 } from "@/ds/primitives";
@@ -109,7 +109,7 @@ function Components() {
               ].map((row) => (
                 <div key={row.label} className="flex items-center gap-3">
                   <span className="w-24 text-[13px] text-muted-foreground">{row.label}</span>
-                  <Meter value={row.value} tone={row.tone} />
+                  <Progress value={row.value} tone={row.tone} />
                   <span className="tnum w-10 text-right text-[13px] font-medium">{row.value}%</span>
                 </div>
               ))}

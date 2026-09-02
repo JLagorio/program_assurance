@@ -28,8 +28,8 @@ export function Eyebrow({
   );
 }
 
-/** The absent value. */
-export function Empty() {
+/** The absent value: a muted dash where a value would be. */
+export function Absent() {
   return <span className="text-muted-foreground">—</span>;
 }
 

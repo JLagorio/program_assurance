@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Badge, Fact, KeyValue, Person, Prose, Empty, Id, Eyebrow } from "@/ds/primitives";
+import { Badge, Fact, KeyValue, Person, Prose, Absent, Id, Eyebrow } from "@/ds/primitives";
 import { Inspector } from "@/ds/shapes";
 import { Spec } from "../_lib/tokens";
 
@@ -63,7 +63,7 @@ export const FactStrip: Story = {
         </Badge>
       </Fact>
       <Fact label="Attestation">
-        <Empty />
+        <Absent />
       </Fact>
     </dl>
   ),
@@ -89,7 +89,7 @@ export const Rail: Story = {
           <Id.List ids={["CCI-000017", "CCI-000217", "CCI-001682"]} />
         </KeyValue>
         <KeyValue label="Event">
-          <Empty />
+          <Absent />
         </KeyValue>
         <Prose label="Statement">{statement}</Prose>
       </Inspector.Group>

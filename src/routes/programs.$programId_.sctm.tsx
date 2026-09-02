@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useMemo, useState } from "react";
 import { FileDown } from "lucide-react";
 
-import { Badge, Button, Meter, Select, Table, Toolbar, Id, Tabs } from "@/ds/primitives";
+import { Badge, Button, Progress, NativeSelect, Table, Toolbar, Id, Tabs } from "@/ds/primitives";
 import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import { SctmRail, SctmSummary, SctmTable } from "@/components/app/sctm";
@@ -325,7 +325,7 @@ function ProgramSctm() {
                 </span>
               }
             >
-              <Select
+              <NativeSelect
                 value={activeFamily}
                 disabled={allFamilies}
                 onChange={(e) => refilter(() => setFamily(e.target.value))}
@@ -336,7 +336,7 @@ function ProgramSctm() {
                     {f.id} — {f.name} ({f.rows})
                   </option>
                 ))}
-              </Select>
+              </NativeSelect>
               <Button
                 size="sm"
                 variant={allFamilies ? "primary" : "secondary"}
@@ -344,7 +344,7 @@ function ProgramSctm() {
               >
                 {allFamilies ? "Show one family" : "Show all families"}
               </Button>
-              <Select
+              <NativeSelect
                 value={currency ?? ""}
                 onChange={(e) =>
                   refilter(() => {
@@ -359,7 +359,7 @@ function ProgramSctm() {
                 <option value="Current">Current ({currentRows})</option>
                 <option value="Invalidated">Invalidated ({sctm.counts.invalidated})</option>
                 <option value="Suspect">Suspect ({sctm.counts.suspect})</option>
-              </Select>
+              </NativeSelect>
             </Toolbar>
 
             {currency !== null ? (
@@ -450,7 +450,7 @@ function ProgramSctm() {
                       <Table.Cell>
                         <span className="flex items-center gap-2">
                           <span className="min-w-0 flex-1">
-                            <Meter
+                            <Progress
                               value={f.coverage}
                               tone={
                                 f.coverage >= 90
@@ -513,7 +513,7 @@ function ProgramSctm() {
                       <Table.Cell className="truncate text-danger">{g.reason}</Table.Cell>
                       <Table.Cell className="tnum text-right">{g.count}</Table.Cell>
                       <Table.Cell>
-                        <Meter
+                        <Progress
                           value={Math.round((g.count / (sctm.counts.total || 1)) * 100)}
                           tone="danger"
                         />

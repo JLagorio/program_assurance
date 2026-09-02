@@ -33,7 +33,7 @@ dependency graph stays visible. A layer only imports from layers below it.
 - **Full words.** `Table.Row`, not `Tr`. A name says what the thing is, never how it looks: `Id`,
   not `Mono`.
 - **Compound for parts.** A component with parts hangs them off its name: `Table.Cell`,
-  `Menu.Item`, `Stat.Tile`, `Inspector.Group`. Flat exports otherwise.
+  `DropdownMenu.Item`, `Stat.Tile`, `Inspector.Group`. Flat exports otherwise.
 - **One name per idea.** Two components that do one job become one. `Tabs` absorbed `TabStrip`;
   `RailGroup` became `Inspector.Group`.
 - **No domain words in the kit.** Severity, finding, control and package live in routes and `lib`.
@@ -41,35 +41,35 @@ dependency graph stays visible. A layer only imports from layers below it.
 
 ## Families
 
-| Family    | Root and parts                                   | Notes                                                                                       |
-| --------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| Table     | `Table`, `.Row`, `.Cell`, `.Header`, `.Id`       | `.Id` is the row-identity cell: plain at rest, blue on row hover.                           |
-| Id        | `Id`, `.List`                                    | Marks an identifier. Inherits the surrounding font, size and colour; adds tabular numerals. |
-| Badge     | `Badge`, `Dot`, `Indicator`                      | Badge is the only pill. Indicator is dot plus text.                                         |
-| Meter     | `Meter`, `.Stacked`                              |                                                                                             |
-| Avatar    | `Avatar`, `.Stack`, `Person`                     | Person is avatar plus name.                                                                 |
-| Stat      | `Stat`, `.Tile`, `.Grid`                         | Bare number, framed number, band of tiles.                                                  |
-| Menu      | `Menu`, `.Item`, `.Label`                        |                                                                                             |
-| Card      | `Card`, `.Header`                                |                                                                                             |
-| Related   | `Related`, `.Row`                                | A list of related records with one link out.                                                |
-| WorkPane  | `WorkPane`, `.Row`                               | Master–detail.                                                                              |
-| Inspector | `Inspector`, `.Group`                            | Sticky facts. `.Group` is also the group in legacy rails.                                   |
-| ActionBar | `ActionBar`, `ActionBarState`, `ActionBarAction` | First state is the bar's only pill; the rest are dot plus text.                             |
-| Text      | `Eyebrow`, `Empty`, `Prose`, `Fact`, `KeyValue`  | `Eyebrow` is the 11px caps micro-label. `Empty` is the absent value.                        |
-| Choice    | `Checkbox`, `Switch`, `Radio`, `.Item`           | Children become the label. A checked state is the selection use of the blue budget.         |
-| Tooltip   | `Tooltip`                                        | Short label on hover or focus; wraps its trigger.                                           |
-| Popover   | `Popover`, `.Close`                              | Anchored surface for a small task: a filter form, a picker.                                 |
-| Toast     | `Toaster`, `toast`                               | One Toaster near the root; confirmations from anywhere.                                     |
-| Skeleton  | `Skeleton`                                       | Loading placeholder; `lines` stacks bars.                                                   |
-| Separator | `Separator`                                      | Hairline, horizontal or vertical.                                                           |
+| Family       | Root and parts                                   | Notes                                                                                       |
+| ------------ | ------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| Table        | `Table`, `.Row`, `.Cell`, `.Header`, `.Id`       | `.Id` is the row-identity cell: plain at rest, blue on row hover.                           |
+| Id           | `Id`, `.List`                                    | Marks an identifier. Inherits the surrounding font, size and colour; adds tabular numerals. |
+| Badge        | `Badge`, `Dot`, `Indicator`                      | Badge is the only pill. Indicator is dot plus text.                                         |
+| Progress     | `Progress`, `.Stacked`                           |                                                                                             |
+| Avatar       | `Avatar`, `.Stack`, `Person`                     | Person is avatar plus name.                                                                 |
+| Stat         | `Stat`, `.Tile`, `.Grid`                         | Bare number, framed number, band of tiles.                                                  |
+| DropdownMenu | `DropdownMenu`, `.Item`, `.Label`, `.Separator`  | One element as trigger; the render-prop forms still compile.                                |
+| Card         | `Card`, `.Header`                                |                                                                                             |
+| Related      | `Related`, `.Row`                                | A list of related records with one link out.                                                |
+| WorkPane     | `WorkPane`, `.Row`                               | Master–detail.                                                                              |
+| Inspector    | `Inspector`, `.Group`                            | Sticky facts. `.Group` is also the group in legacy rails.                                   |
+| ActionBar    | `ActionBar`, `ActionBarState`, `ActionBarAction` | First state is the bar's only pill; the rest are dot plus text.                             |
+| Text         | `Eyebrow`, `Empty`, `Prose`, `Fact`, `KeyValue`  | `Eyebrow` is the 11px caps micro-label. `Empty` is the absent value.                        |
+| Choice       | `Checkbox`, `Switch`, `RadioGroup`, `.Item`      | Children become the label. A checked state is the selection use of the blue budget.         |
+| Tooltip      | `Tooltip`                                        | Short label on hover or focus; wraps its trigger.                                           |
+| Popover      | `Popover`, `.Close`                              | Anchored surface for a small task: a filter form, a picker.                                 |
+| Toast        | `Toaster`, `toast`                               | One Toaster near the root; confirmations from anywhere.                                     |
+| Skeleton     | `Skeleton`                                       | Loading placeholder; `lines` stacks bars.                                                   |
+| Separator    | `Separator`                                      | Hairline, horizontal or vertical.                                                           |
 
 Legacy, no new uses: `Section`, `IndexPage`, `ShowPage`. They retire route by route as screens
 move to shapes.
 
-Overlays and choice controls (`Modal`, `Drawer`, `Menu`, `Popover`, `Tooltip`, `Checkbox`, `Switch`,
-`Radio`) are Radix underneath. Focus, Escape, outside-click, keyboard and aria come from there; the
-kit owns the API and the look. A `Menu` trigger opens the menu itself; the `toggle` in its render
-prop is inert and stays only so existing triggers compile.
+Overlays and choice controls (`Dialog`, `Sheet`, `DropdownMenu`, `Popover`, `Tooltip`, `Collapsible`,
+`ToggleGroup`, `Checkbox`, `Switch`, `RadioGroup`) are Radix underneath. Focus, Escape, outside-click,
+keyboard and aria come from there; the kit owns the API and the look. A `DropdownMenu` trigger opens
+the menu itself; the render-prop forms of `trigger` and `children` still compile.
 
 ## Rules that lint enforces
 

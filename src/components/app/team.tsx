@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Badge, KeyValue, Meter, Table, Id } from "@/ds/primitives";
+import { Badge, KeyValue, Progress, Table, Id } from "@/ds/primitives";
 import { PreviewRail, Section } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import {
@@ -174,7 +174,7 @@ export function TeamSection({ programId }: { programId: string }) {
                       <Table.Cell>
                         <span className="flex items-center gap-2">
                           <span className="w-12">
-                            <Meter
+                            <Progress
                               value={Math.min(alloc, 100)}
                               tone={alloc > 100 ? "danger" : alloc > 85 ? "warning" : "info"}
                             />

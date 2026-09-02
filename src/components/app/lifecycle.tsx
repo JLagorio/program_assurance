@@ -7,12 +7,13 @@ import {
   Field,
   Input,
   KeyValue,
-  Select,
+  NativeSelect,
   Table,
   Textarea,
   Id,
+  Dialog,
 } from "@/ds/primitives";
-import { Modal, Section } from "@/ds/patterns";
+import { Section } from "@/ds/patterns";
 import {
   gateKindTone,
   gateStatusTone,
@@ -83,7 +84,7 @@ export function LifecycleSection({
         description={`Milestones, technical reviews and RMF actions gating ${programName}. Current gate: ${current ? `${current.id} — ${current.name}` : "complete"}.`}
         action={
           <div className="flex items-center gap-2">
-            <Select
+            <NativeSelect
               value={kind}
               onChange={(e) => setKind(e.target.value as (typeof kindFilters)[number])}
               className="h-7 w-[172px]"
@@ -93,8 +94,8 @@ export function LifecycleSection({
                   {k === "All" ? "All gate types" : k}
                 </option>
               ))}
-            </Select>
-            <Select
+            </NativeSelect>
+            <NativeSelect
               value={status}
               onChange={(e) => setStatus(e.target.value as (typeof statusFilters)[number])}
               className="h-7 w-[136px]"
@@ -104,7 +105,7 @@ export function LifecycleSection({
                   {s === "All" ? "All statuses" : s}
                 </option>
               ))}
-            </Select>
+            </NativeSelect>
           </div>
         }
       >
@@ -202,7 +203,7 @@ function GateModal({
   if (!gate || !draft) return null;
 
   return (
-    <Modal
+    <Dialog
       open={Boolean(gate)}
       onClose={onClose}
       width="lg"
@@ -238,7 +239,7 @@ function GateModal({
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Status">
-            <Select
+            <NativeSelect
               value={draft.status}
               onChange={(e) => setDraft({ ...draft, status: e.target.value as GateStatus })}
             >
@@ -249,7 +250,7 @@ function GateModal({
                   </option>
                 ),
               )}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Owner">
             <Input
@@ -285,6 +286,6 @@ function GateModal({
           />
         </Field>
       </div>
-    </Modal>
+    </Dialog>
   );
 }

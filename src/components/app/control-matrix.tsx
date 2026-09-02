@@ -8,8 +8,8 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
-import { Badge, Button, Select, Table, Toolbar, Id, Meter } from "@/ds/primitives";
-import { EmptyState, Section } from "@/ds/patterns";
+import { Badge, Button, NativeSelect, Table, Toolbar, Id, Progress } from "@/ds/primitives";
+import { Empty, Section } from "@/ds/patterns";
 import { InlineSelect, InlineText } from "@/components/app/inline-edit";
 import { cn } from "@/lib/utils";
 import { saveProgramField } from "@/lib/program-save";
@@ -88,7 +88,7 @@ export function FamilyCoverageTable({
                 <Table.Cell>
                   <span className="flex items-center gap-2">
                     <span className="w-20">
-                      <Meter.Stacked
+                      <Progress.Stacked
                         height={4}
                         segments={[
                           { key: "s", value: f.satisfied, tone: "success" },
@@ -200,7 +200,7 @@ export function ControlMatrixSection({
         placeholder="Search controls"
         actions={
           <span className="flex w-[220px] items-center gap-2">
-            <Meter.Stacked
+            <Progress.Stacked
               height={4}
               segments={scoped.segments.map((s) => ({ key: s.key, value: s.value, tone: s.tone }))}
             />
@@ -208,7 +208,7 @@ export function ControlMatrixSection({
           </span>
         }
       >
-        <Select
+        <NativeSelect
           value={family}
           onChange={(e) => {
             onFamily(e.target.value);
@@ -222,8 +222,8 @@ export function ControlMatrixSection({
               {f.id} — {f.name}
             </option>
           ))}
-        </Select>
-        <Select
+        </NativeSelect>
+        <NativeSelect
           value={status}
           onChange={(e) => {
             onStatus(e.target.value as ControlStatus | "All");
@@ -237,11 +237,11 @@ export function ControlMatrixSection({
               {s}
             </option>
           ))}
-        </Select>
+        </NativeSelect>
       </Toolbar>
 
       {filtered.length === 0 ? (
-        <EmptyState
+        <Empty
           title="No controls match this filter"
           description="Clear the search or pick another family."
           action={

@@ -27,7 +27,7 @@ Each status color has a solid and a `-soft` fill; text sits at the solid value o
 | `--danger` / `--destructive` | `oklch(0.55 0.2 22)`   | `oklch(0.955 0.03 22)`   |
 | `--info`                     | = primary              | = primary-soft           |
 
-Reach these through the `tone` prop on `Badge`, `Dot`, and `Meter` — not by hand-painting classes.
+Reach these through the `tone` prop on `Badge`, `Dot`, `Alert`, and `Progress` — not by hand-painting classes.
 
 ## Borders
 

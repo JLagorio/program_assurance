@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-import { Button, FilterChip, Kbd, SegmentedControl, Tabs, Toolbar } from "@/ds/primitives";
+import { Button, FilterChip, Kbd, ToggleGroup, Tabs, Toolbar } from "@/ds/primitives";
 import { Spec } from "../_lib/tokens";
 
 const noop = () => {};
@@ -83,7 +83,7 @@ function SegmentedDemo() {
   const [view, setView] = useState<View>("table");
   return (
     <div className="flex items-center gap-4">
-      <SegmentedControl
+      <ToggleGroup
         items={[
           { value: "table", label: "Table" },
           { value: "matrix", label: "Matrix" },

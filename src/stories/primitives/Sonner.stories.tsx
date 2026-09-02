@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { Button, Toaster, toast } from "@/ds/primitives";
 
 const meta = {
-  title: "Primitives/Toast",
+  title: "Primitives/Sonner",
   component: Toaster,
   tags: ["autodocs"],
   parameters: { layout: "fullscreen", docs: { story: { inline: false, height: "420px" } } },

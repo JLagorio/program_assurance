@@ -10,10 +10,8 @@
 import { useState } from "react";
 
 import { RecordPicker } from "@/components/app/record-picker";
-import { Badge, Button, Field, Select, Table, Textarea } from "@/ds/primitives";
-import { Modal } from "@/ds/patterns";
-import { ActionBar, Block } from "@/ds/shapes";
-import type { ActionBarAction } from "@/ds/shapes";
+import { Badge, Button, Field, NativeSelect, Table, Textarea, Dialog } from "@/ds/primitives";
+import { ActionBar, Block, type ActionBarAction } from "@/ds/shapes";
 import { cn } from "@/lib/utils";
 import {
   activityFor,
@@ -109,7 +107,7 @@ export function ControlActionBar({
         actions={actions}
       />
 
-      <Modal
+      <Dialog
         open={pending !== null}
         onClose={() => setPending(null)}
         title={chosen?.def.label ?? "Confirm"}
@@ -131,7 +129,7 @@ export function ControlActionBar({
             <Textarea value={note} onChange={(e) => setNote(e.target.value)} />
           </Field>
         </div>
-      </Modal>
+      </Dialog>
     </>
   );
 }
@@ -417,7 +415,7 @@ export function AxisControls({ work, context }: { work: ControlWork; context: Wo
   return (
     <div className="space-y-2">
       <Field label="Implementation">
-        <Select
+        <NativeSelect
           value={work.implementation}
           disabled
           aria-label="Implementation"
@@ -426,10 +424,10 @@ export function AxisControls({ work, context }: { work: ControlWork; context: Wo
           {implementationStates.map((s) => (
             <option key={s}>{s}</option>
           ))}
-        </Select>
+        </NativeSelect>
       </Field>
       <Field label="Assessment">
-        <Select
+        <NativeSelect
           value={work.assessment}
           disabled
           aria-label="Assessment"
@@ -438,7 +436,7 @@ export function AxisControls({ work, context }: { work: ControlWork; context: Wo
           {assessmentStates.map((s) => (
             <option key={s}>{s}</option>
           ))}
-        </Select>
+        </NativeSelect>
       </Field>
       <Block title="Gates">
         <GateList work={work} context={context} />

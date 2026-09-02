@@ -13,7 +13,7 @@ import {
   ScheduleTable,
   SlippageTable,
 } from "@/components/app/conmon";
-import { Badge, SegmentedControl, Tabs } from "@/ds/primitives";
+import { Badge, ToggleGroup, Tabs } from "@/ds/primitives";
 import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import {
@@ -397,7 +397,7 @@ function ProgramConMon() {
             description={`The continuous monitoring strategy is the one authored table in this module — frequency, method, responsible entity and last assessed date per control, exactly as an ISSM files it in eMASS. Every other column is computed: the next due date is the last assessed date plus the frequency's period, the days-out figure is the distance from ${conmonAsOfLabel} to that date, and the status is read off that number against a window sized to the control's own cycle. A missed check is never rewritten as "Not assessed" — the schedule status and the 800-53A determination are separate axes and neither collapses into the other.`}
             action={
               schedule.length > 0 ? (
-                <SegmentedControl
+                <ToggleGroup
                   value={scheduleScope}
                   onChange={setScheduleScope}
                   items={[
@@ -441,7 +441,7 @@ function ProgramConMon() {
             description={`Every monitored requirement, with the age of the newest artifact attached to it measured against the SLA its control's own monitoring frequency implies. A daily control with five-day-old evidence is expired on exactly the same rule that leaves an annual control's seven-month-old policy attestation merely aging — the SLA is the interval the program committed to, not a flat number applied to everything.`}
             action={
               freshness.length > 0 ? (
-                <SegmentedControl
+                <ToggleGroup
                   value={freshnessScope}
                   onChange={setFreshnessScope}
                   items={[

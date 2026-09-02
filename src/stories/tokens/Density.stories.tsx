@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Group, Sheet, Spec } from "../_lib/tokens";
+import { Group, Page, Spec } from "../_lib/tokens";
 
 const meta = {
   title: "Tokens/Density",
@@ -19,7 +19,7 @@ const heights: { name: string; where: string; today: number; linear: number | nu
   { name: "Button md", where: "h-8", today: 32, linear: 32 },
   { name: "Icon button", where: "size-7", today: 28, linear: 28 },
   { name: "Input", where: "h-8", today: 32, linear: 30 },
-  { name: "Menu item", where: "h-7", today: 28, linear: 32 },
+  { name: "DropdownMenu item", where: "h-7", today: 28, linear: 32 },
   { name: "Table header", where: "h-8", today: 32, linear: 36 },
   { name: "Table row", where: "h-10", today: 40, linear: 44 },
   { name: "Top bar", where: "h-14", today: 56, linear: null },
@@ -42,7 +42,7 @@ function Bar({ px, tone }: { px: number; tone: "today" | "linear" }) {
 
 export const ControlHeights: Story = {
   render: () => (
-    <Sheet
+    <Page
       title="Density"
       lede="Compact and data-dense, never cramped. Left bar is today; right bar is the height Linear's file measures. Equal bars need no decision."
     >
@@ -76,7 +76,7 @@ export const ControlHeights: Story = {
           </div>
         ))}
       </div>
-    </Sheet>
+    </Page>
   ),
 };
 
@@ -92,7 +92,7 @@ const steps = [
 
 export const Spacing: Story = {
   render: () => (
-    <Sheet title="Spacing" lede="A 4px grid with a 2px half-step at the smallest sizes.">
+    <Page title="Spacing" lede="A 4px grid with a 2px half-step at the smallest sizes.">
       <Group title="Steps" cols={7}>
         {steps.map((s) => (
           <div key={s.cls} className="space-y-1.5">
@@ -126,11 +126,11 @@ export const Spacing: Story = {
         </div>
         <div className="rounded-xl border border-border bg-card shadow-pop">
           <div className="border-b border-border px-5 py-3.5 text-[15px] font-semibold tracking-[-0.01em]">
-            Modal · px-5 py-3.5
+            Dialog · px-5 py-3.5
           </div>
           <div className="px-5 py-4 text-[13px] text-muted-foreground">Body · px-5 py-4</div>
         </div>
       </Group>
-    </Sheet>
+    </Page>
   ),
 };

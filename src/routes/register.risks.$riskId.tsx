@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Fragment } from "react";
 
-import { Badge, Button, KeyValue, Meter, Table, Id, Indicator } from "@/ds/primitives";
-import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Badge, Button, KeyValue, Progress, Table, Id, Indicator } from "@/ds/primitives";
+import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { Shell } from "@/ds/shell";
 import { TextBlock } from "@/components/app/control-text";
@@ -108,7 +108,7 @@ function RiskRecord() {
               </KeyValue>
               <KeyValue label="Residual">
                 <span className="flex items-center gap-2">
-                  <Meter value={risk.residual} tone={residualTone(risk.residual)} />
+                  <Progress value={risk.residual} tone={residualTone(risk.residual)} />
                   <span className="tnum text-[12px] font-medium">{risk.residual}</span>
                   <span className="text-[11.5px] text-muted-foreground">authored</span>
                 </span>
@@ -184,7 +184,7 @@ function RiskRecord() {
                     <span className="text-[12px] text-muted-foreground">residual / 100</span>
                   </div>
                   <div className="mt-3">
-                    <Meter
+                    <Progress
                       value={comparison.authored.residual}
                       tone={residualTone(risk.residual)}
                     />
@@ -223,7 +223,7 @@ function RiskRecord() {
                     <Badge tone={bandTone[computed.band]}>{computed.band}</Badge>
                   </div>
                   <div className="mt-3">
-                    <Meter value={computed.score} tone={bandTone[computed.band]} />
+                    <Progress value={computed.score} tone={bandTone[computed.band]} />
                   </div>
                   <dl className="mt-3 space-y-1.5 text-[12px]">
                     <div className="flex items-baseline justify-between gap-3">
@@ -271,7 +271,7 @@ function RiskRecord() {
               </div>
             </>
           ) : (
-            <EmptyState
+            <Empty
               title="Nothing to compute from"
               description={`${risk.id} has no finding joined to it, so there is no severity, exposure or mission evidence to read. Deriving a residual from the authored likelihood and impact would re-badge the assessor's judgement as a calculation, which is exactly what the score exists to prevent. The authored ${risk.residual} stands on its own.`}
             />

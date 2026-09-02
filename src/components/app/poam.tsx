@@ -10,13 +10,14 @@ import {
   FilterChip,
   Input,
   KeyValue,
-  Meter,
-  Select,
+  Progress,
+  NativeSelect,
   Table,
   Textarea,
   Id,
+  Dialog,
 } from "@/ds/primitives";
-import { Modal, Section } from "@/ds/patterns";
+import { Section } from "@/ds/patterns";
 import {
   formatOscalDate,
   milestoneStatusTone,
@@ -230,7 +231,7 @@ export function PoamSection({
                   <Table.Cell className="w-[128px]">
                     <span className="flex items-center gap-2">
                       <span className="w-12">
-                        <Meter value={pct} tone={pct === 100 ? "success" : "info"} />
+                        <Progress value={pct} tone={pct === 100 ? "success" : "info"} />
                       </span>
                       <span className="tnum text-muted-foreground">
                         {i.milestones.filter((m) => m.status === "Completed").length}/
@@ -421,7 +422,7 @@ function PoamDetailModal({
   if (!item) return null;
 
   return (
-    <Modal
+    <Dialog
       open
       onClose={onClose}
       width="lg"
@@ -645,7 +646,7 @@ function PoamDetailModal({
           )}
         </div>
       </div>
-    </Modal>
+    </Dialog>
   );
 }
 
@@ -734,7 +735,7 @@ function PoamEditModal({
   };
 
   return (
-    <Modal
+    <Dialog
       open
       onClose={onClose}
       width="lg"
@@ -815,24 +816,24 @@ function PoamEditModal({
             />
           </Field>
           <Field label="Severity">
-            <Select
+            <NativeSelect
               value={draft.severity}
               onChange={(e) => set("severity", e.target.value as PoamSeverity)}
             >
               {severities.map((s) => (
                 <option key={s}>{s}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Status">
-            <Select
+            <NativeSelect
               value={draft.status}
               onChange={(e) => set("status", e.target.value as PoamStatus)}
             >
               {statuses.map((s) => (
                 <option key={s}>{s}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
         </div>
 
@@ -845,7 +846,7 @@ function PoamEditModal({
             />
           </Field>
           <Field label="Point of contact">
-            <Select
+            <NativeSelect
               value={draft.pointOfContact}
               onChange={(e) => set("pointOfContact", e.target.value)}
             >
@@ -854,10 +855,10 @@ function PoamEditModal({
                   <option key={c}>{c}</option>
                 ),
               )}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Detection source">
-            <Select
+            <NativeSelect
               value={draft.detectionSource}
               onChange={(e) => set("detectionSource", e.target.value)}
             >
@@ -867,7 +868,7 @@ function PoamEditModal({
               ].map((s) => (
                 <option key={s}>{s}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
         </div>
 
@@ -891,7 +892,7 @@ function PoamEditModal({
                   placeholder="Milestone title"
                   onChange={(e) => setMilestone(m.uuid, { title: e.target.value })}
                 />
-                <Select
+                <NativeSelect
                   value={m.status}
                   onChange={(e) =>
                     setMilestone(m.uuid, { status: e.target.value as MilestoneStatus })
@@ -900,7 +901,7 @@ function PoamEditModal({
                   {milestoneStatuses.map((s) => (
                     <option key={s}>{s}</option>
                   ))}
-                </Select>
+                </NativeSelect>
                 <Input
                   type="date"
                   value={toDateInput(m.completedDate ?? m.targetDate)}
@@ -974,7 +975,7 @@ function PoamEditModal({
           </div>
         </div>
       </div>
-    </Modal>
+    </Dialog>
   );
 }
 
@@ -991,7 +992,7 @@ function PoamDeleteModal({
 }) {
   if (!item) return null;
   return (
-    <Modal
+    <Dialog
       open
       onClose={onClose}
       title="Delete this POA&M item?"
@@ -1026,7 +1027,7 @@ function PoamDeleteModal({
           <KeyValue label="scheduled">{formatOscalDate(item.scheduledCompletion, true)}</KeyValue>
         </dl>
       </div>
-    </Modal>
+    </Dialog>
   );
 }
 
@@ -1108,7 +1109,7 @@ function PoamCreateModal({
   };
 
   return (
-    <Modal
+    <Dialog
       open={open}
       onClose={onClose}
       width="lg"
@@ -1193,26 +1194,29 @@ function PoamCreateModal({
         </Field>
         <div className="grid grid-cols-3 gap-3">
           <Field label="Control">
-            <Select value={control} onChange={(e) => setControl(e.target.value)}>
+            <NativeSelect value={control} onChange={(e) => setControl(e.target.value)}>
               {programControls.map((c) => (
                 <option key={c.id}>{c.id}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Severity">
-            <Select value={severity} onChange={(e) => setSeverity(e.target.value as PoamSeverity)}>
+            <NativeSelect
+              value={severity}
+              onChange={(e) => setSeverity(e.target.value as PoamSeverity)}
+            >
               {severities.map((s) => (
                 <option key={s}>{s}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Status">
-            <Select value={status} onChange={(e) => setStatus(e.target.value as PoamStatus)}>
+            <NativeSelect value={status} onChange={(e) => setStatus(e.target.value as PoamStatus)}>
               <option>Open</option>
               <option>Ongoing</option>
               <option>Risk accepted</option>
               <option>Deferred</option>
-            </Select>
+            </NativeSelect>
           </Field>
         </div>
         <div className="grid grid-cols-3 gap-3">
@@ -1220,37 +1224,37 @@ function PoamCreateModal({
             <Input type="date" value={scheduled} onChange={(e) => setScheduled(e.target.value)} />
           </Field>
           <Field label="Point of contact">
-            <Select value={contact} onChange={(e) => setContact(e.target.value)}>
+            <NativeSelect value={contact} onChange={(e) => setContact(e.target.value)}>
               {[defaultOwner, ...contacts.filter((c) => c !== defaultOwner)].map((c) => (
                 <option key={c}>{c}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Marking">
-            <Select value={marking} onChange={(e) => setMarking(e.target.value)}>
+            <NativeSelect value={marking} onChange={(e) => setMarking(e.target.value)}>
               <option>CUI</option>
               <option>CUI//SP-PRIV</option>
               <option>CUI//SP-PRVCY</option>
               <option>Unclassified</option>
-            </Select>
+            </NativeSelect>
           </Field>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Detection source">
-            <Select value={source} onChange={(e) => setSource(e.target.value)}>
+            <NativeSelect value={source} onChange={(e) => setSource(e.target.value)}>
               {detectionSources.map((s) => (
                 <option key={s}>{s}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Associated risk" hint="Links the item to a risk exposure entry.">
-            <Select value={riskId} onChange={(e) => setRiskId(e.target.value)}>
+            <NativeSelect value={riskId} onChange={(e) => setRiskId(e.target.value)}>
               <option value="">None</option>
               <option>RSK-2419</option>
               <option>RSK-2402</option>
               <option>RSK-2388</option>
               <option>RSK-2290</option>
-            </Select>
+            </NativeSelect>
           </Field>
         </div>
         <div className="grid grid-cols-[minmax(0,1fr)_160px] gap-3">
@@ -1270,6 +1274,6 @@ function PoamCreateModal({
           </Field>
         </div>
       </div>
-    </Modal>
+    </Dialog>
   );
 }

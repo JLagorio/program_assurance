@@ -14,13 +14,13 @@
  *  - `WorkPane`   — you are working through a list. The list stays.
  *  - `Inspector`  — the facts stay put while the content scrolls.
  *  - `ActionBar`  — state and the actions that change it, pinned, not buried.
- *  - `Disclosure` — reference material is present but closed.
+ *  - `Block`      — a block of work, always open; `Collapsible` (a primitive) is its closed twin.
  *
  * None of them takes a `description` prop. That is deliberate: 4,382 words of
  * explanatory prose accumulated across 41 routes because `Section` invited it.
  */
 
 export * from "./action-bar";
-export * from "./disclosure";
+export * from "./block";
 export * from "./inspector";
 export * from "./work-pane";

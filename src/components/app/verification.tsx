@@ -9,14 +9,15 @@ import {
   FilterChip,
   Input,
   KeyValue,
-  Meter,
-  Select,
+  Progress,
+  NativeSelect,
   Table,
   Textarea,
   Id,
   Indicator,
+  Dialog,
 } from "@/ds/primitives";
-import { Modal, Section } from "@/ds/patterns";
+import { Section } from "@/ds/patterns";
 import {
   findings as seedFindings,
   findingStatusTone,
@@ -131,7 +132,7 @@ export function VerificationSection({ programName }: { programName: string }) {
               </div>
             </div>
             <div className="flex w-[180px] shrink-0 items-center gap-2">
-              <Meter value={readiness} tone={blocking > 0 ? "danger" : "success"} />
+              <Progress value={readiness} tone={blocking > 0 ? "danger" : "success"} />
               <span className="tabular-nums text-[12.5px] text-muted-foreground">{readiness}%</span>
             </div>
           </div>
@@ -440,7 +441,7 @@ function FindingModal({
   const blocksIatt = finding.severity === "CAT I" && (status === "Open" || status === "Mitigating");
 
   return (
-    <Modal
+    <Dialog
       open
       onClose={onClose}
       width="lg"
@@ -497,11 +498,14 @@ function FindingModal({
         <p className="text-[13px] text-muted-foreground">{finding.detail}</p>
         <div className="grid grid-cols-3 gap-3">
           <Field label="Status">
-            <Select value={status} onChange={(e) => setStatus(e.target.value as FindingStatus)}>
+            <NativeSelect
+              value={status}
+              onChange={(e) => setStatus(e.target.value as FindingStatus)}
+            >
               {findingStatuses.map((s) => (
                 <option key={s}>{s}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Owner">
             <Input value={owner} onChange={(e) => setOwner(e.target.value)} />
@@ -514,7 +518,7 @@ function FindingModal({
           <Textarea rows={4} value={mitigation} onChange={(e) => setMitigation(e.target.value)} />
         </Field>
       </div>
-    </Modal>
+    </Dialog>
   );
 }
 
@@ -546,7 +550,7 @@ function IngestModal({
           : "Markdown implementation statements";
 
   return (
-    <Modal
+    <Dialog
       open
       onClose={onClose}
       width="lg"
@@ -601,21 +605,21 @@ pipeline:
       <div className="space-y-3.5">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Source">
-            <Select value={source} onChange={(e) => setSource(e.target.value as ScanSource)}>
+            <NativeSelect value={source} onChange={(e) => setSource(e.target.value as ScanSource)}>
               {sources.map((s) => (
                 <option key={s}>{s}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Asset / boundary component">
-            <Select value={asset} onChange={(e) => setAsset(e.target.value)}>
+            <NativeSelect value={asset} onChange={(e) => setAsset(e.target.value)}>
               <option>Mission compute (x4)</option>
               <option>UUV payload segment</option>
               <option>Autonomy core (C++)</option>
               <option>Range network stack</option>
               <option>Ground station</option>
               <option>Integration lab (SCIF)</option>
-            </Select>
+            </NativeSelect>
           </Field>
         </div>
         <Field label="Artifact file" hint={parser}>
@@ -634,6 +638,6 @@ pipeline:
           />
         </Field>
       </div>
-    </Modal>
+    </Dialog>
   );
 }

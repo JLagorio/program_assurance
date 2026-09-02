@@ -8,13 +8,14 @@ import {
   Field,
   Input,
   KeyValue,
-  Meter,
-  Select,
+  Progress,
+  NativeSelect,
   Table,
   Textarea,
   Id,
+  Dialog,
 } from "@/ds/primitives";
-import { Modal, Section } from "@/ds/patterns";
+import { Section } from "@/ds/patterns";
 import {
   artifactShort,
   artifactTone,
@@ -252,7 +253,7 @@ export function DigitalThreadSection({
           title="Living technical evidence"
           description={`${mappedControls} controls carry engineering evidence · ${pending} artifacts awaiting security-engineer acceptance.`}
           action={
-            <Select
+            <NativeSelect
               value={status}
               onChange={(e) => setStatus(e.target.value as (typeof statusFilters)[number])}
               className="h-7 w-[152px]"
@@ -262,7 +263,7 @@ export function DigitalThreadSection({
                   {s === "All" ? "All statuses" : s}
                 </option>
               ))}
-            </Select>
+            </NativeSelect>
           }
         >
           <Table className="table-fixed">
@@ -363,7 +364,7 @@ function RuleModal({
     .filter(Boolean);
 
   return (
-    <Modal
+    <Dialog
       open
       onClose={onClose}
       width="lg"
@@ -400,7 +401,7 @@ function RuleModal({
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Source tool">
-            <Select
+            <NativeSelect
               value={draft.source}
               onChange={(e) => {
                 const source = e.target.value as ConnectorKind;
@@ -412,10 +413,10 @@ function RuleModal({
                   {k}
                 </option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Signal">
-            <Select
+            <NativeSelect
               value={draft.signal}
               onChange={(e) => setDraft({ ...draft, signal: e.target.value as MappingRuleSignal })}
             >
@@ -424,7 +425,7 @@ function RuleModal({
                   {s}
                 </option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
         </div>
         <Field
@@ -446,7 +447,7 @@ function RuleModal({
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Confidence">
-            <Select
+            <NativeSelect
               value={draft.confidence}
               onChange={(e) =>
                 setDraft({ ...draft, confidence: e.target.value as MappingRule["confidence"] })
@@ -455,20 +456,20 @@ function RuleModal({
               <option>High</option>
               <option>Medium</option>
               <option>Low</option>
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="State">
-            <Select
+            <NativeSelect
               value={draft.enabled ? "Enabled" : "Disabled"}
               onChange={(e) => setDraft({ ...draft, enabled: e.target.value === "Enabled" })}
             >
               <option>Enabled</option>
               <option>Disabled</option>
-            </Select>
+            </NativeSelect>
           </Field>
         </div>
       </div>
-    </Modal>
+    </Dialog>
   );
 }
 
@@ -492,7 +493,7 @@ function EvidenceModal({
   if (!evidence) return null;
 
   return (
-    <Modal
+    <Dialog
       open
       onClose={onClose}
       width="lg"
@@ -547,7 +548,7 @@ function EvidenceModal({
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Status">
-            <Select
+            <NativeSelect
               value={evidence.status}
               onChange={(e) => onStatus(evidence.id, e.target.value as EvidenceStatus)}
             >
@@ -555,14 +556,14 @@ function EvidenceModal({
               <option>Needs review</option>
               <option>Accepted</option>
               <option>Rejected</option>
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Reviewer">
             <Input defaultValue={evidence.reviewer ?? "Sarah Chen"} />
           </Field>
         </div>
       </div>
-    </Modal>
+    </Dialog>
   );
 }
 
@@ -597,7 +598,7 @@ export function CdrPackageModal({
   }
 
   return (
-    <Modal
+    <Dialog
       open={open}
       onClose={onClose}
       width="lg"
@@ -618,7 +619,7 @@ export function CdrPackageModal({
             <KeyValue label="Readiness">
               <span className="flex items-center gap-2">
                 <span className="w-14">
-                  <Meter value={readiness} tone={readiness === 100 ? "success" : "warning"} />
+                  <Progress value={readiness} tone={readiness === 100 ? "success" : "warning"} />
                 </span>
                 <span className="tnum">{readiness}%</span>
               </span>
@@ -687,22 +688,22 @@ export function CdrPackageModal({
         </Table>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Output format">
-            <Select value={format} onChange={(e) => setFormat(e.target.value)}>
+            <NativeSelect value={format} onChange={(e) => setFormat(e.target.value)}>
               <option>OSCAL SSP (JSON) + PDF</option>
               <option>OSCAL SSP (XML)</option>
               <option>eMASS import bundle</option>
               <option>PDF only</option>
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Review gate">
-            <Select defaultValue="CDR — Critical Design Review">
+            <NativeSelect defaultValue="CDR — Critical Design Review">
               <option>PDR — Preliminary Design Review</option>
               <option>CDR — Critical Design Review</option>
               <option>TRR — Test Readiness Review</option>
-            </Select>
+            </NativeSelect>
           </Field>
         </div>
       </div>
-    </Modal>
+    </Dialog>
   );
 }

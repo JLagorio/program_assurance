@@ -9,7 +9,7 @@
 import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 
-import { Badge, Dot, Person, Table, Id, Meter } from "@/ds/primitives";
+import { Badge, Dot, Person, Table, Id, Progress } from "@/ds/primitives";
 import { Section } from "@/ds/patterns";
 import { cn } from "@/lib/utils";
 import { gatesForProgram, gateKindTone, lifecyclePhases, type ProgramGate } from "@/lib/grc-data";
@@ -62,7 +62,7 @@ export function RmfTimeline({
       description="Acquisition phases, decision gates and the work that has to close under each."
       action={
         <span className="flex w-[240px] items-center gap-2">
-          <Meter.Stacked
+          <Progress.Stacked
             height={4}
             segments={[
               { key: "d", value: done, tone: "success" },

@@ -20,9 +20,18 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, Dot, KeyValue, Meter, Table, Id, Empty, Stat } from "@/ds/primitives";
-import type { Tone } from "@/ds/primitives";
-import { EmptyState } from "@/ds/patterns";
+import {
+  Badge,
+  Dot,
+  KeyValue,
+  Progress,
+  Table,
+  Id,
+  Absent,
+  Stat,
+  type Tone,
+} from "@/ds/primitives";
+import { Empty } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import {
   designationTone,
@@ -138,7 +147,7 @@ export function ResolutionTable({
   if (rows.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="Nothing inherited"
           description="No reusable component lists this program as a consumer, so every control is system-specific and assessed here."
         />
@@ -301,7 +310,7 @@ export function ConflictList({
   if (items.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="No provider competed for a control"
           description="Every inherited control on this system is offered by exactly one component, so the CCP tier ladder had nothing to deconflict."
         />
@@ -358,7 +367,7 @@ export function ObligationList({ rows }: { rows: ResolvedInheritance[] }) {
   if (rows.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="Nothing owed on an inherited control"
           description="Every resolved control is fully inherited: the provider implements it end to end and the consuming system carries no residual obligation."
         />
@@ -435,7 +444,7 @@ export function NotApplicableTable({ rows }: { rows: ResolvedInheritance[] }) {
   if (rows.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="Every offer reaches this system"
           description="No provider scoped an offer to inventory this program does not carry, so nothing was excluded on applicability."
         />
@@ -480,7 +489,7 @@ export function NotApplicableTable({ rows }: { rows: ResolvedInheritance[] }) {
               <Badge size="xs">{row.provided.model}</Badge>
             </Table.Cell>
             <Table.Cell className="truncate" title={row.applicabilityReason}>
-              {isBlank(row.applicabilityReason) ? <Empty /> : row.applicabilityReason}
+              {isBlank(row.applicabilityReason) ? <Absent /> : row.applicabilityReason}
             </Table.Cell>
           </Table.Row>
         ))}
@@ -507,7 +516,7 @@ function BreakdownRow({
     <div className="flex items-center gap-3 border-b border-border-subtle py-2 last:border-0">
       <span className="w-[132px] shrink-0 truncate text-12">{label}</span>
       <span className="min-w-0 flex-1">
-        <Meter value={pct} tone={tone} />
+        <Progress value={pct} tone={tone} />
       </span>
       <span className="tnum w-16 shrink-0 text-right text-12 text-muted-foreground">
         {count} · {pct}%
@@ -571,7 +580,7 @@ export function InheritanceSummaryStats({
       </div>
 
       <div>
-        <Meter.Stacked
+        <Progress.Stacked
           segments={legend.map((l) => ({
             key: l.key,
             value: l.value,
@@ -730,10 +739,10 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
 
       <Inspector.Group title="Acceptance">
         <KeyValue label="Accepted">
-          {row.accepted ? <Id>{version.accepted}</Id> : <Empty />}
+          {row.accepted ? <Id>{version.accepted}</Id> : <Absent />}
         </KeyValue>
         <KeyValue label="Assessment">
-          {row.accepted ? <Id>{row.accepted.acceptedAssessmentVersion}</Id> : <Empty />}
+          {row.accepted ? <Id>{row.accepted.acceptedAssessmentVersion}</Id> : <Absent />}
         </KeyValue>
         <KeyValue label="Signed">{row.accepted ? row.accepted.acceptedOn : "—"}</KeyValue>
         <WrapValue label="Signed by">{row.accepted ? row.accepted.acceptedBy : "—"}</WrapValue>

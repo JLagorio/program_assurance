@@ -33,9 +33,19 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ArrowRight, TriangleAlert } from "lucide-react";
 
-import { Badge, Button, Dot, KeyValue, Table, Toolbar, Id, Empty, Stat } from "@/ds/primitives";
-import type { Tone } from "@/ds/primitives";
-import { EmptyState, Section } from "@/ds/patterns";
+import {
+  Badge,
+  Button,
+  Dot,
+  KeyValue,
+  Table,
+  Toolbar,
+  Id,
+  Absent,
+  Stat,
+  type Tone,
+} from "@/ds/primitives";
+import { Empty, Section } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import {
   buildStateTone,
@@ -92,7 +102,7 @@ export function ImpactStateChip({ state }: { state: ImpactState }) {
 
 /** Node ids read as noise alone; the part name is what the reader recognises. */
 function NodeRef({ id, nodeName }: { id: string; nodeName?: NodeNamer | undefined }) {
-  if (id === "—") return <Empty />;
+  if (id === "—") return <Absent />;
   const name = nodeName?.(id);
   const full = name && name !== id ? `${id} — ${name}` : id;
   return (
@@ -191,7 +201,7 @@ export function BuildTable({
   if (builds.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="No configuration baseline"
           description="Nothing has been pinned for this program, so no determination on it can be said to be true of a known configuration."
         />
@@ -240,7 +250,7 @@ export function BuildTable({
             </Table.Cell>
             <Table.Cell className="tnum">{build.approved}</Table.Cell>
             <Table.Cell title={build.ccb}>{build.ccb}</Table.Cell>
-            <Table.Cell>{build.supersedes ? <Id>{build.supersedes}</Id> : <Empty />}</Table.Cell>
+            <Table.Cell>{build.supersedes ? <Id>{build.supersedes}</Id> : <Absent />}</Table.Cell>
             <Table.Cell className="tnum text-right">{build.pins.length}</Table.Cell>
             <Table.Cell className="tnum text-right">{build.parameters.length}</Table.Cell>
           </Table.Row>
@@ -255,7 +265,7 @@ export function ParameterTable({ parameters }: { parameters: ParameterPin[] }) {
   if (parameters.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="No parameters pinned"
           description="This build fixes no organization-defined parameter values, so every ODP the controls carry is unstated."
         />
@@ -313,7 +323,7 @@ export function BuildRail({
           <span className="tnum">{build.approved}</span>
         </KeyValue>
         <KeyValue label="Supersedes">
-          {build.supersedes ? <Id>{build.supersedes}</Id> : <Empty />}
+          {build.supersedes ? <Id>{build.supersedes}</Id> : <Absent />}
         </KeyValue>
         <KeyValue label="Pinned">
           <span className="tnum">
@@ -419,7 +429,7 @@ export function PinDiffTable({
   if (rows.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="Nothing moved"
           description="Every pin in the candidate matches the authorized baseline, so the two builds describe the same configuration."
         />
@@ -459,7 +469,7 @@ export function PinDiffTable({
             >
               <Table.Cell>
                 {row.node === "—" ? (
-                  <Empty />
+                  <Absent />
                 ) : (
                   <Id className={unrecorded ? "text-danger" : "text-muted-foreground"}>
                     {row.node}
@@ -526,7 +536,7 @@ export function ChangeTable({
   if (changes.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="No change records"
           description="Nothing has been proposed against this program's baseline. A program with a live candidate build and no change records is not a stable program — it is an unmanaged one."
         />
@@ -1045,7 +1055,7 @@ export function ImpactView({
 
   if (!impact) {
     return (
-      <EmptyState
+      <Empty
         title="No impact record"
         description={`${change.id} has no computed impact. A change record with no analysis behind it cannot be reasoned about.`}
       />
@@ -1208,7 +1218,7 @@ export function ImpactView({
           >
             {impact.touched.length === 0 ? (
               <div className="pt-4">
-                <EmptyState
+                <Empty
                   title="Not scoped to a component"
                   description={
                     change.kind === "Control parameter"
@@ -1270,7 +1280,7 @@ export function ImpactView({
           >
             {invalidatedRowRecords.length === 0 ? (
               <div className="pt-4">
-                <EmptyState
+                <Empty
                   title="No determination affected"
                   description={
                     impact.suspectRows.length > 0
@@ -1413,7 +1423,7 @@ export function RetestQueueTable({
   if (items.length === 0) {
     return (
       <div className="pt-4">
-        <EmptyState
+        <Empty
           title="Nothing owed"
           description="No live change has withdrawn a determination, so no requirement is waiting to be re-verified against the configuration in force."
         />
@@ -1499,7 +1509,7 @@ export function RetestQueueTable({
       ) : null}
       {filtered.length === 0 ? (
         <div className="pt-4">
-          <EmptyState
+          <Empty
             title="No match"
             description={`Nothing in the re-test queue matches “${query}”.`}
           />

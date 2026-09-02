@@ -8,13 +8,14 @@ import {
   Field,
   FilterChip,
   Input,
-  Meter,
-  Select,
+  Progress,
+  NativeSelect,
   Table,
   Textarea,
   Id,
+  Dialog,
 } from "@/ds/primitives";
-import { Modal, PageHeader, IndexPage } from "@/ds/patterns";
+import { PageHeader, IndexPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import { baselineCounts, programStatusTone, programs, type ImpactLevel } from "@/lib/grc-data";
 
@@ -199,7 +200,7 @@ function ProgramList() {
                 <Table.Cell className="w-[168px]">
                   <span className="flex items-center gap-2">
                     <span className="w-16">
-                      <Meter value={pct} tone={pct === 100 ? "success" : "info"} />
+                      <Progress value={pct} tone={pct === 100 ? "success" : "info"} />
                     </span>
                     <span className="tnum text-muted-foreground">
                       {p.controlsAssessed}/{p.controlsTotal}
@@ -265,7 +266,7 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
   };
 
   return (
-    <Modal
+    <Dialog
       open={open}
       onClose={close}
       width="lg"
@@ -344,29 +345,29 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
               />
             </Field>
             <Field label="System type">
-              <Select value={type} onChange={(e) => setType(e.target.value)}>
+              <NativeSelect value={type} onChange={(e) => setType(e.target.value)}>
                 <option>Major application</option>
                 <option>General support system</option>
                 <option>Minor application</option>
-              </Select>
+              </NativeSelect>
             </Field>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Environment">
-              <Select value={environment} onChange={(e) => setEnvironment(e.target.value)}>
+              <NativeSelect value={environment} onChange={(e) => setEnvironment(e.target.value)}>
                 <option>AWS GovCloud</option>
                 <option>AWS Commercial</option>
                 <option>Azure</option>
                 <option>On-premise</option>
-              </Select>
+              </NativeSelect>
             </Field>
             <Field label="System owner">
-              <Select value={owner} onChange={(e) => setOwner(e.target.value)}>
+              <NativeSelect value={owner} onChange={(e) => setOwner(e.target.value)}>
                 <option>Grace Hoppel</option>
                 <option>Marcus Ryde</option>
                 <option>Dana Whitlock</option>
                 <option>Priya Raghavan</option>
-              </Select>
+              </NativeSelect>
             </Field>
           </div>
         </div>
@@ -447,11 +448,11 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
           </label>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Assessor">
-              <Select value={assessor} onChange={(e) => setAssessor(e.target.value)}>
+              <NativeSelect value={assessor} onChange={(e) => setAssessor(e.target.value)}>
                 <option>Whitcombe LLP</option>
                 <option>Internal assessment team</option>
                 <option>Unassigned</option>
-              </Select>
+              </NativeSelect>
             </Field>
             <Field label="Target authorization date">
               <Input type="date" defaultValue="2026-12-15" />
@@ -459,6 +460,6 @@ function CreateProgram({ open, onClose }: { open: boolean; onClose: () => void }
           </div>
         </div>
       ) : null}
-    </Modal>
+    </Dialog>
   );
 }

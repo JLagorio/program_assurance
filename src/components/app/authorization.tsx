@@ -9,14 +9,15 @@ import {
   FilterChip,
   Input,
   KeyValue,
-  Meter,
-  Select,
+  Progress,
+  NativeSelect,
   Table,
   Textarea,
   Id,
   Indicator,
+  Dialog,
 } from "@/ds/primitives";
-import { Modal, Section } from "@/ds/patterns";
+import { Section } from "@/ds/patterns";
 import {
   authorization,
   decisionTone,
@@ -113,7 +114,7 @@ export function AuthorizationSection({
               </p>
             </div>
             <div className="flex w-[180px] shrink-0 items-center gap-2">
-              <Meter value={readiness} tone={readiness >= 80 ? "success" : "info"} />
+              <Progress value={readiness} tone={readiness >= 80 ? "success" : "info"} />
               <span className="tabular-nums text-[12.5px] text-muted-foreground">{readiness}%</span>
             </div>
           </div>
@@ -333,7 +334,7 @@ function ObservationModal({
   if (!open) return null;
 
   return (
-    <Modal
+    <Dialog
       open
       onClose={onClose}
       width="lg"
@@ -395,14 +396,14 @@ next: triage -> jira issue`}
         </Field>
         <div className="grid grid-cols-3 gap-3">
           <Field label="Severity">
-            <Select
+            <NativeSelect
               value={severity}
               onChange={(e) => setSeverity(e.target.value as ScaObservation["severity"])}
             >
               <option>CAT I</option>
               <option>CAT II</option>
               <option>CAT III</option>
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Control">
             <Input
@@ -424,7 +425,7 @@ next: triage -> jira issue`}
           />
         </Field>
       </div>
-    </Modal>
+    </Dialog>
   );
 }
 
@@ -461,7 +462,7 @@ function RemediationModal({
     `${project}-${4400 + (observation.id.charCodeAt(observation.id.length - 1) % 90)}`;
 
   return (
-    <Modal
+    <Dialog
       open
       onClose={onClose}
       width="lg"
@@ -521,28 +522,28 @@ links:
         <p className="text-[13px] text-muted-foreground">{observation.detail}</p>
         <div className="grid grid-cols-4 gap-3">
           <Field label="Status">
-            <Select
+            <NativeSelect
               value={status}
               onChange={(e) => setStatus(e.target.value as ScaObservationStatus)}
             >
               {observationStatuses.map((s) => (
                 <option key={s}>{s}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Jira project">
-            <Select value={project} onChange={(e) => setProject(e.target.value)}>
+            <NativeSelect value={project} onChange={(e) => setProject(e.target.value)}>
               {jiraProjects.map((p) => (
                 <option key={p}>{p}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Assignee">
-            <Select value={assignee} onChange={(e) => setAssignee(e.target.value)}>
+            <NativeSelect value={assignee} onChange={(e) => setAssignee(e.target.value)}>
               {jiraAssignees.map((a) => (
                 <option key={a}>{a}</option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Due">
             <Input value={due} onChange={(e) => setDue(e.target.value)} />
@@ -552,7 +553,7 @@ links:
           <Textarea rows={4} value={response} onChange={(e) => setResponse(e.target.value)} />
         </Field>
       </div>
-    </Modal>
+    </Dialog>
   );
 }
 
@@ -565,7 +566,7 @@ function GrantModal({ open, onClose }: { open: boolean; onClose: () => void }) {
 
   if (!open) return null;
   return (
-    <Modal
+    <Dialog
       open
       onClose={onClose}
       title="Grant enclave access"
@@ -591,23 +592,23 @@ function GrantModal({ open, onClose }: { open: boolean; onClose: () => void }) {
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Role">
-            <Select value={role} onChange={(e) => setRole(e.target.value)}>
+            <NativeSelect value={role} onChange={(e) => setRole(e.target.value)}>
               <option>SCA</option>
               <option>SCA team</option>
               <option>AO</option>
               <option>AODR</option>
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Access">
-            <Select value={access} onChange={(e) => setAccess(e.target.value)}>
+            <NativeSelect value={access} onChange={(e) => setAccess(e.target.value)}>
               <option>Read only</option>
               <option>Read + comment</option>
               <option>Sign authority</option>
-            </Select>
+            </NativeSelect>
           </Field>
         </div>
       </div>
-    </Modal>
+    </Dialog>
   );
 }
 
@@ -655,7 +656,7 @@ export function BriefingRoom() {
               </p>
             </div>
             <div className="flex w-[180px] shrink-0 items-center gap-2">
-              <Meter value={progress} tone={pending.length > 0 ? "warning" : "success"} />
+              <Progress value={progress} tone={pending.length > 0 ? "warning" : "success"} />
               <span className="tabular-nums text-[12.5px] text-muted-foreground">{progress}%</span>
             </div>
           </div>
@@ -819,7 +820,7 @@ function RiskDecisionModal({
   if (!risk) return null;
 
   return (
-    <Modal
+    <Dialog
       open
       onClose={onClose}
       width="lg"
@@ -860,7 +861,7 @@ function RiskDecisionModal({
       <div className="space-y-3.5">
         <p className="text-[13px] text-muted-foreground">Mitigation in place: {risk.mitigation}</p>
         <Field label="AO decision">
-          <Select
+          <NativeSelect
             value={decision}
             onChange={(e) => setDecision(e.target.value as ResidualRisk["decision"])}
           >
@@ -868,7 +869,7 @@ function RiskDecisionModal({
             <option>Rejected</option>
             <option>Deferred</option>
             <option>Pending AO</option>
-          </Select>
+          </NativeSelect>
         </Field>
         <Field label="Rationale for the record">
           <Textarea
@@ -879,7 +880,7 @@ function RiskDecisionModal({
           />
         </Field>
       </div>
-    </Modal>
+    </Dialog>
   );
 }
 
@@ -892,7 +893,7 @@ function MemoModal({ open, onClose }: { open: boolean; onClose: () => void }) {
 
   if (!open) return null;
   return (
-    <Modal
+    <Dialog
       open
       onClose={onClose}
       width="lg"
@@ -933,13 +934,13 @@ conditions: |
       <div className="space-y-3.5">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Authorization type">
-            <Select value={type} onChange={(e) => setType(e.target.value)}>
+            <NativeSelect value={type} onChange={(e) => setType(e.target.value)}>
               <option>ATO with conditions (36 months)</option>
               <option>ATO (36 months)</option>
               <option>Continuous ATO (cATO)</option>
               <option>IATT (90 days)</option>
               <option>Denial of authorization</option>
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Expires">
             <Input value={expires} onChange={(e) => setExpires(e.target.value)} />
@@ -949,6 +950,6 @@ conditions: |
           <Textarea rows={4} value={conditions} onChange={(e) => setConditions(e.target.value)} />
         </Field>
       </div>
-    </Modal>
+    </Dialog>
   );
 }

@@ -13,8 +13,8 @@ import {
   RetestSummary,
   UnrecordedChangeNotice,
 } from "@/components/app/baselines";
-import { Badge, Select, Toolbar, Tabs } from "@/ds/primitives";
-import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Badge, NativeSelect, Toolbar, Tabs } from "@/ds/primitives";
+import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import {
   acknowledgeChange,
@@ -234,7 +234,7 @@ function ProgramBaseline() {
         }
       >
         <span className="text-[12px] text-muted-foreground">Change</span>
-        <Select
+        <NativeSelect
           value={change.id}
           onChange={(e) => selectChange(e.target.value)}
           aria-label="Change record"
@@ -247,7 +247,7 @@ function ProgramBaseline() {
               {c.acknowledged ? " · acknowledged" : ""}
             </option>
           ))}
-        </Select>
+        </NativeSelect>
       </Toolbar>
     ) : null;
 
@@ -349,7 +349,7 @@ function ProgramBaseline() {
                 description="A diff needs an authorized baseline and a candidate. This program has only one of them."
               >
                 <div className="pt-4">
-                  <EmptyState
+                  <Empty
                     title="Nothing to compare"
                     description={`${program.id} has no pair of an authorized baseline and a build under test, so there is no movement to analyse.`}
                   />
@@ -443,7 +443,7 @@ function ProgramBaseline() {
                 description="Nothing has been proposed against this program's baseline."
               >
                 <div className="pt-4">
-                  <EmptyState
+                  <Empty
                     title="No change to analyse"
                     description={`${program.id} carries no change records, so there is no security impact analysis to read and nothing for the cascade to act on.`}
                   />

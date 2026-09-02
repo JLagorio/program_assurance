@@ -36,34 +36,3 @@ export function Toolbar({
     </div>
   );
 }
-
-export function SegmentedControl<T extends string>({
-  items,
-  value,
-  onChange,
-}: {
-  items: { value: T; label: ReactNode }[];
-  value: T;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <div className="inline-flex h-7 items-center gap-0.5 rounded-md bg-muted p-0.5">
-      {items.map((i) => (
-        <button
-          key={i.value}
-          type="button"
-          onClick={() => onChange(i.value)}
-          aria-pressed={value === i.value}
-          className={cn(
-            "inline-flex h-6 items-center rounded-[5px] px-2 text-12 font-medium transition-colors duration-100",
-            value === i.value
-              ? "bg-card text-foreground shadow-hairline"
-              : "text-muted-foreground hover:text-foreground",
-          )}
-        >
-          {i.label}
-        </button>
-      ))}
-    </div>
-  );
-}

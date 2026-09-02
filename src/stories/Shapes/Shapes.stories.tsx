@@ -2,10 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-import { Badge, Button, Person, Table, Id, Tabs } from "@/ds/primitives";
-import type { Tone } from "@/ds/primitives";
-import { EmptyState } from "@/ds/patterns";
-import { ActionBar, Block, Disclosure, Inspector, WorkPane } from "@/ds/shapes";
+import { Badge, Button, Person, Table, Id, Tabs, type Tone } from "@/ds/primitives";
+import { Empty } from "@/ds/patterns";
+import { ActionBar, Block, Inspector, WorkPane } from "@/ds/shapes";
 import { Spec } from "../_lib/tokens";
 
 const meta = {
@@ -158,7 +157,7 @@ function WorkPaneDemo() {
           </div>
         ) : null
       }
-      empty={<EmptyState title="Select a control" />}
+      empty={<Empty title="Select a control" />}
     />
   );
 }
@@ -275,34 +274,10 @@ export const InspectorStory: Story = {
   ),
 };
 
-const objectives = [
-  "the time period after which to disable accounts is defined",
-  "accounts are disabled when they have expired",
-  "accounts are disabled when they are no longer associated with a user",
-  "accounts are disabled when they violate organizational policy",
-];
-
-/** Reference material closed and open, then a Block of work with a count and an action. */
-export const DisclosureAndBlock: Story = {
+/** A Block of work with a count and an action. Its closed twin is the Collapsible primitive. */
+export const BlockOfWork: Story = {
   render: () => (
     <div className="max-w-[720px]">
-      <Disclosure title="Control statement">
-        <p className="text-[13px] leading-relaxed">
-          Disable accounts within an organization-defined time period when the accounts have
-          expired, are no longer associated with a user or individual, are in violation of
-          organizational policy, or have been inactive for the defined period.
-        </p>
-      </Disclosure>
-      <Disclosure title="Assessment objectives" count={objectives.length} defaultOpen>
-        <ol className="space-y-1.5 text-[13px]">
-          {objectives.map((o, i) => (
-            <li key={o} className="flex items-baseline gap-2">
-              <Id className="text-muted-foreground">AC-2(3)[0{i + 1}]</Id>
-              <span>{o}</span>
-            </li>
-          ))}
-        </ol>
-      </Disclosure>
       <Block
         title="Findings"
         count={findings.length}

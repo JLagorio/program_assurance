@@ -18,8 +18,8 @@ import {
   StatementList,
 } from "@/components/app/control-text";
 import { ControlRequirementTable } from "@/components/app/requirements";
-import { Badge, Select, Table, Id, Tabs, Indicator } from "@/ds/primitives";
-import { Block, Disclosure, Inspector } from "@/ds/shapes";
+import { Badge, NativeSelect, Table, Id, Tabs, Indicator, Collapsible } from "@/ds/primitives";
+import { Block, Inspector } from "@/ds/shapes";
 import { Shell } from "@/ds/shell";
 import { controlDetail } from "@/lib/control-detail";
 import {
@@ -289,7 +289,7 @@ function ControlRecord() {
                 <Block title="Assessment methods" count={detail.methods.length}>
                   <MethodList methods={detail.methods} />
                 </Block>
-                <Disclosure title="Discussion and references" count={detail.discussion.length}>
+                <Collapsible title="Discussion and references" count={detail.discussion.length}>
                   <div className="max-w-[76ch] space-y-2 text-[13px] leading-relaxed text-muted-foreground">
                     {detail.discussion.map((p, i) => (
                       <p key={i}>{p}</p>
@@ -298,7 +298,7 @@ function ControlRecord() {
                   <div className="pt-3">
                     <ReferenceList references={detail.references} />
                   </div>
-                </Disclosure>
+                </Collapsible>
               </>
             ) : null}
 
@@ -317,7 +317,7 @@ function ControlRecord() {
                   {
                     label: "Scope",
                     value: (
-                      <Select
+                      <NativeSelect
                         className="h-7 text-[12.5px]"
                         value={scopeId}
                         onChange={(e) => setScopeId(e.target.value)}
@@ -328,13 +328,13 @@ function ControlRecord() {
                             {sc.name}
                           </option>
                         ))}
-                      </Select>
+                      </NativeSelect>
                     ),
                   },
                   {
                     label: "Role",
                     value: (
-                      <Select
+                      <NativeSelect
                         className="h-7 text-[12.5px]"
                         value={session.role}
                         onChange={(e) => {
@@ -346,7 +346,7 @@ function ControlRecord() {
                         {roles.map((r) => (
                           <option key={r}>{r}</option>
                         ))}
-                      </Select>
+                      </NativeSelect>
                     ),
                   },
                   { label: "Owner", value: work.owner ?? "Unassigned" },

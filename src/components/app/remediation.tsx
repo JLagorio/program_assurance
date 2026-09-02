@@ -11,7 +11,7 @@ import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 
-import { Badge, Meter, Person, Table, Id } from "@/ds/primitives";
+import { Badge, Progress, Person, Table, Id } from "@/ds/primitives";
 import { Section } from "@/ds/patterns";
 import { cn } from "@/lib/utils";
 import { planDay, spanDays, taskStatusTone, type RemediationPlan } from "@/lib/remediation";
@@ -120,7 +120,7 @@ export function RemediationPlanSection({
 
           <div className="flex items-center gap-3 pt-1">
             <span className="w-40">
-              <Meter
+              <Progress
                 value={plan.progress}
                 tone={plan.status === "Blocked" ? "danger" : "success"}
               />

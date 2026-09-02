@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useMemo, useState } from "react";
 
 import { Badge, Id, Tabs } from "@/ds/primitives";
-import { EmptyState, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import {
   ExecutionSummary,
@@ -378,7 +378,7 @@ function CampaignRecord() {
                 </Section>
               </>
             ) : procedureRows.length > 0 ? (
-              <EmptyState
+              <Empty
                 title="Select a procedure"
                 description="Open a row above to read its preconditions and the step-by-step action, pass criterion and artifact to collect."
               />
@@ -416,7 +416,7 @@ function CampaignRecord() {
                 onComplete={() => setRunState(selectedRun.run.id, "Complete")}
               />
             ) : runRows.length > 0 ? (
-              <EmptyState
+              <Empty
                 title="Select a run"
                 description="Open a row above to read every step record: what was observed, what was collected, and why the verdict is what it is."
               />
@@ -444,7 +444,7 @@ function CampaignRecord() {
           description="The scheduled windows the runs above were executed inside."
         >
           {events.length === 0 ? (
-            <EmptyState
+            <Empty
               title="This campaign has no events"
               description={`${campaign.id} was opened on the ${campaign.trigger.toLowerCase()} trigger but nothing was scheduled under it, so no objective is in scope and nothing can be executed.`}
             />

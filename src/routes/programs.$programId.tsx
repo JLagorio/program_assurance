@@ -11,21 +11,22 @@ import {
   Badge,
   Button,
   Kbd,
-  Menu,
+  DropdownMenu,
   Person,
   Toolbar,
   Dot,
   Field,
   Input,
   KeyValue,
-  Meter,
-  Select,
+  Progress,
+  NativeSelect,
   Table,
   Textarea,
   Id,
   Tabs,
+  Dialog,
 } from "@/ds/primitives";
-import { EmptyState, Modal, RecordHeader, Section, ShowPage } from "@/ds/patterns";
+import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
 import { Shell } from "@/ds/shell";
 import { TailoringSection } from "@/components/app/tailoring";
@@ -309,7 +310,7 @@ function ProgramDetail() {
 
       <Inspector.Group title="Lifecycle">
         <KeyValue label="Stage">
-          <Menu
+          <DropdownMenu
             align="start"
             width={190}
             trigger={({ toggle }) => (
@@ -326,9 +327,9 @@ function ProgramDetail() {
           >
             {(close) => (
               <>
-                <Menu.Label>Jump to stage</Menu.Label>
+                <DropdownMenu.Label>Jump to stage</DropdownMenu.Label>
                 {stages.map((s) => (
-                  <Menu.Item
+                  <DropdownMenu.Item
                     key={s}
                     selected={s === (stageFilter ?? state.currentStage)}
                     onSelect={() => {
@@ -337,11 +338,11 @@ function ProgramDetail() {
                     }}
                   >
                     {s}
-                  </Menu.Item>
+                  </DropdownMenu.Item>
                 ))}
               </>
             )}
-          </Menu>
+          </DropdownMenu>
         </KeyValue>
         <KeyValue label="Current gate">
           {state.currentGate ? (
@@ -626,7 +627,7 @@ function ProgramDetail() {
                   {state.primaryAction}
                 </Button>
 
-                <Menu
+                <DropdownMenu
                   align="end"
                   width={200}
                   trigger={({ toggle }) => (
@@ -643,7 +644,7 @@ function ProgramDetail() {
                 >
                   {(close) => (
                     <>
-                      <Menu.Item
+                      <DropdownMenu.Item
                         onSelect={() => {
                           palette.setOpen(true);
                           close();
@@ -651,28 +652,28 @@ function ProgramDetail() {
                       >
                         Command palette
                         <Kbd>⌘K</Kbd>
-                      </Menu.Item>
-                      <Menu.Item
+                      </DropdownMenu.Item>
+                      <DropdownMenu.Item
                         onSelect={() => {
                           setCdrOpen(true);
                           close();
                         }}
                       >
                         Export CDR package
-                      </Menu.Item>
-                      <Menu.Item
+                      </DropdownMenu.Item>
+                      <DropdownMenu.Item
                         onSelect={() => {
                           setAssessing(true);
                           close();
                         }}
                       >
                         Record assessment
-                      </Menu.Item>
-                      <Menu.Item onSelect={close}>Duplicate program</Menu.Item>
-                      <Menu.Item onSelect={close}>Archive</Menu.Item>
+                      </DropdownMenu.Item>
+                      <DropdownMenu.Item onSelect={close}>Duplicate program</DropdownMenu.Item>
+                      <DropdownMenu.Item onSelect={close}>Archive</DropdownMenu.Item>
                     </>
                   )}
-                </Menu>
+                </DropdownMenu>
               </>
             }
           />
@@ -933,7 +934,7 @@ function ProgramDetail() {
               }
             >
               {programPoams.length === 0 ? (
-                <EmptyState
+                <Empty
                   title="No POA&M items"
                   description="Commitments raised against this program will appear here."
                 />
@@ -1011,7 +1012,7 @@ function ProgramDetail() {
               allocationCount={(id) => allocationsFor(id).length}
             />
           ) : (
-            <EmptyState
+            <Empty
               title="No security requirements"
               description={`${program.id} has no engineering requirements yet. Controls are obligations until a requirement states what the system must do.`}
             />
@@ -1070,7 +1071,7 @@ function ProgramDetail() {
         programName={program.name}
       />
 
-      <Modal
+      <Dialog
         open={assessing}
         onClose={() => setAssessing(false)}
         title="Record a control assessment"
@@ -1089,27 +1090,27 @@ function ProgramDetail() {
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <Field label="Control">
-              <Select defaultValue="AC-6(9)">
+              <NativeSelect defaultValue="AC-6(9)">
                 {programControls.map((c) => (
                   <option key={c.id}>{c.id}</option>
                 ))}
-              </Select>
+              </NativeSelect>
             </Field>
             <Field label="Result">
-              <Select defaultValue="Other than satisfied">
+              <NativeSelect defaultValue="Other than satisfied">
                 <option>Satisfied</option>
                 <option>Other than satisfied</option>
                 <option>Not applicable</option>
-              </Select>
+              </NativeSelect>
             </Field>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Assessment method">
-              <Select defaultValue="Test">
+              <NativeSelect defaultValue="Test">
                 <option>Examine</option>
                 <option>Interview</option>
                 <option>Test</option>
-              </Select>
+              </NativeSelect>
             </Field>
             <Field label="Assessed on">
               <Input type="date" defaultValue="2026-08-27" />
@@ -1119,7 +1120,7 @@ function ProgramDetail() {
             <Textarea placeholder="Privileged function invocations on the settlement service are not forwarded to the audit sink; sampling of 20 events found 6 missing." />
           </Field>
         </div>
-      </Modal>
+      </Dialog>
     </Shell>
   );
 }
