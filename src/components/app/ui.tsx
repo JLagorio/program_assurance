@@ -752,14 +752,19 @@ export function Field({
 }
 
 const controlBase =
-  "h-8 w-full rounded-md border border-input bg-card px-2.5 text-[13px] text-foreground shadow-[0_1px_1px_oklch(0.21_0.03_264/0.04)] outline-none transition-[box-shadow,border-color] placeholder:text-muted-foreground focus:border-primary/60 focus:ring-2 focus:ring-ring/20";
+  "h-8 w-full rounded-md border border-input bg-card px-2.5 text-[13px] text-foreground outline-none transition-[box-shadow,border-color] placeholder:text-muted-foreground focus:border-primary/60 focus:ring-2 focus:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-60";
 
 export function Input({ className, ...props }: ComponentProps<"input">) {
   return <input className={cn(controlBase, className)} {...props} />;
 }
 
 export function Select({ className, ...props }: ComponentProps<"select">) {
-  return <select className={cn(controlBase, "pr-7", className)} {...props} />;
+  return (
+    <select
+      className={cn(controlBase, "select-chevron appearance-none pr-8", className)}
+      {...props}
+    />
+  );
 }
 
 export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
