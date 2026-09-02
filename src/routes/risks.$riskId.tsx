@@ -5,7 +5,6 @@ import { ChevronLeft, MoreHorizontal, Paperclip, Pencil } from "lucide-react";
 import {
   Badge,
   Button,
-  Dot,
   Field,
   Input,
   KeyValue,
@@ -14,6 +13,7 @@ import {
   Textarea,
   Id,
   Dialog,
+  Timeline,
 } from "@/ds/primitives";
 import { Section } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
@@ -154,22 +154,17 @@ function RiskDetail() {
             </Section>
 
             <Section title="Activity">
-              <ol className="relative mt-3 space-y-4 border-l border-border pl-4">
+              <Timeline className="mt-3">
                 {timeline.map((event) => (
-                  <li key={event.title} className="relative">
-                    <span className="absolute -left-[21px] top-[6px] flex size-2.5 items-center justify-center rounded-full bg-card ring-1 ring-border">
-                      <Dot tone={event.tone} />
-                    </span>
-                    <div className="flex items-baseline justify-between gap-3">
-                      <span className="text-[13px] font-medium">{event.title}</span>
-                      <span className="shrink-0 text-[12px] text-muted-foreground">
-                        {event.time}
-                      </span>
-                    </div>
-                    <div className="text-[12px] text-muted-foreground">{event.actor}</div>
-                  </li>
+                  <Timeline.Item
+                    key={event.title}
+                    tone={event.tone}
+                    title={event.title}
+                    meta={event.actor}
+                    time={event.time}
+                  />
                 ))}
-              </ol>
+              </Timeline>
             </Section>
           </div>
 

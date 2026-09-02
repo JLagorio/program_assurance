@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Download } from "lucide-react";
 
-import { Badge, Button, Dot, Progress, Table, Id } from "@/ds/primitives";
+import { Badge, Button, Dot, Progress, Table, Id, Item, Timeline } from "@/ds/primitives";
 import { PageHeader, Section } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import { activity, frameworks, riskStatusTone, risks } from "@/lib/grc-data";
@@ -199,45 +199,36 @@ function Overview() {
 
           <div className="space-y-7">
             <Section title="Assurance stream" action={<Button variant="link">History</Button>}>
-              <ol className="divide-y divide-border">
+              <Timeline className="pt-2">
                 {activity.map((item) => (
-                  <li key={item.title} className="flex gap-2.5 py-2.5">
-                    <span className="mt-[7px]">
-                      <Dot tone={item.tone} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-baseline justify-between gap-2">
-                        <span className="truncate text-[13px] font-medium">{item.title}</span>
-                        <Id className="shrink-0 text-muted-foreground">{item.time}</Id>
-                      </div>
-                      <p className="mt-0.5 text-[12px] leading-snug text-muted-foreground">
-                        {item.body}
-                      </p>
-                      <div className="mt-0.5 text-[12px] text-muted-foreground/80">
-                        {item.actor}
-                      </div>
-                    </div>
-                  </li>
+                  <Timeline.Item
+                    key={item.title}
+                    tone={item.tone}
+                    title={item.title}
+                    meta={item.actor}
+                    time={item.time}
+                  >
+                    {item.body}
+                  </Timeline.Item>
                 ))}
-              </ol>
+              </Timeline>
             </Section>
 
             <Section title="Upcoming obligations">
-              <ul className="divide-y divide-border">
+              <Item.Group>
                 {[
                   { label: "SOC 2 evidence cutoff", date: "Oct 31", tone: "warning" as const },
                   { label: "ISO 27001 stage 2 audit", date: "Nov 12", tone: "info" as const },
                   { label: "Quarterly access review", date: "Sep 30", tone: "neutral" as const },
                 ].map((row) => (
-                  <li key={row.label} className="flex h-9 items-center gap-2 text-[13px]">
-                    <Dot tone={row.tone} />
-                    <span className="truncate">{row.label}</span>
-                    <span className="tnum ml-auto shrink-0 text-[12px] text-muted-foreground">
-                      {row.date}
-                    </span>
-                  </li>
+                  <Item
+                    key={row.label}
+                    leading={<Dot tone={row.tone} />}
+                    title={row.label}
+                    trailing={row.date}
+                  />
                 ))}
-              </ul>
+              </Item.Group>
             </Section>
           </div>
         </div>

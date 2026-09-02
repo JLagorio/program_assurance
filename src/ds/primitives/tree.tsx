@@ -81,7 +81,9 @@ function TreeItem({
           />
         </button>
       ) : (
-        <span className="size-5 shrink-0" />
+        <span aria-hidden className="inline-flex size-5 shrink-0 items-center justify-center">
+          <span className="size-1 rounded-full bg-border-strong" />
+        </span>
       )}
 
       {onSelect ? (

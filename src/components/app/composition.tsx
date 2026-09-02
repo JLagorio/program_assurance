@@ -14,7 +14,6 @@
  */
 
 import { useMemo, useState } from "react";
-import { ChevronRight } from "lucide-react";
 
 import {
   Badge,
@@ -28,6 +27,7 @@ import {
   Indicator,
   Absent,
   type Tone,
+  Tree,
 } from "@/ds/primitives";
 import { Card } from "@/ds/patterns";
 import { Inspector } from "@/ds/shapes";
@@ -289,7 +289,7 @@ export function BomTree({
             No part matches “{query.trim()}”.
           </p>
         ) : (
-          <div role="tree" aria-label="System composition">
+          <Tree label="System composition">
             {rows.map((r) => (
               <BomTreeRow
                 key={r.node.id}
@@ -299,7 +299,7 @@ export function BomTree({
                 {...(onSelect ? { onSelect: () => onSelect(r.node.id) } : {})}
               />
             ))}
-          </div>
+          </Tree>
         )}
       </Card>
     </div>
@@ -320,9 +320,50 @@ function BomTreeRow({
   const { node, posture } = row;
   const open = posture?.rolled.open ?? 0;
 
-  const label = (
-    <>
-      <span className={cn("min-w-0 truncate text-[12.5px]", selected ? "font-semibold" : "")}>
+  return (
+    <Tree.Item
+      depth={row.depth}
+      lines={row.lines}
+      hasChildren={row.hasChildren}
+      expanded={row.open}
+      onToggle={onToggle}
+      selected={selected}
+      {...(onSelect ? { onSelect } : {})}
+      trailing={
+        <>
+          {node.attested ? null : (
+            <span title="No supplier attestation on file" className="flex items-center">
+              <Dot tone="warning" />
+            </span>
+          )}
+          {!row.open && row.subtree > 0 ? (
+            <span
+              title={`${row.subtree} parts beneath`}
+              className="tnum text-11 text-muted-foreground"
+            >
+              {row.subtree}
+            </span>
+          ) : null}
+          {posture && open > 0 ? (
+            <span
+              title={`${posture.rolled.catI} CAT I, ${posture.rolled.catII} CAT II, ${posture.rolled.catIII} CAT III open in this subtree`}
+              className="flex items-center"
+            >
+              <Badge size="xs" tone={postureToneOf(posture)}>
+                {open} open
+              </Badge>
+            </span>
+          ) : null}
+        </>
+      }
+    >
+      <span
+        title={`${node.id} — ${node.name}`}
+        className={cn(
+          "min-w-0 truncate text-[12.5px]",
+          selected ? "font-semibold text-primary" : "",
+        )}
+      >
         {node.name}
       </span>
       <Badge size="xs" className="shrink-0">
@@ -334,96 +375,7 @@ function BomTreeRow({
       {node.asset ? (
         <Id className="hidden shrink-0 text-muted-foreground sm:inline">{node.asset}</Id>
       ) : null}
-    </>
-  );
-
-  return (
-    <div
-      role="treeitem"
-      aria-level={row.depth + 1}
-      aria-selected={selected}
-      aria-expanded={row.hasChildren ? row.open : undefined}
-      className={cn(
-        "flex h-8 items-center gap-1.5 rounded-md pr-2 transition-colors duration-100",
-        selected ? "bg-primary-soft" : "hover:bg-surface-hover",
-      )}
-    >
-      <span aria-hidden className="flex h-full shrink-0 items-stretch">
-        {row.lines.map((line, i) => (
-          <span
-            key={i}
-            className={cn("w-4 border-l", line ? "border-border-subtle" : "border-transparent")}
-          />
-        ))}
-      </span>
-
-      {row.hasChildren ? (
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-label={row.open ? `Collapse ${node.name}` : `Expand ${node.name}`}
-          className="inline-flex size-5 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <ChevronRight
-            className={cn(
-              "size-3.5 transition-transform duration-100",
-              row.open ? "rotate-90" : "",
-            )}
-          />
-        </button>
-      ) : (
-        <span aria-hidden className="inline-flex size-5 shrink-0 items-center justify-center">
-          <span className="size-1 rounded-full bg-border-strong" />
-        </span>
-      )}
-
-      {onSelect ? (
-        <button
-          type="button"
-          onClick={onSelect}
-          title={`${node.id} — ${node.name}`}
-          className={cn(
-            "flex min-w-0 flex-1 items-center gap-2 text-left",
-            selected ? "text-primary" : "",
-          )}
-        >
-          {label}
-        </button>
-      ) : (
-        <span
-          className="flex min-w-0 flex-1 items-center gap-2"
-          title={`${node.id} — ${node.name}`}
-        >
-          {label}
-        </span>
-      )}
-
-      <span className="flex shrink-0 items-center gap-2">
-        {node.attested ? null : (
-          <span title="No supplier attestation on file" className="flex items-center">
-            <Dot tone="warning" />
-          </span>
-        )}
-        {!row.open && row.subtree > 0 ? (
-          <span
-            title={`${row.subtree} parts beneath`}
-            className="tnum text-11 text-muted-foreground"
-          >
-            {row.subtree}
-          </span>
-        ) : null}
-        {posture && open > 0 ? (
-          <span
-            title={`${posture.rolled.catI} CAT I, ${posture.rolled.catII} CAT II, ${posture.rolled.catIII} CAT III open in this subtree`}
-            className="flex items-center"
-          >
-            <Badge size="xs" tone={postureToneOf(posture)}>
-              {open} open
-            </Badge>
-          </span>
-        ) : null}
-      </span>
-    </div>
+    </Tree.Item>
   );
 }
 

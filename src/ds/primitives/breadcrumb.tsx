@@ -12,6 +12,7 @@ export function Breadcrumb({
     label: ReactNode;
     to?: string;
     params?: Record<string, string>;
+    search?: Record<string, unknown>;
     onSelect?: () => void;
   }[];
   className?: string;
@@ -35,6 +36,7 @@ export function Breadcrumb({
                 <Link
                   to={item.to}
                   params={item.params as never}
+                  search={item.search as never}
                   className="rounded-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {text}

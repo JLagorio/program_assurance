@@ -12,6 +12,7 @@ import {
   Textarea,
   Id,
   Dialog,
+  Timeline,
 } from "@/ds/primitives";
 import { Section } from "@/ds/patterns";
 import {
@@ -266,23 +267,17 @@ export function TailoringSection({
 
         {/* -------------------------------------------------------- history */}
         <Section title="Scope history">
-          <ol className="pt-1">
+          <Timeline className="pt-2">
             {history.map((e, i) => (
-              <li
+              <Timeline.Item
                 key={`${e.at}-${i}`}
-                className="flex gap-3 border-b border-border/70 py-2.5 last:border-0"
-              >
-                <span className="mt-1.5">
-                  <Dot tone={e.tone} />
-                </span>
-                <span className="min-w-0 flex-1 truncate text-[13px]">{e.text}</span>
-                <span className="shrink-0 text-[12px] text-muted-foreground">{e.actor}</span>
-                <span className="tnum w-[104px] shrink-0 text-right text-[12px] text-muted-foreground">
-                  {e.at}
-                </span>
-              </li>
+                tone={e.tone}
+                title={e.text}
+                meta={e.actor}
+                time={e.at}
+              />
             ))}
-          </ol>
+          </Timeline>
         </Section>
       </div>
 

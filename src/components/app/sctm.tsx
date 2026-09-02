@@ -21,7 +21,7 @@
 
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import {
   Badge,
@@ -308,81 +308,61 @@ export function SctmFamilyTable({
       {groups.map((group) => {
         const open = expanded.has(group.id);
         return (
-          <tbody key={group.id} className="border-t border-border">
-            <tr
-              className="cursor-pointer bg-subtle/60 hover:bg-surface-hover"
-              onClick={() => onToggle(group.id)}
-            >
-              <td colSpan={8} className="px-2 py-1.5">
-                <span className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    aria-expanded={open}
-                    aria-label={`${open ? "Collapse" : "Expand"} ${group.id}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggle(group.id);
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    <ChevronDown
-                      className={cn(
-                        "size-3.5 shrink-0 text-muted-foreground transition-transform",
-                        open ? "" : "-rotate-90",
-                      )}
-                    />
-                    <Id className="w-8 shrink-0 text-foreground">{group.id}</Id>
-                  </button>
-
-                  <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium">
-                    {group.name}
-                  </span>
-
-                  <span className="tnum shrink-0 text-12 text-muted-foreground">
-                    {group.controls} controls
-                  </span>
-                  <span className="tnum shrink-0 text-12 text-muted-foreground">
-                    {group.rows.length} rows
-                  </span>
-
-                  {/* No gap count here on purpose. In a package this early
-                      almost every row is gapped — 1,340 of 1,391 on the seeded
-                      program — so a per-family count restates the row count in
-                      red and reads as a wall rather than as a finding. The Gap
-                      column carries the specific reason per row, which is the
-                      grain at which it can actually be acted on. Invalidation
-                      is rare, so it stays. */}
-                  {group.invalidated > 0 ? (
-                    <Badge size="xs" tone="warning">
-                      {group.invalidated} invalidated
-                    </Badge>
-                  ) : null}
-
-                  <span className="w-28 shrink-0">
-                    <Progress.Stacked
-                      height={4}
-                      segments={[
-                        { key: "s", value: group.satisfied, tone: "success" },
-                        { key: "o", value: group.other, tone: "danger" },
-                        { key: "n", value: group.notAssessed, tone: "neutral" },
-                      ]}
-                    />
-                  </span>
-                  <span className="tnum w-24 shrink-0 text-right text-12 text-muted-foreground">
-                    {group.satisfied}/{group.rows.length - group.notApplicable} · {group.pct}%
-                  </span>
+          <Table.Group
+            key={group.id}
+            colSpan={8}
+            open={open}
+            onToggle={() => onToggle(group.id)}
+            title={
+              <>
+                <Id className="w-8 shrink-0 text-foreground">{group.id}</Id>
+                <span className="min-w-0 flex-1 truncate">{group.name}</span>
+              </>
+            }
+            trailing={
+              <>
+                <span className="tnum shrink-0 text-12 text-muted-foreground">
+                  {group.controls} controls
                 </span>
-              </td>
-            </tr>
+                <span className="tnum shrink-0 text-12 text-muted-foreground">
+                  {group.rows.length} rows
+                </span>
 
-            {open
-              ? group.rows.map((row) => (
-                  <Table.Row key={row.key} title={row.statement}>
-                    <SctmRowCells row={row} programId={programId} />
-                  </Table.Row>
-                ))
-              : null}
-          </tbody>
+                {/* No gap count here on purpose. In a package this early
+                    almost every row is gapped — 1,340 of 1,391 on the seeded
+                    program — so a per-family count restates the row count in
+                    red and reads as a wall rather than as a finding. The Gap
+                    column carries the specific reason per row, which is the
+                    grain at which it can actually be acted on. Invalidation
+                    is rare, so it stays. */}
+                {group.invalidated > 0 ? (
+                  <Badge size="xs" tone="warning">
+                    {group.invalidated} invalidated
+                  </Badge>
+                ) : null}
+
+                <span className="w-28 shrink-0">
+                  <Progress.Stacked
+                    height={4}
+                    segments={[
+                      { key: "s", value: group.satisfied, tone: "success" },
+                      { key: "o", value: group.other, tone: "danger" },
+                      { key: "n", value: group.notAssessed, tone: "neutral" },
+                    ]}
+                  />
+                </span>
+                <span className="tnum w-24 shrink-0 text-right text-12 text-muted-foreground">
+                  {group.satisfied}/{group.rows.length - group.notApplicable} · {group.pct}%
+                </span>
+              </>
+            }
+          >
+            {group.rows.map((row) => (
+              <Table.Row key={row.key} title={row.statement}>
+                <SctmRowCells row={row} programId={programId} />
+              </Table.Row>
+            ))}
+          </Table.Group>
         );
       })}
     </Table>

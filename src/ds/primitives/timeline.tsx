@@ -53,6 +53,7 @@ function TimelineItem({
   onSelect,
   active,
   emphasis,
+  trailing,
   children,
 }: {
   /** Replaces the default ring-and-dot: an Avatar, an icon. Sized 20px. */
@@ -66,6 +67,8 @@ function TimelineItem({
   active?: boolean;
   /** Unread or current: the title reads in foreground weight 500. */
   emphasis?: boolean;
+  /** Right of the time: an unread dot, a chevron. */
+  trailing?: ReactNode;
   children?: ReactNode;
 }) {
   const mark = marker ?? (
@@ -101,6 +104,7 @@ function TimelineItem({
           </span>
         ) : null}
       </span>
+      {trailing ? <span className="mt-[5px] flex shrink-0 items-center">{trailing}</span> : null}
     </>
   );
   const rowClass = cn(

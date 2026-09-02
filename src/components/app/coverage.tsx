@@ -6,9 +6,7 @@
  * Presentation only: bars and tracks, no chart library, no cards.
  */
 
-import { Check } from "lucide-react";
-
-import { Progress, Id } from "@/ds/primitives";
+import { Progress, Id, Stepper } from "@/ds/primitives";
 import { Section } from "@/ds/patterns";
 import { cn } from "@/lib/utils";
 import type { Coverage, MilestoneNode } from "@/lib/program-coverage";
@@ -131,67 +129,34 @@ export function MilestoneTrack({
   return (
     <Section title="Milestones">
       <div className="overflow-x-auto pt-4">
-        <ol className="flex min-w-[640px] items-start">
+        <Stepper className="min-w-[640px]">
           {nodes.map((n, i) => (
-            <li key={n.id} className="relative flex min-w-0 flex-1 flex-col">
-              <span className="flex items-center">
-                <span
-                  aria-hidden
-                  className={cn("h-px flex-1", i === 0 ? "bg-transparent" : "bg-border")}
-                />
-                <button
-                  type="button"
-                  onClick={() => onSelect(n)}
-                  title={`${n.id} ${n.name} — ${n.status}, planned ${n.planned}`}
-                  className={cn(
-                    "grid size-4 place-items-center rounded-full border transition-colors duration-100",
-                    n.state === "done"
-                      ? "border-success bg-success text-background"
-                      : n.state === "current"
-                        ? cn(
-                            "border-current bg-background",
-                            toneText[n.tone],
-                            "ring-2 ring-current/20",
-                          )
-                        : "border-border bg-background",
-                  )}
-                >
-                  {n.state === "done" ? <Check className="size-2.5" /> : null}
-                </button>
-                <span
-                  aria-hidden
-                  className={cn(
-                    "h-px flex-1",
-                    i === nodes.length - 1 ? "bg-transparent" : "bg-border",
-                  )}
-                />
-              </span>
-              <span className="mt-1.5 flex flex-col items-center px-1 text-center">
-                <button
-                  type="button"
-                  onClick={() => onSelect(n)}
-                  className={cn(
-                    "truncate text-12 hover:underline",
-                    n.state === "current" ? "font-semibold" : "font-medium",
-                    n.state === "upcoming" ? "text-muted-foreground" : "text-foreground",
-                  )}
-                >
-                  {n.id}
-                </button>
-                <span className="tnum text-11 text-muted-foreground">{n.planned}</span>
-                <span className={cn("tnum text-11", toneText[n.tone])}>
-                  {n.state === "done"
-                    ? "Complete"
-                    : n.daysOut === null
-                      ? n.status
-                      : n.daysOut < 0
-                        ? `${Math.abs(n.daysOut)}d overdue`
-                        : `${n.daysOut}d out`}
-                </span>
-              </span>
-            </li>
+            <Stepper.Item
+              key={n.id}
+              state={n.state}
+              tone={n.tone}
+              label={n.id}
+              meta={
+                <>
+                  <span className="block">{n.planned}</span>
+                  <span className={cn("block", toneText[n.tone])}>
+                    {n.state === "done"
+                      ? "Complete"
+                      : n.daysOut === null
+                        ? n.status
+                        : n.daysOut < 0
+                          ? `${Math.abs(n.daysOut)}d overdue`
+                          : `${n.daysOut}d out`}
+                  </span>
+                </>
+              }
+              title={`${n.id} ${n.name} — ${n.status}, planned ${n.planned}`}
+              first={i === 0}
+              last={i === nodes.length - 1}
+              onSelect={() => onSelect(n)}
+            />
           ))}
-        </ol>
+        </Stepper>
       </div>
     </Section>
   );

@@ -16,6 +16,8 @@ import {
   Textarea,
   Id,
   Dialog,
+  Item,
+  Timeline,
 } from "@/ds/primitives";
 import { Section } from "@/ds/patterns";
 import {
@@ -523,88 +525,56 @@ function PoamDetailModal({
               {item.milestones.length} complete
             </span>
           </div>
-          <ol className="pt-1">
+          <Item.Group empty="No milestones recorded.">
             {item.milestones.map((m) => (
-              <li
+              <Item
                 key={m.uuid}
-                className="flex items-center gap-3 border-b border-border/70 py-2.5 last:border-0"
-              >
-                <Dot tone={milestoneStatusTone[m.status]} />
-                <Id className="w-[42px] shrink-0">{m.id}</Id>
-                <span className="min-w-0 flex-1 truncate text-[13px]">{m.title}</span>
-                <span className="w-[92px] shrink-0 text-right text-[12px] text-muted-foreground">
-                  {m.status}
-                </span>
-                <span className="tnum w-[92px] shrink-0 text-right text-[12px] text-muted-foreground">
-                  {formatOscalDate(m.completedDate ?? m.targetDate)}
-                </span>
-              </li>
+                leading={<Dot tone={milestoneStatusTone[m.status]} />}
+                id={m.id}
+                idWidth={42}
+                title={m.title}
+                meta={m.status}
+                trailing={formatOscalDate(m.completedDate ?? m.targetDate)}
+              />
             ))}
-            {item.milestones.length === 0 ? (
-              <li className="py-2.5 text-[13px] text-muted-foreground">No milestones recorded.</li>
-            ) : null}
-          </ol>
+          </Item.Group>
         </div>
 
         <div>
           <div className="border-b border-border pb-2 text-[13px] font-semibold">
             Related observations
           </div>
-          <ol className="pt-1">
+          <Item.Group empty="No related observations.">
             {item.relatedObservations.map((o) => (
-              <li
+              <Item
                 key={o.observationUuid}
-                className="flex items-center gap-3 border-b border-border/70 py-2.5 last:border-0"
-              >
-                <Badge tone="neutral">{o.method}</Badge>
-                <Link
-                  to={o.href}
-                  className="min-w-0 flex-1 truncate text-[13px] text-primary hover:underline"
-                >
-                  {o.title}
-                </Link>
-                <Id className="hidden shrink-0 text-[11px] text-muted-foreground sm:inline">
-                  {o.observationUuid.slice(0, 8)}
-                </Id>
-                <span className="tnum w-[92px] shrink-0 text-right text-[12px] text-muted-foreground">
-                  {formatOscalDate(o.collected)}
-                </span>
-              </li>
+                to={o.href}
+                leading={<Badge tone="neutral">{o.method}</Badge>}
+                title={o.title}
+                meta={<Id>{o.observationUuid.slice(0, 8)}</Id>}
+                trailing={formatOscalDate(o.collected)}
+              />
             ))}
-            {item.relatedObservations.length === 0 ? (
-              <li className="py-2.5 text-[13px] text-muted-foreground">No related observations.</li>
-            ) : null}
-          </ol>
+          </Item.Group>
         </div>
 
         <div>
           <div className="border-b border-border pb-2 text-[13px] font-semibold">
             Associated risks
           </div>
-          {item.associatedRisks.length === 0 ? (
-            <p className="pt-2 text-[13px] text-muted-foreground">No risk exposure entry linked.</p>
-          ) : (
-            <ol className="pt-1">
-              {item.associatedRisks.map((r) => (
-                <li
-                  key={r.riskUuid}
-                  className="flex items-center gap-3 border-b border-border/70 py-2.5 last:border-0"
-                >
-                  <Id className="w-[76px] shrink-0">{r.riskId}</Id>
-                  <Link
-                    to="/risks/$riskId"
-                    params={{ riskId: r.riskId }}
-                    className="min-w-0 flex-1 truncate text-[13px] text-primary hover:underline"
-                  >
-                    {r.title}
-                  </Link>
-                  <Id className="hidden shrink-0 text-[11px] text-muted-foreground sm:inline">
-                    {r.riskUuid.slice(0, 8)}
-                  </Id>
-                </li>
-              ))}
-            </ol>
-          )}
+          <Item.Group empty="No risk exposure entry linked.">
+            {item.associatedRisks.map((r) => (
+              <Item
+                key={r.riskUuid}
+                to="/risks/$riskId"
+                params={{ riskId: r.riskId }}
+                id={r.riskId}
+                idWidth={76}
+                title={r.title}
+                trailing={<Id>{r.riskUuid.slice(0, 8)}</Id>}
+              />
+            ))}
+          </Item.Group>
         </div>
 
         <div>
@@ -614,35 +584,31 @@ function PoamDetailModal({
               No changes recorded for this item in this session.
             </p>
           ) : (
-            <ol className="pt-1">
+            <Timeline className="pt-2">
               {audit.map((e) => (
-                <li key={e.uuid} className="border-b border-border/70 py-2.5 last:border-0">
-                  <div className="flex items-center gap-3">
-                    <span className="text-[13px] font-medium">{e.action}</span>
-                    <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground">
-                      {e.actor} · {e.actorRole}
-                    </span>
-                    <span className="tnum shrink-0 text-[12px] text-muted-foreground">
-                      {formatOscalDate(e.timestamp, true)}
-                    </span>
-                  </div>
+                <Timeline.Item
+                  key={e.uuid}
+                  title={e.action}
+                  meta={`${e.actor} · ${e.actorRole}`}
+                  time={formatOscalDate(e.timestamp, true)}
+                >
                   {e.changes.length > 0 ? (
-                    <ul className="mt-1 space-y-0.5">
+                    <span className="block space-y-0.5">
                       {e.changes.map((c) => (
-                        <li key={c.field} className="flex items-baseline gap-2 text-[12px]">
+                        <span key={c.field} className="flex items-baseline gap-2 text-[12px]">
                           <Id className="shrink-0 text-[11px]">{c.field}</Id>
                           <span className="min-w-0 truncate text-muted-foreground line-through">
                             {c.from}
                           </span>
                           <span className="shrink-0 text-muted-foreground">→</span>
                           <span className="min-w-0 truncate">{c.to}</span>
-                        </li>
+                        </span>
                       ))}
-                    </ul>
+                    </span>
                   ) : null}
-                </li>
+                </Timeline.Item>
               ))}
-            </ol>
+            </Timeline>
           )}
         </div>
       </div>

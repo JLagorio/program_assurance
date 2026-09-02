@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, Circle } from "lucide-react";
 
-import { Avatar, Button, DropdownMenu, Sheet } from "@/ds/primitives";
+import { Avatar, Button, DropdownMenu, Sheet, Timeline } from "@/ds/primitives";
 import { Empty } from "@/ds/patterns";
 import { cn } from "@/lib/utils";
 import { useActivityFilters, useReadState } from "@/lib/activity-prefs";
@@ -128,26 +128,16 @@ export function ActivityTimeline({
           }
         />
       ) : (
-        groups.map((g) => (
-          <div key={g.key} className="pt-2">
-            <div className="sticky top-0 z-10 bg-background pb-1 pt-1 text-11 font-semibold uppercase tracking-wide text-muted-foreground">
-              {g.label}
-              <span className="tnum ml-1.5 font-medium normal-case opacity-70">
-                {g.items.length}
-              </span>
-            </div>
-            <ol className="relative">
-              <span aria-hidden className="absolute bottom-1 left-[11px] top-1 w-px bg-border" />
+        <Timeline>
+          {groups.map((g) => (
+            <Timeline.Group key={g.key} label={g.label} count={g.items.length}>
               {g.items.map((e) => {
                 const isUnread = !readIds.has(e.id);
                 return (
-                  <li key={e.id} className="relative">
-                    <button
-                      type="button"
-                      onClick={() => open(e)}
-                      className="-mx-2 flex w-[calc(100%+16px)] items-start gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors duration-100 hover:bg-surface-hover"
-                    >
-                      <span className="relative z-10 mt-[3px] shrink-0">
+                  <Timeline.Item
+                    key={e.id}
+                    marker={
+                      <span className="relative">
                         <Avatar name={e.actor} size="sm" />
                         <span
                           className={cn(
@@ -156,42 +146,29 @@ export function ActivityTimeline({
                           )}
                         />
                       </span>
-                      <span className="min-w-0 flex-1">
-                        <span
-                          className={cn(
-                            "block truncate text-13",
-                            isUnread ? "font-medium text-foreground" : "text-muted-foreground",
-                          )}
-                        >
-                          {e.title}
-                        </span>
-                        <span className="mt-0.5 block truncate text-11 text-muted-foreground">
-                          {e.actor} · {e.kind}
-                        </span>
-                      </span>
-                      <span
-                        title={absoluteStamp(e.at)}
-                        className="tnum mt-[2px] shrink-0 text-11 text-muted-foreground"
-                      >
-                        {relativeStamp(e.at)}
-                      </span>
-                      <span className="mt-[7px] shrink-0">
-                        <Circle
-                          className={cn(
-                            "size-2",
-                            isUnread
-                              ? "fill-primary text-primary"
-                              : "fill-transparent text-transparent",
-                          )}
-                        />
-                      </span>
-                    </button>
-                  </li>
+                    }
+                    title={e.title}
+                    meta={`${e.actor} · ${e.kind}`}
+                    time={relativeStamp(e.at)}
+                    timeTitle={absoluteStamp(e.at)}
+                    emphasis={isUnread}
+                    trailing={
+                      <Circle
+                        className={cn(
+                          "size-2",
+                          isUnread
+                            ? "fill-primary text-primary"
+                            : "fill-transparent text-transparent",
+                        )}
+                      />
+                    }
+                    onSelect={() => open(e)}
+                  />
                 );
               })}
-            </ol>
-          </div>
-        ))
+            </Timeline.Group>
+          ))}
+        </Timeline>
       )}
 
       {filtered.length > shown.length || expanded ? (

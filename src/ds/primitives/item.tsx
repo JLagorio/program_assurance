@@ -23,6 +23,7 @@ function ItemRoot({
   onSelect,
   active,
   className,
+  children,
 }: {
   leading?: ReactNode;
   id?: ReactNode;
@@ -39,6 +40,8 @@ function ItemRoot({
   onSelect?: () => void;
   active?: boolean;
   className?: string;
+  /** Expanded content under the row, outside its link or button: a change list, a note. */
+  children?: ReactNode;
 }) {
   const inner = (
     <>
@@ -92,6 +95,7 @@ function ItemRoot({
       ) : (
         <div className={rowClass}>{inner}</div>
       )}
+      {children ? <div className="px-1 pb-2.5 pt-0.5">{children}</div> : null}
     </li>
   );
 }

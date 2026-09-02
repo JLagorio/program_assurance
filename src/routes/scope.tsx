@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Badge, Button, Table, Id } from "@/ds/primitives";
+import { Badge, Button, Table, Id, Item } from "@/ds/primitives";
 import { PageHeader, Section, IndexPage } from "@/ds/patterns";
 import { Shell } from "@/ds/shell";
 import { programs } from "@/lib/grc-data";
@@ -146,23 +146,20 @@ function ScopeApprovals() {
         </Section>
 
         <Section title="Decision notes">
-          <ol className="pt-1">
+          <Item.Group>
             {scopeApprovals
               .filter((a) => a.note)
               .map((a) => (
-                <li
+                <Item
                   key={a.programId}
-                  className="flex gap-3 border-b border-border/70 py-2.5 last:border-0"
-                >
-                  <Id className="w-[88px] shrink-0">{a.programId}</Id>
-                  <span className="min-w-0 flex-1 truncate text-[13px]">{a.note}</span>
-                  <span className="shrink-0 text-[12px] text-muted-foreground">{a.decidedBy}</span>
-                  <span className="tnum w-[104px] shrink-0 text-right text-[12px] text-muted-foreground">
-                    {a.decided}
-                  </span>
-                </li>
+                  id={a.programId}
+                  idWidth={88}
+                  title={a.note}
+                  meta={a.decidedBy}
+                  trailing={a.decided}
+                />
               ))}
-          </ol>
+          </Item.Group>
         </Section>
 
         <div className="flex justify-end">

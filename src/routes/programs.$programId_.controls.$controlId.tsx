@@ -18,7 +18,16 @@ import {
   StatementList,
 } from "@/components/app/control-text";
 import { ControlRequirementTable } from "@/components/app/requirements";
-import { Badge, NativeSelect, Table, Id, Tabs, Indicator, Collapsible } from "@/ds/primitives";
+import {
+  Badge,
+  NativeSelect,
+  Table,
+  Id,
+  Tabs,
+  Indicator,
+  Collapsible,
+  Breadcrumb,
+} from "@/ds/primitives";
 import { Block, Inspector } from "@/ds/shapes";
 import { Shell } from "@/ds/shell";
 import { controlDetail } from "@/lib/control-detail";
@@ -164,22 +173,18 @@ function ControlRecord() {
           scopeName={scope?.name ?? "—"}
           onChange={refresh}
           breadcrumb={
-            <span className="flex items-center gap-1.5">
-              <Link to="/programs" className="hover:underline">
-                Programs
-              </Link>
-              <span aria-hidden>/</span>
-              <Link
-                to="/programs/$programId"
-                params={{ programId }}
-                search={{ tab: "Controls" }}
-                className="hover:underline"
-              >
-                {program.name}
-              </Link>
-              <span aria-hidden>/</span>
-              <span className="text-foreground">{row.family} controls</span>
-            </span>
+            <Breadcrumb
+              items={[
+                { label: "Programs", to: "/programs" },
+                {
+                  label: program.name,
+                  to: "/programs/$programId",
+                  params: { programId },
+                  search: { tab: "Controls" },
+                },
+                { label: `${row.family} controls` },
+              ]}
+            />
           }
           tabs={
             <Tabs
