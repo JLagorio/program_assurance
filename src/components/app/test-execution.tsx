@@ -24,7 +24,6 @@ import {
   KeyValue,
   Meter,
   Person,
-  RailGroup,
   Section,
   Table,
   type Tone,
@@ -44,6 +43,7 @@ import {
   type TestRun,
 } from "@/lib/test-execution";
 import { cn } from "@/lib/utils";
+import { Inspector } from "@/components/app/shapes";
 
 /* ── Row shapes the route assembles ──────────────────────────────────────── */
 
@@ -447,7 +447,7 @@ export function ObjectiveRail({ row }: { row: ObjectiveExecutionRow }) {
         </div>
       ) : null}
 
-      <RailGroup title="Objective">
+      <Inspector.Group title="Objective">
         <KeyValue label="Objective">
           <Id>{row.objective}</Id>
         </KeyValue>
@@ -456,9 +456,9 @@ export function ObjectiveRail({ row }: { row: ObjectiveExecutionRow }) {
           <IdList ids={row.ccis} />
         </WrapValue>
         <KeyValue label="Event">{row.event ? <Id>{row.event}</Id> : <Dash />}</KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Result">
+      <Inspector.Group title="Result">
         <KeyValue label="Declared">
           <ResultChip result={row.declared} />
         </KeyValue>
@@ -468,16 +468,16 @@ export function ObjectiveRail({ row }: { row: ObjectiveExecutionRow }) {
         <KeyValue label="Source">{row.source === "Run" ? "Run log" : "Campaign record"}</KeyValue>
         <KeyValue label="Decided by">{row.run ? <Id>{row.run}</Id> : <Dash />}</KeyValue>
         <ProseBlock label="Basis">{row.basis}</ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Execution">
+      <Inspector.Group title="Execution">
         <WrapValue label="Procedures">
           <IdList ids={row.procedures} empty="No procedure written" />
         </WrapValue>
         <KeyValue label="Runs">
           <span className="tnum">{row.runs}</span>
         </KeyValue>
-      </RailGroup>
+      </Inspector.Group>
     </div>
   );
 }
@@ -637,7 +637,7 @@ export function ProcedureRail({ row }: { row: ProcedureListRow }) {
   const { procedure, runs, verdict } = row;
   return (
     <div>
-      <RailGroup title="Procedure">
+      <Inspector.Group title="Procedure">
         <KeyValue label="Procedure">
           <Id>{procedure.id}</Id>
         </KeyValue>
@@ -658,15 +658,15 @@ export function ProcedureRail({ row }: { row: ProcedureListRow }) {
           <Person name={procedure.author} />
         </KeyValue>
         <KeyValue label="Version">{procedure.version}</KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Written against">
+      <Inspector.Group title="Written against">
         <WrapValue label="Components">
           <IdList ids={procedure.nodes} empty="Not allocated" />
         </WrapValue>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Execution">
+      <Inspector.Group title="Execution">
         <KeyValue label="Runs">
           <span className="tnum">{runs}</span>
         </KeyValue>
@@ -674,7 +674,7 @@ export function ProcedureRail({ row }: { row: ProcedureListRow }) {
           {verdict ? <ResultChip result={verdict.result} /> : <Dash />}
         </KeyValue>
         {verdict ? <ProseBlock label="Basis">{verdict.basis}</ProseBlock> : null}
-      </RailGroup>
+      </Inspector.Group>
     </div>
   );
 }
@@ -957,7 +957,7 @@ export function RunRail({ row }: { row: RunListRow }) {
   const { run, procedure, verdict } = row;
   return (
     <div>
-      <RailGroup title="Run">
+      <Inspector.Group title="Run">
         <KeyValue label="Run">
           <Id>{run.id}</Id>
         </KeyValue>
@@ -975,9 +975,9 @@ export function RunRail({ row }: { row: RunListRow }) {
           {verdict ? <ResultChip result={verdict.result} /> : <Dash />}
         </KeyValue>
         <KeyValue label="Retest of">{run.retestOf ? <Id>{run.retestOf}</Id> : <Dash />}</KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Conduct">
+      <Inspector.Group title="Conduct">
         <KeyValue label="Operator">
           <Person name={run.operator} />
         </KeyValue>
@@ -996,12 +996,12 @@ export function RunRail({ row }: { row: RunListRow }) {
         <WrapValue label="Findings">
           <IdList ids={run.findings} empty="None raised" />
         </WrapValue>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Configuration">
+      <Inspector.Group title="Configuration">
         <ProseBlock label="Build">{run.build}</ProseBlock>
         <ProseBlock label="Deviations">{run.configuration}</ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
     </div>
   );
 }

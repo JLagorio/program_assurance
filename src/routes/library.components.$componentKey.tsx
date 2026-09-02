@@ -3,16 +3,8 @@ import { AlertTriangle } from "lucide-react";
 
 import { ConsumerTable, ProvidedControlsTable } from "@/components/app/inheritance";
 import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  KeyValue,
-  RailGroup,
-  RecordHeader,
-  ShowPage,
-  Section,
-  Id,
-} from "@/components/app/ui";
+import { Badge, Button, KeyValue, RecordHeader, ShowPage, Section, Id } from "@/components/app/ui";
+import { Inspector } from "@/components/app/shapes";
 import {
   componentHealthTone,
   systemComponents,
@@ -80,7 +72,7 @@ function ComponentRecord() {
         showRail
         rail={
           <>
-            <RailGroup title="Definition">
+            <Inspector.Group title="Definition">
               <KeyValue label="Provider">
                 <Id>{component.id}</Id>
               </KeyValue>
@@ -91,15 +83,15 @@ function ComponentRecord() {
               <KeyValue label="Version">{component.version}</KeyValue>
               <KeyValue label="Provider">{component.provider}</KeyValue>
               <KeyValue label="Owner">{component.owner}</KeyValue>
-            </RailGroup>
-            <RailGroup title="Standing">
+            </Inspector.Group>
+            <Inspector.Group title="Standing">
               <KeyValue label="Authorization">{component.authorization}</KeyValue>
               <KeyValue label="Health">{component.health}</KeyValue>
               <KeyValue label="Controls">{component.controls.length}</KeyValue>
               <KeyValue label="Consumers">{component.consumers.length}</KeyValue>
               <KeyValue label="Updated">{component.updated}</KeyValue>
-            </RailGroup>
-            <RailGroup title="Source">
+            </Inspector.Group>
+            <Inspector.Group title="Source">
               <KeyValue label="Program">
                 {component.sourceProgramId ? (
                   component.sourceAccessible ? (
@@ -117,7 +109,7 @@ function ComponentRecord() {
                   "—"
                 )}
               </KeyValue>
-            </RailGroup>
+            </Inspector.Group>
           </>
         }
       >

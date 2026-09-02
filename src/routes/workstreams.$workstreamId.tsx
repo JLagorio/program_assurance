@@ -1,16 +1,8 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 
 import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  KeyValue,
-  RailGroup,
-  RecordHeader,
-  ShowPage,
-  Section,
-  Table,
-  Id,
-} from "@/components/app/ui";
+import { Badge, KeyValue, RecordHeader, ShowPage, Section, Table, Id } from "@/components/app/ui";
+import { Inspector } from "@/components/app/shapes";
 import {
   dependentsOf,
   personById,
@@ -71,7 +63,7 @@ function WorkstreamDetail() {
         showRail
         rail={
           <>
-            <RailGroup title="Workstream">
+            <Inspector.Group title="Workstream">
               <KeyValue label="Program">
                 <Link
                   to="/programs/$programId"
@@ -98,9 +90,9 @@ function WorkstreamDetail() {
               <KeyValue label="Gate">{ws.gate}</KeyValue>
               <KeyValue label="Due">{ws.due}</KeyValue>
               <KeyValue label="Team size">{ws.members.length}</KeyValue>
-            </RailGroup>
+            </Inspector.Group>
 
-            <RailGroup title="Disciplines">
+            <Inspector.Group title="Disciplines">
               <div className="flex flex-wrap gap-1.5 py-1">
                 {ws.disciplines.map((d) => (
                   <Badge key={d} tone="neutral">
@@ -108,9 +100,9 @@ function WorkstreamDetail() {
                   </Badge>
                 ))}
               </div>
-            </RailGroup>
+            </Inspector.Group>
 
-            <RailGroup title="Joins">
+            <Inspector.Group title="Joins">
               <KeyValue label="Controls">
                 <Id>{ws.controls.join(", ")}</Id>
               </KeyValue>
@@ -118,7 +110,7 @@ function WorkstreamDetail() {
                 {ws.ccis.length ? <Id>{ws.ccis.join(", ")}</Id> : "—"}
               </KeyValue>
               <KeyValue label="Sibling streams">{workstreams.length}</KeyValue>
-            </RailGroup>
+            </Inspector.Group>
           </>
         }
       >

@@ -11,7 +11,6 @@ import {
   KeyValue,
   Meter,
   Person,
-  RailGroup,
   RecordHeader,
   Section,
   ShowPage,
@@ -28,6 +27,7 @@ import { planForFinding } from "@/lib/remediation";
 import { poamById } from "@/lib/register";
 import { bandTone, scoreFinding, type ScoreFactor } from "@/lib/risk-scoring";
 import { severityTone, statusTone } from "@/lib/spine";
+import { Inspector } from "@/components/app/shapes";
 
 const findingTabs = ["Finding", "Assessment", "Remediation", "Residual risk"] as const;
 type FindingTab = (typeof findingTabs)[number];
@@ -178,7 +178,7 @@ function FindingRecord() {
         showRail={tab === "Finding"}
         rail={
           <>
-            <RailGroup title="Join keys">
+            <Inspector.Group title="Join keys">
               <KeyValue label="CCI">
                 <Id>{finding.cci}</Id>
               </KeyValue>
@@ -193,9 +193,9 @@ function FindingRecord() {
                 </Link>
               </KeyValue>
               <KeyValue label="Rule">{finding.rule ? <Id>{finding.rule}</Id> : "—"}</KeyValue>
-            </RailGroup>
+            </Inspector.Group>
 
-            <RailGroup title="Provenance">
+            <Inspector.Group title="Provenance">
               <KeyValue label="Source">{finding.source}</KeyValue>
               <KeyValue label="Artifact">
                 <Id>{finding.sourceArtifact}</Id>
@@ -203,9 +203,9 @@ function FindingRecord() {
               <KeyValue label="First seen">{finding.firstSeen}</KeyValue>
               <KeyValue label="Last seen">{finding.lastSeen}</KeyValue>
               <KeyValue label="Occurrences">{finding.occurrences}</KeyValue>
-            </RailGroup>
+            </Inspector.Group>
 
-            <RailGroup title="Severity">
+            <Inspector.Group title="Severity">
               <KeyValue label="Raw">{finding.rawSeverity}</KeyValue>
               <KeyValue label="Mitigated">
                 <Indicator tone={severityTone(finding.mitigatedSeverity)}>
@@ -230,9 +230,9 @@ function FindingRecord() {
                   "—"
                 )}
               </KeyValue>
-            </RailGroup>
+            </Inspector.Group>
 
-            <RailGroup title="Rolls up to">
+            <Inspector.Group title="Rolls up to">
               <KeyValue label="POA&M">
                 {finding.poam ? (
                   <Link
@@ -268,7 +268,7 @@ function FindingRecord() {
                   <Id className="text-primary">{programId}</Id>
                 </Link>
               </KeyValue>
-            </RailGroup>
+            </Inspector.Group>
           </>
         }
       >

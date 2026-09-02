@@ -10,11 +10,11 @@ import {
   IndexPage,
   PageHeader,
   PreviewRail,
-  RailGroup,
   Table,
   Id,
 } from "@/components/app/ui";
 import { packageStateTone, packages, readiness, type Pkg } from "@/lib/packages";
+import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/packages/")({
   head: () => ({
@@ -133,7 +133,7 @@ function PackagesIndex() {
                 </Link>
               }
             >
-              <RailGroup title="Snapshot">
+              <Inspector.Group title="Snapshot">
                 <KeyValue label="Version">{preview.version}</KeyValue>
                 <KeyValue label="State">
                   <Badge tone={packageStateTone[preview.state]}>{preview.state}</Badge>
@@ -141,8 +141,8 @@ function PackagesIndex() {
                 <KeyValue label="Decision">{preview.decision}</KeyValue>
                 <KeyValue label="Taken">{preview.snapshotAt}</KeyValue>
                 <KeyValue label="Owner">{preview.owner}</KeyValue>
-              </RailGroup>
-              <RailGroup title="Join keys">
+              </Inspector.Group>
+              <Inspector.Group title="Join keys">
                 <KeyValue label="Program">
                   <Id>{preview.program}</Id>
                 </KeyValue>
@@ -150,14 +150,14 @@ function PackagesIndex() {
                   <Id>{preview.system}</Id>
                 </KeyValue>
                 <KeyValue label="Submitted to">{preview.submittedTo}</KeyValue>
-              </RailGroup>
-              <RailGroup title="Readiness">
+              </Inspector.Group>
+              <Inspector.Group title="Readiness">
                 <KeyValue label="CCIs in scope">{ready.rows.length}</KeyValue>
                 <KeyValue label="Traced">{ready.coverage}%</KeyValue>
                 <KeyValue label="Gaps">{ready.gaps.length}</KeyValue>
                 <KeyValue label="Stale artifacts">{ready.stale.length}</KeyValue>
                 <KeyValue label="Shippable">{ready.shippable ? "Yes" : "No"}</KeyValue>
-              </RailGroup>
+              </Inspector.Group>
             </PreviewRail>
           ) : null}
         </div>

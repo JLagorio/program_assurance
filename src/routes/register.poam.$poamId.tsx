@@ -5,7 +5,6 @@ import {
   Badge,
   Button,
   KeyValue,
-  RailGroup,
   RecordHeader,
   Section,
   ShowPage,
@@ -16,6 +15,7 @@ import {
 import { assetById, bySeverity, isOpen } from "@/lib/findings";
 import { findingsForPoam, openCount, poamItems, riskById } from "@/lib/register";
 import { severityTone, statusTone } from "@/lib/spine";
+import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/register/poam/$poamId")({
   head: ({ params }) => {
@@ -81,7 +81,7 @@ function PoamRecord() {
         showRail
         rail={
           <>
-            <RailGroup title="Commitment">
+            <Inspector.Group title="Commitment">
               <KeyValue label="POA&M">
                 <Id>{item.id}</Id>
               </KeyValue>
@@ -92,8 +92,8 @@ function PoamRecord() {
               <KeyValue label="Resources">{item.resources}</KeyValue>
               <KeyValue label="Scheduled">{item.scheduledCompletion}</KeyValue>
               <KeyValue label="Original">{item.originalCompletion}</KeyValue>
-            </RailGroup>
-            <RailGroup title="Joins">
+            </Inspector.Group>
+            <Inspector.Group title="Joins">
               <KeyValue label="Program">
                 <Link
                   to="/programs/$programId"
@@ -117,7 +117,7 @@ function PoamRecord() {
                 )}
               </KeyValue>
               <KeyValue label="Open findings">{fs.filter(isOpen).length}</KeyValue>
-            </RailGroup>
+            </Inspector.Group>
           </>
         }
       >

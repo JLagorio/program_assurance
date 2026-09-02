@@ -10,7 +10,6 @@ import {
   Badge,
   Button,
   KeyValue,
-  RailGroup,
   RecordHeader,
   Section,
   ShowPage,
@@ -18,6 +17,7 @@ import {
   Tabs,
 } from "@/components/app/ui";
 import { programs } from "@/lib/grc-data";
+import { Inspector } from "@/components/app/shapes";
 import {
   allocationsFor,
   ancestorsOfRequirement,
@@ -217,7 +217,7 @@ function RequirementRecord() {
         showRail={tab === "Overview"}
         rail={
           <>
-            <RailGroup title="Derives from">
+            <Inspector.Group title="Derives from">
               {requirement.derivations.map((d) => (
                 <KeyValue key={`${d.sourceType}-${d.sourceId}`} label={d.sourceType}>
                   <span className="flex flex-col gap-0.5">
@@ -237,9 +237,9 @@ function RequirementRecord() {
                   {requirement.derivations.length} on the Provenance tab
                 </button>
               </KeyValue>
-            </RailGroup>
+            </Inspector.Group>
 
-            <RailGroup title="Position">
+            <Inspector.Group title="Position">
               <KeyValue label="Parent">
                 {parent ? (
                   <Link
@@ -279,7 +279,7 @@ function RequirementRecord() {
                   <Id className="text-primary">{programId}</Id>
                 </Link>
               </KeyValue>
-            </RailGroup>
+            </Inspector.Group>
           </>
         }
       >

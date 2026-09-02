@@ -29,7 +29,6 @@ import {
   EmptyState,
   KeyValue,
   Meter,
-  RailGroup,
   Section,
   Table,
   type Tone,
@@ -38,6 +37,7 @@ import {
 } from "@/components/app/ui";
 import { inheritanceStateTone } from "@/lib/inheritance";
 import { cn } from "@/lib/utils";
+import { Inspector } from "@/components/app/shapes";
 import {
   determinationTone,
   rowCurrencyTone,
@@ -442,7 +442,7 @@ export function SctmRail({ row }: { row: SctmRow }) {
         </div>
       ) : null}
 
-      <RailGroup title="Requirement">
+      <Inspector.Group title="Requirement">
         <KeyValue label="Control">
           <Id>{row.control}</Id>
         </KeyValue>
@@ -457,9 +457,9 @@ export function SctmRail({ row }: { row: SctmRow }) {
           <Id>{row.requirement}</Id>
         </KeyValue>
         <ProseBlock label="Statement">{row.statement}</ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Implementation">
+      <Inspector.Group title="Implementation">
         <KeyValue label="Origination">
           <Badge size="xs">{row.origination}</Badge>
         </KeyValue>
@@ -484,16 +484,16 @@ export function SctmRail({ row }: { row: SctmRow }) {
           <ProseBlock label="Why this provider">{row.inheritanceReason}</ProseBlock>
         ) : null}
         <ProseBlock label="Assertion">{row.assertion}</ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Allocation">
+      <Inspector.Group title="Allocation">
         <WrapValue label="Components">
           <IdList ids={row.responsibleNodes} empty="Not allocated" />
         </WrapValue>
         <ProseBlock label="Basis">{row.allocationBasis}</ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Verification">
+      <Inspector.Group title="Verification">
         <KeyValue label="Method">
           <MethodChip method={row.method} />
         </KeyValue>
@@ -501,9 +501,9 @@ export function SctmRail({ row }: { row: SctmRow }) {
           <IdList ids={row.evidence} empty="None recorded" />
         </WrapValue>
         <ProseBlock label="Method basis">{row.methodBasis}</ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Determination">
+      <Inspector.Group title="Determination">
         <KeyValue label="Result">
           <DeterminationChip determination={row.determination} />
         </KeyValue>
@@ -540,7 +540,7 @@ export function SctmRail({ row }: { row: SctmRow }) {
           </span>
         </KeyValue>
         <ProseBlock label="Note">{row.determinationNote}</ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
     </div>
   );
 }

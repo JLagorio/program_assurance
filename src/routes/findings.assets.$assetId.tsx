@@ -6,7 +6,6 @@ import {
   Badge,
   Button,
   KeyValue,
-  RailGroup,
   RecordHeader,
   ShowPage,
   Section,
@@ -19,6 +18,7 @@ import { childrenOf, nodeForAsset, pathOf, useCompositionGraph } from "@/lib/com
 import { assets, bySeverity, findingsByAsset, isOpen } from "@/lib/findings";
 import { assetPosture, postureOf } from "@/lib/graph-posture";
 import { severityTone, statusTone } from "@/lib/spine";
+import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/findings/assets/$assetId")({
   head: ({ params }) => {
@@ -102,7 +102,7 @@ function AssetRecord() {
         showRail
         rail={
           <>
-            <RailGroup title="Inventory">
+            <Inspector.Group title="Inventory">
               <KeyValue label="Asset">
                 <Id>{asset.id}</Id>
               </KeyValue>
@@ -119,12 +119,12 @@ function AssetRecord() {
                   <Id className="text-primary">{asset.program}</Id>
                 </Link>
               </KeyValue>
-            </RailGroup>
-            <RailGroup title="Posture">
+            </Inspector.Group>
+            <Inspector.Group title="Posture">
               <KeyValue label="Last scan">{asset.lastScan}</KeyValue>
               <KeyValue label="CCIs covered">{asset.ccisCovered}</KeyValue>
-            </RailGroup>
-            <RailGroup title="Open findings">
+            </Inspector.Group>
+            <Inspector.Group title="Open findings">
               <KeyValue label="Scanner declared">
                 <span className="tnum">
                   <span className={asset.openCatI ? "font-medium text-danger" : ""}>
@@ -161,7 +161,7 @@ function AssetRecord() {
                   </span>
                 )}
               </KeyValue>
-            </RailGroup>
+            </Inspector.Group>
           </>
         }
       >

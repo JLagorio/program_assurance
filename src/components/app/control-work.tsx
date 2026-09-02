@@ -10,7 +10,7 @@
 import { useState } from "react";
 
 import { RecordPicker } from "@/components/app/record-picker";
-import { ActionBar, Block, type BarAction } from "@/components/app/shapes";
+import { ActionBar, Block, type ActionBarAction } from "@/components/app/shapes";
 import { Badge, Button, Field, Modal, Select, Table, Textarea } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import {
@@ -60,7 +60,7 @@ export function ControlActionBar({
 
   const chosen = offers.find((o) => o.def.key === pending);
 
-  const actions: BarAction[] = offers.map((o) => ({
+  const actions: ActionBarAction[] = offers.map((o) => ({
     label: o.def.label,
     primary:
       o.allowed && (o.def.key === "implement" || o.def.key === "submit" || o.def.key === "satisfy"),

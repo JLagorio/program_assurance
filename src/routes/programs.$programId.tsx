@@ -39,7 +39,6 @@ import {
   Field,
   Input,
   KeyValue,
-  RailGroup,
   Meter,
   Modal,
   RecordHeader,
@@ -63,6 +62,7 @@ import { programState, stages, type Stage } from "@/lib/program-stage";
 import { peopleForProgram, personById, workstreamsForProgram } from "@/lib/people";
 import { inheritanceForProgram } from "@/lib/inheritance";
 import { staleThresholdDays } from "@/lib/reusable-components";
+import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/programs/$programId")({
   // Read-only entry point: a record page links back to the tab the reader came
@@ -259,7 +259,7 @@ function ProgramDetail() {
 
   const rail = (
     <>
-      <RailGroup
+      <Inspector.Group
         title="Properties"
         action={
           <button
@@ -309,9 +309,9 @@ function ProgramDetail() {
             render={(v) => <Badge tone={programStatusTone[v]}>{v}</Badge>}
           />
         </KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Lifecycle">
+      <Inspector.Group title="Lifecycle">
         <KeyValue label="Stage">
           <Menu
             align="start"
@@ -381,9 +381,9 @@ function ProgramDetail() {
             <span className="text-muted-foreground">None</span>
           )}
         </KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="About">
+      <Inspector.Group title="About">
         <p className="pb-1 pt-0.5 text-[12.5px] leading-relaxed text-muted-foreground">
           {program.summary}
         </p>
@@ -396,16 +396,16 @@ function ProgramDetail() {
           />
         </KeyValue>
         <KeyValue label="Updated">{program.updated}</KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Categorization">
+      <Inspector.Group title="Categorization">
         <KeyValue label="Impact">{program.impact}</KeyValue>
         <KeyValue label="Confidentiality">{program.confidentiality}</KeyValue>
         <KeyValue label="Integrity">{program.integrity}</KeyValue>
         <KeyValue label="Availability">{program.availability}</KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Posture">
+      <Inspector.Group title="Posture">
         <KeyValue label="Controls">
           <span className="tnum">
             {posture.controlsSatisfied}/{posture.controlsTotal} satisfied
@@ -444,7 +444,7 @@ function ProgramDetail() {
             {coverage.inherited} of {inheritance.size} resolved
           </span>
         </KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
       {/*
         Ten sub-pages now hang off this record. Listed flat they read as an
@@ -453,7 +453,7 @@ function ProgramDetail() {
         question each page answers: what is the system made of, was it assessed,
         and is it still what we authorized.
       */}
-      <RailGroup title="Program views">
+      <Inspector.Group title="Program views">
         <div className="space-y-2.5 pt-0.5">
           <div>
             <div className="pb-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
@@ -554,9 +554,9 @@ function ProgramDetail() {
             </div>
           </div>
         </div>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Authorization">
+      <Inspector.Group title="Authorization">
         <KeyValue label="Baseline">{program.baseline}</KeyValue>
         <KeyValue label="Assessor">
           <InlineText
@@ -570,9 +570,9 @@ function ProgramDetail() {
         <KeyValue label="Authorized">{program.authorized}</KeyValue>
         <KeyValue label="Expires">{program.expires}</KeyValue>
         <KeyValue label="Updated">{program.updated}</KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Inherits from">
+      <Inspector.Group title="Inherits from">
         <div className="space-y-1.5 text-[12.5px]">
           {inheritedComponents.map((c) => (
             <div key={c.id} className="flex items-center justify-between gap-2">
@@ -592,9 +592,9 @@ function ProgramDetail() {
             </div>
           ))}
         </div>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Linked records">
+      <Inspector.Group title="Linked records">
         <div className="space-y-1 text-[12.5px]">
           <Link to="/register" className="block text-primary hover:underline">
             {programPoams.length} POA&M items
@@ -606,7 +606,7 @@ function ProgramDetail() {
             128 evidence artifacts
           </Link>
         </div>
-      </RailGroup>
+      </Inspector.Group>
     </>
   );
 

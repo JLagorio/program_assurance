@@ -3,16 +3,7 @@ import { useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 
 import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  KeyValue,
-  PageHeader,
-  RailGroup,
-  Table,
-  Id,
-  Indicator,
-} from "@/components/app/ui";
+import { Badge, Button, KeyValue, PageHeader, Table, Id, Indicator } from "@/components/app/ui";
 import {
   benchmarkById,
   ccis,
@@ -24,6 +15,7 @@ import {
   type Cci,
 } from "@/lib/catalog";
 import { severityTone, statusTone } from "@/lib/spine";
+import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/controls")({
   head: () => ({
@@ -302,7 +294,7 @@ function Catalog() {
                 {selected.definition}
               </p>
 
-              <RailGroup title="Identity">
+              <Inspector.Group title="Identity">
                 <KeyValue label="Parent control">
                   <Id>{selected.control}</Id>
                 </KeyValue>
@@ -313,9 +305,9 @@ function Catalog() {
                 <KeyValue label="Sibling CCIs">
                   {(ccisByControl.get(selected.control)?.length ?? 1) - 1}
                 </KeyValue>
-              </RailGroup>
+              </Inspector.Group>
 
-              <RailGroup title="Implemented by">
+              <Inspector.Group title="Implemented by">
                 <div className="space-y-1.5 text-[12.5px]">
                   {(rulesByCci.get(selected.id) ?? []).map((r) => (
                     <div key={r.id} className="flex items-baseline justify-between gap-2">
@@ -332,9 +324,9 @@ function Catalog() {
                     <span className="text-muted-foreground">No STIG rule covers this CCI</span>
                   ) : null}
                 </div>
-              </RailGroup>
+              </Inspector.Group>
 
-              <RailGroup title="Assessed by">
+              <Inspector.Group title="Assessed by">
                 <div className="space-y-1 text-[12.5px] text-muted-foreground">
                   {selected.procedures.map((p) => (
                     <div key={p}>
@@ -342,9 +334,9 @@ function Catalog() {
                     </div>
                   ))}
                 </div>
-              </RailGroup>
+              </Inspector.Group>
 
-              <RailGroup title="Exercised by">
+              <Inspector.Group title="Exercised by">
                 <div className="space-y-1 text-[12.5px]">
                   {selected.objectives.length ? (
                     selected.objectives.map((o) => (
@@ -356,7 +348,7 @@ function Catalog() {
                     <span className="text-warning">No test objective — coverage gap</span>
                   )}
                 </div>
-              </RailGroup>
+              </Inspector.Group>
             </aside>
           ) : null}
         </div>

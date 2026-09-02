@@ -10,10 +10,10 @@ import {
   IndexPage,
   PageHeader,
   PreviewRail,
-  RailGroup,
   Table,
   Id,
 } from "@/components/app/ui";
+import { Inspector } from "@/components/app/shapes";
 import {
   componentHealthTone,
   systemComponents,
@@ -140,7 +140,7 @@ function ComponentLibrary() {
                 </Link>
               }
             >
-              <RailGroup title="Definition">
+              <Inspector.Group title="Definition">
                 <KeyValue label="Key">
                   <Id>{preview.key}</Id>
                 </KeyValue>
@@ -148,14 +148,14 @@ function ComponentLibrary() {
                 <KeyValue label="Version">{preview.version}</KeyValue>
                 <KeyValue label="Provider">{preview.provider}</KeyValue>
                 <KeyValue label="Owner">{preview.owner}</KeyValue>
-              </RailGroup>
-              <RailGroup title="Standing">
+              </Inspector.Group>
+              <Inspector.Group title="Standing">
                 <KeyValue label="Authorization">{preview.authorization}</KeyValue>
                 <KeyValue label="Health">{preview.health}</KeyValue>
                 <KeyValue label="Controls">{preview.controls.length}</KeyValue>
                 <KeyValue label="Consumers">{preview.consumers.length}</KeyValue>
                 <KeyValue label="Updated">{preview.updated}</KeyValue>
-              </RailGroup>
+              </Inspector.Group>
             </PreviewRail>
           ) : null}
         </div>

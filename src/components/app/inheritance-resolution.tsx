@@ -20,17 +20,7 @@
 
 import type { ReactNode } from "react";
 
-import {
-  Badge,
-  Dot,
-  EmptyState,
-  KeyValue,
-  Meter,
-  RailGroup,
-  Table,
-  type Tone,
-  Id,
-} from "@/components/app/ui";
+import { Badge, Dot, EmptyState, KeyValue, Meter, Table, type Tone, Id } from "@/components/app/ui";
 import {
   designationTone,
   inheritanceStateTone,
@@ -40,6 +30,7 @@ import {
   type ResolvedInheritance,
 } from "@/lib/inheritance";
 import { cn } from "@/lib/utils";
+import { Inspector } from "@/components/app/shapes";
 
 /* ── Shared reads ────────────────────────────────────────────────────────── */
 
@@ -738,7 +729,7 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
         </div>
       ) : null}
 
-      <RailGroup title="Resolution">
+      <Inspector.Group title="Resolution">
         <KeyValue label="Control">
           <Id>{row.control}</Id>
         </KeyValue>
@@ -759,18 +750,18 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
           </Badge>
         </KeyValue>
         <KeyValue label="eMASS status">{row.emassStatus}</KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="State">
+      <Inspector.Group title="State">
         <KeyValue label="Resolution">
           <Badge size="xs" tone={inheritanceStateTone[row.state]}>
             {row.state}
           </Badge>
         </KeyValue>
         <ProseBlock label="Why">{row.stateReason}</ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Acceptance">
+      <Inspector.Group title="Acceptance">
         <KeyValue label="Accepted">
           {row.accepted ? <Id>{version.accepted}</Id> : <Dash />}
         </KeyValue>
@@ -791,9 +782,9 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
         {row.accepted && !isBlank(row.accepted.note) ? (
           <ProseBlock label="Acceptance note">{row.accepted.note}</ProseBlock>
         ) : null}
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Evidence">
+      <Inspector.Group title="Evidence">
         <WrapValue label="Artifact">{row.provided.evidence}</WrapValue>
         <KeyValue label="Age">
           <span className={cn("tnum", row.stale ? "text-warning" : "")}>
@@ -805,9 +796,9 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
             {row.provided.status}
           </Badge>
         </KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Responsibility">
+      <Inspector.Group title="Responsibility">
         <ProseBlock label={`${row.component.name} provides`}>
           {isBlank(row.provided.assertion)
             ? "The provider has published no implementation statement for this control."
@@ -820,19 +811,19 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
               ? "Nothing — the provider carries this control end to end."
               : row.consumerObligation}
         </ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Applicability">
+      <Inspector.Group title="Applicability">
         <KeyValue label="Applies">
           <Badge size="xs" tone={row.applicable ? "success" : "neutral"}>
             {row.applicable ? "Yes" : "No"}
           </Badge>
         </KeyValue>
         <ProseBlock label="Basis">{row.applicabilityReason}</ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
 
       {row.conflicts.length > 0 ? (
-        <RailGroup title={`Deconflicted (${row.conflicts.length})`}>
+        <Inspector.Group title={`Deconflicted (${row.conflicts.length})`}>
           {row.conflicts.map((conflict) => (
             <div key={conflict.component} className="pt-1.5 first:pt-0.5">
               <div className="flex flex-wrap items-center gap-1.5">
@@ -845,7 +836,7 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
               </p>
             </div>
           ))}
-        </RailGroup>
+        </Inspector.Group>
       ) : null}
     </div>
   );

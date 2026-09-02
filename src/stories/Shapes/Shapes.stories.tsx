@@ -2,14 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-import {
-  ActionBar,
-  Block,
-  Disclosure,
-  Inspector,
-  WorkPane,
-  WorkPaneRow,
-} from "@/components/app/shapes";
+import { ActionBar, Block, Disclosure, Inspector, WorkPane } from "@/components/app/shapes";
 import { Badge, Button, EmptyState, Person, Table, Id, Tabs } from "@/components/app/ui";
 import type { Tone } from "@/components/app/ui";
 import { Spec } from "../_lib/tokens";
@@ -120,7 +113,7 @@ function WorkPaneDemo() {
       list={
         <div className="space-y-px">
           {controls.map((c) => (
-            <WorkPaneRow
+            <WorkPane.Row
               key={c.id}
               id={c.id}
               title={c.title}

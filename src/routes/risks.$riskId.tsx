@@ -10,7 +10,6 @@ import {
   Field,
   Input,
   KeyValue,
-  RailGroup,
   Modal,
   Section,
   Select,
@@ -19,6 +18,7 @@ import {
   Id,
 } from "@/components/app/ui";
 import { riskStatusTone, risks } from "@/lib/grc-data";
+import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/risks/$riskId")({
   loader: ({ params }) => {
@@ -174,7 +174,7 @@ function RiskDetail() {
           </div>
 
           <aside className="xl:border-l xl:border-border xl:pl-6">
-            <RailGroup
+            <Inspector.Group
               title="Properties"
               action={
                 <button className="text-muted-foreground transition-colors hover:text-foreground">
@@ -191,15 +191,15 @@ function RiskDetail() {
               <KeyValue label="Framework">
                 {risk.framework} · {risk.control}
               </KeyValue>
-            </RailGroup>
+            </Inspector.Group>
 
-            <RailGroup title="Dates">
+            <Inspector.Group title="Dates">
               <KeyValue label="Opened">{risk.opened}</KeyValue>
               <KeyValue label="Target date">{risk.due}</KeyValue>
               <KeyValue label="Last updated">{risk.updated}</KeyValue>
-            </RailGroup>
+            </Inspector.Group>
 
-            <RailGroup title="Control coverage">
+            <Inspector.Group title="Control coverage">
               <p className="text-[12.5px] leading-snug text-muted-foreground">
                 Maps to one failing control. Closing it requires two consecutive passing runs.
               </p>
@@ -209,7 +209,7 @@ function RiskDetail() {
               >
                 View {risk.control}
               </Link>
-            </RailGroup>
+            </Inspector.Group>
           </aside>
         </div>
       </div>

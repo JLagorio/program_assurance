@@ -22,13 +22,13 @@ import {
   Dot,
   EmptyState,
   KeyValue,
-  RailGroup,
   Table,
   type Tone,
   Id,
   Indicator,
 } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
+import { Inspector } from "@/components/app/shapes";
 import {
   diffStateTone,
   formatTone,
@@ -381,7 +381,7 @@ export function ScanRail({
 }) {
   return (
     <div>
-      <RailGroup title="Run">
+      <Inspector.Group title="Run">
         <KeyValue label="Scan">
           <Id>{scan.id}</Id>
         </KeyValue>
@@ -400,9 +400,9 @@ export function ScanRail({
           {scan.benchmark === "—" ? <Dash /> : <span title={scan.benchmark}>{scan.benchmark}</span>}
         </KeyValue>
         <KeyValue label="Operator">{scan.operator}</KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Artifact">
+      <Inspector.Group title="Artifact">
         <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
           <dt className="truncate text-[12.5px] text-muted-foreground">File</dt>
           <dd className="min-w-0 text-[12.5px] leading-snug">
@@ -423,9 +423,9 @@ export function ScanRail({
         <KeyValue label="Completed">
           <span className="tnum">{scan.completed}</span>
         </KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Scope">
+      <Inspector.Group title="Scope">
         <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
           <dt className="truncate text-[12.5px] text-muted-foreground">Targets</dt>
           <dd className="min-w-0 space-y-0.5 text-[12.5px] leading-snug">
@@ -443,10 +443,10 @@ export function ScanRail({
         <KeyValue label="Superseded by">
           {supersededBy ? <Id>{supersededBy}</Id> : <Dash />}
         </KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
       {batch ? (
-        <RailGroup title="Batch">
+        <Inspector.Group title="Batch">
           <KeyValue label="Normalized">
             <span className="tnum">
               {batch.counts.normalized} of {batch.counts.raw}
@@ -487,12 +487,12 @@ export function ScanRail({
               {c.basis}
             </ProseBlock>
           ))}
-        </RailGroup>
+        </Inspector.Group>
       ) : null}
 
-      <RailGroup title="Operator note">
+      <Inspector.Group title="Operator note">
         <ProseBlock label="Note">{scan.note}</ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
     </div>
   );
 }
@@ -1066,7 +1066,7 @@ export function DedupRail({
   const folded = group.existingAll.filter((id) => id !== group.existing);
   return (
     <div>
-      <RailGroup title="Group">
+      <Inspector.Group title="Group">
         <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
           <dt className="truncate text-[12.5px] text-muted-foreground">Key</dt>
           <dd className="min-w-0 text-[12.5px] leading-snug">
@@ -1088,9 +1088,9 @@ export function DedupRail({
           <span className="tnum">{group.sources.length}</span>
         </KeyValue>
         <ProseBlock label="Condition">{group.primary.title}</ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Reconciliation">
+      <Inspector.Group title="Reconciliation">
         <div className="pt-0.5">
           <MemberLine result={group.primary} role="Primary" />
           {group.duplicates.map((d) => (
@@ -1098,9 +1098,9 @@ export function DedupRail({
           ))}
         </div>
         <ProseBlock label="Basis">{group.basis}</ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Register">
+      <Inspector.Group title="Register">
         <KeyValue label="Filed as">
           {group.existing ? <Id>{group.existing}</Id> : <Dash />}
         </KeyValue>
@@ -1126,7 +1126,7 @@ export function DedupRail({
                 ? `Nothing is filed and nothing needs to be: the source reports this check as passing, so the row is coverage evidence rather than a weakness.`
                 : `No finding covers this condition yet. It sits on the proposed queue until an analyst accepts it.`}
         </ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
     </div>
   );
 }

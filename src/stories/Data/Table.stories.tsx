@@ -2,17 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-import {
-  Badge,
-  Button,
-  Card,
-  CardHeader,
-  EmptyState,
-  Person,
-  Table,
-  Indicator,
-  Id,
-} from "@/components/app/ui";
+import { Badge, Button, Card, EmptyState, Person, Table, Indicator, Id } from "@/components/app/ui";
 import type { Tone } from "@/components/app/ui";
 import { Spec } from "../_lib/tokens";
 
@@ -218,7 +208,7 @@ export const Empty: Story = {
   parameters: { controls: { disable: true } },
   render: () => (
     <Card className="max-w-[720px]">
-      <CardHeader title="Findings" description="Nothing open against AC-2(3)" />
+      <Card.Header title="Findings" description="Nothing open against AC-2(3)" />
       <div className="p-4">
         <EmptyState
           title="No findings"

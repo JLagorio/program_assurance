@@ -7,7 +7,6 @@ import {
   Badge,
   Button,
   Card,
-  CardHeader,
   Drawer,
   Field,
   KeyValue,
@@ -108,7 +107,7 @@ const behindPage: Decorator = (Story) => (
         actions={<Button variant="primary">Submit package</Button>}
       />
       <Card>
-        <CardHeader title="Open findings" description="Across 5 controls" />
+        <Card.Header title="Open findings" description="Across 5 controls" />
         <div className="h-[220px]" />
       </Card>
     </div>

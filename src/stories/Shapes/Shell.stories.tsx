@@ -2,16 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Download, Plus } from "lucide-react";
 
 import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  Button,
-  Card,
-  CardHeader,
-  PageHeader,
-  Person,
-  Table,
-  Id,
-} from "@/components/app/ui";
+import { Badge, Button, Card, PageHeader, Person, Table, Id } from "@/components/app/ui";
 
 const meta = {
   title: "Shapes/Shell",
@@ -82,7 +73,7 @@ export const Default: Story = {
           }
         />
         <Card>
-          <CardHeader title="Open findings" description="4 across 4 controls" />
+          <Card.Header title="Open findings" description="4 across 4 controls" />
           <Table>
             <thead>
               <tr>

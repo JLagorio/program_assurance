@@ -5,13 +5,13 @@ import {
   Badge,
   KeyValue,
   Meter,
-  RailGroup,
   RecordHeader,
   ShowPage,
   Section,
   Table,
   Id,
 } from "@/components/app/ui";
+import { Inspector } from "@/components/app/shapes";
 import {
   allocationFor,
   personById,
@@ -77,7 +77,7 @@ function PersonDetail() {
         showRail
         rail={
           <>
-            <RailGroup title="Profile">
+            <Inspector.Group title="Profile">
               <KeyValue label="Discipline">{person.discipline}</KeyValue>
               <KeyValue label="Org">{person.org}</KeyValue>
               <KeyValue label="Clearance">{person.clearance}</KeyValue>
@@ -85,9 +85,9 @@ function PersonDetail() {
               <KeyValue label="Email">
                 <span className="truncate text-[12px]">{person.email}</span>
               </KeyValue>
-            </RailGroup>
+            </Inspector.Group>
 
-            <RailGroup title="Load">
+            <Inspector.Group title="Load">
               <KeyValue label="Workstreams">{streams.length}</KeyValue>
               <KeyValue label="Allocation">
                 <span className="flex items-center gap-2">
@@ -100,9 +100,9 @@ function PersonDetail() {
                   <span className={alloc > 100 ? "tnum text-danger" : "tnum"}>{alloc}%</span>
                 </span>
               </KeyValue>
-            </RailGroup>
+            </Inspector.Group>
 
-            <RailGroup title="Controls touched">
+            <Inspector.Group title="Controls touched">
               <div className="flex flex-wrap gap-1.5 py-1">
                 {controls.length ? (
                   controls.map((c) => (
@@ -114,7 +114,7 @@ function PersonDetail() {
                   <span className="text-[12.5px] text-muted-foreground">—</span>
                 )}
               </div>
-            </RailGroup>
+            </Inspector.Group>
           </>
         }
       >

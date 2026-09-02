@@ -7,7 +7,6 @@ import {
   Badge,
   FilterChip,
   KeyValue,
-  RailGroup,
   RecordHeader,
   Section,
   ShowPage,
@@ -18,6 +17,7 @@ import {
 import { ancestorsOf, nodeById, nodesForProgram } from "@/lib/composition";
 import { programs } from "@/lib/grc-data";
 import { allocationsOn } from "@/lib/requirements";
+import { Inspector } from "@/components/app/shapes";
 import {
   componentsServing,
   controlSetFor,
@@ -185,7 +185,7 @@ function ScopeRecord() {
         showRail={tab === "Overview"}
         rail={
           <>
-            <RailGroup title="Categorization">
+            <Inspector.Group title="Categorization">
               {objectives.map((o) => (
                 <KeyValue key={o} label={o}>
                   <Badge size="xs" tone={impactTone[triad[o]]}>
@@ -194,14 +194,14 @@ function ScopeRecord() {
                 </KeyValue>
               ))}
               <KeyValue label="Model">CNSSI 1253</KeyValue>
-            </RailGroup>
-            <RailGroup title="Environment">
+            </Inspector.Group>
+            <Inspector.Group title="Environment">
               <KeyValue label="Class">{scope.parameters.systemClass}</KeyValue>
               <KeyValue label="Hosting">{scope.parameters.hosting}</KeyValue>
               <KeyValue label="Classification">{scope.parameters.classification}</KeyValue>
               <KeyValue label="Connectivity">{scope.parameters.connectivity}</KeyValue>
               <KeyValue label="Owner">{scope.owner}</KeyValue>
-            </RailGroup>
+            </Inspector.Group>
           </>
         }
       >

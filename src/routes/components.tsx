@@ -5,7 +5,6 @@ import {
   Badge,
   Button,
   Card,
-  CardHeader,
   Dot,
   FilterChip,
   IconButton,
@@ -50,7 +49,7 @@ function Section({
 }) {
   return (
     <Card>
-      <CardHeader title={title} description={description} />
+      <Card.Header title={title} description={description} />
       <div className="flex flex-wrap items-center gap-3 px-4 py-4">{children}</div>
     </Card>
   );
@@ -121,7 +120,7 @@ function Components() {
         </div>
 
         <Card>
-          <CardHeader
+          <Card.Header
             title="Dense table"
             description="13px rows, 10px vertical rhythm, hairline dividers."
           />

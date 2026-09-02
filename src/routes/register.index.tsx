@@ -10,7 +10,6 @@ import {
   Meter,
   PageHeader,
   PreviewRail,
-  RailGroup,
   IndexPage,
   Table,
   Id,
@@ -31,6 +30,7 @@ import {
   type RegisterRisk,
 } from "@/lib/register";
 import { severityTone, statusTone } from "@/lib/spine";
+import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/register/")({
   head: () => ({
@@ -378,7 +378,7 @@ function RegisterPage() {
                 </Link>
               }
             >
-              <RailGroup title="Commitment">
+              <Inspector.Group title="Commitment">
                 <KeyValue label="Status">
                   <Badge tone={statusTone(preview.item.status)}>{preview.item.status}</Badge>
                 </KeyValue>
@@ -389,12 +389,12 @@ function RegisterPage() {
                   {openCount(findingsForPoam(preview.item.id))} open of{" "}
                   {findingsForPoam(preview.item.id).length}
                 </KeyValue>
-              </RailGroup>
-              <RailGroup title="Latest milestone">
+              </Inspector.Group>
+              <Inspector.Group title="Latest milestone">
                 <p className="text-[12.5px] leading-relaxed text-muted-foreground">
                   {preview.item.milestoneNote}
                 </p>
-              </RailGroup>
+              </Inspector.Group>
             </PreviewRail>
           ) : null}
 
@@ -413,7 +413,7 @@ function RegisterPage() {
                 </Link>
               }
             >
-              <RailGroup title="Adjudication">
+              <Inspector.Group title="Adjudication">
                 <KeyValue label="Disposition">
                   <Badge tone={statusTone(preview.item.disposition)}>
                     {preview.item.disposition}
@@ -427,12 +427,12 @@ function RegisterPage() {
                 <KeyValue label="Inherent">{preview.item.inherent}</KeyValue>
                 <KeyValue label="Residual">{preview.item.residual}</KeyValue>
                 <KeyValue label="Reviewed">{preview.item.reviewed}</KeyValue>
-              </RailGroup>
-              <RailGroup title="Statement">
+              </Inspector.Group>
+              <Inspector.Group title="Statement">
                 <p className="text-[12.5px] leading-relaxed text-muted-foreground">
                   {preview.item.statement}
                 </p>
-              </RailGroup>
+              </Inspector.Group>
             </PreviewRail>
           ) : null}
         </div>

@@ -9,7 +9,6 @@ import {
   IndexPage,
   KeyValue,
   PageHeader,
-  RailGroup,
   Table,
   Id,
   Indicator,
@@ -28,6 +27,7 @@ import {
 } from "@/lib/campaigns";
 import { assetById, findings } from "@/lib/findings";
 import { severityTone, statusTone } from "@/lib/spine";
+import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/campaigns")({
   head: () => ({
@@ -314,7 +314,7 @@ function CampaignsPage() {
               </p>
 
               <div className="mt-3">
-                <RailGroup title="Execution">
+                <Inspector.Group title="Execution">
                   <KeyValue label="Campaign">
                     <Id>{selected.campaign}</Id>
                   </KeyValue>
@@ -327,9 +327,9 @@ function CampaignsPage() {
                   </KeyValue>
                   <KeyValue label="Window">{selected.window}</KeyValue>
                   <KeyValue label="Team">{selected.team}</KeyValue>
-                </RailGroup>
+                </Inspector.Group>
 
-                <RailGroup title="Assets under test">
+                <Inspector.Group title="Assets under test">
                   <div className="space-y-1.5 text-[12.5px]">
                     {selected.assets.map((a) => (
                       <div key={a} className="flex items-baseline justify-between gap-2">
@@ -343,9 +343,9 @@ function CampaignsPage() {
                       </div>
                     ))}
                   </div>
-                </RailGroup>
+                </Inspector.Group>
 
-                <RailGroup title="Objectives proved">
+                <Inspector.Group title="Objectives proved">
                   <div className="space-y-2 text-[12.5px]">
                     {objectivesForEvent(selected.id).map((o) => (
                       <div key={o.id}>
@@ -360,9 +360,9 @@ function CampaignsPage() {
                       </div>
                     ))}
                   </div>
-                </RailGroup>
+                </Inspector.Group>
 
-                <RailGroup title="Findings yielded">
+                <Inspector.Group title="Findings yielded">
                   <div className="space-y-1.5 text-[12.5px]">
                     {selected.findings.length ? (
                       selected.findings.map((id) => {
@@ -389,9 +389,9 @@ function CampaignsPage() {
                       <p className="text-muted-foreground">No findings from this event.</p>
                     )}
                   </div>
-                </RailGroup>
+                </Inspector.Group>
 
-                <RailGroup title="Sibling events" defaultOpen={false}>
+                <Inspector.Group title="Sibling events">
                   <div className="space-y-1.5 text-[12.5px]">
                     {eventsByCampaign(selected.campaign)
                       .filter((e) => e.id !== selected.id)
@@ -409,7 +409,7 @@ function CampaignsPage() {
                         </button>
                       ))}
                   </div>
-                </RailGroup>
+                </Inspector.Group>
               </div>
             </aside>
           ) : null}

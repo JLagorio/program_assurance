@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import type { ReactNode } from "react";
 
-import { Button, Card, CardHeader, Field, Input, Select, Textarea } from "@/components/app/ui";
+import { Button, Card, Field, Input, Select, Textarea } from "@/components/app/ui";
 
 const meta = {
   title: "Data Input/Field",
@@ -168,7 +168,7 @@ export const Form: Story = {
   parameters: { controls: { disable: true } },
   render: () => (
     <Card className="max-w-[760px]">
-      <CardHeader title="Edit control" description="AC-2(3) · Disable accounts" />
+      <Card.Header title="Edit control" description="AC-2(3) · Disable accounts" />
       <form
         className="grid grid-cols-1 gap-x-5 gap-y-4 px-4 py-4 md:grid-cols-2"
         onSubmit={(e) => e.preventDefault()}

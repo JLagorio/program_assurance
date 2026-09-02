@@ -23,7 +23,6 @@ import {
   Dot,
   KeyValue,
   Meter,
-  RailGroup,
   Table,
   Toolbar,
   type Tone,
@@ -34,6 +33,7 @@ import { cn } from "@/lib/utils";
 import type { CompositionNode } from "@/lib/composition";
 import { datasetToday } from "@/lib/dataset-clock";
 import type { BomStats, NodePosture, ReconciliationRow } from "@/lib/graph-posture";
+import { Inspector } from "@/components/app/shapes";
 
 /* ------------------------------------------------------------- Shared bits */
 
@@ -441,7 +441,7 @@ export function NodeRail({
 }) {
   return (
     <>
-      <RailGroup title="Component">
+      <Inspector.Group title="Component">
         <KeyValue label="Node">
           <Id>{node.id}</Id>
         </KeyValue>
@@ -457,9 +457,9 @@ export function NodeRail({
             <Id>{node.asset}</Id>
           </KeyValue>
         ) : null}
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Supply chain">
+      <Inspector.Group title="Supply chain">
         <KeyValue label="Supplier">{node.supplier}</KeyValue>
         <KeyValue label="Origin">{node.origin}</KeyValue>
         <KeyValue label="Part key">
@@ -487,10 +487,10 @@ export function NodeRail({
             {node.attested ? "On file" : "Not on file"}
           </Badge>
         </KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
       {posture ? (
-        <RailGroup title="Posture">
+        <Inspector.Group title="Posture">
           <KeyValue label="Subtree">
             {posture.nodes} {posture.nodes === 1 ? "node" : "nodes"}
           </KeyValue>
@@ -517,15 +517,15 @@ export function NodeRail({
           <KeyValue label="Suppliers">
             <span title={posture.suppliers.join(", ")}>{posture.suppliers.length}</span>
           </KeyValue>
-        </RailGroup>
+        </Inspector.Group>
       ) : null}
 
       {node.note && node.note !== "—" ? (
-        <RailGroup title="Note">
+        <Inspector.Group title="Note">
           <div className="pt-0.5 text-[12.5px] leading-relaxed text-muted-foreground">
             {node.note}
           </div>
-        </RailGroup>
+        </Inspector.Group>
       ) : null}
     </>
   );

@@ -15,7 +15,6 @@ import {
   Badge,
   EmptyState,
   KeyValue,
-  RailGroup,
   RecordHeader,
   Section,
   ShowPage,
@@ -38,6 +37,7 @@ import { allocationsOn, derivedControlTrace, requirementById } from "@/lib/requi
 import { bomStats, inventoryReconciliation, postureOf } from "@/lib/graph-posture";
 import { programs } from "@/lib/grc-data";
 import { parseGateDate } from "@/lib/program-stage";
+import { Inspector } from "@/components/app/shapes";
 
 const compositionTabs = ["Tree", "Supply chain", "Reconciliation", "BOM documents"] as const;
 type CompositionTab = (typeof compositionTabs)[number];
@@ -221,7 +221,7 @@ function ProgramComposition() {
           selected ? (
             <>
               <NodeRail node={selected} posture={selectedPosture} />
-              <RailGroup title="Record">
+              <Inspector.Group title="Record">
                 <KeyValue label="Open">
                   <Link
                     to="/programs/$programId/components/$componentId"
@@ -235,8 +235,8 @@ function ProgramComposition() {
                 <KeyValue label="Controls reached">
                   {selectedTrace.controls.length || "None"}
                 </KeyValue>
-              </RailGroup>
-              <RailGroup title="Joins">
+              </Inspector.Group>
+              <Inspector.Group title="Joins">
                 <KeyValue label="Path">
                   <span className="text-[12.5px] leading-relaxed">
                     {pathOf(selected.id)
@@ -279,7 +279,7 @@ function ProgramComposition() {
                     <Id className="text-primary">{program.id}</Id>
                   </Link>
                 </KeyValue>
-              </RailGroup>
+              </Inspector.Group>
             </>
           ) : null
         }

@@ -12,16 +12,7 @@ import {
   obligationUnstated,
 } from "@/components/app/inheritance-resolution";
 import { Shell } from "@/components/app/shell";
-import {
-  Badge,
-  KeyValue,
-  RailGroup,
-  RecordHeader,
-  Section,
-  ShowPage,
-  Id,
-  Tabs,
-} from "@/components/app/ui";
+import { Badge, KeyValue, RecordHeader, Section, ShowPage, Id, Tabs } from "@/components/app/ui";
 import { programs } from "@/lib/grc-data";
 import {
   inheritanceConflicts,
@@ -30,6 +21,7 @@ import {
   resolveInheritance,
 } from "@/lib/inheritance";
 import { systemComponents } from "@/lib/reusable-components";
+import { Inspector } from "@/components/app/shapes";
 
 const inheritanceTabs = ["Resolved", "Conflicts", "Obligations", "Not applicable"] as const;
 type InheritanceTab = (typeof inheritanceTabs)[number];
@@ -181,7 +173,7 @@ function ProgramInheritance() {
           selected ? (
             <>
               <ResolutionRail row={selected} />
-              <RailGroup title="Joins">
+              <Inspector.Group title="Joins">
                 <KeyValue label="Provider">
                   <Link
                     to="/library/components/$componentKey"
@@ -218,7 +210,7 @@ function ProgramInheritance() {
                     <Id className="text-primary">{program.id}</Id>
                   </Link>
                 </KeyValue>
-              </RailGroup>
+              </Inspector.Group>
             </>
           ) : null
         }

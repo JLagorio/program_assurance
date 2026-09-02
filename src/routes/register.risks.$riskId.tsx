@@ -9,7 +9,6 @@ import {
   EmptyState,
   KeyValue,
   Meter,
-  RailGroup,
   RecordHeader,
   Section,
   ShowPage,
@@ -27,6 +26,7 @@ import {
 } from "@/lib/register";
 import { authoredComparison, bandTone, scoreRisk, type ScoreFactor } from "@/lib/risk-scoring";
 import { severityTone, statusTone } from "@/lib/spine";
+import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/register/risks/$riskId")({
   head: ({ params }) => {
@@ -106,7 +106,7 @@ function RiskRecord() {
         showRail
         rail={
           <>
-            <RailGroup title="Exposure">
+            <Inspector.Group title="Exposure">
               <KeyValue label="Risk">
                 <Id>{risk.id}</Id>
               </KeyValue>
@@ -135,8 +135,8 @@ function RiskRecord() {
                 )}
               </KeyValue>
               <KeyValue label="Treatment">{risk.treatment}</KeyValue>
-            </RailGroup>
-            <RailGroup title="Adjudication">
+            </Inspector.Group>
+            <Inspector.Group title="Adjudication">
               <KeyValue label="Disposition">
                 <Badge tone={statusTone(risk.disposition)}>{risk.disposition}</Badge>
               </KeyValue>
@@ -151,8 +151,8 @@ function RiskRecord() {
                   <Id className="text-primary">{risk.program}</Id>
                 </Link>
               </KeyValue>
-            </RailGroup>
-            <RailGroup title="CCIs in scope">
+            </Inspector.Group>
+            <Inspector.Group title="CCIs in scope">
               <div className="flex flex-wrap gap-1">
                 {ccis.map((c) => (
                   <Id key={c} className="text-[11.5px] text-muted-foreground">
@@ -160,7 +160,7 @@ function RiskRecord() {
                   </Id>
                 ))}
               </div>
-            </RailGroup>
+            </Inspector.Group>
           </>
         }
       >

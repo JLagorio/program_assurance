@@ -10,7 +10,6 @@ import {
   KeyValue,
   PageHeader,
   PreviewRail,
-  RailGroup,
   Table,
   Id,
   Indicator,
@@ -26,6 +25,7 @@ import {
 } from "@/lib/findings";
 import { assetPosture } from "@/lib/graph-posture";
 import { severityTone, statusTone } from "@/lib/spine";
+import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/findings/")({
   head: () => ({
@@ -325,7 +325,7 @@ function FindingsPage() {
                 </Link>
               }
             >
-              <RailGroup title="Join keys">
+              <Inspector.Group title="Join keys">
                 <KeyValue label="CCI">
                   <Id>{preview.item.cci}</Id>
                 </KeyValue>
@@ -338,8 +338,8 @@ function FindingsPage() {
                 <KeyValue label="Rule">
                   {preview.item.rule ? <Id>{preview.item.rule}</Id> : "—"}
                 </KeyValue>
-              </RailGroup>
-              <RailGroup title="Severity">
+              </Inspector.Group>
+              <Inspector.Group title="Severity">
                 <KeyValue label="Raw">{preview.item.rawSeverity}</KeyValue>
                 <KeyValue label="Mitigated">
                   <Indicator tone={severityTone(preview.item.mitigatedSeverity)}>
@@ -349,15 +349,15 @@ function FindingsPage() {
                 <KeyValue label="Lifecycle">
                   <Badge tone={statusTone(preview.item.lifecycle)}>{preview.item.lifecycle}</Badge>
                 </KeyValue>
-              </RailGroup>
-              <RailGroup title="Rolls up to">
+              </Inspector.Group>
+              <Inspector.Group title="Rolls up to">
                 <KeyValue label="POA&M">
                   {preview.item.poam ? <Id>{preview.item.poam}</Id> : "Not yet scheduled"}
                 </KeyValue>
                 <KeyValue label="Risk">
                   {preview.item.risk ? <Id>{preview.item.risk}</Id> : "Not aggregated"}
                 </KeyValue>
-              </RailGroup>
+              </Inspector.Group>
             </PreviewRail>
           ) : null}
 
@@ -376,13 +376,13 @@ function FindingsPage() {
                 </Link>
               }
             >
-              <RailGroup title="Inventory">
+              <Inspector.Group title="Inventory">
                 <KeyValue label="Kind">{preview.item.kind}</KeyValue>
                 <KeyValue label="Technology">{preview.item.technology}</KeyValue>
                 <KeyValue label="Environment">{preview.item.environment}</KeyValue>
                 <KeyValue label="Last scan">{preview.item.lastScan}</KeyValue>
-              </RailGroup>
-              <RailGroup title="Open findings">
+              </Inspector.Group>
+              <Inspector.Group title="Open findings">
                 <KeyValue label="Scanner declared">
                   <span className="tnum">
                     {preview.item.openCatI} / {preview.item.openCatII} / {preview.item.openCatIII}
@@ -391,7 +391,7 @@ function FindingsPage() {
                 <KeyValue label="Register tracked">
                   <span className="tnum">{trackedLabel(preview.item.id)}</span>
                 </KeyValue>
-              </RailGroup>
+              </Inspector.Group>
             </PreviewRail>
           ) : null}
         </div>

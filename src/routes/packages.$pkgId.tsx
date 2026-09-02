@@ -8,7 +8,6 @@ import {
   Button,
   KeyValue,
   PreviewRail,
-  RailGroup,
   RecordHeader,
   Table,
   Id,
@@ -22,6 +21,7 @@ import {
   type TraceRow,
 } from "@/lib/packages";
 import { statusTone } from "@/lib/spine";
+import { Inspector } from "@/components/app/shapes";
 
 export const Route = createFileRoute("/packages/$pkgId")({
   head: ({ params }) => {
@@ -298,7 +298,7 @@ function PackageRecord() {
                   {preview.gap}
                 </p>
               ) : null}
-              <RailGroup title="Join keys">
+              <Inspector.Group title="Join keys">
                 <KeyValue label="Control">
                   <Id>{preview.control}</Id>
                 </KeyValue>
@@ -311,8 +311,8 @@ function PackageRecord() {
                 <KeyValue label="Rules">
                   {preview.paths.length ? <Id>{preview.paths.join(", ")}</Id> : "—"}
                 </KeyValue>
-              </RailGroup>
-              <RailGroup title="Verification">
+              </Inspector.Group>
+              <Inspector.Group title="Verification">
                 <KeyValue label="Objectives">
                   {preview.objectives.length ? <Id>{preview.objectives.join(", ")}</Id> : "None"}
                 </KeyValue>
@@ -321,7 +321,7 @@ function PackageRecord() {
                 </KeyValue>
                 <KeyValue label="Open findings">{preview.openFindings}</KeyValue>
                 <KeyValue label="Worst severity">{preview.worstSeverity}</KeyValue>
-              </RailGroup>
+              </Inspector.Group>
             </PreviewRail>
           ) : null}
         </div>

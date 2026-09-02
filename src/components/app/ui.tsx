@@ -157,7 +157,7 @@ export function Indicator({
 
 /* -------------------------------------------------------------------- Card */
 
-export function Card({ className, ...props }: ComponentProps<"div">) {
+function CardRoot({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       className={cn("overflow-hidden rounded-lg border border-border bg-card", className)}
@@ -198,7 +198,7 @@ export function Section({
   );
 }
 
-export function CardHeader({
+function CardHeader({
   title,
   description,
   action,
@@ -463,42 +463,6 @@ export function KeyValue({
 }
 
 /** Collapsible property group for the record detail rail. */
-export function RailGroup({
-  title,
-  children,
-  action,
-  defaultOpen = true,
-}: {
-  title: string;
-  children: ReactNode;
-  action?: ReactNode;
-  defaultOpen?: boolean;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <section className="border-b border-border py-3 first:pt-0 last:border-0">
-      <div className="flex h-6 items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          className="group inline-flex items-center gap-1 text-[13px] font-medium text-foreground"
-          aria-expanded={open}
-        >
-          {title}
-          <ChevronDown
-            className={cn(
-              "size-3.5 text-muted-foreground transition-transform",
-              open ? "" : "-rotate-90",
-            )}
-          />
-        </button>
-        {action ? <span className="ml-auto flex items-center">{action}</span> : null}
-      </div>
-      {open ? <dl className="pt-1.5">{children}</dl> : null}
-    </section>
-  );
-}
-
 /** Identifier wrapper. One typeface app-wide since 2026-09-01: it inherits the surrounding
    font, size and colour and only adds tabular numerals. Kept for semantics and grep-ability. */
 function Mono({ children, className }: { children: ReactNode; className?: string }) {
@@ -825,7 +789,7 @@ export function Modal({
 /* A bordered card that owns one related object type: title, count, a few
    dense rows, and a single link out to the full list. */
 
-export function RelatedCard({
+function RelatedRoot({
   title,
   count,
   action,
@@ -860,7 +824,7 @@ export function RelatedCard({
 }
 
 /** One line inside a RelatedCard: label, optional meta, optional trailing value. */
-export function RelatedRow({
+function RelatedRow({
   lead,
   label,
   meta,
@@ -1363,3 +1327,5 @@ export const Menu = Object.assign(MenuRoot, { Item: MenuItem, Label: MenuLabel }
 export const Meter = Object.assign(MeterRoot, { Stacked: StackedBar });
 export const Avatar = Object.assign(AvatarRoot, { Stack: AvatarStack });
 export const Stat = Object.assign(StatRoot, { Tile, Grid: Tiles });
+export const Card = Object.assign(CardRoot, { Header: CardHeader });
+export const Related = Object.assign(RelatedRoot, { Row: RelatedRow });

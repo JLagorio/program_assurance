@@ -5,17 +5,15 @@ import {
   Badge,
   Button,
   Card,
-  CardHeader,
   Dot,
   Fact,
   KeyValue,
   PageHeader,
   Person,
   RecordHeader,
-  RelatedCard,
-  RelatedRow,
   Section,
   Id,
+  Related,
 } from "@/components/app/ui";
 import { Spec } from "../_lib/tokens";
 
@@ -64,7 +62,7 @@ export const Cards: Story = {
       <div className="space-y-2">
         <Spec>Card + CardHeader</Spec>
         <Card>
-          <CardHeader title="Assessment coverage" description="340 controls in scope" />
+          <Card.Header title="Assessment coverage" description="340 controls in scope" />
           <div className="p-4">
             <CoverageList />
           </div>
@@ -73,7 +71,7 @@ export const Cards: Story = {
       <div className="space-y-2">
         <Spec>Card + CardHeader with action</Spec>
         <Card>
-          <CardHeader
+          <Card.Header
             title="Assessment coverage"
             description="340 controls in scope"
             action={
@@ -171,11 +169,12 @@ const related = [
 ] as const;
 
 /** RelatedCard with three rows (one clickable) beside an empty one. */
-export const Related: Story = {
+export const RelatedList: Story = {
+  name: "Related",
   parameters: { controls: { disable: true } },
   render: () => (
     <div className="grid max-w-[800px] gap-6 md:grid-cols-2">
-      <RelatedCard
+      <Related
         title="Findings"
         count={3}
         action={
@@ -186,7 +185,7 @@ export const Related: Story = {
       >
         {related.map((r, i) =>
           i === 0 ? (
-            <RelatedRow
+            <Related.Row
               key={r.id}
               lead={<Dot tone={r.tone} />}
               label={r.title}
@@ -195,7 +194,7 @@ export const Related: Story = {
               onClick={() => {}}
             />
           ) : (
-            <RelatedRow
+            <Related.Row
               key={r.id}
               lead={<Dot tone={r.tone} />}
               label={r.title}
@@ -204,8 +203,8 @@ export const Related: Story = {
             />
           ),
         )}
-      </RelatedCard>
-      <RelatedCard
+      </Related>
+      <Related
         title="Evidence"
         count={0}
         empty="No evidence linked"

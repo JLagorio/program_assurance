@@ -19,7 +19,6 @@ import {
   Badge,
   EmptyState,
   KeyValue,
-  RailGroup,
   RecordHeader,
   Section,
   Select,
@@ -41,6 +40,7 @@ import {
 } from "@/lib/composition";
 import { programs } from "@/lib/grc-data";
 import { statusTone } from "@/lib/spine";
+import { Inspector } from "@/components/app/shapes";
 import {
   attackSurfaceCoverage,
   criteria as allCriteria,
@@ -332,7 +332,7 @@ function ProgramTePhases() {
         onOpenGate={() => openGate(selectedPhase.id)}
       />
     ) : tab === "Threat scenarios" && selectedScenario ? (
-      <RailGroup title="Scenario">
+      <Inspector.Group title="Scenario">
         <KeyValue label="Scenario">
           <Id>{selectedScenario.id}</Id>
         </KeyValue>
@@ -369,7 +369,7 @@ function ProgramTePhases() {
         <KeyValue label="Effects">
           <span className="tnum">{scenarioEffects.length}</span>
         </KeyValue>
-      </RailGroup>
+      </Inspector.Group>
     ) : null;
 
   return (
@@ -858,7 +858,7 @@ function PhaseRail({
 }) {
   return (
     <>
-      <RailGroup title="Phase">
+      <Inspector.Group title="Phase">
         <KeyValue label="Phase">
           <Id>{phase.id}</Id>
         </KeyValue>
@@ -873,9 +873,9 @@ function PhaseRail({
         <KeyValue label="Scenarios">
           <span className="tnum">{scenarioCount}</span>
         </KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Gate">
+      <Inspector.Group title="Gate">
         <KeyValue label="Entry">
           <span className="tnum">
             {readiness ? `${readiness.entryMet}/${readiness.entryTotal}` : "—"}
@@ -905,9 +905,9 @@ function PhaseRail({
             Read the criteria
           </button>
         </div>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Campaigns">
+      <Inspector.Group title="Campaigns">
         {phase.campaigns.length === 0 ? (
           <div className="pt-0.5 text-[12.5px] leading-relaxed text-muted-foreground">
             None. This phase produces the record later phases are judged against, not an execution.
@@ -925,13 +925,13 @@ function PhaseRail({
             </KeyValue>
           ))
         )}
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Purpose">
+      <Inspector.Group title="Purpose">
         <div className="pt-0.5 text-[12.5px] leading-relaxed text-muted-foreground">
           {phase.purpose}
         </div>
-      </RailGroup>
+      </Inspector.Group>
     </>
   );
 }

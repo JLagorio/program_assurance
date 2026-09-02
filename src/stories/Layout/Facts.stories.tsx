@@ -1,17 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import {
-  Badge,
-  Fact,
-  KeyValue,
-  Person,
-  Prose,
-  RailGroup,
-  Empty,
-  Id,
-  Eyebrow,
-} from "@/components/app/ui";
+import { Badge, Fact, KeyValue, Person, Prose, Empty, Id, Eyebrow } from "@/components/app/ui";
 import { Spec } from "../_lib/tokens";
+import { Inspector } from "@/components/app/shapes";
 
 const meta = {
   title: "Layout/Facts",
@@ -83,7 +74,7 @@ export const Rail: Story = {
   parameters: { controls: { disable: true } },
   render: () => (
     <div className="max-w-[272px]">
-      <RailGroup title="Requirement">
+      <Inspector.Group title="Requirement">
         <KeyValue label="Control">
           <Id>AC-2(3)</Id>
         </KeyValue>
@@ -101,8 +92,8 @@ export const Rail: Story = {
           <Empty />
         </KeyValue>
         <Prose label="Statement">{statement}</Prose>
-      </RailGroup>
-      <RailGroup title="Implementation">
+      </Inspector.Group>
+      <Inspector.Group title="Implementation">
         <KeyValue label="Owner">
           <Person name="D. Reyes" />
         </KeyValue>
@@ -112,7 +103,7 @@ export const Rail: Story = {
         <Prose label="Gap" tone="danger">
           No procedure is written against objective [03]; the row cannot be assessed.
         </Prose>
-      </RailGroup>
+      </Inspector.Group>
     </div>
   ),
 };

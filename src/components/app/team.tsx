@@ -1,16 +1,8 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import {
-  Badge,
-  KeyValue,
-  Meter,
-  PreviewRail,
-  RailGroup,
-  Section,
-  Table,
-  Id,
-} from "@/components/app/ui";
+import { Badge, KeyValue, Meter, PreviewRail, Section, Table, Id } from "@/components/app/ui";
+import { Inspector } from "@/components/app/shapes";
 import {
   allocationFor,
   crossDisciplineEdges,
@@ -264,7 +256,7 @@ export function TeamSection({ programId }: { programId: string }) {
           >
             <p className="text-[12.5px] leading-relaxed text-muted-foreground">{ws.objective}</p>
             <div className="mt-3">
-              <RailGroup title="Workstream">
+              <Inspector.Group title="Workstream">
                 <KeyValue label="Lead">{personById.get(ws.lead)?.name ?? "—"}</KeyValue>
                 <KeyValue label="Status">
                   <Badge tone={workstreamStatusTone(ws.status)}>{ws.status}</Badge>
@@ -272,8 +264,8 @@ export function TeamSection({ programId }: { programId: string }) {
                 <KeyValue label="Stage">{ws.stage}</KeyValue>
                 <KeyValue label="Gate">{ws.gate}</KeyValue>
                 <KeyValue label="Due">{ws.due}</KeyValue>
-              </RailGroup>
-              <RailGroup title="Joins">
+              </Inspector.Group>
+              <Inspector.Group title="Joins">
                 <KeyValue label="Controls">
                   <Id>{ws.controls.join(", ")}</Id>
                 </KeyValue>
@@ -283,7 +275,7 @@ export function TeamSection({ programId }: { programId: string }) {
                 <KeyValue label="Depends on">
                   {ws.dependsOn.length ? <Id>{ws.dependsOn.join(", ")}</Id> : "—"}
                 </KeyValue>
-              </RailGroup>
+              </Inspector.Group>
             </div>
           </PreviewRail>
         ) : null}
@@ -304,14 +296,14 @@ export function TeamSection({ programId }: { programId: string }) {
             }
           >
             <div className="mt-1">
-              <RailGroup title="Profile">
+              <Inspector.Group title="Profile">
                 <KeyValue label="Title">{person.title}</KeyValue>
                 <KeyValue label="Discipline">{person.discipline}</KeyValue>
                 <KeyValue label="Org">{person.org}</KeyValue>
                 <KeyValue label="Clearance">{person.clearance}</KeyValue>
                 <KeyValue label="Site">{person.site}</KeyValue>
-              </RailGroup>
-              <RailGroup title="Workstreams">
+              </Inspector.Group>
+              <Inspector.Group title="Workstreams">
                 <div className="space-y-1.5 text-[12.5px]">
                   {workstreamsForPerson(person.id).map((w) => (
                     <div key={w.id} className="flex items-baseline justify-between gap-2">
@@ -326,7 +318,7 @@ export function TeamSection({ programId }: { programId: string }) {
                     </div>
                   ))}
                 </div>
-              </RailGroup>
+              </Inspector.Group>
             </div>
           </PreviewRail>
         ) : null}

@@ -39,7 +39,6 @@ import {
   Dot,
   EmptyState,
   KeyValue,
-  RailGroup,
   Section,
   Table,
   Toolbar,
@@ -64,6 +63,7 @@ import {
   type TouchedNode,
 } from "@/lib/baselines";
 import { cn } from "@/lib/utils";
+import { Inspector } from "@/components/app/shapes";
 
 type NodeNamer = (nodeId: string) => string;
 type AuditRecord = ChangeImpact["records"][number];
@@ -347,7 +347,7 @@ export function BuildRail({
 }) {
   return (
     <div>
-      <RailGroup title="Baseline">
+      <Inspector.Group title="Baseline">
         <KeyValue label="Build">
           <Id>{build.id}</Id>
         </KeyValue>
@@ -368,9 +368,9 @@ export function BuildRail({
         </KeyValue>
         <ProseBlock label="Approving authority">{build.ccb}</ProseBlock>
         <ProseBlock label="Note">{build.note}</ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Movement">
+      <Inspector.Group title="Movement">
         <KeyValue label="Pins moved">
           <span className="tnum">{deltas}</span>
         </KeyValue>
@@ -389,7 +389,7 @@ export function BuildRail({
           that the item under it is the one the assessor looked at; a pin that moves without a
           change record is a claim nobody made.
         </ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
     </div>
   );
 }
@@ -675,7 +675,7 @@ export function ChangeRail({
 }) {
   return (
     <div>
-      <RailGroup title="Change">
+      <Inspector.Group title="Change">
         <KeyValue label="Record">
           <Id>{change.id}</Id>
         </KeyValue>
@@ -695,16 +695,16 @@ export function ChangeRail({
         </KeyValue>
         <KeyValue label="By">{change.requestedBy}</KeyValue>
         <KeyValue label="Approved by">{change.approvedBy}</KeyValue>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Security impact analysis">
+      <Inspector.Group title="Security impact analysis">
         <KeyValue label="Verdict">
           <ImpactChip impact={change.impact} />
         </KeyValue>
         <ProseBlock label="CM-3(2) analysis">{change.analysis}</ProseBlock>
-      </RailGroup>
+      </Inspector.Group>
 
-      <RailGroup title="Effect">
+      <Inspector.Group title="Effect">
         {impact === null ? (
           <ProseBlock label="Status">
             No impact record has been computed for this change.
@@ -754,7 +754,7 @@ export function ChangeRail({
           configuration this change produces. It removes the change from the live overlay. It does
           not create evidence, close a finding or change a determination.
         </p>
-      </RailGroup>
+      </Inspector.Group>
     </div>
   );
 }
