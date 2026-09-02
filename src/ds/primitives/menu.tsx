@@ -1,39 +1,48 @@
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useState } from "react";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
+const noop = () => {};
+
+/* A list of actions or options anchored to a trigger. The trigger element opens
+   and closes the menu itself (pointer, Enter, Space, ArrowDown) and carries
+   aria-haspopup, aria-expanded and data-state; items take arrow keys, Home and
+   End, typeahead and Escape. `toggle` in the trigger render prop is inert: it
+   stays so existing triggers that wire it to onClick keep compiling. */
 function MenuRoot({
   trigger,
   align = "start",
   width = 200,
+  defaultOpen = false,
   children,
 }: {
   trigger: (props: { open: boolean; toggle: () => void }) => ReactNode;
   align?: "start" | "end";
   width?: number;
+  defaultOpen?: boolean;
   children: (close: () => void) => ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="relative">
-      {trigger({ open, toggle: () => setOpen((o) => !o) })}
-      {open ? (
-        <>
-          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} aria-hidden />
-          <div
-            role="menu"
-            style={{ width }}
-            className={cn(
-              "absolute top-[calc(100%+4px)] z-40 overflow-hidden rounded-lg border border-border bg-popover p-1 shadow-pop",
-              align === "end" ? "right-0" : "left-0",
-            )}
-          >
-            {children(() => setOpen(false))}
-          </div>
-        </>
-      ) : null}
-    </div>
+    <DropdownMenu.Root open={open} onOpenChange={setOpen}>
+      <DropdownMenu.Trigger asChild>{trigger({ open, toggle: noop })}</DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          align={align}
+          sideOffset={4}
+          collisionPadding={8}
+          style={{ width }}
+          className={cn(
+            "z-50 overflow-hidden rounded-lg border border-border bg-popover p-1 shadow-pop outline-none",
+            "animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
+          )}
+        >
+          {children(() => setOpen(false))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   );
 }
 
@@ -49,26 +58,26 @@ function MenuItem({
   trailing?: ReactNode;
 }) {
   return (
-    <button
-      type="button"
-      role="menuitem"
-      onClick={onSelect}
+    <DropdownMenu.Item
+      onSelect={() => onSelect?.()}
       className={cn(
-        "flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-13 transition-colors duration-100",
-        selected ? "bg-primary-soft text-primary" : "text-foreground hover:bg-surface-hover",
+        "flex h-7 w-full cursor-default select-none items-center gap-2 rounded-md px-2 text-left text-13 outline-none transition-colors duration-100",
+        selected
+          ? "bg-primary-soft text-primary"
+          : "text-foreground data-[highlighted]:bg-surface-hover",
       )}
     >
       <span className="min-w-0 flex-1 truncate">{children}</span>
       {trailing ? <span className="shrink-0 text-11 text-muted-foreground">{trailing}</span> : null}
-    </button>
+    </DropdownMenu.Item>
   );
 }
 
 function MenuLabel({ children }: { children: ReactNode }) {
   return (
-    <div className="px-2 pb-1 pt-1.5 text-11 font-medium uppercase tracking-[0.06em] text-muted-foreground">
+    <DropdownMenu.Label className="px-2 pb-1 pt-1.5 text-11 font-medium uppercase tracking-[0.06em] text-muted-foreground">
       {children}
-    </div>
+    </DropdownMenu.Label>
   );
 }
 

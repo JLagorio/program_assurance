@@ -1,6 +1,10 @@
-import { createPortal } from "react-dom";
+import * as Dialog from "@radix-ui/react-dialog";
+import { X } from "lucide-react";
 import type { ReactNode } from "react";
 
+/* A detail surface that slides in from the right and leaves the page visible.
+   Same behaviour as Modal underneath: focus moves in and back, Escape and the
+   scrim close it, the page behind stops scrolling. */
 export function Drawer({
   open,
   onClose,
@@ -16,43 +20,46 @@ export function Drawer({
   footer?: ReactNode;
   children: ReactNode;
 }) {
-  if (!open || typeof document === "undefined") return null;
-  return createPortal(
-    <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-foreground/20" onClick={onClose} aria-hidden />
-      <aside
-        role="dialog"
-        aria-modal="true"
-        aria-label={typeof title === "string" ? title : undefined}
-        className="absolute inset-y-0 right-0 flex w-full max-w-[420px] flex-col bg-card shadow-pop animate-slide-up"
-      >
-        <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
-          <div className="min-w-0">
-            <h2 className="truncate text-[14px] font-medium tracking-[-0.01em]">{title}</h2>
+  return (
+    <Dialog.Root
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+    >
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-foreground/20 animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
+        <Dialog.Content
+          {...(subtitle ? {} : { "aria-describedby": undefined })}
+          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[420px] flex-col bg-card shadow-pop outline-none animate-in slide-in-from-right duration-300 ease-out data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right"
+        >
+          <div className="shrink-0 border-b border-border py-3 pl-4 pr-12">
+            <Dialog.Title className="truncate text-[14px] font-medium tracking-[-0.01em]">
+              {title}
+            </Dialog.Title>
             {subtitle ? (
-              <p className="mt-0.5 truncate text-12 text-muted-foreground">{subtitle}</p>
+              <Dialog.Description className="mt-0.5 truncate text-12 text-muted-foreground">
+                {subtitle}
+              </Dialog.Description>
             ) : null}
           </div>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            className="-mr-1 flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            ✕
-          </button>
-        </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">{children}</div>
-        {footer ? (
-          <div className="flex items-center justify-end gap-2 border-t border-border bg-subtle px-4 py-2.5">
-            {footer}
-          </div>
-        ) : null}
-      </aside>
-    </div>,
-    document.body,
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">{children}</div>
+          {footer ? (
+            <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border bg-subtle px-4 py-2.5">
+              {footer}
+            </div>
+          ) : null}
+          <Dialog.Close asChild>
+            <button
+              type="button"
+              aria-label="Close"
+              className="absolute right-3 top-3 flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
+            >
+              <X className="size-3.5" />
+            </button>
+          </Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
-
-/* The small reading primitives every rail, summary and detail body had been
-   re-declaring locally (nine copies of Dash, seven of ProseBlock, three of
-   WrapValue and IdList, three of Fact). One definition each. */

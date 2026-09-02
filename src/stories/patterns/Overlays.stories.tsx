@@ -1,6 +1,5 @@
 import type { Decorator, Meta, StoryObj } from "@storybook/react-vite";
 import { ChevronDown, Plus } from "lucide-react";
-import { useEffect, useRef } from "react";
 
 import {
   Avatar,
@@ -24,6 +23,8 @@ const meta = {
   title: "Patterns/Overlays",
   component: Modal,
   tags: ["autodocs"],
+  // Modal and Drawer trap focus and lock the page; each docs example gets its own frame.
+  parameters: { docs: { story: { inline: false, height: "560px" } } },
   args: { open: true, onClose: noop, title: "Submit for authorization", children: null },
   argTypes: {
     open: { control: "boolean" },
@@ -42,32 +43,19 @@ type Story = StoryObj<typeof meta>;
 
 const people = ["D. Reyes", "K. Lund", "M. Okafor", "S. Chen", "A. Whitfield", "J. Park"];
 
-/** Menu owns its open state; this flips it once on mount so the story shows the popover. */
-function AutoOpen({ open, toggle }: { open: boolean; toggle: () => void }) {
-  const done = useRef(false);
-  useEffect(() => {
-    if (done.current) return;
-    done.current = true;
-    if (!open) toggle();
-  }, [open, toggle]);
-  return null;
-}
-
-/** Popover anchored to its trigger: label, items with an Avatar lead, one selected, trailing hint. */
+/** Anchored to its trigger: label, items with an Avatar lead, one selected, trailing hint. */
 export const MenuOpen: Story = {
   parameters: { controls: { disable: true } },
   render: () => (
     <div className="h-[300px]">
       <Menu
         width={220}
-        trigger={({ open, toggle }) => (
-          <>
-            <Button onClick={toggle} aria-expanded={open}>
-              Assign
-              <ChevronDown className="size-3.5 text-muted-foreground" />
-            </Button>
-            <AutoOpen open={open} toggle={toggle} />
-          </>
+        defaultOpen
+        trigger={() => (
+          <Button>
+            Assign
+            <ChevronDown className="size-3.5 text-muted-foreground" />
+          </Button>
         )}
       >
         {(close) => (

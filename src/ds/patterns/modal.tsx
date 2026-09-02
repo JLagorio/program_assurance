@@ -1,8 +1,13 @@
-import { createPortal } from "react-dom";
+import * as Dialog from "@radix-ui/react-dialog";
+import { X } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
+/* A focused task over the page: title, optional description, body, optional
+   aside of facts, footer actions. Focus moves in on open and back on close;
+   Escape and the scrim close it; the page behind stops scrolling. Header and
+   footer stay put while a long body scrolls. */
 export function Modal({
   open,
   onClose,
@@ -22,56 +27,61 @@ export function Modal({
   children: ReactNode;
   width?: "md" | "lg";
 }) {
-  if (!open || typeof document === "undefined") return null;
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:p-10">
-      <div
-        className="fixed inset-0 bg-foreground/25 backdrop-blur-[1px]"
-        onClick={onClose}
-        aria-hidden
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={typeof title === "string" ? title : undefined}
-        className={cn(
-          "relative z-10 w-full overflow-hidden rounded-xl bg-card shadow-pop",
-          width === "lg" ? "max-w-[860px]" : "max-w-[520px]",
-        )}
-      >
-        <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-3.5">
-          <div className="min-w-0">
-            <h2 className="text-[15px] font-medium tracking-[-0.01em]">{title}</h2>
-            {description ? (
-              <p className="mt-0.5 text-[13px] text-muted-foreground">{description}</p>
-            ) : null}
-          </div>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            className="-mr-1 flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+  return (
+    <Dialog.Root
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+    >
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-foreground/25 backdrop-blur-[1px] animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-10">
+          <Dialog.Content
+            {...(description ? {} : { "aria-describedby": undefined })}
+            className={cn(
+              "relative flex max-h-full w-full flex-col overflow-hidden rounded-xl bg-card shadow-pop outline-none",
+              "animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+              width === "lg" ? "max-w-[860px]" : "max-w-[520px]",
+            )}
           >
-            ✕
-          </button>
-        </div>
-        <div className={cn("grid", aside ? "md:grid-cols-[minmax(0,1fr)_300px]" : "")}>
-          <div className="px-5 py-4">{children}</div>
-          {aside ? (
-            <div className="border-t border-border bg-subtle px-5 py-4 md:border-l md:border-t-0">
-              {aside}
+            <div className="shrink-0 border-b border-border py-3.5 pl-5 pr-14">
+              <Dialog.Title className="text-[15px] font-medium tracking-[-0.01em]">
+                {title}
+              </Dialog.Title>
+              {description ? (
+                <Dialog.Description className="mt-0.5 text-[13px] text-muted-foreground">
+                  {description}
+                </Dialog.Description>
+              ) : null}
             </div>
-          ) : null}
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className={cn("grid", aside ? "md:grid-cols-[minmax(0,1fr)_300px]" : "")}>
+                <div className="px-5 py-4">{children}</div>
+                {aside ? (
+                  <div className="border-t border-border bg-subtle px-5 py-4 md:border-l md:border-t-0">
+                    {aside}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+            {footer ? (
+              <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border bg-subtle px-5 py-3">
+                {footer}
+              </div>
+            ) : null}
+            <Dialog.Close asChild>
+              <button
+                type="button"
+                aria-label="Close"
+                className="absolute right-4 top-3 flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
+              >
+                <X className="size-3.5" />
+              </button>
+            </Dialog.Close>
+          </Dialog.Content>
         </div>
-        {footer ? (
-          <div className="flex items-center justify-end gap-2 border-t border-border bg-subtle px-5 py-3">
-            {footer}
-          </div>
-        ) : null}
-      </div>
-    </div>,
-    document.body,
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
-
-/* A bordered card that owns one related object type: title, count, a few
-   dense rows, and a single link out to the full list. */
