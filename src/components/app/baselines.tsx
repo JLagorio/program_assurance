@@ -48,6 +48,7 @@ import {
   Toolbar,
   Tr,
   type Tone,
+  IdCell,
 } from "@/components/app/ui";
 import {
   buildStateTone,
@@ -282,9 +283,7 @@ export function BuildTable({
             onClick={onSelect ? () => onSelect(build.id) : undefined}
             title={build.note}
           >
-            <Td>
-              <Mono className="text-primary">{build.id}</Mono>
-            </Td>
+            <IdCell id={build.id} />
             <Td className="font-medium">{build.name}</Td>
             <Td>
               <BuildStateChip state={build.state} />
@@ -338,9 +337,7 @@ export function ParameterTable({ parameters }: { parameters: ParameterPin[] }) {
       <tbody>
         {parameters.map((p) => (
           <Tr key={`${p.control}|${p.parameter}`} title={`${p.parameter} — ${p.value}`}>
-            <Td>
-              <Mono className="text-primary">{p.control}</Mono>
-            </Td>
+            <IdCell id={p.control} />
             <Td className="text-muted-foreground">{p.parameter}</Td>
             <Td className="font-medium">{p.value}</Td>
           </Tr>
@@ -364,7 +361,7 @@ export function BuildRail({
     <div>
       <RailGroup title="Baseline">
         <KeyValue label="Build">
-          <Mono className="text-primary">{build.id}</Mono>
+          <Mono>{build.id}</Mono>
         </KeyValue>
         <KeyValue label="Name">{build.name}</KeyValue>
         <KeyValue label="State">
@@ -547,7 +544,7 @@ export function PinDiffTable({
                     <span className="truncate font-medium text-danger">No change record</span>
                   </span>
                 ) : (
-                  <Mono className="text-primary">{row.recorded}</Mono>
+                  <Mono className="text-muted-foreground">{row.recorded}</Mono>
                 )}
               </Td>
             </Tr>
@@ -633,7 +630,7 @@ export function ChangeTable({
             >
               <Td>
                 <span className="flex items-center gap-1.5">
-                  <Mono className="text-primary">{change.id}</Mono>
+                  <Mono className="text-muted-foreground">{change.id}</Mono>
                   {change.acknowledged ? (
                     <Badge size="xs" tone="neutral">
                       Ack
@@ -692,7 +689,7 @@ export function ChangeRail({
     <div>
       <RailGroup title="Change">
         <KeyValue label="Record">
-          <Mono className="text-primary">{change.id}</Mono>
+          <Mono>{change.id}</Mono>
         </KeyValue>
         <KeyValue label="Kind">
           <ChangeKindChip kind={change.kind} />
@@ -918,9 +915,7 @@ function InvalidatedRowTable({ records }: { records: AuditRecord[] }) {
             const row = splitRowKey(record.ref);
             return (
               <Tr key={record.id} title={record.why}>
-                <Td>
-                  <Mono className="text-primary">{row.control}</Mono>
-                </Td>
+                <IdCell id={row.control} />
                 <Td>
                   <Badge size="xs">{row.unit}</Badge>
                 </Td>
@@ -969,9 +964,7 @@ function SuspectRowTable({ records }: { records: AuditRecord[] }) {
             const row = splitRowKey(record.ref);
             return (
               <Tr key={record.id} title={record.why}>
-                <Td>
-                  <Mono className="text-primary">{row.control}</Mono>
-                </Td>
+                <IdCell id={row.control} />
                 <Td>
                   <Badge size="xs">{row.unit}</Badge>
                 </Td>
@@ -1025,9 +1018,7 @@ function AuditTrail({ records }: { records: AuditRecord[] }) {
         <tbody>
           {cap.shown.map((record) => (
             <Tr key={record.id} title={record.why}>
-              <Td>
-                <Mono className="text-primary">{record.id}</Mono>
-              </Td>
+              <IdCell id={record.id} />
               <Td className="text-muted-foreground">{record.scope}</Td>
               <Td>
                 <Mono className="text-muted-foreground">{record.ref}</Mono>
@@ -1158,7 +1149,7 @@ export function ImpactView({
             {contained ? "Contained" : "Cascaded"}
           </Badge>
           <span className="ml-auto flex items-center gap-2">
-            <Mono className="text-primary">{change.id}</Mono>
+            <Mono>{change.id}</Mono>
             {change.acknowledged ? <Badge size="xs">Acknowledged</Badge> : null}
           </span>
         </div>
@@ -1413,9 +1404,7 @@ export function ImpactView({
                         <Td>
                           <Mono className="text-muted-foreground">{parsed.component}</Mono>
                         </Td>
-                        <Td>
-                          <Mono className="text-primary">{parsed.control}</Mono>
-                        </Td>
+                        <IdCell id={parsed.control} />
                         <Td>
                           <span className="flex items-center gap-1.5">
                             <span className="text-[12px] text-muted-foreground line-through decoration-danger/70">
@@ -1537,9 +1526,7 @@ export function RetestQueueTable({
               key={`${item.control}|${item.requirement}|${item.node}|${item.method}`}
               title={item.reason}
             >
-              <Td>
-                <Mono className="text-primary">{item.control}</Mono>
-              </Td>
+              <IdCell id={item.control} />
               <Td>
                 <Mono className="text-muted-foreground">{item.requirement}</Mono>
               </Td>
@@ -1551,7 +1538,7 @@ export function RetestQueueTable({
               </Td>
               <Td>
                 {item.procedure ? (
-                  <Mono className="text-primary">{item.procedure}</Mono>
+                  <Mono className="text-muted-foreground">{item.procedure}</Mono>
                 ) : (
                   <span className="text-[12px] text-muted-foreground">None — by hand</span>
                 )}

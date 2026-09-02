@@ -293,7 +293,7 @@ function CampaignRecord() {
                 <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
                   {railTitle}
                 </span>
-                <Mono className="text-primary">{railId}</Mono>
+                <Mono>{railId}</Mono>
                 <button
                   onClick={closeRail}
                   className="ml-auto text-[12px] text-muted-foreground hover:text-foreground"
@@ -366,7 +366,7 @@ function CampaignRecord() {
                 <Section
                   title={
                     <span className="flex flex-wrap items-center gap-2">
-                      <Mono className="text-primary">{selectedProcedure.procedure.id}</Mono>
+                      <Mono>{selectedProcedure.procedure.id}</Mono>
                       <span>Preconditions</span>
                     </span>
                   }

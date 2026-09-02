@@ -19,6 +19,7 @@ import {
   Th,
   Toolbar,
   Tr,
+  IdCell,
 } from "@/components/app/ui";
 import { controlMatrix } from "@/lib/control-matrix";
 import { programs } from "@/lib/grc-data";
@@ -293,7 +294,7 @@ function ProgramSctm() {
                 <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
                   Requirement
                 </span>
-                <Mono className="text-primary">{selectedRow.requirement}</Mono>
+                <Mono>{selectedRow.requirement}</Mono>
                 <button
                   onClick={() => setSelected(null)}
                   className="ml-auto text-[12px] text-muted-foreground hover:text-foreground"
@@ -450,9 +451,7 @@ function ProgramSctm() {
                         navigate({ search: { tab: "Matrix" }, replace: true });
                       }}
                     >
-                      <Td>
-                        <Mono className="text-primary">{f.id}</Mono>
-                      </Td>
+                      <IdCell id={f.id} />
                       <Td className="truncate text-muted-foreground">{f.name}</Td>
                       <Td className="tnum text-right">{f.rows}</Td>
                       <Td className="tnum text-right text-muted-foreground">{f.satisfied}</Td>

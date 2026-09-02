@@ -546,7 +546,7 @@ export function TopRisksTable({
             >
               <Td className="max-w-none">
                 <span className="flex items-center gap-1.5">
-                  <Mono className="text-primary">{row.score.subject}</Mono>
+                  <Mono className="text-muted-foreground">{row.score.subject}</Mono>
                   {row.score.caveats.length > 0 ? (
                     <Badge size="xs" tone="warning">
                       {row.score.caveats.length}
@@ -632,7 +632,7 @@ export function MoversTable({ movers }: { movers: RiskMover[] }) {
         {movers.map((m) => (
           <Tr key={m.subject} className="align-top">
             <Td className="py-2 align-top">
-              <Mono className="text-primary">{m.subject}</Mono>
+              <Mono className="text-muted-foreground">{m.subject}</Mono>
             </Td>
             <Td className="tnum py-2 align-top text-right text-muted-foreground line-through">
               {m.from}
@@ -729,7 +729,7 @@ function ComparisonRows({
     <>
       <Tr className="border-0 align-top hover:bg-transparent">
         <Td className="py-2 align-top">
-          <Mono className="text-primary">{comparison.risk}</Mono>
+          <Mono className="text-muted-foreground">{comparison.risk}</Mono>
         </Td>
         <Td className="py-2 align-top font-medium" title={title}>
           {title}

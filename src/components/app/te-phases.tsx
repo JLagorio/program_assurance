@@ -513,7 +513,7 @@ function CriterionRow({
       )}
     >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <Mono className="text-primary">{criterion.id}</Mono>
+        <Mono>{criterion.id}</Mono>
         <Badge size="xs">{criterion.kind}</Badge>
         <BasisChip criterion={criterion} />
         <span className="ml-auto flex items-center gap-2">
@@ -810,7 +810,7 @@ function TechniqueStep({ step, n }: { step: ThreatScenario["chain"][number]; n: 
         ) : null}
       </div>
       <div className="mt-1 flex items-baseline gap-1.5">
-        <Mono className="text-primary">{step.id}</Mono>
+        <Mono>{step.id}</Mono>
       </div>
       <div className="mt-0.5 text-[12.5px] font-medium leading-snug">{step.name}</div>
     </div>
@@ -846,7 +846,7 @@ export function AttackChain({
   return (
     <Card className="p-4">
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <Mono className="text-primary">{scenario.id}</Mono>
+        <Mono>{scenario.id}</Mono>
         <h3 className="text-[13.5px] font-semibold">{scenario.name}</h3>
         <TierChip tier={scenario.tier} />
         <Badge tone={scenarioStatusTone[scenario.status]}>{scenario.status}</Badge>

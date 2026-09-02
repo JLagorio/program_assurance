@@ -16,6 +16,7 @@ import {
   Td,
   Th,
   Tr,
+  IdCell,
 } from "@/components/app/ui";
 
 export const Route = createFileRoute("/evidence")({
@@ -174,9 +175,7 @@ function Evidence() {
             <tbody>
               {files.map((file) => (
                 <Tr key={file.name}>
-                  <Td>
-                    <Mono className="text-primary">{file.name}</Mono>
-                  </Td>
+                  <IdCell id={file.name} />
                   <Td>
                     <Mono className="text-muted-foreground">{file.control}</Mono>
                   </Td>

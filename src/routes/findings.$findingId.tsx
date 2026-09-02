@@ -21,6 +21,7 @@ import {
   Td,
   Th,
   Tr,
+  Severity,
 } from "@/components/app/ui";
 import { ccis } from "@/lib/catalog";
 import { useControlMatrix } from "@/lib/control-matrix";
@@ -129,9 +130,9 @@ function FindingRecord() {
             meta={`${finding.control}${catalogTitle ? ` ${catalogTitle}` : ""} · ${finding.source} · ${finding.owner}`}
             actions={
               <>
-                <Badge tone={severityTone(finding.mitigatedSeverity)}>
+                <Severity tone={severityTone(finding.mitigatedSeverity)}>
                   {finding.mitigatedSeverity}
-                </Badge>
+                </Severity>
                 <Badge tone={statusTone(finding.lifecycle)}>{finding.lifecycle}</Badge>
                 {finding.poam ? (
                   <Link to="/register/poam/$poamId" params={{ poamId: finding.poam }}>
@@ -210,9 +211,9 @@ function FindingRecord() {
             <RailGroup title="Severity">
               <KeyValue label="Raw">{finding.rawSeverity}</KeyValue>
               <KeyValue label="Mitigated">
-                <Badge tone={severityTone(finding.mitigatedSeverity)}>
+                <Severity tone={severityTone(finding.mitigatedSeverity)}>
                   {finding.mitigatedSeverity}
-                </Badge>
+                </Severity>
               </KeyValue>
               <KeyValue label="Open">{isOpen(finding) ? "Yes" : "No"}</KeyValue>
               <KeyValue label="Residual risk">
@@ -378,9 +379,9 @@ function FindingRecord() {
                           {assetById.get(f.asset)?.name ?? f.asset}
                         </Td>
                         <Td>
-                          <Badge tone={severityTone(f.mitigatedSeverity)}>
+                          <Severity tone={severityTone(f.mitigatedSeverity)}>
                             {f.mitigatedSeverity}
-                          </Badge>
+                          </Severity>
                         </Td>
                         <Td className="truncate">
                           <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
@@ -459,14 +460,14 @@ function FindingRecord() {
             >
               <div className="pt-1">
                 <TextBlock label="Raw">
-                  <Badge tone={severityTone(finding.rawSeverity)} size="xs">
+                  <Severity tone={severityTone(finding.rawSeverity)}>
                     {finding.rawSeverity}
-                  </Badge>
+                  </Severity>
                 </TextBlock>
                 <TextBlock label="Mitigated">
-                  <Badge tone={severityTone(finding.mitigatedSeverity)} size="xs">
+                  <Severity tone={severityTone(finding.mitigatedSeverity)}>
                     {finding.mitigatedSeverity}
-                  </Badge>
+                  </Severity>
                 </TextBlock>
                 <TextBlock label="Mitigation">
                   {finding.mitigation ?? (

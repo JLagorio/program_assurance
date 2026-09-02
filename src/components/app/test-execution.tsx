@@ -33,6 +33,7 @@ import {
   Th,
   Tr,
   type Tone,
+  IdCell,
 } from "@/components/app/ui";
 import { objectiveTone, type ObjectiveResult } from "@/lib/campaigns";
 import {
@@ -399,9 +400,7 @@ export function ObjectiveExecutionTable({
             onClick={() => onSelect(row)}
             title={row.basis}
           >
-            <Td>
-              <Mono className="text-primary">{row.objective}</Mono>
-            </Td>
+            <IdCell id={row.objective} />
             <Td className="truncate">{row.statement}</Td>
             <Td className="truncate">
               {row.procedures.length === 0 ? (
@@ -455,7 +454,7 @@ export function ObjectiveRail({ row }: { row: ObjectiveExecutionRow }) {
 
       <RailGroup title="Objective">
         <KeyValue label="Objective">
-          <Mono className="text-primary">{row.objective}</Mono>
+          <Mono>{row.objective}</Mono>
         </KeyValue>
         <WrapValue label="Statement">{row.statement}</WrapValue>
         <WrapValue label="CCIs">
@@ -542,7 +541,7 @@ export function ProcedureList({
           >
             <Td>
               <span className="flex items-baseline gap-1.5">
-                <Mono className="text-primary">{procedure.id}</Mono>
+                <Mono className="text-muted-foreground">{procedure.id}</Mono>
                 <span className="shrink-0 text-11 text-muted-foreground">{procedure.version}</span>
               </span>
             </Td>
@@ -645,7 +644,7 @@ export function ProcedureRail({ row }: { row: ProcedureListRow }) {
     <div>
       <RailGroup title="Procedure">
         <KeyValue label="Procedure">
-          <Mono className="text-primary">{procedure.id}</Mono>
+          <Mono>{procedure.id}</Mono>
         </KeyValue>
         <WrapValue label="Title">{procedure.title}</WrapValue>
         <KeyValue label="Objective">
@@ -755,7 +754,7 @@ export function RunTable({
           >
             <Td>
               <span className="flex items-baseline gap-1.5">
-                <Mono className="text-primary">{run.id}</Mono>
+                <Mono className="text-muted-foreground">{run.id}</Mono>
                 {run.retestOf ? (
                   <span
                     className="shrink-0 text-11 text-muted-foreground"
@@ -822,7 +821,7 @@ export function RunRecordView({
       <Section
         title={
           <span className="flex flex-wrap items-center gap-2">
-            <Mono className="text-primary">{run.id}</Mono>
+            <Mono>{run.id}</Mono>
             <span>{procedure?.title ?? run.procedure}</span>
           </span>
         }
@@ -965,7 +964,7 @@ export function RunRail({ row }: { row: RunListRow }) {
     <div>
       <RailGroup title="Run">
         <KeyValue label="Run">
-          <Mono className="text-primary">{run.id}</Mono>
+          <Mono>{run.id}</Mono>
         </KeyValue>
         <KeyValue label="Procedure">
           <Mono>{run.procedure}</Mono>

@@ -543,7 +543,7 @@ export function AlertList({
               {alert.severity}
             </Badge>
             <span className="text-[13px] font-semibold tracking-[-0.005em]">{alert.kind}</span>
-            <Mono className="text-primary">{alert.subject}</Mono>
+            <Mono>{alert.subject}</Mono>
             <span className="text-[12px] text-muted-foreground">
               {alert.since === "—" ? "no start date on record" : `since ${alert.since}`}
             </span>
@@ -632,7 +632,7 @@ function ScheduleRows({ row, explain }: { row: ScheduleRow; explain: boolean }) 
         title={explain ? undefined : row.finding}
       >
         <Td className="py-2 align-top">
-          <Mono className="text-primary">{row.control}</Mono>
+          <Mono className="text-muted-foreground">{row.control}</Mono>
         </Td>
         <Td className="py-2 align-top" title={row.controlTitle}>
           {row.controlTitle === "—" ? <Dash /> : row.controlTitle}
@@ -734,7 +734,7 @@ function FreshnessRows({ row, explain }: { row: EvidenceSlaRow; explain: boolean
         title={explain ? undefined : row.finding}
       >
         <Td className="py-2 align-top">
-          <Mono className="text-primary">{row.control}</Mono>
+          <Mono className="text-muted-foreground">{row.control}</Mono>
         </Td>
         <Td className="py-2 align-top" title={row.requirement}>
           <span className="flex items-center gap-1.5">
@@ -845,7 +845,7 @@ export function CadenceTable({ rows }: { rows: CadenceRow[] }) {
           return (
             <Tr key={`${row.target}|${row.format}`} className="align-top">
               <Td className="py-2 align-top">
-                <Mono className="text-primary">{row.target}</Mono>
+                <Mono className="text-muted-foreground">{row.target}</Mono>
               </Td>
               <Td className="py-2 align-top" title={row.targetName}>
                 {row.targetName}
@@ -946,7 +946,7 @@ function SlippageRows({ row }: { row: SlippageRow }) {
     <>
       <Tr className="border-0 align-top hover:bg-transparent">
         <Td className="py-2 align-top">
-          <Mono className="text-primary">{row.poam}</Mono>
+          <Mono className="text-muted-foreground">{row.poam}</Mono>
         </Td>
         <Td className="py-2 align-top font-medium" title={row.title}>
           {row.title}

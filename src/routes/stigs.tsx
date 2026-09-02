@@ -13,6 +13,7 @@ import {
   Td,
   Th,
   Tr,
+  Severity,
 } from "@/components/app/ui";
 import { benchmarkById, benchmarks, rules } from "@/lib/catalog";
 import { severityTone } from "@/lib/spine";
@@ -169,7 +170,7 @@ function StigLibrary() {
                     {r.severity === "CAT III" ? (
                       <span className="text-muted-foreground">CAT III</span>
                     ) : (
-                      <Badge tone={severityTone(r.severity)}>{r.severity}</Badge>
+                      <Severity tone={severityTone(r.severity)}>{r.severity}</Severity>
                     )}
                   </Td>
                   <Td className="truncate">

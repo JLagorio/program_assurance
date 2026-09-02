@@ -18,6 +18,7 @@ import {
   Td,
   Th,
   Tr,
+  Severity,
 } from "@/components/app/ui";
 import {
   ancestorsOf,
@@ -175,7 +176,7 @@ function ComponentRecord() {
                   {node.attested ? "Attested" : "Not attested"}
                 </Badge>
                 {posture?.worst ? (
-                  <Badge tone={severityTone(posture.worst)}>{posture.worst} open</Badge>
+                  <Severity tone={severityTone(posture.worst)}>{posture.worst} open</Severity>
                 ) : null}
               </>
             }
@@ -501,9 +502,9 @@ function ComponentRecord() {
                       </Link>
                     </Td>
                     <Td>
-                      <Badge size="xs" tone={severityTone(f.mitigatedSeverity)}>
+                      <Severity tone={severityTone(f.mitigatedSeverity)}>
                         {f.mitigatedSeverity}
-                      </Badge>
+                      </Severity>
                     </Td>
                     <Td className="truncate">{f.title}</Td>
                     <Td>

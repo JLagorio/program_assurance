@@ -18,6 +18,7 @@ import {
   Td,
   Th,
   Tr,
+  Severity,
 } from "@/components/app/ui";
 import { assetById } from "@/lib/findings";
 import {
@@ -202,7 +203,9 @@ function RegisterPage() {
                         <Td className="tnum text-right text-muted-foreground">
                           {openCount(fs)} / {fs.length}
                         </Td>
-                        <Td>{worst ? <Badge tone={severityTone(worst)}>{worst}</Badge> : "—"}</Td>
+                        <Td>
+                          {worst ? <Severity tone={severityTone(worst)}>{worst}</Severity> : "—"}
+                        </Td>
                         <Td className="truncate text-[12px] text-muted-foreground">
                           {p.scheduledCompletion}
                         </Td>
@@ -329,9 +332,7 @@ function RegisterPage() {
                           navigate({ to: "/findings/$findingId", params: { findingId: f.id } })
                         }
                       >
-                        <Td>
-                          <Mono className="text-primary">{f.id}</Mono>
-                        </Td>
+                        <IdCell id={f.id} />
                         <Td className="truncate font-medium">{f.title}</Td>
                         <Td>
                           <Mono className="text-muted-foreground">{f.cci}</Mono>
@@ -340,9 +341,9 @@ function RegisterPage() {
                           {assetById.get(f.asset)?.name ?? f.asset}
                         </Td>
                         <Td>
-                          <Badge tone={severityTone(f.mitigatedSeverity)}>
+                          <Severity tone={severityTone(f.mitigatedSeverity)}>
                             {f.mitigatedSeverity}
-                          </Badge>
+                          </Severity>
                         </Td>
                         <Td className="truncate">
                           <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>

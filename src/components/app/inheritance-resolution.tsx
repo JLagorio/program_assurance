@@ -331,7 +331,7 @@ export function ConflictList({
       {items.map((item) => (
         <article key={`${item.control}|${item.conflict.component}`} className="py-4 last:pb-0">
           <div className="flex flex-wrap items-center gap-2">
-            <Mono className="text-primary">{item.control}</Mono>
+            <Mono>{item.control}</Mono>
             <span className="min-w-0 truncate text-[13px] font-medium">
               {item.winner.provided.title}
             </span>
@@ -390,7 +390,7 @@ export function ObligationList({ rows }: { rows: ResolvedInheritance[] }) {
         return (
           <article key={row.control} className="py-4 last:pb-0">
             <div className="flex flex-wrap items-center gap-2">
-              <Mono className="text-primary">{row.control}</Mono>
+              <Mono>{row.control}</Mono>
               <span className="min-w-0 truncate text-[13px] font-medium">{row.provided.title}</span>
               <DesignationChip row={row} />
               <Badge size="xs" tone={shareTone[row.share]}>
@@ -741,7 +741,7 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
 
       <RailGroup title="Resolution">
         <KeyValue label="Control">
-          <Mono className="text-primary">{row.control}</Mono>
+          <Mono>{row.control}</Mono>
         </KeyValue>
         <WrapValue label="Title">{row.provided.title}</WrapValue>
         <KeyValue label="Family">{row.provided.family}</KeyValue>

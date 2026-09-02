@@ -20,7 +20,7 @@ import {
 import { ControlRequirementTable } from "@/components/app/requirements";
 import { Block, Disclosure, Inspector } from "@/components/app/shapes";
 import { Shell } from "@/components/app/shell";
-import { Badge, Mono, Select, TabStrip, Table, Td, Tr } from "@/components/app/ui";
+import { Badge, Mono, Select, TabStrip, Table, Td, Tr, Severity } from "@/components/app/ui";
 import { controlDetail } from "@/lib/control-detail";
 import {
   currentSession,
@@ -252,9 +252,9 @@ function ControlRecord() {
                               </Link>
                             </Td>
                             <Td>
-                              <Badge size="xs" tone={severityTone(f.mitigatedSeverity)}>
+                              <Severity tone={severityTone(f.mitigatedSeverity)}>
                                 {f.mitigatedSeverity}
-                              </Badge>
+                              </Severity>
                             </Td>
                             <Td className="truncate">{f.title}</Td>
                           </Tr>

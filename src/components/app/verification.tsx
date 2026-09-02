@@ -19,6 +19,7 @@ import {
   Textarea,
   Th,
   Tr,
+  Severity as SeverityText,
 } from "@/components/app/ui";
 import {
   findings as seedFindings,
@@ -472,7 +473,7 @@ function FindingModal({
           </div>
           <div className="space-y-1.5 border-t border-border pt-3">
             <KeyValue label="Severity">
-              <Badge tone={severityTone[finding.severity]}>{finding.severity}</Badge>
+              <SeverityText tone={severityTone[finding.severity]}>{finding.severity}</SeverityText>
             </KeyValue>
             <KeyValue label="Control">
               <Mono>{finding.control}</Mono>

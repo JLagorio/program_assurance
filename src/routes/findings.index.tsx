@@ -17,6 +17,7 @@ import {
   Td,
   Th,
   Tr,
+  Severity,
 } from "@/components/app/ui";
 import {
   assetById,
@@ -242,9 +243,9 @@ function FindingsPage() {
                       <Td className="truncate text-muted-foreground">{f.source}</Td>
                       <Td className="text-muted-foreground">{f.rawSeverity}</Td>
                       <Td>
-                        <Badge tone={severityTone(f.mitigatedSeverity)}>
+                        <Severity tone={severityTone(f.mitigatedSeverity)}>
                           {f.mitigatedSeverity}
-                        </Badge>
+                        </Severity>
                       </Td>
                       <Td className="truncate">
                         <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
@@ -345,9 +346,9 @@ function FindingsPage() {
               <RailGroup title="Severity">
                 <KeyValue label="Raw">{preview.item.rawSeverity}</KeyValue>
                 <KeyValue label="Mitigated">
-                  <Badge tone={severityTone(preview.item.mitigatedSeverity)}>
+                  <Severity tone={severityTone(preview.item.mitigatedSeverity)}>
                     {preview.item.mitigatedSeverity}
-                  </Badge>
+                  </Severity>
                 </KeyValue>
                 <KeyValue label="Lifecycle">
                   <Badge tone={statusTone(preview.item.lifecycle)}>{preview.item.lifecycle}</Badge>

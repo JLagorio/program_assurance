@@ -14,6 +14,7 @@ import {
   Td,
   Th,
   Tr,
+  Severity,
 } from "@/components/app/ui";
 import {
   benchmarkById,
@@ -329,7 +330,7 @@ function Catalog() {
                           {benchmarkById.get(r.benchmark)?.technology}
                         </span>
                       </span>
-                      <Badge tone={severityTone(r.severity)}>{r.severity}</Badge>
+                      <Severity tone={severityTone(r.severity)}>{r.severity}</Severity>
                     </div>
                   ))}
                   {selected.rules.length === 0 ? (

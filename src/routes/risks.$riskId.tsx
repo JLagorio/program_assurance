@@ -20,6 +20,7 @@ import {
   Textarea,
   Th,
   Tr,
+  IdCell,
 } from "@/components/app/ui";
 import { riskStatusTone, risks } from "@/lib/grc-data";
 
@@ -147,9 +148,7 @@ function RiskDetail() {
                 <tbody>
                   {linkedEvidence.map((file) => (
                     <Tr key={file.name}>
-                      <Td>
-                        <Mono className="text-primary">{file.name}</Mono>
-                      </Td>
+                      <IdCell id={file.name} />
                       <Td className="tnum text-muted-foreground">{file.size}</Td>
                       <Td className="text-right text-muted-foreground">{file.added}</Td>
                     </Tr>

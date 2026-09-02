@@ -15,6 +15,7 @@ import {
   Td,
   Th,
   Tr,
+  Severity,
 } from "@/components/app/ui";
 import type { CompositionNode } from "@/lib/composition";
 import { childrenOf, nodeForAsset, pathOf, useCompositionGraph } from "@/lib/composition";
@@ -228,7 +229,9 @@ function AssetRecord() {
                   </Td>
                   <Td className="truncate text-muted-foreground">{f.source}</Td>
                   <Td>
-                    <Badge tone={severityTone(f.mitigatedSeverity)}>{f.mitigatedSeverity}</Badge>
+                    <Severity tone={severityTone(f.mitigatedSeverity)}>
+                      {f.mitigatedSeverity}
+                    </Severity>
                   </Td>
                   <Td className="truncate">
                     <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>

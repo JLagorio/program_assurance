@@ -19,6 +19,7 @@ import {
   Textarea,
   Th,
   Tr,
+  Severity,
 } from "@/components/app/ui";
 import {
   authorization,
@@ -274,7 +275,7 @@ export function AuthorizationSection({
                     <span className="text-muted-foreground"> — {o.loggedBy}</span>
                   </Td>
                   <Td>
-                    <Badge tone={severityTone[o.severity]}>{o.severity}</Badge>
+                    <Severity tone={severityTone[o.severity]}>{o.severity}</Severity>
                   </Td>
                   <Td>
                     <Mono>{o.control}</Mono>
@@ -489,7 +490,7 @@ links:
           </pre>
           <div className="space-y-1.5 border-t border-border pt-3">
             <KeyValue label="Severity">
-              <Badge tone={severityTone[observation.severity]}>{observation.severity}</Badge>
+              <Severity tone={severityTone[observation.severity]}>{observation.severity}</Severity>
             </KeyValue>
             <KeyValue label="Current">
               <Badge tone={observationTone[observation.status]}>{observation.status}</Badge>
@@ -774,7 +775,7 @@ export function BriefingRoom() {
                   </Td>
                   <Td className="font-medium">{o.title}</Td>
                   <Td>
-                    <Badge tone={severityTone[o.severity]}>{o.severity}</Badge>
+                    <Severity tone={severityTone[o.severity]}>{o.severity}</Severity>
                   </Td>
                   <Td>
                     <Badge tone={observationTone[o.status]}>{o.status}</Badge>

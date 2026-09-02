@@ -473,7 +473,7 @@ export function ApplicabilityModal({
         <div className="grid gap-3">
           <div className="rounded-lg border border-border bg-subtle px-4 py-3">
             <div className="flex flex-wrap items-center gap-2">
-              <Mono className="text-primary">{current.id}</Mono>
+              <Mono>{current.id}</Mono>
               <Badge size="xs">{current.type}</Badge>
               {current.derivations.map((d) => (
                 <Badge key={d.sourceId} size="xs" tone={derivationSourceTone[d.sourceType]}>

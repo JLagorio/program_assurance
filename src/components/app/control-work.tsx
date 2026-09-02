@@ -16,13 +16,13 @@ import {
   Button,
   Field,
   Modal,
-  Mono,
   Select,
   Table,
   Td,
   Textarea,
   Th,
   Tr,
+  IdCell,
 } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import {
@@ -257,9 +257,7 @@ export function EvidenceBlock({
               const meta = available.find((a) => a.id === id);
               return (
                 <Tr key={id}>
-                  <Td className="max-w-none">
-                    <Mono className="text-primary">{id}</Mono>
-                  </Td>
+                  <IdCell id={id} />
                   <Td className="truncate text-muted-foreground">
                     {meta?.label ?? "Not in the evidence store"}
                   </Td>

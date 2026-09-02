@@ -38,6 +38,7 @@ import {
   Th,
   Tr,
   type Tone,
+  Severity,
 } from "@/components/app/ui";
 import { inheritanceStateTone } from "@/lib/inheritance";
 import { cn } from "@/lib/utils";
@@ -163,7 +164,7 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
             <Mono className="text-primary">{row.control}</Mono>
           </Link>
         ) : (
-          <Mono className="text-primary">{row.control}</Mono>
+          <Mono>{row.control}</Mono>
         )}
       </Td>
       <Td className="truncate">
@@ -447,7 +448,7 @@ export function SctmRail({ row }: { row: SctmRow }) {
 
       <RailGroup title="Requirement">
         <KeyValue label="Control">
-          <Mono className="text-primary">{row.control}</Mono>
+          <Mono>{row.control}</Mono>
         </KeyValue>
         <WrapValue label="Title">{row.controlTitle}</WrapValue>
         <KeyValue label="Family">
@@ -538,9 +539,7 @@ export function SctmRail({ row }: { row: SctmRow }) {
           <span className="flex items-center gap-1.5">
             <span className="tnum">{row.openFindings}</span>
             {row.openFindings > 0 ? (
-              <Badge size="xs" tone={severityToneOf(row.worstSeverity)}>
-                {row.worstSeverity}
-              </Badge>
+              <Severity tone={severityToneOf(row.worstSeverity)}>{row.worstSeverity}</Severity>
             ) : null}
           </span>
         </KeyValue>

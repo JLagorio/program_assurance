@@ -15,6 +15,8 @@ import {
   Td,
   Th,
   Tr,
+  IdCell,
+  Severity,
 } from "@/components/app/ui";
 import {
   campaignById,
@@ -182,9 +184,7 @@ function CampaignsPage() {
                           setTab("Events");
                         }}
                       >
-                        <Td>
-                          <Mono className="text-primary">{c.id}</Mono>
-                        </Td>
+                        <IdCell id={c.id} />
                         <Td className="truncate font-medium">{c.name}</Td>
                         <Td className="truncate text-muted-foreground">{c.trigger}</Td>
                         <Td className="text-muted-foreground">{c.gate}</Td>
@@ -242,9 +242,7 @@ function CampaignsPage() {
                         selected?.id === e.id ? "cursor-pointer bg-subtle" : "cursor-pointer"
                       }
                     >
-                      <Td>
-                        <Mono className="text-primary">{e.id}</Mono>
-                      </Td>
+                      <IdCell id={e.id} />
                       <Td className="truncate font-medium">{e.name}</Td>
                       <Td className="truncate text-muted-foreground">{e.kind}</Td>
                       <Td className="truncate">
@@ -308,7 +306,7 @@ function CampaignsPage() {
           {selected ? (
             <aside className="border-t border-border pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
               <div className="flex items-baseline gap-2">
-                <Mono className="text-primary">{selected.id}</Mono>
+                <Mono>{selected.id}</Mono>
                 <button
                   onClick={() => setSelected(null)}
                   className="ml-auto text-[12px] text-muted-foreground hover:text-foreground"
@@ -386,9 +384,9 @@ function CampaignsPage() {
                               <span className="text-muted-foreground">{f?.title}</span>
                             </span>
                             {f ? (
-                              <Badge tone={severityTone(f.mitigatedSeverity)}>
+                              <Severity tone={severityTone(f.mitigatedSeverity)}>
                                 {f.mitigatedSeverity}
-                              </Badge>
+                              </Severity>
                             ) : null}
                           </Link>
                         );

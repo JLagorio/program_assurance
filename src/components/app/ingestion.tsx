@@ -29,6 +29,7 @@ import {
   Th,
   Tr,
   type Tone,
+  Severity,
 } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import {
@@ -385,7 +386,7 @@ export function ScanRail({
     <div>
       <RailGroup title="Run">
         <KeyValue label="Scan">
-          <Mono className="text-primary">{scan.id}</Mono>
+          <Mono>{scan.id}</Mono>
         </KeyValue>
         <KeyValue label="Format">
           <FormatChip format={scan.format} />
@@ -722,9 +723,9 @@ export function NormalizationAudit({
             <NormalizedRow label="node">{labelNode(normalized.node, nodeName)}</NormalizedRow>
             <NormalizedRow label="severity">
               <span className="flex items-center gap-1.5">
-                <Badge size="xs" tone={severityToneOf(normalized.severity)}>
+                <Severity tone={severityToneOf(normalized.severity)}>
                   {normalized.severity}
-                </Badge>
+                </Severity>
                 <Badge size="xs" tone={normalized.clean ? "success" : "neutral"}>
                   {normalized.clean ? "Clean" : "Reportable"}
                 </Badge>
@@ -864,9 +865,9 @@ export function NormalizationView({
                 {normalized.title}
               </Td>
               <Td>
-                <Badge size="xs" tone={severityToneOf(normalized.severity)}>
+                <Severity tone={severityToneOf(normalized.severity)}>
                   {normalized.severity}
-                </Badge>
+                </Severity>
               </Td>
               <Td>
                 <Badge size="xs" tone={normalized.clean ? "success" : "neutral"}>
@@ -1008,9 +1009,7 @@ export function DedupTable({
               {g.primary.title}
             </Td>
             <Td className="text-right">
-              <Badge size="xs" tone={severityToneOf(g.primary.severity)}>
-                {g.primary.severity}
-              </Badge>
+              <Severity tone={severityToneOf(g.primary.severity)}>{g.primary.severity}</Severity>
             </Td>
             {/* Without this the CAT chip is the loudest thing on a passing row
                 and says the opposite of what the row means — the only clean
@@ -1079,9 +1078,9 @@ export function DedupRail({
         <KeyValue label="Component">{labelNode(group.primary.node, nodeName)}</KeyValue>
         <KeyValue label="Severity">
           <span className="flex items-center gap-1.5">
-            <Badge size="xs" tone={severityToneOf(group.primary.severity)}>
+            <Severity tone={severityToneOf(group.primary.severity)}>
               {group.primary.severity}
-            </Badge>
+            </Severity>
             <Badge size="xs" tone={group.primary.clean ? "success" : "neutral"}>
               {group.primary.clean ? "Clean" : "Reportable"}
             </Badge>
@@ -1105,7 +1104,7 @@ export function DedupRail({
 
       <RailGroup title="Register">
         <KeyValue label="Filed as">
-          {group.existing ? <Mono className="text-primary">{group.existing}</Mono> : <Dash />}
+          {group.existing ? <Mono>{group.existing}</Mono> : <Dash />}
         </KeyValue>
         <KeyValue label="Also filed">
           {folded.length > 0 ? (
@@ -1235,9 +1234,7 @@ export function ScanDiffTable({
                   {r.title}
                 </Td>
                 <Td className="text-right">
-                  <Badge size="xs" tone={severityToneOf(r.severity)}>
-                    {r.severity}
-                  </Badge>
+                  <Severity tone={severityToneOf(r.severity)}>{r.severity}</Severity>
                 </Td>
                 <Td className="truncate">{labelNode(r.node, nodeName)}</Td>
                 <Td>

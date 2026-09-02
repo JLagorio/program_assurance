@@ -407,7 +407,7 @@ function ProgramExport() {
                 <div className="flex flex-wrap gap-x-8 gap-y-2 text-[12.5px]">
                   <span>
                     <span className="text-muted-foreground">Received bundle</span>{" "}
-                    <Mono className="text-primary">{activeReceived.id}</Mono>
+                    <Mono>{activeReceived.id}</Mono>
                   </span>
                   <span>
                     <span className="text-muted-foreground">From</span> {activeReceived.createdBy}
@@ -418,7 +418,7 @@ function ProgramExport() {
                   </span>
                   <span>
                     <span className="text-muted-foreground">Local bundle</span>{" "}
-                    <Mono className="text-primary">{bundle.id}</Mono>
+                    <Mono>{bundle.id}</Mono>
                   </span>
                 </div>
 

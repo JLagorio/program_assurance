@@ -32,6 +32,7 @@ import {
   Toolbar,
   Tr,
   type Tone,
+  Severity,
 } from "@/components/app/ui";
 import { cn } from "@/lib/utils";
 import type { CompositionNode } from "@/lib/composition";
@@ -502,9 +503,7 @@ export function NodeRail({
           </KeyValue>
           <KeyValue label="Worst">
             {posture.worst ? (
-              <Badge size="xs" tone={severityToneOf(posture.worst)}>
-                {posture.worst}
-              </Badge>
+              <Severity tone={severityToneOf(posture.worst)}>{posture.worst}</Severity>
             ) : (
               <Dash />
             )}
@@ -556,9 +555,7 @@ export function PostureStrip({ posture }: { posture: NodePosture }) {
         </span>
         {posture.worst ? (
           <span className="ml-auto flex items-center">
-            <Badge size="xs" tone={severityToneOf(posture.worst)}>
-              Worst {posture.worst}
-            </Badge>
+            <Severity tone={severityToneOf(posture.worst)}>Worst {posture.worst}</Severity>
           </span>
         ) : null}
       </div>

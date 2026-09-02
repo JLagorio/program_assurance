@@ -14,6 +14,7 @@ import {
   Td,
   Th,
   Tr,
+  Severity,
 } from "@/components/app/ui";
 import { assetById, bySeverity, isOpen } from "@/lib/findings";
 import { findingsForPoam, openCount, poamItems, riskById } from "@/lib/register";
@@ -225,7 +226,9 @@ function PoamRecord() {
                       {assetById.get(f.asset)?.name ?? f.asset}
                     </Td>
                     <Td>
-                      <Badge tone={severityTone(f.mitigatedSeverity)}>{f.mitigatedSeverity}</Badge>
+                      <Severity tone={severityTone(f.mitigatedSeverity)}>
+                        {f.mitigatedSeverity}
+                      </Severity>
                     </Td>
                     <Td className="truncate">
                       <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>

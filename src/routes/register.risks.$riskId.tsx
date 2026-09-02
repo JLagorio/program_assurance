@@ -18,6 +18,7 @@ import {
   Td,
   Th,
   Tr,
+  Severity,
 } from "@/components/app/ui";
 import { assetById, bySeverity } from "@/lib/findings";
 import {
@@ -396,7 +397,9 @@ function RiskRecord() {
                     {assetById.get(f.asset)?.name ?? f.asset}
                   </Td>
                   <Td>
-                    <Badge tone={severityTone(f.mitigatedSeverity)}>{f.mitigatedSeverity}</Badge>
+                    <Severity tone={severityTone(f.mitigatedSeverity)}>
+                      {f.mitigatedSeverity}
+                    </Severity>
                   </Td>
                   <Td className="truncate">
                     <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>

@@ -226,7 +226,7 @@ export function OscalViewer({
         items={[
           { label: "Model", value: <span className="font-medium">{label}</span> },
           { label: "OSCAL version", value: <Mono>{oscalVersion}</Mono> },
-          { label: "Document uuid", value: <Mono className="text-primary">{doc.uuid}</Mono> },
+          { label: "Document uuid", value: <Mono>{doc.uuid}</Mono> },
           { label: "Last modified", value: <Mono>{doc.generated}</Mono> },
           { label: "Size", value: <span className="tnum">{num(bytes)} bytes (UTF-8)</span> },
           { label: "Lines", value: <span className="tnum">{num(lines.length)}</span> },
@@ -436,7 +436,7 @@ export function BundleManifest({
     <div className="space-y-5">
       <FactStrip
         items={[
-          { label: "Bundle", value: <Mono className="text-primary">{bundle.id}</Mono> },
+          { label: "Bundle", value: <Mono>{bundle.id}</Mono> },
           { label: "Program", value: <Mono>{bundle.program}</Mono> },
           { label: "Baseline", value: <Mono>{bundle.build}</Mono> },
           { label: "Created", value: bundle.created },
@@ -477,7 +477,7 @@ export function BundleManifest({
             {bundle.artifacts.map((artifact) => (
               <Tr key={artifact.path} className="align-top hover:bg-transparent">
                 <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
-                  <Mono className="text-primary">{artifact.path}</Mono>
+                  <Mono className="text-muted-foreground">{artifact.path}</Mono>
                   <span className="mt-0.5 block text-[11.5px] text-muted-foreground">
                     {artifact.kind}
                   </span>
@@ -650,7 +650,7 @@ export function ReconcileTable({ reconciliation }: { reconciliation: Reconciliat
           <Fragment key={row.path}>
             <Tr className="border-0 align-top hover:bg-transparent">
               <Td className="max-w-none whitespace-normal py-2 align-top leading-snug">
-                <Mono className="text-primary">{row.path}</Mono>
+                <Mono className="text-muted-foreground">{row.path}</Mono>
               </Td>
               <Td className="py-2 align-top">
                 <Badge tone={reconcileStateTone[row.state]}>{row.state}</Badge>
