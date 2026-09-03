@@ -85,8 +85,8 @@ export function NodePreviewSheet({
       subtitle={node ? `${node.kind} · ${pathLabel(node.id)}` : undefined}
       footer={
         node ? (
-          <div className="flex w-full items-center justify-between gap-3">
-            <span className="flex items-center gap-4 font-body-small">
+          <div className="flex w-full items-center justify-between gap-150">
+            <span className="flex items-center gap-200 font-body-small">
               <Link
                 to="/programs/$programId/components/$componentId"
                 params={{ programId, componentId: node.id }}
@@ -111,9 +111,9 @@ export function NodePreviewSheet({
       }
     >
       {node ? (
-        <div className="space-y-1">
+        <div className="space-y-050">
           <Block title="Element">
-            <div className="grid grid-cols-2 gap-x-6 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-x-300 sm:grid-cols-3">
               <KeyValue label="Id">
                 <Id>{node.id}</Id>
               </KeyValue>
@@ -126,7 +126,7 @@ export function NodePreviewSheet({
               </KeyValue>
               <KeyValue label="Attested">{node.attested ? "Yes" : "No"}</KeyValue>
             </div>
-            {node.note ? <p className="pt-2 font-body-small text-subtle">{node.note}</p> : null}
+            {node.note ? <p className="pt-100 font-body-small text-subtle">{node.note}</p> : null}
           </Block>
 
           {scope && triad && set ? (
@@ -135,9 +135,9 @@ export function NodePreviewSheet({
               count={inForce ? `v${inForce.number} in force · ${set.total} controls` : "none yet"}
               action={open ? null : <ProposeChange scopeId={scope.id} />}
             >
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-1 font-body-small">
+              <div className="flex flex-wrap items-center gap-x-250 gap-y-050 font-body-small">
                 {objectives.map((o) => (
-                  <span key={o} className="flex items-center gap-1.5">
+                  <span key={o} className="flex items-center gap-075">
                     {o}
                     <Badge size="xsmall" tone={impactTone[triad[o]]}>
                       {triad[o]}
@@ -149,7 +149,7 @@ export function NodePreviewSheet({
                   {scope.parameters.classification}
                 </span>
               </div>
-              <p className="pt-2 font-body-small text-subtle">
+              <p className="pt-100 font-body-small text-subtle">
                 Overlays: {set.overlays.map((o) => o.name).join(", ") || "none"}.
               </p>
             </Block>
@@ -299,7 +299,7 @@ export function NodePreviewSheet({
                 </p>
               )}
               {reached.size > 20 ? (
-                <p className="pt-2 font-body-small text-subtle">First 20 of {reached.size}.</p>
+                <p className="pt-100 font-body-small text-subtle">First 20 of {reached.size}.</p>
               ) : null}
             </Block>
           ) : null}

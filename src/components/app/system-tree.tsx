@@ -11,8 +11,8 @@
  * System or Subsystem node's controls are its scope's control set.
  */
 
-import { Link } from "@tanstack/react-router";
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { ChevronDown, ChevronRight, MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -20,6 +20,7 @@ import {
   Button,
   Combobox,
   Dialog,
+  DropdownMenu,
   Field,
   Grid,
   Id,
@@ -45,13 +46,16 @@ import {
 } from "@/lib/composition";
 import {
   createInitialRevision,
-  currentRevision,
+  inForceRevision,
   initialOverlayDecisions,
+  openRevision,
   revisionTone,
   useControlSetVersion,
 } from "@/lib/control-set";
 import { positionOf, useWorkVersion, workForScope } from "@/lib/control-work";
 import { workIndex } from "@/lib/control-board";
+
+import { NodePreviewSheet } from "./node-preview";
 import {
   addAllocation,
   allocationsOn,
@@ -123,6 +127,8 @@ export function SystemTree({ programId }: { programId: string }) {
   const [toggled, setToggled] = useState<Set<string>>(() => new Set());
   const [adding, setAdding] = useState<CompositionNode | null>(null);
   const [allocating, setAllocating] = useState<CompositionNode | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const scopes = scopesForProgram(programId);
   const scopeByElement = new Map(scopes.map((s) => [s.element, s]));
@@ -191,8 +197,8 @@ export function SystemTree({ programId }: { programId: string }) {
           <col style={{ width: "96px" }} />
           <col style={{ width: "72px" }} />
           <col style={{ width: "210px" }} />
-          <col style={{ width: "160px" }} />
-          <col style={{ width: "110px" }} />
+          <col style={{ width: "180px" }} />
+          <col style={{ width: "48px" }} />
         </colgroup>
         <thead>
           <Table.Row>
@@ -215,7 +221,11 @@ export function SystemTree({ programId }: { programId: string }) {
             const triad = r.scope ? triadOf(r.scope) : null;
             const folded = r.children > 0 && !r.open;
             return (
-              <Table.Row key={r.node.id}>
+              <Table.Row
+                key={r.node.id}
+                className="cursor-pointer"
+                onClick={() => setPreview(r.node.id)}
+              >
                 <Table.Cell className="max-w-none">
                   <Inline
                     style={{ paddingLeft: `${r.depth * 16}px` }}
@@ -227,7 +237,10 @@ export function SystemTree({ programId }: { programId: string }) {
                       <button
                         type="button"
                         aria-label={folded ? `Expand ${r.node.name}` : `Collapse ${r.node.name}`}
-                        onClick={() => toggle(r.node.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggle(r.node.id);
+                        }}
                         className="flex size-250 shrink-0 items-center justify-center rounded-small text-subtle hover:bg-neutral-subtle-hovered"
                       >
                         {folded ? (
@@ -239,13 +252,7 @@ export function SystemTree({ programId }: { programId: string }) {
                     ) : (
                       <span className="size-250 shrink-0" />
                     )}
-                    <Link
-                      to="/programs/$programId/components/$componentId"
-                      params={{ programId, componentId: r.node.id }}
-                      className="truncate text-brand hover:underline"
-                    >
-                      {r.node.name}
-                    </Link>
+                    <span className="truncate">{r.node.name}</span>
                     {folded ? (
                       <span className="font-body-xsmall text-subtle">
                         {r.children} part{r.children === 1 ? "" : "s"}
@@ -284,22 +291,56 @@ export function SystemTree({ programId }: { programId: string }) {
                   <WorkBar work={r.work} />
                 </Table.Cell>
                 <Table.Cell className="max-w-none">
-                  {r.scope ? <ControlSetCell programId={programId} scope={r.scope} /> : null}
+                  {r.scope ? <ControlSetCell scope={r.scope} /> : null}
                 </Table.Cell>
                 <Table.Cell className="max-w-none text-right">
-                  <Inline as="span" space="space.050" alignInline="end">
-                    <Button size="small" variant="subtle" onClick={() => setAllocating(r.node)}>
-                      Allocate
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="subtle"
-                      aria-label={`Add under ${r.node.name}`}
-                      onClick={() => setAdding(r.node)}
+                  <span onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu
+                      align="end"
+                      width={220}
+                      trigger={
+                        <Button
+                          size="small"
+                          variant="subtle"
+                          aria-label={`Actions for ${r.node.name}`}
+                        >
+                          <MoreHorizontal className="size-icon-small" />
+                        </Button>
+                      }
                     >
-                      <Plus className="size-icon-small" />
-                    </Button>
-                  </Inline>
+                      {(close) => (
+                        <>
+                          <DropdownMenu.Item
+                            onSelect={() => {
+                              close();
+                              setAllocating(r.node);
+                            }}
+                          >
+                            Allocate a requirement
+                          </DropdownMenu.Item>
+                          <DropdownMenu.Item
+                            onSelect={() => {
+                              close();
+                              setAdding(r.node);
+                            }}
+                          >
+                            Add a part
+                          </DropdownMenu.Item>
+                          <DropdownMenu.Item
+                            onSelect={() => {
+                              close();
+                              navigate({
+                                to: "/programs/$programId/components/$componentId",
+                                params: { programId, componentId: r.node.id },
+                              });
+                            }}
+                          >
+                            Open the full record
+                          </DropdownMenu.Item>
+                        </>
+                      )}
+                    </DropdownMenu>
+                  </span>
                 </Table.Cell>
               </Table.Row>
             );
@@ -321,6 +362,12 @@ export function SystemTree({ programId }: { programId: string }) {
           onClose={() => setAllocating(null)}
         />
       ) : null}
+      <NodePreviewSheet
+        programId={programId}
+        nodeId={preview}
+        onClose={() => setPreview(null)}
+        onSelect={setPreview}
+      />
     </Stack>
   );
 }
@@ -385,21 +432,18 @@ function WorkBar({ work }: { work: WorkSummary }) {
   );
 }
 
-function ControlSetCell({ programId, scope }: { programId: string; scope: AssessmentScope }) {
-  const revision = currentRevision(scope.id);
-  if (!revision) return <span className="text-subtle">—</span>;
-  return (
-    <Link
-      to="/programs/$programId/systems/$scopeId"
-      params={{ programId, scopeId: scope.id }}
-      search={{ tab: "Control set" }}
-      className="hover:underline"
-    >
-      <Indicator tone={revisionTone[revision.state]}>
-        v{revision.number} · {revision.state}
+function ControlSetCell({ scope }: { scope: AssessmentScope }) {
+  const open = openRevision(scope.id);
+  const inForce = inForceRevision(scope.id);
+  if (open) {
+    return (
+      <Indicator tone={revisionTone[open.state]}>
+        v{open.number} {open.state.toLowerCase()}
       </Indicator>
-    </Link>
-  );
+    );
+  }
+  if (inForce) return <Indicator tone="success">v{inForce.number} in force</Indicator>;
+  return <span className="text-subtle">—</span>;
 }
 
 /* --------------------------------------------------------- Add a node */
@@ -587,7 +631,7 @@ export function AddNodeSheet({
  * required (`§8`): an allocation without a scope is a wish, not a
  * responsibility.
  */
-function AllocateToNodeDialog({
+export function AllocateToNodeDialog({
   programId,
   node,
   onClose,
