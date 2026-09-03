@@ -30,7 +30,7 @@ function kitNames() {
           names.add(m[1]);
     }
   };
-  for (const layer of ["primitives", "components", "patterns", "shapes", "shell"])
+  for (const layer of ["primitives", "components", "patterns", "shapes", "shell", "mode"])
     if (fs.existsSync(path.join(PACKAGE_SRC, layer))) walk(path.join(PACKAGE_SRC, layer));
   return names;
 }

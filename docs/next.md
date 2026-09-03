@@ -14,22 +14,22 @@ Updated 2026-09-02.
 
 ## Kit
 
-- [ ] **Step 7 · Mode switch.** Provider, three-state control, storage function, before-paint snippet. Then the `data-color-mode="light"` pin on the prototype root comes off.
 - [ ] **Step 9 · Publishable build** with type declarations, when the second project appears.
 - [ ] **`docs/guides/component-library.md`** still describes `src/ds`. Rewrite onto the package or retire it in favour of the Storybook docs.
-- [ ] **Audit items 9–11** (flagged 2026-09-02 evening, after the sweep; commit 142cf70). Needs a go from Josef on 9; 10 and 11 are small and can follow the same day.
-  - 9 · `PickerSheet`: choosing many from hundreds. A Sheet whose body is search, FilterChips, a sortable Table with Table.Selection, and a sticky footer that adds the selection; a second frame for per-row fields as Editable cells with a default applied to all. A new family with product questions in it (the footer copy, the second frame, "does not apply, because" as a row action), so it gets its own spec paragraph and a go.
-  - 10 · PreviewSheet gains `back`/`onBack`; its header becomes the compact RecordHeader (id, title, meta, at most three facts, one status). The stack lives in the URL (`?peek=…`). Kit side is a day's work on the pattern that landed today; the URL stack is the app's.
-  - 11 · The hover ladder, as a written rule in Patterns.mdx: hover on an id is a glance (HoverCard, facts only), click is the peek (PreviewSheet, facts and in-place actions), the footer link is the record. One preview body per record type at two densities is the app's to unify.
 
 ## Prototype
 
+- [ ] **Picker adoption.** "Allocate a requirement" (system-tree.tsx) and the tailoring pane's two Comboboxes move onto `PickerSheet`; `ApplicabilityModal` becomes the row action in its second frame. Spec: `docs/superpowers/specs/2026-09-02-picker-sheet.md`, with three calls for Josef to overturn.
+- [ ] **The peek stack in the URL.** `NodePreviewSheet` drills into a child with no way back; `PreviewSheet` has `onBack` now. Keep the stack in a `?peek=` search param so the chevron and the browser's back are the same thing.
+- [ ] **One preview body per record type**, at two densities (glance for HoverCard, peek for PreviewSheet). `ProgramPeek`, `RiskPeek` and `NodePreviewSheet` are three unrelated bodies today.
 - [ ] **Forms.** No form marks a required field and none validates on submit. The kit side landed 2026-09-02 (Field `isRequired` draws the asterisk, `error` turns the control's border red and shows the message). The app side is per form: name the required fields, pass `error` on submit. 146 Fields, 11 pass either today.
 - [ ] **Hydration mismatch** on `/programs/$programId/baseline` (server text differs from client). Seen 2026-09-02; not the kit's; unowned.
 - [ ] **Link-looking buttons** that are not blue (`<button className="hover:underline">`, rmf-timeline and a few others). Neither `Button variant="link"` nor TextLink; decide whether they are links, actions, or plain text.
 
 ## Done
 
+- 2026-09-02 · **Step 7, the mode switch**: provider, three-state control, storage, before-paint script; the light pin is off the prototype root and the switch sits in the top bar.
+- 2026-09-02 · **Audit items 9–11 in the kit**: `PickerSheet` with its spec, `PreviewSheet` with `onBack`, `status` and `facts` on the compact header, the hover ladder written down.
 - 2026-09-02 · **The spine audit's kit items**, all five: TextLink (147 links, 2 wrapped buttons and 9 text buttons swept onto it), PreviewSheet (node-preview on it), Table.Tree (system-tree on it, `tree-cell.tsx` gone), ToggleGroup `count` (coverage on it), Fact.Group and RecordHeader `facts` (the four strips on them). Every `<colgroup>` in the prototype (119) became `Table.Header width`; two lint rules keep both from coming back. Items 7 and 8 stay as the audit decided.
 - 2026-09-02 · **Invalid state on the controls** (`aria-invalid` turns the border red) after Josef's note on forms.
 - 2026-09-02 · **Matrices render once**; the Storybook toolbar switches the mode. The side-by-side decorator is gone.

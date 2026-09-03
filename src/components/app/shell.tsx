@@ -29,6 +29,7 @@ import {
   Inline,
   Input,
   InputGroup,
+  ModeSwitch,
   Shell as DsShell,
   Tooltip,
 } from "@ledger/design-system";
@@ -133,6 +134,7 @@ export function Shell({ children }: { children: ReactNode }) {
               <Badge tone="warning" className="hidden sm:inline-flex">
                 Audit window open
               </Badge>
+              <ModeSwitch className="hidden md:inline-flex" />
               {topBarActions.map(([Icon, label]) => (
                 <Tooltip key={label} content={label}>
                   <IconButton label={label} variant="subtle">

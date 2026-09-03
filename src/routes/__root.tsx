@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
-import { Box, Inline, Toaster } from "@ledger/design-system";
+import { Box, Inline, ModeProvider, Toaster, modeScript } from "@ledger/design-system";
 
 import appCss from "../styles.css?url";
 import { PersonaSwitch } from "../components/app/persona-switch";
@@ -80,6 +80,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "author", content: "Equinox" },
     ],
+    // Applies the stored colour mode before the first paint; the ModeProvider takes over after mount.
+    scripts: [{ children: modeScript }],
     links: [
       {
         rel: "stylesheet",
@@ -102,7 +104,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" data-color-mode="light">
+    <html lang="en">
       <head>
         <HeadContent />
       </head>
@@ -119,10 +121,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
-      <Toaster />
-      <PersonaSwitch />
+      <ModeProvider>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <Toaster />
+        <PersonaSwitch />
+      </ModeProvider>
     </QueryClientProvider>
   );
 }

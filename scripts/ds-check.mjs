@@ -6,7 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const PKG = "packages/design-system/src";
-const LAYERS = ["primitives", "components", "patterns", "shapes", "shell"];
+const LAYERS = ["primitives", "components", "patterns", "shapes", "shell", "mode"];
 
 const walk = (dir, out = []) => {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
