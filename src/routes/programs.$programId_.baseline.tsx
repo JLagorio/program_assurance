@@ -80,6 +80,10 @@ export const Route = createFileRoute("/programs/$programId_/baseline")({
   // loader does the importing and hands `change-impact.ts` the narrowed index.
   // The index is NOT returned: loader data is serialised into the SSR document
   // on every request, and this page renders none of the text.
+  // The index above lives in module state and is never serialised, so the page renders only on
+  // the client, where the loader runs before the first render. Rendered on the server, the client
+  // would hydrate without the index and count per control instead of per objective.
+  ssr: false,
   loader: async ({ params }) => {
     const program = programs.find((p) => p.id.toLowerCase() === params.programId.toLowerCase());
     if (!program) throw notFound();
