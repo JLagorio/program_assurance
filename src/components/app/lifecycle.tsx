@@ -128,7 +128,7 @@ export function LifecycleSection({
                 <tr>
                   <td
                     colSpan={8}
-                    className="border-b border-border bg-subtle px-2.5 py-1 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground"
+                    className="border-b border-border bg-legacy-subtle px-2.5 py-1 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground"
                   >
                     Phase {group.phase}
                   </td>
@@ -206,7 +206,7 @@ function GateModal({
     <Dialog
       open={Boolean(gate)}
       onClose={onClose}
-      width="lg"
+      width="large"
       title={`${gate.id} — ${gate.name}`}
       description={`${programId} · ${gate.phase}`}
       aside={
@@ -227,7 +227,7 @@ function GateModal({
       }
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
           <Button variant="primary" onClick={() => onSave(draft)}>

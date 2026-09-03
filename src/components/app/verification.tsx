@@ -112,12 +112,12 @@ export function VerificationSection({ programName }: { programName: string }) {
           <div
             className={
               blocking > 0
-                ? "mt-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-danger/30 bg-danger/[0.04] px-3.5 py-2.5"
-                : "mt-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-subtle px-3.5 py-2.5"
+                ? "mt-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-legacy-danger/30 bg-legacy-danger/[0.04] px-3.5 py-2.5"
+                : "mt-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-legacy-subtle px-3.5 py-2.5"
             }
           >
             <div className="flex min-w-0 items-start gap-2.5">
-              <AlertTriangle className="mt-px size-4 shrink-0 text-danger" />
+              <AlertTriangle className="mt-px size-4 shrink-0 text-legacy-danger" />
               <div className="min-w-0">
                 <p className="text-[13px] font-semibold">
                   {blocking > 0
@@ -201,7 +201,7 @@ export function VerificationSection({ programName }: { programName: string }) {
               { label: "Requested", value: iatt.requested },
               { label: "Decision target", value: iatt.decisionTarget },
               { label: "Effective", value: iatt.effective },
-              { label: "Expires", value: <span className="text-danger">{iatt.expires}</span> },
+              { label: "Expires", value: <span className="text-legacy-danger">{iatt.expires}</span> },
               { label: "Authorizing official", value: iatt.authorizing },
             ].map((f) => (
               <div key={f.label} className="min-w-0">
@@ -249,7 +249,7 @@ export function VerificationSection({ programName }: { programName: string }) {
                     <Table.Cell>
                       <Badge tone={testStatusTone[e.status]}>{e.status}</Badge>
                     </Table.Cell>
-                    <Table.Cell className={slack < 0 ? "text-danger" : undefined}>
+                    <Table.Cell className={slack < 0 ? "text-legacy-danger" : undefined}>
                       {slack < 0
                         ? `${Math.abs(slack)}d past expiry`
                         : `${slack}d slack · ${e.requires}`}
@@ -311,7 +311,7 @@ export function VerificationSection({ programName }: { programName: string }) {
                   </Table.Cell>
                   <Table.Cell className="text-right tnum">
                     <span
-                      className={i.catI > 0 ? "font-medium text-danger" : "text-muted-foreground"}
+                      className={i.catI > 0 ? "font-medium text-legacy-danger" : "text-muted-foreground"}
                     >
                       {i.catI}
                     </span>
@@ -340,7 +340,7 @@ export function VerificationSection({ programName }: { programName: string }) {
                   value={String(
                     s === "All" ? items.length : items.filter((f) => f.severity === s).length,
                   )}
-                  active={severity === s}
+                  isActive={severity === s}
                   onClick={() => setSeverity(s)}
                 />
               ))}
@@ -444,7 +444,7 @@ function FindingModal({
     <Dialog
       open
       onClose={onClose}
-      width="lg"
+      width="large"
       title={finding.title}
       description={`${finding.ref} · ${finding.source} · ${finding.asset}`}
       aside={
@@ -455,7 +455,7 @@ function FindingModal({
           <div
             className={
               blocksIatt
-                ? "rounded-md border border-danger/30 bg-danger/[0.05] px-3 py-2"
+                ? "rounded-md border border-legacy-danger/30 bg-legacy-danger/[0.05] px-3 py-2"
                 : "rounded-md border border-border bg-card px-3 py-2"
             }
           >
@@ -553,7 +553,7 @@ function IngestModal({
     <Dialog
       open
       onClose={onClose}
-      width="lg"
+      width="large"
       title="Ingest assessment data"
       description="Parsed, deduplicated against existing findings and mapped to NIST 800-53."
       aside={

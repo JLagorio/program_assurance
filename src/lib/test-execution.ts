@@ -1988,7 +1988,7 @@ export const stepResultTone: Record<StepResult, Tone> = {
 
 export const runStateTone: Record<RunState, Tone> = {
   Planned: "neutral",
-  "In progress": "info",
+  "In progress": "information",
   Complete: "success",
   Aborted: "danger",
 };

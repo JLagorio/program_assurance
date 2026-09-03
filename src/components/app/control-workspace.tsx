@@ -65,33 +65,33 @@ function fillFor(n: TreeNode, leaf: boolean): { className: string; style: CSSPro
     return { className: "fill-muted-foreground", style: { fillOpacity: leaf ? 0.42 : 0.16 } };
   if (n.st === "ns")
     return {
-      className: "fill-danger",
+      className: "fill-legacy-danger",
       style: { fillOpacity: leaf ? 0.85 : 0.12 + 0.3 * Math.min(1, n.frac * 2.4) },
     };
   return { className: "fill-[url(#hatch)]", style: { fillOpacity: leaf ? 1 : 0.6 } };
 }
 
 const toneText: Record<BeadTone, string> = {
-  sat: "text-success",
-  ns: "text-danger",
+  sat: "text-legacy-success",
+  ns: "text-legacy-danger",
   nd: "text-muted-foreground",
-  warn: "text-warning",
+  warn: "text-legacy-warning",
   info: "text-primary",
   neu: "text-muted-foreground",
 };
 const toneBg: Record<BeadTone, string> = {
-  sat: "bg-success",
-  ns: "bg-danger",
+  sat: "bg-legacy-success",
+  ns: "bg-legacy-danger",
   nd: "bg-muted-foreground/40",
-  warn: "bg-warning",
+  warn: "bg-legacy-warning",
   info: "bg-primary",
   neu: "bg-muted-foreground/40",
 };
 const toneSoft: Record<BeadTone, string> = {
-  sat: "bg-success-soft border-success/40",
-  ns: "bg-danger-soft border-danger/40",
+  sat: "bg-success-soft border-legacy-success/40",
+  ns: "bg-danger-soft border-legacy-danger/40",
   nd: "bg-transparent border-border-strong",
-  warn: "bg-warning-soft border-warning/40",
+  warn: "bg-warning-soft border-legacy-warning/40",
   info: "bg-primary-soft border-primary/40",
   neu: "bg-muted border-border",
 };
@@ -272,7 +272,7 @@ function vRadial(n: TreeNode, go: (id: string) => void): Shape {
     let r = R0;
     const segs: [string, number, CSSProperties][] = [
       ["fill-muted-foreground", k.agg.sat, { fillOpacity: 0.42 }],
-      ["fill-danger", k.agg.ns, {}],
+      ["fill-legacy-danger", k.agg.ns, {}],
       ["fill-[url(#hatch)]", k.agg.nd, {}],
     ];
     for (const [cls, v, style] of segs) {
@@ -361,7 +361,7 @@ function vPolar(n: TreeNode, go: (id: string) => void): Shape {
       x: CX + Math.cos(a) * (R1 + 22),
       y: CY + Math.sin(a) * (R1 + 22),
       t: k.label,
-      className: k.agg.ns ? "fill-danger" : "fill-foreground",
+      className: k.agg.ns ? "fill-legacy-danger" : "fill-foreground",
       size: 11,
       pick: () => go(k.id),
     });
@@ -369,7 +369,7 @@ function vPolar(n: TreeNode, go: (id: string) => void): Shape {
   if (pts.length > 2) {
     s.paths.unshift({
       d: `M ${pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" L ")} Z`,
-      className: "fill-danger stroke-danger",
+      className: "fill-legacy-danger stroke-legacy-danger",
       style: { fillOpacity: 0.08, strokeOpacity: 0.45, strokeWidth: 1.5 },
     });
   }
@@ -579,7 +579,7 @@ function vWheel(n: TreeNode, go: (id: string) => void): Shape {
       x: CX + Math.cos(mid) * (R + 30),
       y: CY + Math.sin(mid) * (R + 30),
       t: k.label,
-      className: k.agg.ns ? "fill-danger" : "fill-foreground",
+      className: k.agg.ns ? "fill-legacy-danger" : "fill-foreground",
       size: 11,
       pick: () => go(id),
     });
@@ -668,9 +668,9 @@ function vThreads(
     return { map, ks };
   });
   const cls: Record<string, string> = {
-    "No plan": "stroke-danger",
-    "In plan": "stroke-warning",
-    "Closed or accepted": "stroke-success",
+    "No plan": "stroke-legacy-danger",
+    "In plan": "stroke-legacy-warning",
+    "Closed or accepted": "stroke-legacy-success",
     "Not owed": "stroke-muted-foreground",
   };
   for (const r of rows) {
@@ -744,7 +744,7 @@ function vBlast(b: Blast | null): Shape {
   for (const [i, r] of [66, 106, R1, 216, R2].entries()) {
     s.paths.push({
       d: arc(r - 0.5, r + 0.5, -Math.PI / 2, TAU - Math.PI / 2 - 0.001),
-      className: "fill-danger",
+      className: "fill-legacy-danger",
       style: { fillOpacity: 0.2 - i * 0.03 },
     });
   }
@@ -760,14 +760,14 @@ function vBlast(b: Blast | null): Shape {
     const y = CY + Math.sin(mid) * R1;
     s.paths.push({
       d: `M ${CX},${CY} L ${x.toFixed(1)},${y.toFixed(1)}`,
-      className: "stroke-danger fill-none",
+      className: "stroke-legacy-danger fill-none",
       style: { strokeOpacity: 0.3, strokeWidth: 1 + Math.min(4, g.rows.length / 14) },
     });
     s.dots.push({
       x,
       y,
       r: 5 + Math.min(9, g.rows.length * 0.3),
-      className: "fill-danger",
+      className: "fill-legacy-danger",
       tip: `${g.name} · ${g.zone} · ${g.rows.length} affected requirements`,
     });
     const n = g.rows.length;
@@ -779,14 +779,14 @@ function vBlast(b: Blast | null): Shape {
       const inv = r.currency === "Invalidated";
       s.paths.push({
         d: `M ${x.toFixed(1)},${y.toFixed(1)} Q ${(CX + Math.cos((mid + da) / 2) * (R1 + 74)).toFixed(1)},${(CY + Math.sin((mid + da) / 2) * (R1 + 74)).toFixed(1)} ${dx.toFixed(1)},${dy.toFixed(1)}`,
-        className: cn("fill-none", inv ? "stroke-danger" : "stroke-warning"),
+        className: cn("fill-none", inv ? "stroke-legacy-danger" : "stroke-legacy-warning"),
         style: { strokeOpacity: 0.3, strokeWidth: 1 },
       });
       s.dots.push({
         x: dx,
         y: dy,
         r: inv ? 3.2 : 2.6,
-        className: inv ? "fill-danger" : "fill-warning",
+        className: inv ? "fill-legacy-danger" : "fill-legacy-warning",
         tip: `${r.control} ${r.requirement} — ${r.statement} · ${r.currency} · ${r.determination}`,
       });
     });
@@ -859,10 +859,10 @@ function ClosurePipeline({
   });
   const yEnd = y - gap;
   const fanClass: Record<BeadTone, string> = {
-    sat: "fill-success stroke-success",
-    ns: "fill-danger stroke-danger",
+    sat: "fill-legacy-success stroke-legacy-success",
+    ns: "fill-legacy-danger stroke-legacy-danger",
     nd: "fill-muted-foreground stroke-muted-foreground",
-    warn: "fill-warning stroke-warning",
+    warn: "fill-legacy-warning stroke-legacy-warning",
     info: "fill-primary stroke-primary",
     neu: "fill-muted-foreground stroke-muted-foreground",
   };
@@ -932,8 +932,8 @@ function ClosurePipeline({
                         : toneSoft[b.tone],
                       stale && !on
                         ? b.currency === "Invalidated"
-                          ? "border-dashed border-danger/70"
-                          : "border-dashed border-warning/70"
+                          ? "border-dashed border-legacy-danger/70"
+                          : "border-dashed border-legacy-warning/70"
                         : null,
                     )}
                     style={
@@ -950,7 +950,7 @@ function ClosurePipeline({
             </div>
             <div className="mt-auto border-t border-border py-2">
               <Button
-                size="sm"
+                size="small"
                 className="w-full"
                 disabled={!sel || !c.beads.some((b) => b.kind === sel.kind && b.id === sel.id)}
               >
@@ -1145,7 +1145,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
             }}
           />
           <Button
-            size="sm"
+            size="small"
             variant="primary"
             disabled={!cur.control}
             onClick={() => {
@@ -1166,10 +1166,10 @@ export function ControlWorkspace({ programId }: { programId: string }) {
       <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2 py-3">
         {[
           { n: a.w, l: "rows in scope", c: "text-foreground" },
-          { n: a.sat, l: "Satisfied", c: "text-success" },
-          { n: a.ns, l: "Other than satisfied", c: "text-danger" },
+          { n: a.sat, l: "Satisfied", c: "text-legacy-success" },
+          { n: a.ns, l: "Other than satisfied", c: "text-legacy-danger" },
           { n: a.nd, l: "No determination", c: "text-muted-foreground" },
-          { n: a.sus + a.inv, l: "Suspect or invalidated evidence", c: "text-warning" },
+          { n: a.sus + a.inv, l: "Suspect or invalidated evidence", c: "text-legacy-warning" },
         ].map((m, i) => (
           <div
             key={m.l}
@@ -1231,7 +1231,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                         <div className="flex items-center gap-2 text-12">
                           <Id>{b.change.id}</Id>
                           <Badge
-                            size="xs"
+                            size="xsmall"
                             tone={b.change.impact === "Significant" ? "danger" : "neutral"}
                           >
                             {b.change.impact}
@@ -1249,7 +1249,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                           <span
                             className={cn(
                               "tnum text-15 font-semibold",
-                              b.invalidated ? "text-danger" : "text-warning",
+                              b.invalidated ? "text-legacy-danger" : "text-legacy-warning",
                             )}
                           >
                             {b.rows.length}
@@ -1368,7 +1368,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                     <div
                       className={cn(
                         "tnum text-[34px] font-semibold leading-none tracking-[-0.02em]",
-                        a.ns ? "text-danger" : a.nd ? "text-muted-foreground" : "text-foreground",
+                        a.ns ? "text-legacy-danger" : a.nd ? "text-muted-foreground" : "text-foreground",
                       )}
                     >
                       {a.ns || a.nd || a.w}
@@ -1416,7 +1416,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
               </div>
               <ChainList hops={chain} />
               <div className="flex gap-2">
-                <Button size="sm" variant="primary" disabled>
+                <Button size="small" variant="primary" disabled>
                   {sel.kind === "poam"
                     ? "Reassess"
                     : sel.kind === "finding"
@@ -1425,7 +1425,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                         ? "Record determination"
                         : "Create finding"}
                 </Button>
-                <Button size="sm" onClick={() => setSel(null)}>
+                <Button size="small" onClick={() => setSel(null)}>
                   Clear
                 </Button>
               </div>
@@ -1463,8 +1463,8 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                 <div className="mt-2">
                   <Bar
                     parts={[
-                      { className: "bg-warning", v: blast.suspect },
-                      { className: "bg-danger", v: blast.invalidated },
+                      { className: "bg-legacy-warning", v: blast.suspect },
+                      { className: "bg-legacy-danger", v: blast.invalidated },
                       {
                         className: "bg-transparent",
                         v: Math.max(0, tree.root.agg.w - blast.rows.length),
@@ -1475,10 +1475,10 @@ export function ControlWorkspace({ programId }: { programId: string }) {
               </div>
               <div className="space-y-1">
                 <Row label="Suspect — determination stands, flagged">
-                  <span className="text-warning">{blast.suspect}</span>
+                  <span className="text-legacy-warning">{blast.suspect}</span>
                 </Row>
                 <Row label="Invalidated — must be reassessed">
-                  <span className="text-danger">{blast.invalidated}</span>
+                  <span className="text-legacy-danger">{blast.invalidated}</span>
                 </Row>
                 <Row label="Components in the blast">{blast.groups.length}</Row>
               </div>
@@ -1497,7 +1497,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                       <Id className="w-8 text-left">{f.id}</Id>
                       <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
                         <span
-                          className="block h-full bg-danger"
+                          className="block h-full bg-legacy-danger"
                           style={{ width: `${(f.n / (blast.families[0]?.n ?? 1)) * 100}%` }}
                         />
                       </span>
@@ -1508,10 +1508,10 @@ export function ControlWorkspace({ programId }: { programId: string }) {
               </div>
               <p className="text-12 text-muted-foreground">{blast.change.analysis}</p>
               <div className="flex gap-2">
-                <Button size="sm" variant="primary" disabled>
+                <Button size="small" variant="primary" disabled>
                   Reassess affected rows
                 </Button>
-                <Button size="sm" disabled>
+                <Button size="small" disabled>
                   Report change
                 </Button>
               </div>
@@ -1530,7 +1530,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                 </div>
               </div>
               {axis ? (
-                <Button size="sm" onClick={() => setAxis(null)}>
+                <Button size="small" onClick={() => setAxis(null)}>
                   Release selection
                 </Button>
               ) : null}
@@ -1556,7 +1556,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                     className={cn(
                       "rounded px-1.5 py-0.5 text-11",
                       r.control.st === "ns"
-                        ? "bg-danger-soft text-danger"
+                        ? "bg-danger-soft text-legacy-danger"
                         : r.control.st === "nd"
                           ? "bg-muted text-muted-foreground"
                           : "bg-muted text-foreground",
@@ -1594,10 +1594,10 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                   {cur.control ? (
                     <>
                       <Badge
-                        size="xs"
+                        size="xsmall"
                         tone={
                           cur.origination === "Common"
-                            ? "info"
+                            ? "information"
                             : cur.origination === "Hybrid"
                               ? "warning"
                               : "neutral"
@@ -1605,18 +1605,18 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                       >
                         {cur.origination ?? "—"}
                       </Badge>
-                      <Badge size="xs">{cur.method ?? "—"}</Badge>
-                      <Badge size="xs" tone={cur.st === "ns" ? "danger" : "neutral"}>
+                      <Badge size="xsmall">{cur.method ?? "—"}</Badge>
+                      <Badge size="xsmall" tone={cur.st === "ns" ? "danger" : "neutral"}>
                         {stLabel(cur.st)}
                       </Badge>
                     </>
                   ) : (
                     <>
-                      <Badge size="xs">{a.w} rows</Badge>
-                      <Badge size="xs" tone={a.ns ? "danger" : "neutral"}>
+                      <Badge size="xsmall">{a.w} rows</Badge>
+                      <Badge size="xsmall" tone={a.ns ? "danger" : "neutral"}>
                         {a.ns} failing
                       </Badge>
-                      <Badge size="xs">{a.nd} unknown</Badge>
+                      <Badge size="xsmall">{a.nd} unknown</Badge>
                     </>
                   )}
                 </div>
@@ -1628,14 +1628,14 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                 <Bar
                   parts={[
                     { className: "bg-muted-foreground/40", v: a.sat },
-                    { className: "bg-danger", v: a.ns },
+                    { className: "bg-legacy-danger", v: a.ns },
                     { className: "text-muted-foreground/60", v: a.nd, style: hatch },
                   ]}
                 />
                 <div className="mt-1.5 space-y-0.5">
                   <Row label="Satisfied">{a.sat}</Row>
                   <Row label="Other than satisfied">
-                    <span className={a.ns ? "text-danger" : undefined}>{a.ns}</span>
+                    <span className={a.ns ? "text-legacy-danger" : undefined}>{a.ns}</span>
                   </Row>
                   <Row label="No determination">{a.nd}</Row>
                 </div>
@@ -1646,9 +1646,9 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                 </div>
                 <Bar
                   parts={[
-                    { className: "bg-success", v: a.cur },
-                    { className: "bg-warning", v: a.sus },
-                    { className: "bg-danger", v: a.inv },
+                    { className: "bg-legacy-success", v: a.cur },
+                    { className: "bg-legacy-warning", v: a.sus },
+                    { className: "bg-legacy-danger", v: a.inv },
                   ]}
                 />
                 <p className="mt-1.5 text-12 text-muted-foreground">
@@ -1667,7 +1667,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                       <div key={r.key}>
                         <div className="flex items-center gap-2">
                           <Badge
-                            size="xs"
+                            size="xsmall"
                             tone={
                               r.determination === "Satisfied"
                                 ? "success"
@@ -1699,7 +1699,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {allocatedNames(cur.nodes).map((name) => (
-                      <Badge key={name} size="xs">
+                      <Badge key={name} size="xsmall">
                         {name}
                       </Badge>
                     ))}
@@ -1732,7 +1732,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                           className={cn(
                             "size-1.5 shrink-0 rounded-full",
                             k.st === "ns"
-                              ? "bg-danger"
+                              ? "bg-legacy-danger"
                               : k.st === "nd"
                                 ? "bg-muted-foreground/40"
                                 : "bg-muted-foreground/25",
@@ -1746,7 +1746,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                           className={cn(
                             "shrink-0 text-11",
                             k.agg.ns
-                              ? "text-danger"
+                              ? "text-legacy-danger"
                               : k.agg.nd
                                 ? "text-muted-foreground"
                                 : "text-muted-foreground/60",

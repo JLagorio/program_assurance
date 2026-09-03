@@ -57,7 +57,7 @@ const timeline = [
     actor: "Linus Aarto",
   },
   {
-    tone: "info" as const,
+    tone: "information" as const,
     title: "Evidence attached — scanner output",
     time: "Aug 26, 16:12",
     actor: "Continuous monitor",
@@ -129,7 +129,7 @@ function RiskDetail() {
             <Section
               title="Linked evidence"
               action={
-                <Button variant="secondary" size="sm">
+                <Button variant="secondary" size="small">
                   <Paperclip className="size-3.5" /> Attach
                 </Button>
               }
@@ -217,7 +217,7 @@ function RiskDetail() {
         description={`Recorded against ${risk.id}. Reviewers are notified immediately.`}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setTreating(false)}>
+            <Button variant="subtle" onClick={() => setTreating(false)}>
               Cancel
             </Button>
             <Button variant="primary" onClick={() => setTreating(false)}>

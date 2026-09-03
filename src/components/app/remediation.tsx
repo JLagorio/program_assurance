@@ -18,9 +18,9 @@ import { planDay, spanDays, taskStatusTone, type RemediationPlan } from "@/lib/r
 import { statusTone } from "@/lib/spine";
 
 const barTone: Record<string, string> = {
-  Complete: "bg-success",
+  Complete: "bg-legacy-success",
   "In progress": "bg-primary",
-  Blocked: "bg-danger",
+  Blocked: "bg-legacy-danger",
   Planned: "bg-muted-foreground/30",
 };
 
@@ -71,7 +71,7 @@ export function RemediationPlanSection({
                     ? "danger"
                     : plan.status === "Accepted"
                       ? "neutral"
-                      : "info"
+                      : "information"
               }
             >
               {plan.status}
@@ -87,7 +87,7 @@ export function RemediationPlanSection({
               <Person name={plan.owner} />
             </StackedFact>
             <StackedFact label="Scheduled completion">
-              <span className={cn("tnum", plan.slipped && "text-warning")}>
+              <span className={cn("tnum", plan.slipped && "text-legacy-warning")}>
                 {plan.poam?.scheduledCompletion ?? plan.due}
               </span>
             </StackedFact>
@@ -95,7 +95,7 @@ export function RemediationPlanSection({
               {plan.poam ? (
                 <span className="flex items-center gap-1.5">
                   <PoamLink id={plan.poam.id} />
-                  <Badge tone={statusTone(plan.poam.status)} size="xs">
+                  <Badge tone={statusTone(plan.poam.status)} size="xsmall">
                     {plan.poam.status}
                   </Badge>
                 </span>
@@ -127,7 +127,7 @@ export function RemediationPlanSection({
             </span>
             <span className="tnum text-12 text-muted-foreground">{plan.progress}% complete</span>
             {plan.slipped && plan.poam ? (
-              <span className="tnum text-12 text-warning">
+              <span className="tnum text-12 text-legacy-warning">
                 Slipped from {plan.poam.originalCompletion}
               </span>
             ) : null}
@@ -208,7 +208,7 @@ export function RemediationPlanSection({
                 <Table.Cell className="tnum text-right">{t.start}</Table.Cell>
                 <Table.Cell className="tnum text-right">{t.due}</Table.Cell>
                 <Table.Cell>
-                  <Badge tone={taskStatusTone[t.status]} size="xs">
+                  <Badge tone={taskStatusTone[t.status]} size="xsmall">
                     {t.status}
                   </Badge>
                 </Table.Cell>
@@ -259,7 +259,7 @@ export function RemediationPlanSection({
                     {todayPct !== null && todayPct >= 0 && todayPct <= 100 ? (
                       <span
                         aria-hidden
-                        className="absolute inset-y-[-2px] w-px bg-danger/70"
+                        className="absolute inset-y-[-2px] w-px bg-legacy-danger/70"
                         style={{ left: `${todayPct}%` }}
                       />
                     ) : null}
@@ -275,7 +275,7 @@ export function RemediationPlanSection({
               <span className="tnum flex min-w-0 flex-1 justify-between text-11 text-muted-foreground">
                 <span>{plan.start}</span>
                 {todayPct !== null && todayPct >= 0 && todayPct <= 100 ? (
-                  <span className="text-danger">today</span>
+                  <span className="text-legacy-danger">today</span>
                 ) : null}
                 <span>{plan.due}</span>
               </span>

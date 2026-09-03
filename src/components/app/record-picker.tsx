@@ -13,7 +13,7 @@ export type PickerRecord = {
   /** Secondary line: kind, source, date. */
   meta?: string;
   /** Right-aligned chip: state, freshness, severity. */
-  badge?: { label: string; tone?: "neutral" | "success" | "warning" | "danger" | "info" };
+  badge?: { label: string; tone?: "neutral" | "success" | "warning" | "danger" | "information" };
   /** Extra text matched against the query but not displayed. */
   keywords?: string;
 };
@@ -36,7 +36,7 @@ export function RecordPicker({
   emptyHint?: string;
 }) {
   return (
-    <Command.Dialog open={open} onClose={onClose} label={title} width="lg">
+    <Command.Dialog open={open} onClose={onClose} label={title} width="large">
       <Command.Input placeholder={placeholder} hint={<Command.Count />} autoFocus />
       <Command.List className="max-h-[46vh]">
         <Command.Empty>{emptyHint ?? "Nothing matches."}</Command.Empty>
@@ -58,7 +58,7 @@ export function RecordPicker({
               ) : null}
             </span>
             {r.badge ? (
-              <Badge size="xs" tone={r.badge.tone ?? "neutral"}>
+              <Badge size="xsmall" tone={r.badge.tone ?? "neutral"}>
                 {r.badge.label}
               </Badge>
             ) : null}

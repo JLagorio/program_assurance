@@ -131,7 +131,7 @@ function ScopeRecord() {
                 <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 border-t border-border pt-2.5">
                   {objectives.map((o) => (
                     <Fact key={o} label={o.slice(0, 1)}>
-                      <Badge size="xs" tone={impactTone[triad[o]]}>
+                      <Badge size="xsmall" tone={impactTone[triad[o]]}>
                         {triad[o]}
                       </Badge>
                     </Fact>
@@ -187,7 +187,7 @@ function ScopeRecord() {
             <Inspector.Group title="Categorization">
               {objectives.map((o) => (
                 <KeyValue key={o} label={o}>
-                  <Badge size="xs" tone={impactTone[triad[o]]}>
+                  <Badge size="xsmall" tone={impactTone[triad[o]]}>
                     {triad[o]}
                   </Badge>
                 </KeyValue>
@@ -230,7 +230,7 @@ function ScopeRecord() {
                     <Table.Row key={o}>
                       <Table.Cell>{o}</Table.Cell>
                       <Table.Cell>
-                        <Badge size="xs" tone={impactTone[triad[o]]}>
+                        <Badge size="xsmall" tone={impactTone[triad[o]]}>
                           {triad[o]}
                         </Badge>
                       </Table.Cell>
@@ -310,7 +310,7 @@ function ScopeRecord() {
                   <FilterChip
                     key={f}
                     label={f}
-                    active={family === f}
+                    isActive={family === f}
                     onClick={() => setFamily(f)}
                   />
                 ))}
@@ -368,7 +368,7 @@ function ScopeRecord() {
                         <Table.Cell className="truncate">{n.kind}</Table.Cell>
                         <Table.Cell className="truncate">{n.zone}</Table.Cell>
                         <Table.Cell>
-                          <Badge size="xs" tone={viaServes ? "info" : "neutral"}>
+                          <Badge size="xsmall" tone={viaServes ? "information" : "neutral"}>
                             {viaServes ? "Serves" : "Contains"}
                           </Badge>
                         </Table.Cell>

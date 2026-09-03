@@ -188,7 +188,7 @@ export function PoamSection({
           <span className="ml-auto">
             <FilterChip
               label="Hide closed"
-              active={openOnly}
+              isActive={openOnly}
               onClick={() => setOpenOnly((v) => !v)}
             />
           </span>
@@ -234,7 +234,7 @@ export function PoamSection({
                   <Table.Cell className="w-[128px]">
                     <span className="flex items-center gap-2">
                       <span className="w-12">
-                        <Progress value={pct} tone={pct === 100 ? "success" : "info"} />
+                        <Progress value={pct} tone={pct === 100 ? "success" : "information"} />
                       </span>
                       <span className="tnum text-muted-foreground">
                         {i.milestones.filter((m) => m.status === "Completed").length}/
@@ -321,7 +321,7 @@ export function PoamSection({
                         ? "danger"
                         : e.action === "Created"
                           ? "success"
-                          : "info"
+                          : "information"
                     }
                   >
                     {e.action}
@@ -428,20 +428,20 @@ function PoamDetailModal({
     <Dialog
       open
       onClose={onClose}
-      width="lg"
+      width="large"
       title={item.title}
       description={`${item.poamId} · ${item.controls.join(", ")} · ${item.origin}`}
       footer={
         <>
           <Button
-            variant="ghost"
+            variant="subtle"
             className="text-destructive hover:bg-destructive/10"
             onClick={onDelete}
           >
             <Trash2 className="size-3.5" /> Delete
           </Button>
           <span className="flex-1" />
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="subtle" onClick={onClose}>
             Close
           </Button>
           <Button variant="primary" onClick={onEdit}>
@@ -705,20 +705,20 @@ function PoamEditModal({
     <Dialog
       open
       onClose={onClose}
-      width="lg"
+      width="large"
       title="Edit POA&M item"
       description={`${item.poamId} · OSCAL poam-item · uuid preserved`}
       footer={
         <>
           <Button
-            variant="ghost"
+            variant="subtle"
             className="text-destructive hover:bg-destructive/10"
             onClick={onDelete}
           >
             <Trash2 className="size-3.5" /> Delete
           </Button>
           <span className="flex-1" />
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
           <Button variant="primary" onClick={save} disabled={draft.title.trim().length === 0}>
@@ -964,7 +964,7 @@ function PoamDeleteModal({
       description={`${item.poamId} · ${item.title}`}
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
           <Button
@@ -1077,12 +1077,12 @@ function PoamCreateModal({
     <Dialog
       open={open}
       onClose={onClose}
-      width="lg"
+      width="large"
       title="Create a POA&M item"
       description={`${programName} · ${programId} · OSCAL poam-item`}
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
           <Button variant="primary" onClick={create} disabled={title.trim().length === 0}>

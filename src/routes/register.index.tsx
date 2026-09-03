@@ -185,7 +185,7 @@ function RegisterPage() {
                       >
                         <Table.Id
                           id={p.id}
-                          active={preview?.kind === "poam" && preview.item.id === p.id}
+                          isActive={preview?.kind === "poam" && preview.item.id === p.id}
                           onPreview={() => setPreview({ kind: "poam", item: p })}
                         />
                         <Table.Cell className="truncate">{p.title}</Table.Cell>
@@ -251,7 +251,7 @@ function RegisterPage() {
                       >
                         <Table.Id
                           id={r.id}
-                          active={preview?.kind === "risk" && preview.item.id === r.id}
+                          isActive={preview?.kind === "risk" && preview.item.id === r.id}
                           onPreview={() => setPreview({ kind: "risk", item: r })}
                         />
                         <Table.Cell className="truncate">{r.title}</Table.Cell>
@@ -341,10 +341,10 @@ function RegisterPage() {
                             className="inline-flex gap-1.5"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <Button size="sm" variant="secondary">
+                            <Button size="small" variant="secondary">
                               New POA&M
                             </Button>
-                            <Button size="sm" variant="secondary">
+                            <Button size="small" variant="secondary">
                               Attach risk
                             </Button>
                           </span>

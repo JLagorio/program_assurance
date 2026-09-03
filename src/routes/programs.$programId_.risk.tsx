@@ -239,7 +239,7 @@ function ProgramRisk() {
                 <RiskTile
                   label="Aggregate residual"
                   value={posture.aggregate}
-                  trailing={hasScores ? <BandChip band={aggregateBand} size="xs" /> : null}
+                  trailing={hasScores ? <BandChip band={aggregateBand} size="xsmall" /> : null}
                   note={
                     hasScores
                       ? "Weighted by the criticality of the component each deficiency sits on, so a CAT II on a mission-critical part outweighs a CAT I on something nothing depends on."
@@ -475,13 +475,13 @@ function RiskTile({
   alarming?: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-subtle px-4 py-3">
+    <div className="rounded-lg border border-border bg-legacy-subtle px-4 py-3">
       <div className="text-[12px] text-muted-foreground">{label}</div>
       <div className="mt-1 flex items-baseline gap-2">
         <span
           className={cn(
             "tnum text-[24px] font-semibold leading-none tracking-[-0.02em]",
-            alarming && value > 0 ? "text-warning" : null,
+            alarming && value > 0 ? "text-legacy-warning" : null,
             alarming && value === 0 ? "text-muted-foreground" : null,
           )}
         >

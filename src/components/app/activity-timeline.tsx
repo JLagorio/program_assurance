@@ -24,9 +24,9 @@ import {
 } from "@/lib/program-activity";
 
 const toneRing: Record<string, string> = {
-  danger: "bg-danger",
-  warning: "bg-warning",
-  success: "bg-success",
+  danger: "bg-legacy-danger",
+  warning: "bg-legacy-warning",
+  success: "bg-legacy-success",
   info: "bg-primary",
   neutral: "bg-muted-foreground/50",
 };
@@ -99,13 +99,13 @@ export function ActivityTimeline({
             onSelect={(v) => update({ range: v as (typeof dateRanges)[number] })}
           />
           {filters.kind !== "All" || filters.actor !== "All" || filters.range !== "All time" ? (
-            <Button variant="ghost" size="xs" onClick={reset}>
+            <Button variant="subtle" size="xsmall" onClick={reset}>
               Clear
             </Button>
           ) : null}
           <Button
-            variant="ghost"
-            size="xs"
+            variant="subtle"
+            size="xsmall"
             disabled={unread === 0}
             onClick={() => markAllRead(filtered.map((e) => e.id))}
           >
@@ -119,7 +119,7 @@ export function ActivityTimeline({
           title="No activity matches these filters"
           description="Adjust the type, owner, or date range to see more of this program's history."
           action={
-            <Button variant="secondary" size="xs" onClick={reset}>
+            <Button variant="secondary" size="xsmall" onClick={reset}>
               Clear filters
             </Button>
           }
@@ -135,7 +135,7 @@ export function ActivityTimeline({
                     key={e.id}
                     marker={
                       <span className="relative">
-                        <Avatar name={e.actor} size="sm" />
+                        <Avatar name={e.actor} size="small" />
                         <span
                           className={cn(
                             "absolute -bottom-0.5 -right-0.5 size-2 rounded-full ring-2 ring-background",
@@ -187,8 +187,8 @@ export function ActivityTimeline({
           active ? (
             <>
               <Button
-                variant="ghost"
-                size="sm"
+                variant="subtle"
+                size="small"
                 onClick={() => {
                   markUnread(active.id);
                   setOpenId(null);
@@ -198,7 +198,7 @@ export function ActivityTimeline({
               </Button>
               {active.to ? (
                 <Link to={active.to} params={active.params as never}>
-                  <Button variant="primary" size="sm">
+                  <Button variant="primary" size="small">
                     Open record
                   </Button>
                 </Link>
@@ -225,7 +225,7 @@ export function ActivityTimeline({
 
 function DrawerRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start gap-3 border-b border-border-subtle py-1.5 last:border-0">
+    <div className="flex items-start gap-3 border-b border-border-legacy-subtle py-1.5 last:border-0">
       <dt className="w-[120px] shrink-0 text-muted-foreground">{label}</dt>
       <dd className="min-w-0 flex-1 break-words">{value}</dd>
     </div>
@@ -248,7 +248,7 @@ function FilterMenu({
       align="end"
       width={220}
       trigger={({ toggle }) => (
-        <Button variant="secondary" size="xs" onClick={toggle}>
+        <Button variant="secondary" size="xsmall" onClick={toggle}>
           {label}: {value}
           <ChevronDown className="size-3 text-muted-foreground" />
         </Button>
@@ -260,7 +260,7 @@ function FilterMenu({
           {options.map((o) => (
             <DropdownMenu.Item
               key={o}
-              selected={o === value}
+              isSelected={o === value}
               onSelect={() => {
                 onSelect(o);
                 close();

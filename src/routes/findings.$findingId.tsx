@@ -130,12 +130,12 @@ function FindingRecord() {
                 <Badge tone={statusTone(finding.lifecycle)}>{finding.lifecycle}</Badge>
                 {finding.poam ? (
                   <Link to="/register/poam/$poamId" params={{ poamId: finding.poam }}>
-                    <Button variant="secondary" size="sm">
+                    <Button variant="secondary" size="small">
                       Open {finding.poam}
                     </Button>
                   </Link>
                 ) : (
-                  <Button variant="secondary" size="sm">
+                  <Button variant="secondary" size="small">
                     Add to POA&amp;M
                   </Button>
                 )}
@@ -160,7 +160,7 @@ function FindingRecord() {
               trailing:
                 key === "Residual risk" ? (
                   residual ? (
-                    <Badge tone={bandTone[residual.band]} size="xs" className="tnum">
+                    <Badge tone={bandTone[residual.band]} size="xsmall" className="tnum">
                       {residual.score}
                     </Badge>
                   ) : null
@@ -297,7 +297,7 @@ function FindingRecord() {
                 <TextBlock label="Assessment status">
                   {controlRow ? (
                     <>
-                      <Badge tone={statusTone(controlRow.status)} size="xs">
+                      <Badge tone={statusTone(controlRow.status)} size="xsmall">
                         {controlRow.status}
                       </Badge>
                       <span className="ml-2 text-muted-foreground">
@@ -406,10 +406,10 @@ function FindingRecord() {
                       finding.assessment.method === "Test"
                         ? "warning"
                         : finding.assessment.method === "Interview"
-                          ? "info"
+                          ? "information"
                           : "neutral"
                     }
-                    size="xs"
+                    size="xsmall"
                   >
                     {finding.assessment.method}
                   </Badge>
@@ -540,11 +540,11 @@ function FindingRecord() {
                       </div>
                       <div className="flex items-baseline justify-between gap-3">
                         <dt className="text-muted-foreground">Mitigation credit</dt>
-                        <dd className={credit < 0 ? "tnum text-success" : "tnum"}>
+                        <dd className={credit < 0 ? "tnum text-legacy-success" : "tnum"}>
                           {signed(credit)}
                         </dd>
                       </div>
-                      <div className="flex items-baseline justify-between gap-3 border-t border-border-subtle pt-1.5">
+                      <div className="flex items-baseline justify-between gap-3 border-t border-border-legacy-subtle pt-1.5">
                         <dt className="font-medium">Residual</dt>
                         <dd className="tnum font-medium">{residual.score}</dd>
                       </div>
@@ -552,7 +552,7 @@ function FindingRecord() {
                   </div>
                   <div>
                     <TextBlock label="Band">
-                      <Badge tone={bandTone[residual.band]} size="xs">
+                      <Badge tone={bandTone[residual.band]} size="xsmall">
                         {residual.band}
                       </Badge>
                       <span className="ml-2 text-muted-foreground">{bandScale}</span>
@@ -643,13 +643,13 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
                 <Table.Cell className="tnum text-right">{f.weight.toFixed(2)}</Table.Cell>
                 <Table.Cell
                   className={
-                    f.contribution < 0 ? "tnum text-right text-success" : "tnum text-right"
+                    f.contribution < 0 ? "tnum text-right text-legacy-success" : "tnum text-right"
                   }
                 >
                   {signed(f.contribution)}
                 </Table.Cell>
               </tr>
-              <tr className="border-b border-border-subtle">
+              <tr className="border-b border-border-legacy-subtle">
                 <td colSpan={5} className="px-3 pb-2.5 align-top">
                   <p className="max-w-3xl text-[12.5px] leading-relaxed text-muted-foreground">
                     {f.rationale}

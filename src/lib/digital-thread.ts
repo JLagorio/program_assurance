@@ -70,17 +70,17 @@ export const healthTone: Record<ConnectorHealth, Tone> = {
 };
 
 export const evidenceStatusTone: Record<EvidenceStatus, Tone> = {
-  "Auto-mapped": "info",
+  "Auto-mapped": "information",
   Accepted: "success",
   "Needs review": "warning",
   Rejected: "danger",
 };
 
 export const artifactTone: Record<ArtifactKind, Tone> = {
-  "Jira issue": "info",
+  "Jira issue": "information",
   "Pull request": "neutral",
   "Merge request": "neutral",
-  "SysML model": "info",
+  "SysML model": "information",
   Drawing: "neutral",
 };
 

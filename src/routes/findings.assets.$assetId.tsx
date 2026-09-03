@@ -118,7 +118,7 @@ function AssetRecord() {
             <Inspector.Group title="Open findings">
               <KeyValue label="Scanner declared">
                 <span className="tnum">
-                  <span className={asset.openCatI ? "font-medium text-danger" : ""}>
+                  <span className={asset.openCatI ? "font-medium text-legacy-danger" : ""}>
                     {asset.openCatI}
                   </span>
                   <span className="text-muted-foreground">
@@ -131,7 +131,7 @@ function AssetRecord() {
               <KeyValue label="Register tracked">
                 {tracked ? (
                   <span className="tnum">
-                    <span className={tracked.catI ? "font-medium text-danger" : ""}>
+                    <span className={tracked.catI ? "font-medium text-legacy-danger" : ""}>
                       {tracked.catI}
                     </span>
                     <span className="text-muted-foreground">
@@ -147,7 +147,7 @@ function AssetRecord() {
                 {delta === null ? (
                   "—"
                 ) : (
-                  <span className={delta === 0 ? "tnum" : "tnum text-warning"}>
+                  <span className={delta === 0 ? "tnum" : "tnum text-legacy-warning"}>
                     {delta > 0 ? `+${delta}` : delta}
                   </span>
                 )}

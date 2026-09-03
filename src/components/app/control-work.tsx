@@ -101,7 +101,7 @@ export function ControlActionBar({
             tone: assessmentTone[work.assessment],
           },
           ...(work.submitted
-            ? [{ label: "Status", value: "With the assessor", tone: "info" as const }]
+            ? [{ label: "Status", value: "With the assessor", tone: "information" as const }]
             : []),
         ]}
         actions={actions}
@@ -113,7 +113,7 @@ export function ControlActionBar({
         title={chosen?.def.label ?? "Confirm"}
         footer={
           <>
-            {error ? <span className="mr-auto text-[12.5px] text-danger">{error}</span> : null}
+            {error ? <span className="mr-auto text-[12.5px] text-legacy-danger">{error}</span> : null}
             <Button onClick={() => setPending(null)}>Cancel</Button>
             <Button variant="primary" onClick={fire}>
               {chosen?.def.label ?? "Confirm"}
@@ -122,7 +122,7 @@ export function ControlActionBar({
         }
       >
         <div className="grid gap-3">
-          <div className="rounded-lg border border-border bg-subtle px-3 py-2 text-[12.5px]">
+          <div className="rounded-lg border border-border bg-legacy-subtle px-3 py-2 text-[12.5px]">
             {session.name} · {session.role}
           </div>
           <Field label={chosen?.def.note === "required" ? "Reason (required)" : "Note"}>
@@ -145,7 +145,7 @@ export function GateList({ work, context }: { work: ControlWork; context: WorkCo
           <span
             className={cn(
               "mt-[5px] size-1.5 shrink-0 rounded-full",
-              g.met ? "bg-success" : "bg-warning",
+              g.met ? "bg-legacy-success" : "bg-legacy-warning",
             )}
           />
           <span className="min-w-0 flex-1">
@@ -178,7 +178,7 @@ export function Narrative({ work, onChange }: { work: ControlWork; onChange: () 
         <div className="mt-2 flex gap-2">
           <Button
             variant="primary"
-            size="sm"
+            size="small"
             onClick={() => {
               setNarrative(work.id, draft);
               setEditing(false);
@@ -187,7 +187,7 @@ export function Narrative({ work, onChange }: { work: ControlWork; onChange: () 
           >
             Save revision
           </Button>
-          <Button size="sm" onClick={() => setEditing(false)}>
+          <Button size="small" onClick={() => setEditing(false)}>
             Cancel
           </Button>
         </div>
@@ -204,7 +204,7 @@ export function Narrative({ work, onChange }: { work: ControlWork; onChange: () 
       )}
       <Button
         className="mt-2"
-        size="sm"
+        size="small"
         onClick={() => {
           setDraft(work.narrative);
           setEditing(true);
@@ -252,8 +252,8 @@ export function EvidenceBlock({
                   <Table.Cell>{meta?.collected ?? "—"}</Table.Cell>
                   <Table.Cell>
                     <Button
-                      size="xs"
-                      variant="ghost"
+                      size="xsmall"
+                      variant="subtle"
                       onClick={() => {
                         unlinkEvidence(work.id, id);
                         onChange();
@@ -271,7 +271,7 @@ export function EvidenceBlock({
         <p className="text-[13px] text-muted-foreground">None linked.</p>
       )}
 
-      <Button className="mt-2" size="sm" onClick={() => setPicking(true)}>
+      <Button className="mt-2" size="small" onClick={() => setPicking(true)}>
         Link evidence…
       </Button>
 
@@ -321,7 +321,7 @@ export function Determination({ work, onChange }: { work: ControlWork; onChange:
       />
       <Button
         className="mt-2"
-        size="sm"
+        size="small"
         onClick={() => {
           setDeterminationNote(work.id, draft);
           onChange();
@@ -343,12 +343,12 @@ export function Comments({ work, onChange }: { work: ControlWork; onChange: () =
   return (
     <div>
       {thread.length ? (
-        <ul className="divide-y divide-border-subtle">
+        <ul className="divide-y divide-border-legacy-subtle">
           {thread.map((c) => (
             <li key={c.id} className="py-2.5">
               <div className="flex flex-wrap items-baseline gap-2">
                 <span className="text-[13px] font-medium">{c.author}</span>
-                <Badge size="xs">{c.role}</Badge>
+                <Badge size="xsmall">{c.role}</Badge>
                 <span className="text-[11.5px] text-muted-foreground">{c.at}</span>
               </div>
               <p className="mt-1 max-w-[76ch] text-[13px] leading-[1.5]">{c.body}</p>
@@ -364,7 +364,7 @@ export function Comments({ work, onChange }: { work: ControlWork; onChange: () =
       />
       <Button
         className="mt-2"
-        size="sm"
+        size="small"
         onClick={() => {
           addComment(work.id, body);
           setBody("");

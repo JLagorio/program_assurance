@@ -73,7 +73,7 @@ type AuditRecord = ChangeImpact["records"][number];
 
 export function BuildStateChip({ state }: { state: BuildState }) {
   return (
-    <Badge size="xs" tone={buildStateTone[state]}>
+    <Badge size="xsmall" tone={buildStateTone[state]}>
       {state}
     </Badge>
   );
@@ -81,7 +81,7 @@ export function BuildStateChip({ state }: { state: BuildState }) {
 
 export function ChangeKindChip({ kind }: { kind: ChangeKind }) {
   return (
-    <Badge size="xs" tone={changeKindTone[kind]}>
+    <Badge size="xsmall" tone={changeKindTone[kind]}>
       {kind}
     </Badge>
   );
@@ -94,7 +94,7 @@ export function ImpactChip({ impact }: { impact: SecurityImpact }) {
 
 export function ImpactStateChip({ state }: { state: ImpactState }) {
   return (
-    <Badge size="xs" tone={impactStateTone[state]}>
+    <Badge size="xsmall" tone={impactStateTone[state]}>
       {state}
     </Badge>
   );
@@ -145,9 +145,9 @@ function ProseBlock({
         className={cn(
           "text-[11px] font-medium uppercase tracking-[0.06em]",
           tone === "danger"
-            ? "text-danger"
+            ? "text-legacy-danger"
             : tone === "warning"
-              ? "text-warning"
+              ? "text-legacy-warning"
               : "text-muted-foreground",
         )}
       >
@@ -180,7 +180,7 @@ function MoreButton({
   if (hidden === 0 && !expanded) return null;
   return (
     <div className="pt-2">
-      <Button variant="link" size="sm" onClick={onToggle}>
+      <Button variant="link" size="small" onClick={onToggle}>
         {expanded ? "Show fewer" : `Show ${hidden} more ${noun}`}
       </Button>
     </div>
@@ -342,7 +342,7 @@ export function BuildRail({
           <span className="flex items-center gap-1.5">
             <span className="tnum">{unrecorded}</span>
             {unrecorded > 0 ? (
-              <Badge size="xs" tone="danger">
+              <Badge size="xsmall" tone="danger">
                 CM-3
               </Badge>
             ) : null}
@@ -380,11 +380,11 @@ export function UnrecordedChangeNotice({
 }) {
   if (rows.length === 0) return null;
   return (
-    <div className="rounded-lg border border-danger/30 bg-danger-soft/60 px-4 py-3">
+    <div className="rounded-lg border border-legacy-danger/30 bg-danger-soft/60 px-4 py-3">
       <div className="flex items-start gap-2">
-        <TriangleAlert className="mt-0.5 size-4 shrink-0 text-danger" />
+        <TriangleAlert className="mt-0.5 size-4 shrink-0 text-legacy-danger" />
         <div className="min-w-0">
-          <p className="text-[13px] font-semibold text-danger">
+          <p className="text-[13px] font-semibold text-legacy-danger">
             CM-3 — {rows.length} configuration item{rows.length === 1 ? "" : "s"} moved with no
             change record
           </p>
@@ -401,11 +401,11 @@ export function UnrecordedChangeNotice({
             {rows.map((row) => (
               <li key={`${row.node}|${row.label}`} className="text-[12.5px] leading-snug">
                 <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-                  {row.node === "—" ? null : <Id className="text-danger">{row.node}</Id>}
+                  {row.node === "—" ? null : <Id className="text-legacy-danger">{row.node}</Id>}
                   <span className="font-medium">
                     {row.node === "—" ? row.label : (nodeName?.(row.node) ?? row.label)}
                   </span>
-                  <Badge size="xs">{row.kind}</Badge>
+                  <Badge size="xsmall">{row.kind}</Badge>
                   <span className="text-muted-foreground line-through">{row.from}</span>
                   <ArrowRight className="size-3 text-muted-foreground" />
                   <span className="font-medium">{row.to}</span>
@@ -471,7 +471,7 @@ export function PinDiffTable({
                 {row.node === "—" ? (
                   <Absent />
                 ) : (
-                  <Id className={unrecorded ? "text-danger" : "text-muted-foreground"}>
+                  <Id className={unrecorded ? "text-legacy-danger" : "text-muted-foreground"}>
                     {row.node}
                   </Id>
                 )}
@@ -493,7 +493,7 @@ export function PinDiffTable({
                 {unrecorded ? (
                   <span className="flex items-center gap-1.5">
                     <Dot tone="danger" />
-                    <span className="truncate font-medium text-danger">No change record</span>
+                    <span className="truncate font-medium text-legacy-danger">No change record</span>
                   </span>
                 ) : (
                   <Id className="text-muted-foreground">{row.recorded}</Id>
@@ -584,7 +584,7 @@ export function ChangeTable({
                 <span className="flex items-center gap-1.5">
                   <Id>{change.id}</Id>
                   {change.acknowledged ? (
-                    <Badge size="xs" tone="neutral">
+                    <Badge size="xsmall" tone="neutral">
                       Ack
                     </Badge>
                   ) : null}
@@ -610,9 +610,9 @@ export function ChangeTable({
               <Table.Cell
                 className={cn(
                   effect.tone === "danger"
-                    ? "text-danger"
+                    ? "text-legacy-danger"
                     : effect.tone === "warning"
-                      ? "text-warning"
+                      ? "text-legacy-warning"
                       : "",
                 )}
               >
@@ -684,10 +684,10 @@ export function ChangeRail({
               <span className="tnum">{impact.touched.length}</span>
             </KeyValue>
             <KeyValue label="Invalidated">
-              <span className="tnum text-danger">{impact.invalidatedRows.length}</span>
+              <span className="tnum text-legacy-danger">{impact.invalidatedRows.length}</span>
             </KeyValue>
             <KeyValue label="Suspect">
-              <span className="tnum text-warning">{impact.suspectRows.length}</span>
+              <span className="tnum text-legacy-warning">{impact.suspectRows.length}</span>
             </KeyValue>
             <KeyValue label="Evidence">
               <span className="tnum">{impact.invalidatedEvidence.length}</span>
@@ -699,14 +699,14 @@ export function ChangeRail({
         )}
         <div className="flex flex-wrap items-center gap-2 pt-2.5">
           {onOpenImpact ? (
-            <Button size="sm" onClick={() => onOpenImpact(change.id)}>
+            <Button size="small" onClick={() => onOpenImpact(change.id)}>
               Open impact
             </Button>
           ) : null}
           {onAcknowledge ? (
             <Button
-              size="sm"
-              variant={change.acknowledged ? "ghost" : "secondary"}
+              size="small"
+              variant={change.acknowledged ? "subtle" : "secondary"}
               onClick={() => onAcknowledge(change.id, !change.acknowledged)}
             >
               {change.acknowledged ? "Withdraw acknowledgement" : "Acknowledge — re-verified"}
@@ -758,13 +758,13 @@ function TouchedGroup({
     <div
       className={cn(
         "rounded-lg border px-4 py-3",
-        danger ? "border-danger/25 bg-danger-soft/35" : "border-warning/25 bg-warning-soft/30",
+        danger ? "border-legacy-danger/25 bg-danger-soft/35" : "border-legacy-warning/25 bg-warning-soft/30",
       )}
     >
       <div className="flex items-baseline gap-2">
         <ImpactStateChip state={state} />
         <span
-          className={cn("tnum text-[13px] font-semibold", danger ? "text-danger" : "text-warning")}
+          className={cn("tnum text-[13px] font-semibold", danger ? "text-legacy-danger" : "text-legacy-warning")}
         >
           {nodes.length}
         </span>
@@ -782,14 +782,14 @@ function TouchedGroup({
           {cap.shown.map((node) => (
             <li
               key={node.node}
-              className={cn("border-l-2 pl-2.5", danger ? "border-danger/50" : "border-warning/50")}
+              className={cn("border-l-2 pl-2.5", danger ? "border-legacy-danger/50" : "border-legacy-warning/50")}
             >
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <Id className={danger ? "text-danger" : "text-warning"}>{node.node}</Id>
+                <Id className={danger ? "text-legacy-danger" : "text-legacy-warning"}>{node.node}</Id>
                 <span className="text-[12.5px] font-medium">
                   {nodeName?.(node.node) ?? node.node}
                 </span>
-                <Badge size="xs">
+                <Badge size="xsmall">
                   {node.hops} hop{node.hops === 1 ? "" : "s"}
                 </Badge>
               </div>
@@ -801,7 +801,7 @@ function TouchedGroup({
         </ul>
       )}
       {cap.hidden > 0 || cap.expanded ? (
-        <Button variant="link" size="sm" onClick={cap.toggle} className="mt-2">
+        <Button variant="link" size="small" onClick={cap.toggle} className="mt-2">
           {cap.expanded ? "Show fewer" : `Show ${cap.hidden} more`}
         </Button>
       ) : null}
@@ -830,13 +830,13 @@ function DeterminationOutcome({ record }: { record: AuditRecord }) {
       <span
         className={cn(
           "shrink-0 text-[12px]",
-          withdrawn && "text-muted-foreground line-through decoration-danger/70 decoration-[1.5px]",
+          withdrawn && "text-muted-foreground line-through decoration-legacy-danger/70 decoration-[1.5px]",
         )}
       >
         {record.from}
       </span>
       {withdrawn ? <ArrowRight className="size-3 shrink-0 text-muted-foreground" /> : null}
-      <Badge size="xs" tone={withdrawn ? "danger" : "warning"}>
+      <Badge size="xsmall" tone={withdrawn ? "danger" : "warning"}>
         {record.outcome ?? (withdrawn ? "Withdrawn" : "Retained — re-test owed")}
       </Badge>
     </span>
@@ -869,7 +869,7 @@ function InvalidatedRowTable({ records }: { records: AuditRecord[] }) {
               <Table.Row key={record.id} title={record.why}>
                 <Table.Id id={row.control} />
                 <Table.Cell>
-                  <Badge size="xs">{row.unit}</Badge>
+                  <Badge size="xsmall">{row.unit}</Badge>
                 </Table.Cell>
                 <Table.Cell>
                   <Id>{row.requirement}</Id>
@@ -918,7 +918,7 @@ function SuspectRowTable({ records }: { records: AuditRecord[] }) {
               <Table.Row key={record.id} title={record.why}>
                 <Table.Id id={row.control} />
                 <Table.Cell>
-                  <Badge size="xs">{row.unit}</Badge>
+                  <Badge size="xsmall">{row.unit}</Badge>
                 </Table.Cell>
                 <Table.Cell>
                   <Id>{row.requirement}</Id>
@@ -926,7 +926,7 @@ function SuspectRowTable({ records }: { records: AuditRecord[] }) {
                 <Table.Cell>
                   <span className="flex items-center gap-1.5">
                     <span className="shrink-0 text-[12px]">{record.from}</span>
-                    <Badge size="xs" tone="warning">
+                    <Badge size="xsmall" tone="warning">
                       {record.outcome ?? "Stands — flagged"}
                     </Badge>
                   </span>
@@ -1089,7 +1089,7 @@ export function ImpactView({
       <div
         className={cn(
           "rounded-lg border px-4 py-3.5",
-          contained ? "border-border bg-subtle" : "border-warning/30 bg-warning-soft/40",
+          contained ? "border-border bg-legacy-subtle" : "border-legacy-warning/30 bg-warning-soft/40",
         )}
       >
         <div className="flex flex-wrap items-center gap-2">
@@ -1102,7 +1102,7 @@ export function ImpactView({
           </Badge>
           <span className="ml-auto flex items-center gap-2">
             <Id>{change.id}</Id>
-            {change.acknowledged ? <Badge size="xs">Acknowledged</Badge> : null}
+            {change.acknowledged ? <Badge size="xsmall">Acknowledged</Badge> : null}
           </span>
         </div>
 
@@ -1140,8 +1140,8 @@ export function ImpactView({
         {onAcknowledge ? (
           <div className="mt-3 flex items-center gap-2">
             <Button
-              size="sm"
-              variant={change.acknowledged ? "ghost" : "secondary"}
+              size="small"
+              variant={change.acknowledged ? "subtle" : "secondary"}
               onClick={() => onAcknowledge(change.id, !change.acknowledged)}
             >
               {change.acknowledged ? "Withdraw acknowledgement" : "Acknowledge — re-verified"}
@@ -1359,11 +1359,11 @@ export function ImpactView({
                         <Table.Id id={parsed.control} />
                         <Table.Cell>
                           <span className="flex items-center gap-1.5">
-                            <span className="text-[12px] text-muted-foreground line-through decoration-danger/70">
+                            <span className="text-[12px] text-muted-foreground line-through decoration-legacy-danger/70">
                               Accepted
                             </span>
                             <ArrowRight className="size-3 shrink-0 text-muted-foreground" />
-                            <Badge size="xs" tone="danger">
+                            <Badge size="xsmall" tone="danger">
                               Invalidated
                             </Badge>
                           </span>
@@ -1486,7 +1486,7 @@ export function RetestQueueTable({
                 <NodeRef id={item.node} nodeName={nodeName} />
               </Table.Cell>
               <Table.Cell>
-                <Badge size="xs">{item.method}</Badge>
+                <Badge size="xsmall">{item.method}</Badge>
               </Table.Cell>
               <Table.Cell>
                 {item.procedure ? (
@@ -1502,7 +1502,7 @@ export function RetestQueueTable({
       </Table>
       {shown.length < filtered.length ? (
         <div className="pt-2">
-          <Button variant="link" size="sm" onClick={() => setLimit((n) => n + 120)}>
+          <Button variant="link" size="small" onClick={() => setLimit((n) => n + 120)}>
             Show {Math.min(120, filtered.length - shown.length)} more
           </Button>
         </div>

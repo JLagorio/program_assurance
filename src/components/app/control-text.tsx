@@ -86,7 +86,7 @@ export function ObjectiveList({ items, depth = 0 }: { items: NistObjective[]; de
 
 const methodTone = {
   Examine: "neutral",
-  Interview: "info",
+  Interview: "information",
   Test: "warning",
 } as const;
 
@@ -95,9 +95,9 @@ export function MethodList({ methods }: { methods: NistMethod[] }) {
   return (
     <div className="pt-1">
       {methods.map((m) => (
-        <div key={m.method} className="flex gap-3 border-b border-border-subtle py-2 last:border-0">
+        <div key={m.method} className="flex gap-3 border-b border-border-legacy-subtle py-2 last:border-0">
           <span className="w-[92px] shrink-0 pt-0.5">
-            <Badge tone={methodTone[m.method]} size="xs">
+            <Badge tone={methodTone[m.method]} size="xsmall">
               {m.method}
             </Badge>
           </span>
@@ -177,7 +177,7 @@ export function ReferenceList({ references }: { references: NistReference[] }) {
 /** Small labelled block used down the assessment tab. */
 export function TextBlock({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex gap-3 border-b border-border-subtle py-2 last:border-0">
+    <div className="flex gap-3 border-b border-border-legacy-subtle py-2 last:border-0">
       <span className="w-[132px] shrink-0 text-12 text-muted-foreground">{label}</span>
       <div className="min-w-0 text-[12.5px] leading-relaxed">{children}</div>
     </div>

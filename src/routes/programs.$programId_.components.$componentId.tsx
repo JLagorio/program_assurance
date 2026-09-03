@@ -252,7 +252,7 @@ function ComponentRecord() {
                     <Table.Cell>{t.Integrity.slice(0, 1)}</Table.Cell>
                     <Table.Cell>{t.Availability.slice(0, 1)}</Table.Cell>
                     <Table.Cell>
-                      <Badge size="xs" tone={edge ? "info" : "neutral"}>
+                      <Badge size="xsmall" tone={edge ? "information" : "neutral"}>
                         {edge ? "Serves" : "Contains"}
                       </Badge>
                     </Table.Cell>
@@ -269,7 +269,7 @@ function ComponentRecord() {
         <Section
           title="Security requirements allocated here"
           action={
-            <Button size="sm" variant="primary" onClick={() => setDeciding(true)}>
+            <Button size="small" variant="primary" onClick={() => setDeciding(true)}>
               {undecided.length ? `Review ${undecided.length} unanswered` : "Review applicability"}
             </Button>
           }
@@ -380,7 +380,7 @@ function ComponentRecord() {
                       </Table.Cell>
                       <Table.Cell>
                         {crossesBoundary(edge) ? (
-                          <Badge size="xs" tone="warning">
+                          <Badge size="xsmall" tone="warning">
                             Crosses
                           </Badge>
                         ) : (

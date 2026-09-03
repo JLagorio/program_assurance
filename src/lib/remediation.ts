@@ -18,9 +18,9 @@ import { poamById, type PoamItem } from "@/lib/register";
 export const taskStatuses = ["Complete", "In progress", "Blocked", "Planned"] as const;
 export type TaskStatus = (typeof taskStatuses)[number];
 
-export const taskStatusTone: Record<TaskStatus, "success" | "info" | "danger" | "neutral"> = {
+export const taskStatusTone: Record<TaskStatus, "success" | "information" | "danger" | "neutral"> = {
   Complete: "success",
-  "In progress": "info",
+  "In progress": "information",
   Blocked: "danger",
   Planned: "neutral",
 };

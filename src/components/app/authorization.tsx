@@ -102,7 +102,7 @@ export function AuthorizationSection({
             </>
           }
         >
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-subtle px-3.5 py-2.5">
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-legacy-subtle px-3.5 py-2.5">
             <div className="min-w-0">
               <p className="text-[13px] font-semibold">
                 {authorization.decision} · {authorization.type}
@@ -114,7 +114,7 @@ export function AuthorizationSection({
               </p>
             </div>
             <div className="flex w-[180px] shrink-0 items-center gap-2">
-              <Progress value={readiness} tone={readiness >= 80 ? "success" : "info"} />
+              <Progress value={readiness} tone={readiness >= 80 ? "success" : "information"} />
               <span className="tabular-nums text-[12.5px] text-muted-foreground">{readiness}%</span>
             </div>
           </div>
@@ -234,7 +234,7 @@ export function AuthorizationSection({
         >
           <div className="flex flex-wrap items-center gap-2 pb-2 pt-3">
             {filters.map((f) => (
-              <FilterChip key={f} label={f} active={filter === f} onClick={() => setFilter(f)} />
+              <FilterChip key={f} label={f} isActive={filter === f} onClick={() => setFilter(f)} />
             ))}
           </div>
 
@@ -337,7 +337,7 @@ function ObservationModal({
     <Dialog
       open
       onClose={onClose}
-      width="lg"
+      width="large"
       title="Log assessor observation"
       description="Logged directly by the SCA in the enclave — no spreadsheets, no email."
       aside={
@@ -465,7 +465,7 @@ function RemediationModal({
     <Dialog
       open
       onClose={onClose}
-      width="lg"
+      width="large"
       title={observation.title}
       description={`${observation.id} · ${observation.control} · logged ${observation.logged} by ${observation.loggedBy}`}
       aside={
@@ -640,8 +640,8 @@ export function BriefingRoom() {
           <div
             className={
               pending.length > 0
-                ? "mt-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-warning/30 bg-warning/[0.05] px-3.5 py-2.5"
-                : "mt-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-subtle px-3.5 py-2.5"
+                ? "mt-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-legacy-warning/30 bg-legacy-warning/[0.05] px-3.5 py-2.5"
+                : "mt-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-legacy-subtle px-3.5 py-2.5"
             }
           >
             <div className="min-w-0">
@@ -823,7 +823,7 @@ function RiskDecisionModal({
     <Dialog
       open
       onClose={onClose}
-      width="lg"
+      width="large"
       title={risk.title}
       description={`${risk.id} · ${risk.control} · ${risk.poam}`}
       aside={
@@ -896,7 +896,7 @@ function MemoModal({ open, onClose }: { open: boolean; onClose: () => void }) {
     <Dialog
       open
       onClose={onClose}
-      width="lg"
+      width="large"
       title="Issue authorization memo"
       description="Signed by the Authorizing Official and distributed to the program and the SCA."
       aside={

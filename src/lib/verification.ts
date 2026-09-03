@@ -65,7 +65,7 @@ export type TestEvent = {
 
 export const ingestTone: Record<IngestStatus, Tone> = {
   Parsed: "success",
-  Parsing: "info",
+  Parsing: "information",
   Stale: "warning",
   Failed: "danger",
 };
@@ -79,7 +79,7 @@ export const severityTone: Record<Severity, Tone> = {
 export const findingStatusTone: Record<FindingStatus, Tone> = {
   Open: "danger",
   Mitigating: "warning",
-  "Risk accepted": "info",
+  "Risk accepted": "information",
   Closed: "success",
   "False positive": "neutral",
 };
@@ -92,7 +92,7 @@ export const verdictTone: Record<CheckVerdict, Tone> = {
 };
 
 export const testStatusTone: Record<TestEvent["status"], Tone> = {
-  Scheduled: "info",
+  Scheduled: "information",
   "In progress": "warning",
   Complete: "success",
   "At risk": "danger",

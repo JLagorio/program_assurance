@@ -17,14 +17,14 @@ import { daysUntil } from "@/lib/program-stage";
 import { workstreamsForProgram } from "@/lib/people";
 import type { ControlRow } from "@/lib/control-matrix";
 
-type Tone = "success" | "warning" | "danger" | "info" | "neutral";
+type Tone = "success" | "warning" | "danger" | "information" | "neutral";
 
 function gateTone(g: ProgramGate, daysOut: number | null): Tone {
   if (g.status === "Complete") return "success";
   if (g.status === "Blocked") return "danger";
   if (g.status === "At risk") return "danger";
   if (daysOut !== null && daysOut < 0) return "danger";
-  if (g.status === "In progress") return daysOut !== null && daysOut < 30 ? "warning" : "info";
+  if (g.status === "In progress") return daysOut !== null && daysOut < 30 ? "warning" : "information";
   return "neutral";
 }
 
@@ -77,7 +77,7 @@ export function RmfTimeline({
     >
       <div className="pt-1">
         {byPhase.map(({ phase, gates: phaseGates }) => (
-          <div key={phase} className="border-b border-border-subtle py-3 last:border-0">
+          <div key={phase} className="border-b border-border-legacy-subtle py-3 last:border-0">
             <div className="flex items-baseline gap-2 pb-1.5">
               <h3 className="text-12 font-semibold uppercase tracking-[0.06em] text-muted-foreground">
                 {phase}
@@ -99,17 +99,17 @@ export function RmfTimeline({
                 const openControls = gateControls.filter((c) => c.status !== "Satisfied");
 
                 return (
-                  <li key={g.id} className="border-b border-border-subtle py-2 last:border-0">
+                  <li key={g.id} className="border-b border-border-legacy-subtle py-2 last:border-0">
                     <div className="flex items-center gap-3">
                       <Dot tone={tone} />
                       <Id className="w-16 shrink-0">{g.id}</Id>
                       <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium">
                         {g.name}
                       </span>
-                      <Badge tone={gateKindTone[g.kind]} size="xs">
+                      <Badge tone={gateKindTone[g.kind]} size="xsmall">
                         {g.kind}
                       </Badge>
-                      <Badge tone={tone} size="xs">
+                      <Badge tone={tone} size="xsmall">
                         {g.status}
                       </Badge>
                       <span className="tnum w-24 shrink-0 text-right text-12 text-muted-foreground">
@@ -118,7 +118,7 @@ export function RmfTimeline({
                       <span
                         className={cn(
                           "tnum w-24 shrink-0 text-right text-12",
-                          tone === "danger" ? "text-danger" : "text-muted-foreground",
+                          tone === "danger" ? "text-legacy-danger" : "text-muted-foreground",
                         )}
                       >
                         {timing(g, daysOut)}
@@ -187,7 +187,7 @@ export function RmfTimeline({
                     ) : null}
 
                     {openControls.length > 0 ? (
-                      <p className="tnum pl-[76px] pt-1 text-11 text-danger">
+                      <p className="tnum pl-[76px] pt-1 text-11 text-legacy-danger">
                         {openControls.length} linked controls not yet satisfied
                       </p>
                     ) : null}
@@ -244,12 +244,12 @@ export function GateOutlookSection({
               </Table.Cell>
               <Table.Cell className="truncate">{gate.name}</Table.Cell>
               <Table.Cell>
-                <Badge tone={tone} size="xs">
+                <Badge tone={tone} size="xsmall">
                   {gate.status}
                 </Badge>
               </Table.Cell>
               <Table.Cell className="tnum">{gate.planned}</Table.Cell>
-              <Table.Cell className={cn("tnum", tone === "danger" ? "text-danger" : "")}>
+              <Table.Cell className={cn("tnum", tone === "danger" ? "text-legacy-danger" : "")}>
                 {timing(gate, daysOut)}
               </Table.Cell>
               <Table.Cell className="truncate">

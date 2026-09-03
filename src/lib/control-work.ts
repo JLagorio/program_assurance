@@ -117,7 +117,7 @@ export const implementationTone: Record<ImplementationState, Tone> = {
   "Not implemented": "neutral",
   Planned: "neutral",
   "Partially implemented": "warning",
-  Implemented: "info",
+  Implemented: "information",
 };
 
 export const assessmentTone: Record<AssessmentState, Tone> = {

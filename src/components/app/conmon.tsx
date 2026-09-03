@@ -112,7 +112,7 @@ function ProseBlock({
       <div
         className={cn(
           "text-[11px] font-medium uppercase tracking-[0.06em]",
-          tone === "warning" ? "text-warning" : "text-muted-foreground",
+          tone === "warning" ? "text-legacy-warning" : "text-muted-foreground",
         )}
       >
         {label}
@@ -131,11 +131,11 @@ function ProseBlock({
  */
 export function DriftBandChip({
   band,
-  size = "sm",
+  size = "small",
   provisional = false,
 }: {
   band: DriftBand;
-  size?: "xs" | "sm";
+  size?: "xsmall" | "small";
   provisional?: boolean;
 }) {
   return (
@@ -147,7 +147,7 @@ export function DriftBandChip({
 
 export function AssessmentStatusChip({ status }: { status: ScheduleRow["status"] }) {
   return (
-    <Badge size="xs" tone={assessmentStatusTone[status]}>
+    <Badge size="xsmall" tone={assessmentStatusTone[status]}>
       {status}
     </Badge>
   );
@@ -155,7 +155,7 @@ export function AssessmentStatusChip({ status }: { status: ScheduleRow["status"]
 
 export function FreshnessChip({ freshness }: { freshness: EvidenceSlaRow["freshness"] }) {
   return (
-    <Badge size="xs" tone={freshnessTone[freshness]}>
+    <Badge size="xsmall" tone={freshnessTone[freshness]}>
       {freshness}
     </Badge>
   );
@@ -168,7 +168,7 @@ export function FreshnessChip({ freshness }: { freshness: EvidenceSlaRow["freshn
  */
 export function MethodChip({ method }: { method: ScheduleRow["method"] }) {
   return (
-    <Badge size="xs" tone={slcmMethodTone[method]}>
+    <Badge size="xsmall" tone={slcmMethodTone[method]}>
       {method}
     </Badge>
   );
@@ -232,11 +232,11 @@ export function DriftCard({
           ) : null}
         </div>
 
-        <div className="space-y-3 border-t border-border bg-subtle px-4 py-3 sm:border-l sm:border-t-0">
+        <div className="space-y-3 border-t border-border bg-legacy-subtle px-4 py-3 sm:border-l sm:border-t-0">
           <ProseBlock label="What this says">{score.headline}</ProseBlock>
           {score.caveats.length > 0 ? (
             <div>
-              <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-warning">
+              <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-legacy-warning">
                 {score.caveats.length} caveat{score.caveats.length === 1 ? "" : "s"} — the score is
                 a floor, not a verdict
               </div>
@@ -426,7 +426,7 @@ function MissingDriftFactorRows({
       <Table.Row className="border-0 align-top hover:bg-transparent">
         <Table.Cell className="py-2 align-top">{label}</Table.Cell>
         <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
-          <Badge size="xs" tone="warning">
+          <Badge size="xsmall" tone="warning">
             Not measured
           </Badge>
         </Table.Cell>
@@ -475,7 +475,7 @@ export function AlertSummary({ alerts }: { alerts: ConMonAlert[] }) {
       <span className="flex flex-wrap items-center gap-2">
         {bySeverity.map((s) => (
           <span key={s.severity} className="flex items-center gap-1.5">
-            <Badge size="xs" tone={s.count > 0 ? alertSeverityTone[s.severity] : "neutral"}>
+            <Badge size="xsmall" tone={s.count > 0 ? alertSeverityTone[s.severity] : "neutral"}>
               {s.severity}
             </Badge>
             <span
@@ -531,7 +531,7 @@ export function AlertList({
       {alerts.map((alert) => (
         <li key={alert.id} className="px-4 py-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge size="xs" tone={alertSeverityTone[alert.severity]}>
+            <Badge size="xsmall" tone={alertSeverityTone[alert.severity]}>
               {alert.severity}
             </Badge>
             <span className="text-[13px] font-semibold tracking-[-0.005em]">{alert.kind}</span>
@@ -645,7 +645,7 @@ function ScheduleRows({ row, explain }: { row: ScheduleRow; explain: boolean }) 
         <Table.Cell
           className={cn(
             "py-2 align-top text-right",
-            row.daysOut !== null && row.daysOut < 0 ? "text-danger" : "",
+            row.daysOut !== null && row.daysOut < 0 ? "text-legacy-danger" : "",
           )}
         >
           <Days value={row.daysOut} />
@@ -732,7 +732,7 @@ function FreshnessRows({ row, explain }: { row: EvidenceSlaRow; explain: boolean
         </Table.Cell>
         <Table.Cell className="py-2 align-top" title={row.requirement}>
           <span className="flex items-center gap-1.5">
-            <Badge size="xs" tone="neutral">
+            <Badge size="xsmall" tone="neutral">
               {unit}
             </Badge>
             <span className="min-w-0 truncate">{requirement}</span>
@@ -748,7 +748,7 @@ function FreshnessRows({ row, explain }: { row: EvidenceSlaRow; explain: boolean
         <Table.Cell className="tnum py-2 align-top">
           {row.collected === "—" ? <Absent /> : row.collected}
         </Table.Cell>
-        <Table.Cell className={cn("py-2 align-top text-right", overdue ? "text-danger" : "")}>
+        <Table.Cell className={cn("py-2 align-top text-right", overdue ? "text-legacy-danger" : "")}>
           <Days value={row.ageDays} />
         </Table.Cell>
         <Table.Cell className="tnum py-2 align-top text-right">{row.slaDays}d</Table.Cell>
@@ -858,14 +858,14 @@ export function CadenceTable({ rows }: { rows: CadenceRow[] }) {
                   row.actualDays !== null &&
                     row.expectedDays > 0 &&
                     row.actualDays > row.expectedDays
-                    ? "text-danger"
+                    ? "text-legacy-danger"
                     : "",
                 )}
               >
                 <Days value={row.actualDays} />
               </Table.Cell>
               <Table.Cell className="py-2 align-top">
-                <Badge size="xs" tone={label.tone}>
+                <Badge size="xsmall" tone={label.tone}>
                   {label.text}
                 </Badge>
               </Table.Cell>
@@ -947,13 +947,13 @@ function SlippageRows({ row }: { row: SlippageRow }) {
           {row.scheduled === "—" ? <Absent /> : row.scheduled}
         </Table.Cell>
         <Table.Cell
-          className={cn("tnum py-2 align-top text-right", row.slipDays > 0 ? "text-warning" : "")}
+          className={cn("tnum py-2 align-top text-right", row.slipDays > 0 ? "text-legacy-warning" : "")}
         >
           {row.slipDays > 0 ? `+${row.slipDays}d` : `${zeroSafe(row.slipDays)}d`}
         </Table.Cell>
         <Table.Cell className="tnum py-2 align-top text-right">{row.revisions}</Table.Cell>
         <Table.Cell className="py-2 align-top">
-          <Badge size="xs" tone={statusTone(row.status)}>
+          <Badge size="xsmall" tone={statusTone(row.status)}>
             {row.status}
           </Badge>
         </Table.Cell>

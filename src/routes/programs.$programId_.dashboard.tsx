@@ -67,9 +67,9 @@ function DashboardStat({
       <div
         className={cn(
           "tnum mt-1 text-[22px] font-semibold leading-none",
-          tone === "danger" && "text-danger",
-          tone === "warning" && "text-warning",
-          tone === "success" && "text-success",
+          tone === "danger" && "text-legacy-danger",
+          tone === "warning" && "text-legacy-warning",
+          tone === "success" && "text-legacy-success",
         )}
       >
         {value}
@@ -80,8 +80,8 @@ function DashboardStat({
   );
 }
 
-const deadlineTone: Record<string, "success" | "warning" | "danger" | "info" | "neutral"> = {
-  Gate: "info",
+const deadlineTone: Record<string, "success" | "warning" | "danger" | "information" | "neutral"> = {
+  Gate: "information",
   "POA&M": "warning",
   Control: "neutral",
 };
@@ -115,7 +115,7 @@ function DeadlineRow({ programId, d }: { programId: string; d: Deadline }) {
     <Table.Row>
       <Table.Cell>{idCell}</Table.Cell>
       <Table.Cell>
-        <Badge tone={deadlineTone[d.kind] ?? "neutral"} size="xs">
+        <Badge tone={deadlineTone[d.kind] ?? "neutral"} size="xsmall">
           {d.kind}
         </Badge>
       </Table.Cell>
@@ -129,7 +129,7 @@ function DeadlineRow({ programId, d }: { programId: string; d: Deadline }) {
       <Table.Cell
         className={cn(
           "tnum text-right",
-          d.tone === "danger" ? "text-danger" : d.tone === "warning" ? "text-warning" : "",
+          d.tone === "danger" ? "text-legacy-danger" : d.tone === "warning" ? "text-legacy-warning" : "",
         )}
       >
         {timing}
@@ -363,18 +363,18 @@ function ProgramDashboard() {
                     {gate.name}
                   </Table.Cell>
                   <Table.Cell>
-                    <Badge tone={gateKindTone[gate.kind]} size="xs">
+                    <Badge tone={gateKindTone[gate.kind]} size="xsmall">
                       {gate.kind}
                     </Badge>
                   </Table.Cell>
                   <Table.Cell>
-                    <Badge tone={tone} size="xs">
+                    <Badge tone={tone} size="xsmall">
                       {gate.status}
                     </Badge>
                   </Table.Cell>
                   <Table.Cell className="tnum text-right">{gate.planned}</Table.Cell>
                   <Table.Cell
-                    className={cn("tnum text-right", tone === "danger" ? "text-danger" : "")}
+                    className={cn("tnum text-right", tone === "danger" ? "text-legacy-danger" : "")}
                   >
                     {daysOut === null
                       ? "—"

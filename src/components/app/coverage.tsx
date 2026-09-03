@@ -12,17 +12,17 @@ import { cn } from "@/lib/utils";
 import type { Coverage, MilestoneNode } from "@/lib/program-coverage";
 
 const toneText: Record<string, string> = {
-  success: "text-success",
-  warning: "text-warning",
-  danger: "text-danger",
+  success: "text-legacy-success",
+  warning: "text-legacy-warning",
+  danger: "text-legacy-danger",
   info: "text-primary",
   neutral: "text-muted-foreground",
 };
 
 const toneDot: Record<string, string> = {
-  success: "bg-success",
-  warning: "bg-warning",
-  danger: "bg-danger",
+  success: "bg-legacy-success",
+  warning: "bg-legacy-warning",
+  danger: "bg-legacy-danger",
   info: "bg-primary",
   neutral: "bg-muted-foreground/40",
 };
@@ -88,7 +88,7 @@ export function CoverageBand({
                 key={f.id}
                 type="button"
                 onClick={() => onSelectFamily(f.id)}
-                className="group flex items-center gap-3 border-b border-border-subtle py-1.5 text-left last:border-0"
+                className="group flex items-center gap-3 border-b border-border-legacy-subtle py-1.5 text-left last:border-0"
               >
                 <Id className="w-8 shrink-0 text-muted-foreground">{f.id}</Id>
                 <span className="min-w-0 flex-1 truncate text-12 group-hover:underline">
@@ -134,7 +134,6 @@ export function MilestoneTrack({
             <Stepper.Item
               key={n.id}
               state={n.state}
-              tone={n.tone}
               label={n.id}
               meta={
                 <>

@@ -95,7 +95,7 @@ function ComponentLibrary() {
                     >
                       <Table.Id
                         id={c.key}
-                        active={preview?.key === c.key}
+                        isActive={preview?.key === c.key}
                         onPreview={() => setPreview(c)}
                       />
                       <Table.Cell className="truncate">{c.name}</Table.Cell>

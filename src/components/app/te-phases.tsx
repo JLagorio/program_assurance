@@ -80,7 +80,7 @@ function useCap<T>(rows: T[], initial: number) {
  */
 export function TierChip({ tier }: { tier: string }) {
   return (
-    <Badge size="xs">
+    <Badge size="xsmall">
       <span className="tracking-[0.04em]">Tier {tier}</span>
     </Badge>
   );
@@ -96,7 +96,7 @@ function GateCount({ label, met, total }: { label: string; met: number; total: n
   return (
     <span className="flex items-center gap-1 text-[12px]">
       <span className="text-muted-foreground">{label}</span>
-      <Badge size="xs" tone={tone}>
+      <Badge size="xsmall" tone={tone}>
         <span className="tnum">
           {met}/{total}
         </span>
@@ -154,12 +154,12 @@ export function PhaseTrack({
             key={regime.kind}
             className={cn(
               "rounded-lg border",
-              operational ? "border-primary/25 bg-primary-soft/25" : "border-border bg-subtle/60",
+              operational ? "border-primary/25 bg-primary-soft/25" : "border-border bg-legacy-subtle/60",
             )}
           >
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-border px-4 py-2.5">
               <h3 className="text-[12.5px] font-semibold">{regime.title}</h3>
-              <Badge size="xs" tone={operational ? "info" : "neutral"}>
+              <Badge size="xsmall" tone={operational ? "information" : "neutral"}>
                 {operational ? "OT&E" : "DT&E"}
               </Badge>
               <span className="text-[12px] text-muted-foreground">
@@ -213,7 +213,7 @@ function PhaseCard({
           className={cn(
             "tnum mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold ring-1 ring-inset",
             phase.state === "Complete"
-              ? "bg-success-soft text-success ring-success/25"
+              ? "bg-success-soft text-legacy-success ring-legacy-success/25"
               : "bg-card text-muted-foreground ring-border-strong",
           )}
         >
@@ -246,7 +246,7 @@ function PhaseCard({
                 <span>No campaign — this phase produces a record, not an execution</span>
               ) : (
                 phase.campaigns.map((id) => (
-                  <Badge key={id} size="xs">
+                  <Badge key={id} size="xsmall">
                     <span className="text-[11.5px]" title={campaignName?.(id) ?? id}>
                       {id}
                     </span>
@@ -260,7 +260,7 @@ function PhaseCard({
             <span
               className={cn(
                 "mt-1.5 block truncate text-[12px]",
-                blocked ? "text-warning" : "text-success",
+                blocked ? "text-legacy-warning" : "text-legacy-success",
               )}
               title={readiness.blocker === "—" ? undefined : readiness.blocker}
             >
@@ -339,10 +339,10 @@ export function PhaseReadinessSummary({
         className={cn(
           "rounded-lg border px-4 py-3",
           verdict.tone === "success"
-            ? "border-success/30 bg-success-soft/40"
+            ? "border-legacy-success/30 bg-success-soft/40"
             : verdict.tone === "warning"
-              ? "border-warning/30 bg-warning-soft/40"
-              : "border-danger/30 bg-danger-soft/40",
+              ? "border-legacy-warning/30 bg-warning-soft/40"
+              : "border-legacy-danger/30 bg-danger-soft/40",
         )}
       >
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
@@ -407,7 +407,7 @@ export function PhaseReadinessSummary({
 function BasisChip({ criterion }: { criterion: PhaseCriterion }) {
   if (criterion.basis === "Derived") {
     return (
-      <Badge tone="info" icon={<Calculator className="size-3" />}>
+      <Badge tone="information" icon={<Calculator className="size-3" />}>
         Derived
       </Badge>
     );
@@ -447,16 +447,16 @@ function CriterionRow({
         "border-l-2 py-3 pl-3.5",
         derivedBasis
           ? met
-            ? "border-success/50"
+            ? "border-legacy-success/50"
             : "border-primary/50"
           : unsignedAttestation
-            ? "border-danger"
+            ? "border-legacy-danger"
             : "border-dashed border-border-strong",
       )}
     >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <Id>{criterion.id}</Id>
-        <Badge size="xs">{criterion.kind}</Badge>
+        <Badge size="xsmall">{criterion.kind}</Badge>
         <BasisChip criterion={criterion} />
         <span className="ml-auto flex items-center gap-2">
           <Badge tone={met ? "success" : "danger"}>{met ? "Met" : "Not met"}</Badge>
@@ -470,14 +470,14 @@ function CriterionRow({
           "mt-2 rounded-md border px-3 py-2",
           derivedBasis
             ? met
-              ? "border-success/25 bg-success-soft/30"
-              : "border-warning/30 bg-warning-soft/30"
+              ? "border-legacy-success/25 bg-success-soft/30"
+              : "border-legacy-warning/30 bg-warning-soft/30"
             : unsignedAttestation
-              ? "border-danger/30 bg-danger-soft/40"
-              : "border-border bg-subtle",
+              ? "border-legacy-danger/30 bg-danger-soft/40"
+              : "border-border bg-legacy-subtle",
         )}
       >
-        <Eyebrow tone={derivedBasis ? "info" : unsignedAttestation ? "danger" : "neutral"}>
+        <Eyebrow tone={derivedBasis ? "information" : unsignedAttestation ? "danger" : "neutral"}>
           {derivedBasis
             ? "Computed now"
             : unsignedAttestation
@@ -501,7 +501,7 @@ function CriterionRow({
             <CornerDownRight className="mt-0.5 size-3 shrink-0" />
             <span>
               Signer{" "}
-              <span className={signed ? "font-medium text-foreground" : "font-medium text-danger"}>
+              <span className={signed ? "font-medium text-foreground" : "font-medium text-legacy-danger"}>
                 {criterion.attestedBy}
               </span>
             </span>
@@ -510,7 +510,7 @@ function CriterionRow({
               <span
                 className={cn(
                   "tnum",
-                  signed ? "font-medium text-foreground" : "font-medium text-danger",
+                  signed ? "font-medium text-foreground" : "font-medium text-legacy-danger",
                 )}
               >
                 {criterion.attestedOn}
@@ -565,7 +565,7 @@ export function CriteriaTable({
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 pb-1 text-[12px] text-muted-foreground">
         <span className="tnum">
           <span
-            className={cn("font-medium", met === scoped.length ? "text-success" : "text-warning")}
+            className={cn("font-medium", met === scoped.length ? "text-legacy-success" : "text-legacy-warning")}
           >
             {met}
           </span>{" "}
@@ -575,7 +575,7 @@ export function CriteriaTable({
           {derived} derived · {attested} attested
         </span>
       </div>
-      <ul className="divide-y divide-border-subtle">
+      <ul className="divide-y divide-border-legacy-subtle">
         {scoped.map((c) => (
           <CriterionRow key={c.id} criterion={c} result={results.get(c.id) ?? null} />
         ))}
@@ -649,7 +649,7 @@ export function ScenarioTable({
               )}
               onClick={onSelect ? () => onSelect(s.id) : undefined}
             >
-              <Table.Id id={s.id} tone={onSelect ? "primary" : "muted"} />
+              <Table.Id id={s.id} tone={onSelect ? "brand" : "subtle"} />
               <Table.Cell className="truncate" title={`${s.name} — ${s.objective}`}>
                 {s.name}
               </Table.Cell>
@@ -672,7 +672,7 @@ export function ScenarioTable({
                     {last && first && last.tactic !== first.tactic ? ` → ${last.tactic}` : ""}
                   </span>
                   {ics ? (
-                    <Badge size="xs" tone="info">
+                    <Badge size="xsmall" tone="information">
                       ICS
                     </Badge>
                   ) : null}
@@ -727,7 +727,7 @@ const zoneTone: Record<string, Tone> = {
   Public: "danger",
   DMZ: "warning",
   Enclave: "neutral",
-  Management: "info",
+  Management: "information",
   Isolated: "success",
 };
 
@@ -742,7 +742,7 @@ function TechniqueStep({ step, n }: { step: ThreatScenario["chain"][number]; n: 
           {step.tactic}
         </span>
         {step.matrix === "ICS" ? (
-          <Badge size="xs" tone="info" className="ml-auto">
+          <Badge size="xsmall" tone="information" className="ml-auto">
             ICS
           </Badge>
         ) : null}
@@ -821,7 +821,7 @@ export function AttackChain({
 
       {/* The chain */}
       <div className="mt-4">
-        <Eyebrow tone="info">ATT&amp;CK chain — in order</Eyebrow>
+        <Eyebrow tone="information">ATT&amp;CK chain — in order</Eyebrow>
         <div className="mt-2 flex flex-wrap items-stretch gap-1.5">
           {scenario.chain.map((step, i) => (
             <div key={`${step.id}-${i}`} className="flex min-w-[168px] flex-1 items-center gap-1.5">
@@ -836,7 +836,7 @@ export function AttackChain({
 
       {/* The walk */}
       <div className="mt-4">
-        <Eyebrow tone="info">Through the composition graph</Eyebrow>
+        <Eyebrow tone="information">Through the composition graph</Eyebrow>
         <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
           Each step below is either a reachability edge in the direction of travel or a containment
           link into what a component is made of. Both are ways an adversary actually moves; a step
@@ -862,17 +862,17 @@ export function AttackChain({
                     <span
                       className={cn(
                         "w-px shrink-0",
-                        hop.via === "Unwalkable" ? "bg-danger" : "bg-border-strong",
+                        hop.via === "Unwalkable" ? "bg-legacy-danger" : "bg-border-strong",
                       )}
                       aria-hidden
                     />
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 py-1.5 text-[12px]">
                       {hop.via === "Unwalkable" ? (
-                        <Badge size="xs" tone="danger">
+                        <Badge size="xsmall" tone="danger">
                           No path in the graph
                         </Badge>
                       ) : (
-                        <Badge size="xs" tone="neutral">
+                        <Badge size="xsmall" tone="neutral">
                           {hop.kind}
                         </Badge>
                       )}
@@ -880,7 +880,7 @@ export function AttackChain({
                         <span className="text-muted-foreground">{hop.label}</span>
                       ) : null}
                       {hop.crossesBoundary && previous ? (
-                        <Badge size="xs" tone="warning">
+                        <Badge size="xsmall" tone="warning">
                           Crosses {previous.zone} → {node.zone}
                         </Badge>
                       ) : null}
@@ -898,9 +898,9 @@ export function AttackChain({
                     className={cn(
                       "inline-flex size-[22px] shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ring-1 ring-inset",
                       i === 0
-                        ? "bg-warning-soft text-warning ring-warning/30"
+                        ? "bg-warning-soft text-legacy-warning ring-legacy-warning/30"
                         : i === path.length - 1
-                          ? "bg-danger-soft text-danger ring-danger/25"
+                          ? "bg-danger-soft text-legacy-danger ring-legacy-danger/25"
                           : "bg-muted text-muted-foreground ring-border-strong",
                     )}
                   >
@@ -911,10 +911,10 @@ export function AttackChain({
                     <span className="text-[12.5px] font-medium">
                       {node.missing ? "Not in the graph" : node.name}
                     </span>
-                    <Badge size="xs" tone={node.missing ? "danger" : "neutral"}>
+                    <Badge size="xsmall" tone={node.missing ? "danger" : "neutral"}>
                       {node.kind}
                     </Badge>
-                    <Badge size="xs" tone={zoneTone[node.zone] ?? "neutral"}>
+                    <Badge size="xsmall" tone={zoneTone[node.zone] ?? "neutral"}>
                       {node.zone}
                     </Badge>
                     <span className="text-[12px] text-muted-foreground">{node.criticality}</span>
@@ -1029,13 +1029,13 @@ export function MissionEffectTable({
                   <Id>{e.confirmedBy}</Id>
                 </Table.Cell>
                 <Table.Cell>
-                  <Badge size="xs" tone={e.reproduced ? "neutral" : "warning"}>
+                  <Badge size="xsmall" tone={e.reproduced ? "neutral" : "warning"}>
                     {e.reproduced ? "Reproduced" : "Single observation"}
                   </Badge>
                 </Table.Cell>
                 <Table.Cell>
                   {e.findings.length === 0 ? (
-                    <Badge size="xs" tone={none ? "neutral" : "danger"}>
+                    <Badge size="xsmall" tone={none ? "neutral" : "danger"}>
                       {none ? "None needed" : "None raised"}
                     </Badge>
                   ) : (
@@ -1049,16 +1049,16 @@ export function MissionEffectTable({
                   )}
                 </Table.Cell>
               </Table.Row>
-              <tr className="border-b border-border-subtle last:border-0">
+              <tr className="border-b border-border-legacy-subtle last:border-0">
                 <td colSpan={7} className="px-3 pb-4 pt-0 align-top">
                   <div
                     className={cn(
                       "rounded-md border-l-2 pl-3",
                       none
-                        ? "border-success/50"
+                        ? "border-legacy-success/50"
                         : noWorkaround
-                          ? "border-danger/60"
-                          : "border-warning/50",
+                          ? "border-legacy-danger/60"
+                          : "border-legacy-warning/50",
                     )}
                   >
                     <Eyebrow tone={none ? "success" : "neutral"}>
@@ -1081,7 +1081,7 @@ export function MissionEffectTable({
                         <p
                           className={cn(
                             "mt-0.5 whitespace-normal text-[12.5px] leading-relaxed",
-                            noWorkaround ? "text-danger" : "text-muted-foreground",
+                            noWorkaround ? "text-legacy-danger" : "text-muted-foreground",
                           )}
                         >
                           {noWorkaround
@@ -1182,7 +1182,7 @@ export function AttackSurfaceSummary({
               </div>
               {cap.hidden > 0 || cap.expanded ? (
                 <div className="pt-2">
-                  <Button variant="link" size="sm" onClick={cap.toggle}>
+                  <Button variant="link" size="small" onClick={cap.toggle}>
                     {cap.expanded ? "Show fewer" : `Show ${cap.hidden} more`}
                   </Button>
                 </div>

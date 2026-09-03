@@ -356,7 +356,7 @@ function ProgramComposition() {
                         </button>
                       </Table.Cell>
                       <Table.Cell>
-                        <Badge size="xs">{e.kind}</Badge>
+                        <Badge size="xsmall">{e.kind}</Badge>
                       </Table.Cell>
                       <Table.Cell className="truncate">
                         <button
@@ -373,7 +373,7 @@ function ProgramComposition() {
                       <Table.Cell>{e.critical ? "No redundancy" : "Redundant"}</Table.Cell>
                       <Table.Cell>
                         {crossesBoundary(e) ? (
-                          <Badge size="xs" tone="warning">
+                          <Badge size="xsmall" tone="warning">
                             {zoneOf(e.from)} → {zoneOf(e.to)}
                           </Badge>
                         ) : (
@@ -470,7 +470,7 @@ function ProgramComposition() {
                           {d.producer}
                         </Table.Cell>
                         <Table.Cell
-                          className={isStale ? "tnum text-right text-warning" : "tnum text-right"}
+                          className={isStale ? "tnum text-right text-legacy-warning" : "tnum text-right"}
                           title={age === null ? d.received : `${age} days old`}
                         >
                           {d.received}
@@ -488,7 +488,7 @@ function ProgramComposition() {
                         </Table.Cell>
                         <Table.Cell>
                           <span className="flex items-center gap-1.5">
-                            <Badge size="xs" tone={d.signed ? "success" : "warning"}>
+                            <Badge size="xsmall" tone={d.signed ? "success" : "warning"}>
                               {d.signed ? "Signed" : "Unsigned"}
                             </Badge>
                             <span title={`sha256:${d.sha256}`}>

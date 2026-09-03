@@ -42,7 +42,7 @@ import type { ImpactLevel } from "@/lib/grc-data";
 const actionTone = {
   Added: "success",
   "Tailored out": "danger",
-  "Parameter set": "info",
+  "Parameter set": "information",
 } as const;
 
 function now() {
@@ -96,7 +96,7 @@ export function TailoringSection({
     log(
       `Submitted tailored scope for PM approval — ${result.total} controls, ${result.overlays.length} overlays`,
       "Sarah Chen (SSE)",
-      "info",
+      "information",
     );
     toast.success("Scope sent for PM approval", {
       description: `${programId} · ${result.total} controls · ${result.overlays.length} overlays`,
@@ -122,7 +122,7 @@ export function TailoringSection({
     <>
       <div className="space-y-7">
         {/* ------------------------------------------------ approval banner */}
-        <div className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-subtle px-3.5 py-2.5">
+        <div className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-legacy-subtle px-3.5 py-2.5">
           <Badge tone={approvalTone[state]}>{state}</Badge>
           <span className="min-w-0 flex-1 truncate text-[12.5px] text-muted-foreground">
             {state === "Approved"
@@ -291,13 +291,13 @@ export function TailoringSection({
       <Dialog
         open={editing}
         onClose={() => setEditing(false)}
-        width="lg"
+        width="large"
         title="System parameters"
         description="The engine recomputes the baseline and overlays as you type."
         aside={<ScopePreview params={draft} />}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setEditing(false)}>
+            <Button variant="subtle" onClick={() => setEditing(false)}>
               Cancel
             </Button>
             <Button variant="primary" onClick={saveParams}>
@@ -416,7 +416,7 @@ export function TailoringSection({
         description={`${programId} · ${result.total} controls · ${result.overlays.length} overlays`}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setDeciding(null)}>
+            <Button variant="subtle" onClick={() => setDeciding(null)}>
               Cancel
             </Button>
             <Button
@@ -474,7 +474,7 @@ function ScopePreview({ params }: { params: SystemParameters }) {
       <ul className="mt-1.5 space-y-1">
         {r.overlays.map((o) => (
           <li key={o.id} className="flex items-center gap-2 text-[12.5px]">
-            <Dot tone="info" />
+            <Dot tone="information" />
             <span className="truncate">{o.name}</span>
           </li>
         ))}

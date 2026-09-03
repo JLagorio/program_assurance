@@ -130,7 +130,7 @@ function Evidence() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {captures.map((cap) => (
             <Card key={cap.title} className="overflow-hidden">
-              <div className="aspect-[16/10] overflow-hidden border-b border-border bg-subtle">
+              <div className="aspect-[16/10] overflow-hidden border-b border-border bg-legacy-subtle">
                 <img
                   src={cap.src}
                   alt={cap.title}

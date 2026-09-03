@@ -628,7 +628,7 @@ function ProgramTePhases() {
                         disagree with the arithmetic rather than with the verdict.
                       </p>
                     </div>
-                    <div className="rounded-lg border border-border bg-subtle px-4 py-3">
+                    <div className="rounded-lg border border-border bg-legacy-subtle px-4 py-3">
                       <div className="flex items-baseline gap-2">
                         <span className="tnum text-[20px] font-semibold leading-none">
                           {attestedCount}
@@ -755,9 +755,9 @@ function ProgramTePhases() {
                 }
               >
                 <div className="grid gap-3 pt-4 sm:grid-cols-3">
-                  <div className="rounded-lg border border-danger/30 bg-danger-soft/40 px-4 py-3">
+                  <div className="rounded-lg border border-legacy-danger/30 bg-danger-soft/40 px-4 py-3">
                     <div className="flex items-baseline gap-2">
-                      <span className="tnum text-[20px] font-semibold leading-none text-danger">
+                      <span className="tnum text-[20px] font-semibold leading-none text-legacy-danger">
                         {
                           effects.filter(
                             (e) =>
@@ -774,9 +774,9 @@ function ProgramTePhases() {
                       it runs on. These are the results a findings count cannot express.
                     </p>
                   </div>
-                  <div className="rounded-lg border border-warning/30 bg-warning-soft/40 px-4 py-3">
+                  <div className="rounded-lg border border-legacy-warning/30 bg-warning-soft/40 px-4 py-3">
                     <div className="flex items-baseline gap-2">
-                      <span className="tnum text-[20px] font-semibold leading-none text-warning">
+                      <span className="tnum text-[20px] font-semibold leading-none text-legacy-warning">
                         {
                           effects.filter(
                             (e) => e.effect === "Degraded" || e.effect === "Manipulated",
@@ -791,9 +791,9 @@ function ProgramTePhases() {
                       is visible.
                     </p>
                   </div>
-                  <div className="rounded-lg border border-success/30 bg-success-soft/40 px-4 py-3">
+                  <div className="rounded-lg border border-legacy-success/30 bg-success-soft/40 px-4 py-3">
                     <div className="flex items-baseline gap-2">
-                      <span className="tnum text-[20px] font-semibold leading-none text-success">
+                      <span className="tnum text-[20px] font-semibold leading-none text-legacy-success">
                         {effects.filter((e) => e.effect === "No effect").length}
                       </span>
                       <span className="text-[12.5px] font-medium">no effect</span>
@@ -876,12 +876,12 @@ function PhaseRail({
           </span>
         </KeyValue>
         <KeyValue label="Can enter">
-          <Badge size="xs" tone={readiness?.canEnter ? "success" : "danger"}>
+          <Badge size="xsmall" tone={readiness?.canEnter ? "success" : "danger"}>
             {readiness?.canEnter ? "Yes" : "No"}
           </Badge>
         </KeyValue>
         <KeyValue label="Can exit">
-          <Badge size="xs" tone={readiness?.canExit ? "success" : "warning"}>
+          <Badge size="xsmall" tone={readiness?.canExit ? "success" : "warning"}>
             {readiness?.canExit ? "Yes" : "No"}
           </Badge>
         </KeyValue>
@@ -1014,7 +1014,7 @@ function MissionFunctionTable({
             </Table.Cell>
             <Table.Cell className="tnum text-right">{r.count}</Table.Cell>
             <Table.Cell className="tnum text-right">{r.scenarios.size}</Table.Cell>
-            <Table.Cell className={r.noWorkaround > 0 ? "text-danger" : undefined}>
+            <Table.Cell className={r.noWorkaround > 0 ? "text-legacy-danger" : undefined}>
               {r.noWorkaround > 0
                 ? `${r.noWorkaround} with none identified`
                 : r.worst === "No effect"

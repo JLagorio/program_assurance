@@ -72,10 +72,10 @@ function Components() {
           >
             <Button variant="primary">Request evidence</Button>
             <Button variant="secondary">Export</Button>
-            <Button variant="ghost">Cancel</Button>
+            <Button variant="subtle">Cancel</Button>
             <Button variant="danger">Delete</Button>
             <Button variant="link">View report</Button>
-            <IconButton aria-label="More">
+            <IconButton label="More">
               <MoreHorizontal className="size-4" />
             </IconButton>
           </CardSection>
@@ -84,7 +84,7 @@ function Components() {
             <Badge tone="success">Passing</Badge>
             <Badge tone="warning">Needs review</Badge>
             <Badge tone="danger">Failing</Badge>
-            <Badge tone="info">Automated</Badge>
+            <Badge tone="information">Automated</Badge>
             <Badge tone="neutral">Accepted</Badge>
             <span className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
               <Dot tone="success" /> Live check
@@ -92,7 +92,7 @@ function Components() {
           </CardSection>
 
           <CardSection title="Filters" description="Dashed chips until a value is applied.">
-            <FilterChip label="Framework" value="SOC 2" active />
+            <FilterChip label="Framework" value="SOC 2" isActive />
             <FilterChip label="Owner" />
             <FilterChip label="Updated" />
           </CardSection>
@@ -104,7 +104,7 @@ function Components() {
             <div className="w-full space-y-3">
               {[
                 { label: "SOC 2", value: 94, tone: "success" as const },
-                { label: "ISO 27001", value: 81, tone: "info" as const },
+                { label: "ISO 27001", value: 81, tone: "information" as const },
                 { label: "HIPAA", value: 62, tone: "warning" as const },
               ].map((row) => (
                 <div key={row.label} className="flex items-center gap-3">

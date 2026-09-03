@@ -127,7 +127,7 @@ function Callout({
       <div
         className={cn(
           "flex items-center gap-1.5 text-[12.5px] font-semibold",
-          tone === "danger" ? "text-danger" : "text-warning",
+          tone === "danger" ? "text-legacy-danger" : "text-legacy-warning",
         )}
       >
         <Dot tone={tone} />
@@ -367,7 +367,7 @@ export function ObjectiveExecutionTable({
             <Table.Cell className="truncate">{row.statement}</Table.Cell>
             <Table.Cell className="truncate">
               {row.procedures.length === 0 ? (
-                <span className="text-danger">None written</span>
+                <span className="text-legacy-danger">None written</span>
               ) : (
                 <Id className="text-muted-foreground">{row.procedures.join(", ")}</Id>
               )}
@@ -379,7 +379,7 @@ export function ObjectiveExecutionTable({
               <span className="flex items-center gap-1.5">
                 <ResultChip result={row.executed} />
                 {row.disagrees ? (
-                  <span className="shrink-0 text-11 font-medium text-warning">≠</span>
+                  <span className="shrink-0 text-11 font-medium text-legacy-warning">≠</span>
                 ) : null}
               </span>
             </Table.Cell>
@@ -405,7 +405,7 @@ export function ObjectiveRail({ row }: { row: ObjectiveExecutionRow }) {
   return (
     <div>
       {row.disagrees ? (
-        <div className="mb-3 flex items-start gap-2 rounded-md bg-warning-soft px-2.5 py-2 text-[12.5px] leading-snug text-warning">
+        <div className="mb-3 flex items-start gap-2 rounded-md bg-warning-soft px-2.5 py-2 text-[12.5px] leading-snug text-legacy-warning">
           <span className="pt-1.5">
             <Dot tone="warning" />
           </span>
@@ -845,7 +845,7 @@ export function RunRecordView({
               Mark run complete
             </Button>
             {blockedReason ? (
-              <span className="min-w-0 flex-1 text-[12.5px] leading-snug text-warning">
+              <span className="min-w-0 flex-1 text-[12.5px] leading-snug text-legacy-warning">
                 {blockedReason} A run cannot be completed until every step carries a result — the
                 objective&rsquo;s executed value is taken from complete runs only.
               </span>
@@ -874,7 +874,7 @@ export function RunRecordView({
             description={`${run.procedure} is not in the procedure library, so this run has nothing to be judged against.`}
           />
         ) : (
-          <div className="divide-y divide-border-subtle">
+          <div className="divide-y divide-border-legacy-subtle">
             {steps.map((step) => {
               const record = byStep.get(step.id);
               const result = record?.result ?? "Not run";
@@ -905,7 +905,7 @@ export function RunRecordView({
                       <span className="text-muted-foreground">Evidence</span>
                       <Id.List ids={record?.evidence ?? []} empty="None collected" />
                       {unevidenced ? (
-                        <Badge tone="warning" size="xs">
+                        <Badge tone="warning" size="xsmall">
                           Recorded without the artifact the step demands
                         </Badge>
                       ) : null}

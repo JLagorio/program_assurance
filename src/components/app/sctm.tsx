@@ -62,7 +62,7 @@ export function DeterminationChip({ determination }: { determination: Determinat
 
 export function CurrencyChip({ currency }: { currency: RowCurrency }) {
   return (
-    <Badge size="xs" tone={rowCurrencyTone[currency]}>
+    <Badge size="xsmall" tone={rowCurrencyTone[currency]}>
       {currency}
     </Badge>
   );
@@ -165,7 +165,7 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
       </Table.Cell>
       <Table.Cell className="truncate">
         <span className="flex min-w-0 items-center gap-1.5">
-          <Badge size="xs">{row.unit}</Badge>
+          <Badge size="xsmall">{row.unit}</Badge>
           <Id className="shrink-0">{row.requirement}</Id>
           <span className="min-w-0 truncate text-12 text-muted-foreground">{row.statement}</span>
         </span>
@@ -193,7 +193,7 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
           {row.priorDetermination !== null ? (
             <>
               <span
-                className="shrink-0 text-11 text-muted-foreground line-through decoration-danger/70 decoration-[1.5px]"
+                className="shrink-0 text-11 text-muted-foreground line-through decoration-legacy-danger/70 decoration-[1.5px]"
                 title={`${row.priorDetermination} as of ${row.assessed} — retained for the audit trail`}
               >
                 {row.priorDetermination}
@@ -207,7 +207,7 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
             <span
               className={cn(
                 "tnum shrink-0 text-11",
-                row.worstSeverity === "CAT I" ? "text-danger" : "text-muted-foreground",
+                row.worstSeverity === "CAT I" ? "text-legacy-danger" : "text-muted-foreground",
               )}
               title={`${row.openFindings} open — worst ${row.worstSeverity}`}
             >
@@ -218,7 +218,7 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
       </Table.Cell>
       <Table.Cell className={cn("truncate", row.gap && "bg-danger-soft/40")}>
         {row.gap ? (
-          <span className="flex min-w-0 items-center gap-1.5 text-danger" title={row.gap}>
+          <span className="flex min-w-0 items-center gap-1.5 text-legacy-danger" title={row.gap}>
             <Dot tone="danger" />
             <span className="min-w-0 truncate font-medium">{row.gap}</span>
           </span>
@@ -336,7 +336,7 @@ export function SctmFamilyTable({
                     grain at which it can actually be acted on. Invalidation
                     is rare, so it stays. */}
                 {group.invalidated > 0 ? (
-                  <Badge size="xs" tone="warning">
+                  <Badge size="xsmall" tone="warning">
                     {group.invalidated} invalidated
                   </Badge>
                 ) : null}
@@ -400,7 +400,7 @@ export function SctmRail({ row }: { row: SctmRow }) {
   return (
     <div>
       {row.gap ? (
-        <div className="mb-3 flex items-start gap-2 rounded-md bg-danger-soft px-2.5 py-2 text-[12.5px] leading-snug text-danger">
+        <div className="mb-3 flex items-start gap-2 rounded-md bg-danger-soft px-2.5 py-2 text-[12.5px] leading-snug text-legacy-danger">
           <span className="pt-1.5">
             <Dot tone="danger" />
           </span>
@@ -417,7 +417,7 @@ export function SctmRail({ row }: { row: SctmRow }) {
           {row.family} — {row.familyName}
         </KeyValue>
         <KeyValue label="Unit">
-          <Badge size="xs">{row.unit}</Badge>
+          <Badge size="xsmall">{row.unit}</Badge>
         </KeyValue>
         <KeyValue label="Requirement">
           <Id>{row.requirement}</Id>
@@ -427,7 +427,7 @@ export function SctmRail({ row }: { row: SctmRow }) {
 
       <Inspector.Group title="Implementation">
         <KeyValue label="Origination">
-          <Badge size="xs">{row.origination}</Badge>
+          <Badge size="xsmall">{row.origination}</Badge>
         </KeyValue>
         <KeyValue label="Responsible">{row.responsibleParty}</KeyValue>
         <WrapValue label="Consumer owes">{row.consumerResponsibility}</WrapValue>
@@ -439,7 +439,7 @@ export function SctmRail({ row }: { row: SctmRow }) {
             rail must not print the same sentences twice. */}
         {row.inheritanceState !== null ? (
           <KeyValue label="Inheritance">
-            <Badge size="xs" tone={inheritanceStateTone[row.inheritanceState]}>
+            <Badge size="xsmall" tone={inheritanceStateTone[row.inheritanceState]}>
               {row.inheritanceState}
             </Badge>
           </KeyValue>
@@ -482,7 +482,7 @@ export function SctmRail({ row }: { row: SctmRow }) {
         {row.priorDetermination !== null ? (
           <KeyValue label="Withdrawn">
             <span className="flex items-center gap-1.5">
-              <span className="shrink-0 text-[12.5px] text-muted-foreground line-through decoration-danger/70 decoration-[1.5px]">
+              <span className="shrink-0 text-[12.5px] text-muted-foreground line-through decoration-legacy-danger/70 decoration-[1.5px]">
                 {row.priorDetermination}
               </span>
               <span className="text-[12px] text-muted-foreground">
@@ -526,7 +526,7 @@ function BreakdownRow({
 }) {
   const pct = Math.round((count / (total || 1)) * 100);
   return (
-    <div className="flex items-center gap-3 border-b border-border-subtle py-2 last:border-0">
+    <div className="flex items-center gap-3 border-b border-border-legacy-subtle py-2 last:border-0">
       <span className="w-[128px] shrink-0 truncate text-12">{label}</span>
       <span className="min-w-0 flex-1">
         <Progress value={pct} tone={tone} />
@@ -723,7 +723,7 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
                 label={o.origination}
                 count={o.count}
                 total={counts.total}
-                tone="info"
+                tone="information"
               />
             ))}
           </div>

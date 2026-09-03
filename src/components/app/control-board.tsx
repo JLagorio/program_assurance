@@ -71,8 +71,8 @@ const segment: Record<Stage["state"], string> = {
   empty: "bg-muted",
   partial: "bg-muted",
   full: "bg-muted-foreground/60",
-  broken: "bg-danger",
-  suspect: "bg-warning",
+  broken: "bg-legacy-danger",
+  suspect: "bg-legacy-warning",
   unknown: "bg-transparent text-muted-foreground/55",
 };
 
@@ -240,8 +240,8 @@ export function Funnel({
                     {f.unknown} unknown
                   </span>
                 ) : null}
-                {f.broken ? <span className="tnum text-danger">{f.broken} broken</span> : null}
-                {f.suspect ? <span className="tnum text-warning">{f.suspect} suspect</span> : null}
+                {f.broken ? <span className="tnum text-legacy-danger">{f.broken} broken</span> : null}
+                {f.suspect ? <span className="tnum text-legacy-warning">{f.suspect} suspect</span> : null}
               </div>
             </button>
           );
@@ -312,7 +312,7 @@ function BoardRow({
       onClick={onSelect}
       aria-pressed={active}
       className={cn(
-        "group/row grid h-10 w-full items-center gap-3 border-b border-border-subtle px-2 text-left text-13 transition-colors",
+        "group/row grid h-10 w-full items-center gap-3 border-b border-border-legacy-subtle px-2 text-left text-13 transition-colors",
         narrow ? rowGrid.narrow : rowGrid.wide,
         active ? "bg-primary-soft" : "hover:bg-surface-hover",
         c.hollow ? "text-muted-foreground" : null,
@@ -347,9 +347,9 @@ function NextCell({ control: c, muted }: { control: BoardControl; muted: boolean
   if (c.bucket === "through") return <span aria-label="Through" />;
   if (muted) return <span className="truncate text-muted-foreground">{c.next}</span>;
   const tone: Record<Bucket, string> = {
-    other: "text-danger",
-    invalidated: "text-danger",
-    suspect: "text-warning",
+    other: "text-legacy-danger",
+    invalidated: "text-legacy-danger",
+    suspect: "text-legacy-warning",
     unknown: "text-muted-foreground",
     through: "",
     hollow: "text-muted-foreground",
@@ -379,8 +379,8 @@ function StageLine({
     empty: "bg-muted-foreground/30",
     partial: "bg-muted-foreground/60",
     full: "bg-muted-foreground/80",
-    broken: "bg-danger",
-    suspect: "bg-warning",
+    broken: "bg-legacy-danger",
+    suspect: "bg-legacy-warning",
     unknown: "text-muted-foreground/70 rounded-[2px]",
   };
   return (
@@ -491,7 +491,7 @@ function BoardDetail({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-12 text-muted-foreground">
             <Id className="text-foreground">{control.id}</Id>
-            <Badge size="xs">{control.origination}</Badge>
+            <Badge size="xsmall">{control.origination}</Badge>
             {scope ? <span className="truncate">{scope.name}</span> : null}
           </div>
           <div className="mt-0.5 truncate text-[15px] font-medium">{control.title}</div>
@@ -552,7 +552,7 @@ function BoardDetail({
               ))}
             </NativeSelect>
             <Button
-              size="sm"
+              size="small"
               variant="primary"
               disabled={!ownerDraft}
               onClick={() => {
@@ -573,7 +573,7 @@ function BoardDetail({
             {offers.map((o) => (
               <Button
                 key={o.def.key}
-                size="sm"
+                size="small"
                 variant={
                   o.allowed &&
                   (o.def.key === "implement" || o.def.key === "submit" || o.def.key === "satisfy")
@@ -604,7 +604,7 @@ function BoardDetail({
             </ul>
           ) : null}
           {chosen ? (
-            <div className="mt-3 space-y-2 rounded-md border border-border bg-subtle p-3">
+            <div className="mt-3 space-y-2 rounded-md border border-border bg-legacy-subtle p-3">
               <div className="text-12 text-muted-foreground">
                 {chosen.def.label} · {session.name} · {session.role}
               </div>
@@ -623,12 +623,12 @@ function BoardDetail({
               <Field label={chosen.def.note === "required" ? "Reason (required)" : "Note"}>
                 <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} />
               </Field>
-              {error ? <div className="text-12 text-danger">{error}</div> : null}
+              {error ? <div className="text-12 text-legacy-danger">{error}</div> : null}
               <div className="flex justify-end gap-2">
-                <Button size="sm" onClick={() => setPending(null)}>
+                <Button size="small" onClick={() => setPending(null)}>
                   Cancel
                 </Button>
-                <Button size="sm" variant="primary" onClick={fire}>
+                <Button size="small" variant="primary" onClick={fire}>
                   {chosen.def.label}
                 </Button>
               </div>
@@ -769,7 +769,7 @@ function BoardDetail({
               <RowTable
                 rows={owed}
                 cell={(r) => (
-                  <Badge size="xs" tone={determinationTone[r.determination]}>
+                  <Badge size="xsmall" tone={determinationTone[r.determination]}>
                     {r.determination}
                   </Badge>
                 )}
@@ -785,7 +785,7 @@ function BoardDetail({
                 rows={stale}
                 cell={(r) => (
                   <span className="flex min-w-0 items-center gap-1.5">
-                    <Badge size="xs" tone={rowCurrencyTone[r.currency]}>
+                    <Badge size="xsmall" tone={rowCurrencyTone[r.currency]}>
                       {r.currency}
                     </Badge>
                     <span
@@ -864,7 +864,7 @@ function BoardDetail({
             </DetailRow>
             <DetailRow label="Taken away by">
               {stale.length ? (
-                <span className="text-danger">{stale[0]!.currencyReason}</span>
+                <span className="text-legacy-danger">{stale[0]!.currencyReason}</span>
               ) : (
                 `A change to ${
                   control.nodes.length ? nodeNames(control.nodes) : "the system as a whole"
@@ -1047,23 +1047,23 @@ export function ControlBoard({ programId }: { programId: string }) {
           value={lens}
           onChange={setLens}
         />
-        <FilterChip label="Gaps" active={gapsOnly} onClick={() => setGapsOnly((v) => !v)} />
+        <FilterChip label="Gaps" isActive={gapsOnly} onClick={() => setGapsOnly((v) => !v)} />
         <FilterChip
           label="Unassigned"
-          active={unassigned}
+          isActive={unassigned}
           onClick={() => setUnassigned((v) => !v)}
         />
         <FilterChip
           label="Mine"
           {...(mine ? { value: session.name } : {})}
-          active={mine}
+          isActive={mine}
           onClick={() => setMine((v) => !v)}
         />
         {stage ? (
           <FilterChip
             label="Stuck at"
             value={stageKeys.includes(stage) ? lensLabelFor(stage) : ""}
-            active
+            isActive
             onClick={() => setStage(null)}
           />
         ) : null}

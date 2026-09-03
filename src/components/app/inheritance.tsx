@@ -16,7 +16,7 @@ export function InheritChip({
     <>
       <Share2 className="size-3 shrink-0 opacity-70" strokeWidth={2} />
       <span className="truncate text-[11.5px]">{component.key}</span>
-      {stale ? <span className="shrink-0 text-warning">· stale</span> : null}
+      {stale ? <span className="shrink-0 text-legacy-warning">· stale</span> : null}
     </>
   );
 
@@ -24,7 +24,7 @@ export function InheritChip({
     <Link
       to="/library/components/$componentKey"
       params={{ componentKey: component.key }}
-      className="inline-flex max-w-full items-center gap-1 rounded border border-border bg-subtle px-1.5 py-px text-[11.5px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+      className="inline-flex max-w-full items-center gap-1 rounded border border-border bg-legacy-subtle px-1.5 py-px text-[11.5px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
       title={`Inherited from ${component.name}`}
     >
       {label}

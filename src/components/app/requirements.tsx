@@ -99,7 +99,7 @@ function SourceCell({ derivations }: { derivations: Derivation[] }) {
       className="flex min-w-0 items-center gap-1"
       title={derivations.map((d) => `${d.sourceType}: ${d.sourceId}`).join("\n")}
     >
-      <Badge size="xs" tone={derivationSourceTone[first.sourceType]}>
+      <Badge size="xsmall" tone={derivationSourceTone[first.sourceType]}>
         {first.sourceId}
       </Badge>
       {rest.length ? (
@@ -194,7 +194,7 @@ export function RequirementTable({
               <Table.Cell className="truncate">{requirement.method}</Table.Cell>
               <Table.Cell className="truncate">{requirement.owner}</Table.Cell>
               <Table.Cell>
-                <Badge size="xs" tone={requirementStateTone[requirement.state]}>
+                <Badge size="xsmall" tone={requirementStateTone[requirement.state]}>
                   {requirement.state}
                 </Badge>
               </Table.Cell>
@@ -220,7 +220,7 @@ export function ProvenanceTable({
   programId: string;
 }) {
   if (derivations.length === 0) {
-    return <p className="pt-3 text-[13px] text-danger">No provenance recorded.</p>;
+    return <p className="pt-3 text-[13px] text-legacy-danger">No provenance recorded.</p>;
   }
 
   return (
@@ -243,7 +243,7 @@ export function ProvenanceTable({
         {derivations.map((d) => (
           <Table.Row key={`${d.sourceType}-${d.sourceId}`}>
             <Table.Cell className="align-top py-2">
-              <Badge size="xs" tone={derivationSourceTone[d.sourceType]}>
+              <Badge size="xsmall" tone={derivationSourceTone[d.sourceType]}>
                 {d.sourceType}
               </Badge>
             </Table.Cell>
@@ -364,13 +364,13 @@ export function AllocationTable({
                   onChange={(next) => setAllocationField(a.id, { responsibility: next })}
                   save={(next) => saveRequirementField(`${a.id} responsibility`, next)}
                   render={(v) => (
-                    <Badge size="xs" tone={responsibilityTone[v]}>
+                    <Badge size="xsmall" tone={responsibilityTone[v]}>
                       {v}
                     </Badge>
                   )}
                 />
               ) : (
-                <Badge size="xs" tone={responsibilityTone[a.responsibility]}>
+                <Badge size="xsmall" tone={responsibilityTone[a.responsibility]}>
                   {a.responsibility}
                 </Badge>
               )}
@@ -384,13 +384,13 @@ export function AllocationTable({
                   onChange={(next) => setAllocationField(a.id, { coverage: next })}
                   save={(next) => saveRequirementField(`${a.id} coverage`, next)}
                   render={(v) => (
-                    <Badge size="xs" tone={coverageTone[v]}>
+                    <Badge size="xsmall" tone={coverageTone[v]}>
                       {v}
                     </Badge>
                   )}
                 />
               ) : (
-                <Badge size="xs" tone={coverageTone[a.coverage]}>
+                <Badge size="xsmall" tone={coverageTone[a.coverage]}>
                   {a.coverage}
                 </Badge>
               )}
@@ -426,13 +426,13 @@ export function AllocationTable({
                   onChange={(next) => setAllocationField(a.id, { state: next })}
                   save={(next) => saveRequirementField(`${a.id} state`, next)}
                   render={(v) => (
-                    <Badge size="xs" tone={allocationStateTone[v]}>
+                    <Badge size="xsmall" tone={allocationStateTone[v]}>
                       {v}
                     </Badge>
                   )}
                 />
               ) : (
-                <Badge size="xs" tone={allocationStateTone[a.state]}>
+                <Badge size="xsmall" tone={allocationStateTone[a.state]}>
                   {a.state}
                 </Badge>
               )}
@@ -500,12 +500,12 @@ export function ElementAllocationTable({
                 {requirement?.text ?? "—"}
               </Table.Cell>
               <Table.Cell>
-                <Badge size="xs" tone={responsibilityTone[a.responsibility]}>
+                <Badge size="xsmall" tone={responsibilityTone[a.responsibility]}>
                   {a.responsibility}
                 </Badge>
               </Table.Cell>
               <Table.Cell>
-                <Badge size="xs" tone={coverageTone[a.coverage]}>
+                <Badge size="xsmall" tone={coverageTone[a.coverage]}>
                   {a.coverage}
                 </Badge>
               </Table.Cell>
@@ -514,7 +514,7 @@ export function ElementAllocationTable({
               </Table.Cell>
               <Table.Cell className="truncate">{a.owner}</Table.Cell>
               <Table.Cell>
-                <Badge size="xs" tone={allocationStateTone[a.state]}>
+                <Badge size="xsmall" tone={allocationStateTone[a.state]}>
                   {a.state}
                 </Badge>
               </Table.Cell>
@@ -579,7 +579,7 @@ export function DerivedControlTrace({
       ) : null}
 
       {trace.withoutControl.length > 0 ? (
-        <div className="rounded-lg border border-border bg-subtle px-3 py-2.5">
+        <div className="rounded-lg border border-border bg-legacy-subtle px-3 py-2.5">
           <p className="text-[12.5px]">
             <span className="font-medium">
               {trace.withoutControl.length} allocated here{" "}
@@ -645,12 +645,12 @@ function TraceRow({ hop, programId }: { hop: ControlTraceHop; programId: string 
         )}
       </Table.Cell>
       <Table.Cell>
-        <Badge size="xs" tone={responsibilityTone[hop.allocation.responsibility]}>
+        <Badge size="xsmall" tone={responsibilityTone[hop.allocation.responsibility]}>
           {hop.allocation.responsibility}
         </Badge>
       </Table.Cell>
       <Table.Cell>
-        <Badge size="xs" tone={coverageTone[hop.allocation.coverage]}>
+        <Badge size="xsmall" tone={coverageTone[hop.allocation.coverage]}>
           {hop.allocation.coverage}
         </Badge>
       </Table.Cell>
@@ -736,7 +736,7 @@ export function ControlRequirementTable({
                 {count === 0 ? <span className="text-muted-foreground">—</span> : count}
               </Table.Cell>
               <Table.Cell>
-                <Badge size="xs" tone={requirementStateTone[r.state]}>
+                <Badge size="xsmall" tone={requirementStateTone[r.state]}>
                   {r.state}
                 </Badge>
               </Table.Cell>

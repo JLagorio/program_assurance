@@ -406,7 +406,7 @@ function ProgramBaseline() {
               description="CM-3(2) requires a security impact analysis before a change is implemented. It is a gate, not a formality: an analysis that finds no impact is a result the ISSE signs for, and it is the reason a firmware dot-release does not turn a hundred requirement rows amber."
             >
               <div className="grid gap-3 pt-4 sm:grid-cols-2">
-                <div className="rounded-lg border border-border bg-subtle px-4 py-3">
+                <div className="rounded-lg border border-border bg-legacy-subtle px-4 py-3">
                   <div className="flex items-baseline gap-2">
                     <span className="tnum text-[20px] font-semibold leading-none">
                       {containedAll.length}
@@ -419,9 +419,9 @@ function ProgramBaseline() {
                     the record, where a package reviewer can argue with it.
                   </p>
                 </div>
-                <div className="rounded-lg border border-warning/30 bg-warning-soft/40 px-4 py-3">
+                <div className="rounded-lg border border-legacy-warning/30 bg-warning-soft/40 px-4 py-3">
                   <div className="flex items-baseline gap-2">
-                    <span className="tnum text-[20px] font-semibold leading-none text-warning">
+                    <span className="tnum text-[20px] font-semibold leading-none text-legacy-warning">
                       {cascadedAll.length}
                     </span>
                     <span className="text-[12.5px] font-medium">cascaded</span>

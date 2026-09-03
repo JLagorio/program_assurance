@@ -130,7 +130,7 @@ function ComponentRecord() {
           description={`Consumed by ${component.consumers.length} program${component.consumers.length === 1 ? "" : "s"}. Evidence or status changes here re-open every inherited row.`}
           action={
             stale ? (
-              <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-warning">
+              <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-legacy-warning">
                 <AlertTriangle className="size-3.5" />
                 {stale} stale definition{stale === 1 ? "" : "s"} propagating
               </span>

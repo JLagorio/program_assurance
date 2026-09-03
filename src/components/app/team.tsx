@@ -95,7 +95,7 @@ export function TeamSection({ programId }: { programId: string }) {
                       navigate({ to: "/workstreams/$workstreamId", params: { workstreamId: w.id } })
                     }
                   >
-                    <Table.Id id={w.id} active={ws?.id === w.id} onPreview={() => setWs(w)} />
+                    <Table.Id id={w.id} isActive={ws?.id === w.id} onPreview={() => setWs(w)} />
                     <Table.Cell className="truncate">{w.title}</Table.Cell>
                     <Table.Cell className="truncate">
                       {personById.get(w.lead)?.name ?? "—"}
@@ -155,7 +155,7 @@ export function TeamSection({ programId }: { programId: string }) {
                     >
                       <Table.Id
                         id={p.id}
-                        active={person?.id === p.id}
+                        isActive={person?.id === p.id}
                         onPreview={() => setPerson(p)}
                       />
                       <Table.Cell className="truncate">{p.name}</Table.Cell>
@@ -170,13 +170,13 @@ export function TeamSection({ programId }: { programId: string }) {
                           <span className="w-12">
                             <Progress
                               value={Math.min(alloc, 100)}
-                              tone={alloc > 100 ? "danger" : alloc > 85 ? "warning" : "info"}
+                              tone={alloc > 100 ? "danger" : alloc > 85 ? "warning" : "information"}
                             />
                           </span>
                           <span
                             className={
                               alloc > 100
-                                ? "tnum font-medium text-danger"
+                                ? "tnum font-medium text-legacy-danger"
                                 : "tnum text-muted-foreground"
                             }
                           >

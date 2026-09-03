@@ -89,7 +89,7 @@ function RiskPeek({ risk: r }: { risk: Risk }) {
             {r.framework} · {r.control} · {r.team}
           </div>
         </div>
-        <Badge tone={riskStatusTone[r.status]} size="xs">
+        <Badge tone={riskStatusTone[r.status]} size="xsmall">
           {r.status}
         </Badge>
       </div>
@@ -178,7 +178,7 @@ function RiskList() {
       />
 
       <div className="flex flex-wrap items-center gap-2">
-        <FilterChip label="Framework" value="SOC 2" active />
+        <FilterChip label="Framework" value="SOC 2" isActive />
         <FilterChip label="Owner" />
         <Popover
           width={180}
@@ -204,7 +204,7 @@ function RiskList() {
         </Popover>
         <FilterChip label="Updated" />
         <div className="ml-auto flex items-center gap-2">
-          <Button variant="secondary" size="sm">
+          <Button variant="secondary" size="small">
             <ListFilter className="size-3.5" /> Columns
           </Button>
         </div>
@@ -214,13 +214,13 @@ function RiskList() {
         <div className="flex items-center gap-2 rounded-md border border-primary/25 bg-primary-soft px-3 py-1.5 text-[13px] text-primary">
           <span className="tnum font-medium">{selected.length} selected</span>
           <span className="ml-auto flex items-center gap-2">
-            <Button variant="secondary" size="sm">
+            <Button variant="secondary" size="small">
               Reassign
             </Button>
-            <Button variant="secondary" size="sm">
+            <Button variant="secondary" size="small">
               Change treatment
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => setSelected([])}>
+            <Button variant="subtle" size="small" onClick={() => setSelected([])}>
               Clear
             </Button>
           </span>
@@ -294,7 +294,7 @@ function RiskList() {
           </thead>
           <tbody>
             {rows.map((risk) => (
-              <Table.Row key={risk.id} className="group" selected={selected.includes(risk.id)}>
+              <Table.Row key={risk.id} className="group" isSelected={selected.includes(risk.id)}>
                 <Table.Selection
                   checked={selected.includes(risk.id)}
                   onCheckedChange={() => toggle(risk.id)}
@@ -380,7 +380,7 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
     <Dialog
       open={open}
       onClose={onClose}
-      width="lg"
+      width="large"
       title="Create a risk"
       description="Risks inherit scoring from likelihood × impact and recalculate when the linked control changes state."
       aside={
@@ -418,7 +418,7 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
       }
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
           <Button variant="secondary" onClick={onClose}>

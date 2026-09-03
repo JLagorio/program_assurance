@@ -328,7 +328,7 @@ function ProgramDetail() {
                 onClick={toggle}
                 className="-mx-1 flex w-[calc(100%+8px)] items-center gap-1.5 rounded px-1 py-0.5 text-left transition-colors hover:bg-muted"
               >
-                <Dot tone={state.blockerTone === "danger" ? "danger" : "info"} />
+                <Dot tone={state.blockerTone === "danger" ? "danger" : "information"} />
                 <span className="truncate">{stageFilter ?? state.currentStage}</span>
                 <ChevronDown className="ml-auto size-3 shrink-0 text-muted-foreground" />
               </button>
@@ -340,7 +340,7 @@ function ProgramDetail() {
                 {stages.map((s) => (
                   <DropdownMenu.Item
                     key={s}
-                    selected={s === (stageFilter ?? state.currentStage)}
+                    isSelected={s === (stageFilter ?? state.currentStage)}
                     onSelect={() => {
                       selectStage(s === stageFilter ? null : s);
                       close();
@@ -370,9 +370,9 @@ function ProgramDetail() {
             <span
               className={
                 state.daysOut < 0
-                  ? "tnum text-danger"
+                  ? "tnum text-legacy-danger"
                   : state.daysOut < 30
-                    ? "tnum text-warning"
+                    ? "tnum text-legacy-warning"
                     : "tnum"
               }
             >
@@ -382,7 +382,7 @@ function ProgramDetail() {
         </KeyValue>
         <KeyValue label="Blocker">
           {state.blocker ? (
-            <span className="block text-12 font-medium text-danger">{state.blocker}</span>
+            <span className="block text-12 font-medium text-legacy-danger">{state.blocker}</span>
           ) : (
             <span className="text-muted-foreground">None</span>
           )}
@@ -418,19 +418,19 @@ function ProgramDetail() {
           </span>
         </KeyValue>
         <KeyValue label="Open findings">
-          <span className={posture.catI > 0 ? "tnum text-danger" : "tnum"}>
+          <span className={posture.catI > 0 ? "tnum text-legacy-danger" : "tnum"}>
             {posture.findingsOpen}
             {posture.catI ? ` · ${posture.catI} CAT I` : ""}
           </span>
         </KeyValue>
         <KeyValue label="POA&M open">
-          <span className={posture.poamOverdue > 0 ? "tnum text-danger" : "tnum"}>
+          <span className={posture.poamOverdue > 0 ? "tnum text-legacy-danger" : "tnum"}>
             {posture.poamOpen}
             {posture.poamOverdue ? ` · ${posture.poamOverdue} overdue` : ""}
           </span>
         </KeyValue>
         <KeyValue label="Evidence stale">
-          <span className={posture.evidenceStale > 0 ? "tnum text-warning" : "tnum"}>
+          <span className={posture.evidenceStale > 0 ? "tnum text-legacy-warning" : "tnum"}>
             {posture.evidenceStale}
           </span>
         </KeyValue>
@@ -627,13 +627,13 @@ function ProgramDetail() {
             actions={
               <>
                 <Link to="/programs/$programId/dashboard" params={{ programId: program.id }}>
-                  <Button variant="secondary" size="sm">
+                  <Button variant="secondary" size="small">
                     Dashboard
                   </Button>
                 </Link>
 
                 <ButtonGroup>
-                  <Button variant="primary" size="sm" onClick={runPrimary}>
+                  <Button variant="primary" size="small" onClick={runPrimary}>
                     {state.primaryAction}
                   </Button>
                   <DropdownMenu
@@ -642,7 +642,7 @@ function ProgramDetail() {
                     trigger={
                       <Button
                         variant="primary"
-                        size="sm"
+                        size="small"
                         className="w-7 px-0"
                         aria-label="More actions"
                       >
@@ -1010,7 +1010,7 @@ function ProgramDetail() {
         {tab === "Requirements" ? (
           <>
             <div className="flex justify-end">
-              <Button variant="primary" size="sm" onClick={() => setNewRequirement(true)}>
+              <Button variant="primary" size="small" onClick={() => setNewRequirement(true)}>
                 New requirement
               </Button>
             </div>
@@ -1109,7 +1109,7 @@ function ProgramDetail() {
         description={`${program.id} · ${program.baseline}`}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setAssessing(false)}>
+            <Button variant="subtle" onClick={() => setAssessing(false)}>
               Cancel
             </Button>
             <Button

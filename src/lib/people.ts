@@ -403,7 +403,7 @@ export function dependentsOf(id: string): Workstream[] {
 
 export function workstreamStatusTone(s: WorkstreamStatus) {
   if (s === "Blocked") return "danger" as const;
-  if (s === "Active") return "info" as const;
+  if (s === "Active") return "information" as const;
   if (s === "Done") return "success" as const;
   return "neutral" as const;
 }

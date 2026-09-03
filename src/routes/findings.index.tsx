@@ -85,7 +85,7 @@ function TrackedCell({ assetId }: { assetId: string }) {
   }
   return (
     <Table.Cell className="tnum text-right">
-      <span className={rolled.catI ? "font-medium text-danger" : ""}>{rolled.catI}</span>
+      <span className={rolled.catI ? "font-medium text-legacy-danger" : ""}>{rolled.catI}</span>
       <span className="text-muted-foreground">
         {" "}
         / {rolled.catII} / {rolled.catIII}
@@ -212,7 +212,7 @@ function FindingsPage() {
                     >
                       <Table.Id
                         id={f.id}
-                        active={preview?.kind === "finding" && preview.item.id === f.id}
+                        isActive={preview?.kind === "finding" && preview.item.id === f.id}
                         onPreview={() => setPreview({ kind: "finding", item: f })}
                       />
                       <Table.Cell className="truncate">{f.title}</Table.Cell>
@@ -271,7 +271,7 @@ function FindingsPage() {
                     >
                       <Table.Id
                         id={a.id}
-                        active={preview?.kind === "asset" && preview.item.id === a.id}
+                        isActive={preview?.kind === "asset" && preview.item.id === a.id}
                         onPreview={() => setPreview({ kind: "asset", item: a })}
                       />
                       <Table.Cell className="truncate">{a.name}</Table.Cell>
@@ -280,7 +280,7 @@ function FindingsPage() {
                       <Table.Cell className="truncate">{a.environment}</Table.Cell>
                       <Table.Cell className="truncate">{a.lastScan}</Table.Cell>
                       <Table.Cell className="tnum text-right">
-                        <span className={a.openCatI ? "font-medium text-danger" : ""}>
+                        <span className={a.openCatI ? "font-medium text-legacy-danger" : ""}>
                           {a.openCatI}
                         </span>
                         <span className="text-muted-foreground">

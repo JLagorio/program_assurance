@@ -56,7 +56,7 @@ function severityToneOf(severity: string): Tone {
 
 export function FormatChip({ format }: { format: ScanFormat }) {
   return (
-    <Badge size="xs" tone={formatTone[format]}>
+    <Badge size="xsmall" tone={formatTone[format]}>
       {format}
     </Badge>
   );
@@ -100,7 +100,7 @@ function ProseBlock({
       <div
         className={cn(
           "text-[11px] font-medium uppercase tracking-[0.06em]",
-          tone === "warning" ? "text-warning" : "text-muted-foreground",
+          tone === "warning" ? "text-legacy-warning" : "text-muted-foreground",
         )}
       >
         {label}
@@ -205,7 +205,7 @@ export function IngestSummary({ batch, scan }: { batch: IngestBatch; scan?: Scan
 
       {contested.length > 0 ? (
         <div>
-          <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-warning">
+          <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-legacy-warning">
             Held open rather than closed — {contested.length}{" "}
             {contested.length === 1 ? "finding" : "findings"}
           </div>
@@ -292,7 +292,7 @@ export function ScanTable({
               )}
               onClick={onSelect ? () => onSelect(s.id) : undefined}
             >
-              <Table.Id id={s.id} tone={onSelect ? "primary" : "muted"} />
+              <Table.Id id={s.id} tone={onSelect ? "brand" : "subtle"} />
               <Table.Cell>
                 <FormatChip format={s.format} />
               </Table.Cell>
@@ -304,7 +304,7 @@ export function ScanTable({
               </Table.Cell>
               <Table.Cell className="tnum text-right">{s.rawItems}</Table.Cell>
               <Table.Cell>
-                <Badge size="xs" tone={scanStateTone[s.state]}>
+                <Badge size="xsmall" tone={scanStateTone[s.state]}>
                   {s.state}
                 </Badge>
               </Table.Cell>
@@ -366,7 +366,7 @@ export function ScanRail({
           <FormatChip format={scan.format} />
         </KeyValue>
         <KeyValue label="State">
-          <Badge size="xs" tone={scanStateTone[scan.state]}>
+          <Badge size="xsmall" tone={scanStateTone[scan.state]}>
             {scan.state}
           </Badge>
         </KeyValue>
@@ -440,7 +440,7 @@ export function ScanRail({
             <span className="tnum">{batch.counts.deduped}</span>
           </KeyValue>
           <KeyValue label="Held">
-            <span className={cn("tnum", batch.counts.unresolved > 0 ? "text-warning" : "")}>
+            <span className={cn("tnum", batch.counts.unresolved > 0 ? "text-legacy-warning" : "")}>
               {batch.counts.unresolved}
             </span>
           </KeyValue>
@@ -456,7 +456,7 @@ export function ScanRail({
           </KeyValue>
           <KeyValue label="Contested">
             {batch.contested.length > 0 ? (
-              <span className="text-warning" title={batch.contested.map((c) => c.basis).join(" ")}>
+              <span className="text-legacy-warning" title={batch.contested.map((c) => c.basis).join(" ")}>
                 {batch.contested.map((c) => c.finding).join(", ")}
               </span>
             ) : (
@@ -585,7 +585,7 @@ function nativeFields(native: NativeResult): NativeField[] {
 
 function NativeRow({ field }: { field: NativeField }) {
   return (
-    <div className="grid grid-cols-[124px_1fr] items-baseline gap-3 border-b border-border-subtle py-[5px] last:border-0">
+    <div className="grid grid-cols-[124px_1fr] items-baseline gap-3 border-b border-border-legacy-subtle py-[5px] last:border-0">
       <dt className="truncate text-[11.5px] uppercase tracking-[0.04em] text-muted-foreground">
         {field.label}
       </dt>
@@ -607,7 +607,7 @@ function NativeRow({ field }: { field: NativeField }) {
 
 function NormalizedRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="grid grid-cols-[124px_1fr] items-baseline gap-3 border-b border-border-subtle py-[5px] last:border-0">
+    <div className="grid grid-cols-[124px_1fr] items-baseline gap-3 border-b border-border-legacy-subtle py-[5px] last:border-0">
       <dt className="truncate text-[11.5px] uppercase tracking-[0.04em] text-muted-foreground">
         {label}
       </dt>
@@ -681,7 +681,7 @@ export function NormalizationAudit({
               {normalized.cci ? (
                 <Id className="text-[12px]">{normalized.cci}</Id>
               ) : (
-                <span className="text-warning">null — not asserted by this format</span>
+                <span className="text-legacy-warning">null — not asserted by this format</span>
               )}
             </NormalizedRow>
             <NormalizedRow label="control">
@@ -704,7 +704,7 @@ export function NormalizationAudit({
                 <Indicator tone={severityToneOf(normalized.severity)}>
                   {normalized.severity}
                 </Indicator>
-                <Badge size="xs" tone={normalized.clean ? "success" : "neutral"}>
+                <Badge size="xsmall" tone={normalized.clean ? "success" : "neutral"}>
                   {normalized.clean ? "Clean" : "Reportable"}
                 </Badge>
               </span>
@@ -719,7 +719,7 @@ export function NormalizationAudit({
         </div>
       </div>
 
-      <div className="rounded-lg border border-border bg-subtle px-4 py-3">
+      <div className="rounded-lg border border-border bg-legacy-subtle px-4 py-3">
         <h3 className="text-[12.5px] font-semibold tracking-[-0.005em]">
           How this row was derived
         </h3>
@@ -737,7 +737,7 @@ export function NormalizationAudit({
         <div className="mt-1">
           {normalized.unresolved.length > 0 ? (
             <>
-              <div className="pt-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-warning">
+              <div className="pt-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-legacy-warning">
                 Held for an analyst — {normalized.unresolved.length}{" "}
                 {normalized.unresolved.length === 1 ? "item" : "items"}
               </div>
@@ -844,7 +844,7 @@ export function NormalizationView({
                 </Indicator>
               </Table.Cell>
               <Table.Cell>
-                <Badge size="xs" tone={normalized.clean ? "success" : "neutral"}>
+                <Badge size="xsmall" tone={normalized.clean ? "success" : "neutral"}>
                   {normalized.clean ? "Clean" : "Reportable"}
                 </Badge>
               </Table.Cell>
@@ -858,7 +858,7 @@ export function NormalizationView({
               <Table.Cell className="truncate">{labelNode(normalized.node, nodeName)}</Table.Cell>
               <Table.Cell className="text-right">
                 {normalized.unresolved.length > 0 ? (
-                  <Badge size="xs" tone="warning">
+                  <Badge size="xsmall" tone="warning">
                     {normalized.unresolved.length}
                   </Badge>
                 ) : (
@@ -888,7 +888,7 @@ function FindingChips({ group }: { group: DedupGroup }) {
   return (
     <span className="flex min-w-0 items-center gap-1">
       {group.existingAll.map((id) => (
-        <Badge key={id} size="xs" tone={id === group.existing ? "info" : "neutral"}>
+        <Badge key={id} size="xsmall" tone={id === group.existing ? "information" : "neutral"}>
           {id}
         </Badge>
       ))}
@@ -994,7 +994,7 @@ export function DedupTable({
                 the Normalization table rather than neutering the severity
                 tone, which is CAT III's colour and would collide. */}
             <Table.Cell>
-              <Badge size="xs" tone={g.primary.clean ? "success" : "neutral"}>
+              <Badge size="xsmall" tone={g.primary.clean ? "success" : "neutral"}>
                 {g.primary.clean ? "Clean" : "Reportable"}
               </Badge>
             </Table.Cell>
@@ -1026,7 +1026,7 @@ export function DedupTable({
 function MemberLine({ result, role }: { result: NormalizedResult; role: "Primary" | "Duplicate" }) {
   return (
     <div className="flex min-w-0 items-baseline gap-1.5 py-0.5">
-      <Badge size="xs" tone={role === "Primary" ? "info" : "neutral"}>
+      <Badge size="xsmall" tone={role === "Primary" ? "information" : "neutral"}>
         {result.format}
       </Badge>
       <Id className="shrink-0 text-muted-foreground">{result.scan}</Id>
@@ -1058,7 +1058,7 @@ export function DedupRail({
             <Indicator tone={severityToneOf(group.primary.severity)}>
               {group.primary.severity}
             </Indicator>
-            <Badge size="xs" tone={group.primary.clean ? "success" : "neutral"}>
+            <Badge size="xsmall" tone={group.primary.clean ? "success" : "neutral"}>
               {group.primary.clean ? "Clean" : "Reportable"}
             </Badge>
           </span>
@@ -1159,7 +1159,7 @@ export function ScanDiffTable({
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         {tally.map((t) => (
           <span key={t.state} className="flex items-baseline gap-1.5" title={meaning[t.state]}>
-            <Badge size="xs" tone={diffStateTone[t.state]}>
+            <Badge size="xsmall" tone={diffStateTone[t.state]}>
               {t.state}
             </Badge>
             <span className="tnum text-[13px] font-medium">{t.count}</span>
@@ -1203,7 +1203,7 @@ export function ScanDiffTable({
             {rows.map((r) => (
               <Table.Row key={r.key}>
                 <Table.Cell>
-                  <Badge size="xs" tone={diffStateTone[r.state]}>
+                  <Badge size="xsmall" tone={diffStateTone[r.state]}>
                     {r.state}
                   </Badge>
                 </Table.Cell>

@@ -86,10 +86,10 @@ function PersonDetail() {
                   <span className="w-12">
                     <Progress
                       value={Math.min(alloc, 100)}
-                      tone={alloc > 100 ? "danger" : alloc > 85 ? "warning" : "info"}
+                      tone={alloc > 100 ? "danger" : alloc > 85 ? "warning" : "information"}
                     />
                   </span>
-                  <span className={alloc > 100 ? "tnum text-danger" : "tnum"}>{alloc}%</span>
+                  <span className={alloc > 100 ? "tnum text-legacy-danger" : "tnum"}>{alloc}%</span>
                 </span>
               </KeyValue>
             </Inspector.Group>

@@ -213,7 +213,7 @@ function CampaignsPage() {
                       key={e.id}
                       onClick={() => setSelected(e)}
                       className={
-                        selected?.id === e.id ? "cursor-pointer bg-subtle" : "cursor-pointer"
+                        selected?.id === e.id ? "cursor-pointer bg-legacy-subtle" : "cursor-pointer"
                       }
                     >
                       <Table.Id id={e.id} />

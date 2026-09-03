@@ -136,7 +136,7 @@ function FindingsCell({ programId, row }: { programId: string; row: ControlRow }
         className="hover:underline"
         title={only.title}
       >
-        <Id className={row.openFindings ? "text-danger" : "text-muted-foreground"}>{only.id}</Id>
+        <Id className={row.openFindings ? "text-legacy-danger" : "text-muted-foreground"}>{only.id}</Id>
       </Link>
     );
   }
@@ -148,7 +148,7 @@ function FindingsCell({ programId, row }: { programId: string; row: ControlRow }
       search={{ tab: "Assessment" as const }}
       className={cn(
         "tnum text-12 hover:underline",
-        row.openFindings ? "text-danger" : "text-muted-foreground",
+        row.openFindings ? "text-legacy-danger" : "text-muted-foreground",
       )}
     >
       {label}
@@ -254,7 +254,7 @@ export function ControlMatrixSection({
           description="Clear the search or pick another family."
           action={
             <Button
-              size="sm"
+              size="small"
               onClick={() => {
                 setQuery("");
                 onFamily("All");
@@ -363,7 +363,7 @@ export function ControlMatrixSection({
 
           {filtered.length > visible.length ? (
             <div className="pt-2">
-              <Button size="sm" variant="ghost" onClick={() => setLimit(limit + PAGE)}>
+              <Button size="small" variant="subtle" onClick={() => setLimit(limit + PAGE)}>
                 Show {Math.min(PAGE, filtered.length - visible.length)} more
               </Button>
             </div>

@@ -361,7 +361,7 @@ function ProgramSctm() {
                 ))}
               </NativeSelect>
               <Button
-                size="sm"
+                size="small"
                 variant={allFamilies ? "primary" : "secondary"}
                 onClick={() => refilter(() => setAllFamilies((v) => !v))}
               >
@@ -406,7 +406,7 @@ function ProgramSctm() {
 
             {visible.length > shown.length ? (
               <div className="pt-3">
-                <Button size="sm" onClick={() => setLimit((n) => n + PAGE)}>
+                <Button size="small" onClick={() => setLimit((n) => n + PAGE)}>
                   Show {Math.min(PAGE, visible.length - shown.length)} more ·{" "}
                   {visible.length - shown.length} remaining
                 </Button>
@@ -466,7 +466,7 @@ function ProgramSctm() {
                       <Table.Cell className="tnum text-right">{f.other}</Table.Cell>
                       <Table.Cell className="tnum text-right">{f.notAssessed}</Table.Cell>
                       <Table.Cell
-                        className={cn("tnum text-right", f.gaps > 0 ? "text-danger" : "")}
+                        className={cn("tnum text-right", f.gaps > 0 ? "text-legacy-danger" : "")}
                       >
                         {f.gaps}
                       </Table.Cell>
@@ -533,7 +533,7 @@ function ProgramSctm() {
                         refilter(() => setGapReason(gapReason === g.reason ? null : g.reason))
                       }
                     >
-                      <Table.Cell className="truncate text-danger">{g.reason}</Table.Cell>
+                      <Table.Cell className="truncate text-legacy-danger">{g.reason}</Table.Cell>
                       <Table.Cell className="tnum text-right">{g.count}</Table.Cell>
                       <Table.Cell>
                         <Progress
@@ -578,7 +578,7 @@ function ProgramSctm() {
 
               {visible.length > shown.length ? (
                 <div className="pt-3">
-                  <Button size="sm" onClick={() => setLimit((n) => n + PAGE)}>
+                  <Button size="small" onClick={() => setLimit((n) => n + PAGE)}>
                     Show {Math.min(PAGE, visible.length - shown.length)} more ·{" "}
                     {visible.length - shown.length} remaining
                   </Button>

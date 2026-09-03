@@ -296,9 +296,9 @@ export type IngestBatch = {
  * needs the winner to be legible at a glance.
  */
 export const formatTone: Record<ScanFormat, Tone> = {
-  "STIG CKL": "info",
-  "STIG CKLB": "info",
-  "SCAP XCCDF": "info",
+  "STIG CKL": "information",
+  "STIG CKLB": "information",
+  "SCAP XCCDF": "information",
   "ACAS Nessus": "neutral",
   "SAST SonarQube": "neutral",
   "SCA CycloneDX-VEX": "neutral",
@@ -308,13 +308,13 @@ export const formatTone: Record<ScanFormat, Tone> = {
 
 export const scanStateTone: Record<ScanState, Tone> = {
   Received: "neutral",
-  Normalized: "info",
+  Normalized: "information",
   Reconciled: "success",
   Rejected: "danger",
 };
 
 export const diffStateTone: Record<IngestDiffState, Tone> = {
-  New: "info",
+  New: "information",
   Persistent: "warning",
   Fixed: "success",
   Reappeared: "danger",

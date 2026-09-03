@@ -53,9 +53,9 @@ export function LifecycleBar({
                 )}
               >
                 {status === "done" ? (
-                  <Check className="size-3 text-success" />
+                  <Check className="size-3 text-legacy-success" />
                 ) : status === "current" ? (
-                  <Dot tone={blocked ? "danger" : "info"} />
+                  <Dot tone={blocked ? "danger" : "information"} />
                 ) : (
                   <span className="size-1.5 rounded-full border border-muted-foreground/50" />
                 )}
@@ -76,9 +76,9 @@ export function LifecycleBar({
             className={cn(
               "tnum",
               state.daysOut < 0
-                ? "font-medium text-danger"
+                ? "font-medium text-legacy-danger"
                 : state.daysOut < 30
-                  ? "font-medium text-warning"
+                  ? "font-medium text-legacy-warning"
                   : "text-muted-foreground",
             )}
           >
@@ -153,9 +153,9 @@ export function PostureLine({
             className={cn(
               "tnum font-medium group-hover:underline",
               i.tone === "danger"
-                ? "text-danger"
+                ? "text-legacy-danger"
                 : i.tone === "warning"
-                  ? "text-warning"
+                  ? "text-legacy-warning"
                   : "text-foreground",
             )}
           >
@@ -213,7 +213,7 @@ export function OpenWorkSection({
                   <Table.Cell
                     className={cn(
                       "tnum w-[110px] text-right",
-                      a.tone === "danger" ? "text-danger" : "",
+                      a.tone === "danger" ? "text-legacy-danger" : "",
                     )}
                   >
                     {a.due}

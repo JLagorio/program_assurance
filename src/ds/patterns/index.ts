@@ -1,9 +1,3 @@
-export * from "./archetypes";
-export * from "./card";
-export * from "./empty";
-export * from "./page-header";
-export * from "./page-skeleton";
-export * from "./preview-rail";
-export * from "./record-header";
-export * from "./related";
-export * from "./section";
+/* Façade over @ledger/design-system; see primitives/index.ts. */
+export * from "@ledger/design-system";
+export { RecordHeader } from "../adapters";

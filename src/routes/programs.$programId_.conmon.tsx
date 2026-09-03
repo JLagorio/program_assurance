@@ -538,7 +538,7 @@ function CountStrip({
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4">
       {items.map((item) => (
         <span key={item.label} className="flex items-center gap-1.5">
-          <Badge size="xs" tone={item.count > 0 ? item.tone : "neutral"}>
+          <Badge size="xsmall" tone={item.count > 0 ? item.tone : "neutral"}>
             {item.label}
           </Badge>
           <span
@@ -577,7 +577,7 @@ function FeedTile({
   onOpen: () => void;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-subtle px-4 py-3">
+    <div className="rounded-lg border border-border bg-legacy-subtle px-4 py-3">
       <div className="flex items-center justify-between gap-2">
         <span className="text-[12px] text-muted-foreground">{label}</span>
         <button
@@ -592,7 +592,7 @@ function FeedTile({
         <span
           className={cn(
             "tnum text-[24px] font-semibold leading-none tracking-[-0.02em]",
-            alarming && value > 0 ? "text-warning" : null,
+            alarming && value > 0 ? "text-legacy-warning" : null,
             alarming && value === 0 ? "text-muted-foreground" : null,
           )}
         >

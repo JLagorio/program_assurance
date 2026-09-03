@@ -234,9 +234,9 @@ export const verificationMethods: VerificationMethod[] = [
 export const requirementStateTone: Record<RequirementState, Tone> = {
   Draft: "neutral",
   Proposed: "neutral",
-  Approved: "info",
-  Allocated: "info",
-  Implemented: "info",
+  Approved: "information",
+  Allocated: "information",
+  Implemented: "information",
   Verified: "success",
   Rejected: "danger",
   Superseded: "neutral",
@@ -245,8 +245,8 @@ export const requirementStateTone: Record<RequirementState, Tone> = {
 
 export const allocationStateTone: Record<AllocationState, Tone> = {
   Proposed: "neutral",
-  Accepted: "info",
-  Implemented: "info",
+  Accepted: "information",
+  Implemented: "information",
   Verified: "success",
   Rejected: "danger",
   Superseded: "neutral",
@@ -266,8 +266,8 @@ export const coverageTone: Record<Coverage, Tone> = {
  * so no tone here implies a requirement is less legitimate for lacking a CCI.
  */
 export const derivationSourceTone: Record<DerivationSource, Tone> = {
-  "Control statement": "info",
-  Overlay: "info",
+  "Control statement": "information",
+  Overlay: "information",
   Policy: "neutral",
   Threat: "warning",
   "Architecture decision": "neutral",
@@ -277,7 +277,7 @@ export const derivationSourceTone: Record<DerivationSource, Tone> = {
 };
 
 export const responsibilityTone: Record<Responsibility, Tone> = {
-  Primary: "info",
+  Primary: "information",
   Supporting: "neutral",
   Verifier: "neutral",
   Provider: "neutral",

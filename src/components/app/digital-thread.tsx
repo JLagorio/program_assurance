@@ -237,7 +237,7 @@ export function DigitalThreadSection({
                         r.confidence === "High"
                           ? "success"
                           : r.confidence === "Medium"
-                            ? "info"
+                            ? "information"
                             : "warning"
                       }
                     >
@@ -370,7 +370,7 @@ function RuleModal({
     <Dialog
       open
       onClose={onClose}
-      width="lg"
+      width="large"
       title={creating ? "New mapping rule" : `${rule.id} — ${rule.name}`}
       description="Signals from engineering tools become NIST SP 800-53 evidence automatically."
       aside={
@@ -385,7 +385,7 @@ function RuleModal({
       }
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
           <Button variant="primary" onClick={() => onSave({ ...draft, controls: parsed })}>
@@ -499,7 +499,7 @@ function EvidenceModal({
     <Dialog
       open
       onClose={onClose}
-      width="lg"
+      width="large"
       title={evidence.title}
       description={`${evidence.ref} · ${programId} · rule ${evidence.rule}`}
       aside={
@@ -526,7 +526,7 @@ function EvidenceModal({
       }
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="subtle" onClick={onClose}>
             Close
           </Button>
           <Button variant="secondary" onClick={() => onStatus(evidence.id, "Rejected")}>
@@ -607,7 +607,7 @@ export function CdrPackageModal({
       <Dialog
         open={open}
         onClose={onClose}
-        width="lg"
+        width="large"
         title="Generate CDR package"
         description={`${programName} · ${programId} · Critical Design Review submission`}
         aside={
@@ -632,7 +632,7 @@ export function CdrPackageModal({
               </KeyValue>
             </div>
             {blockers.length ? (
-              <p className="mt-3 border-t border-border pt-3 text-[12.5px] leading-relaxed text-warning">
+              <p className="mt-3 border-t border-border pt-3 text-[12.5px] leading-relaxed text-legacy-warning">
                 {blockers.map((b) => b.blocker).join(" · ")}
               </p>
             ) : (
@@ -642,7 +642,7 @@ export function CdrPackageModal({
               </p>
             )}
             {generated ? (
-              <p className="mt-3 text-[12.5px] text-success">
+              <p className="mt-3 text-[12.5px] text-legacy-success">
                 Package built — <Id>{programId}-CDR-SSP.zip</Id>
               </p>
             ) : null}
@@ -650,7 +650,7 @@ export function CdrPackageModal({
         }
         footer={
           <>
-            <Button variant="ghost" onClick={onClose}>
+            <Button variant="subtle" onClick={onClose}>
               Cancel
             </Button>
             <Button

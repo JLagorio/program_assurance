@@ -149,8 +149,8 @@ export function SctmMatrixSection({
         placeholder="Search controls or requirements"
         actions={
           <Button
-            size="sm"
-            variant="ghost"
+            size="small"
+            variant="subtle"
             onClick={() => setExpanded(allOpen ? new Set() : new Set(groups.map((g) => g.id)))}
           >
             {allOpen ? "Collapse all" : "Expand all"}
@@ -189,7 +189,7 @@ export function SctmMatrixSection({
           description="Clear the search or pick another family."
           action={
             <Button
-              size="sm"
+              size="small"
               onClick={() => {
                 setQuery("");
                 onFamily("All");

@@ -115,7 +115,7 @@ function versionRead(row: ResolvedInheritance): VersionRead {
 export function InheritanceStateChip({ row }: { row: ResolvedInheritance }) {
   return (
     <span title={row.stateReason}>
-      <Badge size="xs" tone={inheritanceStateTone[row.state]}>
+      <Badge size="xsmall" tone={inheritanceStateTone[row.state]}>
         {row.state}
       </Badge>
     </span>
@@ -125,7 +125,7 @@ export function InheritanceStateChip({ row }: { row: ResolvedInheritance }) {
 export function DesignationChip({ row }: { row: ResolvedInheritance }) {
   return (
     <span title={`eMASS implementation status: ${row.emassStatus}`}>
-      <Badge size="xs" tone={designationTone[row.designation]}>
+      <Badge size="xsmall" tone={designationTone[row.designation]}>
         {row.designation}
       </Badge>
     </span>
@@ -192,7 +192,7 @@ export function ResolutionTable({
               )}
               onClick={onSelect ? () => onSelect(row.control) : undefined}
             >
-              <Table.Id id={row.control} tone={onSelect ? "primary" : "muted"} />
+              <Table.Id id={row.control} tone={onSelect ? "brand" : "subtle"} />
               <Table.Cell
                 className="truncate"
                 title={`${row.component.id} — ${row.component.name} (${row.component.provider})`}
@@ -204,7 +204,7 @@ export function ResolutionTable({
                 <DesignationChip row={row} />
               </Table.Cell>
               <Table.Cell>
-                <Badge size="xs" tone={shareTone[row.share]}>
+                <Badge size="xsmall" tone={shareTone[row.share]}>
                   {row.share}
                 </Badge>
               </Table.Cell>
@@ -213,12 +213,12 @@ export function ResolutionTable({
                   <span className="flex items-center gap-1">
                     <Id>{version.accepted}</Id>
                     <span className="text-border-strong">→</span>
-                    <Id className={version.drifted ? "text-warning" : "text-muted-foreground"}>
+                    <Id className={version.drifted ? "text-legacy-warning" : "text-muted-foreground"}>
                       {version.offered}
                     </Id>
                   </span>
                 ) : (
-                  <Badge size="xs" tone="warning">
+                  <Badge size="xsmall" tone="warning">
                     Never accepted
                   </Badge>
                 )}
@@ -227,7 +227,7 @@ export function ResolutionTable({
                 <InheritanceStateChip row={row} />
               </Table.Cell>
               <Table.Cell
-                className={cn("truncate", unstated ? "text-danger" : "")}
+                className={cn("truncate", unstated ? "text-legacy-danger" : "")}
                 title={
                   unstated
                     ? `${row.component.name} offers ${row.control} as ${row.provided.model} but states no consumer obligation.`
@@ -274,10 +274,10 @@ function ProviderCard({
 }) {
   const ring: Record<Tone, string> = {
     neutral: "border-border",
-    success: "border-success/35",
-    warning: "border-warning/35",
-    danger: "border-danger/35",
-    info: "border-info/35",
+    success: "border-legacy-success/35",
+    warning: "border-legacy-warning/35",
+    danger: "border-legacy-danger/35",
+    information: "border-info/35",
   };
   return (
     <div className={cn("rounded-md border bg-card px-3 py-2.5", ring[tone])}>
@@ -292,8 +292,8 @@ function ProviderCard({
       </div>
       <div className="mt-1 flex flex-wrap items-center gap-1.5">
         <Id className="text-muted-foreground">{id}</Id>
-        <Badge size="xs">{tier} tier</Badge>
-        <Badge size="xs">{model}</Badge>
+        <Badge size="xsmall">{tier} tier</Badge>
+        <Badge size="xsmall">{model}</Badge>
       </div>
     </div>
   );
@@ -385,7 +385,7 @@ export function ObligationList({ rows }: { rows: ResolvedInheritance[] }) {
               <Id>{row.control}</Id>
               <span className="min-w-0 truncate text-[13px] font-medium">{row.provided.title}</span>
               <DesignationChip row={row} />
-              <Badge size="xs" tone={shareTone[row.share]}>
+              <Badge size="xsmall" tone={shareTone[row.share]}>
                 {row.share}
               </Badge>
               <span className="ml-auto flex items-center gap-1.5">
@@ -412,7 +412,7 @@ export function ObligationList({ rows }: { rows: ResolvedInheritance[] }) {
                   This system still owes
                 </h4>
                 {unstated ? (
-                  <div className="mt-1 flex items-start gap-2 rounded-md bg-danger-soft px-2.5 py-2 text-[12.5px] leading-relaxed text-danger">
+                  <div className="mt-1 flex items-start gap-2 rounded-md bg-danger-soft px-2.5 py-2 text-[12.5px] leading-relaxed text-legacy-danger">
                     <span className="pt-1.5">
                       <Dot tone="danger" />
                     </span>
@@ -486,7 +486,7 @@ export function NotApplicableTable({ rows }: { rows: ResolvedInheritance[] }) {
               {row.component.name}
             </Table.Cell>
             <Table.Cell>
-              <Badge size="xs">{row.provided.model}</Badge>
+              <Badge size="xsmall">{row.provided.model}</Badge>
             </Table.Cell>
             <Table.Cell className="truncate" title={row.applicabilityReason}>
               {isBlank(row.applicabilityReason) ? <Absent /> : row.applicabilityReason}
@@ -513,7 +513,7 @@ function BreakdownRow({
 }) {
   const pct = Math.round((count / (total || 1)) * 100);
   return (
-    <div className="flex items-center gap-3 border-b border-border-subtle py-2 last:border-0">
+    <div className="flex items-center gap-3 border-b border-border-legacy-subtle py-2 last:border-0">
       <span className="w-[132px] shrink-0 truncate text-12">{label}</span>
       <span className="min-w-0 flex-1">
         <Progress value={pct} tone={tone} />
@@ -695,7 +695,7 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
   return (
     <div>
       {unstated ? (
-        <div className="mb-3 flex items-start gap-2 rounded-md bg-danger-soft px-2.5 py-2 text-[12.5px] leading-snug text-danger">
+        <div className="mb-3 flex items-start gap-2 rounded-md bg-danger-soft px-2.5 py-2 text-[12.5px] leading-snug text-legacy-danger">
           <span className="pt-1.5">
             <Dot tone="danger" />
           </span>
@@ -721,7 +721,7 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
           <DesignationChip row={row} />
         </KeyValue>
         <KeyValue label="Share">
-          <Badge size="xs" tone={shareTone[row.share]}>
+          <Badge size="xsmall" tone={shareTone[row.share]}>
             {row.share}
           </Badge>
         </KeyValue>
@@ -730,7 +730,7 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
 
       <Inspector.Group title="State">
         <KeyValue label="Resolution">
-          <Badge size="xs" tone={inheritanceStateTone[row.state]}>
+          <Badge size="xsmall" tone={inheritanceStateTone[row.state]}>
             {row.state}
           </Badge>
         </KeyValue>
@@ -747,7 +747,7 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
         <KeyValue label="Signed">{row.accepted ? row.accepted.acceptedOn : "—"}</KeyValue>
         <WrapValue label="Signed by">{row.accepted ? row.accepted.acceptedBy : "—"}</WrapValue>
         <KeyValue label="Offered">
-          <Id className={version.drifted ? "text-warning" : "text-foreground"}>
+          <Id className={version.drifted ? "text-legacy-warning" : "text-foreground"}>
             {version.offered}
           </Id>
         </KeyValue>
@@ -763,12 +763,12 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
       <Inspector.Group title="Evidence">
         <WrapValue label="Artifact">{row.provided.evidence}</WrapValue>
         <KeyValue label="Age">
-          <span className={cn("tnum", row.stale ? "text-warning" : "")}>
+          <span className={cn("tnum", row.stale ? "text-legacy-warning" : "")}>
             {row.evidenceAgeDays} days
           </span>
         </KeyValue>
         <KeyValue label="Provider status">
-          <Badge size="xs" tone={row.provided.status === "Satisfied" ? "success" : "danger"}>
+          <Badge size="xsmall" tone={row.provided.status === "Satisfied" ? "success" : "danger"}>
             {row.provided.status}
           </Badge>
         </KeyValue>
@@ -791,7 +791,7 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
 
       <Inspector.Group title="Applicability">
         <KeyValue label="Applies">
-          <Badge size="xs" tone={row.applicable ? "success" : "neutral"}>
+          <Badge size="xsmall" tone={row.applicable ? "success" : "neutral"}>
             {row.applicable ? "Yes" : "No"}
           </Badge>
         </KeyValue>
@@ -804,8 +804,8 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
             <div key={conflict.component} className="pt-1.5 first:pt-0.5">
               <div className="flex flex-wrap items-center gap-1.5">
                 <Id className="text-muted-foreground">{conflict.component}</Id>
-                <Badge size="xs">{conflict.tier} tier</Badge>
-                <Badge size="xs">{conflict.model}</Badge>
+                <Badge size="xsmall">{conflict.tier} tier</Badge>
+                <Badge size="xsmall">{conflict.model}</Badge>
               </div>
               <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
                 {conflict.reason}

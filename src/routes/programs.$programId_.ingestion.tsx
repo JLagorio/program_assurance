@@ -170,7 +170,7 @@ function ProgramIngestion() {
       <Toolbar
         actions={
           <>
-            <Badge size="xs">{scan.format}</Badge>
+            <Badge size="xsmall">{scan.format}</Badge>
             <span className="tnum text-[12px] text-muted-foreground">
               completed {scan.completed}
             </span>

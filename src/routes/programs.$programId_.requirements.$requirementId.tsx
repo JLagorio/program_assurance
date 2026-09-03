@@ -178,7 +178,7 @@ function RequirementRecord() {
                       ))}
                     </span>
                   ) : (
-                    <span className="text-warning">None</span>
+                    <span className="text-legacy-warning">None</span>
                   )}
                 </Fact>
               </dl>
@@ -279,7 +279,7 @@ function RequirementRecord() {
             <Section
               title="Allocation"
               action={
-                <Button size="sm" onClick={() => setAllocating(true)}>
+                <Button size="small" onClick={() => setAllocating(true)}>
                   Allocate to…
                 </Button>
               }
@@ -392,7 +392,7 @@ function SourceRef({
     );
   }
   return (
-    <Badge size="xs" tone={tone}>
+    <Badge size="xsmall" tone={tone}>
       {sourceId}
     </Badge>
   );

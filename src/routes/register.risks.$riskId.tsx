@@ -200,7 +200,7 @@ function RiskRecord() {
                       <dt className="text-muted-foreground">Inherent</dt>
                       <dd className="tnum">{comparison.authored.inherent}</dd>
                     </div>
-                    <div className="flex items-baseline justify-between gap-3 border-t border-border-subtle pt-1.5">
+                    <div className="flex items-baseline justify-between gap-3 border-t border-border-legacy-subtle pt-1.5">
                       <dt className="font-medium">Residual</dt>
                       <dd className="tnum font-medium">{comparison.authored.residual}</dd>
                     </div>
@@ -232,11 +232,11 @@ function RiskRecord() {
                     </div>
                     <div className="flex items-baseline justify-between gap-3">
                       <dt className="text-muted-foreground">Mitigation credit</dt>
-                      <dd className={credit < 0 ? "tnum text-success" : "tnum"}>
+                      <dd className={credit < 0 ? "tnum text-legacy-success" : "tnum"}>
                         {signed(credit)}
                       </dd>
                     </div>
-                    <div className="flex items-baseline justify-between gap-3 border-t border-border-subtle pt-1.5">
+                    <div className="flex items-baseline justify-between gap-3 border-t border-border-legacy-subtle pt-1.5">
                       <dt className="font-medium">Residual</dt>
                       <dd className="tnum font-medium">{computed.score}</dd>
                     </div>
@@ -438,13 +438,13 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
                 <Table.Cell className="tnum text-right">{f.weight.toFixed(2)}</Table.Cell>
                 <Table.Cell
                   className={
-                    f.contribution < 0 ? "tnum text-right text-success" : "tnum text-right"
+                    f.contribution < 0 ? "tnum text-right text-legacy-success" : "tnum text-right"
                   }
                 >
                   {signed(f.contribution)}
                 </Table.Cell>
               </tr>
-              <tr className="border-b border-border-subtle">
+              <tr className="border-b border-border-legacy-subtle">
                 <td colSpan={5} className="px-3 pb-2.5 align-top">
                   <p className="max-w-3xl text-[12.5px] leading-relaxed text-muted-foreground">
                     {f.rationale}

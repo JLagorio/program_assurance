@@ -108,7 +108,7 @@ export function DownloadButton({
   label,
   bytes,
   variant = "secondary",
-  size = "sm",
+  size = "small",
 }: {
   filename: string;
   text: string;
@@ -116,8 +116,8 @@ export function DownloadButton({
   label: ReactNode;
   /** UTF-8 size for the tooltip, where the caller already knows it. */
   bytes?: number;
-  variant?: "primary" | "secondary" | "ghost";
-  size?: "xs" | "sm" | "md";
+  variant?: "primary" | "secondary" | "subtle";
+  size?: "xsmall" | "small" | "medium";
 }) {
   return (
     <Button
@@ -273,7 +273,7 @@ export function OscalViewer({
         </span>
         {from > 0 ? (
           <Button
-            size="xs"
+            size="xsmall"
             onClick={() => {
               setStart(0);
               setCount(windowSize);
@@ -283,7 +283,7 @@ export function OscalViewer({
           </Button>
         ) : null}
         {remaining > 0 ? (
-          <Button size="xs" onClick={() => setCount((c) => c + windowSize)}>
+          <Button size="xsmall" onClick={() => setCount((c) => c + windowSize)}>
             Show {num(Math.min(windowSize, remaining))} more · {num(remaining)} below
           </Button>
         ) : null}
@@ -354,7 +354,7 @@ export function EmassTable({ sheet, pageSize = 40 }: { sheet: EmassExport; pageS
             : `${num(shown.length)} shown, ${num(remaining)} below`}
         </span>
         {remaining > 0 ? (
-          <Button size="xs" onClick={() => setLimit((n) => n + pageSize)}>
+          <Button size="xsmall" onClick={() => setLimit((n) => n + pageSize)}>
             Show {num(Math.min(pageSize, remaining))} more
           </Button>
         ) : null}
@@ -485,7 +485,7 @@ export function BundleManifest({
                 </Table.Cell>
                 <Table.Cell className="py-2 align-top text-right">
                   {onDownloadArtifact ? (
-                    <Button size="xs" onClick={() => onDownloadArtifact(artifact)}>
+                    <Button size="xsmall" onClick={() => onDownloadArtifact(artifact)}>
                       <Download className="size-3" /> File
                     </Button>
                   ) : (
@@ -521,7 +521,7 @@ export function BundleManifest({
             <Hash value={bundle.manifestHash} />
           </div>
 
-          <div className="max-h-[280px] overflow-auto rounded-md border border-border bg-subtle">
+          <div className="max-h-[280px] overflow-auto rounded-md border border-border bg-legacy-subtle">
             <pre className="w-max min-w-full px-3 py-2 font-mono text-[11px] leading-[1.55] text-foreground">
               {manifest}
             </pre>
@@ -552,7 +552,7 @@ export function BundleManifest({
             </div>
           </dl>
 
-          <p className="rounded-md border border-warning/25 bg-warning-soft px-3 py-2 text-[12.5px] leading-relaxed text-foreground">
+          <p className="rounded-md border border-legacy-warning/25 bg-warning-soft px-3 py-2 text-[12.5px] leading-relaxed text-foreground">
             <span className="font-medium">What this block is, plainly.</span> {signatureAlgorithm}.
             This build holds no key material and no PKI, so the value above is the manifest digest
             itself
@@ -579,9 +579,9 @@ export function ReconcileVerdict({ reconciliation }: { reconciliation: Reconcili
       ? "warning"
       : "success";
   const frame: Record<"danger" | "warning" | "success", string> = {
-    danger: "border-danger/30 bg-danger-soft",
-    warning: "border-warning/25 bg-warning-soft",
-    success: "border-success/25 bg-success-soft",
+    danger: "border-legacy-danger/30 bg-danger-soft",
+    warning: "border-legacy-warning/25 bg-warning-soft",
+    success: "border-legacy-success/25 bg-success-soft",
   };
 
   return (

@@ -218,8 +218,8 @@ export type Sctm = {
 };
 
 export const verificationMethodTone: Record<VerificationMethod, Tone> = {
-  Test: "info",
-  Demonstration: "info",
+  Test: "information",
+  Demonstration: "information",
   Analysis: "neutral",
   Inspection: "neutral",
 };

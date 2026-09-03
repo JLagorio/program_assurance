@@ -141,7 +141,7 @@ export type Reconciliation = {
 export const reconcileStateTone: Record<ReconcileState, Tone> = {
   Identical: "success",
   Changed: "warning",
-  "Added on this side": "info",
+  "Added on this side": "information",
   "Missing on this side": "danger",
 };
 

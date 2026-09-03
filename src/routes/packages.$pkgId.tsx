@@ -165,7 +165,7 @@ function PackageRecord() {
                     <Table.Row key={r.cci}>
                       <Table.Id
                         id={r.cci}
-                        active={preview?.cci === r.cci}
+                        isActive={preview?.cci === r.cci}
                         onPreview={() => setPreview(r)}
                       />
                       <Table.Cell>
@@ -174,7 +174,7 @@ function PackageRecord() {
                       <Table.Cell className="truncate">
                         {r.gap ? (
                           <span className="inline-flex items-center gap-1.5">
-                            <AlertTriangle className="size-3 shrink-0 text-warning" />
+                            <AlertTriangle className="size-3 shrink-0 text-legacy-warning" />
                             <span className="truncate">{r.statement}</span>
                           </span>
                         ) : (
@@ -276,7 +276,7 @@ function PackageRecord() {
               onClose={() => setPreview(null)}
             >
               {preview.gap ? (
-                <p className="mb-3 border-l-2 border-warning bg-warning-soft px-2 py-1.5 text-[12px] leading-relaxed">
+                <p className="mb-3 border-l-2 border-legacy-warning bg-warning-soft px-2 py-1.5 text-[12px] leading-relaxed">
                   {preview.gap}
                 </p>
               ) : null}

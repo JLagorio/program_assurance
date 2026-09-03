@@ -86,7 +86,7 @@ function PackagesIndex() {
                     >
                       <Table.Id
                         id={p.id}
-                        active={preview?.id === p.id}
+                        isActive={preview?.id === p.id}
                         onPreview={() => setPreview(p)}
                       />
                       <Table.Cell className="truncate">{p.name}</Table.Cell>
@@ -99,7 +99,7 @@ function PackagesIndex() {
                       <Table.Cell className="tnum text-right">{r.coverage}%</Table.Cell>
                       <Table.Cell className="tnum text-right">
                         {r.gaps.length > 0 ? (
-                          <span className="font-medium text-danger">{r.gaps.length}</span>
+                          <span className="font-medium text-legacy-danger">{r.gaps.length}</span>
                         ) : (
                           <span className="text-muted-foreground">0</span>
                         )}

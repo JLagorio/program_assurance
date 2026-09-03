@@ -28,7 +28,7 @@
   --color-surface-1: var(--surface-1);
   --color-surface-2: var(--surface-2);
   --color-surface-hover: var(--surface-hover);
-  --color-border-subtle: var(--border-subtle);
+  --color-border-legacy-subtle: var(--border-legacy-subtle);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -44,21 +44,21 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-subtle: var(--subtle);
+  --color-legacy-subtle: var(--subtle);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
-  --color-input: var(--input);
+  --color-legacy-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
-  --color-success: var(--success);
+  --color-legacy-success: var(--success);
   --color-success-soft: var(--success-soft);
-  --color-warning: var(--warning);
+  --color-legacy-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
-  --color-danger: var(--danger);
+  --color-legacy-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --color-danger-hover: var(--danger-hover);
   --color-info: var(--info);
@@ -77,7 +77,7 @@
   --surface-1: oklch(1 0 0);
   --surface-2: oklch(0.988 0.002 252);
   --surface-hover: oklch(0.972 0.004 250);
-  --border-subtle: oklch(0.945 0.005 252);
+  --border-legacy-subtle: oklch(0.945 0.005 252);
 
   /* Surfaces — white canvas, Stripe-calm */
   --background: oklch(1 0 0);

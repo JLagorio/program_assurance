@@ -116,7 +116,7 @@ export type MilestoneNode = {
   owner: string;
   state: "done" | "current" | "upcoming";
   daysOut: number | null;
-  tone: "success" | "warning" | "danger" | "info" | "neutral";
+  tone: "success" | "warning" | "danger" | "information" | "neutral";
 };
 
 export function programMilestones(program: Program, now = datasetNow): MilestoneNode[] {
@@ -146,7 +146,7 @@ export function programMilestones(program: Program, now = datasetNow): Milestone
           : state === "current"
             ? daysOut !== null && daysOut < 30
               ? "warning"
-              : "info"
+              : "information"
             : "neutral";
 
     return {
@@ -167,7 +167,7 @@ export function programMilestones(program: Program, now = datasetNow): Milestone
 export type GateOutlookRow = {
   gate: ProgramGate;
   daysOut: number | null;
-  tone: "success" | "warning" | "danger" | "info" | "neutral";
+  tone: "success" | "warning" | "danger" | "information" | "neutral";
   /** Controls still not satisfied that this gate depends on. */
   blockers: number;
 };
@@ -193,7 +193,7 @@ export function gateOutlook(program: Program, rows: ControlRow[], now = datasetN
           : g.status === "At risk"
             ? "warning"
             : g.status === "In progress"
-              ? "info"
+              ? "information"
               : "neutral";
       const blockers =
         g.kind === "RMF action" || g.kind === "Milestone decision"
@@ -227,7 +227,7 @@ export type Deadline = {
   date: string;
   daysOut: number | null;
   owner: string;
-  tone: "success" | "warning" | "danger" | "info" | "neutral";
+  tone: "success" | "warning" | "danger" | "information" | "neutral";
   note: string;
 };
 

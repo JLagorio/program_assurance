@@ -264,7 +264,7 @@ function Catalog() {
                       <Table.Cell className="tnum text-right">{c.rules.length}</Table.Cell>
                       <Table.Cell className="tnum text-right">{c.procedures.length}</Table.Cell>
                       <Table.Cell className="tnum text-right">
-                        {c.objectives.length || <span className="text-warning">0</span>}
+                        {c.objectives.length || <span className="text-legacy-warning">0</span>}
                       </Table.Cell>
                     </Table.Row>
                   ))}
@@ -330,7 +330,7 @@ function Catalog() {
                       </div>
                     ))
                   ) : (
-                    <span className="text-warning">No test objective — coverage gap</span>
+                    <span className="text-legacy-warning">No test objective — coverage gap</span>
                   )}
                 </div>
               </Inspector.Group>

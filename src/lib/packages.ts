@@ -57,9 +57,9 @@ export type SubmissionEvent = {
 
 export const packageStateTone: Record<PackageState, Tone> = {
   Assembling: "neutral",
-  "Internal review": "info",
-  Submitted: "info",
-  "SCA review": "info",
+  "Internal review": "information",
+  Submitted: "information",
+  "SCA review": "information",
   Returned: "warning",
   Authorized: "success",
 };

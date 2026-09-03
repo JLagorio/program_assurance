@@ -2,6 +2,10 @@
 @source "../src";
 @import "tw-animate-css";
 @import "./ds/tokens.css";
+/* Ledger, the design system package. The prototype is its consumer; its own tokens.css above and
+   the raw Tailwind classes still in the routes are on their way out. reset.css joins once they are gone. */
+@import "@ledger/design-system/ledger.css";
+@import "@ledger/design-system/base.css";
 @import "./components/ui/theme.css"; /* shadcn preset reference, scoped to .theme-shadcn-nova */
 
 @custom-variant dark (&:is(.dark *));

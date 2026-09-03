@@ -63,7 +63,7 @@ export type ResidualRisk = {
 
 export const packageStatusTone: Record<PackageStatus, Tone> = {
   Draft: "neutral",
-  "In review": "info",
+  "In review": "information",
   "SCA accepted": "success",
   Returned: "danger",
   Locked: "success",
@@ -72,8 +72,8 @@ export const packageStatusTone: Record<PackageStatus, Tone> = {
 export const observationTone: Record<ScaObservationStatus, Tone> = {
   Logged: "danger",
   Triaged: "warning",
-  "Jira assigned": "info",
-  "In remediation": "info",
+  "Jira assigned": "information",
+  "In remediation": "information",
   Remediated: "success",
   "Risk accepted": "neutral",
 };
@@ -94,7 +94,7 @@ export const decisionTone: Record<ResidualRisk["decision"], Tone> = {
 
 export const grantTone: Record<EnclaveGrant["status"], Tone> = {
   Active: "success",
-  Invited: "info",
+  Invited: "information",
   Expired: "neutral",
 };
 

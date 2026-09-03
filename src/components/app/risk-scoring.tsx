@@ -81,7 +81,7 @@ function fixed2(n: number): string {
   return zeroSafe(n).toFixed(2);
 }
 
-export function BandChip({ band, size = "sm" }: { band: RiskBand; size?: "xs" | "sm" }) {
+export function BandChip({ band, size = "small" }: { band: RiskBand; size?: "xsmall" | "small" }) {
   return (
     <Badge size={size} tone={bandTone[band]}>
       {band}
@@ -126,7 +126,7 @@ function ProseBlock({
       <div
         className={cn(
           "text-[11px] font-medium uppercase tracking-[0.06em]",
-          tone === "warning" ? "text-warning" : "text-muted-foreground",
+          tone === "warning" ? "text-legacy-warning" : "text-muted-foreground",
         )}
       >
         {label}
@@ -237,7 +237,7 @@ function FactorRows({ factor }: { factor: ScoreFactor }) {
         <Table.Cell
           className={cn(
             "tnum py-2 align-top text-right",
-            credit ? "text-success" : factor.contribution === 0 ? "" : "",
+            credit ? "text-legacy-success" : factor.contribution === 0 ? "" : "",
           )}
         >
           {signed(factor.contribution)}
@@ -284,7 +284,7 @@ function MissingFactorRows({ factorKey, caveats }: { factorKey: FactorKey; cavea
       <Table.Row className="border-0 align-top hover:bg-transparent">
         <Table.Cell className="py-2 align-top">{label}</Table.Cell>
         <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
-          <Badge size="xs" tone="warning">
+          <Badge size="xsmall" tone="warning">
             Not computed
           </Badge>
         </Table.Cell>
@@ -388,14 +388,14 @@ export function ScoreCard({
         ) : null}
       </div>
 
-      <div className="space-y-3 border-t border-border bg-subtle px-4 py-3">
+      <div className="space-y-3 border-t border-border bg-legacy-subtle px-4 py-3">
         {comparison ? (
           <ProseBlock label="Authored against computed">{comparison.note}</ProseBlock>
         ) : null}
         <ProseBlock label="Leverage">{score.leverage}</ProseBlock>
         {score.caveats.length > 0 ? (
           <div>
-            <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-warning">
+            <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-legacy-warning">
               {score.caveats.length} caveat{score.caveats.length === 1 ? "" : "s"} — the score is
               provisional
             </div>
@@ -444,7 +444,7 @@ export function BandDistribution({ byBand }: { byBand: { band: RiskBand; count: 
       <div className="space-y-1.5">
         {byBand.map((b) => (
           <div key={b.band} className="grid grid-cols-[120px_44px_1fr_52px] items-center gap-3">
-            <BandChip band={b.band} size="xs" />
+            <BandChip band={b.band} size="xsmall" />
             <span className="tnum text-right text-[12.5px] font-medium">{b.count}</span>
             <Progress value={(b.count / total) * 100} tone={bandTone[b.band]} />
             <span className="tnum text-right text-[12px] text-muted-foreground">
@@ -543,7 +543,7 @@ export function TopRisksTable({
                 <span className="flex items-center gap-1.5">
                   <Id>{row.score.subject}</Id>
                   {row.score.caveats.length > 0 ? (
-                    <Badge size="xs" tone="warning">
+                    <Badge size="xsmall" tone="warning">
                       {row.score.caveats.length}
                     </Badge>
                   ) : null}
@@ -558,7 +558,7 @@ export function TopRisksTable({
               {/* A zero credit is a RESULT — nobody claimed a compensating
                   control — so it prints as 0 rather than as an em dash, which
                   would read as "not computed". */}
-              <Table.Cell className={cn("tnum text-right", credit !== 0 ? "text-success" : "")}>
+              <Table.Cell className={cn("tnum text-right", credit !== 0 ? "text-legacy-success" : "")}>
                 {signed(credit)}
               </Table.Cell>
               {showAuthored ? (
@@ -568,7 +568,7 @@ export function TopRisksTable({
               ) : null}
               <Table.Cell className="tnum text-right">{row.score.score}</Table.Cell>
               <Table.Cell>
-                <BandChip band={row.score.band} size="xs" />
+                <BandChip band={row.score.band} size="xsmall" />
               </Table.Cell>
             </Table.Row>
           );
@@ -627,7 +627,7 @@ export function MoversTable({ movers }: { movers: RiskMover[] }) {
             <Table.Cell
               className={cn(
                 "tnum py-2 align-top text-right",
-                m.to > m.from ? "text-warning" : "text-success",
+                m.to > m.from ? "text-legacy-warning" : "text-legacy-success",
               )}
             >
               {signed(m.to - m.from)}
@@ -730,11 +730,11 @@ function ComparisonRows({
         <Table.Cell className="tnum py-2 align-top text-right">
           {comparison.computed.residual}
         </Table.Cell>
-        <Table.Cell className={cn("tnum py-2 align-top text-right", agrees ? "" : "text-warning")}>
+        <Table.Cell className={cn("tnum py-2 align-top text-right", agrees ? "" : "text-legacy-warning")}>
           {signed(comparison.delta)}
         </Table.Cell>
         <Table.Cell className="py-2 align-top">
-          <BandChip band={comparison.computed.band} size="xs" />
+          <BandChip band={comparison.computed.band} size="xsmall" />
         </Table.Cell>
       </Table.Row>
       <Table.Row className="align-top hover:bg-transparent">
@@ -837,7 +837,7 @@ export function FactorModel() {
               <Table.Cell
                 className={cn(
                   "tnum py-2 align-top text-right",
-                  factorWeights[row.key] < 0 ? "text-success" : "",
+                  factorWeights[row.key] < 0 ? "text-legacy-success" : "",
                 )}
               >
                 {fixed2(factorWeights[row.key])}
@@ -910,7 +910,7 @@ export function BandLadder({
           {ladder.map((row) => (
             <Table.Row key={row.band} className="align-top">
               <Table.Cell className="py-2 align-top">
-                <BandChip band={row.band} size="xs" />
+                <BandChip band={row.band} size="xsmall" />
               </Table.Cell>
               <Table.Cell className="tnum py-2 align-top">{row.range}</Table.Cell>
               {byBand ? (

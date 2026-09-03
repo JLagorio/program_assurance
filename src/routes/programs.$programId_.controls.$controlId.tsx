@@ -381,7 +381,7 @@ function ControlRecord() {
                   {
                     label: "Findings",
                     value: open.length ? (
-                      <Badge size="xs" tone="danger">
+                      <Badge size="xsmall" tone="danger">
                         {open.length} open
                       </Badge>
                     ) : (

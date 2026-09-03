@@ -40,10 +40,10 @@ import type { BomStats, NodePosture, ReconciliationRow } from "@/lib/graph-postu
 
 const toneDot: Record<Tone, string> = {
   neutral: "bg-muted-foreground/40",
-  success: "bg-success",
-  warning: "bg-warning",
-  danger: "bg-danger",
-  info: "bg-primary",
+  success: "bg-legacy-success",
+  warning: "bg-legacy-warning",
+  danger: "bg-legacy-danger",
+  information: "bg-primary",
 };
 
 /** Local copy of `postureTone` so this file stays type-only on the lib side. */
@@ -259,8 +259,8 @@ export function BomTree({
                   : `${index.order.length} parts`}
               </span>
               <Button
-                size="xs"
-                variant="ghost"
+                size="xsmall"
+                variant="subtle"
                 onClick={() => {
                   setManual(new Map());
                   setBulk(true);
@@ -269,8 +269,8 @@ export function BomTree({
                 Expand all
               </Button>
               <Button
-                size="xs"
-                variant="ghost"
+                size="xsmall"
+                variant="subtle"
                 onClick={() => {
                   setManual(new Map());
                   setBulk(false);
@@ -327,7 +327,7 @@ function BomTreeRow({
       hasChildren={row.hasChildren}
       expanded={row.open}
       onToggle={onToggle}
-      selected={selected}
+      isSelected={selected}
       {...(onSelect ? { onSelect } : {})}
       trailing={
         <>
@@ -349,7 +349,7 @@ function BomTreeRow({
               title={`${posture.rolled.catI} CAT I, ${posture.rolled.catII} CAT II, ${posture.rolled.catIII} CAT III open in this subtree`}
               className="flex items-center"
             >
-              <Badge size="xs" tone={postureToneOf(posture)}>
+              <Badge size="xsmall" tone={postureToneOf(posture)}>
                 {open} open
               </Badge>
             </span>
@@ -366,7 +366,7 @@ function BomTreeRow({
       >
         {node.name}
       </span>
-      <Badge size="xs" className="shrink-0">
+      <Badge size="xsmall" className="shrink-0">
         {node.kind}
       </Badge>
       {node.version === "—" ? null : (
@@ -432,7 +432,7 @@ export function NodeRail({
         <KeyValue label="BOM source">{node.bomSource}</KeyValue>
         <KeyValue label="BOM document">{node.bom ? <Id>{node.bom}</Id> : <Absent />}</KeyValue>
         <KeyValue label="Attested">
-          <Badge size="xs" tone={node.attested ? "success" : "warning"}>
+          <Badge size="xsmall" tone={node.attested ? "success" : "warning"}>
             {node.attested ? "On file" : "Not on file"}
           </Badge>
         </KeyValue>
@@ -459,7 +459,7 @@ export function NodeRail({
             </span>
           </KeyValue>
           <KeyValue label="Unattested">
-            <span className={cn("tnum", posture.unattested > 0 ? "text-warning" : "")}>
+            <span className={cn("tnum", posture.unattested > 0 ? "text-legacy-warning" : "")}>
               {posture.unattested}
             </span>
           </KeyValue>
@@ -551,9 +551,9 @@ function CatTriple({
       className="tnum flex items-center gap-1 text-12"
       title={`${catI} CAT I, ${catII} CAT II, ${catIII} CAT III of ${total} open`}
     >
-      <span className={catI > 0 ? "font-medium text-danger" : "text-muted-foreground"}>{catI}</span>
+      <span className={catI > 0 ? "font-medium text-legacy-danger" : "text-muted-foreground"}>{catI}</span>
       <span className="text-border-strong">/</span>
-      <span className={catII > 0 ? "font-medium text-warning" : "text-muted-foreground"}>
+      <span className={catII > 0 ? "font-medium text-legacy-warning" : "text-muted-foreground"}>
         {catII}
       </span>
       <span className="text-border-strong">/</span>
@@ -599,7 +599,7 @@ export function ReconciliationTable({
             className={onSelect ? "cursor-pointer" : undefined}
             onClick={onSelect ? () => onSelect(r.asset) : undefined}
           >
-            <Table.Id id={r.asset} tone={onSelect ? "primary" : "muted"} />
+            <Table.Id id={r.asset} tone={onSelect ? "brand" : "subtle"} />
             <Table.Cell className="truncate" title={r.name}>
               {r.name}
             </Table.Cell>
@@ -619,11 +619,11 @@ export function ReconciliationTable({
                 total={r.derived.total}
               />
             </Table.Cell>
-            <Table.Cell className={cn("tnum text-right", r.delta === 0 ? "" : "text-warning")}>
+            <Table.Cell className={cn("tnum text-right", r.delta === 0 ? "" : "text-legacy-warning")}>
               {r.delta > 0 ? `+${r.delta}` : r.delta}
             </Table.Cell>
             <Table.Cell>
-              <Badge size="xs" tone={r.agrees ? "success" : "warning"}>
+              <Badge size="xsmall" tone={r.agrees ? "success" : "warning"}>
                 {r.agrees ? "Reconciled" : "Unreconciled"}
               </Badge>
             </Table.Cell>
@@ -665,9 +665,9 @@ function MeterRow({
 
 /** Provenance is the point of a supply-chain read-out, so it carries colour. */
 const originTone: Record<string, Tone> = {
-  Internal: "info",
-  Domestic: "info",
-  Allied: "info",
+  Internal: "information",
+  Domestic: "information",
+  Allied: "information",
   Foreign: "warning",
   Unknown: "danger",
 };
@@ -709,7 +709,7 @@ export function BomSummary({ stats }: { stats: BomStats }) {
               <span
                 className={cn(
                   "tnum text-[20px] font-semibold tracking-[-0.02em]",
-                  m.warn ? "text-warning" : "",
+                  m.warn ? "text-legacy-warning" : "",
                 )}
               >
                 {m.value}
@@ -731,7 +731,7 @@ export function BomSummary({ stats }: { stats: BomStats }) {
               label={c.class}
               value={c.count}
               total={stats.nodes}
-              tone="info"
+              tone="information"
             />
           ))}
         </div>
@@ -745,7 +745,7 @@ export function BomSummary({ stats }: { stats: BomStats }) {
               label={s.source}
               value={s.count}
               total={stats.nodes}
-              tone="info"
+              tone="information"
             />
           ))}
         </div>
@@ -759,7 +759,7 @@ export function BomSummary({ stats }: { stats: BomStats }) {
               label={o.origin}
               value={o.count}
               total={stats.nodes}
-              tone={originTone[o.origin] ?? "info"}
+              tone={originTone[o.origin] ?? "information"}
             />
           ))}
         </div>
@@ -863,7 +863,7 @@ export function SupplyChainTable({
                 {r.supplier}
               </Table.Cell>
               <Table.Cell className="truncate" title={r.origins.join(", ")}>
-                <Badge size="xs" tone={originTone[origin] ?? "neutral"}>
+                <Badge size="xsmall" tone={originTone[origin] ?? "neutral"}>
                   {r.origins.length > 1 ? `${origin} +${r.origins.length - 1}` : origin}
                 </Badge>
               </Table.Cell>
@@ -885,10 +885,10 @@ export function SupplyChainTable({
                   </span>
                 </span>
               </Table.Cell>
-              <Table.Cell className={cn("tnum text-right", r.unattested > 0 ? "text-warning" : "")}>
+              <Table.Cell className={cn("tnum text-right", r.unattested > 0 ? "text-legacy-warning" : "")}>
                 {r.unattested}
               </Table.Cell>
-              <Table.Cell className={cn("tnum", past && "text-danger")}>
+              <Table.Cell className={cn("tnum", past && "text-legacy-danger")}>
                 {r.eol === "—" ? <Absent /> : r.eol}
                 {past ? <span className="pl-1 text-11">past</span> : null}
               </Table.Cell>

@@ -125,10 +125,10 @@ export function NewRequirementModal({
       onClose={onClose}
       title="New security requirement"
       description="Authored as a Draft. Provenance is mandatory — a requirement with no source cannot be approved."
-      width="lg"
+      width="large"
       footer={
         <>
-          {error ? <span className="mr-auto text-[12.5px] text-danger">{error}</span> : null}
+          {error ? <span className="mr-auto text-[12.5px] text-legacy-danger">{error}</span> : null}
           <Button onClick={onClose}>Cancel</Button>
           <Button variant="primary" onClick={submit}>
             Create requirement
@@ -295,10 +295,10 @@ export function AllocateModal({
       onClose={onClose}
       title={`Allocate ${requirement.id}`}
       description="Coverage is per element. Partial is the normal answer — a part that fully covers a system requirement would be a system of one part."
-      width="lg"
+      width="large"
       footer={
         <>
-          {error ? <span className="mr-auto text-[12.5px] text-danger">{error}</span> : null}
+          {error ? <span className="mr-auto text-[12.5px] text-legacy-danger">{error}</span> : null}
           <Button onClick={onClose}>Cancel</Button>
           <Button variant="primary" onClick={submit}>
             Allocate
@@ -454,11 +454,11 @@ export function ApplicabilityModal({
           ? `${queue.length - index} of ${queue.length} obligations not yet answered for this component.`
           : "Every requirement in this program has been answered for this component."
       }
-      width="lg"
+      width="large"
       footer={
         current ? (
           <>
-            {error ? <span className="mr-auto text-[12.5px] text-danger">{error}</span> : null}
+            {error ? <span className="mr-auto text-[12.5px] text-legacy-danger">{error}</span> : null}
             <Button onClick={onClose}>Stop</Button>
             <Button onClick={skip}>Does not apply — log it</Button>
             <Button variant="primary" onClick={apply}>
@@ -474,12 +474,12 @@ export function ApplicabilityModal({
     >
       {current ? (
         <div className="grid gap-3">
-          <div className="rounded-lg border border-border bg-subtle px-4 py-3">
+          <div className="rounded-lg border border-border bg-legacy-subtle px-4 py-3">
             <div className="flex flex-wrap items-center gap-2">
               <Id>{current.id}</Id>
-              <Badge size="xs">{current.type}</Badge>
+              <Badge size="xsmall">{current.type}</Badge>
               {current.derivations.map((d) => (
-                <Badge key={d.sourceId} size="xs" tone={derivationSourceTone[d.sourceType]}>
+                <Badge key={d.sourceId} size="xsmall" tone={derivationSourceTone[d.sourceType]}>
                   {d.sourceId}
                 </Badge>
               ))}

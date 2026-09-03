@@ -86,9 +86,9 @@ function Overview() {
                 <span
                   className={
                     item.tone === "success"
-                      ? "tnum text-[12px] font-medium text-success"
+                      ? "tnum text-[12px] font-medium text-legacy-success"
                       : item.tone === "danger"
-                        ? "tnum text-[12px] font-medium text-danger"
+                        ? "tnum text-[12px] font-medium text-legacy-danger"
                         : "tnum text-[12px] font-medium text-muted-foreground"
                   }
                 >
@@ -218,7 +218,7 @@ function Overview() {
               <Item.Group>
                 {[
                   { label: "SOC 2 evidence cutoff", date: "Oct 31", tone: "warning" as const },
-                  { label: "ISO 27001 stage 2 audit", date: "Nov 12", tone: "info" as const },
+                  { label: "ISO 27001 stage 2 audit", date: "Nov 12", tone: "information" as const },
                   { label: "Quarterly access review", date: "Sep 30", tone: "neutral" as const },
                 ].map((row) => (
                   <Item
