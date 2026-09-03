@@ -119,14 +119,17 @@ function IdCell({
   onPreview,
   isActive,
   tone = "brand",
+  width,
 }: {
   id: ReactNode;
   onPreview?: (() => void) | undefined;
   isActive?: boolean | undefined;
   tone?: "brand" | "subtle" | undefined;
+  /** For a table without a header row, where the cells carry the widths. */
+  width?: number | undefined;
 }) {
   return (
-    <Td className="max-w-none">
+    <Td className="max-w-none" width={width}>
       <span className="flex items-center gap-075">
         <Id
           className={cn(
