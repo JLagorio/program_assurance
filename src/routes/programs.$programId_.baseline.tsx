@@ -13,9 +13,22 @@ import {
   RetestSummary,
   UnrecordedChangeNotice,
 } from "@/components/app/baselines";
-import { Badge, NativeSelect, Toolbar, Tabs, Breadcrumb } from "@/ds/primitives";
-import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Box,
+  Breadcrumb,
+  Empty,
+  Grid,
+  Inline,
+  NativeSelect,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Stack,
+  Tabs,
+  Toolbar,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import {
   acknowledgeChange,
   authorizedBuild,
@@ -227,18 +240,19 @@ function ProgramBaseline() {
     tab === "Impact" && change ? (
       <Toolbar
         actions={
-          <span className="tnum text-[12px] text-muted-foreground">
+          <span className="tabular-nums font-body-small text-subtle">
             {containedAll.length} contained · {cascadedAll.length} cascaded · {changes.length}{" "}
             recorded
           </span>
         }
       >
-        <span className="text-[12px] text-muted-foreground">Change</span>
+        <span className="font-body-small text-subtle">Change</span>
         <NativeSelect
           value={change.id}
           onChange={(e) => selectChange(e.target.value)}
           aria-label="Change record"
-          className="h-7 w-[520px] text-13"
+          className="h-control-small font-body"
+          style={{ width: 520 }}
         >
           {changes.map((c) => (
             <option key={c.id} value={c.id}>
@@ -256,20 +270,19 @@ function ProgramBaseline() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/programs/$programId"
-            backParams={{ programId: program.id }}
+            back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
             breadcrumb={
-              <Breadcrumb
-                items={[
-                  { label: "Programs", to: "/programs" },
-                  {
-                    label: program.name,
-                    to: "/programs/$programId",
-                    params: { programId: program.id },
-                  },
-                  { label: "Configuration baseline" },
-                ]}
-              />
+              <Breadcrumb>
+                <Breadcrumb.Item asChild>
+                  <Link to={"/programs"}>{"Programs"}</Link>
+                </Breadcrumb.Item>
+                <Breadcrumb.Item asChild>
+                  <Link to={"/programs/$programId"} params={{ programId: program.id }}>
+                    {program.name}
+                  </Link>
+                </Breadcrumb.Item>
+                <Breadcrumb.Item isCurrent>{"Configuration baseline"}</Breadcrumb.Item>
+              </Breadcrumb>
             }
             id={program.id}
             title={`${program.name} — configuration baseline`}
@@ -289,7 +302,7 @@ function ProgramBaseline() {
                 <Link
                   to="/programs/$programId/sctm"
                   params={{ programId: program.id }}
-                  className="text-[12.5px] text-primary hover:underline"
+                  className="font-body-small text-brand hover:underline"
                 >
                   SCTM
                 </Link>
@@ -298,19 +311,18 @@ function ProgramBaseline() {
           />
         }
         tabs={
-          <Tabs
-            items={baselineTabs.map((key) => ({
-              key,
-              label: key,
-              active: tab === key,
-              onSelect: () => go(key),
-              trailing: counts[key] ? (
-                <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                  {counts[key]}
-                </span>
-              ) : null,
-            }))}
-          />
+          <Tabs>
+            {baselineTabs.map((key) => (
+              <Tabs.Tab
+                key={key}
+                isSelected={tab === key}
+                onClick={() => go(key)}
+                count={counts[key] || null}
+              >
+                {key}
+              </Tabs.Tab>
+            ))}
+          </Tabs>
         }
         showRail={railBody !== null}
         rail={railBody}
@@ -341,12 +353,12 @@ function ProgramBaseline() {
                 title={`${authorized.id} against ${candidate.id}`}
                 description={`${diff.length} pins differ between the authorized baseline and the candidate. The diff is mechanical — it compares versions, digests and part numbers and makes no judgement about any of them. What the movement costs is decided one column to the right, by the change record.`}
                 action={
-                  <span className="tnum text-[12px] text-muted-foreground">
+                  <span className="tabular-nums font-body-small text-subtle">
                     {diff.length - unrecorded.length} recorded · {unrecorded.length} not
                   </span>
                 }
               >
-                <div className="space-y-4 pt-4">
+                <Stack className="pt-200" space="space.200">
                   <UnrecordedChangeNotice
                     rows={unrecorded}
                     from={authorized.id}
@@ -354,19 +366,19 @@ function ProgramBaseline() {
                     nodeName={nodeName}
                   />
                   <PinDiffTable rows={diff} nodeName={nodeName} />
-                </div>
+                </Stack>
               </Section>
             ) : (
               <Section
                 title="Baseline comparison"
                 description="A diff needs an authorized baseline and a candidate. This program has only one of them."
               >
-                <div className="pt-4">
+                <Box paddingBlockStart="space.200">
                   <Empty
                     title="Nothing to compare"
                     description={`${program.id} has no pair of an authorized baseline and a build under test, so there is no movement to analyse.`}
                   />
-                </div>
+                </Box>
               </Section>
             )}
 
@@ -387,7 +399,7 @@ function ProgramBaseline() {
               title="Change records"
               description={`${changes.length} changes proposed against this program's baselines, each carrying a written CM-3(2) security impact analysis. ${containedAll.length} were analysed and contained; ${cascadedAll.length} were found significant and cascaded. The contained ones are not the boring rows — they are the ones that prove the gate is doing work.`}
               action={
-                <span className="tnum text-[12px] text-muted-foreground">
+                <span className="tabular-nums font-body-small text-subtle">
                   {changes.length - live.length} acknowledged
                 </span>
               }
@@ -405,28 +417,40 @@ function ProgramBaseline() {
               title="What the gate decided"
               description="CM-3(2) requires a security impact analysis before a change is implemented. It is a gate, not a formality: an analysis that finds no impact is a result the ISSE signs for, and it is the reason a firmware dot-release does not turn a hundred requirement rows amber."
             >
-              <div className="grid gap-3 pt-4 sm:grid-cols-2">
-                <div className="rounded-lg border border-border bg-legacy-subtle px-4 py-3">
-                  <div className="flex items-baseline gap-2">
-                    <span className="tnum text-[20px] font-semibold leading-none">
+              <Grid
+                className="pt-200"
+                gap="space.150"
+                templateColumns={{ sm: "repeat(2, minmax(0, 1fr))" }}
+              >
+                <Box
+                  className="rounded-large border border-default bg-surface-sunken"
+                  paddingInline="space.200"
+                  paddingBlock="space.150"
+                >
+                  <Inline space="space.100" alignBlock="baseline">
+                    <span className="tabular-nums font-heading-small font-semibold">
                       {containedAll.length}
                     </span>
-                    <span className="text-[12.5px] font-medium">contained</span>
-                  </div>
-                  <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
+                    <span className="font-body-small font-medium">contained</span>
+                  </Inline>
+                  <p className="pt-075 font-body-small text-subtle">
                     Analysed as no impact or administrative. Nothing was invalidated, no evidence
                     was superseded and no re-test is owed — and the written reason for each is on
                     the record, where a package reviewer can argue with it.
                   </p>
-                </div>
-                <div className="rounded-lg border border-legacy-warning/30 bg-warning-soft/40 px-4 py-3">
-                  <div className="flex items-baseline gap-2">
-                    <span className="tnum text-[20px] font-semibold leading-none text-legacy-warning">
+                </Box>
+                <Box
+                  className="rounded-large border border-warning-subtle bg-warning"
+                  paddingInline="space.200"
+                  paddingBlock="space.150"
+                >
+                  <Inline space="space.100" alignBlock="baseline">
+                    <span className="tabular-nums font-heading-small font-semibold text-warning">
                       {cascadedAll.length}
                     </span>
-                    <span className="text-[12.5px] font-medium">cascaded</span>
-                  </div>
-                  <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
+                    <span className="font-body-small font-medium">cascaded</span>
+                  </Inline>
+                  <p className="pt-075 font-body-small text-subtle">
                     Analysed as significant. The {cascaded.length} still live invalidate{" "}
                     {invalidatedRows.size} requirement rows — {withdrawnRows.size} determinations
                     withdrawn outright and {retainedRows} deficiencies and scoping decisions left
@@ -434,8 +458,8 @@ function ProgramBaseline() {
                     assessor, across {retests.length} re-tests. Significant is caution, not failure:
                     a program that never records one is not doing impact analysis.
                   </p>
-                </div>
-              </div>
+                </Box>
+              </Grid>
             </Section>
           </>
         ) : null}
@@ -455,12 +479,12 @@ function ProgramBaseline() {
                 title="Change impact"
                 description="Nothing has been proposed against this program's baseline."
               >
-                <div className="pt-4">
+                <Box paddingBlockStart="space.200">
                   <Empty
                     title="No change to analyse"
                     description={`${program.id} carries no change records, so there is no security impact analysis to read and nothing for the cascade to act on.`}
                   />
-                </div>
+                </Box>
               </Section>
             )}
           </>
@@ -474,9 +498,9 @@ function ProgramBaseline() {
                 cascaded.length === 1 ? "" : "s"
               } put back on the assessor, de-duplicated to distinct requirement, component and method. Acknowledging a change removes its rows from here; it is the operator saying the work was done, and it fabricates no evidence.`}
             >
-              <div className="pt-4">
+              <Box paddingBlockStart="space.200">
                 <RetestSummary items={retests} />
-              </div>
+              </Box>
             </Section>
 
             <Section

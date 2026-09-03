@@ -3,21 +3,25 @@ import { AlertTriangle, Check, Plus, RefreshCw, Upload } from "lucide-react";
 
 import {
   Badge,
+  Box,
   Button,
+  Dialog,
   Dot,
   Field,
   FilterChip,
-  Input,
-  KeyValue,
-  Progress,
-  NativeSelect,
-  Table,
-  Textarea,
+  Grid,
   Id,
   Indicator,
-  Dialog,
-} from "@/ds/primitives";
-import { Section } from "@/ds/patterns";
+  Inline,
+  Input,
+  KeyValue,
+  NativeSelect,
+  Progress,
+  Section,
+  Stack,
+  Table,
+  Textarea,
+} from "@ledger/design-system";
 import {
   findings as seedFindings,
   findingStatusTone,
@@ -98,46 +102,57 @@ export function VerificationSection({ programName }: { programName: string }) {
 
   return (
     <>
-      <div className="space-y-7">
+      <Stack space="space.300">
         {/* ------------------------------------------------- SCA simulation */}
         <Section
           title="SCA simulation"
           description={`How the government Security Control Assessor sees ${programName} today, ahead of the official audit.`}
           action={
             <Button variant="secondary">
-              <RefreshCw className="size-3.5" /> Re-run simulation
+              <RefreshCw className="size-icon-small" /> Re-run simulation
             </Button>
           }
         >
-          <div
-            className={
-              blocking > 0
-                ? "mt-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-legacy-danger/30 bg-legacy-danger/[0.04] px-3.5 py-2.5"
-                : "mt-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-legacy-subtle px-3.5 py-2.5"
-            }
-          >
-            <div className="flex min-w-0 items-start gap-2.5">
-              <AlertTriangle className="mt-px size-4 shrink-0 text-legacy-danger" />
-              <div className="min-w-0">
-                <p className="text-[13px] font-semibold">
-                  {blocking > 0
-                    ? `${openCatI.length} CAT I findings will block IATT at TRR`
-                    : "No blocking findings — IATT package is clean"}
-                </p>
-                <p className="mt-0.5 text-[12.5px] text-muted-foreground">
-                  {blocking} failing check{blocking === 1 ? "" : "s"} · {atRisk} at risk · {passing}{" "}
-                  of {scaChecks.length} passing. TRR is{" "}
-                  {daysBetween("Aug 27, 2026", "Sep 18, 2026")} days out.
-                </p>
-              </div>
-            </div>
-            <div className="flex w-[180px] shrink-0 items-center gap-2">
-              <Progress value={readiness} tone={blocking > 0 ? "danger" : "success"} />
-              <span className="tabular-nums text-[12.5px] text-muted-foreground">{readiness}%</span>
-            </div>
-          </div>
+          <Box paddingBlockStart="space.150">
+            <Inline
+              className={
+                blocking > 0
+                  ? "rounded-medium border border-danger-subtle bg-danger px-150 py-100"
+                  : "rounded-medium border border-default bg-surface-sunken px-150 py-100"
+              }
+              space="space.150"
+              alignBlock="center"
+              spread="space-between"
+              shouldWrap
+            >
+              <Inline className="min-w-0" space="space.100" alignBlock="start">
+                <AlertTriangle className="pt-025 size-icon-medium shrink-0 text-danger" />
+                <div className="min-w-0">
+                  <p className="font-body font-semibold">
+                    {blocking > 0
+                      ? `${openCatI.length} CAT I findings will block IATT at TRR`
+                      : "No blocking findings — IATT package is clean"}
+                  </p>
+                  <p className="pt-025 font-body-small text-subtle">
+                    {blocking} failing check{blocking === 1 ? "" : "s"} · {atRisk} at risk ·{" "}
+                    {passing} of {scaChecks.length} passing. TRR is{" "}
+                    {daysBetween("Aug 27, 2026", "Sep 18, 2026")} days out.
+                  </p>
+                </div>
+              </Inline>
+              <Inline
+                className="shrink-0"
+                space="space.100"
+                alignBlock="center"
+                style={{ width: 180 }}
+              >
+                <Progress value={readiness} tone={blocking > 0 ? "danger" : "success"} />
+                <span className="tabular-nums font-body-small text-subtle">{readiness}%</span>
+              </Inline>
+            </Inline>
+          </Box>
 
-          <Table className="mt-3 table-fixed">
+          <Table className="pt-150 table-fixed">
             <colgroup>
               <col style={{ width: "76px" }} />
               <col />
@@ -164,7 +179,7 @@ export function VerificationSection({ programName }: { programName: string }) {
                   </Table.Cell>
                   <Table.Cell>
                     <span className="font-medium">{c.name}</span>
-                    <span className="text-muted-foreground"> — {c.requirement}</span>
+                    <span className="text-subtle"> — {c.requirement}</span>
                   </Table.Cell>
                   <Table.Cell>
                     <Badge tone={verdictTone[c.verdict]}>{c.verdict}</Badge>
@@ -184,36 +199,36 @@ export function VerificationSection({ programName }: { programName: string }) {
           description="Test events matched against the interim authority to test validity period."
           action={
             <Button variant="secondary">
-              <Plus className="size-3.5" /> Add test event
+              <Plus className="size-icon-small" /> Add test event
             </Button>
           }
         >
-          <dl className="mt-3 grid gap-x-8 gap-y-3 border-b border-border pb-3.5 sm:grid-cols-3 lg:grid-cols-6">
+          <dl className="pt-150 grid gap-x-400 gap-y-150 border-b border-default pb-150 sm:grid-cols-3 lg:grid-cols-6">
             {[
               {
                 label: "IATT status",
                 value: (
-                  <span className="inline-flex items-center gap-1.5">
+                  <Inline as="span" display="inline-flex" space="space.075" alignBlock="center">
                     <Dot tone="warning" /> {iatt.status}
-                  </span>
+                  </Inline>
                 ),
               },
               { label: "Requested", value: iatt.requested },
               { label: "Decision target", value: iatt.decisionTarget },
               { label: "Effective", value: iatt.effective },
-              { label: "Expires", value: <span className="text-legacy-danger">{iatt.expires}</span> },
+              { label: "Expires", value: <span className="text-danger">{iatt.expires}</span> },
               { label: "Authorizing official", value: iatt.authorizing },
             ].map((f) => (
               <div key={f.label} className="min-w-0">
-                <dt className="truncate text-[12px] text-muted-foreground">{f.label}</dt>
-                <dd className="mt-0.5 truncate text-[12.5px] font-medium tabular-nums">
+                <dt className="truncate font-body-small text-subtle">{f.label}</dt>
+                <dd className="pt-025 truncate font-body-small font-medium tabular-nums">
                   {f.value}
                 </dd>
               </div>
             ))}
           </dl>
 
-          <Table className="mt-3 table-fixed">
+          <Table className="pt-150 table-fixed">
             <colgroup>
               <col style={{ width: "72px" }} />
               <col />
@@ -244,12 +259,12 @@ export function VerificationSection({ programName }: { programName: string }) {
                     </Table.Cell>
                     <Table.Cell>{e.name}</Table.Cell>
                     <Table.Cell>{e.range}</Table.Cell>
-                    <Table.Cell className="tnum">{shortDate(e.start)}</Table.Cell>
-                    <Table.Cell className="tnum">{shortDate(e.end)}</Table.Cell>
+                    <Table.Cell className="tabular-nums">{shortDate(e.start)}</Table.Cell>
+                    <Table.Cell className="tabular-nums">{shortDate(e.end)}</Table.Cell>
                     <Table.Cell>
                       <Badge tone={testStatusTone[e.status]}>{e.status}</Badge>
                     </Table.Cell>
-                    <Table.Cell className={slack < 0 ? "text-legacy-danger" : undefined}>
+                    <Table.Cell className={slack < 0 ? "text-danger" : undefined}>
                       {slack < 0
                         ? `${Math.abs(slack)}d past expiry`
                         : `${slack}d slack · ${e.requires}`}
@@ -267,11 +282,11 @@ export function VerificationSection({ programName }: { programName: string }) {
           description="STIG CKL, ACAS / Nessus, SonarQube and manual implementation statements."
           action={
             <Button variant="secondary" onClick={() => setIngesting(true)}>
-              <Upload className="size-3.5" /> Ingest scan
+              <Upload className="size-icon-small" /> Ingest scan
             </Button>
           }
         >
-          <Table className="mt-3 table-fixed">
+          <Table className="pt-150 table-fixed">
             <colgroup>
               <col style={{ width: "92px" }} />
               <col style={{ width: "84px" }} />
@@ -305,22 +320,20 @@ export function VerificationSection({ programName }: { programName: string }) {
                   </Table.Cell>
                   <Table.Cell>{i.artifact}</Table.Cell>
                   <Table.Cell>{i.asset}</Table.Cell>
-                  <Table.Cell className="tnum">{shortStamp(i.ingested)}</Table.Cell>
+                  <Table.Cell className="tabular-nums">{shortStamp(i.ingested)}</Table.Cell>
                   <Table.Cell>
                     <Badge tone={ingestTone[i.status]}>{i.status}</Badge>
                   </Table.Cell>
-                  <Table.Cell className="text-right tnum">
-                    <span
-                      className={i.catI > 0 ? "font-medium text-legacy-danger" : "text-muted-foreground"}
-                    >
+                  <Table.Cell className="text-right tabular-nums">
+                    <span className={i.catI > 0 ? "font-medium text-danger" : "text-subtle"}>
                       {i.catI}
                     </span>
-                    <span className="text-border"> / </span>
-                    <span className="text-muted-foreground">{i.catII}</span>
-                    <span className="text-border"> / </span>
-                    <span className="text-muted-foreground">{i.catIII}</span>
+                    <span className="text-subtlest"> / </span>
+                    <span className="text-subtle">{i.catII}</span>
+                    <span className="text-subtlest"> / </span>
+                    <span className="text-subtle">{i.catIII}</span>
                   </Table.Cell>
-                  <Table.Cell className="text-right tnum">{i.coverage}%</Table.Cell>
+                  <Table.Cell className="text-right tabular-nums">{i.coverage}%</Table.Cell>
                 </Table.Row>
               ))}
             </tbody>
@@ -332,7 +345,7 @@ export function VerificationSection({ programName }: { programName: string }) {
           title="Aggregated findings"
           description="Deduplicated across scan sources and mapped to NIST 800-53 controls."
           action={
-            <div className="flex items-center gap-1.5">
+            <Inline space="space.075" alignBlock="center">
               {severityFilters.map((s) => (
                 <FilterChip
                   key={s}
@@ -344,10 +357,10 @@ export function VerificationSection({ programName }: { programName: string }) {
                   onClick={() => setSeverity(s)}
                 />
               ))}
-            </div>
+            </Inline>
           }
         >
-          <Table className="mt-3 table-fixed">
+          <Table className="pt-150 table-fixed">
             <colgroup>
               <col style={{ width: "124px" }} />
               <col style={{ width: "76px" }} />
@@ -376,10 +389,10 @@ export function VerificationSection({ programName }: { programName: string }) {
               {rows.map((f) => (
                 <Table.Row key={f.id} className="cursor-pointer" onClick={() => setOpenFinding(f)}>
                   <Table.Cell>
-                    <span className="flex items-center gap-1.5">
+                    <Inline as="span" space="space.075" alignBlock="center">
                       <Dot tone={severityTone[f.severity]} />
                       <Id>{f.ref}</Id>
-                    </span>
+                    </Inline>
                   </Table.Cell>
                   <Table.Cell>
                     <Badge tone="neutral">{sourceShort[f.source]}</Badge>
@@ -392,15 +405,15 @@ export function VerificationSection({ programName }: { programName: string }) {
                   <Table.Cell>
                     <Badge tone={findingStatusTone[f.status]}>{f.status}</Badge>
                   </Table.Cell>
-                  <Table.Cell className="text-right tnum">{f.age}d</Table.Cell>
-                  <Table.Cell className="tnum">{shortDate(f.due)}</Table.Cell>
+                  <Table.Cell className="text-right tabular-nums">{f.age}d</Table.Cell>
+                  <Table.Cell className="tabular-nums">{shortDate(f.due)}</Table.Cell>
                   <Table.Cell>{f.owner}</Table.Cell>
                 </Table.Row>
               ))}
             </tbody>
           </Table>
         </Section>
-      </div>
+      </Stack>
 
       <FindingModal
         finding={openFinding}
@@ -448,27 +461,27 @@ function FindingModal({
       title={finding.title}
       description={`${finding.ref} · ${finding.source} · ${finding.asset}`}
       aside={
-        <div className="space-y-3">
-          <p className="text-[12px] font-medium uppercase tracking-wide text-muted-foreground">
-            Assessor view
-          </p>
-          <div
+        <Stack space="space.150">
+          <p className="font-heading-xxsmall uppercase text-subtle">Assessor view</p>
+          <Box
             className={
               blocksIatt
-                ? "rounded-md border border-legacy-danger/30 bg-legacy-danger/[0.05] px-3 py-2"
-                : "rounded-md border border-border bg-card px-3 py-2"
+                ? "rounded-medium border border-danger-subtle bg-danger"
+                : "rounded-medium border border-default bg-surface"
             }
+            paddingInline="space.150"
+            paddingBlock="space.100"
           >
-            <p className="text-[12.5px] font-semibold">
+            <p className="font-body-small font-semibold">
               {blocksIatt ? "Blocks IATT at TRR" : "Not blocking"}
             </p>
-            <p className="mt-0.5 text-[12px] text-muted-foreground">
+            <p className="pt-025 font-body-small text-subtle">
               {blocksIatt
                 ? "Open CAT I findings are an automatic IATT denial in the SCA checklist."
                 : "This finding will be reviewed in the SAR but does not stop range operations."}
             </p>
-          </div>
-          <div className="space-y-1.5 border-t border-border pt-3">
+          </Box>
+          <Stack className="border-t border-default pt-150" space="space.075">
             <KeyValue label="Severity">
               <Indicator tone={severityTone[finding.severity]}>{finding.severity}</Indicator>
             </KeyValue>
@@ -477,8 +490,8 @@ function FindingModal({
             </KeyValue>
             <KeyValue label="Age">{finding.age} days</KeyValue>
             <KeyValue label="Detected by">{finding.source}</KeyValue>
-          </div>
-        </div>
+          </Stack>
+        </Stack>
       }
       footer={
         <>
@@ -489,14 +502,14 @@ function FindingModal({
             variant="primary"
             onClick={() => onSave({ ...finding, status, owner, due, mitigation })}
           >
-            <Check className="size-3.5" /> Save finding
+            <Check className="size-icon-small" /> Save finding
           </Button>
         </>
       }
     >
-      <div className="space-y-3.5">
-        <p className="text-[13px] text-muted-foreground">{finding.detail}</p>
-        <div className="grid grid-cols-3 gap-3">
+      <Stack space="space.150">
+        <p className="font-body text-subtle">{finding.detail}</p>
+        <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
           <Field label="Status">
             <NativeSelect
               value={status}
@@ -513,11 +526,11 @@ function FindingModal({
           <Field label="Mitigation due">
             <Input value={due} onChange={(e) => setDue(e.target.value)} />
           </Field>
-        </div>
+        </Grid>
         <Field label="Mitigation / assessor response">
           <Textarea rows={4} value={mitigation} onChange={(e) => setMitigation(e.target.value)} />
         </Field>
-      </div>
+      </Stack>
     </Dialog>
   );
 }
@@ -557,11 +570,9 @@ function IngestModal({
       title="Ingest assessment data"
       description="Parsed, deduplicated against existing findings and mapped to NIST 800-53."
       aside={
-        <div className="space-y-2">
-          <p className="text-[12px] font-medium uppercase tracking-wide text-muted-foreground">
-            Ingest preview
-          </p>
-          <pre className="whitespace-pre-wrap break-words font-mono text-[11.5px] leading-[1.6] text-muted-foreground">
+        <Stack space="space.100">
+          <p className="font-heading-xxsmall uppercase text-subtle">Ingest preview</p>
+          <pre className="whitespace-pre-wrap break-words font-code font-body-xsmall text-subtle">
             {`parser: ${parser}
 artifact: ${artifact || "<no file selected>"}
 asset: ${asset}
@@ -572,7 +583,7 @@ pipeline:
   - dedupe by (ref, asset)
   - sca_simulation: re-run`}
           </pre>
-        </div>
+        </Stack>
       }
       footer={
         <>
@@ -597,13 +608,13 @@ pipeline:
               })
             }
           >
-            <Upload className="size-3.5" /> Ingest
+            <Upload className="size-icon-small" /> Ingest
           </Button>
         </>
       }
     >
-      <div className="space-y-3.5">
-        <div className="grid grid-cols-2 gap-3">
+      <Stack space="space.150">
+        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
           <Field label="Source">
             <NativeSelect value={source} onChange={(e) => setSource(e.target.value as ScanSource)}>
               {sources.map((s) => (
@@ -621,7 +632,7 @@ pipeline:
               <option>Integration lab (SCIF)</option>
             </NativeSelect>
           </Field>
-        </div>
+        </Grid>
         <Field label="Artifact file" hint={parser}>
           <Input
             value={artifact}
@@ -637,7 +648,7 @@ pipeline:
             placeholder="Scan conditions, credentialed vs uncredentialed, exclusions…"
           />
         </Field>
-      </div>
+      </Stack>
     </Dialog>
   );
 }

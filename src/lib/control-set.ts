@@ -27,7 +27,7 @@
 
 import { useSyncExternalStore } from "react";
 
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 import { currentSession, workForScope, type ControlWork, type Role } from "@/lib/control-work";
 import { datasetToday } from "@/lib/dataset-clock";
 import { defaultFramework, type FrameworkId } from "@/lib/frameworks";
@@ -636,7 +636,7 @@ export type RevisionEvent = {
 
 const eventToneMap: Record<RevisionEventKind, Tone> = {
   created: "neutral",
-  submitted: "info",
+  submitted: "information",
   withdrawn: "neutral",
   approved: "success",
   "changes-requested": "danger",

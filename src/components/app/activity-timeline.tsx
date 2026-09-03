@@ -7,8 +7,16 @@ import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, Circle } from "lucide-react";
 
-import { Avatar, Button, DropdownMenu, Sheet, Timeline, ToggleGroup } from "@/ds/primitives";
-import { Empty } from "@/ds/patterns";
+import {
+  Avatar,
+  Button,
+  DropdownMenu,
+  Empty,
+  Inline,
+  Sheet,
+  Timeline,
+  ToggleGroup,
+} from "@ledger/design-system";
 import { cn } from "@/lib/utils";
 import { useActivityFilters, useReadState } from "@/lib/activity-prefs";
 import {
@@ -24,11 +32,11 @@ import {
 } from "@/lib/program-activity";
 
 const toneRing: Record<string, string> = {
-  danger: "bg-legacy-danger",
-  warning: "bg-legacy-warning",
-  success: "bg-legacy-success",
-  info: "bg-primary",
-  neutral: "bg-muted-foreground/50",
+  danger: "bg-danger-bold",
+  warning: "bg-warning-bold",
+  success: "bg-success-bold",
+  info: "bg-brand-bold",
+  neutral: "bg-neutral-bold",
 };
 
 export function ActivityTimeline({
@@ -69,7 +77,7 @@ export function ActivityTimeline({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-1.5 pb-3 pt-3">
+      <Inline className="pb-150 pt-150" space="space.075" alignBlock="center" shouldWrap>
         <ToggleGroup
           aria-label="Activity type"
           value={filters.kind}
@@ -77,15 +85,15 @@ export function ActivityTimeline({
           items={(["All", ...activityKinds] as const).map((k) => ({
             value: k,
             label: (
-              <span className="inline-flex items-center gap-1.5">
+              <Inline as="span" display="inline-flex" space="space.075" alignBlock="center">
                 {k}
-                <span className="tnum opacity-70">{counts[k] ?? 0}</span>
-              </span>
+                <span className="tabular-nums opacity-disabled">{counts[k] ?? 0}</span>
+              </Inline>
             ),
           }))}
         />
 
-        <span className="ml-auto flex items-center gap-1.5">
+        <Inline className="ml-auto" as="span" space="space.075" alignBlock="center">
           <FilterMenu
             label="Owner"
             value={filters.actor}
@@ -111,8 +119,8 @@ export function ActivityTimeline({
           >
             Mark all read{unread ? ` (${unread})` : ""}
           </Button>
-        </span>
-      </div>
+        </Inline>
+      </Inline>
 
       {filtered.length === 0 ? (
         <Empty
@@ -138,8 +146,9 @@ export function ActivityTimeline({
                         <Avatar name={e.actor} size="small" />
                         <span
                           className={cn(
-                            "absolute -bottom-0.5 -right-0.5 size-2 rounded-full ring-2 ring-background",
+                            "absolute -bottom-025 -right-025 rounded-full outline-focused",
                             toneRing[e.tone] ?? toneRing["neutral"],
+                            "size-100",
                           )}
                         />
                       </span>
@@ -152,10 +161,8 @@ export function ActivityTimeline({
                     trailing={
                       <Circle
                         className={cn(
-                          "size-2",
-                          isUnread
-                            ? "fill-primary text-primary"
-                            : "fill-transparent text-transparent",
+                          isUnread ? "fill-current text-brand" : "invisible",
+                          "size-100",
                         )}
                       />
                     }
@@ -172,7 +179,7 @@ export function ActivityTimeline({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="mt-3 text-12 font-medium text-primary hover:underline"
+          className="pt-150 font-body-small font-medium text-brand hover:underline"
         >
           {expanded ? "Show less" : `Show ${filtered.length - shown.length} more`}
         </button>
@@ -208,7 +215,7 @@ export function ActivityTimeline({
         }
       >
         {active ? (
-          <dl className="text-[12.5px]">
+          <dl className="font-body-small">
             <DrawerRow label="When" value={absoluteStamp(active.at)} />
             <DrawerRow label="Relative" value={relativeStamp(active.at)} />
             <DrawerRow label="Type" value={active.kind} />
@@ -225,10 +232,16 @@ export function ActivityTimeline({
 
 function DrawerRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start gap-3 border-b border-border-legacy-subtle py-1.5 last:border-0">
-      <dt className="w-[120px] shrink-0 text-muted-foreground">{label}</dt>
+    <Inline
+      className="border-b border-default py-075 last:border-0"
+      space="space.150"
+      alignBlock="start"
+    >
+      <dt className="shrink-0 text-subtle" style={{ width: 120 }}>
+        {label}
+      </dt>
       <dd className="min-w-0 flex-1 break-words">{value}</dd>
-    </div>
+    </Inline>
   );
 }
 
@@ -250,7 +263,7 @@ function FilterMenu({
       trigger={({ toggle }) => (
         <Button variant="secondary" size="xsmall" onClick={toggle}>
           {label}: {value}
-          <ChevronDown className="size-3 text-muted-foreground" />
+          <ChevronDown className="text-subtle size-150" />
         </Button>
       )}
     >

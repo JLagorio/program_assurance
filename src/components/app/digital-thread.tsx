@@ -2,23 +2,27 @@ import { useMemo, useState } from "react";
 import { Check, Download, Plus, RefreshCw, X } from "lucide-react";
 
 import {
+  AlertDialog,
   Badge,
+  Box,
   Button,
+  Dialog,
   Dot,
   Field,
+  Grid,
+  Id,
+  Inline,
   Input,
   KeyValue,
-  Progress,
   NativeSelect,
+  Progress,
+  Section,
+  Select,
+  Stack,
   Table,
   Textarea,
-  Id,
-  Dialog,
-  AlertDialog,
-  Select,
   toast,
-} from "@/ds/primitives";
-import { Section } from "@/ds/patterns";
+} from "@ledger/design-system";
 import {
   artifactShort,
   artifactTone,
@@ -116,7 +120,7 @@ export function DigitalThreadSection({
 
   return (
     <>
-      <div className="space-y-7">
+      <Stack space="space.300">
         {/* ------------------------------------------------------- connectors */}
         <Section
           title="Engineering connectors"
@@ -124,10 +128,10 @@ export function DigitalThreadSection({
           action={
             <>
               <Button variant="secondary">
-                <RefreshCw className="size-3.5" /> Sync now
+                <RefreshCw className="size-icon-small" /> Sync now
               </Button>
               <Button variant="secondary">
-                <Plus className="size-3.5" /> Add connector
+                <Plus className="size-icon-small" /> Add connector
               </Button>
             </>
           }
@@ -135,36 +139,48 @@ export function DigitalThreadSection({
           <Table className="table-fixed">
             <thead>
               <tr>
-                <Table.Header className="w-[60px]">ID</Table.Header>
-                <Table.Header className="w-[124px]">Tool</Table.Header>
-                <Table.Header className="w-[196px]">Project</Table.Header>
+                <Table.Header width={60}>ID</Table.Header>
+                <Table.Header width={124}>Tool</Table.Header>
+                <Table.Header width={196}>Project</Table.Header>
                 <Table.Header>Ingest scope</Table.Header>
-                <Table.Header className="w-[112px]">Health</Table.Header>
-                <Table.Header className="w-[84px] text-right">Ingested</Table.Header>
-                <Table.Header className="w-[76px] text-right">Mapped</Table.Header>
-                <Table.Header className="w-[96px] text-right">Last sync</Table.Header>
+                <Table.Header width={112}>Health</Table.Header>
+                <Table.Header className="text-right" width={84}>
+                  Ingested
+                </Table.Header>
+                <Table.Header className="text-right" width={76}>
+                  Mapped
+                </Table.Header>
+                <Table.Header className="text-right" width={96}>
+                  Last sync
+                </Table.Header>
               </tr>
             </thead>
             <tbody>
               {seedConnectors.map((c) => (
                 <Table.Row key={c.id}>
-                  <Table.Cell className="w-[60px]">
+                  <Table.Cell width={60}>
                     <Id>{c.id}</Id>
                   </Table.Cell>
-                  <Table.Cell className="w-[124px]">{c.kind}</Table.Cell>
-                  <Table.Cell className="w-[196px]">
+                  <Table.Cell width={124}>{c.kind}</Table.Cell>
+                  <Table.Cell width={196}>
                     <Id>{c.project}</Id>
                   </Table.Cell>
                   <Table.Cell>{c.scope}</Table.Cell>
-                  <Table.Cell className="w-[112px]">
-                    <span className="flex items-center gap-1.5">
+                  <Table.Cell width={112}>
+                    <Inline as="span" space="space.075" alignBlock="center">
                       <Dot tone={healthTone[c.health]} />
                       {c.health}
-                    </span>
+                    </Inline>
                   </Table.Cell>
-                  <Table.Cell className="tnum w-[84px] text-right">{c.ingested}</Table.Cell>
-                  <Table.Cell className="tnum w-[76px] text-right">{c.mapped}</Table.Cell>
-                  <Table.Cell className="w-[96px] text-right">{c.lastSync}</Table.Cell>
+                  <Table.Cell className="tabular-nums text-right" width={84}>
+                    {c.ingested}
+                  </Table.Cell>
+                  <Table.Cell className="tabular-nums text-right" width={76}>
+                    {c.mapped}
+                  </Table.Cell>
+                  <Table.Cell className="text-right" width={96}>
+                    {c.lastSync}
+                  </Table.Cell>
                 </Table.Row>
               ))}
             </tbody>
@@ -194,44 +210,46 @@ export function DigitalThreadSection({
                 });
               }}
             >
-              <Plus className="size-3.5" /> New rule
+              <Plus className="size-icon-small" /> New rule
             </Button>
           }
         >
           <Table className="table-fixed">
             <thead>
               <tr>
-                <Table.Header className="w-[60px]">Rule</Table.Header>
-                <Table.Header className="w-[200px]">Name</Table.Header>
-                <Table.Header className="w-[108px]">Source</Table.Header>
-                <Table.Header className="w-[128px]">Signal</Table.Header>
+                <Table.Header width={60}>Rule</Table.Header>
+                <Table.Header width={200}>Name</Table.Header>
+                <Table.Header width={108}>Source</Table.Header>
+                <Table.Header width={128}>Signal</Table.Header>
                 <Table.Header>Match expression</Table.Header>
-                <Table.Header className="w-[172px]">Controls</Table.Header>
-                <Table.Header className="w-[92px]">Confidence</Table.Header>
-                <Table.Header className="w-[64px] text-right">Hits</Table.Header>
+                <Table.Header width={172}>Controls</Table.Header>
+                <Table.Header width={92}>Confidence</Table.Header>
+                <Table.Header className="text-right" width={64}>
+                  Hits
+                </Table.Header>
               </tr>
             </thead>
             <tbody>
               {rules.map((r) => (
                 <Table.Row key={r.id} onClick={() => setEditingRule(r)} className="cursor-pointer">
-                  <Table.Cell className="w-[60px]">
+                  <Table.Cell width={60}>
                     <Id>{r.id}</Id>
                   </Table.Cell>
-                  <Table.Cell className="w-[200px]">
-                    <span className="flex items-center gap-1.5">
+                  <Table.Cell width={200}>
+                    <Inline as="span" space="space.075" alignBlock="center">
                       <Dot tone={r.enabled ? "success" : "neutral"} />
                       <span className="truncate">{r.name}</span>
-                    </span>
+                    </Inline>
                   </Table.Cell>
-                  <Table.Cell className="w-[108px]">{r.source}</Table.Cell>
-                  <Table.Cell className="w-[128px]">{r.signal}</Table.Cell>
+                  <Table.Cell width={108}>{r.source}</Table.Cell>
+                  <Table.Cell width={128}>{r.signal}</Table.Cell>
                   <Table.Cell>
                     <Id>{r.match}</Id>
                   </Table.Cell>
-                  <Table.Cell className="w-[172px]">
+                  <Table.Cell width={172}>
                     <Id>{r.controls.join(", ")}</Id>
                   </Table.Cell>
-                  <Table.Cell className="w-[92px]">
+                  <Table.Cell width={92}>
                     <Badge
                       tone={
                         r.confidence === "High"
@@ -244,7 +262,9 @@ export function DigitalThreadSection({
                       {r.confidence}
                     </Badge>
                   </Table.Cell>
-                  <Table.Cell className="tnum w-[64px] text-right">{r.hits}</Table.Cell>
+                  <Table.Cell className="tabular-nums text-right" width={64}>
+                    {r.hits}
+                  </Table.Cell>
                 </Table.Row>
               ))}
             </tbody>
@@ -259,7 +279,8 @@ export function DigitalThreadSection({
             <NativeSelect
               value={status}
               onChange={(e) => setStatus(e.target.value as (typeof statusFilters)[number])}
-              className="h-7 w-[152px]"
+              className="h-control-small"
+              style={{ width: 152 }}
             >
               {statusFilters.map((s) => (
                 <option key={s} value={s}>
@@ -272,41 +293,45 @@ export function DigitalThreadSection({
           <Table className="table-fixed">
             <thead>
               <tr>
-                <Table.Header className="w-[76px]">Evidence</Table.Header>
-                <Table.Header className="w-[152px]">Artifact</Table.Header>
+                <Table.Header width={76}>Evidence</Table.Header>
+                <Table.Header width={152}>Artifact</Table.Header>
                 <Table.Header>Title</Table.Header>
-                <Table.Header className="w-[80px]">Type</Table.Header>
-                <Table.Header className="w-[132px]">Controls</Table.Header>
-                <Table.Header className="w-[64px]">Rule</Table.Header>
-                <Table.Header className="w-[124px]">Status</Table.Header>
-                <Table.Header className="w-[104px]">Engineer</Table.Header>
-                <Table.Header className="w-[92px] text-right">Closed</Table.Header>
+                <Table.Header width={80}>Type</Table.Header>
+                <Table.Header width={132}>Controls</Table.Header>
+                <Table.Header width={64}>Rule</Table.Header>
+                <Table.Header width={124}>Status</Table.Header>
+                <Table.Header width={104}>Engineer</Table.Header>
+                <Table.Header className="text-right" width={92}>
+                  Closed
+                </Table.Header>
               </tr>
             </thead>
             <tbody>
               {rows.map((e) => (
                 <Table.Row key={e.id} onClick={() => setOpenEvidence(e)} className="cursor-pointer">
-                  <Table.Cell className="w-[76px]">
+                  <Table.Cell width={76}>
                     <Id>{e.id}</Id>
                   </Table.Cell>
-                  <Table.Cell className="w-[152px]">
+                  <Table.Cell width={152}>
                     <Id>{e.ref}</Id>
                   </Table.Cell>
                   <Table.Cell>{e.title}</Table.Cell>
-                  <Table.Cell className="w-[80px]">
+                  <Table.Cell width={80}>
                     <Badge tone={artifactTone[e.kind]}>{artifactShort[e.kind]}</Badge>
                   </Table.Cell>
-                  <Table.Cell className="w-[132px]">
+                  <Table.Cell width={132}>
                     <Id>{e.controls.join(", ")}</Id>
                   </Table.Cell>
-                  <Table.Cell className="w-[64px]">
+                  <Table.Cell width={64}>
                     <Id>{e.rule}</Id>
                   </Table.Cell>
-                  <Table.Cell className="w-[124px]">
+                  <Table.Cell width={124}>
                     <Badge tone={evidenceStatusTone[e.status]}>{e.status}</Badge>
                   </Table.Cell>
-                  <Table.Cell className="w-[104px]">{e.engineer}</Table.Cell>
-                  <Table.Cell className="tnum w-[92px] text-right">{e.closed}</Table.Cell>
+                  <Table.Cell width={104}>{e.engineer}</Table.Cell>
+                  <Table.Cell className="tabular-nums text-right" width={92}>
+                    {e.closed}
+                  </Table.Cell>
                 </Table.Row>
               ))}
               {rows.length === 0 ? (
@@ -317,7 +342,7 @@ export function DigitalThreadSection({
             </tbody>
           </Table>
         </Section>
-      </div>
+      </Stack>
 
       <RuleModal
         rule={editingRule}
@@ -375,10 +400,8 @@ function RuleModal({
       description="Signals from engineering tools become NIST SP 800-53 evidence automatically."
       aside={
         <div>
-          <p className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
-            Rule as code
-          </p>
-          <pre className="mt-2 whitespace-pre-wrap font-mono text-[11.5px] leading-[1.6] text-muted-foreground">
+          <p className="font-heading-xxsmall uppercase text-subtle">Rule as code</p>
+          <pre className="pt-100 whitespace-pre-wrap font-code font-body-xsmall text-subtle">
             {ruleAsCode({ ...draft, controls: parsed })}
           </pre>
         </div>
@@ -394,7 +417,7 @@ function RuleModal({
         </>
       }
     >
-      <div className="space-y-3">
+      <Stack space="space.150">
         <Field label="Rule name">
           <Input
             value={draft.name}
@@ -402,7 +425,7 @@ function RuleModal({
             onChange={(e) => setDraft({ ...draft, name: e.target.value })}
           />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
+        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
           <Field label="Source tool">
             <NativeSelect
               value={draft.source}
@@ -430,7 +453,7 @@ function RuleModal({
               ))}
             </NativeSelect>
           </Field>
-        </div>
+        </Grid>
         <Field
           label="Match expression"
           hint="JQL fragment, path glob, commit trailer or stereotype."
@@ -448,7 +471,7 @@ function RuleModal({
             onChange={(e) => setControls(e.target.value)}
           />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
+        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
           <Field label="Confidence">
             <NativeSelect
               value={draft.confidence}
@@ -470,8 +493,8 @@ function RuleModal({
               <option>Disabled</option>
             </NativeSelect>
           </Field>
-        </div>
-      </div>
+        </Grid>
+      </Stack>
     </Dialog>
   );
 }
@@ -504,10 +527,8 @@ function EvidenceModal({
       description={`${evidence.ref} · ${programId} · rule ${evidence.rule}`}
       aside={
         <div>
-          <p className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
-            Thread detail
-          </p>
-          <div className="mt-2">
+          <p className="font-heading-xxsmall uppercase text-subtle">Thread detail</p>
+          <Box paddingBlockStart="space.100">
             <KeyValue label="Evidence">
               <Id>{evidence.id}</Id>
             </KeyValue>
@@ -518,8 +539,8 @@ function EvidenceModal({
             <KeyValue label="Engineer">{evidence.engineer}</KeyValue>
             <KeyValue label="Reviewer">{evidence.reviewer ?? "—"}</KeyValue>
             <KeyValue label="Closed">{evidence.closed}</KeyValue>
-          </div>
-          <p className="mt-3 border-t border-border pt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+          </Box>
+          <p className="pt-150 border-t border-default font-body-small text-subtle">
             {evidence.narrative}
           </p>
         </div>
@@ -530,15 +551,15 @@ function EvidenceModal({
             Close
           </Button>
           <Button variant="secondary" onClick={() => onStatus(evidence.id, "Rejected")}>
-            <X className="size-3.5" /> Reject
+            <X className="size-icon-small" /> Reject
           </Button>
           <Button variant="primary" onClick={() => onStatus(evidence.id, "Accepted")}>
-            <Check className="size-3.5" /> Accept into SSP
+            <Check className="size-icon-small" /> Accept into SSP
           </Button>
         </>
       }
     >
-      <div className="space-y-3">
+      <Stack space="space.150">
         <Field
           label="Generated implementation statement"
           hint="Drafted from the artifact and edited by the product security engineer before it enters the SSP."
@@ -549,7 +570,7 @@ function EvidenceModal({
             onChange={(e) => setStatement(e.target.value)}
           />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
+        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
           <Field label="Status">
             <NativeSelect
               value={evidence.status}
@@ -564,8 +585,8 @@ function EvidenceModal({
           <Field label="Reviewer">
             <Input defaultValue={evidence.reviewer ?? "Sarah Chen"} />
           </Field>
-        </div>
-      </div>
+        </Grid>
+      </Stack>
     </Dialog>
   );
 }
@@ -612,10 +633,8 @@ export function CdrPackageModal({
         description={`${programName} · ${programId} · Critical Design Review submission`}
         aside={
           <div>
-            <p className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
-              Package summary
-            </p>
-            <div className="mt-2">
+            <p className="font-heading-xxsmall uppercase text-subtle">Package summary</p>
+            <Box paddingBlockStart="space.100">
               <KeyValue label="Sections">
                 {selected.length} of {sspSections.length}
               </KeyValue>
@@ -623,26 +642,26 @@ export function CdrPackageModal({
               <KeyValue label="Artifacts">{artifacts}</KeyValue>
               <KeyValue label="Format">{format}</KeyValue>
               <KeyValue label="Readiness">
-                <span className="flex items-center gap-2">
-                  <span className="w-14">
+                <Inline as="span" space="space.100" alignBlock="center">
+                  <span className="w-600">
                     <Progress value={readiness} tone={readiness === 100 ? "success" : "warning"} />
                   </span>
-                  <span className="tnum">{readiness}%</span>
-                </span>
+                  <span className="tabular-nums">{readiness}%</span>
+                </Inline>
               </KeyValue>
-            </div>
+            </Box>
             {blockers.length ? (
-              <p className="mt-3 border-t border-border pt-3 text-[12.5px] leading-relaxed text-legacy-warning">
+              <p className="pt-150 border-t border-default font-body-small text-warning">
                 {blockers.map((b) => b.blocker).join(" · ")}
               </p>
             ) : (
-              <p className="mt-3 border-t border-border pt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+              <p className="pt-150 border-t border-default font-body-small text-subtle">
                 All selected sections are review-ready. The package compiles architecture drawings,
                 SysML exports and accepted implementation statements into a government-ready SSP.
               </p>
             )}
             {generated ? (
-              <p className="mt-3 text-[12.5px] text-legacy-success">
+              <p className="pt-150 font-body-small text-success">
                 Package built — <Id>{programId}-CDR-SSP.zip</Id>
               </p>
             ) : null}
@@ -661,13 +680,13 @@ export function CdrPackageModal({
                 else setConfirming(true);
               }}
             >
-              <Download className="size-3.5" />{" "}
+              <Download className="size-icon-small" />{" "}
               {generated ? "Download package" : "Generate package"}
             </Button>
           </>
         }
       >
-        <div className="space-y-3">
+        <Stack space="space.150">
           <Table className="table-fixed">
             <thead>
               <tr>
@@ -684,9 +703,13 @@ export function CdrPackageModal({
                   label="Include all sections"
                 />
                 <Table.Header>Section</Table.Header>
-                <Table.Header className="w-[76px] text-right">Controls</Table.Header>
-                <Table.Header className="w-[76px] text-right">Evidence</Table.Header>
-                <Table.Header className="w-[104px]">State</Table.Header>
+                <Table.Header className="text-right" width={76}>
+                  Controls
+                </Table.Header>
+                <Table.Header className="text-right" width={76}>
+                  Evidence
+                </Table.Header>
+                <Table.Header width={104}>State</Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -698,9 +721,13 @@ export function CdrPackageModal({
                     label={`Include ${s.name}`}
                   />
                   <Table.Cell title={s.description}>{s.name}</Table.Cell>
-                  <Table.Cell className="tnum w-[76px] text-right">{s.controls || "—"}</Table.Cell>
-                  <Table.Cell className="tnum w-[76px] text-right">{s.evidence}</Table.Cell>
-                  <Table.Cell className="w-[104px]">
+                  <Table.Cell className="tabular-nums text-right" width={76}>
+                    {s.controls || "—"}
+                  </Table.Cell>
+                  <Table.Cell className="tabular-nums text-right" width={76}>
+                    {s.evidence}
+                  </Table.Cell>
+                  <Table.Cell width={104}>
                     <Badge tone={s.ready ? "success" : "warning"}>
                       {s.ready ? "Ready" : "Gaps"}
                     </Badge>
@@ -709,7 +736,7 @@ export function CdrPackageModal({
               ))}
             </tbody>
           </Table>
-          <div className="grid grid-cols-2 gap-3">
+          <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
             <Field label="Output format">
               <Select value={format} onValueChange={setFormat} aria-label="Output format">
                 {[
@@ -737,8 +764,8 @@ export function CdrPackageModal({
                 ))}
               </Select>
             </Field>
-          </div>
-        </div>
+          </Grid>
+        </Stack>
       </Dialog>
       <AlertDialog
         open={confirming}

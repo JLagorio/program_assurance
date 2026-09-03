@@ -5,9 +5,21 @@ import type { ReactNode } from "react";
 import { NodeRail } from "@/components/app/composition";
 import { DerivedControlTrace, ElementAllocationTable } from "@/components/app/requirements";
 import { ApplicabilityModal } from "@/components/app/requirement-forms";
-import { Badge, Button, Table, Id, Indicator, Fact } from "@/ds/primitives";
-import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Box,
+  Button,
+  Empty,
+  Fact,
+  Id,
+  Indicator,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Stack,
+  Table,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import {
   ancestorsOf,
   bomForNode,
@@ -127,20 +139,20 @@ function ComponentRecord() {
   if (!node || node.program !== program.id) {
     return (
       <Shell>
-        <div className="space-y-3">
-          <h1 className="text-[18px] font-semibold">Component not found</h1>
-          <p className="max-w-lg text-[13px] text-muted-foreground">
+        <Stack space="space.150">
+          <h1 className="font-heading-small font-semibold">Component not found</h1>
+          <p className="max-w-layout-measure font-body text-subtle">
             {componentId} is not a component of {program.id}.
           </p>
           <Link
             to="/programs/$programId/composition"
             params={{ programId }}
             search={{ tab: undefined }}
-            className="text-[13px] text-primary hover:underline"
+            className="font-body text-brand hover:underline"
           >
             Back to system composition
           </Link>
-        </div>
+        </Stack>
       </Shell>
     );
   }
@@ -153,8 +165,7 @@ function ComponentRecord() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/programs/$programId/composition"
-            backParams={{ programId }}
+            back={<Link to="/programs/$programId/composition" params={{ programId }} />}
             id={node.id}
             title={node.name}
             meta={`${node.kind} · ${node.class}${node.version === "—" ? "" : ` · ${node.version}`} · ${program.acronym}`}
@@ -169,7 +180,7 @@ function ComponentRecord() {
               </>
             }
             below={
-              <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 border-t border-border pt-2.5">
+              <dl className="flex flex-wrap items-baseline gap-x-300 gap-y-075 border-t border-default pt-100">
                 <Fact label="Supplier">{node.supplier}</Fact>
                 {node.partNumber ? (
                   <Fact label="Part number">
@@ -209,7 +220,7 @@ function ComponentRecord() {
               : "The scope whose obligations reach this component."
           }
         >
-          <Table className="mt-1">
+          <Table className="pt-050">
             <colgroup>
               <col style={{ width: "104px" }} />
               <col style={{ width: "220px" }} />
@@ -244,7 +255,7 @@ function ComponentRecord() {
                         search={{ tab: undefined }}
                         className="hover:underline"
                       >
-                        <Id className="text-primary">{sc.id}</Id>
+                        <Id className="text-brand">{sc.id}</Id>
                       </Link>
                     </Table.Cell>
                     <Table.Cell className="truncate">{sc.name}</Table.Cell>
@@ -290,7 +301,7 @@ function ComponentRecord() {
 
         {children.length > 0 ? (
           <Section title="Contains">
-            <Table className="mt-1">
+            <Table className="pt-050">
               <colgroup>
                 <col style={{ width: "104px" }} />
                 <col />
@@ -318,17 +329,15 @@ function ComponentRecord() {
                         params={{ programId, componentId: child.id }}
                         className="hover:underline"
                       >
-                        <Id className="text-primary">{child.id}</Id>
+                        <Id className="text-brand">{child.id}</Id>
                       </Link>
                     </Table.Cell>
                     <Table.Cell className="truncate">{child.name}</Table.Cell>
                     <Table.Cell className="truncate">{child.kind}</Table.Cell>
                     <Table.Cell className="truncate">{child.version}</Table.Cell>
                     <Table.Cell className="truncate">{child.supplier}</Table.Cell>
-                    <Table.Cell className="tnum text-right">
-                      {allocationsOn(child.id).length || (
-                        <span className="text-muted-foreground">—</span>
-                      )}
+                    <Table.Cell className="tabular-nums text-right">
+                      {allocationsOn(child.id).length || <span className="text-subtle">—</span>}
                     </Table.Cell>
                   </Table.Row>
                 ))}
@@ -339,7 +348,7 @@ function ComponentRecord() {
 
         {out.length + inbound.length > 0 ? (
           <Section title="Connections">
-            <Table className="mt-1">
+            <Table className="pt-050">
               <colgroup>
                 <col style={{ width: "88px" }} />
                 <col style={{ width: "104px" }} />
@@ -371,7 +380,7 @@ function ComponentRecord() {
                           params={{ programId, componentId: other }}
                           className="hover:underline"
                         >
-                          <Id className="text-primary">{other}</Id>
+                          <Id className="text-brand">{other}</Id>
                         </Link>
                       </Table.Cell>
                       <Table.Cell className="truncate">{peer?.name ?? other}</Table.Cell>
@@ -384,7 +393,7 @@ function ComponentRecord() {
                             Crosses
                           </Badge>
                         ) : (
-                          <span className="text-muted-foreground">—</span>
+                          <span className="text-subtle">—</span>
                         )}
                       </Table.Cell>
                     </Table.Row>
@@ -400,7 +409,7 @@ function ComponentRecord() {
             title="Ruled out here"
             description="Considered for this component and excluded. An absence would be indistinguishable from nobody having looked."
           >
-            <Table className="mt-1">
+            <Table className="pt-050">
               <colgroup>
                 <col style={{ width: "112px" }} />
                 <col style={{ width: "320px" }} />
@@ -429,13 +438,13 @@ function ComponentRecord() {
                           search={{ tab: undefined }}
                           className="hover:underline"
                         >
-                          <Id className="text-primary">{d.requirement}</Id>
+                          <Id className="text-brand">{d.requirement}</Id>
                         </Link>
                       </Table.Cell>
                       <Table.Cell className="truncate" title={r?.text}>
                         {r?.text ?? "—"}
                       </Table.Cell>
-                      <Table.Cell className="whitespace-normal py-2 align-top leading-[1.45]">
+                      <Table.Cell className="whitespace-normal py-100 align-top">
                         {d.rationale}
                       </Table.Cell>
                       <Table.Cell className="truncate">{d.decidedBy}</Table.Cell>
@@ -460,7 +469,7 @@ function ComponentRecord() {
 
         <Section title="Open findings">
           {open.length ? (
-            <Table className="mt-1">
+            <Table className="pt-050">
               <colgroup>
                 <col style={{ width: "104px" }} />
                 <col style={{ width: "88px" }} />
@@ -486,7 +495,7 @@ function ComponentRecord() {
                         params={{ findingId: f.id }}
                         className="hover:underline"
                       >
-                        <Id className="text-primary">{f.id}</Id>
+                        <Id className="text-brand">{f.id}</Id>
                       </Link>
                     </Table.Cell>
                     <Table.Cell>
@@ -502,7 +511,7 @@ function ComponentRecord() {
                         search={{ tab: undefined }}
                         className="hover:underline"
                       >
-                        <Id className="text-primary">{f.control}</Id>
+                        <Id className="text-brand">{f.control}</Id>
                       </Link>
                     </Table.Cell>
                     <Table.Cell className="truncate">{f.lifecycle}</Table.Cell>
@@ -511,7 +520,7 @@ function ComponentRecord() {
               </tbody>
             </Table>
           ) : (
-            <div className="pt-3">
+            <Box paddingBlockStart="space.150">
               <Empty
                 title="No open findings"
                 description={
@@ -520,12 +529,12 @@ function ComponentRecord() {
                     : "This component is not a tracked boundary asset, so findings attach to its host instead."
                 }
               />
-            </div>
+            </Box>
           )}
         </Section>
 
         <Section title="Provenance">
-          <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 pt-3">
+          <dl className="flex flex-wrap items-baseline gap-x-300 gap-y-075 pt-150">
             <Fact label="Declared by">{node.bomSource}</Fact>
             <Fact label="BOM document">
               {bom ? (
@@ -543,9 +552,7 @@ function ComponentRecord() {
             </Fact>
           </dl>
           {node.note ? (
-            <p className="max-w-3xl pt-2 text-[13px] leading-[1.5] text-muted-foreground">
-              {node.note}
-            </p>
+            <p className="max-w-layout-measure pt-100 font-body text-subtle">{node.note}</p>
           ) : null}
         </Section>
       </ShowPage>

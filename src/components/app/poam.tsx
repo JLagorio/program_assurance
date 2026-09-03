@@ -4,23 +4,27 @@ import { Pencil, Plus, Trash2, X } from "lucide-react";
 
 import {
   Badge,
+  Box,
   Button,
+  DatePicker,
+  Dialog,
   Dot,
   Field,
   FilterChip,
+  Grid,
+  Id,
+  Inline,
   Input,
+  Item,
   KeyValue,
-  Progress,
   NativeSelect,
+  Progress,
+  Section,
+  Stack,
   Table,
   Textarea,
-  Id,
-  Dialog,
-  Item,
   Timeline,
-  DatePicker,
-} from "@/ds/primitives";
-import { Section } from "@/ds/patterns";
+} from "@ledger/design-system";
 import {
   formatOscalDate,
   milestoneStatusTone,
@@ -167,22 +171,25 @@ export function PoamSection({
         description="OSCAL poam-item entries scoped to this program, ordered by severity then scheduled completion."
         action={
           <Button variant="primary" onClick={() => setCreating(true)}>
-            <Plus className="size-3.5" /> New POA&amp;M item
+            <Plus className="size-icon-small" /> New POA&amp;M item
           </Button>
         }
       >
-        <div className="flex flex-wrap items-center gap-2 pb-3 pt-3">
+        <Inline className="pb-150 pt-150" space="space.100" alignBlock="center" shouldWrap>
           {filters.map((f) => (
             <button key={f} onClick={() => setFilter(f)}>
-              <span
+              <Inline
+                as="span"
+                display="inline-flex"
+                alignBlock="center"
                 className={
                   f === filter
-                    ? "inline-flex h-7 items-center rounded-md bg-primary/10 px-2.5 text-[13px] font-medium text-primary"
-                    : "inline-flex h-7 items-center rounded-md px-2.5 text-[13px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    ? "h-control-small rounded-medium bg-brand-subtlest px-100 font-body font-medium text-brand"
+                    : "h-control-small rounded-medium px-100 font-body text-subtle transition-colors hover:bg-neutral-subtle-hovered hover:text-default"
                 }
               >
                 {f}
-              </span>
+              </Inline>
             </button>
           ))}
           <span className="ml-auto">
@@ -192,19 +199,23 @@ export function PoamSection({
               onClick={() => setOpenOnly((v) => !v)}
             />
           </span>
-        </div>
+        </Inline>
 
         <Table>
           <thead>
             <tr>
-              <Table.Header className="w-[72px]">Item</Table.Header>
+              <Table.Header width={72}>Item</Table.Header>
               <Table.Header>Weakness</Table.Header>
-              <Table.Header className="w-[104px]">Controls</Table.Header>
-              <Table.Header className="w-[92px]">Severity</Table.Header>
-              <Table.Header className="w-[112px]">Status</Table.Header>
-              <Table.Header className="w-[128px]">Milestones</Table.Header>
-              <Table.Header className="w-[110px] text-right">Scheduled</Table.Header>
-              <Table.Header className="w-[72px] text-right">Actions</Table.Header>
+              <Table.Header width={104}>Controls</Table.Header>
+              <Table.Header width={92}>Severity</Table.Header>
+              <Table.Header width={112}>Status</Table.Header>
+              <Table.Header width={128}>Milestones</Table.Header>
+              <Table.Header className="text-right" width={110}>
+                Scheduled
+              </Table.Header>
+              <Table.Header className="text-right" width={72}>
+                Actions
+              </Table.Header>
             </tr>
           </thead>
           <tbody>
@@ -217,65 +228,72 @@ export function PoamSection({
                   onClick={() => setActiveUuid(i.uuid)}
                   className="group cursor-pointer"
                 >
-                  <Table.Cell className="w-[72px]">
+                  <Table.Cell width={72}>
                     <Id>{i.poamId}</Id>
                   </Table.Cell>
                   <Table.Cell>{i.title}</Table.Cell>
-                  <Table.Cell className="w-[104px]">{i.controls.join(", ")}</Table.Cell>
-                  <Table.Cell className="w-[92px]">
+                  <Table.Cell width={104}>{i.controls.join(", ")}</Table.Cell>
+                  <Table.Cell width={92}>
                     <Badge tone={poamSeverityTone[i.severity]}>{i.severity}</Badge>
                   </Table.Cell>
-                  <Table.Cell className="w-[112px]">
-                    <span className="flex items-center gap-1.5">
+                  <Table.Cell width={112}>
+                    <Inline as="span" space="space.075" alignBlock="center">
                       <Dot tone={poamStatusTone[i.status]} />
                       <span className="truncate">{i.status}</span>
-                    </span>
+                    </Inline>
                   </Table.Cell>
-                  <Table.Cell className="w-[128px]">
-                    <span className="flex items-center gap-2">
-                      <span className="w-12">
+                  <Table.Cell width={128}>
+                    <Inline as="span" space="space.100" alignBlock="center">
+                      <span className="w-600">
                         <Progress value={pct} tone={pct === 100 ? "success" : "information"} />
                       </span>
-                      <span className="tnum text-muted-foreground">
+                      <span className="tabular-nums text-subtle">
                         {i.milestones.filter((m) => m.status === "Completed").length}/
                         {i.milestones.length}
                       </span>
-                    </span>
+                    </Inline>
                   </Table.Cell>
                   <Table.Cell
                     className={
                       due.tone === "danger"
-                        ? "tnum w-[110px] text-right text-destructive"
+                        ? "tabular-nums text-right text-danger"
                         : due.tone === "warning"
-                          ? "tnum w-[110px] text-right text-warning-foreground"
-                          : "tnum w-[110px] text-right"
+                          ? "tabular-nums text-right text-warning"
+                          : "tabular-nums text-right"
                     }
+                    width={110}
                   >
                     {due.text}
                   </Table.Cell>
-                  <Table.Cell className="w-[72px] text-right">
-                    <span className="flex items-center justify-end gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                  <Table.Cell className="text-right" width={72}>
+                    <Inline
+                      className="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+                      as="span"
+                      space="space.025"
+                      alignBlock="center"
+                      alignInline="end"
+                    >
                       <button
                         aria-label={`Edit ${i.poamId}`}
-                        className="inline-flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        className="inline-flex items-center justify-center rounded-medium text-subtle transition-colors hover:bg-neutral-subtle-hovered hover:text-default size-300"
                         onClick={(e) => {
                           e.stopPropagation();
                           setEditingUuid(i.uuid);
                         }}
                       >
-                        <Pencil className="size-3.5" />
+                        <Pencil className="size-icon-small" />
                       </button>
                       <button
                         aria-label={`Delete ${i.poamId}`}
-                        className="inline-flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                        className="inline-flex items-center justify-center rounded-medium text-subtle transition-colors hover:bg-danger hover:text-danger size-300"
                         onClick={(e) => {
                           e.stopPropagation();
                           setDeletingUuid(i.uuid);
                         }}
                       >
-                        <Trash2 className="size-3.5" />
+                        <Trash2 className="size-icon-small" />
                       </button>
-                    </span>
+                    </Inline>
                   </Table.Cell>
                 </Table.Row>
               );
@@ -293,7 +311,7 @@ export function PoamSection({
         title="Audit trail"
         description="Immutable record of every POA&M create, edit and delete with actor attribution and field-level changes."
         action={
-          <span className="text-[12px] text-muted-foreground">
+          <span className="font-body-small text-subtle">
             Signed in as {currentUser.name} · {currentUser.role}
           </span>
         }
@@ -301,20 +319,20 @@ export function PoamSection({
         <Table>
           <thead>
             <tr>
-              <Table.Header className="w-[150px]">Timestamp</Table.Header>
-              <Table.Header className="w-[84px]">Action</Table.Header>
-              <Table.Header className="w-[72px]">Item</Table.Header>
-              <Table.Header className="w-[150px]">User</Table.Header>
+              <Table.Header width={150}>Timestamp</Table.Header>
+              <Table.Header width={84}>Action</Table.Header>
+              <Table.Header width={72}>Item</Table.Header>
+              <Table.Header width={150}>User</Table.Header>
               <Table.Header>Changed fields</Table.Header>
             </tr>
           </thead>
           <tbody>
             {audit.map((e) => (
               <Table.Row key={e.uuid}>
-                <Table.Cell className="tnum w-[150px]">
+                <Table.Cell className="tabular-nums" width={150}>
                   {formatOscalDate(e.timestamp, true)}
                 </Table.Cell>
-                <Table.Cell className="w-[84px]">
+                <Table.Cell width={84}>
                   <Badge
                     tone={
                       e.action === "Deleted"
@@ -327,10 +345,10 @@ export function PoamSection({
                     {e.action}
                   </Badge>
                 </Table.Cell>
-                <Table.Cell className="w-[72px]">
+                <Table.Cell width={72}>
                   <Id>{e.poamId}</Id>
                 </Table.Cell>
-                <Table.Cell className="w-[150px]">{e.actor}</Table.Cell>
+                <Table.Cell width={150}>{e.actor}</Table.Cell>
                 <Table.Cell>
                   {e.changes.length === 0
                     ? e.action === "Created"
@@ -433,28 +451,22 @@ function PoamDetailModal({
       description={`${item.poamId} · ${item.controls.join(", ")} · ${item.origin}`}
       footer={
         <>
-          <Button
-            variant="subtle"
-            className="text-destructive hover:bg-destructive/10"
-            onClick={onDelete}
-          >
-            <Trash2 className="size-3.5" /> Delete
+          <Button variant="subtle" className="text-danger hover:bg-danger" onClick={onDelete}>
+            <Trash2 className="size-icon-small" /> Delete
           </Button>
           <span className="flex-1" />
           <Button variant="subtle" onClick={onClose}>
             Close
           </Button>
           <Button variant="primary" onClick={onEdit}>
-            <Pencil className="size-3.5" /> Edit item
+            <Pencil className="size-icon-small" /> Edit item
           </Button>
         </>
       }
       aside={
         <div>
-          <div className="text-[12px] font-semibold uppercase tracking-wide text-muted-foreground">
-            OSCAL identifiers
-          </div>
-          <dl className="pt-1">
+          <div className="font-heading-xxsmall uppercase text-subtle">OSCAL identifiers</div>
+          <dl className="pt-050">
             <KeyValue label="uuid">
               <Id className="break-all">{item.uuid}</Id>
             </KeyValue>
@@ -465,67 +477,83 @@ function PoamDetailModal({
             <KeyValue label="detection source">{item.detectionSource}</KeyValue>
           </dl>
 
-          <div className="mt-5 text-[12px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <Box className="font-heading-xxsmall uppercase text-subtle" paddingBlockStart="space.250">
             props
-          </div>
-          <div className="space-y-1 pt-2">
+          </Box>
+          <Stack className="pt-100" space="space.050">
             {item.props.map((p) => (
-              <div key={p.name} className="flex items-baseline justify-between gap-2 text-[12px]">
+              <Inline
+                key={p.name}
+                className="font-body-small"
+                space="space.100"
+                alignBlock="baseline"
+                spread="space-between"
+              >
                 <Id>{p.name}</Id>
-                <span className="truncate text-right text-muted-foreground">{p.value}</span>
-              </div>
+                <span className="truncate text-right text-subtle">{p.value}</span>
+              </Inline>
             ))}
-          </div>
+          </Stack>
 
           {item.links.length > 0 ? (
             <>
-              <div className="mt-5 text-[12px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <Box
+                className="font-heading-xxsmall uppercase text-subtle"
+                paddingBlockStart="space.250"
+              >
                 links
-              </div>
-              <div className="space-y-1 pt-2 text-[13px]">
+              </Box>
+              <Stack className="pt-100 font-body" space="space.050">
                 {item.links.map((l) => (
                   <Link
                     key={l.href + l.rel}
                     to={l.href}
-                    className="block truncate text-primary hover:underline"
+                    className="block truncate text-brand hover:underline"
                   >
                     {l.text}
                   </Link>
                 ))}
-              </div>
+              </Stack>
             </>
           ) : null}
         </div>
       }
     >
-      <div className="space-y-5">
-        <div className="flex flex-wrap items-center gap-2">
+      <Stack space="space.250">
+        <Inline space="space.100" alignBlock="center" shouldWrap>
           <Badge tone={poamSeverityTone[item.severity]}>{item.severity}</Badge>
           <Badge tone={poamStatusTone[item.status]}>{item.status}</Badge>
-          <span className="text-[12px] text-muted-foreground">{dueLabel(item).text}</span>
-        </div>
+          <span className="font-body-small text-subtle">{dueLabel(item).text}</span>
+        </Inline>
 
         <div>
-          <div className="border-b border-border pb-2 text-[13px] font-semibold">Description</div>
-          <p className="pt-2 text-[13px] leading-relaxed text-muted-foreground">
-            {item.description}
-          </p>
+          <Box
+            className="border-b border-default font-body font-semibold"
+            paddingBlockEnd="space.100"
+          >
+            Description
+          </Box>
+          <p className="pt-100 font-body text-subtle">{item.description}</p>
           {item.remarks ? (
-            <p className="pt-2 text-[13px] leading-relaxed text-muted-foreground">
-              <span className="font-medium text-foreground">Remarks. </span>
+            <p className="pt-100 font-body text-subtle">
+              <span className="font-medium text-default">Remarks. </span>
               {item.remarks}
             </p>
           ) : null}
         </div>
 
         <div>
-          <div className="flex items-center justify-between border-b border-border pb-2">
-            <span className="text-[13px] font-semibold">Milestones</span>
-            <span className="tnum text-[12px] text-muted-foreground">
+          <Inline
+            className="border-b border-default pb-100"
+            alignBlock="center"
+            spread="space-between"
+          >
+            <span className="font-body font-semibold">Milestones</span>
+            <span className="tabular-nums font-body-small text-subtle">
               {item.milestones.filter((m) => m.status === "Completed").length} of{" "}
               {item.milestones.length} complete
             </span>
-          </div>
+          </Inline>
           <Item.Group empty="No milestones recorded.">
             {item.milestones.map((m) => (
               <Item
@@ -542,14 +570,17 @@ function PoamDetailModal({
         </div>
 
         <div>
-          <div className="border-b border-border pb-2 text-[13px] font-semibold">
+          <Box
+            className="border-b border-default font-body font-semibold"
+            paddingBlockEnd="space.100"
+          >
             Related observations
-          </div>
+          </Box>
           <Item.Group empty="No related observations.">
             {item.relatedObservations.map((o) => (
               <Item
                 key={o.observationUuid}
-                to={o.href}
+                link={<Link to={o.href} />}
                 leading={<Badge tone="neutral">{o.method}</Badge>}
                 title={o.title}
                 meta={<Id>{o.observationUuid.slice(0, 8)}</Id>}
@@ -560,15 +591,17 @@ function PoamDetailModal({
         </div>
 
         <div>
-          <div className="border-b border-border pb-2 text-[13px] font-semibold">
+          <Box
+            className="border-b border-default font-body font-semibold"
+            paddingBlockEnd="space.100"
+          >
             Associated risks
-          </div>
+          </Box>
           <Item.Group empty="No risk exposure entry linked.">
             {item.associatedRisks.map((r) => (
               <Item
                 key={r.riskUuid}
-                to="/risks/$riskId"
-                params={{ riskId: r.riskId }}
+                link={<Link to="/risks/$riskId" params={{ riskId: r.riskId }} />}
                 id={r.riskId}
                 idWidth={76}
                 title={r.title}
@@ -579,13 +612,18 @@ function PoamDetailModal({
         </div>
 
         <div>
-          <div className="border-b border-border pb-2 text-[13px] font-semibold">Audit trail</div>
+          <Box
+            className="border-b border-default font-body font-semibold"
+            paddingBlockEnd="space.100"
+          >
+            Audit trail
+          </Box>
           {audit.length === 0 ? (
-            <p className="pt-2 text-[13px] text-muted-foreground">
+            <p className="pt-100 font-body text-subtle">
               No changes recorded for this item in this session.
             </p>
           ) : (
-            <Timeline className="pt-2">
+            <Timeline className="pt-100">
               {audit.map((e) => (
                 <Timeline.Item
                   key={e.uuid}
@@ -594,25 +632,31 @@ function PoamDetailModal({
                   time={formatOscalDate(e.timestamp, true)}
                 >
                   {e.changes.length > 0 ? (
-                    <span className="block space-y-0.5">
+                    <Stack className="block" as="span" space="space.025">
                       {e.changes.map((c) => (
-                        <span key={c.field} className="flex items-baseline gap-2 text-[12px]">
-                          <Id className="shrink-0 text-[11px]">{c.field}</Id>
-                          <span className="min-w-0 truncate text-muted-foreground line-through">
+                        <Inline
+                          key={c.field}
+                          className="font-body-small"
+                          as="span"
+                          space="space.100"
+                          alignBlock="baseline"
+                        >
+                          <Id className="shrink-0 font-body-xsmall">{c.field}</Id>
+                          <span className="min-w-0 truncate text-subtle line-through">
                             {c.from}
                           </span>
-                          <span className="shrink-0 text-muted-foreground">→</span>
+                          <span className="shrink-0 text-subtle">→</span>
                           <span className="min-w-0 truncate">{c.to}</span>
-                        </span>
+                        </Inline>
                       ))}
-                    </span>
+                    </Stack>
                   ) : null}
                 </Timeline.Item>
               ))}
             </Timeline>
           )}
         </div>
-      </div>
+      </Stack>
     </Dialog>
   );
 }
@@ -710,12 +754,8 @@ function PoamEditModal({
       description={`${item.poamId} · OSCAL poam-item · uuid preserved`}
       footer={
         <>
-          <Button
-            variant="subtle"
-            className="text-destructive hover:bg-destructive/10"
-            onClick={onDelete}
-          >
-            <Trash2 className="size-3.5" /> Delete
+          <Button variant="subtle" className="text-danger hover:bg-danger" onClick={onDelete}>
+            <Trash2 className="size-icon-small" /> Delete
           </Button>
           <span className="flex-1" />
           <Button variant="subtle" onClick={onClose}>
@@ -728,10 +768,8 @@ function PoamEditModal({
       }
       aside={
         <div>
-          <div className="text-[12px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Preserved OSCAL fields
-          </div>
-          <dl className="pt-1">
+          <div className="font-heading-xxsmall uppercase text-subtle">Preserved OSCAL fields</div>
+          <dl className="pt-050">
             <KeyValue label="uuid">
               <Id className="break-all">{item.uuid}</Id>
             </KeyValue>
@@ -740,20 +778,20 @@ function PoamEditModal({
             </KeyValue>
             <KeyValue label="published">{formatOscalDate(item.published, true)}</KeyValue>
             <KeyValue label="last-modified">
-              <span className="text-muted-foreground">set on save</span>
+              <span className="text-subtle">set on save</span>
             </KeyValue>
             <KeyValue label="related-observations">{item.relatedObservations.length}</KeyValue>
             <KeyValue label="associated-risk">{item.associatedRisks.length}</KeyValue>
             <KeyValue label="links">{item.links.length}</KeyValue>
           </dl>
-          <p className="mt-4 text-[12px] leading-relaxed text-muted-foreground">
+          <p className="pt-200 font-body-small text-subtle">
             Editing changes the mutable assembly only. Identifiers, publication timestamp and
             structural links stay bound so the item keeps its identity across OSCAL exports.
           </p>
         </div>
       }
     >
-      <div className="space-y-3">
+      <Stack space="space.150">
         <Field label="Weakness title" hint="markup-line — appears as the poam-item title.">
           <Input autoFocus value={draft.title} onChange={(e) => set("title", e.target.value)} />
         </Field>
@@ -767,7 +805,7 @@ function PoamEditModal({
           <Textarea value={draft.remarks} onChange={(e) => set("remarks", e.target.value)} />
         </Field>
 
-        <div className="grid grid-cols-3 gap-3">
+        <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
           <Field label="Controls" hint="token list">
             <Input
               value={draft.controls.join(", ")}
@@ -802,9 +840,9 @@ function PoamEditModal({
               ))}
             </NativeSelect>
           </Field>
-        </div>
+        </Grid>
 
-        <div className="grid grid-cols-3 gap-3">
+        <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
           <Field label="Scheduled completion" hint="date-time-with-timezone">
             <DatePicker
               value={toDateInput(draft.scheduledCompletion)}
@@ -836,23 +874,30 @@ function PoamEditModal({
               ))}
             </NativeSelect>
           </Field>
-        </div>
+        </Grid>
 
         {/* Milestones */}
         <div>
-          <div className="flex items-center justify-between border-b border-border pb-2">
-            <span className="text-[13px] font-semibold">Milestones</span>
+          <Inline
+            className="border-b border-default pb-100"
+            alignBlock="center"
+            spread="space-between"
+          >
+            <span className="font-body font-semibold">Milestones</span>
             <Button variant="link" onClick={addMilestone}>
-              <Plus className="size-3.5" /> Add milestone
+              <Plus className="size-icon-small" /> Add milestone
             </Button>
-          </div>
-          <div className="pt-1">
+          </Inline>
+          <Box paddingBlockStart="space.050">
             {draft.milestones.map((m) => (
-              <div
+              <Grid
                 key={m.uuid}
-                className="grid grid-cols-[42px_minmax(0,1fr)_128px_132px_24px] items-center gap-2 border-b border-border/70 py-2 last:border-0"
+                className="border-b border-default py-100 last:border-0"
+                gap="space.100"
+                templateColumns="42px minmax(0,1fr) 128px 132px 24px"
+                alignItems="center"
               >
-                <Id className="text-[12px] text-muted-foreground">{m.id}</Id>
+                <Id className="font-body-small text-subtle">{m.id}</Id>
                 <Input
                   value={m.title}
                   placeholder="Milestone title"
@@ -881,34 +926,41 @@ function PoamEditModal({
                 />
                 <button
                   aria-label={`Remove milestone ${m.id}`}
-                  className="inline-flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                  className="inline-flex items-center justify-center rounded-medium text-subtle transition-colors hover:bg-danger hover:text-danger size-300"
                   onClick={() => removeMilestone(m.uuid)}
                 >
-                  <X className="size-3.5" />
+                  <X className="size-icon-small" />
                 </button>
-              </div>
+              </Grid>
             ))}
             {draft.milestones.length === 0 ? (
-              <p className="py-2 text-[13px] text-muted-foreground">
+              <p className="py-100 font-body text-subtle">
                 No milestones. Add one to track intermediate progress.
               </p>
             ) : null}
-          </div>
+          </Box>
         </div>
 
         {/* Props */}
         <div>
-          <div className="flex items-center justify-between border-b border-border pb-2">
-            <span className="text-[13px] font-semibold">Props</span>
+          <Inline
+            className="border-b border-default pb-100"
+            alignBlock="center"
+            spread="space-between"
+          >
+            <span className="font-body font-semibold">Props</span>
             <Button variant="link" onClick={addProp}>
-              <Plus className="size-3.5" /> Add prop
+              <Plus className="size-icon-small" /> Add prop
             </Button>
-          </div>
-          <div className="pt-1">
+          </Inline>
+          <Box paddingBlockStart="space.050">
             {draft.props.map((p, n) => (
-              <div
+              <Grid
                 key={n}
-                className="grid grid-cols-[minmax(0,180px)_minmax(0,1fr)_minmax(0,120px)_24px] items-center gap-2 border-b border-border/70 py-2 last:border-0"
+                className="border-b border-default py-100 last:border-0"
+                gap="space.100"
+                templateColumns="minmax(0,180px) minmax(0,1fr) minmax(0,120px) 24px"
+                alignItems="center"
               >
                 <Input
                   value={p.name}
@@ -927,19 +979,19 @@ function PoamEditModal({
                 />
                 <button
                   aria-label={`Remove prop ${p.name || n + 1}`}
-                  className="inline-flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                  className="inline-flex items-center justify-center rounded-medium text-subtle transition-colors hover:bg-danger hover:text-danger size-300"
                   onClick={() => removeProp(n)}
                 >
-                  <X className="size-3.5" />
+                  <X className="size-icon-small" />
                 </button>
-              </div>
+              </Grid>
             ))}
             {draft.props.length === 0 ? (
-              <p className="py-2 text-[13px] text-muted-foreground">No props on this item.</p>
+              <p className="py-100 font-body text-subtle">No props on this item.</p>
             ) : null}
-          </div>
+          </Box>
         </div>
-      </div>
+      </Stack>
     </Dialog>
   );
 }
@@ -967,31 +1019,27 @@ function PoamDeleteModal({
           <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
-          <Button
-            variant="primary"
-            className="bg-destructive hover:bg-destructive/90"
-            onClick={onConfirm}
-          >
+          <Button variant="primary" className="bg-danger-bold hover:bg-danger" onClick={onConfirm}>
             Delete item
           </Button>
         </>
       }
     >
-      <div className="space-y-3 text-[13px] leading-relaxed text-muted-foreground">
+      <Stack className="font-body text-subtle" space="space.150">
         <p>
           The poam-item and its {item.milestones.length} milestone
           {item.milestones.length === 1 ? "" : "s"} are removed from the program&apos;s OSCAL
           POA&amp;M. Related observations and the risk exposure entries stay in place — only the
           links from this item are dropped.
         </p>
-        <dl className="border-t border-border pt-1">
+        <dl className="border-t border-default pt-050">
           <KeyValue label="uuid">
             <Id className="break-all">{item.uuid}</Id>
           </KeyValue>
           <KeyValue label="status">{item.status}</KeyValue>
           <KeyValue label="scheduled">{formatOscalDate(item.scheduledCompletion, true)}</KeyValue>
         </dl>
-      </div>
+      </Stack>
     </Dialog>
   );
 }
@@ -1092,10 +1140,8 @@ function PoamCreateModal({
       }
       aside={
         <div>
-          <div className="text-[12px] font-semibold uppercase tracking-wide text-muted-foreground">
-            OSCAL preview
-          </div>
-          <dl className="pt-1">
+          <div className="font-heading-xxsmall uppercase text-subtle">OSCAL preview</div>
+          <dl className="pt-050">
             <KeyValue label="uuid">
               <Id>generated on save</Id>
             </KeyValue>
@@ -1110,35 +1156,35 @@ function PoamCreateModal({
             <KeyValue label="milestones">{milestone ? "1 planned" : "0"}</KeyValue>
             <KeyValue label="associated-risk">{riskId ? <Id>{riskId}</Id> : "none"}</KeyValue>
           </dl>
-          <div className="mt-4 text-[12px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <Box className="font-heading-xxsmall uppercase text-subtle" paddingBlockStart="space.200">
             props
-          </div>
-          <div className="space-y-1 pt-2 text-[12px]">
-            <div className="flex justify-between gap-2">
+          </Box>
+          <Stack className="pt-100 font-body-small" space="space.050">
+            <Inline space="space.100" spread="space-between">
               <Id>marking</Id>
-              <span className="text-muted-foreground">{marking}</span>
-            </div>
-            <div className="flex justify-between gap-2">
+              <span className="text-subtle">{marking}</span>
+            </Inline>
+            <Inline space="space.100" spread="space-between">
               <Id>weakness-source</Id>
-              <span className="truncate text-muted-foreground">{source}</span>
-            </div>
-            <div className="flex justify-between gap-2">
+              <span className="truncate text-subtle">{source}</span>
+            </Inline>
+            <Inline space="space.100" spread="space-between">
               <Id>severity</Id>
-              <span className="text-muted-foreground">{severity}</span>
-            </div>
-            <div className="flex justify-between gap-2">
+              <span className="text-subtle">{severity}</span>
+            </Inline>
+            <Inline space="space.100" spread="space-between">
               <Id>status</Id>
-              <span className="text-muted-foreground">{status}</span>
-            </div>
-          </div>
-          <p className="mt-4 text-[12px] leading-relaxed text-muted-foreground">
+              <span className="text-subtle">{status}</span>
+            </Inline>
+          </Stack>
+          <p className="pt-200 font-body-small text-subtle">
             Saved entries serialize into the program&apos;s OSCAL POA&amp;M export alongside the SSP
             and SAR.
           </p>
         </div>
       }
     >
-      <div className="space-y-3">
+      <Stack space="space.150">
         <Field label="Weakness title" hint="markup-line — appears as the poam-item title.">
           <Input
             autoFocus
@@ -1157,7 +1203,7 @@ function PoamCreateModal({
             placeholder="Describe the weakness, the affected component, and the sampling that identified it."
           />
         </Field>
-        <div className="grid grid-cols-3 gap-3">
+        <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
           <Field label="Control">
             <NativeSelect value={control} onChange={(e) => setControl(e.target.value)}>
               {programControls.map((c) => (
@@ -1183,8 +1229,8 @@ function PoamCreateModal({
               <option>Deferred</option>
             </NativeSelect>
           </Field>
-        </div>
-        <div className="grid grid-cols-3 gap-3">
+        </Grid>
+        <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
           <Field label="Scheduled completion">
             <DatePicker value={scheduled} onChange={setScheduled} />
           </Field>
@@ -1203,8 +1249,8 @@ function PoamCreateModal({
               <option>Unclassified</option>
             </NativeSelect>
           </Field>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
+        </Grid>
+        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
           <Field label="Detection source">
             <NativeSelect value={source} onChange={(e) => setSource(e.target.value)}>
               {detectionSources.map((s) => (
@@ -1221,8 +1267,8 @@ function PoamCreateModal({
               <option>RSK-2290</option>
             </NativeSelect>
           </Field>
-        </div>
-        <div className="grid grid-cols-[minmax(0,1fr)_160px] gap-3">
+        </Grid>
+        <Grid gap="space.150" templateColumns="minmax(0,1fr) 160px">
           <Field label="First milestone" hint="Additional milestones can be added after creation.">
             <Input
               value={milestone}
@@ -1233,8 +1279,8 @@ function PoamCreateModal({
           <Field label="Target date">
             <DatePicker value={milestoneDate} onChange={setMilestoneDate} />
           </Field>
-        </div>
-      </div>
+        </Grid>
+      </Stack>
     </Dialog>
   );
 }

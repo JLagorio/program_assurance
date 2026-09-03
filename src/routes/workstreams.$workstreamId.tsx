@@ -1,9 +1,17 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 
-import { Badge, KeyValue, Table, Id } from "@/ds/primitives";
-import { RecordHeader, ShowPage, Section } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Id,
+  Inline,
+  Inspector,
+  KeyValue,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Table,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import {
   dependentsOf,
   personById,
@@ -52,15 +60,14 @@ function WorkstreamDetail() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/programs/$programId"
-            backParams={{ programId: ws.program }}
+            back={<Link to="/programs/$programId" params={{ programId: ws.program }} />}
             id={ws.id}
             title={ws.title}
             meta={`${ws.program} · ${ws.stage} · ${ws.gate} · due ${ws.due}`}
             actions={<Badge tone={workstreamStatusTone(ws.status)}>{ws.status}</Badge>}
           />
         }
-        tabs={<div className="border-b border-border" />}
+        tabs={<div className="border-b border-default" />}
         showRail
         rail={
           <>
@@ -69,7 +76,7 @@ function WorkstreamDetail() {
                 <Link
                   to="/programs/$programId"
                   params={{ programId: ws.program }}
-                  className="text-primary hover:underline"
+                  className="text-brand hover:underline"
                 >
                   <Id>{ws.program}</Id>
                 </Link>
@@ -79,7 +86,7 @@ function WorkstreamDetail() {
                   <Link
                     to="/people/$personId"
                     params={{ personId: lead.id }}
-                    className="text-primary hover:underline"
+                    className="text-brand hover:underline"
                   >
                     {lead.name}
                   </Link>
@@ -94,13 +101,13 @@ function WorkstreamDetail() {
             </Inspector.Group>
 
             <Inspector.Group title="Disciplines">
-              <div className="flex flex-wrap gap-1.5 py-1">
+              <Inline className="py-050" space="space.075" shouldWrap>
                 {ws.disciplines.map((d) => (
                   <Badge key={d} tone="neutral">
                     {d}
                   </Badge>
                 ))}
-              </div>
+              </Inline>
             </Inspector.Group>
 
             <Inspector.Group title="Joins">
@@ -116,10 +123,8 @@ function WorkstreamDetail() {
         }
       >
         <Section title="Objective">
-          <p className="max-w-3xl pt-3 text-[13px] leading-relaxed text-muted-foreground">
-            {ws.objective}
-          </p>
-          <p className="mt-3 max-w-3xl text-[12.5px] leading-relaxed">{ws.note}</p>
+          <p className="max-w-layout-measure pt-150 font-body text-subtle">{ws.objective}</p>
+          <p className="pt-150 max-w-layout-measure font-body-small">{ws.note}</p>
         </Section>
 
         <Section
@@ -152,7 +157,7 @@ function WorkstreamDetail() {
                       <Link
                         to="/people/$personId"
                         params={{ personId: m.person }}
-                        className="text-primary hover:underline"
+                        className="text-brand hover:underline"
                       >
                         <Id>{m.person}</Id>
                       </Link>
@@ -160,7 +165,7 @@ function WorkstreamDetail() {
                     <Table.Cell className="truncate">{p?.name ?? "—"}</Table.Cell>
                     <Table.Cell className="truncate">{m.role}</Table.Cell>
                     <Table.Cell className="truncate">{p?.discipline ?? "—"}</Table.Cell>
-                    <Table.Cell className="tnum text-right">{m.allocation}%</Table.Cell>
+                    <Table.Cell className="tabular-nums text-right">{m.allocation}%</Table.Cell>
                   </Table.Row>
                 );
               })}
@@ -200,7 +205,7 @@ function WorkstreamDetail() {
                     <Link
                       to="/workstreams/$workstreamId"
                       params={{ workstreamId: w.id }}
-                      className="text-primary hover:underline"
+                      className="text-brand hover:underline"
                     >
                       <Id>{w.id}</Id>
                     </Link>

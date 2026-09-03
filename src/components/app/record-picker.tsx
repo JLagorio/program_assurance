@@ -4,7 +4,7 @@
  * and gets the chosen one back.
  */
 
-import { Badge, Command, Id } from "@/ds/primitives";
+import { Badge, Command, Id } from "@ledger/design-system";
 
 export type PickerRecord = {
   id: string;
@@ -38,23 +38,23 @@ export function RecordPicker({
   return (
     <Command.Dialog open={open} onClose={onClose} label={title} width="large">
       <Command.Input placeholder={placeholder} hint={<Command.Count />} autoFocus />
-      <Command.List className="max-h-[46vh]">
+      <Command.List style={{ maxHeight: "46vh" }}>
         <Command.Empty>{emptyHint ?? "Nothing matches."}</Command.Empty>
         {records.map((r) => (
           <Command.Item
             key={r.id}
             value={`${r.id} ${r.title} ${r.meta ?? ""} ${r.keywords ?? ""}`}
-            className="h-auto py-2"
+            className="h-auto py-100"
             onSelect={() => {
               onPick(r);
               onClose();
             }}
           >
-            <Id className="text-muted-foreground">{r.id}</Id>
+            <Id className="text-subtle">{r.id}</Id>
             <span className="min-w-0 flex-1">
               <span className="block truncate">{r.title}</span>
               {r.meta ? (
-                <span className="block truncate text-[11.5px] text-muted-foreground">{r.meta}</span>
+                <span className="block truncate font-body-xsmall text-subtle">{r.meta}</span>
               ) : null}
             </span>
             {r.badge ? (

@@ -2,10 +2,19 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle } from "lucide-react";
 
 import { ConsumerTable, ProvidedControlsTable } from "@/components/app/inheritance";
-import { Badge, Button, KeyValue, Id } from "@/ds/primitives";
-import { RecordHeader, ShowPage, Section } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Button,
+  Id,
+  Inline,
+  Inspector,
+  KeyValue,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Stack,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import {
   componentHealthTone,
   systemComponents,
@@ -40,12 +49,12 @@ function ComponentRecord() {
   if (!component) {
     return (
       <Shell>
-        <div className="space-y-3">
-          <h1 className="text-[18px] font-semibold">Provider not found</h1>
-          <Link to="/library/components" className="text-[13px] text-primary hover:underline">
+        <Stack space="space.150">
+          <h1 className="font-heading-small font-semibold">Provider not found</h1>
+          <Link to="/library/components" className="font-body text-brand hover:underline">
             Back to component library
           </Link>
-        </div>
+        </Stack>
       </Shell>
     );
   }
@@ -57,7 +66,7 @@ function ComponentRecord() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/library/components"
+            back={<Link to="/library/components" />}
             id={component.id}
             title={component.name}
             meta={`${component.type} · ${component.version} · ${component.owner}`}
@@ -69,7 +78,7 @@ function ComponentRecord() {
             }
           />
         }
-        tabs={<div className="border-b border-border" />}
+        tabs={<div className="border-b border-default" />}
         showRail
         rail={
           <>
@@ -99,9 +108,9 @@ function ComponentRecord() {
                     <Link
                       to="/programs/$programId"
                       params={{ programId: component.sourceProgramId }}
-                      className="text-primary hover:underline"
+                      className="text-brand hover:underline"
                     >
-                      <Id className="text-primary">{component.sourceProgramId}</Id>
+                      <Id className="text-brand">{component.sourceProgramId}</Id>
                     </Link>
                   ) : (
                     "Not in your enclave"
@@ -114,9 +123,7 @@ function ComponentRecord() {
           </>
         }
       >
-        <p className="max-w-3xl text-[13px] leading-relaxed text-muted-foreground">
-          {component.summary}
-        </p>
+        <p className="max-w-layout-measure font-body text-subtle">{component.summary}</p>
 
         <Section
           title="Provided controls"
@@ -130,10 +137,16 @@ function ComponentRecord() {
           description={`Consumed by ${component.consumers.length} program${component.consumers.length === 1 ? "" : "s"}. Evidence or status changes here re-open every inherited row.`}
           action={
             stale ? (
-              <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-legacy-warning">
-                <AlertTriangle className="size-3.5" />
+              <Inline
+                className="font-body-small font-medium text-warning"
+                as="span"
+                display="inline-flex"
+                space="space.075"
+                alignBlock="center"
+              >
+                <AlertTriangle className="size-icon-small" />
                 {stale} stale definition{stale === 1 ? "" : "s"} propagating
-              </span>
+              </Inline>
             ) : null
           }
         >

@@ -4,17 +4,21 @@ import { FileDown } from "lucide-react";
 
 import {
   Badge,
-  Button,
-  Progress,
-  NativeSelect,
-  Table,
-  Toolbar,
-  Id,
-  Tabs,
+  Box,
   Breadcrumb,
-} from "@/ds/primitives";
-import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+  Button,
+  Id,
+  Inline,
+  NativeSelect,
+  Progress,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Table,
+  Tabs,
+  Toolbar,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { SctmRail, SctmSummary, SctmTable } from "@/components/app/sctm";
 import { controlMatrix } from "@/lib/control-matrix";
 import { programs } from "@/lib/grc-data";
@@ -245,20 +249,19 @@ function ProgramSctm() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/programs/$programId"
-            backParams={{ programId }}
+            back={<Link to="/programs/$programId" params={{ programId }} />}
             breadcrumb={
-              <Breadcrumb
-                items={[
-                  { label: "Programs", to: "/programs" },
-                  {
-                    label: program.name,
-                    to: "/programs/$programId",
-                    params: { programId: program.id },
-                  },
-                  { label: "SCTM" },
-                ]}
-              />
+              <Breadcrumb>
+                <Breadcrumb.Item asChild>
+                  <Link to={"/programs"}>{"Programs"}</Link>
+                </Breadcrumb.Item>
+                <Breadcrumb.Item asChild>
+                  <Link to={"/programs/$programId"} params={{ programId: program.id }}>
+                    {program.name}
+                  </Link>
+                </Breadcrumb.Item>
+                <Breadcrumb.Item isCurrent>{"SCTM"}</Breadcrumb.Item>
+              </Breadcrumb>
             }
             id={program.id}
             title="Security controls traceability matrix"
@@ -272,54 +275,45 @@ function ProgramSctm() {
                   variant="primary"
                   onClick={() => downloadCsv(`${program.id}-sctm.csv`, sctmCsv(sctm))}
                 >
-                  <FileDown className="size-3.5" /> Export CSV
+                  <FileDown className="size-icon-small" /> Export CSV
                 </Button>
               </>
             }
           />
         }
         tabs={
-          <Tabs
-            items={sctmTabs.map((t) => ({
-              key: t,
-              label: t,
-              active: t === tab,
-              onSelect: () => go(t),
-              trailing:
-                counts[t] === null ? null : (
-                  <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                    {counts[t]}
-                  </span>
-                ),
-            }))}
-          />
+          <Tabs>
+            {sctmTabs.map((t) => (
+              <Tabs.Tab key={t} isSelected={t === tab} onClick={() => go(t)} count={counts[t]}>
+                {t}
+              </Tabs.Tab>
+            ))}
+          </Tabs>
         }
         showRail={tab !== "Coverage" && selectedRow !== null}
         rail={
           selectedRow ? (
             <div>
-              <div className="flex items-center gap-2 pb-3">
-                <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-                  Requirement
-                </span>
+              <Inline className="pb-150" space="space.100" alignBlock="center">
+                <span className="font-heading-xxsmall uppercase text-subtle">Requirement</span>
                 <Id>{selectedRow.requirement}</Id>
                 <button
                   onClick={() => setSelected(null)}
-                  className="ml-auto text-[12px] text-muted-foreground hover:text-foreground"
+                  className="ml-auto font-body-small text-subtle hover:text-default"
                 >
                   Close
                 </button>
-              </div>
+              </Inline>
               <SctmRail row={selectedRow} />
-              <div className="pt-3 text-[12.5px]">
+              <Box className="font-body-small" paddingBlockStart="space.150">
                 <Link
                   to="/programs/$programId/controls/$controlId"
                   params={{ programId, controlId: selectedRow.control }}
-                  className="text-primary hover:underline"
+                  className="text-brand hover:underline"
                 >
                   Open {selectedRow.control} →
                 </Link>
-              </div>
+              </Box>
             </div>
           ) : null
         }
@@ -329,7 +323,7 @@ function ProgramSctm() {
             title="Requirement rows"
             description="One row per DISA CCI where the catalog publishes one, per SP 800-53A assessment objective where it does not, and per control otherwise. Where a recorded change reaches the components a row is allocated to, the Determination column carries it: a withdrawn claim struck through beside what replaced it and an Invalidated chip, or an amber dot for a determination that stands and is flagged."
             action={
-              <span className="tnum text-12 text-muted-foreground">
+              <span className="tabular-nums font-body-small text-subtle">
                 {shown.length === visible.length
                   ? `${visible.length} of ${sctm.counts.total} rows`
                   : `${shown.length} of ${visible.length} shown · ${sctm.counts.total} total`}
@@ -341,7 +335,7 @@ function ProgramSctm() {
               onSearch={(v) => refilter(() => setQuery(v))}
               placeholder="Control, CCI, statement"
               actions={
-                <span className="tnum text-12 text-muted-foreground">
+                <span className="tabular-nums font-body-small text-subtle">
                   {allFamilies
                     ? `${familyStats.length} families`
                     : `1 of ${familyStats.length} families`}
@@ -352,7 +346,8 @@ function ProgramSctm() {
                 value={activeFamily}
                 disabled={allFamilies}
                 onChange={(e) => refilter(() => setFamily(e.target.value))}
-                className="h-7 w-[248px] text-13"
+                className="h-control-small font-body"
+                style={{ width: 248 }}
               >
                 {familyStats.map((f) => (
                   <option key={f.id} value={f.id}>
@@ -376,7 +371,8 @@ function ProgramSctm() {
                     if (next !== null) setAllFamilies(true);
                   })
                 }
-                className="h-7 w-[208px] text-13"
+                className="h-control-small font-body"
+                style={{ width: 208 }}
               >
                 <option value="">Any currency ({sctm.counts.total})</option>
                 <option value="Current">Current ({currentRows})</option>
@@ -386,7 +382,7 @@ function ProgramSctm() {
             </Toolbar>
 
             {currency !== null ? (
-              <p className="pb-2 text-12 text-muted-foreground">
+              <p className="pb-100 font-body-small text-subtle">
                 {currency === "Invalidated"
                   ? "Invalidated rows were determined against a configuration that is no longer in force. A retracted Satisfied claim is shown struck through beside the Not assessed it became; a deficiency keeps its determination and is owed a re-test."
                   : currency === "Suspect"
@@ -396,7 +392,7 @@ function ProgramSctm() {
             ) : null}
 
             {allFamilies && visible.length > PAGE ? (
-              <p className="pb-2 text-12 text-muted-foreground">
+              <p className="pb-100 font-body-small text-subtle">
                 All {familyStats.length} families are in scope — {visible.length} requirement rows.
                 The table pages {PAGE} at a time; the CSV export carries every row.
               </p>
@@ -405,12 +401,12 @@ function ProgramSctm() {
             <SctmTable rows={shown} onSelect={(r) => setSelected(r.key)} selected={selected} />
 
             {visible.length > shown.length ? (
-              <div className="pt-3">
+              <Box paddingBlockStart="space.150">
                 <Button size="small" onClick={() => setLimit((n) => n + PAGE)}>
                   Show {Math.min(PAGE, visible.length - shown.length)} more ·{" "}
                   {visible.length - shown.length} remaining
                 </Button>
-              </div>
+              </Box>
             ) : null}
           </Section>
         ) : null}
@@ -461,17 +457,17 @@ function ProgramSctm() {
                     >
                       <Table.Id id={f.id} />
                       <Table.Cell className="truncate">{f.name}</Table.Cell>
-                      <Table.Cell className="tnum text-right">{f.rows}</Table.Cell>
-                      <Table.Cell className="tnum text-right">{f.satisfied}</Table.Cell>
-                      <Table.Cell className="tnum text-right">{f.other}</Table.Cell>
-                      <Table.Cell className="tnum text-right">{f.notAssessed}</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">{f.rows}</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">{f.satisfied}</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">{f.other}</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">{f.notAssessed}</Table.Cell>
                       <Table.Cell
-                        className={cn("tnum text-right", f.gaps > 0 ? "text-legacy-danger" : "")}
+                        className={cn("tabular-nums text-right", f.gaps > 0 ? "text-danger" : "")}
                       >
                         {f.gaps}
                       </Table.Cell>
                       <Table.Cell>
-                        <span className="flex items-center gap-2">
+                        <Inline as="span" space="space.100" alignBlock="center">
                           <span className="min-w-0 flex-1">
                             <Progress
                               value={f.coverage}
@@ -484,10 +480,10 @@ function ProgramSctm() {
                               }
                             />
                           </span>
-                          <span className="tnum w-9 shrink-0 text-right text-12 text-muted-foreground">
+                          <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-400">
                             {f.coverage}%
                           </span>
-                        </span>
+                        </Inline>
                       </Table.Cell>
                     </Table.Row>
                   ))}
@@ -503,7 +499,7 @@ function ProgramSctm() {
               title="Why rows cannot ship"
               description="Each requirement row is tested against the package rules in order; the first rule that fires is the gap recorded."
               action={
-                <span className="tnum text-12 text-muted-foreground">
+                <span className="tabular-nums font-body-small text-subtle">
                   {sctm.gaps} of {sctm.counts.total} rows
                 </span>
               }
@@ -525,16 +521,13 @@ function ProgramSctm() {
                   {gapReasons.map((g) => (
                     <Table.Row
                       key={g.reason}
-                      className={cn(
-                        "cursor-pointer",
-                        gapReason === g.reason && "bg-primary-soft/40",
-                      )}
+                      className={cn("cursor-pointer", gapReason === g.reason && "bg-selected")}
                       onClick={() =>
                         refilter(() => setGapReason(gapReason === g.reason ? null : g.reason))
                       }
                     >
-                      <Table.Cell className="truncate text-legacy-danger">{g.reason}</Table.Cell>
-                      <Table.Cell className="tnum text-right">{g.count}</Table.Cell>
+                      <Table.Cell className="truncate text-danger">{g.reason}</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">{g.count}</Table.Cell>
                       <Table.Cell>
                         <Progress
                           value={Math.round((g.count / (sctm.counts.total || 1)) * 100)}
@@ -549,7 +542,7 @@ function ProgramSctm() {
                         Every requirement row carries a determination, an assertion, an allocation
                         and evidence.
                       </Table.Cell>
-                      <Table.Cell className="tnum text-right">0</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">0</Table.Cell>
                       <Table.Cell>—</Table.Cell>
                     </Table.Row>
                   ) : null}
@@ -565,24 +558,24 @@ function ProgramSctm() {
                   : "Every row the package review would reject, across all control families."
               }
               action={
-                <span className="tnum text-12 text-muted-foreground">
+                <span className="tabular-nums font-body-small text-subtle">
                   {shown.length === visible.length
                     ? `${visible.length} rows`
                     : `${shown.length} of ${visible.length} shown`}
                 </span>
               }
             >
-              <div className="pt-3">
+              <Box paddingBlockStart="space.150">
                 <SctmTable rows={shown} onSelect={(r) => setSelected(r.key)} selected={selected} />
-              </div>
+              </Box>
 
               {visible.length > shown.length ? (
-                <div className="pt-3">
+                <Box paddingBlockStart="space.150">
                   <Button size="small" onClick={() => setLimit((n) => n + PAGE)}>
                     Show {Math.min(PAGE, visible.length - shown.length)} more ·{" "}
                     {visible.length - shown.length} remaining
                   </Button>
-                </div>
+                </Box>
               ) : null}
             </Section>
           </>

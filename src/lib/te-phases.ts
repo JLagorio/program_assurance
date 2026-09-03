@@ -51,7 +51,7 @@
  * `asOf` string defaulting to the dataset's own today, Aug 30, 2026.
  */
 
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 import { datasetToday } from "@/lib/dataset-clock";
 import {
   authorizedBuild,

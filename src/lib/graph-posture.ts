@@ -26,7 +26,7 @@
  *    `graphVersion()` so a runtime re-classification is never served stale.
  */
 
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 import type {
   BomSource,
   CompositionEdge,

@@ -1,9 +1,19 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Badge, NativeSelect, Toolbar, Tabs } from "@/ds/primitives";
-import { Empty, Section, ShowPage, RecordHeader } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Box,
+  Empty,
+  Inline,
+  NativeSelect,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Tabs,
+  Toolbar,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import {
   DedupRail,
   DedupTable,
@@ -171,18 +181,19 @@ function ProgramIngestion() {
         actions={
           <>
             <Badge size="xsmall">{scan.format}</Badge>
-            <span className="tnum text-[12px] text-muted-foreground">
+            <span className="tabular-nums font-body-small text-subtle">
               completed {scan.completed}
             </span>
           </>
         }
       >
-        <span className="text-[12px] text-muted-foreground">Run</span>
+        <span className="font-body-small text-subtle">Run</span>
         <NativeSelect
           value={scan.id}
           onChange={(e) => selectScan(e.target.value)}
           aria-label="Scan run"
-          className="h-7 w-[360px] text-13"
+          className="h-control-small font-body"
+          style={{ width: 360 }}
         >
           {scans.map((s) => (
             <option key={s.id} value={s.id}>
@@ -210,8 +221,7 @@ function ProgramIngestion() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/programs/$programId"
-            backParams={{ programId: program.id }}
+            back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
             id={program.id}
             title={`${program.name} — automated ingestion`}
             meta={`${scans.length} delivered runs · ${current.length} current · ${new Set(scans.map((s) => s.format)).size} formats`}
@@ -223,7 +233,7 @@ function ProgramIngestion() {
                 <Link
                   to="/programs/$programId/composition"
                   params={{ programId: program.id }}
-                  className="text-[12.5px] text-primary hover:underline"
+                  className="font-body-small text-brand hover:underline"
                 >
                   Composition
                 </Link>
@@ -232,19 +242,18 @@ function ProgramIngestion() {
           />
         }
         tabs={
-          <Tabs
-            items={ingestionTabs.map((key) => ({
-              key,
-              label: key,
-              active: tab === key,
-              onSelect: () => go(key),
-              trailing: counts[key] ? (
-                <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                  {counts[key]}
-                </span>
-              ) : null,
-            }))}
-          />
+          <Tabs>
+            {ingestionTabs.map((key) => (
+              <Tabs.Tab
+                key={key}
+                isSelected={tab === key}
+                onClick={() => go(key)}
+                count={counts[key] || null}
+              >
+                {key}
+              </Tabs.Tab>
+            ))}
+          </Tabs>
         }
         showRail={tab !== "Normalization" && railBody !== null}
         rail={railBody}
@@ -254,12 +263,12 @@ function ProgramIngestion() {
             title="Automated ingestion"
             description="No scanner output has been delivered against this program."
           >
-            <div className="pt-4">
+            <Box paddingBlockStart="space.200">
               <Empty
                 title="Nothing ingested"
                 description={`${program.id} has no delivered checklists, SCAP results, ACAS exports, SAST reports, SBOMs or firmware reports. Ingestion begins when a run is filed against a component in the composition.`}
               />
-            </div>
+            </Box>
           </Section>
         ) : null}
 
@@ -292,7 +301,7 @@ function ProgramIngestion() {
               title="Native record against normalized record"
               description="Select a result to audit it end to end. The left panel is the tool's own record, untouched; the right panel is what the normalizer produced; the block underneath is why."
             >
-              <div className="pt-4">
+              <Box paddingBlockStart="space.200">
                 <NormalizationView
                   rows={rows}
                   selected={resultId}
@@ -300,7 +309,7 @@ function ProgramIngestion() {
                   scan={scan}
                   nodeName={nodeName}
                 />
-              </div>
+              </Box>
             </Section>
           </>
         ) : null}
@@ -324,12 +333,19 @@ function ProgramIngestion() {
               title="Source authority"
               description="Which source wins when two of them describe the same condition. A benchmark checklist is the authoritative statement about a configuration setting; a network scanner inferring the same thing from the outside is corroboration, not a second weakness."
             >
-              <ol className="flex flex-wrap items-center gap-x-2 gap-y-2 pt-4">
+              <Inline
+                className="pt-200"
+                as="ol"
+                space="space.100"
+                rowSpace="space.100"
+                alignBlock="center"
+                shouldWrap
+              >
                 {sourceAuthority.map((format, i) => (
-                  <li key={format} className="flex items-center gap-2">
-                    {i > 0 ? <span className="text-[12px] text-muted-foreground">&gt;</span> : null}
+                  <Inline key={format} as="li" space="space.100" alignBlock="center">
+                    {i > 0 ? <span className="font-body-small text-subtle">&gt;</span> : null}
                     <span
-                      className={presentFormats.has(format) ? "opacity-100" : "opacity-45"}
+                      className={presentFormats.has(format) ? "opacity-100" : "opacity-disabled"}
                       title={
                         presentFormats.has(format)
                           ? `Rank ${i + 1} of ${sourceAuthority.length} — present in this batch`
@@ -338,10 +354,10 @@ function ProgramIngestion() {
                     >
                       <FormatChip format={format} />
                     </span>
-                  </li>
+                  </Inline>
                 ))}
-              </ol>
-              <p className="pt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+              </Inline>
+              <p className="pt-150 font-body-small text-subtle">
                 Highest authority first; the formats greyed out contributed no result to this batch.
                 Ties inside one format break on the later run&rsquo;s completion time. The rail
                 states, for the selected group, exactly which rule fired and what it beat.

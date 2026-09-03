@@ -17,8 +17,7 @@
 import { useMemo, useState } from "react";
 
 import { SctmFamilyTable } from "@/components/app/sctm";
-import { Button, NativeSelect, Toolbar } from "@/ds/primitives";
-import { Empty, Section } from "@/ds/patterns";
+import { Box, Button, Empty, NativeSelect, Section, Toolbar } from "@ledger/design-system";
 import { controlStatuses, type ControlStatus } from "@/lib/control-matrix";
 import { groupByFamily, useControlText, useSctm, type Determination } from "@/lib/sctm";
 
@@ -124,11 +123,11 @@ export function SctmMatrixSection({
     return (
       <Section
         title="Traceability matrix"
-        action={<span className="text-12 text-muted-foreground">Loading the 800-53A catalog</span>}
+        action={<span className="font-body-small text-subtle">Loading the 800-53A catalog</span>}
       >
-        <div className="py-10 text-center text-[12.5px] text-muted-foreground">
+        <Box className="text-center font-body-small text-subtle" paddingBlock="space.500">
           Decomposing the control set into CCIs and assessment objectives.
-        </div>
+        </Box>
       </Section>
     );
   }
@@ -137,7 +136,7 @@ export function SctmMatrixSection({
     <Section
       title="Traceability matrix"
       action={
-        <span className="tnum text-12 text-muted-foreground">
+        <span className="tabular-nums font-body-small text-subtle">
           {shown === sctm.counts.total ? shown : `${shown} of ${sctm.counts.total}`} requirement
           rows
         </span>
@@ -160,7 +159,8 @@ export function SctmMatrixSection({
         <NativeSelect
           value={family}
           onChange={(e) => onFamily(e.target.value)}
-          className="h-7 w-[188px]"
+          className="h-control-small"
+          style={{ width: 188 }}
         >
           <option value="All">All families</option>
           {families.map((f) => (
@@ -172,7 +172,8 @@ export function SctmMatrixSection({
         <NativeSelect
           value={status}
           onChange={(e) => onStatus(e.target.value as ControlStatus | "All")}
-          className="h-7 w-[176px]"
+          className="h-control-small"
+          style={{ width: 176 }}
         >
           <option value="All">All determinations</option>
           {controlStatuses.map((s) => (

@@ -2,11 +2,19 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 
-import { Badge, Button, KeyValue, Table, Id } from "@/ds/primitives";
-import { IndexPage, PageHeader, PreviewRail } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
+import {
+  Badge,
+  Button,
+  Id,
+  IndexPage,
+  Inspector,
+  KeyValue,
+  PageHeader,
+  PreviewRail,
+  Table,
+} from "@ledger/design-system";
 import { PreviewSplit } from "@/components/app/preview-split";
-import { Shell } from "@/ds/shell";
+import { Shell } from "@/components/app/shell";
 import { packageStateTone, packages, readiness, type Pkg } from "@/lib/packages";
 
 export const Route = createFileRoute("/packages/")({
@@ -44,14 +52,14 @@ function PackagesIndex() {
             description="A package is a snapshot of the spine, not a folder of documents. The SSP, SAR and POA&M are generated views of the same in-scope CCIs — if a CCI has no objective, no result, or an open finding it did not declare, the package is not shippable."
             actions={
               <Button>
-                <RefreshCw className="size-3.5" /> Regenerate stale
+                <RefreshCw className="size-icon-small" /> Regenerate stale
               </Button>
             }
           />
         }
       >
         <PreviewSplit open={preview !== null}>
-          <div className="min-w-0 lg:pr-6">
+          <div className="min-w-0 lg:pe-300">
             <Table className="table-fixed">
               <colgroup>
                 <col style={{ width: "112px" }} />
@@ -90,18 +98,18 @@ function PackagesIndex() {
                         onPreview={() => setPreview(p)}
                       />
                       <Table.Cell className="truncate">{p.name}</Table.Cell>
-                      <Table.Cell className="tnum">{p.version}</Table.Cell>
+                      <Table.Cell className="tabular-nums">{p.version}</Table.Cell>
                       <Table.Cell className="truncate">
                         <Badge tone={packageStateTone[p.state]}>{p.state}</Badge>
                       </Table.Cell>
                       <Table.Cell className="truncate">{p.snapshotAt}</Table.Cell>
                       <Table.Cell className="truncate">{p.owner}</Table.Cell>
-                      <Table.Cell className="tnum text-right">{r.coverage}%</Table.Cell>
-                      <Table.Cell className="tnum text-right">
+                      <Table.Cell className="tabular-nums text-right">{r.coverage}%</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">
                         {r.gaps.length > 0 ? (
-                          <span className="font-medium text-legacy-danger">{r.gaps.length}</span>
+                          <span className="font-medium text-danger">{r.gaps.length}</span>
                         ) : (
-                          <span className="text-muted-foreground">0</span>
+                          <span className="text-subtle">0</span>
                         )}
                       </Table.Cell>
                     </Table.Row>
@@ -120,7 +128,7 @@ function PackagesIndex() {
                 <Link
                   to="/packages/$pkgId"
                   params={{ pkgId: preview.id }}
-                  className="text-primary hover:underline"
+                  className="text-brand hover:underline"
                 >
                   Open package →
                 </Link>

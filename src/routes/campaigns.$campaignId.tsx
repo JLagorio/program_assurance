@@ -1,9 +1,19 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Badge, Id, Tabs } from "@/ds/primitives";
-import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Box,
+  Empty,
+  Id,
+  Inline,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Stack,
+  Tabs,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import {
   ExecutionSummary,
   ObjectiveExecutionTable,
@@ -235,7 +245,7 @@ function CampaignRecord() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/campaigns"
+            back={<Link to="/campaigns" />}
             id={campaign.id}
             title={campaign.name}
             meta={`${campaign.program} · ${campaign.trigger} · ${campaign.gate} gate · lead ${campaign.lead} · ${campaign.opened} → ${campaign.target}`}
@@ -255,45 +265,32 @@ function CampaignRecord() {
                 ) : null}
               </>
             }
-            below={
-              <p className="max-w-3xl text-[13px] leading-relaxed text-muted-foreground">
-                {campaign.scope}
-              </p>
-            }
+            below={<p className="max-w-layout-measure font-body text-subtle">{campaign.scope}</p>}
           />
         }
         tabs={
-          <Tabs
-            items={campaignTabs.map((t) => ({
-              key: t,
-              label: t,
-              active: t === tab,
-              onSelect: () => go(t),
-              trailing:
-                counts[t] === null ? null : (
-                  <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                    {counts[t]}
-                  </span>
-                ),
-            }))}
-          />
+          <Tabs>
+            {campaignTabs.map((t) => (
+              <Tabs.Tab key={t} isSelected={t === tab} onClick={() => go(t)} count={counts[t]}>
+                {t}
+              </Tabs.Tab>
+            ))}
+          </Tabs>
         }
         showRail={showRail}
         rail={
           showRail ? (
             <div>
-              <div className="flex items-center gap-2 pb-3">
-                <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-                  {railTitle}
-                </span>
+              <Inline className="pb-150" space="space.100" alignBlock="center">
+                <span className="font-heading-xxsmall uppercase text-subtle">{railTitle}</span>
                 <Id>{railId}</Id>
                 <button
                   onClick={closeRail}
-                  className="ml-auto text-[12px] text-muted-foreground hover:text-foreground"
+                  className="ml-auto font-body-small text-subtle hover:text-default"
                 >
                   Close
                 </button>
-              </div>
+              </Inline>
               {tab === "Execution" && selectedObjective ? (
                 <ObjectiveRail row={selectedObjective} />
               ) : null}
@@ -315,7 +312,7 @@ function CampaignRecord() {
               title="Declared result versus executed result"
               description="The left result is what the campaign record asserts. The right result is what the step records add up to: each procedure's latest complete run, rolled up to the worst of them, because every procedure written for an objective has to hold for it to be met. Where they differ the run is the fact and the declaration is the claim."
               action={
-                <span className="tnum text-12 text-muted-foreground">
+                <span className="tabular-nums font-body-small text-subtle">
                   {objectiveRows.length} objectives · {events.length} events
                 </span>
               }
@@ -337,7 +334,7 @@ function CampaignRecord() {
               title="Written procedures"
               description="One procedure proves one objective. A procedure that has never been run is a plan, not evidence."
               action={
-                <span className="tnum text-12 text-muted-foreground">
+                <span className="tabular-nums font-body-small text-subtle">
                   {procedureRows.length} procedures · {execution.withProcedure} of{" "}
                   {objectiveRows.length} objectives covered
                 </span>
@@ -358,16 +355,16 @@ function CampaignRecord() {
               <>
                 <Section
                   title={
-                    <span className="flex flex-wrap items-center gap-2">
+                    <Inline as="span" space="space.100" alignBlock="center" shouldWrap>
                       <Id>{selectedProcedure.procedure.id}</Id>
                       <span>Preconditions</span>
-                    </span>
+                    </Inline>
                   }
                   description="What has to be true before the first step is taken. A run started outside these conditions does not prove the objective."
                 >
-                  <div className="pt-2">
+                  <Box paddingBlockStart="space.100">
                     <PreconditionList items={selectedProcedure.procedure.preconditions} />
-                  </div>
+                  </Box>
                 </Section>
 
                 <Section
@@ -392,7 +389,7 @@ function CampaignRecord() {
               title="Runs"
               description="State and verdict are independent. The state says what happened to the run; the verdict is derived from the step records and says what they add up to."
               action={
-                <span className="tnum text-12 text-muted-foreground">
+                <span className="tabular-nums font-body-small text-subtle">
                   {runRows.filter((r) => r.run.state === "Complete").length} complete of{" "}
                   {runRows.length}
                 </span>
@@ -429,7 +426,7 @@ function CampaignRecord() {
             title="Step movement across retests"
             description="Every step compared against the run it re-executes. Only steps with a decisive record on both sides appear — an inconclusive or un-run step is not evidence of a regression or of a fix."
             action={
-              <span className="tnum text-12 text-muted-foreground">
+              <span className="tabular-nums font-body-small text-subtle">
                 {regressionRows.filter((r) => r.state === "Regressed").length} regressed ·{" "}
                 {regressionRows.filter((r) => r.state === "Fixed").length} fixed
               </span>
@@ -449,24 +446,30 @@ function CampaignRecord() {
               description={`${campaign.id} was opened on the ${campaign.trigger.toLowerCase()} trigger but nothing was scheduled under it, so no objective is in scope and nothing can be executed.`}
             />
           ) : (
-            <div className="space-y-2 pt-2">
+            <Stack className="pt-100" space="space.100">
               {events.map((e) => (
-                <div key={e.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <Inline
+                  key={e.id}
+                  space="space.150"
+                  rowSpace="space.050"
+                  alignBlock="baseline"
+                  shouldWrap
+                >
                   <Link
                     to="/campaigns"
                     className="shrink-0 hover:underline"
                     aria-label={`Back to campaigns for ${e.id}`}
                   >
-                    <Id className="text-primary">{e.id}</Id>
+                    <Id className="text-brand">{e.id}</Id>
                   </Link>
-                  <span className="text-[13px] font-medium">{e.name}</span>
+                  <span className="font-body font-medium">{e.name}</span>
                   <Badge tone={statusTone(e.state)}>{e.state}</Badge>
-                  <span className="text-[12.5px] text-muted-foreground">{e.kind}</span>
-                  <span className="tnum text-[12.5px] text-muted-foreground">{e.window}</span>
-                  <span className="text-[12.5px] text-muted-foreground">{e.team}</span>
-                </div>
+                  <span className="font-body-small text-subtle">{e.kind}</span>
+                  <span className="tabular-nums font-body-small text-subtle">{e.window}</span>
+                  <span className="font-body-small text-subtle">{e.team}</span>
+                </Inline>
               ))}
-            </div>
+            </Stack>
           )}
         </Section>
       </ShowPage>

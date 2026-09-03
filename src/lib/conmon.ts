@@ -70,7 +70,7 @@
  * CSR agree on every date in the page.
  */
 
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 import {
   authorizedBuild,
   candidateBuild,

@@ -8,10 +8,15 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
-/* ------------------------------------------------------------ Ledger rules
-   The design system's rules as lint, so they hold without a sweep.
-   Kit names are read from src/ds at config load, so the list never drifts. */
+import ledger from "./packages/design-system/eslint-plugin/index.js";
 
+/* ------------------------------------------------------------ Product rules
+   The design system's own plugin (packages/design-system/eslint-plugin) holds the token rules:
+   every class is a token utility or a documented structural one, no margins, no arbitrary
+   values, layout through the primitives. The three rules below are about how this product
+   assembles the kit, and read the kit's names from the package so the list never drifts. */
+
+const PACKAGE_SRC = "packages/design-system/src";
 function kitNames() {
   const names = new Set();
   const walk = (dir) => {
@@ -25,7 +30,8 @@ function kitNames() {
           names.add(m[1]);
     }
   };
-  if (fs.existsSync("src/ds")) walk("src/ds");
+  for (const layer of ["primitives", "components", "patterns", "shapes", "shell"])
+    if (fs.existsSync(path.join(PACKAGE_SRC, layer))) walk(path.join(PACKAGE_SRC, layer));
   return names;
 }
 const KIT = kitNames();
@@ -46,7 +52,7 @@ const LEGACY = {
   Severity: "Indicator",
   Label: "Eyebrow",
   Tile: "Stat.Tile",
-  Tiles: "Stat.Grid",
+  Tiles: "Tiles",
   TabStrip: "Tabs",
   RailGroup: "Inspector.Group",
   CardHeader: "Card.Header",
@@ -59,9 +65,9 @@ const LEGACY = {
   WorkPaneRow: "WorkPane.Row",
 };
 
-// colour, weight and size tokens a table cell may not carry
+// neutral colour, weight and type tokens a table cell may not carry; a status colour (text-danger, text-warning…) is data, not design
 const CELL_FORBIDDEN =
-  /^(text-(muted-foreground|foreground|primary|secondary-foreground|\[1\d(\.\d+)?px\]|1[0-9]|xs|sm|base|lg)|font-(medium|semibold|bold|mono))(\/\d+)?$/;
+  /^(text-(default|subtle|subtlest|brand|selected|inverse|disabled)|font-(body(-large|-small|-xsmall)?|heading-\w+|code|medium|semibold|regular))$/;
 
 function jsxName(node) {
   if (!node) return "";
@@ -107,12 +113,12 @@ function classNameAttr(node) {
   return node.attributes.find((a) => a.type === "JSXAttribute" && a.name.name === "className");
 }
 
-const ledger = {
+const kit = {
   rules: {
     "cell-plain": {
       meta: {
         type: "problem",
-        docs: { description: "A Table.Cell carries no colour, weight or size token" },
+        docs: { description: "A Table.Cell carries no colour, weight or type token" },
       },
       create(context) {
         return {
@@ -126,7 +132,7 @@ const ledger = {
             if (bad.length)
               context.report({
                 node: attr,
-                message: `Table.Cell is one style. Drop ${bad.join(", ")}; only Badge, Dot, Indicator or text-danger may differ.`,
+                message: `Table.Cell is one style. Drop ${bad.join(", ")}; only Badge, Dot, Indicator or a status colour may differ.`,
               });
           },
         };
@@ -143,7 +149,7 @@ const ledger = {
             if (jsxName(node.name) !== "Id") return;
             const attr = classNameAttr(node);
             if (!attr) return;
-            if (!stringLiterals(attr.value).some((s) => /(^|\s)text-primary(\s|$)/.test(s))) return;
+            if (!stringLiterals(attr.value).some((s) => /(^|\s)text-brand(\s|$)/.test(s))) return;
             for (let p = node.parent; p; p = p.parent) {
               if (
                 p.type === "JSXElement" &&
@@ -154,7 +160,7 @@ const ledger = {
             context.report({
               node: attr,
               message:
-                "A bare Id is never blue. Blue means link: wrap it in Link or button, or drop text-primary.",
+                "A bare Id is never blue. Blue means link: wrap it in Link or button, or drop text-brand.",
             });
           },
         };
@@ -171,7 +177,7 @@ const ledger = {
           if (KIT.has(id.name))
             context.report({
               node: id,
-              message: `${id.name} is a kit component. Import it from @/ds instead of declaring a local copy.`,
+              message: `${id.name} is a kit component. Import it from @ledger/design-system instead of declaring a local copy.`,
             });
           else if (LEGACY[id.name])
             context.report({
@@ -200,38 +206,24 @@ const ledger = {
   },
 };
 
-/* Layers only look down. Each folder may import from the layers below it, from
-   `@/lib/utils`, and from third parties. App code imports a layer's index, never
-   a file inside it. */
 const SERVER_ONLY = {
   name: "server-only",
   message:
     "TanStack Start does not use the Next.js `server-only` package. Rename the module to `*.server.ts` or mark it with `@tanstack/react-start/server-only`.",
 };
-const restricted = (patterns) => [
-  "error",
-  {
-    paths: [SERVER_ONLY],
-    patterns: patterns.map((p) => (typeof p === "string" ? { group: [p] } : p)),
-  },
+
+// The product: routes, app components, domain code and the router. Reference kits and stories are not the product.
+const PRODUCT = [
+  "src/routes/**/*.{ts,tsx}",
+  "src/components/app/**/*.{ts,tsx}",
+  "src/lib/**/*.{ts,tsx}",
+  "src/router.tsx",
 ];
-const APP_ONLY = ["@/routes/*", "@/components/*", "@/lib/*", "!@/lib/utils"];
-const layer = (dir, above, message) => ({
-  files: [`src/ds/${dir}/**/*.{ts,tsx}`],
-  rules: {
-    "no-restricted-imports": restricted([
-      {
-        group: [...above.flatMap((l) => [`@/ds/${l}`, `@/ds/${l}/*`, `../${l}/*`]), ...APP_ONLY],
-        message,
-      },
-    ]),
-  },
-});
 
 export default tseslint.config(
   {
     ignores: [
-      // @ledger/design-system lints with its own plugin (spec step 5); the kit rules below do not apply to it
+      // @ledger/design-system lints itself with its own preset (npm run lint in packages/design-system)
       "packages",
       "dist",
       ".output",
@@ -246,6 +238,10 @@ export default tseslint.config(
       "docs/examples.superpowers",
       "src/lib/nist-catalog.ts",
       "src/lib/nist-control-text.ts",
+      // look-only reference kits (shadcn preset, reui) and their samples; not the product and not on the tokens
+      "src/components/ui",
+      "src/components/reui",
+      "src/components/examples",
     ],
   },
   {
@@ -258,61 +254,61 @@ export default tseslint.config(
     plugins: {
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
-      ledger,
+      kit,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      "no-restricted-imports": restricted([
+      "no-restricted-imports": [
+        "error",
         {
-          group: ["@/ds/*/*", "!@/ds/*/index"],
-          message:
-            "Import a layer's index (@/ds/primitives, @/ds/patterns, @/ds/shapes, @/ds/shell), not a file inside it.",
-        },
-        {
-          group: [
-            "@/components/app/ui",
-            "@/components/app/shapes",
-            "@/components/app/shell",
-            "@/components/app/compositions",
+          paths: [SERVER_ONLY],
+          patterns: [
+            {
+              group: ["@/ds", "@/ds/*"],
+              message:
+                "The kit is @ledger/design-system; the product shell is @/components/app/shell.",
+            },
+            {
+              group: [
+                "@/components/app/ui",
+                "@/components/app/shapes",
+                "@/components/app/compositions",
+                "@/components/ui/*",
+                "@/components/reui/*",
+              ],
+              message:
+                "Product code imports the kit from @ledger/design-system, not a reference kit.",
+            },
           ],
-          message: "The kit moved to src/ds. Import from @/ds/<layer>.",
         },
-      ]),
+      ],
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
   {
-    // Routes, domain files and stories assemble the kit: they never redeclare it, never colour a
-    // cell, and never paint an Id blue outside a link. The kit itself defines those behaviours.
-    files: [
-      "src/routes/**/*.{ts,tsx}",
-      "src/components/**/*.{ts,tsx}",
-      "src/stories/**/*.{ts,tsx}",
-    ],
-    ignores: ["src/components/ui/**"],
+    // The product assembles the kit on its tokens: the package preset plus the three assembly rules.
+    files: PRODUCT,
+    extends: ledger.configs.recommended,
     rules: {
-      "ledger/no-kit-shadow": "error",
-      "ledger/cell-plain": "error",
-      "ledger/id-not-blue": "error",
+      "kit/no-kit-shadow": "error",
+      "kit/cell-plain": "error",
+      "kit/id-not-blue": "error",
     },
   },
-  layer(
-    "primitives",
-    ["patterns", "shapes", "shell"],
-    "Primitives know only tokens and each other.",
-  ),
-  layer(
-    "patterns",
-    ["shapes", "shell"],
-    "Patterns are built from primitives; they never reach up to shapes or the shell.",
-  ),
-  layer("shapes", ["shell"], "Shapes never import the shell."),
-  layer("shell", [], "The shell imports the layers below it and the router, nothing from the app."),
   {
-    // Stories export a default meta object plus named story objects by design; story helpers
-    // export hooks alongside components; kit files export compound families via Object.assign.
-    files: ["src/stories/**/*.{ts,tsx}", ".storybook/**/*.{ts,tsx}", "src/ds/**/*.{ts,tsx}"],
+    // The reference sampler renders the shadcn preset on purpose.
+    files: ["src/stories/reference/**/*.{ts,tsx}"],
+    rules: { "no-restricted-imports": "off" },
+  },
+  {
+    // The product shell composes the package's Shell parts and keeps the name; it is the one intentional shadow.
+    files: ["src/components/app/shell.tsx"],
+    rules: { "kit/no-kit-shadow": "off" },
+  },
+  {
+    // Stories export a default meta object plus named story objects by design; story helpers export hooks alongside components.
+    files: ["src/stories/**/*.{ts,tsx}", ".storybook/**/*.{ts,tsx}"],
     rules: { "react-refresh/only-export-components": "off" },
   },
   eslintPluginPrettier,

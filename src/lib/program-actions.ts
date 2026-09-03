@@ -16,7 +16,7 @@ import { findings, isOpen } from "@/lib/findings";
 import { inheritanceForProgram } from "@/lib/inheritance";
 import { staleThresholdDays } from "@/lib/reusable-components";
 import { scopeApprovals } from "@/lib/tailoring";
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 
 /** Which tab the action resolves into. */
 export type ActionTarget = "Controls" | "Findings" | "Evidence" | "POA&M" | "Activity" | "Team";

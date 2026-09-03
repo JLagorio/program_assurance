@@ -25,17 +25,22 @@ import { ArrowRight } from "lucide-react";
 
 import {
   Badge,
+  Box,
   Dot,
-  KeyValue,
-  Progress,
-  Table,
+  Empty,
+  Grid,
   Id,
   Indicator,
+  Inline,
+  Inspector,
+  KeyValue,
+  Progress,
+  Section,
+  Stack,
   Stat,
-  type Tone,
-} from "@/ds/primitives";
-import { Empty, Section } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
+  Table,
+} from "@ledger/design-system";
+import type { Tone } from "@ledger/design-system";
 import { inheritanceStateTone } from "@/lib/inheritance";
 import { cn } from "@/lib/utils";
 import {
@@ -82,13 +87,13 @@ export function CurrencyChip({ currency }: { currency: RowCurrency }) {
 function CurrencyMark({ row }: { row: SctmRow }) {
   if (row.currency === "Current") return null;
   return (
-    <span className="flex shrink-0 items-center" title={row.currencyReason}>
+    <Inline className="shrink-0" title={row.currencyReason} as="span" alignBlock="center">
       {row.currency === "Invalidated" ? (
         <CurrencyChip currency={row.currency} />
       ) : (
         <Dot tone="warning" />
       )}
-    </span>
+    </Inline>
   );
 }
 
@@ -157,18 +162,18 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
             className="hover:underline"
             onClick={(e) => e.stopPropagation()}
           >
-            <Id className="text-primary">{row.control}</Id>
+            <Id className="text-brand">{row.control}</Id>
           </Link>
         ) : (
           <Id>{row.control}</Id>
         )}
       </Table.Cell>
       <Table.Cell className="truncate">
-        <span className="flex min-w-0 items-center gap-1.5">
+        <Inline className="min-w-0" as="span" space="space.075" alignBlock="center">
           <Badge size="xsmall">{row.unit}</Badge>
           <Id className="shrink-0">{row.requirement}</Id>
-          <span className="min-w-0 truncate text-12 text-muted-foreground">{row.statement}</span>
-        </span>
+          <span className="min-w-0 truncate font-body-small text-subtle">{row.statement}</span>
+        </Inline>
       </Table.Cell>
       <Table.Cell className="truncate">{row.origination}</Table.Cell>
       <Table.Cell className="truncate" title={row.responsibleParty}>
@@ -177,15 +182,11 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
       <Table.Cell className="truncate" title={row.methodBasis}>
         <MethodChip method={row.method} />
       </Table.Cell>
-      <Table.Cell className="tnum text-right" title={row.evidence.join(", ")}>
-        {row.evidence.length === 0 ? (
-          <span className="text-muted-foreground">0</span>
-        ) : (
-          row.evidence.length
-        )}
+      <Table.Cell className="tabular-nums text-right" title={row.evidence.join(", ")}>
+        {row.evidence.length === 0 ? <span className="text-subtle">0</span> : row.evidence.length}
       </Table.Cell>
       <Table.Cell className="truncate">
-        <span className="flex min-w-0 items-center gap-1.5">
+        <Inline className="min-w-0" as="span" space="space.075" alignBlock="center">
           {/* What was claimed, and that it stopped counting. The value is
                     retained rather than overwritten precisely so it can be
                     shown; a determination that silently changed cannot be
@@ -193,12 +194,12 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
           {row.priorDetermination !== null ? (
             <>
               <span
-                className="shrink-0 text-11 text-muted-foreground line-through decoration-legacy-danger/70 decoration-[1.5px]"
+                className="shrink-0 font-body-xsmall text-subtle line-through"
                 title={`${row.priorDetermination} as of ${row.assessed} — retained for the audit trail`}
               >
                 {row.priorDetermination}
               </span>
-              <ArrowRight className="size-3 shrink-0 text-muted-foreground" />
+              <ArrowRight className="shrink-0 text-subtle size-150" />
             </>
           ) : null}
           <DeterminationChip determination={row.determination} />
@@ -206,24 +207,30 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
           {row.openFindings > 0 ? (
             <span
               className={cn(
-                "tnum shrink-0 text-11",
-                row.worstSeverity === "CAT I" ? "text-legacy-danger" : "text-muted-foreground",
+                "tabular-nums shrink-0 font-body-xsmall",
+                row.worstSeverity === "CAT I" ? "text-danger" : "text-subtle",
               )}
               title={`${row.openFindings} open — worst ${row.worstSeverity}`}
             >
               {row.openFindings} open
             </span>
           ) : null}
-        </span>
+        </Inline>
       </Table.Cell>
-      <Table.Cell className={cn("truncate", row.gap && "bg-danger-soft/40")}>
+      <Table.Cell className={cn("truncate", row.gap && "bg-danger")}>
         {row.gap ? (
-          <span className="flex min-w-0 items-center gap-1.5 text-legacy-danger" title={row.gap}>
+          <Inline
+            className="min-w-0 text-danger"
+            title={row.gap}
+            as="span"
+            space="space.075"
+            alignBlock="center"
+          >
             <Dot tone="danger" />
             <span className="min-w-0 truncate font-medium">{row.gap}</span>
-          </span>
+          </Inline>
         ) : (
-          <span className="text-muted-foreground">—</span>
+          <span className="text-subtle">—</span>
         )}
       </Table.Cell>
     </>
@@ -257,7 +264,7 @@ export function SctmTable({
         {rows.map((row) => (
           <Table.Row
             key={row.key}
-            className={cn("cursor-pointer", selected === row.key && "bg-primary-soft/40")}
+            className={cn("cursor-pointer", selected === row.key && "bg-selected")}
             onClick={() => onSelect(row)}
             title={row.statement}
           >
@@ -315,16 +322,16 @@ export function SctmFamilyTable({
             onToggle={() => onToggle(group.id)}
             title={
               <>
-                <Id className="w-8 shrink-0 text-foreground">{group.id}</Id>
+                <Id className="shrink-0 text-default w-400">{group.id}</Id>
                 <span className="min-w-0 flex-1 truncate">{group.name}</span>
               </>
             }
             trailing={
               <>
-                <span className="tnum shrink-0 text-12 text-muted-foreground">
+                <span className="tabular-nums shrink-0 font-body-small text-subtle">
                   {group.controls} controls
                 </span>
-                <span className="tnum shrink-0 text-12 text-muted-foreground">
+                <span className="tabular-nums shrink-0 font-body-small text-subtle">
                   {group.rows.length} rows
                 </span>
 
@@ -341,7 +348,7 @@ export function SctmFamilyTable({
                   </Badge>
                 ) : null}
 
-                <span className="w-28 shrink-0">
+                <span className="shrink-0" style={{ width: 112 }}>
                   <Progress.Stacked
                     height={4}
                     segments={[
@@ -351,7 +358,7 @@ export function SctmFamilyTable({
                     ]}
                   />
                 </span>
-                <span className="tnum w-24 shrink-0 text-right text-12 text-muted-foreground">
+                <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-1000">
                   {group.satisfied}/{group.rows.length - group.notApplicable} · {group.pct}%
                 </span>
               </>
@@ -373,12 +380,10 @@ export function SctmFamilyTable({
 
 function ProseBlock({ label, children }: { label: string; children: string }) {
   return (
-    <div className="pt-1.5">
-      <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-        {label}
-      </div>
-      <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">{children}</p>
-    </div>
+    <Box paddingBlockStart="space.075">
+      <div className="font-heading-xxsmall uppercase text-subtle">{label}</div>
+      <p className="pt-050 font-body-small text-default">{children}</p>
+    </Box>
   );
 }
 
@@ -389,10 +394,10 @@ function ProseBlock({ label, children }: { label: string; children: string }) {
  */
 function WrapValue({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
-      <dt className="truncate text-[12.5px] text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 text-[12.5px] leading-snug text-foreground">{children}</dd>
-    </div>
+    <Grid className="py-050" gap="space.150" templateColumns="104px 1fr" alignItems="baseline">
+      <dt className="truncate font-body-small text-subtle">{label}</dt>
+      <dd className="min-w-0 font-body-small text-default">{children}</dd>
+    </Grid>
   );
 }
 
@@ -400,12 +405,18 @@ export function SctmRail({ row }: { row: SctmRow }) {
   return (
     <div>
       {row.gap ? (
-        <div className="mb-3 flex items-start gap-2 rounded-md bg-danger-soft px-2.5 py-2 text-[12.5px] leading-snug text-legacy-danger">
-          <span className="pt-1.5">
-            <Dot tone="danger" />
-          </span>
-          <span className="min-w-0 font-medium">{row.gap}</span>
-        </div>
+        <Box paddingBlockEnd="space.150">
+          <Inline
+            className="rounded-medium bg-danger px-100 py-100 font-body-small text-danger"
+            space="space.100"
+            alignBlock="start"
+          >
+            <Box as="span" paddingBlockStart="space.075">
+              <Dot tone="danger" />
+            </Box>
+            <span className="min-w-0 font-medium">{row.gap}</span>
+          </Inline>
+        </Box>
       ) : null}
 
       <Inspector.Group title="Requirement">
@@ -481,29 +492,27 @@ export function SctmRail({ row }: { row: SctmRow }) {
         </KeyValue>
         {row.priorDetermination !== null ? (
           <KeyValue label="Withdrawn">
-            <span className="flex items-center gap-1.5">
-              <span className="shrink-0 text-[12.5px] text-muted-foreground line-through decoration-legacy-danger/70 decoration-[1.5px]">
+            <Inline as="span" space="space.075" alignBlock="center">
+              <span className="shrink-0 font-body-small text-subtle line-through">
                 {row.priorDetermination}
               </span>
-              <span className="text-[12px] text-muted-foreground">
-                claimed as of {row.assessed}
-              </span>
-            </span>
+              <span className="font-body-small text-subtle">claimed as of {row.assessed}</span>
+            </Inline>
           </KeyValue>
         ) : null}
         <KeyValue label="Assessed">
-          <span className="tnum">{row.assessed}</span>
+          <span className="tabular-nums">{row.assessed}</span>
         </KeyValue>
         <WrapValue label="Findings">
           <Id.List ids={row.findings} />
         </WrapValue>
         <KeyValue label="Open">
-          <span className="flex items-center gap-1.5">
-            <span className="tnum">{row.openFindings}</span>
+          <Inline as="span" space="space.075" alignBlock="center">
+            <span className="tabular-nums">{row.openFindings}</span>
             {row.openFindings > 0 ? (
               <Indicator tone={severityToneOf(row.worstSeverity)}>{row.worstSeverity}</Indicator>
             ) : null}
-          </span>
+          </Inline>
         </KeyValue>
         <ProseBlock label="Note">{row.determinationNote}</ProseBlock>
       </Inspector.Group>
@@ -526,15 +535,21 @@ function BreakdownRow({
 }) {
   const pct = Math.round((count / (total || 1)) * 100);
   return (
-    <div className="flex items-center gap-3 border-b border-border-legacy-subtle py-2 last:border-0">
-      <span className="w-[128px] shrink-0 truncate text-12">{label}</span>
+    <Inline
+      className="border-b border-default py-100 last:border-0"
+      space="space.150"
+      alignBlock="center"
+    >
+      <span className="shrink-0 truncate font-body-small" style={{ width: 128 }}>
+        {label}
+      </span>
       <span className="min-w-0 flex-1">
         <Progress value={pct} tone={tone} />
       </span>
-      <span className="tnum w-16 shrink-0 text-right text-12 text-muted-foreground">
+      <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-800">
         {count} · {pct}%
       </span>
-    </div>
+    </Inline>
   );
 }
 
@@ -547,27 +562,27 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
   const withdrawn = sctm.rows.filter((r) => r.priorDetermination !== null).length;
 
   return (
-    <div className="space-y-7">
+    <Stack space="space.300">
       <Section
         title="Determination coverage"
         description={`Generated ${sctm.generated} from the live control matrix — ${counts.total} requirement rows.`}
         action={
-          <span className="tnum text-12 text-muted-foreground">
+          <span className="tabular-nums font-body-small text-subtle">
             {counts.satisfied}/{counts.total} satisfied ·{" "}
             {Math.round((counts.satisfied / (counts.total || 1)) * 100)}%
           </span>
         }
       >
-        <div className="pt-3">
-          <div className="flex items-baseline gap-2 pb-2">
-            <span className="tnum text-20 font-semibold leading-none">{sctm.coverage}%</span>
-            <span className="tnum text-12 text-muted-foreground">
+        <Box paddingBlockStart="space.150">
+          <Inline className="pb-100" space="space.100" alignBlock="baseline">
+            <span className="tabular-nums font-heading-small font-semibold">{sctm.coverage}%</span>
+            <span className="tabular-nums font-body-small text-subtle">
               of rows carry a determination and no gap
             </span>
-          </div>
+          </Inline>
           <Progress value={sctm.coverage} tone={coverageTone} />
 
-          <div className="pt-3">
+          <Box paddingBlockStart="space.150">
             <Progress.Stacked
               segments={[
                 {
@@ -596,7 +611,13 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
                 },
               ]}
             />
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2">
+            <Inline
+              className="pt-100"
+              space="space.200"
+              rowSpace="space.050"
+              alignBlock="center"
+              shouldWrap
+            >
               {(
                 [
                   {
@@ -625,16 +646,26 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
                   },
                 ] as { key: string; label: string; value: number; tone: Tone }[]
               ).map((s) => (
-                <span key={s.key} className="flex items-center gap-1.5 text-12">
+                <Inline
+                  key={s.key}
+                  className="font-body-small"
+                  as="span"
+                  space="space.075"
+                  alignBlock="center"
+                >
                   <Dot tone={s.tone} />
-                  <span className="text-muted-foreground">{s.label}</span>
-                  <span className="tnum font-medium">{s.value}</span>
-                </span>
+                  <span className="text-subtle">{s.label}</span>
+                  <span className="tabular-nums font-medium">{s.value}</span>
+                </Inline>
               ))}
-            </div>
-          </div>
+            </Inline>
+          </Box>
 
-          <div className="grid grid-cols-2 gap-x-8 pt-4 md:grid-cols-3">
+          <Grid
+            className="pt-200"
+            columnGap="space.400"
+            templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(3, minmax(0, 1fr))" }}
+          >
             <Stat label="Requirement rows" value={counts.total} />
             <Stat
               label="Rows that cannot ship"
@@ -646,8 +677,8 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
               value={sctm.unevidenced}
               tone={sctm.unevidenced > 0 ? "warning" : "success"}
             />
-          </div>
-        </div>
+          </Grid>
+        </Box>
       </Section>
 
       {/* Currency is reported separately from determination rather than as a
@@ -660,13 +691,17 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
           <Link
             to="/programs/$programId/baseline"
             params={{ programId: sctm.program }}
-            className="text-12 text-primary hover:underline"
+            className="font-body-small text-brand hover:underline"
           >
             Change impact →
           </Link>
         }
       >
-        <div className="grid grid-cols-2 gap-x-8 pt-3 md:grid-cols-3">
+        <Grid
+          className="pt-150"
+          columnGap="space.400"
+          templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(3, minmax(0, 1fr))" }}
+        >
           <Stat
             label="Current — taken against the build in force"
             value={current}
@@ -682,10 +717,10 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
             value={counts.suspect}
             tone={counts.suspect > 0 ? "warning" : "success"}
           />
-        </div>
+        </Grid>
         {withdrawn > 0 ? (
-          <p className="pt-2 text-12 text-muted-foreground">
-            <span className="tnum font-medium text-foreground">{withdrawn}</span> of the{" "}
+          <p className="pt-100 font-body-small text-subtle">
+            <span className="tabular-nums font-medium text-default">{withdrawn}</span> of the{" "}
             {counts.invalidated} invalidated rows carried a Satisfied determination that is now
             withdrawn; the matrix shows the retracted value struck through beside the one that
             replaced it. The rest keep their determination — a change neither closes a finding nor
@@ -694,12 +729,12 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
         ) : null}
       </Section>
 
-      <div className="grid gap-7 md:grid-cols-2">
+      <Grid gap="space.300" templateColumns={{ md: "repeat(2, minmax(0, 1fr))" }}>
         <Section
           title="Verification method"
           description="How each requirement is evidenced — Test, Demonstration, Analysis or Inspection."
         >
-          <div className="pt-1.5">
+          <Box paddingBlockStart="space.075">
             {sctm.byMethod.map((m) => (
               <BreakdownRow
                 key={m.method}
@@ -709,14 +744,14 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
                 tone={verificationMethodTone[m.method]}
               />
             ))}
-          </div>
+          </Box>
         </Section>
 
         <Section
           title="Control origination"
           description="What the system implements itself against what it inherits."
         >
-          <div className="pt-1.5">
+          <Box paddingBlockStart="space.075">
             {sctm.byOrigination.map((o) => (
               <BreakdownRow
                 key={o.origination}
@@ -726,9 +761,9 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
                 tone="information"
               />
             ))}
-          </div>
+          </Box>
         </Section>
-      </div>
-    </div>
+      </Grid>
+    </Stack>
   );
 }

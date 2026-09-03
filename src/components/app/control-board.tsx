@@ -22,18 +22,22 @@ import { Determination, EvidenceBlock, GateList, Narrative } from "@/components/
 import { ControlRequirementTable } from "@/components/app/requirements";
 import {
   Badge,
+  Block,
+  Box,
   Button,
+  Empty,
   Field,
   FilterChip,
-  ToggleGroup,
+  Grid,
+  Id,
+  Inline,
+  NativeSelect,
+  Stack,
   Table,
   Textarea,
+  ToggleGroup,
   Toolbar,
-  Id,
-  NativeSelect,
-} from "@/ds/primitives";
-import { Empty } from "@/ds/patterns";
-import { Block } from "@/ds/shapes";
+} from "@ledger/design-system";
 import {
   buildBoard,
   groupBoard,
@@ -67,13 +71,13 @@ import { cn } from "@/lib/utils";
 /* ── Stage strip ─────────────────────────────────────────────────────────── */
 
 const segment: Record<Stage["state"], string> = {
-  hollow: "border border-dashed border-border-strong bg-transparent",
-  empty: "bg-muted",
-  partial: "bg-muted",
-  full: "bg-muted-foreground/60",
-  broken: "bg-legacy-danger",
-  suspect: "bg-legacy-warning",
-  unknown: "bg-transparent text-muted-foreground/55",
+  hollow: "border border-dashed border-bold bg-transparent",
+  empty: "bg-neutral",
+  partial: "bg-neutral",
+  full: "bg-neutral-bold",
+  broken: "bg-danger-bold",
+  suspect: "bg-warning-bold",
+  unknown: "bg-transparent text-subtlest",
 };
 
 /**
@@ -106,32 +110,38 @@ export function StageStrip({
 }) {
   if (size === "sm") {
     return (
-      <span
-        className="inline-flex items-center gap-px"
+      <Inline
         role="img"
         aria-label={stages.map((s) => `${s.label}: ${s.state}`).join(", ")}
+        as="span"
+        display="inline-flex"
+        space="space.025"
+        alignBlock="center"
       >
         {stages.map((s) => (
           <span
             key={s.key}
             title={`${s.label} · ${s.note}`}
-            className={cn("relative block h-2 w-5 overflow-hidden rounded-[2px]", segment[s.state])}
+            className={cn(
+              "relative block h-100 w-250 overflow-hidden rounded-xsmall",
+              segment[s.state],
+            )}
             style={segmentStyle(s.state)}
           >
             {s.state === "partial" ? (
               <span
-                className="absolute inset-y-0 left-0 bg-muted-foreground/60"
+                className="absolute inset-y-0 left-0 bg-neutral-bold"
                 style={{ width: `${Math.round(s.fill * 100)}%` }}
               />
             ) : null}
           </span>
         ))}
-      </span>
+      </Inline>
     );
   }
 
   return (
-    <div className="grid grid-cols-6 gap-1">
+    <Grid gap="space.050" templateColumns="repeat(6, minmax(0, 1fr))">
       {stages.map((s) => {
         const isActive = active === s.key;
         return (
@@ -145,32 +155,34 @@ export function StageStrip({
           >
             <span
               className={cn(
-                "relative block h-2.5 w-full overflow-hidden rounded-[3px]",
+                "relative block h-100 w-full overflow-hidden rounded-small",
                 segment[s.state],
               )}
               style={segmentStyle(s.state)}
             >
               {s.state === "partial" ? (
                 <span
-                  className="absolute inset-y-0 left-0 bg-muted-foreground/60"
+                  className="absolute inset-y-0 left-0 bg-neutral-bold"
                   style={{ width: `${Math.round(s.fill * 100)}%` }}
                 />
               ) : null}
             </span>
-            <span
+            <Box
               className={cn(
-                "mt-1.5 block truncate border-b-2 pb-0.5 text-11 transition-colors",
+                "pt-075 block truncate border-b font-body-xsmall transition-colors",
                 isActive
-                  ? "border-foreground text-foreground"
-                  : "border-transparent text-muted-foreground group-hover/stage:text-foreground",
+                  ? "border-bold text-default"
+                  : "border-transparent text-subtle group-hover/stage:text-default",
               )}
+              as="span"
+              paddingBlockEnd="space.025"
             >
               {s.label}
-            </span>
+            </Box>
           </button>
         );
       })}
-    </div>
+    </Grid>
   );
 }
 
@@ -200,8 +212,11 @@ export function Funnel({
   onSelect: (key: StageKey | null) => void;
 }) {
   return (
-    <div className="rounded-md border border-border bg-card">
-      <div className="grid grid-cols-3 divide-y divide-border md:grid-cols-6 md:divide-x md:divide-y-0">
+    <div className="rounded-medium border border-default bg-surface">
+      <Grid
+        className="divide-y md:divide-x md:divide-y-0"
+        templateColumns={{ base: "repeat(3, minmax(0, 1fr))", md: "repeat(6, minmax(0, 1fr))" }}
+      >
         {funnel.map((f) => {
           const isActive = active === f.key;
           return (
@@ -211,52 +226,69 @@ export function Funnel({
               onClick={() => onSelect(isActive ? null : f.key)}
               aria-pressed={isActive}
               className={cn(
-                "px-4 py-3 text-left transition-colors",
-                isActive ? "bg-muted" : "hover:bg-surface-hover",
+                "px-200 py-150 text-left transition-colors",
+                isActive ? "bg-neutral" : "hover:bg-surface-hovered",
               )}
             >
-              <div className="text-12 text-muted-foreground">{f.label}</div>
-              <div className="mt-0.5 flex items-baseline gap-1.5">
-                <span className="tnum text-20 font-semibold tracking-[-0.02em]">{f.reached}</span>
-                <span className="tnum text-12 text-muted-foreground">of {total}</span>
-              </div>
-              <div className="mt-2 h-[3px] w-full overflow-hidden rounded-full bg-muted">
+              <div className="font-body-small text-subtle">{f.label}</div>
+              <Inline className="pt-025" space="space.075" alignBlock="baseline">
+                <span className="tabular-nums font-heading-small font-semibold">{f.reached}</span>
+                <span className="tabular-nums font-body-small text-subtle">of {total}</span>
+              </Inline>
+              <Box paddingBlockStart="space.100">
                 <div
-                  className="h-full bg-muted-foreground/60"
-                  style={{ width: `${total ? Math.round((f.reached / total) * 100) : 0}%` }}
-                />
-              </div>
-              <div className="mt-1.5 flex min-h-4 flex-wrap gap-x-3 text-11">
-                {f.note ? <span className="tnum text-muted-foreground">{f.note}</span> : null}
-                {f.stuck ? (
-                  <span className="tnum text-muted-foreground">{f.stuck} stuck</span>
-                ) : null}
+                  className="w-full overflow-hidden rounded-full bg-neutral"
+                  style={{ height: 3 }}
+                >
+                  <div
+                    className="h-full bg-neutral-bold"
+                    style={{ width: `${total ? Math.round((f.reached / total) * 100) : 0}%` }}
+                  />
+                </div>
+              </Box>
+              <Inline className="pt-075 font-body-xsmall min-h-200" space="space.150" shouldWrap>
+                {f.note ? <span className="tabular-nums text-subtle">{f.note}</span> : null}
+                {f.stuck ? <span className="tabular-nums text-subtle">{f.stuck} stuck</span> : null}
                 {f.unknown ? (
-                  <span className="tnum inline-flex items-center gap-1 text-muted-foreground">
+                  <Inline
+                    className="tabular-nums text-subtle"
+                    as="span"
+                    display="inline-flex"
+                    space="space.050"
+                    alignBlock="center"
+                  >
                     <span
-                      className="inline-block size-2 rounded-[2px] text-muted-foreground/55"
+                      className="inline-block size-100 rounded-xsmall text-subtlest"
                       style={hatch}
                     />
                     {f.unknown} unknown
-                  </span>
+                  </Inline>
                 ) : null}
-                {f.broken ? <span className="tnum text-legacy-danger">{f.broken} broken</span> : null}
-                {f.suspect ? <span className="tnum text-legacy-warning">{f.suspect} suspect</span> : null}
-              </div>
+                {f.broken ? (
+                  <span className="tabular-nums text-danger">{f.broken} broken</span>
+                ) : null}
+                {f.suspect ? (
+                  <span className="tabular-nums text-warning">{f.suspect} suspect</span>
+                ) : null}
+              </Inline>
             </button>
           );
         })}
-      </div>
-      <div className="flex items-center gap-4 border-t border-border px-4 py-2 text-12 text-muted-foreground">
-        <span className="tnum">
-          <span className="text-foreground">{through}</span> through every stage
+      </Grid>
+      <Inline
+        className="border-t border-default px-200 py-100 font-body-small text-subtle"
+        space="space.200"
+        alignBlock="center"
+      >
+        <span className="tabular-nums">
+          <span className="text-default">{through}</span> through every stage
         </span>
-        <span className="tnum">
-          <span className="text-foreground">{unknown}</span> unknown
+        <span className="tabular-nums">
+          <span className="text-default">{unknown}</span> unknown
         </span>
-        <span className="tnum">{hollow} tailored out</span>
+        <span className="tabular-nums">{hollow} tailored out</span>
         <span className="ml-auto">Click a stage to see what is stuck before it</span>
-      </div>
+      </Inline>
     </div>
   );
 }
@@ -276,18 +308,20 @@ function ownerLabel(c: BoardControl): string {
 
 function BoardHeader({ narrow }: { narrow: boolean }) {
   return (
-    <div
+    <Grid
       className={cn(
-        "grid items-center gap-3 border-b border-border px-2 pb-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground/80",
+        "border-b border-default px-100 pb-075 font-heading-xxsmall uppercase text-subtlest",
         narrow ? rowGrid.narrow : rowGrid.wide,
       )}
+      gap="space.150"
+      alignItems="center"
     >
       <span>Control</span>
       <span>Title</span>
       <span>Path</span>
       {narrow ? null : <span>Owner</span>}
       {narrow ? null : <span>Next</span>}
-    </div>
+    </Grid>
   );
 }
 
@@ -312,16 +346,16 @@ function BoardRow({
       onClick={onSelect}
       aria-pressed={active}
       className={cn(
-        "group/row grid h-10 w-full items-center gap-3 border-b border-border-legacy-subtle px-2 text-left text-13 transition-colors",
+        "group/row grid h-row w-full items-center gap-150 border-b border-default px-100 text-left font-body transition-colors",
         narrow ? rowGrid.narrow : rowGrid.wide,
-        active ? "bg-primary-soft" : "hover:bg-surface-hover",
-        c.hollow ? "text-muted-foreground" : null,
+        active ? "bg-selected" : "hover:bg-surface-hovered",
+        c.hollow ? "text-subtle" : null,
       )}
     >
       <Id
         className={cn(
-          "text-muted-foreground transition-colors duration-100",
-          active ? "text-primary" : "group-hover/row:text-primary",
+          "text-subtle transition-colors duration-fast",
+          active ? "text-brand" : "group-hover/row:text-brand",
         )}
       >
         {c.id}
@@ -329,9 +363,7 @@ function BoardRow({
       <span className="truncate">{c.title}</span>
       <StageStrip stages={c.stages} />
       {narrow ? null : (
-        <span className={cn("truncate", !c.owner ? "text-muted-foreground" : null)}>
-          {ownerLabel(c)}
-        </span>
+        <span className={cn("truncate", !c.owner ? "text-subtle" : null)}>{ownerLabel(c)}</span>
       )}
       {narrow ? null : <NextCell control={c} muted={muted} />}
     </button>
@@ -345,20 +377,20 @@ function BoardRow({
  */
 function NextCell({ control: c, muted }: { control: BoardControl; muted: boolean }) {
   if (c.bucket === "through") return <span aria-label="Through" />;
-  if (muted) return <span className="truncate text-muted-foreground">{c.next}</span>;
+  if (muted) return <span className="truncate text-subtle">{c.next}</span>;
   const tone: Record<Bucket, string> = {
-    other: "text-legacy-danger",
-    invalidated: "text-legacy-danger",
-    suspect: "text-legacy-warning",
-    unknown: "text-muted-foreground",
+    other: "text-danger",
+    invalidated: "text-danger",
+    suspect: "text-warning",
+    unknown: "text-subtle",
     through: "",
-    hollow: "text-muted-foreground",
-    selected: "text-muted-foreground",
-    allocated: "text-muted-foreground",
-    implemented: "text-muted-foreground",
-    evidenced: "text-muted-foreground",
-    assessed: "text-muted-foreground",
-    current: "text-muted-foreground",
+    hollow: "text-subtle",
+    selected: "text-subtle",
+    allocated: "text-subtle",
+    implemented: "text-subtle",
+    evidenced: "text-subtle",
+    assessed: "text-subtle",
+    current: "text-subtle",
   };
   return <span className={cn("truncate", tone[c.bucket])}>{c.next}</span>;
 }
@@ -375,13 +407,13 @@ function StageLine({
   onSelect: () => void;
 }) {
   const dot: Record<Stage["state"], string> = {
-    hollow: "border border-dashed border-border-strong",
-    empty: "bg-muted-foreground/30",
-    partial: "bg-muted-foreground/60",
-    full: "bg-muted-foreground/80",
-    broken: "bg-legacy-danger",
-    suspect: "bg-legacy-warning",
-    unknown: "text-muted-foreground/70 rounded-[2px]",
+    hollow: "border border-dashed border-bold",
+    empty: "bg-neutral-bold",
+    partial: "bg-neutral-bold",
+    full: "bg-neutral-bold",
+    broken: "bg-danger-bold",
+    suspect: "bg-warning-bold",
+    unknown: "text-subtlest rounded-xsmall",
   };
   return (
     <button
@@ -389,23 +421,25 @@ function StageLine({
       onClick={onSelect}
       aria-pressed={active}
       className={cn(
-        "flex w-full items-start gap-2 rounded-md px-2 py-1 text-left transition-colors",
-        active ? "bg-muted" : "hover:bg-surface-hover",
+        "flex w-full items-start gap-100 rounded-medium px-100 py-050 text-left transition-colors",
+        active ? "bg-neutral" : "hover:bg-surface-hovered",
       )}
     >
-      <span
-        className={cn(
-          "mt-[6px] shrink-0 rounded-full",
-          stage.state === "unknown" ? "size-2" : "size-1.5",
-          dot[stage.state],
-        )}
-        style={segmentStyle(stage.state)}
-      />
+      <Box paddingBlockStart="space.075">
+        <span
+          className={cn(
+            "shrink-0 rounded-full",
+            stage.state === "unknown" ? "size-100" : "size-075",
+            dot[stage.state],
+          )}
+          style={segmentStyle(stage.state)}
+        />
+      </Box>
       <span className="min-w-0 flex-1">
-        <span className="flex items-baseline gap-2">
-          <span className="text-12 text-foreground">{stage.label}</span>
-        </span>
-        <span className="block truncate text-[11.5px] text-muted-foreground">{stage.note}</span>
+        <Inline as="span" space="space.100" alignBlock="baseline">
+          <span className="font-body-small text-default">{stage.label}</span>
+        </Inline>
+        <span className="block truncate font-body-xsmall text-subtle">{stage.note}</span>
       </span>
     </button>
   );
@@ -486,21 +520,27 @@ function BoardDetail({
   const whoCanChange = [...new Set(offers.flatMap((o) => o.def.roles))];
 
   return (
-    <aside className="rounded-md border border-border bg-card lg:sticky lg:top-4 lg:max-h-[calc(100vh-120px)] lg:self-start lg:overflow-y-auto">
-      <div className="flex items-start gap-3 border-b border-border px-4 py-3">
+    <aside className="rounded-medium border border-default bg-surface lg:sticky-rail lg:overflow-y-auto">
+      <Inline
+        className="border-b border-default px-200 py-150"
+        space="space.150"
+        alignBlock="start"
+      >
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 text-12 text-muted-foreground">
-            <Id className="text-foreground">{control.id}</Id>
+          <Inline className="font-body-small text-subtle" space="space.100" alignBlock="center">
+            <Id className="text-default">{control.id}</Id>
             <Badge size="xsmall">{control.origination}</Badge>
             {scope ? <span className="truncate">{scope.name}</span> : null}
-          </div>
-          <div className="mt-0.5 truncate text-[15px] font-medium">{control.title}</div>
+          </Inline>
+          <Box className="truncate font-body-large font-medium" paddingBlockStart="space.025">
+            {control.title}
+          </Box>
         </div>
         <Link
           to="/programs/$programId/controls/$controlId"
           params={{ programId, controlId: control.id }}
           search={{ tab: undefined }}
-          className="shrink-0 pt-0.5 text-12 text-primary hover:underline"
+          className="shrink-0 pt-025 font-body-small text-brand hover:underline"
         >
           Open record
         </Link>
@@ -508,17 +548,17 @@ function BoardDetail({
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="-mr-1 inline-flex size-6 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="inline-flex shrink-0 items-center justify-center rounded-small text-subtle hover:bg-neutral-subtle-hovered hover:text-default size-300"
         >
-          <X className="size-4" />
+          <X className="size-icon-medium" />
         </button>
-      </div>
+      </Inline>
 
-      <div className="border-b border-border px-4 py-3">
+      <Box className="border-b border-default" paddingInline="space.200" paddingBlock="space.150">
         <StageStrip stages={control.stages} size="lg" active={stage} onSelect={setStage} />
-      </div>
+      </Box>
 
-      <div className="space-y-px border-b border-border px-2 py-2">
+      <Stack className="border-b border-default px-100 py-100" space="space.025">
         {control.stages.map((s) => (
           <StageLine
             key={s.key}
@@ -527,22 +567,23 @@ function BoardDetail({
             onSelect={() => setStage(s.key)}
           />
         ))}
-      </div>
+      </Stack>
 
       {/* An unknown has an owner and a resolution path, or it is not an
           unknown — it is a blank. Claiming the control is the first act, and
           it happens where the hole is seen, not on another page. */}
       {work && !work.owner && control.origination !== "Common" ? (
-        <div className="border-b border-border px-4 py-3">
-          <div className="pb-1.5 text-12 text-muted-foreground">
+        <Box className="border-b border-default" paddingInline="space.200" paddingBlock="space.150">
+          <Box className="font-body-small text-subtle" paddingBlockEnd="space.075">
             Nobody is accountable for {control.id}. Every later action needs an owner first.
-          </div>
-          <div className="flex items-center gap-2">
+          </Box>
+          <Inline space="space.100" alignBlock="center">
             <NativeSelect
               aria-label="Owner"
               value={ownerDraft}
               onChange={(e) => setOwnerDraft(e.target.value)}
-              className="h-7 max-w-[260px] text-13"
+              className="h-control-small font-body"
+              style={{ maxWidth: 260 }}
             >
               <option value="">Choose a person</option>
               {people.map((name) => (
@@ -563,13 +604,13 @@ function BoardDetail({
             >
               Assign owner
             </Button>
-          </div>
-        </div>
+          </Inline>
+        </Box>
       ) : null}
 
       {work && offers.length ? (
-        <div className="border-b border-border px-4 py-3">
-          <div className="flex flex-wrap gap-2">
+        <Box className="border-b border-default" paddingInline="space.200" paddingBlock="space.150">
+          <Inline space="space.100" shouldWrap>
             {offers.map((o) => (
               <Button
                 key={o.def.key}
@@ -591,9 +632,9 @@ function BoardDetail({
                 {o.def.label}
               </Button>
             ))}
-          </div>
+          </Inline>
           {offers.some((o) => !o.allowed) ? (
-            <ul className="mt-2 space-y-0.5 text-[11.5px] text-muted-foreground">
+            <Stack className="pt-100 font-body-xsmall text-subtle" as="ul" space="space.025">
               {offers
                 .filter((o) => !o.allowed)
                 .map((o) => (
@@ -601,46 +642,51 @@ function BoardDetail({
                     {o.def.label}: {o.blocked}
                   </li>
                 ))}
-            </ul>
+            </Stack>
           ) : null}
           {chosen ? (
-            <div className="mt-3 space-y-2 rounded-md border border-border bg-legacy-subtle p-3">
-              <div className="text-12 text-muted-foreground">
-                {chosen.def.label} · {session.name} · {session.role}
-              </div>
-              {/* An authority-bearing action names its consequence before it
+            <Box paddingBlockStart="space.150">
+              <Stack
+                className="rounded-medium border border-default bg-surface-sunken p-150"
+                space="space.100"
+              >
+                <div className="font-body-small text-subtle">
+                  {chosen.def.label} · {session.name} · {session.role}
+                </div>
+                {/* An authority-bearing action names its consequence before it
                   is taken. A one-click state change is how a workflow turns
                   into folklore. */}
-              <p className="text-13">
-                {consequenceOf(
-                  chosen.def.key,
-                  work!,
-                  control,
-                  context,
-                  scope?.name ?? "this scope",
-                )}
-              </p>
-              <Field label={chosen.def.note === "required" ? "Reason (required)" : "Note"}>
-                <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} />
-              </Field>
-              {error ? <div className="text-12 text-legacy-danger">{error}</div> : null}
-              <div className="flex justify-end gap-2">
-                <Button size="small" onClick={() => setPending(null)}>
-                  Cancel
-                </Button>
-                <Button size="small" variant="primary" onClick={fire}>
-                  {chosen.def.label}
-                </Button>
-              </div>
-            </div>
+                <p className="font-body">
+                  {consequenceOf(
+                    chosen.def.key,
+                    work!,
+                    control,
+                    context,
+                    scope?.name ?? "this scope",
+                  )}
+                </p>
+                <Field label={chosen.def.note === "required" ? "Reason (required)" : "Note"}>
+                  <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} />
+                </Field>
+                {error ? <div className="font-body-small text-danger">{error}</div> : null}
+                <Inline space="space.100" alignInline="end">
+                  <Button size="small" onClick={() => setPending(null)}>
+                    Cancel
+                  </Button>
+                  <Button size="small" variant="primary" onClick={fire}>
+                    {chosen.def.label}
+                  </Button>
+                </Inline>
+              </Stack>
+            </Box>
           ) : null}
-        </div>
+        </Box>
       ) : null}
 
-      <div className="space-y-4 px-4 py-3">
+      <Stack className="px-200 py-150" space="space.200">
         {stage === "selected" ? (
           <Block title="Selected">
-            <dl className="space-y-[3px]">
+            <dl className="space-y-050">
               <DetailRow label="Origination">{control.origination}</DetailRow>
               <DetailRow label="Responsible">{control.responsibleParty}</DetailRow>
               <DetailRow label="Scopes">
@@ -657,22 +703,22 @@ function BoardDetail({
           <>
             <Block title="Allocated to" count={control.nodes.length}>
               {control.nodes.length ? (
-                <ul className="space-y-0.5 text-13">
+                <Stack className="font-body" as="ul" space="space.025">
                   {control.nodes.map((n) => (
-                    <li key={n} className="flex items-baseline gap-2">
+                    <Inline key={n} as="li" space="space.100" alignBlock="baseline">
                       <Link
                         to="/programs/$programId/components/$componentId"
                         params={{ programId, componentId: n }}
                         className="hover:underline"
                       >
-                        <Id className="text-primary">{n}</Id>
+                        <Id className="text-brand">{n}</Id>
                       </Link>
-                      <span className="truncate text-muted-foreground">{nodeName(n)}</span>
-                    </li>
+                      <span className="truncate text-subtle">{nodeName(n)}</span>
+                    </Inline>
                   ))}
-                </ul>
+                </Stack>
               ) : (
-                <p className="text-13 text-muted-foreground">Nothing allocated.</p>
+                <p className="font-body text-subtle">Nothing allocated.</p>
               )}
             </Block>
             <Block title="Requirements" count={derived.length}>
@@ -684,7 +730,7 @@ function BoardDetail({
                   allocationCount={(id: string) => allocationsFor(id).length}
                 />
               ) : (
-                <p className="text-13 text-muted-foreground">
+                <p className="font-body text-subtle">
                   No requirement derived from this control yet.
                 </p>
               )}
@@ -700,16 +746,16 @@ function BoardDetail({
             {control.origination !== "System specific" ? (
               <>
                 <Block title="What the provider gives">
-                  <p className="text-13">{control.responsibleParty}</p>
+                  <p className="font-body">{control.responsibleParty}</p>
                   {first.inheritanceReason !== "—" ? (
-                    <p className="pt-1 text-12 text-muted-foreground">{first.inheritanceReason}</p>
+                    <p className="pt-050 font-body-small text-subtle">{first.inheritanceReason}</p>
                   ) : null}
                 </Block>
                 <Block title="What stays with you">
                   <p
                     className={cn(
-                      "text-13",
-                      first.consumerResponsibility === "—" ? "text-muted-foreground" : null,
+                      "font-body",
+                      first.consumerResponsibility === "—" ? "text-subtle" : null,
                     )}
                   >
                     {first.consumerResponsibility === "—"
@@ -745,12 +791,8 @@ function BoardDetail({
               <RowTable
                 rows={owed}
                 cell={(r) => (
-                  <span className="tnum">
-                    {r.evidence.length ? (
-                      r.evidence.length
-                    ) : (
-                      <span className="text-muted-foreground">0</span>
-                    )}
+                  <span className="tabular-nums">
+                    {r.evidence.length ? r.evidence.length : <span className="text-subtle">0</span>}
                   </span>
                 )}
               />
@@ -784,35 +826,32 @@ function BoardDetail({
               <RowTable
                 rows={stale}
                 cell={(r) => (
-                  <span className="flex min-w-0 items-center gap-1.5">
+                  <Inline className="min-w-0" as="span" space="space.075" alignBlock="center">
                     <Badge size="xsmall" tone={rowCurrencyTone[r.currency]}>
                       {r.currency}
                     </Badge>
-                    <span
-                      className="truncate text-12 text-muted-foreground"
-                      title={r.currencyReason}
-                    >
+                    <span className="truncate font-body-small text-subtle" title={r.currencyReason}>
                       {r.currencyReason}
                     </span>
-                  </span>
+                  </Inline>
                 )}
               />
             ) : (
-              <p className="text-13 text-muted-foreground">
+              <p className="font-body text-subtle">
                 {owed.some((r) => r.determination !== "Not assessed")
                   ? "All determinations current."
                   : "Nothing assessed yet."}
               </p>
             )}
-            <div className="pt-2">
+            <Box paddingBlockStart="space.100">
               <Link
                 to="/programs/$programId/baseline"
                 params={{ programId }}
-                className="text-12 text-primary hover:underline"
+                className="font-body-small text-brand hover:underline"
               >
                 Open configuration baseline
               </Link>
-            </div>
+            </Box>
           </Block>
         ) : null}
 
@@ -821,22 +860,22 @@ function BoardDetail({
             why it is allocated where it is, what would take the determination
             away, and who may change any of it. */}
         <Block title="Why is this here?">
-          <dl className="space-y-[3px]">
+          <dl className="space-y-050">
             <DetailRow label="Selected by">
               {control.selectedBy.length ? (
-                <ul className="space-y-0.5">
+                <Stack as="ul" space="space.025">
                   {control.selectedBy.map((s) => (
                     <li key={s.scope}>
                       {s.scopeName}
-                      <span className="text-muted-foreground">
+                      <span className="text-subtle">
                         {" · "}
                         {s.objectives.length ? s.objectives.join(", ") : s.source}
                       </span>
                     </li>
                   ))}
-                </ul>
+                </Stack>
               ) : (
-                <span className="text-muted-foreground">
+                <span className="text-subtle">
                   No scope's categorization selects it. It is here from the legacy matrix.
                 </span>
               )}
@@ -846,25 +885,23 @@ function BoardDetail({
                 ? "This program's own implementation"
                 : `${control.responsibleParty} (${control.origination})`}
               {first.inheritanceReason !== "—" ? (
-                <span className="block text-12 text-muted-foreground">
-                  {first.inheritanceReason}
-                </span>
+                <span className="block font-body-small text-subtle">{first.inheritanceReason}</span>
               ) : null}
             </DetailRow>
             <DetailRow label="Allocated because">
-              <span className={first.allocationBasis === "—" ? "text-muted-foreground" : undefined}>
+              <span className={first.allocationBasis === "—" ? "text-subtle" : undefined}>
                 {first.allocationBasis === "—" ? "No basis recorded" : first.allocationBasis}
               </span>
             </DetailRow>
             <DetailRow label="Verified by">
               {first.method}
               {first.methodBasis !== "—" ? (
-                <span className="block text-12 text-muted-foreground">{first.methodBasis}</span>
+                <span className="block font-body-small text-subtle">{first.methodBasis}</span>
               ) : null}
             </DetailRow>
             <DetailRow label="Taken away by">
               {stale.length ? (
-                <span className="text-legacy-danger">{stale[0]!.currencyReason}</span>
+                <span className="text-danger">{stale[0]!.currencyReason}</span>
               ) : (
                 `A change to ${
                   control.nodes.length ? nodeNames(control.nodes) : "the system as a whole"
@@ -875,22 +912,24 @@ function BoardDetail({
               {whoCanChange.length ? (
                 whoCanChange.join(", ")
               ) : (
-                <span className="text-muted-foreground">Nobody, until an owner is assigned</span>
+                <span className="text-subtle">Nobody, until an owner is assigned</span>
               )}
             </DetailRow>
           </dl>
         </Block>
-      </div>
+      </Stack>
     </aside>
   );
 }
 
 function DetailRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex items-baseline gap-2">
-      <dt className="w-[92px] shrink-0 text-12 text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 flex-1 text-13">{children}</dd>
-    </div>
+    <Inline space="space.100" alignBlock="baseline">
+      <dt className="shrink-0 font-body-small text-subtle" style={{ width: 92 }}>
+        {label}
+      </dt>
+      <dd className="min-w-0 flex-1 font-body">{children}</dd>
+    </Inline>
   );
 }
 
@@ -1021,7 +1060,7 @@ export function ControlBoard({ programId }: { programId: string }) {
   const narrow = selectedControl !== null;
 
   return (
-    <div className="pt-3">
+    <Box paddingBlockStart="space.150">
       <Funnel
         funnel={board.funnel}
         total={board.total}
@@ -1037,7 +1076,7 @@ export function ControlBoard({ programId }: { programId: string }) {
         onSearch={setQuery}
         placeholder="Control or title"
         actions={
-          <span className="tnum text-12 text-muted-foreground">
+          <span className="tabular-nums font-body-small text-subtle">
             {filtered.length} of {board.controls.length} controls
           </span>
         }
@@ -1069,11 +1108,11 @@ export function ControlBoard({ programId }: { programId: string }) {
         ) : null}
       </Toolbar>
 
-      <div
-        className={cn(
-          "grid gap-6",
-          narrow ? "grid-cols-1 lg:grid-cols-[minmax(0,1fr)_460px]" : "grid-cols-1",
-        )}
+      <Grid
+        templateColumns={
+          narrow ? { base: "minmax(0, 1fr)", lg: "minmax(0, 1fr) 460px" } : "minmax(0, 1fr)"
+        }
+        gap="space.300"
       >
         <div className="min-w-0">
           {groups.length === 0 ? (
@@ -1083,12 +1122,10 @@ export function ControlBoard({ programId }: { programId: string }) {
               <BoardHeader narrow={narrow} />
               {groups.map((g) => (
                 <section key={g.key}>
-                  <div className="flex items-baseline gap-2 px-2 pb-1 pt-4">
-                    <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground/80">
-                      {g.label}
-                    </span>
-                    <span className="tnum text-11 text-muted-foreground">{g.meta}</span>
-                  </div>
+                  <Inline className="px-100 pb-050 pt-200" space="space.100" alignBlock="baseline">
+                    <span className="font-heading-xxsmall uppercase text-subtlest">{g.label}</span>
+                    <span className="tabular-nums font-body-xsmall text-subtle">{g.meta}</span>
+                  </Inline>
                   {g.controls.map((c) => (
                     <BoardRow
                       key={`${g.key}:${c.id}`}
@@ -1116,8 +1153,8 @@ export function ControlBoard({ programId }: { programId: string }) {
             onClose={() => setSelected(null)}
           />
         ) : null}
-      </div>
-    </div>
+      </Grid>
+    </Box>
   );
 }
 

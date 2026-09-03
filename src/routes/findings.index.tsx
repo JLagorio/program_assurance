@@ -5,18 +5,21 @@ import { Download, Search } from "lucide-react";
 import {
   Badge,
   Button,
-  KeyValue,
-  Table,
   Id,
+  IndexPage,
   Indicator,
-  Tabs,
-  ToggleGroup,
+  Inline,
   Input,
   InputGroup,
-} from "@/ds/primitives";
-import { IndexPage, PageHeader, PreviewRail } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
-import { Shell } from "@/ds/shell";
+  Inspector,
+  KeyValue,
+  PageHeader,
+  PreviewRail,
+  Table,
+  Tabs,
+  ToggleGroup,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { PreviewSplit } from "@/components/app/preview-split";
 import {
   assetById,
@@ -84,9 +87,9 @@ function TrackedCell({ assetId }: { assetId: string }) {
     return <Table.Cell className="text-right">—</Table.Cell>;
   }
   return (
-    <Table.Cell className="tnum text-right">
-      <span className={rolled.catI ? "font-medium text-legacy-danger" : ""}>{rolled.catI}</span>
-      <span className="text-muted-foreground">
+    <Table.Cell className="tabular-nums text-right">
+      <span className={rolled.catI ? "font-medium text-danger" : ""}>{rolled.catI}</span>
+      <span className="text-subtle">
         {" "}
         / {rolled.catII} / {rolled.catIII}
       </span>
@@ -132,38 +135,37 @@ function FindingsPage() {
             description="One technical fact per row, joined to a CCI and an asset. Open a row for the record; hover the first column to preview it in place."
             actions={
               <Button variant="secondary">
-                <Download className="size-3.5" /> Export SAR extract
+                <Download className="size-icon-small" /> Export SAR extract
               </Button>
             }
           />
         }
       >
-        <Tabs
-          items={tabs.map((t) => ({
-            key: t,
-            label: t,
-            active: tab === t,
-            onSelect: () => {
-              setTab(t);
-              setPreview(null);
-            },
-            trailing: (
-              <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                {counts[t]}
-              </span>
-            ),
-          }))}
-        />
+        <Tabs>
+          {tabs.map((t) => (
+            <Tabs.Tab
+              key={t}
+              isSelected={tab === t}
+              onClick={() => {
+                setTab(t);
+                setPreview(null);
+              }}
+              count={counts[t]}
+            >
+              {t}
+            </Tabs.Tab>
+          ))}
+        </Tabs>
 
         {tab === "Findings" ? (
-          <div className="flex flex-wrap items-center gap-2 pt-1">
+          <Inline className="pt-050" space="space.100" alignBlock="center" shouldWrap>
             <InputGroup leading={<Search />}>
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search findings, CCIs, assets"
                 aria-label="Search"
-                className="w-[240px]"
+                style={{ width: 240 }}
               />
             </InputGroup>
             <ToggleGroup
@@ -172,11 +174,11 @@ function FindingsPage() {
               onChange={setScope}
               items={scopes.map((s) => ({ value: s, label: s }))}
             />
-          </div>
+          </Inline>
         ) : null}
 
         <PreviewSplit open={preview !== null}>
-          <div className="min-w-0 lg:pr-6">
+          <div className="min-w-0 lg:pe-300">
             {tab === "Findings" ? (
               <Table className="table-fixed">
                 <colgroup>
@@ -279,11 +281,11 @@ function FindingsPage() {
                       <Table.Cell className="truncate">{a.technology}</Table.Cell>
                       <Table.Cell className="truncate">{a.environment}</Table.Cell>
                       <Table.Cell className="truncate">{a.lastScan}</Table.Cell>
-                      <Table.Cell className="tnum text-right">
-                        <span className={a.openCatI ? "font-medium text-legacy-danger" : ""}>
+                      <Table.Cell className="tabular-nums text-right">
+                        <span className={a.openCatI ? "font-medium text-danger" : ""}>
                           {a.openCatI}
                         </span>
-                        <span className="text-muted-foreground">
+                        <span className="text-subtle">
                           {" "}
                           / {a.openCatII} / {a.openCatIII}
                         </span>
@@ -305,7 +307,7 @@ function FindingsPage() {
                 <Link
                   to="/findings/$findingId"
                   params={{ findingId: preview.item.id }}
-                  className="text-primary hover:underline"
+                  className="text-brand hover:underline"
                 >
                   Open finding →
                 </Link>
@@ -356,7 +358,7 @@ function FindingsPage() {
                 <Link
                   to="/findings/assets/$assetId"
                   params={{ assetId: preview.item.id }}
-                  className="text-primary hover:underline"
+                  className="text-brand hover:underline"
                 >
                   Open asset →
                 </Link>
@@ -370,12 +372,12 @@ function FindingsPage() {
               </Inspector.Group>
               <Inspector.Group title="Open findings">
                 <KeyValue label="Scanner declared">
-                  <span className="tnum">
+                  <span className="tabular-nums">
                     {preview.item.openCatI} / {preview.item.openCatII} / {preview.item.openCatIII}
                   </span>
                 </KeyValue>
                 <KeyValue label="Register tracked">
-                  <span className="tnum">{trackedLabel(preview.item.id)}</span>
+                  <span className="tabular-nums">{trackedLabel(preview.item.id)}</span>
                 </KeyValue>
               </Inspector.Group>
             </PreviewRail>

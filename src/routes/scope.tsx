@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { ActingAs, RevisionActions, RevisionReview } from "@/components/app/control-set-revisions";
+import { RevisionActions, RevisionReview } from "@/components/app/control-set-revisions";
 import {
   Badge,
   Button,
@@ -92,7 +92,6 @@ function ScopeApprovals() {
           <PageHeader
             title="Control-set approvals"
             description="Engineers propose a scope's categorization, overlays and tailoring as a revision; the program manager approves it before it takes effect."
-            actions={<ActingAs />}
           />
         }
       >

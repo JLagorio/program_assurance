@@ -35,8 +35,7 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, Table, Id, Absent } from "@/ds/primitives";
-import { Empty } from "@/ds/patterns";
+import { Absent, Badge, Box, Empty, Grid, Id, Inline, Stack, Table } from "@ledger/design-system";
 import {
   alertSeverityTone,
   assessmentStatusTone,
@@ -72,7 +71,7 @@ function fixed2(n: number): string {
 function Days({ value, suffix = "d" }: { value: number | null; suffix?: string }) {
   if (value === null) return <Absent />;
   return (
-    <span className="tnum">
+    <span className="tabular-nums">
       {value}
       {suffix}
     </span>
@@ -82,19 +81,19 @@ function Days({ value, suffix = "d" }: { value: number | null; suffix?: string }
 /** The ids a statement rests on. Never a link — routes own navigation. */
 function EvidenceIds({ ids, empty }: { ids: string[]; empty: string }) {
   if (ids.length === 0) {
-    return <span className="text-[12px] text-muted-foreground">{empty}</span>;
+    return <span className="font-body-small text-subtle">{empty}</span>;
   }
   return (
-    <span className="flex flex-wrap items-center gap-1">
+    <Inline as="span" space="space.050" alignBlock="center" shouldWrap>
       {ids.map((id) => (
         <Id
           key={id}
-          className="rounded bg-muted px-1 py-px text-[11px] leading-4 text-muted-foreground"
+          className="rounded-small bg-neutral px-050 py-025 font-body-xsmall text-subtle"
         >
           {id}
         </Id>
       ))}
-    </span>
+    </Inline>
   );
 }
 
@@ -111,13 +110,13 @@ function ProseBlock({
     <div>
       <div
         className={cn(
-          "text-[11px] font-medium uppercase tracking-[0.06em]",
-          tone === "warning" ? "text-legacy-warning" : "text-muted-foreground",
+          "font-heading-xxsmall uppercase",
+          tone === "warning" ? "text-warning" : "text-subtle",
         )}
       >
         {label}
       </div>
-      <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">{children}</p>
+      <p className="pt-050 font-body-small text-default">{children}</p>
     </div>
   );
 }
@@ -201,52 +200,57 @@ export function DriftCard({
   );
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border">
-      <div className="grid sm:grid-cols-[minmax(0,260px)_minmax(0,1fr)]">
-        <div className="px-4 py-3">
-          <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-            Authorization drift
-          </div>
-          <div className="mt-1 flex items-baseline gap-2.5">
-            <span className="tnum text-[30px] font-semibold leading-none tracking-[-0.02em]">
-              {score.score}
-            </span>
-            <span className="text-[12.5px] text-muted-foreground">/ 100</span>
+    <div className="overflow-hidden rounded-large border border-default">
+      <Grid templateColumns={{ sm: "minmax(0,260px) minmax(0,1fr)" }}>
+        <Box paddingInline="space.200" paddingBlock="space.150">
+          <div className="font-heading-xxsmall uppercase text-subtle">Authorization drift</div>
+          <Inline className="pt-050" space="space.100" alignBlock="baseline">
+            <span className="tabular-nums font-heading-large font-semibold">{score.score}</span>
+            <span className="font-body-small text-subtle">/ 100</span>
             <DriftBandChip band={score.band} />
-          </div>
-          <div className="tnum mt-2 text-[12.5px] text-muted-foreground">
+          </Inline>
+          <Box className="tabular-nums font-body-small text-subtle" paddingBlockStart="space.100">
             {applied === 100
               ? `All ${score.factors.length} factors measured · full 100 points of weight applied`
               : `${score.factors.length} of ${driftFactorOrder.length} factors measured · ${applied} of 100 points of weight applied`}
-          </div>
-          <div className="mt-0.5 text-[12px] text-muted-foreground">
+          </Box>
+          <Box className="font-body-small text-subtle" paddingBlockStart="space.025">
             {largest
               ? `Largest term: ${largest.label.toLowerCase()}, ${largest.contribution} point${largest.contribution === 1 ? "" : "s"} on "${largest.input}".`
               : "No factor could be computed for this program, so there is no term to name."}
-          </div>
-          <div className="mt-1.5 text-[12px] text-muted-foreground">As of {asOf}</div>
+          </Box>
+          <Box className="font-body-small text-subtle" paddingBlockStart="space.075">
+            As of {asOf}
+          </Box>
           {subject ? (
-            <div className="mt-1.5 truncate text-[12.5px] text-foreground" title={subject}>
+            <Box
+              className="truncate font-body-small text-default"
+              title={subject}
+              paddingBlockStart="space.075"
+            >
               {subject}
-            </div>
+            </Box>
           ) : null}
-        </div>
+        </Box>
 
-        <div className="space-y-3 border-t border-border bg-legacy-subtle px-4 py-3 sm:border-l sm:border-t-0">
+        <Stack
+          className="border-t border-default bg-surface-sunken px-200 py-150 sm:border-l sm:border-t-0"
+          space="space.150"
+        >
           <ProseBlock label="What this says">{score.headline}</ProseBlock>
           {score.caveats.length > 0 ? (
             <div>
-              <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-legacy-warning">
+              <div className="font-heading-xxsmall uppercase text-warning">
                 {score.caveats.length} caveat{score.caveats.length === 1 ? "" : "s"} — the score is
                 a floor, not a verdict
               </div>
-              <ul className="mt-1 space-y-1">
+              <Stack className="pt-050" as="ul" space="space.050">
                 {score.caveats.map((c) => (
-                  <li key={c} className="text-[12.5px] leading-relaxed text-foreground">
+                  <li key={c} className="font-body-small text-default">
                     {c}
                   </li>
                 ))}
-              </ul>
+              </Stack>
             </div>
           ) : (
             <ProseBlock label="Coverage">
@@ -254,8 +258,8 @@ export function DriftCard({
               of the full 100 points and the band below is a measurement rather than a floor.
             </ProseBlock>
           )}
-        </div>
-      </div>
+        </Stack>
+      </Grid>
     </div>
   );
 }
@@ -304,10 +308,10 @@ export function DriftFactorTable({ score }: { score: DriftScore }) {
   const missing = driftFactorOrder.filter((key) => !factors.some((f) => f.key === key));
 
   return (
-    <div className="space-y-2 pt-4">
-      <p className="text-[12.5px] leading-relaxed text-muted-foreground">
+    <Stack className="pt-200" space="space.100">
+      <p className="font-body-small text-subtle">
         Each factor reads a raw input from a record this platform already holds, normalises it to
-        0–1, and buys <span className="text-foreground">value × weight × 100</span> points. Nothing
+        0–1, and buys <span className="text-default">value × weight × 100</span> points. Nothing
         else is added: the contributions below sum to the published drift score, so a reader who
         disagrees can name the line they disagree with rather than the model as a whole. A score of
         0 means the operating state matches the state that was authorized.
@@ -342,9 +346,9 @@ export function DriftFactorTable({ score }: { score: DriftScore }) {
           ))}
         </tbody>
         <tfoot>
-          <tr className="border-t border-border">
+          <tr className="border-t border-default">
             <Table.Cell>Drift</Table.Cell>
-            <Table.Cell className="max-w-none whitespace-normal py-2 leading-snug">
+            <Table.Cell className="max-w-none whitespace-normal py-100">
               {clamped
                 ? `The column sums to ${sum}, outside the 0–100 range; the published score is clamped.`
                 : `Sum of the ${factors.length} contribution${factors.length === 1 ? "" : "s"} above, against a ceiling of ${applied}.`}
@@ -355,11 +359,11 @@ export function DriftFactorTable({ score }: { score: DriftScore }) {
             <Table.Cell className="text-right">
               <Absent />
             </Table.Cell>
-            <Table.Cell className="tnum text-right">{score.score}</Table.Cell>
+            <Table.Cell className="tabular-nums text-right">{score.score}</Table.Cell>
           </tr>
         </tfoot>
       </Table>
-    </div>
+    </Stack>
   );
 }
 
@@ -367,34 +371,35 @@ export function DriftFactorTable({ score }: { score: DriftScore }) {
 function DriftFactorRows({ factor }: { factor: DriftFactor }) {
   return (
     <>
-      <Table.Row className="border-0 align-top hover:bg-transparent">
-        <Table.Cell className="py-2 align-top">{factor.label}</Table.Cell>
-        <Table.Cell
-          className="max-w-none whitespace-normal py-2 align-top leading-snug"
-          title={factor.input}
-        >
+      <Table.Row className="border-0 align-top" isStatic>
+        <Table.Cell className="py-100 align-top">{factor.label}</Table.Cell>
+        <Table.Cell className="max-w-none whitespace-normal py-100 align-top" title={factor.input}>
           {factor.input}
         </Table.Cell>
-        <Table.Cell className="tnum py-2 align-top text-right">{fixed2(factor.value)}</Table.Cell>
-        <Table.Cell className="tnum py-2 align-top text-right">{fixed2(factor.weight)}</Table.Cell>
+        <Table.Cell className="tabular-nums py-100 align-top text-right">
+          {fixed2(factor.value)}
+        </Table.Cell>
+        <Table.Cell className="tabular-nums py-100 align-top text-right">
+          {fixed2(factor.weight)}
+        </Table.Cell>
         <Table.Cell
-          className={cn("tnum py-2 align-top text-right", factor.contribution === 0 ? "" : null)}
+          className={cn(
+            "tabular-nums py-100 align-top text-right",
+            factor.contribution === 0 ? "" : null,
+          )}
         >
           {zeroSafe(factor.contribution)}
         </Table.Cell>
       </Table.Row>
-      <Table.Row className="align-top hover:bg-transparent">
-        <Table.Cell
-          className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
-          colSpan={5}
-        >
-          <span className="block text-[12.5px] text-muted-foreground">{factor.rationale}</span>
-          <span className="mt-1.5 block">
+      <Table.Row className="align-top" isStatic>
+        <Table.Cell className="max-w-none whitespace-normal pb-150 pt-0 align-top" colSpan={5}>
+          <span className="block font-body-small text-subtle">{factor.rationale}</span>
+          <Box className="block" as="span" paddingBlockStart="space.075">
             <EvidenceIds
               ids={factor.evidence}
               empty="No ids recorded — this factor rests on a count over the whole matrix rather than on named records."
             />
-          </span>
+          </Box>
         </Table.Cell>
       </Table.Row>
     </>
@@ -423,29 +428,26 @@ function MissingDriftFactorRows({
     `The ${label.toLowerCase()} factor could not be computed for this program, so its ${fixed2(weight)} weight was not applied and the score runs out of ${100 - Math.round(weight * 100)} rather than 100. That is an absence of data, not an aligned configuration.`;
   return (
     <>
-      <Table.Row className="border-0 align-top hover:bg-transparent">
-        <Table.Cell className="py-2 align-top">{label}</Table.Cell>
-        <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
+      <Table.Row className="border-0 align-top" isStatic>
+        <Table.Cell className="py-100 align-top">{label}</Table.Cell>
+        <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
           <Badge size="xsmall" tone="warning">
             Not measured
           </Badge>
         </Table.Cell>
-        <Table.Cell className="py-2 align-top text-right">
+        <Table.Cell className="py-100 align-top text-right">
           <Absent />
         </Table.Cell>
-        <Table.Cell className="tnum py-2 align-top text-right line-through">
+        <Table.Cell className="tabular-nums py-100 align-top text-right line-through">
           {fixed2(weight)}
         </Table.Cell>
-        <Table.Cell className="py-2 align-top text-right">
+        <Table.Cell className="py-100 align-top text-right">
           <Absent />
         </Table.Cell>
       </Table.Row>
-      <Table.Row className="align-top hover:bg-transparent">
-        <Table.Cell
-          className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
-          colSpan={5}
-        >
-          <span className="block text-[12.5px] text-muted-foreground">{caveat}</span>
+      <Table.Row className="align-top" isStatic>
+        <Table.Cell className="max-w-none whitespace-normal pb-150 pt-0 align-top" colSpan={5}>
+          <span className="block font-body-small text-subtle">{caveat}</span>
         </Table.Cell>
       </Table.Row>
     </>
@@ -471,30 +473,36 @@ export function AlertSummary({ alerts }: { alerts: ConMonAlert[] }) {
   const byKind = [...kinds.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4">
-      <span className="flex flex-wrap items-center gap-2">
+    <Inline
+      className="pt-200"
+      space="space.200"
+      rowSpace="space.100"
+      alignBlock="center"
+      shouldWrap
+    >
+      <Inline as="span" space="space.100" alignBlock="center" shouldWrap>
         {bySeverity.map((s) => (
-          <span key={s.severity} className="flex items-center gap-1.5">
+          <Inline key={s.severity} as="span" space="space.075" alignBlock="center">
             <Badge size="xsmall" tone={s.count > 0 ? alertSeverityTone[s.severity] : "neutral"}>
               {s.severity}
             </Badge>
             <span
               className={cn(
-                "tnum text-[12.5px] font-medium",
-                s.count === 0 ? "text-muted-foreground" : "text-foreground",
+                "tabular-nums font-body-small font-medium",
+                s.count === 0 ? "text-subtle" : "text-default",
               )}
             >
               {s.count}
             </span>
-          </span>
+          </Inline>
         ))}
-      </span>
-      <span className="text-[12px] text-muted-foreground">
+      </Inline>
+      <span className="font-body-small text-subtle">
         {byKind.length === 0
           ? "No divergence of any kind is on record."
           : byKind.map(([kind, count]) => `${kind} ${count}`).join(" · ")}
       </span>
-    </div>
+    </Inline>
   );
 }
 
@@ -515,7 +523,7 @@ export function AlertList({
 }) {
   if (alerts.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title={empty?.title ?? "Nothing has diverged"}
           description={
@@ -523,43 +531,49 @@ export function AlertList({
             "No pin has moved without a change record, no determination has been retracted, no evidence is past its SLA and no monitoring window has closed empty. An empty queue here is a result, not a failure to find something to say."
           }
         />
-      </div>
+      </Box>
     );
   }
   return (
-    <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border pt-0">
+    <Box
+      className="divide-y overflow-hidden rounded-large border border-default"
+      as="ul"
+      paddingBlockStart="space.0"
+    >
       {alerts.map((alert) => (
-        <li key={alert.id} className="px-4 py-3">
-          <div className="flex flex-wrap items-center gap-2">
+        <Box key={alert.id} as="li" paddingInline="space.200" paddingBlock="space.150">
+          <Inline space="space.100" alignBlock="center" shouldWrap>
             <Badge size="xsmall" tone={alertSeverityTone[alert.severity]}>
               {alert.severity}
             </Badge>
-            <span className="text-[13px] font-semibold tracking-[-0.005em]">{alert.kind}</span>
+            <span className="font-body font-semibold">{alert.kind}</span>
             <Id>{alert.subject}</Id>
-            <span className="text-[12px] text-muted-foreground">
+            <span className="font-body-small text-subtle">
               {alert.since === "—" ? "no start date on record" : `since ${alert.since}`}
             </span>
-            <span className="ml-auto flex items-center gap-2">
+            <Inline className="ml-auto" as="span" space="space.100" alignBlock="center">
               {action ? action(alert) : null}
-              <Id className="text-muted-foreground">{alert.id}</Id>
-            </span>
-          </div>
-          <p className="mt-1.5 text-[12.5px] leading-relaxed text-foreground">{alert.statement}</p>
-          <div className="mt-2 border-l-2 border-border-strong pl-2.5">
-            <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-              Do this
-            </div>
-            <p className="mt-0.5 text-[12.5px] leading-relaxed text-foreground">{alert.action}</p>
-          </div>
-          <div className="mt-2">
+              <Id className="text-subtle">{alert.id}</Id>
+            </Inline>
+          </Inline>
+          <p className="pt-075 font-body-small text-default">{alert.statement}</p>
+          <Box
+            className="border-s border-bold"
+            paddingBlockStart="space.100"
+            paddingInlineStart="space.100"
+          >
+            <div className="font-heading-xxsmall uppercase text-subtle">Do this</div>
+            <p className="pt-025 font-body-small text-default">{alert.action}</p>
+          </Box>
+          <Box paddingBlockStart="space.100">
             <EvidenceIds
               ids={alert.evidence}
               empty="No ids recorded — this alert rests on the schedule itself."
             />
-          </div>
-        </li>
+          </Box>
+        </Box>
       ))}
-    </ul>
+    </Box>
   );
 }
 
@@ -573,12 +587,12 @@ export function AlertList({
 export function ScheduleTable({ rows }: { rows: ScheduleRow[] }) {
   if (rows.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="No continuous monitoring strategy on file"
           description="No control in this program carries an SLCM frequency, method or responsible entity, so there is no schedule to fall behind. An empty ConMon strategy is a finding in its own right — it is not the same as a program that is up to date."
         />
-      </div>
+      </Box>
     );
   }
   return (
@@ -623,43 +637,40 @@ function ScheduleRows({ row, explain }: { row: ScheduleRow; explain: boolean }) 
         className={cn("align-top", explain ? "border-0 hover:bg-transparent" : null)}
         title={explain ? undefined : row.finding}
       >
-        <Table.Cell className="py-2 align-top">
+        <Table.Cell className="py-100 align-top">
           <Id>{row.control}</Id>
         </Table.Cell>
-        <Table.Cell className="py-2 align-top" title={row.controlTitle}>
+        <Table.Cell className="py-100 align-top" title={row.controlTitle}>
           {row.controlTitle === "—" ? <Absent /> : row.controlTitle}
         </Table.Cell>
-        <Table.Cell className="py-2 align-top">{row.frequency}</Table.Cell>
-        <Table.Cell className="py-2 align-top">
+        <Table.Cell className="py-100 align-top">{row.frequency}</Table.Cell>
+        <Table.Cell className="py-100 align-top">
           <MethodChip method={row.method} />
         </Table.Cell>
-        <Table.Cell className="py-2 align-top" title={row.responsible}>
+        <Table.Cell className="py-100 align-top" title={row.responsible}>
           {row.responsible}
         </Table.Cell>
-        <Table.Cell className="tnum py-2 align-top">
+        <Table.Cell className="tabular-nums py-100 align-top">
           {row.lastAssessed === "—" ? <Absent /> : row.lastAssessed}
         </Table.Cell>
-        <Table.Cell className="tnum py-2 align-top">
+        <Table.Cell className="tabular-nums py-100 align-top">
           {row.nextDue === "—" ? <Absent /> : row.nextDue}
         </Table.Cell>
         <Table.Cell
           className={cn(
-            "py-2 align-top text-right",
-            row.daysOut !== null && row.daysOut < 0 ? "text-legacy-danger" : "",
+            "py-100 align-top text-right",
+            row.daysOut !== null && row.daysOut < 0 ? "text-danger" : "",
           )}
         >
           <Days value={row.daysOut} />
         </Table.Cell>
-        <Table.Cell className="py-2 align-top">
+        <Table.Cell className="py-100 align-top">
           <AssessmentStatusChip status={row.status} />
         </Table.Cell>
       </Table.Row>
       {explain ? (
-        <Table.Row className="align-top hover:bg-transparent">
-          <Table.Cell
-            className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
-            colSpan={9}
-          >
+        <Table.Row className="align-top" isStatic>
+          <Table.Cell className="max-w-none whitespace-normal pb-150 pt-0 align-top" colSpan={9}>
             {row.finding}
           </Table.Cell>
         </Table.Row>
@@ -679,12 +690,12 @@ function requirementParts(key: string): { unit: string; requirement: string } {
 export function FreshnessTable({ rows }: { rows: EvidenceSlaRow[] }) {
   if (rows.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="No monitored requirement to age"
           description="No requirement in this program's matrix maps to a control the ConMon strategy covers, so no evidence SLA applies and there is nothing to measure an artifact's age against."
         />
-      </div>
+      </Box>
     );
   }
   return (
@@ -727,41 +738,38 @@ function FreshnessRows({ row, explain }: { row: EvidenceSlaRow; explain: boolean
         className={cn("align-top", explain ? "border-0 hover:bg-transparent" : null)}
         title={explain ? undefined : row.finding}
       >
-        <Table.Cell className="py-2 align-top">
+        <Table.Cell className="py-100 align-top">
           <Id>{row.control}</Id>
         </Table.Cell>
-        <Table.Cell className="py-2 align-top" title={row.requirement}>
-          <span className="flex items-center gap-1.5">
+        <Table.Cell className="py-100 align-top" title={row.requirement}>
+          <Inline as="span" space="space.075" alignBlock="center">
             <Badge size="xsmall" tone="neutral">
               {unit}
             </Badge>
             <span className="min-w-0 truncate">{requirement}</span>
-          </span>
+          </Inline>
         </Table.Cell>
-        <Table.Cell className="py-2 align-top" title={row.evidence.join(", ")}>
+        <Table.Cell className="py-100 align-top" title={row.evidence.join(", ")}>
           {row.evidence.length === 0 ? (
             <Absent />
           ) : (
             `${row.evidence[0]}${row.evidence.length > 1 ? ` +${row.evidence.length - 1} more` : ""}`
           )}
         </Table.Cell>
-        <Table.Cell className="tnum py-2 align-top">
+        <Table.Cell className="tabular-nums py-100 align-top">
           {row.collected === "—" ? <Absent /> : row.collected}
         </Table.Cell>
-        <Table.Cell className={cn("py-2 align-top text-right", overdue ? "text-legacy-danger" : "")}>
+        <Table.Cell className={cn("py-100 align-top text-right", overdue ? "text-danger" : "")}>
           <Days value={row.ageDays} />
         </Table.Cell>
-        <Table.Cell className="tnum py-2 align-top text-right">{row.slaDays}d</Table.Cell>
-        <Table.Cell className="py-2 align-top">
+        <Table.Cell className="tabular-nums py-100 align-top text-right">{row.slaDays}d</Table.Cell>
+        <Table.Cell className="py-100 align-top">
           <FreshnessChip freshness={row.freshness} />
         </Table.Cell>
       </Table.Row>
       {explain ? (
-        <Table.Row className="align-top hover:bg-transparent">
-          <Table.Cell
-            className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
-            colSpan={7}
-          >
+        <Table.Row className="align-top" isStatic>
+          <Table.Cell className="max-w-none whitespace-normal pb-150 pt-0 align-top" colSpan={7}>
             {row.finding}
           </Table.Cell>
         </Table.Row>
@@ -796,12 +804,12 @@ function cadenceLabel(row: CadenceRow): { text: string; tone: "success" | "dange
 export function CadenceTable({ rows }: { rows: CadenceRow[] }) {
   if (rows.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="No scan target to measure"
           description="No tracked asset in this program anchors a composition node, so there is no target a scan window could be measured against. Nothing here is being monitored automatically."
         />
-      </div>
+      </Box>
     );
   }
   return (
@@ -833,43 +841,43 @@ export function CadenceTable({ rows }: { rows: CadenceRow[] }) {
           const label = cadenceLabel(row);
           return (
             <Table.Row key={`${row.target}|${row.format}`} className="align-top">
-              <Table.Cell className="py-2 align-top">
+              <Table.Cell className="py-100 align-top">
                 <Id>{row.target}</Id>
               </Table.Cell>
-              <Table.Cell className="py-2 align-top" title={row.targetName}>
+              <Table.Cell className="py-100 align-top" title={row.targetName}>
                 {row.targetName}
               </Table.Cell>
-              <Table.Cell className="py-2 align-top">
+              <Table.Cell className="py-100 align-top">
                 {row.format === "—" ? <Absent /> : row.format}
               </Table.Cell>
-              <Table.Cell className="py-2 align-top text-right">
+              <Table.Cell className="py-100 align-top text-right">
                 {row.expectedDays > 0 ? (
-                  <span className="tnum">{row.expectedDays}d</span>
+                  <span className="tabular-nums">{row.expectedDays}d</span>
                 ) : (
                   <Absent />
                 )}
               </Table.Cell>
-              <Table.Cell className="tnum py-2 align-top">
+              <Table.Cell className="tabular-nums py-100 align-top">
                 {row.lastScan === "—" ? <Absent /> : row.lastScan}
               </Table.Cell>
               <Table.Cell
                 className={cn(
-                  "py-2 align-top text-right",
+                  "py-100 align-top text-right",
                   row.actualDays !== null &&
                     row.expectedDays > 0 &&
                     row.actualDays > row.expectedDays
-                    ? "text-legacy-danger"
+                    ? "text-danger"
                     : "",
                 )}
               >
                 <Days value={row.actualDays} />
               </Table.Cell>
-              <Table.Cell className="py-2 align-top">
+              <Table.Cell className="py-100 align-top">
                 <Badge size="xsmall" tone={label.tone}>
                   {label.text}
                 </Badge>
               </Table.Cell>
-              <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-relaxed">
+              <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
                 {row.finding}
               </Table.Cell>
             </Table.Row>
@@ -891,12 +899,12 @@ export function CadenceTable({ rows }: { rows: CadenceRow[] }) {
 export function SlippageTable({ rows }: { rows: SlippageRow[] }) {
   if (rows.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="No POA&M item to track"
           description="This program carries no plan of action and milestones item with a scheduled completion date, so there is no commitment for a slip to be measured against."
         />
-      </div>
+      </Box>
     );
   }
   return (
@@ -933,36 +941,38 @@ export function SlippageTable({ rows }: { rows: SlippageRow[] }) {
 function SlippageRows({ row }: { row: SlippageRow }) {
   return (
     <>
-      <Table.Row className="border-0 align-top hover:bg-transparent">
-        <Table.Cell className="py-2 align-top">
+      <Table.Row className="border-0 align-top" isStatic>
+        <Table.Cell className="py-100 align-top">
           <Id>{row.poam}</Id>
         </Table.Cell>
-        <Table.Cell className="py-2 align-top" title={row.title}>
+        <Table.Cell className="py-100 align-top" title={row.title}>
           {row.title}
         </Table.Cell>
-        <Table.Cell className="tnum py-2 align-top">
+        <Table.Cell className="tabular-nums py-100 align-top">
           {row.original === "—" ? <Absent /> : row.original}
         </Table.Cell>
-        <Table.Cell className="tnum py-2 align-top">
+        <Table.Cell className="tabular-nums py-100 align-top">
           {row.scheduled === "—" ? <Absent /> : row.scheduled}
         </Table.Cell>
         <Table.Cell
-          className={cn("tnum py-2 align-top text-right", row.slipDays > 0 ? "text-legacy-warning" : "")}
+          className={cn(
+            "tabular-nums py-100 align-top text-right",
+            row.slipDays > 0 ? "text-warning" : "",
+          )}
         >
           {row.slipDays > 0 ? `+${row.slipDays}d` : `${zeroSafe(row.slipDays)}d`}
         </Table.Cell>
-        <Table.Cell className="tnum py-2 align-top text-right">{row.revisions}</Table.Cell>
-        <Table.Cell className="py-2 align-top">
+        <Table.Cell className="tabular-nums py-100 align-top text-right">
+          {row.revisions}
+        </Table.Cell>
+        <Table.Cell className="py-100 align-top">
           <Badge size="xsmall" tone={statusTone(row.status)}>
             {row.status}
           </Badge>
         </Table.Cell>
       </Table.Row>
-      <Table.Row className="align-top hover:bg-transparent">
-        <Table.Cell
-          className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
-          colSpan={7}
-        >
+      <Table.Row className="align-top" isStatic>
+        <Table.Cell className="max-w-none whitespace-normal pb-150 pt-0 align-top" colSpan={7}>
           {row.finding}
         </Table.Cell>
       </Table.Row>

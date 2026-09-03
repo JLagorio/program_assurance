@@ -2,11 +2,19 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus } from "lucide-react";
 
-import { Badge, Button, KeyValue, Table, Id } from "@/ds/primitives";
-import { IndexPage, PageHeader, PreviewRail } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
+import {
+  Badge,
+  Button,
+  Id,
+  IndexPage,
+  Inspector,
+  KeyValue,
+  PageHeader,
+  PreviewRail,
+  Table,
+} from "@ledger/design-system";
 import { PreviewSplit } from "@/components/app/preview-split";
-import { Shell } from "@/ds/shell";
+import { Shell } from "@/components/app/shell";
 import {
   componentHealthTone,
   systemComponents,
@@ -51,7 +59,7 @@ function ComponentLibrary() {
               <>
                 <Button variant="secondary">Export inheritance matrix</Button>
                 <Button variant="primary">
-                  <Plus className="size-3.5" /> New component
+                  <Plus className="size-icon-small" /> New component
                 </Button>
               </>
             }
@@ -59,7 +67,7 @@ function ComponentLibrary() {
         }
       >
         <PreviewSplit open={preview !== null}>
-          <div className="min-w-0 lg:pr-6">
+          <div className="min-w-0 lg:pe-300">
             <Table className="table-fixed">
               <colgroup>
                 <col style={{ width: "116px" }} />
@@ -100,11 +108,15 @@ function ComponentLibrary() {
                       />
                       <Table.Cell className="truncate">{c.name}</Table.Cell>
                       <Table.Cell className="truncate">{c.owner}</Table.Cell>
-                      <Table.Cell className="tnum text-right">{c.controls.length}</Table.Cell>
-                      <Table.Cell className="tnum text-right">{c.consumers.length}</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">
+                        {c.controls.length}
+                      </Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">
+                        {c.consumers.length}
+                      </Table.Cell>
                       <Table.Cell className="truncate text-right">
                         {c.health === "Current" ? (
-                          <span className="text-muted-foreground">
+                          <span className="text-subtle">
                             Current{stale ? ` · ${stale} stale` : ""}
                           </span>
                         ) : (
@@ -127,7 +139,7 @@ function ComponentLibrary() {
                 <Link
                   to="/library/components/$componentKey"
                   params={{ componentKey: preview.key }}
-                  className="text-primary hover:underline"
+                  className="text-brand hover:underline"
                 >
                   Open component →
                 </Link>

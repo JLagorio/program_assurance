@@ -5,18 +5,21 @@ import { Download, Search } from "lucide-react";
 import {
   Badge,
   Button,
-  KeyValue,
-  Progress,
-  Table,
   Id,
+  IndexPage,
   Indicator,
-  Tabs,
+  Inline,
   Input,
   InputGroup,
-} from "@/ds/primitives";
-import { PageHeader, PreviewRail, IndexPage } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
-import { Shell } from "@/ds/shell";
+  Inspector,
+  KeyValue,
+  PageHeader,
+  PreviewRail,
+  Progress,
+  Table,
+  Tabs,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { PreviewSplit } from "@/components/app/preview-split";
 import { assetById } from "@/lib/findings";
 import {
@@ -108,45 +111,44 @@ function RegisterPage() {
             description="A POA&M item is a dated commitment to close findings. A risk is what the AO signs. Both reach the spine only through findings — never straight to a control."
             actions={
               <Button variant="secondary">
-                <Download className="size-3.5" /> Export eMASS POA&M
+                <Download className="size-icon-small" /> Export eMASS POA&M
               </Button>
             }
           />
         }
       >
-        <Tabs
-          items={tabs.map((t) => ({
-            key: t,
-            label: t,
-            active: tab === t,
-            onSelect: () => {
-              setTab(t);
-              setPreview(null);
-            },
-            trailing: (
-              <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                {counts[t]}
-              </span>
-            ),
-          }))}
-        />
+        <Tabs>
+          {tabs.map((t) => (
+            <Tabs.Tab
+              key={t}
+              isSelected={tab === t}
+              onClick={() => {
+                setTab(t);
+                setPreview(null);
+              }}
+              count={counts[t]}
+            >
+              {t}
+            </Tabs.Tab>
+          ))}
+        </Tabs>
 
         {tab === "POA&M" ? (
-          <div className="flex flex-wrap items-center gap-2 pt-1">
+          <Inline className="pt-050" space="space.100" alignBlock="center" shouldWrap>
             <InputGroup leading={<Search />}>
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search POA&M items, owners"
                 aria-label="Search"
-                className="w-[240px]"
+                style={{ width: 240 }}
               />
             </InputGroup>
-          </div>
+          </Inline>
         ) : null}
 
         <PreviewSplit open={preview !== null}>
-          <div className="min-w-0 lg:pr-6">
+          <div className="min-w-0 lg:pe-300">
             {tab === "POA&M" ? (
               <Table className="table-fixed">
                 <colgroup>
@@ -190,7 +192,7 @@ function RegisterPage() {
                         />
                         <Table.Cell className="truncate">{p.title}</Table.Cell>
                         <Table.Cell className="truncate">{p.owner}</Table.Cell>
-                        <Table.Cell className="tnum text-right">
+                        <Table.Cell className="tabular-nums text-right">
                           {openCount(fs)} / {fs.length}
                         </Table.Cell>
                         <Table.Cell>
@@ -198,11 +200,7 @@ function RegisterPage() {
                         </Table.Cell>
                         <Table.Cell className="truncate">{p.scheduledCompletion}</Table.Cell>
                         <Table.Cell className="truncate">
-                          {p.risk ? (
-                            <Id>{p.risk}</Id>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
+                          {p.risk ? <Id>{p.risk}</Id> : <span className="text-subtle">—</span>}
                         </Table.Cell>
                         <Table.Cell className="truncate">
                           <Badge tone={statusTone(p.status)}>{p.status}</Badge>
@@ -256,23 +254,25 @@ function RegisterPage() {
                         />
                         <Table.Cell className="truncate">{r.title}</Table.Cell>
                         <Table.Cell className="truncate">{r.owner}</Table.Cell>
-                        <Table.Cell className="tnum text-right">
+                        <Table.Cell className="tabular-nums text-right">
                           {openCount(fs)} / {fs.length}
                         </Table.Cell>
-                        <Table.Cell className="tnum text-right">
+                        <Table.Cell className="tabular-nums text-right">
                           {ccisForRisk(r.id).length}
                         </Table.Cell>
-                        <Table.Cell className="tnum">{poamsForRisk(r.id).length}</Table.Cell>
+                        <Table.Cell className="tabular-nums">
+                          {poamsForRisk(r.id).length}
+                        </Table.Cell>
                         <Table.Cell>
-                          <div className="flex items-center gap-2">
-                            <span className="tnum w-5 text-right text-[12px] text-muted-foreground/70 line-through">
+                          <Inline space="space.100" alignBlock="center">
+                            <span className="tabular-nums text-right font-body-small text-subtlest line-through w-250">
                               {r.inherent}
                             </span>
                             <Progress value={r.residual} tone={residualTone(r.residual)} />
-                            <span className="tnum w-5 shrink-0 text-right text-[12px] font-medium">
+                            <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-250">
                               {r.residual}
                             </span>
-                          </div>
+                          </Inline>
                         </Table.Cell>
                         <Table.Cell className="truncate">
                           <Badge tone={statusTone(r.disposition)}>{r.disposition}</Badge>
@@ -286,7 +286,7 @@ function RegisterPage() {
 
             {tab === "Unrolled" ? (
               <>
-                <p className="pb-3 text-[12.5px] leading-relaxed text-muted-foreground">
+                <p className="pb-150 font-body-small text-subtle">
                   Open findings with no POA&M item and no risk. Every row here is exposure the
                   package cannot explain — either commit it to a POA&M or aggregate it into a risk.
                 </p>
@@ -337,9 +337,11 @@ function RegisterPage() {
                           <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
                         </Table.Cell>
                         <Table.Cell className="max-w-none text-right">
-                          <span
-                            className="inline-flex gap-1.5"
+                          <Inline
                             onClick={(e) => e.stopPropagation()}
+                            as="span"
+                            display="inline-flex"
+                            space="space.075"
                           >
                             <Button size="small" variant="secondary">
                               New POA&M
@@ -347,7 +349,7 @@ function RegisterPage() {
                             <Button size="small" variant="secondary">
                               Attach risk
                             </Button>
-                          </span>
+                          </Inline>
                         </Table.Cell>
                       </Table.Row>
                     ))}
@@ -366,7 +368,7 @@ function RegisterPage() {
                 <Link
                   to="/register/poam/$poamId"
                   params={{ poamId: preview.item.id }}
-                  className="text-primary hover:underline"
+                  className="text-brand hover:underline"
                 >
                   Open POA&M item →
                 </Link>
@@ -385,9 +387,7 @@ function RegisterPage() {
                 </KeyValue>
               </Inspector.Group>
               <Inspector.Group title="Latest milestone">
-                <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-                  {preview.item.milestoneNote}
-                </p>
+                <p className="font-body-small text-subtle">{preview.item.milestoneNote}</p>
               </Inspector.Group>
             </PreviewRail>
           ) : null}
@@ -401,7 +401,7 @@ function RegisterPage() {
                 <Link
                   to="/register/risks/$riskId"
                   params={{ riskId: preview.item.id }}
-                  className="text-primary hover:underline"
+                  className="text-brand hover:underline"
                 >
                   Open risk →
                 </Link>
@@ -423,9 +423,7 @@ function RegisterPage() {
                 <KeyValue label="Reviewed">{preview.item.reviewed}</KeyValue>
               </Inspector.Group>
               <Inspector.Group title="Statement">
-                <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-                  {preview.item.statement}
-                </p>
+                <p className="font-body-small text-subtle">{preview.item.statement}</p>
               </Inspector.Group>
             </PreviewRail>
           ) : null}

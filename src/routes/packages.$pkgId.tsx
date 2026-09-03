@@ -2,11 +2,24 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AlertTriangle, FileDown } from "lucide-react";
 
-import { Badge, Button, KeyValue, Table, Id, Tabs, Alert, ToggleGroup } from "@/ds/primitives";
-import { PreviewRail, RecordHeader } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
+import {
+  Alert,
+  Badge,
+  Box,
+  Button,
+  Id,
+  Inline,
+  Inspector,
+  KeyValue,
+  PreviewRail,
+  RecordHeader,
+  Stack,
+  Table,
+  Tabs,
+  ToggleGroup,
+} from "@ledger/design-system";
 import { PreviewSplit } from "@/components/app/preview-split";
-import { Shell } from "@/ds/shell";
+import { Shell } from "@/components/app/shell";
 import {
   packageStateTone,
   packages,
@@ -60,12 +73,12 @@ function PackageRecord() {
   if (!pkg || !ready) {
     return (
       <Shell>
-        <div className="space-y-3">
-          <h1 className="text-[18px] font-semibold">Package not found</h1>
-          <Link to="/packages" className="text-[13px] text-primary hover:underline">
+        <Stack space="space.150">
+          <h1 className="font-heading-small font-semibold">Package not found</h1>
+          <Link to="/packages" className="font-body text-brand hover:underline">
             Back to packages
           </Link>
-        </div>
+        </Stack>
       </Shell>
     );
   }
@@ -79,9 +92,9 @@ function PackageRecord() {
 
   return (
     <Shell>
-      <div className="animate-slide-up space-y-4">
+      <Stack className="animate-rise" space="space.200">
         <RecordHeader
-          backTo="/packages"
+          back={<Link to="/packages" />}
           id={pkg.id}
           title={pkg.name}
           meta={`${pkg.version} · ${pkg.program} · snapshot ${pkg.snapshotAt}`}
@@ -89,7 +102,7 @@ function PackageRecord() {
             <>
               <Badge tone={packageStateTone[pkg.state]}>{pkg.state}</Badge>
               <Button variant="primary" disabled={!ready.shippable}>
-                <FileDown className="size-3.5" /> Submit snapshot
+                <FileDown className="size-icon-small" /> Submit snapshot
               </Button>
             </>
           }
@@ -105,25 +118,24 @@ function PackageRecord() {
           </Alert>
         ) : null}
 
-        <Tabs
-          items={tabs.map((t) => ({
-            key: t,
-            label: t,
-            active: t === tab,
-            onSelect: () => {
-              setTab(t);
-              setPreview(null);
-            },
-            trailing: (
-              <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                {counts[t]}
-              </span>
-            ),
-          }))}
-        />
+        <Tabs>
+          {tabs.map((t) => (
+            <Tabs.Tab
+              key={t}
+              isSelected={t === tab}
+              onClick={() => {
+                setTab(t);
+                setPreview(null);
+              }}
+              count={counts[t]}
+            >
+              {t}
+            </Tabs.Tab>
+          ))}
+        </Tabs>
 
         {tab === "Traceability" ? (
-          <div className="pt-1">
+          <Box paddingBlockStart="space.050">
             <ToggleGroup
               aria-label="Traceability filter"
               value={gapsOnly ? "gaps" : "all"}
@@ -133,11 +145,11 @@ function PackageRecord() {
                 { value: "gaps", label: `Gaps only (${ready.gaps.length})` },
               ]}
             />
-          </div>
+          </Box>
         ) : null}
 
         <PreviewSplit open={preview !== null}>
-          <div className="min-w-0 lg:pr-6">
+          <div className="min-w-0 lg:pe-300">
             {tab === "Traceability" ? (
               <Table className="table-fixed">
                 <colgroup>
@@ -173,10 +185,15 @@ function PackageRecord() {
                       </Table.Cell>
                       <Table.Cell className="truncate">
                         {r.gap ? (
-                          <span className="inline-flex items-center gap-1.5">
-                            <AlertTriangle className="size-3 shrink-0 text-legacy-warning" />
+                          <Inline
+                            as="span"
+                            display="inline-flex"
+                            space="space.075"
+                            alignBlock="center"
+                          >
+                            <AlertTriangle className="shrink-0 text-warning size-150" />
                             <span className="truncate">{r.statement}</span>
-                          </span>
+                          </Inline>
                         ) : (
                           r.statement
                         )}
@@ -185,13 +202,13 @@ function PackageRecord() {
                         {r.objectives.length ? (
                           <Id>{r.objectives.join(", ")}</Id>
                         ) : (
-                          <span className="text-muted-foreground">—</span>
+                          <span className="text-subtle">—</span>
                         )}
                       </Table.Cell>
                       <Table.Cell className="truncate">
                         <Badge tone={resultTone(r.result)}>{r.result}</Badge>
                       </Table.Cell>
-                      <Table.Cell className="tnum text-right">{r.openFindings}</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">{r.openFindings}</Table.Cell>
                       <Table.Cell>{r.worstSeverity}</Table.Cell>
                     </Table.Row>
                   ))}
@@ -225,11 +242,17 @@ function PackageRecord() {
                       <Table.Cell>{a.kind}</Table.Cell>
                       <Table.Cell className="truncate">
                         <span className="truncate">{a.name}</span>
-                        <span className="ml-2 text-[12px] text-muted-foreground">{a.note}</span>
+                        <Box
+                          className="font-body-small text-subtle"
+                          as="span"
+                          paddingInlineStart="space.100"
+                        >
+                          {a.note}
+                        </Box>
                       </Table.Cell>
                       <Table.Cell className="truncate">{a.format}</Table.Cell>
                       <Table.Cell className="truncate">{a.generated}</Table.Cell>
-                      <Table.Cell className="tnum text-right">{a.pages || "—"}</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">{a.pages || "—"}</Table.Cell>
                       <Table.Cell className="truncate">
                         <Badge tone={statusTone(a.state)}>{a.state}</Badge>
                       </Table.Cell>
@@ -276,9 +299,11 @@ function PackageRecord() {
               onClose={() => setPreview(null)}
             >
               {preview.gap ? (
-                <p className="mb-3 border-l-2 border-legacy-warning bg-warning-soft px-2 py-1.5 text-[12px] leading-relaxed">
-                  {preview.gap}
-                </p>
+                <Box paddingBlockEnd="space.150">
+                  <p className="border-s border-warning bg-warning px-100 py-075 font-body-small">
+                    {preview.gap}
+                  </p>
+                </Box>
               ) : null}
               <Inspector.Group title="Join keys">
                 <KeyValue label="Control">
@@ -307,7 +332,7 @@ function PackageRecord() {
             </PreviewRail>
           ) : null}
         </PreviewSplit>
-      </div>
+      </Stack>
     </Shell>
   );
 }

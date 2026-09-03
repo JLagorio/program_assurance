@@ -20,16 +20,20 @@ import {
 import { ControlRequirementTable } from "@/components/app/requirements";
 import {
   Badge,
-  NativeSelect,
-  Table,
-  Id,
-  Tabs,
-  Indicator,
-  Collapsible,
+  Block,
+  Box,
   Breadcrumb,
-} from "@/ds/primitives";
-import { Block, Inspector } from "@/ds/shapes";
-import { Shell } from "@/ds/shell";
+  Collapsible,
+  Grid,
+  Id,
+  Indicator,
+  Inspector,
+  NativeSelect,
+  Stack,
+  Table,
+  Tabs,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { controlDetail } from "@/lib/control-detail";
 import {
   currentSession,
@@ -142,17 +146,17 @@ function ControlRecord() {
   if (!row || !work) {
     return (
       <Shell>
-        <div className="space-y-3">
-          <h1 className="text-[18px] font-semibold">Control not in scope</h1>
+        <Stack space="space.150">
+          <h1 className="font-heading-small font-semibold">Control not in scope</h1>
           <Link
             to="/programs/$programId"
             params={{ programId }}
             search={{ tab: "Controls" }}
-            className="text-[13px] text-primary hover:underline"
+            className="font-body text-brand hover:underline"
           >
             Back to controls
           </Link>
-        </div>
+        </Stack>
       </Shell>
     );
   }
@@ -165,7 +169,7 @@ function ControlRecord() {
 
   return (
     <Shell>
-      <div className="animate-slide-up">
+      <div className="animate-rise">
         <ControlActionBar
           work={work}
           context={context}
@@ -173,44 +177,50 @@ function ControlRecord() {
           scopeName={scope?.name ?? "—"}
           onChange={refresh}
           breadcrumb={
-            <Breadcrumb
-              items={[
-                { label: "Programs", to: "/programs" },
-                {
-                  label: program.name,
-                  to: "/programs/$programId",
-                  params: { programId },
-                  search: { tab: "Controls" },
-                },
-                { label: `${row.family} controls` },
-              ]}
-            />
+            <Breadcrumb>
+              <Breadcrumb.Item asChild>
+                <Link to={"/programs"}>{"Programs"}</Link>
+              </Breadcrumb.Item>
+              <Breadcrumb.Item asChild>
+                <Link
+                  to={"/programs/$programId"}
+                  params={{ programId }}
+                  search={{ tab: "Controls" }}
+                >
+                  {program.name}
+                </Link>
+              </Breadcrumb.Item>
+              <Breadcrumb.Item isCurrent>{`${row.family} controls`}</Breadcrumb.Item>
+            </Breadcrumb>
           }
           tabs={
-            <Tabs
-              items={(
+            <Tabs>
+              {(
                 [
                   ["Implementation", work.evidence.length || null],
                   ["Assessment", open.length || null],
                   ["Catalog", detail.objectives.length || null],
                   ["History", null],
                 ] as [ControlTab, number | null][]
-              ).map(([key, count]) => ({
-                key,
-                label: key,
-                active: tab === key,
-                onSelect: () => navigate({ search: { tab: key }, replace: true }),
-                trailing: count ? (
-                  <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                    {count}
-                  </span>
-                ) : null,
-              }))}
-            />
+              ).map(([key, count]) => (
+                <Tabs.Tab
+                  key={key}
+                  isSelected={tab === key}
+                  onClick={() => navigate({ search: { tab: key }, replace: true })}
+                  count={count || null}
+                >
+                  {key}
+                </Tabs.Tab>
+              ))}
+            </Tabs>
           }
         />
 
-        <div className="grid gap-x-8 pt-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <Grid
+          className="pt-200"
+          columnGap="space.400"
+          templateColumns={{ lg: "minmax(0,1fr) 300px" }}
+        >
           <div className="min-w-0">
             {tab === "Implementation" ? (
               <>
@@ -253,7 +263,7 @@ function ControlRecord() {
                                 params={{ findingId: f.id }}
                                 className="hover:underline"
                               >
-                                <Id className="text-primary">{f.id}</Id>
+                                <Id className="text-brand">{f.id}</Id>
                               </Link>
                             </Table.Cell>
                             <Table.Cell>
@@ -267,7 +277,7 @@ function ControlRecord() {
                       </tbody>
                     </Table>
                   ) : (
-                    <p className="text-[13px] text-muted-foreground">None open.</p>
+                    <p className="font-body text-subtle">None open.</p>
                   )}
                 </Block>
                 <Block title="Discussion" count={null}>
@@ -282,7 +292,7 @@ function ControlRecord() {
                   {detail.statement.length ? (
                     <StatementList items={detail.statement} />
                   ) : (
-                    <p className="text-[13px] text-muted-foreground">None published.</p>
+                    <p className="font-body text-subtle">None published.</p>
                   )}
                 </Block>
                 <Block title="Assessment objectives" count={detail.objectives.length}>
@@ -295,14 +305,14 @@ function ControlRecord() {
                   <MethodList methods={detail.methods} />
                 </Block>
                 <Collapsible title="Discussion and references" count={detail.discussion.length}>
-                  <div className="max-w-[76ch] space-y-2 text-[13px] leading-relaxed text-muted-foreground">
+                  <Stack className="max-w-layout-measure font-body text-subtle" space="space.100">
                     {detail.discussion.map((p, i) => (
                       <p key={i}>{p}</p>
                     ))}
-                  </div>
-                  <div className="pt-3">
+                  </Stack>
+                  <Box paddingBlockStart="space.150">
                     <ReferenceList references={detail.references} />
-                  </div>
+                  </Box>
                 </Collapsible>
               </>
             ) : null}
@@ -323,7 +333,7 @@ function ControlRecord() {
                     label: "Scope",
                     value: (
                       <NativeSelect
-                        className="h-7 text-[12.5px]"
+                        className="h-control-small font-body-small"
                         value={scopeId}
                         onChange={(e) => setScopeId(e.target.value)}
                         aria-label="Assessment scope"
@@ -340,7 +350,7 @@ function ControlRecord() {
                     label: "Role",
                     value: (
                       <NativeSelect
-                        className="h-7 text-[12.5px]"
+                        className="h-control-small font-body-small"
                         value={session.role}
                         onChange={(e) => {
                           setSession({ role: e.target.value as (typeof roles)[number] });
@@ -396,7 +406,7 @@ function ControlRecord() {
                         params={{ poamId: row.poam }}
                         className="hover:underline"
                       >
-                        <Id className="text-primary">{row.poam}</Id>
+                        <Id className="text-brand">{row.poam}</Id>
                       </Link>
                     ) : (
                       "None"
@@ -411,7 +421,7 @@ function ControlRecord() {
               },
             ]}
           />
-        </div>
+        </Grid>
       </div>
     </Shell>
   );

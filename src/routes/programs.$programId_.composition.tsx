@@ -1,10 +1,22 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 
-import { Badge, KeyValue, Table, Id, Tabs, Breadcrumb } from "@/ds/primitives";
-import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Box,
+  Breadcrumb,
+  Empty,
+  Id,
+  Inline,
+  Inspector,
+  KeyValue,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Table,
+  Tabs,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import {
   BomSummary,
   BomTree,
@@ -171,20 +183,19 @@ function ProgramComposition() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/programs/$programId"
-            backParams={{ programId: program.id }}
+            back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
             breadcrumb={
-              <Breadcrumb
-                items={[
-                  { label: "Programs", to: "/programs" },
-                  {
-                    label: program.name,
-                    to: "/programs/$programId",
-                    params: { programId: program.id },
-                  },
-                  { label: "System composition" },
-                ]}
-              />
+              <Breadcrumb>
+                <Breadcrumb.Item asChild>
+                  <Link to={"/programs"}>{"Programs"}</Link>
+                </Breadcrumb.Item>
+                <Breadcrumb.Item asChild>
+                  <Link to={"/programs/$programId"} params={{ programId: program.id }}>
+                    {program.name}
+                  </Link>
+                </Breadcrumb.Item>
+                <Breadcrumb.Item isCurrent>{"System composition"}</Breadcrumb.Item>
+              </Breadcrumb>
             }
             id={program.id}
             title={`${program.name} — system composition`}
@@ -197,7 +208,7 @@ function ProgramComposition() {
                 <Link
                   to="/programs/$programId"
                   params={{ programId: program.id }}
-                  className="text-[12.5px] text-primary hover:underline"
+                  className="font-body-small text-brand hover:underline"
                 >
                   Program record
                 </Link>
@@ -206,19 +217,18 @@ function ProgramComposition() {
           />
         }
         tabs={
-          <Tabs
-            items={compositionTabs.map((key) => ({
-              key,
-              label: key,
-              active: tab === key,
-              onSelect: () => go(key),
-              trailing: counts[key] ? (
-                <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                  {counts[key]}
-                </span>
-              ) : null,
-            }))}
-          />
+          <Tabs>
+            {compositionTabs.map((key) => (
+              <Tabs.Tab
+                key={key}
+                isSelected={tab === key}
+                onClick={() => go(key)}
+                count={counts[key] || null}
+              >
+                {key}
+              </Tabs.Tab>
+            ))}
+          </Tabs>
         }
         showRail={tab === "Tree" && selected !== null}
         rail={
@@ -230,7 +240,7 @@ function ProgramComposition() {
                   <Link
                     to="/programs/$programId/components/$componentId"
                     params={{ programId: program.id, componentId: selected.id }}
-                    className="text-primary hover:underline"
+                    className="text-brand hover:underline"
                   >
                     {selected.name}
                   </Link>
@@ -242,7 +252,7 @@ function ProgramComposition() {
               </Inspector.Group>
               <Inspector.Group title="Joins">
                 <KeyValue label="Path">
-                  <span className="text-[12.5px] leading-relaxed">
+                  <span className="font-body-small">
                     {pathOf(selected.id)
                       .map((n) => n.name)
                       .join(" / ")}
@@ -253,9 +263,9 @@ function ProgramComposition() {
                     <Link
                       to="/findings/assets/$assetId"
                       params={{ assetId: selected.asset }}
-                      className="text-primary hover:underline"
+                      className="text-brand hover:underline"
                     >
-                      <Id className="text-primary">{selected.asset}</Id>
+                      <Id className="text-brand">{selected.asset}</Id>
                     </Link>
                   ) : (
                     "Not a boundary asset"
@@ -266,9 +276,9 @@ function ProgramComposition() {
                     <button
                       type="button"
                       onClick={() => select(selectedPosture.worstNode ?? selected.id)}
-                      className="text-primary hover:underline"
+                      className="text-brand hover:underline"
                     >
-                      <Id className="text-primary">{nameOf(selectedPosture.worstNode)}</Id>
+                      <Id className="text-brand">{nameOf(selectedPosture.worstNode)}</Id>
                     </button>
                   ) : (
                     "—"
@@ -278,9 +288,9 @@ function ProgramComposition() {
                   <Link
                     to="/programs/$programId"
                     params={{ programId: program.id }}
-                    className="text-primary hover:underline"
+                    className="text-brand hover:underline"
                   >
-                    <Id className="text-primary">{program.id}</Id>
+                    <Id className="text-brand">{program.id}</Id>
                   </Link>
                 </KeyValue>
               </Inspector.Group>
@@ -293,12 +303,12 @@ function ProgramComposition() {
             title="System composition"
             description="No hardware, firmware or software items have been declared for this program."
           >
-            <div className="pt-4">
+            <Box paddingBlockStart="space.200">
               <Empty
                 title="Nothing in the composition"
                 description={`${program.id} carries no BOM. A CycloneDX, SPDX, hardware part list or firmware manifest delivery populates this page.`}
               />
-            </div>
+            </Box>
           </Section>
         ) : null}
 
@@ -308,9 +318,9 @@ function ProgramComposition() {
               title="Rollup"
               description="Every finding in the subtree, counted once at the part it names and once at each ancestor above it."
             >
-              <div className="pt-4">
+              <Box paddingBlockStart="space.200">
                 <PostureStrip posture={rootPosture} />
-              </div>
+              </Box>
             </Section>
 
             <Section
@@ -377,7 +387,7 @@ function ProgramComposition() {
                             {zoneOf(e.from)} → {zoneOf(e.to)}
                           </Badge>
                         ) : (
-                          <span className="text-muted-foreground">Same zone</span>
+                          <span className="text-subtle">Same zone</span>
                         )}
                       </Table.Cell>
                     </Table.Row>
@@ -394,9 +404,9 @@ function ProgramComposition() {
               title="Composition profile"
               description="What the system is made of, where it came from, and how much of it arrived with an attestation."
             >
-              <div className="pt-4">
+              <Box paddingBlockStart="space.200">
                 <BomSummary stats={stats} />
-              </div>
+              </Box>
             </Section>
 
             <Section
@@ -470,12 +480,16 @@ function ProgramComposition() {
                           {d.producer}
                         </Table.Cell>
                         <Table.Cell
-                          className={isStale ? "tnum text-right text-legacy-warning" : "tnum text-right"}
+                          className={
+                            isStale
+                              ? "tabular-nums text-right text-warning"
+                              : "tabular-nums text-right"
+                          }
                           title={age === null ? d.received : `${age} days old`}
                         >
                           {d.received}
                         </Table.Cell>
-                        <Table.Cell className="tnum text-right">{d.components}</Table.Cell>
+                        <Table.Cell className="tabular-nums text-right">{d.components}</Table.Cell>
                         <Table.Cell className="truncate">
                           <button
                             type="button"
@@ -487,14 +501,14 @@ function ProgramComposition() {
                           </button>
                         </Table.Cell>
                         <Table.Cell>
-                          <span className="flex items-center gap-1.5">
+                          <Inline as="span" space="space.075" alignBlock="center">
                             <Badge size="xsmall" tone={d.signed ? "success" : "warning"}>
                               {d.signed ? "Signed" : "Unsigned"}
                             </Badge>
                             <span title={`sha256:${d.sha256}`}>
-                              <Id className="text-muted-foreground">{d.sha256.slice(0, 8)}…</Id>
+                              <Id className="text-subtle">{d.sha256.slice(0, 8)}…</Id>
                             </span>
-                          </span>
+                          </Inline>
                         </Table.Cell>
                       </Table.Row>
                     );
@@ -502,12 +516,12 @@ function ProgramComposition() {
                 </tbody>
               </Table>
             ) : (
-              <div className="pt-4">
+              <Box paddingBlockStart="space.200">
                 <Empty
                   title="No BOM deliveries on file"
                   description="Every component below was hand-declared. A signed CycloneDX or SPDX delivery replaces the declaration with an assertion."
                 />
-              </div>
+              </Box>
             )}
           </Section>
         ) : null}

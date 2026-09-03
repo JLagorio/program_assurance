@@ -16,21 +16,25 @@
 import { useMemo, useState } from "react";
 
 import {
+  Absent,
   Badge,
+  Box,
   Button,
+  Card,
   Dot,
-  KeyValue,
-  Progress,
-  Table,
-  Toolbar,
+  Grid,
   Id,
   Indicator,
-  Absent,
-  type Tone,
+  Inline,
+  Inspector,
+  KeyValue,
+  Progress,
+  Stack,
+  Table,
+  Toolbar,
   Tree,
-} from "@/ds/primitives";
-import { Card } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
+} from "@ledger/design-system";
+import type { Tone } from "@ledger/design-system";
 import { cn } from "@/lib/utils";
 import type { CompositionNode } from "@/lib/composition";
 import { datasetToday } from "@/lib/dataset-clock";
@@ -39,11 +43,11 @@ import type { BomStats, NodePosture, ReconciliationRow } from "@/lib/graph-postu
 /* ------------------------------------------------------------- Shared bits */
 
 const toneDot: Record<Tone, string> = {
-  neutral: "bg-muted-foreground/40",
-  success: "bg-legacy-success",
-  warning: "bg-legacy-warning",
-  danger: "bg-legacy-danger",
-  information: "bg-primary",
+  neutral: "bg-neutral-bold",
+  success: "bg-success-bold",
+  warning: "bg-warning-bold",
+  danger: "bg-danger-bold",
+  information: "bg-brand-bold",
 };
 
 /** Local copy of `postureTone` so this file stays type-only on the lib side. */
@@ -253,7 +257,7 @@ export function BomTree({
           placeholder="Search parts, suppliers"
           actions={
             <>
-              <span className="tnum text-12 text-muted-foreground">
+              <span className="tabular-nums font-body-small text-subtle">
                 {hits
                   ? `${hits.length} of ${index.order.length} parts`
                   : `${index.order.length} parts`}
@@ -283,9 +287,9 @@ export function BomTree({
         />
       ) : null}
 
-      <Card className="p-1">
+      <Card className="p-050">
         {rows.length === 0 ? (
-          <p className="px-2 py-3 text-12 text-muted-foreground">
+          <p className="px-100 py-150 font-body-small text-subtle">
             No part matches “{query.trim()}”.
           </p>
         ) : (
@@ -332,27 +336,28 @@ function BomTreeRow({
       trailing={
         <>
           {node.attested ? null : (
-            <span title="No supplier attestation on file" className="flex items-center">
+            <Inline title="No supplier attestation on file" as="span" alignBlock="center">
               <Dot tone="warning" />
-            </span>
+            </Inline>
           )}
           {!row.open && row.subtree > 0 ? (
             <span
               title={`${row.subtree} parts beneath`}
-              className="tnum text-11 text-muted-foreground"
+              className="tabular-nums font-body-xsmall text-subtle"
             >
               {row.subtree}
             </span>
           ) : null}
           {posture && open > 0 ? (
-            <span
+            <Inline
               title={`${posture.rolled.catI} CAT I, ${posture.rolled.catII} CAT II, ${posture.rolled.catIII} CAT III open in this subtree`}
-              className="flex items-center"
+              as="span"
+              alignBlock="center"
             >
               <Badge size="xsmall" tone={postureToneOf(posture)}>
                 {open} open
               </Badge>
-            </span>
+            </Inline>
           ) : null}
         </>
       }
@@ -360,8 +365,8 @@ function BomTreeRow({
       <span
         title={`${node.id} — ${node.name}`}
         className={cn(
-          "min-w-0 truncate text-[12.5px]",
-          selected ? "font-semibold text-primary" : "",
+          "min-w-0 truncate font-body-small",
+          selected ? "font-semibold text-brand" : "",
         )}
       >
         {node.name}
@@ -369,12 +374,8 @@ function BomTreeRow({
       <Badge size="xsmall" className="shrink-0">
         {node.kind}
       </Badge>
-      {node.version === "—" ? null : (
-        <Id className="shrink-0 text-muted-foreground">{node.version}</Id>
-      )}
-      {node.asset ? (
-        <Id className="hidden shrink-0 text-muted-foreground sm:inline">{node.asset}</Id>
-      ) : null}
+      {node.version === "—" ? null : <Id className="shrink-0 text-subtle">{node.version}</Id>}
+      {node.asset ? <Id className="hidden shrink-0 text-subtle sm:inline">{node.asset}</Id> : null}
     </Tree.Item>
   );
 }
@@ -444,7 +445,7 @@ export function NodeRail({
             {posture.nodes} {posture.nodes === 1 ? "node" : "nodes"}
           </KeyValue>
           <KeyValue label="Open">
-            <span className="tnum">{posture.rolled.open}</span>
+            <span className="tabular-nums">{posture.rolled.open}</span>
           </KeyValue>
           <KeyValue label="Worst">
             {posture.worst ? (
@@ -454,12 +455,12 @@ export function NodeRail({
             )}
           </KeyValue>
           <KeyValue label="On this part">
-            <span className="tnum">
+            <span className="tabular-nums">
               {posture.own.open} open of {posture.own.total}
             </span>
           </KeyValue>
           <KeyValue label="Unattested">
-            <span className={cn("tnum", posture.unattested > 0 ? "text-legacy-warning" : "")}>
+            <span className={cn("tabular-nums", posture.unattested > 0 ? "text-warning" : "")}>
               {posture.unattested}
             </span>
           </KeyValue>
@@ -471,9 +472,9 @@ export function NodeRail({
 
       {node.note && node.note !== "—" ? (
         <Inspector.Group title="Note">
-          <div className="pt-0.5 text-[12.5px] leading-relaxed text-muted-foreground">
+          <Box className="font-body-small text-subtle" paddingBlockStart="space.025">
             {node.note}
-          </div>
+          </Box>
         </Inspector.Group>
       ) : null}
     </>
@@ -491,19 +492,19 @@ export function PostureStrip({ posture }: { posture: NodePosture }) {
   ];
 
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span className="tnum text-20 font-semibold leading-none">{rolled.open}</span>
-        <span className="tnum text-12 text-muted-foreground">
+    <Stack space="space.100">
+      <Inline space="space.100" rowSpace="space.050" alignBlock="baseline" shouldWrap>
+        <span className="tabular-nums font-heading-small font-semibold">{rolled.open}</span>
+        <span className="tabular-nums font-body-small text-subtle">
           open across {posture.nodes} {posture.nodes === 1 ? "node" : "nodes"} · {posture.own.open}{" "}
           on this part · {rolled.total} recorded
         </span>
         {posture.worst ? (
-          <span className="ml-auto flex items-center">
+          <Inline className="ml-auto" as="span" alignBlock="center">
             <Indicator tone={severityToneOf(posture.worst)}>Worst {posture.worst}</Indicator>
-          </span>
+          </Inline>
         ) : null}
-      </div>
+      </Inline>
 
       <Progress.Stacked
         segments={legend.map((l) => ({
@@ -514,22 +515,28 @@ export function PostureStrip({ posture }: { posture: NodePosture }) {
         }))}
       />
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+      <Inline space="space.200" rowSpace="space.050" alignBlock="center" shouldWrap>
         {legend.map((l) => (
-          <span key={l.key} className="flex items-center gap-1.5 text-12">
-            <span className={cn("size-1.5 rounded-full", toneDot[l.tone])} />
-            <span className="text-muted-foreground">{l.label}</span>
-            <span className="tnum font-medium">{l.value}</span>
-          </span>
+          <Inline
+            key={l.key}
+            className="font-body-small"
+            as="span"
+            space="space.075"
+            alignBlock="center"
+          >
+            <span className={cn("rounded-full", toneDot[l.tone], "size-075")} />
+            <span className="text-subtle">{l.label}</span>
+            <span className="tabular-nums font-medium">{l.value}</span>
+          </Inline>
         ))}
         {rolled.open === 0 ? (
-          <span className="text-12 text-muted-foreground">No open findings in this subtree</span>
+          <span className="font-body-small text-subtle">No open findings in this subtree</span>
         ) : null}
-        <span className="tnum ml-auto text-12 text-muted-foreground">
+        <span className="tabular-nums ml-auto font-body-small text-subtle">
           {posture.unattested} unattested · {posture.suppliers.length} suppliers
         </span>
-      </div>
-    </div>
+      </Inline>
+    </Stack>
   );
 }
 
@@ -547,19 +554,22 @@ function CatTriple({
   total: number;
 }) {
   return (
-    <span
-      className="tnum flex items-center gap-1 text-12"
+    <Inline
+      className="tabular-nums font-body-small"
       title={`${catI} CAT I, ${catII} CAT II, ${catIII} CAT III of ${total} open`}
+      as="span"
+      space="space.050"
+      alignBlock="center"
     >
-      <span className={catI > 0 ? "font-medium text-legacy-danger" : "text-muted-foreground"}>{catI}</span>
-      <span className="text-border-strong">/</span>
-      <span className={catII > 0 ? "font-medium text-legacy-warning" : "text-muted-foreground"}>
-        {catII}
-      </span>
-      <span className="text-border-strong">/</span>
-      <span className={catIII > 0 ? "text-foreground" : "text-muted-foreground"}>{catIII}</span>
-      <span className="ml-1 text-muted-foreground">· {total}</span>
-    </span>
+      <span className={catI > 0 ? "font-medium text-danger" : "text-subtle"}>{catI}</span>
+      <span className="text-subtlest">/</span>
+      <span className={catII > 0 ? "font-medium text-warning" : "text-subtle"}>{catII}</span>
+      <span className="text-subtlest">/</span>
+      <span className={catIII > 0 ? "text-default" : "text-subtle"}>{catIII}</span>
+      <Box className="text-subtle" as="span" paddingInlineStart="space.050">
+        · {total}
+      </Box>
+    </Inline>
   );
 }
 
@@ -619,7 +629,9 @@ export function ReconciliationTable({
                 total={r.derived.total}
               />
             </Table.Cell>
-            <Table.Cell className={cn("tnum text-right", r.delta === 0 ? "" : "text-legacy-warning")}>
+            <Table.Cell
+              className={cn("tabular-nums text-right", r.delta === 0 ? "" : "text-warning")}
+            >
               {r.delta > 0 ? `+${r.delta}` : r.delta}
             </Table.Cell>
             <Table.Cell>
@@ -652,14 +664,20 @@ function MeterRow({
 }) {
   const pct = total > 0 ? Math.round((value / total) * 100) : 0;
   return (
-    <div className="flex items-center gap-3 py-1">
-      <span className="w-[108px] shrink-0 truncate text-12 text-muted-foreground">{label}</span>
+    <Inline className="py-050" space="space.150" alignBlock="center">
+      <span className="shrink-0 truncate font-body-small text-subtle" style={{ width: 108 }}>
+        {label}
+      </span>
       <span className="min-w-0 flex-1">
         <Progress value={pct} tone={tone} />
       </span>
-      <span className="tnum w-8 shrink-0 text-right text-12 font-medium">{value}</span>
-      <span className="tnum w-9 shrink-0 text-right text-12 text-muted-foreground">{pct}%</span>
-    </div>
+      <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-400">
+        {value}
+      </span>
+      <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-400">
+        {pct}%
+      </span>
+    </Inline>
   );
 }
 
@@ -697,34 +715,43 @@ export function BomSummary({ stats }: { stats: BomStats }) {
   ];
 
   return (
-    <div className="space-y-5 pt-3">
-      <div className="grid grid-cols-2 border-y border-border md:grid-cols-5">
+    <Stack className="pt-150" space="space.250">
+      <Grid
+        className="border-y border-default"
+        templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(5, minmax(0, 1fr))" }}
+      >
         {metrics.map((m) => (
-          <div
+          <Box
             key={m.label}
-            className="border-b border-border px-4 py-3 first:pl-0 md:border-b-0 md:border-r md:last:border-r-0"
+            className="border-b border-default first:ps-0 md:border-b-0 md:border-r md:last:border-r-0"
+            paddingInline="space.200"
+            paddingBlock="space.150"
           >
-            <div className="text-[12px] text-muted-foreground">{m.label}</div>
-            <div className="mt-0.5">
+            <div className="font-body-small text-subtle">{m.label}</div>
+            <Box paddingBlockStart="space.025">
               <span
                 className={cn(
-                  "tnum text-[20px] font-semibold tracking-[-0.02em]",
-                  m.warn ? "text-legacy-warning" : "",
+                  "tabular-nums font-heading-small font-semibold",
+                  m.warn ? "text-warning" : "",
                 )}
               >
                 {m.value}
               </span>
-            </div>
-            <div className="mt-0.5 text-[12px] text-muted-foreground">{m.note}</div>
-          </div>
+            </Box>
+            <Box className="font-body-small text-subtle" paddingBlockStart="space.025">
+              {m.note}
+            </Box>
+          </Box>
         ))}
-      </div>
+      </Grid>
 
-      <div className="grid grid-cols-1 gap-x-8 gap-y-5 lg:grid-cols-3">
+      <Grid
+        columnGap="space.400"
+        rowGap="space.250"
+        templateColumns={{ base: "repeat(1, minmax(0, 1fr))", lg: "repeat(3, minmax(0, 1fr))" }}
+      >
         <div>
-          <h3 className="pb-1 text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-            By class
-          </h3>
+          <h3 className="pb-050 font-heading-xxsmall uppercase text-subtle">By class</h3>
           {stats.byClass.map((c) => (
             <MeterRow
               key={c.class}
@@ -736,9 +763,7 @@ export function BomSummary({ stats }: { stats: BomStats }) {
           ))}
         </div>
         <div>
-          <h3 className="pb-1 text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-            By BOM source
-          </h3>
+          <h3 className="pb-050 font-heading-xxsmall uppercase text-subtle">By BOM source</h3>
           {stats.bySource.map((s) => (
             <MeterRow
               key={s.source}
@@ -750,9 +775,7 @@ export function BomSummary({ stats }: { stats: BomStats }) {
           ))}
         </div>
         <div>
-          <h3 className="pb-1 text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-            By supplier origin
-          </h3>
+          <h3 className="pb-050 font-heading-xxsmall uppercase text-subtle">By supplier origin</h3>
           {stats.byOrigin.map((o) => (
             <MeterRow
               key={o.origin}
@@ -763,8 +786,8 @@ export function BomSummary({ stats }: { stats: BomStats }) {
             />
           ))}
         </div>
-      </div>
-    </div>
+      </Grid>
+    </Stack>
   );
 }
 
@@ -867,11 +890,11 @@ export function SupplyChainTable({
                   {r.origins.length > 1 ? `${origin} +${r.origins.length - 1}` : origin}
                 </Badge>
               </Table.Cell>
-              <Table.Cell className="tnum text-right">{r.parts}</Table.Cell>
-              <Table.Cell className="tnum text-right">{r.critical}</Table.Cell>
+              <Table.Cell className="tabular-nums text-right">{r.parts}</Table.Cell>
+              <Table.Cell className="tabular-nums text-right">{r.critical}</Table.Cell>
               <Table.Cell>
-                <span className="flex items-center gap-2">
-                  <span className="w-20">
+                <Inline as="span" space="space.100" alignBlock="center">
+                  <span className="w-1000">
                     <Progress.Stacked
                       height={4}
                       segments={[
@@ -880,17 +903,23 @@ export function SupplyChainTable({
                       ]}
                     />
                   </span>
-                  <span className="tnum text-12 text-muted-foreground">
+                  <span className="tabular-nums font-body-small text-subtle">
                     {r.attested}/{r.parts}
                   </span>
-                </span>
+                </Inline>
               </Table.Cell>
-              <Table.Cell className={cn("tnum text-right", r.unattested > 0 ? "text-legacy-warning" : "")}>
+              <Table.Cell
+                className={cn("tabular-nums text-right", r.unattested > 0 ? "text-warning" : "")}
+              >
                 {r.unattested}
               </Table.Cell>
-              <Table.Cell className={cn("tnum", past && "text-legacy-danger")}>
+              <Table.Cell className={cn("tabular-nums", past && "text-danger")}>
                 {r.eol === "—" ? <Absent /> : r.eol}
-                {past ? <span className="pl-1 text-11">past</span> : null}
+                {past ? (
+                  <Box className="font-body-xsmall" as="span" paddingInlineStart="space.050">
+                    past
+                  </Box>
+                ) : null}
               </Table.Cell>
             </Table.Row>
           );

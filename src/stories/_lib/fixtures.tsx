@@ -1,7 +1,6 @@
 import type { Decorator } from "@storybook/react-vite";
 
-import { Button } from "@/ds/primitives";
-import { Card, PageHeader } from "@/ds/patterns";
+import { Button, Card, PageHeader } from "@ledger/design-system";
 
 /* Shared fixture data for stories. Names and records recur across the kit so
    the sidebar reads as one product, not a pile of lorem. */

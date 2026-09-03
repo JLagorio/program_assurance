@@ -40,7 +40,6 @@ import {
 import { addScopes, controlSetFor, objectives, triadOf } from "@/lib/scopes";
 import type { AssessmentScope, ProgramRollup } from "@/lib/scopes";
 
-import { ProgramChanges } from "./control-set-revisions";
 import { SystemTree } from "./system-tree";
 
 const impactTone = { Low: "neutral", Moderate: "warning", High: "danger" } as const;
@@ -59,7 +58,6 @@ export function ScopeTable({
   useControlSetVersion();
   return (
     <Stack space="space.200">
-      <ProgramChanges programId={programId} />
       <SystemTree programId={programId} />
       <Box
         className="rounded-large border border-default"

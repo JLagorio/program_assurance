@@ -35,8 +35,18 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, Progress, Table, Id, Absent } from "@/ds/primitives";
-import { Empty } from "@/ds/patterns";
+import {
+  Absent,
+  Badge,
+  Box,
+  Empty,
+  Grid,
+  Id,
+  Inline,
+  Progress,
+  Stack,
+  Table,
+} from "@ledger/design-system";
 import {
   bandTone,
   factorOrder,
@@ -93,22 +103,22 @@ export function BandChip({ band, size = "small" }: { band: RiskBand; size?: "xsm
 function EvidenceIds({ ids }: { ids: string[] }) {
   if (ids.length === 0) {
     return (
-      <span className="text-[12px] text-muted-foreground">
+      <span className="font-body-small text-subtle">
         No ids recorded — this factor rests on the finding itself.
       </span>
     );
   }
   return (
-    <span className="flex flex-wrap items-center gap-1">
+    <Inline as="span" space="space.050" alignBlock="center" shouldWrap>
       {ids.map((id) => (
         <Id
           key={id}
-          className="rounded bg-muted px-1 py-px text-[11px] leading-4 text-muted-foreground"
+          className="rounded-small bg-neutral px-050 py-025 font-body-xsmall text-subtle"
         >
           {id}
         </Id>
       ))}
-    </span>
+    </Inline>
   );
 }
 
@@ -125,13 +135,13 @@ function ProseBlock({
     <div>
       <div
         className={cn(
-          "text-[11px] font-medium uppercase tracking-[0.06em]",
-          tone === "warning" ? "text-legacy-warning" : "text-muted-foreground",
+          "font-heading-xxsmall uppercase",
+          tone === "warning" ? "text-warning" : "text-subtle",
         )}
       >
         {label}
       </div>
-      <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">{children}</p>
+      <p className="pt-050 font-body-small text-default">{children}</p>
     </div>
   );
 }
@@ -161,10 +171,10 @@ export function FactorTable({ score }: { score: ResidualScore }) {
   const missing = factorOrder.filter((key) => !score.factors.some((f) => f.key === key));
 
   return (
-    <div className="space-y-2 pt-4">
-      <p className="text-[12.5px] leading-relaxed text-muted-foreground">
+    <Stack className="pt-200" space="space.100">
+      <p className="font-body-small text-subtle">
         Each factor reads a raw input from the record, normalises it to 0–1, and buys{" "}
-        <span className="text-foreground">value × weight × 100</span> points. Nothing else is added:
+        <span className="text-default">value × weight × 100</span> points. Nothing else is added:
         the contributions below sum to the published residual, so a reader who disagrees with the
         score can name the line they disagree with rather than the model as a whole.
         {ceiling === 100
@@ -198,9 +208,9 @@ export function FactorTable({ score }: { score: ResidualScore }) {
           ))}
         </tbody>
         <tfoot>
-          <tr className="border-t border-border">
+          <tr className="border-t border-default">
             <Table.Cell>Residual</Table.Cell>
-            <Table.Cell className="max-w-none whitespace-normal py-2 leading-snug">
+            <Table.Cell className="max-w-none whitespace-normal py-100">
               {clamped
                 ? `The column sums to ${sum}, outside the 0–100 range; the published score is clamped.`
                 : `Sum of the ${score.factors.length} contributions above. The positive factors alone ceiling at ${ceiling}; the credit is what comes back off.`}
@@ -211,11 +221,11 @@ export function FactorTable({ score }: { score: ResidualScore }) {
             <Table.Cell className="text-right">
               <Absent />
             </Table.Cell>
-            <Table.Cell className="tnum text-right">{score.score}</Table.Cell>
+            <Table.Cell className="tabular-nums text-right">{score.score}</Table.Cell>
           </tr>
         </tfoot>
       </Table>
-    </div>
+    </Stack>
   );
 }
 
@@ -224,34 +234,32 @@ function FactorRows({ factor }: { factor: ScoreFactor }) {
   const credit = factor.weight < 0;
   return (
     <>
-      <Table.Row className="border-0 align-top hover:bg-transparent">
-        <Table.Cell className="py-2 align-top">{factor.label}</Table.Cell>
-        <Table.Cell
-          className="max-w-none whitespace-normal py-2 align-top leading-snug"
-          title={factor.input}
-        >
+      <Table.Row className="border-0 align-top" isStatic>
+        <Table.Cell className="py-100 align-top">{factor.label}</Table.Cell>
+        <Table.Cell className="max-w-none whitespace-normal py-100 align-top" title={factor.input}>
           {factor.input}
         </Table.Cell>
-        <Table.Cell className="tnum py-2 align-top text-right">{fixed2(factor.value)}</Table.Cell>
-        <Table.Cell className="tnum py-2 align-top text-right">{fixed2(factor.weight)}</Table.Cell>
+        <Table.Cell className="tabular-nums py-100 align-top text-right">
+          {fixed2(factor.value)}
+        </Table.Cell>
+        <Table.Cell className="tabular-nums py-100 align-top text-right">
+          {fixed2(factor.weight)}
+        </Table.Cell>
         <Table.Cell
           className={cn(
-            "tnum py-2 align-top text-right",
-            credit ? "text-legacy-success" : factor.contribution === 0 ? "" : "",
+            "tabular-nums py-100 align-top text-right",
+            credit ? "text-success" : factor.contribution === 0 ? "" : "",
           )}
         >
           {signed(factor.contribution)}
         </Table.Cell>
       </Table.Row>
-      <Table.Row className="align-top hover:bg-transparent">
-        <Table.Cell
-          className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
-          colSpan={5}
-        >
-          <span className="block text-[12.5px] text-muted-foreground">{factor.rationale}</span>
-          <span className="mt-1.5 block">
+      <Table.Row className="align-top" isStatic>
+        <Table.Cell className="max-w-none whitespace-normal pb-150 pt-0 align-top" colSpan={5}>
+          <span className="block font-body-small text-subtle">{factor.rationale}</span>
+          <Box className="block" as="span" paddingBlockStart="space.075">
             <EvidenceIds ids={factor.evidence} />
-          </span>
+          </Box>
         </Table.Cell>
       </Table.Row>
     </>
@@ -281,29 +289,26 @@ function MissingFactorRows({ factorKey, caveats }: { factorKey: FactorKey; cavea
       : `The ${needle} could not be computed for this subject, so the ${fixed2(weight)} credit was never applied and nothing came off the inherent score.`);
   return (
     <>
-      <Table.Row className="border-0 align-top hover:bg-transparent">
-        <Table.Cell className="py-2 align-top">{label}</Table.Cell>
-        <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
+      <Table.Row className="border-0 align-top" isStatic>
+        <Table.Cell className="py-100 align-top">{label}</Table.Cell>
+        <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
           <Badge size="xsmall" tone="warning">
             Not computed
           </Badge>
         </Table.Cell>
-        <Table.Cell className="py-2 align-top text-right">
+        <Table.Cell className="py-100 align-top text-right">
           <Absent />
         </Table.Cell>
-        <Table.Cell className="tnum py-2 align-top text-right line-through">
+        <Table.Cell className="tabular-nums py-100 align-top text-right line-through">
           {fixed2(weight)}
         </Table.Cell>
-        <Table.Cell className="py-2 align-top text-right">
+        <Table.Cell className="py-100 align-top text-right">
           <Absent />
         </Table.Cell>
       </Table.Row>
-      <Table.Row className="align-top hover:bg-transparent">
-        <Table.Cell
-          className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
-          colSpan={5}
-        >
-          <span className="block text-[12.5px] text-muted-foreground">{caveat}</span>
+      <Table.Row className="align-top" isStatic>
+        <Table.Cell className="max-w-none whitespace-normal pb-150 pt-0 align-top" colSpan={5}>
+          <span className="block font-body-small text-subtle">{caveat}</span>
         </Table.Cell>
       </Table.Row>
     </>
@@ -334,81 +339,85 @@ export function ScoreCard({
   const driver = topDriver(score);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border">
-      <div className={cn("grid", comparison ? "sm:grid-cols-2" : "")}>
-        <div className="px-4 py-3">
-          <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-            Computed residual
-          </div>
-          <div className="mt-1 flex items-baseline gap-2.5">
-            <span className="tnum text-[30px] font-semibold leading-none tracking-[-0.02em]">
-              {score.score}
-            </span>
+    <div className="overflow-hidden rounded-large border border-default">
+      <Grid className={cn(comparison ? "sm:grid-cols-2" : "")}>
+        <Box paddingInline="space.200" paddingBlock="space.150">
+          <div className="font-heading-xxsmall uppercase text-subtle">Computed residual</div>
+          <Inline className="pt-050" space="space.100" alignBlock="baseline">
+            <span className="tabular-nums font-heading-large font-semibold">{score.score}</span>
             <BandChip band={score.band} />
-          </div>
-          <div className="tnum mt-2 text-[12.5px] text-muted-foreground">
+          </Inline>
+          <Box className="tabular-nums font-body-small text-subtle" paddingBlockStart="space.100">
             inherent {score.inherent}
             {credit === 0 ? " · no mitigation credit claimed" : ` − ${Math.abs(credit)} credit`}
             {reconciles && credit !== 0 ? ` = ${score.score}` : ""}
-          </div>
-          <div className="mt-0.5 text-[12px] text-muted-foreground">
+          </Box>
+          <Box className="font-body-small text-subtle" paddingBlockStart="space.025">
             {driver
               ? `Largest term: ${driver.label.toLowerCase()}, ${signed(driver.contribution)} on "${driver.input}".`
               : "No positive factor could be computed for this subject."}
-          </div>
+          </Box>
           {subject ? (
-            <div className="mt-1.5 truncate text-[12.5px] text-foreground" title={subject}>
+            <Box
+              className="truncate font-body-small text-default"
+              title={subject}
+              paddingBlockStart="space.075"
+            >
               {subject}
-            </div>
+            </Box>
           ) : null}
-        </div>
+        </Box>
 
         {comparison ? (
-          <div className="border-t border-border px-4 py-3 sm:border-l sm:border-t-0">
-            <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+          <Box
+            className="border-t border-default sm:border-l sm:border-t-0"
+            paddingInline="space.200"
+            paddingBlock="space.150"
+          >
+            <div className="font-heading-xxsmall uppercase text-subtle">
               Authored in the register
             </div>
-            <div className="mt-1 flex items-baseline gap-2.5">
-              <span className="tnum text-[30px] font-semibold leading-none tracking-[-0.02em] text-muted-foreground">
+            <Inline className="pt-050" space="space.100" alignBlock="baseline">
+              <span className="tabular-nums font-heading-large font-semibold text-subtle">
                 {comparison.authored.residual}
               </span>
-              <span className="text-[12.5px] text-muted-foreground">residual</span>
-            </div>
-            <div className="tnum mt-2 text-[12.5px] text-muted-foreground">
+              <span className="font-body-small text-subtle">residual</span>
+            </Inline>
+            <Box className="tabular-nums font-body-small text-subtle" paddingBlockStart="space.100">
               inherent {comparison.authored.inherent} · likelihood {comparison.authored.likelihood}{" "}
               × impact {comparison.authored.impact}
-            </div>
-            <div className="tnum mt-0.5 text-[12px] text-muted-foreground">
+            </Box>
+            <Box className="tabular-nums font-body-small text-subtle" paddingBlockStart="space.025">
               Computed sits {Math.abs(comparison.delta)} point
               {Math.abs(comparison.delta) === 1 ? "" : "s"}{" "}
               {comparison.delta === 0 ? "level with" : comparison.delta > 0 ? "above" : "below"} the
               authored residual.
-            </div>
-          </div>
+            </Box>
+          </Box>
         ) : null}
-      </div>
+      </Grid>
 
-      <div className="space-y-3 border-t border-border bg-legacy-subtle px-4 py-3">
+      <Stack className="border-t border-default bg-surface-sunken px-200 py-150" space="space.150">
         {comparison ? (
           <ProseBlock label="Authored against computed">{comparison.note}</ProseBlock>
         ) : null}
         <ProseBlock label="Leverage">{score.leverage}</ProseBlock>
         {score.caveats.length > 0 ? (
           <div>
-            <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-legacy-warning">
+            <div className="font-heading-xxsmall uppercase text-warning">
               {score.caveats.length} caveat{score.caveats.length === 1 ? "" : "s"} — the score is
               provisional
             </div>
-            <ul className="mt-1 space-y-1">
+            <Stack className="pt-050" as="ul" space="space.050">
               {score.caveats.map((c) => (
-                <li key={c} className="text-[12.5px] leading-relaxed text-foreground">
+                <li key={c} className="font-body-small text-default">
                   {c}
                 </li>
               ))}
-            </ul>
+            </Stack>
           </div>
         ) : null}
-      </div>
+      </Stack>
     </div>
   );
 }
@@ -420,16 +429,16 @@ export function BandDistribution({ byBand }: { byBand: { band: RiskBand; count: 
   const total = byBand.reduce((a, b) => a + b.count, 0);
   if (total === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="Nothing scored"
           description="No finding in this program resolved to a scorable record, so there is no distribution to show."
         />
-      </div>
+      </Box>
     );
   }
   return (
-    <div className="space-y-3 pt-4">
+    <Stack className="pt-200" space="space.150">
       <Progress.Stacked
         segments={byBand
           .filter((b) => b.count > 0)
@@ -441,19 +450,24 @@ export function BandDistribution({ byBand }: { byBand: { band: RiskBand; count: 
           }))}
         height={10}
       />
-      <div className="space-y-1.5">
+      <Stack space="space.075">
         {byBand.map((b) => (
-          <div key={b.band} className="grid grid-cols-[120px_44px_1fr_52px] items-center gap-3">
+          <Grid
+            key={b.band}
+            gap="space.150"
+            templateColumns="120px 44px 1fr 52px"
+            alignItems="center"
+          >
             <BandChip band={b.band} size="xsmall" />
-            <span className="tnum text-right text-[12.5px] font-medium">{b.count}</span>
+            <span className="tabular-nums text-right font-body-small font-medium">{b.count}</span>
             <Progress value={(b.count / total) * 100} tone={bandTone[b.band]} />
-            <span className="tnum text-right text-[12px] text-muted-foreground">
+            <span className="tabular-nums text-right font-body-small text-subtle">
               {Math.round((b.count / total) * 100)}%
             </span>
-          </div>
+          </Grid>
         ))}
-      </div>
-    </div>
+      </Stack>
+    </Stack>
   );
 }
 
@@ -489,12 +503,12 @@ export function TopRisksTable({
 }) {
   if (rows.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="Nothing to score"
           description="No finding or register risk in this program resolves to a record the model can read, so there is no residual to publish."
         />
-      </div>
+      </Box>
     );
   }
   return (
@@ -534,39 +548,41 @@ export function TopRisksTable({
               key={row.score.subject}
               className={cn(
                 onSelect && "cursor-pointer",
-                selected === row.score.subject && "bg-primary-soft/40",
+                selected === row.score.subject && "bg-selected",
               )}
               onClick={onSelect ? () => onSelect(row.score.subject) : undefined}
               title={row.excluded ? `${row.title} — not carried in the aggregate` : row.title}
             >
               <Table.Cell className="max-w-none">
-                <span className="flex items-center gap-1.5">
+                <Inline as="span" space="space.075" alignBlock="center">
                   <Id>{row.score.subject}</Id>
                   {row.score.caveats.length > 0 ? (
                     <Badge size="xsmall" tone="warning">
                       {row.score.caveats.length}
                     </Badge>
                   ) : null}
-                </span>
+                </Inline>
               </Table.Cell>
               <Table.Cell className={cn(row.excluded && "")}>{row.title}</Table.Cell>
               <Table.Cell title={row.context}>{row.context}</Table.Cell>
               <Table.Cell title={driver ? driver.rationale : undefined}>
                 {driver ? `${driver.label} ${signed(driver.contribution)}` : <Absent />}
               </Table.Cell>
-              <Table.Cell className="tnum text-right">{row.score.inherent}</Table.Cell>
+              <Table.Cell className="tabular-nums text-right">{row.score.inherent}</Table.Cell>
               {/* A zero credit is a RESULT — nobody claimed a compensating
                   control — so it prints as 0 rather than as an em dash, which
                   would read as "not computed". */}
-              <Table.Cell className={cn("tnum text-right", credit !== 0 ? "text-legacy-success" : "")}>
+              <Table.Cell
+                className={cn("tabular-nums text-right", credit !== 0 ? "text-success" : "")}
+              >
                 {signed(credit)}
               </Table.Cell>
               {showAuthored ? (
-                <Table.Cell className="tnum text-right">
+                <Table.Cell className="tabular-nums text-right">
                   {typeof row.authored === "number" ? row.authored : <Absent />}
                 </Table.Cell>
               ) : null}
-              <Table.Cell className="tnum text-right">{row.score.score}</Table.Cell>
+              <Table.Cell className="tabular-nums text-right">{row.score.score}</Table.Cell>
               <Table.Cell>
                 <BandChip band={row.score.band} size="xsmall" />
               </Table.Cell>
@@ -588,12 +604,12 @@ export function TopRisksTable({
 export function MoversTable({ movers }: { movers: RiskMover[] }) {
   if (movers.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="Nothing moved"
           description="No finding in this program carries a KEV listing or sits under an unacknowledged significant change, so no score differs from what it would have been on the evidence alone."
         />
-      </div>
+      </Box>
     );
   }
   return (
@@ -617,22 +633,22 @@ export function MoversTable({ movers }: { movers: RiskMover[] }) {
       <tbody>
         {movers.map((m) => (
           <Table.Row key={m.subject} className="align-top">
-            <Table.Cell className="py-2 align-top">
+            <Table.Cell className="py-100 align-top">
               <Id>{m.subject}</Id>
             </Table.Cell>
-            <Table.Cell className="tnum py-2 align-top text-right line-through">
+            <Table.Cell className="tabular-nums py-100 align-top text-right line-through">
               {m.from}
             </Table.Cell>
-            <Table.Cell className="tnum py-2 align-top text-right">{m.to}</Table.Cell>
+            <Table.Cell className="tabular-nums py-100 align-top text-right">{m.to}</Table.Cell>
             <Table.Cell
               className={cn(
-                "tnum py-2 align-top text-right",
-                m.to > m.from ? "text-legacy-warning" : "text-legacy-success",
+                "tabular-nums py-100 align-top text-right",
+                m.to > m.from ? "text-warning" : "text-success",
               )}
             >
               {signed(m.to - m.from)}
             </Table.Cell>
-            <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
+            <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
               {m.why}
             </Table.Cell>
           </Table.Row>
@@ -655,12 +671,12 @@ export type ComparisonRow = { comparison: AuthoredComparison; title: string; tre
 export function AuthoredComparisonTable({ rows }: { rows: ComparisonRow[] }) {
   if (rows.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="No register risk to compare"
           description="This program carries no register risk with a finding joined to it, so there is no authored residual to set the computed one beside."
         />
-      </div>
+      </Box>
     );
   }
   return (
@@ -713,35 +729,34 @@ function ComparisonRows({
   const agrees = Math.abs(comparison.delta) <= 5;
   return (
     <>
-      <Table.Row className="border-0 align-top hover:bg-transparent">
-        <Table.Cell className="py-2 align-top">
+      <Table.Row className="border-0 align-top" isStatic>
+        <Table.Cell className="py-100 align-top">
           <Id>{comparison.risk}</Id>
         </Table.Cell>
-        <Table.Cell className="py-2 align-top" title={title}>
+        <Table.Cell className="py-100 align-top" title={title}>
           {title}
         </Table.Cell>
-        <Table.Cell className="py-2 align-top">{treatment}</Table.Cell>
-        <Table.Cell className="tnum py-2 align-top text-right">
+        <Table.Cell className="py-100 align-top">{treatment}</Table.Cell>
+        <Table.Cell className="tabular-nums py-100 align-top text-right">
           {comparison.authored.inherent}
         </Table.Cell>
-        <Table.Cell className="tnum py-2 align-top text-right">
+        <Table.Cell className="tabular-nums py-100 align-top text-right">
           {comparison.authored.residual}
         </Table.Cell>
-        <Table.Cell className="tnum py-2 align-top text-right">
+        <Table.Cell className="tabular-nums py-100 align-top text-right">
           {comparison.computed.residual}
         </Table.Cell>
-        <Table.Cell className={cn("tnum py-2 align-top text-right", agrees ? "" : "text-legacy-warning")}>
+        <Table.Cell
+          className={cn("tabular-nums py-100 align-top text-right", agrees ? "" : "text-warning")}
+        >
           {signed(comparison.delta)}
         </Table.Cell>
-        <Table.Cell className="py-2 align-top">
+        <Table.Cell className="py-100 align-top">
           <BandChip band={comparison.computed.band} size="xsmall" />
         </Table.Cell>
       </Table.Row>
-      <Table.Row className="align-top hover:bg-transparent">
-        <Table.Cell
-          className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
-          colSpan={8}
-        >
+      <Table.Row className="align-top" isStatic>
+        <Table.Cell className="max-w-none whitespace-normal pb-150 pt-0 align-top" colSpan={8}>
           {comparison.note}
         </Table.Cell>
       </Table.Row>
@@ -806,8 +821,8 @@ export function FactorModel() {
   const positive = factorOrder.filter((k) => factorWeights[k] > 0);
   const positiveSum = positive.reduce((a, k) => a + factorWeights[k], 0);
   return (
-    <div className="space-y-3 pt-4">
-      <p className="text-[12.5px] leading-relaxed text-muted-foreground">
+    <Stack className="pt-200" space="space.150">
+      <p className="font-body-small text-subtle">
         The {positive.length} positive weights sum to {fixed2(positiveSum)}, so a subject that
         maximises every one of them scores {Math.round(positiveSum * 100)}. The mitigation credit
         sits outside that sum at {fixed2(factorWeights.mitigation)} and can take up to{" "}
@@ -833,26 +848,26 @@ export function FactorModel() {
         <tbody>
           {modelRows.map((row) => (
             <Table.Row key={row.key} className="align-top">
-              <Table.Cell className="py-2 align-top">{factorLabel[row.key]}</Table.Cell>
+              <Table.Cell className="py-100 align-top">{factorLabel[row.key]}</Table.Cell>
               <Table.Cell
                 className={cn(
-                  "tnum py-2 align-top text-right",
-                  factorWeights[row.key] < 0 ? "text-legacy-success" : "",
+                  "tabular-nums py-100 align-top text-right",
+                  factorWeights[row.key] < 0 ? "text-success" : "",
                 )}
               >
                 {fixed2(factorWeights[row.key])}
               </Table.Cell>
-              <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-relaxed">
+              <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
                 {row.reads}
               </Table.Cell>
-              <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-relaxed">
+              <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
                 {row.scale}
               </Table.Cell>
             </Table.Row>
           ))}
         </tbody>
       </Table>
-    </div>
+    </Stack>
   );
 }
 
@@ -890,7 +905,7 @@ export function BandLadder({
     },
   ];
   return (
-    <div className="pt-4">
+    <Box paddingBlockStart="space.200">
       <Table className="table-fixed">
         <colgroup>
           <col style={{ width: "120px" }} />
@@ -909,22 +924,22 @@ export function BandLadder({
         <tbody>
           {ladder.map((row) => (
             <Table.Row key={row.band} className="align-top">
-              <Table.Cell className="py-2 align-top">
+              <Table.Cell className="py-100 align-top">
                 <BandChip band={row.band} size="xsmall" />
               </Table.Cell>
-              <Table.Cell className="tnum py-2 align-top">{row.range}</Table.Cell>
+              <Table.Cell className="tabular-nums py-100 align-top">{row.range}</Table.Cell>
               {byBand ? (
-                <Table.Cell className="tnum py-2 align-top text-right">
+                <Table.Cell className="tabular-nums py-100 align-top text-right">
                   {counts.get(row.band) ?? 0}
                 </Table.Cell>
               ) : null}
-              <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-relaxed">
+              <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
                 {row.means}
               </Table.Cell>
             </Table.Row>
           ))}
         </tbody>
       </Table>
-    </div>
+    </Box>
   );
 }

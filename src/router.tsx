@@ -1,8 +1,8 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 
-import { PageSkeleton } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+import { PageSkeleton } from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 
 import { routeTree } from "./routeTree.gen";
 

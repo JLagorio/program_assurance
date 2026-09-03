@@ -3,16 +3,21 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   Badge,
   Button,
+  Card,
   Dot,
   FilterChip,
+  Grid,
   IconButton,
-  KeyValue,
-  Progress,
-  Table,
   Id,
-} from "@/ds/primitives";
-import { Card, IndexPage, PageHeader } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+  IndexPage,
+  Inline,
+  KeyValue,
+  PageHeader,
+  Progress,
+  Stack,
+  Table,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { MoreHorizontal } from "lucide-react";
 
 export const Route = createFileRoute("/components")({
@@ -48,7 +53,9 @@ function CardSection({
   return (
     <Card>
       <Card.Header title={title} description={description} />
-      <div className="flex flex-wrap items-center gap-3 px-4 py-4">{children}</div>
+      <Inline className="px-200 py-200" space="space.150" alignBlock="center" shouldWrap>
+        {children}
+      </Inline>
     </Card>
   );
 }
@@ -65,7 +72,10 @@ function Components() {
           />
         }
       >
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <Grid
+          gap="space.250"
+          templateColumns={{ base: "repeat(1, minmax(0, 1fr))", xl: "repeat(2, minmax(0, 1fr))" }}
+        >
           <CardSection
             title="Buttons"
             description="Two weights of emphasis and a text link. Nothing else."
@@ -76,7 +86,7 @@ function Components() {
             <Button variant="danger">Delete</Button>
             <Button variant="link">View report</Button>
             <IconButton label="More">
-              <MoreHorizontal className="size-4" />
+              <MoreHorizontal className="size-icon-medium" />
             </IconButton>
           </CardSection>
 
@@ -86,9 +96,15 @@ function Components() {
             <Badge tone="danger">Failing</Badge>
             <Badge tone="information">Automated</Badge>
             <Badge tone="neutral">Accepted</Badge>
-            <span className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
+            <Inline
+              className="font-body text-subtle"
+              as="span"
+              display="inline-flex"
+              space="space.075"
+              alignBlock="center"
+            >
               <Dot tone="success" /> Live check
-            </span>
+            </Inline>
           </CardSection>
 
           <CardSection title="Filters" description="Dashed chips until a value is applied.">
@@ -101,21 +117,23 @@ function Components() {
             title="Meters & numerals"
             description="Tabular figures so columns align on scan."
           >
-            <div className="w-full space-y-3">
+            <Stack className="w-full" space="space.150">
               {[
                 { label: "SOC 2", value: 94, tone: "success" as const },
                 { label: "ISO 27001", value: 81, tone: "information" as const },
                 { label: "HIPAA", value: 62, tone: "warning" as const },
               ].map((row) => (
-                <div key={row.label} className="flex items-center gap-3">
-                  <span className="w-24 text-[13px] text-muted-foreground">{row.label}</span>
+                <Inline key={row.label} space="space.150" alignBlock="center">
+                  <span className="font-body text-subtle w-1000">{row.label}</span>
                   <Progress value={row.value} tone={row.tone} />
-                  <span className="tnum w-10 text-right text-[13px] font-medium">{row.value}%</span>
-                </div>
+                  <span className="tabular-nums text-right font-body font-medium w-500">
+                    {row.value}%
+                  </span>
+                </Inline>
               ))}
-            </div>
+            </Stack>
           </CardSection>
-        </div>
+        </Grid>
 
         <Card>
           <Card.Header
@@ -125,10 +143,12 @@ function Components() {
           <Table>
             <thead>
               <tr>
-                <Table.Header className="w-[96px]">ID</Table.Header>
+                <Table.Header width={96}>ID</Table.Header>
                 <Table.Header>Item</Table.Header>
-                <Table.Header className="w-[120px]">Owner</Table.Header>
-                <Table.Header className="w-[104px] text-right">Status</Table.Header>
+                <Table.Header width={120}>Owner</Table.Header>
+                <Table.Header className="text-right" width={104}>
+                  Status
+                </Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -170,9 +190,9 @@ function Components() {
           </Table>
         </Card>
 
-        <Card className="max-w-md p-4">
-          <div className="text-[13px] font-semibold">Detail rail</div>
-          <dl className="mt-2 divide-y divide-border/70">
+        <Card className="max-w-layout-measure p-200">
+          <div className="font-body font-semibold">Detail rail</div>
+          <dl className="pt-100 divide-y">
             <KeyValue label="Risk ID">
               <Id>RSK-2419</Id>
             </KeyValue>

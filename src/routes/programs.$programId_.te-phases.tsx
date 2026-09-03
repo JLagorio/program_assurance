@@ -1,10 +1,24 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 
-import { Badge, KeyValue, NativeSelect, Table, Toolbar, Id, Tabs } from "@/ds/primitives";
-import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Box,
+  Empty,
+  Grid,
+  Id,
+  Inline,
+  Inspector,
+  KeyValue,
+  NativeSelect,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Table,
+  Tabs,
+  Toolbar,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import {
   AttackChain,
   AttackSurfaceSummary,
@@ -341,22 +355,22 @@ function ProgramTePhases() {
             <Link
               to="/campaigns/$campaignId"
               params={{ campaignId: selectedScenario.event }}
-              className="text-primary hover:underline"
+              className="text-brand hover:underline"
             >
-              <Id className="text-primary">{selectedScenario.event}</Id>
+              <Id className="text-brand">{selectedScenario.event}</Id>
             </Link>
           ) : (
             "—"
           )}
         </KeyValue>
         <KeyValue label="Techniques">
-          <span className="tnum">{selectedScenario.chain.length}</span>
+          <span className="tabular-nums">{selectedScenario.chain.length}</span>
         </KeyValue>
         <KeyValue label="Path">
-          <span className="tnum">{selectedScenario.path.length} nodes</span>
+          <span className="tabular-nums">{selectedScenario.path.length} nodes</span>
         </KeyValue>
         <KeyValue label="Effects">
-          <span className="tnum">{scenarioEffects.length}</span>
+          <span className="tabular-nums">{scenarioEffects.length}</span>
         </KeyValue>
       </Inspector.Group>
     ) : null;
@@ -366,8 +380,7 @@ function ProgramTePhases() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/programs/$programId"
-            backParams={{ programId: program.id }}
+            back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
             id={program.id}
             title={`${program.name} — cyber test & evaluation`}
             meta={`${phases.length} phases · ${programCriteria.length} gate criteria · ${scenarios.length} threat scenarios · ${effects.length} mission effects`}
@@ -395,14 +408,14 @@ function ProgramTePhases() {
                 <Link
                   to="/programs/$programId/composition"
                   params={{ programId: program.id }}
-                  className="text-[12.5px] text-primary hover:underline"
+                  className="font-body-small text-brand hover:underline"
                 >
                   Composition
                 </Link>
                 <Link
                   to="/programs/$programId/baseline"
                   params={{ programId: program.id }}
-                  className="text-[12.5px] text-primary hover:underline"
+                  className="font-body-small text-brand hover:underline"
                 >
                   Baseline
                 </Link>
@@ -411,19 +424,18 @@ function ProgramTePhases() {
           />
         }
         tabs={
-          <Tabs
-            items={teTabs.map((key) => ({
-              key,
-              label: key,
-              active: tab === key,
-              onSelect: () => go(key),
-              trailing: counts[key] ? (
-                <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                  {counts[key]}
-                </span>
-              ) : null,
-            }))}
-          />
+          <Tabs>
+            {teTabs.map((key) => (
+              <Tabs.Tab
+                key={key}
+                isSelected={tab === key}
+                onClick={() => go(key)}
+                count={counts[key] || null}
+              >
+                {key}
+              </Tabs.Tab>
+            ))}
+          </Tabs>
         }
         showRail={railBody !== null}
         rail={railBody}
@@ -434,7 +446,7 @@ function ProgramTePhases() {
               title="The six-phase model"
               description="The DoD Cybersecurity Test and Evaluation Guidebook defines six phases, not three. All six are carried here so the model is not wrong about its own shape, and each one names the lifecycle gate it informs. Selecting a phase opens its record in the rail; its gate is one click away."
               action={
-                <span className="tnum text-[12px] text-muted-foreground">
+                <span className="tabular-nums font-body-small text-subtle">
                   {phases.filter((p) => p.state === "Complete").length} complete ·{" "}
                   {phases.filter((p) => p.kind === "Developmental").length} developmental ·{" "}
                   {phases.filter((p) => p.kind === "Operational").length} operational
@@ -442,12 +454,12 @@ function ProgramTePhases() {
               }
             >
               {phases.length === 0 ? (
-                <div className="pt-4">
+                <Box paddingBlockStart="space.200">
                   <Empty
                     title="No cyber T&E phases recorded"
                     description={`${program.id} carries no phase record, so there is no gate to judge and no threat portrayal to execute against.`}
                   />
-                </div>
+                </Box>
               ) : (
                 <PhaseTrack
                   phases={phases}
@@ -513,9 +525,9 @@ function ProgramTePhases() {
                                   <Link
                                     to="/campaigns/$campaignId"
                                     params={{ campaignId: id }}
-                                    className="text-primary hover:underline"
+                                    className="text-brand hover:underline"
                                   >
-                                    <Id className="text-primary">{id}</Id>
+                                    <Id className="text-brand">{id}</Id>
                                   </Link>
                                 </Table.Cell>
                                 <Table.Cell className="truncate" title={campaign?.scope ?? ""}>
@@ -530,7 +542,7 @@ function ProgramTePhases() {
                                       {campaign.state}
                                     </Badge>
                                   ) : (
-                                    <span className="text-muted-foreground">—</span>
+                                    <span className="text-subtle">—</span>
                                   )}
                                 </Table.Cell>
                               </Table.Row>
@@ -550,12 +562,12 @@ function ProgramTePhases() {
               <>
                 <Toolbar
                   actions={
-                    <span className="tnum text-[12px] text-muted-foreground">
+                    <span className="tabular-nums font-body-small text-subtle">
                       {derivedCount} derived · {attestedCount} attested · {unsignedCount} unsigned
                     </span>
                   }
                 >
-                  <span className="text-[12px] text-muted-foreground">Phase</span>
+                  <span className="font-body-small text-subtle">Phase</span>
                   <NativeSelect
                     value={selectedPhase.id}
                     onChange={(e) => {
@@ -563,7 +575,8 @@ function ProgramTePhases() {
                       if (isPhaseId(next)) selectPhase(next);
                     }}
                     aria-label="Phase"
-                    className="h-7 w-[560px] text-13"
+                    className="h-control-small font-body"
+                    style={{ width: 560 }}
                   >
                     {phases.map((p) => {
                       const r = readiness.get(p.id);
@@ -583,7 +596,7 @@ function ProgramTePhases() {
                   title={`${selectedPhase.id} — ${selectedPhase.name}`}
                   description={selectedPhase.purpose}
                   action={
-                    <span className="text-[12px] text-muted-foreground">
+                    <span className="font-body-small text-subtle">
                       Informs {selectedPhase.gate}
                     </span>
                   }
@@ -613,29 +626,41 @@ function ProgramTePhases() {
                   title="Why two kinds of criterion"
                   description="A phase gate that is a row of checkboxes proves nothing: it records that somebody ticked, not that anything is true."
                 >
-                  <div className="grid gap-3 pt-4 sm:grid-cols-2">
-                    <div className="rounded-lg border border-primary/25 bg-primary-soft/30 px-4 py-3">
-                      <div className="flex items-baseline gap-2">
-                        <span className="tnum text-[20px] font-semibold leading-none text-primary">
+                  <Grid
+                    className="pt-200"
+                    gap="space.150"
+                    templateColumns={{ sm: "repeat(2, minmax(0, 1fr))" }}
+                  >
+                    <Box
+                      className="rounded-large border border-brand bg-selected"
+                      paddingInline="space.200"
+                      paddingBlock="space.150"
+                    >
+                      <Inline space="space.100" alignBlock="baseline">
+                        <span className="tabular-nums font-heading-small font-semibold text-brand">
                           {derivedCount}
                         </span>
-                        <span className="text-[12.5px] font-medium">derived</span>
-                      </div>
-                      <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
+                        <span className="font-body-small font-medium">derived</span>
+                      </Inline>
+                      <p className="pt-075 font-body-small text-subtle">
                         Computed from records the platform already holds, and re-computed every time
                         anything underneath them moves. Each one prints the sentence it produced,
                         with the real numbers in it and the ids it read, so a reader can go and
                         disagree with the arithmetic rather than with the verdict.
                       </p>
-                    </div>
-                    <div className="rounded-lg border border-border bg-legacy-subtle px-4 py-3">
-                      <div className="flex items-baseline gap-2">
-                        <span className="tnum text-[20px] font-semibold leading-none">
+                    </Box>
+                    <Box
+                      className="rounded-large border border-default bg-surface-sunken"
+                      paddingInline="space.200"
+                      paddingBlock="space.150"
+                    >
+                      <Inline space="space.100" alignBlock="baseline">
+                        <span className="tabular-nums font-heading-small font-semibold">
                           {attestedCount}
                         </span>
-                        <span className="text-[12.5px] font-medium">attested</span>
-                      </div>
-                      <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
+                        <span className="font-body-small font-medium">attested</span>
+                      </Inline>
+                      <p className="pt-075 font-body-small text-subtle">
                         A signed test plan, an approved threat portrayal, an ROE agreement, an
                         operational test agency concurrence. No selector can judge these, so the
                         platform does not pretend to — it records who signed and when, and{" "}
@@ -643,36 +668,36 @@ function ProgramTePhases() {
                           ? "every one of them is on file."
                           : `${unsignedCount} of them ${unsignedCount === 1 ? "has" : "have"} no signature at all, which is rendered as the gap it is rather than as a pending computation.`}
                       </p>
-                    </div>
-                  </div>
+                    </Box>
+                  </Grid>
                 </Section>
               </>
             ) : (
-              <div className="pt-4">
+              <Box paddingBlockStart="space.200">
                 <Empty
                   title="No phase to judge"
                   description={`${program.id} carries no cyber T&E phase record, so there is no entry or exit criterion to evaluate.`}
                 />
-              </div>
+              </Box>
             )}
           </>
         ) : null}
 
         {tab === "Threat scenarios" ? (
           scenarios.length === 0 ? (
-            <div className="pt-4">
+            <Box paddingBlockStart="space.200">
               <Empty
                 title="No threat scenario written"
                 description={`${program.id} carries no threat portrayal, so there is no attack surface characterised and nothing for a red team to execute against.`}
               />
-            </div>
+            </Box>
           ) : (
             <>
               <Section
                 title="Attack surface exercised"
                 description="Every technique below is a real ATT&CK id with its published name and tactic, and every scenario path is walked against the actual composition graph. A scenario whose path is not traversable is the same class of defect as a fabricated technique id, so the walk is printed rather than asserted."
                 action={
-                  <span className="tnum text-[12px] text-muted-foreground">
+                  <span className="tabular-nums font-body-small text-subtle">
                     {brokenPaths === 0
                       ? "Every path traversable"
                       : `${brokenPaths} unwalkable path${brokenPaths === 1 ? "" : "s"}`}
@@ -686,12 +711,12 @@ function ProgramTePhases() {
                 title="Threat scenarios"
                 description="Tier is a property of the portrayal, not a verdict: a DoD Cyber Table Top tier VI adversary is a different assumption about who is attacking, not worse news than a tier II one. Cooperative CVPA scenarios and adversarial AA scenarios sit in the same table because they cover the same surface — the phase column says which regime authored each."
                 action={
-                  <span className="tnum text-[12px] text-muted-foreground">
+                  <span className="tabular-nums font-body-small text-subtle">
                     {coverage.exercised} executed of {scenarios.length}
                   </span>
                 }
               >
-                <div className="pt-2">
+                <Box paddingBlockStart="space.100">
                   <ScenarioTable
                     scenarios={scenarios}
                     selected={selectedScenario?.id ?? null}
@@ -699,7 +724,7 @@ function ProgramTePhases() {
                     phaseShort={phaseShort}
                     showPhase
                   />
-                </div>
+                </Box>
               </Section>
 
               {selectedScenario ? (
@@ -714,20 +739,20 @@ function ProgramTePhases() {
                       // composition tree opens on the assumed foothold rather
                       // than on the system root.
                       search={selectedScenario.path[0] ? { node: selectedScenario.path[0] } : {}}
-                      className="text-[12.5px] text-primary hover:underline"
+                      className="font-body-small text-brand hover:underline"
                     >
                       Open in composition
                     </Link>
                   }
                 >
-                  <div className="pt-4">
+                  <Box paddingBlockStart="space.200">
                     <AttackChain
                       scenario={selectedScenario}
                       path={scenarioPath}
                       hops={scenarioHops}
                       effects={scenarioEffects}
                     />
-                  </div>
+                  </Box>
                 </Section>
               ) : null}
             </>
@@ -736,28 +761,36 @@ function ProgramTePhases() {
 
         {tab === "Mission effects" ? (
           effects.length === 0 ? (
-            <div className="pt-4">
+            <Box paddingBlockStart="space.200">
               <Empty
                 title="No mission effect recorded"
                 description={`${program.id} has executed no scenario against a mission function, so there is nothing to score. An adversarial assessment with no recorded effect has not been run — it is not a clean result.`}
               />
-            </div>
+            </Box>
           ) : (
             <>
               <Section
                 title="What the adversary did to the mission"
                 description="An adversarial assessment is scored in mission effect, not in findings count — an AA that reports twelve CAT II findings and no mission effect has missed its own point. Each row records what an operator would have seen, how long it lasted and what they could do about it."
                 action={
-                  <span className="tnum text-[12px] text-muted-foreground">
+                  <span className="tabular-nums font-body-small text-subtle">
                     {effects.filter((e) => e.effect === "No effect").length} of {effects.length}{" "}
                     with no effect
                   </span>
                 }
               >
-                <div className="grid gap-3 pt-4 sm:grid-cols-3">
-                  <div className="rounded-lg border border-legacy-danger/30 bg-danger-soft/40 px-4 py-3">
-                    <div className="flex items-baseline gap-2">
-                      <span className="tnum text-[20px] font-semibold leading-none text-legacy-danger">
+                <Grid
+                  className="pt-200"
+                  gap="space.150"
+                  templateColumns={{ sm: "repeat(3, minmax(0, 1fr))" }}
+                >
+                  <Box
+                    className="rounded-large border border-danger-subtle bg-danger"
+                    paddingInline="space.200"
+                    paddingBlock="space.150"
+                  >
+                    <Inline space="space.100" alignBlock="baseline">
+                      <span className="tabular-nums font-heading-small font-semibold text-danger">
                         {
                           effects.filter(
                             (e) =>
@@ -767,53 +800,61 @@ function ProgramTePhases() {
                           ).length
                         }
                       </span>
-                      <span className="text-[12.5px] font-medium">mission denied or taken</span>
-                    </div>
-                    <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
+                      <span className="font-body-small font-medium">mission denied or taken</span>
+                    </Inline>
+                    <p className="pt-075 font-body-small text-subtle">
                       The adversary stopped the mission, destroyed what it runs on, or took the data
                       it runs on. These are the results a findings count cannot express.
                     </p>
-                  </div>
-                  <div className="rounded-lg border border-legacy-warning/30 bg-warning-soft/40 px-4 py-3">
-                    <div className="flex items-baseline gap-2">
-                      <span className="tnum text-[20px] font-semibold leading-none text-legacy-warning">
+                  </Box>
+                  <Box
+                    className="rounded-large border border-warning-subtle bg-warning"
+                    paddingInline="space.200"
+                    paddingBlock="space.150"
+                  >
+                    <Inline space="space.100" alignBlock="baseline">
+                      <span className="tabular-nums font-heading-small font-semibold text-warning">
                         {
                           effects.filter(
                             (e) => e.effect === "Degraded" || e.effect === "Manipulated",
                           ).length
                         }
                       </span>
-                      <span className="text-[12.5px] font-medium">degraded or manipulated</span>
-                    </div>
-                    <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
+                      <span className="font-body-small font-medium">degraded or manipulated</span>
+                    </Inline>
+                    <p className="pt-075 font-body-small text-subtle">
                       The mission continued, worse or wrong. A degraded effect with a workaround is
                       still an effect: the workaround is manual, and the page names it so the cost
                       is visible.
                     </p>
-                  </div>
-                  <div className="rounded-lg border border-legacy-success/30 bg-success-soft/40 px-4 py-3">
-                    <div className="flex items-baseline gap-2">
-                      <span className="tnum text-[20px] font-semibold leading-none text-legacy-success">
+                  </Box>
+                  <Box
+                    className="rounded-large border border-success-subtle bg-success"
+                    paddingInline="space.200"
+                    paddingBlock="space.150"
+                  >
+                    <Inline space="space.100" alignBlock="baseline">
+                      <span className="tabular-nums font-heading-small font-semibold text-success">
                         {effects.filter((e) => e.effect === "No effect").length}
                       </span>
-                      <span className="text-[12.5px] font-medium">no effect</span>
-                    </div>
-                    <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
+                      <span className="font-body-small font-medium">no effect</span>
+                    </Inline>
+                    <p className="pt-075 font-body-small text-subtle">
                       Executed, and the objective was not achieved — the control held and refused
                       the adversary. That is a result, and a product that records only the successes
                       is lying about what the assessment found.
                     </p>
-                  </div>
-                </div>
+                  </Box>
+                </Grid>
               </Section>
 
               <Section
                 title="Confirmed effects"
                 description="Each effect names the run or event that confirmed it, whether it was reproduced on a second attempt, and the finding it raised. An effect with no finding and no workaround is what blocks the adversarial assessment's exit criterion."
               >
-                <div className="pt-2">
+                <Box paddingBlockStart="space.100">
                   <MissionEffectTable effects={effects} scenarioName={scenarioName} />
-                </div>
+                </Box>
               </Section>
 
               <Section
@@ -860,18 +901,18 @@ function PhaseRail({
         <KeyValue label="Lead">{phase.lead}</KeyValue>
         <KeyValue label="Informs">{phase.gate}</KeyValue>
         <KeyValue label="Scenarios">
-          <span className="tnum">{scenarioCount}</span>
+          <span className="tabular-nums">{scenarioCount}</span>
         </KeyValue>
       </Inspector.Group>
 
       <Inspector.Group title="Gate">
         <KeyValue label="Entry">
-          <span className="tnum">
+          <span className="tabular-nums">
             {readiness ? `${readiness.entryMet}/${readiness.entryTotal}` : "—"}
           </span>
         </KeyValue>
         <KeyValue label="Exit">
-          <span className="tnum">
+          <span className="tabular-nums">
             {readiness ? `${readiness.exitMet}/${readiness.exitTotal}` : "—"}
           </span>
         </KeyValue>
@@ -885,29 +926,29 @@ function PhaseRail({
             {readiness?.canExit ? "Yes" : "No"}
           </Badge>
         </KeyValue>
-        <div className="pt-1.5">
+        <Box paddingBlockStart="space.075">
           <button
             type="button"
             onClick={onOpenGate}
-            className="text-[12.5px] text-primary hover:underline"
+            className="font-body-small text-brand hover:underline"
           >
             Read the criteria
           </button>
-        </div>
+        </Box>
       </Inspector.Group>
 
       <Inspector.Group title="Campaigns">
         {phase.campaigns.length === 0 ? (
-          <div className="pt-0.5 text-[12.5px] leading-relaxed text-muted-foreground">
+          <Box className="font-body-small text-subtle" paddingBlockStart="space.025">
             None. This phase produces the record later phases are judged against, not an execution.
-          </div>
+          </Box>
         ) : (
           phase.campaigns.map((id) => (
             <KeyValue key={id} label={id}>
               <Link
                 to="/campaigns/$campaignId"
                 params={{ campaignId: id }}
-                className="text-primary hover:underline"
+                className="text-brand hover:underline"
               >
                 {campaignName(id)}
               </Link>
@@ -917,9 +958,9 @@ function PhaseRail({
       </Inspector.Group>
 
       <Inspector.Group title="Purpose">
-        <div className="pt-0.5 text-[12.5px] leading-relaxed text-muted-foreground">
+        <Box className="font-body-small text-subtle" paddingBlockStart="space.025">
           {phase.purpose}
-        </div>
+        </Box>
       </Inspector.Group>
     </>
   );
@@ -969,7 +1010,7 @@ function MissionFunctionTable({
 
   if (rows.length === 0) {
     return (
-      <p className="pt-4 text-[12.5px] text-muted-foreground">
+      <p className="pt-200 font-body-small text-subtle">
         No mission function has been exercised yet.
       </p>
     );
@@ -1012,9 +1053,9 @@ function MissionFunctionTable({
                 {r.worst}
               </Badge>
             </Table.Cell>
-            <Table.Cell className="tnum text-right">{r.count}</Table.Cell>
-            <Table.Cell className="tnum text-right">{r.scenarios.size}</Table.Cell>
-            <Table.Cell className={r.noWorkaround > 0 ? "text-legacy-danger" : undefined}>
+            <Table.Cell className="tabular-nums text-right">{r.count}</Table.Cell>
+            <Table.Cell className="tabular-nums text-right">{r.scenarios.size}</Table.Cell>
+            <Table.Cell className={r.noWorkaround > 0 ? "text-danger" : undefined}>
               {r.noWorkaround > 0
                 ? `${r.noWorkaround} with none identified`
                 : r.worst === "No effect"

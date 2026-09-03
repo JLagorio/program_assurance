@@ -11,10 +11,18 @@ import {
   carriesObligation,
   obligationUnstated,
 } from "@/components/app/inheritance-resolution";
-import { Badge, KeyValue, Id, Tabs } from "@/ds/primitives";
-import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Box,
+  Id,
+  Inspector,
+  KeyValue,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Tabs,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { programs } from "@/lib/grc-data";
 import {
   inheritanceConflicts,
@@ -130,8 +138,7 @@ function ProgramInheritance() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/programs/$programId"
-            backParams={{ programId: program.id }}
+            back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
             id={program.id}
             title={`${program.name} — inheritance resolution`}
             meta={`${program.system} · ${program.environment} · impact ${program.impact} · ${plural(rows.length, "inherited control")} from ${plural(providerCount, "provider")}`}
@@ -146,7 +153,7 @@ function ProgramInheritance() {
                 <Link
                   to="/programs/$programId"
                   params={{ programId: program.id }}
-                  className="text-[12.5px] text-primary hover:underline"
+                  className="font-body-small text-brand hover:underline"
                 >
                   Program record
                 </Link>
@@ -155,19 +162,18 @@ function ProgramInheritance() {
           />
         }
         tabs={
-          <Tabs
-            items={inheritanceTabs.map((key) => ({
-              key,
-              label: key,
-              active: tab === key,
-              onSelect: () => go(key),
-              trailing: counts[key] ? (
-                <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                  {counts[key]}
-                </span>
-              ) : null,
-            }))}
-          />
+          <Tabs>
+            {inheritanceTabs.map((key) => (
+              <Tabs.Tab
+                key={key}
+                isSelected={tab === key}
+                onClick={() => go(key)}
+                count={counts[key] || null}
+              >
+                {key}
+              </Tabs.Tab>
+            ))}
+          </Tabs>
         }
         showRail={tab === "Resolved" && selected !== null}
         rail={
@@ -179,36 +185,36 @@ function ProgramInheritance() {
                   <Link
                     to="/library/components/$componentKey"
                     params={{ componentKey: selected.component.key }}
-                    className="text-primary hover:underline"
+                    className="text-brand hover:underline"
                   >
-                    <Id className="text-primary">{selected.component.key}</Id>
+                    <Id className="text-brand">{selected.component.key}</Id>
                   </Link>
                 </KeyValue>
                 <KeyValue label="Control">
                   <Link
                     to="/programs/$programId/controls/$controlId"
                     params={{ programId: program.id, controlId: selected.control }}
-                    className="text-primary hover:underline"
+                    className="text-brand hover:underline"
                   >
-                    <Id className="text-primary">{selected.control}</Id>
+                    <Id className="text-brand">{selected.control}</Id>
                   </Link>
                 </KeyValue>
                 <KeyValue label="Matrix">
                   <Link
                     to="/programs/$programId/sctm"
                     params={{ programId: program.id }}
-                    className="text-primary hover:underline"
+                    className="text-brand hover:underline"
                   >
-                    <span className="text-[12.5px]">Open the SCTM</span>
+                    <span className="font-body-small">Open the SCTM</span>
                   </Link>
                 </KeyValue>
                 <KeyValue label="Program">
                   <Link
                     to="/programs/$programId"
                     params={{ programId: program.id }}
-                    className="text-primary hover:underline"
+                    className="text-brand hover:underline"
                   >
-                    <Id className="text-primary">{program.id}</Id>
+                    <Id className="text-brand">{program.id}</Id>
                   </Link>
                 </KeyValue>
               </Inspector.Group>
@@ -239,9 +245,9 @@ function ProgramInheritance() {
             title="Why this provider"
             description="Two components offered the same control. The nearer provider on the eMASS common-control-provider ladder wins, because that is who the AO holds accountable — but the candidate that lost is kept on the record with the reason, not dropped."
           >
-            <div className="pt-1">
+            <Box paddingBlockStart="space.050">
               <ConflictList items={conflicts} nameOf={nameOf} />
-            </div>
+            </Box>
           </Section>
         ) : null}
 
@@ -258,9 +264,9 @@ function ProgramInheritance() {
                   }`
             }
           >
-            <div className="pt-1">
+            <Box paddingBlockStart="space.050">
               <ObligationList rows={obligations} />
-            </div>
+            </Box>
           </Section>
         ) : null}
 

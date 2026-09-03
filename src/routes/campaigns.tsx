@@ -2,11 +2,25 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 
-import { Badge, Button, KeyValue, Table, Id, Indicator, Tabs, ToggleGroup } from "@/ds/primitives";
-import { IndexPage, PageHeader, PreviewRail } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
+import {
+  Badge,
+  Box,
+  Button,
+  Id,
+  IndexPage,
+  Indicator,
+  Inline,
+  Inspector,
+  KeyValue,
+  PageHeader,
+  PreviewRail,
+  Stack,
+  Table,
+  Tabs,
+  ToggleGroup,
+} from "@ledger/design-system";
 import { PreviewSplit } from "@/components/app/preview-split";
-import { Shell } from "@/ds/shell";
+import { Shell } from "@/components/app/shell";
 import {
   campaignById,
   campaignCoverage,
@@ -84,42 +98,41 @@ function CampaignsPage() {
             description="A campaign is scoped work opened against a trigger. Its events prove objectives, and every objective names the CCIs it covers — that is the only place T&E and RMF meet."
             actions={
               <Button variant="primary">
-                <Plus className="size-3.5" /> Open campaign
+                <Plus className="size-icon-small" /> Open campaign
               </Button>
             }
           />
         }
       >
-        <Tabs
-          items={tabs.map((t) => ({
-            key: t,
-            label: t,
-            active: tab === t,
-            onSelect: () => {
-              setTab(t);
-              setSelected(null);
-            },
-            trailing: (
-              <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                {counts[t]}
-              </span>
-            ),
-          }))}
-        />
+        <Tabs>
+          {tabs.map((t) => (
+            <Tabs.Tab
+              key={t}
+              isSelected={tab === t}
+              onClick={() => {
+                setTab(t);
+                setSelected(null);
+              }}
+              count={counts[t]}
+            >
+              {t}
+            </Tabs.Tab>
+          ))}
+        </Tabs>
 
         {tab === "Events" ? (
-          <div className="flex flex-wrap items-center gap-1 pt-1">
+          <Inline className="pt-050" space="space.050" alignBlock="center" shouldWrap>
             <ToggleGroup
               aria-label="Campaign"
               value={campaign}
               onChange={setCampaign}
               items={["All", ...campaigns.map((c) => c.id)].map((c) => ({ value: c, label: c }))}
             />
-          </div>
+          </Inline>
         ) : null}
 
         <PreviewSplit open={selected !== null}>
-          <div className="min-w-0 lg:pr-6">
+          <div className="min-w-0 lg:pe-300">
             {tab === "Campaigns" ? (
               <Table className="table-fixed">
                 <colgroup>
@@ -164,16 +177,16 @@ function CampaignsPage() {
                         <Table.Cell>{c.gate}</Table.Cell>
                         <Table.Cell className="truncate">{c.state}</Table.Cell>
                         <Table.Cell className="truncate">{c.lead}</Table.Cell>
-                        <Table.Cell className="tnum text-right">
+                        <Table.Cell className="tabular-nums text-right">
                           {cov.run}/{cov.objectives}
                         </Table.Cell>
-                        <Table.Cell className="tnum text-right">{cov.findings}</Table.Cell>
+                        <Table.Cell className="tabular-nums text-right">{cov.findings}</Table.Cell>
                         <Table.Cell className="text-right">
                           <Link
                             to="/campaigns/$campaignId"
                             params={{ campaignId: c.id }}
                             onClick={(e) => e.stopPropagation()}
-                            className="text-[12.5px] text-primary hover:underline"
+                            className="font-body-small text-brand hover:underline"
                           >
                             Open →
                           </Link>
@@ -213,7 +226,9 @@ function CampaignsPage() {
                       key={e.id}
                       onClick={() => setSelected(e)}
                       className={
-                        selected?.id === e.id ? "cursor-pointer bg-legacy-subtle" : "cursor-pointer"
+                        selected?.id === e.id
+                          ? "cursor-pointer bg-surface-sunken"
+                          : "cursor-pointer"
                       }
                     >
                       <Table.Id id={e.id} />
@@ -223,10 +238,12 @@ function CampaignsPage() {
                         <Badge tone={statusTone(e.state)}>{e.state}</Badge>
                       </Table.Cell>
                       <Table.Cell className="truncate">{e.window}</Table.Cell>
-                      <Table.Cell className="tnum text-right">
+                      <Table.Cell className="tabular-nums text-right">
                         {ccisForEvent(e.id).length}
                       </Table.Cell>
-                      <Table.Cell className="tnum text-right">{e.findings.length}</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">
+                        {e.findings.length}
+                      </Table.Cell>
                     </Table.Row>
                   ))}
                 </tbody>
@@ -277,11 +294,9 @@ function CampaignsPage() {
 
           {selected ? (
             <PreviewRail id={selected.id} title={selected.name} onClose={() => setSelected(null)}>
-              <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-                {selected.notes}
-              </p>
+              <p className="font-body-small text-subtle">{selected.notes}</p>
 
-              <div className="mt-3">
+              <Box paddingBlockStart="space.150">
                 <Inspector.Group title="Execution">
                   <KeyValue label="Campaign">
                     <Id>{selected.campaign}</Id>
@@ -298,40 +313,44 @@ function CampaignsPage() {
                 </Inspector.Group>
 
                 <Inspector.Group title="Assets under test">
-                  <div className="space-y-1.5 text-[12.5px]">
+                  <Stack className="font-body-small" space="space.075">
                     {selected.assets.map((a) => (
-                      <div key={a} className="flex items-baseline justify-between gap-2">
+                      <Inline
+                        key={a}
+                        space="space.100"
+                        alignBlock="baseline"
+                        spread="space-between"
+                      >
                         <span className="min-w-0 truncate">
-                          <Id>{a}</Id>{" "}
-                          <span className="text-muted-foreground">{assetById.get(a)?.name}</span>
+                          <Id>{a}</Id> <span className="text-subtle">{assetById.get(a)?.name}</span>
                         </span>
-                        <span className="shrink-0 text-muted-foreground">
+                        <span className="shrink-0 text-subtle">
                           {assetById.get(a)?.environment}
                         </span>
-                      </div>
+                      </Inline>
                     ))}
-                  </div>
+                  </Stack>
                 </Inspector.Group>
 
                 <Inspector.Group title="Objectives proved">
-                  <div className="space-y-2 text-[12.5px]">
+                  <Stack className="font-body-small" space="space.100">
                     {objectivesForEvent(selected.id).map((o) => (
                       <div key={o.id}>
-                        <div className="flex items-baseline justify-between gap-2">
+                        <Inline space="space.100" alignBlock="baseline" spread="space-between">
                           <Id>{o.id}</Id>
                           <Badge tone={objectiveTone(o.result)}>{o.result}</Badge>
-                        </div>
-                        <p className="mt-0.5 leading-snug text-muted-foreground">{o.statement}</p>
-                        <p className="mt-0.5">
-                          <Id className="text-muted-foreground">{o.ccis.join(", ")}</Id>
+                        </Inline>
+                        <p className="pt-025 text-subtle">{o.statement}</p>
+                        <p className="pt-025">
+                          <Id className="text-subtle">{o.ccis.join(", ")}</Id>
                         </p>
                       </div>
                     ))}
-                  </div>
+                  </Stack>
                 </Inspector.Group>
 
                 <Inspector.Group title="Findings yielded">
-                  <div className="space-y-1.5 text-[12.5px]">
+                  <Stack className="font-body-small" space="space.075">
                     {selected.findings.length ? (
                       selected.findings.map((id) => {
                         const f = findingById.get(id);
@@ -339,11 +358,11 @@ function CampaignsPage() {
                           <Link
                             key={id}
                             to="/findings"
-                            className="flex items-baseline justify-between gap-2"
+                            className="flex items-baseline justify-between gap-100"
                           >
                             <span className="min-w-0 truncate">
-                              <Id className="text-primary">{id}</Id>{" "}
-                              <span className="text-muted-foreground">{f?.title}</span>
+                              <Id className="text-brand">{id}</Id>{" "}
+                              <span className="text-subtle">{f?.title}</span>
                             </span>
                             {f ? (
                               <Indicator tone={severityTone(f.mitigatedSeverity)}>
@@ -354,31 +373,31 @@ function CampaignsPage() {
                         );
                       })
                     ) : (
-                      <p className="text-muted-foreground">No findings from this event.</p>
+                      <p className="text-subtle">No findings from this event.</p>
                     )}
-                  </div>
+                  </Stack>
                 </Inspector.Group>
 
                 <Inspector.Group title="Sibling events">
-                  <div className="space-y-1.5 text-[12.5px]">
+                  <Stack className="font-body-small" space="space.075">
                     {eventsByCampaign(selected.campaign)
                       .filter((e) => e.id !== selected.id)
                       .map((e) => (
                         <button
                           key={e.id}
                           onClick={() => setSelected(e)}
-                          className="flex w-full items-baseline justify-between gap-2 text-left"
+                          className="flex w-full items-baseline justify-between gap-100 text-left"
                         >
                           <span className="min-w-0 truncate">
-                            <Id className="text-primary">{e.id}</Id>{" "}
-                            <span className="text-muted-foreground">{e.name}</span>
+                            <Id className="text-brand">{e.id}</Id>{" "}
+                            <span className="text-subtle">{e.name}</span>
                           </span>
-                          <span className="shrink-0 text-muted-foreground">{e.state}</span>
+                          <span className="shrink-0 text-subtle">{e.state}</span>
                         </button>
                       ))}
-                  </div>
+                  </Stack>
                 </Inspector.Group>
-              </div>
+              </Box>
             </PreviewRail>
           ) : null}
         </PreviewSplit>

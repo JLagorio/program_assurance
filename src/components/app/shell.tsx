@@ -26,6 +26,7 @@ import {
   Avatar,
   Badge,
   IconButton,
+  Inline,
   Input,
   InputGroup,
   Shell as DsShell,
@@ -145,9 +146,14 @@ export function Shell({ children }: { children: ReactNode }) {
           <InputGroup
             leading={<Search />}
             trailing={
-              <span className="pointer-events-none flex items-center gap-025">
+              <Inline
+                className="pointer-events-none"
+                as="span"
+                space="space.025"
+                alignBlock="center"
+              >
                 <CommandIcon className="size-100" />K
-              </span>
+              </Inline>
             }
             width={420}
           >

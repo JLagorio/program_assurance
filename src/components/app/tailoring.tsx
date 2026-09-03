@@ -2,22 +2,26 @@ import { useMemo, useState } from "react";
 import { Check, Pencil, Send, X } from "lucide-react";
 
 import {
+  AlertDialog,
   Badge,
+  Box,
   Button,
+  Checkbox,
+  Dialog,
   Dot,
   Field,
+  Grid,
+  Id,
+  Inline,
   Input,
   NativeSelect,
+  Section,
+  Stack,
   Table,
   Textarea,
-  Id,
-  Dialog,
   Timeline,
-  Checkbox,
-  AlertDialog,
   toast,
-} from "@/ds/primitives";
-import { Section } from "@/ds/patterns";
+} from "@ledger/design-system";
 import {
   approvalTone,
   classifications,
@@ -120,11 +124,16 @@ export function TailoringSection({
 
   return (
     <>
-      <div className="space-y-7">
+      <Stack space="space.300">
         {/* ------------------------------------------------ approval banner */}
-        <div className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-legacy-subtle px-3.5 py-2.5">
+        <Inline
+          className="rounded-medium border border-default bg-surface-sunken px-150 py-100"
+          space="space.150"
+          alignBlock="center"
+          shouldWrap
+        >
           <Badge tone={approvalTone[state]}>{state}</Badge>
-          <span className="min-w-0 flex-1 truncate text-[12.5px] text-muted-foreground">
+          <span className="min-w-0 flex-1 truncate font-body-small text-subtle">
             {state === "Approved"
               ? `Approved by ${decision?.by ?? "—"} on ${decision?.at ?? "—"}${decision?.note ? ` · ${decision.note}` : ""}`
               : state === "Changes requested"
@@ -134,20 +143,20 @@ export function TailoringSection({
                   : "Draft scope — submit to the program manager before engineering begins"}
           </span>
           {state === "Pending PM approval" ? (
-            <span className="flex items-center gap-2">
+            <Inline as="span" space="space.100" alignBlock="center">
               <Button variant="secondary" onClick={() => setDeciding("changes")}>
-                <X className="size-3.5" /> Request changes
+                <X className="size-icon-small" /> Request changes
               </Button>
               <Button variant="primary" onClick={() => setDeciding("approve")}>
-                <Check className="size-3.5" /> Approve scope
+                <Check className="size-icon-small" /> Approve scope
               </Button>
-            </span>
+            </Inline>
           ) : (
             <Button variant="primary" onClick={() => setSubmitting(true)}>
-              <Send className="size-3.5" /> Submit for approval
+              <Send className="size-icon-small" /> Submit for approval
             </Button>
           )}
-        </div>
+        </Inline>
 
         {/* --------------------------------------------- system parameters */}
         <Section
@@ -161,11 +170,11 @@ export function TailoringSection({
                 setEditing(true);
               }}
             >
-              <Pencil className="size-3.5" /> Edit parameters
+              <Pencil className="size-icon-small" /> Edit parameters
             </Button>
           }
         >
-          <dl className="grid grid-cols-2 gap-x-8 pt-1 lg:grid-cols-4">
+          <dl className="grid grid-cols-2 gap-x-400 pt-050 lg:grid-cols-4">
             {[
               ["Confidentiality", params.confidentiality],
               ["Integrity", params.integrity],
@@ -180,13 +189,16 @@ export function TailoringSection({
               ["Safety critical", params.safetyCritical ? "Yes" : "No"],
               ["Baseline", result.baselineLabel.replace("NIST SP 800-53 Rev. 5 — ", "")],
             ].map(([k, v]) => (
-              <div
+              <Inline
                 key={k}
-                className="flex items-baseline justify-between gap-3 border-b border-border/70 py-[7px]"
+                className="border-b border-default py-075"
+                space="space.150"
+                alignBlock="baseline"
+                spread="space-between"
               >
-                <dt className="truncate text-[12.5px] text-muted-foreground">{k}</dt>
-                <dd className="truncate text-[12.5px] font-medium">{v}</dd>
-              </div>
+                <dt className="truncate font-body-small text-subtle">{k}</dt>
+                <dd className="truncate font-body-small font-medium">{v}</dd>
+              </Inline>
             ))}
           </dl>
         </Section>
@@ -199,11 +211,13 @@ export function TailoringSection({
           <Table className="table-fixed">
             <thead>
               <tr>
-                <Table.Header className="w-[164px]">Overlay ID</Table.Header>
-                <Table.Header className="w-[232px]">Name</Table.Header>
-                <Table.Header className="w-[212px]">Authority</Table.Header>
+                <Table.Header width={164}>Overlay ID</Table.Header>
+                <Table.Header width={232}>Name</Table.Header>
+                <Table.Header width={212}>Authority</Table.Header>
                 <Table.Header>Trigger</Table.Header>
-                <Table.Header className="w-[76px] text-right">Δ ctrl</Table.Header>
+                <Table.Header className="text-right" width={76}>
+                  Δ ctrl
+                </Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -213,13 +227,17 @@ export function TailoringSection({
                   o.controls.filter((c) => c.action === "Tailored out").length;
                 return (
                   <Table.Row key={o.id}>
-                    <Table.Cell className="w-[164px]">
+                    <Table.Cell width={164}>
                       <Id>{o.id}</Id>
                     </Table.Cell>
-                    <Table.Cell className="w-[232px] truncate">{o.name}</Table.Cell>
-                    <Table.Cell className="w-[212px] truncate">{o.authority}</Table.Cell>
+                    <Table.Cell className="truncate" width={232}>
+                      {o.name}
+                    </Table.Cell>
+                    <Table.Cell className="truncate" width={212}>
+                      {o.authority}
+                    </Table.Cell>
                     <Table.Cell className="truncate">{o.trigger}</Table.Cell>
-                    <Table.Cell className="tnum w-[76px] text-right">
+                    <Table.Cell className="tabular-nums text-right" width={76}>
                       {delta > 0 ? `+${delta}` : delta}
                     </Table.Cell>
                   </Table.Row>
@@ -244,10 +262,10 @@ export function TailoringSection({
           <Table className="table-fixed">
             <thead>
               <tr>
-                <Table.Header className="w-[96px]">Control</Table.Header>
-                <Table.Header className="w-[292px]">Title</Table.Header>
-                <Table.Header className="w-[132px]">Action</Table.Header>
-                <Table.Header className="w-[188px]">Overlay</Table.Header>
+                <Table.Header width={96}>Control</Table.Header>
+                <Table.Header width={292}>Title</Table.Header>
+                <Table.Header width={132}>Action</Table.Header>
+                <Table.Header width={188}>Overlay</Table.Header>
                 <Table.Header>Rationale</Table.Header>
               </tr>
             </thead>
@@ -255,14 +273,18 @@ export function TailoringSection({
               {result.overlays.flatMap((o) =>
                 o.controls.map((c) => (
                   <Table.Row key={`${o.id}-${c.id}`}>
-                    <Table.Cell className="w-[96px]">
+                    <Table.Cell width={96}>
                       <Id>{c.id}</Id>
                     </Table.Cell>
-                    <Table.Cell className="w-[292px] truncate">{c.title}</Table.Cell>
-                    <Table.Cell className="w-[132px]">
+                    <Table.Cell className="truncate" width={292}>
+                      {c.title}
+                    </Table.Cell>
+                    <Table.Cell width={132}>
                       <Badge tone={actionTone[c.action]}>{c.action}</Badge>
                     </Table.Cell>
-                    <Table.Cell className="w-[188px] truncate">{o.name}</Table.Cell>
+                    <Table.Cell className="truncate" width={188}>
+                      {o.name}
+                    </Table.Cell>
                     <Table.Cell className="truncate">{c.rationale}</Table.Cell>
                   </Table.Row>
                 )),
@@ -273,7 +295,7 @@ export function TailoringSection({
 
         {/* -------------------------------------------------------- history */}
         <Section title="Scope history">
-          <Timeline className="pt-2">
+          <Timeline className="pt-100">
             {history.map((e, i) => (
               <Timeline.Item
                 key={`${e.at}-${i}`}
@@ -285,7 +307,7 @@ export function TailoringSection({
             ))}
           </Timeline>
         </Section>
-      </div>
+      </Stack>
 
       {/* ------------------------------------------------ parameters modal */}
       <Dialog
@@ -306,8 +328,8 @@ export function TailoringSection({
           </>
         }
       >
-        <div className="space-y-3">
-          <div className="grid grid-cols-3 gap-3">
+        <Stack space="space.150">
+          <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
             {(["confidentiality", "integrity", "availability"] as const).map((k) => (
               <Field key={k} label={k.charAt(0).toUpperCase() + k.slice(1)}>
                 <NativeSelect
@@ -320,8 +342,8 @@ export function TailoringSection({
                 </NativeSelect>
               </Field>
             ))}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
+          </Grid>
+          <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
             <Field label="System class">
               <NativeSelect
                 value={draft.systemClass}
@@ -342,8 +364,8 @@ export function TailoringSection({
                 ))}
               </NativeSelect>
             </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
+          </Grid>
+          <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
             <Field label="Classification">
               <NativeSelect
                 value={draft.classification}
@@ -368,8 +390,13 @@ export function TailoringSection({
                 ))}
               </NativeSelect>
             </Field>
-          </div>
-          <div className="flex flex-wrap items-center gap-5 border-t border-border pt-3">
+          </Grid>
+          <Inline
+            className="border-t border-default pt-150"
+            space="space.250"
+            alignBlock="center"
+            shouldWrap
+          >
             {(
               [
                 ["handlesPii", "Stores or processes PII"],
@@ -385,8 +412,8 @@ export function TailoringSection({
                 {label}
               </Checkbox>
             ))}
-          </div>
-        </div>
+          </Inline>
+        </Stack>
       </Dialog>
 
       {/* --------------------------------------------------- submit modal */}
@@ -398,14 +425,14 @@ export function TailoringSection({
         description={`${programId} · ${result.total} controls · ${result.overlays.length} overlays. The PM sees the tailored scope on the approvals dashboard and every stage below Categorize locks until they decide.`}
         confirmLabel="Send for approval"
       >
-        <div className="space-y-3">
+        <Stack space="space.150">
           <Field label="Approver">
             <Input defaultValue={`${programOwner} (PM)`} readOnly />
           </Field>
           <Field label="Message" hint="Shown on the shared scope approvals dashboard.">
             <Textarea placeholder="Tailored scope reflects the DDIL tactical profile agreed at the SRR working group." />
           </Field>
-        </div>
+        </Stack>
       </AlertDialog>
 
       {/* -------------------------------------------------- decision modal */}
@@ -447,10 +474,8 @@ function ScopePreview({ params }: { params: SystemParameters }) {
   const r = computeTailoring(params);
   return (
     <div>
-      <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
-        Derived scope
-      </div>
-      <dl className="mt-2">
+      <div className="font-heading-xxsmall uppercase text-subtle">Derived scope</div>
+      <dl className="pt-100">
         {[
           ["Baseline", r.baselineLabel.replace("NIST SP 800-53 Rev. 5 — ", "Rev. 5 ")],
           ["Baseline controls", String(r.baselineCount)],
@@ -459,29 +484,36 @@ function ScopePreview({ params }: { params: SystemParameters }) {
           ["Parameters set", String(r.parameterized.length)],
           ["Controls in scope", String(r.total)],
         ].map(([k, v]) => (
-          <div
+          <Inline
             key={k}
-            className="flex items-baseline justify-between gap-3 border-b border-border/70 py-[5px] last:border-0"
+            className="border-b border-default py-050 last:border-0"
+            space="space.150"
+            alignBlock="baseline"
+            spread="space-between"
           >
-            <dt className="text-[12.5px] text-muted-foreground">{k}</dt>
-            <dd className="tnum text-[12.5px] font-medium">{v}</dd>
-          </div>
+            <dt className="font-body-small text-subtle">{k}</dt>
+            <dd className="tabular-nums font-body-small font-medium">{v}</dd>
+          </Inline>
         ))}
       </dl>
-      <div className="mt-3 text-[12px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
+      <Box className="font-heading-xxsmall uppercase text-subtle" paddingBlockStart="space.150">
         Overlays
-      </div>
-      <ul className="mt-1.5 space-y-1">
+      </Box>
+      <Stack className="pt-075" as="ul" space="space.050">
         {r.overlays.map((o) => (
-          <li key={o.id} className="flex items-center gap-2 text-[12.5px]">
+          <Inline
+            key={o.id}
+            className="font-body-small"
+            as="li"
+            space="space.100"
+            alignBlock="center"
+          >
             <Dot tone="information" />
             <span className="truncate">{o.name}</span>
-          </li>
+          </Inline>
         ))}
-        {r.overlays.length === 0 ? (
-          <li className="text-[12.5px] text-muted-foreground">None</li>
-        ) : null}
-      </ul>
+        {r.overlays.length === 0 ? <li className="font-body-small text-subtle">None</li> : null}
+      </Stack>
     </div>
   );
 }

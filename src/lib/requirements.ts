@@ -40,7 +40,7 @@
 
 import { useSyncExternalStore } from "react";
 
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 import { nodeById, pathLabel, type CompositionNode } from "@/lib/composition";
 import { componentByKey, type SystemComponent } from "@/lib/reusable-components";
 import { datasetToday } from "@/lib/dataset-clock";

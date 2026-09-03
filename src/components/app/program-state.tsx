@@ -9,8 +9,7 @@
 import { useState } from "react";
 import { Check, ChevronRight, Lock } from "lucide-react";
 
-import { Badge, Dot, Person, Table, Id } from "@/ds/primitives";
-import { Section } from "@/ds/patterns";
+import { Badge, Dot, Id, Inline, Person, Section, Table } from "@ledger/design-system";
 import { cn } from "@/lib/utils";
 import type { ProgramState, Stage } from "@/lib/program-stage";
 import { stages } from "@/lib/program-stage";
@@ -26,19 +25,26 @@ export function LifecycleBar({
   onSelect: (stage: Stage | null) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-border pt-2.5">
-      <div className="flex min-w-0 items-center">
+    <Inline
+      className="border-t border-default pt-100"
+      space="space.300"
+      rowSpace="space.100"
+      alignBlock="center"
+      shouldWrap
+    >
+      <Inline className="min-w-0" alignBlock="center">
         {stages.map((s, i) => {
           const status = state.stageStatus[s];
           const isSelected = selected === s;
           const blocked = status === "current" && state.blockerTone === "danger";
           return (
-            <div key={s} className="flex items-center">
+            <Inline key={s} space="space.075" alignBlock="center">
               {i > 0 ? (
                 <span
                   className={cn(
-                    "mx-1.5 h-px w-5",
-                    status === "locked" ? "bg-border" : "bg-primary/40",
+                    "h-px",
+                    status === "locked" ? "bg-neutral" : "bg-brand-subtlest",
+                    "w-250",
                   )}
                 />
               ) : null}
@@ -46,40 +52,46 @@ export function LifecycleBar({
                 onClick={() => onSelect(isSelected ? null : s)}
                 aria-pressed={isSelected}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-12 transition-colors",
-                  isSelected ? "bg-muted text-foreground" : "hover:bg-muted",
-                  status === "locked" ? "text-muted-foreground" : "text-foreground",
+                  "inline-flex items-center gap-075 rounded-full px-100 py-025 font-body-small transition-colors",
+                  isSelected ? "bg-neutral text-default" : "hover:bg-neutral-subtle-hovered",
+                  status === "locked" ? "text-subtle" : "text-default",
                   status === "current" ? "font-semibold" : "font-medium",
                 )}
               >
                 {status === "done" ? (
-                  <Check className="size-3 text-legacy-success" />
+                  <Check className="text-success size-150" />
                 ) : status === "current" ? (
                   <Dot tone={blocked ? "danger" : "information"} />
                 ) : (
-                  <span className="size-1.5 rounded-full border border-muted-foreground/50" />
+                  <span className="rounded-full border border-bold size-075" />
                 )}
                 {s}
               </button>
-            </div>
+            </Inline>
           );
         })}
-      </div>
+      </Inline>
 
-      <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-12">
-        <span className="flex items-center gap-1.5">
-          <Id className="text-muted-foreground">{state.currentGate?.id ?? "—"}</Id>
+      <Inline
+        className="ml-auto font-body-small"
+        space="space.200"
+        rowSpace="space.050"
+        alignBlock="center"
+        shouldWrap
+      >
+        <Inline as="span" space="space.075" alignBlock="center">
+          <Id className="text-subtle">{state.currentGate?.id ?? "—"}</Id>
           <span className="truncate">{state.currentGate?.name}</span>
-        </span>
+        </Inline>
         {state.daysOut !== null ? (
           <span
             className={cn(
-              "tnum",
+              "tabular-nums",
               state.daysOut < 0
-                ? "font-medium text-legacy-danger"
+                ? "font-medium text-danger"
                 : state.daysOut < 30
-                  ? "font-medium text-legacy-warning"
-                  : "text-muted-foreground",
+                  ? "font-medium text-warning"
+                  : "text-subtle",
             )}
           >
             {state.daysOut < 0 ? `${Math.abs(state.daysOut)}d overdue` : `${state.daysOut}d out`}
@@ -90,10 +102,10 @@ export function LifecycleBar({
             {state.blocker}
           </Badge>
         ) : (
-          <span className="text-muted-foreground">No blocker</span>
+          <span className="text-subtle">No blocker</span>
         )}
-      </div>
-    </div>
+      </Inline>
+    </Inline>
   );
 }
 
@@ -141,29 +153,35 @@ export function PostureLine({
   ];
 
   return (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-1.5 text-12">
+    <Inline
+      className="font-body-small"
+      space="space.300"
+      rowSpace="space.075"
+      alignBlock="center"
+      shouldWrap
+    >
       {items.map((i) => (
         <button
           key={i.label}
           onClick={() => onJump(i.tab)}
-          className="group flex items-baseline gap-1.5"
+          className="group flex items-baseline gap-075"
         >
-          <span className="text-muted-foreground">{i.label}</span>
+          <span className="text-subtle">{i.label}</span>
           <span
             className={cn(
-              "tnum font-medium group-hover:underline",
+              "tabular-nums font-medium group-hover:underline",
               i.tone === "danger"
-                ? "text-legacy-danger"
+                ? "text-danger"
                 : i.tone === "warning"
-                  ? "text-legacy-warning"
-                  : "text-foreground",
+                  ? "text-warning"
+                  : "text-default",
             )}
           >
             {i.value}
           </span>
         </button>
       ))}
-    </div>
+    </Inline>
   );
 }
 
@@ -181,13 +199,13 @@ export function OpenWorkSection({
     <Section
       title="Open work"
       action={
-        <span className="tnum text-12 text-muted-foreground">
+        <span className="tabular-nums font-body-small text-subtle">
           {actions.length} item{actions.length === 1 ? "" : "s"}
         </span>
       }
     >
       {actions.length === 0 ? (
-        <p className="pt-3 text-13 text-muted-foreground">
+        <p className="pt-150 font-body text-subtle">
           Nothing is waiting on this program right now.
         </p>
       ) : (
@@ -203,26 +221,33 @@ export function OpenWorkSection({
             <tbody>
               {shown.map((a) => (
                 <Table.Row key={a.id} onClick={() => onRun(a)} className="group cursor-pointer">
-                  <Table.Cell className="w-6">
+                  <Table.Cell className="w-300">
                     <Dot tone={a.tone} />
                   </Table.Cell>
                   <Table.Cell className="truncate">{a.label}</Table.Cell>
-                  <Table.Cell className="w-[168px]">
+                  <Table.Cell width={168}>
                     <Person name={a.owner} />
                   </Table.Cell>
                   <Table.Cell
                     className={cn(
-                      "tnum w-[110px] text-right",
-                      a.tone === "danger" ? "text-legacy-danger" : "",
+                      "tabular-nums text-right",
+                      a.tone === "danger" ? "text-danger" : "",
                     )}
+                    width={110}
                   >
                     {a.due}
                   </Table.Cell>
-                  <Table.Cell className="w-[132px] text-right">
-                    <span className="inline-flex items-center gap-1 text-12 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+                  <Table.Cell className="text-right" width={132}>
+                    <Inline
+                      className="font-body-small text-subtle opacity-0 transition-opacity group-hover:opacity-100"
+                      as="span"
+                      display="inline-flex"
+                      space="space.050"
+                      alignBlock="center"
+                    >
                       {a.cta}
-                      <ChevronRight className="size-3.5" />
-                    </span>
+                      <ChevronRight className="size-icon-small" />
+                    </Inline>
                   </Table.Cell>
                 </Table.Row>
               ))}
@@ -232,7 +257,7 @@ export function OpenWorkSection({
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="mt-2 text-12 font-medium text-primary hover:underline"
+              className="pt-100 font-body-small font-medium text-brand hover:underline"
             >
               {expanded ? "Show less" : `Show ${actions.length - 5} more`}
             </button>
@@ -245,10 +270,14 @@ export function OpenWorkSection({
 
 export function LockedNotice({ stage, gate }: { stage: string; gate?: string | undefined }) {
   return (
-    <div className="flex items-center gap-2 rounded-md border border-dashed border-border px-3 py-2 text-12 text-muted-foreground">
-      <Lock className="size-3.5" />
+    <Inline
+      className="rounded-medium border border-dashed border-default px-150 py-100 font-body-small text-subtle"
+      space="space.100"
+      alignBlock="center"
+    >
+      <Lock className="size-icon-small" />
       Preview — {stage} work opens after {gate ?? "the current gate"}. Records here are read-only
       until then.
-    </div>
+    </Inline>
   );
 }

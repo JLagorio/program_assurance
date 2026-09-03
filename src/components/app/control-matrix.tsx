@@ -10,15 +10,18 @@ import { Link } from "@tanstack/react-router";
 
 import {
   Badge,
+  Box,
   Button,
+  Editable,
+  Empty,
+  Id,
+  Inline,
   NativeSelect,
+  Progress,
+  Section,
   Table,
   Toolbar,
-  Id,
-  Progress,
-  Editable,
-} from "@/ds/primitives";
-import { Empty, Section } from "@/ds/patterns";
+} from "@ledger/design-system";
 import { cn } from "@/lib/utils";
 import { saveProgramField } from "@/lib/program-save";
 import {
@@ -44,7 +47,7 @@ export function FamilyCoverageTable({
       title="Coverage by control family"
       description="Live rollup of the tailored baseline. Click a family to filter the matrix."
       action={
-        <span className="tnum text-12 text-muted-foreground">
+        <span className="tabular-nums font-body-small text-subtle">
           {coverage.satisfied}/{coverage.total} satisfied · {coverage.pct}%
         </span>
       }
@@ -88,14 +91,14 @@ export function FamilyCoverageTable({
                   <Id>{f.id}</Id>
                 </Table.Cell>
                 <Table.Cell className="truncate">{f.name}</Table.Cell>
-                <Table.Cell className="tnum text-right">{f.total}</Table.Cell>
-                <Table.Cell className="tnum text-right">{f.satisfied}</Table.Cell>
-                <Table.Cell className="tnum text-right">{f.partial}</Table.Cell>
-                <Table.Cell className="tnum text-right">{f.other}</Table.Cell>
-                <Table.Cell className="tnum text-right">{f.inherited}</Table.Cell>
+                <Table.Cell className="tabular-nums text-right">{f.total}</Table.Cell>
+                <Table.Cell className="tabular-nums text-right">{f.satisfied}</Table.Cell>
+                <Table.Cell className="tabular-nums text-right">{f.partial}</Table.Cell>
+                <Table.Cell className="tabular-nums text-right">{f.other}</Table.Cell>
+                <Table.Cell className="tabular-nums text-right">{f.inherited}</Table.Cell>
                 <Table.Cell>
-                  <span className="flex items-center gap-2">
-                    <span className="w-20">
+                  <Inline as="span" space="space.100" alignBlock="center">
+                    <span className="w-1000">
                       <Progress.Stacked
                         height={4}
                         segments={[
@@ -106,8 +109,8 @@ export function FamilyCoverageTable({
                         ]}
                       />
                     </span>
-                    <span className="tnum text-12 text-muted-foreground">{f.pct}%</span>
-                  </span>
+                    <span className="tabular-nums font-body-small text-subtle">{f.pct}%</span>
+                  </Inline>
                 </Table.Cell>
                 <Table.Cell className="truncate">{f.owner}</Table.Cell>
               </Table.Row>
@@ -123,7 +126,7 @@ export function FamilyCoverageTable({
  * the finding record; several link to the control's Findings tab.
  */
 function FindingsCell({ programId, row }: { programId: string; row: ControlRow }) {
-  if (row.findings.length === 0) return <span className="text-muted-foreground">—</span>;
+  if (row.findings.length === 0) return <span className="text-subtle">—</span>;
 
   const label = row.openFindings > 0 ? `${row.openFindings} open` : `${row.findings.length} closed`;
 
@@ -136,7 +139,7 @@ function FindingsCell({ programId, row }: { programId: string; row: ControlRow }
         className="hover:underline"
         title={only.title}
       >
-        <Id className={row.openFindings ? "text-legacy-danger" : "text-muted-foreground"}>{only.id}</Id>
+        <Id className={row.openFindings ? "text-danger" : "text-subtle"}>{only.id}</Id>
       </Link>
     );
   }
@@ -147,8 +150,8 @@ function FindingsCell({ programId, row }: { programId: string; row: ControlRow }
       params={{ programId, controlId: row.id }}
       search={{ tab: "Assessment" as const }}
       className={cn(
-        "tnum text-12 hover:underline",
-        row.openFindings ? "text-legacy-danger" : "text-muted-foreground",
+        "tabular-nums font-body-small hover:underline",
+        row.openFindings ? "text-danger" : "text-subtle",
       )}
     >
       {label}
@@ -197,7 +200,7 @@ export function ControlMatrixSection({
       title="Control matrix"
       description="Every tailored control with its assessment, remediation section and next action."
       action={
-        <span className="tnum text-12 text-muted-foreground">
+        <span className="tabular-nums font-body-small text-subtle">
           {filtered.length} of {rows.length} controls
         </span>
       }
@@ -207,13 +210,13 @@ export function ControlMatrixSection({
         onSearch={setQuery}
         placeholder="Search controls"
         actions={
-          <span className="flex w-[220px] items-center gap-2">
+          <Inline as="span" space="space.100" alignBlock="center" style={{ width: 220 }}>
             <Progress.Stacked
               height={4}
               segments={scoped.segments.map((s) => ({ key: s.key, value: s.value, tone: s.tone }))}
             />
-            <span className="tnum shrink-0 text-12 text-muted-foreground">{scoped.pct}%</span>
-          </span>
+            <span className="tabular-nums shrink-0 font-body-small text-subtle">{scoped.pct}%</span>
+          </Inline>
         }
       >
         <NativeSelect
@@ -222,7 +225,8 @@ export function ControlMatrixSection({
             onFamily(e.target.value);
             setLimit(PAGE);
           }}
-          className="h-7 w-[188px]"
+          className="h-control-small"
+          style={{ width: 188 }}
         >
           <option value="All">All families</option>
           {families.map((f) => (
@@ -237,7 +241,8 @@ export function ControlMatrixSection({
             onStatus(e.target.value as ControlStatus | "All");
             setLimit(PAGE);
           }}
-          className="h-7 w-[176px]"
+          className="h-control-small"
+          style={{ width: 176 }}
         >
           <option value="All">All statuses</option>
           {controlStatuses.map((s) => (
@@ -299,7 +304,7 @@ export function ControlMatrixSection({
                       params={{ programId, controlId: r.id }}
                       className="hover:underline"
                     >
-                      <Id className="text-primary">{r.id}</Id>
+                      <Id className="text-brand">{r.id}</Id>
                     </Link>
                   </Table.Cell>
                   <Table.Cell className="truncate" title={r.title}>
@@ -332,12 +337,12 @@ export function ControlMatrixSection({
                       <Link
                         to="/register/poam/$poamId"
                         params={{ poamId: r.poam }}
-                        className="text-primary hover:underline"
+                        className="text-brand hover:underline"
                       >
-                        <Id className="text-primary">{r.poam}</Id>
+                        <Id className="text-brand">{r.poam}</Id>
                       </Link>
                     ) : (
-                      <span className="text-muted-foreground">—</span>
+                      <span className="text-subtle">—</span>
                     )}
                   </Table.Cell>
                   <Table.Cell className="overflow-visible">
@@ -348,7 +353,7 @@ export function ControlMatrixSection({
                       save={save(r.id, "nextAction")}
                     />
                   </Table.Cell>
-                  <Table.Cell className="tnum overflow-visible text-right">
+                  <Table.Cell className="tabular-nums overflow-visible text-right">
                     <Editable.Text
                       value={r.due}
                       placeholder="—"
@@ -362,11 +367,11 @@ export function ControlMatrixSection({
           </Table>
 
           {filtered.length > visible.length ? (
-            <div className="pt-2">
+            <Box paddingBlockStart="space.100">
               <Button size="small" variant="subtle" onClick={() => setLimit(limit + PAGE)}>
                 Show {Math.min(PAGE, filtered.length - visible.length)} more
               </Button>
-            </div>
+            </Box>
           ) : null}
         </>
       )}

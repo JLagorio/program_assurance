@@ -3,18 +3,25 @@ import { Fragment, useMemo } from "react";
 
 import {
   Badge,
+  Box,
   Button,
-  KeyValue,
-  Progress,
-  Person,
-  Table,
+  Empty,
+  Grid,
   Id,
-  Tabs,
   Indicator,
-} from "@/ds/primitives";
-import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
-import { Shell } from "@/ds/shell";
+  Inline,
+  Inspector,
+  KeyValue,
+  Person,
+  Progress,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Stack,
+  Table,
+  Tabs,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { RemediationPlanSection } from "@/components/app/remediation";
 import { TextBlock } from "@/components/app/control-text";
 import { ccis } from "@/lib/catalog";
@@ -80,12 +87,12 @@ function FindingRecord() {
   if (!finding) {
     return (
       <Shell>
-        <div className="space-y-3">
-          <h1 className="text-[18px] font-semibold">Finding not found</h1>
-          <Link to="/findings" className="text-[13px] text-primary hover:underline">
+        <Stack space="space.150">
+          <h1 className="font-heading-small font-semibold">Finding not found</h1>
+          <Link to="/findings" className="font-body text-brand hover:underline">
             Back to findings
           </Link>
-        </div>
+        </Stack>
       </Shell>
     );
   }
@@ -105,9 +112,9 @@ function FindingRecord() {
     <Link
       to="/programs/$programId/controls/$controlId"
       params={{ programId, controlId: finding.control }}
-      className="text-primary hover:underline"
+      className="text-brand hover:underline"
     >
-      <Id className="text-primary">{finding.control}</Id>
+      <Id className="text-brand">{finding.control}</Id>
     </Link>
   ) : (
     <Id>{finding.control}</Id>
@@ -118,7 +125,7 @@ function FindingRecord() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/findings"
+            back={<Link to="/findings" />}
             id={finding.id}
             title={finding.title}
             meta={`${finding.control}${catalogTitle ? ` ${catalogTitle}` : ""} · ${finding.source} · ${finding.owner}`}
@@ -144,33 +151,41 @@ function FindingRecord() {
           />
         }
         tabs={
-          <Tabs
-            items={(
+          <Tabs>
+            {(
               [
                 ["Finding", null],
                 ["Assessment", null],
                 ["Remediation", plan ? plan.total : null],
                 ["Residual risk", null],
               ] as [FindingTab, number | null][]
-            ).map(([key, count]) => ({
-              key,
-              label: key === "Remediation" ? "Remediation plan" : key,
-              active: tab === key,
-              onSelect: () => go(key),
-              trailing:
-                key === "Residual risk" ? (
-                  residual ? (
-                    <Badge tone={bandTone[residual.band]} size="xsmall" className="tnum">
-                      {residual.score}
-                    </Badge>
+            ).map(([key, count]) => (
+              <Tabs.Tab
+                key={key}
+                isSelected={tab === key}
+                onClick={() => go(key)}
+                trailing={
+                  key === "Residual risk" ? (
+                    residual ? (
+                      <Badge tone={bandTone[residual.band]} size="xsmall" className="tabular-nums">
+                        {residual.score}
+                      </Badge>
+                    ) : null
+                  ) : count ? (
+                    <Box
+                      className="tabular-nums rounded-small bg-neutral font-body-xsmall font-medium text-subtle"
+                      as="span"
+                      paddingInline="space.050"
+                    >
+                      {count}
+                    </Box>
                   ) : null
-                ) : count ? (
-                  <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                    {count}
-                  </span>
-                ) : null,
-            }))}
-          />
+                }
+              >
+                {key === "Remediation" ? "Remediation plan" : key}
+              </Tabs.Tab>
+            ))}
+          </Tabs>
         }
         showRail={tab === "Finding"}
         rail={
@@ -184,7 +199,7 @@ function FindingRecord() {
                 <Link
                   to="/findings/assets/$assetId"
                   params={{ assetId: finding.asset }}
-                  className="text-primary hover:underline"
+                  className="text-brand hover:underline"
                 >
                   {asset?.name ?? finding.asset}
                 </Link>
@@ -215,12 +230,14 @@ function FindingRecord() {
                   <button
                     type="button"
                     onClick={() => go("Residual risk")}
-                    className="flex items-center gap-2 text-left text-primary hover:underline"
+                    className="flex items-center gap-100 text-left text-brand hover:underline"
                   >
-                    <span className="tnum text-[12px] font-medium">{residual.score}</span>
+                    <span className="tabular-nums font-body-small font-medium">
+                      {residual.score}
+                    </span>
                     <Badge tone={bandTone[residual.band]}>{residual.band}</Badge>
                     {!isDeficiency(finding) ? (
-                      <span className="text-[11px] text-muted-foreground">not carried</span>
+                      <span className="font-body-xsmall text-subtle">not carried</span>
                     ) : null}
                   </button>
                 ) : (
@@ -235,9 +252,9 @@ function FindingRecord() {
                   <Link
                     to="/register/poam/$poamId"
                     params={{ poamId: finding.poam }}
-                    className="text-primary hover:underline"
+                    className="text-brand hover:underline"
                   >
-                    <Id className="text-primary">{finding.poam}</Id>
+                    <Id className="text-brand">{finding.poam}</Id>
                   </Link>
                 ) : (
                   "Not yet scheduled"
@@ -248,9 +265,9 @@ function FindingRecord() {
                   <Link
                     to="/register/risks/$riskId"
                     params={{ riskId: finding.risk }}
-                    className="text-primary hover:underline"
+                    className="text-brand hover:underline"
                   >
-                    <Id className="text-primary">{finding.risk}</Id>
+                    <Id className="text-brand">{finding.risk}</Id>
                   </Link>
                 ) : (
                   "Not aggregated"
@@ -260,9 +277,9 @@ function FindingRecord() {
                 <Link
                   to="/programs/$programId"
                   params={{ programId }}
-                  className="text-primary hover:underline"
+                  className="text-brand hover:underline"
                 >
-                  <Id className="text-primary">{programId}</Id>
+                  <Id className="text-brand">{programId}</Id>
                 </Link>
               </KeyValue>
             </Inspector.Group>
@@ -275,10 +292,10 @@ function FindingRecord() {
               title="Finding statement"
               description={`The condition, stated against ${finding.cci}.`}
             >
-              <p className="max-w-3xl pt-3 text-[13px] leading-relaxed">{finding.detail}</p>
+              <p className="max-w-layout-measure pt-150 font-body">{finding.detail}</p>
               {cci ? (
-                <p className="mt-3 max-w-3xl border-l-2 border-border pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
-                  <Id className="text-muted-foreground">{cci.id}</Id> — {cci.definition}
+                <p className="pt-150 max-w-layout-measure border-s border-default ps-150 font-body-small text-subtle">
+                  <Id className="text-subtle">{cci.id}</Id> — {cci.definition}
                 </p>
               ) : null}
             </Section>
@@ -287,11 +304,13 @@ function FindingRecord() {
               title="Requirement"
               description="Where the statement comes from, and what it knocks down."
             >
-              <div className="pt-1">
+              <Box paddingBlockStart="space.050">
                 <TextBlock label="Control">
                   {controlLink}
                   {catalogTitle ? (
-                    <span className="ml-2 text-muted-foreground">{catalogTitle}</span>
+                    <Box className="text-subtle" as="span" paddingInlineStart="space.100">
+                      {catalogTitle}
+                    </Box>
                   ) : null}
                 </TextBlock>
                 <TextBlock label="Assessment status">
@@ -300,13 +319,13 @@ function FindingRecord() {
                       <Badge tone={statusTone(controlRow.status)} size="xsmall">
                         {controlRow.status}
                       </Badge>
-                      <span className="ml-2 text-muted-foreground">
+                      <Box className="text-subtle" as="span" paddingInlineStart="space.100">
                         {controlRow.openFindings} open finding
                         {controlRow.openFindings === 1 ? "" : "s"} against this control
-                      </span>
+                      </Box>
                     </>
                   ) : (
-                    <span className="text-muted-foreground">
+                    <span className="text-subtle">
                       Not in the tailored baseline for {programId}
                     </span>
                   )}
@@ -314,24 +333,26 @@ function FindingRecord() {
                 <TextBlock label="Verified by">
                   {finding.source}
                   {finding.rule ? (
-                    <span className="ml-2 text-muted-foreground">rule {finding.rule}</span>
+                    <Box className="text-subtle" as="span" paddingInlineStart="space.100">
+                      rule {finding.rule}
+                    </Box>
                   ) : null}
                 </TextBlock>
                 <TextBlock label="Asset">
                   <Link
                     to="/findings/assets/$assetId"
                     params={{ assetId: finding.asset }}
-                    className="text-primary hover:underline"
+                    className="text-brand hover:underline"
                   >
                     {asset?.name ?? finding.asset}
                   </Link>
                   {asset ? (
-                    <span className="ml-2 text-muted-foreground">
+                    <Box className="text-subtle" as="span" paddingInlineStart="space.100">
                       {asset.kind} · {asset.technology} · {asset.environment}
-                    </span>
+                    </Box>
                   ) : null}
                 </TextBlock>
-              </div>
+              </Box>
             </Section>
 
             <Section
@@ -365,7 +386,7 @@ function FindingRecord() {
                             params={{ findingId: f.id }}
                             className="hover:underline"
                           >
-                            <Id className="text-primary">{f.id}</Id>
+                            <Id className="text-brand">{f.id}</Id>
                           </Link>
                         </Table.Cell>
                         <Table.Cell className="truncate">{f.title}</Table.Cell>
@@ -385,7 +406,7 @@ function FindingRecord() {
                   </tbody>
                 </Table>
               ) : (
-                <p className="pt-2 text-[13px] text-muted-foreground">
+                <p className="pt-100 font-body text-subtle">
                   This finding is the only evidence against {finding.cci}.
                 </p>
               )}
@@ -399,7 +420,7 @@ function FindingRecord() {
               title="Assessment"
               description={`${finding.assessment.method} · ${finding.assessment.assessedBy} · ${finding.assessment.assessedOn}`}
             >
-              <div className="pt-1">
+              <Box paddingBlockStart="space.050">
                 <TextBlock label="Method">
                   <Badge
                     tone={
@@ -413,7 +434,9 @@ function FindingRecord() {
                   >
                     {finding.assessment.method}
                   </Badge>
-                  <span className="ml-2 text-muted-foreground">{finding.source}</span>
+                  <Box className="text-subtle" as="span" paddingInlineStart="space.100">
+                    {finding.source}
+                  </Box>
                 </TextBlock>
                 <TextBlock label="Procedure">{finding.assessment.procedure}</TextBlock>
                 <TextBlock label="Assessor">
@@ -426,20 +449,20 @@ function FindingRecord() {
                     .map((id, i) => (
                       <span key={id}>
                         {i > 0 && " · "}
-                        <Link to="/evidence" className="text-primary hover:underline">
-                          <Id className="text-primary">{id}</Id>
+                        <Link to="/evidence" className="text-brand hover:underline">
+                          <Id className="text-brand">{id}</Id>
                         </Link>
                       </span>
                     ))}
                 </TextBlock>
-              </div>
+              </Box>
             </Section>
 
             <Section
               title="Determination"
               description="The assessor's conclusion, carried verbatim into the SAR."
             >
-              <p className="max-w-3xl pt-3 text-[13px] leading-relaxed">
+              <p className="max-w-layout-measure pt-150 font-body">
                 {finding.assessment.determination}
               </p>
             </Section>
@@ -452,7 +475,7 @@ function FindingRecord() {
                   : `Raw ${finding.rawSeverity} reduced to ${finding.mitigatedSeverity} on the strength of a mitigation.`
               }
             >
-              <div className="pt-1">
+              <Box paddingBlockStart="space.050">
                 <TextBlock label="Raw">
                   <Indicator tone={severityTone(finding.rawSeverity)}>
                     {finding.rawSeverity}
@@ -464,21 +487,19 @@ function FindingRecord() {
                   </Indicator>
                 </TextBlock>
                 <TextBlock label="Mitigation">
-                  {finding.mitigation ?? (
-                    <span className="text-muted-foreground">None on record.</span>
-                  )}
+                  {finding.mitigation ?? <span className="text-subtle">None on record.</span>}
                 </TextBlock>
                 <TextBlock label="Occurrences">
                   {finding.occurrences} across {finding.firstSeen} — {finding.lastSeen}
                 </TextBlock>
-              </div>
+              </Box>
             </Section>
 
             <Section
               title="Recommendation"
               description="What the assessor says should happen, whether or not it is scheduled."
             >
-              <p className="max-w-3xl pt-3 text-[13px] leading-relaxed">{finding.recommendation}</p>
+              <p className="max-w-layout-measure pt-150 font-body">{finding.recommendation}</p>
             </Section>
           </>
         ) : null}
@@ -521,41 +542,52 @@ function FindingRecord() {
                     : `${residual.score} of 100 — ${residual.band}. CAT I/II/III grades how badly the requirement is missed; this grades what the reported condition WOULD have cost the program once reachability, demonstrated exploitation, mission effect and the currency of the evidence are read off the record. ${finding.id} is ${finding.lifecycle.toLowerCase()}, so it is scored so the trail survives closure, not carried in the aggregate.`
                 }
               >
-                <div className="grid gap-4 pt-4 md:grid-cols-[minmax(0,232px)_minmax(0,1fr)]">
-                  <div className="rounded-md border border-border p-3">
-                    <div className="flex items-baseline gap-2">
-                      <span className="tnum text-[30px] font-semibold leading-none">
+                <Grid
+                  className="pt-200"
+                  gap="space.200"
+                  templateColumns={{ md: "minmax(0,232px) minmax(0,1fr)" }}
+                >
+                  <Box className="rounded-medium border border-default" padding="space.150">
+                    <Inline space="space.100" alignBlock="baseline">
+                      <span className="tabular-nums font-heading-large font-semibold">
                         {residual.score}
                       </span>
-                      <span className="text-[12px] text-muted-foreground">/ 100</span>
+                      <span className="font-body-small text-subtle">/ 100</span>
                       <Badge tone={bandTone[residual.band]}>{residual.band}</Badge>
-                    </div>
-                    <div className="mt-3">
+                    </Inline>
+                    <Box paddingBlockStart="space.150">
                       <Progress value={residual.score} tone={bandTone[residual.band]} />
-                    </div>
-                    <dl className="mt-3 space-y-1.5 text-[12px]">
-                      <div className="flex items-baseline justify-between gap-3">
-                        <dt className="text-muted-foreground">Inherent</dt>
-                        <dd className="tnum">{residual.inherent}</dd>
-                      </div>
-                      <div className="flex items-baseline justify-between gap-3">
-                        <dt className="text-muted-foreground">Mitigation credit</dt>
-                        <dd className={credit < 0 ? "tnum text-legacy-success" : "tnum"}>
+                    </Box>
+                    <dl className="pt-150 space-y-075 font-body-small">
+                      <Inline space="space.150" alignBlock="baseline" spread="space-between">
+                        <dt className="text-subtle">Inherent</dt>
+                        <dd className="tabular-nums">{residual.inherent}</dd>
+                      </Inline>
+                      <Inline space="space.150" alignBlock="baseline" spread="space-between">
+                        <dt className="text-subtle">Mitigation credit</dt>
+                        <dd className={credit < 0 ? "tabular-nums text-success" : "tabular-nums"}>
                           {signed(credit)}
                         </dd>
-                      </div>
-                      <div className="flex items-baseline justify-between gap-3 border-t border-border-legacy-subtle pt-1.5">
+                      </Inline>
+                      <Inline
+                        className="border-t border-default pt-075"
+                        space="space.150"
+                        alignBlock="baseline"
+                        spread="space-between"
+                      >
                         <dt className="font-medium">Residual</dt>
-                        <dd className="tnum font-medium">{residual.score}</dd>
-                      </div>
+                        <dd className="tabular-nums font-medium">{residual.score}</dd>
+                      </Inline>
                     </dl>
-                  </div>
+                  </Box>
                   <div>
                     <TextBlock label="Band">
                       <Badge tone={bandTone[residual.band]} size="xsmall">
                         {residual.band}
                       </Badge>
-                      <span className="ml-2 text-muted-foreground">{bandScale}</span>
+                      <Box className="text-subtle" as="span" paddingInlineStart="space.100">
+                        {bandScale}
+                      </Box>
                     </TextBlock>
                     <TextBlock label="Greatest leverage">{residual.leverage}</TextBlock>
                     <TextBlock label="Credit">
@@ -565,22 +597,27 @@ function FindingRecord() {
                     </TextBlock>
                     <TextBlock label="Caveats">
                       {residual.caveats.length === 0 ? (
-                        <span className="text-muted-foreground">
+                        <span className="text-subtle">
                           None. Every one of the six terms was computed from live evidence, so the
                           score is not provisional.
                         </span>
                       ) : (
-                        <ul className="space-y-1.5">
+                        <Stack as="ul" space="space.075">
                           {residual.caveats.map((c) => (
-                            <li key={c} className="border-l-2 border-border pl-2">
+                            <Box
+                              key={c}
+                              className="border-s border-default"
+                              as="li"
+                              paddingInlineStart="space.100"
+                            >
                               {c}
-                            </li>
+                            </Box>
                           ))}
-                        </ul>
+                        </Stack>
                       )}
                     </TextBlock>
                   </div>
-                </div>
+                </Grid>
               </Section>
 
               <Section
@@ -613,7 +650,7 @@ function FindingRecord() {
 function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number }) {
   const sum = factors.reduce((a, f) => a + f.contribution, 0);
   return (
-    <div className="pt-3">
+    <Box paddingBlockStart="space.150">
       <Table className="table-fixed">
         <colgroup>
           <col style={{ width: "152px" }} />
@@ -639,31 +676,31 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
                 <Table.Cell className="truncate" title={f.input}>
                   {f.input}
                 </Table.Cell>
-                <Table.Cell className="tnum text-right">{f.value.toFixed(2)}</Table.Cell>
-                <Table.Cell className="tnum text-right">{f.weight.toFixed(2)}</Table.Cell>
+                <Table.Cell className="tabular-nums text-right">{f.value.toFixed(2)}</Table.Cell>
+                <Table.Cell className="tabular-nums text-right">{f.weight.toFixed(2)}</Table.Cell>
                 <Table.Cell
                   className={
-                    f.contribution < 0 ? "tnum text-right text-legacy-success" : "tnum text-right"
+                    f.contribution < 0
+                      ? "tabular-nums text-right text-success"
+                      : "tabular-nums text-right"
                   }
                 >
                   {signed(f.contribution)}
                 </Table.Cell>
               </tr>
-              <tr className="border-b border-border-legacy-subtle">
-                <td colSpan={5} className="px-3 pb-2.5 align-top">
-                  <p className="max-w-3xl text-[12.5px] leading-relaxed text-muted-foreground">
-                    {f.rationale}
-                  </p>
-                  <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                    <span className="text-11 text-muted-foreground">Evidence</span>
+              <tr className="border-b border-default">
+                <td colSpan={5} className="px-150 pb-100 align-top">
+                  <p className="max-w-layout-measure font-body-small text-subtle">{f.rationale}</p>
+                  <p className="pt-050 flex flex-wrap items-center gap-x-100 gap-y-025">
+                    <span className="font-body-xsmall text-subtle">Evidence</span>
                     {f.evidence.length ? (
                       f.evidence.map((id) => (
-                        <Id key={id} className="text-[11.5px] text-muted-foreground">
+                        <Id key={id} className="font-body-xsmall text-subtle">
                           {id}
                         </Id>
                       ))
                     ) : (
-                      <span className="text-[11.5px] text-muted-foreground">—</span>
+                      <span className="font-body-xsmall text-subtle">—</span>
                     )}
                   </p>
                 </td>
@@ -675,10 +712,10 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
               Sum of the {factors.length} contributions
               {sum === score ? "" : `, clamped from ${sum} to the 0–100 range`}
             </Table.Cell>
-            <Table.Cell className="tnum text-right">{score}</Table.Cell>
+            <Table.Cell className="tabular-nums text-right">{score}</Table.Cell>
           </tr>
         </tbody>
       </Table>
-    </div>
+    </Box>
   );
 }

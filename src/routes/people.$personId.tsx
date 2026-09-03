@@ -1,9 +1,18 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 
-import { Badge, KeyValue, Progress, Table, Id } from "@/ds/primitives";
-import { RecordHeader, ShowPage, Section } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Id,
+  Inline,
+  Inspector,
+  KeyValue,
+  Progress,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Table,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import {
   allocationFor,
   personById,
@@ -57,15 +66,19 @@ function PersonDetail() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/programs/$programId"
-            backParams={{ programId: streams[0]?.program ?? "PRG-1041" }}
+            back={
+              <Link
+                to="/programs/$programId"
+                params={{ programId: streams[0]?.program ?? "PRG-1041" }}
+              />
+            }
             id={person.id}
             title={person.name}
             meta={`${person.title} · ${person.org} · ${person.site}`}
             actions={<Badge tone="neutral">{person.discipline}</Badge>}
           />
         }
-        tabs={<div className="border-b border-border" />}
+        tabs={<div className="border-b border-default" />}
         showRail
         rail={
           <>
@@ -75,37 +88,39 @@ function PersonDetail() {
               <KeyValue label="Clearance">{person.clearance}</KeyValue>
               <KeyValue label="Site">{person.site}</KeyValue>
               <KeyValue label="Email">
-                <span className="truncate text-[12px]">{person.email}</span>
+                <span className="truncate font-body-small">{person.email}</span>
               </KeyValue>
             </Inspector.Group>
 
             <Inspector.Group title="Load">
               <KeyValue label="Workstreams">{streams.length}</KeyValue>
               <KeyValue label="Allocation">
-                <span className="flex items-center gap-2">
-                  <span className="w-12">
+                <Inline as="span" space="space.100" alignBlock="center">
+                  <span className="w-600">
                     <Progress
                       value={Math.min(alloc, 100)}
                       tone={alloc > 100 ? "danger" : alloc > 85 ? "warning" : "information"}
                     />
                   </span>
-                  <span className={alloc > 100 ? "tnum text-legacy-danger" : "tnum"}>{alloc}%</span>
-                </span>
+                  <span className={alloc > 100 ? "tabular-nums text-danger" : "tabular-nums"}>
+                    {alloc}%
+                  </span>
+                </Inline>
               </KeyValue>
             </Inspector.Group>
 
             <Inspector.Group title="Controls touched">
-              <div className="flex flex-wrap gap-1.5 py-1">
+              <Inline className="py-050" space="space.075" shouldWrap>
                 {controls.length ? (
                   controls.map((c) => (
-                    <Id key={c} className="text-muted-foreground">
+                    <Id key={c} className="text-subtle">
                       {c}
                     </Id>
                   ))
                 ) : (
-                  <span className="text-[12.5px] text-muted-foreground">—</span>
+                  <span className="font-body-small text-subtle">—</span>
                 )}
-              </div>
+              </Inline>
             </Inspector.Group>
           </>
         }
@@ -140,7 +155,7 @@ function PersonDetail() {
                       <Link
                         to="/workstreams/$workstreamId"
                         params={{ workstreamId: w.id }}
-                        className="text-primary hover:underline"
+                        className="text-brand hover:underline"
                       >
                         <Id>{w.id}</Id>
                       </Link>
@@ -152,7 +167,7 @@ function PersonDetail() {
                     <Table.Cell>
                       <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
                     </Table.Cell>
-                    <Table.Cell className="tnum text-right">
+                    <Table.Cell className="tabular-nums text-right">
                       {m ? `${m.allocation}%` : "—"}
                     </Table.Cell>
                   </Table.Row>
@@ -188,7 +203,7 @@ function PersonDetail() {
                     <Link
                       to="/people/$personId"
                       params={{ personId: c.id }}
-                      className="text-primary hover:underline"
+                      className="text-brand hover:underline"
                     >
                       <Id>{c.id}</Id>
                     </Link>

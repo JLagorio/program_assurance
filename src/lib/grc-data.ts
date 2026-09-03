@@ -1,6 +1,6 @@
 import { nistFamilies } from "@/lib/nist-catalog";
 
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 
 export type Risk = {
   id: string;
@@ -165,9 +165,15 @@ export const frameworks = [
     coverage: 81,
     controls: "76 / 93",
     window: "Stage 2 audit Nov 12",
-    tone: "info" as const,
+    tone: "information" as const,
   },
-  { name: "GDPR", coverage: 88, controls: "44 / 50", window: "Continuous", tone: "info" as const },
+  {
+    name: "GDPR",
+    coverage: 88,
+    controls: "44 / 50",
+    window: "Continuous",
+    tone: "information" as const,
+  },
   {
     name: "HIPAA",
     coverage: 62,
@@ -283,7 +289,7 @@ export const activity = [
     actor: "Linus Aarto",
   },
   {
-    tone: "info" as const,
+    tone: "information" as const,
     title: "Evidence requested by auditor",
     time: "08:15",
     body: "Q3 physical access logs for the us-east-2 facility.",
@@ -341,7 +347,7 @@ export type Program = {
 
 export const programStatusTone: Record<ProgramStatus, Tone> = {
   Draft: "neutral",
-  "In assessment": "info",
+  "In assessment": "information",
   Authorized: "success",
   "POA&M open": "warning",
   Expired: "danger",
@@ -648,7 +654,7 @@ export const assessmentTone: Record<ProgramControl["assessment"], Tone> = {
 
 export const programTimeline = [
   {
-    tone: "info" as const,
+    tone: "information" as const,
     title: "Assessment window opened for AU family",
     time: "Aug 27, 10:12",
     actor: "Whitcombe LLP",
@@ -792,7 +798,7 @@ export const poamSeverityTone: Record<PoamSeverity, Tone> = {
 
 export const milestoneStatusTone: Record<MilestoneStatus, Tone> = {
   Planned: "neutral",
-  "In progress": "info",
+  "In progress": "information",
   Completed: "success",
   Missed: "danger",
 };
@@ -1203,14 +1209,14 @@ export type LifecycleGate = {
 
 export const gateStatusTone: Record<GateStatus, Tone> = {
   Complete: "success",
-  "In progress": "info",
+  "In progress": "information",
   "At risk": "warning",
   Blocked: "danger",
   Planned: "neutral",
 };
 
 export const gateKindTone: Record<GateKind, Tone> = {
-  "Milestone decision": "info",
+  "Milestone decision": "information",
   "Engineering review": "neutral",
   "RMF action": "warning",
   Operational: "success",

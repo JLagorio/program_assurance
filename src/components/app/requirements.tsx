@@ -11,7 +11,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 
-import { Badge, Table, Id, Editable } from "@/ds/primitives";
+import { Badge, Box, Editable, Id, Inline, Stack, Table } from "@ledger/design-system";
 import { cn } from "@/lib/utils";
 import {
   allocationStateTone,
@@ -33,7 +33,7 @@ import {
 } from "@/lib/requirements";
 
 /** Cell that wraps instead of truncating — for the one column that is prose. */
-const wrap = "max-w-none whitespace-normal align-top py-2 leading-[1.45]";
+const wrap = "max-w-none whitespace-normal align-top py-100";
 
 /* ------------------------------------------------------------ Target link */
 
@@ -51,7 +51,7 @@ export function TargetLink({
       <Link
         to="/programs/$programId/components/$componentId"
         params={{ programId, componentId: target.id }}
-        className="min-w-0 text-primary hover:underline"
+        className="min-w-0 text-brand hover:underline"
         title={target.detail}
       >
         {target.name}
@@ -64,7 +64,7 @@ export function TargetLink({
       <Link
         to="/library/components/$componentKey"
         params={{ componentKey: target.id }}
-        className="min-w-0 text-primary hover:underline"
+        className="min-w-0 text-brand hover:underline"
         title={target.detail}
       >
         {target.name}
@@ -93,19 +93,22 @@ function targetKindLabel(allocation: Allocation): string {
 /** Compact provenance for a table cell: the first source, then a count. */
 function SourceCell({ derivations }: { derivations: Derivation[] }) {
   const [first, ...rest] = derivations;
-  if (!first) return <span className="text-muted-foreground">—</span>;
+  if (!first) return <span className="text-subtle">—</span>;
   return (
-    <span
-      className="flex min-w-0 items-center gap-1"
+    <Inline
+      className="min-w-0"
       title={derivations.map((d) => `${d.sourceType}: ${d.sourceId}`).join("\n")}
+      as="span"
+      space="space.050"
+      alignBlock="center"
     >
       <Badge size="xsmall" tone={derivationSourceTone[first.sourceType]}>
         {first.sourceId}
       </Badge>
       {rest.length ? (
-        <span className="shrink-0 text-11 text-muted-foreground">+{rest.length}</span>
+        <span className="shrink-0 font-body-xsmall text-subtle">+{rest.length}</span>
       ) : null}
-    </span>
+    </Inline>
   );
 }
 
@@ -140,7 +143,7 @@ export function RequirementTable({
   for (const r of requirements) walk(r, 0);
 
   return (
-    <Table className="mt-1">
+    <Table className="pt-050">
       <colgroup>
         <col style={{ width: "112px" }} />
         <col style={{ width: "104px" }} />
@@ -169,7 +172,7 @@ export function RequirementTable({
           return (
             <Table.Row
               key={requirement.id}
-              className={cn(selected === requirement.id && "bg-primary-soft/40")}
+              className={cn(selected === requirement.id && "bg-selected")}
               title={requirement.text}
             >
               <Table.Cell className="max-w-none">
@@ -179,7 +182,7 @@ export function RequirementTable({
                     params={{ programId, requirementId: requirement.id }}
                     className="hover:underline"
                   >
-                    <Id className="text-primary">{requirement.id}</Id>
+                    <Id className="text-brand">{requirement.id}</Id>
                   </Link>
                 </span>
               </Table.Cell>
@@ -188,8 +191,8 @@ export function RequirementTable({
               <Table.Cell className="truncate">
                 <SourceCell derivations={requirement.derivations} />
               </Table.Cell>
-              <Table.Cell className="tnum text-right">
-                {count === 0 ? <span className="text-muted-foreground">—</span> : count}
+              <Table.Cell className="tabular-nums text-right">
+                {count === 0 ? <span className="text-subtle">—</span> : count}
               </Table.Cell>
               <Table.Cell className="truncate">{requirement.method}</Table.Cell>
               <Table.Cell className="truncate">{requirement.owner}</Table.Cell>
@@ -220,11 +223,11 @@ export function ProvenanceTable({
   programId: string;
 }) {
   if (derivations.length === 0) {
-    return <p className="pt-3 text-[13px] text-legacy-danger">No provenance recorded.</p>;
+    return <p className="pt-150 font-body text-danger">No provenance recorded.</p>;
   }
 
   return (
-    <Table className="mt-1">
+    <Table className="pt-050">
       <colgroup>
         <col style={{ width: "150px" }} />
         <col style={{ width: "108px" }} />
@@ -242,12 +245,12 @@ export function ProvenanceTable({
       <tbody>
         {derivations.map((d) => (
           <Table.Row key={`${d.sourceType}-${d.sourceId}`}>
-            <Table.Cell className="align-top py-2">
+            <Table.Cell className="align-top py-100">
               <Badge size="xsmall" tone={derivationSourceTone[d.sourceType]}>
                 {d.sourceType}
               </Badge>
             </Table.Cell>
-            <Table.Cell className="align-top py-2">
+            <Table.Cell className="align-top py-100">
               <SourceLink derivation={d} programId={programId} />
             </Table.Cell>
             <Table.Cell className={wrap}>{d.sourceLabel}</Table.Cell>
@@ -270,7 +273,7 @@ function SourceLink({ derivation, programId }: { derivation: Derivation; program
         search={{ tab: undefined }}
         className="hover:underline"
       >
-        <Id className="text-primary">{sourceId}</Id>
+        <Id className="text-brand">{sourceId}</Id>
       </Link>
     );
   }
@@ -283,7 +286,7 @@ function SourceLink({ derivation, programId }: { derivation: Derivation; program
         search={{ tab: "Threat scenarios", scenario: sourceId }}
         className="hover:underline"
       >
-        <Id className="text-primary">{sourceId}</Id>
+        <Id className="text-brand">{sourceId}</Id>
       </Link>
     );
   }
@@ -297,12 +300,12 @@ function SourceLink({ derivation, programId }: { derivation: Derivation; program
       : { workstreamId: sourceId };
     return (
       <Link to={to} params={params as never} className="hover:underline">
-        <Id className="text-primary">{sourceId}</Id>
+        <Id className="text-brand">{sourceId}</Id>
       </Link>
     );
   }
 
-  return <Id className="text-muted-foreground">{sourceId}</Id>;
+  return <Id className="text-subtle">{sourceId}</Id>;
 }
 
 /* -------------------------------------------------------------- Allocation */
@@ -323,11 +326,11 @@ export function AllocationTable({
   editable?: boolean;
 }) {
   if (allocations.length === 0) {
-    return <p className="pt-3 text-[13px] text-muted-foreground">Not allocated.</p>;
+    return <p className="pt-150 font-body text-subtle">Not allocated.</p>;
   }
 
   return (
-    <Table className="mt-1">
+    <Table className="pt-050">
       <colgroup>
         <col style={{ width: "230px" }} />
         <col style={{ width: "88px" }} />
@@ -457,11 +460,11 @@ export function ElementAllocationTable({
   requirementFor: (requirementId: string) => Requirement | undefined;
 }) {
   if (allocations.length === 0) {
-    return <p className="pt-3 text-[13px] text-muted-foreground">No requirement allocated here.</p>;
+    return <p className="pt-150 font-body text-subtle">No requirement allocated here.</p>;
   }
 
   return (
-    <Table className="mt-1">
+    <Table className="pt-050">
       <colgroup>
         <col style={{ width: "112px" }} />
         <col />
@@ -493,7 +496,7 @@ export function ElementAllocationTable({
                   params={{ programId, requirementId: a.requirement }}
                   className="hover:underline"
                 >
-                  <Id className="text-primary">{a.requirement}</Id>
+                  <Id className="text-brand">{a.requirement}</Id>
                 </Link>
               </Table.Cell>
               <Table.Cell className="truncate" title={requirement?.text}>
@@ -541,13 +544,13 @@ export function DerivedControlTrace({
   programId: string;
 }) {
   if (trace.hops.length === 0 && trace.withoutControl.length === 0) {
-    return <p className="pt-3 text-[13px] text-muted-foreground">Reaches no control.</p>;
+    return <p className="pt-150 font-body text-subtle">Reaches no control.</p>;
   }
 
   return (
-    <div className="space-y-3 pt-1">
+    <Stack className="pt-050" space="space.150">
       {trace.hops.length > 0 ? (
-        <Table className="mt-1">
+        <Table className="pt-050">
           <colgroup>
             <col style={{ width: "104px" }} />
             <col style={{ width: "112px" }} />
@@ -579,36 +582,44 @@ export function DerivedControlTrace({
       ) : null}
 
       {trace.withoutControl.length > 0 ? (
-        <div className="rounded-lg border border-border bg-legacy-subtle px-3 py-2.5">
-          <p className="text-[12.5px]">
+        <Box
+          className="rounded-large border border-default bg-surface-sunken"
+          paddingInline="space.150"
+          paddingBlock="space.100"
+        >
+          <p className="font-body-small">
             <span className="font-medium">
               {trace.withoutControl.length} allocated here{" "}
               {trace.withoutControl.length === 1 ? "names" : "name"} no control of its own
             </span>
-            <span className="text-muted-foreground">
+            <span className="text-subtle">
               {" "}
               — written by threat analysis, policy or architecture.
             </span>
           </p>
-          <ul className="mt-1.5 space-y-1">
+          <Stack className="pt-075" as="ul" space="space.050">
             {trace.withoutControl.map((r) => (
-              <li key={r.id} className="flex min-w-0 items-baseline gap-2">
+              <Inline
+                key={r.id}
+                className="min-w-0"
+                as="li"
+                space="space.100"
+                alignBlock="baseline"
+              >
                 <Link
                   to="/programs/$programId/requirements/$requirementId"
                   params={{ programId, requirementId: r.id }}
                   className="shrink-0 hover:underline"
                 >
-                  <Id className="text-primary">{r.id}</Id>
+                  <Id className="text-brand">{r.id}</Id>
                 </Link>
-                <span className="min-w-0 truncate text-[12.5px] text-muted-foreground">
-                  {r.text}
-                </span>
-              </li>
+                <span className="min-w-0 truncate font-body-small text-subtle">{r.text}</span>
+              </Inline>
             ))}
-          </ul>
-        </div>
+          </Stack>
+        </Box>
       ) : null}
-    </div>
+    </Stack>
   );
 }
 
@@ -622,7 +633,7 @@ function TraceRow({ hop, programId }: { hop: ControlTraceHop; programId: string 
           search={{ tab: undefined }}
           className="hover:underline"
         >
-          <Id className="text-primary">{hop.control}</Id>
+          <Id className="text-brand">{hop.control}</Id>
         </Link>
       </Table.Cell>
       <Table.Cell>
@@ -631,17 +642,22 @@ function TraceRow({ hop, programId }: { hop: ControlTraceHop; programId: string 
           params={{ programId, requirementId: hop.requirement }}
           className="hover:underline"
         >
-          <Id className="text-primary">{hop.requirement}</Id>
+          <Id className="text-brand">{hop.requirement}</Id>
         </Link>
       </Table.Cell>
       <Table.Cell>
         {hop.via === "direct" ? (
           "Direct"
         ) : (
-          <span className="flex items-center gap-1" title={`Inherited from ${hop.through}`}>
-            <ArrowRight className="size-3 shrink-0" />
-            <Id className="text-muted-foreground">{hop.through}</Id>
-          </span>
+          <Inline
+            title={`Inherited from ${hop.through}`}
+            as="span"
+            space="space.050"
+            alignBlock="center"
+          >
+            <ArrowRight className="shrink-0 size-150" />
+            <Id className="text-subtle">{hop.through}</Id>
+          </Inline>
         )}
       </Table.Cell>
       <Table.Cell>
@@ -675,14 +691,14 @@ export function ControlRequirementTable({
 }) {
   if (requirements.length === 0) {
     return (
-      <p className="pt-3 text-[13px] text-muted-foreground">
+      <p className="pt-150 font-body text-subtle">
         No security requirement derived from this control yet.
       </p>
     );
   }
 
   return (
-    <Table className="mt-1">
+    <Table className="pt-050">
       <colgroup>
         <col style={{ width: "112px" }} />
         <col style={{ width: "104px" }} />
@@ -717,7 +733,7 @@ export function ControlRequirementTable({
                   params={{ programId, requirementId: r.id }}
                   className="hover:underline"
                 >
-                  <Id className="text-primary">{r.id}</Id>
+                  <Id className="text-brand">{r.id}</Id>
                 </Link>
               </Table.Cell>
               <Table.Cell className="truncate">{r.type}</Table.Cell>
@@ -726,14 +742,19 @@ export function ControlRequirementTable({
                 {direct ? (
                   "Direct"
                 ) : (
-                  <span className="flex items-center gap-1" title={`Inherited from ${r.parent}`}>
-                    <ArrowRight className="size-3 shrink-0" />
-                    <Id className="text-muted-foreground">{r.parent}</Id>
-                  </span>
+                  <Inline
+                    title={`Inherited from ${r.parent}`}
+                    as="span"
+                    space="space.050"
+                    alignBlock="center"
+                  >
+                    <ArrowRight className="shrink-0 size-150" />
+                    <Id className="text-subtle">{r.parent}</Id>
+                  </Inline>
                 )}
               </Table.Cell>
-              <Table.Cell className="tnum text-right">
-                {count === 0 ? <span className="text-muted-foreground">—</span> : count}
+              <Table.Cell className="tabular-nums text-right">
+                {count === 0 ? <span className="text-subtle">—</span> : count}
               </Table.Cell>
               <Table.Cell>
                 <Badge size="xsmall" tone={requirementStateTone[r.state]}>

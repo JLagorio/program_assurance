@@ -4,10 +4,22 @@ import type { ReactNode } from "react";
 
 import { AllocationTable, ProvenanceTable, RequirementTable } from "@/components/app/requirements";
 import { AllocateModal } from "@/components/app/requirement-forms";
-import { Badge, Button, KeyValue, Id, Tabs, Fact, Editable } from "@/ds/primitives";
-import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Button,
+  Editable,
+  Fact,
+  Id,
+  Inline,
+  Inspector,
+  KeyValue,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Stack,
+  Tabs,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { programs } from "@/lib/grc-data";
 import {
   allocationsFor,
@@ -97,20 +109,20 @@ function RequirementRecord() {
   if (!requirement || requirement.program !== program.id) {
     return (
       <Shell>
-        <div className="space-y-3">
-          <h1 className="text-[18px] font-semibold">Requirement not found</h1>
-          <p className="max-w-lg text-[13px] text-muted-foreground">
+        <Stack space="space.150">
+          <h1 className="font-heading-small font-semibold">Requirement not found</h1>
+          <p className="max-w-layout-measure font-body text-subtle">
             {requirementId} is not a security requirement of {program.id}.
           </p>
           <Link
             to="/programs/$programId"
             params={{ programId }}
             search={{ tab: "Requirements" }}
-            className="text-[13px] text-primary hover:underline"
+            className="font-body text-brand hover:underline"
           >
             Back to security requirements
           </Link>
-        </div>
+        </Stack>
       </Shell>
     );
   }
@@ -125,8 +137,7 @@ function RequirementRecord() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/programs/$programId"
-            backParams={{ programId }}
+            back={<Link to="/programs/$programId" params={{ programId }} />}
             id={requirement.id}
             title={requirement.text}
             meta={`${program.acronym} · ${requirement.type} · revision ${requirement.revision}`}
@@ -144,7 +155,7 @@ function RequirementRecord() {
               // The facts you act on, on one line above the fold. Reference
               // joins live in the rail; these do not, because needing to open a
               // panel to find out who owns a requirement is the problem.
-              <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 border-t border-border pt-2.5">
+              <dl className="flex flex-wrap items-baseline gap-x-300 gap-y-075 border-t border-default pt-100">
                 <Fact label="Owner">
                   <Editable.Text
                     value={requirement.owner}
@@ -164,7 +175,7 @@ function RequirementRecord() {
                 <Fact label="Allocations">{allocations.length || "None"}</Fact>
                 <Fact label="From catalog">
                   {controlSources.length ? (
-                    <span className="flex flex-wrap gap-1">
+                    <Inline as="span" space="space.050" shouldWrap>
                       {controlSources.map((d) => (
                         <Link
                           key={d.sourceId}
@@ -173,12 +184,12 @@ function RequirementRecord() {
                           search={{ tab: undefined }}
                           className="hover:underline"
                         >
-                          <Id className="text-primary">{d.sourceId}</Id>
+                          <Id className="text-brand">{d.sourceId}</Id>
                         </Link>
                       ))}
-                    </span>
+                    </Inline>
                   ) : (
-                    <span className="text-legacy-warning">None</span>
+                    <span className="text-warning">None</span>
                   )}
                 </Fact>
               </dl>
@@ -186,24 +197,23 @@ function RequirementRecord() {
           />
         }
         tabs={
-          <Tabs
-            items={(
+          <Tabs>
+            {(
               [
                 ["Overview", allocations.length || null],
                 ["Provenance", requirement.derivations.length || null],
               ] as [RequirementTab, number | null][]
-            ).map(([key, count]) => ({
-              key,
-              label: key,
-              active: tab === key,
-              onSelect: () => go(key),
-              trailing: count ? (
-                <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                  {count}
-                </span>
-              ) : null,
-            }))}
-          />
+            ).map(([key, count]) => (
+              <Tabs.Tab
+                key={key}
+                isSelected={tab === key}
+                onClick={() => go(key)}
+                count={count || null}
+              >
+                {key}
+              </Tabs.Tab>
+            ))}
+          </Tabs>
         }
         showRail={tab === "Overview"}
         rail={
@@ -211,19 +221,17 @@ function RequirementRecord() {
             <Inspector.Group title="Derives from">
               {requirement.derivations.map((d) => (
                 <KeyValue key={`${d.sourceType}-${d.sourceId}`} label={d.sourceType}>
-                  <span className="flex flex-col gap-0.5">
+                  <Stack as="span" space="space.025">
                     <SourceRef derivation={d} programId={programId} />
-                    <span className="text-[11.5px] leading-snug text-muted-foreground">
-                      {d.sourceLabel}
-                    </span>
-                  </span>
+                    <span className="font-body-xsmall text-subtle">{d.sourceLabel}</span>
+                  </Stack>
                 </KeyValue>
               ))}
               <KeyValue label="Rationale">
                 <button
                   type="button"
                   onClick={() => go("Provenance")}
-                  className="text-primary hover:underline"
+                  className="text-brand hover:underline"
                 >
                   {requirement.derivations.length} on the Provenance tab
                 </button>
@@ -239,7 +247,7 @@ function RequirementRecord() {
                     search={{ tab: undefined }}
                     className="hover:underline"
                   >
-                    <Id className="text-primary">{parent.id}</Id>
+                    <Id className="text-brand">{parent.id}</Id>
                   </Link>
                 ) : (
                   "Top level"
@@ -254,7 +262,7 @@ function RequirementRecord() {
                     params={{ workstreamId: requirement.workstream }}
                     className="hover:underline"
                   >
-                    <Id className="text-primary">{requirement.workstream}</Id>
+                    <Id className="text-brand">{requirement.workstream}</Id>
                   </Link>
                 ) : (
                   "—"
@@ -267,7 +275,7 @@ function RequirementRecord() {
                   search={{ tab: "Requirements" }}
                   className="hover:underline"
                 >
-                  <Id className="text-primary">{programId}</Id>
+                  <Id className="text-brand">{programId}</Id>
                 </Link>
               </KeyValue>
             </Inspector.Group>
@@ -304,10 +312,10 @@ function RequirementRecord() {
             ) : null}
 
             <Section title="Verification">
-              <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 pt-3">
+              <dl className="flex flex-wrap items-baseline gap-x-300 gap-y-075 pt-150">
                 <Fact label="Method">{requirement.method}</Fact>
                 <Fact label="Success criteria">
-                  <span className="text-[13px] font-normal">
+                  <span className="font-body font-regular">
                     <Editable.Text
                       value={requirement.successCriteria}
                       onChange={(next) =>
@@ -353,7 +361,7 @@ function SourceRef({
         search={{ tab: undefined }}
         className="hover:underline"
       >
-        <Id className="text-primary">{sourceId}</Id>
+        <Id className="text-brand">{sourceId}</Id>
       </Link>
     );
   }
@@ -365,7 +373,7 @@ function SourceRef({
         search={{ tab: "Threat scenarios", scenario: sourceId }}
         className="hover:underline"
       >
-        <Id className="text-primary">{sourceId}</Id>
+        <Id className="text-brand">{sourceId}</Id>
       </Link>
     );
   }
@@ -376,7 +384,7 @@ function SourceRef({
         params={{ componentKey: sourceId }}
         className="hover:underline"
       >
-        <Id className="text-primary">{sourceId}</Id>
+        <Id className="text-brand">{sourceId}</Id>
       </Link>
     );
   }
@@ -387,7 +395,7 @@ function SourceRef({
         params={{ workstreamId: sourceId }}
         className="hover:underline"
       >
-        <Id className="text-primary">{sourceId}</Id>
+        <Id className="text-brand">{sourceId}</Id>
       </Link>
     );
   }

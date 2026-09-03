@@ -63,7 +63,7 @@
  *    Green means only "settled and good". Everything else is a neutral chip.
  */
 
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 
 export type ObjectKind =
   | "program"

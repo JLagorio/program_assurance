@@ -1,9 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { Badge, Button, KeyValue, Table, Id, Indicator } from "@/ds/primitives";
-import { RecordHeader, Section, ShowPage, Empty } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Button,
+  Empty,
+  Id,
+  Indicator,
+  Inline,
+  Inspector,
+  KeyValue,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Stack,
+  Table,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { assetById, bySeverity, isOpen } from "@/lib/findings";
 import { findingsForPoam, openCount, poamItems, riskById } from "@/lib/register";
 import { severityTone, statusTone } from "@/lib/spine";
@@ -36,12 +48,12 @@ function PoamRecord() {
   if (!item) {
     return (
       <Shell>
-        <div className="space-y-3">
-          <h1 className="text-[18px] font-semibold">POA&M item not found</h1>
-          <Link to="/register" className="text-[13px] text-primary hover:underline">
+        <Stack space="space.150">
+          <h1 className="font-heading-small font-semibold">POA&M item not found</h1>
+          <Link to="/register" className="font-body text-brand hover:underline">
             Back to the register
           </Link>
-        </div>
+        </Stack>
       </Shell>
     );
   }
@@ -56,7 +68,7 @@ function PoamRecord() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/register"
+            back={<Link to="/register" />}
             id={item.id}
             title={item.title}
             meta={`${item.owner} · scheduled ${item.scheduledCompletion}`}
@@ -68,7 +80,7 @@ function PoamRecord() {
             }
           />
         }
-        tabs={<div className="border-b border-border" />}
+        tabs={<div className="border-b border-default" />}
         showRail
         rail={
           <>
@@ -89,9 +101,9 @@ function PoamRecord() {
                 <Link
                   to="/programs/$programId"
                   params={{ programId: item.program }}
-                  className="text-primary hover:underline"
+                  className="text-brand hover:underline"
                 >
-                  <Id className="text-primary">{item.program}</Id>
+                  <Id className="text-brand">{item.program}</Id>
                 </Link>
               </KeyValue>
               <KeyValue label="Risk">
@@ -99,9 +111,9 @@ function PoamRecord() {
                   <Link
                     to="/register/risks/$riskId"
                     params={{ riskId: risk.id }}
-                    className="text-primary hover:underline"
+                    className="text-brand hover:underline"
                   >
-                    <Id className="text-primary">{risk.id}</Id>
+                    <Id className="text-brand">{risk.id}</Id>
                   </Link>
                 ) : (
                   "Not aggregated"
@@ -117,23 +129,23 @@ function PoamRecord() {
           description="The commitment. The dated task plan behind it lives on the control."
           action={
             controls.length ? (
-              <span className="flex items-center gap-2 text-12">
+              <Inline className="font-body-small" as="span" space="space.100" alignBlock="center">
                 {controls.map((c) => (
                   <Link
                     key={c}
                     to="/programs/$programId/controls/$controlId"
                     params={{ programId: item.program, controlId: c }}
                     search={{ tab: "Assessment" as const }}
-                    className="text-primary hover:underline"
+                    className="text-brand hover:underline"
                   >
                     {c} plan
                   </Link>
                 ))}
-              </span>
+              </Inline>
             ) : null
           }
         >
-          <p className="max-w-3xl pt-3 text-[13px] leading-relaxed">{item.remediation}</p>
+          <p className="max-w-layout-measure pt-150 font-body">{item.remediation}</p>
         </Section>
 
         <Section
@@ -144,9 +156,7 @@ function PoamRecord() {
               : "On the original schedule."
           }
         >
-          <p className="max-w-3xl text-[13px] leading-relaxed text-muted-foreground">
-            {item.milestoneNote}
-          </p>
+          <p className="max-w-layout-measure font-body text-subtle">{item.milestoneNote}</p>
         </Section>
 
         <Section
@@ -184,7 +194,7 @@ function PoamRecord() {
                         params={{ findingId: f.id }}
                         className="hover:underline"
                       >
-                        <Id className="text-primary">{f.id}</Id>
+                        <Id className="text-brand">{f.id}</Id>
                       </Link>
                     </Table.Cell>
                     <Table.Cell className="truncate">
@@ -204,7 +214,7 @@ function PoamRecord() {
                         className="hover:underline"
                         title={`Remediation plan for ${f.control}`}
                       >
-                        <Id className="text-primary">{f.control}</Id>
+                        <Id className="text-brand">{f.control}</Id>
                       </Link>
                     </Table.Cell>
                     <Table.Cell>

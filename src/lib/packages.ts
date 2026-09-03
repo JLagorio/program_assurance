@@ -8,7 +8,7 @@
  * snapshot, which is why each one names the objects it was assembled from.
  */
 
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 import { ccis, rulesByCci } from "@/lib/catalog";
 import { traceCci } from "@/lib/sctm";
 

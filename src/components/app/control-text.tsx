@@ -9,7 +9,7 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, Table, Id } from "@/ds/primitives";
+import { Badge, Box, Id, Inline, Stack, Table } from "@ledger/design-system";
 import { cn } from "@/lib/utils";
 import type {
   NistMethod,
@@ -26,7 +26,7 @@ export function ControlStatement({ children }: { children: string }) {
     <>
       {parts.map((part, i) =>
         /^\[(Assignment|Selection)/.test(part) ? (
-          <span key={i} className="text-muted-foreground">
+          <span key={i} className="text-subtle">
             {part}
           </span>
         ) : (
@@ -46,13 +46,17 @@ export function StatementList({
 }) {
   if (items.length === 0) return null;
   return (
-    <ol className={cn("max-w-3xl space-y-1.5 text-[13px] leading-relaxed", depth > 0 && "pt-1.5")}>
+    <Stack
+      className={cn("max-w-layout-measure font-body", depth > 0 && "pt-075")}
+      as="ol"
+      space="space.075"
+    >
       {items.map((item, i) => (
-        <li key={i} className="flex gap-2.5">
+        <Inline key={i} as="li" space="space.100">
           <span
             className={cn(
-              "shrink-0 tabular-nums font-medium text-muted-foreground",
-              depth === 0 ? "w-4" : "w-6",
+              "shrink-0 tabular-nums font-medium text-subtle",
+              depth === 0 ? "w-200" : "w-300",
             )}
           >
             {item.label ?? ""}
@@ -61,26 +65,32 @@ export function StatementList({
             <ControlStatement>{item.prose}</ControlStatement>
             {item.items?.length ? <StatementList items={item.items} depth={depth + 1} /> : null}
           </div>
-        </li>
+        </Inline>
       ))}
-    </ol>
+    </Stack>
   );
 }
 
 export function ObjectiveList({ items, depth = 0 }: { items: NistObjective[]; depth?: number }) {
   if (items.length === 0) return null;
   return (
-    <ol className={cn("max-w-3xl space-y-1.5 text-[13px] leading-relaxed", depth > 0 && "pt-1.5")}>
+    <Stack
+      className={cn("max-w-layout-measure font-body", depth > 0 && "pt-075")}
+      as="ol"
+      space="space.075"
+    >
       {items.map((item, i) => (
-        <li key={item.label || i} className="flex gap-3">
-          <Id className="w-[132px] shrink-0 text-11 text-muted-foreground">{item.label}</Id>
+        <Inline key={item.label || i} as="li" space="space.150">
+          <Id className="shrink-0 font-body-xsmall text-subtle" style={{ width: 132 }}>
+            {item.label}
+          </Id>
           <div className="min-w-0">
             {item.prose ? <ControlStatement>{item.prose}</ControlStatement> : null}
             {item.items?.length ? <ObjectiveList items={item.items} depth={depth + 1} /> : null}
           </div>
-        </li>
+        </Inline>
       ))}
-    </ol>
+    </Stack>
   );
 }
 
@@ -93,27 +103,29 @@ const methodTone = {
 export function MethodList({ methods }: { methods: NistMethod[] }) {
   if (methods.length === 0) return null;
   return (
-    <div className="pt-1">
+    <Box paddingBlockStart="space.050">
       {methods.map((m) => (
-        <div key={m.method} className="flex gap-3 border-b border-border-legacy-subtle py-2 last:border-0">
-          <span className="w-[92px] shrink-0 pt-0.5">
+        <Inline
+          key={m.method}
+          className="border-b border-default py-100 last:border-0"
+          space="space.150"
+        >
+          <Box className="shrink-0" as="span" paddingBlockStart="space.025" style={{ width: 92 }}>
             <Badge tone={methodTone[m.method]} size="xsmall">
               {m.method}
             </Badge>
-          </span>
-          <p className="min-w-0 text-[12.5px] leading-relaxed text-muted-foreground">
-            {m.objects.join(" · ")}
-          </p>
-        </div>
+          </Box>
+          <p className="min-w-0 font-body-small text-subtle">{m.objects.join(" · ")}</p>
+        </Inline>
       ))}
-    </div>
+    </Box>
   );
 }
 
 export function ParameterTable({ params }: { params: NistParameter[] }) {
   if (params.length === 0) {
     return (
-      <p className="pt-2 text-[13px] text-muted-foreground">
+      <p className="pt-100 font-body text-subtle">
         This control carries no organization-defined parameters.
       </p>
     );
@@ -136,7 +148,7 @@ export function ParameterTable({ params }: { params: NistParameter[] }) {
         {params.map((p) => (
           <Table.Row key={p.id}>
             <Table.Cell>
-              <Id className="text-11">{p.id}</Id>
+              <Id className="font-body-xsmall">{p.id}</Id>
             </Table.Cell>
             <Table.Cell>{p.kind}</Table.Cell>
             <Table.Cell>
@@ -152,17 +164,12 @@ export function ParameterTable({ params }: { params: NistParameter[] }) {
 export function ReferenceList({ references }: { references: NistReference[] }) {
   if (references.length === 0) return null;
   return (
-    <p className="text-[12.5px] leading-relaxed text-muted-foreground">
+    <p className="font-body-small text-subtle">
       {references.map((r, i) => (
         <span key={r.title}>
           {i > 0 && " · "}
           {r.url ? (
-            <a
-              href={r.url}
-              target="_blank"
-              rel="noreferrer"
-              className="text-primary hover:underline"
-            >
+            <a href={r.url} target="_blank" rel="noreferrer" className="text-brand hover:underline">
               {r.title}
             </a>
           ) : (
@@ -177,9 +184,11 @@ export function ReferenceList({ references }: { references: NistReference[] }) {
 /** Small labelled block used down the assessment tab. */
 export function TextBlock({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex gap-3 border-b border-border-legacy-subtle py-2 last:border-0">
-      <span className="w-[132px] shrink-0 text-12 text-muted-foreground">{label}</span>
-      <div className="min-w-0 text-[12.5px] leading-relaxed">{children}</div>
-    </div>
+    <Inline className="border-b border-default py-100 last:border-0" space="space.150">
+      <span className="shrink-0 font-body-small text-subtle" style={{ width: 132 }}>
+        {label}
+      </span>
+      <div className="min-w-0 font-body-small">{children}</div>
+    </Inline>
   );
 }

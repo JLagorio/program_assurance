@@ -52,7 +52,7 @@ import { oscalJson, oscalPackage, oscalPoam, sha256Hex, type OscalDocument } fro
 import { buildSctm, sctmCsv, type SctmRow } from "@/lib/sctm";
 import { controlMatrix } from "@/lib/control-matrix";
 import type { ReconcileState } from "@/lib/spine";
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 

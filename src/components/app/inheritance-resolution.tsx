@@ -21,18 +21,22 @@
 import type { ReactNode } from "react";
 
 import {
+  Absent,
   Badge,
+  Box,
   Dot,
+  Empty,
+  Grid,
+  Id,
+  Inline,
+  Inspector,
   KeyValue,
   Progress,
-  Table,
-  Id,
-  Absent,
+  Stack,
   Stat,
-  type Tone,
-} from "@/ds/primitives";
-import { Empty } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
+  Table,
+} from "@ledger/design-system";
+import type { Tone } from "@ledger/design-system";
 import {
   designationTone,
   inheritanceStateTone,
@@ -146,12 +150,12 @@ export function ResolutionTable({
 }) {
   if (rows.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="Nothing inherited"
           description="No reusable component lists this program as a consumer, so every control is system-specific and assessed here."
         />
-      </div>
+      </Box>
     );
   }
 
@@ -188,7 +192,7 @@ export function ResolutionTable({
               key={row.control}
               className={cn(
                 onSelect ? "cursor-pointer" : undefined,
-                selected === row.control ? "bg-primary-soft/40" : undefined,
+                selected === row.control ? "bg-selected" : undefined,
               )}
               onClick={onSelect ? () => onSelect(row.control) : undefined}
             >
@@ -210,13 +214,13 @@ export function ResolutionTable({
               </Table.Cell>
               <Table.Cell title={version.detail}>
                 {row.accepted ? (
-                  <span className="flex items-center gap-1">
+                  <Inline as="span" space="space.050" alignBlock="center">
                     <Id>{version.accepted}</Id>
-                    <span className="text-border-strong">→</span>
-                    <Id className={version.drifted ? "text-legacy-warning" : "text-muted-foreground"}>
+                    <span className="text-subtlest">→</span>
+                    <Id className={version.drifted ? "text-warning" : "text-subtle"}>
                       {version.offered}
                     </Id>
-                  </span>
+                  </Inline>
                 ) : (
                   <Badge size="xsmall" tone="warning">
                     Never accepted
@@ -227,7 +231,7 @@ export function ResolutionTable({
                 <InheritanceStateChip row={row} />
               </Table.Cell>
               <Table.Cell
-                className={cn("truncate", unstated ? "text-legacy-danger" : "")}
+                className={cn("truncate", unstated ? "text-danger" : "")}
                 title={
                   unstated
                     ? `${row.component.name} offers ${row.control} as ${row.provided.model} but states no consumer obligation.`
@@ -235,10 +239,10 @@ export function ResolutionTable({
                 }
               >
                 {unstated ? (
-                  <span className="flex items-center gap-1.5">
+                  <Inline as="span" space="space.075" alignBlock="center">
                     <Dot tone="danger" />
                     <span className="truncate font-medium">Obligation not stated</span>
-                  </span>
+                  </Inline>
                 ) : isBlank(row.consumerObligation) ? (
                   <span title="Fully inherited — the provider carries this control end to end.">
                     Nothing — fully inherited
@@ -273,29 +277,31 @@ function ProviderCard({
   model: string;
 }) {
   const ring: Record<Tone, string> = {
-    neutral: "border-border",
-    success: "border-legacy-success/35",
-    warning: "border-legacy-warning/35",
-    danger: "border-legacy-danger/35",
-    information: "border-info/35",
+    neutral: "border-default",
+    success: "border-success-subtle",
+    warning: "border-warning-subtle",
+    danger: "border-danger-subtle",
+    information: "border-information-subtle",
   };
   return (
-    <div className={cn("rounded-md border bg-card px-3 py-2.5", ring[tone])}>
-      <div className="flex items-center gap-1.5">
+    <Box
+      className={cn("rounded-medium border bg-surface", ring[tone])}
+      paddingInline="space.150"
+      paddingBlock="space.100"
+    >
+      <Inline space="space.075" alignBlock="center">
         <Dot tone={tone} />
-        <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-          {caption}
-        </span>
-      </div>
-      <div className="mt-1 truncate text-[13px] font-medium" title={name}>
+        <span className="font-heading-xxsmall uppercase text-subtle">{caption}</span>
+      </Inline>
+      <Box className="truncate font-body font-medium" title={name} paddingBlockStart="space.050">
         {name}
-      </div>
-      <div className="mt-1 flex flex-wrap items-center gap-1.5">
-        <Id className="text-muted-foreground">{id}</Id>
+      </Box>
+      <Inline className="pt-050" space="space.075" alignBlock="center" shouldWrap>
+        <Id className="text-subtle">{id}</Id>
         <Badge size="xsmall">{tier} tier</Badge>
         <Badge size="xsmall">{model}</Badge>
-      </div>
-    </div>
+      </Inline>
+    </Box>
   );
 }
 
@@ -309,31 +315,40 @@ export function ConflictList({
 }) {
   if (items.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="No provider competed for a control"
           description="Every inherited control on this system is offered by exactly one component, so the CCP tier ladder had nothing to deconflict."
         />
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div className="divide-y divide-border">
+    <div className="divide-y">
       {items.map((item) => (
-        <article key={`${item.control}|${item.conflict.component}`} className="py-4 last:pb-0">
-          <div className="flex flex-wrap items-center gap-2">
+        <Box
+          key={`${item.control}|${item.conflict.component}`}
+          className="last:pb-0"
+          as="article"
+          paddingBlock="space.200"
+        >
+          <Inline space="space.100" alignBlock="center" shouldWrap>
             <Id>{item.control}</Id>
-            <span className="min-w-0 truncate text-[13px] font-medium">
+            <span className="min-w-0 truncate font-body font-medium">
               {item.winner.provided.title}
             </span>
-            <span className="ml-auto flex items-center gap-1.5">
+            <Inline className="ml-auto" as="span" space="space.075" alignBlock="center">
               <DesignationChip row={item.winner} />
               <InheritanceStateChip row={item.winner} />
-            </span>
-          </div>
+            </Inline>
+          </Inline>
 
-          <div className="mt-2.5 grid gap-2 md:grid-cols-2">
+          <Grid
+            className="pt-100"
+            gap="space.100"
+            templateColumns={{ md: "repeat(2, minmax(0, 1fr))" }}
+          >
             <ProviderCard
               caption="Resolved to"
               tone="success"
@@ -350,12 +365,10 @@ export function ConflictList({
               tier={item.conflict.tier}
               model={item.conflict.model}
             />
-          </div>
+          </Grid>
 
-          <p className="mt-2.5 text-[12.5px] leading-relaxed text-muted-foreground">
-            {item.conflict.reason}
-          </p>
-        </article>
+          <p className="pt-100 font-body-small text-subtle">{item.conflict.reason}</p>
+        </Box>
       ))}
     </div>
   );
@@ -366,72 +379,81 @@ export function ConflictList({
 export function ObligationList({ rows }: { rows: ResolvedInheritance[] }) {
   if (rows.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="Nothing owed on an inherited control"
           description="Every resolved control is fully inherited: the provider implements it end to end and the consuming system carries no residual obligation."
         />
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div className="divide-y divide-border">
+    <div className="divide-y">
       {rows.map((row) => {
         const unstated = obligationUnstated(row);
         return (
-          <article key={row.control} className="py-4 last:pb-0">
-            <div className="flex flex-wrap items-center gap-2">
+          <Box key={row.control} className="last:pb-0" as="article" paddingBlock="space.200">
+            <Inline space="space.100" alignBlock="center" shouldWrap>
               <Id>{row.control}</Id>
-              <span className="min-w-0 truncate text-[13px] font-medium">{row.provided.title}</span>
+              <span className="min-w-0 truncate font-body font-medium">{row.provided.title}</span>
               <DesignationChip row={row} />
               <Badge size="xsmall" tone={shareTone[row.share]}>
                 {row.share}
               </Badge>
-              <span className="ml-auto flex items-center gap-1.5">
-                <span className="truncate text-[12px] text-muted-foreground">
+              <Inline className="ml-auto" as="span" space="space.075" alignBlock="center">
+                <span className="truncate font-body-small text-subtle">
                   {row.component.name} · {row.tier} tier
                 </span>
                 <InheritanceStateChip row={row} />
-              </span>
-            </div>
+              </Inline>
+            </Inline>
 
-            <div className="mt-3 grid gap-x-6 gap-y-3 md:grid-cols-2">
+            <Grid
+              className="pt-150"
+              columnGap="space.300"
+              rowGap="space.150"
+              templateColumns={{ md: "repeat(2, minmax(0, 1fr))" }}
+            >
               <div>
-                <h4 className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                <h4 className="font-heading-xxsmall uppercase text-subtle">
                   {row.component.name} provides
                 </h4>
-                <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
+                <p className="pt-050 font-body-small text-subtle">
                   {isBlank(row.provided.assertion)
                     ? "The provider has published no implementation statement for this control."
                     : row.provided.assertion}
                 </p>
               </div>
               <div>
-                <h4 className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                <h4 className="font-heading-xxsmall uppercase text-subtle">
                   This system still owes
                 </h4>
                 {unstated ? (
-                  <div className="mt-1 flex items-start gap-2 rounded-md bg-danger-soft px-2.5 py-2 text-[12.5px] leading-relaxed text-legacy-danger">
-                    <span className="pt-1.5">
-                      <Dot tone="danger" />
-                    </span>
-                    <span className="min-w-0">
-                      {row.component.name} offers {row.control} as {row.provided.model} —{" "}
-                      {row.share.toLowerCase()} responsibility — and states no consumer obligation.
-                      Until the obligation is written down, nobody implements it, no assessor tests
-                      it, and the row ships as inherited while the consuming half of the control is
-                      unimplemented.
-                    </span>
-                  </div>
+                  <Box paddingBlockStart="space.050">
+                    <Inline
+                      className="rounded-medium bg-danger px-100 py-100 font-body-small text-danger"
+                      space="space.100"
+                      alignBlock="start"
+                    >
+                      <Box as="span" paddingBlockStart="space.075">
+                        <Dot tone="danger" />
+                      </Box>
+                      <span className="min-w-0">
+                        {row.component.name} offers {row.control} as {row.provided.model} —{" "}
+                        {row.share.toLowerCase()} responsibility — and states no consumer
+                        obligation. Until the obligation is written down, nobody implements it, no
+                        assessor tests it, and the row ships as inherited while the consuming half
+                        of the control is unimplemented.
+                      </span>
+                    </Inline>
+                  </Box>
                 ) : (
-                  <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">
-                    {row.consumerObligation}
-                  </p>
+                  <p className="pt-050 font-body-small text-default">{row.consumerObligation}</p>
                 )}
               </div>
-            </div>
-          </article>
+            </Grid>
+          </Box>
         );
       })}
     </div>
@@ -443,12 +465,12 @@ export function ObligationList({ rows }: { rows: ResolvedInheritance[] }) {
 export function NotApplicableTable({ rows }: { rows: ResolvedInheritance[] }) {
   if (rows.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="Every offer reaches this system"
           description="No provider scoped an offer to inventory this program does not carry, so nothing was excluded on applicability."
         />
-      </div>
+      </Box>
     );
   }
 
@@ -513,15 +535,21 @@ function BreakdownRow({
 }) {
   const pct = Math.round((count / (total || 1)) * 100);
   return (
-    <div className="flex items-center gap-3 border-b border-border-legacy-subtle py-2 last:border-0">
-      <span className="w-[132px] shrink-0 truncate text-12">{label}</span>
+    <Inline
+      className="border-b border-default py-100 last:border-0"
+      space="space.150"
+      alignBlock="center"
+    >
+      <span className="shrink-0 truncate font-body-small" style={{ width: 132 }}>
+        {label}
+      </span>
       <span className="min-w-0 flex-1">
         <Progress value={pct} tone={tone} />
       </span>
-      <span className="tnum w-16 shrink-0 text-right text-12 text-muted-foreground">
+      <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-800">
         {count} · {pct}%
       </span>
-    </div>
+    </Inline>
   );
 }
 
@@ -550,8 +578,11 @@ export function InheritanceSummaryStats({
   ];
 
   return (
-    <div className="space-y-5 pt-3">
-      <div className="grid grid-cols-2 border-y border-border md:grid-cols-5">
+    <Stack className="pt-150" space="space.250">
+      <Grid
+        className="border-y border-default"
+        templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(5, minmax(0, 1fr))" }}
+      >
         <Stat.Tile label="Resolved" value={summary.total} note="controls inherited" />
         <Stat.Tile
           label="Current"
@@ -577,7 +608,7 @@ export function InheritanceSummaryStats({
           note="shared, nothing written down"
           tone={unstated > 0 ? "danger" : "neutral"}
         />
-      </div>
+      </Grid>
 
       <div>
         <Progress.Stacked
@@ -588,25 +619,39 @@ export function InheritanceSummaryStats({
             title: `${l.label} — ${l.value}`,
           }))}
         />
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2">
+        <Inline
+          className="pt-100"
+          space="space.200"
+          rowSpace="space.050"
+          alignBlock="center"
+          shouldWrap
+        >
           {legend.map((l) => (
-            <span key={l.key} className="flex items-center gap-1.5 text-12">
+            <Inline
+              key={l.key}
+              className="font-body-small"
+              as="span"
+              space="space.075"
+              alignBlock="center"
+            >
               <Dot tone={l.tone} />
-              <span className="text-muted-foreground">{l.label}</span>
-              <span className="tnum font-medium">{l.value}</span>
-            </span>
+              <span className="text-subtle">{l.label}</span>
+              <span className="tabular-nums font-medium">{l.value}</span>
+            </Inline>
           ))}
-          <span className="tnum ml-auto text-12 text-muted-foreground">
+          <span className="tabular-nums ml-auto font-body-small text-subtle">
             {summary.notApplicable} offered but not applicable · {summary.unaccepted} never accepted
           </span>
-        </div>
+        </Inline>
       </div>
 
-      <div className="grid grid-cols-1 gap-x-8 gap-y-5 lg:grid-cols-2">
+      <Grid
+        columnGap="space.400"
+        rowGap="space.250"
+        templateColumns={{ base: "repeat(1, minmax(0, 1fr))", lg: "repeat(2, minmax(0, 1fr))" }}
+      >
         <div>
-          <h3 className="pb-1 text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-            By designation
-          </h3>
+          <h3 className="pb-050 font-heading-xxsmall uppercase text-subtle">By designation</h3>
           <BreakdownRow
             label="Common"
             count={summary.common}
@@ -627,9 +672,7 @@ export function InheritanceSummaryStats({
           />
         </div>
         <div>
-          <h3 className="pb-1 text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-            By resolution state
-          </h3>
+          <h3 className="pb-050 font-heading-xxsmall uppercase text-subtle">By resolution state</h3>
           <BreakdownRow
             label="Current"
             count={summary.current}
@@ -661,8 +704,8 @@ export function InheritanceSummaryStats({
             tone="danger"
           />
         </div>
-      </div>
-    </div>
+      </Grid>
+    </Stack>
   );
 }
 
@@ -670,21 +713,19 @@ export function InheritanceSummaryStats({
 
 function WrapValue({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
-      <dt className="truncate text-[12.5px] text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 text-[12.5px] leading-snug text-foreground">{children}</dd>
-    </div>
+    <Grid className="py-050" gap="space.150" templateColumns="104px 1fr" alignItems="baseline">
+      <dt className="truncate font-body-small text-subtle">{label}</dt>
+      <dd className="min-w-0 font-body-small text-default">{children}</dd>
+    </Grid>
   );
 }
 
 function ProseBlock({ label, children }: { label: string; children: string }) {
   return (
-    <div className="pt-1.5">
-      <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-        {label}
-      </div>
-      <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">{children}</p>
-    </div>
+    <Box paddingBlockStart="space.075">
+      <div className="font-heading-xxsmall uppercase text-subtle">{label}</div>
+      <p className="pt-050 font-body-small text-default">{children}</p>
+    </Box>
   );
 }
 
@@ -695,14 +736,20 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
   return (
     <div>
       {unstated ? (
-        <div className="mb-3 flex items-start gap-2 rounded-md bg-danger-soft px-2.5 py-2 text-[12.5px] leading-snug text-legacy-danger">
-          <span className="pt-1.5">
-            <Dot tone="danger" />
-          </span>
-          <span className="min-w-0 font-medium">
-            Shared responsibility with no consumer obligation stated.
-          </span>
-        </div>
+        <Box paddingBlockEnd="space.150">
+          <Inline
+            className="rounded-medium bg-danger px-100 py-100 font-body-small text-danger"
+            space="space.100"
+            alignBlock="start"
+          >
+            <Box as="span" paddingBlockStart="space.075">
+              <Dot tone="danger" />
+            </Box>
+            <span className="min-w-0 font-medium">
+              Shared responsibility with no consumer obligation stated.
+            </span>
+          </Inline>
+        </Box>
       ) : null}
 
       <Inspector.Group title="Resolution">
@@ -747,9 +794,7 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
         <KeyValue label="Signed">{row.accepted ? row.accepted.acceptedOn : "—"}</KeyValue>
         <WrapValue label="Signed by">{row.accepted ? row.accepted.acceptedBy : "—"}</WrapValue>
         <KeyValue label="Offered">
-          <Id className={version.drifted ? "text-legacy-warning" : "text-foreground"}>
-            {version.offered}
-          </Id>
+          <Id className={version.drifted ? "text-warning" : "text-default"}>{version.offered}</Id>
         </KeyValue>
         <KeyValue label="Offered under">
           <Id>{row.provided.assessmentVersion}</Id>
@@ -763,7 +808,7 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
       <Inspector.Group title="Evidence">
         <WrapValue label="Artifact">{row.provided.evidence}</WrapValue>
         <KeyValue label="Age">
-          <span className={cn("tnum", row.stale ? "text-legacy-warning" : "")}>
+          <span className={cn("tabular-nums", row.stale ? "text-warning" : "")}>
             {row.evidenceAgeDays} days
           </span>
         </KeyValue>
@@ -801,16 +846,14 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
       {row.conflicts.length > 0 ? (
         <Inspector.Group title={`Deconflicted (${row.conflicts.length})`}>
           {row.conflicts.map((conflict) => (
-            <div key={conflict.component} className="pt-1.5 first:pt-0.5">
-              <div className="flex flex-wrap items-center gap-1.5">
-                <Id className="text-muted-foreground">{conflict.component}</Id>
+            <Box key={conflict.component} className="first:pt-025" paddingBlockStart="space.075">
+              <Inline space="space.075" alignBlock="center" shouldWrap>
+                <Id className="text-subtle">{conflict.component}</Id>
                 <Badge size="xsmall">{conflict.tier} tier</Badge>
                 <Badge size="xsmall">{conflict.model}</Badge>
-              </div>
-              <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-                {conflict.reason}
-              </p>
-            </div>
+              </Inline>
+              <p className="pt-050 font-body-small text-subtle">{conflict.reason}</p>
+            </Box>
           ))}
         </Inspector.Group>
       ) : null}

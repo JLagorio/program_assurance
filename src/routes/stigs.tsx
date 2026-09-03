@@ -1,9 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Badge, Button, Table, Id, Indicator, NativeSelect } from "@/ds/primitives";
-import { PageHeader, Section, IndexPage } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Button,
+  Id,
+  IndexPage,
+  Indicator,
+  NativeSelect,
+  PageHeader,
+  Section,
+  Table,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { benchmarkById, benchmarks, rules } from "@/lib/catalog";
 import { severityTone } from "@/lib/spine";
 
@@ -95,13 +104,13 @@ function StigLibrary() {
                   <Table.Cell>{b.released}</Table.Cell>
                   <Table.Cell>
                     {b.appliedVersion === b.version ? (
-                      <span className="text-muted-foreground">{b.appliedVersion}</span>
+                      <span className="text-subtle">{b.appliedVersion}</span>
                     ) : (
                       <Badge tone="warning">{b.appliedVersion} behind</Badge>
                     )}
                   </Table.Cell>
-                  <Table.Cell className="tnum text-right">{b.rules}</Table.Cell>
-                  <Table.Cell className="tnum text-right">
+                  <Table.Cell className="tabular-nums text-right">{b.rules}</Table.Cell>
+                  <Table.Cell className="tabular-nums text-right">
                     {b.catI} / {b.catII} / {b.catIII}
                   </Table.Cell>
                 </Table.Row>
@@ -118,7 +127,7 @@ function StigLibrary() {
               value={benchmark}
               onChange={(e) => setBenchmark(e.target.value)}
               aria-label="Benchmark"
-              className="w-[224px]"
+              style={{ width: 224 }}
             >
               <option value="All">All benchmarks</option>
               {benchmarks.map((b) => (
@@ -158,7 +167,7 @@ function StigLibrary() {
                   </Table.Cell>
                   <Table.Cell>
                     {r.severity === "CAT III" ? (
-                      <span className="text-muted-foreground">CAT III</span>
+                      <span className="text-subtle">CAT III</span>
                     ) : (
                       <Indicator tone={severityTone(r.severity)}>{r.severity}</Indicator>
                     )}

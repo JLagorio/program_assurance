@@ -8,7 +8,7 @@ import { gatesForProgram, programTimeline, type Program } from "@/lib/grc-data";
 import { poamItems } from "@/lib/register";
 import { personById, workstreamsForProgram } from "@/lib/people";
 import { parseGateDate } from "@/lib/program-stage";
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 
 export const activityKinds = ["Assessment", "POA&M", "Gates", "Workstreams"] as const;
 export type ActivityKind = (typeof activityKinds)[number];
@@ -33,7 +33,7 @@ export type ActivityEvent = {
 const gateTone: Record<string, Tone> = {
   Blocked: "danger",
   "At risk": "warning",
-  "In progress": "info",
+  "In progress": "information",
   Complete: "success",
   Planned: "neutral",
 };
@@ -131,7 +131,7 @@ export function programActivity(program: Program, now = Date.now()): ActivityEve
     out.push({
       id: `ws-${w.id}`,
       kind: "Workstreams",
-      tone: w.status === "Blocked" ? "danger" : w.status === "Done" ? "success" : "info",
+      tone: w.status === "Blocked" ? "danger" : w.status === "Done" ? "success" : "information",
       title: `${w.id} ${w.title} — ${w.status.toLowerCase()}`,
       actor: lead,
       when: w.due,

@@ -9,8 +9,18 @@
 import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 
-import { Badge, Dot, Person, Table, Id, Progress } from "@/ds/primitives";
-import { Section } from "@/ds/patterns";
+import {
+  Badge,
+  Box,
+  Dot,
+  Id,
+  Inline,
+  Person,
+  Progress,
+  Section,
+  Stack,
+  Table,
+} from "@ledger/design-system";
 import { cn } from "@/lib/utils";
 import { gatesForProgram, gateKindTone, lifecyclePhases, type ProgramGate } from "@/lib/grc-data";
 import { daysUntil } from "@/lib/program-stage";
@@ -24,7 +34,8 @@ function gateTone(g: ProgramGate, daysOut: number | null): Tone {
   if (g.status === "Blocked") return "danger";
   if (g.status === "At risk") return "danger";
   if (daysOut !== null && daysOut < 0) return "danger";
-  if (g.status === "In progress") return daysOut !== null && daysOut < 30 ? "warning" : "information";
+  if (g.status === "In progress")
+    return daysOut !== null && daysOut < 30 ? "warning" : "information";
   return "neutral";
 }
 
@@ -61,7 +72,7 @@ export function RmfTimeline({
       title="RMF timeline"
       description="Acquisition phases, decision gates and the work that has to close under each."
       action={
-        <span className="flex w-[240px] items-center gap-2">
+        <Inline as="span" space="space.100" alignBlock="center" style={{ width: 240 }}>
           <Progress.Stacked
             height={4}
             segments={[
@@ -69,26 +80,28 @@ export function RmfTimeline({
               { key: "r", value: gates.length - done, tone: "neutral" },
             ]}
           />
-          <span className="tnum shrink-0 text-12 text-muted-foreground">
+          <span className="tabular-nums shrink-0 font-body-small text-subtle">
             {done}/{gates.length}
           </span>
-        </span>
+        </Inline>
       }
     >
-      <div className="pt-1">
+      <Box paddingBlockStart="space.050">
         {byPhase.map(({ phase, gates: phaseGates }) => (
-          <div key={phase} className="border-b border-border-legacy-subtle py-3 last:border-0">
-            <div className="flex items-baseline gap-2 pb-1.5">
-              <h3 className="text-12 font-semibold uppercase tracking-[0.06em] text-muted-foreground">
-                {phase}
-              </h3>
-              <span className="tnum text-11 text-muted-foreground">
+          <Box
+            key={phase}
+            className="border-b border-default last:border-0"
+            paddingBlock="space.150"
+          >
+            <Inline className="pb-075" space="space.100" alignBlock="baseline">
+              <h3 className="font-heading-xxsmall uppercase text-subtle">{phase}</h3>
+              <span className="tabular-nums font-body-xsmall text-subtle">
                 {phaseGates.filter((g) => g.status === "Complete").length}/{phaseGates.length} gates
                 closed
               </span>
-            </div>
+            </Inline>
 
-            <ol className="space-y-0">
+            <Stack as="ol" space="space.0">
               {phaseGates.map((g) => {
                 const daysOut = daysUntil(g.planned);
                 const tone = gateTone(g, daysOut);
@@ -99,11 +112,16 @@ export function RmfTimeline({
                 const openControls = gateControls.filter((c) => c.status !== "Satisfied");
 
                 return (
-                  <li key={g.id} className="border-b border-border-legacy-subtle py-2 last:border-0">
-                    <div className="flex items-center gap-3">
+                  <Box
+                    key={g.id}
+                    className="border-b border-default last:border-0"
+                    as="li"
+                    paddingBlock="space.100"
+                  >
+                    <Inline space="space.150" alignBlock="center">
                       <Dot tone={tone} />
-                      <Id className="w-16 shrink-0">{g.id}</Id>
-                      <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium">
+                      <Id className="shrink-0 w-800">{g.id}</Id>
+                      <span className="min-w-0 flex-1 truncate font-body-small font-medium">
                         {g.name}
                       </span>
                       <Badge tone={gateKindTone[g.kind]} size="xsmall">
@@ -112,26 +130,32 @@ export function RmfTimeline({
                       <Badge tone={tone} size="xsmall">
                         {g.status}
                       </Badge>
-                      <span className="tnum w-24 shrink-0 text-right text-12 text-muted-foreground">
+                      <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-1000">
                         {g.planned}
                       </span>
                       <span
                         className={cn(
-                          "tnum w-24 shrink-0 text-right text-12",
-                          tone === "danger" ? "text-legacy-danger" : "text-muted-foreground",
+                          "tabular-nums shrink-0 text-right font-body-small",
+                          tone === "danger" ? "text-danger" : "text-subtle",
+                          "w-1000",
                         )}
                       >
                         {timing(g, daysOut)}
                       </span>
-                      <span className="w-28 shrink-0 truncate text-12">
+                      <span className="shrink-0 truncate font-body-small" style={{ width: 112 }}>
                         <Person name={g.owner} />
                       </span>
-                    </div>
+                    </Inline>
 
-                    <p className="pl-[76px] pt-0.5 text-12 text-muted-foreground">{g.cyberGate}</p>
+                    <p
+                      className="pt-025 font-body-small text-subtle"
+                      style={{ paddingInlineStart: 76 }}
+                    >
+                      {g.cyberGate}
+                    </p>
 
                     {gateStreams.length > 0 ? (
-                      <div className="pl-[76px] pt-1.5">
+                      <Box paddingBlockStart="space.075" style={{ paddingInlineStart: 76 }}>
                         <Table className="table-fixed">
                           <colgroup>
                             <col style={{ width: "88px" }} />
@@ -154,9 +178,9 @@ export function RmfTimeline({
                                     <Link
                                       to="/workstreams/$workstreamId"
                                       params={{ workstreamId: w.id }}
-                                      className="text-primary hover:underline"
+                                      className="text-brand hover:underline"
                                     >
-                                      <Id className="text-primary">{w.id}</Id>
+                                      <Id className="text-brand">{w.id}</Id>
                                     </Link>
                                   </Table.Cell>
                                   <Table.Cell className="truncate">{w.title}</Table.Cell>
@@ -177,27 +201,32 @@ export function RmfTimeline({
                                       "—"
                                     )}
                                   </Table.Cell>
-                                  <Table.Cell className="tnum text-right">{w.due}</Table.Cell>
+                                  <Table.Cell className="tabular-nums text-right">
+                                    {w.due}
+                                  </Table.Cell>
                                 </Table.Row>
                               );
                             })}
                           </tbody>
                         </Table>
-                      </div>
+                      </Box>
                     ) : null}
 
                     {openControls.length > 0 ? (
-                      <p className="tnum pl-[76px] pt-1 text-11 text-legacy-danger">
+                      <p
+                        className="tabular-nums pt-050 font-body-xsmall text-danger"
+                        style={{ paddingInlineStart: 76 }}
+                      >
                         {openControls.length} linked controls not yet satisfied
                       </p>
                     ) : null}
-                  </li>
+                  </Box>
                 );
               })}
-            </ol>
-          </div>
+            </Stack>
+          </Box>
         ))}
-      </div>
+      </Box>
     </Section>
   );
 }
@@ -221,7 +250,11 @@ export function GateOutlookSection({
       description={`${rows.length} gates remaining for ${programId}.`}
       action={
         onSelect ? (
-          <button type="button" onClick={onSelect} className="text-12 text-primary hover:underline">
+          <button
+            type="button"
+            onClick={onSelect}
+            className="font-body-small text-brand hover:underline"
+          >
             Full timeline
           </button>
         ) : null
@@ -248,8 +281,8 @@ export function GateOutlookSection({
                   {gate.status}
                 </Badge>
               </Table.Cell>
-              <Table.Cell className="tnum">{gate.planned}</Table.Cell>
-              <Table.Cell className={cn("tnum", tone === "danger" ? "text-legacy-danger" : "")}>
+              <Table.Cell className="tabular-nums">{gate.planned}</Table.Cell>
+              <Table.Cell className={cn("tabular-nums", tone === "danger" ? "text-danger" : "")}>
                 {timing(gate, daysOut)}
               </Table.Cell>
               <Table.Cell className="truncate">

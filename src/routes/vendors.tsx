@@ -1,9 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
-import { Badge, Button, Progress, Table, Id } from "@/ds/primitives";
-import { Card, IndexPage, PageHeader } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Button,
+  Card,
+  Id,
+  IndexPage,
+  Inline,
+  PageHeader,
+  Progress,
+  Table,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 
 export const Route = createFileRoute("/vendors")({
   head: () => ({
@@ -112,7 +121,7 @@ function Vendors() {
               <>
                 <Button variant="secondary">Send questionnaire</Button>
                 <Button variant="primary">
-                  <Plus className="size-3.5" /> Add vendor
+                  <Plus className="size-icon-small" /> Add vendor
                 </Button>
               </>
             }
@@ -124,11 +133,13 @@ function Vendors() {
             <thead>
               <tr>
                 <Table.Header>Vendor</Table.Header>
-                <Table.Header className="w-[132px]">Data accessed</Table.Header>
-                <Table.Header className="w-[96px]">Tier</Table.Header>
-                <Table.Header className="w-[132px]">Assurance</Table.Header>
-                <Table.Header className="w-[148px]">Risk score</Table.Header>
-                <Table.Header className="w-[124px] text-right">Next review</Table.Header>
+                <Table.Header width={132}>Data accessed</Table.Header>
+                <Table.Header width={96}>Tier</Table.Header>
+                <Table.Header width={132}>Assurance</Table.Header>
+                <Table.Header width={148}>Risk score</Table.Header>
+                <Table.Header className="text-right" width={124}>
+                  Next review
+                </Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -144,21 +155,21 @@ function Vendors() {
                     <Badge tone={vendor.reportTone}>{vendor.report}</Badge>
                   </Table.Cell>
                   <Table.Cell>
-                    <div className="flex items-center gap-2">
+                    <Inline space="space.100" alignBlock="center">
                       <Progress
                         value={vendor.score}
                         tone={
                           vendor.score > 60 ? "danger" : vendor.score > 30 ? "warning" : "success"
                         }
                       />
-                      <span className="tnum w-5 shrink-0 text-right text-[12px] font-medium">
+                      <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-250">
                         {vendor.score}
                       </span>
-                    </div>
+                    </Inline>
                   </Table.Cell>
                   <Table.Cell
                     className={
-                      vendor.review.startsWith("Overdue") ? "text-right text-legacy-danger" : "text-right"
+                      vendor.review.startsWith("Overdue") ? "text-right text-danger" : "text-right"
                     }
                   >
                     {vendor.review}

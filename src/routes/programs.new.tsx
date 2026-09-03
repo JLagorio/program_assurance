@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { ProgramWizard } from "@/components/app/program-wizard";
-import { Shell } from "@/ds/shell";
+import { Shell } from "@/components/app/shell";
 
 export const Route = createFileRoute("/programs/new")({
   head: () => ({

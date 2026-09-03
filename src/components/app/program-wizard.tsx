@@ -15,24 +15,30 @@ import { useMemo, useReducer, useState } from "react";
 import {
   AlertDialog,
   Badge,
+  Block,
+  Box,
   Button,
   Checkbox,
   Combobox,
   Field,
+  Grid,
   Indicator,
+  Inline,
   Input,
+  Inspector,
   KeyValue,
+  PageHeader,
   RadioGroup,
   Select,
   Sheet,
+  Stack,
   Stepper,
   Table,
   Textarea,
-  Tree,
   toast,
-} from "@/ds/primitives";
-import { PageHeader } from "@/ds/patterns";
-import { Block, Inspector, WorkPane } from "@/ds/shapes";
+  Tree,
+  WorkPane,
+} from "@ledger/design-system";
 import {
   contestedOverlays,
   gatesFor,
@@ -301,25 +307,24 @@ export function ProgramWizard() {
   };
 
   return (
-    <div className="animate-slide-up space-y-5">
+    <Stack className="animate-rise" space="space.250">
       <PageHeader
         eyebrow="Programs"
         title={draft.name.trim() ? `New program · ${draft.name.trim()}` : "New program"}
         actions={
-          <Button variant="ghost" onClick={() => void navigate({ to: "/programs" })}>
+          <Button variant="subtle" onClick={() => void navigate({ to: "/programs" })}>
             Cancel
           </Button>
         }
       />
 
-      <div
-        className={
-          wide
-            ? "grid gap-6 lg:grid-cols-[200px_minmax(0,1fr)]"
-            : "grid gap-6 lg:grid-cols-[200px_minmax(0,1fr)_272px]"
+      <Grid
+        gap="space.300"
+        templateColumns={
+          wide ? { lg: "200px minmax(0, 1fr)" } : { lg: "200px minmax(0, 1fr) 272px" }
         }
       >
-        <aside className="lg:sticky lg:top-[72px] lg:self-start">
+        <aside className="lg:sticky-rail">
           <Stepper orientation="vertical">
             {steps.map((s, i) => {
               const state = i < index ? "done" : i === index ? "current" : "upcoming";
@@ -345,7 +350,7 @@ export function ProgramWizard() {
           </Stepper>
         </aside>
 
-        <div className="min-w-0 space-y-5">
+        <Stack className="min-w-0" space="space.250">
           {step === "Program" ? <ProgramStep draft={draft} dispatch={dispatch} /> : null}
           {step === "Framework" ? <FrameworkStep draft={draft} dispatch={dispatch} /> : null}
           {step === "Systems" ? <SystemsStep draft={draft} dispatch={dispatch} /> : null}
@@ -356,20 +361,23 @@ export function ProgramWizard() {
             <ReviewStep draft={draft} dispatch={dispatch} union={union} />
           ) : null}
 
-          <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
+          <Inline
+            className="border-t border-default pt-200"
+            space="space.200"
+            alignBlock="center"
+            spread="space-between"
+          >
             <Button
-              variant="ghost"
+              variant="subtle"
               onClick={() =>
                 index === 0 ? void navigate({ to: "/programs" }) : setStep(steps[index - 1]!)
               }
             >
               {index === 0 ? "Cancel" : "Back"}
             </Button>
-            <div className="flex items-center gap-3">
+            <Inline space="space.150" alignBlock="center">
               {(blocked ?? earlierBlocked) ? (
-                <span className="text-[12px] text-muted-foreground">
-                  {blocked ?? earlierBlocked}
-                </span>
+                <span className="font-body-small text-subtle">{blocked ?? earlierBlocked}</span>
               ) : null}
               {index < steps.length - 1 ? (
                 <Button
@@ -390,12 +398,12 @@ export function ProgramWizard() {
                   Create program
                 </Button>
               )}
-            </div>
-          </div>
-        </div>
+            </Inline>
+          </Inline>
+        </Stack>
 
         {wide ? null : <WizardInspector draft={draft} union={union} step={step} />}
-      </div>
+      </Grid>
 
       <AlertDialog
         open={confirming}
@@ -406,7 +414,7 @@ export function ProgramWizard() {
         confirmLabel="Create program"
         description={`Creates ${draft.name.trim()} with ${draft.scopes.length} scope${draft.scopes.length === 1 ? "" : "s"} and ${union} controls in the union. Each control set is frozen as revision 1 (${draft.submitOnCreate ? "pending approval" : "draft"}); later changes are proposed as a new revision and approved before they take effect.`}
       />
-    </div>
+    </Stack>
   );
 }
 
@@ -415,8 +423,8 @@ export function ProgramWizard() {
 function ProgramStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: Action) => void }) {
   return (
     <Block title="Program">
-      <div className="space-y-3">
-        <div className="grid grid-cols-[minmax(0,1fr)_140px] gap-3">
+      <Stack space="space.150">
+        <Grid gap="space.150" templateColumns="minmax(0,1fr) 140px">
           <Field label="Program name">
             <Input
               autoFocus
@@ -434,7 +442,7 @@ function ProgramStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
               placeholder="AAC"
             />
           </Field>
-        </div>
+        </Grid>
         <Field label="Mission" hint="One line: what the system does and for whom.">
           <Input
             value={draft.mission}
@@ -442,7 +450,10 @@ function ProgramStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
             placeholder="Persistent ISR over the littoral, controlled from the ground segment."
           />
         </Field>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Grid
+          gap="space.150"
+          templateColumns={{ base: "repeat(2, minmax(0, 1fr))", lg: "repeat(4, minmax(0, 1fr))" }}
+        >
           <Field label="System owner">
             <Combobox
               value={draft.owner}
@@ -494,8 +505,8 @@ function ProgramStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
               ))}
             </Select>
           </Field>
-        </div>
-      </div>
+        </Grid>
+      </Stack>
     </Block>
   );
 }
@@ -516,35 +527,44 @@ function FrameworkStep({
         onValueChange={(v) =>
           dispatch({ type: "field", patch: { framework: v as ProgramDraft["framework"] } })
         }
-        className="gap-0 divide-y divide-border"
+        className="gap-0 divide-y"
       >
         {frameworks.map((f) => (
-          <div key={f.id} className="flex items-start justify-between gap-4 py-2.5">
+          <Inline
+            key={f.id}
+            className="py-100"
+            space="space.200"
+            alignBlock="start"
+            spread="space-between"
+          >
             <RadioGroup.Item value={f.id} disabled={!f.available}>
               <span className="block">
-                <span className="block text-[13px]">{f.name}</span>
-                <span className="block text-[12px] text-muted-foreground">
+                <span className="block font-body">{f.name}</span>
+                <span className="block font-body-small text-subtle">
                   {f.version} · selects under {f.policy}
                 </span>
               </span>
             </RadioGroup.Item>
-            <span className="shrink-0 text-right text-[12px] text-muted-foreground">
+            <span className="shrink-0 text-right font-body-small text-subtle">
               {f.available ? (
-                <span className="tnum">{f.controls} controls and enhancements</span>
+                <span className="tabular-nums">{f.controls} controls and enhancements</span>
               ) : (
                 <Indicator tone="neutral">{f.reason}</Indicator>
               )}
             </span>
-          </div>
+          </Inline>
         ))}
       </RadioGroup>
-      <dl className="mt-3 grid grid-cols-[140px_1fr] gap-y-1 border-t border-border pt-3 text-[12.5px]">
-        <dt className="text-muted-foreground">Selection policy</dt>
+      <dl
+        className="pt-150 grid gap-y-050 border-t border-default font-body-small"
+        style={{ gridTemplateColumns: "140px 1fr" }}
+      >
+        <dt className="text-subtle">Selection policy</dt>
         <dd>
           CNSSI 1253 — confidentiality, integrity and availability select independently; the set is
           their union.
         </dd>
-        <dt className="text-muted-foreground">Overlays</dt>
+        <dt className="text-subtle">Overlays</dt>
         <dd>
           CNSSI 1253 attachments and DoD overlays tailor the selection up or down; each decision is
           recorded with its rationale.
@@ -595,12 +615,12 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
       title="Systems and subsystems"
       count={`${draft.scopes.length} scope${draft.scopes.length === 1 ? "" : "s"}`}
       action={
-        <Button size="sm" onClick={() => dispatch({ type: "system.add" })}>
-          <Plus className="size-3.5" /> Add system
+        <Button size="small" onClick={() => dispatch({ type: "system.add" })}>
+          <Plus className="size-icon-small" /> Add system
         </Button>
       }
     >
-      <p className="pb-2 text-[12px] text-muted-foreground">
+      <p className="pb-100 font-body-small text-subtle">
         A system with subsystems is categorized per subsystem; without, as one scope.
       </p>
       <Tree label="Systems">
@@ -615,44 +635,44 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
               hasChildren={!leaf}
               expanded={open}
               onToggle={() => toggle(system.key)}
-              selected={editing?.kind === "system" && editing.key === system.key}
+              isSelected={editing?.kind === "system" && editing.key === system.key}
               onSelect={() => setEditing({ kind: "system", key: system.key })}
               trailing={
                 <>
                   {leaf ? (
-                    <Badge size="xs" tone="info">
+                    <Badge size="xsmall" tone="information">
                       Scope
                     </Badge>
                   ) : (
-                    <span className="text-[11.5px] text-muted-foreground">
+                    <span className="font-body-xsmall text-subtle">
                       {system.subsystems.length} scope{system.subsystems.length === 1 ? "" : "s"}
                     </span>
                   )}
                   <Button
-                    variant="ghost"
-                    size="xs"
+                    variant="subtle"
+                    size="xsmall"
                     onClick={() => {
                       dispatch({ type: "subsystem.add", systemKey: system.key });
                       setExpanded((prev) => new Set(prev).add(system.key));
                     }}
                   >
-                    <Plus className="size-3" /> Subsystem
+                    <Plus className="size-150" /> Subsystem
                   </Button>
                   {draft.systems.length > 1 ? (
                     <Button
-                      variant="ghost"
-                      size="xs"
+                      variant="subtle"
+                      size="xsmall"
                       aria-label={`Remove ${name}`}
                       onClick={() => dispatch({ type: "system.remove", key: system.key })}
                     >
-                      <Trash2 className="size-3" />
+                      <Trash2 className="size-150" />
                     </Button>
                   ) : null}
                 </>
               }
             >
-              <span className="truncate text-[13px]">{name}</span>
-              <span className="truncate text-[11.5px] text-muted-foreground">
+              <span className="truncate font-body">{name}</span>
+              <span className="truncate font-body-xsmall text-subtle">
                 {system.function.trim() || "System"}
               </span>
             </Tree.Item>,
@@ -661,18 +681,18 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
                   <Tree.Item
                     key={sub.key}
                     depth={1}
-                    selected={editing?.kind === "subsystem" && editing.key === sub.key}
+                    isSelected={editing?.kind === "subsystem" && editing.key === sub.key}
                     onSelect={() =>
                       setEditing({ kind: "subsystem", systemKey: system.key, key: sub.key })
                     }
                     trailing={
                       <>
-                        <Badge size="xs" tone="info">
+                        <Badge size="xsmall" tone="information">
                           Scope
                         </Badge>
                         <Button
-                          variant="ghost"
-                          size="xs"
+                          variant="subtle"
+                          size="xsmall"
                           aria-label={`Remove ${sub.name || "subsystem"}`}
                           onClick={() =>
                             dispatch({
@@ -682,21 +702,19 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
                             })
                           }
                         >
-                          <Trash2 className="size-3" />
+                          <Trash2 className="size-150" />
                         </Button>
                       </>
                     }
                   >
                     <span
                       className={
-                        sub.name.trim()
-                          ? "truncate text-[13px]"
-                          : "truncate text-[13px] text-muted-foreground"
+                        sub.name.trim() ? "truncate font-body" : "truncate font-body text-subtle"
                       }
                     >
                       {sub.name.trim() || "Unnamed subsystem"}
                     </span>
-                    <span className="truncate text-[11.5px] text-muted-foreground">
+                    <span className="truncate font-body-xsmall text-subtle">
                       {sub.function.trim() || "Subsystem"}
                     </span>
                   </Tree.Item>
@@ -722,7 +740,7 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
         }
       >
         {target ? (
-          <div className="space-y-3">
+          <Stack space="space.150">
             <Field label="Name">
               <Input
                 autoFocus
@@ -750,7 +768,7 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
                 className="w-full"
               />
             </Field>
-          </div>
+          </Stack>
         ) : null}
       </Sheet>
     </Block>
@@ -770,13 +788,13 @@ function TailorStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: Ac
   const inheriting = draft.scopes.filter((s) => s.override === null).length;
 
   const list = (
-    <div className="space-y-0.5">
+    <Stack space="space.025">
       {many ? (
         <WorkPane.Row
           id="Program"
           title="Program default"
           meta={`${triadLabel(draft.defaults)} · inherited by ${inheriting} of ${draft.scopes.length}`}
-          active={selected === DEFAULT_KEY}
+          isActive={selected === DEFAULT_KEY}
           onSelect={() => setSelected(DEFAULT_KEY)}
         />
       ) : null}
@@ -790,21 +808,21 @@ function TailorStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: Ac
             id={triadLabel(scopeParameters(draft, s))}
             title={s.path}
             meta={`${set.total} controls${s.override ? "" : many ? " · inherits" : ""}${unmet ? ` · ${unmet} gate${unmet === 1 ? "" : "s"}` : ""}`}
-            tone={unmet ? "warning" : s.override ? "info" : "neutral"}
-            active={selected === s.key}
+            tone={unmet ? "warning" : s.override ? "information" : "neutral"}
+            isActive={selected === s.key}
             onSelect={() => setSelected(s.key)}
           />
         );
       })}
-    </div>
+    </Stack>
   );
 
   const detail =
     selected === DEFAULT_KEY ? (
-      <div className="space-y-4">
+      <Stack space="space.200">
         <div>
-          <h2 className="text-[15px] font-semibold tracking-[-0.01em]">Program default</h2>
-          <p className="text-[12px] text-muted-foreground">
+          <h2 className="font-body-large font-semibold">Program default</h2>
+          <p className="font-body-small text-subtle">
             Every scope starts here. A scope that needs its own categorization switches inheritance
             off and is measured against the others.
           </p>
@@ -815,19 +833,19 @@ function TailorStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: Ac
           sections={["categorization", "environment"]}
           onChange={(patch) => dispatch({ type: "defaults", patch })}
         />
-      </div>
+      </Stack>
     ) : scope ? (
-      <div className="space-y-4">
-        <div className="space-y-3">
+      <Stack space="space.200">
+        <Stack space="space.150">
           <div>
-            <h2 className="text-[15px] font-semibold tracking-[-0.01em]">{scope.path}</h2>
-            <p className="text-[12px] text-muted-foreground">
+            <h2 className="font-body-large font-semibold">{scope.path}</h2>
+            <p className="font-body-small text-subtle">
               {scope.subsystemKey ? "Subsystem scope" : "System scope"} · CNSSI 1253{" "}
               {triadLabel(scopeParameters(draft, scope))}
             </p>
           </div>
           <RevisionGates gates={scopeGates(draft, scope)} />
-        </div>
+        </Stack>
         <ScopeTailoringPane
           key={scope.key}
           draft={scopeDraft(draft, scope)}
@@ -843,21 +861,24 @@ function TailorStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: Ac
             : {})}
           onChange={(patch) => dispatch({ type: "scope.patch", key: scope.key, patch })}
         />
-      </div>
+      </Stack>
     ) : null;
 
   // The kit WorkPane's 340px list is sized for control lists; a scope list is
   // short, so the same master–detail shape at 240px leaves the pane its width.
   return (
-    <div className="grid grid-cols-1 gap-0 lg:grid-cols-[240px_minmax(0,1fr)]">
-      <aside className="lg:sticky lg:top-[72px] lg:max-h-[calc(100vh-140px)] lg:self-start lg:overflow-y-auto lg:border-r lg:border-border lg:pr-4">
-        <div className="pb-2 text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+    <Grid
+      gap="space.0"
+      templateColumns={{ base: "repeat(1, minmax(0, 1fr))", lg: "240px minmax(0,1fr)" }}
+    >
+      <aside className="lg:sticky-rail lg:overflow-y-auto lg:border-r lg:border-default lg:pe-200">
+        <Box className="font-heading-xxsmall uppercase text-subtle" paddingBlockEnd="space.100">
           Scopes · {draft.scopes.length}
-        </div>
+        </Box>
         {list}
       </aside>
-      <div className="min-w-0 lg:pl-6">{detail}</div>
-    </div>
+      <div className="min-w-0 lg:ps-300">{detail}</div>
+    </Grid>
   );
 }
 
@@ -889,9 +910,9 @@ function ReviewStep({
   ]);
 
   return (
-    <div className="space-y-1">
+    <Stack space="space.050">
       <Block title="Program">
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-0.5 lg:grid-cols-3">
+        <dl className="grid grid-cols-2 gap-x-300 gap-y-025 lg:grid-cols-3">
           <KeyValue label="Name">{draft.name.trim()}</KeyValue>
           <KeyValue label="Owner">{draft.owner}</KeyValue>
           <KeyValue label="AO">{draft.authorizingOfficial}</KeyValue>
@@ -929,19 +950,21 @@ function ReviewStep({
                 <Table.Row key={s.key}>
                   <Table.Cell className="truncate">{s.path}</Table.Cell>
                   <Table.Cell>
-                    <span className="flex items-center gap-1">
+                    <Inline as="span" space="space.050" alignBlock="center">
                       {objectives.map((o) => (
-                        <Badge key={o} size="xs" tone={impactTone[triadOfParameters(p)[o]]}>
+                        <Badge key={o} size="xsmall" tone={impactTone[triadOfParameters(p)[o]]}>
                           {triadOfParameters(p)[o][0]}
                         </Badge>
                       ))}
-                    </span>
+                    </Inline>
                   </Table.Cell>
                   <Table.Cell className="truncate">
                     {set.overlays.map((o) => o.name).join(", ") || "—"}
                   </Table.Cell>
-                  <Table.Cell className="tnum text-right">{s.tailoring.length || "—"}</Table.Cell>
-                  <Table.Cell className="tnum text-right">{set.total}</Table.Cell>
+                  <Table.Cell className="tabular-nums text-right">
+                    {s.tailoring.length || "—"}
+                  </Table.Cell>
+                  <Table.Cell className="tabular-nums text-right">{set.total}</Table.Cell>
                 </Table.Row>
               );
             })}
@@ -972,7 +995,7 @@ function ReviewStep({
                   <Table.Cell className="truncate">{d.scope.path}</Table.Cell>
                   <Table.Cell className="truncate">{d.subject}</Table.Cell>
                   <Table.Cell className="truncate">{d.decision}</Table.Cell>
-                  <Table.Cell className="whitespace-normal py-2 align-top leading-[1.45]">
+                  <Table.Cell className="whitespace-normal py-100 align-top">
                     {d.rationale}
                   </Table.Cell>
                 </Table.Row>
@@ -980,7 +1003,7 @@ function ReviewStep({
             </tbody>
           </Table>
         ) : (
-          <p className="text-[12.5px] text-muted-foreground">
+          <p className="font-body-small text-subtle">
             Every overlay follows the engine&apos;s recommendation and no control is tailored by
             hand.
           </p>
@@ -995,14 +1018,14 @@ function ReviewStep({
           }
         >
           <span>
-            <span className="block text-[13px]">Submit control sets for approval now</span>
-            <span className="block text-[12px] text-muted-foreground">
+            <span className="block font-body">Submit control sets for approval now</span>
+            <span className="block font-body-small text-subtle">
               Off leaves every revision 1 as a draft the engineer submits later.
             </span>
           </span>
         </Checkbox>
       </Block>
-    </div>
+    </Stack>
   );
 }
 
@@ -1020,7 +1043,7 @@ function WizardInspector({
   const framework = frameworks.find((f) => f.id === draft.framework);
   const tailoring = step === "Categorize and tailor" || step === "Review and create";
   return (
-    <aside className="lg:sticky lg:top-[72px] lg:self-start">
+    <aside className="lg:sticky-rail">
       <Inspector.Group title="Program">
         <KeyValue label="Framework" wrap>
           {framework?.name ?? "—"}
@@ -1028,14 +1051,14 @@ function WizardInspector({
         <KeyValue label="Systems">{draft.systems.length}</KeyValue>
         <KeyValue label="Scopes">{draft.scopes.length}</KeyValue>
         <KeyValue label="Default">
-          <span className="flex items-center gap-1">
+          <Inline as="span" space="space.050" alignBlock="center">
             {objectives.map((o) => (
-              <Badge key={o} size="xs" tone={impactTone[triadOfParameters(draft.defaults)[o]]}>
+              <Badge key={o} size="xsmall" tone={impactTone[triadOfParameters(draft.defaults)[o]]}>
                 {triadOfParameters(draft.defaults)[o][0]}
               </Badge>
             ))}
-            <span className="text-[11.5px] text-muted-foreground">CNSSI 1253</span>
-          </span>
+            <span className="font-body-xsmall text-subtle">CNSSI 1253</span>
+          </Inline>
         </KeyValue>
       </Inspector.Group>
       {tailoring ? (
@@ -1044,8 +1067,8 @@ function WizardInspector({
             const set = resolveDraft(scopeDraft(draft, s));
             return (
               <KeyValue key={s.key} label={s.label}>
-                <span className="tnum">{set.total}</span>
-                <span className="text-muted-foreground">
+                <span className="tabular-nums">{set.total}</span>
+                <span className="text-subtle">
                   {" "}
                   · {set.overlays.length} overlay{set.overlays.length === 1 ? "" : "s"}
                 </span>
@@ -1060,7 +1083,7 @@ function WizardInspector({
         </Inspector.Group>
       ) : null}
       <Inspector.Group title="Then">
-        <p className="text-[12px] leading-relaxed text-muted-foreground">
+        <p className="font-body-small text-subtle">
           Every leaf becomes an assessment scope with revision 1 of its control set. Changing a set
           later means proposing revision 2 and having it approved.
         </p>

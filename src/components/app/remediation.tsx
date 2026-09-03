@@ -11,17 +11,27 @@ import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 
-import { Badge, Progress, Person, Table, Id } from "@/ds/primitives";
-import { Section } from "@/ds/patterns";
+import {
+  Badge,
+  Box,
+  Grid,
+  Id,
+  Inline,
+  Person,
+  Progress,
+  Section,
+  Stack,
+  Table,
+} from "@ledger/design-system";
 import { cn } from "@/lib/utils";
 import { planDay, spanDays, taskStatusTone, type RemediationPlan } from "@/lib/remediation";
 import { statusTone } from "@/lib/spine";
 
 const barTone: Record<string, string> = {
-  Complete: "bg-legacy-success",
-  "In progress": "bg-primary",
-  Blocked: "bg-legacy-danger",
-  Planned: "bg-muted-foreground/30",
+  Complete: "bg-success-bold",
+  "In progress": "bg-brand-bold",
+  Blocked: "bg-danger-bold",
+  Planned: "bg-neutral-bold",
 };
 
 function PoamLink({ id }: { id: string }) {
@@ -29,9 +39,9 @@ function PoamLink({ id }: { id: string }) {
     <Link
       to="/register/poam/$poamId"
       params={{ poamId: id }}
-      className="text-primary hover:underline"
+      className="text-brand hover:underline"
     >
-      <Id className="text-primary">{id}</Id>
+      <Id className="text-brand">{id}</Id>
     </Link>
   );
 }
@@ -61,7 +71,7 @@ export function RemediationPlanSection({
           `${plan.complete} of ${plan.total} steps complete · ${plan.start} → ${plan.due}`
         }
         action={
-          <span className="flex items-center gap-2">
+          <Inline as="span" space="space.100" alignBlock="center">
             {plan.poam ? <PoamLink id={plan.poam.id} /> : null}
             <Badge
               tone={
@@ -76,31 +86,35 @@ export function RemediationPlanSection({
             >
               {plan.status}
             </Badge>
-          </span>
+          </Inline>
         }
       >
-        <div className="space-y-3 pt-3">
-          <p className="max-w-3xl text-[13px] leading-relaxed">{plan.approach}</p>
+        <Stack className="pt-150" space="space.150">
+          <p className="max-w-layout-measure font-body">{plan.approach}</p>
 
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 md:grid-cols-4">
+          <Grid
+            columnGap="space.400"
+            rowGap="space.100"
+            templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" }}
+          >
             <StackedFact label="Plan owner">
               <Person name={plan.owner} />
             </StackedFact>
             <StackedFact label="Scheduled completion">
-              <span className={cn("tnum", plan.slipped && "text-legacy-warning")}>
+              <span className={cn("tabular-nums", plan.slipped && "text-warning")}>
                 {plan.poam?.scheduledCompletion ?? plan.due}
               </span>
             </StackedFact>
             <StackedFact label="POA&M section">
               {plan.poam ? (
-                <span className="flex items-center gap-1.5">
+                <Inline as="span" space="space.075" alignBlock="center">
                   <PoamLink id={plan.poam.id} />
                   <Badge tone={statusTone(plan.poam.status)} size="xsmall">
                     {plan.poam.status}
                   </Badge>
-                </span>
+                </Inline>
               ) : (
-                <span className="text-muted-foreground">Not yet opened</span>
+                <span className="text-subtle">Not yet opened</span>
               )}
             </StackedFact>
             <StackedFact label="Workstream">
@@ -108,37 +122,39 @@ export function RemediationPlanSection({
                 <Link
                   to="/workstreams/$workstreamId"
                   params={{ workstreamId: plan.workstream.id }}
-                  className="text-primary hover:underline"
+                  className="text-brand hover:underline"
                 >
-                  <Id className="text-primary">{plan.workstream.id}</Id>
+                  <Id className="text-brand">{plan.workstream.id}</Id>
                 </Link>
               ) : (
-                <span className="text-muted-foreground">Unassigned</span>
+                <span className="text-subtle">Unassigned</span>
               )}
             </StackedFact>
-          </div>
+          </Grid>
 
-          <div className="flex items-center gap-3 pt-1">
-            <span className="w-40">
+          <Inline className="pt-050" space="space.150" alignBlock="center">
+            <span style={{ width: 160 }}>
               <Progress
                 value={plan.progress}
                 tone={plan.status === "Blocked" ? "danger" : "success"}
               />
             </span>
-            <span className="tnum text-12 text-muted-foreground">{plan.progress}% complete</span>
+            <span className="tabular-nums font-body-small text-subtle">
+              {plan.progress}% complete
+            </span>
             {plan.slipped && plan.poam ? (
-              <span className="tnum text-12 text-legacy-warning">
+              <span className="tabular-nums font-body-small text-warning">
                 Slipped from {plan.poam.originalCompletion}
               </span>
             ) : null}
-          </div>
+          </Inline>
 
           {plan.poam?.milestoneNote ? (
-            <p className="max-w-3xl border-l-2 border-border pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
+            <p className="max-w-layout-measure border-s border-default ps-150 font-body-small text-subtle">
               {plan.poam.milestoneNote}
             </p>
           ) : null}
-        </div>
+        </Stack>
       </Section>
 
       <Section
@@ -168,14 +184,22 @@ export function RemediationPlanSection({
             {plan.tasks.map((t) => (
               <Table.Row key={t.id}>
                 <Table.Cell>
-                  <Id className="text-11 text-muted-foreground">{t.id}</Id>
+                  <Id className="font-body-xsmall text-subtle">{t.id}</Id>
                 </Table.Cell>
                 <Table.Cell>
                   <span className="block font-medium">{t.title}</span>
-                  <span className="mt-0.5 block text-12 leading-relaxed text-muted-foreground">
+                  <Box
+                    className="block font-body-small text-subtle"
+                    as="span"
+                    paddingBlockStart="space.025"
+                  >
                     {t.detail}
-                  </span>
-                  <span className="mt-0.5 block text-11 text-muted-foreground">
+                  </Box>
+                  <Box
+                    className="block font-body-xsmall text-subtle"
+                    as="span"
+                    paddingBlockStart="space.025"
+                  >
                     Verified by: {t.verification}
                     {t.finding ? (
                       <>
@@ -183,13 +207,13 @@ export function RemediationPlanSection({
                         <Link
                           to="/findings/$findingId"
                           params={{ findingId: t.finding }}
-                          className="text-primary hover:underline"
+                          className="text-brand hover:underline"
                         >
                           {t.finding}
                         </Link>
                       </>
                     ) : null}
-                  </span>
+                  </Box>
                 </Table.Cell>
                 <Table.Cell className="truncate">
                   {t.ownerId ? (
@@ -203,10 +227,16 @@ export function RemediationPlanSection({
                   ) : (
                     <Person name={t.owner} />
                   )}
-                  <span className="mt-0.5 block text-11 text-muted-foreground">{t.role}</span>
+                  <Box
+                    className="block font-body-xsmall text-subtle"
+                    as="span"
+                    paddingBlockStart="space.025"
+                  >
+                    {t.role}
+                  </Box>
                 </Table.Cell>
-                <Table.Cell className="tnum text-right">{t.start}</Table.Cell>
-                <Table.Cell className="tnum text-right">{t.due}</Table.Cell>
+                <Table.Cell className="tabular-nums text-right">{t.start}</Table.Cell>
+                <Table.Cell className="tabular-nums text-right">{t.due}</Table.Cell>
                 <Table.Cell>
                   <Badge tone={taskStatusTone[t.status]} size="xsmall">
                     {t.status}
@@ -226,29 +256,33 @@ export function RemediationPlanSection({
             <Link
               to="/register/poam/$poamId"
               params={{ poamId: plan.poam.id }}
-              className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+              className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
             >
               Open the POA&amp;M section
-              <ChevronRight className="size-3.5" />
+              <ChevronRight className="size-icon-small" />
             </Link>
           ) : null
         }
       >
-        <div className="overflow-x-auto pt-3">
-          <div className="min-w-[560px]">
+        <Box className="overflow-x-auto" paddingBlockStart="space.150">
+          <div style={{ minWidth: 560 }}>
             {plan.tasks.map((t) => {
               const left = (spanDays(plan.start, t.start) / window) * 100;
               const width = Math.max(2, (spanDays(t.start, t.due) / window) * 100);
               return (
-                <div key={t.id} className="flex items-center gap-3 py-1">
-                  <span className="w-[196px] shrink-0 truncate text-12" title={t.title}>
+                <Inline key={t.id} className="py-050" space="space.150" alignBlock="center">
+                  <span
+                    className="shrink-0 truncate font-body-small"
+                    title={t.title}
+                    style={{ width: 196 }}
+                  >
                     {t.title}
                   </span>
-                  <span className="relative h-4 min-w-0 flex-1 rounded bg-muted/60">
+                  <span className="relative min-w-0 flex-1 rounded-small bg-neutral-subtle h-200">
                     <span
                       className={cn(
-                        "absolute inset-y-0 rounded",
-                        barTone[t.status] ?? "bg-muted-foreground/30",
+                        "absolute inset-y-0 rounded-small",
+                        barTone[t.status] ?? "bg-neutral-bold",
                       )}
                       style={{
                         left: `${Math.min(97, Math.max(0, left))}%`,
@@ -259,30 +293,38 @@ export function RemediationPlanSection({
                     {todayPct !== null && todayPct >= 0 && todayPct <= 100 ? (
                       <span
                         aria-hidden
-                        className="absolute inset-y-[-2px] w-px bg-legacy-danger/70"
+                        className="absolute -inset-y-025 w-px bg-danger"
                         style={{ left: `${todayPct}%` }}
                       />
                     ) : null}
                   </span>
-                  <span className="tnum w-[96px] shrink-0 text-right text-11 text-muted-foreground">
+                  <span
+                    className="tabular-nums shrink-0 text-right font-body-xsmall text-subtle"
+                    style={{ width: 96 }}
+                  >
                     {t.due}
                   </span>
-                </div>
+                </Inline>
               );
             })}
-            <div className="flex items-center gap-3 pt-1.5">
-              <span className="w-[196px] shrink-0" />
-              <span className="tnum flex min-w-0 flex-1 justify-between text-11 text-muted-foreground">
+            <Inline className="pt-075" space="space.150" alignBlock="center">
+              <span className="shrink-0" style={{ width: 196 }} />
+              <Inline
+                className="tabular-nums min-w-0 font-body-xsmall text-subtle"
+                as="span"
+                spread="space-between"
+                grow="fill"
+              >
                 <span>{plan.start}</span>
                 {todayPct !== null && todayPct >= 0 && todayPct <= 100 ? (
-                  <span className="text-legacy-danger">today</span>
+                  <span className="text-danger">today</span>
                 ) : null}
                 <span>{plan.due}</span>
-              </span>
-              <span className="w-[96px] shrink-0" />
-            </div>
+              </Inline>
+              <span className="shrink-0" style={{ width: 96 }} />
+            </Inline>
           </div>
-        </div>
+        </Box>
       </Section>
     </>
   );
@@ -291,8 +333,10 @@ export function RemediationPlanSection({
 function StackedFact({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
-      <div className="text-11 uppercase tracking-[0.04em] text-muted-foreground">{label}</div>
-      <div className="mt-0.5 truncate text-[12.5px]">{children}</div>
+      <div className="font-heading-xxsmall uppercase text-subtle">{label}</div>
+      <Box className="truncate font-body-small" paddingBlockStart="space.025">
+        {children}
+      </Box>
     </div>
   );
 }

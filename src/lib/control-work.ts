@@ -33,7 +33,7 @@
 import { useSyncExternalStore } from "react";
 
 import { datasetToday } from "@/lib/dataset-clock";
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 
 /* ------------------------------------------------------------------- Roles */
 

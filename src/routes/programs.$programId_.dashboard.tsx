@@ -3,9 +3,21 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 
-import { Badge, Dot, Progress, Person, Table, Id } from "@/ds/primitives";
-import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Box,
+  Dot,
+  Grid,
+  Id,
+  Inline,
+  Person,
+  Progress,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Table,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { ControlMatrixSection, FamilyCoverageTable } from "@/components/app/control-matrix";
 import { CoverageBand } from "@/components/app/coverage";
 import { cn } from "@/lib/utils";
@@ -62,21 +74,29 @@ function DashboardStat({
   children?: ReactNode;
 }) {
   return (
-    <div className="min-w-0 border-l border-border pl-3 first:border-0 first:pl-0">
-      <div className="text-11 uppercase tracking-[0.04em] text-muted-foreground">{label}</div>
-      <div
+    <Box
+      className="min-w-0 border-l border-default first:border-0 first:ps-0"
+      paddingInlineStart="space.150"
+    >
+      <div className="font-heading-xxsmall uppercase text-subtle">{label}</div>
+      <Box
         className={cn(
-          "tnum mt-1 text-[22px] font-semibold leading-none",
-          tone === "danger" && "text-legacy-danger",
-          tone === "warning" && "text-legacy-warning",
-          tone === "success" && "text-legacy-success",
+          "tabular-nums font-heading-medium font-semibold",
+          tone === "danger" && "text-danger",
+          tone === "warning" && "text-warning",
+          tone === "success" && "text-success",
         )}
+        paddingBlockStart="space.050"
       >
         {value}
-      </div>
-      {hint ? <div className="mt-1 truncate text-12 text-muted-foreground">{hint}</div> : null}
-      {children ? <div className="mt-2">{children}</div> : null}
-    </div>
+      </Box>
+      {hint ? (
+        <Box className="truncate font-body-small text-subtle" paddingBlockStart="space.050">
+          {hint}
+        </Box>
+      ) : null}
+      {children ? <Box paddingBlockStart="space.100">{children}</Box> : null}
+    </Box>
   );
 }
 
@@ -97,7 +117,7 @@ function DeadlineRow({ programId, d }: { programId: string; d: Deadline }) {
   const idCell =
     d.kind === "POA&M" ? (
       <Link to="/register/poam/$poamId" params={{ poamId: d.id }} className="hover:underline">
-        <Id className="text-primary">{d.id}</Id>
+        <Id className="text-brand">{d.id}</Id>
       </Link>
     ) : d.kind === "Control" ? (
       <Link
@@ -105,7 +125,7 @@ function DeadlineRow({ programId, d }: { programId: string; d: Deadline }) {
         params={{ programId, controlId: d.id }}
         className="hover:underline"
       >
-        <Id className="text-primary">{d.id}</Id>
+        <Id className="text-brand">{d.id}</Id>
       </Link>
     ) : (
       <Id>{d.id}</Id>
@@ -125,11 +145,11 @@ function DeadlineRow({ programId, d }: { programId: string; d: Deadline }) {
       <Table.Cell className="truncate" title={d.note}>
         {d.note}
       </Table.Cell>
-      <Table.Cell className="tnum text-right">{d.date}</Table.Cell>
+      <Table.Cell className="tabular-nums text-right">{d.date}</Table.Cell>
       <Table.Cell
         className={cn(
-          "tnum text-right",
-          d.tone === "danger" ? "text-legacy-danger" : d.tone === "warning" ? "text-legacy-warning" : "",
+          "tabular-nums text-right",
+          d.tone === "danger" ? "text-danger" : d.tone === "warning" ? "text-warning" : "",
         )}
       >
         {timing}
@@ -193,8 +213,7 @@ function ProgramDashboard() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/programs/$programId"
-            backParams={{ programId: program.id }}
+            back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
             id={program.id}
             title={`${program.name} — dashboard`}
             meta={`${program.baseline} · ${catalogVersion} · ${coverage.total} tailored controls`}
@@ -202,21 +221,30 @@ function ProgramDashboard() {
               <Link
                 to="/programs/$programId"
                 params={{ programId: program.id }}
-                className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
               >
                 Program record
-                <ChevronRight className="size-3.5" />
+                <ChevronRight className="size-icon-small" />
               </Link>
             }
           />
         }
-        tabs={<div className="border-b border-border" />}
+        tabs={<div className="border-b border-default" />}
       >
         <Section
           title="Where the program stands"
           description="Everything below is derived from the live matrix, the lifecycle gates and the register."
         >
-          <div className="grid grid-cols-2 gap-x-4 gap-y-5 pt-4 md:grid-cols-3 lg:grid-cols-5">
+          <Grid
+            className="pt-200"
+            columnGap="space.200"
+            rowGap="space.250"
+            templateColumns={{
+              base: "repeat(2, minmax(0, 1fr))",
+              md: "repeat(3, minmax(0, 1fr))",
+              lg: "repeat(5, minmax(0, 1fr))",
+            }}
+          >
             <DashboardStat
               label="Control coverage"
               value={`${coverage.pct}%`}
@@ -266,7 +294,7 @@ function ProgramDashboard() {
                 tone={overdueGates > 0 ? "danger" : "success"}
               />
             </DashboardStat>
-          </div>
+          </Grid>
         </Section>
 
         <CoverageBand
@@ -303,16 +331,22 @@ function ProgramDashboard() {
             <Link
               to="/programs/$programId"
               params={{ programId: program.id }}
-              className="text-12 text-primary hover:underline"
+              className="font-body-small text-brand hover:underline"
             >
               Full timeline
             </Link>
           }
         >
-          <div className="flex flex-wrap gap-x-6 gap-y-2 py-3">
+          <Inline className="py-150" space="space.300" rowSpace="space.100" shouldWrap>
             {byPhase.map((p) => (
-              <span key={p.phase} className="flex min-w-[136px] items-center gap-2">
-                <span className="w-16 shrink-0">
+              <Inline
+                key={p.phase}
+                as="span"
+                space="space.100"
+                alignBlock="center"
+                style={{ minWidth: 136 }}
+              >
+                <span className="shrink-0 w-800">
                   <Progress.Stacked
                     height={4}
                     segments={[
@@ -321,13 +355,13 @@ function ProgramDashboard() {
                     ]}
                   />
                 </span>
-                <span className="truncate text-12 text-muted-foreground">{p.phase}</span>
-                <span className="tnum text-12">
+                <span className="truncate font-body-small text-subtle">{p.phase}</span>
+                <span className="tabular-nums font-body-small">
                   {p.done}/{p.total}
                 </span>
-              </span>
+              </Inline>
             ))}
-          </div>
+          </Inline>
 
           <Table className="table-fixed">
             <colgroup>
@@ -354,10 +388,10 @@ function ProgramDashboard() {
               {outlook.remaining.map(({ gate, daysOut, tone, blockers }) => (
                 <Table.Row key={gate.id}>
                   <Table.Cell>
-                    <span className="flex items-center gap-1.5">
+                    <Inline as="span" space="space.075" alignBlock="center">
                       <Dot tone={tone} />
                       <Id>{gate.id}</Id>
-                    </span>
+                    </Inline>
                   </Table.Cell>
                   <Table.Cell className="truncate" title={gate.cyberGate}>
                     {gate.name}
@@ -372,9 +406,12 @@ function ProgramDashboard() {
                       {gate.status}
                     </Badge>
                   </Table.Cell>
-                  <Table.Cell className="tnum text-right">{gate.planned}</Table.Cell>
+                  <Table.Cell className="tabular-nums text-right">{gate.planned}</Table.Cell>
                   <Table.Cell
-                    className={cn("tnum text-right", tone === "danger" ? "text-legacy-danger" : "")}
+                    className={cn(
+                      "tabular-nums text-right",
+                      tone === "danger" ? "text-danger" : "",
+                    )}
                   >
                     {daysOut === null
                       ? "—"

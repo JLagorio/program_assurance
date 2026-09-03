@@ -10,9 +10,22 @@ import {
   ReconcileVerdict,
   downloadText,
 } from "@/components/app/export";
-import { Badge, Select, Toolbar, Id, Tabs, Breadcrumb } from "@/ds/primitives";
-import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Box,
+  Breadcrumb,
+  Empty,
+  Id,
+  Inline,
+  RecordHeader,
+  Section,
+  Select,
+  ShowPage,
+  Stack,
+  Tabs,
+  Toolbar,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import {
   bundleArtifactText,
   bundleManifest,
@@ -205,20 +218,19 @@ function ProgramExport() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/programs/$programId"
-            backParams={{ programId }}
+            back={<Link to="/programs/$programId" params={{ programId }} />}
             breadcrumb={
-              <Breadcrumb
-                items={[
-                  { label: "Programs", to: "/programs" },
-                  {
-                    label: program.name,
-                    to: "/programs/$programId",
-                    params: { programId: program.id },
-                  },
-                  { label: "Export and transfer" },
-                ]}
-              />
+              <Breadcrumb>
+                <Breadcrumb.Item asChild>
+                  <Link to={"/programs"}>{"Programs"}</Link>
+                </Breadcrumb.Item>
+                <Breadcrumb.Item asChild>
+                  <Link to={"/programs/$programId"} params={{ programId: program.id }}>
+                    {program.name}
+                  </Link>
+                </Breadcrumb.Item>
+                <Breadcrumb.Item isCurrent>{"Export and transfer"}</Breadcrumb.Item>
+              </Breadcrumb>
             }
             id={program.id}
             title="Export and cross-domain transfer"
@@ -229,15 +241,15 @@ function ProgramExport() {
                 <Link
                   to="/programs/$programId/sctm"
                   params={{ programId }}
-                  className="text-[13px] text-primary hover:underline"
+                  className="font-body text-brand hover:underline"
                 >
                   Open SCTM →
                 </Link>
               </>
             }
             below={
-              <p className="max-w-3xl text-[12.5px] leading-relaxed text-muted-foreground">
-                <span className="font-medium text-foreground">Export basis.</span> Every artifact on
+              <p className="max-w-layout-measure font-body-small text-subtle">
+                <span className="font-medium text-default">Export basis.</span> Every artifact on
                 this page is generated from the same {sctm.counts.total} exported requirement rows,
                 covering {basis.controls} controls: {basis.cciRows} rows keyed to a DISA CCI across{" "}
                 {basis.cciControls} controls, and one row each for the {basis.controlRows} controls
@@ -253,20 +265,18 @@ function ProgramExport() {
           />
         }
         tabs={
-          <Tabs
-            items={exportTabs.map((t) => ({
-              key: t,
-              label: t,
-              active: t === tab,
-              onSelect: () => navigate({ search: { tab: t }, replace: true }),
-              trailing:
-                counts[t] === null ? null : (
-                  <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                    {counts[t]}
-                  </span>
-                ),
-            }))}
-          />
+          <Tabs>
+            {exportTabs.map((t) => (
+              <Tabs.Tab
+                key={t}
+                isSelected={t === tab}
+                onClick={() => navigate({ search: { tab: t }, replace: true })}
+                count={counts[t]}
+              >
+                {t}
+              </Tabs.Tab>
+            ))}
+          </Tabs>
         }
       >
         {tab === "OSCAL" && doc ? (
@@ -276,7 +286,7 @@ function ProgramExport() {
           >
             <Toolbar
               actions={
-                <span className="text-12 text-muted-foreground">
+                <span className="font-body-small text-subtle">
                   Import target: any OSCAL {oscalVersion} consumer
                 </span>
               }
@@ -285,7 +295,7 @@ function ProgramExport() {
                 value={model}
                 onValueChange={(v) => setModel(v as OscalModel)}
                 aria-label="OSCAL model"
-                className="w-[268px]"
+                width={268}
               >
                 {oscalModels.map((m) => (
                   <Select.Item key={m} value={m}>
@@ -295,14 +305,14 @@ function ProgramExport() {
               </Select>
             </Toolbar>
 
-            <div className="pt-2">
+            <Box paddingBlockStart="space.100">
               <OscalViewer
                 doc={doc}
                 text={json}
                 label={oscalModelLabels[doc.model]}
                 filename={`${slug}-${doc.model}.json`}
               />
-            </div>
+            </Box>
           </Section>
         ) : null}
 
@@ -322,14 +332,14 @@ function ProgramExport() {
           >
             <Toolbar
               actions={
-                <span className="text-12 text-muted-foreground">RFC 4180, CRLF line endings</span>
+                <span className="font-body-small text-subtle">RFC 4180, CRLF line endings</span>
               }
             >
               <Select
                 value={sheetKind}
                 onValueChange={(v) => setSheetKind(v as EmassExportKind)}
                 aria-label="eMASS sheet"
-                className="w-[224px]"
+                width={224}
               >
                 {emassExportKinds.map((kind) => (
                   <Select.Item key={kind} value={kind}>
@@ -339,9 +349,9 @@ function ProgramExport() {
               </Select>
             </Toolbar>
 
-            <div className="pt-2">
+            <Box paddingBlockStart="space.100">
               <EmassTable key={sheet.kind} sheet={sheet} />
-            </div>
+            </Box>
           </Section>
         ) : null}
 
@@ -359,7 +369,7 @@ function ProgramExport() {
               />
             }
           >
-            <div className="pt-3">
+            <Box paddingBlockStart="space.150">
               <BundleManifest
                 bundle={bundle}
                 manifest={manifest}
@@ -378,7 +388,7 @@ function ProgramExport() {
                   );
                 }}
               />
-            </div>
+            </Box>
           </Section>
         ) : null}
 
@@ -390,10 +400,10 @@ function ProgramExport() {
               action={
                 received.length > 1 ? (
                   <Select
+                    width={200}
                     value={activeReceived.id}
                     onValueChange={setReceivedId}
                     aria-label="Received media"
-                    className="w-[200px]"
                   >
                     {received.map((b) => (
                       <Select.Item key={b.id} value={b.id}>
@@ -402,50 +412,52 @@ function ProgramExport() {
                     ))}
                   </Select>
                 ) : (
-                  <span className="text-12 text-muted-foreground">
+                  <span className="font-body-small text-subtle">
                     Media created {activeReceived.created}
                   </span>
                 )
               }
             >
-              <div className="space-y-4 pt-3">
+              <Stack className="pt-150" space="space.200">
                 <ReconcileVerdict reconciliation={reconciliation} />
 
-                <div className="flex flex-wrap gap-x-8 gap-y-2 text-[12.5px]">
+                <Inline
+                  className="font-body-small"
+                  space="space.400"
+                  rowSpace="space.100"
+                  shouldWrap
+                >
                   <span>
-                    <span className="text-muted-foreground">Received bundle</span>{" "}
+                    <span className="text-subtle">Received bundle</span>{" "}
                     <Id>{activeReceived.id}</Id>
                   </span>
                   <span>
-                    <span className="text-muted-foreground">From</span> {activeReceived.createdBy}
+                    <span className="text-subtle">From</span> {activeReceived.createdBy}
                   </span>
                   <span>
-                    <span className="text-muted-foreground">Baseline</span>{" "}
-                    <Id>{activeReceived.build}</Id>
+                    <span className="text-subtle">Baseline</span> <Id>{activeReceived.build}</Id>
                   </span>
                   <span>
-                    <span className="text-muted-foreground">Local bundle</span> <Id>{bundle.id}</Id>
+                    <span className="text-subtle">Local bundle</span> <Id>{bundle.id}</Id>
                   </span>
-                </div>
+                </Inline>
 
-                <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-                  {activeReceived.note}
-                </p>
+                <p className="font-body-small text-subtle">{activeReceived.note}</p>
 
                 <ReconcileTable reconciliation={reconciliation} />
-              </div>
+              </Stack>
             </Section>
           ) : (
             <Section
               title="Received media"
               description="Reconciliation compares a manifest that arrived on media against the bundle this side generates, path by path."
             >
-              <div className="pt-3">
+              <Box paddingBlockStart="space.150">
                 <Empty
                   title={`No media has been received for ${program.id}`}
                   description="When a bundle arrives from the far side, its manifest is registered here and every path on either side is compared by digest — identical, changed, present only here, or present only on the media — with the manifest's own digest re-derived rather than trusted."
                 />
-              </div>
+              </Box>
             </Section>
           )
         ) : null}

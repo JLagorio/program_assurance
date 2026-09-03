@@ -4,24 +4,28 @@ import { Download, ListFilter, Plus } from "lucide-react";
 
 import {
   Badge,
+  Box,
   Button,
-  FilterChip,
-  Progress,
-  Table,
-  Id,
-  Dialog,
+  Calendar,
   Checkbox,
+  Dialog,
+  FilterChip,
   HoverCard,
+  Id,
+  IndexPage,
+  Inline,
+  PageHeader,
   Pagination,
   Popover,
+  Progress,
   RadioGroup,
-  Calendar,
   Spinner,
+  Stack,
+  Table,
   Tabs,
   toast,
-} from "@/ds/primitives";
-import { PageHeader, IndexPage } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { programStatusTone, programs, type Program } from "@/lib/grc-data";
 import { useProgramsVersion } from "@/lib/program-store";
 import { usePage, useSort } from "@/lib/table-state";
@@ -84,31 +88,31 @@ type ColumnKey = (typeof columns)[number]["key"];
 
 function ProgramPeek({ program: p }: { program: Program }) {
   return (
-    <div className="space-y-2">
-      <div className="flex items-start justify-between gap-3">
+    <Stack space="space.100">
+      <Inline space="space.150" alignBlock="start" spread="space-between">
         <div className="min-w-0">
           <div className="truncate font-medium">{p.name}</div>
-          <div className="text-12 text-muted-foreground">
+          <div className="font-body-small text-subtle">
             {p.system} · {p.environment}
           </div>
         </div>
-        <Badge tone={programStatusTone[p.status]} size="xs">
+        <Badge tone={programStatusTone[p.status]} size="xsmall">
           {p.status}
         </Badge>
-      </div>
-      <dl className="grid grid-cols-[88px_1fr] gap-y-1 text-12">
-        <dt className="text-muted-foreground">Owner</dt>
+      </Inline>
+      <dl className="grid gap-y-050 font-body-small" style={{ gridTemplateColumns: "88px 1fr" }}>
+        <dt className="text-subtle">Owner</dt>
         <dd>{p.owner}</dd>
-        <dt className="text-muted-foreground">Assessor</dt>
+        <dt className="text-subtle">Assessor</dt>
         <dd>{p.assessor}</dd>
-        <dt className="text-muted-foreground">Assessed</dt>
-        <dd className="tnum">
+        <dt className="text-subtle">Assessed</dt>
+        <dd className="tabular-nums">
           {p.controlsAssessed}/{p.controlsTotal} · {p.controlsFailing} failing
         </dd>
-        <dt className="text-muted-foreground">Expires</dt>
-        <dd className="tnum">{p.expires}</dd>
+        <dt className="text-subtle">Expires</dt>
+        <dd className="tabular-nums">{p.expires}</dd>
       </dl>
-    </div>
+    </Stack>
   );
 }
 
@@ -173,32 +177,31 @@ function ProgramList() {
                   }, 900);
                 }}
               >
-                {exporting ? <Spinner /> : <Download className="size-3.5" />} Export SSP
+                {exporting ? <Spinner /> : <Download className="size-icon-small" />} Export SSP
               </Button>
               <Button variant="primary" onClick={() => void navigate({ to: "/programs/new" })}>
-                <Plus className="size-3.5" /> New program
+                <Plus className="size-icon-small" /> New program
               </Button>
             </>
           }
         />
       }
     >
-      <Tabs
-        items={tabs.map((t) => ({
-          key: t.label,
-          label: t.label,
-          active: tab === t.label,
-          onSelect: () => setTab(t.label),
-          trailing: (
-            <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-              {t.count}
-            </span>
-          ),
-        }))}
-      />
+      <Tabs>
+        {tabs.map((t) => (
+          <Tabs.Tab
+            key={t.label}
+            isSelected={tab === t.label}
+            onClick={() => setTab(t.label)}
+            count={t.count}
+          >
+            {t.label}
+          </Tabs.Tab>
+        ))}
+      </Tabs>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <FilterChip label="Baseline" value="Rev. 5" active />
+      <Inline space="space.100" alignBlock="center" shouldWrap>
+        <FilterChip label="Baseline" value="Rev. 5" isActive />
         <Popover
           width={180}
           trigger={
@@ -212,7 +215,7 @@ function ProgramList() {
             value={impact}
             onValueChange={(v) => setImpact(v as (typeof impactLevels)[number])}
             aria-label="Impact"
-            className="space-y-2"
+            className="space-y-100"
           >
             {impactLevels.map((l) => (
               <RadioGroup.Item key={l} value={l}>
@@ -223,22 +226,26 @@ function ProgramList() {
         </Popover>
         <FilterChip label="Owner" />
         <FilterChip label="Assessor" />
-        <div className="ml-auto flex items-center gap-2">
+        <Inline className="ml-auto" space="space.100" alignBlock="center">
           <Popover
             width={200}
             align="end"
             trigger={
-              <Button variant="secondary" size="sm">
-                <ListFilter className="size-3.5" /> Columns
+              <Button variant="secondary" size="small">
+                <ListFilter className="size-icon-small" /> Columns
                 {hidden.length ? (
-                  <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
+                  <Box
+                    className="tabular-nums rounded-small bg-neutral font-body-xsmall font-medium text-subtle"
+                    as="span"
+                    paddingInline="space.050"
+                  >
                     {columns.length - hidden.length}/{columns.length}
-                  </span>
+                  </Box>
                 ) : null}
               </Button>
             }
           >
-            <div className="space-y-2">
+            <Stack space="space.100">
               {columns.map((c) => (
                 <div key={c.key}>
                   <Checkbox
@@ -251,26 +258,30 @@ function ProgramList() {
                   </Checkbox>
                 </div>
               ))}
-            </div>
+            </Stack>
           </Popover>
-        </div>
-      </div>
+        </Inline>
+      </Inline>
 
       {selected.length > 0 ? (
-        <div className="flex items-center gap-2 rounded-md border border-primary/25 bg-primary-soft px-3 py-1.5 text-[13px] text-primary">
-          <span className="tnum font-medium">{selected.length} selected</span>
-          <span className="ml-auto flex items-center gap-2">
-            <Button variant="secondary" size="sm">
+        <Inline
+          className="rounded-medium border border-brand bg-selected px-150 py-075 font-body text-brand"
+          space="space.100"
+          alignBlock="center"
+        >
+          <span className="tabular-nums font-medium">{selected.length} selected</span>
+          <Inline className="ml-auto" as="span" space="space.100" alignBlock="center">
+            <Button variant="secondary" size="small">
               Reassign assessor
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => setScheduling(true)}>
+            <Button variant="secondary" size="small" onClick={() => setScheduling(true)}>
               Schedule assessment
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => setSelected([])}>
+            <Button variant="subtle" size="small" onClick={() => setSelected([])}>
               Clear
             </Button>
-          </span>
-        </div>
+          </Inline>
+        </Inline>
       ) : null}
 
       <Table>
@@ -288,11 +299,7 @@ function ProgramList() {
               onCheckedChange={(next) => setSelected(next ? rows.map((r) => r.id) : [])}
               label="Select all programs"
             />
-            <Table.Header
-              className="w-[92px]"
-              sort={sort.dir("id")}
-              onSort={() => sort.toggle("id")}
-            >
+            <Table.Header sort={sort.dir("id")} onSort={() => sort.toggle("id")} width={92}>
               Program
             </Table.Header>
             <Table.Header sort={sort.dir("system")} onSort={() => sort.toggle("system")}>
@@ -300,46 +307,47 @@ function ProgramList() {
             </Table.Header>
             {show("impact") ? (
               <Table.Header
-                className="w-[104px]"
                 sort={sort.dir("impact")}
                 onSort={() => sort.toggle("impact")}
+                width={104}
               >
                 Impact
               </Table.Header>
             ) : null}
-            {show("baseline") ? <Table.Header className="w-[132px]">Baseline</Table.Header> : null}
+            {show("baseline") ? <Table.Header width={132}>Baseline</Table.Header> : null}
             {show("assessment") ? (
               <Table.Header
-                className="w-[168px]"
                 sort={sort.dir("assessed")}
                 onSort={() => sort.toggle("assessed")}
+                width={168}
               >
                 Assessment
               </Table.Header>
             ) : null}
             {show("status") ? (
               <Table.Header
-                className="w-[124px]"
                 sort={sort.dir("status")}
                 onSort={() => sort.toggle("status")}
+                width={124}
               >
                 Status
               </Table.Header>
             ) : null}
             {show("owner") ? (
               <Table.Header
-                className="w-[120px]"
                 sort={sort.dir("owner")}
                 onSort={() => sort.toggle("owner")}
+                width={120}
               >
                 Owner
               </Table.Header>
             ) : null}
             {show("expires") ? (
               <Table.Header
-                className="w-[112px] text-right"
+                className="text-right"
                 sort={sort.dir("expires")}
                 onSort={() => sort.toggle("expires")}
+                width={112}
               >
                 Expires
               </Table.Header>
@@ -350,34 +358,38 @@ function ProgramList() {
           {rows.map((p) => {
             const pct = Math.round((p.controlsAssessed / p.controlsTotal) * 100);
             return (
-              <Table.Row key={p.id} className="group" selected={selected.includes(p.id)}>
+              <Table.Row key={p.id} className="group" isSelected={selected.includes(p.id)}>
                 <Table.Selection
                   checked={selected.includes(p.id)}
                   onCheckedChange={() => toggle(p.id)}
                   label={`Select ${p.id}`}
                 />
-                <Table.Cell className="w-[92px]">
+                <Table.Cell width={92}>
                   <HoverCard content={<ProgramPeek program={p} />}>
-                    <span
+                    <Inline
                       tabIndex={0}
-                      className="inline-flex rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
+                      className="rounded-xsmall outline-none focus-visible:outline-focused"
+                      as="span"
+                      display="inline-flex"
                     >
                       <Id>{p.id}</Id>
-                    </span>
+                    </Inline>
                   </HoverCard>
                 </Table.Cell>
                 <Table.Cell>
                   <Link
                     to="/programs/$programId"
                     params={{ programId: p.id }}
-                    className="font-medium text-foreground group-hover:text-primary"
+                    className="font-medium text-default group-hover:text-brand"
                   >
                     {p.name}
                   </Link>
-                  <span className="ml-2 text-muted-foreground">{p.system}</span>
+                  <Box className="text-subtle" as="span" paddingInlineStart="space.100">
+                    {p.system}
+                  </Box>
                 </Table.Cell>
                 {show("impact") ? (
-                  <Table.Cell className="w-[104px]">
+                  <Table.Cell width={104}>
                     <Badge
                       tone={
                         p.impact === "High"
@@ -391,29 +403,29 @@ function ProgramList() {
                     </Badge>
                   </Table.Cell>
                 ) : null}
-                {show("baseline") ? (
-                  <Table.Cell className="w-[132px]">Rev. 5 · {p.impact}</Table.Cell>
-                ) : null}
+                {show("baseline") ? <Table.Cell width={132}>Rev. 5 · {p.impact}</Table.Cell> : null}
                 {show("assessment") ? (
-                  <Table.Cell className="w-[168px]">
-                    <span className="flex items-center gap-2">
-                      <span className="w-16">
-                        <Progress value={pct} tone={pct === 100 ? "success" : "info"} />
+                  <Table.Cell width={168}>
+                    <Inline as="span" space="space.100" alignBlock="center">
+                      <span className="w-800">
+                        <Progress value={pct} tone={pct === 100 ? "success" : "information"} />
                       </span>
-                      <span className="tnum text-muted-foreground">
+                      <span className="tabular-nums text-subtle">
                         {p.controlsAssessed}/{p.controlsTotal}
                       </span>
-                    </span>
+                    </Inline>
                   </Table.Cell>
                 ) : null}
                 {show("status") ? (
-                  <Table.Cell className="w-[124px]">
+                  <Table.Cell width={124}>
                     <Badge tone={programStatusTone[p.status]}>{p.status}</Badge>
                   </Table.Cell>
                 ) : null}
-                {show("owner") ? <Table.Cell className="w-[120px]">{p.owner}</Table.Cell> : null}
+                {show("owner") ? <Table.Cell width={120}>{p.owner}</Table.Cell> : null}
                 {show("expires") ? (
-                  <Table.Cell className="tnum w-[112px] text-right">{p.expires}</Table.Cell>
+                  <Table.Cell className="tabular-nums text-right" width={112}>
+                    {p.expires}
+                  </Table.Cell>
                 ) : null}
               </Table.Row>
             );
@@ -427,7 +439,7 @@ function ProgramList() {
         onPageChange={paged.setPage}
         total={paged.total}
         pageSize={paged.pageSize}
-        className="border-t border-border pt-3"
+        className="border-t border-default pt-150"
       />
 
       <Dialog
@@ -437,7 +449,7 @@ function ProgramList() {
         description={`${selected.length} ${selected.length === 1 ? "program" : "programs"} · the assessor is notified with the date`}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setScheduling(false)}>
+            <Button variant="subtle" onClick={() => setScheduling(false)}>
               Cancel
             </Button>
             <Button
@@ -458,9 +470,9 @@ function ProgramList() {
           </>
         }
       >
-        <div className="flex justify-center">
+        <Inline alignInline="center">
           <Calendar mode="single" selected={scheduleDate} onSelect={setScheduleDate} />
-        </div>
+        </Inline>
       </Dialog>
     </IndexPage>
   );

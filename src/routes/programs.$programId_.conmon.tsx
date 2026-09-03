@@ -13,9 +13,18 @@ import {
   ScheduleTable,
   SlippageTable,
 } from "@/components/app/conmon";
-import { Badge, ToggleGroup, Tabs } from "@/ds/primitives";
-import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Box,
+  Grid,
+  Inline,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Tabs,
+  ToggleGroup,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import {
   assessmentSchedule,
   conmonAlerts,
@@ -165,7 +174,7 @@ function ProgramConMon() {
       <button
         type="button"
         onClick={() => go(to)}
-        className="text-[12.5px] text-primary hover:underline"
+        className="font-body-small text-brand hover:underline"
       >
         Open {label}
       </button>
@@ -182,7 +191,7 @@ function ProgramConMon() {
           <Link
             to="/register/poam/$poamId"
             params={{ poamId: alert.subject }}
-            className="text-[12.5px] text-primary hover:underline"
+            className="font-body-small text-brand hover:underline"
           >
             Open {alert.subject}
           </Link>
@@ -195,7 +204,7 @@ function ProgramConMon() {
           <Link
             to="/programs/$programId/baseline"
             params={{ programId: program.id }}
-            className="text-[12.5px] text-primary hover:underline"
+            className="font-body-small text-brand hover:underline"
           >
             Open baseline
           </Link>
@@ -206,7 +215,7 @@ function ProgramConMon() {
             to="/programs/$programId/inheritance"
             params={{ programId: program.id }}
             search={{ tab: undefined, control: undefined }}
-            className="text-[12.5px] text-primary hover:underline"
+            className="font-body-small text-brand hover:underline"
           >
             Open inheritance
           </Link>
@@ -216,7 +225,7 @@ function ProgramConMon() {
           <Link
             to="/programs/$programId"
             params={{ programId: program.id }}
-            className="text-[12.5px] text-primary hover:underline"
+            className="font-body-small text-brand hover:underline"
           >
             Open program
           </Link>
@@ -231,8 +240,7 @@ function ProgramConMon() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/programs/$programId"
-            backParams={{ programId: program.id }}
+            back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
             id={program.id}
             title={`${program.name} — continuous monitoring`}
             meta={`As of ${conmonAsOfLabel} · ${alerts.length} alert${alerts.length === 1 ? "" : "s"}${urgent > 0 ? ` (${urgent} critical or high)` : ""} · drift ${drift.score}/100${appliedWeight < 100 ? ` on ${appliedWeight} of 100 points of weight — read the band as a floor` : ""}`}
@@ -243,14 +251,14 @@ function ProgramConMon() {
                 <Link
                   to="/programs/$programId/baseline"
                   params={{ programId: program.id }}
-                  className="text-[12.5px] text-primary hover:underline"
+                  className="font-body-small text-brand hover:underline"
                 >
                   Baseline
                 </Link>
                 <Link
                   to="/programs/$programId/sctm"
                   params={{ programId: program.id }}
-                  className="text-[12.5px] text-primary hover:underline"
+                  className="font-body-small text-brand hover:underline"
                 >
                   SCTM
                 </Link>
@@ -258,7 +266,7 @@ function ProgramConMon() {
                   to="/programs/$programId/risk"
                   params={{ programId: program.id }}
                   search={{ tab: undefined }}
-                  className="text-[12.5px] text-primary hover:underline"
+                  className="font-body-small text-brand hover:underline"
                 >
                   Risk
                 </Link>
@@ -267,19 +275,18 @@ function ProgramConMon() {
           />
         }
         tabs={
-          <Tabs
-            items={conmonTabs.map((key) => ({
-              key,
-              label: key,
-              active: tab === key,
-              onSelect: () => go(key),
-              trailing: counts[key] ? (
-                <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                  {counts[key]}
-                </span>
-              ) : null,
-            }))}
-          />
+          <Tabs>
+            {conmonTabs.map((key) => (
+              <Tabs.Tab
+                key={key}
+                isSelected={tab === key}
+                onClick={() => go(key)}
+                count={counts[key] || null}
+              >
+                {key}
+              </Tabs.Tab>
+            ))}
+          </Tabs>
         }
       >
         {tab === "Drift" ? (
@@ -288,9 +295,9 @@ function ProgramConMon() {
               title="How far the operating state has moved from the authorized one"
               description={`Before an authorization the question is whether the system was ever assessed. After one it is whether what was authorized is still what is running. Everything below is measured as of ${conmonAsOfLabel} against the state ${program.id} was authorized in — the pinned build, the determinations that were current when the package was signed, the evidence those determinations rest on, and the monitoring the ISSM committed to doing between assessments.`}
             >
-              <div className="pt-4">
+              <Box paddingBlockStart="space.200">
                 <DriftCard score={drift} asOf={conmonAsOfLabel} subject={program.name} />
-              </div>
+              </Box>
             </Section>
 
             <Section
@@ -308,13 +315,13 @@ function ProgramConMon() {
                   : `${alerts.length} thing${alerts.length === 1 ? " has" : "s have"} diverged from what was authorized, worst first. Each one says what moved, with the numbers, and what to do about it. Nothing is here that does not rest on a record — no alert is manufactured to fill the list.`
               }
               action={
-                <span className="tnum text-[12px] text-muted-foreground">
+                <span className="tabular-nums font-body-small text-subtle">
                   {urgent} critical or high · {alerts.length} total
                 </span>
               }
             >
               <AlertSummary alerts={alerts} />
-              <div className="pt-3">
+              <Box paddingBlockStart="space.150">
                 <AlertList
                   alerts={alerts}
                   action={alertAction}
@@ -323,14 +330,21 @@ function ProgramConMon() {
                     description: `No pin in ${program.id} has moved without a change record, no determination has been retracted, no evidence is past its SLA and no monitoring window has closed empty.`,
                   }}
                 />
-              </div>
+              </Box>
             </Section>
 
             <Section
               title="What feeds the score"
               description="The four monitoring surfaces the factors above are counted from. Each one is a full table of its own; the counts here are the same rows, summarised."
             >
-              <div className="grid gap-3 pt-4 sm:grid-cols-2 lg:grid-cols-4">
+              <Grid
+                className="pt-200"
+                gap="space.150"
+                templateColumns={{
+                  sm: "repeat(2, minmax(0, 1fr))",
+                  lg: "repeat(4, minmax(0, 1fr))",
+                }}
+              >
                 <FeedTile
                   label="Assessment schedule"
                   value={overdue.length}
@@ -386,7 +400,7 @@ function ProgramConMon() {
                   }
                   onOpen={() => go("POA&M slippage")}
                 />
-              </div>
+              </Grid>
             </Section>
           </>
         ) : null}
@@ -423,11 +437,11 @@ function ProgramConMon() {
                 ]}
               />
             ) : null}
-            <div className="pt-3">
+            <Box paddingBlockStart="space.150">
               <ScheduleTable rows={scheduleRows} />
-            </div>
+            </Box>
             {schedule.length > 0 && scheduleRows.length === 0 ? (
-              <p className="pt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+              <p className="pt-150 font-body-small text-subtle">
                 Every one of the {schedule.length} controls in the strategy is inside its window as
                 of {conmonAsOfLabel}. Switch to "All {schedule.length}" to read the schedule itself.
               </p>
@@ -471,11 +485,11 @@ function ProgramConMon() {
                 ]}
               />
             ) : null}
-            <div className="pt-3">
+            <Box paddingBlockStart="space.150">
               <FreshnessTable rows={freshnessRows} />
-            </div>
+            </Box>
             {freshness.length > 0 && freshnessRows.length === 0 ? (
-              <p className="pt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+              <p className="pt-150 font-body-small text-subtle">
                 Every one of the {freshness.length} monitored requirements is inside its SLA as of{" "}
                 {conmonAsOfLabel}. Switch to "All {freshness.length}" to read the collection dates.
               </p>
@@ -489,15 +503,15 @@ function ProgramConMon() {
             description={`One row per tracked asset and scan format, comparing the newest reconciled scan result against the window that format is expected to produce one inside. A run that was ingested but never reconciled into the finding register does not close a window: a scan nobody processed is not a monitoring signal, and this table says so in the row rather than crediting the upload.`}
             action={
               cadence.length > 0 ? (
-                <span className="tnum text-[12px] text-muted-foreground">
+                <span className="tabular-nums font-body-small text-subtle">
                   {cadence.length - outOfCadence.length} in cadence · {outOfCadence.length} missed
                 </span>
               ) : null
             }
           >
-            <div className="pt-4">
+            <Box paddingBlockStart="space.200">
               <CadenceTable rows={cadence} />
-            </div>
+            </Box>
           </Section>
         ) : null}
 
@@ -507,15 +521,15 @@ function ProgramConMon() {
             description={`The slip is the distance between the original completion date the program committed to and the date currently scheduled, with the number of recorded revisions beside it. Both numbers come from the register item; neither is authored as a "slipped" flag. An item sitting past a date nobody ever revised is the worse story, not the better one, and it sorts to the top for that reason.`}
             action={
               slippage.length > 0 ? (
-                <span className="tnum text-[12px] text-muted-foreground">
+                <span className="tabular-nums font-body-small text-subtle">
                   {slipped.length} slipped · {overdueSections.length} overdue
                 </span>
               ) : null
             }
           >
-            <div className="pt-4">
+            <Box paddingBlockStart="space.200">
               <SlippageTable rows={slippage} />
-            </div>
+            </Box>
           </Section>
         ) : null}
       </ShowPage>
@@ -535,23 +549,29 @@ function CountStrip({
   items: { label: string; count: number; tone: "neutral" | "success" | "warning" | "danger" }[];
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4">
+    <Inline
+      className="pt-200"
+      space="space.200"
+      rowSpace="space.100"
+      alignBlock="center"
+      shouldWrap
+    >
       {items.map((item) => (
-        <span key={item.label} className="flex items-center gap-1.5">
+        <Inline key={item.label} as="span" space="space.075" alignBlock="center">
           <Badge size="xsmall" tone={item.count > 0 ? item.tone : "neutral"}>
             {item.label}
           </Badge>
           <span
             className={cn(
-              "tnum text-[12.5px] font-medium",
-              item.count === 0 ? "text-muted-foreground" : "text-foreground",
+              "tabular-nums font-body-small font-medium",
+              item.count === 0 ? "text-subtle" : "text-default",
             )}
           >
             {item.count}
           </span>
-        </span>
+        </Inline>
       ))}
-    </div>
+    </Inline>
   );
 }
 
@@ -577,30 +597,36 @@ function FeedTile({
   onOpen: () => void;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-legacy-subtle px-4 py-3">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[12px] text-muted-foreground">{label}</span>
+    <Box
+      className="rounded-large border border-default bg-surface-sunken"
+      paddingInline="space.200"
+      paddingBlock="space.150"
+    >
+      <Inline space="space.100" alignBlock="center" spread="space-between">
+        <span className="font-body-small text-subtle">{label}</span>
         <button
           type="button"
           onClick={onOpen}
-          className="shrink-0 text-[12px] text-primary hover:underline"
+          className="shrink-0 font-body-small text-brand hover:underline"
         >
           Open
         </button>
-      </div>
-      <div className="mt-1 flex items-baseline gap-2">
+      </Inline>
+      <Inline className="pt-050" space="space.100" alignBlock="baseline">
         <span
           className={cn(
-            "tnum text-[24px] font-semibold leading-none tracking-[-0.02em]",
-            alarming && value > 0 ? "text-legacy-warning" : null,
-            alarming && value === 0 ? "text-muted-foreground" : null,
+            "tabular-nums font-heading-medium font-semibold",
+            alarming && value > 0 ? "text-warning" : null,
+            alarming && value === 0 ? "text-subtle" : null,
           )}
         >
           {value}
         </span>
-        <span className="text-[12px] text-muted-foreground">{unit}</span>
-      </div>
-      <div className="mt-1.5 text-[12px] leading-snug text-muted-foreground">{note}</div>
-    </div>
+        <span className="font-body-small text-subtle">{unit}</span>
+      </Inline>
+      <Box className="font-body-small text-subtle" paddingBlockStart="space.075">
+        {note}
+      </Box>
+    </Box>
   );
 }

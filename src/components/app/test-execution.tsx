@@ -17,20 +17,25 @@
 import type { ReactNode } from "react";
 
 import {
+  Absent,
   Badge,
+  Box,
   Button,
   Dot,
-  KeyValue,
-  Progress,
-  Person,
-  Table,
+  Empty,
+  Grid,
   Id,
-  Absent,
+  Inline,
+  Inspector,
+  KeyValue,
+  Person,
+  Progress,
+  Section,
+  Stack,
   Stat,
-  type Tone,
-} from "@/ds/primitives";
-import { Empty, Section } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
+  Table,
+} from "@ledger/design-system";
+import type { Tone } from "@ledger/design-system";
 import { objectiveTone, type ObjectiveResult } from "@/lib/campaigns";
 import {
   regressionStateTone,
@@ -89,22 +94,20 @@ export function ResultChip({ result }: { result: ObjectiveResult }) {
 
 function ProseBlock({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="pt-1.5">
-      <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-        {label}
-      </div>
-      <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">{children}</p>
-    </div>
+    <Box paddingBlockStart="space.075">
+      <div className="font-heading-xxsmall uppercase text-subtle">{label}</div>
+      <p className="pt-050 font-body-small text-default">{children}</p>
+    </Box>
   );
 }
 
 /** `KeyValue` truncates to one line, which is wrong for a list of ids. */
 function WrapValue({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
-      <dt className="truncate text-[12.5px] text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 text-[12.5px] leading-snug text-foreground">{children}</dd>
-    </div>
+    <Grid className="py-050" gap="space.150" templateColumns="104px 1fr" alignItems="baseline">
+      <dt className="truncate font-body-small text-subtle">{label}</dt>
+      <dd className="min-w-0 font-body-small text-default">{children}</dd>
+    </Grid>
   );
 }
 
@@ -118,23 +121,24 @@ function Callout({
   children: ReactNode;
 }) {
   return (
-    <div
-      className={cn(
-        "rounded-md px-3 py-2.5",
-        tone === "danger" ? "bg-danger-soft" : "bg-warning-soft",
-      )}
+    <Box
+      className={cn("rounded-medium", tone === "danger" ? "bg-danger" : "bg-warning")}
+      paddingInline="space.150"
+      paddingBlock="space.100"
     >
-      <div
+      <Inline
         className={cn(
-          "flex items-center gap-1.5 text-[12.5px] font-semibold",
-          tone === "danger" ? "text-legacy-danger" : "text-legacy-warning",
+          "font-body-small font-semibold",
+          tone === "danger" ? "text-danger" : "text-warning",
         )}
+        space="space.075"
+        alignBlock="center"
       >
         <Dot tone={tone} />
         {title}
-      </div>
-      <div className="pt-1.5">{children}</div>
-    </div>
+      </Inline>
+      <Box paddingBlockStart="space.075">{children}</Box>
+    </Box>
   );
 }
 
@@ -159,7 +163,7 @@ export function ExecutionSummary({
   const coverage = Math.round((execution.withProcedure / (planned || 1)) * 100);
 
   return (
-    <div className="space-y-7">
+    <Stack space="space.300">
       {disagreements.length > 0 ? (
         <Callout
           tone="warning"
@@ -167,23 +171,29 @@ export function ExecutionSummary({
             disagreements.length === 1 ? "objective reads" : "objectives read"
           } differently once the runs are counted`}
         >
-          <div className="space-y-1 text-[12.5px]">
+          <Stack className="font-body-small" space="space.050">
             {disagreements.map((d) => (
-              <div key={d.id} className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <Inline
+                key={d.id}
+                space="space.100"
+                rowSpace="space.050"
+                alignBlock="center"
+                shouldWrap
+              >
                 <Id>{d.id}</Id>
-                <span className="text-muted-foreground">declared</span>
+                <span className="text-subtle">declared</span>
                 <ResultChip result={d.declared} />
-                <span className="text-muted-foreground">·</span>
-                <span className="text-muted-foreground">executed</span>
+                <span className="text-subtle">·</span>
+                <span className="text-subtle">executed</span>
                 <ResultChip result={d.executed} />
                 {d.run ? (
-                  <span className="text-muted-foreground">
-                    decided by <Id className="text-muted-foreground">{d.run}</Id>
+                  <span className="text-subtle">
+                    decided by <Id className="text-subtle">{d.run}</Id>
                   </span>
                 ) : null}
-              </div>
+              </Inline>
             ))}
-          </div>
+          </Stack>
         </Callout>
       ) : null}
 
@@ -194,18 +204,18 @@ export function ExecutionSummary({
             gaps.length === 1 ? "objective has" : "objectives have"
           } no procedure written`}
         >
-          <div className="space-y-1.5 text-[12.5px]">
+          <Stack className="font-body-small" space="space.075">
             {gaps.map((g) => (
-              <div key={g.id} className="flex items-baseline gap-2">
+              <Inline key={g.id} space="space.100" alignBlock="baseline">
                 <Id className="shrink-0">{g.id}</Id>
-                <span className="min-w-0 leading-snug text-foreground">{g.statement}</span>
+                <span className="min-w-0 text-default">{g.statement}</span>
                 <span className="ml-auto shrink-0">
                   <ResultChip result={g.declared} />
                 </span>
-              </div>
+              </Inline>
             ))}
-          </div>
-          <p className="pt-2 text-[12px] leading-relaxed text-muted-foreground">
+          </Stack>
+          <p className="pt-100 font-body-small text-subtle">
             Nothing is written to execute against these objectives, so no run can ever move them.
             The declared result stands with no procedure, no build and no step record behind it.
           </p>
@@ -216,12 +226,12 @@ export function ExecutionSummary({
         title="Objectives as executed"
         description="Every result on this row is derived from the run log — each procedure's latest complete run, rolled up to the worst verdict across the procedures written for the objective, falling back to the declared value only where nothing has been executed."
         action={
-          <span className="tnum text-12 text-muted-foreground">
+          <span className="tabular-nums font-body-small text-subtle">
             {execution.complete}/{planned} carry a complete run
           </span>
         }
       >
-        <div className="pt-3">
+        <Box paddingBlockStart="space.150">
           <Progress.Stacked
             segments={[
               {
@@ -250,7 +260,13 @@ export function ExecutionSummary({
               },
             ]}
           />
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2">
+          <Inline
+            className="pt-100"
+            space="space.200"
+            rowSpace="space.050"
+            alignBlock="center"
+            shouldWrap
+          >
             {(
               [
                 { key: "met", label: "Met", value: execution.met, tone: "success" },
@@ -264,21 +280,27 @@ export function ExecutionSummary({
                 { key: "notRun", label: "Not run", value: execution.notRun, tone: "neutral" },
               ] as { key: string; label: string; value: number; tone: Tone }[]
             ).map((s) => (
-              <span key={s.key} className="flex items-center gap-1.5 text-12">
+              <Inline
+                key={s.key}
+                className="font-body-small"
+                as="span"
+                space="space.075"
+                alignBlock="center"
+              >
                 <Dot tone={s.tone} />
-                <span className="text-muted-foreground">{s.label}</span>
-                <span className="tnum font-medium">{s.value}</span>
-              </span>
+                <span className="text-subtle">{s.label}</span>
+                <span className="tabular-nums font-medium">{s.value}</span>
+              </Inline>
             ))}
-          </div>
+          </Inline>
 
-          <div className="pt-4">
-            <div className="flex items-baseline gap-2 pb-2">
-              <span className="tnum text-20 font-semibold leading-none">{coverage}%</span>
-              <span className="text-12 text-muted-foreground">
+          <Box paddingBlockStart="space.200">
+            <Inline className="pb-100" space="space.100" alignBlock="baseline">
+              <span className="tabular-nums font-heading-small font-semibold">{coverage}%</span>
+              <span className="font-body-small text-subtle">
                 of the campaign&rsquo;s objectives have a procedure written against them
               </span>
-            </div>
+            </Inline>
             <Progress
               value={coverage}
               tone={
@@ -289,9 +311,13 @@ export function ExecutionSummary({
                     : "danger"
               }
             />
-          </div>
+          </Box>
 
-          <div className="grid grid-cols-2 gap-x-8 pt-4 md:grid-cols-4">
+          <Grid
+            className="pt-200"
+            columnGap="space.400"
+            templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" }}
+          >
             <Stat label="Objectives in scope" value={planned} />
             <Stat
               label="With a procedure"
@@ -304,10 +330,10 @@ export function ExecutionSummary({
               value={execution.unevidencedSteps}
               tone={execution.unevidencedSteps > 0 ? "warning" : "success"}
             />
-          </div>
-        </div>
+          </Grid>
+        </Box>
       </Section>
-    </div>
+    </Stack>
   );
 }
 
@@ -357,8 +383,8 @@ export function ObjectiveExecutionTable({
             key={row.objective}
             className={cn(
               "cursor-pointer",
-              selected === row.objective && "bg-primary-soft/40",
-              row.disagrees && selected !== row.objective && "bg-warning-soft/40",
+              selected === row.objective && "bg-selected",
+              row.disagrees && selected !== row.objective && "bg-warning",
             )}
             onClick={() => onSelect(row)}
             title={row.basis}
@@ -367,30 +393,30 @@ export function ObjectiveExecutionTable({
             <Table.Cell className="truncate">{row.statement}</Table.Cell>
             <Table.Cell className="truncate">
               {row.procedures.length === 0 ? (
-                <span className="text-legacy-danger">None written</span>
+                <span className="text-danger">None written</span>
               ) : (
-                <Id className="text-muted-foreground">{row.procedures.join(", ")}</Id>
+                <Id className="text-subtle">{row.procedures.join(", ")}</Id>
               )}
             </Table.Cell>
             <Table.Cell>
               <ResultChip result={row.declared} />
             </Table.Cell>
             <Table.Cell>
-              <span className="flex items-center gap-1.5">
+              <Inline as="span" space="space.075" alignBlock="center">
                 <ResultChip result={row.executed} />
                 {row.disagrees ? (
-                  <span className="shrink-0 text-11 font-medium text-legacy-warning">≠</span>
+                  <span className="shrink-0 font-body-xsmall font-medium text-warning">≠</span>
                 ) : null}
-              </span>
+              </Inline>
             </Table.Cell>
             <Table.Cell className="truncate">
               {row.source === "Run" && row.run ? (
-                <span className="flex items-center gap-1.5">
+                <Inline as="span" space="space.075" alignBlock="center">
                   <Id>{row.run}</Id>
-                  <span className="text-11">run log</span>
-                </span>
+                  <span className="font-body-xsmall">run log</span>
+                </Inline>
               ) : (
-                <span className="text-11">Declared — nothing completed</span>
+                <span className="font-body-xsmall">Declared — nothing completed</span>
               )}
             </Table.Cell>
           </Table.Row>
@@ -405,14 +431,20 @@ export function ObjectiveRail({ row }: { row: ObjectiveExecutionRow }) {
   return (
     <div>
       {row.disagrees ? (
-        <div className="mb-3 flex items-start gap-2 rounded-md bg-warning-soft px-2.5 py-2 text-[12.5px] leading-snug text-legacy-warning">
-          <span className="pt-1.5">
-            <Dot tone="warning" />
-          </span>
-          <span className="min-w-0 font-medium">
-            The campaign record declares {row.declared}. The run log returns {row.executed}.
-          </span>
-        </div>
+        <Box paddingBlockEnd="space.150">
+          <Inline
+            className="rounded-medium bg-warning px-100 py-100 font-body-small text-warning"
+            space="space.100"
+            alignBlock="start"
+          >
+            <Box as="span" paddingBlockStart="space.075">
+              <Dot tone="warning" />
+            </Box>
+            <span className="min-w-0 font-medium">
+              The campaign record declares {row.declared}. The run log returns {row.executed}.
+            </span>
+          </Inline>
+        </Box>
       ) : null}
 
       <Inspector.Group title="Objective">
@@ -443,7 +475,7 @@ export function ObjectiveRail({ row }: { row: ObjectiveExecutionRow }) {
           <Id.List ids={row.procedures} empty="No procedure written" />
         </WrapValue>
         <KeyValue label="Runs">
-          <span className="tnum">{row.runs}</span>
+          <span className="tabular-nums">{row.runs}</span>
         </KeyValue>
       </Inspector.Group>
     </div>
@@ -498,15 +530,15 @@ export function ProcedureList({
         {rows.map(({ procedure, runs, verdict }) => (
           <Table.Row
             key={procedure.id}
-            className={cn("cursor-pointer", selected === procedure.id && "bg-primary-soft/40")}
+            className={cn("cursor-pointer", selected === procedure.id && "bg-selected")}
             onClick={() => onSelect({ procedure, runs, verdict })}
             title={procedure.title}
           >
             <Table.Cell>
-              <span className="flex items-baseline gap-1.5">
+              <Inline as="span" space="space.075" alignBlock="baseline">
                 <Id>{procedure.id}</Id>
-                <span className="shrink-0 text-11 text-muted-foreground">{procedure.version}</span>
-              </span>
+                <span className="shrink-0 font-body-xsmall text-subtle">{procedure.version}</span>
+              </Inline>
             </Table.Cell>
             <Table.Cell className="truncate">{procedure.title}</Table.Cell>
             <Table.Cell>
@@ -515,9 +547,9 @@ export function ProcedureList({
             <Table.Cell className="truncate">
               <Badge>{procedure.method}</Badge>
             </Table.Cell>
-            <Table.Cell className="tnum text-right">{procedure.steps.length}</Table.Cell>
-            <Table.Cell className="tnum text-right">{procedure.duration}</Table.Cell>
-            <Table.Cell className="tnum text-right">{runs}</Table.Cell>
+            <Table.Cell className="tabular-nums text-right">{procedure.steps.length}</Table.Cell>
+            <Table.Cell className="tabular-nums text-right">{procedure.duration}</Table.Cell>
+            <Table.Cell className="tabular-nums text-right">{runs}</Table.Cell>
             <Table.Cell className="truncate" title={verdict?.basis}>
               {verdict ? <ResultChip result={verdict.result} /> : <Absent />}
             </Table.Cell>
@@ -573,21 +605,23 @@ export function StepTable({
           const record = records?.get(step.id);
           return (
             <Table.Row key={step.id} className="align-top">
-              <Table.Cell className="tnum whitespace-normal py-2 align-top text-right">
+              <Table.Cell className="tabular-nums whitespace-normal py-100 align-top text-right">
                 {step.n}
               </Table.Cell>
-              <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
-                <Id className="text-[11px] text-muted-foreground">{step.id}</Id>
-                <span className="mt-0.5 block">{step.action}</span>
+              <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
+                <Id className="font-body-xsmall text-subtle">{step.id}</Id>
+                <Box className="block" as="span" paddingBlockStart="space.025">
+                  {step.action}
+                </Box>
               </Table.Cell>
-              <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
+              <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
                 {step.expected}
               </Table.Cell>
-              <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
+              <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
                 {step.collect}
               </Table.Cell>
               {records ? (
-                <Table.Cell className="whitespace-normal py-2 align-top">
+                <Table.Cell className="whitespace-normal py-100 align-top">
                   <Badge tone={stepResultTone[record?.result ?? "Not run"]}>
                     {record?.result ?? "Not run"}
                   </Badge>
@@ -617,10 +651,10 @@ export function ProcedureRail({ row }: { row: ProcedureListRow }) {
           <Badge>{procedure.method}</Badge>
         </KeyValue>
         <KeyValue label="Steps">
-          <span className="tnum">{procedure.steps.length}</span>
+          <span className="tabular-nums">{procedure.steps.length}</span>
         </KeyValue>
         <KeyValue label="Duration">
-          <span className="tnum">{procedure.duration} min</span>
+          <span className="tabular-nums">{procedure.duration} min</span>
         </KeyValue>
         <KeyValue label="Author">
           <Person name={procedure.author} />
@@ -636,7 +670,7 @@ export function ProcedureRail({ row }: { row: ProcedureListRow }) {
 
       <Inspector.Group title="Execution">
         <KeyValue label="Runs">
-          <span className="tnum">{runs}</span>
+          <span className="tabular-nums">{runs}</span>
         </KeyValue>
         <KeyValue label="Latest">
           {verdict ? <ResultChip result={verdict.result} /> : <Absent />}
@@ -649,17 +683,17 @@ export function ProcedureRail({ row }: { row: ProcedureListRow }) {
 
 export function PreconditionList({ items }: { items: string[] }) {
   if (items.length === 0) {
-    return <p className="text-[13px] text-muted-foreground">No preconditions are declared.</p>;
+    return <p className="font-body text-subtle">No preconditions are declared.</p>;
   }
   return (
-    <ol className="space-y-1.5 pt-1">
+    <Stack className="pt-050" as="ol" space="space.075">
       {items.map((item, i) => (
-        <li key={i} className="flex gap-2.5 text-[13px] leading-relaxed">
-          <span className="tnum w-4 shrink-0 text-right text-muted-foreground">{i + 1}</span>
-          <span className="min-w-0 text-muted-foreground">{item}</span>
-        </li>
+        <Inline key={i} className="font-body" as="li" space="space.100">
+          <span className="tabular-nums shrink-0 text-right text-subtle w-200">{i + 1}</span>
+          <span className="min-w-0 text-subtle">{item}</span>
+        </Inline>
       ))}
-    </ol>
+    </Stack>
   );
 }
 
@@ -711,22 +745,22 @@ export function RunTable({
         {rows.map(({ run, procedure, verdict }) => (
           <Table.Row
             key={run.id}
-            className={cn("cursor-pointer", selected === run.id && "bg-primary-soft/40")}
+            className={cn("cursor-pointer", selected === run.id && "bg-selected")}
             onClick={() => onSelect({ run, procedure, verdict })}
             title={verdict?.basis ?? run.notes}
           >
             <Table.Cell>
-              <span className="flex items-baseline gap-1.5">
+              <Inline as="span" space="space.075" alignBlock="baseline">
                 <Id>{run.id}</Id>
                 {run.retestOf ? (
                   <span
-                    className="shrink-0 text-11 text-muted-foreground"
+                    className="shrink-0 font-body-xsmall text-subtle"
                     title={`Retest of ${run.retestOf}`}
                   >
                     ↻
                   </span>
                 ) : null}
-              </span>
+              </Inline>
             </Table.Cell>
             <Table.Cell>
               <Id>{run.procedure}</Id>
@@ -739,10 +773,10 @@ export function RunTable({
             <Table.Cell className="truncate">
               {verdict ? <ResultChip result={verdict.result} /> : <Absent />}
             </Table.Cell>
-            <Table.Cell className="tnum text-right">
+            <Table.Cell className="tabular-nums text-right">
               {verdict ? `${verdict.pass}/${verdict.fail}/${verdict.inconclusive}` : "—"}
             </Table.Cell>
-            <Table.Cell className="tnum truncate">
+            <Table.Cell className="tabular-nums truncate">
               {run.started}
               {procedure ? "" : " · procedure missing"}
             </Table.Cell>
@@ -780,23 +814,28 @@ export function RunRecordView({
     run.state !== "Complete" && blockedReason === null && onComplete !== undefined;
 
   return (
-    <div className="space-y-7">
+    <Stack space="space.300">
       <Section
         title={
-          <span className="flex flex-wrap items-center gap-2">
+          <Inline as="span" space="space.100" alignBlock="center" shouldWrap>
             <Id>{run.id}</Id>
             <span>{procedure?.title ?? run.procedure}</span>
-          </span>
+          </Inline>
         }
         description={`${run.procedure} · ${procedure?.method ?? "—"} · operator ${run.operator} · witness ${run.witness}`}
         action={
-          <span className="flex items-center gap-2">
+          <Inline as="span" space="space.100" alignBlock="center">
             <Badge tone={runStateTone[run.state]}>{run.state}</Badge>
             {verdict ? <ResultChip result={verdict.result} /> : null}
-          </span>
+          </Inline>
         }
       >
-        <div className="grid gap-x-8 gap-y-1 pt-3 md:grid-cols-2">
+        <Grid
+          className="pt-150"
+          columnGap="space.400"
+          rowGap="space.050"
+          templateColumns={{ md: "repeat(2, minmax(0, 1fr))" }}
+        >
           <div>
             <ProseBlock label="Build under test">{run.build}</ProseBlock>
             <ProseBlock label="Configuration">{run.configuration}</ProseBlock>
@@ -805,35 +844,48 @@ export function RunRecordView({
             <ProseBlock label="Verdict basis">
               {verdict ? verdict.basis : "No verdict — the run names a procedure that is missing."}
             </ProseBlock>
-            <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px] pt-3">
-              <dt className="truncate text-[12.5px] text-muted-foreground">Window</dt>
-              <dd className="tnum min-w-0 text-[12.5px] leading-snug text-foreground">
+            <Grid
+              className="py-050 pt-150"
+              gap="space.150"
+              templateColumns="104px 1fr"
+              alignItems="baseline"
+            >
+              <dt className="truncate font-body-small text-subtle">Window</dt>
+              <dd className="tabular-nums min-w-0 font-body-small text-default">
                 {run.started} → {run.completed}
               </dd>
-            </div>
-            <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
-              <dt className="truncate text-[12.5px] text-muted-foreground">Components</dt>
-              <dd className="min-w-0 text-[12.5px] leading-snug">
+            </Grid>
+            <Grid
+              className="py-050"
+              gap="space.150"
+              templateColumns="104px 1fr"
+              alignItems="baseline"
+            >
+              <dt className="truncate font-body-small text-subtle">Components</dt>
+              <dd className="min-w-0 font-body-small">
                 <Id.List ids={run.nodes} />
               </dd>
-            </div>
-            <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
-              <dt className="truncate text-[12.5px] text-muted-foreground">Findings raised</dt>
-              <dd className="min-w-0 text-[12.5px] leading-snug">
+            </Grid>
+            <Grid
+              className="py-050"
+              gap="space.150"
+              templateColumns="104px 1fr"
+              alignItems="baseline"
+            >
+              <dt className="truncate font-body-small text-subtle">Findings raised</dt>
+              <dd className="min-w-0 font-body-small">
                 <Id.List ids={run.findings} empty="None" />
               </dd>
-            </div>
+            </Grid>
           </div>
-        </div>
+        </Grid>
 
         {run.notes ? (
-          <p className="max-w-3xl pt-3 text-[13px] leading-relaxed text-muted-foreground">
-            {run.notes}
-          </p>
+          <p className="max-w-layout-measure pt-150 font-body text-subtle">{run.notes}</p>
         ) : null}
 
         {onComplete && run.state !== "Complete" ? (
-          <div className="flex flex-wrap items-center gap-3 pt-4">
+          <Inline className="pt-200" space="space.150" alignBlock="center" shouldWrap>
             <Button
               variant={canComplete ? "primary" : "secondary"}
               disabled={!canComplete}
@@ -845,18 +897,18 @@ export function RunRecordView({
               Mark run complete
             </Button>
             {blockedReason ? (
-              <span className="min-w-0 flex-1 text-[12.5px] leading-snug text-legacy-warning">
+              <span className="min-w-0 flex-1 font-body-small text-warning">
                 {blockedReason} A run cannot be completed until every step carries a result — the
                 objective&rsquo;s executed value is taken from complete runs only.
               </span>
             ) : (
-              <span className="text-[12.5px] text-muted-foreground">
+              <span className="font-body-small text-subtle">
                 Every step carries a result, so the run can be closed. Its verdict then speaks for{" "}
                 {run.procedure} in the objective&rsquo;s rollup, which takes the worst of the
                 procedures written for it.
               </span>
             )}
-          </div>
+          </Inline>
         ) : null}
       </Section>
 
@@ -874,50 +926,55 @@ export function RunRecordView({
             description={`${run.procedure} is not in the procedure library, so this run has nothing to be judged against.`}
           />
         ) : (
-          <div className="divide-y divide-border-legacy-subtle">
+          <div className="divide-y">
             {steps.map((step) => {
               const record = byStep.get(step.id);
               const result = record?.result ?? "Not run";
               const unevidenced = result !== "Not run" && (record?.evidence.length ?? 0) === 0;
               return (
-                <div key={step.id} className="grid gap-x-6 gap-y-2 py-3 md:grid-cols-[1fr_1fr]">
+                <Grid
+                  key={step.id}
+                  className="py-150"
+                  columnGap="space.300"
+                  rowGap="space.100"
+                  templateColumns={{ md: "1fr 1fr" }}
+                >
                   <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Id className="text-[11.5px] text-muted-foreground">{step.id}</Id>
+                    <Inline space="space.100" alignBlock="center" shouldWrap>
+                      <Id className="font-body-xsmall text-subtle">{step.id}</Id>
                       <Badge tone={stepResultTone[result]}>{result}</Badge>
-                      <span className="tnum text-11 text-muted-foreground">
+                      <span className="tabular-nums font-body-xsmall text-subtle">
                         {record?.at ?? "—"}
                       </span>
-                    </div>
-                    <p className="mt-1 text-[13px] leading-relaxed">{step.action}</p>
-                    <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-                      Expected: {step.expected}
-                    </p>
+                    </Inline>
+                    <p className="pt-050 font-body">{step.action}</p>
+                    <p className="pt-050 font-body-small text-subtle">Expected: {step.expected}</p>
                   </div>
                   <div className="min-w-0">
-                    <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-                      Observed
-                    </div>
-                    <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">
-                      {record?.observed ?? "—"}
-                    </p>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[12px]">
-                      <span className="text-muted-foreground">Evidence</span>
+                    <div className="font-heading-xxsmall uppercase text-subtle">Observed</div>
+                    <p className="pt-050 font-body-small text-default">{record?.observed ?? "—"}</p>
+                    <Inline
+                      className="pt-075 font-body-small"
+                      space="space.100"
+                      alignBlock="center"
+                      shouldWrap
+                    >
+                      <span className="text-subtle">Evidence</span>
                       <Id.List ids={record?.evidence ?? []} empty="None collected" />
                       {unevidenced ? (
                         <Badge tone="warning" size="xsmall">
                           Recorded without the artifact the step demands
                         </Badge>
                       ) : null}
-                    </div>
+                    </Inline>
                   </div>
-                </div>
+                </Grid>
               );
             })}
           </div>
         )}
       </Section>
-    </div>
+    </Stack>
   );
 }
 
@@ -953,10 +1010,10 @@ export function RunRail({ row }: { row: RunListRow }) {
           {run.witness === "—" ? <Absent /> : <Person name={run.witness} />}
         </KeyValue>
         <KeyValue label="Started">
-          <span className="tnum">{run.started}</span>
+          <span className="tabular-nums">{run.started}</span>
         </KeyValue>
         <KeyValue label="Completed">
-          <span className="tnum">{run.completed}</span>
+          <span className="tabular-nums">{run.completed}</span>
         </KeyValue>
         <WrapValue label="Components">
           <Id.List ids={run.nodes} />
@@ -1014,7 +1071,7 @@ export function RegressionTable({ rows }: { rows: RegressionRow[] }) {
         {rows.map((row) => (
           <Table.Row
             key={`${row.currentRun}|${row.step}`}
-            className={cn(row.state === "Regressed" && "bg-danger-soft/40")}
+            className={cn(row.state === "Regressed" && "bg-danger")}
           >
             <Table.Cell>
               <Id>{row.procedure}</Id>

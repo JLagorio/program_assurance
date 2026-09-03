@@ -38,7 +38,7 @@
 
 import { useSyncExternalStore } from "react";
 
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 import {
   eventsByCampaign,
   objectiveById,

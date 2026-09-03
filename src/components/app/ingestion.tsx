@@ -18,18 +18,22 @@ import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 
 import {
+  Absent,
   Badge,
+  Box,
   Dot,
-  KeyValue,
-  Table,
+  Empty,
+  Grid,
   Id,
   Indicator,
-  Absent,
+  Inline,
+  Inspector,
+  KeyValue,
+  Stack,
   Stat,
-  type Tone,
-} from "@/ds/primitives";
-import { Empty } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
+  Table,
+} from "@ledger/design-system";
+import type { Tone } from "@ledger/design-system";
 import { cn } from "@/lib/utils";
 import {
   diffStateTone,
@@ -72,13 +76,19 @@ function shortHash(value: string): string {
 
 /** Node ids read as noise on their own; the part name is what the reader knows. */
 function labelNode(id: string | null, nodeName?: (nodeId: string) => string): ReactNode {
-  if (!id) return <span className="text-muted-foreground">Unallocated</span>;
+  if (!id) return <span className="text-subtle">Unallocated</span>;
   const name = nodeName?.(id);
   return (
-    <span className="flex min-w-0 items-center gap-1.5" title={name ? `${id} — ${name}` : id}>
-      <Id className="shrink-0 text-muted-foreground">{id}</Id>
+    <Inline
+      className="min-w-0"
+      title={name ? `${id} — ${name}` : id}
+      as="span"
+      space="space.075"
+      alignBlock="center"
+    >
+      <Id className="shrink-0 text-subtle">{id}</Id>
       {name && name !== id ? <span className="min-w-0 truncate">{name}</span> : null}
-    </span>
+    </Inline>
   );
 }
 
@@ -96,17 +106,17 @@ function ProseBlock({
   children: ReactNode;
 }) {
   return (
-    <div className="pt-1.5">
+    <Box paddingBlockStart="space.075">
       <div
         className={cn(
-          "text-[11px] font-medium uppercase tracking-[0.06em]",
-          tone === "warning" ? "text-legacy-warning" : "text-muted-foreground",
+          "font-heading-xxsmall uppercase",
+          tone === "warning" ? "text-warning" : "text-subtle",
         )}
       >
         {label}
       </div>
-      <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">{children}</p>
-    </div>
+      <p className="pt-050 font-body-small text-default">{children}</p>
+    </Box>
   );
 }
 
@@ -139,8 +149,16 @@ export function IngestSummary({ batch, scan }: { batch: IngestBatch; scan?: Scan
   /** Dropped conditions that neither cleared for closure nor are contested. */
   const unfiled = Math.max(0, dropped - batch.closable.length - contested.length);
   return (
-    <div className="space-y-3 pt-4">
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-3 lg:grid-cols-6">
+    <Stack className="pt-200" space="space.150">
+      <Grid
+        className="overflow-hidden rounded-large border border-default bg-neutral"
+        gap="space.025"
+        templateColumns={{
+          base: "repeat(2, minmax(0, 1fr))",
+          sm: "repeat(3, minmax(0, 1fr))",
+          lg: "repeat(6, minmax(0, 1fr))",
+        }}
+      >
         <Stat.Tile
           label="Native records"
           value={counts.raw}
@@ -173,10 +191,10 @@ export function IngestSummary({ batch, scan }: { batch: IngestBatch; scan?: Scan
           note="conditions with no finding in the register"
           tone={batch.proposed.length > 0 ? "warning" : "neutral"}
         />
-      </div>
+      </Grid>
 
       {batch.closable.length > 0 ? (
-        <p className="text-[12.5px] leading-relaxed text-muted-foreground">
+        <p className="font-body-small text-subtle">
           {batch.closable.length}{" "}
           {batch.closable.length === 1 ? "open finding is" : "open findings are"} no longer reported
           by this scan, and no other run the program currently relies on reports{" "}
@@ -186,13 +204,13 @@ export function IngestSummary({ batch, scan }: { batch: IngestBatch; scan?: Scan
           {batch.closable.map((id, i) => (
             <span key={id}>
               {i > 0 ? ", " : null}
-              <Id className="text-foreground">{id}</Id>
+              <Id className="text-default">{id}</Id>
             </span>
           ))}
           .
         </p>
       ) : contested.length === 0 || unfiled > 0 ? (
-        <p className="text-[12.5px] leading-relaxed text-muted-foreground">
+        <p className="font-body-small text-subtle">
           {!scan
             ? "Nothing is queued for closure."
             : !previous
@@ -205,25 +223,25 @@ export function IngestSummary({ batch, scan }: { batch: IngestBatch; scan?: Scan
 
       {contested.length > 0 ? (
         <div>
-          <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-legacy-warning">
+          <div className="font-heading-xxsmall uppercase text-warning">
             Held open rather than closed — {contested.length}{" "}
             {contested.length === 1 ? "finding" : "findings"}
           </div>
-          <ul className="mt-1 space-y-1.5">
+          <Stack className="pt-050" as="ul" space="space.075">
             {contested.map((c) => (
-              <li key={c.finding} className="flex items-start gap-2">
-                <span className="pt-[7px]">
+              <Inline key={c.finding} as="li" space="space.100" alignBlock="start">
+                <Box as="span" paddingBlockStart="space.075">
                   <Dot tone="warning" />
+                </Box>
+                <span className="min-w-0 font-body-small text-default">
+                  <Id className="text-default">{c.finding}</Id> — {c.basis}
                 </span>
-                <span className="min-w-0 text-[12.5px] leading-relaxed text-foreground">
-                  <Id className="text-foreground">{c.finding}</Id> — {c.basis}
-                </span>
-              </li>
+              </Inline>
             ))}
-          </ul>
+          </Stack>
         </div>
       ) : null}
-    </div>
+    </Stack>
   );
 }
 
@@ -246,12 +264,12 @@ export function ScanTable({
 }) {
   if (scans.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="No scans delivered"
           description="A checklist, SCAP result, ACAS export, SAST report, SBOM or firmware report delivered against this program appears here."
         />
-      </div>
+      </Box>
     );
   }
 
@@ -288,7 +306,7 @@ export function ScanTable({
               key={s.id}
               className={cn(
                 onSelect ? "cursor-pointer" : undefined,
-                selected === s.id ? "bg-primary-soft/40" : undefined,
+                selected === s.id ? "bg-selected" : undefined,
               )}
               onClick={onSelect ? () => onSelect(s.id) : undefined}
             >
@@ -302,7 +320,7 @@ export function ScanTable({
               <Table.Cell className="truncate" title={`${targets} — ${s.file}`}>
                 {targets}
               </Table.Cell>
-              <Table.Cell className="tnum text-right">{s.rawItems}</Table.Cell>
+              <Table.Cell className="tabular-nums text-right">{s.rawItems}</Table.Cell>
               <Table.Cell>
                 <Badge size="xsmall" tone={scanStateTone[s.state]}>
                   {s.state}
@@ -319,22 +337,22 @@ export function ScanTable({
                 }
               >
                 {replacedBy ? (
-                  <span className="flex items-center gap-1.5">
+                  <Inline as="span" space="space.075" alignBlock="center">
                     <Dot tone="neutral" />
                     <span>Superseded by</span>
-                    <Id className="text-muted-foreground">{replacedBy}</Id>
-                  </span>
+                    <Id className="text-subtle">{replacedBy}</Id>
+                  </Inline>
                 ) : s.supersedes ? (
-                  <span className="flex items-center gap-1.5">
+                  <Inline as="span" space="space.075" alignBlock="center">
                     <Dot tone="success" />
                     <span>Replaces</span>
-                    <Id className="text-muted-foreground">{s.supersedes}</Id>
-                  </span>
+                    <Id className="text-subtle">{s.supersedes}</Id>
+                  </Inline>
                 ) : (
                   <span>First run</span>
                 )}
               </Table.Cell>
-              <Table.Cell className="tnum truncate text-right">{s.completed}</Table.Cell>
+              <Table.Cell className="tabular-nums truncate text-right">{s.completed}</Table.Cell>
             </Table.Row>
           );
         })}
@@ -384,40 +402,40 @@ export function ScanRail({
       </Inspector.Group>
 
       <Inspector.Group title="Artifact">
-        <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
-          <dt className="truncate text-[12.5px] text-muted-foreground">File</dt>
-          <dd className="min-w-0 text-[12.5px] leading-snug">
+        <Grid className="py-050" gap="space.150" templateColumns="104px 1fr" alignItems="baseline">
+          <dt className="truncate font-body-small text-subtle">File</dt>
+          <dd className="min-w-0 font-body-small">
             <Id className="break-all">{scan.file}</Id>
           </dd>
-        </div>
+        </Grid>
         <KeyValue label="sha256">
           <span title={scan.sha256}>
-            <Id className="text-muted-foreground">{shortHash(scan.sha256)}</Id>
+            <Id className="text-subtle">{shortHash(scan.sha256)}</Id>
           </span>
         </KeyValue>
         <KeyValue label="Native rows">
-          <span className="tnum">{scan.rawItems}</span>
+          <span className="tabular-nums">{scan.rawItems}</span>
         </KeyValue>
         <KeyValue label="Started">
-          <span className="tnum">{scan.started}</span>
+          <span className="tabular-nums">{scan.started}</span>
         </KeyValue>
         <KeyValue label="Completed">
-          <span className="tnum">{scan.completed}</span>
+          <span className="tabular-nums">{scan.completed}</span>
         </KeyValue>
       </Inspector.Group>
 
       <Inspector.Group title="Scope">
-        <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
-          <dt className="truncate text-[12.5px] text-muted-foreground">Targets</dt>
-          <dd className="min-w-0 space-y-0.5 text-[12.5px] leading-snug">
+        <Grid className="py-050" gap="space.150" templateColumns="104px 1fr" alignItems="baseline">
+          <dt className="truncate font-body-small text-subtle">Targets</dt>
+          <dd className="min-w-0 space-y-025 font-body-small">
             {scan.targets.map((t) => (
-              <div key={t} className="flex min-w-0 items-baseline gap-1.5">
-                <Id className="shrink-0 text-muted-foreground">{t}</Id>
+              <Inline key={t} className="min-w-0" space="space.075" alignBlock="baseline">
+                <Id className="shrink-0 text-subtle">{t}</Id>
                 <span className="min-w-0 break-words">{nodeName?.(t) ?? ""}</span>
-              </div>
+              </Inline>
             ))}
           </dd>
-        </div>
+        </Grid>
         <KeyValue label="Supersedes">
           {scan.supersedes ? <Id>{scan.supersedes}</Id> : <Absent />}
         </KeyValue>
@@ -429,23 +447,23 @@ export function ScanRail({
       {batch ? (
         <Inspector.Group title="Batch">
           <KeyValue label="Normalized">
-            <span className="tnum">
+            <span className="tabular-nums">
               {batch.counts.normalized} of {batch.counts.raw}
             </span>
           </KeyValue>
           <KeyValue label="Clean">
-            <span className="tnum">{batch.counts.clean}</span>
+            <span className="tabular-nums">{batch.counts.clean}</span>
           </KeyValue>
           <KeyValue label="Folded in">
-            <span className="tnum">{batch.counts.deduped}</span>
+            <span className="tabular-nums">{batch.counts.deduped}</span>
           </KeyValue>
           <KeyValue label="Held">
-            <span className={cn("tnum", batch.counts.unresolved > 0 ? "text-legacy-warning" : "")}>
+            <span className={cn("tabular-nums", batch.counts.unresolved > 0 ? "text-warning" : "")}>
               {batch.counts.unresolved}
             </span>
           </KeyValue>
           <KeyValue label="Proposed">
-            <span className="tnum">{batch.proposed.length}</span>
+            <span className="tabular-nums">{batch.proposed.length}</span>
           </KeyValue>
           <KeyValue label="Closable">
             {batch.closable.length > 0 ? (
@@ -456,7 +474,7 @@ export function ScanRail({
           </KeyValue>
           <KeyValue label="Contested">
             {batch.contested.length > 0 ? (
-              <span className="text-legacy-warning" title={batch.contested.map((c) => c.basis).join(" ")}>
+              <span className="text-warning" title={batch.contested.map((c) => c.basis).join(" ")}>
                 {batch.contested.map((c) => c.finding).join(", ")}
               </span>
             ) : (
@@ -585,43 +603,44 @@ function nativeFields(native: NativeResult): NativeField[] {
 
 function NativeRow({ field }: { field: NativeField }) {
   return (
-    <div className="grid grid-cols-[124px_1fr] items-baseline gap-3 border-b border-border-legacy-subtle py-[5px] last:border-0">
-      <dt className="truncate text-[11.5px] uppercase tracking-[0.04em] text-muted-foreground">
-        {field.label}
-      </dt>
-      <dd
-        className={cn(
-          "min-w-0 text-[12.5px] text-foreground",
-          field.prose ? "leading-relaxed" : "leading-snug",
-        )}
-      >
+    <Grid
+      className="border-b border-default py-050 last:border-0"
+      gap="space.150"
+      templateColumns="124px 1fr"
+      alignItems="baseline"
+    >
+      <dt className="truncate font-heading-xxsmall uppercase text-subtle">{field.label}</dt>
+      <dd className={cn("min-w-0 font-body-small text-default", field.prose ? "" : "")}>
         {field.mono ? (
-          <Id className="break-all text-[12px]">{field.value}</Id>
+          <Id className="break-all font-body-small">{field.value}</Id>
         ) : (
           <span className="break-words">{field.value}</span>
         )}
       </dd>
-    </div>
+    </Grid>
   );
 }
 
 function NormalizedRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="grid grid-cols-[124px_1fr] items-baseline gap-3 border-b border-border-legacy-subtle py-[5px] last:border-0">
-      <dt className="truncate text-[11.5px] uppercase tracking-[0.04em] text-muted-foreground">
-        {label}
-      </dt>
-      <dd className="min-w-0 text-[12.5px] leading-snug text-foreground">{children}</dd>
-    </div>
+    <Grid
+      className="border-b border-default py-050 last:border-0"
+      gap="space.150"
+      templateColumns="124px 1fr"
+      alignItems="baseline"
+    >
+      <dt className="truncate font-heading-xxsmall uppercase text-subtle">{label}</dt>
+      <dd className="min-w-0 font-body-small text-default">{children}</dd>
+    </Grid>
   );
 }
 
 function PanelHeading({ title, note }: { title: string; note: string }) {
   return (
-    <div className="border-b border-border pb-2">
-      <h3 className="text-[12.5px] font-semibold tracking-[-0.005em]">{title}</h3>
-      <p className="mt-0.5 text-[12px] leading-snug text-muted-foreground">{note}</p>
-    </div>
+    <Box className="border-b border-default" paddingBlockEnd="space.100">
+      <h3 className="font-body-small font-semibold">{title}</h3>
+      <p className="pt-025 font-body-small text-subtle">{note}</p>
+    </Box>
   );
 }
 
@@ -640,9 +659,16 @@ export function NormalizationAudit({
 }) {
   const { native, normalized } = row;
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border lg:grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)]">
-        <div className="space-y-2 bg-card px-4 py-3">
+    <Stack space="space.200">
+      <Grid
+        className="overflow-hidden rounded-large border border-default bg-neutral"
+        gap="space.025"
+        templateColumns={{
+          base: "repeat(1, minmax(0, 1fr))",
+          lg: "minmax(0,1fr) 28px minmax(0,1fr)",
+        }}
+      >
+        <Stack className="bg-surface px-200 py-150" space="space.100">
           <PanelHeading
             title="Native record"
             note={
@@ -656,103 +682,110 @@ export function NormalizationAudit({
               <NativeRow key={f.label} field={f} />
             ))}
           </dl>
-        </div>
+        </Stack>
 
-        <div className="flex items-center justify-center bg-card py-1 lg:py-0">
-          <ArrowRight className="size-4 rotate-90 text-muted-foreground lg:rotate-0" />
-        </div>
+        <Inline className="bg-surface py-050 lg:py-0" alignBlock="center" alignInline="center">
+          <ArrowRight className="size-icon-medium rotate-90 text-subtle lg:rotate-0" />
+        </Inline>
 
-        <div className="space-y-2 bg-card px-4 py-3">
+        <Stack className="bg-surface px-200 py-150" space="space.100">
           <PanelHeading
             title="Normalized record"
             note="The common shape every format lands in. Nothing below was carried across without a rule."
           />
           <dl>
             <NormalizedRow label="id">
-              <Id className="break-all text-[12px]">{normalized.id}</Id>
+              <Id className="break-all font-body-small">{normalized.id}</Id>
             </NormalizedRow>
             <NormalizedRow label="format">
               <FormatChip format={normalized.format} />
             </NormalizedRow>
             <NormalizedRow label="native id">
-              <Id className="break-all text-[12px]">{normalized.nativeId}</Id>
+              <Id className="break-all font-body-small">{normalized.nativeId}</Id>
             </NormalizedRow>
             <NormalizedRow label="cci">
               {normalized.cci ? (
-                <Id className="text-[12px]">{normalized.cci}</Id>
+                <Id className="font-body-small">{normalized.cci}</Id>
               ) : (
-                <span className="text-legacy-warning">null — not asserted by this format</span>
+                <span className="text-warning">null — not asserted by this format</span>
               )}
             </NormalizedRow>
             <NormalizedRow label="control">
               {normalized.control ? (
-                <Id className="text-[12px]">{normalized.control}</Id>
+                <Id className="font-body-small">{normalized.control}</Id>
               ) : (
-                <span className="text-muted-foreground">null</span>
+                <span className="text-subtle">null</span>
               )}
             </NormalizedRow>
             <NormalizedRow label="rule">
               {normalized.rule ? (
-                <Id className="text-[12px]">{normalized.rule}</Id>
+                <Id className="font-body-small">{normalized.rule}</Id>
               ) : (
-                <span className="text-muted-foreground">null</span>
+                <span className="text-subtle">null</span>
               )}
             </NormalizedRow>
             <NormalizedRow label="node">{labelNode(normalized.node, nodeName)}</NormalizedRow>
             <NormalizedRow label="severity">
-              <span className="flex items-center gap-1.5">
+              <Inline as="span" space="space.075" alignBlock="center">
                 <Indicator tone={severityToneOf(normalized.severity)}>
                   {normalized.severity}
                 </Indicator>
                 <Badge size="xsmall" tone={normalized.clean ? "success" : "neutral"}>
                   {normalized.clean ? "Clean" : "Reportable"}
                 </Badge>
-              </span>
+              </Inline>
             </NormalizedRow>
             <NormalizedRow label="title">
-              <span className="break-words leading-relaxed">{normalized.title}</span>
+              <span className="break-words">{normalized.title}</span>
             </NormalizedRow>
             <NormalizedRow label="detail">
-              <span className="break-words leading-relaxed">{normalized.detail}</span>
+              <span className="break-words">{normalized.detail}</span>
             </NormalizedRow>
           </dl>
-        </div>
-      </div>
+        </Stack>
+      </Grid>
 
-      <div className="rounded-lg border border-border bg-legacy-subtle px-4 py-3">
-        <h3 className="text-[12.5px] font-semibold tracking-[-0.005em]">
-          How this row was derived
-        </h3>
-        <p className="mt-0.5 text-[12px] leading-snug text-muted-foreground">
+      <Box
+        className="rounded-large border border-default bg-surface-sunken"
+        paddingInline="space.200"
+        paddingBlock="space.150"
+      >
+        <h3 className="font-body-small font-semibold">How this row was derived</h3>
+        <p className="pt-025 font-body-small text-subtle">
           Every mapping decision states its own basis. These sentences are the normalizer&rsquo;s,
           not the reviewer&rsquo;s.
         </p>
-        <div className="mt-2 grid grid-cols-1 gap-x-8 lg:grid-cols-2">
+        <Grid
+          className="pt-100"
+          columnGap="space.400"
+          templateColumns={{ base: "repeat(1, minmax(0, 1fr))", lg: "repeat(2, minmax(0, 1fr))" }}
+        >
           <ProseBlock label="Severity basis">{normalized.severityBasis}</ProseBlock>
           <ProseBlock label="Node basis">{normalized.nodeBasis}</ProseBlock>
           {/* The requirement is the third mapping decision, and until now the
               only one that appeared with no stated origin. */}
           <ProseBlock label="CCI basis">{normalized.cciBasis}</ProseBlock>
-        </div>
-        <div className="mt-1">
+        </Grid>
+        <Box paddingBlockStart="space.050">
           {normalized.unresolved.length > 0 ? (
             <>
-              <div className="pt-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-legacy-warning">
+              <Box
+                className="font-heading-xxsmall uppercase text-warning"
+                paddingBlockStart="space.075"
+              >
                 Held for an analyst — {normalized.unresolved.length}{" "}
                 {normalized.unresolved.length === 1 ? "item" : "items"}
-              </div>
-              <ul className="mt-1 space-y-1.5">
+              </Box>
+              <Stack className="pt-050" as="ul" space="space.075">
                 {normalized.unresolved.map((u) => (
-                  <li key={u} className="flex items-start gap-2">
-                    <span className="pt-[7px]">
+                  <Inline key={u} as="li" space="space.100" alignBlock="start">
+                    <Box as="span" paddingBlockStart="space.075">
                       <Dot tone="warning" />
-                    </span>
-                    <span className="min-w-0 text-[12.5px] leading-relaxed text-foreground">
-                      {u}
-                    </span>
-                  </li>
+                    </Box>
+                    <span className="min-w-0 font-body-small text-default">{u}</span>
+                  </Inline>
                 ))}
-              </ul>
+              </Stack>
             </>
           ) : (
             <ProseBlock label="Held for an analyst">
@@ -760,9 +793,9 @@ export function NormalizationAudit({
               finding without a human filling a blank in first.
             </ProseBlock>
           )}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Stack>
   );
 }
 
@@ -788,19 +821,19 @@ export function NormalizationView({
 }) {
   if (rows.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="No native records on this run"
           description="The delivered file carried no result rows, so there is nothing to normalize."
         />
-      </div>
+      </Box>
     );
   }
 
   const active = rows.find((r) => r.normalized.id === selected) ?? rows[0] ?? null;
 
   return (
-    <div className="space-y-4">
+    <Stack space="space.200">
       <Table className="table-fixed">
         <colgroup>
           <col style={{ width: "168px" }} />
@@ -828,7 +861,7 @@ export function NormalizationView({
               key={normalized.id}
               className={cn(
                 onSelect ? "cursor-pointer" : undefined,
-                active && active.normalized.id === normalized.id ? "bg-primary-soft/40" : undefined,
+                active && active.normalized.id === normalized.id ? "bg-selected" : undefined,
               )}
               onClick={onSelect ? () => onSelect(normalized.id) : undefined}
             >
@@ -852,7 +885,7 @@ export function NormalizationView({
                 {normalized.cci ? (
                   <Id>{normalized.cci}</Id>
                 ) : (
-                  <span className="text-muted-foreground">Not asserted</span>
+                  <span className="text-subtle">Not asserted</span>
                 )}
               </Table.Cell>
               <Table.Cell className="truncate">{labelNode(normalized.node, nodeName)}</Table.Cell>
@@ -862,7 +895,7 @@ export function NormalizationView({
                     {normalized.unresolved.length}
                   </Badge>
                 ) : (
-                  <span className="text-muted-foreground">—</span>
+                  <span className="text-subtle">—</span>
                 )}
               </Table.Cell>
             </Table.Row>
@@ -871,7 +904,7 @@ export function NormalizationView({
       </Table>
 
       {active ? <NormalizationAudit row={active} scan={scan} nodeName={nodeName} /> : null}
-    </div>
+    </Stack>
   );
 }
 
@@ -880,19 +913,19 @@ export function NormalizationView({
 function FindingChips({ group }: { group: DedupGroup }) {
   if (group.existingAll.length === 0) {
     return (
-      <span className="text-muted-foreground">
+      <span className="text-subtle">
         {group.primary.clean ? "Coverage only" : "No finding filed"}
       </span>
     );
   }
   return (
-    <span className="flex min-w-0 items-center gap-1">
+    <Inline className="min-w-0" as="span" space="space.050" alignBlock="center">
       {group.existingAll.map((id) => (
         <Badge key={id} size="xsmall" tone={id === group.existing ? "information" : "neutral"}>
           {id}
         </Badge>
       ))}
-    </span>
+    </Inline>
   );
 }
 
@@ -929,12 +962,12 @@ export function DedupTable({
 }) {
   if (groups.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="Nothing to reconcile"
           description="No two results in the program's current scans share a requirement, a component and a rule."
         />
-      </div>
+      </Box>
     );
   }
 
@@ -966,7 +999,7 @@ export function DedupTable({
             key={g.key}
             className={cn(
               onSelect ? "cursor-pointer" : undefined,
-              selected === g.key ? "bg-primary-soft/40" : undefined,
+              selected === g.key ? "bg-selected" : undefined,
             )}
             onClick={onSelect ? () => onSelect(g.key) : undefined}
           >
@@ -977,10 +1010,10 @@ export function DedupTable({
               <Id>{g.key}</Id>
             </Table.Cell>
             <Table.Cell className="truncate" title={`${g.primary.format} · ${g.primary.scan}`}>
-              <span className="flex min-w-0 items-center gap-1.5">
+              <Inline className="min-w-0" as="span" space="space.075" alignBlock="center">
                 <FormatChip format={g.primary.format} />
                 <Id>{g.primary.scan}</Id>
-              </span>
+              </Inline>
             </Table.Cell>
             <Table.Cell className="truncate" title={g.primary.title}>
               {g.primary.title}
@@ -1005,10 +1038,10 @@ export function DedupTable({
               {g.duplicates.length === 0 ? (
                 <span>Sole source</span>
               ) : (
-                <span className="flex min-w-0 items-center gap-1.5">
+                <Inline className="min-w-0" as="span" space="space.075" alignBlock="center">
                   <Dot tone="warning" />
                   <span className="min-w-0 truncate">{foldedInLabel(g.duplicates)}</span>
-                </span>
+                </Inline>
               )}
             </Table.Cell>
             <Table.Cell className="truncate" title={g.existingAll.join(", ")}>
@@ -1025,13 +1058,13 @@ export function DedupTable({
 
 function MemberLine({ result, role }: { result: NormalizedResult; role: "Primary" | "Duplicate" }) {
   return (
-    <div className="flex min-w-0 items-baseline gap-1.5 py-0.5">
+    <Inline className="min-w-0 py-025" space="space.075" alignBlock="baseline">
       <Badge size="xsmall" tone={role === "Primary" ? "information" : "neutral"}>
         {result.format}
       </Badge>
-      <Id className="shrink-0 text-muted-foreground">{result.scan}</Id>
-      <span className="min-w-0 break-all text-[12px] text-muted-foreground">{result.nativeId}</span>
-    </div>
+      <Id className="shrink-0 text-subtle">{result.scan}</Id>
+      <span className="min-w-0 break-all font-body-small text-subtle">{result.nativeId}</span>
+    </Inline>
   );
 }
 
@@ -1046,36 +1079,36 @@ export function DedupRail({
   return (
     <div>
       <Inspector.Group title="Group">
-        <div className="grid grid-cols-[104px_1fr] items-baseline gap-3 py-[5px]">
-          <dt className="truncate text-[12.5px] text-muted-foreground">Key</dt>
-          <dd className="min-w-0 text-[12.5px] leading-snug">
+        <Grid className="py-050" gap="space.150" templateColumns="104px 1fr" alignItems="baseline">
+          <dt className="truncate font-body-small text-subtle">Key</dt>
+          <dd className="min-w-0 font-body-small">
             <Id className="break-all">{group.key}</Id>
           </dd>
-        </div>
+        </Grid>
         <KeyValue label="Component">{labelNode(group.primary.node, nodeName)}</KeyValue>
         <KeyValue label="Severity">
-          <span className="flex items-center gap-1.5">
+          <Inline as="span" space="space.075" alignBlock="center">
             <Indicator tone={severityToneOf(group.primary.severity)}>
               {group.primary.severity}
             </Indicator>
             <Badge size="xsmall" tone={group.primary.clean ? "success" : "neutral"}>
               {group.primary.clean ? "Clean" : "Reportable"}
             </Badge>
-          </span>
+          </Inline>
         </KeyValue>
         <KeyValue label="Sources">
-          <span className="tnum">{group.sources.length}</span>
+          <span className="tabular-nums">{group.sources.length}</span>
         </KeyValue>
         <ProseBlock label="Condition">{group.primary.title}</ProseBlock>
       </Inspector.Group>
 
       <Inspector.Group title="Reconciliation">
-        <div className="pt-0.5">
+        <Box paddingBlockStart="space.025">
           <MemberLine result={group.primary} role="Primary" />
           {group.duplicates.map((d) => (
             <MemberLine key={d.id} result={d} role="Duplicate" />
           ))}
-        </div>
+        </Box>
         <ProseBlock label="Basis">{group.basis}</ProseBlock>
       </Inspector.Group>
 
@@ -1085,13 +1118,13 @@ export function DedupRail({
         </KeyValue>
         <KeyValue label="Also filed">
           {folded.length > 0 ? (
-            <span className="flex flex-wrap gap-1">
+            <Inline as="span" space="space.050" shouldWrap>
               {folded.map((id) => (
-                <Id key={id} className="text-muted-foreground">
+                <Id key={id} className="text-subtle">
                   {id}
                 </Id>
               ))}
-            </span>
+            </Inline>
           ) : (
             <Absent />
           )}
@@ -1155,18 +1188,24 @@ export function ScanDiffTable({
   const meaning = previous ? diffMeaning : firstRunMeaning;
 
   return (
-    <div className="space-y-3 pt-4">
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+    <Stack className="pt-200" space="space.150">
+      <Inline space="space.250" rowSpace="space.100" alignBlock="center" shouldWrap>
         {tally.map((t) => (
-          <span key={t.state} className="flex items-baseline gap-1.5" title={meaning[t.state]}>
+          <Inline
+            key={t.state}
+            title={meaning[t.state]}
+            as="span"
+            space="space.075"
+            alignBlock="baseline"
+          >
             <Badge size="xsmall" tone={diffStateTone[t.state]}>
               {t.state}
             </Badge>
-            <span className="tnum text-[13px] font-medium">{t.count}</span>
-            <span className="text-[12px] text-muted-foreground">{meaning[t.state]}</span>
-          </span>
+            <span className="tabular-nums font-body font-medium">{t.count}</span>
+            <span className="font-body-small text-subtle">{meaning[t.state]}</span>
+          </Inline>
         ))}
-      </div>
+      </Inline>
 
       {rows.length === 0 ? (
         <Empty
@@ -1220,12 +1259,12 @@ export function ScanDiffTable({
                 <Table.Cell>
                   <Id>{r.lastSeen}</Id>
                 </Table.Cell>
-                <Table.Cell className="tnum text-right">{r.occurrences}</Table.Cell>
+                <Table.Cell className="tabular-nums text-right">{r.occurrences}</Table.Cell>
               </Table.Row>
             ))}
           </tbody>
         </Table>
       )}
-    </div>
+    </Stack>
   );
 }

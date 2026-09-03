@@ -34,19 +34,24 @@ import type { ReactNode } from "react";
 import { ArrowRight, TriangleAlert } from "lucide-react";
 
 import {
+  Absent,
   Badge,
+  Box,
   Button,
   Dot,
+  Empty,
+  Grid,
+  Id,
+  Inline,
+  Inspector,
   KeyValue,
+  Section,
+  Stack,
+  Stat,
   Table,
   Toolbar,
-  Id,
-  Absent,
-  Stat,
-  type Tone,
-} from "@/ds/primitives";
-import { Empty, Section } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
+} from "@ledger/design-system";
+import type { Tone } from "@ledger/design-system";
 import {
   buildStateTone,
   changeKindTone,
@@ -106,23 +111,27 @@ function NodeRef({ id, nodeName }: { id: string; nodeName?: NodeNamer | undefine
   const name = nodeName?.(id);
   const full = name && name !== id ? `${id} — ${name}` : id;
   return (
-    <span className="flex min-w-0 items-center gap-1.5" title={full}>
-      <Id className="shrink-0 text-muted-foreground">{id}</Id>
+    <Inline className="min-w-0" title={full} as="span" space="space.075" alignBlock="center">
+      <Id className="shrink-0 text-subtle">{id}</Id>
       {name && name !== id ? <span className="min-w-0 truncate">{name}</span> : null}
-    </span>
+    </Inline>
   );
 }
 
 /** A configuration movement. The old value is struck: it is no longer in force. */
 function Movement({ from, to }: { from: string; to: string }) {
   return (
-    <span className="flex min-w-0 items-center gap-1.5" title={`${from} → ${to}`}>
-      <span className="min-w-0 truncate text-muted-foreground line-through decoration-muted-foreground/50">
-        {from}
-      </span>
-      <ArrowRight className="size-3 shrink-0 text-muted-foreground" />
+    <Inline
+      className="min-w-0"
+      title={`${from} → ${to}`}
+      as="span"
+      space="space.075"
+      alignBlock="center"
+    >
+      <span className="min-w-0 truncate text-subtle line-through">{from}</span>
+      <ArrowRight className="shrink-0 text-subtle size-150" />
       <span className="min-w-0 truncate font-medium">{to}</span>
-    </span>
+    </Inline>
   );
 }
 
@@ -140,21 +149,17 @@ function ProseBlock({
   children: ReactNode;
 }) {
   return (
-    <div className="pt-1.5">
+    <Box paddingBlockStart="space.075">
       <div
         className={cn(
-          "text-[11px] font-medium uppercase tracking-[0.06em]",
-          tone === "danger"
-            ? "text-legacy-danger"
-            : tone === "warning"
-              ? "text-legacy-warning"
-              : "text-muted-foreground",
+          "font-heading-xxsmall uppercase",
+          tone === "danger" ? "text-danger" : tone === "warning" ? "text-warning" : "text-subtle",
         )}
       >
         {label}
       </div>
-      <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">{children}</p>
-    </div>
+      <p className="pt-050 font-body-small text-default">{children}</p>
+    </Box>
   );
 }
 
@@ -179,11 +184,11 @@ function MoreButton({
 }) {
   if (hidden === 0 && !expanded) return null;
   return (
-    <div className="pt-2">
+    <Box paddingBlockStart="space.100">
       <Button variant="link" size="small" onClick={onToggle}>
         {expanded ? "Show fewer" : `Show ${hidden} more ${noun}`}
       </Button>
-    </div>
+    </Box>
   );
 }
 
@@ -200,12 +205,12 @@ export function BuildTable({
 }) {
   if (builds.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="No configuration baseline"
           description="Nothing has been pinned for this program, so no determination on it can be said to be true of a known configuration."
         />
-      </div>
+      </Box>
     );
   }
   return (
@@ -236,10 +241,7 @@ export function BuildTable({
         {builds.map((build) => (
           <Table.Row
             key={build.id}
-            className={cn(
-              onSelect && "cursor-pointer",
-              selected === build.id && "bg-primary-soft/40",
-            )}
+            className={cn(onSelect && "cursor-pointer", selected === build.id && "bg-selected")}
             onClick={onSelect ? () => onSelect(build.id) : undefined}
             title={build.note}
           >
@@ -248,11 +250,11 @@ export function BuildTable({
             <Table.Cell>
               <BuildStateChip state={build.state} />
             </Table.Cell>
-            <Table.Cell className="tnum">{build.approved}</Table.Cell>
+            <Table.Cell className="tabular-nums">{build.approved}</Table.Cell>
             <Table.Cell title={build.ccb}>{build.ccb}</Table.Cell>
             <Table.Cell>{build.supersedes ? <Id>{build.supersedes}</Id> : <Absent />}</Table.Cell>
-            <Table.Cell className="tnum text-right">{build.pins.length}</Table.Cell>
-            <Table.Cell className="tnum text-right">{build.parameters.length}</Table.Cell>
+            <Table.Cell className="tabular-nums text-right">{build.pins.length}</Table.Cell>
+            <Table.Cell className="tabular-nums text-right">{build.parameters.length}</Table.Cell>
           </Table.Row>
         ))}
       </tbody>
@@ -264,12 +266,12 @@ export function BuildTable({
 export function ParameterTable({ parameters }: { parameters: ParameterPin[] }) {
   if (parameters.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="No parameters pinned"
           description="This build fixes no organization-defined parameter values, so every ODP the controls carry is unstated."
         />
-      </div>
+      </Box>
     );
   }
   return (
@@ -320,13 +322,13 @@ export function BuildRail({
           <BuildStateChip state={build.state} />
         </KeyValue>
         <KeyValue label="Approved">
-          <span className="tnum">{build.approved}</span>
+          <span className="tabular-nums">{build.approved}</span>
         </KeyValue>
         <KeyValue label="Supersedes">
           {build.supersedes ? <Id>{build.supersedes}</Id> : <Absent />}
         </KeyValue>
         <KeyValue label="Pinned">
-          <span className="tnum">
+          <span className="tabular-nums">
             {build.pins.length} components · {build.parameters.length} parameters
           </span>
         </KeyValue>
@@ -336,17 +338,17 @@ export function BuildRail({
 
       <Inspector.Group title="Movement">
         <KeyValue label="Pins moved">
-          <span className="tnum">{deltas}</span>
+          <span className="tabular-nums">{deltas}</span>
         </KeyValue>
         <KeyValue label="Unrecorded">
-          <span className="flex items-center gap-1.5">
-            <span className="tnum">{unrecorded}</span>
+          <Inline as="span" space="space.075" alignBlock="center">
+            <span className="tabular-nums">{unrecorded}</span>
             {unrecorded > 0 ? (
               <Badge size="xsmall" tone="danger">
                 CM-3
               </Badge>
             ) : null}
-          </span>
+          </Inline>
         </KeyValue>
         <ProseBlock label="Why it matters">
           A determination is only ever true of a configuration. Every pin in this build is a claim
@@ -380,15 +382,19 @@ export function UnrecordedChangeNotice({
 }) {
   if (rows.length === 0) return null;
   return (
-    <div className="rounded-lg border border-legacy-danger/30 bg-danger-soft/60 px-4 py-3">
-      <div className="flex items-start gap-2">
-        <TriangleAlert className="mt-0.5 size-4 shrink-0 text-legacy-danger" />
+    <Box
+      className="rounded-large border border-danger-subtle bg-danger"
+      paddingInline="space.200"
+      paddingBlock="space.150"
+    >
+      <Inline space="space.100" alignBlock="start">
+        <TriangleAlert className="pt-025 size-icon-medium shrink-0 text-danger" />
         <div className="min-w-0">
-          <p className="text-[13px] font-semibold text-legacy-danger">
+          <p className="font-body font-semibold text-danger">
             CM-3 — {rows.length} configuration item{rows.length === 1 ? "" : "s"} moved with no
             change record
           </p>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">
+          <p className="pt-050 font-body-small text-default">
             {rows.length === 1 ? "This pin" : "These pins"} differ{rows.length === 1 ? "s" : ""}{" "}
             between {from} and {to} and no <Id>CHG-</Id> was ever filed against{" "}
             {rows.length === 1 ? "it" : "them"}. The movement was not proposed, so it was not
@@ -397,25 +403,31 @@ export function UnrecordedChangeNotice({
             {rows.length === 1 ? "this component" : "these components"} survive it. This is a
             finding against the configuration management process itself, not a row in the diff.
           </p>
-          <ul className="mt-2 space-y-1.5">
+          <Stack className="pt-100" as="ul" space="space.075">
             {rows.map((row) => (
-              <li key={`${row.node}|${row.label}`} className="text-[12.5px] leading-snug">
-                <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-                  {row.node === "—" ? null : <Id className="text-legacy-danger">{row.node}</Id>}
+              <li key={`${row.node}|${row.label}`} className="font-body-small">
+                <Inline
+                  as="span"
+                  space="space.075"
+                  rowSpace="space.050"
+                  alignBlock="center"
+                  shouldWrap
+                >
+                  {row.node === "—" ? null : <Id className="text-danger">{row.node}</Id>}
                   <span className="font-medium">
                     {row.node === "—" ? row.label : (nodeName?.(row.node) ?? row.label)}
                   </span>
                   <Badge size="xsmall">{row.kind}</Badge>
-                  <span className="text-muted-foreground line-through">{row.from}</span>
-                  <ArrowRight className="size-3 text-muted-foreground" />
+                  <span className="text-subtle line-through">{row.from}</span>
+                  <ArrowRight className="text-subtle size-150" />
                   <span className="font-medium">{row.to}</span>
-                </span>
+                </Inline>
               </li>
             ))}
-          </ul>
+          </Stack>
         </div>
-      </div>
-    </div>
+      </Inline>
+    </Box>
   );
 }
 
@@ -428,12 +440,12 @@ export function PinDiffTable({
 }) {
   if (rows.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="Nothing moved"
           description="Every pin in the candidate matches the authorized baseline, so the two builds describe the same configuration."
         />
-      </div>
+      </Box>
     );
   }
   return (
@@ -460,7 +472,7 @@ export function PinDiffTable({
           return (
             <Table.Row
               key={`${row.node}|${row.label}`}
-              className={cn(unrecorded && "bg-danger-soft/40")}
+              className={cn(unrecorded && "bg-danger")}
               title={
                 unrecorded
                   ? `${row.label} moved from ${row.from} to ${row.to} with no change record — CM-3.`
@@ -471,9 +483,7 @@ export function PinDiffTable({
                 {row.node === "—" ? (
                   <Absent />
                 ) : (
-                  <Id className={unrecorded ? "text-legacy-danger" : "text-muted-foreground"}>
-                    {row.node}
-                  </Id>
+                  <Id className={unrecorded ? "text-danger" : "text-subtle"}>{row.node}</Id>
                 )}
               </Table.Cell>
               {/* The Component column one cell left already carries the id, and
@@ -491,12 +501,12 @@ export function PinDiffTable({
               </Table.Cell>
               <Table.Cell>
                 {unrecorded ? (
-                  <span className="flex items-center gap-1.5">
+                  <Inline as="span" space="space.075" alignBlock="center">
                     <Dot tone="danger" />
-                    <span className="truncate font-medium text-legacy-danger">No change record</span>
-                  </span>
+                    <span className="truncate font-medium text-danger">No change record</span>
+                  </Inline>
                 ) : (
-                  <Id className="text-muted-foreground">{row.recorded}</Id>
+                  <Id className="text-subtle">{row.recorded}</Id>
                 )}
               </Table.Cell>
             </Table.Row>
@@ -535,12 +545,12 @@ export function ChangeTable({
 }) {
   if (changes.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="No change records"
           description="Nothing has been proposed against this program's baseline. A program with a live candidate build and no change records is not a stable program — it is an unmanaged one."
         />
-      </div>
+      </Box>
     );
   }
   return (
@@ -574,21 +584,21 @@ export function ChangeTable({
               key={change.id}
               className={cn(
                 onSelect && "cursor-pointer",
-                selected === change.id && "bg-primary-soft/40",
-                change.acknowledged && "opacity-60",
+                selected === change.id && "bg-selected",
+                change.acknowledged && "opacity-disabled",
               )}
               onClick={onSelect ? () => onSelect(change.id) : undefined}
               title={change.analysis}
             >
               <Table.Cell>
-                <span className="flex items-center gap-1.5">
+                <Inline as="span" space="space.075" alignBlock="center">
                   <Id>{change.id}</Id>
                   {change.acknowledged ? (
                     <Badge size="xsmall" tone="neutral">
                       Ack
                     </Badge>
                   ) : null}
-                </span>
+                </Inline>
               </Table.Cell>
               <Table.Cell>
                 <ChangeKindChip kind={change.kind} />
@@ -603,16 +613,16 @@ export function ChangeTable({
               <Table.Cell>
                 <Movement from={change.from} to={change.to} />
               </Table.Cell>
-              <Table.Cell className="tnum">{change.requested}</Table.Cell>
+              <Table.Cell className="tabular-nums">{change.requested}</Table.Cell>
               <Table.Cell>
                 <ImpactChip impact={change.impact} />
               </Table.Cell>
               <Table.Cell
                 className={cn(
                   effect.tone === "danger"
-                    ? "text-legacy-danger"
+                    ? "text-danger"
                     : effect.tone === "warning"
-                      ? "text-legacy-warning"
+                      ? "text-warning"
                       : "",
                 )}
               >
@@ -655,7 +665,7 @@ export function ChangeRail({
         <KeyValue label="From">{change.from}</KeyValue>
         <KeyValue label="To">{change.to}</KeyValue>
         <KeyValue label="Requested">
-          <span className="tnum">{change.requested}</span>
+          <span className="tabular-nums">{change.requested}</span>
         </KeyValue>
         <KeyValue label="By">{change.requestedBy}</KeyValue>
         <KeyValue label="Approved by">{change.approvedBy}</KeyValue>
@@ -681,23 +691,23 @@ export function ChangeRail({
         ) : (
           <>
             <KeyValue label="Nodes touched">
-              <span className="tnum">{impact.touched.length}</span>
+              <span className="tabular-nums">{impact.touched.length}</span>
             </KeyValue>
             <KeyValue label="Invalidated">
-              <span className="tnum text-legacy-danger">{impact.invalidatedRows.length}</span>
+              <span className="tabular-nums text-danger">{impact.invalidatedRows.length}</span>
             </KeyValue>
             <KeyValue label="Suspect">
-              <span className="tnum text-legacy-warning">{impact.suspectRows.length}</span>
+              <span className="tabular-nums text-warning">{impact.suspectRows.length}</span>
             </KeyValue>
             <KeyValue label="Evidence">
-              <span className="tnum">{impact.invalidatedEvidence.length}</span>
+              <span className="tabular-nums">{impact.invalidatedEvidence.length}</span>
             </KeyValue>
             <KeyValue label="Re-tests">
-              <span className="tnum">{impact.retests.length}</span>
+              <span className="tabular-nums">{impact.retests.length}</span>
             </KeyValue>
           </>
         )}
-        <div className="flex flex-wrap items-center gap-2 pt-2.5">
+        <Inline className="pt-100" space="space.100" alignBlock="center" shouldWrap>
           {onOpenImpact ? (
             <Button size="small" onClick={() => onOpenImpact(change.id)}>
               Open impact
@@ -712,8 +722,8 @@ export function ChangeRail({
               {change.acknowledged ? "Withdraw acknowledgement" : "Acknowledge — re-verified"}
             </Button>
           ) : null}
-        </div>
-        <p className="pt-2 text-[12px] leading-relaxed text-muted-foreground">
+        </Inline>
+        <p className="pt-100 font-body-small text-subtle">
           Acknowledging records that the affected requirements have been re-run against the
           configuration this change produces. It removes the change from the live overlay. It does
           not create evidence, close a finding or change a determination.
@@ -755,57 +765,62 @@ function TouchedGroup({
   const cap = useCap(nodes, 8);
   const danger = state === "Invalidated";
   return (
-    <div
+    <Box
       className={cn(
-        "rounded-lg border px-4 py-3",
-        danger ? "border-legacy-danger/25 bg-danger-soft/35" : "border-legacy-warning/25 bg-warning-soft/30",
+        "rounded-large border",
+        danger ? "border-danger-subtle bg-danger" : "border-warning-subtle bg-warning",
       )}
+      paddingInline="space.200"
+      paddingBlock="space.150"
     >
-      <div className="flex items-baseline gap-2">
+      <Inline space="space.100" alignBlock="baseline">
         <ImpactStateChip state={state} />
         <span
-          className={cn("tnum text-[13px] font-semibold", danger ? "text-legacy-danger" : "text-legacy-warning")}
+          className={cn(
+            "tabular-nums font-body font-semibold",
+            danger ? "text-danger" : "text-warning",
+          )}
         >
           {nodes.length}
         </span>
-        <span className="text-[12px] text-muted-foreground">
+        <span className="font-body-small text-subtle">
           composition node{nodes.length === 1 ? "" : "s"}
         </span>
-      </div>
-      <p className="mt-1.5 text-[12.5px] leading-relaxed text-foreground">{rule}</p>
+      </Inline>
+      <p className="pt-075 font-body-small text-default">{rule}</p>
       {nodes.length === 0 ? (
-        <p className="mt-2 text-[12.5px] text-muted-foreground">
+        <p className="pt-100 font-body-small text-subtle">
           No node reached this state for this change.
         </p>
       ) : (
-        <ul className="mt-2.5 space-y-2.5">
+        <Stack className="pt-100" as="ul" space="space.100">
           {cap.shown.map((node) => (
-            <li
+            <Box
               key={node.node}
-              className={cn("border-l-2 pl-2.5", danger ? "border-legacy-danger/50" : "border-legacy-warning/50")}
+              className={cn("border-s", danger ? "border-danger-subtle" : "border-warning-subtle")}
+              as="li"
+              paddingInlineStart="space.100"
             >
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <Id className={danger ? "text-legacy-danger" : "text-legacy-warning"}>{node.node}</Id>
-                <span className="text-[12.5px] font-medium">
+              <Inline space="space.100" rowSpace="space.050" alignBlock="center" shouldWrap>
+                <Id className={danger ? "text-danger" : "text-warning"}>{node.node}</Id>
+                <span className="font-body-small font-medium">
                   {nodeName?.(node.node) ?? node.node}
                 </span>
                 <Badge size="xsmall">
                   {node.hops} hop{node.hops === 1 ? "" : "s"}
                 </Badge>
-              </div>
-              <p className="mt-0.5 text-[12.5px] leading-relaxed text-muted-foreground">
-                {node.reason}
-              </p>
-            </li>
+              </Inline>
+              <p className="pt-025 font-body-small text-subtle">{node.reason}</p>
+            </Box>
           ))}
-        </ul>
+        </Stack>
       )}
       {cap.hidden > 0 || cap.expanded ? (
-        <Button variant="link" size="small" onClick={cap.toggle} className="mt-2">
+        <Button variant="link" size="small" onClick={cap.toggle} className="pt-100">
           {cap.expanded ? "Show fewer" : `Show ${cap.hidden} more`}
         </Button>
       ) : null}
-    </div>
+    </Box>
   );
 }
 
@@ -826,20 +841,15 @@ function wasWithdrawn(record: AuditRecord): boolean {
 function DeterminationOutcome({ record }: { record: AuditRecord }) {
   const withdrawn = wasWithdrawn(record);
   return (
-    <span className="flex items-center gap-1.5">
-      <span
-        className={cn(
-          "shrink-0 text-[12px]",
-          withdrawn && "text-muted-foreground line-through decoration-legacy-danger/70 decoration-[1.5px]",
-        )}
-      >
+    <Inline as="span" space="space.075" alignBlock="center">
+      <span className={cn("shrink-0 font-body-small", withdrawn && "text-subtle line-through")}>
         {record.from}
       </span>
-      {withdrawn ? <ArrowRight className="size-3 shrink-0 text-muted-foreground" /> : null}
+      {withdrawn ? <ArrowRight className="shrink-0 text-subtle size-150" /> : null}
       <Badge size="xsmall" tone={withdrawn ? "danger" : "warning"}>
         {record.outcome ?? (withdrawn ? "Withdrawn" : "Retained — re-test owed")}
       </Badge>
-    </span>
+    </Inline>
   );
 }
 
@@ -924,12 +934,12 @@ function SuspectRowTable({ records }: { records: AuditRecord[] }) {
                   <Id>{row.requirement}</Id>
                 </Table.Cell>
                 <Table.Cell>
-                  <span className="flex items-center gap-1.5">
-                    <span className="shrink-0 text-[12px]">{record.from}</span>
+                  <Inline as="span" space="space.075" alignBlock="center">
+                    <span className="shrink-0 font-body-small">{record.from}</span>
                     <Badge size="xsmall" tone="warning">
                       {record.outcome ?? "Stands — flagged"}
                     </Badge>
-                  </span>
+                  </Inline>
                 </Table.Cell>
               </Table.Row>
             );
@@ -995,13 +1005,13 @@ function AuditTrail({ records }: { records: AuditRecord[] }) {
 
 function IdChips({ ids, tone = "neutral" }: { ids: string[]; tone?: Tone }) {
   return (
-    <div className="flex flex-wrap gap-1.5 pt-3">
+    <Inline className="pt-150" space="space.075" shouldWrap>
       {ids.map((id) => (
         <Badge key={id} tone={tone}>
-          <span className="text-[11.5px]">{id}</span>
+          <span className="font-body-xsmall">{id}</span>
         </Badge>
       ))}
-    </div>
+    </Inline>
   );
 }
 
@@ -1084,61 +1094,63 @@ export function ImpactView({
       : `${clauses.join(", ")}.`;
 
   return (
-    <div className="space-y-7">
+    <Stack space="space.300">
       {/* Verdict */}
-      <div
+      <Box
         className={cn(
-          "rounded-lg border px-4 py-3.5",
-          contained ? "border-border bg-legacy-subtle" : "border-legacy-warning/30 bg-warning-soft/40",
+          "rounded-large border",
+          contained ? "border-default bg-surface-sunken" : "border-warning-subtle bg-warning",
         )}
+        paddingInline="space.200"
+        paddingBlock="space.150"
       >
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+        <Inline space="space.100" alignBlock="center" shouldWrap>
+          <span className="font-heading-xxsmall uppercase text-subtle">
             CM-3(2) security impact analysis
           </span>
           <ImpactChip impact={change.impact} />
           <Badge tone={contained ? "success" : "danger"}>
             {contained ? "Contained" : "Cascaded"}
           </Badge>
-          <span className="ml-auto flex items-center gap-2">
+          <Inline className="ml-auto" as="span" space="space.100" alignBlock="center">
             <Id>{change.id}</Id>
             {change.acknowledged ? <Badge size="xsmall">Acknowledged</Badge> : null}
-          </span>
-        </div>
+          </Inline>
+        </Inline>
 
-        <h3 className="mt-2 text-[15px] font-semibold leading-snug tracking-[-0.01em]">
+        <h3 className="pt-100 font-body-large font-semibold">
           {contained
             ? "The analysis stopped the cascade. No determination is withdrawn."
             : headline}
         </h3>
 
-        <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
+        <p className="pt-075 font-body-small text-subtle">
           {change.kind} · {change.subject} · <span className="line-through">{change.from}</span> →{" "}
           {change.to} · requested {change.requested} by {change.requestedBy} · approved by{" "}
           {change.approvedBy}
         </p>
 
-        <div className="mt-3 border-t border-border pt-3">
-          <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+        <Box className="border-t border-default" paddingBlockStart="space.150">
+          <div className="font-heading-xxsmall uppercase text-subtle">
             The ISSE&rsquo;s written analysis
           </div>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">{change.analysis}</p>
-        </div>
+          <p className="pt-050 font-body-small text-default">{change.analysis}</p>
+        </Box>
 
         {contained ? (
-          <p className="mt-3 border-t border-border pt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+          <p className="pt-150 border-t border-default font-body-small text-subtle">
             Nothing is missing from this page. A change analysed as{" "}
-            <span className="font-medium text-foreground">{change.impact.toLowerCase()}</span>{" "}
-            impact is a <span className="font-medium text-foreground">result</span>, not an absence:
-            the zeros below are the claim, the paragraph above is the reasoning, and both are on the
-            record under {gateRecord?.id ?? "the change"}. An implementation that skipped the gate
-            would have turned most of this program&rsquo;s matrix amber on this change alone, and
-            nobody would have been able to say why.
+            <span className="font-medium text-default">{change.impact.toLowerCase()}</span> impact
+            is a <span className="font-medium text-default">result</span>, not an absence: the zeros
+            below are the claim, the paragraph above is the reasoning, and both are on the record
+            under {gateRecord?.id ?? "the change"}. An implementation that skipped the gate would
+            have turned most of this program&rsquo;s matrix amber on this change alone, and nobody
+            would have been able to say why.
           </p>
         ) : null}
 
         {onAcknowledge ? (
-          <div className="mt-3 flex items-center gap-2">
+          <Inline className="pt-150" space="space.100" alignBlock="center">
             <Button
               size="small"
               variant={change.acknowledged ? "subtle" : "secondary"}
@@ -1146,17 +1158,25 @@ export function ImpactView({
             >
               {change.acknowledged ? "Withdraw acknowledgement" : "Acknowledge — re-verified"}
             </Button>
-            <span className="text-[12px] text-muted-foreground">
+            <span className="font-body-small text-subtle">
               {change.acknowledged
                 ? "This change is not applied to the live matrix."
                 : "Removes the change from the live overlay. Creates no evidence."}
             </span>
-          </div>
+          </Inline>
         ) : null}
-      </div>
+      </Box>
 
       {/* Effect tiles */}
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-3 lg:grid-cols-6">
+      <Grid
+        className="overflow-hidden rounded-large border border-default bg-neutral"
+        gap="space.025"
+        templateColumns={{
+          base: "repeat(2, minmax(0, 1fr))",
+          sm: "repeat(3, minmax(0, 1fr))",
+          lg: "repeat(6, minmax(0, 1fr))",
+        }}
+      >
         <Stat.Tile
           label="Nodes touched"
           value={impact.touched.length}
@@ -1197,16 +1217,16 @@ export function ImpactView({
           note="distinct requirement, component and method"
           tone="warning"
         />
-      </div>
+      </Grid>
 
       {contained ? (
         <Section
           title="Audit record"
           description="The gate produces a record whether or not it cascades. This is the one line a package reviewer reads to see that the change was analysed and why the analysis ended here."
         >
-          <div className="pt-4">
+          <Box paddingBlockStart="space.200">
             <AuditTrail records={impact.records} />
-          </div>
+          </Box>
         </Section>
       ) : null}
 
@@ -1217,7 +1237,7 @@ export function ImpactView({
             description="Two states, two rules, and the direction between them is the doctrine. Descending the composition tree invalidates; ascending it only casts suspicion. Reversing that would make one package bump invalidate the whole system."
           >
             {impact.touched.length === 0 ? (
-              <div className="pt-4">
+              <Box paddingBlockStart="space.200">
                 <Empty
                   title="Not scoped to a component"
                   description={
@@ -1226,9 +1246,13 @@ export function ImpactView({
                       : `A provider re-assessment is a property of the inheritance reference, not of this program's inventory. ${change.subject} moved from ${change.from} to ${change.to}, so every row inherited from that provider is invalidated without any node in this graph being touched.`
                   }
                 />
-              </div>
+              </Box>
             ) : (
-              <div className="grid gap-3 pt-4 lg:grid-cols-2">
+              <Grid
+                className="pt-200"
+                gap="space.150"
+                templateColumns={{ lg: "repeat(2, minmax(0, 1fr))" }}
+              >
                 <TouchedGroup
                   state="Invalidated"
                   nodes={invalidatedNodes}
@@ -1241,7 +1265,7 @@ export function ImpactView({
                   rule="Everything that contains the changed component, and everything that reaches it over a critical path. Their own controls may still hold, so the assessor is asked rather than told."
                   nodeName={nodeName}
                 />
-              </div>
+              </Grid>
             )}
           </Section>
 
@@ -1273,13 +1297,13 @@ export function ImpactView({
                   } re-tested rather than re-scored, because withdrawing an open deficiency to "Not assessed" would sever the POA&M obligation.`
             }`}
             action={
-              <span className="tnum text-[12px] text-muted-foreground">
+              <span className="tabular-nums font-body-small text-subtle">
                 {withdrawnCount} withdrawn · {retainedCount} re-test owed
               </span>
             }
           >
             {invalidatedRowRecords.length === 0 ? (
-              <div className="pt-4">
+              <Box paddingBlockStart="space.200">
                 <Empty
                   title="No determination affected"
                   description={
@@ -1288,11 +1312,11 @@ export function ImpactView({
                       : "The change touched components, but no requirement row is allocated to any of them."
                   }
                 />
-              </div>
+              </Box>
             ) : (
-              <div className="pt-4">
+              <Box paddingBlockStart="space.200">
                 <InvalidatedRowTable records={invalidatedRowRecords} />
-              </div>
+              </Box>
             )}
           </Section>
 
@@ -1301,14 +1325,14 @@ export function ImpactView({
               title="Determinations flagged"
               description="Allocated to a component that contains or reaches the change but is not itself altered by it. These determinations stand and still count toward coverage; they are put in front of the assessor rather than taken away."
               action={
-                <span className="tnum text-[12px] text-muted-foreground">
+                <span className="tabular-nums font-body-small text-subtle">
                   {impact.suspectRows.length} row{impact.suspectRows.length === 1 ? "" : "s"}
                 </span>
               }
             >
-              <div className="pt-4">
+              <Box paddingBlockStart="space.200">
                 <SuspectRowTable records={suspectRowRecords} />
-              </div>
+              </Box>
             </Section>
           ) : null}
 
@@ -1358,15 +1382,15 @@ export function ImpactView({
                         </Table.Cell>
                         <Table.Id id={parsed.control} />
                         <Table.Cell>
-                          <span className="flex items-center gap-1.5">
-                            <span className="text-[12px] text-muted-foreground line-through decoration-legacy-danger/70">
+                          <Inline as="span" space="space.075" alignBlock="center">
+                            <span className="font-body-small text-subtle line-through">
                               Accepted
                             </span>
-                            <ArrowRight className="size-3 shrink-0 text-muted-foreground" />
+                            <ArrowRight className="shrink-0 text-subtle size-150" />
                             <Badge size="xsmall" tone="danger">
                               Invalidated
                             </Badge>
-                          </span>
+                          </Inline>
                         </Table.Cell>
                       </Table.Row>
                     );
@@ -1382,13 +1406,13 @@ export function ImpactView({
               impact.records.length === 1 ? "" : "s"
             }, each with the basis on which it was made. Every row above is derived from one of these; nothing changes state off the record.`}
           >
-            <div className="pt-4">
+            <Box paddingBlockStart="space.200">
               <AuditTrail records={impact.records} />
-            </div>
+            </Box>
           </Section>
         </>
       ) : null}
-    </div>
+    </Stack>
   );
 }
 
@@ -1422,12 +1446,12 @@ export function RetestQueueTable({
 
   if (items.length === 0) {
     return (
-      <div className="pt-4">
+      <Box paddingBlockStart="space.200">
         <Empty
           title="Nothing owed"
           description="No live change has withdrawn a determination, so no requirement is waiting to be re-verified against the configuration in force."
         />
-      </div>
+      </Box>
     );
   }
 
@@ -1443,12 +1467,12 @@ export function RetestQueueTable({
         }}
         placeholder="Control, requirement, component"
         actions={
-          <span className="tnum text-[12px] text-muted-foreground">
+          <span className="tabular-nums font-body-small text-subtle">
             {withProcedure} of {filtered.length} have an executable procedure
           </span>
         }
       >
-        <span className="text-[12px] text-muted-foreground">
+        <span className="font-body-small text-subtle">
           showing {shown.length} of {filtered.length}
           {filtered.length === items.length ? "" : ` (${items.length} total)`}
         </span>
@@ -1492,7 +1516,7 @@ export function RetestQueueTable({
                 {item.procedure ? (
                   <Id>{item.procedure}</Id>
                 ) : (
-                  <span className="text-[12px] text-muted-foreground">None — by hand</span>
+                  <span className="font-body-small text-subtle">None — by hand</span>
                 )}
               </Table.Cell>
               <Table.Cell>{item.reason}</Table.Cell>
@@ -1501,19 +1525,19 @@ export function RetestQueueTable({
         </tbody>
       </Table>
       {shown.length < filtered.length ? (
-        <div className="pt-2">
+        <Box paddingBlockStart="space.100">
           <Button variant="link" size="small" onClick={() => setLimit((n) => n + 120)}>
             Show {Math.min(120, filtered.length - shown.length)} more
           </Button>
-        </div>
+        </Box>
       ) : null}
       {filtered.length === 0 ? (
-        <div className="pt-4">
+        <Box paddingBlockStart="space.200">
           <Empty
             title="No match"
             description={`Nothing in the re-test queue matches “${query}”.`}
           />
-        </div>
+        </Box>
       ) : null}
     </>
   );
@@ -1531,7 +1555,11 @@ export function RetestSummary({ items }: { items: RetestItem[] }) {
   const components = new Set(items.map((i) => i.node)).size;
 
   return (
-    <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-4">
+    <Grid
+      className="overflow-hidden rounded-large border border-default bg-neutral"
+      gap="space.025"
+      templateColumns={{ base: "repeat(2, minmax(0, 1fr))", sm: "repeat(4, minmax(0, 1fr))" }}
+    >
       {/* A numeric note under a value reads as a decomposition of it, so the
           whole-queue method split belongs on the whole-queue tile and nowhere
           else — beside `automatable` it read "9 with a procedure, of which 377
@@ -1552,6 +1580,6 @@ export function RetestSummary({ items }: { items: RetestItem[] }) {
         value={automatable}
         note={`${items.length - automatable} done by hand`}
       />
-    </div>
+    </Grid>
   );
 }

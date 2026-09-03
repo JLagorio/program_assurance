@@ -39,8 +39,18 @@ import { Fragment, useMemo, useState } from "react";
 import { Download } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Badge, Button, Table, Id, Absent, CodeBlock } from "@/ds/primitives";
-import { Empty } from "@/ds/patterns";
+import {
+  Absent,
+  Badge,
+  Box,
+  Button,
+  CodeBlock,
+  Empty,
+  Id,
+  Inline,
+  Stack,
+  Table,
+} from "@ledger/design-system";
 import {
   digestAlgorithm,
   reconcileStateTone,
@@ -69,16 +79,16 @@ function num(n: number): string {
 /** A short, uniform facts strip: label above value, wrapping on narrow screens. */
 function FactStrip({ items }: { items: { label: string; value: ReactNode }[] }) {
   return (
-    <div className="flex flex-wrap gap-x-8 gap-y-2">
+    <Inline space="space.400" rowSpace="space.100" shouldWrap>
       {items.map((item) => (
         <div key={item.label} className="min-w-0">
-          <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-            {item.label}
-          </div>
-          <div className="mt-0.5 text-[12.5px]">{item.value}</div>
+          <div className="font-heading-xxsmall uppercase text-subtle">{item.label}</div>
+          <Box className="font-body-small" paddingBlockStart="space.025">
+            {item.value}
+          </Box>
         </div>
       ))}
-    </div>
+    </Inline>
   );
 }
 
@@ -126,7 +136,7 @@ export function DownloadButton({
       title={bytes === undefined ? filename : `${filename} · ${num(bytes)} bytes`}
       onClick={() => downloadText(filename, text, mime)}
     >
-      <Download className="size-3.5" /> {label}
+      <Download className="size-icon-small" /> {label}
     </Button>
   );
 }
@@ -183,10 +193,8 @@ function JsonLine({ line }: { line: string }) {
   return (
     <span className="whitespace-pre">
       {indent}
-      <span className="text-primary">&quot;{key}&quot;</span>:{space}
-      <span className={rest.startsWith('"') ? "text-foreground" : "text-muted-foreground"}>
-        {rest}
-      </span>
+      <span className="text-brand">&quot;{key}&quot;</span>:{space}
+      <span className={rest.startsWith('"') ? "text-default" : "text-subtle"}>{rest}</span>
     </span>
   );
 }
@@ -218,25 +226,28 @@ export function OscalViewer({
   const remaining = lines.length - to;
 
   return (
-    <div className="space-y-3">
+    <Stack space="space.150">
       <FactStrip
         items={[
           { label: "Model", value: <span className="font-medium">{label}</span> },
           { label: "OSCAL version", value: <Id>{oscalVersion}</Id> },
           { label: "Document uuid", value: <Id>{doc.uuid}</Id> },
           { label: "Last modified", value: <Id>{doc.generated}</Id> },
-          { label: "Size", value: <span className="tnum">{num(bytes)} bytes (UTF-8)</span> },
-          { label: "Lines", value: <span className="tnum">{num(lines.length)}</span> },
+          {
+            label: "Size",
+            value: <span className="tabular-nums">{num(bytes)} bytes (UTF-8)</span>,
+          },
+          { label: "Lines", value: <span className="tabular-nums">{num(lines.length)}</span> },
         ]}
       />
 
       {outline.entries.length > 0 ? (
-        <div className="space-y-1.5">
-          <p className="text-[12.5px] text-muted-foreground">
+        <Stack space="space.075">
+          <p className="font-body-small text-subtle">
             <Id>{outline.root}</Id> carries {outline.entries.length} top-level members. Each count
             below is read off the document, not asserted; select one to move the window there.
           </p>
-          <div className="flex flex-wrap gap-1.5">
+          <Inline space="space.075" shouldWrap>
             {outline.entries.map((entry) => (
               <button
                 key={entry.key}
@@ -253,22 +264,22 @@ export function OscalViewer({
                   setCount(windowSize);
                 }}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-[12px] transition-colors",
+                  "inline-flex items-center gap-075 rounded-medium border border-default px-100 py-050 font-body-small transition-colors",
                   entry.line !== null && entry.line - 1 >= from && entry.line - 1 < to
-                    ? "border-primary/40 bg-primary-soft text-primary"
-                    : "text-muted-foreground hover:border-border-strong hover:text-foreground",
+                    ? "border-brand bg-selected text-brand"
+                    : "text-subtle hover:border-bold hover:text-default",
                 )}
               >
-                <span className="text-[11.5px]">{entry.key}</span>
-                <span className="tnum text-[11px] text-muted-foreground">{entry.summary}</span>
+                <span className="font-body-xsmall">{entry.key}</span>
+                <span className="tabular-nums font-body-xsmall text-subtle">{entry.summary}</span>
               </button>
             ))}
-          </div>
-        </div>
+          </Inline>
+        </Stack>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="tnum text-[12px] text-muted-foreground">
+      <Inline space="space.100" alignBlock="center" shouldWrap>
+        <span className="tabular-nums font-body-small text-subtle">
           Showing lines {num(from + 1)}–{num(to)} of {num(lines.length)}
         </span>
         {from > 0 ? (
@@ -287,7 +298,7 @@ export function OscalViewer({
             Show {num(Math.min(windowSize, remaining))} more · {num(remaining)} below
           </Button>
         ) : null}
-        <span className="ml-auto flex items-center gap-2">
+        <Inline className="ml-auto" as="span" space="space.100" alignBlock="center">
           <DownloadButton
             filename={filename}
             text={text}
@@ -295,8 +306,8 @@ export function OscalViewer({
             mime="application/json;charset=utf-8"
             label="Download JSON"
           />
-        </span>
-      </div>
+        </Inline>
+      </Inline>
 
       <CodeBlock
         start={from + 1}
@@ -305,13 +316,13 @@ export function OscalViewer({
         ))}
       />
 
-      <p className="text-[12px] text-muted-foreground">
+      <p className="font-body-small text-subtle">
         The block above is the serialised document itself — two-space indent and a trailing newline,
         matching NIST&apos;s published OSCAL content. Every value in it is derived from the record,
         so re-exporting produces the same {num(bytes)} bytes and the same uuid. The download carries
         the whole document, not the window.
       </p>
-    </div>
+    </Stack>
   );
 }
 
@@ -344,10 +355,10 @@ export function EmassTable({ sheet, pageSize = 40 }: { sheet: EmassExport; pageS
   }
 
   return (
-    <div className="space-y-3">
-      <p className="text-[12.5px] leading-relaxed text-muted-foreground">{sheet.note}</p>
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="tnum text-[12px] text-muted-foreground">
+    <Stack space="space.150">
+      <p className="font-body-small text-subtle">{sheet.note}</p>
+      <Inline space="space.100" alignBlock="center" shouldWrap>
+        <span className="tabular-nums font-body-small text-subtle">
           {sheet.columns.length} eMASS columns · {num(sheet.rows.length)} rows ·{" "}
           {shown.length === sheet.rows.length
             ? "all rows shown"
@@ -358,7 +369,7 @@ export function EmassTable({ sheet, pageSize = 40 }: { sheet: EmassExport; pageS
             Show {num(Math.min(pageSize, remaining))} more
           </Button>
         ) : null}
-      </div>
+      </Inline>
 
       {/* Twenty eMASS columns do not fit any viewport. The table keeps its own
           width and scrolls inside this frame so the page body never does. */}
@@ -392,7 +403,7 @@ export function EmassTable({ sheet, pageSize = 40 }: { sheet: EmassExport; pageS
           ))}
         </tbody>
       </Table>
-    </div>
+    </Stack>
   );
 }
 
@@ -401,11 +412,7 @@ export function EmassTable({ sheet, pageSize = 40 }: { sheet: EmassExport; pageS
 /** The full digest, wrapped rather than elided — a truncated hash checks nothing. */
 function Hash({ value }: { value: string }) {
   if (value === "—") return <Absent />;
-  return (
-    <span className="block break-all text-[10.5px] leading-[1.45] text-muted-foreground">
-      {value}
-    </span>
-  );
+  return <span className="block break-all font-body-xsmall text-subtle">{value}</span>;
 }
 
 export function BundleManifest({
@@ -422,7 +429,7 @@ export function BundleManifest({
   const consistent = bundle.signature.value === bundle.manifestHash;
 
   return (
-    <div className="space-y-5">
+    <Stack space="space.250">
       <FactStrip
         items={[
           { label: "Bundle", value: <Id>{bundle.id}</Id> },
@@ -434,7 +441,7 @@ export function BundleManifest({
           {
             label: "Media",
             value: (
-              <span className="tnum">
+              <span className="tabular-nums">
                 {bundle.artifacts.length} artifacts · {num(totalBytes)} bytes
               </span>
             ),
@@ -442,9 +449,9 @@ export function BundleManifest({
         ]}
       />
 
-      <p className="text-[12.5px] leading-relaxed text-muted-foreground">{bundle.note}</p>
+      <p className="font-body-small text-subtle">{bundle.note}</p>
 
-      <div className="space-y-2">
+      <Stack space="space.100">
         <Table className="table-fixed">
           <colgroup>
             <col style={{ width: "232px" }} />
@@ -464,29 +471,33 @@ export function BundleManifest({
           </thead>
           <tbody>
             {bundle.artifacts.map((artifact) => (
-              <Table.Row key={artifact.path} className="align-top hover:bg-transparent">
-                <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
+              <Table.Row key={artifact.path} className="align-top" isStatic>
+                <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
                   <Id>{artifact.path}</Id>
-                  <span className="mt-0.5 block text-[11.5px] text-muted-foreground">
+                  <Box
+                    className="block font-body-xsmall text-subtle"
+                    as="span"
+                    paddingBlockStart="space.025"
+                  >
                     {artifact.kind}
-                  </span>
+                  </Box>
                 </Table.Cell>
                 <Table.Cell
-                  className="max-w-none whitespace-normal py-2 align-top leading-snug"
+                  className="max-w-none whitespace-normal py-100 align-top"
                   title={artifact.producer}
                 >
                   {artifact.producer}
                 </Table.Cell>
-                <Table.Cell className="tnum py-2 align-top text-right">
+                <Table.Cell className="tabular-nums py-100 align-top text-right">
                   {num(artifact.bytes)}
                 </Table.Cell>
-                <Table.Cell className="max-w-none whitespace-normal py-2 align-top">
+                <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
                   <Hash value={artifact.sha256} />
                 </Table.Cell>
-                <Table.Cell className="py-2 align-top text-right">
+                <Table.Cell className="py-100 align-top text-right">
                   {onDownloadArtifact ? (
                     <Button size="xsmall" onClick={() => onDownloadArtifact(artifact)}>
-                      <Download className="size-3" /> File
+                      <Download className="size-150" /> File
                     </Button>
                   ) : (
                     <Absent />
@@ -496,63 +507,74 @@ export function BundleManifest({
             ))}
           </tbody>
         </Table>
-        <p className="text-[12px] text-muted-foreground">
+        <p className="font-body-small text-subtle">
           Each digest is a {digestAlgorithm} of that artifact&apos;s exact UTF-8 bytes, computed
           when the bundle was generated. Nothing here is a recorded literal: regenerating the bundle
           from the same record reproduces every row above, which is what makes the manifest
           checkable at the far end.
         </p>
-      </div>
+      </Stack>
 
-      <div className="rounded-lg border border-border bg-card">
-        <div className="border-b border-border px-4 py-3">
-          <h3 className="text-[13px] font-semibold">Manifest and integrity block</h3>
-          <p className="mt-0.5 text-[12.5px] text-muted-foreground">
+      <div className="rounded-large border border-default bg-surface">
+        <Box className="border-b border-default" paddingInline="space.200" paddingBlock="space.150">
+          <h3 className="font-body font-semibold">Manifest and integrity block</h3>
+          <p className="pt-025 font-body-small text-subtle">
             The manifest below is the signable text: a fixed header, the artifact rows sorted by
             path, and no self-reference — a manifest that covered its own digest could not be
             verified.
           </p>
-        </div>
-        <div className="space-y-3 px-4 py-3">
+        </Box>
+        <Stack className="px-200 py-150" space="space.150">
           <div>
-            <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-              Manifest digest
-            </div>
+            <div className="font-heading-xxsmall uppercase text-subtle">Manifest digest</div>
             <Hash value={bundle.manifestHash} />
           </div>
 
-          <div className="max-h-[280px] overflow-auto rounded-md border border-border bg-legacy-subtle">
-            <pre className="w-max min-w-full px-3 py-2 font-mono text-[11px] leading-[1.55] text-foreground">
+          <div
+            className="overflow-auto rounded-medium border border-default bg-surface-sunken"
+            style={{ maxHeight: 280 }}
+          >
+            <pre className="w-max min-w-full px-150 py-100 font-code font-body-xsmall text-default">
               {manifest}
             </pre>
           </div>
 
-          <dl className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
-            <div className="flex gap-2 text-[12.5px]">
-              <dt className="w-[92px] shrink-0 text-muted-foreground">Algorithm</dt>
+          <dl className="grid gap-x-300 gap-y-050 sm:grid-cols-2">
+            <Inline className="font-body-small" space="space.100">
+              <dt className="shrink-0 text-subtle" style={{ width: 92 }}>
+                Algorithm
+              </dt>
               <dd className="min-w-0">{bundle.signature.algorithm}</dd>
-            </div>
-            <div className="flex gap-2 text-[12.5px]">
-              <dt className="w-[92px] shrink-0 text-muted-foreground">Key id</dt>
+            </Inline>
+            <Inline className="font-body-small" space="space.100">
+              <dt className="shrink-0 text-subtle" style={{ width: 92 }}>
+                Key id
+              </dt>
               <dd className="min-w-0">{bundle.signature.keyId}</dd>
-            </div>
-            <div className="flex gap-2 text-[12.5px]">
-              <dt className="w-[92px] shrink-0 text-muted-foreground">Signer</dt>
+            </Inline>
+            <Inline className="font-body-small" space="space.100">
+              <dt className="shrink-0 text-subtle" style={{ width: 92 }}>
+                Signer
+              </dt>
               <dd className="min-w-0">{bundle.signature.signer}</dd>
-            </div>
-            <div className="flex gap-2 text-[12.5px]">
-              <dt className="w-[92px] shrink-0 text-muted-foreground">Signed on</dt>
+            </Inline>
+            <Inline className="font-body-small" space="space.100">
+              <dt className="shrink-0 text-subtle" style={{ width: 92 }}>
+                Signed on
+              </dt>
               <dd className="min-w-0">{bundle.signature.signedOn}</dd>
-            </div>
-            <div className="flex gap-2 text-[12.5px] sm:col-span-2">
-              <dt className="w-[92px] shrink-0 text-muted-foreground">Value</dt>
+            </Inline>
+            <Inline className="font-body-small sm:col-span-2" space="space.100">
+              <dt className="shrink-0 text-subtle" style={{ width: 92 }}>
+                Value
+              </dt>
               <dd className="min-w-0">
                 <Hash value={bundle.signature.value} />
               </dd>
-            </div>
+            </Inline>
           </dl>
 
-          <p className="rounded-md border border-legacy-warning/25 bg-warning-soft px-3 py-2 text-[12.5px] leading-relaxed text-foreground">
+          <p className="rounded-medium border border-warning-subtle bg-warning px-150 py-100 font-body-small text-default">
             <span className="font-medium">What this block is, plainly.</span> {signatureAlgorithm}.
             This build holds no key material and no PKI, so the value above is the manifest digest
             itself
@@ -563,9 +585,9 @@ export function BundleManifest({
             nothing about who produced the media; authenticity rests on the chain of custody of the
             write-once media and the courier receipt, not on this value.
           </p>
-        </div>
+        </Stack>
       </div>
-    </div>
+    </Stack>
   );
 }
 
@@ -579,43 +601,43 @@ export function ReconcileVerdict({ reconciliation }: { reconciliation: Reconcili
       ? "warning"
       : "success";
   const frame: Record<"danger" | "warning" | "success", string> = {
-    danger: "border-legacy-danger/30 bg-danger-soft",
-    warning: "border-legacy-warning/25 bg-warning-soft",
-    success: "border-legacy-success/25 bg-success-soft",
+    danger: "border-danger-subtle bg-danger",
+    warning: "border-warning-subtle bg-warning",
+    success: "border-success-subtle bg-success",
   };
 
   return (
-    <div className={cn("rounded-lg border px-4 py-3", frame[tone])}>
-      <div className="flex flex-wrap items-center gap-2">
+    <Box
+      className={cn("rounded-large border", frame[tone])}
+      paddingInline="space.200"
+      paddingBlock="space.150"
+    >
+      <Inline space="space.100" alignBlock="center" shouldWrap>
         <Badge tone={tone}>
           {reconciliation.signatureValid ? "Manifest verifies" : "Manifest does not verify"}
         </Badge>
-        <span className="text-[12px] text-muted-foreground">
+        <span className="font-body-small text-subtle">
           <Id>{reconciliation.received}</Id> received, against <Id>{reconciliation.bundle}</Id>{" "}
           generated here
         </span>
-      </div>
-      <p className="mt-2 text-[13.5px] font-medium leading-relaxed text-foreground">
-        {reconciliation.verdict}
-      </p>
-      <div className="mt-2.5 flex flex-wrap gap-x-6 gap-y-1 text-[12.5px]">
-        <span className="tnum">
-          <span className="text-muted-foreground">Identical</span> {reconciliation.identical}
+      </Inline>
+      <p className="pt-100 font-body font-medium text-default">{reconciliation.verdict}</p>
+      <Inline className="pt-100 font-body-small" space="space.300" rowSpace="space.050" shouldWrap>
+        <span className="tabular-nums">
+          <span className="text-subtle">Identical</span> {reconciliation.identical}
         </span>
-        <span className="tnum">
-          <span className="text-muted-foreground">Changed</span> {reconciliation.changed}
+        <span className="tabular-nums">
+          <span className="text-subtle">Changed</span> {reconciliation.changed}
         </span>
-        <span className="tnum">
-          <span className="text-muted-foreground">Only here</span> {reconciliation.added}
+        <span className="tabular-nums">
+          <span className="text-subtle">Only here</span> {reconciliation.added}
         </span>
-        <span className="tnum">
-          <span className="text-muted-foreground">Only on the media</span> {reconciliation.missing}
+        <span className="tabular-nums">
+          <span className="text-subtle">Only on the media</span> {reconciliation.missing}
         </span>
-      </div>
-      <p className="mt-2.5 text-[12.5px] leading-relaxed text-muted-foreground">
-        {reconciliation.signatureNote}
-      </p>
-    </div>
+      </Inline>
+      <p className="pt-100 font-body-small text-subtle">{reconciliation.signatureNote}</p>
+    </Box>
   );
 }
 
@@ -639,23 +661,23 @@ export function ReconcileTable({ reconciliation }: { reconciliation: Reconciliat
       <tbody>
         {reconciliation.rows.map((row) => (
           <Fragment key={row.path}>
-            <Table.Row className="border-0 align-top hover:bg-transparent">
-              <Table.Cell className="max-w-none whitespace-normal py-2 align-top leading-snug">
+            <Table.Row className="border-0 align-top" isStatic>
+              <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
                 <Id>{row.path}</Id>
               </Table.Cell>
-              <Table.Cell className="py-2 align-top">
+              <Table.Cell className="py-100 align-top">
                 <Badge tone={reconcileStateTone[row.state]}>{row.state}</Badge>
               </Table.Cell>
-              <Table.Cell className="max-w-none whitespace-normal py-2 align-top">
+              <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
                 <Hash value={row.localHash} />
               </Table.Cell>
-              <Table.Cell className="max-w-none whitespace-normal py-2 align-top">
+              <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
                 <Hash value={row.remoteHash} />
               </Table.Cell>
             </Table.Row>
-            <Table.Row className="align-top hover:bg-transparent">
+            <Table.Row className="align-top" isStatic>
               <Table.Cell
-                className="max-w-none whitespace-normal pb-3 pt-0 align-top leading-relaxed"
+                className="max-w-none whitespace-normal pb-150 pt-0 align-top"
                 colSpan={4}
               >
                 {row.detail}

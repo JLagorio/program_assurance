@@ -10,8 +10,22 @@
 import { useState } from "react";
 
 import { RecordPicker } from "@/components/app/record-picker";
-import { Badge, Button, Field, NativeSelect, Table, Textarea, Dialog } from "@/ds/primitives";
-import { ActionBar, Block, type ActionBarAction } from "@/ds/shapes";
+import {
+  ActionBar,
+  Badge,
+  Block,
+  Box,
+  Button,
+  Dialog,
+  Field,
+  Grid,
+  Inline,
+  NativeSelect,
+  Stack,
+  Table,
+  Textarea,
+} from "@ledger/design-system";
+import type { ActionBarAction } from "@ledger/design-system";
 import { cn } from "@/lib/utils";
 import {
   activityFor,
@@ -113,7 +127,7 @@ export function ControlActionBar({
         title={chosen?.def.label ?? "Confirm"}
         footer={
           <>
-            {error ? <span className="mr-auto text-[12.5px] text-legacy-danger">{error}</span> : null}
+            {error ? <span className="mr-auto font-body-small text-danger">{error}</span> : null}
             <Button onClick={() => setPending(null)}>Cancel</Button>
             <Button variant="primary" onClick={fire}>
               {chosen?.def.label ?? "Confirm"}
@@ -121,14 +135,18 @@ export function ControlActionBar({
           </>
         }
       >
-        <div className="grid gap-3">
-          <div className="rounded-lg border border-border bg-legacy-subtle px-3 py-2 text-[12.5px]">
+        <Grid gap="space.150">
+          <Box
+            className="rounded-large border border-default bg-surface-sunken font-body-small"
+            paddingInline="space.150"
+            paddingBlock="space.100"
+          >
             {session.name} · {session.role}
-          </div>
+          </Box>
           <Field label={chosen?.def.note === "required" ? "Reason (required)" : "Note"}>
             <Textarea value={note} onChange={(e) => setNote(e.target.value)} />
           </Field>
-        </div>
+        </Grid>
       </Dialog>
     </>
   );
@@ -139,24 +157,27 @@ export function ControlActionBar({
 /** Compact enough for the Inspector: a dot, a label, and what is missing. */
 export function GateList({ work, context }: { work: ControlWork; context: WorkContext }) {
   return (
-    <ul className="space-y-1">
+    <Stack as="ul" space="space.050">
       {gatesFor(work, context).map((g) => (
-        <li key={g.key} className="flex items-baseline gap-2" title={g.detail}>
-          <span
-            className={cn(
-              "mt-[5px] size-1.5 shrink-0 rounded-full",
-              g.met ? "bg-legacy-success" : "bg-legacy-warning",
-            )}
-          />
+        <Inline key={g.key} title={g.detail} as="li" space="space.100" alignBlock="baseline">
+          <Box paddingBlockStart="space.050">
+            <span
+              className={cn(
+                "shrink-0 rounded-full",
+                g.met ? "bg-success-bold" : "bg-warning-bold",
+                "size-075",
+              )}
+            />
+          </Box>
           <span className="min-w-0 flex-1">
-            <span className="block text-[12px]">{g.label}</span>
+            <span className="block font-body-small">{g.label}</span>
             {!g.met ? (
-              <span className="block truncate text-[11.5px] text-muted-foreground">{g.detail}</span>
+              <span className="block truncate font-body-xsmall text-subtle">{g.detail}</span>
             ) : null}
           </span>
-        </li>
+        </Inline>
       ))}
-    </ul>
+    </Stack>
   );
 }
 
@@ -170,12 +191,12 @@ export function Narrative({ work, onChange }: { work: ControlWork; onChange: () 
     return (
       <div>
         <Textarea
-          className="min-h-[132px]"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="How this system satisfies the control, in terms an assessor can verify."
+          style={{ minHeight: 132 }}
         />
-        <div className="mt-2 flex gap-2">
+        <Inline className="pt-100" space="space.100">
           <Button
             variant="primary"
             size="small"
@@ -190,7 +211,7 @@ export function Narrative({ work, onChange }: { work: ControlWork; onChange: () 
           <Button size="small" onClick={() => setEditing(false)}>
             Cancel
           </Button>
-        </div>
+        </Inline>
       </div>
     );
   }
@@ -198,12 +219,12 @@ export function Narrative({ work, onChange }: { work: ControlWork; onChange: () 
   return (
     <div>
       {work.narrative ? (
-        <p className="max-w-[76ch] text-[13px] leading-[1.55]">{work.narrative}</p>
+        <p className="max-w-layout-measure font-body">{work.narrative}</p>
       ) : (
-        <p className="text-[13px] text-muted-foreground">Not written.</p>
+        <p className="font-body text-subtle">Not written.</p>
       )}
       <Button
-        className="mt-2"
+        className="pt-100"
         size="small"
         onClick={() => {
           setDraft(work.narrative);
@@ -268,10 +289,10 @@ export function EvidenceBlock({
           </tbody>
         </Table>
       ) : (
-        <p className="text-[13px] text-muted-foreground">None linked.</p>
+        <p className="font-body text-subtle">None linked.</p>
       )}
 
-      <Button className="mt-2" size="small" onClick={() => setPicking(true)}>
+      <Button className="pt-100" size="small" onClick={() => setPicking(true)}>
         Link evidence…
       </Button>
 
@@ -305,22 +326,22 @@ export function Determination({ work, onChange }: { work: ControlWork; onChange:
 
   if (session.role !== "Assessor") {
     return work.determinationNote ? (
-      <p className="max-w-[76ch] text-[13px] leading-[1.55]">{work.determinationNote}</p>
+      <p className="max-w-layout-measure font-body">{work.determinationNote}</p>
     ) : (
-      <p className="text-[13px] text-muted-foreground">None recorded. Assessor only.</p>
+      <p className="font-body text-subtle">None recorded. Assessor only.</p>
     );
   }
 
   return (
     <div>
       <Textarea
-        className="min-h-[92px]"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         placeholder="What was examined, what was found, what it supports."
+        style={{ minHeight: 92 }}
       />
       <Button
-        className="mt-2"
+        className="pt-100"
         size="small"
         onClick={() => {
           setDeterminationNote(work.id, draft);
@@ -343,27 +364,27 @@ export function Comments({ work, onChange }: { work: ControlWork; onChange: () =
   return (
     <div>
       {thread.length ? (
-        <ul className="divide-y divide-border-legacy-subtle">
+        <ul className="divide-y">
           {thread.map((c) => (
-            <li key={c.id} className="py-2.5">
-              <div className="flex flex-wrap items-baseline gap-2">
-                <span className="text-[13px] font-medium">{c.author}</span>
+            <Box key={c.id} as="li" paddingBlock="space.100">
+              <Inline space="space.100" alignBlock="baseline" shouldWrap>
+                <span className="font-body font-medium">{c.author}</span>
                 <Badge size="xsmall">{c.role}</Badge>
-                <span className="text-[11.5px] text-muted-foreground">{c.at}</span>
-              </div>
-              <p className="mt-1 max-w-[76ch] text-[13px] leading-[1.5]">{c.body}</p>
-            </li>
+                <span className="font-body-xsmall text-subtle">{c.at}</span>
+              </Inline>
+              <p className="pt-050 max-w-layout-measure font-body">{c.body}</p>
+            </Box>
           ))}
         </ul>
       ) : null}
       <Textarea
-        className="mt-2"
+        className="pt-100"
         value={body}
         onChange={(e) => setBody(e.target.value)}
         placeholder={`Reply as ${session.name}`}
       />
       <Button
-        className="mt-2"
+        className="pt-100"
         size="small"
         onClick={() => {
           addComment(work.id, body);
@@ -381,7 +402,7 @@ export function Comments({ work, onChange }: { work: ControlWork; onChange: () =
 
 export function History({ work }: { work: ControlWork }) {
   const events = activityFor(work.id);
-  if (!events.length) return <p className="text-[13px] text-muted-foreground">Nothing yet.</p>;
+  if (!events.length) return <p className="font-body text-subtle">Nothing yet.</p>;
   return (
     <Table>
       <colgroup>
@@ -413,7 +434,7 @@ export function AxisControls({ work, context }: { work: ControlWork; context: Wo
   const session = currentSession();
   const canAssess = session.role === "Assessor";
   return (
-    <div className="space-y-2">
+    <Stack space="space.100">
       <Field label="Implementation">
         <NativeSelect
           value={work.implementation}
@@ -441,6 +462,6 @@ export function AxisControls({ work, context }: { work: ControlWork; context: Wo
       <Block title="Gates">
         <GateList work={work} context={context} />
       </Block>
-    </div>
+    </Stack>
   );
 }

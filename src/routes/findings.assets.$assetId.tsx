@@ -1,10 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { BomTree, type BomTreeNode } from "@/components/app/composition";
-import { Badge, Button, KeyValue, Table, Id, Indicator } from "@/ds/primitives";
-import { RecordHeader, ShowPage, Section } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Button,
+  Id,
+  Indicator,
+  Inline,
+  Inspector,
+  KeyValue,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Stack,
+  Table,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import type { CompositionNode } from "@/lib/composition";
 import { childrenOf, nodeForAsset, pathOf, useCompositionGraph } from "@/lib/composition";
 import { assets, bySeverity, findingsByAsset, isOpen } from "@/lib/findings";
@@ -57,12 +68,12 @@ function AssetRecord() {
   if (!asset) {
     return (
       <Shell>
-        <div className="space-y-3">
-          <h1 className="text-[18px] font-semibold">Asset not found</h1>
-          <Link to="/findings" className="text-[13px] text-primary hover:underline">
+        <Stack space="space.150">
+          <h1 className="font-heading-small font-semibold">Asset not found</h1>
+          <Link to="/findings" className="font-body text-brand hover:underline">
             Back to findings
           </Link>
-        </div>
+        </Stack>
       </Shell>
     );
   }
@@ -82,14 +93,14 @@ function AssetRecord() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/findings"
+            back={<Link to="/findings" />}
             id={asset.id}
             title={asset.name}
             meta={`${asset.kind} · ${asset.technology} · ${asset.environment}`}
             actions={<Button variant="secondary">Re-scan asset</Button>}
           />
         }
-        tabs={<div className="border-b border-border" />}
+        tabs={<div className="border-b border-default" />}
         showRail
         rail={
           <>
@@ -105,9 +116,9 @@ function AssetRecord() {
                 <Link
                   to="/programs/$programId"
                   params={{ programId: asset.program }}
-                  className="text-primary hover:underline"
+                  className="text-brand hover:underline"
                 >
-                  <Id className="text-primary">{asset.program}</Id>
+                  <Id className="text-brand">{asset.program}</Id>
                 </Link>
               </KeyValue>
             </Inspector.Group>
@@ -117,11 +128,11 @@ function AssetRecord() {
             </Inspector.Group>
             <Inspector.Group title="Open findings">
               <KeyValue label="Scanner declared">
-                <span className="tnum">
-                  <span className={asset.openCatI ? "font-medium text-legacy-danger" : ""}>
+                <span className="tabular-nums">
+                  <span className={asset.openCatI ? "font-medium text-danger" : ""}>
                     {asset.openCatI}
                   </span>
-                  <span className="text-muted-foreground">
+                  <span className="text-subtle">
                     {" "}
                     / {asset.openCatII} / {asset.openCatIII}
                   </span>
@@ -130,11 +141,11 @@ function AssetRecord() {
               <KeyValue label="As of">{asset.lastScan}</KeyValue>
               <KeyValue label="Register tracked">
                 {tracked ? (
-                  <span className="tnum">
-                    <span className={tracked.catI ? "font-medium text-legacy-danger" : ""}>
+                  <span className="tabular-nums">
+                    <span className={tracked.catI ? "font-medium text-danger" : ""}>
                       {tracked.catI}
                     </span>
-                    <span className="text-muted-foreground">
+                    <span className="text-subtle">
                       {" "}
                       / {tracked.catII} / {tracked.catIII}
                     </span>
@@ -147,7 +158,7 @@ function AssetRecord() {
                 {delta === null ? (
                   "—"
                 ) : (
-                  <span className={delta === 0 ? "tnum" : "tnum text-legacy-warning"}>
+                  <span className={delta === 0 ? "tabular-nums" : "tabular-nums text-warning"}>
                     {delta > 0 ? `+${delta}` : delta}
                   </span>
                 )}
@@ -161,17 +172,28 @@ function AssetRecord() {
             title="Composition"
             description={`${asset.name} is anchored at ${anchor.id}. Findings resolve to the exact hardware, firmware or software part beneath it, not to the host.`}
           >
-            <div className="flex flex-wrap items-center gap-1 pb-3 pt-3 text-[12.5px]">
+            <Inline
+              className="pb-150 pt-150 font-body-small"
+              space="space.050"
+              alignBlock="center"
+              shouldWrap
+            >
               {trail.map((n, i) => {
                 const last = i === trail.length - 1;
                 return (
-                  <span key={n.id} className="inline-flex items-center gap-1">
-                    {i > 0 ? <span className="text-muted-foreground">/</span> : null}
-                    <span className={last ? "font-medium" : "text-muted-foreground"}>{n.name}</span>
-                  </span>
+                  <Inline
+                    key={n.id}
+                    as="span"
+                    display="inline-flex"
+                    space="space.050"
+                    alignBlock="center"
+                  >
+                    {i > 0 ? <span className="text-subtle">/</span> : null}
+                    <span className={last ? "font-medium" : "text-subtle"}>{n.name}</span>
+                  </Inline>
                 );
               })}
-            </div>
+            </Inline>
             <BomTree root={tree} defaultExpandedDepth={2} />
           </Section>
         ) : null}
@@ -208,7 +230,7 @@ function AssetRecord() {
                       params={{ findingId: f.id }}
                       className="hover:underline"
                     >
-                      <Id className="text-primary">{f.id}</Id>
+                      <Id className="text-brand">{f.id}</Id>
                     </Link>
                   </Table.Cell>
                   <Table.Cell className="truncate">{f.title}</Table.Cell>

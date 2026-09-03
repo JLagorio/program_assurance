@@ -3,21 +3,25 @@ import { Check, FileSignature, Lock, Plus, ShieldCheck, UserPlus } from "lucide-
 
 import {
   Badge,
+  Box,
   Button,
+  Dialog,
   Dot,
   Field,
   FilterChip,
-  Input,
-  KeyValue,
-  Progress,
-  NativeSelect,
-  Table,
-  Textarea,
+  Grid,
   Id,
   Indicator,
-  Dialog,
-} from "@/ds/primitives";
-import { Section } from "@/ds/patterns";
+  Inline,
+  Input,
+  KeyValue,
+  NativeSelect,
+  Progress,
+  Section,
+  Stack,
+  Table,
+  Textarea,
+} from "@ledger/design-system";
 import {
   authorization,
   decisionTone,
@@ -86,7 +90,7 @@ export function AuthorizationSection({
 
   return (
     <>
-      <div className="space-y-7">
+      <Stack space="space.300">
         {/* ------------------------------------------------ authorization package */}
         <Section
           title="Authorization package"
@@ -94,32 +98,45 @@ export function AuthorizationSection({
           action={
             <>
               <Button variant="secondary">
-                <Lock className="size-3.5" /> Lock version
+                <Lock className="size-icon-small" /> Lock version
               </Button>
               <Button variant="primary">
-                <FileSignature className="size-3.5" /> Submit to SCA
+                <FileSignature className="size-icon-small" /> Submit to SCA
               </Button>
             </>
           }
         >
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-legacy-subtle px-3.5 py-2.5">
-            <div className="min-w-0">
-              <p className="text-[13px] font-semibold">
-                {authorization.decision} · {authorization.type}
-              </p>
-              <p className="mt-0.5 text-[12.5px] text-muted-foreground">
-                Package submitted {authorization.packageSubmitted} · AO briefing{" "}
-                {authorization.briefing} · signature target {authorization.targetSignature} ·
-                Milestone C {authorization.milestoneC}
-              </p>
-            </div>
-            <div className="flex w-[180px] shrink-0 items-center gap-2">
-              <Progress value={readiness} tone={readiness >= 80 ? "success" : "information"} />
-              <span className="tabular-nums text-[12.5px] text-muted-foreground">{readiness}%</span>
-            </div>
-          </div>
+          <Box paddingBlockStart="space.150">
+            <Inline
+              className="rounded-medium border border-default bg-surface-sunken px-150 py-100"
+              space="space.150"
+              alignBlock="center"
+              spread="space-between"
+              shouldWrap
+            >
+              <div className="min-w-0">
+                <p className="font-body font-semibold">
+                  {authorization.decision} · {authorization.type}
+                </p>
+                <p className="pt-025 font-body-small text-subtle">
+                  Package submitted {authorization.packageSubmitted} · AO briefing{" "}
+                  {authorization.briefing} · signature target {authorization.targetSignature} ·
+                  Milestone C {authorization.milestoneC}
+                </p>
+              </div>
+              <Inline
+                className="shrink-0"
+                space="space.100"
+                alignBlock="center"
+                style={{ width: 180 }}
+              >
+                <Progress value={readiness} tone={readiness >= 80 ? "success" : "information"} />
+                <span className="tabular-nums font-body-small text-subtle">{readiness}%</span>
+              </Inline>
+            </Inline>
+          </Box>
 
-          <Table className="mt-3 table-fixed">
+          <Table className="pt-150 table-fixed">
             <colgroup>
               <col style={{ width: "68px" }} />
               <col style={{ width: "72px" }} />
@@ -151,14 +168,14 @@ export function AuthorizationSection({
                   <Table.Cell>{a.kind}</Table.Cell>
                   <Table.Cell>
                     <span className="font-medium">{a.name}</span>
-                    <span className="text-muted-foreground"> — {a.note}</span>
+                    <span className="text-subtle"> — {a.note}</span>
                   </Table.Cell>
-                  <Table.Cell className="tnum">{a.version}</Table.Cell>
+                  <Table.Cell className="tabular-nums">{a.version}</Table.Cell>
                   <Table.Cell>
                     <Badge tone={packageStatusTone[a.status]}>{a.status}</Badge>
                   </Table.Cell>
-                  <Table.Cell className="tnum text-right">{a.pages}</Table.Cell>
-                  <Table.Cell className="tnum">{a.updated}</Table.Cell>
+                  <Table.Cell className="tabular-nums text-right">{a.pages}</Table.Cell>
+                  <Table.Cell className="tabular-nums">{a.updated}</Table.Cell>
                   <Table.Cell>{a.owner}</Table.Cell>
                 </Table.Row>
               ))}
@@ -172,11 +189,11 @@ export function AuthorizationSection({
           description={`Read-only viewing enclave — ${authorization.enclave}. No documents leave the platform.`}
           action={
             <Button variant="secondary" onClick={() => setInviting(true)}>
-              <UserPlus className="size-3.5" /> Grant access
+              <UserPlus className="size-icon-small" /> Grant access
             </Button>
           }
         >
-          <Table className="mt-3 table-fixed">
+          <Table className="pt-150 table-fixed">
             <colgroup>
               <col style={{ width: "72px" }} />
               <col style={{ width: "132px" }} />
@@ -207,7 +224,7 @@ export function AuthorizationSection({
                   <Table.Cell>{g.org}</Table.Cell>
                   <Table.Cell>{g.role}</Table.Cell>
                   <Table.Cell>{g.access}</Table.Cell>
-                  <Table.Cell className="tnum">{g.lastViewed}</Table.Cell>
+                  <Table.Cell className="tabular-nums">{g.lastViewed}</Table.Cell>
                   <Table.Cell>
                     <Badge tone={grantTone[g.status]}>{g.status}</Badge>
                   </Table.Cell>
@@ -223,20 +240,20 @@ export function AuthorizationSection({
           description="Observations logged by the SCA in-platform, triaged and pushed to engineering as Jira issues."
           action={
             <>
-              <span className="text-[12.5px] text-muted-foreground">
+              <span className="font-body-small text-subtle">
                 {open} open · {catI} CAT I
               </span>
               <Button variant="secondary" onClick={() => setLogging(true)}>
-                <Plus className="size-3.5" /> Log observation
+                <Plus className="size-icon-small" /> Log observation
               </Button>
             </>
           }
         >
-          <div className="flex flex-wrap items-center gap-2 pb-2 pt-3">
+          <Inline className="pb-100 pt-150" space="space.100" alignBlock="center" shouldWrap>
             {filters.map((f) => (
               <FilterChip key={f} label={f} isActive={filter === f} onClick={() => setFilter(f)} />
             ))}
-          </div>
+          </Inline>
 
           <Table className="table-fixed">
             <colgroup>
@@ -269,7 +286,7 @@ export function AuthorizationSection({
                   </Table.Cell>
                   <Table.Cell>
                     <span className="font-medium">{o.title}</span>
-                    <span className="text-muted-foreground"> — {o.loggedBy}</span>
+                    <span className="text-subtle"> — {o.loggedBy}</span>
                   </Table.Cell>
                   <Table.Cell>
                     <Indicator tone={severityTone[o.severity]}>{o.severity}</Indicator>
@@ -282,13 +299,13 @@ export function AuthorizationSection({
                   </Table.Cell>
                   <Table.Cell>{o.jira ? <Id>{o.jira}</Id> : "Not assigned"}</Table.Cell>
                   <Table.Cell>{o.assignee}</Table.Cell>
-                  <Table.Cell className="tnum text-right">{o.due}</Table.Cell>
+                  <Table.Cell className="tabular-nums text-right">{o.due}</Table.Cell>
                 </Table.Row>
               ))}
             </tbody>
           </Table>
         </Section>
-      </div>
+      </Stack>
 
       <ObservationModal
         open={logging}
@@ -341,11 +358,9 @@ function ObservationModal({
       title="Log assessor observation"
       description="Logged directly by the SCA in the enclave — no spreadsheets, no email."
       aside={
-        <div className="space-y-2">
-          <p className="text-[12px] font-medium uppercase tracking-wide text-muted-foreground">
-            Downstream effect
-          </p>
-          <pre className="whitespace-pre-wrap break-words font-mono text-[11.5px] leading-[1.6] text-muted-foreground">
+        <Stack space="space.100">
+          <p className="font-heading-xxsmall uppercase text-subtle">Downstream effect</p>
+          <pre className="whitespace-pre-wrap break-words font-code font-body-xsmall text-subtle">
             {`program: ${programId}
 severity: ${severity}
 control: ${control || "<unmapped>"}
@@ -355,7 +370,7 @@ creates:
   - notify: product security
 next: triage -> jira issue`}
           </pre>
-        </div>
+        </Stack>
       }
       footer={
         <>
@@ -381,12 +396,12 @@ next: triage -> jira issue`}
               })
             }
           >
-            <Check className="size-3.5" /> Log observation
+            <Check className="size-icon-small" /> Log observation
           </Button>
         </>
       }
     >
-      <div className="space-y-3.5">
+      <Stack space="space.150">
         <Field label="Observation">
           <Input
             value={title}
@@ -394,7 +409,7 @@ next: triage -> jira issue`}
             placeholder="e.g. Session termination not enforced on maintenance console"
           />
         </Field>
-        <div className="grid grid-cols-3 gap-3">
+        <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
           <Field label="Severity">
             <NativeSelect
               value={severity}
@@ -415,7 +430,7 @@ next: triage -> jira issue`}
           <Field label="Response due">
             <Input value={due} onChange={(e) => setDue(e.target.value)} />
           </Field>
-        </div>
+        </Grid>
         <Field label="Assessor detail">
           <Textarea
             rows={4}
@@ -424,7 +439,7 @@ next: triage -> jira issue`}
             placeholder="What was observed, where, and under what test conditions…"
           />
         </Field>
-      </div>
+      </Stack>
     </Dialog>
   );
 }
@@ -469,11 +484,9 @@ function RemediationModal({
       title={observation.title}
       description={`${observation.id} · ${observation.control} · logged ${observation.logged} by ${observation.loggedBy}`}
       aside={
-        <div className="space-y-3">
-          <p className="text-[12px] font-medium uppercase tracking-wide text-muted-foreground">
-            Jira issue
-          </p>
-          <pre className="whitespace-pre-wrap break-words font-mono text-[11.5px] leading-[1.6] text-muted-foreground">
+        <Stack space="space.150">
+          <p className="font-heading-xxsmall uppercase text-subtle">Jira issue</p>
+          <pre className="whitespace-pre-wrap break-words font-code font-body-xsmall text-subtle">
             {`key: ${jira}
 type: Security remediation
 assignee: ${assignee}
@@ -483,7 +496,7 @@ links:
   - observation: ${observation.id}
   - poam: live sync`}
           </pre>
-          <div className="space-y-1.5 border-t border-border pt-3">
+          <Stack className="border-t border-default pt-150" space="space.075">
             <KeyValue label="Severity">
               <Indicator tone={severityTone[observation.severity]}>
                 {observation.severity}
@@ -492,8 +505,8 @@ links:
             <KeyValue label="Current">
               <Badge tone={observationTone[observation.status]}>{observation.status}</Badge>
             </KeyValue>
-          </div>
-        </div>
+          </Stack>
+        </Stack>
       }
       footer={
         <>
@@ -513,14 +526,14 @@ links:
               })
             }
           >
-            <Check className="size-3.5" /> Save & sync
+            <Check className="size-icon-small" /> Save & sync
           </Button>
         </>
       }
     >
-      <div className="space-y-3.5">
-        <p className="text-[13px] text-muted-foreground">{observation.detail}</p>
-        <div className="grid grid-cols-4 gap-3">
+      <Stack space="space.150">
+        <p className="font-body text-subtle">{observation.detail}</p>
+        <Grid gap="space.150" templateColumns="repeat(4, minmax(0, 1fr))">
           <Field label="Status">
             <NativeSelect
               value={status}
@@ -548,11 +561,11 @@ links:
           <Field label="Due">
             <Input value={due} onChange={(e) => setDue(e.target.value)} />
           </Field>
-        </div>
+        </Grid>
         <Field label="Program response to the assessor">
           <Textarea rows={4} value={response} onChange={(e) => setResponse(e.target.value)} />
         </Field>
-      </div>
+      </Stack>
     </Dialog>
   );
 }
@@ -577,12 +590,12 @@ function GrantModal({ open, onClose }: { open: boolean; onClose: () => void }) {
             Cancel
           </Button>
           <Button variant="primary" onClick={onClose}>
-            <Check className="size-3.5" /> Send invite
+            <Check className="size-icon-small" /> Send invite
           </Button>
         </>
       }
     >
-      <div className="space-y-3.5">
+      <Stack space="space.150">
         <Field label="Government email" hint=".mil or .gov only">
           <Input
             value={email}
@@ -590,7 +603,7 @@ function GrantModal({ open, onClose }: { open: boolean; onClose: () => void }) {
             placeholder="first.last@us.navy.mil"
           />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
+        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
           <Field label="Role">
             <NativeSelect value={role} onChange={(e) => setRole(e.target.value)}>
               <option>SCA</option>
@@ -606,8 +619,8 @@ function GrantModal({ open, onClose }: { open: boolean; onClose: () => void }) {
               <option>Sign authority</option>
             </NativeSelect>
           </Field>
-        </div>
-      </div>
+        </Grid>
+      </Stack>
     </Dialog>
   );
 }
@@ -627,48 +640,60 @@ export function BriefingRoom() {
 
   return (
     <>
-      <div className="space-y-7">
+      <Stack space="space.300">
         <Section
           title="Risk posture"
           description="Everything the Authorizing Official needs to make the authorization decision, on one page."
           action={
             <Button variant="primary" disabled={pending.length > 0} onClick={() => setMemo(true)}>
-              <FileSignature className="size-3.5" /> Issue authorization memo
+              <FileSignature className="size-icon-small" /> Issue authorization memo
             </Button>
           }
         >
-          <div
-            className={
-              pending.length > 0
-                ? "mt-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-legacy-warning/30 bg-legacy-warning/[0.05] px-3.5 py-2.5"
-                : "mt-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-legacy-subtle px-3.5 py-2.5"
-            }
-          >
-            <div className="min-w-0">
-              <p className="text-[13px] font-semibold">
-                {pending.length > 0
-                  ? `${pending.length} residual risks await an AO decision`
-                  : "All residual risks adjudicated — memo ready for signature"}
-              </p>
-              <p className="mt-0.5 text-[12.5px] text-muted-foreground">
-                {high.length} high residual · {openObservations.length} open SCA observations ·
-                briefing {authorization.briefing} · signature target {authorization.targetSignature}
-              </p>
-            </div>
-            <div className="flex w-[180px] shrink-0 items-center gap-2">
-              <Progress value={progress} tone={pending.length > 0 ? "warning" : "success"} />
-              <span className="tabular-nums text-[12.5px] text-muted-foreground">{progress}%</span>
-            </div>
-          </div>
+          <Box paddingBlockStart="space.150">
+            <Inline
+              className={
+                pending.length > 0
+                  ? "rounded-medium border border-warning-subtle bg-warning px-150 py-100"
+                  : "rounded-medium border border-default bg-surface-sunken px-150 py-100"
+              }
+              space="space.150"
+              alignBlock="center"
+              spread="space-between"
+              shouldWrap
+            >
+              <div className="min-w-0">
+                <p className="font-body font-semibold">
+                  {pending.length > 0
+                    ? `${pending.length} residual risks await an AO decision`
+                    : "All residual risks adjudicated — memo ready for signature"}
+                </p>
+                <p className="pt-025 font-body-small text-subtle">
+                  {high.length} high residual · {openObservations.length} open SCA observations ·
+                  briefing {authorization.briefing} · signature target{" "}
+                  {authorization.targetSignature}
+                </p>
+              </div>
+              <Inline
+                className="shrink-0"
+                space="space.100"
+                alignBlock="center"
+                style={{ width: 180 }}
+              >
+                <Progress value={progress} tone={pending.length > 0 ? "warning" : "success"} />
+                <span className="tabular-nums font-body-small text-subtle">{progress}%</span>
+              </Inline>
+            </Inline>
+          </Box>
 
-          <dl className="mt-3 grid gap-x-8 gap-y-3 border-b border-border pb-3.5 sm:grid-cols-3 lg:grid-cols-6">
+          <dl className="pt-150 grid gap-x-400 gap-y-150 border-b border-default pb-150 sm:grid-cols-3 lg:grid-cols-6">
             {[
               {
                 label: "Decision",
                 value: (
-                  <span className="inline-flex items-center gap-1.5">
+                  <Inline as="span" display="inline-flex" space="space.075" alignBlock="center">
                     <Dot tone="warning" /> {authorization.decision}
-                  </span>
+                  </Inline>
                 ),
               },
               { label: "Authorization type", value: authorization.type },
@@ -678,8 +703,8 @@ export function BriefingRoom() {
               { label: "Milestone C", value: authorization.milestoneC },
             ].map((f) => (
               <div key={f.label} className="min-w-0">
-                <dt className="truncate text-[12px] text-muted-foreground">{f.label}</dt>
-                <dd className="mt-0.5 truncate text-[12.5px] font-medium tabular-nums">
+                <dt className="truncate font-body-small text-subtle">{f.label}</dt>
+                <dd className="pt-025 truncate font-body-small font-medium tabular-nums">
                   {f.value}
                 </dd>
               </div>
@@ -691,7 +716,7 @@ export function BriefingRoom() {
           title="Residual risk acceptance"
           description="Each risk carries its mitigation and POA&M reference. Sign off or send back."
         >
-          <Table className="mt-3 table-fixed">
+          <Table className="pt-150 table-fixed">
             <colgroup>
               <col style={{ width: "76px" }} />
               <col />
@@ -720,7 +745,7 @@ export function BriefingRoom() {
                   </Table.Cell>
                   <Table.Cell>
                     <span className="font-medium">{r.title}</span>
-                    <span className="text-muted-foreground"> — {r.mitigation}</span>
+                    <span className="text-subtle"> — {r.mitigation}</span>
                   </Table.Cell>
                   <Table.Cell>
                     <Id>{r.control}</Id>
@@ -745,7 +770,7 @@ export function BriefingRoom() {
           title="Open assessor observations"
           description="Live from the SCA enclave — the same records the assessment team is working."
         >
-          <Table className="mt-3 table-fixed">
+          <Table className="pt-150 table-fixed">
             <colgroup>
               <col style={{ width: "82px" }} />
               <col />
@@ -778,13 +803,13 @@ export function BriefingRoom() {
                     <Badge tone={observationTone[o.status]}>{o.status}</Badge>
                   </Table.Cell>
                   <Table.Cell>{o.jira ? <Id>{o.jira}</Id> : "Not assigned"}</Table.Cell>
-                  <Table.Cell className="tnum text-right">{o.due}</Table.Cell>
+                  <Table.Cell className="tabular-nums text-right">{o.due}</Table.Cell>
                 </Table.Row>
               ))}
             </tbody>
           </Table>
         </Section>
-      </div>
+      </Stack>
 
       <RiskDecisionModal
         risk={deciding}
@@ -827,11 +852,9 @@ function RiskDecisionModal({
       title={risk.title}
       description={`${risk.id} · ${risk.control} · ${risk.poam}`}
       aside={
-        <div className="space-y-3">
-          <p className="text-[12px] font-medium uppercase tracking-wide text-muted-foreground">
-            Risk profile
-          </p>
-          <div className="space-y-1.5">
+        <Stack space="space.150">
+          <p className="font-heading-xxsmall uppercase text-subtle">Risk profile</p>
+          <Stack space="space.075">
             <KeyValue label="Likelihood">{risk.likelihood}</KeyValue>
             <KeyValue label="Impact">{risk.impact}</KeyValue>
             <KeyValue label="Residual">
@@ -840,12 +863,12 @@ function RiskDecisionModal({
             <KeyValue label="POA&M">
               <Id>{risk.poam}</Id>
             </KeyValue>
-          </div>
-          <p className="border-t border-border pt-3 text-[12px] text-muted-foreground">
+          </Stack>
+          <p className="border-t border-default pt-150 font-body-small text-subtle">
             Signed as {authorization.ao}. The decision and rationale are written to the
             authorization record and the OSCAL POA&M.
           </p>
-        </div>
+        </Stack>
       }
       footer={
         <>
@@ -853,13 +876,13 @@ function RiskDecisionModal({
             Cancel
           </Button>
           <Button variant="primary" onClick={() => onSave({ ...risk, decision, rationale })}>
-            <ShieldCheck className="size-3.5" /> Record decision
+            <ShieldCheck className="size-icon-small" /> Record decision
           </Button>
         </>
       }
     >
-      <div className="space-y-3.5">
-        <p className="text-[13px] text-muted-foreground">Mitigation in place: {risk.mitigation}</p>
+      <Stack space="space.150">
+        <p className="font-body text-subtle">Mitigation in place: {risk.mitigation}</p>
         <Field label="AO decision">
           <NativeSelect
             value={decision}
@@ -879,7 +902,7 @@ function RiskDecisionModal({
             placeholder="Basis for acceptance, conditions, and review point…"
           />
         </Field>
-      </div>
+      </Stack>
     </Dialog>
   );
 }
@@ -900,11 +923,9 @@ function MemoModal({ open, onClose }: { open: boolean; onClose: () => void }) {
       title="Issue authorization memo"
       description="Signed by the Authorizing Official and distributed to the program and the SCA."
       aside={
-        <div className="space-y-2">
-          <p className="text-[12px] font-medium uppercase tracking-wide text-muted-foreground">
-            Memo preview
-          </p>
-          <pre className="whitespace-pre-wrap break-words font-mono text-[11.5px] leading-[1.6] text-muted-foreground">
+        <Stack space="space.100">
+          <p className="font-heading-xxsmall uppercase text-subtle">Memo preview</p>
+          <pre className="whitespace-pre-wrap break-words font-code font-body-xsmall text-subtle">
             {`AUTHORIZATION DECISION
 system: Trident UUV C2
 decision: ${type}
@@ -918,7 +939,7 @@ basis:
 conditions: |
   ${conditions}`}
           </pre>
-        </div>
+        </Stack>
       }
       footer={
         <>
@@ -926,13 +947,13 @@ conditions: |
             Cancel
           </Button>
           <Button variant="primary" onClick={onClose}>
-            <FileSignature className="size-3.5" /> Sign & issue
+            <FileSignature className="size-icon-small" /> Sign & issue
           </Button>
         </>
       }
     >
-      <div className="space-y-3.5">
-        <div className="grid grid-cols-2 gap-3">
+      <Stack space="space.150">
+        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
           <Field label="Authorization type">
             <NativeSelect value={type} onChange={(e) => setType(e.target.value)}>
               <option>ATO with conditions (36 months)</option>
@@ -945,11 +966,11 @@ conditions: |
           <Field label="Expires">
             <Input value={expires} onChange={(e) => setExpires(e.target.value)} />
           </Field>
-        </div>
+        </Grid>
         <Field label="Conditions of authorization">
           <Textarea rows={4} value={conditions} onChange={(e) => setConditions(e.target.value)} />
         </Field>
-      </div>
+      </Stack>
     </Dialog>
   );
 }

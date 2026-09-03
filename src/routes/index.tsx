@@ -1,9 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Download } from "lucide-react";
 
-import { Badge, Button, Dot, Progress, Table, Id, Item, Timeline } from "@/ds/primitives";
-import { PageHeader, Section } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Box,
+  Button,
+  Dot,
+  Grid,
+  Id,
+  Inline,
+  Item,
+  PageHeader,
+  Progress,
+  Section,
+  Stack,
+  Table,
+  Timeline,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { activity, frameworks, riskStatusTone, risks } from "@/lib/grc-data";
 
 export const Route = createFileRoute("/")({
@@ -56,7 +70,7 @@ const summary = [
 function Overview() {
   return (
     <Shell>
-      <div className="animate-slide-up space-y-7">
+      <Stack className="animate-rise" space="space.300">
         <PageHeader
           eyebrow="Program"
           title="Overview"
@@ -64,7 +78,7 @@ function Overview() {
           actions={
             <>
               <Button variant="secondary">
-                <Download className="size-3.5" /> Export
+                <Download className="size-icon-small" /> Export
               </Button>
               <Button variant="primary">Request evidence</Button>
             </>
@@ -72,42 +86,50 @@ function Overview() {
         />
 
         {/* Metric row — hairline rules only, no floating cards */}
-        <div className="grid grid-cols-2 border-y border-border md:grid-cols-4">
+        <Grid
+          className="border-y border-default"
+          templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" }}
+        >
           {summary.map((item) => (
-            <div
+            <Box
               key={item.label}
-              className="border-b border-border px-4 py-3 first:pl-0 md:border-b-0 md:border-r md:last:border-r-0"
+              className="border-b border-default first:ps-0 md:border-b-0 md:border-r md:last:border-r-0"
+              paddingInline="space.200"
+              paddingBlock="space.150"
             >
-              <div className="text-[12px] text-muted-foreground">{item.label}</div>
-              <div className="mt-0.5 flex items-baseline gap-2">
-                <span className="tnum text-[20px] font-semibold tracking-[-0.02em]">
-                  {item.value}
-                </span>
+              <div className="font-body-small text-subtle">{item.label}</div>
+              <Inline className="pt-025" space="space.100" alignBlock="baseline">
+                <span className="tabular-nums font-heading-small font-semibold">{item.value}</span>
                 <span
                   className={
                     item.tone === "success"
-                      ? "tnum text-[12px] font-medium text-legacy-success"
+                      ? "tabular-nums font-body-small font-medium text-success"
                       : item.tone === "danger"
-                        ? "tnum text-[12px] font-medium text-legacy-danger"
-                        : "tnum text-[12px] font-medium text-muted-foreground"
+                        ? "tabular-nums font-body-small font-medium text-danger"
+                        : "tabular-nums font-body-small font-medium text-subtle"
                   }
                 >
                   {item.delta}
                 </span>
-              </div>
-              <div className="mt-0.5 text-[12px] text-muted-foreground">{item.note}</div>
-            </div>
+              </Inline>
+              <Box className="font-body-small text-subtle" paddingBlockStart="space.025">
+                {item.note}
+              </Box>
+            </Box>
           ))}
-        </div>
+        </Grid>
 
-        <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="space-y-7">
+        <Grid
+          gap="space.400"
+          templateColumns={{ base: "repeat(1, minmax(0, 1fr))", xl: "minmax(0,1fr) 320px" }}
+        >
+          <Stack space="space.300">
             <Section
               title="Highest residual risk"
               action={
                 <Link to="/risks">
                   <Button variant="link">
-                    Risk register <ArrowRight className="size-3.5" />
+                    Risk register <ArrowRight className="size-icon-small" />
                   </Button>
                 </Link>
               }
@@ -115,12 +137,14 @@ function Overview() {
               <Table>
                 <thead>
                   <tr>
-                    <Table.Header className="w-[88px]">ID</Table.Header>
+                    <Table.Header width={88}>ID</Table.Header>
                     <Table.Header>Risk</Table.Header>
-                    <Table.Header className="w-[92px]">Framework</Table.Header>
-                    <Table.Header className="w-[120px]">Owner</Table.Header>
-                    <Table.Header className="w-[124px]">Residual</Table.Header>
-                    <Table.Header className="w-[100px] text-right">Status</Table.Header>
+                    <Table.Header width={92}>Framework</Table.Header>
+                    <Table.Header width={120}>Owner</Table.Header>
+                    <Table.Header width={124}>Residual</Table.Header>
+                    <Table.Header className="text-right" width={100}>
+                      Status
+                    </Table.Header>
                   </tr>
                 </thead>
                 <tbody>
@@ -133,7 +157,7 @@ function Overview() {
                         <Link
                           to="/risks/$riskId"
                           params={{ riskId: risk.id }}
-                          className="font-medium text-foreground underline-offset-2 group-hover:text-primary group-hover:underline"
+                          className="font-medium text-default underline-offset-2 group-hover:text-brand group-hover:underline"
                         >
                           {risk.title}
                         </Link>
@@ -141,7 +165,7 @@ function Overview() {
                       <Table.Cell>{risk.framework}</Table.Cell>
                       <Table.Cell>{risk.owner}</Table.Cell>
                       <Table.Cell>
-                        <div className="flex items-center gap-2">
+                        <Inline space="space.100" alignBlock="center">
                           <Progress
                             value={risk.residual}
                             tone={
@@ -152,10 +176,10 @@ function Overview() {
                                   : "success"
                             }
                           />
-                          <span className="tnum w-5 shrink-0 text-right text-[12px] text-muted-foreground">
+                          <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-250">
                             {risk.residual}
                           </span>
-                        </div>
+                        </Inline>
                       </Table.Cell>
                       <Table.Cell className="text-right">
                         <Badge tone={riskStatusTone[risk.status]}>{risk.status}</Badge>
@@ -171,9 +195,13 @@ function Overview() {
                 <thead>
                   <tr>
                     <Table.Header>Framework</Table.Header>
-                    <Table.Header className="w-[180px]">Coverage</Table.Header>
-                    <Table.Header className="w-[92px] text-right">Controls</Table.Header>
-                    <Table.Header className="w-[176px] text-right">Window</Table.Header>
+                    <Table.Header width={180}>Coverage</Table.Header>
+                    <Table.Header className="text-right" width={92}>
+                      Controls
+                    </Table.Header>
+                    <Table.Header className="text-right" width={176}>
+                      Window
+                    </Table.Header>
                   </tr>
                 </thead>
                 <tbody>
@@ -181,25 +209,25 @@ function Overview() {
                     <Table.Row key={fw.name}>
                       <Table.Cell>{fw.name}</Table.Cell>
                       <Table.Cell>
-                        <div className="flex items-center gap-2">
+                        <Inline space="space.100" alignBlock="center">
                           <Progress value={fw.coverage} tone={fw.tone} />
-                          <span className="tnum w-8 shrink-0 text-right text-[12px] font-medium">
+                          <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-400">
                             {fw.coverage}%
                           </span>
-                        </div>
+                        </Inline>
                       </Table.Cell>
-                      <Table.Cell className="tnum text-right">{fw.controls}</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">{fw.controls}</Table.Cell>
                       <Table.Cell className="text-right">{fw.window}</Table.Cell>
                     </Table.Row>
                   ))}
                 </tbody>
               </Table>
             </Section>
-          </div>
+          </Stack>
 
-          <div className="space-y-7">
+          <Stack space="space.300">
             <Section title="Assurance stream" action={<Button variant="link">History</Button>}>
-              <Timeline className="pt-2">
+              <Timeline className="pt-100">
                 {activity.map((item) => (
                   <Timeline.Item
                     key={item.title}
@@ -218,7 +246,11 @@ function Overview() {
               <Item.Group>
                 {[
                   { label: "SOC 2 evidence cutoff", date: "Oct 31", tone: "warning" as const },
-                  { label: "ISO 27001 stage 2 audit", date: "Nov 12", tone: "information" as const },
+                  {
+                    label: "ISO 27001 stage 2 audit",
+                    date: "Nov 12",
+                    tone: "information" as const,
+                  },
                   { label: "Quarterly access review", date: "Sep 30", tone: "neutral" as const },
                 ].map((row) => (
                   <Item
@@ -230,9 +262,9 @@ function Overview() {
                 ))}
               </Item.Group>
             </Section>
-          </div>
-        </div>
-      </div>
+          </Stack>
+        </Grid>
+      </Stack>
     </Shell>
   );
 }

@@ -387,14 +387,11 @@ function ProgramDetail() {
               <button
                 type="button"
                 onClick={toggle}
-                className="-mx-1 flex w-[calc(100%+8px)] items-center gap-075 rounded-small px-050 py-025 text-left transition-colors hover:bg-neutral-subtle-hovered"
+                className="flex w-full items-center gap-075 rounded-small px-050 py-025 text-left transition-colors hover:bg-neutral-subtle-hovered"
               >
                 <Dot tone={state.blockerTone === "danger" ? "danger" : "information"} />
                 <span className="truncate">{stageFilter ?? state.currentStage}</span>
-                <ChevronDown
-                  className="ml-auto shrink-0 text-subtle"
-                  style={{ width: 600, height: 600 }}
-                />
+                <ChevronDown className="ml-auto shrink-0 text-subtle size-150" />
               </button>
             )}
           >
@@ -545,9 +542,8 @@ function ProgramDetail() {
               </Link>
               {c.sourceProgramId && !c.sourceAccessible ? (
                 <Lock
-                  className="shrink-0 text-subtle"
+                  className="shrink-0 text-subtle size-150"
                   aria-label="Source system not in your enclave"
-                  style={{ width: 600, height: 600 }}
                 />
               ) : null}
             </Inline>
@@ -607,15 +603,14 @@ function ProgramDetail() {
                     {state.primaryAction}
                   </Button>
                   <DropdownMenu
-                    align="end"
                     width={200}
+                    align="end"
                     trigger={
                       <Button
                         variant="primary"
                         size="small"
-                        className="px-0"
+                        className="px-0 w-300"
                         aria-label="More actions"
-                        style={{ width: 1200 }}
                       >
                         <ChevronDown className="size-icon-small" />
                       </Button>

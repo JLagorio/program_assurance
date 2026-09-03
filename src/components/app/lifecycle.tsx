@@ -2,18 +2,22 @@ import { Fragment, useMemo, useState } from "react";
 
 import {
   Badge,
+  Box,
   Button,
+  Dialog,
   Dot,
   Field,
+  Grid,
+  Id,
+  Inline,
   Input,
   KeyValue,
   NativeSelect,
+  Section,
+  Stack,
   Table,
   Textarea,
-  Id,
-  Dialog,
-} from "@/ds/primitives";
-import { Section } from "@/ds/patterns";
+} from "@ledger/design-system";
 import {
   gateKindTone,
   gateStatusTone,
@@ -83,11 +87,12 @@ export function LifecycleSection({
         title="Acquisition lifecycle"
         description={`Milestones, technical reviews and RMF actions gating ${programName}. Current gate: ${current ? `${current.id} — ${current.name}` : "complete"}.`}
         action={
-          <div className="flex items-center gap-2">
+          <Inline space="space.100" alignBlock="center">
             <NativeSelect
               value={kind}
               onChange={(e) => setKind(e.target.value as (typeof kindFilters)[number])}
-              className="h-7 w-[172px]"
+              className="h-control-small"
+              style={{ width: 172 }}
             >
               {kindFilters.map((k) => (
                 <option key={k} value={k}>
@@ -98,7 +103,8 @@ export function LifecycleSection({
             <NativeSelect
               value={status}
               onChange={(e) => setStatus(e.target.value as (typeof statusFilters)[number])}
-              className="h-7 w-[136px]"
+              className="h-control-small"
+              style={{ width: 136 }}
             >
               {statusFilters.map((s) => (
                 <option key={s} value={s}>
@@ -106,20 +112,24 @@ export function LifecycleSection({
                 </option>
               ))}
             </NativeSelect>
-          </div>
+          </Inline>
         }
       >
         <Table className="table-fixed">
           <thead>
             <tr>
-              <Table.Header className="w-[72px]">Gate</Table.Header>
+              <Table.Header width={72}>Gate</Table.Header>
               <Table.Header>Requirement</Table.Header>
-              <Table.Header className="w-[116px]">Type</Table.Header>
-              <Table.Header className="w-[104px]">Status</Table.Header>
-              <Table.Header className="w-[152px]">Cyber dependency</Table.Header>
-              <Table.Header className="w-[92px]">Owner</Table.Header>
-              <Table.Header className="w-[112px] text-right">Planned</Table.Header>
-              <Table.Header className="w-[112px] text-right">Actual</Table.Header>
+              <Table.Header width={116}>Type</Table.Header>
+              <Table.Header width={104}>Status</Table.Header>
+              <Table.Header width={152}>Cyber dependency</Table.Header>
+              <Table.Header width={92}>Owner</Table.Header>
+              <Table.Header className="text-right" width={112}>
+                Planned
+              </Table.Header>
+              <Table.Header className="text-right" width={112}>
+                Actual
+              </Table.Header>
             </tr>
           </thead>
           <tbody>
@@ -128,34 +138,34 @@ export function LifecycleSection({
                 <tr>
                   <td
                     colSpan={8}
-                    className="border-b border-border bg-legacy-subtle px-2.5 py-1 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground"
+                    className="border-b border-default bg-surface-sunken px-100 py-050 font-heading-xxsmall uppercase text-subtle"
                   >
                     Phase {group.phase}
                   </td>
                 </tr>
                 {group.items.map((g) => (
                   <Table.Row key={g.id} onClick={() => setSelected(g)} className="cursor-pointer">
-                    <Table.Cell className="w-[72px]">
+                    <Table.Cell width={72}>
                       <Id>{g.id}</Id>
                     </Table.Cell>
                     <Table.Cell>{g.name}</Table.Cell>
-                    <Table.Cell className="w-[116px]">
+                    <Table.Cell width={116}>
                       <Badge tone={gateKindTone[g.kind]}>{gateKindShort[g.kind]}</Badge>
                     </Table.Cell>
-                    <Table.Cell className="w-[104px]">
-                      <span className="flex items-center gap-1.5">
+                    <Table.Cell width={104}>
+                      <Inline as="span" space="space.075" alignBlock="center">
                         <Dot tone={gateStatusTone[g.status]} />
-                        <span className={g.status === "Planned" ? "text-muted-foreground" : ""}>
+                        <span className={g.status === "Planned" ? "text-subtle" : ""}>
                           {g.status}
                         </span>
-                      </span>
+                      </Inline>
                     </Table.Cell>
-                    <Table.Cell className="w-[152px]">{g.cyberGate}</Table.Cell>
-                    <Table.Cell className="w-[92px]">{g.owner}</Table.Cell>
-                    <Table.Cell className="tnum w-[112px] text-right">
+                    <Table.Cell width={152}>{g.cyberGate}</Table.Cell>
+                    <Table.Cell width={92}>{g.owner}</Table.Cell>
+                    <Table.Cell className="tabular-nums text-right" width={112}>
                       {shortDate(g.planned)}
                     </Table.Cell>
-                    <Table.Cell className="tnum w-[112px] text-right">
+                    <Table.Cell className="tabular-nums text-right" width={112}>
                       {shortDate(g.actual)}
                     </Table.Cell>
                   </Table.Row>
@@ -211,16 +221,14 @@ function GateModal({
       description={`${programId} · ${gate.phase}`}
       aside={
         <div>
-          <p className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
-            Gate detail
-          </p>
-          <div className="mt-2">
+          <p className="font-heading-xxsmall uppercase text-subtle">Gate detail</p>
+          <Box paddingBlockStart="space.100">
             <KeyValue label="Type">{gate.kind}</KeyValue>
             <KeyValue label="Phase">{gate.phase}</KeyValue>
             <KeyValue label="Cyber gate">{gate.cyberGate}</KeyValue>
             <KeyValue label="Artifact">{draft.artifact}</KeyValue>
-          </div>
-          <p className="mt-3 border-t border-border pt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+          </Box>
+          <p className="pt-150 border-t border-default font-body-small text-subtle">
             {gate.description}
           </p>
         </div>
@@ -236,8 +244,8 @@ function GateModal({
         </>
       }
     >
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
+      <Stack space="space.150">
+        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
           <Field label="Status">
             <NativeSelect
               value={draft.status}
@@ -270,7 +278,7 @@ function GateModal({
               onChange={(e) => setDraft({ ...draft, actual: e.target.value })}
             />
           </Field>
-        </div>
+        </Grid>
         <Field label="Artifact of record" hint="SSP, SAR, IATT memo, review minutes.">
           <Input
             value={draft.artifact}
@@ -285,7 +293,7 @@ function GateModal({
             placeholder="Assessment findings, exit criteria met, dependencies…"
           />
         </Field>
-      </div>
+      </Stack>
     </Dialog>
   );
 }

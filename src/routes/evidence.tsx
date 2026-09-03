@@ -4,9 +4,19 @@ import { Filter, Upload } from "lucide-react";
 import evidenceIam from "@/assets/evidence-iam.png";
 import evidenceDatacenter from "@/assets/evidence-datacenter.jpg";
 import evidenceHeaders from "@/assets/evidence-headers.png";
-import { Badge, Button, Table, Id } from "@/ds/primitives";
-import { Card, IndexPage, PageHeader } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Box,
+  Button,
+  Card,
+  Grid,
+  Id,
+  IndexPage,
+  Inline,
+  PageHeader,
+  Table,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 
 export const Route = createFileRoute("/evidence")({
   head: () => ({
@@ -117,20 +127,23 @@ function Evidence() {
             actions={
               <>
                 <Button variant="secondary">
-                  <Filter className="size-3.5" /> Saved views
+                  <Filter className="size-icon-small" /> Saved views
                 </Button>
                 <Button variant="primary">
-                  <Upload className="size-3.5" /> Upload artifact
+                  <Upload className="size-icon-small" /> Upload artifact
                 </Button>
               </>
             }
           />
         }
       >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <Grid
+          gap="space.200"
+          templateColumns={{ base: "repeat(1, minmax(0, 1fr))", sm: "repeat(3, minmax(0, 1fr))" }}
+        >
           {captures.map((cap) => (
             <Card key={cap.title} className="overflow-hidden">
-              <div className="aspect-[16/10] overflow-hidden border-b border-border bg-legacy-subtle">
+              <div className="aspect-video overflow-hidden border-b border-default bg-surface-sunken">
                 <img
                   src={cap.src}
                   alt={cap.title}
@@ -138,27 +151,38 @@ function Evidence() {
                   className="size-full object-cover"
                 />
               </div>
-              <div className="flex items-start justify-between gap-3 px-3 py-2.5">
+              <Inline
+                className="px-150 py-100"
+                space="space.150"
+                alignBlock="start"
+                spread="space-between"
+              >
                 <div className="min-w-0">
-                  <div className="truncate text-[13px] font-medium">{cap.title}</div>
-                  <div className="mt-0.5 text-[12px] text-muted-foreground">{cap.caption}</div>
+                  <div className="truncate font-body font-medium">{cap.title}</div>
+                  <Box className="font-body-small text-subtle" paddingBlockStart="space.025">
+                    {cap.caption}
+                  </Box>
                 </div>
                 <Badge tone={cap.tone}>{cap.state}</Badge>
-              </div>
+              </Inline>
             </Card>
           ))}
-        </div>
+        </Grid>
 
         <Card className="overflow-hidden">
           <Table>
             <thead>
               <tr>
                 <Table.Header>Artifact</Table.Header>
-                <Table.Header className="w-[96px]">Control</Table.Header>
-                <Table.Header className="w-[148px]">Collected by</Table.Header>
-                <Table.Header className="w-[88px] text-right">Size</Table.Header>
-                <Table.Header className="w-[112px]">Added</Table.Header>
-                <Table.Header className="w-[96px] text-right">Freshness</Table.Header>
+                <Table.Header width={96}>Control</Table.Header>
+                <Table.Header width={148}>Collected by</Table.Header>
+                <Table.Header className="text-right" width={88}>
+                  Size
+                </Table.Header>
+                <Table.Header width={112}>Added</Table.Header>
+                <Table.Header className="text-right" width={96}>
+                  Freshness
+                </Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -169,7 +193,7 @@ function Evidence() {
                     <Id>{file.control}</Id>
                   </Table.Cell>
                   <Table.Cell>{file.collector}</Table.Cell>
-                  <Table.Cell className="tnum text-right">{file.size}</Table.Cell>
+                  <Table.Cell className="tabular-nums text-right">{file.size}</Table.Cell>
                   <Table.Cell>{file.added}</Table.Cell>
                   <Table.Cell className="text-right">
                     <Badge tone={stateTone[file.state]}>{file.state}</Badge>

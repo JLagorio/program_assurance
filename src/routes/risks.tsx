@@ -4,27 +4,32 @@ import { Download, ListFilter, Plus } from "lucide-react";
 
 import {
   Badge,
+  Box,
   Button,
+  Combobox,
+  Dialog,
   Field,
   FilterChip,
-  Input,
-  Progress,
-  NativeSelect,
-  Table,
-  Textarea,
-  Id,
-  Dialog,
-  Combobox,
+  Grid,
   HoverCard,
+  Id,
+  IndexPage,
+  Inline,
+  Input,
+  NativeSelect,
+  PageHeader,
   Pagination,
   Popover,
+  Progress,
   RadioGroup,
   Spinner,
+  Stack,
+  Table,
   Tabs,
+  Textarea,
   toast,
-} from "@/ds/primitives";
-import { PageHeader, IndexPage } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { riskStatusTone, risks, type Risk } from "@/lib/grc-data";
 import { usePage, useSort } from "@/lib/table-state";
 
@@ -81,31 +86,31 @@ const treatments = ["All", "Mitigate", "Transfer", "Accept"] as const;
 
 function RiskPeek({ risk: r }: { risk: Risk }) {
   return (
-    <div className="space-y-2">
-      <div className="flex items-start justify-between gap-3">
+    <Stack space="space.100">
+      <Inline space="space.150" alignBlock="start" spread="space-between">
         <div className="min-w-0">
-          <div className="font-medium leading-snug">{r.title}</div>
-          <div className="text-12 text-muted-foreground">
+          <div className="font-medium">{r.title}</div>
+          <div className="font-body-small text-subtle">
             {r.framework} · {r.control} · {r.team}
           </div>
         </div>
         <Badge tone={riskStatusTone[r.status]} size="xsmall">
           {r.status}
         </Badge>
-      </div>
-      <dl className="grid grid-cols-[88px_1fr] gap-y-1 text-12">
-        <dt className="text-muted-foreground">Owner</dt>
+      </Inline>
+      <dl className="grid gap-y-050 font-body-small" style={{ gridTemplateColumns: "88px 1fr" }}>
+        <dt className="text-subtle">Owner</dt>
         <dd>{r.owner}</dd>
-        <dt className="text-muted-foreground">Treatment</dt>
+        <dt className="text-subtle">Treatment</dt>
         <dd>{r.treatment}</dd>
-        <dt className="text-muted-foreground">Residual</dt>
-        <dd className="tnum">
+        <dt className="text-subtle">Residual</dt>
+        <dd className="tabular-nums">
           {r.residual} of {r.inherent} inherent
         </dd>
-        <dt className="text-muted-foreground">Due</dt>
-        <dd className="tnum">{r.due}</dd>
+        <dt className="text-subtle">Due</dt>
+        <dd className="tabular-nums">{r.due}</dd>
       </dl>
-    </div>
+    </Stack>
   );
 }
 
@@ -153,31 +158,30 @@ function RiskList() {
                   }, 900);
                 }}
               >
-                {exporting ? <Spinner /> : <Download className="size-3.5" />} Export
+                {exporting ? <Spinner /> : <Download className="size-icon-small" />} Export
               </Button>
               <Button variant="primary" onClick={() => setCreating(true)}>
-                <Plus className="size-3.5" /> New risk
+                <Plus className="size-icon-small" /> New risk
               </Button>
             </>
           }
         />
       }
     >
-      <Tabs
-        items={tabs.map((t) => ({
-          key: t.label,
-          label: t.label,
-          active: tab === t.label,
-          onSelect: () => setTab(t.label),
-          trailing: (
-            <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-              {t.count}
-            </span>
-          ),
-        }))}
-      />
+      <Tabs>
+        {tabs.map((t) => (
+          <Tabs.Tab
+            key={t.label}
+            isSelected={tab === t.label}
+            onClick={() => setTab(t.label)}
+            count={t.count}
+          >
+            {t.label}
+          </Tabs.Tab>
+        ))}
+      </Tabs>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <Inline space="space.100" alignBlock="center" shouldWrap>
         <FilterChip label="Framework" value="SOC 2" isActive />
         <FilterChip label="Owner" />
         <Popover
@@ -193,7 +197,7 @@ function RiskList() {
             value={treatment}
             onValueChange={(v) => setTreatment(v as (typeof treatments)[number])}
             aria-label="Treatment"
-            className="space-y-2"
+            className="space-y-100"
           >
             {treatments.map((t) => (
               <RadioGroup.Item key={t} value={t}>
@@ -203,17 +207,21 @@ function RiskList() {
           </RadioGroup>
         </Popover>
         <FilterChip label="Updated" />
-        <div className="ml-auto flex items-center gap-2">
+        <Inline className="ml-auto" space="space.100" alignBlock="center">
           <Button variant="secondary" size="small">
-            <ListFilter className="size-3.5" /> Columns
+            <ListFilter className="size-icon-small" /> Columns
           </Button>
-        </div>
-      </div>
+        </Inline>
+      </Inline>
 
       {selected.length > 0 ? (
-        <div className="flex items-center gap-2 rounded-md border border-primary/25 bg-primary-soft px-3 py-1.5 text-[13px] text-primary">
-          <span className="tnum font-medium">{selected.length} selected</span>
-          <span className="ml-auto flex items-center gap-2">
+        <Inline
+          className="rounded-medium border border-brand bg-selected px-150 py-075 font-body text-brand"
+          space="space.100"
+          alignBlock="center"
+        >
+          <span className="tabular-nums font-medium">{selected.length} selected</span>
+          <Inline className="ml-auto" as="span" space="space.100" alignBlock="center">
             <Button variant="secondary" size="small">
               Reassign
             </Button>
@@ -223,11 +231,11 @@ function RiskList() {
             <Button variant="subtle" size="small" onClick={() => setSelected([])}>
               Clear
             </Button>
-          </span>
-        </div>
+          </Inline>
+        </Inline>
       ) : null}
 
-      <div className="overflow-hidden rounded-lg border border-border">
+      <div className="overflow-hidden rounded-large border border-default">
         <Table>
           <thead>
             <tr>
@@ -243,50 +251,47 @@ function RiskList() {
                 onCheckedChange={(next) => setSelected(next ? rows.map((r) => r.id) : [])}
                 label="Select all risks"
               />
-              <Table.Header
-                className="w-[92px]"
-                sort={sort.dir("id")}
-                onSort={() => sort.toggle("id")}
-              >
+              <Table.Header sort={sort.dir("id")} onSort={() => sort.toggle("id")} width={92}>
                 ID
               </Table.Header>
               <Table.Header sort={sort.dir("title")} onSort={() => sort.toggle("title")}>
                 Risk
               </Table.Header>
               <Table.Header
-                className="w-[88px]"
                 sort={sort.dir("framework")}
                 onSort={() => sort.toggle("framework")}
+                width={88}
               >
                 Framework
               </Table.Header>
-              <Table.Header className="w-[76px]">Control</Table.Header>
+              <Table.Header width={76}>Control</Table.Header>
               <Table.Header
-                className="w-[118px]"
                 sort={sort.dir("owner")}
                 onSort={() => sort.toggle("owner")}
+                width={118}
               >
                 Owner
               </Table.Header>
               <Table.Header
-                className="w-[88px]"
                 sort={sort.dir("treatment")}
                 onSort={() => sort.toggle("treatment")}
+                width={88}
               >
                 Treatment
               </Table.Header>
               <Table.Header
-                className="w-[130px]"
                 sort={sort.dir("residual")}
                 onSort={() => sort.toggle("residual")}
+                width={130}
               >
                 Residual
               </Table.Header>
-              <Table.Header className="w-[128px]">Updated</Table.Header>
+              <Table.Header width={128}>Updated</Table.Header>
               <Table.Header
-                className="w-[96px] text-right"
+                className="text-right"
                 sort={sort.dir("status")}
                 onSort={() => sort.toggle("status")}
+                width={96}
               >
                 Status
               </Table.Header>
@@ -302,19 +307,21 @@ function RiskList() {
                 />
                 <Table.Cell>
                   <HoverCard content={<RiskPeek risk={risk} />} width={300}>
-                    <span
+                    <Inline
                       tabIndex={0}
-                      className="inline-flex rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
+                      className="rounded-xsmall outline-none focus-visible:outline-focused"
+                      as="span"
+                      display="inline-flex"
                     >
                       <Id>{risk.id}</Id>
-                    </span>
+                    </Inline>
                   </HoverCard>
                 </Table.Cell>
                 <Table.Cell>
                   <Link
                     to="/risks/$riskId"
                     params={{ riskId: risk.id }}
-                    className="font-medium underline-offset-2 group-hover:text-primary group-hover:underline"
+                    className="font-medium underline-offset-2 group-hover:text-brand group-hover:underline"
                   >
                     {risk.title}
                   </Link>
@@ -326,8 +333,8 @@ function RiskList() {
                 <Table.Cell>{risk.owner}</Table.Cell>
                 <Table.Cell>{risk.treatment}</Table.Cell>
                 <Table.Cell>
-                  <div className="flex items-center gap-2">
-                    <span className="tnum w-5 text-right text-[12px] text-muted-foreground/70 line-through">
+                  <Inline space="space.100" alignBlock="center">
+                    <span className="tabular-nums text-right font-body-small text-subtlest line-through w-250">
                       {risk.inherent}
                     </span>
                     <Progress
@@ -336,10 +343,10 @@ function RiskList() {
                         risk.residual > 60 ? "danger" : risk.residual > 30 ? "warning" : "success"
                       }
                     />
-                    <span className="tnum w-5 shrink-0 text-right text-[12px] font-medium">
+                    <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-250">
                       {risk.residual}
                     </span>
-                  </div>
+                  </Inline>
                 </Table.Cell>
                 <Table.Cell>{risk.updated}</Table.Cell>
                 <Table.Cell className="text-right">
@@ -355,7 +362,7 @@ function RiskList() {
           onPageChange={paged.setPage}
           total={paged.total}
           pageSize={paged.pageSize}
-          className="border-t border-border px-3 py-2"
+          className="border-t border-default px-150 py-100"
         />
       </div>
 
@@ -385,33 +392,33 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
       description="Risks inherit scoring from likelihood × impact and recalculate when the linked control changes state."
       aside={
         <div>
-          <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
-            Preview
-          </div>
-          <div className="mt-3 rounded-md border border-border bg-card p-3">
-            <Id className="text-muted-foreground">RSK-2431</Id>
-            <div className="mt-1 text-[13px] font-medium leading-snug">
-              {title || "Untitled risk"}
-            </div>
-            <div className="mt-1 text-[12px] text-muted-foreground">
-              {framework} · {control} · {owner}
-            </div>
-            <dl className="mt-3 space-y-2 border-t border-border pt-3">
-              <div className="flex items-center justify-between text-[12px]">
-                <dt className="text-muted-foreground">Inherent</dt>
-                <dd className="tnum font-medium">{inherent}</dd>
-              </div>
-              <div className="flex items-center justify-between text-[12px]">
-                <dt className="text-muted-foreground">Residual</dt>
-                <dd className="tnum font-medium">{residual}</dd>
-              </div>
-              <Progress
-                value={residual}
-                tone={residual > 60 ? "danger" : residual > 30 ? "warning" : "success"}
-              />
-            </dl>
-          </div>
-          <p className="mt-3 text-[12px] leading-snug text-muted-foreground">
+          <div className="font-heading-xxsmall uppercase text-subtle">Preview</div>
+          <Box paddingBlockStart="space.150">
+            <Box className="rounded-medium border border-default bg-surface" padding="space.150">
+              <Id className="text-subtle">RSK-2431</Id>
+              <Box className="font-body font-medium" paddingBlockStart="space.050">
+                {title || "Untitled risk"}
+              </Box>
+              <Box className="font-body-small text-subtle" paddingBlockStart="space.050">
+                {framework} · {control} · {owner}
+              </Box>
+              <dl className="pt-150 space-y-100 border-t border-default">
+                <Inline className="font-body-small" alignBlock="center" spread="space-between">
+                  <dt className="text-subtle">Inherent</dt>
+                  <dd className="tabular-nums font-medium">{inherent}</dd>
+                </Inline>
+                <Inline className="font-body-small" alignBlock="center" spread="space-between">
+                  <dt className="text-subtle">Residual</dt>
+                  <dd className="tabular-nums font-medium">{residual}</dd>
+                </Inline>
+                <Progress
+                  value={residual}
+                  tone={residual > 60 ? "danger" : residual > 30 ? "warning" : "success"}
+                />
+              </dl>
+            </Box>
+          </Box>
+          <p className="pt-150 font-body-small text-subtle">
             Creating this risk notifies {owner} and opens a treatment task due in 30 days.
           </p>
         </div>
@@ -430,7 +437,7 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
         </>
       }
     >
-      <div className="space-y-3.5">
+      <Stack space="space.150">
         <Field label="Title">
           <Input
             value={title}
@@ -441,7 +448,7 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
         <Field label="Description" hint="Auditors read this verbatim during sampling.">
           <Textarea placeholder="What could happen, to which system, and why it matters." />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
+        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
           <Field label="Framework">
             <NativeSelect value={framework} onChange={(e) => setFramework(e.target.value)}>
               {["SOC 2", "ISO 27001", "GDPR", "PCI DSS"].map((f) => (
@@ -493,8 +500,8 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
               onChange={(e) => setImpact(e.target.value)}
             />
           </Field>
-        </div>
-      </div>
+        </Grid>
+      </Stack>
     </Dialog>
   );
 }

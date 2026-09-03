@@ -17,7 +17,18 @@ import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowUp } from "lucide-react";
 
-import { Badge, Button, Id, ToggleGroup } from "@/ds/primitives";
+import {
+  Badge,
+  Bleed,
+  Box,
+  Button,
+  Grid,
+  Id,
+  Inline,
+  Stack,
+  ToggleGroup,
+  token,
+} from "@ledger/design-system";
 import {
   blasts,
   buildTree,
@@ -62,7 +73,7 @@ function arc(r0: number, r1: number, a0: number, a1: number): string {
 /** State → fill. Hatched for unknown, so it reads as a hole rather than a grey. */
 function fillFor(n: TreeNode, leaf: boolean): { className: string; style: CSSProperties } {
   if (n.st === "sat")
-    return { className: "fill-muted-foreground", style: { fillOpacity: leaf ? 0.42 : 0.16 } };
+    return { className: "fill-current text-subtle", style: { fillOpacity: leaf ? 0.42 : 0.16 } };
   if (n.st === "ns")
     return {
       className: "fill-legacy-danger",
@@ -72,28 +83,28 @@ function fillFor(n: TreeNode, leaf: boolean): { className: string; style: CSSPro
 }
 
 const toneText: Record<BeadTone, string> = {
-  sat: "text-legacy-success",
-  ns: "text-legacy-danger",
-  nd: "text-muted-foreground",
-  warn: "text-legacy-warning",
-  info: "text-primary",
-  neu: "text-muted-foreground",
+  sat: "text-success",
+  ns: "text-danger",
+  nd: "text-subtle",
+  warn: "text-warning",
+  info: "text-brand",
+  neu: "text-subtle",
 };
 const toneBg: Record<BeadTone, string> = {
-  sat: "bg-legacy-success",
-  ns: "bg-legacy-danger",
-  nd: "bg-muted-foreground/40",
-  warn: "bg-legacy-warning",
-  info: "bg-primary",
-  neu: "bg-muted-foreground/40",
+  sat: "bg-success-bold",
+  ns: "bg-danger-bold",
+  nd: "bg-neutral-bold",
+  warn: "bg-warning-bold",
+  info: "bg-brand-bold",
+  neu: "bg-neutral-bold",
 };
 const toneSoft: Record<BeadTone, string> = {
-  sat: "bg-success-soft border-legacy-success/40",
-  ns: "bg-danger-soft border-legacy-danger/40",
-  nd: "bg-transparent border-border-strong",
-  warn: "bg-warning-soft border-legacy-warning/40",
-  info: "bg-primary-soft border-primary/40",
-  neu: "bg-muted border-border",
+  sat: "bg-success border-success-subtle",
+  ns: "bg-danger border-danger-subtle",
+  nd: "bg-transparent border-bold",
+  warn: "bg-warning border-warning-subtle",
+  info: "bg-selected border-brand",
+  neu: "bg-neutral border-default",
 };
 
 const hatch: CSSProperties = {
@@ -219,8 +230,12 @@ function vSunburst(n: TreeNode, go: (id: string) => void, hov: (t: string) => vo
       const f = fillFor(k, !k.children.length);
       s.paths.push({
         d: arc(R[depth]!, R[depth + 1]!, a + 0.004, an - 0.004),
-        className: cn(f.className, "stroke-card cursor-pointer"),
-        style: { ...f.style, strokeWidth: depth === 0 ? 1.5 : 0.8 },
+        className: cn(f.className, "cursor-pointer"),
+        style: {
+          stroke: token("elevation.surface"),
+          ...f.style,
+          strokeWidth: depth === 0 ? 1.5 : 0.8,
+        },
         tip: nodeTip(k),
         pick: () => go(k.id),
       });
@@ -231,7 +246,7 @@ function vSunburst(n: TreeNode, go: (id: string) => void, hov: (t: string) => vo
           x: CX + Math.cos(mid) * rr,
           y: CY + Math.sin(mid) * rr,
           t: k.label,
-          className: "fill-foreground font-medium",
+          className: "fill-current text-default font-medium",
           size: 13,
           pick: () => go(k.id),
         });
@@ -243,7 +258,7 @@ function vSunburst(n: TreeNode, go: (id: string) => void, hov: (t: string) => vo
           x: CX + Math.cos(mid) * rr,
           y: CY + Math.sin(mid) * rr,
           t: k.label,
-          className: "fill-foreground",
+          className: "fill-current text-default",
           size: 10,
           pick: () => go(k.id),
         });
@@ -271,7 +286,7 @@ function vRadial(n: TreeNode, go: (id: string) => void): Shape {
     const len = (R1 - R0) * Math.max(0.03, k.agg.w / maxW);
     let r = R0;
     const segs: [string, number, CSSProperties][] = [
-      ["fill-muted-foreground", k.agg.sat, { fillOpacity: 0.42 }],
+      ["fill-current text-subtle", k.agg.sat, { fillOpacity: 0.42 }],
       ["fill-legacy-danger", k.agg.ns, {}],
       ["fill-[url(#hatch)]", k.agg.nd, {}],
     ];
@@ -280,8 +295,8 @@ function vRadial(n: TreeNode, go: (id: string) => void): Shape {
       const dr = (len * v) / Math.max(1, k.agg.w);
       s.paths.push({
         d: arc(r, r + dr, a0, a1),
-        className: cn(cls, "stroke-card cursor-pointer"),
-        style: { ...style, strokeWidth: 0.6 },
+        className: cn(cls, "cursor-pointer"),
+        style: { stroke: token("elevation.surface"), ...style, strokeWidth: 0.6 },
         tip: nodeTip(k),
         pick: () => go(k.id),
       });
@@ -289,7 +304,7 @@ function vRadial(n: TreeNode, go: (id: string) => void): Shape {
     }
     s.paths.push({
       d: arc(R0, R1, a0, a1),
-      className: "fill-foreground cursor-pointer",
+      className: "fill-current text-default cursor-pointer",
       style: { fillOpacity: 0.025 },
       tip: nodeTip(k),
       pick: () => go(k.id),
@@ -299,7 +314,7 @@ function vRadial(n: TreeNode, go: (id: string) => void): Shape {
       x: CX + Math.cos(mid) * (R0 - 16),
       y: CY + Math.sin(mid) * (R0 - 16),
       t: k.label,
-      className: "fill-foreground",
+      className: "fill-current text-default",
       size: 11,
       pick: () => go(k.id),
     });
@@ -308,7 +323,7 @@ function vRadial(n: TreeNode, go: (id: string) => void): Shape {
         x: CX + Math.cos(mid) * (R0 + len + 14),
         y: CY + Math.sin(mid) * (R0 + len + 14),
         t: String(k.agg.w),
-        className: "fill-muted-foreground",
+        className: "fill-current text-subtle",
         size: 11,
       });
   });
@@ -331,7 +346,7 @@ function vPolar(n: TreeNode, go: (id: string) => void): Shape {
       x: CX + 4,
       y: CY - r,
       t: `${Math.round(f * 100)}%`,
-      className: "fill-muted-foreground",
+      className: "fill-current text-subtle",
       size: 10,
       anchor: "start",
     });
@@ -352,8 +367,12 @@ function vPolar(n: TreeNode, go: (id: string) => void): Shape {
       x: CX + Math.cos(a) * r,
       y: CY + Math.sin(a) * r,
       r: 4 + Math.min(11, Math.sqrt(k.agg.w) * 1.9),
-      className: cn(f.className, "stroke-card cursor-pointer"),
-      style: { fillOpacity: k.st === "sat" ? 0.5 : 0.85, strokeWidth: 1.5 },
+      className: cn(f.className, "cursor-pointer"),
+      style: {
+        stroke: token("elevation.surface"),
+        fillOpacity: k.st === "sat" ? 0.5 : 0.85,
+        strokeWidth: 1.5,
+      },
       tip: `${nodeTip(k)} · ${Math.round(share * 100)}% of rows unresolved`,
       pick: () => go(k.id),
     });
@@ -361,7 +380,7 @@ function vPolar(n: TreeNode, go: (id: string) => void): Shape {
       x: CX + Math.cos(a) * (R1 + 22),
       y: CY + Math.sin(a) * (R1 + 22),
       t: k.label,
-      className: k.agg.ns ? "fill-legacy-danger" : "fill-foreground",
+      className: k.agg.ns ? "fill-legacy-danger" : "fill-current text-default",
       size: 11,
       pick: () => go(k.id),
     });
@@ -369,7 +388,7 @@ function vPolar(n: TreeNode, go: (id: string) => void): Shape {
   if (pts.length > 2) {
     s.paths.unshift({
       d: `M ${pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" L ")} Z`,
-      className: "fill-legacy-danger stroke-legacy-danger",
+      className: "fill-legacy-danger stroke-current icon-danger",
       style: { fillOpacity: 0.08, strokeOpacity: 0.45, strokeWidth: 1.5 },
     });
   }
@@ -480,7 +499,7 @@ function vBox(n: TreeNode, go: (id: string) => void): Shape {
         x: b.bx + 7,
         y: b.by + hdr / 2,
         t: k.label,
-        className: "fill-foreground font-medium",
+        className: "fill-current text-default font-medium",
         size: 12,
         anchor: "start",
         pick: () => go(k.id),
@@ -490,7 +509,7 @@ function vBox(n: TreeNode, go: (id: string) => void): Shape {
           x: b.bx + b.bw - 10,
           y: b.by + hdr / 2,
           t: `${k.agg.w} rows · ${k.agg.ns} failing`,
-          className: "fill-muted-foreground",
+          className: "fill-current text-subtle",
           size: 11,
           anchor: "end",
         });
@@ -511,8 +530,8 @@ function vBox(n: TreeNode, go: (id: string) => void): Shape {
           y: ib.by,
           w: Math.max(0, ib.bw - 2),
           h: Math.max(0, ib.bh - 2),
-          className: cn(gf.className, "stroke-card cursor-pointer"),
-          style: { ...gf.style, strokeWidth: 0.6 },
+          className: cn(gf.className, "cursor-pointer"),
+          style: { stroke: token("elevation.surface"), ...gf.style, strokeWidth: 0.6 },
           tip: nodeTip(g),
           pick: () => go(g.id),
         });
@@ -521,7 +540,7 @@ function vBox(n: TreeNode, go: (id: string) => void): Shape {
             x: ib.bx + 4,
             y: ib.by + ib.bh / 2,
             t: g.label,
-            className: "fill-foreground",
+            className: "fill-current text-default",
             size: 10,
             anchor: "start",
             pick: () => go(g.id),
@@ -569,8 +588,8 @@ function vWheel(n: TreeNode, go: (id: string) => void): Shape {
     const f = fillFor(k, false);
     s.paths.push({
       d: arc(R, R + 16, sg.a0, sg.a1),
-      className: cn(f.className, "stroke-card cursor-pointer"),
-      style: { fillOpacity: k.st === "sat" ? 0.5 : 0.9 },
+      className: cn(f.className, "cursor-pointer"),
+      style: { stroke: token("elevation.surface"), fillOpacity: k.st === "sat" ? 0.5 : 0.9 },
       tip: nodeTip(k),
       pick: () => go(id),
     });
@@ -579,7 +598,7 @@ function vWheel(n: TreeNode, go: (id: string) => void): Shape {
       x: CX + Math.cos(mid) * (R + 30),
       y: CY + Math.sin(mid) * (R + 30),
       t: k.label,
-      className: k.agg.ns ? "fill-legacy-danger" : "fill-foreground",
+      className: k.agg.ns ? "fill-legacy-danger" : "fill-current text-default",
       size: 11,
       pick: () => go(id),
     });
@@ -588,7 +607,7 @@ function vWheel(n: TreeNode, go: (id: string) => void): Shape {
     const sg = segB.get(z)!;
     s.paths.push({
       d: arc(R, R + 16, sg.a0, sg.a1),
-      className: "fill-muted-foreground stroke-card",
+      className: "fill-current text-subtle stroke-card",
       style: { fillOpacity: 0.7 },
       tip: `${z} zone · ${zTot.get(z)} requirement allocations`,
     });
@@ -597,7 +616,7 @@ function vWheel(n: TreeNode, go: (id: string) => void): Shape {
       x: CX + Math.cos(mid) * (R + 34),
       y: CY + Math.sin(mid) * (R + 34),
       t: z,
-      className: "fill-foreground",
+      className: "fill-current text-default",
       size: 11,
     });
   }
@@ -668,10 +687,10 @@ function vThreads(
     return { map, ks };
   });
   const cls: Record<string, string> = {
-    "No plan": "stroke-legacy-danger",
-    "In plan": "stroke-legacy-warning",
-    "Closed or accepted": "stroke-legacy-success",
-    "Not owed": "stroke-muted-foreground",
+    "No plan": "stroke-current icon-danger",
+    "In plan": "stroke-current icon-warning",
+    "Closed or accepted": "stroke-current icon-success",
+    "Not owed": "stroke-current icon-subtle",
   };
   for (const r of rows) {
     const pts = maps.map((m, ai) => {
@@ -687,7 +706,7 @@ function vThreads(
     const hit = !axis || r.k[axis.a] === axis.k;
     s.paths.push({
       d: p,
-      className: cn("fill-none", cls[r.k[4]!] ?? "stroke-muted-foreground"),
+      className: cn("fill-none", cls[r.k[4]!] ?? "stroke-current icon-subtle"),
       style: {
         strokeOpacity: hit ? (axis ? 0.8 : r.k[4] === "Not owed" ? 0.22 : 0.5) : 0.05,
         strokeWidth: hit && axis ? 1.5 : 1,
@@ -706,7 +725,7 @@ function vThreads(
         h: Math.max(3, nd.h),
         className: cn(
           "cursor-pointer",
-          on ? "fill-primary" : axis ? "fill-border" : "fill-foreground",
+          on ? "fill-current" : axis ? "fill-current icon-subtlest" : "fill-current text-default",
         ),
         style: on ? {} : { fillOpacity: axis ? 1 : 0.7 },
         tip: `${threadAxes[ai]!.label} · ${k} · ${nd.n} requirements`,
@@ -716,7 +735,7 @@ function vThreads(
         x: ai === 0 ? AX[0]! - 6 : AX[ai]! + 17,
         y: nd.y + nd.h / 2,
         t: ai === 0 ? k : `${k} · ${nd.n}`,
-        className: on ? "fill-primary" : "fill-muted-foreground",
+        className: on ? "fill-current" : "fill-current text-subtle",
         size: 11,
         anchor: ai === 0 ? "end" : "start",
         pick: () => setAxis(on ? null : { a: ai, k }),
@@ -726,7 +745,7 @@ function vThreads(
       x: ai === 0 ? AX[0]! - 6 : AX[ai]!,
       y: 8,
       t: threadAxes[ai]!.label,
-      className: "fill-foreground font-medium",
+      className: "fill-current text-default font-medium",
       size: 12,
       anchor: ai === 0 ? "end" : "start",
     });
@@ -760,7 +779,7 @@ function vBlast(b: Blast | null): Shape {
     const y = CY + Math.sin(mid) * R1;
     s.paths.push({
       d: `M ${CX},${CY} L ${x.toFixed(1)},${y.toFixed(1)}`,
-      className: "stroke-legacy-danger fill-none",
+      className: "stroke-current icon-danger fill-none",
       style: { strokeOpacity: 0.3, strokeWidth: 1 + Math.min(4, g.rows.length / 14) },
     });
     s.dots.push({
@@ -779,7 +798,10 @@ function vBlast(b: Blast | null): Shape {
       const inv = r.currency === "Invalidated";
       s.paths.push({
         d: `M ${x.toFixed(1)},${y.toFixed(1)} Q ${(CX + Math.cos((mid + da) / 2) * (R1 + 74)).toFixed(1)},${(CY + Math.sin((mid + da) / 2) * (R1 + 74)).toFixed(1)} ${dx.toFixed(1)},${dy.toFixed(1)}`,
-        className: cn("fill-none", inv ? "stroke-legacy-danger" : "stroke-legacy-warning"),
+        className: cn(
+          "fill-none",
+          inv ? "stroke-current icon-danger" : "stroke-current icon-warning",
+        ),
         style: { strokeOpacity: 0.3, strokeWidth: 1 },
       });
       s.dots.push({
@@ -791,7 +813,7 @@ function vBlast(b: Blast | null): Shape {
       });
     });
   });
-  s.dots.push({ x: CX, y: CY, r: 16, className: "fill-foreground" });
+  s.dots.push({ x: CX, y: CY, r: 16, className: "fill-current text-default" });
   s.labels.push({
     x: CX,
     y: CY + 38,
@@ -799,14 +821,14 @@ function vBlast(b: Blast | null): Shape {
       b.change.node !== "—"
         ? (nodeById.get(b.change.node)?.name ?? b.change.subject)
         : b.change.subject,
-    className: "fill-foreground font-medium",
+    className: "fill-current text-default font-medium",
     size: 13,
   });
   s.labels.push({
     x: 10,
     y: 14,
     t: `inner ring — ${b.groups.length} components that contain or reach it`,
-    className: "fill-muted-foreground",
+    className: "fill-current text-subtle",
     size: 11,
     anchor: "start",
   });
@@ -814,7 +836,7 @@ function vBlast(b: Blast | null): Shape {
     x: 10,
     y: 32,
     t: `outer ring — ${b.rows.length} requirements allocated to them`,
-    className: "fill-muted-foreground",
+    className: "fill-current text-subtle",
     size: 11,
     anchor: "start",
   });
@@ -859,20 +881,20 @@ function ClosurePipeline({
   });
   const yEnd = y - gap;
   const fanClass: Record<BeadTone, string> = {
-    sat: "fill-legacy-success stroke-legacy-success",
-    ns: "fill-legacy-danger stroke-legacy-danger",
-    nd: "fill-muted-foreground stroke-muted-foreground",
-    warn: "fill-legacy-warning stroke-legacy-warning",
-    info: "fill-primary stroke-primary",
-    neu: "fill-muted-foreground stroke-muted-foreground",
+    sat: "fill-legacy-success stroke-current icon-success",
+    ns: "fill-legacy-danger stroke-current icon-danger",
+    nd: "fill-current text-subtle stroke-current icon-subtle",
+    warn: "fill-legacy-warning stroke-current icon-warning",
+    info: "fill-current stroke-current icon-brand",
+    neu: "fill-current text-subtle stroke-current icon-subtle",
   };
   return (
-    <div className="flex min-h-0 flex-col">
+    <Stack className="min-h-0">
       <div className="relative">
         <svg viewBox={`0 0 ${W} 150`} className="block w-full" preserveAspectRatio="none">
           <path
             d={`M 124,${y00} L 160,${y00} L 160,${yEnd.toFixed(1)} L 124,${yEnd.toFixed(1)} Z`}
-            className="fill-foreground stroke-foreground"
+            className="fill-current text-default stroke-current icon-default"
             style={{ fillOpacity: 0.07, strokeOpacity: 0.22 }}
           />
           {fan.map((f, i) => (
@@ -884,37 +906,41 @@ function ClosurePipeline({
             />
           ))}
         </svg>
-        <div className="absolute left-[1.5%] top-[8%] w-[10%]">
-          <div className="tnum text-20 font-semibold leading-none">{total}</div>
-          <div className="mt-1 text-11 leading-tight text-muted-foreground">
+        <div className="absolute" style={{ left: "1.5%", top: "8%", width: "10%" }}>
+          <div className="tabular-nums font-heading-small font-semibold">{total}</div>
+          <Box className="font-body-xsmall text-subtle" paddingBlockStart="space.050">
             requirements
             <br />
             decomposed
-          </div>
+          </Box>
         </div>
       </div>
-      <div
-        className="grid min-h-0 flex-1 gap-0 border-t border-border"
+      <Grid
+        className="min-h-0 flex-1 border-t border-default"
         style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}
+        gap="space.0"
       >
         {columns.map((c, i) => (
-          <div
+          <Stack
             key={c.key}
-            className={cn(
-              "flex min-h-0 flex-col px-3 pt-3",
-              i < n - 1 ? "border-r border-border" : null,
-            )}
+            className={cn("min-h-0 px-150 pt-150", i < n - 1 ? "border-r border-default" : null)}
           >
-            <div className="flex items-baseline gap-2">
-              <span className={cn("tnum text-20 font-semibold leading-none", toneText[c.tone])}>
+            <Inline space="space.100" alignBlock="baseline">
+              <span
+                className={cn("tabular-nums font-heading-small font-semibold", toneText[c.tone])}
+              >
                 {c.beads.length}
               </span>
-              <span className="text-12 font-medium">{c.label}</span>
-            </div>
-            <div className="mt-1 text-11 leading-snug text-muted-foreground">{c.note}</div>
-            <div
-              className="mt-3 flex flex-wrap content-start gap-1 overflow-y-auto pb-3"
+              <span className="font-body-small font-medium">{c.label}</span>
+            </Inline>
+            <Box className="font-body-xsmall text-subtle" paddingBlockStart="space.050">
+              {c.note}
+            </Box>
+            <Inline
+              className="pt-150 content-start overflow-y-auto pb-150"
               style={{ maxHeight: 340 }}
+              space="space.050"
+              shouldWrap
             >
               {c.beads.map((b) => {
                 const on = !!sel && sel.kind === b.kind && sel.id === b.id;
@@ -926,14 +952,14 @@ function ClosurePipeline({
                     title={b.tip}
                     onClick={() => onPick(b)}
                     className={cn(
-                      "size-3.5 shrink-0 rounded-[3px] border transition-colors",
+                      "size-icon-small shrink-0 rounded-small border transition-colors",
                       on
-                        ? cn(toneBg[b.tone], "border-transparent ring-2 ring-primary ring-offset-1")
+                        ? cn(toneBg[b.tone], "border-transparent outline-focused")
                         : toneSoft[b.tone],
                       stale && !on
                         ? b.currency === "Invalidated"
-                          ? "border-dashed border-legacy-danger/70"
-                          : "border-dashed border-legacy-warning/70"
+                          ? "border-dashed border-danger-subtle"
+                          : "border-dashed border-warning-subtle"
                         : null,
                     )}
                     style={
@@ -945,10 +971,10 @@ function ClosurePipeline({
                 );
               })}
               {c.beads.length === 0 ? (
-                <span className="text-11 text-muted-foreground">None</span>
+                <span className="font-body-xsmall text-subtle">None</span>
               ) : null}
-            </div>
-            <div className="mt-auto border-t border-border py-2">
+            </Inline>
+            <Box className="mt-auto border-t border-default" paddingBlock="space.100">
               <Button
                 size="small"
                 className="w-full"
@@ -956,11 +982,11 @@ function ClosurePipeline({
               >
                 {c.action}
               </Button>
-            </div>
-          </div>
+            </Box>
+          </Stack>
         ))}
-      </div>
-    </div>
+      </Grid>
+    </Stack>
   );
 }
 
@@ -969,7 +995,7 @@ function ClosurePipeline({
 function Bar({ parts }: { parts: { className: string; v: number; style?: CSSProperties }[] }) {
   const total = parts.reduce((a, p) => a + p.v, 0) || 1;
   return (
-    <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-muted">
+    <Inline className="w-full overflow-hidden rounded-full bg-neutral h-075">
       {parts.map((p, i) =>
         p.v ? (
           <div
@@ -979,45 +1005,47 @@ function Bar({ parts }: { parts: { className: string; v: number; style?: CSSProp
           />
         ) : null,
       )}
-    </div>
+    </Inline>
   );
 }
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex items-baseline gap-2 text-13">
+    <Inline className="font-body" space="space.100" alignBlock="baseline">
       <span className="flex-1 truncate">{label}</span>
-      <span className="tnum shrink-0">{children}</span>
-    </div>
+      <span className="tabular-nums shrink-0">{children}</span>
+    </Inline>
   );
 }
 
 function ChainList({ hops }: { hops: Hop[] }) {
   return (
-    <ol className="space-y-0">
+    <Stack as="ol" space="space.0">
       {hops.map((h, i) => (
-        <li key={i} className="flex gap-3">
-          <div className="flex w-3 flex-col items-center">
-            <span className={cn("mt-1 size-2 shrink-0 rounded-full", toneBg[h.tone])} />
-            {i < hops.length - 1 ? <span className="w-px flex-1 bg-border" /> : null}
-          </div>
-          <div className="min-w-0 flex-1 pb-3">
-            <div className="text-11 uppercase tracking-[0.06em] text-muted-foreground/80">
-              {h.t}
-            </div>
+        <Inline key={i} as="li" space="space.150">
+          <Stack className="w-150" alignInline="center">
+            <Box paddingBlockStart="space.050">
+              <span className={cn("shrink-0 rounded-full", toneBg[h.tone], "size-100")} />
+            </Box>
+            {i < hops.length - 1 ? <span className="w-px flex-1 bg-neutral" /> : null}
+          </Stack>
+          <Box className="min-w-0 flex-1" paddingBlockEnd="space.150">
+            <div className="font-heading-xxsmall uppercase text-subtlest">{h.t}</div>
             <div
               className={cn(
-                "text-13 font-medium",
-                h.tone === "neu" ? "text-foreground" : toneText[h.tone],
+                "font-body font-medium",
+                h.tone === "neu" ? "text-default" : toneText[h.tone],
               )}
             >
               {h.l}
             </div>
-            <div className="mt-0.5 text-12 leading-snug text-muted-foreground">{h.m}</div>
-          </div>
-        </li>
+            <Box className="font-body-small text-subtle" paddingBlockStart="space.025">
+              {h.m}
+            </Box>
+          </Box>
+        </Inline>
       ))}
-    </ol>
+    </Stack>
   );
 }
 
@@ -1112,13 +1140,18 @@ export function ControlWorkspace({ programId }: { programId: string }) {
   ];
 
   return (
-    <div className="pt-3">
+    <Box paddingBlockStart="space.150">
       {/* Header: crumbs · views · primary action */}
-      <div className="flex flex-wrap items-center gap-3 border-b border-border pb-3">
-        <nav className="flex min-w-0 items-center gap-1.5 text-13">
+      <Inline
+        className="border-b border-default pb-150"
+        space="space.150"
+        alignBlock="center"
+        shouldWrap
+      >
+        <Inline className="min-w-0 font-body" as="nav" space="space.075" alignBlock="center">
           {crumbs.map((c, i) => (
-            <span key={i} className="flex items-center gap-1.5">
-              {i ? <span className="text-muted-foreground/60">/</span> : null}
+            <Inline key={i} as="span" space="space.075" alignBlock="center">
+              {i ? <span className="text-subtlest">/</span> : null}
               <button
                 type="button"
                 onClick={() => {
@@ -1127,15 +1160,15 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                 }}
                 className={cn(
                   "hover:underline",
-                  i === crumbs.length - 1 ? "font-medium text-foreground" : "text-muted-foreground",
+                  i === crumbs.length - 1 ? "font-medium text-default" : "text-subtle",
                 )}
               >
                 {c.l}
               </button>
-            </span>
+            </Inline>
           ))}
-        </nav>
-        <div className="ml-auto flex items-center gap-2">
+        </Inline>
+        <Inline className="ml-auto" space="space.100" alignBlock="center">
           <ToggleGroup
             items={views.map((v) => ({ value: v.value, label: v.label }))}
             value={view}
@@ -1159,27 +1192,35 @@ export function ControlWorkspace({ programId }: { programId: string }) {
           >
             {primaryAct}
           </Button>
-        </div>
-      </div>
+        </Inline>
+      </Inline>
 
       {/* Metric strip: the same aggregate the chart and the inspector read. */}
-      <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2 py-3">
+      <Inline
+        className="py-150"
+        space="space.300"
+        rowSpace="space.100"
+        alignBlock="baseline"
+        shouldWrap
+      >
         {[
-          { n: a.w, l: "rows in scope", c: "text-foreground" },
-          { n: a.sat, l: "Satisfied", c: "text-legacy-success" },
-          { n: a.ns, l: "Other than satisfied", c: "text-legacy-danger" },
-          { n: a.nd, l: "No determination", c: "text-muted-foreground" },
-          { n: a.sus + a.inv, l: "Suspect or invalidated evidence", c: "text-legacy-warning" },
+          { n: a.w, l: "rows in scope", c: "text-default" },
+          { n: a.sat, l: "Satisfied", c: "text-success" },
+          { n: a.ns, l: "Other than satisfied", c: "text-danger" },
+          { n: a.nd, l: "No determination", c: "text-subtle" },
+          { n: a.sus + a.inv, l: "Suspect or invalidated evidence", c: "text-warning" },
         ].map((m, i) => (
-          <div
+          <Inline
             key={m.l}
-            className={cn("flex items-baseline gap-2", i ? "border-l border-border pl-6" : null)}
+            className={cn(i ? "border-l border-default ps-300" : null)}
+            space="space.100"
+            alignBlock="baseline"
           >
-            <span className={cn("tnum text-20 font-semibold tracking-[-0.02em]", m.c)}>{m.n}</span>
-            <span className="text-12 text-muted-foreground">{m.l}</span>
-          </div>
+            <span className={cn("tabular-nums font-heading-small font-semibold", m.c)}>{m.n}</span>
+            <span className="font-body-small text-subtle">{m.l}</span>
+          </Inline>
         ))}
-        <span className="ml-auto text-12 text-muted-foreground">
+        <span className="ml-auto font-body-small text-subtle">
           {cur.kind === "root"
             ? "Whole tailored baseline"
             : cur.kind === "family"
@@ -1188,234 +1229,249 @@ export function ControlWorkspace({ programId }: { programId: string }) {
           {" · "}
           {kids.length ? `${kids.length} children` : "leaf row"}
         </span>
-      </div>
+      </Inline>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <Grid gap="space.300" templateColumns={{ lg: "minmax(0,1fr) 300px" }}>
         {/* Main */}
         <div className="min-w-0">
-          <div className="text-12 text-muted-foreground">{viewNote}</div>
+          <div className="font-body-small text-subtle">{viewNote}</div>
 
           {view === "closure" ? (
-            <div className="mt-2 rounded-md border border-border bg-card">
-              <ClosurePipeline
-                columns={closure.columns}
-                total={a.w}
-                sel={sel}
-                onPick={(b) =>
-                  setSel(
-                    sel && sel.kind === b.kind && sel.id === b.id
-                      ? null
-                      : { kind: b.kind, id: b.id },
-                  )
-                }
-              />
-            </div>
+            <Box paddingBlockStart="space.100">
+              <div className="rounded-medium border border-default bg-surface">
+                <ClosurePipeline
+                  columns={closure.columns}
+                  total={a.w}
+                  sel={sel}
+                  onPick={(b) =>
+                    setSel(
+                      sel && sel.kind === b.kind && sel.id === b.id
+                        ? null
+                        : { kind: b.kind, id: b.id },
+                    )
+                  }
+                />
+              </div>
+            </Box>
           ) : (
-            <div className="relative mt-2 rounded-md border border-border bg-card">
-              {view === "blast" ? (
-                <div className="flex flex-wrap gap-2 border-b border-border p-3">
-                  {blastList.map((b) => {
-                    const on = b === blast;
-                    return (
-                      <button
-                        key={b.change.id}
-                        type="button"
-                        onClick={() => setChg(b.change.id)}
+            <Box paddingBlockStart="space.100">
+              <div className="relative rounded-medium border border-default bg-surface">
+                {view === "blast" ? (
+                  <Inline className="border-b border-default p-150" space="space.100" shouldWrap>
+                    {blastList.map((b) => {
+                      const on = b === blast;
+                      return (
+                        <button
+                          key={b.change.id}
+                          type="button"
+                          onClick={() => setChg(b.change.id)}
+                          className={cn(
+                            "rounded-medium border px-150 py-100 text-left transition-colors",
+                            on
+                              ? "border-brand bg-selected"
+                              : "border-default hover:bg-surface-hovered",
+                          )}
+                        >
+                          <Inline className="font-body-small" space="space.100" alignBlock="center">
+                            <Id>{b.change.id}</Id>
+                            <Badge
+                              size="xsmall"
+                              tone={b.change.impact === "Significant" ? "danger" : "neutral"}
+                            >
+                              {b.change.impact}
+                            </Badge>
+                          </Inline>
+                          <div className="font-body">
+                            {b.change.node !== "—"
+                              ? (nodeById.get(b.change.node)?.name ?? b.change.subject)
+                              : b.change.subject}
+                          </div>
+                          <div className="font-body-xsmall text-subtle">
+                            <span className="line-through">{b.change.from}</span> → {b.change.to}
+                          </div>
+                          <Box className="font-body" paddingBlockStart="space.050">
+                            <span
+                              className={cn(
+                                "tabular-nums font-body-large font-semibold",
+                                b.invalidated ? "text-danger" : "text-warning",
+                              )}
+                            >
+                              {b.rows.length}
+                            </span>{" "}
+                            <span className="font-body-xsmall text-subtle">
+                              determinations in question
+                            </span>
+                          </Box>
+                        </button>
+                      );
+                    })}
+                    {blastList.length === 0 ? (
+                      <span className="font-body text-subtle">
+                        No change orders touch this program.
+                      </span>
+                    ) : null}
+                  </Inline>
+                ) : null}
+                <div className="relative">
+                  <svg
+                    viewBox={`0 0 ${W} ${H}`}
+                    className="block w-full"
+                    onMouseLeave={() => setHov(null)}
+                  >
+                    <defs>
+                      <pattern
+                        id="hatch"
+                        patternUnits="userSpaceOnUse"
+                        width="6"
+                        height="6"
+                        patternTransform="rotate(45)"
+                      >
+                        <line
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="6"
+                          className="stroke-current icon-subtle"
+                          strokeWidth="2"
+                        />
+                      </pattern>
+                    </defs>
+                    {shape.paths.map((p, i) => (
+                      <path
+                        key={`p${i}`}
+                        d={p.d}
+                        className={p.className}
+                        style={p.style}
+                        onClick={p.pick}
+                        onMouseEnter={p.tip ? () => setHov(p.tip!) : undefined}
+                      >
+                        {p.tip ? <title>{p.tip}</title> : null}
+                      </path>
+                    ))}
+                    {shape.rects.map((r, i) => (
+                      <rect
+                        key={`r${i}`}
+                        x={r.x}
+                        y={r.y}
+                        width={r.w}
+                        height={r.h}
+                        rx={4}
+                        className={r.className}
+                        style={r.style}
+                        onClick={r.pick}
+                        onMouseEnter={r.tip ? () => setHov(r.tip!) : undefined}
+                      >
+                        {r.tip ? <title>{r.tip}</title> : null}
+                      </rect>
+                    ))}
+                    {shape.dots.map((d, i) => (
+                      <circle
+                        key={`d${i}`}
+                        cx={d.x}
+                        cy={d.y}
+                        r={d.r}
+                        className={d.className}
+                        style={d.style}
+                        onClick={d.pick}
+                        onMouseEnter={d.tip ? () => setHov(d.tip!) : undefined}
+                      >
+                        {d.tip ? <title>{d.tip}</title> : null}
+                      </circle>
+                    ))}
+                    {shape.labels.map((l, i) => (
+                      <text
+                        key={`l${i}`}
+                        x={l.x}
+                        y={l.y}
+                        fontSize={l.size}
+                        textAnchor={l.anchor ?? "middle"}
+                        dominantBaseline="middle"
                         className={cn(
-                          "rounded-md border px-3 py-2 text-left transition-colors",
-                          on
-                            ? "border-primary bg-primary-soft"
-                            : "border-border hover:bg-surface-hover",
+                          l.className,
+                          l.pick ? "cursor-pointer" : "pointer-events-none",
+                        )}
+                        onClick={l.pick}
+                      >
+                        {l.t}
+                      </text>
+                    ))}
+                  </svg>
+                  {shape.hub ? (
+                    <button
+                      type="button"
+                      onClick={path.length ? up : undefined}
+                      className={cn(
+                        "absolute left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-surface px-150 py-250 text-center",
+                        path.length ? "cursor-pointer" : "pointer-events-none",
+                      )}
+                      style={{ width: 200 }}
+                    >
+                      <div className="font-heading-xxsmall uppercase text-subtlest">
+                        {cur.kind === "root"
+                          ? "baseline"
+                          : cur.kind === "family"
+                            ? `family ${cur.id}`
+                            : cur.kind}
+                      </div>
+                      <div
+                        className={cn(
+                          "tabular-nums font-heading-large font-semibold",
+                          a.ns ? "text-danger" : a.nd ? "text-subtle" : "text-default",
                         )}
                       >
-                        <div className="flex items-center gap-2 text-12">
-                          <Id>{b.change.id}</Id>
-                          <Badge
-                            size="xsmall"
-                            tone={b.change.impact === "Significant" ? "danger" : "neutral"}
-                          >
-                            {b.change.impact}
-                          </Badge>
-                        </div>
-                        <div className="text-13">
-                          {b.change.node !== "—"
-                            ? (nodeById.get(b.change.node)?.name ?? b.change.subject)
-                            : b.change.subject}
-                        </div>
-                        <div className="text-11 text-muted-foreground">
-                          <span className="line-through">{b.change.from}</span> → {b.change.to}
-                        </div>
-                        <div className="mt-1 text-13">
-                          <span
-                            className={cn(
-                              "tnum text-15 font-semibold",
-                              b.invalidated ? "text-legacy-danger" : "text-legacy-warning",
-                            )}
-                          >
-                            {b.rows.length}
-                          </span>{" "}
-                          <span className="text-11 text-muted-foreground">
-                            determinations in question
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                  {blastList.length === 0 ? (
-                    <span className="text-13 text-muted-foreground">
-                      No change orders touch this program.
-                    </span>
+                        {a.ns || a.nd || a.w}
+                      </div>
+                      <div className="font-body-small text-subtle">
+                        {a.ns
+                          ? "Other than satisfied"
+                          : a.nd
+                            ? "with no determination"
+                            : "rows, all Satisfied"}
+                      </div>
+                      <Box className="truncate font-body font-medium" paddingBlockStart="space.050">
+                        {cur.kind === "root"
+                          ? baselineLabel
+                          : cur.kind === "family"
+                            ? cur.title
+                            : `${cur.label} — ${cur.title}`}
+                      </Box>
+                      {path.length ? (
+                        <Box
+                          className="inline-flex items-center gap-050 font-body-small text-brand"
+                          paddingBlockStart="space.050"
+                        >
+                          <ArrowUp className="size-150" /> up one level
+                        </Box>
+                      ) : null}
+                    </button>
                   ) : null}
                 </div>
-              ) : null}
-              <div className="relative">
-                <svg
-                  viewBox={`0 0 ${W} ${H}`}
-                  className="block w-full"
-                  onMouseLeave={() => setHov(null)}
+                <Box
+                  className="truncate border-t border-default font-body-small text-subtle"
+                  paddingInline="space.150"
+                  paddingBlock="space.100"
                 >
-                  <defs>
-                    <pattern
-                      id="hatch"
-                      patternUnits="userSpaceOnUse"
-                      width="6"
-                      height="6"
-                      patternTransform="rotate(45)"
-                    >
-                      <line
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="6"
-                        className="stroke-muted-foreground"
-                        strokeWidth="2"
-                      />
-                    </pattern>
-                  </defs>
-                  {shape.paths.map((p, i) => (
-                    <path
-                      key={`p${i}`}
-                      d={p.d}
-                      className={p.className}
-                      style={p.style}
-                      onClick={p.pick}
-                      onMouseEnter={p.tip ? () => setHov(p.tip!) : undefined}
-                    >
-                      {p.tip ? <title>{p.tip}</title> : null}
-                    </path>
-                  ))}
-                  {shape.rects.map((r, i) => (
-                    <rect
-                      key={`r${i}`}
-                      x={r.x}
-                      y={r.y}
-                      width={r.w}
-                      height={r.h}
-                      rx={4}
-                      className={r.className}
-                      style={r.style}
-                      onClick={r.pick}
-                      onMouseEnter={r.tip ? () => setHov(r.tip!) : undefined}
-                    >
-                      {r.tip ? <title>{r.tip}</title> : null}
-                    </rect>
-                  ))}
-                  {shape.dots.map((d, i) => (
-                    <circle
-                      key={`d${i}`}
-                      cx={d.x}
-                      cy={d.y}
-                      r={d.r}
-                      className={d.className}
-                      style={d.style}
-                      onClick={d.pick}
-                      onMouseEnter={d.tip ? () => setHov(d.tip!) : undefined}
-                    >
-                      {d.tip ? <title>{d.tip}</title> : null}
-                    </circle>
-                  ))}
-                  {shape.labels.map((l, i) => (
-                    <text
-                      key={`l${i}`}
-                      x={l.x}
-                      y={l.y}
-                      fontSize={l.size}
-                      textAnchor={l.anchor ?? "middle"}
-                      dominantBaseline="middle"
-                      className={cn(l.className, l.pick ? "cursor-pointer" : "pointer-events-none")}
-                      onClick={l.pick}
-                    >
-                      {l.t}
-                    </text>
-                  ))}
-                </svg>
-                {shape.hub ? (
-                  <button
-                    type="button"
-                    onClick={path.length ? up : undefined}
-                    className={cn(
-                      "absolute left-1/2 top-[48.8%] w-[200px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-card/90 px-3 py-5 text-center",
-                      path.length ? "cursor-pointer" : "pointer-events-none",
-                    )}
-                  >
-                    <div className="text-11 uppercase tracking-[0.06em] text-muted-foreground/80">
-                      {cur.kind === "root"
-                        ? "baseline"
-                        : cur.kind === "family"
-                          ? `family ${cur.id}`
-                          : cur.kind}
-                    </div>
-                    <div
-                      className={cn(
-                        "tnum text-[34px] font-semibold leading-none tracking-[-0.02em]",
-                        a.ns ? "text-legacy-danger" : a.nd ? "text-muted-foreground" : "text-foreground",
-                      )}
-                    >
-                      {a.ns || a.nd || a.w}
-                    </div>
-                    <div className="text-12 text-muted-foreground">
-                      {a.ns
-                        ? "Other than satisfied"
-                        : a.nd
-                          ? "with no determination"
-                          : "rows, all Satisfied"}
-                    </div>
-                    <div className="mt-1 truncate text-13 font-medium">
-                      {cur.kind === "root"
-                        ? baselineLabel
-                        : cur.kind === "family"
-                          ? cur.title
-                          : `${cur.label} — ${cur.title}`}
-                    </div>
-                    {path.length ? (
-                      <div className="mt-1 inline-flex items-center gap-1 text-12 text-primary">
-                        <ArrowUp className="size-3" /> up one level
-                      </div>
-                    ) : null}
-                  </button>
-                ) : null}
+                  {hov ?? nodeTip(cur)}
+                </Box>
               </div>
-              <div className="truncate border-t border-border px-3 py-2 text-12 text-muted-foreground">
-                {hov ?? nodeTip(cur)}
-              </div>
-            </div>
+            </Box>
           )}
         </div>
 
         {/* Inspector */}
-        <aside className="lg:sticky lg:top-4 lg:max-h-[calc(100vh-120px)] lg:self-start lg:overflow-y-auto">
+        <aside className="lg:sticky-rail lg:overflow-y-auto">
           {view === "closure" && sel ? (
-            <div className="space-y-3">
+            <Stack space="space.150">
               <div>
-                <div className="text-11 uppercase tracking-[0.06em] text-muted-foreground/80">
+                <div className="font-heading-xxsmall uppercase text-subtlest">
                   Requirement chain
                 </div>
-                <div className="text-13 text-muted-foreground">
+                <div className="font-body text-subtle">
                   {sel.kind === "control" ? `requirement ${sel.id}` : sel.id}
                 </div>
               </div>
               <ChainList hops={chain} />
-              <div className="flex gap-2">
+              <Inline space="space.100">
                 <Button size="small" variant="primary" disabled>
                   {sel.kind === "poam"
                     ? "Reassess"
@@ -1428,123 +1484,125 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                 <Button size="small" onClick={() => setSel(null)}>
                   Clear
                 </Button>
-              </div>
-              <p className="text-11 text-muted-foreground">
+              </Inline>
+              <p className="font-body-xsmall text-subtle">
                 Response ≠ determination: contributor input stays attributed.
               </p>
-            </div>
+            </Stack>
           ) : view === "closure" ? (
-            <div className="space-y-2">
-              <div className="text-11 uppercase tracking-[0.06em] text-muted-foreground/80">
-                Requirement chain
-              </div>
-              <p className="text-13">Select a bead to trace its chain</p>
-              <p className="text-12 text-muted-foreground">
+            <Stack space="space.100">
+              <div className="font-heading-xxsmall uppercase text-subtlest">Requirement chain</div>
+              <p className="font-body">Select a bead to trace its chain</p>
+              <p className="font-body-small text-subtle">
                 Baseline → family → control → requirement row → determination → allocation → finding
                 → plan item → risk. Every hop states its own provenance.
               </p>
-            </div>
+            </Stack>
           ) : view === "blast" && blast ? (
-            <div className="space-y-4">
+            <Stack space="space.200">
               <div>
-                <div className="text-11 uppercase tracking-[0.06em] text-muted-foreground/80">
-                  Consequence
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="tnum text-[34px] font-semibold leading-none">
+                <div className="font-heading-xxsmall uppercase text-subtlest">Consequence</div>
+                <Inline space="space.100" alignBlock="baseline">
+                  <span className="tabular-nums font-heading-large font-semibold">
                     {blast.rows.length}
                   </span>
-                  <span className="text-12 text-muted-foreground">
+                  <span className="font-body-small text-subtle">
                     of {tree.root.agg.w} rows
                     <br />
                     need a fresh look
                   </span>
-                </div>
-                <div className="mt-2">
+                </Inline>
+                <Box paddingBlockStart="space.100">
                   <Bar
                     parts={[
-                      { className: "bg-legacy-warning", v: blast.suspect },
-                      { className: "bg-legacy-danger", v: blast.invalidated },
+                      { className: "bg-warning-bold", v: blast.suspect },
+                      { className: "bg-danger-bold", v: blast.invalidated },
                       {
                         className: "bg-transparent",
                         v: Math.max(0, tree.root.agg.w - blast.rows.length),
                       },
                     ]}
                   />
-                </div>
+                </Box>
               </div>
-              <div className="space-y-1">
+              <Stack space="space.050">
                 <Row label="Suspect — determination stands, flagged">
-                  <span className="text-legacy-warning">{blast.suspect}</span>
+                  <span className="text-warning">{blast.suspect}</span>
                 </Row>
                 <Row label="Invalidated — must be reassessed">
-                  <span className="text-legacy-danger">{blast.invalidated}</span>
+                  <span className="text-danger">{blast.invalidated}</span>
                 </Row>
                 <Row label="Components in the blast">{blast.groups.length}</Row>
-              </div>
+              </Stack>
               <div>
-                <div className="pb-1 text-11 uppercase tracking-[0.06em] text-muted-foreground/80">
+                <Box
+                  className="font-heading-xxsmall uppercase text-subtlest"
+                  paddingBlockEnd="space.050"
+                >
                   Families touched
-                </div>
-                <div className="space-y-1">
+                </Box>
+                <Stack space="space.050">
                   {blast.families.map((f) => (
                     <button
                       key={f.id}
                       type="button"
                       onClick={() => go(f.id)}
-                      className="flex w-full items-center gap-2 text-12"
+                      className="flex w-full items-center gap-100 font-body-small"
                     >
-                      <Id className="w-8 text-left">{f.id}</Id>
-                      <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                      <Id className="text-left w-400">{f.id}</Id>
+                      <span className="flex-1 overflow-hidden rounded-full bg-neutral h-075">
                         <span
-                          className="block h-full bg-legacy-danger"
+                          className="block h-full bg-danger-bold"
                           style={{ width: `${(f.n / (blast.families[0]?.n ?? 1)) * 100}%` }}
                         />
                       </span>
-                      <span className="tnum w-6 text-right">{f.n}</span>
+                      <span className="tabular-nums text-right w-300">{f.n}</span>
                     </button>
                   ))}
-                </div>
+                </Stack>
               </div>
-              <p className="text-12 text-muted-foreground">{blast.change.analysis}</p>
-              <div className="flex gap-2">
+              <p className="font-body-small text-subtle">{blast.change.analysis}</p>
+              <Inline space="space.100">
                 <Button size="small" variant="primary" disabled>
                   Reassess affected rows
                 </Button>
                 <Button size="small" disabled>
                   Report change
                 </Button>
-              </div>
-            </div>
+              </Inline>
+            </Stack>
           ) : view === "threads" && threads ? (
-            <div className="space-y-3">
+            <Stack space="space.150">
               <div>
-                <div className="text-11 uppercase tracking-[0.06em] text-muted-foreground/80">
+                <div className="font-heading-xxsmall uppercase text-subtlest">
                   {axis ? `${threadAxes[axis.a]!.label} · ${axis.k}` : "All requirements"}
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="tnum text-[34px] font-semibold leading-none">
+                <Inline space="space.100" alignBlock="baseline">
+                  <span className="tabular-nums font-heading-large font-semibold">
                     {threads.sel.length}
                   </span>
-                  <span className="text-12 text-muted-foreground">threads</span>
-                </div>
+                  <span className="font-body-small text-subtle">threads</span>
+                </Inline>
               </div>
               {axis ? (
                 <Button size="small" onClick={() => setAxis(null)}>
                   Release selection
                 </Button>
               ) : null}
-              <div className="space-y-1">
+              <Stack space="space.050">
                 {threadOrder.closure.map((k) => (
                   <Row key={k} label={k}>
                     {threads.sel.filter((r) => r.k[4] === k).length}
                   </Row>
                 ))}
-              </div>
-              <div className="pt-1 text-11 uppercase tracking-[0.06em] text-muted-foreground/80">
+              </Stack>
+              <Box
+                className="font-heading-xxsmall uppercase text-subtlest"
+                paddingBlockStart="space.050"
+              >
                 In this bundle
-              </div>
-              <div className="flex flex-wrap gap-1">
+              </Box>
+              <Inline space="space.050" shouldWrap>
                 {threads.sel.slice(0, 60).map((r) => (
                   <button
                     key={r.control.id}
@@ -1554,28 +1612,28 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                       go(r.control.id);
                     }}
                     className={cn(
-                      "rounded px-1.5 py-0.5 text-11",
+                      "rounded-small px-075 py-025 font-body-xsmall",
                       r.control.st === "ns"
-                        ? "bg-danger-soft text-legacy-danger"
+                        ? "bg-danger text-danger"
                         : r.control.st === "nd"
-                          ? "bg-muted text-muted-foreground"
-                          : "bg-muted text-foreground",
+                          ? "bg-neutral text-subtle"
+                          : "bg-neutral text-default",
                     )}
                   >
                     {r.control.id}
                   </button>
                 ))}
                 {threads.sel.length > 60 ? (
-                  <span className="text-11 text-muted-foreground">
+                  <span className="font-body-xsmall text-subtle">
                     +{threads.sel.length - 60} more
                   </span>
                 ) : null}
-              </div>
-            </div>
+              </Inline>
+            </Stack>
           ) : (
-            <div className="space-y-4">
+            <Stack space="space.200">
               <div>
-                <div className="text-11 uppercase tracking-[0.06em] text-muted-foreground/80">
+                <div className="font-heading-xxsmall uppercase text-subtlest">
                   {cur.kind === "root"
                     ? "Baseline"
                     : cur.kind === "family"
@@ -1586,11 +1644,11 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                           ? "Requirement row"
                           : "Control"}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Id className="text-foreground">{cur.kind === "root" ? crumbRoot : cur.label}</Id>
-                </div>
-                <div className="text-13 font-medium">{cur.title}</div>
-                <div className="mt-1.5 flex flex-wrap gap-1">
+                <Inline space="space.100" alignBlock="center">
+                  <Id className="text-default">{cur.kind === "root" ? crumbRoot : cur.label}</Id>
+                </Inline>
+                <div className="font-body font-medium">{cur.title}</div>
+                <Inline className="pt-075" space="space.050" shouldWrap>
                   {cur.control ? (
                     <>
                       <Badge
@@ -1619,39 +1677,45 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                       <Badge size="xsmall">{a.nd} unknown</Badge>
                     </>
                   )}
-                </div>
+                </Inline>
               </div>
               <div>
-                <div className="pb-1 text-11 uppercase tracking-[0.06em] text-muted-foreground/80">
+                <Box
+                  className="font-heading-xxsmall uppercase text-subtlest"
+                  paddingBlockEnd="space.050"
+                >
                   Determinations in scope
-                </div>
+                </Box>
                 <Bar
                   parts={[
-                    { className: "bg-muted-foreground/40", v: a.sat },
-                    { className: "bg-legacy-danger", v: a.ns },
-                    { className: "text-muted-foreground/60", v: a.nd, style: hatch },
+                    { className: "bg-neutral-bold", v: a.sat },
+                    { className: "bg-danger-bold", v: a.ns },
+                    { className: "text-subtlest", v: a.nd, style: hatch },
                   ]}
                 />
-                <div className="mt-1.5 space-y-0.5">
+                <Stack className="pt-075" space="space.025">
                   <Row label="Satisfied">{a.sat}</Row>
                   <Row label="Other than satisfied">
-                    <span className={a.ns ? "text-legacy-danger" : undefined}>{a.ns}</span>
+                    <span className={a.ns ? "text-danger" : undefined}>{a.ns}</span>
                   </Row>
                   <Row label="No determination">{a.nd}</Row>
-                </div>
+                </Stack>
               </div>
               <div>
-                <div className="pb-1 text-11 uppercase tracking-[0.06em] text-muted-foreground/80">
+                <Box
+                  className="font-heading-xxsmall uppercase text-subtlest"
+                  paddingBlockEnd="space.050"
+                >
                   Evidence currency
-                </div>
+                </Box>
                 <Bar
                   parts={[
-                    { className: "bg-legacy-success", v: a.cur },
-                    { className: "bg-legacy-warning", v: a.sus },
-                    { className: "bg-legacy-danger", v: a.inv },
+                    { className: "bg-success-bold", v: a.cur },
+                    { className: "bg-warning-bold", v: a.sus },
+                    { className: "bg-danger-bold", v: a.inv },
                   ]}
                 />
-                <p className="mt-1.5 text-12 text-muted-foreground">
+                <p className="pt-075 font-body-small text-subtle">
                   {a.cur + a.sus + a.inv
                     ? `${a.cur} Current · ${a.sus} Suspect · ${a.inv} Invalidated. A suspect row means a change order touched an allocated component after the determination was recorded.`
                     : "No determinations in scope, so no evidence to age."}
@@ -1659,13 +1723,16 @@ export function ControlWorkspace({ programId }: { programId: string }) {
               </div>
               {leafRows.length ? (
                 <div>
-                  <div className="pb-1 text-11 uppercase tracking-[0.06em] text-muted-foreground/80">
+                  <Box
+                    className="font-heading-xxsmall uppercase text-subtlest"
+                    paddingBlockEnd="space.050"
+                  >
                     Determination of record
-                  </div>
-                  <div className="space-y-2">
+                  </Box>
+                  <Stack space="space.100">
                     {leafRows.map((r) => (
                       <div key={r.key}>
-                        <div className="flex items-center gap-2">
+                        <Inline space="space.100" alignBlock="center">
                           <Badge
                             size="xsmall"
                             tone={
@@ -1678,9 +1745,9 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                           >
                             {r.determination === "Not assessed" ? "Unknown" : r.determination}
                           </Badge>
-                          <span className="text-12 text-muted-foreground">{r.requirement}</span>
-                        </div>
-                        <p className="mt-0.5 text-12 leading-snug text-muted-foreground">
+                          <span className="font-body-small text-subtle">{r.requirement}</span>
+                        </Inline>
+                        <p className="pt-025 font-body-small text-subtle">
                           {r.determinationNote !== "—"
                             ? r.determinationNote
                             : r.determination === "Not assessed"
@@ -1689,67 +1756,73 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                         </p>
                       </div>
                     ))}
-                  </div>
+                  </Stack>
                 </div>
               ) : null}
               {cur.nodes.length ? (
                 <div>
-                  <div className="pb-1 text-11 uppercase tracking-[0.06em] text-muted-foreground/80">
+                  <Box
+                    className="font-heading-xxsmall uppercase text-subtlest"
+                    paddingBlockEnd="space.050"
+                  >
                     Allocated to
-                  </div>
-                  <div className="flex flex-wrap gap-1">
+                  </Box>
+                  <Inline space="space.050" shouldWrap>
                     {allocatedNames(cur.nodes).map((name) => (
                       <Badge key={name} size="xsmall">
                         {name}
                       </Badge>
                     ))}
                     {allocatedNames(cur.nodes).length > 8 ? (
-                      <span className="text-11 text-muted-foreground">
+                      <span className="font-body-xsmall text-subtle">
                         +{allocatedNames(cur.nodes).length - 8}
                       </span>
                     ) : null}
-                  </div>
+                  </Inline>
                 </div>
               ) : null}
               {kids.length ? (
                 <div>
-                  <div className="pb-1 text-11 uppercase tracking-[0.06em] text-muted-foreground/80">
+                  <Box
+                    className="font-heading-xxsmall uppercase text-subtlest"
+                    paddingBlockEnd="space.050"
+                  >
                     {cur.kind === "root"
                       ? "Families, worst first"
                       : cur.kind === "family"
                         ? "Controls, worst first"
                         : "Rows and enhancements"}
-                  </div>
-                  <div className="-mx-2">
+                  </Box>
+                  <Bleed inline="space.100">
                     {kids.slice(0, 40).map((k) => (
                       <button
                         key={k.id}
                         type="button"
                         onClick={() => go(k.id)}
-                        className="flex h-7 w-full items-center gap-2 rounded px-2 text-left hover:bg-surface-hover"
+                        className="flex h-control-small w-full items-center gap-100 rounded-small px-100 text-left hover:bg-surface-hovered"
                       >
                         <span
                           className={cn(
-                            "size-1.5 shrink-0 rounded-full",
+                            "shrink-0 rounded-full",
                             k.st === "ns"
-                              ? "bg-legacy-danger"
+                              ? "bg-danger-bold"
                               : k.st === "nd"
-                                ? "bg-muted-foreground/40"
-                                : "bg-muted-foreground/25",
+                                ? "bg-neutral-bold"
+                                : "bg-neutral-bold",
+                            "size-075",
                           )}
                         />
-                        <Id className="w-[76px] shrink-0 truncate whitespace-nowrap text-muted-foreground">
+                        <Id
+                          className="shrink-0 truncate whitespace-nowrap text-subtle"
+                          style={{ width: 76 }}
+                        >
                           {k.label}
                         </Id>
-                        <span className="min-w-0 flex-1 truncate text-12">{k.title}</span>
+                        <span className="min-w-0 flex-1 truncate font-body-small">{k.title}</span>
                         <span
                           className={cn(
-                            "shrink-0 text-11",
-                            k.agg.ns
-                              ? "text-legacy-danger"
-                              : k.agg.nd
-                                ? "text-muted-foreground"
-                                : "text-muted-foreground/60",
+                            "shrink-0 font-body-xsmall",
+                            k.agg.ns ? "text-danger" : k.agg.nd ? "text-subtle" : "text-subtlest",
                           )}
                         >
                           {k.agg.ns
@@ -1761,22 +1834,22 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                       </button>
                     ))}
                     {kids.length > 40 ? (
-                      <div className="px-2 text-11 text-muted-foreground">
+                      <Box className="font-body-xsmall text-subtle" paddingInline="space.100">
                         +{kids.length - 40} more
-                      </div>
+                      </Box>
                     ) : null}
-                  </div>
+                  </Bleed>
                 </div>
               ) : null}
-              <p className="text-11 text-muted-foreground">
+              <p className="font-body-xsmall text-subtle">
                 {cur.control
                   ? "Recorded through the control record · response ≠ determination."
                   : "Drill to a requirement row to record a determination."}
               </p>
-            </div>
+            </Stack>
           )}
         </aside>
-      </div>
-    </div>
+      </Grid>
+    </Box>
   );
 }

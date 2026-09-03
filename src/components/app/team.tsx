@@ -1,9 +1,20 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Badge, KeyValue, Progress, Table, Id, Tabs } from "@/ds/primitives";
-import { PreviewRail, Section } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
+import {
+  Badge,
+  Box,
+  Id,
+  Inline,
+  Inspector,
+  KeyValue,
+  PreviewRail,
+  Progress,
+  Section,
+  Stack,
+  Table,
+  Tabs,
+} from "@ledger/design-system";
 import { PreviewSplit } from "@/components/app/preview-split";
 import {
   allocationFor,
@@ -43,27 +54,25 @@ export function TeamSection({ programId }: { programId: string }) {
       title="Team"
       description="Who is building what. A workstream is the unit of work — it has a lead, the disciplines it pulls in, the controls it satisfies, and the workstreams it cannot finish without."
     >
-      <Tabs
-        className="mt-1"
-        items={tabs.map((t) => ({
-          key: t,
-          label: t,
-          active: tab === t,
-          onSelect: () => {
-            setTab(t);
-            setWs(null);
-            setPerson(null);
-          },
-          trailing: (
-            <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-              {counts[t]}
-            </span>
-          ),
-        }))}
-      />
+      <Tabs className="pt-050">
+        {tabs.map((t) => (
+          <Tabs.Tab
+            key={t}
+            isSelected={tab === t}
+            onClick={() => {
+              setTab(t);
+              setWs(null);
+              setPerson(null);
+            }}
+            count={counts[t]}
+          >
+            {t}
+          </Tabs.Tab>
+        ))}
+      </Tabs>
 
       <PreviewSplit open={Boolean(railOpen)}>
-        <div className="min-w-0 pt-4 lg:pr-6">
+        <Box className="min-w-0 lg:pe-300" paddingBlockStart="space.200">
           {tab === "Workstreams" ? (
             <Table className="table-fixed">
               <colgroup>
@@ -103,12 +112,12 @@ export function TeamSection({ programId }: { programId: string }) {
                     <Table.Cell>
                       <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
                     </Table.Cell>
-                    <Table.Cell className="tnum text-right">{w.members.length}</Table.Cell>
+                    <Table.Cell className="tabular-nums text-right">{w.members.length}</Table.Cell>
                     <Table.Cell className="truncate">
                       {w.dependsOn.length ? (
                         <Id>{w.dependsOn.join(", ")}</Id>
                       ) : (
-                        <span className="text-muted-foreground">—</span>
+                        <span className="text-subtle">—</span>
                       )}
                     </Table.Cell>
                     <Table.Cell className="truncate text-right">
@@ -162,12 +171,12 @@ export function TeamSection({ programId }: { programId: string }) {
                       <Table.Cell className="truncate">{p.title}</Table.Cell>
                       <Table.Cell className="truncate">{p.discipline}</Table.Cell>
                       <Table.Cell className="truncate">{p.clearance}</Table.Cell>
-                      <Table.Cell className="tnum text-right">
+                      <Table.Cell className="tabular-nums text-right">
                         {workstreamsForPerson(p.id).length}
                       </Table.Cell>
                       <Table.Cell>
-                        <span className="flex items-center gap-2">
-                          <span className="w-12">
+                        <Inline as="span" space="space.100" alignBlock="center">
+                          <span className="w-600">
                             <Progress
                               value={Math.min(alloc, 100)}
                               tone={alloc > 100 ? "danger" : alloc > 85 ? "warning" : "information"}
@@ -176,13 +185,13 @@ export function TeamSection({ programId }: { programId: string }) {
                           <span
                             className={
                               alloc > 100
-                                ? "tnum font-medium text-legacy-danger"
-                                : "tnum text-muted-foreground"
+                                ? "tabular-nums font-medium text-danger"
+                                : "tabular-nums text-subtle"
                             }
                           >
                             {alloc}%
                           </span>
-                        </span>
+                        </Inline>
                       </Table.Cell>
                     </Table.Row>
                   );
@@ -212,27 +221,27 @@ export function TeamSection({ programId }: { programId: string }) {
                   <Table.Row key={`${e.a}-${e.b}`}>
                     <Table.Cell className="truncate">{e.a}</Table.Cell>
                     <Table.Cell className="truncate">{e.b}</Table.Cell>
-                    <Table.Cell className="tnum text-right">{e.via.length}</Table.Cell>
+                    <Table.Cell className="tabular-nums text-right">{e.via.length}</Table.Cell>
                     <Table.Cell className="truncate">
-                      <span className="flex flex-wrap items-center gap-x-2">
+                      <Inline as="span" space="space.100" alignBlock="center" shouldWrap>
                         {e.via.map((id) => (
                           <Link
                             key={id}
                             to="/workstreams/$workstreamId"
                             params={{ workstreamId: id }}
-                            className="text-primary hover:underline"
+                            className="text-brand hover:underline"
                           >
                             <Id>{id}</Id>
                           </Link>
                         ))}
-                      </span>
+                      </Inline>
                     </Table.Cell>
                   </Table.Row>
                 ))}
               </tbody>
             </Table>
           ) : null}
-        </div>
+        </Box>
 
         {tab === "Workstreams" && ws ? (
           <PreviewRail
@@ -243,14 +252,14 @@ export function TeamSection({ programId }: { programId: string }) {
               <Link
                 to="/workstreams/$workstreamId"
                 params={{ workstreamId: ws.id }}
-                className="text-primary hover:underline"
+                className="text-brand hover:underline"
               >
                 Open workstream →
               </Link>
             }
           >
-            <p className="text-[12.5px] leading-relaxed text-muted-foreground">{ws.objective}</p>
-            <div className="mt-3">
+            <p className="font-body-small text-subtle">{ws.objective}</p>
+            <Box paddingBlockStart="space.150">
               <Inspector.Group title="Workstream">
                 <KeyValue label="Lead">{personById.get(ws.lead)?.name ?? "—"}</KeyValue>
                 <KeyValue label="Status">
@@ -271,7 +280,7 @@ export function TeamSection({ programId }: { programId: string }) {
                   {ws.dependsOn.length ? <Id>{ws.dependsOn.join(", ")}</Id> : "—"}
                 </KeyValue>
               </Inspector.Group>
-            </div>
+            </Box>
           </PreviewRail>
         ) : null}
 
@@ -284,13 +293,13 @@ export function TeamSection({ programId }: { programId: string }) {
               <Link
                 to="/people/$personId"
                 params={{ personId: person.id }}
-                className="text-primary hover:underline"
+                className="text-brand hover:underline"
               >
                 Open person →
               </Link>
             }
           >
-            <div className="mt-1">
+            <Box paddingBlockStart="space.050">
               <Inspector.Group title="Profile">
                 <KeyValue label="Title">{person.title}</KeyValue>
                 <KeyValue label="Discipline">{person.discipline}</KeyValue>
@@ -299,22 +308,27 @@ export function TeamSection({ programId }: { programId: string }) {
                 <KeyValue label="Site">{person.site}</KeyValue>
               </Inspector.Group>
               <Inspector.Group title="Workstreams">
-                <div className="space-y-1.5 text-[12.5px]">
+                <Stack className="font-body-small" space="space.075">
                   {workstreamsForPerson(person.id).map((w) => (
-                    <div key={w.id} className="flex items-baseline justify-between gap-2">
+                    <Inline
+                      key={w.id}
+                      space="space.100"
+                      alignBlock="baseline"
+                      spread="space-between"
+                    >
                       <Link
                         to="/workstreams/$workstreamId"
                         params={{ workstreamId: w.id }}
-                        className="min-w-0 truncate text-primary hover:underline"
+                        className="min-w-0 truncate text-brand hover:underline"
                       >
                         {w.title}
                       </Link>
-                      <span className="shrink-0 text-[12px] text-muted-foreground">{w.status}</span>
-                    </div>
+                      <span className="shrink-0 font-body-small text-subtle">{w.status}</span>
+                    </Inline>
                   ))}
-                </div>
+                </Stack>
               </Inspector.Group>
-            </div>
+            </Box>
           </PreviewRail>
         ) : null}
       </PreviewSplit>

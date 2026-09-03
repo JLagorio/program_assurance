@@ -5,19 +5,22 @@ import { Search } from "lucide-react";
 import {
   Badge,
   Button,
-  KeyValue,
-  Table,
   Id,
   Indicator,
-  Tabs,
-  ToggleGroup,
+  Inline,
   Input,
   InputGroup,
-} from "@/ds/primitives";
-import { PageHeader, PreviewRail } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
+  Inspector,
+  KeyValue,
+  PageHeader,
+  PreviewRail,
+  Stack,
+  Table,
+  Tabs,
+  ToggleGroup,
+} from "@ledger/design-system";
 import { PreviewSplit } from "@/components/app/preview-split";
-import { Shell } from "@/ds/shell";
+import { Shell } from "@/components/app/shell";
 import {
   benchmarkById,
   ccis,
@@ -90,39 +93,38 @@ function Catalog() {
 
   return (
     <Shell>
-      <div className="animate-slide-up space-y-4">
+      <Stack className="animate-rise" space="space.200">
         <PageHeader
           title="Control catalog"
           description="800-53 Rev 5, CNSSI 1253 overlays and the CCI decomposition. Every rule, procedure and test objective in the product resolves to a CCI in this table."
           actions={<Button variant="secondary">Import catalog</Button>}
         />
 
-        <Tabs
-          items={tabs.map((t) => ({
-            key: t,
-            label: t,
-            active: tab === t,
-            onSelect: () => {
-              setTab(t);
-              setSelected(null);
-            },
-            trailing: (
-              <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                {counts[t]}
-              </span>
-            ),
-          }))}
-        />
+        <Tabs>
+          {tabs.map((t) => (
+            <Tabs.Tab
+              key={t}
+              isSelected={tab === t}
+              onClick={() => {
+                setTab(t);
+                setSelected(null);
+              }}
+              count={counts[t]}
+            >
+              {t}
+            </Tabs.Tab>
+          ))}
+        </Tabs>
 
         {tab !== "Overlays" ? (
-          <div className="flex flex-wrap items-center gap-2 pt-1">
+          <Inline className="pt-050" space="space.100" alignBlock="center" shouldWrap>
             <InputGroup leading={<Search />}>
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder={tab === "Controls" ? "Search controls" : "Search CCIs"}
                 aria-label="Search"
-                className="w-[240px]"
+                style={{ width: 240 }}
               />
             </InputGroup>
             <ToggleGroup
@@ -131,11 +133,11 @@ function Catalog() {
               onChange={setFamily}
               items={["All", ...families.map((f) => f.id)].map((f) => ({ value: f, label: f }))}
             />
-          </div>
+          </Inline>
         ) : null}
 
         <PreviewSplit open={selected !== null}>
-          <div className="min-w-0 lg:pr-6">
+          <div className="min-w-0 lg:pe-300">
             {tab === "Controls" ? (
               <Table className="table-fixed">
                 <colgroup>
@@ -168,7 +170,7 @@ function Catalog() {
                       <Table.Cell className="truncate">
                         {c.addedBy.length ? <Id>{c.addedBy.join(", ")}</Id> : "—"}
                       </Table.Cell>
-                      <Table.Cell className="tnum text-right">{c.cciCount}</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">{c.cciCount}</Table.Cell>
                     </Table.Row>
                   ))}
                 </tbody>
@@ -206,9 +208,9 @@ function Catalog() {
                       <Table.Cell className="truncate">{o.name}</Table.Cell>
                       <Table.Cell className="truncate">{o.applicability}</Table.Cell>
                       <Table.Cell className="truncate">{o.authority}</Table.Cell>
-                      <Table.Cell className="tnum text-right">+{o.adds}</Table.Cell>
-                      <Table.Cell className="tnum text-right">−{o.removes}</Table.Cell>
-                      <Table.Cell className="tnum text-right">{o.parameters}</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">+{o.adds}</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">−{o.removes}</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">{o.parameters}</Table.Cell>
                     </Table.Row>
                   ))}
                 </tbody>
@@ -258,13 +260,15 @@ function Catalog() {
                         ) : c.compliance === "Compliant" ? (
                           <Badge tone="success">Compliant</Badge>
                         ) : (
-                          <span className="text-muted-foreground">{c.compliance}</span>
+                          <span className="text-subtle">{c.compliance}</span>
                         )}
                       </Table.Cell>
-                      <Table.Cell className="tnum text-right">{c.rules.length}</Table.Cell>
-                      <Table.Cell className="tnum text-right">{c.procedures.length}</Table.Cell>
-                      <Table.Cell className="tnum text-right">
-                        {c.objectives.length || <span className="text-legacy-warning">0</span>}
+                      <Table.Cell className="tabular-nums text-right">{c.rules.length}</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">
+                        {c.procedures.length}
+                      </Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">
+                        {c.objectives.length || <span className="text-warning">0</span>}
                       </Table.Cell>
                     </Table.Row>
                   ))}
@@ -275,9 +279,7 @@ function Catalog() {
 
           {selected ? (
             <PreviewRail id={selected.id} onClose={() => setSelected(null)}>
-              <p className="pb-3 text-[12.5px] leading-relaxed text-muted-foreground">
-                {selected.definition}
-              </p>
+              <p className="pb-150 font-body-small text-subtle">{selected.definition}</p>
 
               <Inspector.Group title="Identity">
                 <KeyValue label="Parent control">
@@ -293,51 +295,56 @@ function Catalog() {
               </Inspector.Group>
 
               <Inspector.Group title="Implemented by">
-                <div className="space-y-1.5 text-[12.5px]">
+                <Stack className="font-body-small" space="space.075">
                   {(rulesByCci.get(selected.id) ?? []).map((r) => (
-                    <div key={r.id} className="flex items-baseline justify-between gap-2">
+                    <Inline
+                      key={r.id}
+                      space="space.100"
+                      alignBlock="baseline"
+                      spread="space-between"
+                    >
                       <span className="min-w-0">
                         <Id>{r.id}</Id>{" "}
-                        <span className="text-muted-foreground">
+                        <span className="text-subtle">
                           {benchmarkById.get(r.benchmark)?.technology}
                         </span>
                       </span>
                       <Indicator tone={severityTone(r.severity)}>{r.severity}</Indicator>
-                    </div>
+                    </Inline>
                   ))}
                   {selected.rules.length === 0 ? (
-                    <span className="text-muted-foreground">No STIG rule covers this CCI</span>
+                    <span className="text-subtle">No STIG rule covers this CCI</span>
                   ) : null}
-                </div>
+                </Stack>
               </Inspector.Group>
 
               <Inspector.Group title="Assessed by">
-                <div className="space-y-1 text-[12.5px] text-muted-foreground">
+                <Stack className="font-body-small text-subtle" space="space.050">
                   {selected.procedures.map((p) => (
                     <div key={p}>
                       <Id>{p}</Id> · 800-53A procedure
                     </div>
                   ))}
-                </div>
+                </Stack>
               </Inspector.Group>
 
               <Inspector.Group title="Exercised by">
-                <div className="space-y-1 text-[12.5px]">
+                <Stack className="font-body-small" space="space.050">
                   {selected.objectives.length ? (
                     selected.objectives.map((o) => (
-                      <div key={o} className="truncate text-muted-foreground">
+                      <div key={o} className="truncate text-subtle">
                         {o}
                       </div>
                     ))
                   ) : (
-                    <span className="text-legacy-warning">No test objective — coverage gap</span>
+                    <span className="text-warning">No test objective — coverage gap</span>
                   )}
-                </div>
+                </Stack>
               </Inspector.Group>
             </PreviewRail>
           ) : null}
         </PreviewSplit>
-      </div>
+      </Stack>
     </Shell>
   );
 }

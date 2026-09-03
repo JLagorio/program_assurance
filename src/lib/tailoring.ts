@@ -5,7 +5,7 @@
    manager then approves the resulting compliance scope before engineering
    commits to it. */
 
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 import { baselineCounts, type ImpactLevel } from "./grc-data";
 
 export type SystemClass =
@@ -474,7 +474,7 @@ export const scopeHistory: Record<string, ScopeEvent[]> = {
       at: "Aug 26, 09:14",
       actor: "Sarah Chen (SSE)",
       text: "Submitted tailored scope for PM approval — 383 controls, 4 overlays",
-      tone: "info",
+      tone: "information",
     },
     {
       at: "Aug 26, 09:02",

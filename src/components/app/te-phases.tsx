@@ -34,8 +34,22 @@ import { Fragment, useState } from "react";
 import type { ReactNode } from "react";
 import { ArrowRight, Calculator, CornerDownRight, PenLine } from "lucide-react";
 
-import { Badge, Button, Table, Id, Absent, Stat, Eyebrow, type Tone, Alert } from "@/ds/primitives";
-import { Card } from "@/ds/patterns";
+import {
+  Absent,
+  Alert,
+  Badge,
+  Box,
+  Button,
+  Card,
+  Eyebrow,
+  Grid,
+  Id,
+  Inline,
+  Stack,
+  Stat,
+  Table,
+} from "@ledger/design-system";
+import type { Tone } from "@ledger/design-system";
 import {
   effectTone,
   phaseStateTone,
@@ -55,13 +69,13 @@ import { cn } from "@/lib/utils";
 
 function IdChips({ ids, tone = "neutral" }: { ids: string[]; tone?: Tone }) {
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <Inline space="space.075" shouldWrap>
       {ids.map((id) => (
         <Badge key={id} tone={tone}>
-          <span className="text-[11.5px]">{id}</span>
+          <span className="font-body-xsmall">{id}</span>
         </Badge>
       ))}
-    </div>
+    </Inline>
   );
 }
 
@@ -81,7 +95,7 @@ function useCap<T>(rows: T[], initial: number) {
 export function TierChip({ tier }: { tier: string }) {
   return (
     <Badge size="xsmall">
-      <span className="tracking-[0.04em]">Tier {tier}</span>
+      <span className="">Tier {tier}</span>
     </Badge>
   );
 }
@@ -94,14 +108,14 @@ export function PhaseStateChip({ phase }: { phase: TePhase }) {
 function GateCount({ label, met, total }: { label: string; met: number; total: number }) {
   const tone: Tone = total === 0 ? "neutral" : met === total ? "success" : "warning";
   return (
-    <span className="flex items-center gap-1 text-[12px]">
-      <span className="text-muted-foreground">{label}</span>
+    <Inline className="font-body-small" as="span" space="space.050" alignBlock="center">
+      <span className="text-subtle">{label}</span>
       <Badge size="xsmall" tone={tone}>
-        <span className="tnum">
+        <span className="tabular-nums">
           {met}/{total}
         </span>
       </Badge>
-    </span>
+    </Inline>
   );
 }
 
@@ -144,7 +158,7 @@ export function PhaseTrack({
   campaignName?: (id: string) => string;
 }) {
   return (
-    <div className="space-y-5 pt-4">
+    <Stack className="pt-200" space="space.250">
       {regimes.map((regime) => {
         const band = phases.filter((p) => p.kind === regime.kind);
         if (band.length === 0) return null;
@@ -153,26 +167,30 @@ export function PhaseTrack({
           <section
             key={regime.kind}
             className={cn(
-              "rounded-lg border",
-              operational ? "border-primary/25 bg-primary-soft/25" : "border-border bg-legacy-subtle/60",
+              "rounded-large border",
+              operational ? "border-brand bg-selected" : "border-default bg-surface-sunken",
             )}
           >
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-border px-4 py-2.5">
-              <h3 className="text-[12.5px] font-semibold">{regime.title}</h3>
+            <Inline
+              className="border-b border-default px-200 py-100"
+              space="space.150"
+              rowSpace="space.050"
+              alignBlock="baseline"
+              shouldWrap
+            >
+              <h3 className="font-body-small font-semibold">{regime.title}</h3>
               <Badge size="xsmall" tone={operational ? "information" : "neutral"}>
                 {operational ? "OT&E" : "DT&E"}
               </Badge>
-              <span className="text-[12px] text-muted-foreground">
-                Authority: <span className="font-medium text-foreground">{regime.authority}</span>
+              <span className="font-body-small text-subtle">
+                Authority: <span className="font-medium text-default">{regime.authority}</span>
               </span>
-              <span className="tnum ml-auto text-[12px] text-muted-foreground">
+              <span className="tabular-nums ml-auto font-body-small text-subtle">
                 {band.length} of {phases.length} phases
               </span>
-            </div>
-            <p className="px-4 pt-2.5 text-[12.5px] leading-relaxed text-muted-foreground">
-              {regime.blurb}
-            </p>
-            <div className="space-y-2 p-3">
+            </Inline>
+            <p className="px-200 pt-100 font-body-small text-subtle">{regime.blurb}</p>
+            <Stack className="p-150" space="space.100">
               {band.map((phase) => (
                 <PhaseCard
                   key={phase.id}
@@ -183,11 +201,11 @@ export function PhaseTrack({
                   {...(campaignName ? { campaignName } : {})}
                 />
               ))}
-            </div>
+            </Stack>
           </section>
         );
       })}
-    </div>
+    </Stack>
   );
 }
 
@@ -208,23 +226,28 @@ function PhaseCard({
 
   const body = (
     <>
-      <span className="flex items-start gap-3">
-        <span
-          className={cn(
-            "tnum mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold ring-1 ring-inset",
-            phase.state === "Complete"
-              ? "bg-success-soft text-legacy-success ring-legacy-success/25"
-              : "bg-card text-muted-foreground ring-border-strong",
-          )}
-        >
-          {phase.n}
-        </span>
+      <Inline as="span" space="space.150" alignBlock="start">
+        <Box paddingBlockStart="space.025">
+          <Inline
+            as="span"
+            display="inline-flex"
+            alignBlock="center"
+            alignInline="center"
+            className={cn(
+              "tabular-nums shrink-0 rounded-full font-body-small font-semibold outline-focused",
+              phase.state === "Complete" ? "bg-success text-success" : "bg-surface text-subtle",
+              "size-300",
+            )}
+          >
+            {phase.n}
+          </Inline>
+        </Box>
         <span className="min-w-0 flex-1">
-          <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <span className="text-[13px] font-semibold">{phase.short}</span>
-            <Id className="text-muted-foreground">{phase.id}</Id>
-            <span className="min-w-0 truncate text-[12px] text-muted-foreground">{phase.name}</span>
-            <span className="ml-auto flex shrink-0 items-center gap-2">
+          <Inline as="span" space="space.100" rowSpace="space.050" alignBlock="baseline" shouldWrap>
+            <span className="font-body font-semibold">{phase.short}</span>
+            <Id className="text-subtle">{phase.id}</Id>
+            <span className="min-w-0 truncate font-body-small text-subtle">{phase.name}</span>
+            <Inline className="ml-auto shrink-0" as="span" space="space.100" alignBlock="center">
               {readiness ? (
                 <>
                   <GateCount label="Entry" met={readiness.entryMet} total={readiness.entryTotal} />
@@ -232,55 +255,64 @@ function PhaseCard({
                 </>
               ) : null}
               <PhaseStateChip phase={phase} />
-            </span>
-          </span>
+            </Inline>
+          </Inline>
 
-          <span className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
-            <span className="tnum">{phase.window}</span>
+          <Inline
+            className="pt-075 font-body-small text-subtle"
+            as="span"
+            space="space.200"
+            rowSpace="space.050"
+            alignBlock="center"
+            shouldWrap
+          >
+            <span className="tabular-nums">{phase.window}</span>
             <span>{phase.lead}</span>
             <span>
-              Informs <span className="text-foreground">{phase.gate}</span>
+              Informs <span className="text-default">{phase.gate}</span>
             </span>
-            <span className="flex items-center gap-1.5">
+            <Inline as="span" space="space.075" alignBlock="center">
               {phase.campaigns.length === 0 ? (
                 <span>No campaign — this phase produces a record, not an execution</span>
               ) : (
                 phase.campaigns.map((id) => (
                   <Badge key={id} size="xsmall">
-                    <span className="text-[11.5px]" title={campaignName?.(id) ?? id}>
+                    <span className="font-body-xsmall" title={campaignName?.(id) ?? id}>
                       {id}
                     </span>
                   </Badge>
                 ))
               )}
-            </span>
-          </span>
+            </Inline>
+          </Inline>
 
           {readiness ? (
-            <span
+            <Box
               className={cn(
-                "mt-1.5 block truncate text-[12px]",
-                blocked ? "text-legacy-warning" : "text-legacy-success",
+                "block truncate font-body-small",
+                blocked ? "text-warning" : "text-success",
               )}
               title={readiness.blocker === "—" ? undefined : readiness.blocker}
+              as="span"
+              paddingBlockStart="space.075"
             >
               {blocked
                 ? `Blocking — ${readiness.blocker}`
                 : readiness.canExit
                   ? "Every entry and exit criterion is met as of today."
                   : "No criterion is unmet."}
-            </span>
+            </Box>
           ) : null}
         </span>
-      </span>
+      </Inline>
     </>
   );
 
   const shell = cn(
-    "block w-full rounded-md border px-3 py-2.5 text-left transition-colors duration-100",
+    "block w-full rounded-medium border px-150 py-100 text-left transition-colors duration-fast",
     selected
-      ? "border-primary/40 bg-card shadow-hairline"
-      : "border-border bg-card hover:bg-surface-hover",
+      ? "border-brand bg-surface shadow-raised"
+      : "border-default bg-surface hover:bg-surface-hovered",
   );
 
   if (!onSelect) return <div className={shell}>{body}</div>;
@@ -334,39 +366,51 @@ export function PhaseReadinessSummary({
         };
 
   return (
-    <div className="space-y-4 pt-4">
-      <div
+    <Stack className="pt-200" space="space.200">
+      <Box
         className={cn(
-          "rounded-lg border px-4 py-3",
+          "rounded-large border",
           verdict.tone === "success"
-            ? "border-legacy-success/30 bg-success-soft/40"
+            ? "border-success-subtle bg-success"
             : verdict.tone === "warning"
-              ? "border-legacy-warning/30 bg-warning-soft/40"
-              : "border-legacy-danger/30 bg-danger-soft/40",
+              ? "border-warning-subtle bg-warning"
+              : "border-danger-subtle bg-danger",
         )}
+        paddingInline="space.200"
+        paddingBlock="space.150"
       >
-        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <h3 className="text-[13px] font-semibold">{verdict.head}</h3>
+        <Inline space="space.100" rowSpace="space.050" alignBlock="baseline" shouldWrap>
+          <h3 className="font-body font-semibold">{verdict.head}</h3>
           <PhaseStateChip phase={phase} />
-          <span className="ml-auto text-[12px] text-muted-foreground">
+          <span className="ml-auto font-body-small text-subtle">
             Evaluated against the register as it stands today
           </span>
-        </div>
-        <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">{verdict.text}</p>
+        </Inline>
+        <p className="pt-075 font-body-small text-subtle">{verdict.text}</p>
 
-        <div className="mt-3 rounded-md border border-border bg-card px-3 py-2.5">
-          <Eyebrow tone={readiness.blocker === "—" ? "success" : "danger"}>
-            {readiness.blocker === "—" ? "Nothing blocking" : "Blocking"}
-          </Eyebrow>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">
-            {readiness.blocker === "—"
-              ? "No criterion on this phase is unmet. Every derived sentence below was recomputed for this render; none of them is a stored verdict."
-              : readiness.blocker}
-          </p>
-        </div>
-      </div>
+        <Box paddingBlockStart="space.150">
+          <Box
+            className="rounded-medium border border-default bg-surface"
+            paddingInline="space.150"
+            paddingBlock="space.100"
+          >
+            <Eyebrow tone={readiness.blocker === "—" ? "success" : "danger"}>
+              {readiness.blocker === "—" ? "Nothing blocking" : "Blocking"}
+            </Eyebrow>
+            <p className="pt-050 font-body-small text-default">
+              {readiness.blocker === "—"
+                ? "No criterion on this phase is unmet. Every derived sentence below was recomputed for this render; none of them is a stored verdict."
+                : readiness.blocker}
+            </p>
+          </Box>
+        </Box>
+      </Box>
 
-      <div className="grid grid-cols-2 gap-px border-y border-border bg-border md:grid-cols-5">
+      <Grid
+        className="border-y border-default bg-neutral"
+        gap="space.025"
+        templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(5, minmax(0, 1fr))" }}
+      >
         <Stat.Tile
           label="Entry"
           value={`${readiness.entryMet}/${readiness.entryTotal}`}
@@ -397,8 +441,8 @@ export function PhaseReadinessSummary({
           note={unsigned.length === 0 ? "every attestation on file" : "attestation missing"}
           tone={unsigned.length === 0 ? "success" : "danger"}
         />
-      </div>
-    </div>
+      </Grid>
+    </Stack>
   );
 }
 
@@ -407,14 +451,14 @@ export function PhaseReadinessSummary({
 function BasisChip({ criterion }: { criterion: PhaseCriterion }) {
   if (criterion.basis === "Derived") {
     return (
-      <Badge tone="information" icon={<Calculator className="size-3" />}>
+      <Badge tone="information" icon={<Calculator className="size-150" />}>
         Derived
       </Badge>
     );
   }
   const signed = criterion.attestedBy !== "—" && criterion.attestedOn !== "—";
   return (
-    <Badge tone={signed ? "neutral" : "danger"} icon={<PenLine className="size-3" />}>
+    <Badge tone={signed ? "neutral" : "danger"} icon={<PenLine className="size-150" />}>
       {signed ? "Attested" : "Attested — unsigned"}
     </Badge>
   );
@@ -442,98 +486,111 @@ function CriterionRow({
   const unsignedAttestation = !derivedBasis && !signed;
 
   return (
-    <li
+    <Box
       className={cn(
-        "border-l-2 py-3 pl-3.5",
+        "border-s",
         derivedBasis
           ? met
-            ? "border-legacy-success/50"
-            : "border-primary/50"
+            ? "border-success-subtle"
+            : "border-brand"
           : unsignedAttestation
-            ? "border-legacy-danger"
-            : "border-dashed border-border-strong",
+            ? "border-danger"
+            : "border-dashed border-bold",
       )}
+      as="li"
+      paddingBlock="space.150"
+      paddingInlineStart="space.150"
     >
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+      <Inline space="space.100" rowSpace="space.050" alignBlock="center" shouldWrap>
         <Id>{criterion.id}</Id>
         <Badge size="xsmall">{criterion.kind}</Badge>
         <BasisChip criterion={criterion} />
-        <span className="ml-auto flex items-center gap-2">
+        <Inline className="ml-auto" as="span" space="space.100" alignBlock="center">
           <Badge tone={met ? "success" : "danger"}>{met ? "Met" : "Not met"}</Badge>
-        </span>
-      </div>
+        </Inline>
+      </Inline>
 
-      <p className="mt-1.5 text-[12.5px] leading-relaxed text-foreground">{criterion.statement}</p>
+      <p className="pt-075 font-body-small text-default">{criterion.statement}</p>
 
-      <div
-        className={cn(
-          "mt-2 rounded-md border px-3 py-2",
-          derivedBasis
-            ? met
-              ? "border-legacy-success/25 bg-success-soft/30"
-              : "border-legacy-warning/30 bg-warning-soft/30"
-            : unsignedAttestation
-              ? "border-legacy-danger/30 bg-danger-soft/40"
-              : "border-border bg-legacy-subtle",
-        )}
+      <Box paddingBlockStart="space.100">
+        <Box
+          className={cn(
+            "rounded-medium border",
+            derivedBasis
+              ? met
+                ? "border-success-subtle bg-success"
+                : "border-warning-subtle bg-warning"
+              : unsignedAttestation
+                ? "border-danger-subtle bg-danger"
+                : "border-default bg-surface-sunken",
+          )}
+          paddingInline="space.150"
+          paddingBlock="space.100"
+        >
+          <Eyebrow tone={derivedBasis ? "information" : unsignedAttestation ? "danger" : "neutral"}>
+            {derivedBasis
+              ? "Computed now"
+              : unsignedAttestation
+                ? "No signature on file"
+                : "Signature on file"}
+          </Eyebrow>
+          <p className="pt-050 font-body-small text-default">
+            {result ? result.finding : "This criterion was not evaluated for this program."}
+          </p>
+
+          {derivedBasis ? (
+            <p className="pt-075 flex items-start gap-075 font-body-small text-subtle">
+              <CornerDownRight className="pt-025 shrink-0 size-150" />
+              <span>
+                <span className="font-medium text-default">From </span>
+                {criterion.derivation}
+              </span>
+            </p>
+          ) : (
+            <p className="pt-075 flex flex-wrap items-start gap-x-150 gap-y-050 font-body-small text-subtle">
+              <CornerDownRight className="pt-025 shrink-0 size-150" />
+              <span>
+                Signer{" "}
+                <span className={signed ? "font-medium text-default" : "font-medium text-danger"}>
+                  {criterion.attestedBy}
+                </span>
+              </span>
+              <span>
+                Dated{" "}
+                <span
+                  className={cn(
+                    "tabular-nums",
+                    signed ? "font-medium text-default" : "font-medium text-danger",
+                  )}
+                >
+                  {criterion.attestedOn}
+                </span>
+              </span>
+              {signed ? null : <span>Both fields a signature would fill are empty.</span>}
+            </p>
+          )}
+        </Box>
+      </Box>
+
+      <Inline
+        className="pt-100"
+        space="space.100"
+        rowSpace="space.075"
+        alignBlock="baseline"
+        shouldWrap
       >
-        <Eyebrow tone={derivedBasis ? "information" : unsignedAttestation ? "danger" : "neutral"}>
-          {derivedBasis
-            ? "Computed now"
-            : unsignedAttestation
-              ? "No signature on file"
-              : "Signature on file"}
-        </Eyebrow>
-        <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">
-          {result ? result.finding : "This criterion was not evaluated for this program."}
-        </p>
-
-        {derivedBasis ? (
-          <p className="mt-1.5 flex items-start gap-1.5 text-[12px] leading-relaxed text-muted-foreground">
-            <CornerDownRight className="mt-0.5 size-3 shrink-0" />
-            <span>
-              <span className="font-medium text-foreground">From </span>
-              {criterion.derivation}
-            </span>
-          </p>
-        ) : (
-          <p className="mt-1.5 flex flex-wrap items-start gap-x-3 gap-y-1 text-[12px] leading-relaxed text-muted-foreground">
-            <CornerDownRight className="mt-0.5 size-3 shrink-0" />
-            <span>
-              Signer{" "}
-              <span className={signed ? "font-medium text-foreground" : "font-medium text-legacy-danger"}>
-                {criterion.attestedBy}
-              </span>
-            </span>
-            <span>
-              Dated{" "}
-              <span
-                className={cn(
-                  "tnum",
-                  signed ? "font-medium text-foreground" : "font-medium text-legacy-danger",
-                )}
-              >
-                {criterion.attestedOn}
-              </span>
-            </span>
-            {signed ? null : <span>Both fields a signature would fill are empty.</span>}
-          </p>
-        )}
-      </div>
-
-      <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1.5">
         <Eyebrow>Evidence</Eyebrow>
         {result && result.evidence.length > 0 ? (
           <IdChips ids={result.evidence} tone={met ? "neutral" : "warning"} />
         ) : (
-          <span className="text-[12px] text-muted-foreground">
+          <span className="font-body-small text-subtle">
             {derivedBasis
               ? "None — this judgement rests on the absence of a record rather than on any one record."
               : "None — an attestation carries a signature, not an artifact id."}
           </span>
         )}
-      </div>
-    </li>
+      </Inline>
+    </Box>
   );
 }
 
@@ -554,33 +611,39 @@ export function CriteriaTable({
 
   if (scoped.length === 0) {
     return (
-      <p className="pt-4 text-[12.5px] text-muted-foreground">
+      <p className="pt-200 font-body-small text-subtle">
         No {kind.toLowerCase()} criterion is authored for this phase.
       </p>
     );
   }
 
   return (
-    <div className="pt-3">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 pb-1 text-[12px] text-muted-foreground">
-        <span className="tnum">
+    <Box paddingBlockStart="space.150">
+      <Inline
+        className="pb-050 font-body-small text-subtle"
+        space="space.150"
+        rowSpace="space.050"
+        alignBlock="baseline"
+        shouldWrap
+      >
+        <span className="tabular-nums">
           <span
-            className={cn("font-medium", met === scoped.length ? "text-legacy-success" : "text-legacy-warning")}
+            className={cn("font-medium", met === scoped.length ? "text-success" : "text-warning")}
           >
             {met}
           </span>{" "}
           of {scoped.length} met
         </span>
-        <span className="tnum">
+        <span className="tabular-nums">
           {derived} derived · {attested} attested
         </span>
-      </div>
-      <ul className="divide-y divide-border-legacy-subtle">
+      </Inline>
+      <ul className="divide-y">
         {scoped.map((c) => (
           <CriterionRow key={c.id} criterion={c} result={results.get(c.id) ?? null} />
         ))}
       </ul>
-    </div>
+    </Box>
   );
 }
 
@@ -602,7 +665,7 @@ export function ScenarioTable({
 }) {
   if (scenarios.length === 0) {
     return (
-      <p className="pt-4 text-[12.5px] text-muted-foreground">
+      <p className="pt-200 font-body-small text-subtle">
         No threat scenario is written against this phase.
       </p>
     );
@@ -645,7 +708,7 @@ export function ScenarioTable({
               key={s.id}
               className={cn(
                 onSelect ? "cursor-pointer" : "",
-                selected === s.id ? "bg-muted/50" : "",
+                selected === s.id ? "bg-neutral-subtle" : "",
               )}
               onClick={onSelect ? () => onSelect(s.id) : undefined}
             >
@@ -665,9 +728,9 @@ export function ScenarioTable({
                 {s.missionFunction}
               </Table.Cell>
               <Table.Cell className="truncate" title={chainTitle}>
-                <span className="flex items-center gap-1.5">
-                  <span className="tnum text-muted-foreground">{s.chain.length}</span>
-                  <span className="min-w-0 truncate text-[12px] text-muted-foreground">
+                <Inline as="span" space="space.075" alignBlock="center">
+                  <span className="tabular-nums text-subtle">{s.chain.length}</span>
+                  <span className="min-w-0 truncate font-body-small text-subtle">
                     {first ? first.tactic : "—"}
                     {last && first && last.tactic !== first.tactic ? ` → ${last.tactic}` : ""}
                   </span>
@@ -676,9 +739,9 @@ export function ScenarioTable({
                       ICS
                     </Badge>
                   ) : null}
-                </span>
+                </Inline>
               </Table.Cell>
-              <Table.Cell className="tnum text-right" title={s.path.join(" → ")}>
+              <Table.Cell className="tabular-nums text-right" title={s.path.join(" → ")}>
                 {s.path.length} nodes
               </Table.Cell>
               <Table.Cell>{s.event ? <Id>{s.event}</Id> : <Absent />}</Table.Cell>
@@ -733,12 +796,23 @@ const zoneTone: Record<string, Tone> = {
 
 function TechniqueStep({ step, n }: { step: ThreatScenario["chain"][number]; n: number }) {
   return (
-    <div className="min-w-[168px] flex-1 rounded-md border border-border bg-card px-2.5 py-2">
-      <div className="flex items-center gap-1.5">
-        <span className="tnum inline-flex size-4 items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground">
+    <Box
+      className="flex-1 rounded-medium border border-default bg-surface"
+      paddingInline="space.100"
+      paddingBlock="space.100"
+      style={{ minWidth: 168 }}
+    >
+      <Inline space="space.075" alignBlock="center">
+        <Inline
+          className="tabular-nums size-icon-medium rounded-full bg-neutral font-body-xsmall font-semibold text-subtle"
+          as="span"
+          display="inline-flex"
+          alignBlock="center"
+          alignInline="center"
+        >
           {n}
-        </span>
-        <span className="min-w-0 truncate text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+        </Inline>
+        <span className="min-w-0 truncate font-heading-xxsmall uppercase text-subtle">
           {step.tactic}
         </span>
         {step.matrix === "ICS" ? (
@@ -746,12 +820,14 @@ function TechniqueStep({ step, n }: { step: ThreatScenario["chain"][number]; n: 
             ICS
           </Badge>
         ) : null}
-      </div>
-      <div className="mt-1 flex items-baseline gap-1.5">
+      </Inline>
+      <Inline className="pt-050" space="space.075" alignBlock="baseline">
         <Id>{step.id}</Id>
-      </div>
-      <div className="mt-0.5 text-[12.5px] font-medium leading-snug">{step.name}</div>
-    </div>
+      </Inline>
+      <Box className="font-body-small font-medium" paddingBlockStart="space.025">
+        {step.name}
+      </Box>
+    </Box>
   );
 }
 
@@ -782,91 +858,109 @@ export function AttackChain({
   const entry = path[0] ?? null;
 
   return (
-    <Card className="p-4">
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+    <Card className="p-200">
+      <Inline space="space.100" rowSpace="space.050" alignBlock="baseline" shouldWrap>
         <Id>{scenario.id}</Id>
-        <h3 className="text-[13.5px] font-semibold">{scenario.name}</h3>
+        <h3 className="font-body font-semibold">{scenario.name}</h3>
         <TierChip tier={scenario.tier} />
         <Badge tone={scenarioStatusTone[scenario.status]}>{scenario.status}</Badge>
-        <span className="ml-auto text-[12px] text-muted-foreground">
+        <span className="ml-auto font-body-small text-subtle">
           {scenario.event ? (
             <>
-              Executed by <Id className="text-muted-foreground">{scenario.event}</Id>
+              Executed by <Id className="text-subtle">{scenario.event}</Id>
             </>
           ) : (
             "No test event assigned"
           )}
         </span>
-      </div>
+      </Inline>
 
-      <div className="mt-2">
+      <Box paddingBlockStart="space.100">
         <Eyebrow>Adversary objective</Eyebrow>
-        <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">{scenario.objective}</p>
-      </div>
+        <p className="pt-050 font-body-small text-default">{scenario.objective}</p>
+      </Box>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
+      <Inline
+        className="pt-150 font-body-small text-subtle"
+        space="space.200"
+        rowSpace="space.050"
+        alignBlock="center"
+        shouldWrap
+      >
         <span>
           Mission function at risk:{" "}
-          <span className="font-medium text-foreground">{scenario.missionFunction}</span>
+          <span className="font-medium text-default">{scenario.missionFunction}</span>
         </span>
         <span>
-          Assumed start: <Id className="text-muted-foreground">{scenario.entryPoint}</Id>
+          Assumed start: <Id className="text-subtle">{scenario.entryPoint}</Id>
           {entry && !entry.missing ? ` — ${entry.name}` : ""}
         </span>
-        <span className="tnum">
+        <span className="tabular-nums">
           {scenario.chain.length} techniques · {path.length} nodes · {boundaries} trust{" "}
           {boundaries === 1 ? "boundary" : "boundaries"} crossed
         </span>
-      </div>
+      </Inline>
 
       {/* The chain */}
-      <div className="mt-4">
+      <Box paddingBlockStart="space.200">
         <Eyebrow tone="information">ATT&amp;CK chain — in order</Eyebrow>
-        <div className="mt-2 flex flex-wrap items-stretch gap-1.5">
+        <Inline className="pt-100" space="space.075" alignBlock="stretch" shouldWrap>
           {scenario.chain.map((step, i) => (
-            <div key={`${step.id}-${i}`} className="flex min-w-[168px] flex-1 items-center gap-1.5">
+            <Inline
+              key={`${step.id}-${i}`}
+              space="space.075"
+              alignBlock="center"
+              grow="fill"
+              style={{ minWidth: 168 }}
+            >
               <TechniqueStep step={step} n={i + 1} />
               {i < scenario.chain.length - 1 ? (
-                <ArrowRight className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+                <ArrowRight className="size-icon-small shrink-0 text-subtle" aria-hidden />
               ) : null}
-            </div>
+            </Inline>
           ))}
-        </div>
-      </div>
+        </Inline>
+      </Box>
 
       {/* The walk */}
-      <div className="mt-4">
+      <Box paddingBlockStart="space.200">
         <Eyebrow tone="information">Through the composition graph</Eyebrow>
-        <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+        <p className="pt-050 font-body-small text-subtle">
           Each step below is either a reachability edge in the direction of travel or a containment
           link into what a component is made of. Both are ways an adversary actually moves; a step
           that is neither would be a fabricated path, and is called out as one.
         </p>
 
         {unwalkable.length > 0 ? (
-          <Alert tone="danger" className="mt-2">
+          <Alert tone="danger" className="pt-100">
             {unwalkable.length} {unwalkable.length === 1 ? "step is" : "steps are"} not traversable
             in the composition graph — {unwalkable.map((h) => `${h.from} → ${h.to}`).join(", ")}.
             The scenario cannot be executed as written against this system.
           </Alert>
         ) : null}
 
-        <ol className="mt-2.5">
+        <Box as="ol" paddingBlockStart="space.100">
           {path.map((node, i) => {
             const hop = i > 0 ? (hops[i - 1] ?? null) : null;
             const previous = i > 0 ? (path[i - 1] ?? null) : null;
             return (
               <li key={`${node.id}-${i}`}>
                 {hop ? (
-                  <div className="flex items-stretch gap-3 pl-[11px]">
+                  <Inline className="ps-150" space="space.150" alignBlock="stretch">
                     <span
                       className={cn(
                         "w-px shrink-0",
-                        hop.via === "Unwalkable" ? "bg-legacy-danger" : "bg-border-strong",
+                        hop.via === "Unwalkable" ? "bg-danger-bold" : "bg-neutral-hovered",
                       )}
                       aria-hidden
                     />
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 py-1.5 text-[12px]">
+                    <Inline
+                      className="py-075 font-body-small"
+                      space="space.100"
+                      rowSpace="space.050"
+                      alignBlock="center"
+                      shouldWrap
+                    >
                       {hop.via === "Unwalkable" ? (
                         <Badge size="xsmall" tone="danger">
                           No path in the graph
@@ -876,39 +970,49 @@ export function AttackChain({
                           {hop.kind}
                         </Badge>
                       )}
-                      {hop.label !== "—" ? (
-                        <span className="text-muted-foreground">{hop.label}</span>
-                      ) : null}
+                      {hop.label !== "—" ? <span className="text-subtle">{hop.label}</span> : null}
                       {hop.crossesBoundary && previous ? (
                         <Badge size="xsmall" tone="warning">
                           Crosses {previous.zone} → {node.zone}
                         </Badge>
                       ) : null}
                       {hop.critical ? (
-                        <span className="text-muted-foreground">
+                        <span className="text-subtle">
                           No redundant path — this hop is the only one
                         </span>
                       ) : null}
-                    </div>
-                  </div>
+                    </Inline>
+                  </Inline>
                 ) : null}
 
-                <div className="flex items-center gap-3">
-                  <span
+                <Inline space="space.150" alignBlock="center">
+                  <Inline
                     className={cn(
-                      "inline-flex size-[22px] shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ring-1 ring-inset",
+                      "shrink-0 rounded-full font-body-xsmall font-semibold outline-focused",
                       i === 0
-                        ? "bg-warning-soft text-legacy-warning ring-legacy-warning/30"
+                        ? "bg-warning text-warning"
                         : i === path.length - 1
-                          ? "bg-danger-soft text-legacy-danger ring-legacy-danger/25"
-                          : "bg-muted text-muted-foreground ring-border-strong",
+                          ? "bg-danger text-danger"
+                          : "bg-neutral text-subtle",
                     )}
+                    style={{ width: 22, height: 22 }}
+                    as="span"
+                    display="inline-flex"
+                    alignBlock="center"
+                    alignInline="center"
                   >
                     {i + 1}
-                  </span>
-                  <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                    <Id className="text-muted-foreground">{node.id}</Id>
-                    <span className="text-[12.5px] font-medium">
+                  </Inline>
+                  <Inline
+                    className="min-w-0"
+                    as="span"
+                    space="space.100"
+                    rowSpace="space.025"
+                    alignBlock="baseline"
+                    shouldWrap
+                  >
+                    <Id className="text-subtle">{node.id}</Id>
+                    <span className="font-body-small font-medium">
                       {node.missing ? "Not in the graph" : node.name}
                     </span>
                     <Badge size="xsmall" tone={node.missing ? "danger" : "neutral"}>
@@ -917,27 +1021,32 @@ export function AttackChain({
                     <Badge size="xsmall" tone={zoneTone[node.zone] ?? "neutral"}>
                       {node.zone}
                     </Badge>
-                    <span className="text-[12px] text-muted-foreground">{node.criticality}</span>
+                    <span className="font-body-small text-subtle">{node.criticality}</span>
                     {i === 0 ? (
-                      <span className="text-[12px] text-muted-foreground">— assumed foothold</span>
+                      <span className="font-body-small text-subtle">— assumed foothold</span>
                     ) : null}
                     {i === path.length - 1 ? (
-                      <span className="text-[12px] text-muted-foreground">— objective</span>
+                      <span className="font-body-small text-subtle">— objective</span>
                     ) : null}
-                  </span>
-                </div>
+                  </Inline>
+                </Inline>
               </li>
             );
           })}
-        </ol>
-      </div>
+        </Box>
+      </Box>
 
-      <div className="mt-4 border-t border-border pt-3">
+      <Box className="border-t border-default pt-150" paddingBlockStart="space.200">
         <Eyebrow>Assessor note</Eyebrow>
-        <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">{scenario.note}</p>
-      </div>
+        <p className="pt-050 font-body-small text-subtle">{scenario.note}</p>
+      </Box>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-muted-foreground">
+      <Inline
+        className="pt-150 font-body-small text-subtle"
+        space="space.100"
+        alignBlock="center"
+        shouldWrap
+      >
         <Eyebrow>Mission effect</Eyebrow>
         {effects.length === 0 ? (
           <span>
@@ -952,7 +1061,7 @@ export function AttackChain({
             </Badge>
           ))
         )}
-      </div>
+      </Inline>
     </Card>
   );
 }
@@ -978,7 +1087,7 @@ export function MissionEffectTable({
 }) {
   if (effects.length === 0) {
     return (
-      <p className="pt-4 text-[12.5px] text-muted-foreground">
+      <p className="pt-200 font-body-small text-subtle">
         No mission effect is recorded. Until a scenario is executed there is nothing to score.
       </p>
     );
@@ -1012,7 +1121,7 @@ export function MissionEffectTable({
           const noWorkaround = e.workaround === "None identified";
           return (
             <Fragment key={e.id}>
-              <Table.Row className="border-0 hover:bg-transparent">
+              <Table.Row className="border-0" isStatic>
                 <Table.Cell>
                   <Id>{e.id}</Id>
                 </Table.Cell>
@@ -1039,38 +1148,44 @@ export function MissionEffectTable({
                       {none ? "None needed" : "None raised"}
                     </Badge>
                   ) : (
-                    <span className="flex flex-wrap gap-1">
+                    <Inline as="span" space="space.050" shouldWrap>
                       {e.findings.map((f) => (
-                        <Id key={f} className="text-muted-foreground">
+                        <Id key={f} className="text-subtle">
                           {f}
                         </Id>
                       ))}
-                    </span>
+                    </Inline>
                   )}
                 </Table.Cell>
               </Table.Row>
-              <tr className="border-b border-border-legacy-subtle last:border-0">
-                <td colSpan={7} className="px-3 pb-4 pt-0 align-top">
-                  <div
+              <tr className="border-b border-default last:border-0">
+                <td colSpan={7} className="px-150 pb-200 pt-0 align-top">
+                  <Box
                     className={cn(
-                      "rounded-md border-l-2 pl-3",
+                      "rounded-medium border-s",
                       none
-                        ? "border-legacy-success/50"
+                        ? "border-success-subtle"
                         : noWorkaround
-                          ? "border-legacy-danger/60"
-                          : "border-legacy-warning/50",
+                          ? "border-danger-subtle"
+                          : "border-warning-subtle",
                     )}
+                    paddingInlineStart="space.150"
                   >
                     <Eyebrow tone={none ? "success" : "neutral"}>
                       {none ? "Observed — objective not achieved" : "Observed"}
                     </Eyebrow>
-                    <p className="mt-1 whitespace-normal text-[12.5px] leading-relaxed text-foreground">
+                    <p className="pt-050 whitespace-normal font-body-small text-default">
                       {e.observed}
                     </p>
-                    <div className="mt-2 grid gap-x-6 gap-y-2 sm:grid-cols-2">
+                    <Grid
+                      className="pt-100"
+                      columnGap="space.300"
+                      rowGap="space.100"
+                      templateColumns={{ sm: "repeat(2, minmax(0, 1fr))" }}
+                    >
                       <div>
                         <Eyebrow>Persistence</Eyebrow>
-                        <p className="mt-0.5 whitespace-normal text-[12.5px] leading-relaxed text-muted-foreground">
+                        <p className="pt-025 whitespace-normal font-body-small text-subtle">
                           {e.duration === "—" ? <Absent /> : e.duration}
                         </p>
                       </div>
@@ -1080,8 +1195,8 @@ export function MissionEffectTable({
                         </Eyebrow>
                         <p
                           className={cn(
-                            "mt-0.5 whitespace-normal text-[12.5px] leading-relaxed",
-                            noWorkaround ? "text-legacy-danger" : "text-muted-foreground",
+                            "pt-025 whitespace-normal font-body-small",
+                            noWorkaround ? "text-danger" : "text-subtle",
                           )}
                         >
                           {noWorkaround
@@ -1089,8 +1204,8 @@ export function MissionEffectTable({
                             : e.workaround}
                         </p>
                       </div>
-                    </div>
-                  </div>
+                    </Grid>
+                  </Box>
                 </td>
               </tr>
             </Fragment>
@@ -1127,8 +1242,12 @@ export function AttackSurfaceSummary({
   const ics = scenarios.filter((s) => s.chain.some((step) => step.matrix === "ICS")).length;
 
   return (
-    <div className="space-y-4 pt-4">
-      <div className="grid grid-cols-2 gap-px border-y border-border bg-border md:grid-cols-5">
+    <Stack className="pt-200" space="space.200">
+      <Grid
+        className="border-y border-default bg-neutral"
+        gap="space.025"
+        templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(5, minmax(0, 1fr))" }}
+      >
         <Stat.Tile
           label="Scenarios"
           value={`${scenarios.length}`}
@@ -1156,38 +1275,38 @@ export function AttackSurfaceSummary({
           note="written but not executed"
           tone={coverage.unexercised.length > 0 ? "warning" : "success"}
         />
-      </div>
+      </Grid>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <Grid gap="space.200" templateColumns={{ lg: "repeat(2, minmax(0, 1fr))" }}>
         <div>
           <Eyebrow>Tactics represented</Eyebrow>
-          <div className="mt-1.5 flex flex-wrap gap-1.5">
+          <Inline className="pt-075" space="space.075" shouldWrap>
             {coverage.tactics.map((t) => (
               <Badge key={t}>{t}</Badge>
             ))}
-          </div>
+          </Inline>
         </div>
         <div>
           <Eyebrow tone={coverage.unexercised.length > 0 ? "warning" : "neutral"}>
             Written but not executed
           </Eyebrow>
           {coverage.unexercised.length === 0 ? (
-            <p className="mt-1.5 text-[12.5px] text-muted-foreground">
+            <p className="pt-075 font-body-small text-subtle">
               Every scenario on record has been executed.
             </p>
           ) : (
             <>
-              <div className="mt-1.5">
+              <Box paddingBlockStart="space.075">
                 <IdChips ids={cap.shown} tone="warning" />
-              </div>
+              </Box>
               {cap.hidden > 0 || cap.expanded ? (
-                <div className="pt-2">
+                <Box paddingBlockStart="space.100">
                   <Button variant="link" size="small" onClick={cap.toggle}>
                     {cap.expanded ? "Show fewer" : `Show ${cap.hidden} more`}
                   </Button>
-                </div>
+                </Box>
               ) : null}
-              <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
+              <p className="pt-075 font-body-small text-subtle">
                 An unexercised scenario is a residual the program is carrying, not an absence. Each
                 one names in its note why it was not run — denied authority, out of scope for
                 production infrastructure, or waiting on a configuration that has not shipped.
@@ -1195,7 +1314,7 @@ export function AttackSurfaceSummary({
             </>
           )}
         </div>
-      </div>
-    </div>
+      </Grid>
+    </Stack>
   );
 }

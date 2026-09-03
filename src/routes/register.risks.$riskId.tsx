@@ -1,10 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Fragment } from "react";
 
-import { Badge, Button, KeyValue, Progress, Table, Id, Indicator } from "@/ds/primitives";
-import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
-import { Shell } from "@/ds/shell";
+import {
+  Badge,
+  Box,
+  Button,
+  Empty,
+  Grid,
+  Id,
+  Indicator,
+  Inline,
+  Inspector,
+  KeyValue,
+  Progress,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Stack,
+  Table,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { TextBlock } from "@/components/app/control-text";
 import { assetById, bySeverity } from "@/lib/findings";
 import {
@@ -54,12 +69,12 @@ function RiskRecord() {
   if (!risk) {
     return (
       <Shell>
-        <div className="space-y-3">
-          <h1 className="text-[18px] font-semibold">Risk not found</h1>
-          <Link to="/register" className="text-[13px] text-primary hover:underline">
+        <Stack space="space.150">
+          <h1 className="font-heading-small font-semibold">Risk not found</h1>
+          <Link to="/register" className="font-body text-brand hover:underline">
             Back to the register
           </Link>
-        </div>
+        </Stack>
       </Shell>
     );
   }
@@ -79,7 +94,7 @@ function RiskRecord() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/register"
+            back={<Link to="/register" />}
             id={risk.id}
             title={risk.title}
             meta={`${risk.owner} · reviewed ${risk.reviewed}`}
@@ -91,7 +106,7 @@ function RiskRecord() {
             }
           />
         }
-        tabs={<div className="border-b border-border" />}
+        tabs={<div className="border-b border-default" />}
         showRail
         rail={
           <>
@@ -103,22 +118,30 @@ function RiskRecord() {
                 {risk.likelihood} × {risk.impact}
               </KeyValue>
               <KeyValue label="Inherent">
-                <span className="tnum">{risk.inherent}</span>
-                <span className="ml-1.5 text-[11.5px] text-muted-foreground">authored</span>
+                <span className="tabular-nums">{risk.inherent}</span>
+                <Box
+                  className="font-body-xsmall text-subtle"
+                  as="span"
+                  paddingInlineStart="space.075"
+                >
+                  authored
+                </Box>
               </KeyValue>
               <KeyValue label="Residual">
-                <span className="flex items-center gap-2">
+                <Inline as="span" space="space.100" alignBlock="center">
                   <Progress value={risk.residual} tone={residualTone(risk.residual)} />
-                  <span className="tnum text-[12px] font-medium">{risk.residual}</span>
-                  <span className="text-[11.5px] text-muted-foreground">authored</span>
-                </span>
+                  <span className="tabular-nums font-body-small font-medium">{risk.residual}</span>
+                  <span className="font-body-xsmall text-subtle">authored</span>
+                </Inline>
               </KeyValue>
               <KeyValue label="Computed">
                 {computed ? (
-                  <span className="flex items-center gap-2">
-                    <span className="tnum text-[12px] font-medium">{computed.score}</span>
+                  <Inline as="span" space="space.100" alignBlock="center">
+                    <span className="tabular-nums font-body-small font-medium">
+                      {computed.score}
+                    </span>
                     <Badge tone={bandTone[computed.band]}>{computed.band}</Badge>
-                  </span>
+                  </Inline>
                 ) : (
                   "—"
                 )}
@@ -135,28 +158,28 @@ function RiskRecord() {
                 <Link
                   to="/programs/$programId"
                   params={{ programId: risk.program }}
-                  className="text-primary hover:underline"
+                  className="text-brand hover:underline"
                 >
-                  <Id className="text-primary">{risk.program}</Id>
+                  <Id className="text-brand">{risk.program}</Id>
                 </Link>
               </KeyValue>
             </Inspector.Group>
             <Inspector.Group title="CCIs in scope">
-              <div className="flex flex-wrap gap-1">
+              <Inline space="space.050" shouldWrap>
                 {ccis.map((c) => (
-                  <Id key={c} className="text-[11.5px] text-muted-foreground">
+                  <Id key={c} className="font-body-xsmall text-subtle">
                     {c}
                   </Id>
                 ))}
-              </div>
+              </Inline>
             </Inspector.Group>
           </>
         }
       >
         <Section title="Risk statement">
-          <p className="max-w-3xl text-[13px] leading-relaxed">{risk.statement}</p>
+          <p className="max-w-layout-measure font-body">{risk.statement}</p>
           {risk.aoNote ? (
-            <p className="mt-3 max-w-3xl text-[12.5px] leading-relaxed text-muted-foreground">
+            <p className="pt-150 max-w-layout-measure font-body-small text-subtle">
               AO note — {risk.aoNote}
             </p>
           ) : null}
@@ -172,103 +195,122 @@ function RiskRecord() {
         >
           {computed && comparison ? (
             <>
-              <div className="grid gap-3 pt-4 md:grid-cols-2">
-                <div className="rounded-md border border-border p-3">
-                  <p className="text-11 font-medium uppercase tracking-[0.06em] text-muted-foreground">
+              <Grid
+                className="pt-200"
+                gap="space.150"
+                templateColumns={{ md: "repeat(2, minmax(0, 1fr))" }}
+              >
+                <Box className="rounded-medium border border-default" padding="space.150">
+                  <p className="font-heading-xxsmall uppercase text-subtle">
                     Authored — risk register
                   </p>
-                  <div className="mt-2 flex items-baseline gap-2">
-                    <span className="tnum text-[30px] font-semibold leading-none">
+                  <Inline className="pt-100" space="space.100" alignBlock="baseline">
+                    <span className="tabular-nums font-heading-large font-semibold">
                       {comparison.authored.residual}
                     </span>
-                    <span className="text-[12px] text-muted-foreground">residual / 100</span>
-                  </div>
-                  <div className="mt-3">
+                    <span className="font-body-small text-subtle">residual / 100</span>
+                  </Inline>
+                  <Box paddingBlockStart="space.150">
                     <Progress
                       value={comparison.authored.residual}
                       tone={residualTone(risk.residual)}
                     />
-                  </div>
-                  <dl className="mt-3 space-y-1.5 text-[12px]">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <dt className="text-muted-foreground">Likelihood × impact</dt>
-                      <dd className="tnum">
+                  </Box>
+                  <dl className="pt-150 space-y-075 font-body-small">
+                    <Inline space="space.150" alignBlock="baseline" spread="space-between">
+                      <dt className="text-subtle">Likelihood × impact</dt>
+                      <dd className="tabular-nums">
                         {comparison.authored.likelihood} × {comparison.authored.impact}
                       </dd>
-                    </div>
-                    <div className="flex items-baseline justify-between gap-3">
-                      <dt className="text-muted-foreground">Inherent</dt>
-                      <dd className="tnum">{comparison.authored.inherent}</dd>
-                    </div>
-                    <div className="flex items-baseline justify-between gap-3 border-t border-border-legacy-subtle pt-1.5">
+                    </Inline>
+                    <Inline space="space.150" alignBlock="baseline" spread="space-between">
+                      <dt className="text-subtle">Inherent</dt>
+                      <dd className="tabular-nums">{comparison.authored.inherent}</dd>
+                    </Inline>
+                    <Inline
+                      className="border-t border-default pt-075"
+                      space="space.150"
+                      alignBlock="baseline"
+                      spread="space-between"
+                    >
                       <dt className="font-medium">Residual</dt>
-                      <dd className="tnum font-medium">{comparison.authored.residual}</dd>
-                    </div>
+                      <dd className="tabular-nums font-medium">{comparison.authored.residual}</dd>
+                    </Inline>
                   </dl>
-                  <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
+                  <p className="pt-100 font-body-xsmall text-subtle">
                     {risk.owner} wrote this down on {risk.reviewed}. It is the number the AO has
                     seen, and nothing on this page overwrites it.
                   </p>
-                </div>
+                </Box>
 
-                <div className="rounded-md border border-border p-3">
-                  <p className="text-11 font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                <Box className="rounded-medium border border-default" padding="space.150">
+                  <p className="font-heading-xxsmall uppercase text-subtle">
                     Computed — evidence trail
                   </p>
-                  <div className="mt-2 flex items-baseline gap-2">
-                    <span className="tnum text-[30px] font-semibold leading-none">
+                  <Inline className="pt-100" space="space.100" alignBlock="baseline">
+                    <span className="tabular-nums font-heading-large font-semibold">
                       {computed.score}
                     </span>
-                    <span className="text-[12px] text-muted-foreground">residual / 100</span>
+                    <span className="font-body-small text-subtle">residual / 100</span>
                     <Badge tone={bandTone[computed.band]}>{computed.band}</Badge>
-                  </div>
-                  <div className="mt-3">
+                  </Inline>
+                  <Box paddingBlockStart="space.150">
                     <Progress value={computed.score} tone={bandTone[computed.band]} />
-                  </div>
-                  <dl className="mt-3 space-y-1.5 text-[12px]">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <dt className="text-muted-foreground">Inherent</dt>
-                      <dd className="tnum">{computed.inherent}</dd>
-                    </div>
-                    <div className="flex items-baseline justify-between gap-3">
-                      <dt className="text-muted-foreground">Mitigation credit</dt>
-                      <dd className={credit < 0 ? "tnum text-legacy-success" : "tnum"}>
+                  </Box>
+                  <dl className="pt-150 space-y-075 font-body-small">
+                    <Inline space="space.150" alignBlock="baseline" spread="space-between">
+                      <dt className="text-subtle">Inherent</dt>
+                      <dd className="tabular-nums">{computed.inherent}</dd>
+                    </Inline>
+                    <Inline space="space.150" alignBlock="baseline" spread="space-between">
+                      <dt className="text-subtle">Mitigation credit</dt>
+                      <dd className={credit < 0 ? "tabular-nums text-success" : "tabular-nums"}>
                         {signed(credit)}
                       </dd>
-                    </div>
-                    <div className="flex items-baseline justify-between gap-3 border-t border-border-legacy-subtle pt-1.5">
+                    </Inline>
+                    <Inline
+                      className="border-t border-default pt-075"
+                      space="space.150"
+                      alignBlock="baseline"
+                      spread="space-between"
+                    >
                       <dt className="font-medium">Residual</dt>
-                      <dd className="tnum font-medium">{computed.score}</dd>
-                    </div>
+                      <dd className="tabular-nums font-medium">{computed.score}</dd>
+                    </Inline>
                   </dl>
-                  <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
+                  <p className="pt-100 font-body-xsmall text-subtle">
                     Aggregated from the {fs.length} joined finding{fs.length === 1 ? "" : "s"} by
                     taking the worst reading on each of the six factors — a risk is no more
                     mitigated than its least-mitigated component.
                   </p>
-                </div>
-              </div>
+                </Box>
+              </Grid>
 
-              <div className="pt-4">
+              <Box paddingBlockStart="space.200">
                 <TextBlock label="Disagreement">{comparison.note}</TextBlock>
                 <TextBlock label="Greatest leverage">{computed.leverage}</TextBlock>
                 <TextBlock label="Caveats">
                   {computed.caveats.length === 0 ? (
-                    <span className="text-muted-foreground">
+                    <span className="text-subtle">
                       None. Every one of the six terms was computed from live evidence, so the score
                       is not provisional.
                     </span>
                   ) : (
-                    <ul className="space-y-1.5">
+                    <Stack as="ul" space="space.075">
                       {computed.caveats.map((c) => (
-                        <li key={c} className="border-l-2 border-border pl-2">
+                        <Box
+                          key={c}
+                          className="border-s border-default"
+                          as="li"
+                          paddingInlineStart="space.100"
+                        >
                           {c}
-                        </li>
+                        </Box>
                       ))}
-                    </ul>
+                    </Stack>
                   )}
                 </TextBlock>
-              </div>
+              </Box>
             </>
           ) : (
             <Empty
@@ -322,7 +364,7 @@ function RiskRecord() {
                         params={{ poamId: p.id }}
                         className="hover:underline"
                       >
-                        <Id className="text-primary">{p.id}</Id>
+                        <Id className="text-brand">{p.id}</Id>
                       </Link>
                     </Table.Cell>
                     <Table.Cell className="truncate">{p.title}</Table.Cell>
@@ -370,7 +412,7 @@ function RiskRecord() {
                       params={{ findingId: f.id }}
                       className="hover:underline"
                     >
-                      <Id className="text-primary">{f.id}</Id>
+                      <Id className="text-brand">{f.id}</Id>
                     </Link>
                   </Table.Cell>
                   <Table.Cell className="truncate">{f.title}</Table.Cell>
@@ -408,7 +450,7 @@ function RiskRecord() {
 function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number }) {
   const sum = factors.reduce((a, f) => a + f.contribution, 0);
   return (
-    <div className="pt-3">
+    <Box paddingBlockStart="space.150">
       <Table className="table-fixed">
         <colgroup>
           <col style={{ width: "152px" }} />
@@ -434,31 +476,31 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
                 <Table.Cell className="truncate" title={f.input}>
                   {f.input}
                 </Table.Cell>
-                <Table.Cell className="tnum text-right">{f.value.toFixed(2)}</Table.Cell>
-                <Table.Cell className="tnum text-right">{f.weight.toFixed(2)}</Table.Cell>
+                <Table.Cell className="tabular-nums text-right">{f.value.toFixed(2)}</Table.Cell>
+                <Table.Cell className="tabular-nums text-right">{f.weight.toFixed(2)}</Table.Cell>
                 <Table.Cell
                   className={
-                    f.contribution < 0 ? "tnum text-right text-legacy-success" : "tnum text-right"
+                    f.contribution < 0
+                      ? "tabular-nums text-right text-success"
+                      : "tabular-nums text-right"
                   }
                 >
                   {signed(f.contribution)}
                 </Table.Cell>
               </tr>
-              <tr className="border-b border-border-legacy-subtle">
-                <td colSpan={5} className="px-3 pb-2.5 align-top">
-                  <p className="max-w-3xl text-[12.5px] leading-relaxed text-muted-foreground">
-                    {f.rationale}
-                  </p>
-                  <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                    <span className="text-11 text-muted-foreground">Evidence</span>
+              <tr className="border-b border-default">
+                <td colSpan={5} className="px-150 pb-100 align-top">
+                  <p className="max-w-layout-measure font-body-small text-subtle">{f.rationale}</p>
+                  <p className="pt-050 flex flex-wrap items-center gap-x-100 gap-y-025">
+                    <span className="font-body-xsmall text-subtle">Evidence</span>
                     {f.evidence.length ? (
                       f.evidence.map((id) => (
-                        <Id key={id} className="text-[11.5px] text-muted-foreground">
+                        <Id key={id} className="font-body-xsmall text-subtle">
                           {id}
                         </Id>
                       ))
                     ) : (
-                      <span className="text-[11.5px] text-muted-foreground">—</span>
+                      <span className="font-body-xsmall text-subtle">—</span>
                     )}
                   </p>
                 </td>
@@ -470,10 +512,10 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
               Sum of the {factors.length} contributions
               {sum === score ? "" : `, clamped from ${sum} to the 0–100 range`}
             </Table.Cell>
-            <Table.Cell className="tnum text-right">{score}</Table.Cell>
+            <Table.Cell className="tabular-nums text-right">{score}</Table.Cell>
           </tr>
         </tbody>
       </Table>
-    </div>
+    </Box>
   );
 }

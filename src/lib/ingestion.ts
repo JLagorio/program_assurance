@@ -39,7 +39,7 @@
  * catalog. None of them import it back.
  */
 
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 import { ccis, rulesByCci } from "@/lib/catalog";
 import {
   ancestorsOf,

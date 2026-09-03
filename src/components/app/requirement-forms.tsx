@@ -11,7 +11,19 @@
 
 import { useMemo, useState } from "react";
 
-import { Badge, Button, Field, Input, NativeSelect, Textarea, Id, Dialog } from "@/ds/primitives";
+import {
+  Badge,
+  Box,
+  Button,
+  Dialog,
+  Field,
+  Grid,
+  Id,
+  Inline,
+  Input,
+  NativeSelect,
+  Textarea,
+} from "@ledger/design-system";
 import { nodesForProgram } from "@/lib/composition";
 import { systemComponents } from "@/lib/reusable-components";
 import {
@@ -128,7 +140,7 @@ export function NewRequirementModal({
       width="large"
       footer={
         <>
-          {error ? <span className="mr-auto text-[12.5px] text-legacy-danger">{error}</span> : null}
+          {error ? <span className="mr-auto font-body-small text-danger">{error}</span> : null}
           <Button onClick={onClose}>Cancel</Button>
           <Button variant="primary" onClick={submit}>
             Create requirement
@@ -136,7 +148,7 @@ export function NewRequirementModal({
         </>
       }
     >
-      <div className="grid gap-3">
+      <Grid gap="space.150">
         <Field label="Shall statement" hint="One obligation, testable, no compound clauses.">
           <Textarea
             value={text}
@@ -144,7 +156,7 @@ export function NewRequirementModal({
             placeholder="The system shall …"
           />
         </Field>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <Grid gap="space.150" templateColumns={{ sm: "repeat(3, minmax(0, 1fr))" }}>
           <Field label="Type">
             <NativeSelect value={type} onChange={(e) => setType(e.target.value as RequirementType)}>
               {requirementTypes.map((t) => (
@@ -169,8 +181,8 @@ export function NewRequirementModal({
               placeholder="Accountable engineer"
             />
           </Field>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-[140px_minmax(0,1fr)]">
+        </Grid>
+        <Grid gap="space.150" templateColumns={{ sm: "140px minmax(0,1fr)" }}>
           <Field label="Verification method">
             <NativeSelect
               value={method}
@@ -188,13 +200,13 @@ export function NewRequirementModal({
               placeholder="The observable that decides this is met"
             />
           </Field>
-        </div>
+        </Grid>
 
-        <div className="mt-1 border-t border-border pt-3">
-          <div className="pb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
+        <Box className="border-t border-default pt-150" paddingBlockStart="space.050">
+          <Box className="font-heading-xxsmall uppercase text-subtlest" paddingBlockEnd="space.100">
             Derivation source
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3">
+          </Box>
+          <Grid gap="space.150" templateColumns={{ sm: "repeat(3, minmax(0, 1fr))" }}>
             <Field label="Source type">
               <NativeSelect
                 value={sourceType}
@@ -211,16 +223,16 @@ export function NewRequirementModal({
             <Field label="Source name">
               <Input value={sourceLabel} onChange={(e) => setSourceLabel(e.target.value)} />
             </Field>
-          </div>
+          </Grid>
           <Field
-            className="mt-3"
+            className="pt-150"
             label="Why it produces this requirement"
             hint="&ldquo;The security team asked&rdquo; is not provenance."
           >
             <Textarea value={why} onChange={(e) => setWhy(e.target.value)} />
           </Field>
-        </div>
-      </div>
+        </Box>
+      </Grid>
     </Dialog>
   );
 }
@@ -298,7 +310,7 @@ export function AllocateModal({
       width="large"
       footer={
         <>
-          {error ? <span className="mr-auto text-[12.5px] text-legacy-danger">{error}</span> : null}
+          {error ? <span className="mr-auto font-body-small text-danger">{error}</span> : null}
           <Button onClick={onClose}>Cancel</Button>
           <Button variant="primary" onClick={submit}>
             Allocate
@@ -306,7 +318,7 @@ export function AllocateModal({
         </>
       }
     >
-      <div className="grid gap-3">
+      <Grid gap="space.150">
         <Field label="Allocate to">
           <NativeSelect value={target} onChange={(e) => setTarget(e.target.value)}>
             {options.map((o) => (
@@ -316,7 +328,7 @@ export function AllocateModal({
             ))}
           </NativeSelect>
         </Field>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <Grid gap="space.150" templateColumns={{ sm: "repeat(3, minmax(0, 1fr))" }}>
           <Field label="Responsibility">
             <NativeSelect
               value={responsibility}
@@ -340,7 +352,7 @@ export function AllocateModal({
           <Field label="Owner">
             <Input value={owner} onChange={(e) => setOwner(e.target.value)} />
           </Field>
-        </div>
+        </Grid>
         <Field label="Scope of the claim" hint="What part of the requirement this element answers.">
           <Input
             value={scope}
@@ -351,7 +363,7 @@ export function AllocateModal({
         <Field label="Rationale">
           <Textarea value={rationale} onChange={(e) => setRationale(e.target.value)} />
         </Field>
-      </div>
+      </Grid>
     </Dialog>
   );
 }
@@ -458,7 +470,7 @@ export function ApplicabilityModal({
       footer={
         current ? (
           <>
-            {error ? <span className="mr-auto text-[12.5px] text-legacy-danger">{error}</span> : null}
+            {error ? <span className="mr-auto font-body-small text-danger">{error}</span> : null}
             <Button onClick={onClose}>Stop</Button>
             <Button onClick={skip}>Does not apply — log it</Button>
             <Button variant="primary" onClick={apply}>
@@ -473,9 +485,13 @@ export function ApplicabilityModal({
       }
     >
       {current ? (
-        <div className="grid gap-3">
-          <div className="rounded-lg border border-border bg-legacy-subtle px-4 py-3">
-            <div className="flex flex-wrap items-center gap-2">
+        <Grid gap="space.150">
+          <Box
+            className="rounded-large border border-default bg-surface-sunken"
+            paddingInline="space.200"
+            paddingBlock="space.150"
+          >
+            <Inline space="space.100" alignBlock="center" shouldWrap>
               <Id>{current.id}</Id>
               <Badge size="xsmall">{current.type}</Badge>
               {current.derivations.map((d) => (
@@ -483,9 +499,9 @@ export function ApplicabilityModal({
                   {d.sourceId}
                 </Badge>
               ))}
-            </div>
-            <p className="mt-1.5 text-[13px] leading-[1.5]">{current.text}</p>
-          </div>
+            </Inline>
+            <p className="pt-075 font-body">{current.text}</p>
+          </Box>
 
           <Field label="Rationale" hint="Required to skip. Recorded either way, against your name.">
             <Textarea
@@ -495,7 +511,7 @@ export function ApplicabilityModal({
             />
           </Field>
 
-          <div className="grid gap-3 sm:grid-cols-[140px_140px_minmax(0,1fr)]">
+          <Grid gap="space.150" templateColumns={{ sm: "140px 140px minmax(0,1fr)" }}>
             <Field label="Responsibility">
               <NativeSelect
                 value={responsibility}
@@ -519,12 +535,10 @@ export function ApplicabilityModal({
             <Field label="Scope of the claim" hint="Needed only when it applies.">
               <Input value={scope} onChange={(e) => setScope(e.target.value)} />
             </Field>
-          </div>
-        </div>
+          </Grid>
+        </Grid>
       ) : (
-        <p className="text-[13px] text-muted-foreground">
-          Nothing left to answer for {targetName}.
-        </p>
+        <p className="font-body text-subtle">Nothing left to answer for {targetName}.</p>
       )}
     </Dialog>
   );

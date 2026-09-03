@@ -21,11 +21,11 @@ import {
   Button,
   Dialog,
   Field,
+  Grid,
   Id,
   Indicator,
   Inline,
   Input,
-  NativeSelect,
   Stack,
   Table,
   Textarea,
@@ -48,7 +48,6 @@ import {
   resolveDraft,
   revisionById,
   revisionTone,
-  revisionsForProgram,
   revisionsForScope,
   siblingCeiling,
   triadLabel,
@@ -59,35 +58,12 @@ import {
   type RevisionDelta,
   type RevisionOffer,
 } from "@/lib/control-set";
-import { currentSession, roles, setSession, useWorkVersion, type Role } from "@/lib/control-work";
+import { currentSession, useWorkVersion } from "@/lib/control-work";
 import { positionOf } from "@/lib/control-work";
 import { frameworkById } from "@/lib/frameworks";
 import { scopeById } from "@/lib/scopes";
 
 import { RevisionGates, ScopeTailoringPane } from "./scope-tailoring";
-
-/* ------------------------------------------------------------ Acting as */
-
-/** The shared session role switch. One control, rendered wherever an action is offered. */
-export function ActingAs() {
-  useWorkVersion();
-  const session = currentSession();
-  return (
-    <label className="flex items-center gap-075 font-body-small text-subtle">
-      Acting as
-      <NativeSelect
-        aria-label="Role"
-        value={session.role}
-        onChange={(e) => setSession({ role: e.target.value as Role })}
-        className="h-control-small w-auto font-body-small"
-      >
-        {roles.map((r) => (
-          <option key={r}>{r}</option>
-        ))}
-      </NativeSelect>
-    </label>
-  );
-}
 
 /* ------------------------------------------------------------ State strip */
 
@@ -126,9 +102,6 @@ export function RevisionStrip({ scopeId }: { scopeId: string }) {
           <Indicator tone="neutral">Nothing open</Indicator>
         )}
       </Inline>
-      <span className="ml-auto">
-        <ActingAs />
-      </span>
     </Inline>
   );
 }
@@ -182,7 +155,7 @@ export function RevisionActions({
   const blocked = offers.find((o) => !o.allowed)?.blocked ?? null;
 
   return (
-    <div className={`flex flex-col gap-050 ${align === "end" ? "items-end" : "items-start"}`}>
+    <Stack space="space.050" alignInline={align === "end" ? "end" : "start"}>
       <Inline space="space.100" alignBlock="center">
         {offers.map((o) => (
           <Button
@@ -247,7 +220,7 @@ export function RevisionActions({
           />
         )
       ) : null}
-    </div>
+    </Stack>
   );
 }
 
@@ -357,8 +330,9 @@ export function RevisionReview({
         title={`v${revision.number} · ${revision.state}`}
         action={compact ? null : <RevisionActions revision={revision} />}
       >
-        <div
-          className={compact ? "space-y-150" : "grid gap-200 lg:grid-cols-[minmax(0,1fr)_280px]"}
+        <Grid
+          gap={compact ? "space.150" : "space.200"}
+          templateColumns={compact ? undefined : { lg: "minmax(0, 1fr) 280px" }}
         >
           <Stack space="space.150">
             {editable ? (
@@ -393,7 +367,7 @@ export function RevisionReview({
             ) : null}
           </Stack>
           {isOpen ? <RevisionGates gates={gates} /> : null}
-        </div>
+        </Grid>
       </Block>
 
       <DeltaBlock delta={delta} base={base} programId={programId} compact={compact} />
@@ -514,164 +488,6 @@ export function RevisionHistory({ scopeId }: { scopeId: string }) {
         </Timeline>
       </Block>
     </>
-  );
-}
-
-/* ------------------------------------------------------- Program hub */
-
-/**
- * Every control-set change across one program, with the next move inline.
- * This is where a reader who thinks "ABC needs a change" or "what is waiting
- * on me" starts; the scope record is one click further and only needed to
- * edit a draft.
- */
-export function ProgramChanges({
-  programId,
-  onReview,
-}: {
-  programId: string;
-  onReview?: ((revision: ControlSetRevision) => void) | undefined;
-}) {
-  const version = useControlSetVersion();
-  const workVersion = useWorkVersion();
-  const rows = useMemo(() => {
-    const all = revisionsForProgram(programId).filter(
-      (r) => openStates.includes(r.state) || r.supersedes !== null || r.state === "Withdrawn",
-    );
-    const rank = (r: ControlSetRevision) => (openStates.includes(r.state) ? 0 : 1);
-    return all.sort((a, b) => rank(a) - rank(b) || b.created.localeCompare(a.created)).slice(0, 8);
-  }, [programId, version]);
-  const open = rows.filter((r) => openStates.includes(r.state)).length;
-
-  return (
-    <Block
-      title="Changes"
-      count={open ? `${open} open` : rows.length ? "none open" : "none"}
-      action={<ActingAs />}
-    >
-      {rows.length === 0 ? (
-        <p className="font-body-small text-subtle">
-          No change has been proposed to any control set. Open a scope and use Propose change.
-        </p>
-      ) : (
-        <Table>
-          <colgroup>
-            <col style={{ width: "200px" }} />
-            <col style={{ width: "52px" }} />
-            <col style={{ width: "150px" }} />
-            <col />
-            <col style={{ width: "130px" }} />
-            <col style={{ width: "110px" }} />
-            <col style={{ width: "300px" }} />
-          </colgroup>
-          <thead>
-            <Table.Row>
-              <Table.Header>Scope</Table.Header>
-              <Table.Header>Rev</Table.Header>
-              <Table.Header>State</Table.Header>
-              <Table.Header>Reason</Table.Header>
-              <Table.Header>Author</Table.Header>
-              <Table.Header>Changes</Table.Header>
-              <Table.Header className="text-right">Next</Table.Header>
-            </Table.Row>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <ChangeRow
-                key={`${r.id}-${workVersion}`}
-                revision={r}
-                programId={programId}
-                onReview={onReview}
-              />
-            ))}
-          </tbody>
-        </Table>
-      )}
-    </Block>
-  );
-}
-
-function ChangeRow({
-  revision: r,
-  programId,
-  onReview,
-}: {
-  revision: ControlSetRevision;
-  programId: string;
-  onReview?: ((revision: ControlSetRevision) => void) | undefined;
-}) {
-  const scope = scopeById.get(r.scope);
-  const isOpen = openStates.includes(r.state);
-  const base = isOpen ? inForceRevision(r.scope) : r.supersedes ? revisionById(r.supersedes) : null;
-  const delta = deltaOf(r, base, r.scope);
-  const editable = r.state === "Draft" || r.state === "Changes requested";
-  return (
-    <Table.Row>
-      <Table.Cell className="max-w-none truncate">
-        <Link
-          to="/programs/$programId/systems/$scopeId"
-          params={{ programId, scopeId: r.scope }}
-          search={{ tab: "Control set" }}
-          className="text-brand hover:underline"
-        >
-          {scope?.name ?? r.scope}
-        </Link>
-      </Table.Cell>
-      <Table.Cell>
-        <Id>v{r.number}</Id>
-      </Table.Cell>
-      <Table.Cell>
-        <Badge size="xsmall" tone={revisionTone[r.state]}>
-          {r.state}
-        </Badge>
-      </Table.Cell>
-      <Table.Cell className="truncate" title={r.reason}>
-        {r.reason}
-      </Table.Cell>
-      <Table.Cell className="truncate">{r.author.replace(/\s*\(.*\)$/, "")}</Table.Cell>
-      <Table.Cell className="tabular-nums truncate">
-        {delta.empty ? (
-          <span className="text-subtle">—</span>
-        ) : delta.controls.length ? (
-          <span title={`${delta.retiring.length} work records retire · ${delta.opening} open`}>
-            +{delta.added} −{delta.removed}
-          </span>
-        ) : (
-          <span className="text-subtle">
-            {[
-              delta.overlays.length ? `${delta.overlays.length} overlay` : "",
-              delta.triad.length + delta.parameters.length
-                ? `${delta.triad.length + delta.parameters.length} parameter${delta.triad.length + delta.parameters.length === 1 ? "" : "s"}`
-                : "",
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </span>
-        )}
-      </Table.Cell>
-      <Table.Cell className="max-w-none whitespace-normal py-075 align-top">
-        <Stack space="space.050" alignInline="end">
-          <Inline space="space.100" alignBlock="center">
-            {editable ? (
-              <Link
-                to="/programs/$programId/systems/$scopeId"
-                params={{ programId, scopeId: r.scope }}
-                search={{ tab: "Control set" }}
-              >
-                <Button size="small" variant="secondary">
-                  Edit draft
-                </Button>
-              </Link>
-            ) : onReview && isOpen ? (
-              <Button size="small" variant="secondary" onClick={() => onReview(r)}>
-                Review
-              </Button>
-            ) : null}
-            {isOpen ? <RevisionActions revision={r} /> : null}
-          </Inline>
-        </Stack>
-      </Table.Cell>
-    </Table.Row>
   );
 }
 

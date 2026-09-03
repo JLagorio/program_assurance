@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from "react";
 
-import { Command } from "@/ds/primitives";
+import { Command } from "@ledger/design-system";
 
 export type PaletteCommand = {
   id: string;

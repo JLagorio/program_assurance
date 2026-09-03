@@ -12,7 +12,7 @@
  * and the seam between the two stores is shown rather than smoothed over.
  */
 
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 import { nodeById, pathLabel } from "@/lib/composition";
 import { positionOf, workForScope, type ControlWork } from "@/lib/control-work";
 import type { ControlOrigination, Sctm, SctmRow } from "@/lib/sctm";

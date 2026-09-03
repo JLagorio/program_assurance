@@ -6,25 +6,24 @@
  * Presentation only: bars and tracks, no chart library, no cards.
  */
 
-import { Progress, Id, Stepper } from "@/ds/primitives";
-import { Section } from "@/ds/patterns";
+import { Box, Grid, Id, Inline, Progress, Section, Stepper } from "@ledger/design-system";
 import { cn } from "@/lib/utils";
 import type { Coverage, MilestoneNode } from "@/lib/program-coverage";
 
 const toneText: Record<string, string> = {
-  success: "text-legacy-success",
-  warning: "text-legacy-warning",
-  danger: "text-legacy-danger",
-  info: "text-primary",
-  neutral: "text-muted-foreground",
+  success: "text-success",
+  warning: "text-warning",
+  danger: "text-danger",
+  info: "text-brand",
+  neutral: "text-subtle",
 };
 
 const toneDot: Record<string, string> = {
-  success: "bg-legacy-success",
-  warning: "bg-legacy-warning",
-  danger: "bg-legacy-danger",
-  info: "bg-primary",
-  neutral: "bg-muted-foreground/40",
+  success: "bg-success-bold",
+  warning: "bg-warning-bold",
+  danger: "bg-danger-bold",
+  info: "bg-brand-bold",
+  neutral: "bg-neutral-bold",
 };
 
 export function CoverageBand({
@@ -43,18 +42,18 @@ export function CoverageBand({
   return (
     <Section
       title="Control coverage"
-      action={<span className="text-12 text-muted-foreground">{baseline}</span>}
+      action={<span className="font-body-small text-subtle">{baseline}</span>}
     >
-      <div className="pt-3">
-        <div className="flex items-baseline gap-2 pb-2">
-          <span className="tnum text-20 font-semibold leading-none">{coverage.pct}%</span>
-          <span className="tnum text-12 text-muted-foreground">
+      <Box paddingBlockStart="space.150">
+        <Inline className="pb-100" space="space.100" alignBlock="baseline">
+          <span className="tabular-nums font-heading-small font-semibold">{coverage.pct}%</span>
+          <span className="tabular-nums font-body-small text-subtle">
             {coverage.satisfied}/{coverage.total} controls satisfied
           </span>
-          <span className="tnum ml-auto text-12 text-muted-foreground">
+          <span className="tabular-nums ml-auto font-body-small text-subtle">
             {coverage.inherited} inherited · {coverage.systemImplemented} system-implemented
           </span>
-        </div>
+        </Inline>
 
         <Progress.Stacked
           segments={coverage.segments.map((s) => ({
@@ -66,35 +65,45 @@ export function CoverageBand({
           }))}
         />
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2">
+        <Inline
+          className="pt-100"
+          space="space.200"
+          rowSpace="space.050"
+          alignBlock="center"
+          shouldWrap
+        >
           {coverage.segments.map((s) => (
             <button
               key={s.key}
               type="button"
               onClick={() => onSelectSegment(s.key)}
-              className="group flex items-center gap-1.5 text-12"
+              className="group flex items-center gap-075 font-body-small"
             >
-              <span className={cn("size-1.5 rounded-full", toneDot[s.tone])} />
-              <span className="text-muted-foreground group-hover:text-foreground">{s.label}</span>
-              <span className="tnum font-medium">{s.value}</span>
+              <span className={cn("rounded-full", toneDot[s.tone], "size-075")} />
+              <span className="text-subtle group-hover:text-default">{s.label}</span>
+              <span className="tabular-nums font-medium">{s.value}</span>
             </button>
           ))}
-        </div>
+        </Inline>
 
-        <div className="pt-3.5">
-          <div className="grid grid-cols-1 gap-x-8 gap-y-0 md:grid-cols-2">
+        <Box paddingBlockStart="space.150">
+          <Grid
+            columnGap="space.400"
+            rowGap="space.0"
+            templateColumns={{ base: "repeat(1, minmax(0, 1fr))", md: "repeat(2, minmax(0, 1fr))" }}
+          >
             {families.map((f) => (
               <button
                 key={f.id}
                 type="button"
                 onClick={() => onSelectFamily(f.id)}
-                className="group flex items-center gap-3 border-b border-border-legacy-subtle py-1.5 text-left last:border-0"
+                className="group flex items-center gap-150 border-b border-default py-075 text-left last:border-0"
               >
-                <Id className="w-8 shrink-0 text-muted-foreground">{f.id}</Id>
-                <span className="min-w-0 flex-1 truncate text-12 group-hover:underline">
+                <Id className="shrink-0 text-subtle w-400">{f.id}</Id>
+                <span className="min-w-0 flex-1 truncate font-body-small group-hover:underline">
                   {f.name}
                 </span>
-                <span className="w-24 shrink-0">
+                <span className="shrink-0 w-1000">
                   <Progress.Stacked
                     height={4}
                     segments={[
@@ -105,14 +114,14 @@ export function CoverageBand({
                     ]}
                   />
                 </span>
-                <span className="tnum w-16 shrink-0 text-right text-12 text-muted-foreground">
+                <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-800">
                   {f.satisfied}/{f.total}
                 </span>
               </button>
             ))}
-          </div>
-        </div>
-      </div>
+          </Grid>
+        </Box>
+      </Box>
     </Section>
   );
 }
@@ -128,8 +137,8 @@ export function MilestoneTrack({
 
   return (
     <Section title="Milestones">
-      <div className="overflow-x-auto pt-4">
-        <Stepper className="min-w-[640px]">
+      <Box className="overflow-x-auto" paddingBlockStart="space.200">
+        <Stepper style={{ minWidth: 640 }}>
           {nodes.map((n, i) => (
             <Stepper.Item
               key={n.id}
@@ -156,7 +165,7 @@ export function MilestoneTrack({
             />
           ))}
         </Stepper>
-      </div>
+      </Box>
     </Section>
   );
 }

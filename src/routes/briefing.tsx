@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { BriefingRoom } from "@/components/app/authorization";
-import { Badge, Button, Id } from "@/ds/primitives";
-import { Shell } from "@/ds/shell";
+import { Badge, Button, Id, Inline, Stack } from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { authorization } from "@/lib/authorization";
 
 export const Route = createFileRoute("/briefing")({
@@ -30,30 +30,33 @@ export const Route = createFileRoute("/briefing")({
 function BriefingPage() {
   return (
     <Shell>
-      <div className="animate-slide-up space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <Stack className="animate-rise" space="space.250">
+        <Inline space="space.150" alignBlock="center" spread="space-between" shouldWrap>
           <div className="min-w-0">
-            <div className="flex min-w-0 flex-wrap items-center gap-2.5">
-              <h1 className="truncate text-[19px] font-semibold tracking-[-0.02em]">
-                ATO briefing room
-              </h1>
+            <Inline className="min-w-0" space="space.100" alignBlock="center" shouldWrap>
+              <h1 className="truncate font-heading-small font-semibold">ATO briefing room</h1>
               <Badge tone="warning">{authorization.decision}</Badge>
-              <span className="flex min-w-0 items-center gap-2 text-[12.5px] text-muted-foreground">
+              <Inline
+                className="min-w-0 font-body-small text-subtle"
+                as="span"
+                space="space.100"
+                alignBlock="center"
+              >
                 <Id>PRG-1041</Id>
-                <span className="text-border">·</span>
+                <span className="text-subtlest">·</span>
                 <span className="truncate">Trident UUV C2</span>
-                <span className="text-border">·</span>
+                <span className="text-subtlest">·</span>
                 <span>Briefing {authorization.briefing}</span>
-              </span>
-            </div>
+              </Inline>
+            </Inline>
           </div>
-          <div className="flex items-center gap-2">
+          <Inline space="space.100" alignBlock="center">
             <Button variant="secondary">Export briefing deck</Button>
-          </div>
-        </div>
+          </Inline>
+        </Inline>
 
         <BriefingRoom />
-      </div>
+      </Stack>
     </Shell>
   );
 }

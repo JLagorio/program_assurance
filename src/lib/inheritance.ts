@@ -47,7 +47,7 @@
  * one way only — logic reads data, never the reverse.
  */
 
-import type { Tone } from "@/ds/primitives";
+import type { Tone } from "@ledger/design-system";
 import { graphVersion, nodesForProgram } from "@/lib/composition";
 import { assets, findings, isDeficiency, isOpen } from "@/lib/findings";
 import { programs, type Program } from "@/lib/grc-data";
