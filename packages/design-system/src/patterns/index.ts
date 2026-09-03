@@ -1,5 +1,6 @@
 export { IndexPage, ShowPage } from "./archetypes";
 export { Card } from "./card";
+export * from "./data-table";
 export { Empty } from "./empty";
 export { PageHeader } from "./page-header";
 export { PageSkeleton } from "./page-skeleton";

@@ -7,31 +7,32 @@ import {
   Box,
   Button,
   Combobox,
+  DataTable,
   Dialog,
   Field,
   FilterChip,
   Grid,
-  HoverCard,
   Id,
   IndexPage,
   Inline,
   Input,
   NativeSelect,
   PageHeader,
-  Pagination,
   Popover,
   Progress,
   RadioGroup,
   Spinner,
   Stack,
-  Table,
   Tabs,
+  TextLink,
   Textarea,
+  defineColumns,
   toast,
+  useDataTable,
+  type Tone,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { riskStatusTone, risks, type Risk } from "@/lib/grc-data";
-import { usePage, useSort } from "@/lib/table-state";
 
 export const Route = createFileRoute("/risks")({
   head: () => ({
@@ -72,16 +73,6 @@ function RisksLayout() {
   );
 }
 
-const riskSort = {
-  id: (r: Risk) => r.id,
-  title: (r: Risk) => r.title,
-  framework: (r: Risk) => r.framework,
-  owner: (r: Risk) => r.owner,
-  treatment: (r: Risk) => r.treatment,
-  residual: (r: Risk) => r.residual,
-  status: (r: Risk) => r.status,
-};
-
 const treatments = ["All", "Mitigate", "Transfer", "Accept"] as const;
 
 function RiskPeek({ risk: r }: { risk: Risk }) {
@@ -114,28 +105,71 @@ function RiskPeek({ risk: r }: { risk: Risk }) {
   );
 }
 
+const residualTone = (residual: number): Tone =>
+  residual > 60 ? "danger" : residual > 30 ? "warning" : "success";
+
+const riskColumns = defineColumns<Risk>((c) => [
+  c.id("id", { glance: (r) => <RiskPeek risk={r} /> }),
+  c.text("title", {
+    header: "Risk",
+    cell: (r) => (
+      <TextLink weight="medium">
+        <Link to="/risks/$riskId" params={{ riskId: r.id }}>
+          {r.title}
+        </Link>
+      </TextLink>
+    ),
+  }),
+  c.text("framework", { header: "Framework", width: 88 }),
+  c.id("control", { header: "Control", width: 76, tone: "subtle", sortable: false }),
+  c.person("owner", { header: "Owner", width: 130 }),
+  c.text("treatment", { header: "Treatment", width: 88 }),
+  c.custom("residual", {
+    header: "Residual",
+    width: 120,
+    sort: (r) => r.residual,
+    cell: (r) => (
+      <Inline space="space.100" alignBlock="center">
+        <span className="tabular-nums text-right font-body-small text-subtlest line-through w-250">
+          {r.inherent}
+        </span>
+        <Progress value={r.residual} tone={residualTone(r.residual)} />
+        <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-250">
+          {r.residual}
+        </span>
+      </Inline>
+    ),
+  }),
+  c.date("updated", { header: "Updated", width: 104, sortable: false }),
+  c.status("status", { header: "Status", width: 108, tone: (r) => riskStatusTone[r.status] }),
+]);
+
 function RiskList() {
   const [tab, setTab] = useState("All");
-  const [selected, setSelected] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
   const [exporting, setExporting] = useState(false);
-
   const [treatment, setTreatment] = useState<(typeof treatments)[number]>("All");
 
-  const filtered = useMemo(
-    () =>
-      risks.filter(
-        (r) =>
-          (tab === "All" || r.status === tab) && (treatment === "All" || r.treatment === treatment),
-      ),
+  // The tab and the treatment chip are column filters; the table does the filtering.
+  const columnFilters = useMemo(
+    () => [
+      ...(tab === "All" ? [] : [{ id: "status", value: tab }]),
+      ...(treatment === "All" ? [] : [{ id: "treatment", value: treatment }]),
+    ],
     [tab, treatment],
   );
-  const sort = useSort(filtered, riskSort, { key: "id", dir: "desc" });
-  const paged = usePage(sort.rows, 5);
-  const rows = paged.rows;
-
-  const toggle = (id: string) =>
-    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+  const table = useDataTable({
+    columns: riskColumns,
+    data: risks,
+    getRowId: (r) => r.id,
+    selectable: true,
+    pageSize: 5,
+    label: "Risk register",
+    state: { columnFilters },
+    initialState: { sorting: [{ id: "id", desc: true }] },
+  });
+  const chosen = table.getSelectedRowModel().rows.length;
+  const shown = table.getRowCount();
 
   return (
     <IndexPage
@@ -153,7 +187,7 @@ function RiskList() {
                   window.setTimeout(() => {
                     setExporting(false);
                     toast.success("Risk register exported", {
-                      description: `${filtered.length} risks · CSV with inherent and residual scores`,
+                      description: `${shown} risks · CSV with inherent and residual scores`,
                     });
                   }, 900);
                 }}
@@ -214,13 +248,13 @@ function RiskList() {
         </Inline>
       </Inline>
 
-      {selected.length > 0 ? (
+      {chosen > 0 ? (
         <Inline
           className="rounded-medium border border-brand bg-selected px-150 py-075 font-body text-brand"
           space="space.100"
           alignBlock="center"
         >
-          <span className="tabular-nums font-medium">{selected.length} selected</span>
+          <span className="tabular-nums font-medium">{chosen} selected</span>
           <Inline className="ml-auto" as="span" space="space.100" alignBlock="center">
             <Button variant="secondary" size="small">
               Reassign
@@ -228,143 +262,17 @@ function RiskList() {
             <Button variant="secondary" size="small">
               Change treatment
             </Button>
-            <Button variant="subtle" size="small" onClick={() => setSelected([])}>
+            <Button variant="subtle" size="small" onClick={() => table.resetRowSelection()}>
               Clear
             </Button>
           </Inline>
         </Inline>
       ) : null}
 
-      <div className="overflow-hidden rounded-large border border-default">
-        <Table>
-          <thead>
-            <tr>
-              <Table.Selection
-                header
-                checked={
-                  selected.length > 0 && selected.length === rows.length
-                    ? true
-                    : selected.length > 0
-                      ? "indeterminate"
-                      : false
-                }
-                onCheckedChange={(next) => setSelected(next ? rows.map((r) => r.id) : [])}
-                label="Select all risks"
-              />
-              <Table.Header sort={sort.dir("id")} onSort={() => sort.toggle("id")} width={92}>
-                ID
-              </Table.Header>
-              <Table.Header sort={sort.dir("title")} onSort={() => sort.toggle("title")}>
-                Risk
-              </Table.Header>
-              <Table.Header
-                sort={sort.dir("framework")}
-                onSort={() => sort.toggle("framework")}
-                width={88}
-              >
-                Framework
-              </Table.Header>
-              <Table.Header width={76}>Control</Table.Header>
-              <Table.Header
-                sort={sort.dir("owner")}
-                onSort={() => sort.toggle("owner")}
-                width={118}
-              >
-                Owner
-              </Table.Header>
-              <Table.Header
-                sort={sort.dir("treatment")}
-                onSort={() => sort.toggle("treatment")}
-                width={88}
-              >
-                Treatment
-              </Table.Header>
-              <Table.Header
-                sort={sort.dir("residual")}
-                onSort={() => sort.toggle("residual")}
-                width={130}
-              >
-                Residual
-              </Table.Header>
-              <Table.Header width={128}>Updated</Table.Header>
-              <Table.Header
-                className="text-right"
-                sort={sort.dir("status")}
-                onSort={() => sort.toggle("status")}
-                width={96}
-              >
-                Status
-              </Table.Header>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((risk) => (
-              <Table.Row key={risk.id} className="group" isSelected={selected.includes(risk.id)}>
-                <Table.Selection
-                  checked={selected.includes(risk.id)}
-                  onCheckedChange={() => toggle(risk.id)}
-                  label={`Select ${risk.id}`}
-                />
-                <Table.Cell>
-                  <HoverCard content={<RiskPeek risk={risk} />} width={300}>
-                    <Inline
-                      tabIndex={0}
-                      className="rounded-xsmall outline-none focus-visible:outline-focused"
-                      as="span"
-                      display="inline-flex"
-                    >
-                      <Id>{risk.id}</Id>
-                    </Inline>
-                  </HoverCard>
-                </Table.Cell>
-                <Table.Cell>
-                  <Link
-                    to="/risks/$riskId"
-                    params={{ riskId: risk.id }}
-                    className="font-medium underline-offset-2 group-hover:text-brand group-hover:underline"
-                  >
-                    {risk.title}
-                  </Link>
-                </Table.Cell>
-                <Table.Cell>{risk.framework}</Table.Cell>
-                <Table.Cell>
-                  <Id>{risk.control}</Id>
-                </Table.Cell>
-                <Table.Cell>{risk.owner}</Table.Cell>
-                <Table.Cell>{risk.treatment}</Table.Cell>
-                <Table.Cell>
-                  <Inline space="space.100" alignBlock="center">
-                    <span className="tabular-nums text-right font-body-small text-subtlest line-through w-250">
-                      {risk.inherent}
-                    </span>
-                    <Progress
-                      value={risk.residual}
-                      tone={
-                        risk.residual > 60 ? "danger" : risk.residual > 30 ? "warning" : "success"
-                      }
-                    />
-                    <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-250">
-                      {risk.residual}
-                    </span>
-                  </Inline>
-                </Table.Cell>
-                <Table.Cell>{risk.updated}</Table.Cell>
-                <Table.Cell className="text-right">
-                  <Badge tone={riskStatusTone[risk.status]}>{risk.status}</Badge>
-                </Table.Cell>
-              </Table.Row>
-            ))}
-          </tbody>
-        </Table>
-        <Pagination
-          page={paged.page}
-          pageCount={paged.pageCount}
-          onPageChange={paged.setPage}
-          total={paged.total}
-          pageSize={paged.pageSize}
-          className="border-t border-default px-150 py-100"
-        />
-      </div>
+      <DataTable
+        table={table}
+        empty={{ title: "No risks match", description: "Change the tab or the treatment filter." }}
+      />
 
       <CreateRiskModal open={creating} onClose={() => setCreating(false)} />
     </IndexPage>

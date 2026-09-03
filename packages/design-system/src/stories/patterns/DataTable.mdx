@@ -1,0 +1,53 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./DataTable.stories";
+
+<Meta of={Stories} />
+
+# Data table
+
+The register with its state. `Table` is the markup and stays for a table with nothing to sort, filter, page or choose. `DataTable` is the same parts drawn from a TanStack Table 9 instance: the columns are declared by kind, the state has an owner, and every feature is one option on the hook and one part in the renderer. Spec: `docs/superpowers/specs/2026-09-03-data-table.md`.
+
+<Canvas of={Stories.RegisterStory} />
+
+## Which table
+
+A table sorts, filters, pages, chooses, pins, nests or scrolls inside itself: `DataTable`. Otherwise: `Table`. No route sorts, filters or pages by hand.
+
+## Three parts
+
+| Part                                   | Does                                                                                                                                                                                                                                                                                                                                                                                                     |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `defineColumns<T>((c) => [...])`       | The columns of a record type, by kind. A kind decides alignment, minimum width, sort and filter, and the part that draws the value. Keep the call at module level.                                                                                                                                                                                                                                       |
+| `useDataTable({ columns, data, ... })` | The table instance. `getRowId` names rows; `selectable` draws the checkbox column; `pageSize` pages and draws Pagination; `label` names the table. Any TanStack state slice can be owned outside: pass `sorting` and `onSortingChange`, or `state.columnFilters` from the route's own filters. `initialState` seeds what the table keeps. `manual` hands sorting, filtering or pagination to the server. |
+| `DataTable table={table}`              | The renderer. `toolbar` sits inside the frame above the header; `state` is `ready`, `loading`, `empty` or `error`, drawn inside the frame so the header never moves; `empty` and `error` say what; `onRowClick` opens the record; `maxHeight` makes the table scroll inside itself.                                                                                                                      |
+
+## Kinds
+
+| Kind                                           | Aligns  | Sorts by                      | Filters by | Draws                                                                                                     |
+| ---------------------------------------------- | ------- | ----------------------------- | ---------- | --------------------------------------------------------------------------------------------------------- |
+| `c.id(key, { glance, preview, active, tone })` | start   | alphanumeric                  | text       | `Table.Id`: the eye opens the preview, hover on the id shows the `glance` (the hover ladder's first rung) |
+| `c.text(key, { wrap })`                        | start   | alphanumeric                  | text       | the value, truncated; `wrap` lets the row grow                                                            |
+| `c.number(key, { format })`                    | end     | numeric                       | range      | integer, decimal, percent or a formatter, tabular numerals                                                |
+| `c.date(key, { format })`                      | start   | date                          | range      | an ISO date as `d MMM yyyy`; anything else as given                                                       |
+| `c.status(key, { tone })`                      | start   | alphanumeric                  | equals     | `Badge` in the tone the row decides                                                                       |
+| `c.person(key)`                                | start   | text                          | equals     | `Person`                                                                                                  |
+| `c.actions((row) => RowAction[])`              | end     | never                         | never      | the kebab on row hover and focus, always the last column                                                  |
+| `c.custom(id, { cell, sort, align })`          | as said | `sort`'s value, or not at all | never      | whatever `cell` returns: a bar, an icon, a composed cell                                                  |
+| `c.group(header, columns)`                     |         |                               |            | a second header row over the columns                                                                      |
+
+Every kind takes `header`, `width` (pixels; also the minimum), `minWidth`, `sortable: false` and `cell(row)` to draw the value its own way while keeping the kind's behaviour. An absent value is `Absent`.
+
+## Rules
+
+- Text starts; numbers end with tabular numerals and their header with them; a status or a person starts. A number never centres. The kinds carry this.
+- The kind gives the minimum width; the author gives `width` for fixed columns and one column takes the slack. Cells truncate; the full text is the cell's title.
+- Hairline between rows, no zebra. The row is the link; the id lights up on hover; actions are in the last column.
+- Selection is the checkbox column, never a click on the row. The header checkbox chooses the page; the bar above names the count and the verbs.
+- Loading never removes the header or changes the height of what is already there. Empty and error sit inside the frame.
+- A `DataTable` is a `table`: Tab moves through the interactive elements in reading order. A tree is a `treegrid`; only an editable table is a `grid`.
+- A thousand rows may be chosen one at a time: a row is memoized on what it shows, so one checkbox redraws one row.
+
+<Canvas of={Stories.StatesStory} />
+
+<Canvas of={Stories.ThousandRows} />

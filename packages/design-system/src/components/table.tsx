@@ -8,9 +8,17 @@ import { Checkbox } from "./controls";
 import { Id } from "./id";
 import { Tooltip } from "./tooltip";
 
-function TableRoot({ className, ...props }: ComponentPropsWithoutRef<"table">) {
+/** The register. `maxHeight` makes the wrapper the scroll frame, so the sticky header sticks to it and not to the page. */
+function TableRoot({
+  className,
+  maxHeight,
+  ...props
+}: ComponentPropsWithoutRef<"table"> & { maxHeight?: number | undefined }) {
   return (
-    <div className="w-full overflow-x-auto">
+    <div
+      className={cn("w-full", maxHeight === undefined ? "overflow-x-auto" : "overflow-auto")}
+      style={maxHeight === undefined ? undefined : { maxHeight }}
+    >
       <table className={cn("w-full border-collapse text-left font-body", className)} {...props} />
     </div>
   );
