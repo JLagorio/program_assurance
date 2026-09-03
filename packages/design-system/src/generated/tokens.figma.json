@@ -1671,6 +1671,10 @@
         "$value": "272px",
         "$description": "The rail beside a record page: PreviewRail, the Inspector, the ShowPage rail."
       },
+      "measure": {
+        "$value": "720px",
+        "$description": "The widest a run of prose grows: statements, notes, descriptions."
+      },
       "topbar": {
         "$value": "48px",
         "$description": "The shell top bar."
@@ -1955,6 +1959,17 @@
     },
     "heading": {
       "$type": "typography",
+      "large": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": "28px",
+          "lineHeight": "34px",
+          "letterSpacing": "{font.letterSpacing.400}"
+        },
+        "$description": "Display: a stat value, a dashboard number. Not a page title."
+      },
       "medium": {
         "$value": {
           "fontFamily": "{font.family.heading}",

@@ -34,6 +34,16 @@ export const GridTemplate: Story = {
   ),
 };
 
+/** One template per breakpoint. Each travels as a CSS variable a static class reads, so the page stays free of arbitrary values. */
+export const ResponsiveGrid: Story = {
+  render: () => (
+    <Grid templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(2, minmax(0, 1fr))", lg: "minmax(0, 1fr) 272px" }} gap="space.200">
+      <Box backgroundColor="elevation.surface.sunken" padding="space.200" className="rounded-medium"><Text>main column · one column narrow, two from md, main and rail from lg</Text></Box>
+      <Box backgroundColor="elevation.surface.sunken" padding="space.200" className="rounded-medium"><Text>rail</Text></Box>
+    </Grid>
+  ),
+};
+
 export const BleedInsideCard: Story = {
   render: () => (
     <Box backgroundColor="elevation.surface.raised" padding="space.200" className="max-w-[420px] rounded-large shadow-raised">

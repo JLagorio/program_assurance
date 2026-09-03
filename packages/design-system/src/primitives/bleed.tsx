@@ -4,14 +4,14 @@ import { cn } from "../lib/cn";
 import { bleedClasses, type SpaceToken } from "./tokens";
 
 export type BleedProps = {
-  ref?: Ref<HTMLDivElement>;
-  children?: ReactNode;
+  ref?: Ref<HTMLDivElement> | undefined;
+  children?: ReactNode | undefined;
   /** Pull out on every side by this much. */
-  all?: SpaceToken;
+  all?: SpaceToken | undefined;
   /** Pull out on the inline (horizontal) axis. */
-  inline?: SpaceToken;
+  inline?: SpaceToken | undefined;
   /** Pull out on the block (vertical) axis. */
-  block?: SpaceToken;
+  block?: SpaceToken | undefined;
   className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"div">, "children" | "className">;
 

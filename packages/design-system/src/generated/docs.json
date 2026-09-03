@@ -3024,6 +3024,20 @@
     "utility": "w-layout-rail"
   },
   {
+    "name": "dimension.layout.measure",
+    "cssVar": "--ds-dimension-layout-measure",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "The widest a run of prose grows: statements, notes, descriptions.",
+    "light": "720px",
+    "dark": null,
+    "lightResolved": "720px",
+    "darkResolved": null,
+    "introduced": null,
+    "deprecated": null,
+    "utility": "max-w-layout-measure"
+  },
+  {
     "name": "dimension.layout.topbar",
     "cssVar": "--ds-dimension-layout-topbar",
     "type": "dimension",
@@ -3456,6 +3470,20 @@
     "introduced": null,
     "deprecated": null,
     "utility": "font-body"
+  },
+  {
+    "name": "font.heading.large",
+    "cssVar": "--ds-font-heading-large",
+    "type": "typography",
+    "group": "font",
+    "description": "Display: a stat value, a dashboard number. Not a page title.",
+    "light": "var(--ds-font-weight-semibold) 28px/34px var(--ds-font-family-heading)",
+    "dark": null,
+    "lightResolved": "var(--ds-font-weight-semibold) 28px/34px var(--ds-font-family-heading)",
+    "darkResolved": null,
+    "introduced": null,
+    "deprecated": null,
+    "utility": "font-heading-large"
   },
   {
     "name": "font.heading.medium",

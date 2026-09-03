@@ -9,16 +9,16 @@ const justifyContent = { start: "justify-start", center: "justify-center", end: 
 const wrap = { wrap: "flex-wrap", nowrap: "flex-nowrap", "wrap-reverse": "flex-wrap-reverse" } as const;
 
 export type FlexProps = {
-  as?: ElementType;
-  ref?: Ref<HTMLElement>;
-  children?: ReactNode;
-  direction?: keyof typeof direction;
-  gap?: SpaceToken;
-  rowGap?: SpaceToken;
-  columnGap?: SpaceToken;
-  alignItems?: keyof typeof alignItems;
-  justifyContent?: keyof typeof justifyContent;
-  wrap?: keyof typeof wrap;
+  as?: ElementType | undefined;
+  ref?: Ref<HTMLElement> | undefined;
+  children?: ReactNode | undefined;
+  direction?: keyof typeof direction | undefined;
+  gap?: SpaceToken | undefined;
+  rowGap?: SpaceToken | undefined;
+  columnGap?: SpaceToken | undefined;
+  alignItems?: keyof typeof alignItems | undefined;
+  justifyContent?: keyof typeof justifyContent | undefined;
+  wrap?: keyof typeof wrap | undefined;
   className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"div">, "children" | "className">;
 

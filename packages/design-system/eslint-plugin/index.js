@@ -176,6 +176,12 @@ const structural = [
   /^gap(-x|-y)?-px$/, // a hairline gutter between tiles, painted with the border token
   /^animate-(rise|enter|exit|fade-in|fade-out|slide-(in|out)-(start|end|top|bottom))$/, // motion.css, on the motion tokens
   /^(grid-cols-main-rail|grid-cols-list-detail|sticky-rail|min-h-work)$/, // layout.css, on the layout dimension tokens
+  /^table-(auto|fixed)$/, // column algorithm, not a design value
+  /^opacity-(0|100)$/, // hidden and shown; the design opacities are opacity-disabled and opacity-loading
+  /^(bg|border)-transparent$/, // no paint, which is structure: a placeholder border that holds layout, a row that must not light up
+  /^(fill|stroke)-(none|current)$/, // SVG paint from the text colour, which is a token
+  /^divide-(x|y)-0$/,
+  /^grid-cols-\(--ds-grid-(base|sm|md|lg|xl)\)$/, // Grid's responsive templateColumns, read from a CSS variable
 ];
 const spacing = new RegExp(
   `^-?(p|px|py|pt|pb|pl|pr|ps|pe|m|mx|my|mt|mb|ml|mr|ms|me|gap|gap-x|gap-y|space-x|space-y|w|h|size|min-w|min-h|max-w|max-h|inset|inset-x|inset-y|top|right|bottom|left|start|end|translate-x|translate-y|indent|scroll-m|scroll-mx|scroll-my|scroll-mt|scroll-mb|scroll-p|scroll-px|scroll-py|scroll-pt|scroll-pb)-(${spaceKeys})$`,
@@ -218,11 +224,11 @@ const rules = {
     forEachClass(context, ({ cls, base }, node) => {
       const hit =
         (/^rounded(-(t|b|l|r|tl|tr|bl|br|s|e|ss|se|es|ee))?$/.test(base) && "a fixed 4px radius; use rounded-small…rounded-full") ||
-        (/^opacity-\d+$/.test(base) && "a numeric opacity; use opacity-disabled or opacity-loading") ||
+        (/^opacity-\d+$/.test(base) && !/^opacity-(0|100)$/.test(base) && "a numeric opacity; use opacity-disabled or opacity-loading") ||
         (/^(duration|delay)-\d+$/.test(base) && "a numeric duration; use duration-fast or duration-medium") ||
         (/^border(-(x|y|t|b|l|r|s|e))?-[1-9]\d*$/.test(base) && "a numeric border width; use border-w-selected or border-w-focused") ||
         (/^ring(-\d+)?$/.test(base) && "a ring width; use outline-focused") ||
-        (/^(bg|text|border)-(white|black|transparent|current|inherit)$/.test(base) && "a literal colour; use a token");
+        (/^((bg|text|border)-(white|black|current|inherit)|text-transparent)$/.test(base) && "a literal colour; use a token");
       if (hit) context.report({ node, message: `"${cls}" is ${hit}.` });
     }),
   ),

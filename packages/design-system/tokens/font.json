@@ -118,6 +118,17 @@
     },
     "heading": {
       "$type": "typography",
+      "large": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": "28px",
+          "lineHeight": "34px",
+          "letterSpacing": "{font.letterSpacing.400}"
+        },
+        "$description": "Display: a stat value, a dashboard number. Not a page title."
+      },
       "medium": {
         "$value": {
           "fontFamily": "{font.family.heading}",

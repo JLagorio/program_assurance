@@ -1,10 +1,10 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 
 /** An identifier. One typeface app-wide: it inherits the surrounding font, size and colour and only adds tabular numerals. Kept for semantics and grep-ability. */
-function Mono({ children, className }: { children: ReactNode; className?: string | undefined }) {
-  return <span className={cn("tabular-nums", className)}>{children}</span>;
+function Mono({ children, className, style }: { children: ReactNode; className?: string | undefined; style?: CSSProperties | undefined }) {
+  return <span className={cn("tabular-nums", className)} style={style}>{children}</span>;
 }
 
 /** A wrapping run of ids; `empty` when there are none. */

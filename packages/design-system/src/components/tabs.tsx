@@ -1,6 +1,7 @@
 import { Slot, Slottable } from "@radix-ui/react-slot";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
+import { Count } from "./badge";
 import { cn } from "../lib/cn";
 
 /*
@@ -29,13 +30,15 @@ export type TabProps = {
   isSelected?: boolean | undefined;
   asChild?: boolean | undefined;
   disabled?: boolean | undefined;
-  /** A Count or a Badge after the label. */
+  /** A number after the label, rendered as a Count. Null or undefined shows nothing. */
+  count?: number | string | null | undefined;
+  /** Anything else after the label, e.g. a Badge. */
   trailing?: ReactNode;
   children: ReactNode;
   className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"button">, "children" | "className" | "disabled">;
 
-function Tab({ isSelected, asChild, disabled, trailing, className, children, type, ...rest }: TabProps) {
+function Tab({ isSelected, asChild, disabled, count, trailing, className, children, type, ...rest }: TabProps) {
   const Comp = asChild ? Slot : "button";
   return (
     <Comp
@@ -54,6 +57,7 @@ function Tab({ isSelected, asChild, disabled, trailing, className, children, typ
       {...rest}
     >
       <Slottable>{children}</Slottable>
+      {count != null ? <Count value={count} max={9999} /> : null}
       {trailing}
     </Comp>
   );

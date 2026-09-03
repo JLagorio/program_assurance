@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, ChevronDown, ChevronsUpDown, Eye } from "lucide-react";
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 import { Count } from "./badge";
@@ -21,14 +21,19 @@ export type ThProps = ComponentPropsWithoutRef<"th"> & {
   onSort?: (() => void) | undefined;
   /** Pins the column to the leading edge of a table that scrolls sideways. */
   sticky?: boolean | undefined;
+  /** The column's width in pixels. Column widths are content decisions, so they are a prop, not a class. */
+  width?: number | undefined;
 };
 
-function Th({ className, sort, onSort, sticky, children, ...props }: ThProps) {
+const widthStyle = (width: number | undefined, style: CSSProperties | undefined): CSSProperties | undefined => (width === undefined ? style : { width, ...style });
+
+function Th({ className, sort, onSort, sticky, width, style, children, ...props }: ThProps) {
   const sortable = sort !== undefined || onSort !== undefined;
   return (
     <th
       aria-sort={sort === "asc" ? "ascending" : sort === "desc" ? "descending" : undefined}
       className={cn("sticky top-0 z-10 h-row-header whitespace-nowrap border-b border-default bg-surface-current px-150 font-body-small font-medium text-subtle", sticky && "start-0 z-20", className)}
+      style={widthStyle(width, style)}
       {...props}
     >
       {sortable ? (
@@ -47,15 +52,16 @@ function Th({ className, sort, onSort, sticky, children, ...props }: ThProps) {
   );
 }
 
-function Td({ className, sticky, ...props }: ComponentPropsWithoutRef<"td"> & { sticky?: boolean | undefined }) {
-  return <td className={cn("h-row max-w-0 truncate whitespace-nowrap px-150 align-middle", sticky && "sticky start-0 z-10 bg-surface-current group-hover/row:bg-surface-hovered", className)} {...props} />;
+function Td({ className, sticky, width, style, ...props }: ComponentPropsWithoutRef<"td"> & { sticky?: boolean | undefined; width?: number | undefined }) {
+  return <td className={cn("h-row max-w-0 truncate whitespace-nowrap px-150 align-middle", sticky && "sticky start-0 z-10 bg-surface-current group-hover/row:bg-surface-hovered", className)} style={widthStyle(width, style)} {...props} />;
 }
 
-function Tr({ className, isSelected, ...props }: ComponentPropsWithoutRef<"tr"> & { isSelected?: boolean | undefined }) {
+/** A row. `isStatic` is for rows that are not records: a form laid out as a table, a totals row. They do not light up on hover. */
+function Tr({ className, isSelected, isStatic, ...props }: ComponentPropsWithoutRef<"tr"> & { isSelected?: boolean | undefined; isStatic?: boolean | undefined }) {
   return (
     <tr
       data-selected={isSelected ? "" : undefined}
-      className={cn("group/row border-b border-default transition-colors duration-fast ease-standard last:border-b-0 hover:bg-surface-hovered", isSelected && "bg-selected hover:bg-selected-hovered", className)}
+      className={cn("group/row border-b border-default transition-colors duration-fast ease-standard last:border-b-0", !isStatic && "hover:bg-surface-hovered", isSelected && "bg-selected hover:bg-selected-hovered", className)}
       {...props}
     />
   );

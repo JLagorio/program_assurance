@@ -27,6 +27,20 @@ export const Space: Story = {
   ),
 };
 
+/** As a span with `display="inline-flex"` the row stays inline-level, so it sits inside a sentence. */
+export const InText: Story = {
+  render: () => (
+    <Text as="p">
+      Assessed by{" "}
+      <Inline as="span" display="inline-flex" space="space.050" alignBlock="center">
+        <Chip label="Whitcombe LLP" />
+        <Text size="small" color="color.text.subtlest">external</Text>
+      </Inline>{" "}
+      on 12 August, with two findings carried.
+    </Text>
+  ),
+};
+
 export const SeparatorAndSpread: Story = {
   render: () => (
     <Stack space="space.300">

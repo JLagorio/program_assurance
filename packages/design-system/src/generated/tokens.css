@@ -216,6 +216,7 @@
   --ds-dimension-layout-sidebar: 228px;
   --ds-dimension-layout-list: 340px;
   --ds-dimension-layout-rail: 272px;
+  --ds-dimension-layout-measure: 720px;
   --ds-dimension-layout-topbar: 48px;
   --ds-elevation-surface: var(--ds-color-neutral-0);
   --ds-elevation-surface-hovered: var(--ds-color-neutral-100);
@@ -251,6 +252,8 @@
   --ds-font-body-xsmall-letter-spacing: var(--ds-font-letter-spacing-100);
   --ds-font-body: var(--ds-font-weight-regular) 13px/18px var(--ds-font-family-body);
   --ds-font-body-letter-spacing: var(--ds-font-letter-spacing-200);
+  --ds-font-heading-large: var(--ds-font-weight-semibold) 28px/34px var(--ds-font-family-heading);
+  --ds-font-heading-large-letter-spacing: var(--ds-font-letter-spacing-400);
   --ds-font-heading-medium: var(--ds-font-weight-semibold) 22px/28px var(--ds-font-family-heading);
   --ds-font-heading-medium-letter-spacing: var(--ds-font-letter-spacing-400);
   --ds-font-heading-small: var(--ds-font-weight-medium) 20px/26px var(--ds-font-family-heading);

@@ -21,6 +21,6 @@ Pass `asChild` and the child element takes the tab's classes and aria. This is h
 ## Details
 
 - Tabs are 32px tall, on `dimension.control.medium`, so a strip lines up with a row of small controls beside it.
-- `trailing` takes a Count or a Badge after the label.
+- `count` puts a Count after the label; null or undefined shows nothing, so `count={open || null}` hides a zero. `trailing` takes anything else, e.g. a Badge.
 - A disabled tab keeps its place and loses its pointer.
 - The underline is `color.background.brand.bold`, two pixels, sitting on the rail's rule.

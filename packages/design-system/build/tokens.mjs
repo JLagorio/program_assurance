@@ -70,7 +70,10 @@ function utilityFor(token) {
   if (a === "dimension") {
     if (b === "icon") return { kind: "size", cls: `size-icon-${rest(p, 2)}` };
     if (b === "control") return { kind: "control", cls: `h-control-${rest(p, 2)}`, sizeCls: `size-control-${rest(p, 2)}` };
-    if (b === "layout") return { kind: "utility", cls: `${p[2] === "topbar" ? "h" : "w"}-layout-${rest(p, 2)}`, prop: p[2] === "topbar" ? "height" : "width" };
+    if (b === "layout") {
+      if (p[2] === "measure") return { kind: "utility", cls: "max-w-layout-measure", prop: "max-width" };
+      return { kind: "utility", cls: `${p[2] === "topbar" ? "h" : "w"}-layout-${rest(p, 2)}`, prop: p[2] === "topbar" ? "height" : "width" };
+    }
     return { kind: "utility", cls: `h-${b}${p[2] ? "-" + rest(p, 2) : ""}`, prop: "height" };
   }
   if (a === "motion") {

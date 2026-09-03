@@ -1,14 +1,14 @@
 import { Check, X } from "lucide-react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 
 export type StepState = "done" | "current" | "upcoming" | "blocked";
 
 /** Progress through an ordered path: milestones, RMF steps, a pipeline. One step is `current`; `blocked` is the step that failed. */
-function StepperRoot({ orientation = "horizontal", children, className }: { orientation?: "horizontal" | "vertical" | undefined; children: ReactNode; className?: string | undefined }) {
+function StepperRoot({ orientation = "horizontal", children, className, style }: { orientation?: "horizontal" | "vertical" | undefined; children: ReactNode; className?: string | undefined; style?: CSSProperties | undefined }) {
   return (
-    <ol data-orientation={orientation} className={cn("group/stepper", orientation === "horizontal" ? "flex items-start" : "flex flex-col", className)} style={orientation === "horizontal" ? { minWidth: 420 } : undefined}>
+    <ol data-orientation={orientation} className={cn("group/stepper", orientation === "horizontal" ? "flex items-start" : "flex flex-col", className)} style={orientation === "horizontal" ? { minWidth: 420, ...style } : style}>
       {children}
     </ol>
   );

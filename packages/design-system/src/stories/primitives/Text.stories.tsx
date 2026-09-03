@@ -45,10 +45,11 @@ export const WeightsAndColors: Story = {
 export const Headings: Story = {
   render: () => (
     <Stack space="space.200">
+      <Heading size="large" as="div">298 / 372</Heading>
       <Heading size="medium">Program CFC-2026 · Boundary protection</Heading>
       <Heading size="small">Assessment results</Heading>
       <Heading size="xsmall" as="h4">Schedule assessment</Heading>
-      <Text size="small" color="color.text.subtlest">Level is chosen by the page (as); size by the design.</Text>
+      <Text size="small" color="color.text.subtlest">Level is chosen by the page (as); size by the design. Large is a displayed number, never a title.</Text>
     </Stack>
   ),
 };

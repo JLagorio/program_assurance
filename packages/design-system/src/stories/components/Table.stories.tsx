@@ -45,7 +45,7 @@ function Register() {
             <Table.Selection header checked={all ? true : some ? "indeterminate" : false} onCheckedChange={(next) => setSelected(next ? new Set(rows.map((r) => r.id)) : new Set())} label="Select all" />
             <Table.Header sort={sort.key === "id" ? sort.dir : false} onSort={() => toggleSort("id")} sticky>Id</Table.Header>
             <Table.Header>Control</Table.Header>
-            <Table.Header>Owner</Table.Header>
+            <Table.Header width={180}>Owner</Table.Header>
             <Table.Header>Status</Table.Header>
             <Table.Header>Severity</Table.Header>
             <Table.Header sort={sort.key === "due" ? sort.dir : false} onSort={() => toggleSort("due")}>Due</Table.Header>

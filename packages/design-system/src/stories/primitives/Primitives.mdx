@@ -10,9 +10,9 @@ Layout and text, modelled on `@atlaskit/primitives`. Every prop that carries a d
 | --- | --- | --- |
 | **Box** | Padding and a surface. No margins, ever. | `padding`, `paddingInline`, `paddingBlock` (space tokens), `backgroundColor` (a background or surface token) |
 | **Stack** | A column with one gap. | `space`, `alignInline`, `alignBlock`, `spread`, `grow` |
-| **Inline** | A row with one gap, optionally wrapping. | `space`, `rowSpace`, `alignBlock`, `alignInline`, `spread`, `shouldWrap`, `separator`, `grow` |
+| **Inline** | A row with one gap, optionally wrapping. `display="inline-flex"` keeps it inline-level for a chip or a count beside a label. | `space`, `rowSpace`, `alignBlock`, `alignInline`, `spread`, `shouldWrap`, `separator`, `grow`, `display` |
 | **Flex** | The escape hatch when Stack and Inline are not enough. | `direction`, `gap`, `alignItems`, `justifyContent`, `wrap` |
-| **Grid** | Columns or rows on a template. | `templateColumns`, `templateRows`, `gap`, `alignItems`, `justifyContent` |
+| **Grid** | Columns or rows on a template. `templateColumns` takes a string, or one per breakpoint (`{ base, sm, md, lg, xl }`). | `templateColumns`, `templateRows`, `gap`, `alignItems`, `justifyContent` |
 | **Bleed** | The one place a negative margin is written: pulling a child out to the edge of its parent's padding. | `all`, `inline`, `block` |
 | **Text** | Interface text on the body ramp. | `size` (large, medium, small, xsmall), `weight`, `color` (a text token), `align`, `maxLines`, `as` |
 | **Heading** | Section and page titles. | `size` (medium, small, xsmall), `as` |

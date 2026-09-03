@@ -7,19 +7,19 @@ const alignBlock = { start: "justify-start", center: "justify-center", end: "jus
 const alignInline = { start: "items-start", center: "items-center", end: "items-end", stretch: "items-stretch" } as const;
 
 export type StackProps = {
-  as?: ElementType;
-  ref?: Ref<HTMLElement>;
-  children?: ReactNode;
+  as?: ElementType | undefined;
+  ref?: Ref<HTMLElement> | undefined;
+  children?: ReactNode | undefined;
   /** Space between children. */
-  space?: SpaceToken;
+  space?: SpaceToken | undefined;
   /** Position along the block (vertical) axis. */
-  alignBlock?: keyof typeof alignBlock;
+  alignBlock?: keyof typeof alignBlock | undefined;
   /** Position along the inline (horizontal) axis. */
-  alignInline?: keyof typeof alignInline;
+  alignInline?: keyof typeof alignInline | undefined;
   /** Distribute children with space between them. */
-  spread?: "space-between";
+  spread?: "space-between" | undefined;
   /** `fill` takes the available block size. */
-  grow?: "hug" | "fill";
+  grow?: "hug" | "fill" | undefined;
   className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"div">, "children" | "className">;
 

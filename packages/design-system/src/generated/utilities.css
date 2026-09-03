@@ -422,6 +422,9 @@
 @utility w-layout-rail {
   width: var(--ds-dimension-layout-rail);
 }
+@utility max-w-layout-measure {
+  max-width: var(--ds-dimension-layout-measure);
+}
 @utility h-layout-topbar {
   height: var(--ds-dimension-layout-topbar);
 }
@@ -473,6 +476,10 @@
 @utility font-body {
   font: var(--ds-font-body);
   letter-spacing: var(--ds-font-body-letter-spacing);
+}
+@utility font-heading-large {
+  font: var(--ds-font-heading-large);
+  letter-spacing: var(--ds-font-heading-large-letter-spacing);
 }
 @utility font-heading-medium {
   font: var(--ds-font-heading-medium);

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Count, Tabs } from "../../components";
+import { Tabs } from "../../components";
 import { Stack, Text } from "../../primitives";
 
 const meta = {
@@ -25,7 +25,7 @@ function Stateful() {
     <Stack space="space.300">
       <Tabs label="Record sections">
         {items.map((it) => (
-          <Tabs.Tab key={it.key} isSelected={active === it.key} disabled={it.disabled} onClick={() => setActive(it.key)} trailing={it.count ? <Count value={it.count} /> : undefined}>
+          <Tabs.Tab key={it.key} isSelected={active === it.key} disabled={it.disabled} onClick={() => setActive(it.key)} count={it.count || null}>
             {it.label}
           </Tabs.Tab>
         ))}

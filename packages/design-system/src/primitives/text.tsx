@@ -9,17 +9,17 @@ const align = { start: "text-start", center: "text-center", end: "text-end" } as
 const maxLines = { 1: "truncate", 2: "line-clamp-2", 3: "line-clamp-3" } as const;
 
 export type TextProps = {
-  as?: "span" | "p" | "div" | "strong" | "em" | "label" | "dt" | "dd" | "li" | "legend" | "figcaption" | "small";
-  ref?: Ref<HTMLElement>;
-  children?: ReactNode;
+  as?: "span" | "p" | "div" | "strong" | "em" | "label" | "dt" | "dd" | "li" | "legend" | "figcaption" | "small" | undefined;
+  ref?: Ref<HTMLElement> | undefined;
+  children?: ReactNode | undefined;
   /** font.body.large · font.body · font.body.small · font.body.xsmall */
-  size?: keyof typeof size;
-  weight?: keyof typeof weight;
+  size?: keyof typeof size | undefined;
+  weight?: keyof typeof weight | undefined;
   /** A color.text token. Defaults to inheriting. */
-  color?: TextColorToken;
-  align?: keyof typeof align;
+  color?: TextColorToken | undefined;
+  align?: keyof typeof align | undefined;
   /** Clamp to this many lines with an ellipsis. */
-  maxLines?: keyof typeof maxLines;
+  maxLines?: keyof typeof maxLines | undefined;
   className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"span">, "children" | "className" | "color">;
 

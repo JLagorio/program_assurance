@@ -14,12 +14,14 @@ export type SelectProps = {
   disabled?: boolean | undefined;
   name?: string | undefined;
   "aria-label"?: string | undefined;
+  /** The trigger's width in pixels, for a select that sits in a toolbar beside others. */
+  width?: number | undefined;
   className?: string | undefined;
   children: ReactNode;
 };
 
 /** A choice from a short, fixed list, with options that can carry a Dot or a Badge. For a plain list, NativeSelect; for a list worth searching, Combobox. */
-function SelectRoot({ value, defaultValue, onValueChange, placeholder, disabled, name, "aria-label": ariaLabel, className, children }: SelectProps) {
+function SelectRoot({ value, defaultValue, onValueChange, placeholder, disabled, name, "aria-label": ariaLabel, width, className, children }: SelectProps) {
   return (
     <SelectPrimitive.Root
       {...(value === undefined ? (defaultValue === undefined ? {} : { defaultValue }) : { value })}
@@ -27,7 +29,7 @@ function SelectRoot({ value, defaultValue, onValueChange, placeholder, disabled,
       {...(disabled ? { disabled } : {})}
       {...(name ? { name } : {})}
     >
-      <SelectPrimitive.Trigger aria-label={ariaLabel} className={cn(controlBase, "flex items-center justify-between gap-100 text-left data-[placeholder]:text-subtlest", className)}>
+      <SelectPrimitive.Trigger aria-label={ariaLabel} className={cn(controlBase, "flex items-center justify-between gap-100 text-left data-[placeholder]:text-subtlest", className)} style={width === undefined ? undefined : { width }}>
         <span className="min-w-0 flex-1 truncate">
           <SelectPrimitive.Value placeholder={placeholder} />
         </span>

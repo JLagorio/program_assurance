@@ -26,7 +26,7 @@ function Fields() {
   return (
     <Stack space="space.300" className="max-w-[360px]">
       <Field label="Status" hint="Select: a short, fixed list whose options carry a Dot.">
-        <Select value={status} onValueChange={setStatus}>
+        <Select value={status} onValueChange={setStatus} width={220}>
           <Select.Group label="Open">
             <Select.Item value="draft"><Dot tone="neutral" /> Draft</Select.Item>
             <Select.Item value="review"><Dot tone="information" /> In review</Select.Item>

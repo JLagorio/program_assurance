@@ -5,21 +5,21 @@ import { classFor, isSurface, spaceClasses, type BackgroundToken, type SpaceToke
 import { tokens } from "../generated/tokens";
 
 export type BoxProps = {
-  as?: ElementType;
-  ref?: Ref<HTMLElement>;
-  children?: ReactNode;
+  as?: ElementType | undefined;
+  ref?: Ref<HTMLElement> | undefined;
+  children?: ReactNode | undefined;
   /** Padding on every side. */
-  padding?: SpaceToken;
-  paddingBlock?: SpaceToken;
-  paddingInline?: SpaceToken;
-  paddingBlockStart?: SpaceToken;
-  paddingBlockEnd?: SpaceToken;
-  paddingInlineStart?: SpaceToken;
-  paddingInlineEnd?: SpaceToken;
+  padding?: SpaceToken | undefined;
+  paddingBlock?: SpaceToken | undefined;
+  paddingInline?: SpaceToken | undefined;
+  paddingBlockStart?: SpaceToken | undefined;
+  paddingBlockEnd?: SpaceToken | undefined;
+  paddingInlineStart?: SpaceToken | undefined;
+  paddingInlineEnd?: SpaceToken | undefined;
   /** A semantic background or an elevation surface. A surface is also published as the current surface for sticky and masking children. */
-  backgroundColor?: BackgroundToken;
+  backgroundColor?: BackgroundToken | undefined;
   className?: string | undefined;
-  style?: CSSProperties;
+  style?: CSSProperties | undefined;
 } & Omit<ComponentPropsWithoutRef<"div">, "children" | "className" | "style">;
 
 /**

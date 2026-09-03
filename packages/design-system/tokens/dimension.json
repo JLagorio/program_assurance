@@ -60,6 +60,10 @@
         "$value": "272px",
         "$description": "The rail beside a record page: PreviewRail, the Inspector, the ShowPage rail."
       },
+      "measure": {
+        "$value": "720px",
+        "$description": "The widest a run of prose grows: statements, notes, descriptions."
+      },
       "topbar": {
         "$value": "48px",
         "$description": "The shell top bar."
