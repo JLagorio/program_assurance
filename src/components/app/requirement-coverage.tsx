@@ -13,13 +13,14 @@ import { AllocateModal } from "@/components/app/requirement-forms";
 import { TargetLink } from "@/components/app/requirements";
 import {
   Badge,
-  Box,
   Button,
+  Count,
   Id,
   Indicator,
   Inline,
   Stack,
   Table,
+  Text,
   ToggleGroup,
 } from "@ledger/design-system";
 import {
@@ -97,41 +98,31 @@ export function RequirementCoverage({ programId }: { programId: string }) {
           items={(Object.keys(filterLabels) as Filter[]).map((k) => ({
             value: k,
             label: (
-              <>
+              <Inline as="span" space="space.075" alignBlock="center">
                 {filterLabels[k]}
-                <Box className="tabular-nums text-subtle" as="span" paddingInlineStart="space.050">
-                  {counts[k]}
-                </Box>
-              </>
+                <Count value={counts[k]} max={9999} appearance="default" />
+              </Inline>
             ),
           }))}
         />
-        <span className="font-body-small text-subtle">
+        <Text size="small" color="color.text.subtle">
           {summary.allocations} allocations across {summary.elements} elements
-        </span>
+        </Text>
       </Inline>
 
-      <Table className="table-fixed">
-        <colgroup>
-          <col style={{ width: "104px" }} />
-          <col />
-          <col style={{ width: "240px" }} />
-          <col style={{ width: "200px" }} />
-          <col style={{ width: "96px" }} />
-          <col style={{ width: "120px" }} />
-          <col style={{ width: "104px" }} />
-          <col style={{ width: "84px" }} />
-        </colgroup>
+      <Table>
         <thead>
           <Table.Row>
-            <Table.Header>Requirement</Table.Header>
+            <Table.Header width={104}>Requirement</Table.Header>
             <Table.Header>Shall statement</Table.Header>
-            <Table.Header>Carried by</Table.Header>
-            <Table.Header>Controls</Table.Header>
-            <Table.Header>Method</Table.Header>
-            <Table.Header>Owner</Table.Header>
-            <Table.Header>State</Table.Header>
-            <Table.Header className="text-right"> </Table.Header>
+            <Table.Header width={240}>Carried by</Table.Header>
+            <Table.Header width={200}>Controls</Table.Header>
+            <Table.Header width={96}>Method</Table.Header>
+            <Table.Header width={120}>Owner</Table.Header>
+            <Table.Header width={104}>State</Table.Header>
+            <Table.Header width={84} className="text-right">
+              {" "}
+            </Table.Header>
           </Table.Row>
         </thead>
         <tbody>
@@ -164,7 +155,7 @@ export function RequirementCoverage({ programId }: { programId: string }) {
                         <TargetLink key={a.id} allocation={a} programId={programId} />
                       ))}
                       {allocs.length > 3 ? (
-                        <span className="text-subtle">+{allocs.length - 3}</span>
+                        <Text color="color.text.subtle">+{allocs.length - 3}</Text>
                       ) : null}
                     </Inline>
                   ) : (
@@ -189,9 +180,9 @@ export function RequirementCoverage({ programId }: { programId: string }) {
                         </Link>
                       ))}
                       {overlays.map((d) => (
-                        <span key={d.sourceId} className="font-body-small text-subtle">
+                        <Text key={d.sourceId} size="small" color="color.text.subtle">
                           {d.sourceLabel || d.sourceId}
-                        </span>
+                        </Text>
                       ))}
                     </Inline>
                   ) : (
@@ -218,7 +209,9 @@ export function RequirementCoverage({ programId }: { programId: string }) {
         </tbody>
       </Table>
       {rows.length === 0 ? (
-        <p className="font-body-small text-subtle">Nothing matches this filter.</p>
+        <Text as="p" size="small" color="color.text.subtle">
+          Nothing matches this filter.
+        </Text>
       ) : null}
 
       {allocating ? (

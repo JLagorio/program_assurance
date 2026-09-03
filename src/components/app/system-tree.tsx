@@ -12,10 +12,11 @@
  */
 
 import { useNavigate } from "@tanstack/react-router";
-import { ChevronDown, ChevronRight, MoreHorizontal } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 
 import {
+  Absent,
   Badge,
   Button,
   Combobox,
@@ -23,14 +24,16 @@ import {
   DropdownMenu,
   Field,
   Grid,
-  Id,
+  IconButton,
   Indicator,
   Inline,
   Input,
+  Progress,
   Select,
   Sheet,
   Stack,
   Table,
+  Text,
   Textarea,
   toast,
 } from "@ledger/design-system";
@@ -56,6 +59,7 @@ import { positionOf, useWorkVersion, workForScope } from "@/lib/control-work";
 import { workIndex } from "@/lib/control-board";
 
 import { NodePreviewSheet } from "./node-preview";
+import { TreeCell } from "./tree-cell";
 import {
   addAllocation,
   allocationsOn,
@@ -187,33 +191,27 @@ export function SystemTree({ programId }: { programId: string }) {
 
   return (
     <Stack space="space.150">
-      <Table className="table-fixed">
-        <colgroup>
-          <col />
-          <col style={{ width: "100px" }} />
-          <col style={{ width: "48px" }} />
-          <col style={{ width: "48px" }} />
-          <col style={{ width: "48px" }} />
-          <col style={{ width: "96px" }} />
-          <col style={{ width: "72px" }} />
-          <col style={{ width: "210px" }} />
-          <col style={{ width: "180px" }} />
-          <col style={{ width: "48px" }} />
-        </colgroup>
+      <Table role="treegrid">
         <thead>
           <Table.Row>
             <Table.Header>Element</Table.Header>
-            <Table.Header>Kind</Table.Header>
+            <Table.Header width={100}>Kind</Table.Header>
             {objectives.map((o) => (
-              <Table.Header key={o} title={o}>
+              <Table.Header key={o} title={o} width={48}>
                 {o.slice(0, 1)}
               </Table.Header>
             ))}
-            <Table.Header className="text-right">Requirements</Table.Header>
-            <Table.Header className="text-right">Controls</Table.Header>
-            <Table.Header>Work</Table.Header>
-            <Table.Header>Control set</Table.Header>
-            <Table.Header className="text-right"> </Table.Header>
+            <Table.Header width={96} className="text-right">
+              Requirements
+            </Table.Header>
+            <Table.Header width={72} className="text-right">
+              Controls
+            </Table.Header>
+            <Table.Header width={210}>Work</Table.Header>
+            <Table.Header width={180}>Control set</Table.Header>
+            <Table.Header width={48} className="text-right">
+              {" "}
+            </Table.Header>
           </Table.Row>
         </thead>
         <tbody>
@@ -224,42 +222,26 @@ export function SystemTree({ programId }: { programId: string }) {
               <Table.Row
                 key={r.node.id}
                 className="cursor-pointer"
+                aria-level={r.depth + 1}
+                aria-expanded={r.children > 0 ? r.open : undefined}
                 onClick={() => setPreview(r.node.id)}
               >
-                <Table.Cell className="max-w-none">
-                  <Inline
-                    style={{ paddingLeft: `${r.depth * 16}px` }}
-                    as="span"
-                    space="space.050"
-                    alignBlock="center"
-                  >
-                    {r.children > 0 ? (
-                      <button
-                        type="button"
-                        aria-label={folded ? `Expand ${r.node.name}` : `Collapse ${r.node.name}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggle(r.node.id);
-                        }}
-                        className="flex size-250 shrink-0 items-center justify-center rounded-small text-subtle hover:bg-neutral-subtle-hovered"
-                      >
-                        {folded ? (
-                          <ChevronRight className="size-icon-small" />
-                        ) : (
-                          <ChevronDown className="size-icon-small" />
-                        )}
-                      </button>
-                    ) : (
-                      <span className="size-250 shrink-0" />
-                    )}
-                    <span className="truncate">{r.node.name}</span>
-                    {folded ? (
-                      <span className="font-body-xsmall text-subtle">
+                <TreeCell
+                  depth={r.depth}
+                  hasChildren={r.children > 0}
+                  expanded={!folded}
+                  onToggle={() => toggle(r.node.id)}
+                  label={r.node.name}
+                  hint={
+                    folded ? (
+                      <Text size="xsmall" color="color.text.subtle">
                         {r.children} part{r.children === 1 ? "" : "s"}
-                      </span>
-                    ) : null}
-                  </Inline>
-                </Table.Cell>
+                      </Text>
+                    ) : null
+                  }
+                >
+                  {r.node.name}
+                </TreeCell>
                 <Table.Cell className="truncate">{r.node.kind}</Table.Cell>
                 {objectives.map((o) => (
                   <Table.Cell key={o}>
@@ -277,15 +259,15 @@ export function SystemTree({ programId }: { programId: string }) {
                     >
                       {r.requirements}
                       {r.withoutControl ? (
-                        <span className="text-subtle"> · {r.withoutControl} own</span>
+                        <Text color="color.text.subtle"> · {r.withoutControl} own</Text>
                       ) : null}
                     </span>
                   ) : (
-                    <span className="text-subtle">—</span>
+                    <Absent />
                   )}
                 </Table.Cell>
                 <Table.Cell className="tabular-nums text-right">
-                  {r.controls || <span className="text-subtle">—</span>}
+                  {r.controls || <Absent />}
                 </Table.Cell>
                 <Table.Cell className="max-w-none">
                   <WorkBar work={r.work} />
@@ -299,13 +281,13 @@ export function SystemTree({ programId }: { programId: string }) {
                       align="end"
                       width={220}
                       trigger={
-                        <Button
+                        <IconButton
                           size="small"
                           variant="subtle"
-                          aria-label={`Actions for ${r.node.name}`}
+                          label={`Actions for ${r.node.name}`}
                         >
                           <MoreHorizontal className="size-icon-small" />
-                        </Button>
+                        </IconButton>
                       }
                     >
                       {(close) => (
@@ -405,10 +387,9 @@ function traceWork(
   };
 }
 
-/** Three segments, no percentage: satisfied · in work · unassigned. */
+/** Three segments, no percentage: satisfied · in work · unassigned. The kit's stacked bar. */
 function WorkBar({ work }: { work: WorkSummary }) {
-  if (!work.total) return <span className="font-body-small text-subtle">—</span>;
-  const pct = (n: number) => `${(n / work.total) * 100}%`;
+  if (!work.total) return <Absent />;
   return (
     <Inline
       title={`${work.satisfied} satisfied · ${work.inWork} in work · ${work.unassigned} unassigned`}
@@ -416,18 +397,35 @@ function WorkBar({ work }: { work: WorkSummary }) {
       space="space.100"
       alignBlock="center"
     >
-      <Inline
-        className="h-075 overflow-hidden rounded-full bg-neutral"
-        as="span"
-        style={{ width: 64, flexShrink: 0 }}
-      >
-        <span className="bg-success-bold" style={{ width: pct(work.satisfied) }} />
-        <span className="bg-information-bold" style={{ width: pct(work.inWork) }} />
-      </Inline>
-      <span className="tabular-nums font-body-xsmall text-subtle truncate">
+      <span className="shrink-0" style={{ width: 64 }}>
+        <Progress.Stacked
+          height={6}
+          segments={[
+            {
+              key: "satisfied",
+              value: work.satisfied,
+              tone: "success",
+              title: `${work.satisfied} satisfied`,
+            },
+            {
+              key: "in-work",
+              value: work.inWork,
+              tone: "information",
+              title: `${work.inWork} in work`,
+            },
+            {
+              key: "unassigned",
+              value: work.unassigned,
+              tone: "neutral",
+              title: `${work.unassigned} unassigned`,
+            },
+          ]}
+        />
+      </span>
+      <Text size="xsmall" color="color.text.subtle" maxLines={1} className="tabular-nums">
         {work.satisfied}/{work.total}
         {work.unassigned ? ` · ${work.unassigned} unassigned` : ""}
-      </span>
+      </Text>
     </Inline>
   );
 }
@@ -443,7 +441,7 @@ function ControlSetCell({ scope }: { scope: AssessmentScope }) {
     );
   }
   if (inForce) return <Indicator tone="success">v{inForce.number} in force</Indicator>;
-  return <span className="text-subtle">—</span>;
+  return <Absent />;
 }
 
 /* --------------------------------------------------------- Add a node */

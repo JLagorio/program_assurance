@@ -20,6 +20,7 @@ import {
   Indicator,
   Inline,
   Input,
+  Item,
   Section,
   Select,
   Sheet,
@@ -102,25 +103,33 @@ export function ControlSetsSummary({
         </Button>
       }
     >
-      <dl className="grid gap-x-300 gap-y-050 pt-100 font-body-small sm:grid-cols-2 lg:grid-cols-3">
+      <Item.Group className="pt-050">
         {scopes.map((s) => {
           const rev = currentRevision(s.id);
           const set = controlSetFor(s.id);
           return (
-            <Inline key={s.id} space="space.100" alignBlock="baseline">
-              <dt className="min-w-0 truncate">{s.name}</dt>
-              <dd className="flex shrink-0 items-center gap-100 text-subtle">
-                <span className="tabular-nums">{set?.total ?? 0} controls</span>
-                {rev ? (
+            <Item
+              key={s.id}
+              title={s.name}
+              meta={`${set?.total ?? 0} controls`}
+              trailing={
+                rev ? (
                   <Indicator tone={revisionTone[rev.state]}>
                     v{rev.number} · {rev.state}
                   </Indicator>
-                ) : null}
-              </dd>
-            </Inline>
+                ) : undefined
+              }
+              link={
+                <Link
+                  to="/programs/$programId/components/$componentId"
+                  params={{ programId: s.program, componentId: s.element }}
+                  search={{ tab: "Control set" }}
+                />
+              }
+            />
           );
         })}
-      </dl>
+      </Item.Group>
     </Section>
   );
 }

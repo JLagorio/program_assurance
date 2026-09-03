@@ -9,8 +9,21 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
-import { Badge, Button, Id, Indicator, KeyValue, Sheet, Table } from "@ledger/design-system";
-import { Block } from "@ledger/design-system";
+import {
+  Absent,
+  Badge,
+  Block,
+  Button,
+  Grid,
+  Id,
+  Indicator,
+  Inline,
+  KeyValue,
+  Sheet,
+  Stack,
+  Table,
+  Text,
+} from "@ledger/design-system";
 
 import { ProposeChange, RevisionActions, RevisionReview } from "./control-set-revisions";
 import { AllocateToNodeDialog } from "./system-tree";
@@ -85,35 +98,37 @@ export function NodePreviewSheet({
       subtitle={node ? `${node.kind} · ${pathLabel(node.id)}` : undefined}
       footer={
         node ? (
-          <div className="flex w-full items-center justify-between gap-150">
-            <span className="flex items-center gap-200 font-body-small">
-              <Link
-                to="/programs/$programId/components/$componentId"
-                params={{ programId, componentId: node.id }}
-                className="text-brand hover:underline"
-              >
-                Open the full record
-              </Link>
-              {scope ? (
+          <Inline className="w-full" space="space.150" alignBlock="center" spread="space-between">
+            <Inline as="span" space="space.200" alignBlock="center">
+              <Button variant="link" asChild>
                 <Link
-                  to="/programs/$programId/systems/$scopeId"
-                  params={{ programId, scopeId: scope.id }}
-                  search={{ tab: "Control set" }}
-                  className="text-brand hover:underline"
+                  to="/programs/$programId/components/$componentId"
+                  params={{ programId, componentId: node.id }}
                 >
-                  Control set and revisions
+                  Open the full record
                 </Link>
+              </Button>
+              {scope ? (
+                <Button variant="link" asChild>
+                  <Link
+                    to="/programs/$programId/components/$componentId"
+                    params={{ programId, componentId: node.id }}
+                    search={{ tab: "Control set" }}
+                  >
+                    Control set and revisions
+                  </Link>
+                </Button>
               ) : null}
-            </span>
+            </Inline>
             {open ? <RevisionActions revision={open} /> : null}
-          </div>
+          </Inline>
         ) : null
       }
     >
       {node ? (
-        <div className="space-y-050">
+        <Stack space="space.050">
           <Block title="Element">
-            <div className="grid grid-cols-2 gap-x-300 sm:grid-cols-3">
+            <Grid as="dl" columnGap="space.300" templateColumns="repeat(3, minmax(0, 1fr))">
               <KeyValue label="Id">
                 <Id>{node.id}</Id>
               </KeyValue>
@@ -125,8 +140,12 @@ export function NodePreviewSheet({
                 {node.version !== "—" ? ` · ${node.version}` : ""}
               </KeyValue>
               <KeyValue label="Attested">{node.attested ? "Yes" : "No"}</KeyValue>
-            </div>
-            {node.note ? <p className="pt-100 font-body-small text-subtle">{node.note}</p> : null}
+            </Grid>
+            {node.note ? (
+              <Text as="p" size="small" color="color.text.subtle" className="pt-100">
+                {node.note}
+              </Text>
+            ) : null}
           </Block>
 
           {scope && triad && set ? (
@@ -135,23 +154,29 @@ export function NodePreviewSheet({
               count={inForce ? `v${inForce.number} in force · ${set.total} controls` : "none yet"}
               action={open ? null : <ProposeChange scopeId={scope.id} />}
             >
-              <div className="flex flex-wrap items-center gap-x-250 gap-y-050 font-body-small">
+              <Inline
+                className="font-body-small"
+                space="space.250"
+                rowSpace="space.050"
+                alignBlock="center"
+                shouldWrap
+              >
                 {objectives.map((o) => (
-                  <span key={o} className="flex items-center gap-075">
+                  <Inline key={o} as="span" space="space.075" alignBlock="center">
                     {o}
                     <Badge size="xsmall" tone={impactTone[triad[o]]}>
                       {triad[o]}
                     </Badge>
-                  </span>
+                  </Inline>
                 ))}
-                <span className="text-subtle">
+                <Text color="color.text.subtle">
                   {scope.parameters.systemClass} · {scope.parameters.hosting} ·{" "}
                   {scope.parameters.classification}
-                </span>
-              </div>
-              <p className="pt-100 font-body-small text-subtle">
+                </Text>
+              </Inline>
+              <Text as="p" size="small" color="color.text.subtle" className="pt-100">
                 Overlays: {set.overlays.map((o) => o.name).join(", ") || "none"}.
-              </p>
+              </Text>
             </Block>
           ) : null}
 
@@ -167,21 +192,14 @@ export function NodePreviewSheet({
             }
           >
             {allocations.length ? (
-              <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "96px" }} />
-                  <col />
-                  <col style={{ width: "150px" }} />
-                  <col style={{ width: "110px" }} />
-                  <col style={{ width: "104px" }} />
-                </colgroup>
+              <Table>
                 <thead>
                   <Table.Row>
-                    <Table.Header>Requirement</Table.Header>
+                    <Table.Header width={96}>Requirement</Table.Header>
                     <Table.Header>Shall statement</Table.Header>
-                    <Table.Header>On</Table.Header>
-                    <Table.Header>Role</Table.Header>
-                    <Table.Header>State</Table.Header>
+                    <Table.Header width={150}>On</Table.Header>
+                    <Table.Header width={110}>Role</Table.Header>
+                    <Table.Header width={104}>State</Table.Header>
                   </Table.Row>
                 </thead>
                 <tbody>
@@ -206,13 +224,13 @@ export function NodePreviewSheet({
                           {a.target === node.id ? (
                             "This element"
                           ) : (
-                            <button
-                              type="button"
-                              className="truncate text-brand hover:underline"
+                            <Button
+                              variant="link"
+                              className="truncate"
                               onClick={() => onSelect(a.target)}
                             >
                               {on?.name ?? a.target}
-                            </button>
+                            </Button>
                           )}
                         </Table.Cell>
                         <Table.Cell className="truncate">
@@ -229,28 +247,22 @@ export function NodePreviewSheet({
                 </tbody>
               </Table>
             ) : (
-              <p className="font-body-small text-subtle">
+              <Text as="p" size="small" color="color.text.subtle">
                 Nothing is allocated to this element or its parts.
-              </p>
+              </Text>
             )}
           </Block>
 
           {!scope ? (
             <Block title="Controls reached" count={reached.size}>
               {reached.size ? (
-                <Table className="table-fixed">
-                  <colgroup>
-                    <col style={{ width: "96px" }} />
-                    <col />
-                    <col style={{ width: "150px" }} />
-                    <col style={{ width: "150px" }} />
-                  </colgroup>
+                <Table>
                   <thead>
                     <Table.Row>
-                      <Table.Header>Control</Table.Header>
+                      <Table.Header width={96}>Control</Table.Header>
                       <Table.Header>Title</Table.Header>
-                      <Table.Header>Through</Table.Header>
-                      <Table.Header>Work</Table.Header>
+                      <Table.Header width={150}>Through</Table.Header>
+                      <Table.Header width={150}>Work</Table.Header>
                     </Table.Row>
                   </thead>
                   <tbody>
@@ -294,31 +306,31 @@ export function NodePreviewSheet({
                   </tbody>
                 </Table>
               ) : (
-                <p className="font-body-small text-subtle">
+                <Text as="p" size="small" color="color.text.subtle">
                   No requirement on this element names a control yet.
-                </p>
+                </Text>
               )}
               {reached.size > 20 ? (
-                <p className="pt-100 font-body-small text-subtle">First 20 of {reached.size}.</p>
+                <Text as="p" size="small" color="color.text.subtle" className="pt-100">
+                  First 20 of {reached.size}.
+                </Text>
               ) : null}
             </Block>
           ) : null}
 
           {parts.length ? (
             <Block title="Contains" count={parts.length}>
-              <Table className="table-fixed">
-                <colgroup>
-                  <col />
-                  <col style={{ width: "150px" }} />
-                  <col style={{ width: "110px" }} />
-                  <col style={{ width: "96px" }} />
-                </colgroup>
+              <Table>
                 <thead>
                   <Table.Row>
                     <Table.Header>Part</Table.Header>
-                    <Table.Header>Kind</Table.Header>
-                    <Table.Header className="text-right">Requirements</Table.Header>
-                    <Table.Header className="text-right">Controls</Table.Header>
+                    <Table.Header width={150}>Kind</Table.Header>
+                    <Table.Header width={110} className="text-right">
+                      Requirements
+                    </Table.Header>
+                    <Table.Header width={96} className="text-right">
+                      Controls
+                    </Table.Header>
                   </Table.Row>
                 </thead>
                 <tbody>
@@ -331,20 +343,20 @@ export function NodePreviewSheet({
                     return (
                       <Table.Row key={child.id}>
                         <Table.Cell className="max-w-none">
-                          <button
-                            type="button"
-                            className="truncate text-brand hover:underline"
+                          <Button
+                            variant="link"
+                            className="truncate"
                             onClick={() => onSelect(child.id)}
                           >
                             {child.name}
-                          </button>
+                          </Button>
                         </Table.Cell>
                         <Table.Cell className="truncate">{child.kind}</Table.Cell>
                         <Table.Cell className="tabular-nums text-right">
-                          {reqs.size || <span className="text-subtle">—</span>}
+                          {reqs.size || <Absent />}
                         </Table.Cell>
                         <Table.Cell className="tabular-nums text-right">
-                          {ctrls.size || <span className="text-subtle">—</span>}
+                          {ctrls.size || <Absent />}
                         </Table.Cell>
                       </Table.Row>
                     );
@@ -361,7 +373,7 @@ export function NodePreviewSheet({
               onClose={() => setAllocating(false)}
             />
           ) : null}
-        </div>
+        </Stack>
       ) : null}
     </Sheet>
   );

@@ -154,8 +154,8 @@ function ScopeApprovals() {
                     <Table.Cell className="truncate" width={200}>
                       {program && scope ? (
                         <Link
-                          to="/programs/$programId/systems/$scopeId"
-                          params={{ programId: r.program, scopeId: r.scope }}
+                          to="/programs/$programId/components/$componentId"
+                          params={{ programId: r.program, componentId: scope.element }}
                           search={{ tab: "Control set" }}
                           className="text-brand hover:underline"
                         >
@@ -227,14 +227,18 @@ function ScopeApprovals() {
         footer={
           reviewed ? (
             <Inline className="w-full" space="space.150" alignBlock="center" spread="space-between">
-              <Link
-                to="/programs/$programId/systems/$scopeId"
-                params={{ programId: reviewed.program, scopeId: reviewed.scope }}
-                search={{ tab: "Control set" }}
-                className="font-body-small text-brand hover:underline"
-              >
-                Open the scope record
-              </Link>
+              {reviewedScope ? (
+                <Link
+                  to="/programs/$programId/components/$componentId"
+                  params={{ programId: reviewed.program, componentId: reviewedScope.element }}
+                  search={{ tab: "Control set" }}
+                  className="font-body-small text-brand hover:underline"
+                >
+                  Open the record
+                </Link>
+              ) : (
+                <span />
+              )}
               <RevisionActions revision={reviewed} />
             </Inline>
           ) : null

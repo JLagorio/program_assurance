@@ -15,6 +15,7 @@ import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
 import {
+  Alert,
   AlertDialog,
   Badge,
   Block,
@@ -28,6 +29,7 @@ import {
   Input,
   Stack,
   Table,
+  Text,
   Textarea,
   Timeline,
   toast,
@@ -177,9 +179,9 @@ export function RevisionActions({
         ))}
       </Inline>
       {blocked ? (
-        <span className={`font-body-xsmall text-subtle ${align === "end" ? "text-right" : ""}`}>
+        <Text size="xsmall" color="color.text.subtle" align={align === "end" ? "end" : "start"}>
           {blocked}
-        </span>
+        </Text>
       ) : null}
 
       {acting ? (
@@ -326,10 +328,7 @@ export function RevisionReview({
 
   return (
     <>
-      <Block
-        title={`v${revision.number} · ${revision.state}`}
-        action={compact ? null : <RevisionActions revision={revision} />}
-      >
+      <Block title={`v${revision.number} · ${revision.state}`}>
         <Grid
           gap={compact ? "space.150" : "space.200"}
           templateColumns={compact ? undefined : { lg: "minmax(0, 1fr) 280px" }}
@@ -344,9 +343,15 @@ export function RevisionReview({
                 />
               </Field>
             ) : (
-              <p className="font-body">{revision.reason}</p>
+              <Text as="p">{revision.reason}</Text>
             )}
-            <dl className="grid grid-cols-2 gap-x-300 gap-y-025 font-body-small sm:grid-cols-4">
+            <Grid
+              as="dl"
+              columnGap="space.300"
+              rowGap="space.025"
+              templateColumns="repeat(4, minmax(0, 1fr))"
+              className="font-body-small"
+            >
               <RevisionFact label="Author">{revision.author}</RevisionFact>
               <RevisionFact label="Created">{revision.created}</RevisionFact>
               <RevisionFact label="Submitted">{revision.submitted ?? "—"}</RevisionFact>
@@ -359,14 +364,19 @@ export function RevisionReview({
                     ? `${revision.decidedBy.replace(/\s*\(.*\)$/, "")} · ${revision.decided}`
                     : "—"}
               </RevisionFact>
-            </dl>
+            </Grid>
             {revision.state === "Changes requested" && revision.note ? (
-              <p className="rounded-medium border border-danger-subtle bg-danger px-150 py-100 font-body-small">
-                <span className="font-medium">{revision.decidedBy}:</span> {revision.note}
-              </p>
+              <Alert tone="danger" title={revision.decidedBy}>
+                {revision.note}
+              </Alert>
             ) : null}
           </Stack>
-          {isOpen ? <RevisionGates gates={gates} /> : null}
+          {isOpen ? (
+            <Stack space="space.150">
+              {compact ? null : <RevisionActions revision={revision} align="start" />}
+              <RevisionGates gates={gates} />
+            </Stack>
+          ) : null}
         </Grid>
       </Block>
 
