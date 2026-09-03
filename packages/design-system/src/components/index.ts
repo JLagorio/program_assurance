@@ -18,6 +18,7 @@ export { Accordion, Collapsible, type AccordionProps, type CollapsibleProps } fr
 export { Drawer, type DrawerProps } from "./drawer";
 export { DropdownMenu, type DropdownMenuProps } from "./dropdown-menu";
 export { Editable, type EditableProps } from "./editable";
+export { Gates } from "./gates";
 export { HoverCard, type HoverCardProps } from "./hover-card";
 export { Id } from "./id";
 export { InputGroup } from "./input-group";

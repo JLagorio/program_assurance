@@ -4,8 +4,10 @@ import { useMemo, useState } from "react";
 import { RevisionActions, RevisionReview } from "@/components/app/control-set-revisions";
 import {
   Badge,
+  Block,
   Button,
   Id,
+  Indicator,
   IndexPage,
   Inline,
   Item,
@@ -15,6 +17,7 @@ import {
   Stack,
   Table,
   Tabs,
+  Text,
   TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
@@ -30,6 +33,7 @@ import {
   type RevisionState,
 } from "@/lib/control-set";
 import { programs } from "@/lib/grc-data";
+import { needsOf, requirementsForProgram, useRequirementsVersion } from "@/lib/requirements";
 import { scopeById } from "@/lib/scopes";
 
 export const Route = createFileRoute("/scope")({
@@ -63,6 +67,15 @@ const filters: (RevisionState | "All")[] = [
 
 function ScopeApprovals() {
   const version = useControlSetVersion();
+  const requirementsVersion = useRequirementsVersion();
+  const needing = useMemo(
+    () =>
+      programs
+        .flatMap((p) => requirementsForProgram(p.id))
+        .map((r) => ({ requirement: r, needs: needsOf(r) }))
+        .filter((x) => x.needs.length > 0),
+    [requirementsVersion],
+  );
   const [tab, setTab] = useState<(typeof filters)[number]>("All");
   const [reviewing, setReviewing] = useState<string | null>(null);
 
@@ -202,6 +215,63 @@ function ScopeApprovals() {
             </tbody>
           </Table>
         </Section>
+
+        <Block title="Requirements" count={needing.length}>
+          <Table>
+            <thead>
+              <tr>
+                <Table.Header width={104}>Program</Table.Header>
+                <Table.Header width={110}>Requirement</Table.Header>
+                <Table.Header>Statement</Table.Header>
+                <Table.Header width={130}>Owner</Table.Header>
+                <Table.Header width={300}>Needs</Table.Header>
+              </tr>
+            </thead>
+            <tbody>
+              {needing.map(({ requirement: r, needs }) => (
+                <Table.Row key={r.id}>
+                  <Table.Cell width={104}>
+                    <TextLink>
+                      <Link
+                        to="/programs/$programId"
+                        params={{ programId: r.program }}
+                        search={{ tab: "Requirements" }}
+                      >
+                        <Id>{r.program}</Id>
+                      </Link>
+                    </TextLink>
+                  </Table.Cell>
+                  <Table.Cell width={110}>
+                    <TextLink>
+                      <Link
+                        to="/programs/$programId/requirements/$requirementId"
+                        params={{ programId: r.program, requirementId: r.id }}
+                        search={{ tab: undefined }}
+                      >
+                        <Id>{r.id}</Id>
+                      </Link>
+                    </TextLink>
+                  </Table.Cell>
+                  <Table.Cell className="truncate" title={r.text}>
+                    {r.text}
+                  </Table.Cell>
+                  <Table.Cell className="truncate" width={130}>
+                    {r.owner}
+                  </Table.Cell>
+                  <Table.Cell className="truncate" width={300}>
+                    <Indicator tone="warning">{needs[0]?.label}</Indicator>
+                    {needs.length > 1 ? (
+                      <Text as="span" size="small" color="color.text.subtle">
+                        {" "}
+                        +{needs.length - 1}
+                      </Text>
+                    ) : null}
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </tbody>
+          </Table>
+        </Block>
 
         <Section title="Decision notes">
           <Item.Group empty="No decision has carried a note yet.">

@@ -18,6 +18,7 @@ Updated 2026-09-02.
 
 ## Prototype
 
+- [ ] **Requirements tracking** (`docs/superpowers/specs/2026-09-02-requirements-tracking.md`, in progress, the second session): the coverage bar and the requirement → test link, suspect currency on links, Glance and the peek stack, picker adoption. Step 1 is done.
 - [ ] **Picker adoption.** "Allocate a requirement" (system-tree.tsx) and the tailoring pane's two Comboboxes move onto `PickerSheet`; `ApplicabilityModal` becomes the row action in its second frame. Spec: `docs/superpowers/specs/2026-09-02-picker-sheet.md`, with three calls for Josef to overturn.
 - [ ] **The peek stack in the URL.** `NodePreviewSheet` drills into a child with no way back; `PreviewSheet` has `onBack` now. Keep the stack in a `?peek=` search param so the chevron and the browser's back are the same thing.
 - [ ] **One preview body per record type**, at two densities (glance for HoverCard, peek for PreviewSheet). `ProgramPeek`, `RiskPeek` and `NodePreviewSheet` are three unrelated bodies today.
@@ -27,6 +28,7 @@ Updated 2026-09-02.
 
 ## Done
 
+- 2026-09-02 · **Gates** in the kit (Components/Status): a met or unmet condition with its reason and action, a list never a score. Quality gates block Approve on the requirement record; a Needs block lists what a requirement still lacks; the queue lists requirements that need something.
 - 2026-09-02 · **Forms validate on submit.** `useRequired` in `src/lib/form.ts`: the Fields it names carry the asterisk, the primary button is always enabled, and pressing it marks the first empty field red with "Required." under it. Applied to POA&M create and edit, new requirement, allocate (both dialogs), observation, enclave access, AO decision, authorization memo, mapping rule, add node, create risk, ingest assessment data, record assessment, propose change. The old footer messages and disabled buttons for those fields are gone.
 - 2026-09-02 · **`docs/guides/component-library.md`** rewritten onto the package: layers, importing, naming, the lint table, the rules that stay in the head, how to add a part, what is underneath, where the specs are.
 - 2026-09-02 · **Step 7, the mode switch**: provider, three-state control, storage, before-paint script; the light pin is off the prototype root and the switch sits in the top bar.

@@ -6,9 +6,12 @@ import { AllocationTable, ProvenanceTable, RequirementTable } from "@/components
 import { AllocateModal } from "@/components/app/requirement-forms";
 import {
   Badge,
+  Block,
   Button,
+  Collapsible,
   Editable,
   Fact,
+  Gates,
   Id,
   Inline,
   Inspector,
@@ -28,6 +31,8 @@ import {
   childrenOfRequirement,
   derivationSourceTone,
   getRequirement,
+  needsOf,
+  qualityGates,
   requirementStateTone,
   requirementStates,
   saveRequirementField,
@@ -128,6 +133,10 @@ function RequirementRecord() {
   const controlSources = requirement.derivations.filter(
     (d) => d.sourceType === "Control statement" || d.sourceType === "Overlay",
   );
+  const gates = qualityGates(requirement);
+  const unmet = gates.filter((g) => !g.met);
+  const firstUnmet = unmet[0] ?? null;
+  const needs = needsOf(requirement);
   const go = (next: RequirementTab) => navigate({ search: { tab: next }, replace: true });
 
   return (
@@ -144,6 +153,11 @@ function RequirementRecord() {
                 label="State"
                 options={requirementStates}
                 value={requirement.state}
+                validate={(next) =>
+                  next === "Approved" && firstUnmet
+                    ? `${firstUnmet.label}: ${firstUnmet.reason}`
+                    : null
+                }
                 onChange={(next) => setRequirementField(requirement.id, { state: next })}
                 save={(next) => saveRequirementField(`${requirement.id} state`, next)}
                 render={(v) => <Badge tone={requirementStateTone[v]}>{v}</Badge>}
@@ -216,6 +230,23 @@ function RequirementRecord() {
         showRail={tab === "Overview"}
         rail={
           <>
+            <Collapsible
+              title="Gates"
+              count={unmet.length || null}
+              defaultOpen
+              className="first:border-t-0"
+            >
+              <Gates>
+                {gates.map((g) => (
+                  <Gates.Item
+                    key={g.key}
+                    met={g.met}
+                    label={g.label}
+                    reason={g.met ? undefined : g.reason}
+                  />
+                ))}
+              </Gates>
+            </Collapsible>
             <Inspector.Group title="Derives from">
               {requirement.derivations.map((d) => (
                 <KeyValue key={`${d.sourceType}-${d.sourceId}`} label={d.sourceType}>
@@ -281,6 +312,27 @@ function RequirementRecord() {
       >
         {tab === "Overview" ? (
           <>
+            {needs.length ? (
+              <Block title="Needs" count={needs.length}>
+                <Gates>
+                  {needs.map((n) => (
+                    <Gates.Item
+                      key={n.key}
+                      met={false}
+                      label={n.label}
+                      reason={n.reason}
+                      action={
+                        n.key === "allocate" ? (
+                          <Button size="small" variant="link" onClick={() => setAllocating(true)}>
+                            Allocate
+                          </Button>
+                        ) : undefined
+                      }
+                    />
+                  ))}
+                </Gates>
+              </Block>
+            ) : null}
             <Section
               title="Allocation"
               action={

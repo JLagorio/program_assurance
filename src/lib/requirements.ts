@@ -1259,3 +1259,98 @@ export function addAllocation(input: {
 export function useRequirementsVersion(): number {
   return useSyncExternalStore(subscribeRequirements, requirementsVersion, requirementsVersion);
 }
+
+/* ------------------------------------------------------------- Gates */
+
+/** One named condition with why it is or is not met. Rendered by the kit's Gates. */
+export type RequirementGate = { key: string; label: string; met: boolean; reason: string };
+
+const openWords =
+  /\b(etc\.?|as appropriate|as needed|as required|adequate(?:ly)?|sufficient(?:ly)?|robust|user[- ]friendly|quickly|timely|reasonable)\b/i;
+
+/**
+ * INCOSE's rules as gates on Approve, not on authoring: a Draft may fail every
+ * one. A list, never a score, so the unmet gate is the blocked reason.
+ */
+export function qualityGates(input: Requirement): RequirementGate[] {
+  const r = resolveRequirement(input);
+  const shalls = (r.text.match(/\bshall\b/gi) ?? []).length;
+  const open = openWords.exec(r.text);
+  const criterion = r.successCriteria.trim();
+  const noRationale = r.derivations.filter((d) => !d.rationale.trim());
+  return [
+    {
+      key: "shall",
+      label: "One shall",
+      met: shalls === 1,
+      reason: shalls === 0 ? "No shall in the statement." : `${shalls} shalls in one statement.`,
+    },
+    {
+      key: "testable",
+      label: "Testable words",
+      met: !open,
+      reason: open ? `"${open[0]}" cannot be tested.` : "",
+    },
+    {
+      key: "criterion",
+      label: "Success criterion",
+      met: criterion !== "" && criterion !== "—",
+      reason: "Nothing decides that it is met.",
+    },
+    {
+      key: "owner",
+      label: "Owner",
+      met: r.owner.trim() !== "" && r.owner !== "—",
+      reason: "No one is accountable.",
+    },
+    {
+      key: "source",
+      label: "Source with rationale",
+      met: r.derivations.length > 0 && noRationale.length === 0,
+      reason:
+        r.derivations.length === 0
+          ? "No source."
+          : `${noRationale.map((d) => d.sourceId).join(", ")} gives no reason.`,
+    },
+  ];
+}
+
+/** What a requirement still needs, each with the one action that supplies it. The ReqSuite idea: the model lists the missing relations. */
+export type RequirementNeed = {
+  key: "allocate" | "claim" | "accept" | "criterion" | "quality";
+  label: string;
+  reason: string;
+};
+
+export function needsOf(input: Requirement): RequirementNeed[] {
+  const r = resolveRequirement(input);
+  const out: RequirementNeed[] = [];
+  const leaf = childrenOfRequirement(r.id).length === 0;
+  const allocs = allocationsFor(r.id).filter(
+    (a) => a.state !== "Rejected" && a.state !== "Superseded",
+  );
+  if (leaf && allocs.length === 0)
+    out.push({ key: "allocate", label: "Allocate", reason: "Nothing is responsible for it." });
+  const unclaimed = allocs.filter((a) => !a.scope.trim() || a.scope === "—");
+  if (unclaimed.length)
+    out.push({
+      key: "claim",
+      label: "State the claim",
+      reason: `${unclaimed.length} of ${allocs.length} carry no bounded claim.`,
+    });
+  const proposed = allocs.filter((a) => a.state === "Proposed");
+  if (proposed.length)
+    out.push({
+      key: "accept",
+      label: "Accept",
+      reason: `${proposed.length} proposed, not yet accepted by the element owner.`,
+    });
+  const unmet = qualityGates(r).filter((g) => !g.met);
+  if (r.state === "Draft" && unmet.length)
+    out.push({
+      key: "quality",
+      label: "Meet the gates",
+      reason: `${unmet.length} of ${qualityGates(r).length} unmet; Approve waits.`,
+    });
+  return out;
+}
