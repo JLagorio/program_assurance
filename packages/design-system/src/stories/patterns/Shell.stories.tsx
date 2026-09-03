@@ -26,14 +26,17 @@ import {
   Banner,
   Button,
   Count,
+  Fact,
   IconButton,
   Input,
   InputGroup,
+  Tabs,
   Tooltip,
 } from "../../components";
 import { ModeSwitch } from "../../mode";
-import { PageHeader } from "../../patterns";
+import { PageHeader, Panel, RecordHeader } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
+import { Block, Inspector } from "../../shapes";
 import { Shell, useSideNav } from "../../shell";
 import { Specimens } from "../_lib/matrix";
 
@@ -375,3 +378,140 @@ export const ShellMatrix: Story = {
     </Stack>
   ),
 };
+
+const railGroups = [
+  {
+    title: "Identity",
+    rows: [
+      { label: "Id", value: "PRG-014" },
+      { label: "Kind", value: "Program" },
+      { label: "Phase", value: "Authorise" },
+      { label: "Framework", value: "NIST 800-53 r5, moderate" },
+    ],
+  },
+  {
+    title: "Ownership",
+    rows: [
+      { label: "Owner", value: "Sarah Chen" },
+      { label: "ISSO", value: "Dana Whitfield" },
+      { label: "AO", value: "Col. Reyes" },
+    ],
+  },
+  {
+    title: "Dates",
+    rows: [
+      { label: "Created", value: "12 Mar 2026" },
+      { label: "Last change", value: "Yesterday" },
+      { label: "Next gate", value: "12 Sep 2026" },
+    ],
+  },
+  {
+    title: "Counts",
+    rows: [
+      { label: "Controls", value: "312" },
+      { label: "Findings", value: "7 open" },
+      { label: "POA&M", value: "4" },
+    ],
+  },
+];
+const tabs = ["Overview", "Controls", "Evidence", "Findings"] as const;
+
+/** A record page: the header keeps its facts, the rail is in the panel on demand, and it stays while the tabs change. */
+function RecordDemo() {
+  const [open, setOpen] = useState(true);
+  const [tab, setTab] = useState<(typeof tabs)[number]>("Overview");
+  return (
+    <Shell>
+      <Shell.TopNav>
+        <Shell.TopNav.Start toggle={<Shell.SideNav.ToggleButton />}>
+          <Shell.AppLogo asChild name="Equinox" secondaryName="Northwind Corp">
+            <a href="#home" aria-label="Equinox home" />
+          </Shell.AppLogo>
+        </Shell.TopNav.Start>
+        <Shell.TopNav.Middle>
+          <InputGroup leading={<Search />} width={480}>
+            <Input
+              type="search"
+              placeholder="Search…"
+              aria-label="Search"
+              className="h-control-small"
+            />
+          </InputGroup>
+        </Shell.TopNav.Middle>
+        <Shell.TopNav.End>
+          <EndItems />
+        </Shell.TopNav.End>
+      </Shell.TopNav>
+      <Shell.SideNav>
+        <Shell.SideNav.Body>
+          <Nav />
+        </Shell.SideNav.Body>
+      </Shell.SideNav>
+      <Shell.Main>
+        <Stack space="space.200">
+          <RecordHeader
+            back={<a href="#programs" aria-label="Back to programs" />}
+            id="PRG-014"
+            title="Payload integration"
+            meta="Authorise · Sarah Chen"
+            actions={
+              <>
+                <Button>Export</Button>
+                <Button variant="primary">Submit for assessment</Button>
+                <Panel.Trigger isOpen={open} onClick={() => setOpen((v) => !v)} />
+              </>
+            }
+            facts={
+              <>
+                <Fact label="Phase">Authorise</Fact>
+                <Fact label="Owner">Sarah Chen</Fact>
+                <Fact label="Next gate">12 Sep</Fact>
+              </>
+            }
+          />
+          <Tabs label="Record">
+            {tabs.map((t) => (
+              <Tabs.Tab key={t} isSelected={tab === t} onClick={() => setTab(t)}>
+                {t}
+              </Tabs.Tab>
+            ))}
+          </Tabs>
+          <Block title={tab} count={tab === "Overview" ? undefined : 12}>
+            <Stack space="space.100">
+              <Text color="color.text.subtle">
+                The {tab} tab's work. The rail stays in the panel while the tab changes.
+              </Text>
+              {programs.slice(0, 8).map((p) => (
+                <Inline
+                  key={p.id}
+                  space="space.200"
+                  alignBlock="center"
+                  className="border-b border-default py-100"
+                >
+                  <Text size="small" color="color.text.subtle" className="tabular-nums">
+                    {p.id}
+                  </Text>
+                  <Text>{p.title}</Text>
+                </Inline>
+              ))}
+            </Stack>
+          </Block>
+          <Block title="Gates" count={3}>
+            <Text color="color.text.subtle">What this record still needs before it moves.</Text>
+          </Block>
+        </Stack>
+      </Shell.Main>
+      {open ? (
+        <Shell.Panel label="Details">
+          <Shell.Panel.Splitter label="Resize details" />
+          <Panel title="Details" onClose={() => setOpen(false)}>
+            <Inspector sticky={false} groups={railGroups} />
+          </Panel>
+        </Shell.Panel>
+      ) : null}
+    </Shell>
+  );
+}
+
+/** The rail on demand: every Inspector group in the shell's panel, opened from the Details trigger in the record header, staying open across tabs. The peek is a Sheet, not this. */
+export const RailOnDemand: Story = { name: "Rail on demand", render: () => <RecordDemo /> };

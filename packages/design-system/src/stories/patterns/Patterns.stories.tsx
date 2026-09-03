@@ -1,23 +1,24 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Plus } from "lucide-react";
+import { ExternalLink, Info, Maximize2, Plus } from "lucide-react";
 import { useState } from "react";
 
 import {
   Avatar,
   Badge,
+  Breadcrumb,
   Button,
   Editable,
   Fact,
   FilterChip,
   HoverCard,
+  IconButton,
   Id,
   Indicator,
   KeyValue,
   NativeSelect,
-  Tabs,
-  Breadcrumb,
   Person,
   Table,
+  Tabs,
   TextLink,
 } from "../../components";
 import {
@@ -27,6 +28,7 @@ import {
   IndexPage,
   PageHeader,
   PageSkeleton,
+  Panel,
   PickerSheet,
   PreviewRail,
   PreviewSheet,
@@ -36,6 +38,7 @@ import {
   ShowPage,
 } from "../../patterns";
 import { Stack, Text, Box, Inline } from "../../primitives";
+import { Inspector } from "../../shapes";
 import { Specimens } from "../_lib/matrix";
 
 const meta = {
@@ -998,5 +1001,132 @@ export const GlanceMatrix: Story = {
         </Box>
       ))}
     </Inline>
+  ),
+};
+
+const panelGroups = [
+  {
+    title: "Identity",
+    rows: [
+      { label: "Id", value: "PRG-014" },
+      { label: "Kind", value: "Program" },
+      { label: "Framework", value: "NIST 800-53 r5, moderate" },
+    ],
+  },
+  {
+    title: "Ownership",
+    rows: [
+      { label: "Owner", value: "Sarah Chen" },
+      { label: "ISSO", value: "Dana Whitfield" },
+    ],
+  },
+  {
+    title: "Dates",
+    rows: [
+      { label: "Created", value: "12 Mar 2026" },
+      { label: "Next gate", value: "12 Sep 2026" },
+    ],
+  },
+];
+
+/** A panel surface in a box the size of the shell's Panel area. */
+function PanelBox({ height = 300, children }: { height?: number; children: React.ReactNode }) {
+  return (
+    <div
+      style={{ width: 320, height }}
+      className="overflow-y-auto rounded-medium border border-default bg-surface"
+    >
+      {children}
+    </div>
+  );
+}
+
+const filler = Array.from({ length: 6 }, (_, i) => (
+  <Text key={i} color="color.text.subtle">
+    Line {i + 1} of the panel's body. The area scrolls; the header and the footer stay put.
+  </Text>
+));
+
+export const PanelStory: Story = {
+  name: "Panel",
+  render: () => (
+    <PanelBox height={420}>
+      <Panel title="Details" onClose={() => undefined}>
+        <Inspector sticky={false} groups={panelGroups} />
+      </Panel>
+    </PanelBox>
+  ),
+};
+
+/** The header's forms, a subheader, a footer, and the rail on demand in the body. */
+export const PanelMatrix: Story = {
+  render: () => (
+    <Stack space="space.300">
+      <Specimens title="Plain · with an icon and two actions · with a back button and a subheader">
+        <Inline space="space.300" alignBlock="start">
+          <PanelBox>
+            <Panel title="Details" onClose={() => undefined}>
+              <Stack space="space.100">{filler}</Stack>
+            </Panel>
+          </PanelBox>
+          <PanelBox>
+            <Panel
+              title="Comments"
+              icon={<Info className="size-icon-small icon-subtle" />}
+              actions={
+                <>
+                  <IconButton label="Expand" variant="subtle">
+                    <Maximize2 className="size-icon-medium" />
+                  </IconButton>
+                  <IconButton label="Open in a new tab" variant="subtle">
+                    <ExternalLink className="size-icon-medium" />
+                  </IconButton>
+                </>
+              }
+              onClose={() => undefined}
+            >
+              <Stack space="space.100">{filler}</Stack>
+            </Panel>
+          </PanelBox>
+          <PanelBox>
+            <Panel
+              title="Add fields"
+              subheader="Default field scheme"
+              onBack={() => undefined}
+              onClose={() => undefined}
+            >
+              <Stack space="space.100">{filler}</Stack>
+            </Panel>
+          </PanelBox>
+        </Inline>
+      </Specimens>
+      <Specimens title="With a footer · the rail on demand · the trigger, closed and open">
+        <Inline space="space.300" alignBlock="start">
+          <PanelBox>
+            <Panel
+              title="Edit settings"
+              onClose={() => undefined}
+              footer={
+                <>
+                  <Button>Cancel</Button>
+                  <Button variant="primary">Save</Button>
+                </>
+              }
+            >
+              <Stack space="space.100">{filler}</Stack>
+            </Panel>
+          </PanelBox>
+          <PanelBox height={420}>
+            <Panel title="Details" onClose={() => undefined}>
+              <Inspector sticky={false} groups={panelGroups} />
+            </Panel>
+          </PanelBox>
+          <Inline space="space.100" alignBlock="center">
+            <Panel.Trigger isOpen={false} onClick={() => undefined} />
+            <Panel.Trigger isOpen onClick={() => undefined} />
+          </Inline>
+        </Inline>
+      </Specimens>
+    </Stack>
   ),
 };

@@ -4,6 +4,7 @@ export { Empty } from "./empty";
 export { Glance } from "./glance";
 export { PageHeader } from "./page-header";
 export { PageSkeleton } from "./page-skeleton";
+export { Panel, type PanelProps } from "./panel";
 export { PreviewRail } from "./preview-rail";
 export { PickerSheet } from "./picker-sheet";
 export { PreviewSheet } from "./preview-sheet";

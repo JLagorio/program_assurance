@@ -6,6 +6,6 @@ export {
   type SideNavProps,
   type SideNavItemProps,
   type SideNavExpandableProps,
-  type PanelProps,
+  type ShellPanelProps,
   type NavItemProps,
 } from "./shell";

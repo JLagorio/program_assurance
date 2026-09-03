@@ -14,8 +14,11 @@ design system will serve several internal products. The parts document themselve
   Start, Middle and End, SideNav with Header, Body and Footer, Main, Panel.
 - **The Panel is an area, not a feature.** Josef's call: the preview is not part of the shell. The
   shell renders the area beside the page when the product mounts it; what goes in it is the
-  product's, a PreviewRail, a thread, a form. The shell is extensible by its slots, not by knowing
-  what fills them.
+  product's. The shell is extensible by its slots, not by knowing what fills them.
+- **The peek is a Sheet; the panel is the rail on demand.** Josef's clarification: the preview
+  slides over the page and the nav to about half the screen and stays a Sheet. The panel is where
+  a record's rail goes when the reader asks for it: every Inspector group, opened from a trigger in
+  the record header, staying open across tabs. The `Panel` pattern is that surface.
 
 ## Decisions
 
@@ -68,5 +71,6 @@ design system will serve several internal products. The parts document themselve
 
 On Josef's go: `eslint --fix` on `src/components/app/shell.tsx` does the four renames; the sidebar
 and the top bar are restructured by hand into `Shell.SideNav` and `Shell.TopNav` with the brand in
-`TopNav.Start`; the Panel takes the two `PreviewSplit` indexes; then `legacy.tsx` and the deprecated
-tokens go, and the lint rule becomes an error for consumers.
+`TopNav.Start`; then `legacy.tsx` and the deprecated tokens go, and the lint rule becomes an error
+for consumers. Moving a record page's rail into the panel on demand is a call per page; the
+PreviewRail beside the index tables and the PreviewSheet stay as they are.

@@ -1018,7 +1018,7 @@ function Main({
 
 /* ---------- panel ---------- */
 
-export type PanelProps = {
+export type ShellPanelProps = {
   id?: string | undefined;
   /** The landmark's name: say what is in it, "Preview" or "Comments", not "Panel". */
   label?: string | undefined;
@@ -1029,7 +1029,7 @@ export type PanelProps = {
 };
 
 /** The area beside the page, at the end. Render it when there is something to show and unmount it when there is not; below the large breakpoint it overlays the page. What is in it is the product's: a preview, a thread, a form. */
-function PanelRoot({ id, label = "Panel", defaultWidth, className, children }: PanelProps) {
+function PanelRoot({ id, label = "Panel", defaultWidth, className, children }: ShellPanelProps) {
   const shell = useShell();
   const skipId = useSkipLink(id, label);
   // The first width only; later widths come from the splitter.

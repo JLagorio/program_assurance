@@ -99,8 +99,9 @@ product code and keeps three assembly rules of its own.
   the actions that make sense without leaving); the footer link is the record.
 - Rail beside an index table that leaves room; sheet over a full-width table and wherever the
   preview carries actions. Never both on one page.
-- The shell's Panel is an area, not a feature: the product renders it when there is something
-  beside the page and unmounts it when there is not. A preview is a pattern that may go in it.
+- The shell's Panel is an area, not a feature. The peek is a Sheet over the page and the nav;
+  the Panel holds the record's rail on demand, opened from the record header and staying open
+  across tabs.
 - A screen is shaped by the reader's question. When a column, fact or block exists because the
   store has the field, it goes.
 - A real pattern the kit lacks is flagged in writing with a recommendation (kit or bespoke); the
