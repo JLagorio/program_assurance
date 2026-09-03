@@ -61,6 +61,7 @@ import { CommandPalette, useCommandPalette } from "@/components/app/command-pale
 import { programCommands } from "@/lib/program-commands";
 import { NewRequirementModal } from "@/components/app/requirement-forms";
 import { ControlSetsSummary, ScopeTable } from "@/components/app/scopes";
+import { RequirementCoverage } from "@/components/app/requirement-coverage";
 import { RequirementTable } from "@/components/app/requirements";
 import { programControls, programStatuses, programStatusTone, programs } from "@/lib/grc-data";
 import { allocationsFor, requirementsForProgram, useRequirementsVersion } from "@/lib/requirements";
@@ -995,11 +996,7 @@ function ProgramDetail() {
 
         {tab === "Requirements" ? (
           requirementRows.length ? (
-            <RequirementTable
-              requirements={requirementRows}
-              programId={program.id}
-              allocationCount={(id) => allocationsFor(id).length}
-            />
+            <RequirementCoverage programId={program.id} />
           ) : (
             <Empty
               title="No security requirements"
