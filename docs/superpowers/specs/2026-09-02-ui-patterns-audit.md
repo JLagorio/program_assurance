@@ -45,3 +45,20 @@ The general rule: a screen is shaped by the reader's question, and the model sup
 ## The fold, for the record
 
 The scope record (`/programs/$programId/systems/$scopeId`) is gone as a page. A categorized element's record (`/programs/$programId/components/$componentId`) carries an Overview tab and a Control set tab; the strip under the title shows the triad, the set's size and the revision in force and proposed; the rail gains Categorization and Environment. The old URL redirects to the element's record, `?tab=Revisions` and `?tab=Control set` to the Control set tab. The queue, the preview sheet, the Controls-tab summary and the component record's scope list all link to the element record now. The tab body lives in `src/components/app/scope-control-set.tsx`.
+
+## Decisions and what landed (2026-09-02, evening)
+
+Josef: "tackle any and all of this that's valid." Every flagged pattern was valid and went to the kit; the prototype already uses each one. What the spine surfaces should do now is in the last column.
+
+| # | Flag | Decision | In the kit | In the prototype now |
+|---|---|---|---|---|
+| 1 | Preview sheet or rail | **kit** | `PreviewSheet` in patterns: Sheet with the Preview eyebrow and the id, the footer's first item opens the full record, `links` follow, `actions` on the right. Rule in Patterns.mdx ("Rail or sheet"). | `NodePreviewSheet` renders `PreviewSheet`. Its body is still app-local, which is right. |
+| 2 | Tree grid | **kit** | `Table.Tree`, the cell lifted from `tree-cell.tsx`; indent on `space.200`. Docs say `role="treegrid"` on the Table, `aria-level` and `aria-expanded` on the rows. | `system-tree.tsx` uses `Table.Tree`; `tree-cell.tsx` is deleted. `kit/no-kit-shadow` names `TreeCell` as a legacy name so a copy cannot return. |
+| 3 | Text links | **kit + sweep** | `TextLink`, `asChild` by default; `size` inherits unless set, `weight="medium"` for a link that stands alone. `Button variant="link"` is an action that reads as text. Lint `ledger/prefer-text-link`. | 147 classed Links, 2 `Button link asChild` and 9 `<button className="text-brand hover:underline">` swept by codemod; one status-coloured link (control-matrix) is `TextLink` with `text-danger`/`text-subtle` on top. Zero hand-classed links remain. |
+| 4 | Column widths | **sweep** | `Table.Id` gains `width` for tables with no header row. Lint `ledger/no-colgroup`. | 100 colgroups by codemod, 19 by hand (percentages as `style`, conditional columns as conditional headers, header-less tables put `width` on the cells, `SctmCols` folded into `SctmHead`). Zero remain. |
+| 5 | Filter counts | **kit** | `ToggleGroup` items take `count`, rendered as a Count after the label. | `requirement-coverage.tsx` passes `count`. |
+| 6 | Facts strip | **kit** | `Fact.Group` is the `dl`; `RecordHeader` gains `facts`, rendered as a Fact.Group under the title on a rule. Rule of six in the docs. | The two record headers use `facts`; the two Section strips use `Fact.Group`. The categorized element still shows fourteen (see "Where the data is driving the UI"). |
+| 7 | Sheet modality | **leave it** | Nothing. | Nothing. Listed in `docs/next.md` as a product call. |
+| 8 | Persona switch | **bespoke** | Nothing. | Unchanged. |
+
+Package commit 77232ad; prototype commit follows. The tracking list for everything after this is `docs/next.md`.

@@ -20,6 +20,7 @@ import {
   Progress,
   Section,
   Table,
+  TextLink,
   Toolbar,
 } from "@ledger/design-system";
 import { cn } from "@/lib/utils";
@@ -53,28 +54,27 @@ export function FamilyCoverageTable({
       }
     >
       <Table className="table-fixed">
-        <colgroup>
-          <col style={{ width: "56px" }} />
-          <col />
-          <col style={{ width: "72px" }} />
-          <col style={{ width: "84px" }} />
-          <col style={{ width: "72px" }} />
-          <col style={{ width: "104px" }} />
-          <col style={{ width: "84px" }} />
-          <col style={{ width: "160px" }} />
-          <col style={{ width: "140px" }} />
-        </colgroup>
         <thead>
           <tr>
-            <Table.Header>ID</Table.Header>
+            <Table.Header width={56}>ID</Table.Header>
             <Table.Header>Family</Table.Header>
-            <Table.Header className="text-right">Total</Table.Header>
-            <Table.Header className="text-right">Satisfied</Table.Header>
-            <Table.Header className="text-right">Partial</Table.Header>
-            <Table.Header className="text-right">Other</Table.Header>
-            <Table.Header className="text-right">Inherited</Table.Header>
-            <Table.Header>Coverage</Table.Header>
-            <Table.Header>Owner</Table.Header>
+            <Table.Header width={72} className="text-right">
+              Total
+            </Table.Header>
+            <Table.Header width={84} className="text-right">
+              Satisfied
+            </Table.Header>
+            <Table.Header width={72} className="text-right">
+              Partial
+            </Table.Header>
+            <Table.Header width={104} className="text-right">
+              Other
+            </Table.Header>
+            <Table.Header width={84} className="text-right">
+              Inherited
+            </Table.Header>
+            <Table.Header width={160}>Coverage</Table.Header>
+            <Table.Header width={140}>Owner</Table.Header>
           </tr>
         </thead>
         <tbody>
@@ -133,29 +133,27 @@ function FindingsCell({ programId, row }: { programId: string; row: ControlRow }
   if (row.findings.length === 1) {
     const only = row.findings[0]!;
     return (
-      <Link
-        to="/findings/$findingId"
-        params={{ findingId: only.id }}
-        className="hover:underline"
-        title={only.title}
-      >
-        <Id className={row.openFindings ? "text-danger" : "text-subtle"}>{only.id}</Id>
-      </Link>
+      <TextLink>
+        <Link to="/findings/$findingId" params={{ findingId: only.id }} title={only.title}>
+          <Id className={row.openFindings ? "text-danger" : "text-subtle"}>{only.id}</Id>
+        </Link>
+      </TextLink>
     );
   }
 
   return (
-    <Link
-      to="/programs/$programId/controls/$controlId"
-      params={{ programId, controlId: row.id }}
-      search={{ tab: "Assessment" as const }}
-      className={cn(
-        "tabular-nums font-body-small hover:underline",
-        row.openFindings ? "text-danger" : "text-subtle",
-      )}
+    <TextLink
+      size="small"
+      className={cn("tabular-nums", row.openFindings ? "text-danger" : "text-subtle")}
     >
-      {label}
-    </Link>
+      <Link
+        to="/programs/$programId/controls/$controlId"
+        params={{ programId, controlId: row.id }}
+        search={{ tab: "Assessment" as const }}
+      >
+        {label}
+      </Link>
+    </TextLink>
   );
 }
 
@@ -273,48 +271,42 @@ export function ControlMatrixSection({
       ) : (
         <>
           <Table className="table-fixed">
-            <colgroup>
-              <col style={{ width: "92px" }} />
-              <col />
-              <col style={{ width: "176px" }} />
-              <col style={{ width: "96px" }} />
-              <col style={{ width: "116px" }} />
-              <col style={{ width: "104px" }} />
-              <col style={{ width: "168px" }} />
-              <col style={{ width: "112px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>Control</Table.Header>
+                <Table.Header width={92}>Control</Table.Header>
                 <Table.Header>Title</Table.Header>
-                <Table.Header>Status</Table.Header>
-                <Table.Header>Implementation</Table.Header>
-                <Table.Header>Findings</Table.Header>
-                <Table.Header>POA&M</Table.Header>
-                <Table.Header>Next action</Table.Header>
-                <Table.Header className="text-right">Due</Table.Header>
+                <Table.Header width={176}>Status</Table.Header>
+                <Table.Header width={96}>Implementation</Table.Header>
+                <Table.Header width={116}>Findings</Table.Header>
+                <Table.Header width={104}>POA&M</Table.Header>
+                <Table.Header width={168}>Next action</Table.Header>
+                <Table.Header width={112} className="text-right">
+                  Due
+                </Table.Header>
               </tr>
             </thead>
             <tbody>
               {visible.map((r) => (
                 <Table.Row key={r.id}>
                   <Table.Cell>
-                    <Link
-                      to="/programs/$programId/controls/$controlId"
-                      params={{ programId, controlId: r.id }}
-                      className="hover:underline"
-                    >
-                      <Id className="text-brand">{r.id}</Id>
-                    </Link>
+                    <TextLink>
+                      <Link
+                        to="/programs/$programId/controls/$controlId"
+                        params={{ programId, controlId: r.id }}
+                      >
+                        <Id>{r.id}</Id>
+                      </Link>
+                    </TextLink>
                   </Table.Cell>
                   <Table.Cell className="truncate" title={r.title}>
-                    <Link
-                      to="/programs/$programId/controls/$controlId"
-                      params={{ programId, controlId: r.id }}
-                      className="hover:underline"
-                    >
-                      {r.title}
-                    </Link>
+                    <TextLink>
+                      <Link
+                        to="/programs/$programId/controls/$controlId"
+                        params={{ programId, controlId: r.id }}
+                      >
+                        {r.title}
+                      </Link>
+                    </TextLink>
                   </Table.Cell>
                   <Table.Cell className="overflow-visible">
                     <Editable.Select<ControlStatus>
@@ -334,13 +326,11 @@ export function ControlMatrixSection({
                   </Table.Cell>
                   <Table.Cell>
                     {r.poam ? (
-                      <Link
-                        to="/register/poam/$poamId"
-                        params={{ poamId: r.poam }}
-                        className="text-brand hover:underline"
-                      >
-                        <Id className="text-brand">{r.poam}</Id>
-                      </Link>
+                      <TextLink>
+                        <Link to="/register/poam/$poamId" params={{ poamId: r.poam }}>
+                          <Id>{r.poam}</Id>
+                        </Link>
+                      </TextLink>
                     ) : (
                       <span className="text-subtle">—</span>
                     )}

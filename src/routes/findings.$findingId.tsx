@@ -20,6 +20,7 @@ import {
   Stack,
   Table,
   Tabs,
+  TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { RemediationPlanSection } from "@/components/app/remediation";
@@ -89,9 +90,9 @@ function FindingRecord() {
       <Shell>
         <Stack space="space.150">
           <h1 className="font-heading-small font-semibold">Finding not found</h1>
-          <Link to="/findings" className="font-body text-brand hover:underline">
-            Back to findings
-          </Link>
+          <TextLink size="medium">
+            <Link to="/findings">Back to findings</Link>
+          </TextLink>
         </Stack>
       </Shell>
     );
@@ -109,13 +110,14 @@ function FindingRecord() {
   const bandScale = "80+ Very high · 60–79 High · 40–59 Moderate · 20–39 Low · under 20 Very low.";
 
   const controlLink = controlRow ? (
-    <Link
-      to="/programs/$programId/controls/$controlId"
-      params={{ programId, controlId: finding.control }}
-      className="text-brand hover:underline"
-    >
-      <Id className="text-brand">{finding.control}</Id>
-    </Link>
+    <TextLink>
+      <Link
+        to="/programs/$programId/controls/$controlId"
+        params={{ programId, controlId: finding.control }}
+      >
+        <Id>{finding.control}</Id>
+      </Link>
+    </TextLink>
   ) : (
     <Id>{finding.control}</Id>
   );
@@ -196,13 +198,11 @@ function FindingRecord() {
               </KeyValue>
               <KeyValue label="Control">{controlLink}</KeyValue>
               <KeyValue label="Asset">
-                <Link
-                  to="/findings/assets/$assetId"
-                  params={{ assetId: finding.asset }}
-                  className="text-brand hover:underline"
-                >
-                  {asset?.name ?? finding.asset}
-                </Link>
+                <TextLink>
+                  <Link to="/findings/assets/$assetId" params={{ assetId: finding.asset }}>
+                    {asset?.name ?? finding.asset}
+                  </Link>
+                </TextLink>
               </KeyValue>
               <KeyValue label="Rule">{finding.rule ? <Id>{finding.rule}</Id> : "—"}</KeyValue>
             </Inspector.Group>
@@ -227,11 +227,7 @@ function FindingRecord() {
               <KeyValue label="Open">{isOpen(finding) ? "Yes" : "No"}</KeyValue>
               <KeyValue label="Residual risk">
                 {residual ? (
-                  <button
-                    type="button"
-                    onClick={() => go("Residual risk")}
-                    className="flex items-center gap-100 text-left text-brand hover:underline"
-                  >
+                  <Button onClick={() => go("Residual risk")} variant="link" className="flex">
                     <span className="tabular-nums font-body-small font-medium">
                       {residual.score}
                     </span>
@@ -239,7 +235,7 @@ function FindingRecord() {
                     {!isDeficiency(finding) ? (
                       <span className="font-body-xsmall text-subtle">not carried</span>
                     ) : null}
-                  </button>
+                  </Button>
                 ) : (
                   "—"
                 )}
@@ -249,38 +245,32 @@ function FindingRecord() {
             <Inspector.Group title="Rolls up to">
               <KeyValue label="POA&M">
                 {finding.poam ? (
-                  <Link
-                    to="/register/poam/$poamId"
-                    params={{ poamId: finding.poam }}
-                    className="text-brand hover:underline"
-                  >
-                    <Id className="text-brand">{finding.poam}</Id>
-                  </Link>
+                  <TextLink>
+                    <Link to="/register/poam/$poamId" params={{ poamId: finding.poam }}>
+                      <Id>{finding.poam}</Id>
+                    </Link>
+                  </TextLink>
                 ) : (
                   "Not yet scheduled"
                 )}
               </KeyValue>
               <KeyValue label="Risk">
                 {finding.risk ? (
-                  <Link
-                    to="/register/risks/$riskId"
-                    params={{ riskId: finding.risk }}
-                    className="text-brand hover:underline"
-                  >
-                    <Id className="text-brand">{finding.risk}</Id>
-                  </Link>
+                  <TextLink>
+                    <Link to="/register/risks/$riskId" params={{ riskId: finding.risk }}>
+                      <Id>{finding.risk}</Id>
+                    </Link>
+                  </TextLink>
                 ) : (
                   "Not aggregated"
                 )}
               </KeyValue>
               <KeyValue label="Program">
-                <Link
-                  to="/programs/$programId"
-                  params={{ programId }}
-                  className="text-brand hover:underline"
-                >
-                  <Id className="text-brand">{programId}</Id>
-                </Link>
+                <TextLink>
+                  <Link to="/programs/$programId" params={{ programId }}>
+                    <Id>{programId}</Id>
+                  </Link>
+                </TextLink>
               </KeyValue>
             </Inspector.Group>
           </>
@@ -339,13 +329,11 @@ function FindingRecord() {
                   ) : null}
                 </TextBlock>
                 <TextBlock label="Asset">
-                  <Link
-                    to="/findings/assets/$assetId"
-                    params={{ assetId: finding.asset }}
-                    className="text-brand hover:underline"
-                  >
-                    {asset?.name ?? finding.asset}
-                  </Link>
+                  <TextLink>
+                    <Link to="/findings/assets/$assetId" params={{ assetId: finding.asset }}>
+                      {asset?.name ?? finding.asset}
+                    </Link>
+                  </TextLink>
                   {asset ? (
                     <Box className="text-subtle" as="span" paddingInlineStart="space.100">
                       {asset.kind} · {asset.technology} · {asset.environment}
@@ -361,33 +349,24 @@ function FindingRecord() {
             >
               {siblings.length ? (
                 <Table className="table-fixed">
-                  <colgroup>
-                    <col style={{ width: "112px" }} />
-                    <col />
-                    <col style={{ width: "160px" }} />
-                    <col style={{ width: "78px" }} />
-                    <col style={{ width: "112px" }} />
-                  </colgroup>
                   <thead>
                     <tr>
-                      <Table.Header>Finding</Table.Header>
+                      <Table.Header width={112}>Finding</Table.Header>
                       <Table.Header>Title</Table.Header>
-                      <Table.Header>Asset</Table.Header>
-                      <Table.Header>Severity</Table.Header>
-                      <Table.Header>Lifecycle</Table.Header>
+                      <Table.Header width={160}>Asset</Table.Header>
+                      <Table.Header width={78}>Severity</Table.Header>
+                      <Table.Header width={112}>Lifecycle</Table.Header>
                     </tr>
                   </thead>
                   <tbody>
                     {siblings.map((f) => (
                       <Table.Row key={f.id}>
                         <Table.Cell>
-                          <Link
-                            to="/findings/$findingId"
-                            params={{ findingId: f.id }}
-                            className="hover:underline"
-                          >
-                            <Id className="text-brand">{f.id}</Id>
-                          </Link>
+                          <TextLink>
+                            <Link to="/findings/$findingId" params={{ findingId: f.id }}>
+                              <Id>{f.id}</Id>
+                            </Link>
+                          </TextLink>
                         </Table.Cell>
                         <Table.Cell className="truncate">{f.title}</Table.Cell>
                         <Table.Cell className="truncate">
@@ -449,9 +428,11 @@ function FindingRecord() {
                     .map((id, i) => (
                       <span key={id}>
                         {i > 0 && " · "}
-                        <Link to="/evidence" className="text-brand hover:underline">
-                          <Id className="text-brand">{id}</Id>
-                        </Link>
+                        <TextLink>
+                          <Link to="/evidence">
+                            <Id>{id}</Id>
+                          </Link>
+                        </TextLink>
                       </span>
                     ))}
                 </TextBlock>
@@ -652,20 +633,19 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
   return (
     <Box paddingBlockStart="space.150">
       <Table className="table-fixed">
-        <colgroup>
-          <col style={{ width: "152px" }} />
-          <col />
-          <col style={{ width: "68px" }} />
-          <col style={{ width: "72px" }} />
-          <col style={{ width: "108px" }} />
-        </colgroup>
         <thead>
           <tr>
-            <Table.Header>Factor</Table.Header>
+            <Table.Header width={152}>Factor</Table.Header>
             <Table.Header>Input</Table.Header>
-            <Table.Header className="text-right">Value</Table.Header>
-            <Table.Header className="text-right">Weight</Table.Header>
-            <Table.Header className="text-right">Contribution</Table.Header>
+            <Table.Header width={68} className="text-right">
+              Value
+            </Table.Header>
+            <Table.Header width={72} className="text-right">
+              Weight
+            </Table.Header>
+            <Table.Header width={108} className="text-right">
+              Contribution
+            </Table.Header>
           </tr>
         </thead>
         <tbody>

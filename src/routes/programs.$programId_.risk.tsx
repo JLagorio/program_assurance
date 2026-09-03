@@ -28,6 +28,7 @@ import {
   ShowPage,
   Stack,
   Tabs,
+  TextLink,
   Toolbar,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
@@ -207,16 +208,14 @@ function ProgramRisk() {
                 ) : (
                   <Badge tone="neutral">Nothing scored</Badge>
                 )}
-                <Link
-                  to="/programs/$programId/baseline"
-                  params={{ programId: program.id }}
-                  className="font-body-small text-brand hover:underline"
-                >
-                  Baseline
-                </Link>
-                <Link to="/register" className="font-body-small text-brand hover:underline">
-                  Register
-                </Link>
+                <TextLink size="small">
+                  <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>
+                    Baseline
+                  </Link>
+                </TextLink>
+                <TextLink size="small">
+                  <Link to="/register">Register</Link>
+                </TextLink>
               </>
             }
           />
@@ -347,13 +346,11 @@ function ProgramRisk() {
                 title={`${selected.score.subject} — ${selected.title}`}
                 description={selected.context}
                 action={
-                  <Link
-                    to="/findings/$findingId"
-                    params={{ findingId: selected.score.subject }}
-                    className="font-body-small text-brand hover:underline"
-                  >
-                    Open finding
-                  </Link>
+                  <TextLink size="small">
+                    <Link to="/findings/$findingId" params={{ findingId: selected.score.subject }}>
+                      Open finding
+                    </Link>
+                  </TextLink>
                 }
               >
                 <Toolbar>
@@ -414,13 +411,11 @@ function ProgramRisk() {
                 title={`Worked example — ${worked.score.subject}`}
                 description={`${worked.title}. ${worked.context}. Nothing below is illustrative: this is the live calculation for a real finding in ${program.id}, read the same way it is read on the finding's own page.`}
                 action={
-                  <Link
-                    to="/findings/$findingId"
-                    params={{ findingId: worked.score.subject }}
-                    className="font-body-small text-brand hover:underline"
-                  >
-                    Open {worked.score.subject}
-                  </Link>
+                  <TextLink size="small">
+                    <Link to="/findings/$findingId" params={{ findingId: worked.score.subject }}>
+                      Open {worked.score.subject}
+                    </Link>
+                  </TextLink>
                 }
               >
                 <Stack className="pt-200" space="space.200">

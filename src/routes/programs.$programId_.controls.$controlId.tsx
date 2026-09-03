@@ -32,6 +32,7 @@ import {
   Stack,
   Table,
   Tabs,
+  TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { controlDetail } from "@/lib/control-detail";
@@ -148,14 +149,11 @@ function ControlRecord() {
       <Shell>
         <Stack space="space.150">
           <h1 className="font-heading-small font-semibold">Control not in scope</h1>
-          <Link
-            to="/programs/$programId"
-            params={{ programId }}
-            search={{ tab: "Controls" }}
-            className="font-body text-brand hover:underline"
-          >
-            Back to controls
-          </Link>
+          <TextLink size="medium">
+            <Link to="/programs/$programId" params={{ programId }} search={{ tab: "Controls" }}>
+              Back to controls
+            </Link>
+          </TextLink>
         </Stack>
       </Shell>
     );
@@ -249,24 +247,17 @@ function ControlRecord() {
                 <Block title="Open findings" count={open.length}>
                   {open.length ? (
                     <Table>
-                      <colgroup>
-                        <col style={{ width: "104px" }} />
-                        <col style={{ width: "88px" }} />
-                        <col />
-                      </colgroup>
                       <tbody>
                         {open.map((f) => (
                           <Table.Row key={f.id}>
-                            <Table.Cell className="max-w-none">
-                              <Link
-                                to="/findings/$findingId"
-                                params={{ findingId: f.id }}
-                                className="hover:underline"
-                              >
-                                <Id className="text-brand">{f.id}</Id>
-                              </Link>
+                            <Table.Cell className="max-w-none" width={104}>
+                              <TextLink>
+                                <Link to="/findings/$findingId" params={{ findingId: f.id }}>
+                                  <Id>{f.id}</Id>
+                                </Link>
+                              </TextLink>
                             </Table.Cell>
-                            <Table.Cell>
+                            <Table.Cell width={88}>
                               <Indicator tone={severityTone(f.mitigatedSeverity)}>
                                 {f.mitigatedSeverity}
                               </Indicator>
@@ -401,13 +392,11 @@ function ControlRecord() {
                   {
                     label: "POA&M",
                     value: row.poam ? (
-                      <Link
-                        to="/register/poam/$poamId"
-                        params={{ poamId: row.poam }}
-                        className="hover:underline"
-                      >
-                        <Id className="text-brand">{row.poam}</Id>
-                      </Link>
+                      <TextLink>
+                        <Link to="/register/poam/$poamId" params={{ poamId: row.poam }}>
+                          <Id>{row.poam}</Id>
+                        </Link>
+                      </TextLink>
                     ) : (
                       "None"
                     ),

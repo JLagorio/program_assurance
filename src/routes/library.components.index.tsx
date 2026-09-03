@@ -12,6 +12,7 @@ import {
   PageHeader,
   PreviewRail,
   Table,
+  TextLink,
 } from "@ledger/design-system";
 import { PreviewSplit } from "@/components/app/preview-split";
 import { Shell } from "@/components/app/shell";
@@ -69,22 +70,20 @@ function ComponentLibrary() {
         <PreviewSplit open={preview !== null}>
           <div className="min-w-0 lg:pe-300">
             <Table className="table-fixed">
-              <colgroup>
-                <col style={{ width: "116px" }} />
-                <col />
-                <col style={{ width: "124px" }} />
-                <col style={{ width: "72px" }} />
-                <col style={{ width: "96px" }} />
-                <col style={{ width: "164px" }} />
-              </colgroup>
               <thead>
                 <tr>
-                  <Table.Header>Key</Table.Header>
+                  <Table.Header width={116}>Key</Table.Header>
                   <Table.Header>Provider</Table.Header>
-                  <Table.Header>Owner</Table.Header>
-                  <Table.Header className="text-right">Controls</Table.Header>
-                  <Table.Header className="text-right">Used by</Table.Header>
-                  <Table.Header className="text-right">Health</Table.Header>
+                  <Table.Header width={124}>Owner</Table.Header>
+                  <Table.Header width={72} className="text-right">
+                    Controls
+                  </Table.Header>
+                  <Table.Header width={96} className="text-right">
+                    Used by
+                  </Table.Header>
+                  <Table.Header width={164} className="text-right">
+                    Health
+                  </Table.Header>
                 </tr>
               </thead>
               <tbody>
@@ -136,13 +135,14 @@ function ComponentLibrary() {
               title={preview.name}
               onClose={() => setPreview(null)}
               openTo={
-                <Link
-                  to="/library/components/$componentKey"
-                  params={{ componentKey: preview.key }}
-                  className="text-brand hover:underline"
-                >
-                  Open component →
-                </Link>
+                <TextLink>
+                  <Link
+                    to="/library/components/$componentKey"
+                    params={{ componentKey: preview.key }}
+                  >
+                    Open component →
+                  </Link>
+                </TextLink>
               }
             >
               <Inspector.Group title="Definition">

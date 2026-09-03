@@ -16,6 +16,7 @@ import {
   Section,
   ShowPage,
   Table,
+  TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { ControlMatrixSection, FamilyCoverageTable } from "@/components/app/control-matrix";
@@ -116,17 +117,17 @@ function DeadlineRow({ programId, d }: { programId: string; d: Deadline }) {
 
   const idCell =
     d.kind === "POA&M" ? (
-      <Link to="/register/poam/$poamId" params={{ poamId: d.id }} className="hover:underline">
-        <Id className="text-brand">{d.id}</Id>
-      </Link>
+      <TextLink>
+        <Link to="/register/poam/$poamId" params={{ poamId: d.id }}>
+          <Id>{d.id}</Id>
+        </Link>
+      </TextLink>
     ) : d.kind === "Control" ? (
-      <Link
-        to="/programs/$programId/controls/$controlId"
-        params={{ programId, controlId: d.id }}
-        className="hover:underline"
-      >
-        <Id className="text-brand">{d.id}</Id>
-      </Link>
+      <TextLink>
+        <Link to="/programs/$programId/controls/$controlId" params={{ programId, controlId: d.id }}>
+          <Id>{d.id}</Id>
+        </Link>
+      </TextLink>
     ) : (
       <Id>{d.id}</Id>
     );
@@ -218,14 +219,12 @@ function ProgramDashboard() {
             title={`${program.name} — dashboard`}
             meta={`${program.baseline} · ${catalogVersion} · ${coverage.total} tailored controls`}
             actions={
-              <Link
-                to="/programs/$programId"
-                params={{ programId: program.id }}
-                className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
-              >
-                Program record
-                <ChevronRight className="size-icon-small" />
-              </Link>
+              <TextLink size="small" className="inline-flex items-center gap-025">
+                <Link to="/programs/$programId" params={{ programId: program.id }}>
+                  Program record
+                  <ChevronRight className="size-icon-small" />
+                </Link>
+              </TextLink>
             }
           />
         }
@@ -328,13 +327,11 @@ function ProgramDashboard() {
           title="Remaining gates"
           description={`${outlook.completed} of ${outlook.total} closed. A gate cannot pass while the controls under it are other than satisfied.`}
           action={
-            <Link
-              to="/programs/$programId"
-              params={{ programId: program.id }}
-              className="font-body-small text-brand hover:underline"
-            >
-              Full timeline
-            </Link>
+            <TextLink size="small">
+              <Link to="/programs/$programId" params={{ programId: program.id }}>
+                Full timeline
+              </Link>
+            </TextLink>
           }
         >
           <Inline className="py-150" space="space.300" rowSpace="space.100" shouldWrap>
@@ -364,24 +361,19 @@ function ProgramDashboard() {
           </Inline>
 
           <Table className="table-fixed">
-            <colgroup>
-              <col style={{ width: "72px" }} />
-              <col />
-              <col style={{ width: "128px" }} />
-              <col style={{ width: "104px" }} />
-              <col style={{ width: "104px" }} />
-              <col style={{ width: "96px" }} />
-              <col style={{ width: "128px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>Gate</Table.Header>
+                <Table.Header width={72}>Gate</Table.Header>
                 <Table.Header>Name</Table.Header>
-                <Table.Header>Kind</Table.Header>
-                <Table.Header>Status</Table.Header>
-                <Table.Header className="text-right">Planned</Table.Header>
-                <Table.Header className="text-right">Timing</Table.Header>
-                <Table.Header>Blocking</Table.Header>
+                <Table.Header width={128}>Kind</Table.Header>
+                <Table.Header width={104}>Status</Table.Header>
+                <Table.Header width={104} className="text-right">
+                  Planned
+                </Table.Header>
+                <Table.Header width={96} className="text-right">
+                  Timing
+                </Table.Header>
+                <Table.Header width={128}>Blocking</Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -433,24 +425,19 @@ function ProgramDashboard() {
           description="One calendar: gates, POA&M commitments and dated control remediation, soonest first."
         >
           <Table className="table-fixed">
-            <colgroup>
-              <col style={{ width: "92px" }} />
-              <col style={{ width: "80px" }} />
-              <col />
-              <col style={{ width: "220px" }} />
-              <col style={{ width: "104px" }} />
-              <col style={{ width: "96px" }} />
-              <col style={{ width: "128px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>ID</Table.Header>
-                <Table.Header>Kind</Table.Header>
+                <Table.Header width={92}>ID</Table.Header>
+                <Table.Header width={80}>Kind</Table.Header>
                 <Table.Header>What is due</Table.Header>
-                <Table.Header>Context</Table.Header>
-                <Table.Header className="text-right">Date</Table.Header>
-                <Table.Header className="text-right">Timing</Table.Header>
-                <Table.Header>Owner</Table.Header>
+                <Table.Header width={220}>Context</Table.Header>
+                <Table.Header width={104} className="text-right">
+                  Date
+                </Table.Header>
+                <Table.Header width={96} className="text-right">
+                  Timing
+                </Table.Header>
+                <Table.Header width={128}>Owner</Table.Header>
               </tr>
             </thead>
             <tbody>

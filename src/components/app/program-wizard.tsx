@@ -926,20 +926,17 @@ function ReviewStep({
 
       <Block title="Scopes" count={`${draft.scopes.length} · ${union} controls in the union`}>
         <Table>
-          <colgroup>
-            <col />
-            <col style={{ width: "90px" }} />
-            <col style={{ width: "220px" }} />
-            <col style={{ width: "80px" }} />
-            <col style={{ width: "80px" }} />
-          </colgroup>
           <thead>
             <Table.Row>
               <Table.Header>Scope</Table.Header>
-              <Table.Header>C · I · A</Table.Header>
-              <Table.Header>Overlays</Table.Header>
-              <Table.Header className="text-right">By hand</Table.Header>
-              <Table.Header className="text-right">Controls</Table.Header>
+              <Table.Header width={90}>C · I · A</Table.Header>
+              <Table.Header width={220}>Overlays</Table.Header>
+              <Table.Header width={80} className="text-right">
+                By hand
+              </Table.Header>
+              <Table.Header width={80} className="text-right">
+                Controls
+              </Table.Header>
             </Table.Row>
           </thead>
           <tbody>
@@ -975,17 +972,11 @@ function ReviewStep({
       <Block title="Decisions with a rationale" count={decisions.length || null}>
         {decisions.length ? (
           <Table>
-            <colgroup>
-              <col style={{ width: "150px" }} />
-              <col style={{ width: "150px" }} />
-              <col style={{ width: "170px" }} />
-              <col />
-            </colgroup>
             <thead>
               <Table.Row>
-                <Table.Header>Scope</Table.Header>
-                <Table.Header>Subject</Table.Header>
-                <Table.Header>Decision</Table.Header>
+                <Table.Header width={150}>Scope</Table.Header>
+                <Table.Header width={150}>Subject</Table.Header>
+                <Table.Header width={170}>Decision</Table.Header>
                 <Table.Header>Rationale</Table.Header>
               </Table.Row>
             </thead>

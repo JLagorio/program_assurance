@@ -23,6 +23,7 @@ import {
   ShowPage,
   Stack,
   Tabs,
+  TextLink,
   Toolbar,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
@@ -238,13 +239,11 @@ function ProgramExport() {
             actions={
               <>
                 <Badge tone="neutral">{sctm.counts.total} exported requirement rows</Badge>
-                <Link
-                  to="/programs/$programId/sctm"
-                  params={{ programId }}
-                  className="font-body text-brand hover:underline"
-                >
-                  Open SCTM →
-                </Link>
+                <TextLink size="medium">
+                  <Link to="/programs/$programId/sctm" params={{ programId }}>
+                    Open SCTM →
+                  </Link>
+                </TextLink>
               </>
             }
             below={

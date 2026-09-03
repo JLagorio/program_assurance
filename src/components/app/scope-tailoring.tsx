@@ -348,20 +348,15 @@ export function ScopeTailoringPane({
       {show("overlays") ? (
         <Block title="Overlays" count={`${applied} of ${options.length} applied`}>
           <Table>
-            <colgroup>
-              <col style={{ width: "44px" }} />
-              <col />
-              <col style={{ width: "150px" }} />
-              <col style={{ width: "150px" }} />
-              <col style={{ width: "96px" }} />
-            </colgroup>
             <thead>
               <Table.Row>
-                <Table.Header />
+                <Table.Header width={44} />
                 <Table.Header>Overlay</Table.Header>
-                <Table.Header>Authority</Table.Header>
-                <Table.Header>Engine</Table.Header>
-                <Table.Header className="text-right">Delta</Table.Header>
+                <Table.Header width={150}>Authority</Table.Header>
+                <Table.Header width={150}>Engine</Table.Header>
+                <Table.Header width={96} className="text-right">
+                  Delta
+                </Table.Header>
               </Table.Row>
             </thead>
             <tbody>
@@ -485,20 +480,13 @@ export function ScopeTailoringPane({
           )}
           {draft.tailoring.length ? (
             <Table>
-              <colgroup>
-                <col style={{ width: "96px" }} />
-                <col />
-                <col style={{ width: "110px" }} />
-                <col style={{ width: "190px" }} />
-                <col style={{ width: "84px" }} />
-              </colgroup>
               <thead>
                 <Table.Row>
-                  <Table.Header>Control</Table.Header>
+                  <Table.Header width={96}>Control</Table.Header>
                   <Table.Header>Title</Table.Header>
-                  <Table.Header>Decision</Table.Header>
-                  <Table.Header>Source</Table.Header>
-                  <Table.Header />
+                  <Table.Header width={110}>Decision</Table.Header>
+                  <Table.Header width={190}>Source</Table.Header>
+                  <Table.Header width={84} />
                 </Table.Row>
               </thead>
               <tbody>

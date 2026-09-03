@@ -12,6 +12,7 @@ import { Link } from "@tanstack/react-router";
 import {
   Badge,
   Box,
+  Button,
   Dot,
   Id,
   Inline,
@@ -20,6 +21,7 @@ import {
   Section,
   Stack,
   Table,
+  TextLink,
 } from "@ledger/design-system";
 import { cn } from "@/lib/utils";
 import { gatesForProgram, gateKindTone, lifecyclePhases, type ProgramGate } from "@/lib/grc-data";
@@ -157,13 +159,6 @@ export function RmfTimeline({
                     {gateStreams.length > 0 ? (
                       <Box paddingBlockStart="space.075" style={{ paddingInlineStart: 76 }}>
                         <Table className="table-fixed">
-                          <colgroup>
-                            <col style={{ width: "88px" }} />
-                            <col />
-                            <col style={{ width: "120px" }} />
-                            <col style={{ width: "140px" }} />
-                            <col style={{ width: "112px" }} />
-                          </colgroup>
                           <tbody>
                             {gateStreams.map((w) => {
                               const wControls = w.controls
@@ -174,18 +169,19 @@ export function RmfTimeline({
                               ).length;
                               return (
                                 <Table.Row key={w.id}>
-                                  <Table.Cell>
-                                    <Link
-                                      to="/workstreams/$workstreamId"
-                                      params={{ workstreamId: w.id }}
-                                      className="text-brand hover:underline"
-                                    >
-                                      <Id className="text-brand">{w.id}</Id>
-                                    </Link>
+                                  <Table.Cell width={88}>
+                                    <TextLink>
+                                      <Link
+                                        to="/workstreams/$workstreamId"
+                                        params={{ workstreamId: w.id }}
+                                      >
+                                        <Id>{w.id}</Id>
+                                      </Link>
+                                    </TextLink>
                                   </Table.Cell>
                                   <Table.Cell className="truncate">{w.title}</Table.Cell>
-                                  <Table.Cell>{w.status}</Table.Cell>
-                                  <Table.Cell>
+                                  <Table.Cell width={120}>{w.status}</Table.Cell>
+                                  <Table.Cell width={140}>
                                     {w.controls.length ? (
                                       <button
                                         type="button"
@@ -201,7 +197,7 @@ export function RmfTimeline({
                                       "—"
                                     )}
                                   </Table.Cell>
-                                  <Table.Cell className="tabular-nums text-right">
+                                  <Table.Cell className="tabular-nums text-right" width={112}>
                                     {w.due}
                                   </Table.Cell>
                                 </Table.Row>
@@ -250,42 +246,35 @@ export function GateOutlookSection({
       description={`${rows.length} gates remaining for ${programId}.`}
       action={
         onSelect ? (
-          <button
-            type="button"
-            onClick={onSelect}
-            className="font-body-small text-brand hover:underline"
-          >
+          <Button onClick={onSelect} variant="link" size="small">
             Full timeline
-          </button>
+          </Button>
         ) : null
       }
     >
       <Table className="table-fixed">
-        <colgroup>
-          <col style={{ width: "72px" }} />
-          <col />
-          <col style={{ width: "100px" }} />
-          <col style={{ width: "104px" }} />
-          <col style={{ width: "92px" }} />
-          <col style={{ width: "124px" }} />
-        </colgroup>
         <tbody>
           {shown.map(({ gate, daysOut, tone, blockers }) => (
             <Table.Row key={gate.id}>
-              <Table.Cell>
+              <Table.Cell width={72}>
                 <Id>{gate.id}</Id>
               </Table.Cell>
               <Table.Cell className="truncate">{gate.name}</Table.Cell>
-              <Table.Cell>
+              <Table.Cell width={100}>
                 <Badge tone={tone} size="xsmall">
                   {gate.status}
                 </Badge>
               </Table.Cell>
-              <Table.Cell className="tabular-nums">{gate.planned}</Table.Cell>
-              <Table.Cell className={cn("tabular-nums", tone === "danger" ? "text-danger" : "")}>
+              <Table.Cell className="tabular-nums" width={104}>
+                {gate.planned}
+              </Table.Cell>
+              <Table.Cell
+                className={cn("tabular-nums", tone === "danger" ? "text-danger" : "")}
+                width={92}
+              >
                 {timing(gate, daysOut)}
               </Table.Cell>
-              <Table.Cell className="truncate">
+              <Table.Cell className="truncate" width={124}>
                 {blockers ? `${blockers} open controls` : <Person name={gate.owner} />}
               </Table.Cell>
             </Table.Row>

@@ -15,6 +15,7 @@ import {
   Stack,
   Table,
   Tabs,
+  TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -139,28 +140,30 @@ function ScopeApprovals() {
                   <Table.Row key={r.id}>
                     <Table.Cell width={104}>
                       {program ? (
-                        <Link
-                          to="/programs/$programId"
-                          params={{ programId: r.program }}
-                          search={{ tab: "Systems" }}
-                          className="hover:underline"
-                        >
-                          <Id className="text-brand">{r.program}</Id>
-                        </Link>
+                        <TextLink>
+                          <Link
+                            to="/programs/$programId"
+                            params={{ programId: r.program }}
+                            search={{ tab: "Systems" }}
+                          >
+                            <Id>{r.program}</Id>
+                          </Link>
+                        </TextLink>
                       ) : (
                         <Id>{r.program}</Id>
                       )}
                     </Table.Cell>
                     <Table.Cell className="truncate" width={200}>
                       {program && scope ? (
-                        <Link
-                          to="/programs/$programId/components/$componentId"
-                          params={{ programId: r.program, componentId: scope.element }}
-                          search={{ tab: "Control set" }}
-                          className="text-brand hover:underline"
-                        >
-                          {scope.name}
-                        </Link>
+                        <TextLink>
+                          <Link
+                            to="/programs/$programId/components/$componentId"
+                            params={{ programId: r.program, componentId: scope.element }}
+                            search={{ tab: "Control set" }}
+                          >
+                            {scope.name}
+                          </Link>
+                        </TextLink>
                       ) : (
                         (scope?.name ?? r.scope)
                       )}
@@ -228,14 +231,15 @@ function ScopeApprovals() {
           reviewed ? (
             <Inline className="w-full" space="space.150" alignBlock="center" spread="space-between">
               {reviewedScope ? (
-                <Link
-                  to="/programs/$programId/components/$componentId"
-                  params={{ programId: reviewed.program, componentId: reviewedScope.element }}
-                  search={{ tab: "Control set" }}
-                  className="font-body-small text-brand hover:underline"
-                >
-                  Open the record
-                </Link>
+                <TextLink size="small">
+                  <Link
+                    to="/programs/$programId/components/$componentId"
+                    params={{ programId: reviewed.program, componentId: reviewedScope.element }}
+                    search={{ tab: "Control set" }}
+                  >
+                    Open the record
+                  </Link>
+                </TextLink>
               ) : (
                 <span />
               )}

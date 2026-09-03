@@ -17,6 +17,7 @@ import {
   PreviewRail,
   Table,
   Tabs,
+  TextLink,
   ToggleGroup,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
@@ -181,26 +182,16 @@ function FindingsPage() {
           <div className="min-w-0 lg:pe-300">
             {tab === "Findings" ? (
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "112px" }} />
-                  <col />
-                  <col style={{ width: "104px" }} />
-                  <col style={{ width: "132px" }} />
-                  <col style={{ width: "124px" }} />
-                  <col style={{ width: "68px" }} />
-                  <col style={{ width: "68px" }} />
-                  <col style={{ width: "112px" }} />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>Finding</Table.Header>
+                    <Table.Header width={112}>Finding</Table.Header>
                     <Table.Header>Title</Table.Header>
-                    <Table.Header>CCI</Table.Header>
-                    <Table.Header>Asset</Table.Header>
-                    <Table.Header>Source</Table.Header>
-                    <Table.Header>Raw</Table.Header>
-                    <Table.Header>Mitigated</Table.Header>
-                    <Table.Header>Lifecycle</Table.Header>
+                    <Table.Header width={104}>CCI</Table.Header>
+                    <Table.Header width={132}>Asset</Table.Header>
+                    <Table.Header width={124}>Source</Table.Header>
+                    <Table.Header width={68}>Raw</Table.Header>
+                    <Table.Header width={68}>Mitigated</Table.Header>
+                    <Table.Header width={112}>Lifecycle</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
@@ -240,26 +231,20 @@ function FindingsPage() {
               </Table>
             ) : (
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "112px" }} />
-                  <col />
-                  <col style={{ width: "120px" }} />
-                  <col style={{ width: "148px" }} />
-                  <col style={{ width: "112px" }} />
-                  <col style={{ width: "116px" }} />
-                  <col style={{ width: "124px" }} />
-                  <col style={{ width: "124px" }} />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>Asset</Table.Header>
+                    <Table.Header width={112}>Asset</Table.Header>
                     <Table.Header>Name</Table.Header>
-                    <Table.Header>Kind</Table.Header>
-                    <Table.Header>Technology</Table.Header>
-                    <Table.Header>Environment</Table.Header>
-                    <Table.Header>Last scan</Table.Header>
-                    <Table.Header className="text-right">Scanner I / II / III</Table.Header>
-                    <Table.Header className="text-right">Tracked I / II / III</Table.Header>
+                    <Table.Header width={120}>Kind</Table.Header>
+                    <Table.Header width={148}>Technology</Table.Header>
+                    <Table.Header width={112}>Environment</Table.Header>
+                    <Table.Header width={116}>Last scan</Table.Header>
+                    <Table.Header width={124} className="text-right">
+                      Scanner I / II / III
+                    </Table.Header>
+                    <Table.Header width={124} className="text-right">
+                      Tracked I / II / III
+                    </Table.Header>
                   </tr>
                 </thead>
                 <tbody>
@@ -304,13 +289,11 @@ function FindingsPage() {
               title={preview.item.title}
               onClose={() => setPreview(null)}
               openTo={
-                <Link
-                  to="/findings/$findingId"
-                  params={{ findingId: preview.item.id }}
-                  className="text-brand hover:underline"
-                >
-                  Open finding →
-                </Link>
+                <TextLink>
+                  <Link to="/findings/$findingId" params={{ findingId: preview.item.id }}>
+                    Open finding →
+                  </Link>
+                </TextLink>
               }
             >
               <Inspector.Group title="Join keys">
@@ -355,13 +338,11 @@ function FindingsPage() {
               title={preview.item.name}
               onClose={() => setPreview(null)}
               openTo={
-                <Link
-                  to="/findings/assets/$assetId"
-                  params={{ assetId: preview.item.id }}
-                  className="text-brand hover:underline"
-                >
-                  Open asset →
-                </Link>
+                <TextLink>
+                  <Link to="/findings/assets/$assetId" params={{ assetId: preview.item.id }}>
+                    Open asset →
+                  </Link>
+                </TextLink>
               }
             >
               <Inspector.Group title="Inventory">

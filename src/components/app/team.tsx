@@ -14,6 +14,7 @@ import {
   Stack,
   Table,
   Tabs,
+  TextLink,
 } from "@ledger/design-system";
 import { PreviewSplit } from "@/components/app/preview-split";
 import {
@@ -75,24 +76,19 @@ export function TeamSection({ programId }: { programId: string }) {
         <Box className="min-w-0 lg:pe-300" paddingBlockStart="space.200">
           {tab === "Workstreams" ? (
             <Table className="table-fixed">
-              <colgroup>
-                <col style={{ width: "104px" }} />
-                <col />
-                <col style={{ width: "148px" }} />
-                <col style={{ width: "96px" }} />
-                <col style={{ width: "60px" }} />
-                <col style={{ width: "104px" }} />
-                <col style={{ width: "112px" }} />
-              </colgroup>
               <thead>
                 <tr>
-                  <Table.Header>Workstream</Table.Header>
+                  <Table.Header width={104}>Workstream</Table.Header>
                   <Table.Header>Title</Table.Header>
-                  <Table.Header>Lead</Table.Header>
-                  <Table.Header>Status</Table.Header>
-                  <Table.Header className="text-right">Team</Table.Header>
-                  <Table.Header>Depends on</Table.Header>
-                  <Table.Header className="text-right">Gate · due</Table.Header>
+                  <Table.Header width={148}>Lead</Table.Header>
+                  <Table.Header width={96}>Status</Table.Header>
+                  <Table.Header width={60} className="text-right">
+                    Team
+                  </Table.Header>
+                  <Table.Header width={104}>Depends on</Table.Header>
+                  <Table.Header width={112} className="text-right">
+                    Gate · due
+                  </Table.Header>
                 </tr>
               </thead>
               <tbody>
@@ -131,24 +127,17 @@ export function TeamSection({ programId }: { programId: string }) {
 
           {tab === "People" ? (
             <Table className="table-fixed">
-              <colgroup>
-                <col style={{ width: "104px" }} />
-                <col style={{ width: "156px" }} />
-                <col />
-                <col style={{ width: "144px" }} />
-                <col style={{ width: "92px" }} />
-                <col style={{ width: "60px" }} />
-                <col style={{ width: "128px" }} />
-              </colgroup>
               <thead>
                 <tr>
-                  <Table.Header>Person</Table.Header>
-                  <Table.Header>Name</Table.Header>
+                  <Table.Header width={104}>Person</Table.Header>
+                  <Table.Header width={156}>Name</Table.Header>
                   <Table.Header>Title</Table.Header>
-                  <Table.Header>Discipline</Table.Header>
-                  <Table.Header>Clearance</Table.Header>
-                  <Table.Header className="text-right">WS</Table.Header>
-                  <Table.Header>Allocation</Table.Header>
+                  <Table.Header width={144}>Discipline</Table.Header>
+                  <Table.Header width={92}>Clearance</Table.Header>
+                  <Table.Header width={60} className="text-right">
+                    WS
+                  </Table.Header>
+                  <Table.Header width={128}>Allocation</Table.Header>
                 </tr>
               </thead>
               <tbody>
@@ -202,17 +191,13 @@ export function TeamSection({ programId }: { programId: string }) {
 
           {tab === "Coordination" ? (
             <Table className="table-fixed">
-              <colgroup>
-                <col style={{ width: "180px" }} />
-                <col style={{ width: "180px" }} />
-                <col style={{ width: "72px" }} />
-                <col />
-              </colgroup>
               <thead>
                 <tr>
-                  <Table.Header>Discipline</Table.Header>
-                  <Table.Header>Works with</Table.Header>
-                  <Table.Header className="text-right">Shared</Table.Header>
+                  <Table.Header width={180}>Discipline</Table.Header>
+                  <Table.Header width={180}>Works with</Table.Header>
+                  <Table.Header width={72} className="text-right">
+                    Shared
+                  </Table.Header>
                   <Table.Header>Via workstreams</Table.Header>
                 </tr>
               </thead>
@@ -225,14 +210,11 @@ export function TeamSection({ programId }: { programId: string }) {
                     <Table.Cell className="truncate">
                       <Inline as="span" space="space.100" alignBlock="center" shouldWrap>
                         {e.via.map((id) => (
-                          <Link
-                            key={id}
-                            to="/workstreams/$workstreamId"
-                            params={{ workstreamId: id }}
-                            className="text-brand hover:underline"
-                          >
-                            <Id>{id}</Id>
-                          </Link>
+                          <TextLink key={id}>
+                            <Link to="/workstreams/$workstreamId" params={{ workstreamId: id }}>
+                              <Id>{id}</Id>
+                            </Link>
+                          </TextLink>
                         ))}
                       </Inline>
                     </Table.Cell>
@@ -249,13 +231,11 @@ export function TeamSection({ programId }: { programId: string }) {
             title={ws.title}
             onClose={() => setWs(null)}
             openTo={
-              <Link
-                to="/workstreams/$workstreamId"
-                params={{ workstreamId: ws.id }}
-                className="text-brand hover:underline"
-              >
-                Open workstream →
-              </Link>
+              <TextLink>
+                <Link to="/workstreams/$workstreamId" params={{ workstreamId: ws.id }}>
+                  Open workstream →
+                </Link>
+              </TextLink>
             }
           >
             <p className="font-body-small text-subtle">{ws.objective}</p>
@@ -290,13 +270,11 @@ export function TeamSection({ programId }: { programId: string }) {
             title={person.name}
             onClose={() => setPerson(null)}
             openTo={
-              <Link
-                to="/people/$personId"
-                params={{ personId: person.id }}
-                className="text-brand hover:underline"
-              >
-                Open person →
-              </Link>
+              <TextLink>
+                <Link to="/people/$personId" params={{ personId: person.id }}>
+                  Open person →
+                </Link>
+              </TextLink>
             }
           >
             <Box paddingBlockStart="space.050">
@@ -316,13 +294,11 @@ export function TeamSection({ programId }: { programId: string }) {
                       alignBlock="baseline"
                       spread="space-between"
                     >
-                      <Link
-                        to="/workstreams/$workstreamId"
-                        params={{ workstreamId: w.id }}
-                        className="min-w-0 truncate text-brand hover:underline"
-                      >
-                        {w.title}
-                      </Link>
+                      <TextLink className="min-w-0 truncate">
+                        <Link to="/workstreams/$workstreamId" params={{ workstreamId: w.id }}>
+                          {w.title}
+                        </Link>
+                      </TextLink>
                       <span className="shrink-0 font-body-small text-subtle">{w.status}</span>
                     </Inline>
                   ))}

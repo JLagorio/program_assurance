@@ -275,26 +275,20 @@ export function ScanTable({
 
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "96px" }} />
-        <col style={{ width: "132px" }} />
-        <col style={{ width: "176px" }} />
-        <col />
-        <col style={{ width: "72px" }} />
-        <col style={{ width: "116px" }} />
-        <col style={{ width: "150px" }} />
-        <col style={{ width: "150px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Scan</Table.Header>
-          <Table.Header>Format</Table.Header>
-          <Table.Header>Tool</Table.Header>
+          <Table.Header width={96}>Scan</Table.Header>
+          <Table.Header width={132}>Format</Table.Header>
+          <Table.Header width={176}>Tool</Table.Header>
           <Table.Header>Targets</Table.Header>
-          <Table.Header className="text-right">Raw</Table.Header>
-          <Table.Header>State</Table.Header>
-          <Table.Header>Chain</Table.Header>
-          <Table.Header className="text-right">Completed</Table.Header>
+          <Table.Header width={72} className="text-right">
+            Raw
+          </Table.Header>
+          <Table.Header width={116}>State</Table.Header>
+          <Table.Header width={150}>Chain</Table.Header>
+          <Table.Header width={150} className="text-right">
+            Completed
+          </Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -835,24 +829,17 @@ export function NormalizationView({
   return (
     <Stack space="space.200">
       <Table className="table-fixed">
-        <colgroup>
-          <col style={{ width: "168px" }} />
-          <col />
-          <col style={{ width: "92px" }} />
-          <col style={{ width: "104px" }} />
-          <col style={{ width: "116px" }} />
-          <col style={{ width: "196px" }} />
-          <col style={{ width: "112px" }} />
-        </colgroup>
         <thead>
           <tr>
-            <Table.Header>Native id</Table.Header>
+            <Table.Header width={168}>Native id</Table.Header>
             <Table.Header>Title</Table.Header>
-            <Table.Header>Severity</Table.Header>
-            <Table.Header>Result</Table.Header>
-            <Table.Header>CCI</Table.Header>
-            <Table.Header>Component</Table.Header>
-            <Table.Header className="text-right">Held</Table.Header>
+            <Table.Header width={92}>Severity</Table.Header>
+            <Table.Header width={104}>Result</Table.Header>
+            <Table.Header width={116}>CCI</Table.Header>
+            <Table.Header width={196}>Component</Table.Header>
+            <Table.Header width={112} className="text-right">
+              Held
+            </Table.Header>
           </tr>
         </thead>
         <tbody>
@@ -973,24 +960,17 @@ export function DedupTable({
 
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "204px" }} />
-        <col style={{ width: "204px" }} />
-        <col />
-        <col style={{ width: "84px" }} />
-        <col style={{ width: "100px" }} />
-        <col style={{ width: "152px" }} />
-        <col style={{ width: "168px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Dedup key</Table.Header>
-          <Table.Header>Kept from</Table.Header>
+          <Table.Header width={204}>Dedup key</Table.Header>
+          <Table.Header width={204}>Kept from</Table.Header>
           <Table.Header>Title</Table.Header>
-          <Table.Header className="text-right">Severity</Table.Header>
-          <Table.Header>Result</Table.Header>
-          <Table.Header>Folded in</Table.Header>
-          <Table.Header>Register</Table.Header>
+          <Table.Header width={84} className="text-right">
+            Severity
+          </Table.Header>
+          <Table.Header width={100}>Result</Table.Header>
+          <Table.Header width={152}>Folded in</Table.Header>
+          <Table.Header width={168}>Register</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -1218,24 +1198,19 @@ export function ScanDiffTable({
         />
       ) : (
         <Table className="table-fixed">
-          <colgroup>
-            <col style={{ width: "116px" }} />
-            <col />
-            <col style={{ width: "84px" }} />
-            <col style={{ width: "196px" }} />
-            <col style={{ width: "108px" }} />
-            <col style={{ width: "108px" }} />
-            <col style={{ width: "88px" }} />
-          </colgroup>
           <thead>
             <tr>
-              <Table.Header>State</Table.Header>
+              <Table.Header width={116}>State</Table.Header>
               <Table.Header>Condition</Table.Header>
-              <Table.Header className="text-right">Severity</Table.Header>
-              <Table.Header>Component</Table.Header>
-              <Table.Header>First seen</Table.Header>
-              <Table.Header>Last seen</Table.Header>
-              <Table.Header className="text-right">Runs</Table.Header>
+              <Table.Header width={84} className="text-right">
+                Severity
+              </Table.Header>
+              <Table.Header width={196}>Component</Table.Header>
+              <Table.Header width={108}>First seen</Table.Header>
+              <Table.Header width={108}>Last seen</Table.Header>
+              <Table.Header width={88} className="text-right">
+                Runs
+              </Table.Header>
             </tr>
           </thead>
           <tbody>

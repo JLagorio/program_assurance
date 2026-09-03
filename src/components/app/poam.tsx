@@ -23,6 +23,7 @@ import {
   Stack,
   Table,
   Textarea,
+  TextLink,
   Timeline,
 } from "@ledger/design-system";
 import {
@@ -505,13 +506,9 @@ function PoamDetailModal({
               </Box>
               <Stack className="pt-100 font-body" space="space.050">
                 {item.links.map((l) => (
-                  <Link
-                    key={l.href + l.rel}
-                    to={l.href}
-                    className="block truncate text-brand hover:underline"
-                  >
-                    {l.text}
-                  </Link>
+                  <TextLink key={l.href + l.rel} className="block truncate">
+                    <Link to={l.href}>{l.text}</Link>
+                  </TextLink>
                 ))}
               </Stack>
             </>

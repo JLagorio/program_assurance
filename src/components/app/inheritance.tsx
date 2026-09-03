@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Lock, Share2 } from "lucide-react";
 
-import { Badge, Id, Inline, Table } from "@ledger/design-system";
+import { Badge, Id, Inline, Table, TextLink } from "@ledger/design-system";
 import { staleThresholdDays, type SystemComponent } from "@/lib/reusable-components";
 
 /** Program → source component. One affordance, used everywhere a row is inherited. */
@@ -51,20 +51,17 @@ export function RestrictedSourceNote({ component }: { component: SystemComponent
 export function ConsumerTable({ component }: { component: SystemComponent }) {
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "88px" }} />
-        <col />
-        <col style={{ width: "132px" }} />
-        <col style={{ width: "72px" }} />
-        <col style={{ width: "112px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Program</Table.Header>
+          <Table.Header width={88}>Program</Table.Header>
           <Table.Header>Name</Table.Header>
-          <Table.Header>System</Table.Header>
-          <Table.Header className="text-right">Controls</Table.Header>
-          <Table.Header className="text-right">Last sync</Table.Header>
+          <Table.Header width={132}>System</Table.Header>
+          <Table.Header width={72} className="text-right">
+            Controls
+          </Table.Header>
+          <Table.Header width={112} className="text-right">
+            Last sync
+          </Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -75,13 +72,11 @@ export function ConsumerTable({ component }: { component: SystemComponent }) {
             </Table.Cell>
             <Table.Cell className="truncate">
               {c.accessible ? (
-                <Link
-                  to="/programs/$programId"
-                  params={{ programId: c.programId }}
-                  className="font-medium text-brand hover:underline"
-                >
-                  {c.programName}
-                </Link>
+                <TextLink weight="medium">
+                  <Link to="/programs/$programId" params={{ programId: c.programId }}>
+                    {c.programName}
+                  </Link>
+                </TextLink>
               ) : (
                 <Inline
                   className="text-subtle"
@@ -107,20 +102,15 @@ export function ConsumerTable({ component }: { component: SystemComponent }) {
 export function ProvidedControlsTable({ component }: { component: SystemComponent }) {
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "76px" }} />
-        <col />
-        <col style={{ width: "132px" }} />
-        <col style={{ width: "168px" }} />
-        <col style={{ width: "92px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Control</Table.Header>
+          <Table.Header width={76}>Control</Table.Header>
           <Table.Header>Title</Table.Header>
-          <Table.Header>Model</Table.Header>
-          <Table.Header>Evidence</Table.Header>
-          <Table.Header className="text-right">Age</Table.Header>
+          <Table.Header width={132}>Model</Table.Header>
+          <Table.Header width={168}>Evidence</Table.Header>
+          <Table.Header width={92} className="text-right">
+            Age
+          </Table.Header>
         </tr>
       </thead>
       <tbody>

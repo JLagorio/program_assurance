@@ -63,6 +63,8 @@ const LEGACY = {
   RelatedCard: "Related",
   RelatedRow: "Related.Row",
   WorkPaneRow: "WorkPane.Row",
+  TreeCell: "Table.Tree",
+  Facts: "Fact.Group",
 };
 
 // neutral colour, weight and type tokens a table cell may not carry; a status colour (text-danger, text-warning…) is data, not design

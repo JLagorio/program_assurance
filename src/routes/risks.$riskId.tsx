@@ -19,6 +19,7 @@ import {
   Stack,
   Table,
   Textarea,
+  TextLink,
   Timeline,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
@@ -208,12 +209,9 @@ function RiskDetail() {
               <p className="font-body-small text-subtle">
                 Maps to one failing control. Closing it requires two consecutive passing runs.
               </p>
-              <Link
-                to="/controls"
-                className="pt-075 inline-block font-body-small text-brand hover:underline"
-              >
-                View {risk.control}
-              </Link>
+              <TextLink size="small" className="pt-075 inline-block">
+                <Link to="/controls">View {risk.control}</Link>
+              </TextLink>
             </Inspector.Group>
           </aside>
         </Grid>

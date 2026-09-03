@@ -33,19 +33,26 @@ const storyFiles = walk(path.join(PKG, "stories")).filter((f) => /\.stories\.tsx
 const stories = storyFiles
   .map((f) => fs.readFileSync(f, "utf8").replace(/^import[^\n]*\n/gm, ""))
   .join("\n");
-const storyCount = storyFiles.reduce((n, f) => n + (fs.readFileSync(f, "utf8").match(/^export const /gm) ?? []).length, 0);
+const storyCount = storyFiles.reduce(
+  (n, f) => n + (fs.readFileSync(f, "utf8").match(/^export const /gm) ?? []).length,
+  0,
+);
 
 const covered = (name) => new RegExp(`(?<![\\w.$])${name}(?![\\w$])`).test(stories);
 
 // every component family (a file under components/, patterns/, shapes/, shell/) has a Matrix story:
 // a story file that imports from it and exports a name ending in Matrix
 const families = new Map(); // file -> first export
-for (const [name, f] of exports_) if (!/\/primitives\//.test(f) && !families.has(f)) families.set(f, name);
+for (const [name, f] of exports_)
+  if (!/\/primitives\//.test(f) && !families.has(f)) families.set(f, name);
 const namesOf = (file) => [...exports_].filter(([, f]) => f === file).map(([n]) => n);
 const matrixOf = (file) =>
   storyFiles.some((sf) => {
     const text = fs.readFileSync(sf, "utf8").replace(/^import[^\n]*\n/gm, "");
-    return /^export const \w*Matrix\b/m.test(text) && namesOf(file).some((n) => new RegExp(`(?<![\\w.$])${n}(?![\\w$])`).test(text));
+    return (
+      /^export const \w*Matrix\b/m.test(text) &&
+      namesOf(file).some((n) => new RegExp(`(?<![\\w.$])${n}(?![\\w$])`).test(text))
+    );
   });
 
 const allowPath = "scripts/ds-check.allow";
@@ -60,7 +67,10 @@ const allow = new Set(
 );
 
 const missing = [...exports_.keys()].filter((n) => !covered(n)).sort();
-const noMatrix = [...families].filter(([f]) => !matrixOf(f)).map(([f]) => `matrix:${path.basename(f, ".tsx")}`).sort();
+const noMatrix = [...families]
+  .filter(([f]) => !matrixOf(f))
+  .map(([f]) => `matrix:${path.basename(f, ".tsx")}`)
+  .sort();
 const gaps = [...missing, ...noMatrix];
 const newGaps = gaps.filter((n) => !allow.has(n));
 const stale = [...allow].filter((n) => !gaps.includes(n)).sort();
@@ -75,7 +85,9 @@ if (newGaps.length) {
   for (const n of newGaps) console.log(`  ${n}${exports_.has(n) ? `  ← ${exports_.get(n)}` : ""}`);
 }
 if (stale.length) {
-  console.log("\nAllowlisted names that now have a story. Remove them from scripts/ds-check.allow:");
+  console.log(
+    "\nAllowlisted names that now have a story. Remove them from scripts/ds-check.allow:",
+  );
   for (const n of stale) console.log(`  ${n}`);
 }
 if (process.argv.includes("--write-allow")) {

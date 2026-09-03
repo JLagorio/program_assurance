@@ -16,12 +16,14 @@ import {
 import {
   Badge,
   Box,
+  Button,
   Grid,
   Inline,
   RecordHeader,
   Section,
   ShowPage,
   Tabs,
+  TextLink,
   ToggleGroup,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
@@ -171,13 +173,9 @@ function ProgramConMon() {
    */
   const alertAction = (alert: ConMonAlert): ReactNode => {
     const jump = (to: ConMonTab, label: string) => (
-      <button
-        type="button"
-        onClick={() => go(to)}
-        className="font-body-small text-brand hover:underline"
-      >
+      <Button onClick={() => go(to)} variant="link" size="small">
         Open {label}
-      </button>
+      </Button>
     );
     switch (alert.kind) {
       case "Assessment overdue":
@@ -188,47 +186,42 @@ function ProgramConMon() {
         return jump("Scan cadence", "cadence");
       case "POA&M slipped":
         return /^POAM-\d+$/.test(alert.subject) ? (
-          <Link
-            to="/register/poam/$poamId"
-            params={{ poamId: alert.subject }}
-            className="font-body-small text-brand hover:underline"
-          >
-            Open {alert.subject}
-          </Link>
+          <TextLink size="small">
+            <Link to="/register/poam/$poamId" params={{ poamId: alert.subject }}>
+              Open {alert.subject}
+            </Link>
+          </TextLink>
         ) : (
           jump("POA&M slippage", "slippage")
         );
       case "Unrecorded change":
       case "Determination invalidated":
         return (
-          <Link
-            to="/programs/$programId/baseline"
-            params={{ programId: program.id }}
-            className="font-body-small text-brand hover:underline"
-          >
-            Open baseline
-          </Link>
+          <TextLink size="small">
+            <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>
+              Open baseline
+            </Link>
+          </TextLink>
         );
       case "Inheritance drifted":
         return (
-          <Link
-            to="/programs/$programId/inheritance"
-            params={{ programId: program.id }}
-            search={{ tab: undefined, control: undefined }}
-            className="font-body-small text-brand hover:underline"
-          >
-            Open inheritance
-          </Link>
+          <TextLink size="small">
+            <Link
+              to="/programs/$programId/inheritance"
+              params={{ programId: program.id }}
+              search={{ tab: undefined, control: undefined }}
+            >
+              Open inheritance
+            </Link>
+          </TextLink>
         );
       case "Authorization expiring":
         return (
-          <Link
-            to="/programs/$programId"
-            params={{ programId: program.id }}
-            className="font-body-small text-brand hover:underline"
-          >
-            Open program
-          </Link>
+          <TextLink size="small">
+            <Link to="/programs/$programId" params={{ programId: program.id }}>
+              Open program
+            </Link>
+          </TextLink>
         );
       default:
         return null;
@@ -248,28 +241,25 @@ function ProgramConMon() {
               <>
                 <Badge tone="neutral">Drift {drift.score}</Badge>
                 <DriftBandChip band={drift.band} provisional={appliedWeight < 100} />
-                <Link
-                  to="/programs/$programId/baseline"
-                  params={{ programId: program.id }}
-                  className="font-body-small text-brand hover:underline"
-                >
-                  Baseline
-                </Link>
-                <Link
-                  to="/programs/$programId/sctm"
-                  params={{ programId: program.id }}
-                  className="font-body-small text-brand hover:underline"
-                >
-                  SCTM
-                </Link>
-                <Link
-                  to="/programs/$programId/risk"
-                  params={{ programId: program.id }}
-                  search={{ tab: undefined }}
-                  className="font-body-small text-brand hover:underline"
-                >
-                  Risk
-                </Link>
+                <TextLink size="small">
+                  <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>
+                    Baseline
+                  </Link>
+                </TextLink>
+                <TextLink size="small">
+                  <Link to="/programs/$programId/sctm" params={{ programId: program.id }}>
+                    SCTM
+                  </Link>
+                </TextLink>
+                <TextLink size="small">
+                  <Link
+                    to="/programs/$programId/risk"
+                    params={{ programId: program.id }}
+                    search={{ tab: undefined }}
+                  >
+                    Risk
+                  </Link>
+                </TextLink>
               </>
             }
           />
@@ -604,13 +594,9 @@ function FeedTile({
     >
       <Inline space="space.100" alignBlock="center" spread="space-between">
         <span className="font-body-small text-subtle">{label}</span>
-        <button
-          type="button"
-          onClick={onOpen}
-          className="shrink-0 font-body-small text-brand hover:underline"
-        >
+        <Button onClick={onOpen} variant="link" size="small" className="shrink-0">
           Open
-        </button>
+        </Button>
       </Inline>
       <Inline className="pt-050" space="space.100" alignBlock="baseline">
         <span

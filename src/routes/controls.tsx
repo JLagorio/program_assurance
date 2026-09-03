@@ -140,22 +140,16 @@ function Catalog() {
           <div className="min-w-0 lg:pe-300">
             {tab === "Controls" ? (
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "104px" }} />
-                  <col />
-                  <col style={{ width: "56px" }} />
-                  <col style={{ width: "168px" }} />
-                  <col style={{ width: "120px" }} />
-                  <col style={{ width: "72px" }} />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>Control</Table.Header>
+                    <Table.Header width={104}>Control</Table.Header>
                     <Table.Header>Title</Table.Header>
-                    <Table.Header>Family</Table.Header>
-                    <Table.Header>Baseline</Table.Header>
-                    <Table.Header>Added by overlay</Table.Header>
-                    <Table.Header className="text-right">CCIs</Table.Header>
+                    <Table.Header width={56}>Family</Table.Header>
+                    <Table.Header width={168}>Baseline</Table.Header>
+                    <Table.Header width={120}>Added by overlay</Table.Header>
+                    <Table.Header width={72} className="text-right">
+                      CCIs
+                    </Table.Header>
                   </tr>
                 </thead>
                 <tbody>
@@ -179,24 +173,21 @@ function Catalog() {
 
             {tab === "Overlays" ? (
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "88px" }} />
-                  <col style={{ width: "184px" }} />
-                  <col />
-                  <col style={{ width: "196px" }} />
-                  <col style={{ width: "64px" }} />
-                  <col style={{ width: "76px" }} />
-                  <col style={{ width: "84px" }} />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>ID</Table.Header>
-                    <Table.Header>Overlay</Table.Header>
+                    <Table.Header width={88}>ID</Table.Header>
+                    <Table.Header width={184}>Overlay</Table.Header>
                     <Table.Header>Applicability</Table.Header>
-                    <Table.Header>Authority</Table.Header>
-                    <Table.Header className="text-right">Adds</Table.Header>
-                    <Table.Header className="text-right">Removes</Table.Header>
-                    <Table.Header className="text-right">Params</Table.Header>
+                    <Table.Header width={196}>Authority</Table.Header>
+                    <Table.Header width={64} className="text-right">
+                      Adds
+                    </Table.Header>
+                    <Table.Header width={76} className="text-right">
+                      Removes
+                    </Table.Header>
+                    <Table.Header width={84} className="text-right">
+                      Params
+                    </Table.Header>
                   </tr>
                 </thead>
                 <tbody>
@@ -219,24 +210,21 @@ function Catalog() {
 
             {tab === "CCIs" ? (
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "112px" }} />
-                  <col style={{ width: "88px" }} />
-                  <col />
-                  <col style={{ width: "132px" }} />
-                  <col style={{ width: "64px" }} />
-                  <col style={{ width: "68px" }} />
-                  <col style={{ width: "76px" }} />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>CCI</Table.Header>
-                    <Table.Header>Control</Table.Header>
+                    <Table.Header width={112}>CCI</Table.Header>
+                    <Table.Header width={88}>Control</Table.Header>
                     <Table.Header>Statement</Table.Header>
-                    <Table.Header>Compliance</Table.Header>
-                    <Table.Header className="text-right">Rules</Table.Header>
-                    <Table.Header className="text-right">Procs</Table.Header>
-                    <Table.Header className="text-right">Objectives</Table.Header>
+                    <Table.Header width={132}>Compliance</Table.Header>
+                    <Table.Header width={64} className="text-right">
+                      Rules
+                    </Table.Header>
+                    <Table.Header width={68} className="text-right">
+                      Procs
+                    </Table.Header>
+                    <Table.Header width={76} className="text-right">
+                      Objectives
+                    </Table.Header>
                   </tr>
                 </thead>
                 <tbody>

@@ -59,7 +59,6 @@ import { positionOf, useWorkVersion, workForScope } from "@/lib/control-work";
 import { workIndex } from "@/lib/control-board";
 
 import { NodePreviewSheet } from "./node-preview";
-import { TreeCell } from "./tree-cell";
 import {
   addAllocation,
   allocationsOn,
@@ -226,7 +225,7 @@ export function SystemTree({ programId }: { programId: string }) {
                 aria-expanded={r.children > 0 ? r.open : undefined}
                 onClick={() => setPreview(r.node.id)}
               >
-                <TreeCell
+                <Table.Tree
                   depth={r.depth}
                   hasChildren={r.children > 0}
                   expanded={!folded}
@@ -241,7 +240,7 @@ export function SystemTree({ programId }: { programId: string }) {
                   }
                 >
                   {r.node.name}
-                </TreeCell>
+                </Table.Tree>
                 <Table.Cell className="truncate">{r.node.kind}</Table.Cell>
                 {objectives.map((o) => (
                   <Table.Cell key={o}>

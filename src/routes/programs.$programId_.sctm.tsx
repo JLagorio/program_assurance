@@ -16,6 +16,7 @@ import {
   ShowPage,
   Table,
   Tabs,
+  TextLink,
   Toolbar,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
@@ -306,13 +307,14 @@ function ProgramSctm() {
               </Inline>
               <SctmRail row={selectedRow} />
               <Box className="font-body-small" paddingBlockStart="space.150">
-                <Link
-                  to="/programs/$programId/controls/$controlId"
-                  params={{ programId, controlId: selectedRow.control }}
-                  className="text-brand hover:underline"
-                >
-                  Open {selectedRow.control} →
-                </Link>
+                <TextLink>
+                  <Link
+                    to="/programs/$programId/controls/$controlId"
+                    params={{ programId, controlId: selectedRow.control }}
+                  >
+                    Open {selectedRow.control} →
+                  </Link>
+                </TextLink>
               </Box>
             </div>
           ) : null
@@ -420,26 +422,26 @@ function ProgramSctm() {
               description="A family is covered when every one of its requirement rows carries a determination and no gap."
             >
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "52px" }} />
-                  <col />
-                  <col style={{ width: "72px" }} />
-                  <col style={{ width: "80px" }} />
-                  <col style={{ width: "80px" }} />
-                  <col style={{ width: "96px" }} />
-                  <col style={{ width: "72px" }} />
-                  <col style={{ width: "148px" }} />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>Family</Table.Header>
+                    <Table.Header width={52}>Family</Table.Header>
                     <Table.Header>Name</Table.Header>
-                    <Table.Header className="text-right">Rows</Table.Header>
-                    <Table.Header className="text-right">Satisfied</Table.Header>
-                    <Table.Header className="text-right">Other</Table.Header>
-                    <Table.Header className="text-right">Not assessed</Table.Header>
-                    <Table.Header className="text-right">Gaps</Table.Header>
-                    <Table.Header>Coverage</Table.Header>
+                    <Table.Header width={72} className="text-right">
+                      Rows
+                    </Table.Header>
+                    <Table.Header width={80} className="text-right">
+                      Satisfied
+                    </Table.Header>
+                    <Table.Header width={80} className="text-right">
+                      Other
+                    </Table.Header>
+                    <Table.Header width={96} className="text-right">
+                      Not assessed
+                    </Table.Header>
+                    <Table.Header width={72} className="text-right">
+                      Gaps
+                    </Table.Header>
+                    <Table.Header width={148}>Coverage</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
@@ -505,16 +507,13 @@ function ProgramSctm() {
               }
             >
               <Table className="table-fixed">
-                <colgroup>
-                  <col />
-                  <col style={{ width: "72px" }} />
-                  <col style={{ width: "168px" }} />
-                </colgroup>
                 <thead>
                   <tr>
                     <Table.Header>Gap</Table.Header>
-                    <Table.Header className="text-right">Rows</Table.Header>
-                    <Table.Header>Share of all rows</Table.Header>
+                    <Table.Header width={72} className="text-right">
+                      Rows
+                    </Table.Header>
+                    <Table.Header width={168}>Share of all rows</Table.Header>
                   </tr>
                 </thead>
                 <tbody>

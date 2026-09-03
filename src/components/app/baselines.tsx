@@ -215,26 +215,20 @@ export function BuildTable({
   }
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "104px" }} />
-        <col />
-        <col style={{ width: "150px" }} />
-        <col style={{ width: "108px" }} />
-        <col style={{ width: "260px" }} />
-        <col style={{ width: "108px" }} />
-        <col style={{ width: "72px" }} />
-        <col style={{ width: "92px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Build</Table.Header>
+          <Table.Header width={104}>Build</Table.Header>
           <Table.Header>Name</Table.Header>
-          <Table.Header>State</Table.Header>
-          <Table.Header>Approved</Table.Header>
-          <Table.Header>Change control board</Table.Header>
-          <Table.Header>Supersedes</Table.Header>
-          <Table.Header className="text-right">Pins</Table.Header>
-          <Table.Header className="text-right">Parameters</Table.Header>
+          <Table.Header width={150}>State</Table.Header>
+          <Table.Header width={108}>Approved</Table.Header>
+          <Table.Header width={260}>Change control board</Table.Header>
+          <Table.Header width={108}>Supersedes</Table.Header>
+          <Table.Header width={72} className="text-right">
+            Pins
+          </Table.Header>
+          <Table.Header width={92} className="text-right">
+            Parameters
+          </Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -276,16 +270,11 @@ export function ParameterTable({ parameters }: { parameters: ParameterPin[] }) {
   }
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "96px" }} />
-        <col />
-        <col style={{ width: "44%" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Control</Table.Header>
+          <Table.Header width={96}>Control</Table.Header>
           <Table.Header>Parameter</Table.Header>
-          <Table.Header>Value in force</Table.Header>
+          <Table.Header style={{ width: "44%" }}>Value in force</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -450,20 +439,13 @@ export function PinDiffTable({
   }
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "104px" }} />
-        <col />
-        <col style={{ width: "148px" }} />
-        <col style={{ width: "38%" }} />
-        <col style={{ width: "184px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Component</Table.Header>
+          <Table.Header width={104}>Component</Table.Header>
           <Table.Header>Item</Table.Header>
-          <Table.Header>Kind</Table.Header>
-          <Table.Header>Movement</Table.Header>
-          <Table.Header>Change record</Table.Header>
+          <Table.Header width={148}>Kind</Table.Header>
+          <Table.Header style={{ width: "38%" }}>Movement</Table.Header>
+          <Table.Header width={184}>Change record</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -555,24 +537,15 @@ export function ChangeTable({
   }
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "100px" }} />
-        <col style={{ width: "148px" }} />
-        <col />
-        <col style={{ width: "30%" }} />
-        <col style={{ width: "104px" }} />
-        <col style={{ width: "128px" }} />
-        <col style={{ width: "206px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Change</Table.Header>
-          <Table.Header>Kind</Table.Header>
+          <Table.Header width={100}>Change</Table.Header>
+          <Table.Header width={148}>Kind</Table.Header>
           <Table.Header>Subject</Table.Header>
-          <Table.Header>Movement</Table.Header>
-          <Table.Header>Requested</Table.Header>
-          <Table.Header>CM-3(2)</Table.Header>
-          <Table.Header>Effect</Table.Header>
+          <Table.Header style={{ width: "30%" }}>Movement</Table.Header>
+          <Table.Header width={104}>Requested</Table.Header>
+          <Table.Header width={128}>CM-3(2)</Table.Header>
+          <Table.Header width={206}>Effect</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -858,18 +831,12 @@ function InvalidatedRowTable({ records }: { records: AuditRecord[] }) {
   return (
     <>
       <Table className="table-fixed">
-        <colgroup>
-          <col style={{ width: "110px" }} />
-          <col style={{ width: "86px" }} />
-          <col />
-          <col style={{ width: "300px" }} />
-        </colgroup>
         <thead>
           <tr>
-            <Table.Header>Control</Table.Header>
-            <Table.Header>Unit</Table.Header>
+            <Table.Header width={110}>Control</Table.Header>
+            <Table.Header width={86}>Unit</Table.Header>
             <Table.Header>Requirement</Table.Header>
-            <Table.Header>Determination</Table.Header>
+            <Table.Header width={300}>Determination</Table.Header>
           </tr>
         </thead>
         <tbody>
@@ -907,18 +874,12 @@ function SuspectRowTable({ records }: { records: AuditRecord[] }) {
   return (
     <>
       <Table className="table-fixed">
-        <colgroup>
-          <col style={{ width: "110px" }} />
-          <col style={{ width: "86px" }} />
-          <col />
-          <col style={{ width: "220px" }} />
-        </colgroup>
         <thead>
           <tr>
-            <Table.Header>Control</Table.Header>
-            <Table.Header>Unit</Table.Header>
+            <Table.Header width={110}>Control</Table.Header>
+            <Table.Header width={86}>Unit</Table.Header>
             <Table.Header>Requirement</Table.Header>
-            <Table.Header>Determination</Table.Header>
+            <Table.Header width={220}>Determination</Table.Header>
           </tr>
         </thead>
         <tbody>
@@ -961,19 +922,12 @@ function AuditTrail({ records }: { records: AuditRecord[] }) {
   return (
     <>
       <Table className="table-fixed">
-        <colgroup>
-          <col style={{ width: "124px" }} />
-          <col style={{ width: "148px" }} />
-          <col style={{ width: "200px" }} />
-          <col style={{ width: "220px" }} />
-          <col />
-        </colgroup>
         <thead>
           <tr>
-            <Table.Header>Record</Table.Header>
-            <Table.Header>Scope</Table.Header>
-            <Table.Header>Reference</Table.Header>
-            <Table.Header>Transition</Table.Header>
+            <Table.Header width={124}>Record</Table.Header>
+            <Table.Header width={148}>Scope</Table.Header>
+            <Table.Header width={200}>Reference</Table.Header>
+            <Table.Header width={220}>Transition</Table.Header>
             <Table.Header>Basis</Table.Header>
           </tr>
         </thead>
@@ -1360,15 +1314,10 @@ export function ImpactView({
               description="The program accepted a named assessment from this provider. That is no longer the assessment the provider publishes, so the accepted reference points at something that has moved."
             >
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "140px" }} />
-                  <col style={{ width: "140px" }} />
-                  <col />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>Provider</Table.Header>
-                    <Table.Header>Control</Table.Header>
+                    <Table.Header width={140}>Provider</Table.Header>
+                    <Table.Header width={140}>Control</Table.Header>
                     <Table.Header>State</Table.Header>
                   </tr>
                 </thead>
@@ -1478,21 +1427,13 @@ export function RetestQueueTable({
         </span>
       </Toolbar>
       <Table className="table-fixed">
-        <colgroup>
-          <col style={{ width: "104px" }} />
-          <col style={{ width: "132px" }} />
-          <col style={{ width: "23%" }} />
-          <col style={{ width: "120px" }} />
-          <col style={{ width: "116px" }} />
-          <col />
-        </colgroup>
         <thead>
           <tr>
-            <Table.Header>Control</Table.Header>
-            <Table.Header>Requirement</Table.Header>
-            <Table.Header>Component</Table.Header>
-            <Table.Header>Method</Table.Header>
-            <Table.Header>Procedure</Table.Header>
+            <Table.Header width={104}>Control</Table.Header>
+            <Table.Header width={132}>Requirement</Table.Header>
+            <Table.Header style={{ width: "23%" }}>Component</Table.Header>
+            <Table.Header width={120}>Method</Table.Header>
+            <Table.Header width={116}>Procedure</Table.Header>
             <Table.Header>Why it is owed</Table.Header>
           </tr>
         </thead>

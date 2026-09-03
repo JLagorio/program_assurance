@@ -13,6 +13,7 @@ import {
   Section,
   ShowPage,
   Stack,
+  TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -51,9 +52,9 @@ function ComponentRecord() {
       <Shell>
         <Stack space="space.150">
           <h1 className="font-heading-small font-semibold">Provider not found</h1>
-          <Link to="/library/components" className="font-body text-brand hover:underline">
-            Back to component library
-          </Link>
+          <TextLink size="medium">
+            <Link to="/library/components">Back to component library</Link>
+          </TextLink>
         </Stack>
       </Shell>
     );
@@ -105,13 +106,14 @@ function ComponentRecord() {
               <KeyValue label="Program">
                 {component.sourceProgramId ? (
                   component.sourceAccessible ? (
-                    <Link
-                      to="/programs/$programId"
-                      params={{ programId: component.sourceProgramId }}
-                      className="text-brand hover:underline"
-                    >
-                      <Id className="text-brand">{component.sourceProgramId}</Id>
-                    </Link>
+                    <TextLink>
+                      <Link
+                        to="/programs/$programId"
+                        params={{ programId: component.sourceProgramId }}
+                      >
+                        <Id>{component.sourceProgramId}</Id>
+                      </Link>
+                    </TextLink>
                   ) : (
                     "Not in your enclave"
                   )

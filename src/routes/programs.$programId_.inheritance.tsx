@@ -21,6 +21,7 @@ import {
   Section,
   ShowPage,
   Tabs,
+  TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { programs } from "@/lib/grc-data";
@@ -150,13 +151,11 @@ function ProgramInheritance() {
                   <Badge tone="success">No failing provider</Badge>
                 )}
                 {unstated > 0 ? <Badge tone="danger">{unstated} obligation unstated</Badge> : null}
-                <Link
-                  to="/programs/$programId"
-                  params={{ programId: program.id }}
-                  className="font-body-small text-brand hover:underline"
-                >
-                  Program record
-                </Link>
+                <TextLink size="small">
+                  <Link to="/programs/$programId" params={{ programId: program.id }}>
+                    Program record
+                  </Link>
+                </TextLink>
               </>
             }
           />
@@ -182,40 +181,38 @@ function ProgramInheritance() {
               <ResolutionRail row={selected} />
               <Inspector.Group title="Joins">
                 <KeyValue label="Provider">
-                  <Link
-                    to="/library/components/$componentKey"
-                    params={{ componentKey: selected.component.key }}
-                    className="text-brand hover:underline"
-                  >
-                    <Id className="text-brand">{selected.component.key}</Id>
-                  </Link>
+                  <TextLink>
+                    <Link
+                      to="/library/components/$componentKey"
+                      params={{ componentKey: selected.component.key }}
+                    >
+                      <Id>{selected.component.key}</Id>
+                    </Link>
+                  </TextLink>
                 </KeyValue>
                 <KeyValue label="Control">
-                  <Link
-                    to="/programs/$programId/controls/$controlId"
-                    params={{ programId: program.id, controlId: selected.control }}
-                    className="text-brand hover:underline"
-                  >
-                    <Id className="text-brand">{selected.control}</Id>
-                  </Link>
+                  <TextLink>
+                    <Link
+                      to="/programs/$programId/controls/$controlId"
+                      params={{ programId: program.id, controlId: selected.control }}
+                    >
+                      <Id>{selected.control}</Id>
+                    </Link>
+                  </TextLink>
                 </KeyValue>
                 <KeyValue label="Matrix">
-                  <Link
-                    to="/programs/$programId/sctm"
-                    params={{ programId: program.id }}
-                    className="text-brand hover:underline"
-                  >
-                    <span className="font-body-small">Open the SCTM</span>
-                  </Link>
+                  <TextLink>
+                    <Link to="/programs/$programId/sctm" params={{ programId: program.id }}>
+                      <span className="font-body-small">Open the SCTM</span>
+                    </Link>
+                  </TextLink>
                 </KeyValue>
                 <KeyValue label="Program">
-                  <Link
-                    to="/programs/$programId"
-                    params={{ programId: program.id }}
-                    className="text-brand hover:underline"
-                  >
-                    <Id className="text-brand">{program.id}</Id>
-                  </Link>
+                  <TextLink>
+                    <Link to="/programs/$programId" params={{ programId: program.id }}>
+                      <Id>{program.id}</Id>
+                    </Link>
+                  </TextLink>
                 </KeyValue>
               </Inspector.Group>
             </>

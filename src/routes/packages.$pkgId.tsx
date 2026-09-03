@@ -16,6 +16,7 @@ import {
   Stack,
   Table,
   Tabs,
+  TextLink,
   ToggleGroup,
 } from "@ledger/design-system";
 import { PreviewSplit } from "@/components/app/preview-split";
@@ -75,9 +76,9 @@ function PackageRecord() {
       <Shell>
         <Stack space="space.150">
           <h1 className="font-heading-small font-semibold">Package not found</h1>
-          <Link to="/packages" className="font-body text-brand hover:underline">
-            Back to packages
-          </Link>
+          <TextLink size="medium">
+            <Link to="/packages">Back to packages</Link>
+          </TextLink>
         </Stack>
       </Shell>
     );
@@ -152,24 +153,17 @@ function PackageRecord() {
           <div className="min-w-0 lg:pe-300">
             {tab === "Traceability" ? (
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "124px" }} />
-                  <col style={{ width: "84px" }} />
-                  <col />
-                  <col style={{ width: "104px" }} />
-                  <col style={{ width: "112px" }} />
-                  <col style={{ width: "64px" }} />
-                  <col style={{ width: "72px" }} />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>CCI</Table.Header>
-                    <Table.Header>Control</Table.Header>
+                    <Table.Header width={124}>CCI</Table.Header>
+                    <Table.Header width={84}>Control</Table.Header>
                     <Table.Header>Statement</Table.Header>
-                    <Table.Header>Objectives</Table.Header>
-                    <Table.Header>Result</Table.Header>
-                    <Table.Header className="text-right">Open</Table.Header>
-                    <Table.Header>Worst</Table.Header>
+                    <Table.Header width={104}>Objectives</Table.Header>
+                    <Table.Header width={112}>Result</Table.Header>
+                    <Table.Header width={64} className="text-right">
+                      Open
+                    </Table.Header>
+                    <Table.Header width={72}>Worst</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
@@ -218,22 +212,16 @@ function PackageRecord() {
 
             {tab === "Artifacts" ? (
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "72px" }} />
-                  <col />
-                  <col style={{ width: "104px" }} />
-                  <col style={{ width: "116px" }} />
-                  <col style={{ width: "60px" }} />
-                  <col style={{ width: "112px" }} />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>Kind</Table.Header>
+                    <Table.Header width={72}>Kind</Table.Header>
                     <Table.Header>Artifact</Table.Header>
-                    <Table.Header>Format</Table.Header>
-                    <Table.Header>Generated</Table.Header>
-                    <Table.Header className="text-right">Pages</Table.Header>
-                    <Table.Header>State</Table.Header>
+                    <Table.Header width={104}>Format</Table.Header>
+                    <Table.Header width={116}>Generated</Table.Header>
+                    <Table.Header width={60} className="text-right">
+                      Pages
+                    </Table.Header>
+                    <Table.Header width={112}>State</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
@@ -264,17 +252,11 @@ function PackageRecord() {
 
             {tab === "Submission log" ? (
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "116px" }} />
-                  <col style={{ width: "176px" }} />
-                  <col style={{ width: "168px" }} />
-                  <col />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>When</Table.Header>
-                    <Table.Header>Actor</Table.Header>
-                    <Table.Header>Action</Table.Header>
+                    <Table.Header width={116}>When</Table.Header>
+                    <Table.Header width={176}>Actor</Table.Header>
+                    <Table.Header width={168}>Action</Table.Header>
                     <Table.Header>Detail</Table.Header>
                   </tr>
                 </thead>

@@ -11,6 +11,7 @@ import {
   Section,
   ShowPage,
   Tabs,
+  TextLink,
   Toolbar,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
@@ -230,13 +231,11 @@ function ProgramIngestion() {
                 <Badge tone={heldAcrossProgram > 0 ? "warning" : "success"}>
                   {heldAcrossProgram} held for analyst
                 </Badge>
-                <Link
-                  to="/programs/$programId/composition"
-                  params={{ programId: program.id }}
-                  className="font-body-small text-brand hover:underline"
-                >
-                  Composition
-                </Link>
+                <TextLink size="small">
+                  <Link to="/programs/$programId/composition" params={{ programId: program.id }}>
+                    Composition
+                  </Link>
+                </TextLink>
               </>
             }
           />

@@ -35,6 +35,7 @@ import {
   Stack,
   Table,
   Textarea,
+  TextLink,
   ToggleGroup,
   Toolbar,
 } from "@ledger/design-system";
@@ -536,14 +537,15 @@ function BoardDetail({
             {control.title}
           </Box>
         </div>
-        <Link
-          to="/programs/$programId/controls/$controlId"
-          params={{ programId, controlId: control.id }}
-          search={{ tab: undefined }}
-          className="shrink-0 pt-025 font-body-small text-brand hover:underline"
-        >
-          Open record
-        </Link>
+        <TextLink size="small" className="shrink-0 pt-025">
+          <Link
+            to="/programs/$programId/controls/$controlId"
+            params={{ programId, controlId: control.id }}
+            search={{ tab: undefined }}
+          >
+            Open record
+          </Link>
+        </TextLink>
         <button
           type="button"
           onClick={onClose}
@@ -706,13 +708,14 @@ function BoardDetail({
                 <Stack className="font-body" as="ul" space="space.025">
                   {control.nodes.map((n) => (
                     <Inline key={n} as="li" space="space.100" alignBlock="baseline">
-                      <Link
-                        to="/programs/$programId/components/$componentId"
-                        params={{ programId, componentId: n }}
-                        className="hover:underline"
-                      >
-                        <Id className="text-brand">{n}</Id>
-                      </Link>
+                      <TextLink>
+                        <Link
+                          to="/programs/$programId/components/$componentId"
+                          params={{ programId, componentId: n }}
+                        >
+                          <Id>{n}</Id>
+                        </Link>
+                      </TextLink>
                       <span className="truncate text-subtle">{nodeName(n)}</span>
                     </Inline>
                   ))}
@@ -844,13 +847,11 @@ function BoardDetail({
               </p>
             )}
             <Box paddingBlockStart="space.100">
-              <Link
-                to="/programs/$programId/baseline"
-                params={{ programId }}
-                className="font-body-small text-brand hover:underline"
-              >
-                Open configuration baseline
-              </Link>
+              <TextLink size="small">
+                <Link to="/programs/$programId/baseline" params={{ programId }}>
+                  Open configuration baseline
+                </Link>
+              </TextLink>
             </Box>
           </Block>
         ) : null}
@@ -942,21 +943,18 @@ function RowTable({
 }) {
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "96px" }} />
-        <col />
-        <col style={{ width: "132px" }} />
-      </colgroup>
       <tbody>
         {rows.map((r) => (
           <Table.Row key={r.key}>
-            <Table.Cell className="max-w-none">
+            <Table.Cell className="max-w-none" width={96}>
               <Id>{r.requirement}</Id>
             </Table.Cell>
             <Table.Cell className="truncate" title={r.statement}>
               {r.statement}
             </Table.Cell>
-            <Table.Cell className="max-w-none">{cell(r)}</Table.Cell>
+            <Table.Cell className="max-w-none" width={132}>
+              {cell(r)}
+            </Table.Cell>
           </Table.Row>
         ))}
       </tbody>

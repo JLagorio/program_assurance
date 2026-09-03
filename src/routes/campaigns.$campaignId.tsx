@@ -12,6 +12,7 @@ import {
   ShowPage,
   Stack,
   Tabs,
+  TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -455,13 +456,11 @@ function CampaignRecord() {
                   alignBlock="baseline"
                   shouldWrap
                 >
-                  <Link
-                    to="/campaigns"
-                    className="shrink-0 hover:underline"
-                    aria-label={`Back to campaigns for ${e.id}`}
-                  >
-                    <Id className="text-brand">{e.id}</Id>
-                  </Link>
+                  <TextLink className="shrink-0">
+                    <Link to="/campaigns" aria-label={`Back to campaigns for ${e.id}`}>
+                      <Id>{e.id}</Id>
+                    </Link>
+                  </TextLink>
                   <span className="font-body font-medium">{e.name}</span>
                   <Badge tone={statusTone(e.state)}>{e.state}</Badge>
                   <span className="font-body-small text-subtle">{e.kind}</span>

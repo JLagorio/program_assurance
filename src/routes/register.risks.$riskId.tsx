@@ -18,6 +18,7 @@ import {
   ShowPage,
   Stack,
   Table,
+  TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { TextBlock } from "@/components/app/control-text";
@@ -71,9 +72,9 @@ function RiskRecord() {
       <Shell>
         <Stack space="space.150">
           <h1 className="font-heading-small font-semibold">Risk not found</h1>
-          <Link to="/register" className="font-body text-brand hover:underline">
-            Back to the register
-          </Link>
+          <TextLink size="medium">
+            <Link to="/register">Back to the register</Link>
+          </TextLink>
         </Stack>
       </Shell>
     );
@@ -155,13 +156,11 @@ function RiskRecord() {
               <KeyValue label="Owner">{risk.owner}</KeyValue>
               <KeyValue label="Reviewed">{risk.reviewed}</KeyValue>
               <KeyValue label="Program">
-                <Link
-                  to="/programs/$programId"
-                  params={{ programId: risk.program }}
-                  className="text-brand hover:underline"
-                >
-                  <Id className="text-brand">{risk.program}</Id>
-                </Link>
+                <TextLink>
+                  <Link to="/programs/$programId" params={{ programId: risk.program }}>
+                    <Id>{risk.program}</Id>
+                  </Link>
+                </TextLink>
               </KeyValue>
             </Inspector.Group>
             <Inspector.Group title="CCIs in scope">
@@ -339,33 +338,24 @@ function RiskRecord() {
         >
           {poams.length ? (
             <Table className="table-fixed">
-              <colgroup>
-                <col style={{ width: "112px" }} />
-                <col />
-                <col style={{ width: "140px" }} />
-                <col style={{ width: "116px" }} />
-                <col style={{ width: "104px" }} />
-              </colgroup>
               <thead>
                 <tr>
-                  <Table.Header>POA&M</Table.Header>
+                  <Table.Header width={112}>POA&M</Table.Header>
                   <Table.Header>Weakness</Table.Header>
-                  <Table.Header>Owner</Table.Header>
-                  <Table.Header>Scheduled</Table.Header>
-                  <Table.Header>Status</Table.Header>
+                  <Table.Header width={140}>Owner</Table.Header>
+                  <Table.Header width={116}>Scheduled</Table.Header>
+                  <Table.Header width={104}>Status</Table.Header>
                 </tr>
               </thead>
               <tbody>
                 {poams.map((p) => (
                   <Table.Row key={p.id}>
                     <Table.Cell>
-                      <Link
-                        to="/register/poam/$poamId"
-                        params={{ poamId: p.id }}
-                        className="hover:underline"
-                      >
-                        <Id className="text-brand">{p.id}</Id>
-                      </Link>
+                      <TextLink>
+                        <Link to="/register/poam/$poamId" params={{ poamId: p.id }}>
+                          <Id>{p.id}</Id>
+                        </Link>
+                      </TextLink>
                     </Table.Cell>
                     <Table.Cell className="truncate">{p.title}</Table.Cell>
                     <Table.Cell className="truncate">{p.owner}</Table.Cell>
@@ -385,35 +375,25 @@ function RiskRecord() {
           description={`${openCount(fs)} open of ${fs.length}, across ${ccis.length} CCI${ccis.length === 1 ? "" : "s"}.`}
         >
           <Table className="table-fixed">
-            <colgroup>
-              <col style={{ width: "112px" }} />
-              <col />
-              <col style={{ width: "104px" }} />
-              <col style={{ width: "140px" }} />
-              <col style={{ width: "78px" }} />
-              <col style={{ width: "112px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>Finding</Table.Header>
+                <Table.Header width={112}>Finding</Table.Header>
                 <Table.Header>Title</Table.Header>
-                <Table.Header>CCI</Table.Header>
-                <Table.Header>Asset</Table.Header>
-                <Table.Header>Severity</Table.Header>
-                <Table.Header>Lifecycle</Table.Header>
+                <Table.Header width={104}>CCI</Table.Header>
+                <Table.Header width={140}>Asset</Table.Header>
+                <Table.Header width={78}>Severity</Table.Header>
+                <Table.Header width={112}>Lifecycle</Table.Header>
               </tr>
             </thead>
             <tbody>
               {fs.map((f) => (
                 <Table.Row key={f.id}>
                   <Table.Cell>
-                    <Link
-                      to="/findings/$findingId"
-                      params={{ findingId: f.id }}
-                      className="hover:underline"
-                    >
-                      <Id className="text-brand">{f.id}</Id>
-                    </Link>
+                    <TextLink>
+                      <Link to="/findings/$findingId" params={{ findingId: f.id }}>
+                        <Id>{f.id}</Id>
+                      </Link>
+                    </TextLink>
                   </Table.Cell>
                   <Table.Cell className="truncate">{f.title}</Table.Cell>
                   <Table.Cell>
@@ -452,20 +432,19 @@ function FactorTrail({ factors, score }: { factors: ScoreFactor[]; score: number
   return (
     <Box paddingBlockStart="space.150">
       <Table className="table-fixed">
-        <colgroup>
-          <col style={{ width: "152px" }} />
-          <col />
-          <col style={{ width: "68px" }} />
-          <col style={{ width: "72px" }} />
-          <col style={{ width: "108px" }} />
-        </colgroup>
         <thead>
           <tr>
-            <Table.Header>Factor</Table.Header>
+            <Table.Header width={152}>Factor</Table.Header>
             <Table.Header>Input</Table.Header>
-            <Table.Header className="text-right">Value</Table.Header>
-            <Table.Header className="text-right">Weight</Table.Header>
-            <Table.Header className="text-right">Contribution</Table.Header>
+            <Table.Header width={68} className="text-right">
+              Value
+            </Table.Header>
+            <Table.Header width={72} className="text-right">
+              Weight
+            </Table.Header>
+            <Table.Header width={108} className="text-right">
+              Contribution
+            </Table.Header>
           </tr>
         </thead>
         <tbody>

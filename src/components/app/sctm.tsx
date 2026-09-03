@@ -39,6 +39,7 @@ import {
   Stack,
   Stat,
   Table,
+  TextLink,
 } from "@ledger/design-system";
 import type { Tone } from "@ledger/design-system";
 import { inheritanceStateTone } from "@/lib/inheritance";
@@ -106,36 +107,23 @@ function severityToneOf(severity: string): Tone {
 /* ── Matrix table ────────────────────────────────────────────────────────── */
 
 /** The eight columns, declared once so every SCTM surface aligns. */
-export function SctmCols() {
-  return (
-    <colgroup>
-      <col style={{ width: "104px" }} />
-      <col />
-      <col style={{ width: "116px" }} />
-      <col style={{ width: "152px" }} />
-      <col style={{ width: "120px" }} />
-      <col style={{ width: "84px" }} />
-      {/* Determination carries the retracted value struck through beside the
-          one that replaced it, so it is sized for `Satisfied -> Not assessed
-          · Invalidated`, not for a chip alone. */}
-      <col style={{ width: "264px" }} />
-      <col style={{ width: "268px" }} />
-    </colgroup>
-  );
-}
-
 export function SctmHead() {
   return (
     <thead>
       <tr>
-        <Table.Header>Control</Table.Header>
+        <Table.Header width={104}>Control</Table.Header>
         <Table.Header>Requirement</Table.Header>
-        <Table.Header>Origination</Table.Header>
-        <Table.Header>Responsible</Table.Header>
-        <Table.Header>Method</Table.Header>
-        <Table.Header className="text-right">Evidence</Table.Header>
-        <Table.Header>Determination</Table.Header>
-        <Table.Header>Gap</Table.Header>
+        <Table.Header width={116}>Origination</Table.Header>
+        <Table.Header width={152}>Responsible</Table.Header>
+        <Table.Header width={120}>Method</Table.Header>
+        <Table.Header className="text-right" width={84}>
+          Evidence
+        </Table.Header>
+        {/* Determination carries the retracted value struck through beside the
+            one that replaced it, so it is sized for `Satisfied -> Not assessed
+            · Invalidated`, not for a chip alone. */}
+        <Table.Header width={264}>Determination</Table.Header>
+        <Table.Header width={268}>Gap</Table.Header>
       </tr>
     </thead>
   );
@@ -155,15 +143,16 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
     <>
       <Table.Cell>
         {programId ? (
-          <Link
-            to="/programs/$programId/controls/$controlId"
-            params={{ programId, controlId: row.control }}
-            search={{ tab: undefined }}
-            className="hover:underline"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Id className="text-brand">{row.control}</Id>
-          </Link>
+          <TextLink>
+            <Link
+              to="/programs/$programId/controls/$controlId"
+              params={{ programId, controlId: row.control }}
+              search={{ tab: undefined }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Id>{row.control}</Id>
+            </Link>
+          </TextLink>
         ) : (
           <Id>{row.control}</Id>
         )}
@@ -258,7 +247,6 @@ export function SctmTable({
 
   return (
     <Table className="table-fixed">
-      <SctmCols />
       <SctmHead />
       <tbody>
         {rows.map((row) => (
@@ -310,7 +298,6 @@ export function SctmFamilyTable({
 
   return (
     <Table className="table-fixed">
-      <SctmCols />
       <SctmHead />
       {groups.map((group) => {
         const open = expanded.has(group.id);
@@ -688,13 +675,11 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
         title="Determination currency"
         description="Whether what is on file still describes the configuration in force. A configuration change does not re-assess anything, so an invalidated row's positive claim is withdrawn and stops counting toward coverage while a deficiency is retained and owed a re-test; a suspect row keeps its determination and is flagged for the assessor."
         action={
-          <Link
-            to="/programs/$programId/baseline"
-            params={{ programId: sctm.program }}
-            className="font-body-small text-brand hover:underline"
-          >
-            Change impact →
-          </Link>
+          <TextLink size="small">
+            <Link to="/programs/$programId/baseline" params={{ programId: sctm.program }}>
+              Change impact →
+            </Link>
+          </TextLink>
         }
       >
         <Grid

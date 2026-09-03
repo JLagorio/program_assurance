@@ -321,20 +321,19 @@ export function DriftFactorTable({ score }: { score: DriftScore }) {
       </p>
 
       <Table className="table-fixed">
-        <colgroup>
-          <col style={{ width: "168px" }} />
-          <col />
-          <col style={{ width: "72px" }} />
-          <col style={{ width: "76px" }} />
-          <col style={{ width: "104px" }} />
-        </colgroup>
         <thead>
           <tr>
-            <Table.Header>Factor</Table.Header>
+            <Table.Header width={168}>Factor</Table.Header>
             <Table.Header>Input read</Table.Header>
-            <Table.Header className="text-right">Value</Table.Header>
-            <Table.Header className="text-right">Weight</Table.Header>
-            <Table.Header className="text-right">Contribution</Table.Header>
+            <Table.Header width={72} className="text-right">
+              Value
+            </Table.Header>
+            <Table.Header width={76} className="text-right">
+              Weight
+            </Table.Header>
+            <Table.Header width={104} className="text-right">
+              Contribution
+            </Table.Header>
           </tr>
         </thead>
         <tbody>
@@ -597,28 +596,19 @@ export function ScheduleTable({ rows }: { rows: ScheduleRow[] }) {
   }
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "104px" }} />
-        <col />
-        <col style={{ width: "116px" }} />
-        <col style={{ width: "124px" }} />
-        <col style={{ width: "188px" }} />
-        <col style={{ width: "108px" }} />
-        <col style={{ width: "108px" }} />
-        <col style={{ width: "76px" }} />
-        <col style={{ width: "112px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Control</Table.Header>
+          <Table.Header width={104}>Control</Table.Header>
           <Table.Header>Title</Table.Header>
-          <Table.Header>Frequency</Table.Header>
-          <Table.Header>Method</Table.Header>
-          <Table.Header>Responsible</Table.Header>
-          <Table.Header>Last assessed</Table.Header>
-          <Table.Header>Next due</Table.Header>
-          <Table.Header className="text-right">Days out</Table.Header>
-          <Table.Header>Status</Table.Header>
+          <Table.Header width={116}>Frequency</Table.Header>
+          <Table.Header width={124}>Method</Table.Header>
+          <Table.Header width={188}>Responsible</Table.Header>
+          <Table.Header width={108}>Last assessed</Table.Header>
+          <Table.Header width={108}>Next due</Table.Header>
+          <Table.Header width={76} className="text-right">
+            Days out
+          </Table.Header>
+          <Table.Header width={112}>Status</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -700,24 +690,19 @@ export function FreshnessTable({ rows }: { rows: EvidenceSlaRow[] }) {
   }
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "96px" }} />
-        <col style={{ width: "158px" }} />
-        <col />
-        <col style={{ width: "108px" }} />
-        <col style={{ width: "68px" }} />
-        <col style={{ width: "68px" }} />
-        <col style={{ width: "124px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Control</Table.Header>
-          <Table.Header>Requirement</Table.Header>
+          <Table.Header width={96}>Control</Table.Header>
+          <Table.Header width={158}>Requirement</Table.Header>
           <Table.Header>Newest evidence</Table.Header>
-          <Table.Header>Collected</Table.Header>
-          <Table.Header className="text-right">Age</Table.Header>
-          <Table.Header className="text-right">SLA</Table.Header>
-          <Table.Header>Freshness</Table.Header>
+          <Table.Header width={108}>Collected</Table.Header>
+          <Table.Header width={68} className="text-right">
+            Age
+          </Table.Header>
+          <Table.Header width={68} className="text-right">
+            SLA
+          </Table.Header>
+          <Table.Header width={124}>Freshness</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -814,25 +799,19 @@ export function CadenceTable({ rows }: { rows: CadenceRow[] }) {
   }
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "96px" }} />
-        <col style={{ width: "180px" }} />
-        <col style={{ width: "160px" }} />
-        <col style={{ width: "84px" }} />
-        <col style={{ width: "150px" }} />
-        <col style={{ width: "84px" }} />
-        <col style={{ width: "168px" }} />
-        <col />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Target</Table.Header>
-          <Table.Header>Name</Table.Header>
-          <Table.Header>Format</Table.Header>
-          <Table.Header className="text-right">Window</Table.Header>
-          <Table.Header>Last scan</Table.Header>
-          <Table.Header className="text-right">Actual</Table.Header>
-          <Table.Header>State</Table.Header>
+          <Table.Header width={96}>Target</Table.Header>
+          <Table.Header width={180}>Name</Table.Header>
+          <Table.Header width={160}>Format</Table.Header>
+          <Table.Header width={84} className="text-right">
+            Window
+          </Table.Header>
+          <Table.Header width={150}>Last scan</Table.Header>
+          <Table.Header width={84} className="text-right">
+            Actual
+          </Table.Header>
+          <Table.Header width={168}>State</Table.Header>
           <Table.Header>What the window says</Table.Header>
         </tr>
       </thead>
@@ -909,24 +888,19 @@ export function SlippageTable({ rows }: { rows: SlippageRow[] }) {
   }
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "112px" }} />
-        <col />
-        <col style={{ width: "112px" }} />
-        <col style={{ width: "112px" }} />
-        <col style={{ width: "72px" }} />
-        <col style={{ width: "88px" }} />
-        <col style={{ width: "116px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>POA&amp;M</Table.Header>
+          <Table.Header width={112}>POA&amp;M</Table.Header>
           <Table.Header>Title</Table.Header>
-          <Table.Header>Original</Table.Header>
-          <Table.Header>Scheduled</Table.Header>
-          <Table.Header className="text-right">Slip</Table.Header>
-          <Table.Header className="text-right">Revisions</Table.Header>
-          <Table.Header>Status</Table.Header>
+          <Table.Header width={112}>Original</Table.Header>
+          <Table.Header width={112}>Scheduled</Table.Header>
+          <Table.Header width={72} className="text-right">
+            Slip
+          </Table.Header>
+          <Table.Header width={88} className="text-right">
+            Revisions
+          </Table.Header>
+          <Table.Header width={116}>Status</Table.Header>
         </tr>
       </thead>
       <tbody>

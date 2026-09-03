@@ -10,6 +10,7 @@ import {
   Section,
   ShowPage,
   Table,
+  TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -73,23 +74,19 @@ function WorkstreamDetail() {
           <>
             <Inspector.Group title="Workstream">
               <KeyValue label="Program">
-                <Link
-                  to="/programs/$programId"
-                  params={{ programId: ws.program }}
-                  className="text-brand hover:underline"
-                >
-                  <Id>{ws.program}</Id>
-                </Link>
+                <TextLink>
+                  <Link to="/programs/$programId" params={{ programId: ws.program }}>
+                    <Id>{ws.program}</Id>
+                  </Link>
+                </TextLink>
               </KeyValue>
               <KeyValue label="Lead">
                 {lead ? (
-                  <Link
-                    to="/people/$personId"
-                    params={{ personId: lead.id }}
-                    className="text-brand hover:underline"
-                  >
-                    {lead.name}
-                  </Link>
+                  <TextLink>
+                    <Link to="/people/$personId" params={{ personId: lead.id }}>
+                      {lead.name}
+                    </Link>
+                  </TextLink>
                 ) : (
                   "—"
                 )}
@@ -132,20 +129,15 @@ function WorkstreamDetail() {
           description="Allocation is the share of that person's time committed to this workstream."
         >
           <Table className="table-fixed">
-            <colgroup>
-              <col style={{ width: "104px" }} />
-              <col style={{ width: "168px" }} />
-              <col />
-              <col style={{ width: "148px" }} />
-              <col style={{ width: "88px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>Person</Table.Header>
-                <Table.Header>Name</Table.Header>
+                <Table.Header width={104}>Person</Table.Header>
+                <Table.Header width={168}>Name</Table.Header>
                 <Table.Header>Role on this workstream</Table.Header>
-                <Table.Header>Discipline</Table.Header>
-                <Table.Header className="text-right">Allocation</Table.Header>
+                <Table.Header width={148}>Discipline</Table.Header>
+                <Table.Header width={88} className="text-right">
+                  Allocation
+                </Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -154,13 +146,11 @@ function WorkstreamDetail() {
                 return (
                   <Table.Row key={m.person}>
                     <Table.Cell>
-                      <Link
-                        to="/people/$personId"
-                        params={{ personId: m.person }}
-                        className="text-brand hover:underline"
-                      >
-                        <Id>{m.person}</Id>
-                      </Link>
+                      <TextLink>
+                        <Link to="/people/$personId" params={{ personId: m.person }}>
+                          <Id>{m.person}</Id>
+                        </Link>
+                      </TextLink>
                     </Table.Cell>
                     <Table.Cell className="truncate">{p?.name ?? "—"}</Table.Cell>
                     <Table.Cell className="truncate">{m.role}</Table.Cell>
@@ -178,20 +168,13 @@ function WorkstreamDetail() {
           description="What this workstream is waiting on, and what is waiting on it."
         >
           <Table className="table-fixed">
-            <colgroup>
-              <col style={{ width: "108px" }} />
-              <col style={{ width: "104px" }} />
-              <col />
-              <col style={{ width: "96px" }} />
-              <col style={{ width: "148px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>Direction</Table.Header>
-                <Table.Header>Workstream</Table.Header>
+                <Table.Header width={108}>Direction</Table.Header>
+                <Table.Header width={104}>Workstream</Table.Header>
                 <Table.Header>Title</Table.Header>
-                <Table.Header>Status</Table.Header>
-                <Table.Header>Lead</Table.Header>
+                <Table.Header width={96}>Status</Table.Header>
+                <Table.Header width={148}>Lead</Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -202,13 +185,11 @@ function WorkstreamDetail() {
                 <Table.Row key={`${dir}-${w.id}`}>
                   <Table.Cell>{dir}</Table.Cell>
                   <Table.Cell>
-                    <Link
-                      to="/workstreams/$workstreamId"
-                      params={{ workstreamId: w.id }}
-                      className="text-brand hover:underline"
-                    >
-                      <Id>{w.id}</Id>
-                    </Link>
+                    <TextLink>
+                      <Link to="/workstreams/$workstreamId" params={{ workstreamId: w.id }}>
+                        <Id>{w.id}</Id>
+                      </Link>
+                    </TextLink>
                   </Table.Cell>
                   <Table.Cell className="truncate">{w.title}</Table.Cell>
                   <Table.Cell>

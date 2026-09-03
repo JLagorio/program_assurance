@@ -9,7 +9,7 @@
 
 import type { ReactNode } from "react";
 
-import { Badge, Box, Id, Inline, Stack, Table } from "@ledger/design-system";
+import { Badge, Box, Id, Inline, Stack, Table, TextLink } from "@ledger/design-system";
 import { cn } from "@/lib/utils";
 import type {
   NistMethod,
@@ -132,15 +132,10 @@ export function ParameterTable({ params }: { params: NistParameter[] }) {
   }
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "156px" }} />
-        <col style={{ width: "88px" }} />
-        <col />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Parameter</Table.Header>
-          <Table.Header>Kind</Table.Header>
+          <Table.Header width={156}>Parameter</Table.Header>
+          <Table.Header width={88}>Kind</Table.Header>
           <Table.Header>Value the program must set</Table.Header>
         </tr>
       </thead>
@@ -169,9 +164,11 @@ export function ReferenceList({ references }: { references: NistReference[] }) {
         <span key={r.title}>
           {i > 0 && " · "}
           {r.url ? (
-            <a href={r.url} target="_blank" rel="noreferrer" className="text-brand hover:underline">
-              {r.title}
-            </a>
+            <TextLink>
+              <a href={r.url} target="_blank" rel="noreferrer">
+                {r.title}
+              </a>
+            </TextLink>
           ) : (
             r.title
           )}

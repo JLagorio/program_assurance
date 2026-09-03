@@ -37,6 +37,7 @@ import {
   Table,
   Tabs,
   Textarea,
+  TextLink,
   toast,
   Toolbar,
 } from "@ledger/design-system";
@@ -533,13 +534,11 @@ function ProgramDetail() {
         <Stack className="font-body-small" space="space.075">
           {inheritedComponents.map((c) => (
             <Inline key={c.id} space="space.100" alignBlock="center" spread="space-between">
-              <Link
-                to="/library/components/$componentKey"
-                params={{ componentKey: c.key }}
-                className="truncate text-brand hover:underline"
-              >
-                {c.name}
-              </Link>
+              <TextLink className="truncate">
+                <Link to="/library/components/$componentKey" params={{ componentKey: c.key }}>
+                  {c.name}
+                </Link>
+              </TextLink>
               {c.sourceProgramId && !c.sourceAccessible ? (
                 <Lock
                   className="shrink-0 text-subtle size-150"
@@ -739,14 +738,15 @@ function ProgramDetail() {
               title="Inheritance"
               description="Which common control provider actually satisfies each inherited row, what this program still owes on a shared control, and where an accepted inheritance has drifted from the provider's current assessment."
               action={
-                <Link
-                  to="/programs/$programId/inheritance"
-                  params={{ programId: program.id }}
-                  search={{ tab: undefined, control: undefined }}
-                  className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
-                >
-                  Open inheritance
-                </Link>
+                <TextLink size="small" className="inline-flex items-center gap-025">
+                  <Link
+                    to="/programs/$programId/inheritance"
+                    params={{ programId: program.id }}
+                    search={{ tab: undefined, control: undefined }}
+                  >
+                    Open inheritance
+                  </Link>
+                </TextLink>
               }
             >
               <p className="pt-100 font-body-small text-subtle">
@@ -761,13 +761,11 @@ function ProgramDetail() {
               title="Configuration baseline"
               description="The authorized build, the changes proposed against it, and which determinations those changes invalidate. A change the ISSE analysed as having no security impact is recorded and contained — it does not turn the matrix amber."
               action={
-                <Link
-                  to="/programs/$programId/baseline"
-                  params={{ programId: program.id }}
-                  className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
-                >
-                  Open baseline
-                </Link>
+                <TextLink size="small" className="inline-flex items-center gap-025">
+                  <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>
+                    Open baseline
+                  </Link>
+                </TextLink>
               }
             >
               <p className="pt-100 font-body-small text-subtle">
@@ -810,14 +808,15 @@ function ProgramDetail() {
               title="Cyber test and evaluation"
               description="The six DoD Cybersecurity T&E phases, their entry and exit criteria, the threat scenarios the red team walks and the mission effects those scenarios actually achieved."
               action={
-                <Link
-                  to="/programs/$programId/te-phases"
-                  params={{ programId: program.id }}
-                  search={{ tab: undefined }}
-                  className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
-                >
-                  Open T&amp;E phases
-                </Link>
+                <TextLink size="small" className="inline-flex items-center gap-025">
+                  <Link
+                    to="/programs/$programId/te-phases"
+                    params={{ programId: program.id }}
+                    search={{ tab: undefined }}
+                  >
+                    Open T&amp;E phases
+                  </Link>
+                </TextLink>
               }
             >
               <p className="pt-100 font-body-small text-subtle">
@@ -832,13 +831,11 @@ function ProgramDetail() {
               title="Verification"
               description={`Scanner ingest, findings and assessor readiness for ${program.name}.`}
               action={
-                <Link
-                  to="/programs/$programId/ingestion"
-                  params={{ programId: program.id }}
-                  className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
-                >
-                  Open ingestion
-                </Link>
+                <TextLink size="small" className="inline-flex items-center gap-025">
+                  <Link to="/programs/$programId/ingestion" params={{ programId: program.id }}>
+                    Open ingestion
+                  </Link>
+                </TextLink>
               }
             >
               <Box paddingBlockStart="space.200">
@@ -854,14 +851,15 @@ function ProgramDetail() {
               title="Interoperability and transfer"
               description="The same body of evidence has to leave this platform three ways: as OSCAL 1.1.2 an assessor can import, as the eMASS CSV column sets a package submission actually requires, and as a hashed bundle that can cross an air gap and be reconciled on the far side."
               action={
-                <Link
-                  to="/programs/$programId/export"
-                  params={{ programId: program.id }}
-                  search={{ tab: undefined }}
-                  className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
-                >
-                  Open export
-                </Link>
+                <TextLink size="small" className="inline-flex items-center gap-025">
+                  <Link
+                    to="/programs/$programId/export"
+                    params={{ programId: program.id }}
+                    search={{ tab: undefined }}
+                  >
+                    Open export
+                  </Link>
+                </TextLink>
               }
             >
               <p className="pt-100 font-body-small text-subtle">
@@ -884,14 +882,15 @@ function ProgramDetail() {
               title="Residual risk"
               description="CAT I/II/III is a severity, not a risk. Every finding carries a 0-100 residual built from severity, mitigation credit, exploitability, exposure, mission impact and evidence currency — with the whole calculation attached to it."
               action={
-                <Link
-                  to="/programs/$programId/risk"
-                  params={{ programId: program.id }}
-                  search={{ tab: undefined }}
-                  className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
-                >
-                  Open risk scoring
-                </Link>
+                <TextLink size="small" className="inline-flex items-center gap-025">
+                  <Link
+                    to="/programs/$programId/risk"
+                    params={{ programId: program.id }}
+                    search={{ tab: undefined }}
+                  >
+                    Open risk scoring
+                  </Link>
+                </TextLink>
               }
             >
               <p className="pt-100 font-body-small text-subtle">
@@ -907,13 +906,12 @@ function ProgramDetail() {
               title="POA&M items"
               description="Open commitments for this program. Managed in the register."
               action={
-                <Link
-                  to="/register"
-                  className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
-                >
-                  Open register
-                  <ChevronRight className="size-icon-small" />
-                </Link>
+                <TextLink size="small" className="inline-flex items-center gap-025">
+                  <Link to="/register">
+                    Open register
+                    <ChevronRight className="size-icon-small" />
+                  </Link>
+                </TextLink>
               }
             >
               {programPoams.length === 0 ? (
@@ -923,33 +921,26 @@ function ProgramDetail() {
                 />
               ) : (
                 <Table className="table-fixed">
-                  <colgroup>
-                    <col style={{ width: "96px" }} />
-                    <col />
-                    <col style={{ width: "120px" }} />
-                    <col style={{ width: "140px" }} />
-                    <col style={{ width: "120px" }} />
-                  </colgroup>
                   <thead>
                     <tr>
-                      <Table.Header>ID</Table.Header>
+                      <Table.Header width={96}>ID</Table.Header>
                       <Table.Header>Weakness</Table.Header>
-                      <Table.Header>Status</Table.Header>
-                      <Table.Header>Owner</Table.Header>
-                      <Table.Header className="text-right">Scheduled</Table.Header>
+                      <Table.Header width={120}>Status</Table.Header>
+                      <Table.Header width={140}>Owner</Table.Header>
+                      <Table.Header width={120} className="text-right">
+                        Scheduled
+                      </Table.Header>
                     </tr>
                   </thead>
                   <tbody>
                     {programPoams.map((p) => (
                       <Table.Row key={p.id}>
                         <Table.Cell>
-                          <Link
-                            to="/register/poam/$poamId"
-                            params={{ poamId: p.id }}
-                            className="text-brand hover:underline"
-                          >
-                            <Id className="text-brand">{p.id}</Id>
-                          </Link>
+                          <TextLink>
+                            <Link to="/register/poam/$poamId" params={{ poamId: p.id }}>
+                              <Id>{p.id}</Id>
+                            </Link>
+                          </TextLink>
                         </Table.Cell>
                         <Table.Cell className="truncate">{p.title}</Table.Cell>
                         <Table.Cell>
@@ -1006,14 +997,15 @@ function ProgramDetail() {
               title="Continuous monitoring"
               description="After the ATO the question stops being whether this system was ever assessed and becomes whether what is running is still what was authorized. The drift score, the SLCM assessment schedule, evidence freshness against its SLA, scan cadence and POA&M slippage are all computed there."
               action={
-                <Link
-                  to="/programs/$programId/conmon"
-                  params={{ programId: program.id }}
-                  search={{ tab: undefined }}
-                  className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
-                >
-                  Open ConMon
-                </Link>
+                <TextLink size="small" className="inline-flex items-center gap-025">
+                  <Link
+                    to="/programs/$programId/conmon"
+                    params={{ programId: program.id }}
+                    search={{ tab: undefined }}
+                  >
+                    Open ConMon
+                  </Link>
+                </TextLink>
               }
             >
               <p className="pt-100 font-body-small text-subtle">

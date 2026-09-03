@@ -12,6 +12,7 @@ import {
   PageHeader,
   PreviewRail,
   Table,
+  TextLink,
 } from "@ledger/design-system";
 import { PreviewSplit } from "@/components/app/preview-split";
 import { Shell } from "@/components/app/shell";
@@ -61,26 +62,20 @@ function PackagesIndex() {
         <PreviewSplit open={preview !== null}>
           <div className="min-w-0 lg:pe-300">
             <Table className="table-fixed">
-              <colgroup>
-                <col style={{ width: "112px" }} />
-                <col />
-                <col style={{ width: "68px" }} />
-                <col style={{ width: "124px" }} />
-                <col style={{ width: "132px" }} />
-                <col style={{ width: "96px" }} />
-                <col style={{ width: "84px" }} />
-                <col style={{ width: "84px" }} />
-              </colgroup>
               <thead>
                 <tr>
-                  <Table.Header>Package</Table.Header>
+                  <Table.Header width={112}>Package</Table.Header>
                   <Table.Header>Name</Table.Header>
-                  <Table.Header>Ver.</Table.Header>
-                  <Table.Header>State</Table.Header>
-                  <Table.Header>Snapshot</Table.Header>
-                  <Table.Header>Owner</Table.Header>
-                  <Table.Header className="text-right">Traced</Table.Header>
-                  <Table.Header className="text-right">Gaps</Table.Header>
+                  <Table.Header width={68}>Ver.</Table.Header>
+                  <Table.Header width={124}>State</Table.Header>
+                  <Table.Header width={132}>Snapshot</Table.Header>
+                  <Table.Header width={96}>Owner</Table.Header>
+                  <Table.Header width={84} className="text-right">
+                    Traced
+                  </Table.Header>
+                  <Table.Header width={84} className="text-right">
+                    Gaps
+                  </Table.Header>
                 </tr>
               </thead>
               <tbody>
@@ -125,13 +120,11 @@ function PackagesIndex() {
               title={preview.name}
               onClose={() => setPreview(null)}
               openTo={
-                <Link
-                  to="/packages/$pkgId"
-                  params={{ pkgId: preview.id }}
-                  className="text-brand hover:underline"
-                >
-                  Open package →
-                </Link>
+                <TextLink>
+                  <Link to="/packages/$pkgId" params={{ pkgId: preview.id }}>
+                    Open package →
+                  </Link>
+                </TextLink>
               }
             >
               <Inspector.Group title="Snapshot">

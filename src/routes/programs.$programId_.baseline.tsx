@@ -26,6 +26,7 @@ import {
   ShowPage,
   Stack,
   Tabs,
+  TextLink,
   Toolbar,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
@@ -299,13 +300,11 @@ function ProgramBaseline() {
                 <Badge tone={invalidatedRows.size > 0 ? "warning" : "success"}>
                   {invalidatedRows.size} rows invalidated
                 </Badge>
-                <Link
-                  to="/programs/$programId/sctm"
-                  params={{ programId: program.id }}
-                  className="font-body-small text-brand hover:underline"
-                >
-                  SCTM
-                </Link>
+                <TextLink size="small">
+                  <Link to="/programs/$programId/sctm" params={{ programId: program.id }}>
+                    SCTM
+                  </Link>
+                </TextLink>
               </>
             }
           />

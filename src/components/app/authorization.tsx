@@ -137,26 +137,18 @@ export function AuthorizationSection({
           </Box>
 
           <Table className="pt-150 table-fixed">
-            <colgroup>
-              <col style={{ width: "68px" }} />
-              <col style={{ width: "72px" }} />
-              <col />
-              <col style={{ width: "56px" }} />
-              <col style={{ width: "124px" }} />
-              <col style={{ width: "52px" }} />
-              <col style={{ width: "108px" }} />
-              <col style={{ width: "92px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>ID</Table.Header>
-                <Table.Header>Kind</Table.Header>
+                <Table.Header width={68}>ID</Table.Header>
+                <Table.Header width={72}>Kind</Table.Header>
                 <Table.Header>Artifact</Table.Header>
-                <Table.Header>Version</Table.Header>
-                <Table.Header>Status</Table.Header>
-                <Table.Header className="text-right">Pages</Table.Header>
-                <Table.Header>Updated</Table.Header>
-                <Table.Header>Owner</Table.Header>
+                <Table.Header width={56}>Version</Table.Header>
+                <Table.Header width={124}>Status</Table.Header>
+                <Table.Header width={52} className="text-right">
+                  Pages
+                </Table.Header>
+                <Table.Header width={108}>Updated</Table.Header>
+                <Table.Header width={92}>Owner</Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -194,24 +186,15 @@ export function AuthorizationSection({
           }
         >
           <Table className="pt-150 table-fixed">
-            <colgroup>
-              <col style={{ width: "72px" }} />
-              <col style={{ width: "132px" }} />
-              <col />
-              <col style={{ width: "92px" }} />
-              <col style={{ width: "128px" }} />
-              <col style={{ width: "132px" }} />
-              <col style={{ width: "88px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>Grant</Table.Header>
-                <Table.Header>Person</Table.Header>
+                <Table.Header width={72}>Grant</Table.Header>
+                <Table.Header width={132}>Person</Table.Header>
                 <Table.Header>Organization</Table.Header>
-                <Table.Header>Role</Table.Header>
-                <Table.Header>Access</Table.Header>
-                <Table.Header>Last viewed</Table.Header>
-                <Table.Header>Status</Table.Header>
+                <Table.Header width={92}>Role</Table.Header>
+                <Table.Header width={128}>Access</Table.Header>
+                <Table.Header width={132}>Last viewed</Table.Header>
+                <Table.Header width={88}>Status</Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -256,26 +239,18 @@ export function AuthorizationSection({
           </Inline>
 
           <Table className="table-fixed">
-            <colgroup>
-              <col style={{ width: "82px" }} />
-              <col />
-              <col style={{ width: "88px" }} />
-              <col style={{ width: "72px" }} />
-              <col style={{ width: "142px" }} />
-              <col style={{ width: "116px" }} />
-              <col style={{ width: "92px" }} />
-              <col style={{ width: "116px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>ID</Table.Header>
+                <Table.Header width={82}>ID</Table.Header>
                 <Table.Header>Observation</Table.Header>
-                <Table.Header>Severity</Table.Header>
-                <Table.Header>Control</Table.Header>
-                <Table.Header>Status</Table.Header>
-                <Table.Header>Jira</Table.Header>
-                <Table.Header>Assignee</Table.Header>
-                <Table.Header className="text-right">Due</Table.Header>
+                <Table.Header width={88}>Severity</Table.Header>
+                <Table.Header width={72}>Control</Table.Header>
+                <Table.Header width={142}>Status</Table.Header>
+                <Table.Header width={116}>Jira</Table.Header>
+                <Table.Header width={92}>Assignee</Table.Header>
+                <Table.Header width={116} className="text-right">
+                  Due
+                </Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -717,24 +692,15 @@ export function BriefingRoom() {
           description="Each risk carries its mitigation and POA&M reference. Sign off or send back."
         >
           <Table className="pt-150 table-fixed">
-            <colgroup>
-              <col style={{ width: "76px" }} />
-              <col />
-              <col style={{ width: "92px" }} />
-              <col style={{ width: "84px" }} />
-              <col style={{ width: "98px" }} />
-              <col style={{ width: "96px" }} />
-              <col style={{ width: "108px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>Risk</Table.Header>
+                <Table.Header width={76}>Risk</Table.Header>
                 <Table.Header>Title</Table.Header>
-                <Table.Header>Control</Table.Header>
-                <Table.Header>Likelihood</Table.Header>
-                <Table.Header>Residual</Table.Header>
-                <Table.Header>POA&M</Table.Header>
-                <Table.Header>Decision</Table.Header>
+                <Table.Header width={92}>Control</Table.Header>
+                <Table.Header width={84}>Likelihood</Table.Header>
+                <Table.Header width={98}>Residual</Table.Header>
+                <Table.Header width={96}>POA&M</Table.Header>
+                <Table.Header width={108}>Decision</Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -771,22 +737,16 @@ export function BriefingRoom() {
           description="Live from the SCA enclave — the same records the assessment team is working."
         >
           <Table className="pt-150 table-fixed">
-            <colgroup>
-              <col style={{ width: "82px" }} />
-              <col />
-              <col style={{ width: "88px" }} />
-              <col style={{ width: "142px" }} />
-              <col style={{ width: "116px" }} />
-              <col style={{ width: "116px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>ID</Table.Header>
+                <Table.Header width={82}>ID</Table.Header>
                 <Table.Header>Observation</Table.Header>
-                <Table.Header>Severity</Table.Header>
-                <Table.Header>Status</Table.Header>
-                <Table.Header>Jira</Table.Header>
-                <Table.Header className="text-right">Due</Table.Header>
+                <Table.Header width={88}>Severity</Table.Header>
+                <Table.Header width={142}>Status</Table.Header>
+                <Table.Header width={116}>Jira</Table.Header>
+                <Table.Header width={116} className="text-right">
+                  Due
+                </Table.Header>
               </tr>
             </thead>
             <tbody>

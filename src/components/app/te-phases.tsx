@@ -673,28 +673,19 @@ export function ScenarioTable({
 
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "92px" }} />
-        <col />
-        {showPhase ? <col style={{ width: "104px" }} /> : null}
-        <col style={{ width: "68px" }} />
-        <col style={{ width: "168px" }} />
-        <col style={{ width: "128px" }} />
-        <col style={{ width: "84px" }} />
-        <col style={{ width: "88px" }} />
-        <col style={{ width: "118px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Scenario</Table.Header>
+          <Table.Header width={92}>Scenario</Table.Header>
           <Table.Header>Name</Table.Header>
-          {showPhase ? <Table.Header>Phase</Table.Header> : null}
-          <Table.Header>Tier</Table.Header>
-          <Table.Header>Mission function</Table.Header>
-          <Table.Header>Chain</Table.Header>
-          <Table.Header className="text-right">Path</Table.Header>
-          <Table.Header>Event</Table.Header>
-          <Table.Header>Status</Table.Header>
+          {showPhase ? <Table.Header width={104}>Phase</Table.Header> : null}
+          <Table.Header width={68}>Tier</Table.Header>
+          <Table.Header width={168}>Mission function</Table.Header>
+          <Table.Header width={128}>Chain</Table.Header>
+          <Table.Header className="text-right" width={84}>
+            Path
+          </Table.Header>
+          <Table.Header width={88}>Event</Table.Header>
+          <Table.Header width={118}>Status</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -1095,24 +1086,15 @@ export function MissionEffectTable({
 
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "94px" }} />
-        <col style={{ width: "118px" }} />
-        <col />
-        <col style={{ width: "104px" }} />
-        <col style={{ width: "104px" }} />
-        <col style={{ width: "118px" }} />
-        <col style={{ width: "128px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Effect</Table.Header>
-          <Table.Header>Kind</Table.Header>
+          <Table.Header width={94}>Effect</Table.Header>
+          <Table.Header width={118}>Kind</Table.Header>
           <Table.Header>Mission function</Table.Header>
-          <Table.Header>Scenario</Table.Header>
-          <Table.Header>Confirmed by</Table.Header>
-          <Table.Header>Reproduced</Table.Header>
-          <Table.Header>Findings</Table.Header>
+          <Table.Header width={104}>Scenario</Table.Header>
+          <Table.Header width={104}>Confirmed by</Table.Header>
+          <Table.Header width={118}>Reproduced</Table.Header>
+          <Table.Header width={128}>Findings</Table.Header>
         </tr>
       </thead>
       <tbody>

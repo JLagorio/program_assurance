@@ -9,7 +9,7 @@
 import { useState } from "react";
 import { Check, ChevronRight, Lock } from "lucide-react";
 
-import { Badge, Dot, Id, Inline, Person, Section, Table } from "@ledger/design-system";
+import { Badge, Button, Dot, Id, Inline, Person, Section, Table } from "@ledger/design-system";
 import { cn } from "@/lib/utils";
 import type { ProgramState, Stage } from "@/lib/program-stage";
 import { stages } from "@/lib/program-stage";
@@ -211,17 +211,10 @@ export function OpenWorkSection({
       ) : (
         <>
           <Table className="table-fixed">
-            <colgroup>
-              <col style={{ width: 24 }} />
-              <col />
-              <col style={{ width: 168 }} />
-              <col style={{ width: 110 }} />
-              <col style={{ width: 132 }} />
-            </colgroup>
             <tbody>
               {shown.map((a) => (
                 <Table.Row key={a.id} onClick={() => onRun(a)} className="group cursor-pointer">
-                  <Table.Cell className="w-300">
+                  <Table.Cell width={24}>
                     <Dot tone={a.tone} />
                   </Table.Cell>
                   <Table.Cell className="truncate">{a.label}</Table.Cell>
@@ -254,13 +247,14 @@ export function OpenWorkSection({
             </tbody>
           </Table>
           {actions.length > 5 ? (
-            <button
-              type="button"
+            <Button
               onClick={() => setExpanded((v) => !v)}
-              className="pt-100 font-body-small font-medium text-brand hover:underline"
+              variant="link"
+              size="small"
+              className="pt-100"
             >
               {expanded ? "Show less" : `Show ${actions.length - 5} more`}
-            </button>
+            </Button>
           ) : null}
         </>
       )}

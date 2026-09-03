@@ -25,6 +25,7 @@ import {
   Stack,
   Table,
   Tabs,
+  TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -169,14 +170,15 @@ function ComponentRecord() {
           <p className="max-w-layout-measure font-body text-subtle">
             {componentId} is not a component of {program.id}.
           </p>
-          <Link
-            to="/programs/$programId/composition"
-            params={{ programId }}
-            search={{ tab: undefined }}
-            className="font-body text-brand hover:underline"
-          >
-            Back to system composition
-          </Link>
+          <TextLink size="medium">
+            <Link
+              to="/programs/$programId/composition"
+              params={{ programId }}
+              search={{ tab: undefined }}
+            >
+              Back to system composition
+            </Link>
+          </TextLink>
         </Stack>
       </Shell>
     );
@@ -223,40 +225,37 @@ function ComponentRecord() {
                 ) : null}
               </>
             }
-            below={
-              <Stack space="space.100">
-                <dl className="flex flex-wrap items-baseline gap-x-300 gap-y-075 border-t border-default pt-100">
-                  {anchored && anchoredSet ? (
-                    <ScopeFacts scope={anchored} set={anchoredSet} />
-                  ) : null}
-                  <Fact label="Supplier">{node.supplier}</Fact>
-                  {node.partNumber ? (
-                    <Fact label="Part number">
-                      <Id>{node.partNumber}</Id>
-                    </Fact>
-                  ) : null}
-                  <Fact label="Trust zone">{node.zone}</Fact>
-                  <Fact label="Criticality">{node.criticality}</Fact>
-                  <Fact label="Scopes">{scopes.length}</Fact>
-                  <Fact label="Requirements">{allocations.length || "None"}</Fact>
-                  <Fact label="Controls reached">{trace.controls.length || "None"}</Fact>
-                  <Fact label="Sits in">
-                    {parent ? (
+            facts={
+              <>
+                {anchored && anchoredSet ? <ScopeFacts scope={anchored} set={anchoredSet} /> : null}
+                <Fact label="Supplier">{node.supplier}</Fact>
+                {node.partNumber ? (
+                  <Fact label="Part number">
+                    <Id>{node.partNumber}</Id>
+                  </Fact>
+                ) : null}
+                <Fact label="Trust zone">{node.zone}</Fact>
+                <Fact label="Criticality">{node.criticality}</Fact>
+                <Fact label="Scopes">{scopes.length}</Fact>
+                <Fact label="Requirements">{allocations.length || "None"}</Fact>
+                <Fact label="Controls reached">{trace.controls.length || "None"}</Fact>
+                <Fact label="Sits in">
+                  {parent ? (
+                    <TextLink>
                       <Link
                         to="/programs/$programId/components/$componentId"
                         params={{ programId, componentId: parent.id }}
-                        className="hover:underline"
                       >
                         {parent.name}
                       </Link>
-                    ) : (
-                      "Top of the tree"
-                    )}
-                  </Fact>
-                </dl>
-                {anchored ? <RevisionStrip scopeId={anchored.id} /> : null}
-              </Stack>
+                    </TextLink>
+                  ) : (
+                    "Top of the tree"
+                  )}
+                </Fact>
+              </>
             }
+            below={anchored ? <RevisionStrip scopeId={anchored.id} /> : null}
           />
         }
         tabs={
@@ -297,23 +296,20 @@ function ComponentRecord() {
                 }
               >
                 <Table className="pt-050">
-                  <colgroup>
-                    <col style={{ width: "104px" }} />
-                    <col style={{ width: "220px" }} />
-                    <col style={{ width: "56px" }} />
-                    <col style={{ width: "56px" }} />
-                    <col style={{ width: "56px" }} />
-                    <col style={{ width: "84px" }} />
-                    <col />
-                  </colgroup>
                   <thead>
                     <Table.Row>
-                      <Table.Header>Scope</Table.Header>
-                      <Table.Header>Name</Table.Header>
-                      <Table.Header title="Confidentiality">C</Table.Header>
-                      <Table.Header title="Integrity">I</Table.Header>
-                      <Table.Header title="Availability">A</Table.Header>
-                      <Table.Header>Reached by</Table.Header>
+                      <Table.Header width={104}>Scope</Table.Header>
+                      <Table.Header width={220}>Name</Table.Header>
+                      <Table.Header width={56} title="Confidentiality">
+                        C
+                      </Table.Header>
+                      <Table.Header width={56} title="Integrity">
+                        I
+                      </Table.Header>
+                      <Table.Header width={56} title="Availability">
+                        A
+                      </Table.Header>
+                      <Table.Header width={84}>Reached by</Table.Header>
                       <Table.Header>Role here</Table.Header>
                     </Table.Row>
                   </thead>
@@ -327,14 +323,15 @@ function ComponentRecord() {
                         return (
                           <Table.Row key={sc.id} title={edge?.rationale ?? sc.mission}>
                             <Table.Cell className="max-w-none">
-                              <Link
-                                to="/programs/$programId/components/$componentId"
-                                params={{ programId, componentId: sc.element }}
-                                search={{ tab: "Control set" }}
-                                className="hover:underline"
-                              >
-                                <Id className="text-brand">{sc.id}</Id>
-                              </Link>
+                              <TextLink>
+                                <Link
+                                  to="/programs/$programId/components/$componentId"
+                                  params={{ programId, componentId: sc.element }}
+                                  search={{ tab: "Control set" }}
+                                >
+                                  <Id>{sc.id}</Id>
+                                </Link>
+                              </TextLink>
                             </Table.Cell>
                             <Table.Cell className="truncate">{sc.name}</Table.Cell>
                             <Table.Cell>{t.Confidentiality.slice(0, 1)}</Table.Cell>
@@ -383,35 +380,30 @@ function ComponentRecord() {
             {children.length > 0 ? (
               <Section title="Contains">
                 <Table className="pt-050">
-                  <colgroup>
-                    <col style={{ width: "104px" }} />
-                    <col />
-                    <col style={{ width: "132px" }} />
-                    <col style={{ width: "120px" }} />
-                    <col style={{ width: "132px" }} />
-                    <col style={{ width: "96px" }} />
-                  </colgroup>
                   <thead>
                     <Table.Row>
-                      <Table.Header>Component</Table.Header>
+                      <Table.Header width={104}>Component</Table.Header>
                       <Table.Header>Name</Table.Header>
-                      <Table.Header>Kind</Table.Header>
-                      <Table.Header>Version</Table.Header>
-                      <Table.Header>Supplier</Table.Header>
-                      <Table.Header className="text-right">Reqs</Table.Header>
+                      <Table.Header width={132}>Kind</Table.Header>
+                      <Table.Header width={120}>Version</Table.Header>
+                      <Table.Header width={132}>Supplier</Table.Header>
+                      <Table.Header width={96} className="text-right">
+                        Reqs
+                      </Table.Header>
                     </Table.Row>
                   </thead>
                   <tbody>
                     {children.map((child) => (
                       <Table.Row key={child.id}>
                         <Table.Cell className="max-w-none">
-                          <Link
-                            to="/programs/$programId/components/$componentId"
-                            params={{ programId, componentId: child.id }}
-                            className="hover:underline"
-                          >
-                            <Id className="text-brand">{child.id}</Id>
-                          </Link>
+                          <TextLink>
+                            <Link
+                              to="/programs/$programId/components/$componentId"
+                              params={{ programId, componentId: child.id }}
+                            >
+                              <Id>{child.id}</Id>
+                            </Link>
+                          </TextLink>
                         </Table.Cell>
                         <Table.Cell className="truncate">{child.name}</Table.Cell>
                         <Table.Cell className="truncate">{child.kind}</Table.Cell>
@@ -430,20 +422,13 @@ function ComponentRecord() {
             {out.length + inbound.length > 0 ? (
               <Section title="Connections">
                 <Table className="pt-050">
-                  <colgroup>
-                    <col style={{ width: "88px" }} />
-                    <col style={{ width: "104px" }} />
-                    <col />
-                    <col style={{ width: "132px" }} />
-                    <col style={{ width: "108px" }} />
-                  </colgroup>
                   <thead>
                     <Table.Row>
-                      <Table.Header>Direction</Table.Header>
-                      <Table.Header>Component</Table.Header>
+                      <Table.Header width={88}>Direction</Table.Header>
+                      <Table.Header width={104}>Component</Table.Header>
                       <Table.Header>Name</Table.Header>
-                      <Table.Header>Relation</Table.Header>
-                      <Table.Header>Boundary</Table.Header>
+                      <Table.Header width={132}>Relation</Table.Header>
+                      <Table.Header width={108}>Boundary</Table.Header>
                     </Table.Row>
                   </thead>
                   <tbody>
@@ -456,13 +441,14 @@ function ComponentRecord() {
                         <Table.Row key={`${edge.from}-${edge.to}-${i}`} title={edge.via}>
                           <Table.Cell>{dir}</Table.Cell>
                           <Table.Cell className="max-w-none">
-                            <Link
-                              to="/programs/$programId/components/$componentId"
-                              params={{ programId, componentId: other }}
-                              className="hover:underline"
-                            >
-                              <Id className="text-brand">{other}</Id>
-                            </Link>
+                            <TextLink>
+                              <Link
+                                to="/programs/$programId/components/$componentId"
+                                params={{ programId, componentId: other }}
+                              >
+                                <Id>{other}</Id>
+                              </Link>
+                            </TextLink>
                           </Table.Cell>
                           <Table.Cell className="truncate">{peer?.name ?? other}</Table.Cell>
                           <Table.Cell className="truncate">
@@ -491,20 +477,13 @@ function ComponentRecord() {
                 description="Considered for this component and excluded. An absence would be indistinguishable from nobody having looked."
               >
                 <Table className="pt-050">
-                  <colgroup>
-                    <col style={{ width: "112px" }} />
-                    <col style={{ width: "320px" }} />
-                    <col />
-                    <col style={{ width: "124px" }} />
-                    <col style={{ width: "108px" }} />
-                  </colgroup>
                   <thead>
                     <Table.Row>
-                      <Table.Header>Requirement</Table.Header>
-                      <Table.Header>Shall statement</Table.Header>
+                      <Table.Header width={112}>Requirement</Table.Header>
+                      <Table.Header width={320}>Shall statement</Table.Header>
                       <Table.Header>Why it does not apply here</Table.Header>
-                      <Table.Header>Decided by</Table.Header>
-                      <Table.Header>Decided</Table.Header>
+                      <Table.Header width={124}>Decided by</Table.Header>
+                      <Table.Header width={108}>Decided</Table.Header>
                     </Table.Row>
                   </thead>
                   <tbody>
@@ -513,14 +492,15 @@ function ComponentRecord() {
                       return (
                         <Table.Row key={d.id}>
                           <Table.Cell className="max-w-none">
-                            <Link
-                              to="/programs/$programId/requirements/$requirementId"
-                              params={{ programId, requirementId: d.requirement }}
-                              search={{ tab: undefined }}
-                              className="hover:underline"
-                            >
-                              <Id className="text-brand">{d.requirement}</Id>
-                            </Link>
+                            <TextLink>
+                              <Link
+                                to="/programs/$programId/requirements/$requirementId"
+                                params={{ programId, requirementId: d.requirement }}
+                                search={{ tab: undefined }}
+                              >
+                                <Id>{d.requirement}</Id>
+                              </Link>
+                            </TextLink>
                           </Table.Cell>
                           <Table.Cell className="truncate" title={r?.text}>
                             {r?.text ?? "—"}
@@ -551,33 +531,24 @@ function ComponentRecord() {
             <Section title="Open findings">
               {open.length ? (
                 <Table className="pt-050">
-                  <colgroup>
-                    <col style={{ width: "104px" }} />
-                    <col style={{ width: "88px" }} />
-                    <col />
-                    <col style={{ width: "104px" }} />
-                    <col style={{ width: "120px" }} />
-                  </colgroup>
                   <thead>
                     <Table.Row>
-                      <Table.Header>Finding</Table.Header>
-                      <Table.Header>Severity</Table.Header>
+                      <Table.Header width={104}>Finding</Table.Header>
+                      <Table.Header width={88}>Severity</Table.Header>
                       <Table.Header>Title</Table.Header>
-                      <Table.Header>Control</Table.Header>
-                      <Table.Header>Status</Table.Header>
+                      <Table.Header width={104}>Control</Table.Header>
+                      <Table.Header width={120}>Status</Table.Header>
                     </Table.Row>
                   </thead>
                   <tbody>
                     {open.map((f) => (
                       <Table.Row key={f.id}>
                         <Table.Cell className="max-w-none">
-                          <Link
-                            to="/findings/$findingId"
-                            params={{ findingId: f.id }}
-                            className="hover:underline"
-                          >
-                            <Id className="text-brand">{f.id}</Id>
-                          </Link>
+                          <TextLink>
+                            <Link to="/findings/$findingId" params={{ findingId: f.id }}>
+                              <Id>{f.id}</Id>
+                            </Link>
+                          </TextLink>
                         </Table.Cell>
                         <Table.Cell>
                           <Indicator tone={severityTone(f.mitigatedSeverity)}>
@@ -586,14 +557,15 @@ function ComponentRecord() {
                         </Table.Cell>
                         <Table.Cell className="truncate">{f.title}</Table.Cell>
                         <Table.Cell>
-                          <Link
-                            to="/programs/$programId/controls/$controlId"
-                            params={{ programId, controlId: f.control }}
-                            search={{ tab: undefined }}
-                            className="hover:underline"
-                          >
-                            <Id className="text-brand">{f.control}</Id>
-                          </Link>
+                          <TextLink>
+                            <Link
+                              to="/programs/$programId/controls/$controlId"
+                              params={{ programId, controlId: f.control }}
+                              search={{ tab: undefined }}
+                            >
+                              <Id>{f.control}</Id>
+                            </Link>
+                          </TextLink>
                         </Table.Cell>
                         <Table.Cell className="truncate">{f.lifecycle}</Table.Cell>
                       </Table.Row>
@@ -615,7 +587,7 @@ function ComponentRecord() {
             </Section>
 
             <Section title="Provenance">
-              <dl className="flex flex-wrap items-baseline gap-x-300 gap-y-075 pt-150">
+              <Fact.Group className="pt-150">
                 <Fact label="Declared by">{node.bomSource}</Fact>
                 <Fact label="BOM document">
                   {bom ? (
@@ -631,7 +603,7 @@ function ComponentRecord() {
                     .map((n) => n.name)
                     .join(" / ")}
                 </Fact>
-              </dl>
+              </Fact.Group>
               {node.note ? (
                 <p className="max-w-layout-measure pt-100 font-body text-subtle">{node.note}</p>
               ) : null}

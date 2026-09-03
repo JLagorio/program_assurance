@@ -68,26 +68,20 @@ function StigLibrary() {
           }
         >
           <Table className="table-fixed">
-            <colgroup>
-              <col style={{ width: "96px" }} />
-              <col />
-              <col style={{ width: "168px" }} />
-              <col style={{ width: "76px" }} />
-              <col style={{ width: "96px" }} />
-              <col style={{ width: "132px" }} />
-              <col style={{ width: "72px" }} />
-              <col style={{ width: "148px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>ID</Table.Header>
+                <Table.Header width={96}>ID</Table.Header>
                 <Table.Header>Benchmark</Table.Header>
-                <Table.Header>Technology</Table.Header>
-                <Table.Header>Current</Table.Header>
-                <Table.Header>Released</Table.Header>
-                <Table.Header>Applied</Table.Header>
-                <Table.Header className="text-right">Rules</Table.Header>
-                <Table.Header className="text-right">CAT I / II / III</Table.Header>
+                <Table.Header width={168}>Technology</Table.Header>
+                <Table.Header width={76}>Current</Table.Header>
+                <Table.Header width={96}>Released</Table.Header>
+                <Table.Header width={132}>Applied</Table.Header>
+                <Table.Header width={72} className="text-right">
+                  Rules
+                </Table.Header>
+                <Table.Header width={148} className="text-right">
+                  CAT I / II / III
+                </Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -139,20 +133,13 @@ function StigLibrary() {
           }
         >
           <Table className="table-fixed">
-            <colgroup>
-              <col style={{ width: "104px" }} />
-              <col />
-              <col style={{ width: "160px" }} />
-              <col style={{ width: "72px" }} />
-              <col style={{ width: "200px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>Rule</Table.Header>
+                <Table.Header width={104}>Rule</Table.Header>
                 <Table.Header>Title</Table.Header>
-                <Table.Header>Technology</Table.Header>
-                <Table.Header>Severity</Table.Header>
-                <Table.Header>Satisfies CCI</Table.Header>
+                <Table.Header width={160}>Technology</Table.Header>
+                <Table.Header width={72}>Severity</Table.Header>
+                <Table.Header width={200}>Satisfies CCI</Table.Header>
               </tr>
             </thead>
             <tbody>

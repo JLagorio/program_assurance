@@ -5,6 +5,7 @@ import {
   Badge,
   Box,
   Breadcrumb,
+  Button,
   Empty,
   Id,
   Inline,
@@ -15,6 +16,7 @@ import {
   ShowPage,
   Table,
   Tabs,
+  TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -205,13 +207,11 @@ function ProgramComposition() {
                 <Badge tone={stats.unattested > 0 ? "warning" : "success"}>
                   {stats.unattested} unattested
                 </Badge>
-                <Link
-                  to="/programs/$programId"
-                  params={{ programId: program.id }}
-                  className="font-body-small text-brand hover:underline"
-                >
-                  Program record
-                </Link>
+                <TextLink size="small">
+                  <Link to="/programs/$programId" params={{ programId: program.id }}>
+                    Program record
+                  </Link>
+                </TextLink>
               </>
             }
           />
@@ -237,13 +237,14 @@ function ProgramComposition() {
               <NodeRail node={selected} posture={selectedPosture} />
               <Inspector.Group title="Record">
                 <KeyValue label="Open">
-                  <Link
-                    to="/programs/$programId/components/$componentId"
-                    params={{ programId: program.id, componentId: selected.id }}
-                    className="text-brand hover:underline"
-                  >
-                    {selected.name}
-                  </Link>
+                  <TextLink>
+                    <Link
+                      to="/programs/$programId/components/$componentId"
+                      params={{ programId: program.id, componentId: selected.id }}
+                    >
+                      {selected.name}
+                    </Link>
+                  </TextLink>
                 </KeyValue>
                 <KeyValue label="Requirements">{selectedAllocations.length || "None"}</KeyValue>
                 <KeyValue label="Controls reached">
@@ -260,38 +261,33 @@ function ProgramComposition() {
                 </KeyValue>
                 <KeyValue label="Asset">
                   {selected.asset && assetById.has(selected.asset) ? (
-                    <Link
-                      to="/findings/assets/$assetId"
-                      params={{ assetId: selected.asset }}
-                      className="text-brand hover:underline"
-                    >
-                      <Id className="text-brand">{selected.asset}</Id>
-                    </Link>
+                    <TextLink>
+                      <Link to="/findings/assets/$assetId" params={{ assetId: selected.asset }}>
+                        <Id>{selected.asset}</Id>
+                      </Link>
+                    </TextLink>
                   ) : (
                     "Not a boundary asset"
                   )}
                 </KeyValue>
                 <KeyValue label="Worst part">
                   {selectedPosture?.worstNode ? (
-                    <button
-                      type="button"
+                    <Button
                       onClick={() => select(selectedPosture.worstNode ?? selected.id)}
-                      className="text-brand hover:underline"
+                      variant="link"
                     >
                       <Id className="text-brand">{nameOf(selectedPosture.worstNode)}</Id>
-                    </button>
+                    </Button>
                   ) : (
                     "—"
                   )}
                 </KeyValue>
                 <KeyValue label="Program">
-                  <Link
-                    to="/programs/$programId"
-                    params={{ programId: program.id }}
-                    className="text-brand hover:underline"
-                  >
-                    <Id className="text-brand">{program.id}</Id>
-                  </Link>
+                  <TextLink>
+                    <Link to="/programs/$programId" params={{ programId: program.id }}>
+                      <Id>{program.id}</Id>
+                    </Link>
+                  </TextLink>
                 </KeyValue>
               </Inspector.Group>
             </>
@@ -335,22 +331,14 @@ function ProgramComposition() {
               description={`${edges.length} declared connections, ${crossings} of which cross a trust boundary. Containment says what a thing is made of; these say what can reach it.`}
             >
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "180px" }} />
-                  <col style={{ width: "132px" }} />
-                  <col style={{ width: "180px" }} />
-                  <col />
-                  <col style={{ width: "108px" }} />
-                  <col style={{ width: "132px" }} />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>From</Table.Header>
-                    <Table.Header>Relation</Table.Header>
-                    <Table.Header>To</Table.Header>
+                    <Table.Header width={180}>From</Table.Header>
+                    <Table.Header width={132}>Relation</Table.Header>
+                    <Table.Header width={180}>To</Table.Header>
                     <Table.Header>Via</Table.Header>
-                    <Table.Header>Redundancy</Table.Header>
-                    <Table.Header>Boundary</Table.Header>
+                    <Table.Header width={108}>Redundancy</Table.Header>
+                    <Table.Header width={132}>Boundary</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
@@ -439,26 +427,20 @@ function ProgramComposition() {
           >
             {docs.length ? (
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "104px" }} />
-                  <col />
-                  <col style={{ width: "152px" }} />
-                  <col style={{ width: "168px" }} />
-                  <col style={{ width: "104px" }} />
-                  <col style={{ width: "88px" }} />
-                  <col style={{ width: "116px" }} />
-                  <col style={{ width: "128px" }} />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>Document</Table.Header>
+                    <Table.Header width={104}>Document</Table.Header>
                     <Table.Header>Name</Table.Header>
-                    <Table.Header>Format</Table.Header>
-                    <Table.Header>Producer</Table.Header>
-                    <Table.Header className="text-right">Received</Table.Header>
-                    <Table.Header className="text-right">Parts</Table.Header>
-                    <Table.Header>Subject</Table.Header>
-                    <Table.Header>Integrity</Table.Header>
+                    <Table.Header width={152}>Format</Table.Header>
+                    <Table.Header width={168}>Producer</Table.Header>
+                    <Table.Header width={104} className="text-right">
+                      Received
+                    </Table.Header>
+                    <Table.Header width={88} className="text-right">
+                      Parts
+                    </Table.Header>
+                    <Table.Header width={116}>Subject</Table.Header>
+                    <Table.Header width={128}>Integrity</Table.Header>
                   </tr>
                 </thead>
                 <tbody>

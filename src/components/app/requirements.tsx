@@ -11,7 +11,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 
-import { Badge, Box, Editable, Id, Inline, Stack, Table } from "@ledger/design-system";
+import { Badge, Box, Editable, Id, Inline, Stack, Table, TextLink } from "@ledger/design-system";
 import { cn } from "@/lib/utils";
 import {
   allocationStateTone,
@@ -48,27 +48,29 @@ export function TargetLink({
 
   if (target.kind === "node") {
     return (
-      <Link
-        to="/programs/$programId/components/$componentId"
-        params={{ programId, componentId: target.id }}
-        className="min-w-0 text-brand hover:underline"
-        title={target.detail}
-      >
-        {target.name}
-      </Link>
+      <TextLink className="min-w-0">
+        <Link
+          to="/programs/$programId/components/$componentId"
+          params={{ programId, componentId: target.id }}
+          title={target.detail}
+        >
+          {target.name}
+        </Link>
+      </TextLink>
     );
   }
 
   if (target.kind === "provider") {
     return (
-      <Link
-        to="/library/components/$componentKey"
-        params={{ componentKey: target.id }}
-        className="min-w-0 text-brand hover:underline"
-        title={target.detail}
-      >
-        {target.name}
-      </Link>
+      <TextLink className="min-w-0">
+        <Link
+          to="/library/components/$componentKey"
+          params={{ componentKey: target.id }}
+          title={target.detail}
+        >
+          {target.name}
+        </Link>
+      </TextLink>
     );
   }
 
@@ -144,26 +146,18 @@ export function RequirementTable({
 
   return (
     <Table className="pt-050">
-      <colgroup>
-        <col style={{ width: "112px" }} />
-        <col style={{ width: "104px" }} />
-        <col />
-        <col style={{ width: "104px" }} />
-        <col style={{ width: "72px" }} />
-        <col style={{ width: "104px" }} />
-        <col style={{ width: "116px" }} />
-        <col style={{ width: "104px" }} />
-      </colgroup>
       <thead>
         <Table.Row>
-          <Table.Header>Requirement</Table.Header>
-          <Table.Header>Type</Table.Header>
+          <Table.Header width={112}>Requirement</Table.Header>
+          <Table.Header width={104}>Type</Table.Header>
           <Table.Header>Shall statement</Table.Header>
-          <Table.Header>Derives from</Table.Header>
-          <Table.Header className="text-right">Alloc</Table.Header>
-          <Table.Header>Method</Table.Header>
-          <Table.Header>Owner</Table.Header>
-          <Table.Header>State</Table.Header>
+          <Table.Header width={104}>Derives from</Table.Header>
+          <Table.Header width={72} className="text-right">
+            Alloc
+          </Table.Header>
+          <Table.Header width={104}>Method</Table.Header>
+          <Table.Header width={116}>Owner</Table.Header>
+          <Table.Header width={104}>State</Table.Header>
         </Table.Row>
       </thead>
       <tbody>
@@ -177,13 +171,14 @@ export function RequirementTable({
             >
               <Table.Cell className="max-w-none">
                 <span style={{ paddingLeft: `${depth * 12}px` }}>
-                  <Link
-                    to="/programs/$programId/requirements/$requirementId"
-                    params={{ programId, requirementId: requirement.id }}
-                    className="hover:underline"
-                  >
-                    <Id className="text-brand">{requirement.id}</Id>
-                  </Link>
+                  <TextLink>
+                    <Link
+                      to="/programs/$programId/requirements/$requirementId"
+                      params={{ programId, requirementId: requirement.id }}
+                    >
+                      <Id>{requirement.id}</Id>
+                    </Link>
+                  </TextLink>
                 </span>
               </Table.Cell>
               <Table.Cell className="truncate">{requirement.type}</Table.Cell>
@@ -228,17 +223,11 @@ export function ProvenanceTable({
 
   return (
     <Table className="pt-050">
-      <colgroup>
-        <col style={{ width: "150px" }} />
-        <col style={{ width: "108px" }} />
-        <col style={{ width: "260px" }} />
-        <col />
-      </colgroup>
       <thead>
         <Table.Row>
-          <Table.Header>Source type</Table.Header>
-          <Table.Header>Source</Table.Header>
-          <Table.Header>Name</Table.Header>
+          <Table.Header width={150}>Source type</Table.Header>
+          <Table.Header width={108}>Source</Table.Header>
+          <Table.Header width={260}>Name</Table.Header>
           <Table.Header>Why it produces this requirement</Table.Header>
         </Table.Row>
       </thead>
@@ -267,27 +256,29 @@ function SourceLink({ derivation, programId }: { derivation: Derivation; program
 
   if (sourceType === "Control statement" || sourceType === "Overlay") {
     return (
-      <Link
-        to="/programs/$programId/controls/$controlId"
-        params={{ programId, controlId: sourceId }}
-        search={{ tab: undefined }}
-        className="hover:underline"
-      >
-        <Id className="text-brand">{sourceId}</Id>
-      </Link>
+      <TextLink>
+        <Link
+          to="/programs/$programId/controls/$controlId"
+          params={{ programId, controlId: sourceId }}
+          search={{ tab: undefined }}
+        >
+          <Id>{sourceId}</Id>
+        </Link>
+      </TextLink>
     );
   }
 
   if (sourceType === "Threat") {
     return (
-      <Link
-        to="/programs/$programId/te-phases"
-        params={{ programId }}
-        search={{ tab: "Threat scenarios", scenario: sourceId }}
-        className="hover:underline"
-      >
-        <Id className="text-brand">{sourceId}</Id>
-      </Link>
+      <TextLink>
+        <Link
+          to="/programs/$programId/te-phases"
+          params={{ programId }}
+          search={{ tab: "Threat scenarios", scenario: sourceId }}
+        >
+          <Id>{sourceId}</Id>
+        </Link>
+      </TextLink>
     );
   }
 
@@ -299,9 +290,11 @@ function SourceLink({ derivation, programId }: { derivation: Derivation; program
       ? { componentKey: sourceId }
       : { workstreamId: sourceId };
     return (
-      <Link to={to} params={params as never} className="hover:underline">
-        <Id className="text-brand">{sourceId}</Id>
-      </Link>
+      <TextLink>
+        <Link to={to} params={params as never}>
+          <Id>{sourceId}</Id>
+        </Link>
+      </TextLink>
     );
   }
 
@@ -331,24 +324,15 @@ export function AllocationTable({
 
   return (
     <Table className="pt-050">
-      <colgroup>
-        <col style={{ width: "230px" }} />
-        <col style={{ width: "88px" }} />
-        <col style={{ width: "112px" }} />
-        <col style={{ width: "92px" }} />
-        <col />
-        <col style={{ width: "124px" }} />
-        <col style={{ width: "104px" }} />
-      </colgroup>
       <thead>
         <Table.Row>
-          <Table.Header>Allocated to</Table.Header>
-          <Table.Header>Kind</Table.Header>
-          <Table.Header>Responsibility</Table.Header>
-          <Table.Header>Coverage</Table.Header>
+          <Table.Header width={230}>Allocated to</Table.Header>
+          <Table.Header width={88}>Kind</Table.Header>
+          <Table.Header width={112}>Responsibility</Table.Header>
+          <Table.Header width={92}>Coverage</Table.Header>
           <Table.Header>Scope of the claim</Table.Header>
-          <Table.Header>Owner</Table.Header>
-          <Table.Header>State</Table.Header>
+          <Table.Header width={124}>Owner</Table.Header>
+          <Table.Header width={104}>State</Table.Header>
         </Table.Row>
       </thead>
       <tbody>
@@ -465,24 +449,15 @@ export function ElementAllocationTable({
 
   return (
     <Table className="pt-050">
-      <colgroup>
-        <col style={{ width: "112px" }} />
-        <col />
-        <col style={{ width: "112px" }} />
-        <col style={{ width: "92px" }} />
-        <col style={{ width: "260px" }} />
-        <col style={{ width: "124px" }} />
-        <col style={{ width: "104px" }} />
-      </colgroup>
       <thead>
         <Table.Row>
-          <Table.Header>Requirement</Table.Header>
+          <Table.Header width={112}>Requirement</Table.Header>
           <Table.Header>Shall statement</Table.Header>
-          <Table.Header>Responsibility</Table.Header>
-          <Table.Header>Coverage</Table.Header>
-          <Table.Header>Scope of the claim</Table.Header>
-          <Table.Header>Owner</Table.Header>
-          <Table.Header>State</Table.Header>
+          <Table.Header width={112}>Responsibility</Table.Header>
+          <Table.Header width={92}>Coverage</Table.Header>
+          <Table.Header width={260}>Scope of the claim</Table.Header>
+          <Table.Header width={124}>Owner</Table.Header>
+          <Table.Header width={104}>State</Table.Header>
         </Table.Row>
       </thead>
       <tbody>
@@ -491,13 +466,14 @@ export function ElementAllocationTable({
           return (
             <Table.Row key={a.id} title={a.rationale}>
               <Table.Cell className="max-w-none">
-                <Link
-                  to="/programs/$programId/requirements/$requirementId"
-                  params={{ programId, requirementId: a.requirement }}
-                  className="hover:underline"
-                >
-                  <Id className="text-brand">{a.requirement}</Id>
-                </Link>
+                <TextLink>
+                  <Link
+                    to="/programs/$programId/requirements/$requirementId"
+                    params={{ programId, requirementId: a.requirement }}
+                  >
+                    <Id>{a.requirement}</Id>
+                  </Link>
+                </TextLink>
               </Table.Cell>
               <Table.Cell className="truncate" title={requirement?.text}>
                 {requirement?.text ?? "—"}
@@ -551,21 +527,13 @@ export function DerivedControlTrace({
     <Stack className="pt-050" space="space.150">
       {trace.hops.length > 0 ? (
         <Table className="pt-050">
-          <colgroup>
-            <col style={{ width: "104px" }} />
-            <col style={{ width: "112px" }} />
-            <col style={{ width: "88px" }} />
-            <col style={{ width: "112px" }} />
-            <col style={{ width: "92px" }} />
-            <col />
-          </colgroup>
           <thead>
             <Table.Row>
-              <Table.Header>Control</Table.Header>
-              <Table.Header>Via requirement</Table.Header>
-              <Table.Header>Path</Table.Header>
-              <Table.Header>Responsibility</Table.Header>
-              <Table.Header>Coverage</Table.Header>
+              <Table.Header width={104}>Control</Table.Header>
+              <Table.Header width={112}>Via requirement</Table.Header>
+              <Table.Header width={88}>Path</Table.Header>
+              <Table.Header width={112}>Responsibility</Table.Header>
+              <Table.Header width={92}>Coverage</Table.Header>
               <Table.Header>Scope of the claim</Table.Header>
             </Table.Row>
           </thead>
@@ -606,13 +574,14 @@ export function DerivedControlTrace({
                 space="space.100"
                 alignBlock="baseline"
               >
-                <Link
-                  to="/programs/$programId/requirements/$requirementId"
-                  params={{ programId, requirementId: r.id }}
-                  className="shrink-0 hover:underline"
-                >
-                  <Id className="text-brand">{r.id}</Id>
-                </Link>
+                <TextLink className="shrink-0">
+                  <Link
+                    to="/programs/$programId/requirements/$requirementId"
+                    params={{ programId, requirementId: r.id }}
+                  >
+                    <Id>{r.id}</Id>
+                  </Link>
+                </TextLink>
                 <span className="min-w-0 truncate font-body-small text-subtle">{r.text}</span>
               </Inline>
             ))}
@@ -627,23 +596,25 @@ function TraceRow({ hop, programId }: { hop: ControlTraceHop; programId: string 
   return (
     <Table.Row title={hop.rationale}>
       <Table.Cell>
-        <Link
-          to="/programs/$programId/controls/$controlId"
-          params={{ programId, controlId: hop.control }}
-          search={{ tab: undefined }}
-          className="hover:underline"
-        >
-          <Id className="text-brand">{hop.control}</Id>
-        </Link>
+        <TextLink>
+          <Link
+            to="/programs/$programId/controls/$controlId"
+            params={{ programId, controlId: hop.control }}
+            search={{ tab: undefined }}
+          >
+            <Id>{hop.control}</Id>
+          </Link>
+        </TextLink>
       </Table.Cell>
       <Table.Cell>
-        <Link
-          to="/programs/$programId/requirements/$requirementId"
-          params={{ programId, requirementId: hop.requirement }}
-          className="hover:underline"
-        >
-          <Id className="text-brand">{hop.requirement}</Id>
-        </Link>
+        <TextLink>
+          <Link
+            to="/programs/$programId/requirements/$requirementId"
+            params={{ programId, requirementId: hop.requirement }}
+          >
+            <Id>{hop.requirement}</Id>
+          </Link>
+        </TextLink>
       </Table.Cell>
       <Table.Cell>
         {hop.via === "direct" ? (
@@ -699,22 +670,16 @@ export function ControlRequirementTable({
 
   return (
     <Table className="pt-050">
-      <colgroup>
-        <col style={{ width: "112px" }} />
-        <col style={{ width: "104px" }} />
-        <col />
-        <col style={{ width: "112px" }} />
-        <col style={{ width: "72px" }} />
-        <col style={{ width: "104px" }} />
-      </colgroup>
       <thead>
         <Table.Row>
-          <Table.Header>Requirement</Table.Header>
-          <Table.Header>Type</Table.Header>
+          <Table.Header width={112}>Requirement</Table.Header>
+          <Table.Header width={104}>Type</Table.Header>
           <Table.Header>Shall statement</Table.Header>
-          <Table.Header>Path</Table.Header>
-          <Table.Header className="text-right">Alloc</Table.Header>
-          <Table.Header>State</Table.Header>
+          <Table.Header width={112}>Path</Table.Header>
+          <Table.Header width={72} className="text-right">
+            Alloc
+          </Table.Header>
+          <Table.Header width={104}>State</Table.Header>
         </Table.Row>
       </thead>
       <tbody>
@@ -728,13 +693,14 @@ export function ControlRequirementTable({
           return (
             <Table.Row key={r.id} title={r.text}>
               <Table.Cell className="max-w-none">
-                <Link
-                  to="/programs/$programId/requirements/$requirementId"
-                  params={{ programId, requirementId: r.id }}
-                  className="hover:underline"
-                >
-                  <Id className="text-brand">{r.id}</Id>
-                </Link>
+                <TextLink>
+                  <Link
+                    to="/programs/$programId/requirements/$requirementId"
+                    params={{ programId, requirementId: r.id }}
+                  >
+                    <Id>{r.id}</Id>
+                  </Link>
+                </TextLink>
               </Table.Cell>
               <Table.Cell className="truncate">{r.type}</Table.Cell>
               <Table.Cell className="truncate">{r.text}</Table.Cell>

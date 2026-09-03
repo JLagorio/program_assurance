@@ -153,22 +153,14 @@ export function VerificationSection({ programName }: { programName: string }) {
           </Box>
 
           <Table className="pt-150 table-fixed">
-            <colgroup>
-              <col style={{ width: "76px" }} />
-              <col />
-              <col style={{ width: "104px" }} />
-              <col style={{ width: "72px" }} />
-              <col style={{ width: "212px" }} />
-              <col style={{ width: "148px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>Check</Table.Header>
+                <Table.Header width={76}>Check</Table.Header>
                 <Table.Header>Requirement</Table.Header>
-                <Table.Header>Verdict</Table.Header>
-                <Table.Header>Gate</Table.Header>
-                <Table.Header>Assessor note</Table.Header>
-                <Table.Header>Evidence</Table.Header>
+                <Table.Header width={104}>Verdict</Table.Header>
+                <Table.Header width={72}>Gate</Table.Header>
+                <Table.Header width={212}>Assessor note</Table.Header>
+                <Table.Header width={148}>Evidence</Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -229,24 +221,15 @@ export function VerificationSection({ programName }: { programName: string }) {
           </dl>
 
           <Table className="pt-150 table-fixed">
-            <colgroup>
-              <col style={{ width: "72px" }} />
-              <col />
-              <col style={{ width: "168px" }} />
-              <col style={{ width: "104px" }} />
-              <col style={{ width: "104px" }} />
-              <col style={{ width: "112px" }} />
-              <col style={{ width: "180px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>Event</Table.Header>
+                <Table.Header width={72}>Event</Table.Header>
                 <Table.Header>Test activity</Table.Header>
-                <Table.Header>Range</Table.Header>
-                <Table.Header>Start</Table.Header>
-                <Table.Header>End</Table.Header>
-                <Table.Header>Status</Table.Header>
-                <Table.Header>Against IATT</Table.Header>
+                <Table.Header width={168}>Range</Table.Header>
+                <Table.Header width={104}>Start</Table.Header>
+                <Table.Header width={104}>End</Table.Header>
+                <Table.Header width={112}>Status</Table.Header>
+                <Table.Header width={180}>Against IATT</Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -287,26 +270,20 @@ export function VerificationSection({ programName }: { programName: string }) {
           }
         >
           <Table className="pt-150 table-fixed">
-            <colgroup>
-              <col style={{ width: "92px" }} />
-              <col style={{ width: "84px" }} />
-              <col />
-              <col style={{ width: "152px" }} />
-              <col style={{ width: "132px" }} />
-              <col style={{ width: "88px" }} />
-              <col style={{ width: "148px" }} />
-              <col style={{ width: "96px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>ID</Table.Header>
-                <Table.Header>Source</Table.Header>
+                <Table.Header width={92}>ID</Table.Header>
+                <Table.Header width={84}>Source</Table.Header>
                 <Table.Header>Artifact</Table.Header>
-                <Table.Header>Asset</Table.Header>
-                <Table.Header>Ingested</Table.Header>
-                <Table.Header>Status</Table.Header>
-                <Table.Header className="text-right">CAT I / II / III</Table.Header>
-                <Table.Header className="text-right">Coverage</Table.Header>
+                <Table.Header width={152}>Asset</Table.Header>
+                <Table.Header width={132}>Ingested</Table.Header>
+                <Table.Header width={88}>Status</Table.Header>
+                <Table.Header width={148} className="text-right">
+                  CAT I / II / III
+                </Table.Header>
+                <Table.Header width={96} className="text-right">
+                  Coverage
+                </Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -361,28 +338,19 @@ export function VerificationSection({ programName }: { programName: string }) {
           }
         >
           <Table className="pt-150 table-fixed">
-            <colgroup>
-              <col style={{ width: "124px" }} />
-              <col style={{ width: "76px" }} />
-              <col />
-              <col style={{ width: "72px" }} />
-              <col style={{ width: "136px" }} />
-              <col style={{ width: "124px" }} />
-              <col style={{ width: "56px" }} />
-              <col style={{ width: "92px" }} />
-              <col style={{ width: "104px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>Reference</Table.Header>
-                <Table.Header>Source</Table.Header>
+                <Table.Header width={124}>Reference</Table.Header>
+                <Table.Header width={76}>Source</Table.Header>
                 <Table.Header>Finding</Table.Header>
-                <Table.Header>Control</Table.Header>
-                <Table.Header>Asset</Table.Header>
-                <Table.Header>Status</Table.Header>
-                <Table.Header className="text-right">Age</Table.Header>
-                <Table.Header>Due</Table.Header>
-                <Table.Header>Owner</Table.Header>
+                <Table.Header width={72}>Control</Table.Header>
+                <Table.Header width={136}>Asset</Table.Header>
+                <Table.Header width={124}>Status</Table.Header>
+                <Table.Header width={56} className="text-right">
+                  Age
+                </Table.Header>
+                <Table.Header width={92}>Due</Table.Header>
+                <Table.Header width={104}>Owner</Table.Header>
               </tr>
             </thead>
             <tbody>

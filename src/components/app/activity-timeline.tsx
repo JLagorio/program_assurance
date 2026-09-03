@@ -176,13 +176,14 @@ export function ActivityTimeline({
       )}
 
       {filtered.length > shown.length || expanded ? (
-        <button
-          type="button"
+        <Button
           onClick={() => setExpanded((v) => !v)}
-          className="pt-150 font-body-small font-medium text-brand hover:underline"
+          variant="link"
+          size="small"
+          className="pt-150"
         >
           {expanded ? "Show less" : `Show ${filtered.length - shown.length} more`}
-        </button>
+        </Button>
       ) : null}
 
       <Sheet

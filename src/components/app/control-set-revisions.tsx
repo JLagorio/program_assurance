@@ -31,6 +31,7 @@ import {
   Table,
   Text,
   Textarea,
+  TextLink,
   Timeline,
   toast,
 } from "@ledger/design-system";
@@ -436,24 +437,17 @@ export function RevisionHistory({ scopeId }: { scopeId: string }) {
     <>
       <Block title="Revisions" count={history.length}>
         <Table>
-          <colgroup>
-            <col style={{ width: "64px" }} />
-            <col style={{ width: "150px" }} />
-            <col />
-            <col style={{ width: "150px" }} />
-            <col style={{ width: "112px" }} />
-            <col style={{ width: "150px" }} />
-            <col style={{ width: "76px" }} />
-          </colgroup>
           <thead>
             <Table.Row>
-              <Table.Header>Rev</Table.Header>
-              <Table.Header>State</Table.Header>
+              <Table.Header width={64}>Rev</Table.Header>
+              <Table.Header width={150}>State</Table.Header>
               <Table.Header>Reason</Table.Header>
-              <Table.Header>Author</Table.Header>
-              <Table.Header>Created</Table.Header>
-              <Table.Header>Decided</Table.Header>
-              <Table.Header className="text-right">Controls</Table.Header>
+              <Table.Header width={150}>Author</Table.Header>
+              <Table.Header width={112}>Created</Table.Header>
+              <Table.Header width={150}>Decided</Table.Header>
+              <Table.Header width={76} className="text-right">
+                Controls
+              </Table.Header>
             </Table.Row>
           </thead>
           <tbody>
@@ -614,34 +608,28 @@ function DeltaBlock({
 
       {delta.controls.length ? (
         <Table>
-          <colgroup>
-            <col style={{ width: "96px" }} />
-            {compact ? null : <col />}
-            <col style={{ width: "96px" }} />
-            <col style={{ width: compact ? "140px" : "150px" }} />
-            <col style={{ width: compact ? undefined : "320px" }} />
-          </colgroup>
           <thead>
             <Table.Row>
-              <Table.Header>Control</Table.Header>
+              <Table.Header width={96}>Control</Table.Header>
               {compact ? null : <Table.Header>Title</Table.Header>}
-              <Table.Header>Change</Table.Header>
-              <Table.Header>Because</Table.Header>
-              <Table.Header>Impact</Table.Header>
+              <Table.Header width={96}>Change</Table.Header>
+              <Table.Header width={compact ? 140 : 150}>Because</Table.Header>
+              <Table.Header width={compact ? undefined : 320}>Impact</Table.Header>
             </Table.Row>
           </thead>
           <tbody>
             {delta.controls.slice(0, 40).map((c) => (
               <Table.Row key={c.control.id}>
                 <Table.Cell className="max-w-none">
-                  <Link
-                    to="/programs/$programId/controls/$controlId"
-                    params={{ programId, controlId: c.control.id }}
-                    search={{ tab: undefined }}
-                    className="hover:underline"
-                  >
-                    <Id className="text-brand">{c.control.id}</Id>
-                  </Link>
+                  <TextLink>
+                    <Link
+                      to="/programs/$programId/controls/$controlId"
+                      params={{ programId, controlId: c.control.id }}
+                      search={{ tab: undefined }}
+                    >
+                      <Id>{c.control.id}</Id>
+                    </Link>
+                  </TextLink>
                 </Table.Cell>
                 {compact ? null : <Table.Cell className="truncate">{c.control.title}</Table.Cell>}
                 <Table.Cell>

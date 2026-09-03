@@ -24,6 +24,7 @@ import {
   Section,
   Table,
   Text,
+  TextLink,
 } from "@ledger/design-system";
 
 import { ControlSetRevisions, RevisionHistory } from "./control-set-revisions";
@@ -258,14 +259,15 @@ function ControlTable({
         {rows.map((row) => (
           <Table.Row key={row.control.id}>
             <Table.Cell className="max-w-none">
-              <Link
-                to="/programs/$programId/controls/$controlId"
-                params={{ programId, controlId: row.control.id }}
-                search={{ tab: undefined }}
-                className="hover:underline"
-              >
-                <Id className="text-brand">{row.control.id}</Id>
-              </Link>
+              <TextLink>
+                <Link
+                  to="/programs/$programId/controls/$controlId"
+                  params={{ programId, controlId: row.control.id }}
+                  search={{ tab: undefined }}
+                >
+                  <Id>{row.control.id}</Id>
+                </Link>
+              </TextLink>
             </Table.Cell>
             <Table.Cell>{row.control.family}</Table.Cell>
             <Table.Cell className="truncate">{row.control.title}</Table.Cell>

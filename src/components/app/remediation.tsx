@@ -22,6 +22,7 @@ import {
   Section,
   Stack,
   Table,
+  TextLink,
 } from "@ledger/design-system";
 import { cn } from "@/lib/utils";
 import { planDay, spanDays, taskStatusTone, type RemediationPlan } from "@/lib/remediation";
@@ -36,13 +37,11 @@ const barTone: Record<string, string> = {
 
 function PoamLink({ id }: { id: string }) {
   return (
-    <Link
-      to="/register/poam/$poamId"
-      params={{ poamId: id }}
-      className="text-brand hover:underline"
-    >
-      <Id className="text-brand">{id}</Id>
-    </Link>
+    <TextLink>
+      <Link to="/register/poam/$poamId" params={{ poamId: id }}>
+        <Id>{id}</Id>
+      </Link>
+    </TextLink>
   );
 }
 
@@ -119,13 +118,14 @@ export function RemediationPlanSection({
             </StackedFact>
             <StackedFact label="Workstream">
               {plan.workstream ? (
-                <Link
-                  to="/workstreams/$workstreamId"
-                  params={{ workstreamId: plan.workstream.id }}
-                  className="text-brand hover:underline"
-                >
-                  <Id className="text-brand">{plan.workstream.id}</Id>
-                </Link>
+                <TextLink>
+                  <Link
+                    to="/workstreams/$workstreamId"
+                    params={{ workstreamId: plan.workstream.id }}
+                  >
+                    <Id>{plan.workstream.id}</Id>
+                  </Link>
+                </TextLink>
               ) : (
                 <span className="text-subtle">Unassigned</span>
               )}
@@ -162,22 +162,18 @@ export function RemediationPlanSection({
         description="Each step names an owner and a date. The plan cannot close while any step is open."
       >
         <Table className="table-fixed">
-          <colgroup>
-            <col style={{ width: "96px" }} />
-            <col />
-            <col style={{ width: "148px" }} />
-            <col style={{ width: "104px" }} />
-            <col style={{ width: "104px" }} />
-            <col style={{ width: "108px" }} />
-          </colgroup>
           <thead>
             <tr>
-              <Table.Header>Task</Table.Header>
+              <Table.Header width={96}>Task</Table.Header>
               <Table.Header>Step</Table.Header>
-              <Table.Header>Owner</Table.Header>
-              <Table.Header className="text-right">Start</Table.Header>
-              <Table.Header className="text-right">Due</Table.Header>
-              <Table.Header>Status</Table.Header>
+              <Table.Header width={148}>Owner</Table.Header>
+              <Table.Header width={104} className="text-right">
+                Start
+              </Table.Header>
+              <Table.Header width={104} className="text-right">
+                Due
+              </Table.Header>
+              <Table.Header width={108}>Status</Table.Header>
             </tr>
           </thead>
           <tbody>
@@ -204,26 +200,22 @@ export function RemediationPlanSection({
                     {t.finding ? (
                       <>
                         {" · "}
-                        <Link
-                          to="/findings/$findingId"
-                          params={{ findingId: t.finding }}
-                          className="text-brand hover:underline"
-                        >
-                          {t.finding}
-                        </Link>
+                        <TextLink>
+                          <Link to="/findings/$findingId" params={{ findingId: t.finding }}>
+                            {t.finding}
+                          </Link>
+                        </TextLink>
                       </>
                     ) : null}
                   </Box>
                 </Table.Cell>
                 <Table.Cell className="truncate">
                   {t.ownerId ? (
-                    <Link
-                      to="/people/$personId"
-                      params={{ personId: t.ownerId }}
-                      className="hover:underline"
-                    >
-                      <Person name={t.owner} />
-                    </Link>
+                    <TextLink>
+                      <Link to="/people/$personId" params={{ personId: t.ownerId }}>
+                        <Person name={t.owner} />
+                      </Link>
+                    </TextLink>
                   ) : (
                     <Person name={t.owner} />
                   )}
@@ -253,14 +245,12 @@ export function RemediationPlanSection({
         description={`${window} days from first task to the closure package.`}
         action={
           programId && plan.poam ? (
-            <Link
-              to="/register/poam/$poamId"
-              params={{ poamId: plan.poam.id }}
-              className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
-            >
-              Open the POA&amp;M section
-              <ChevronRight className="size-icon-small" />
-            </Link>
+            <TextLink size="small" className="inline-flex items-center gap-025">
+              <Link to="/register/poam/$poamId" params={{ poamId: plan.poam.id }}>
+                Open the POA&amp;M section
+                <ChevronRight className="size-icon-small" />
+              </Link>
+            </TextLink>
           ) : null
         }
       >

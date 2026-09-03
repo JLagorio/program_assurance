@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import {
   Badge,
   Box,
+  Button,
   Empty,
   Grid,
   Id,
@@ -16,6 +17,7 @@ import {
   ShowPage,
   Table,
   Tabs,
+  TextLink,
   Toolbar,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
@@ -352,13 +354,11 @@ function ProgramTePhases() {
         <KeyValue label="Mission">{selectedScenario.missionFunction}</KeyValue>
         <KeyValue label="Event">
           {selectedScenario.event ? (
-            <Link
-              to="/campaigns/$campaignId"
-              params={{ campaignId: selectedScenario.event }}
-              className="text-brand hover:underline"
-            >
-              <Id className="text-brand">{selectedScenario.event}</Id>
-            </Link>
+            <TextLink>
+              <Link to="/campaigns/$campaignId" params={{ campaignId: selectedScenario.event }}>
+                <Id>{selectedScenario.event}</Id>
+              </Link>
+            </TextLink>
           ) : (
             "—"
           )}
@@ -405,20 +405,16 @@ function ProgramTePhases() {
                     </Badge>
                   </>
                 )}
-                <Link
-                  to="/programs/$programId/composition"
-                  params={{ programId: program.id }}
-                  className="font-body-small text-brand hover:underline"
-                >
-                  Composition
-                </Link>
-                <Link
-                  to="/programs/$programId/baseline"
-                  params={{ programId: program.id }}
-                  className="font-body-small text-brand hover:underline"
-                >
-                  Baseline
-                </Link>
+                <TextLink size="small">
+                  <Link to="/programs/$programId/composition" params={{ programId: program.id }}>
+                    Composition
+                  </Link>
+                </TextLink>
+                <TextLink size="small">
+                  <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>
+                    Baseline
+                  </Link>
+                </TextLink>
               </>
             }
           />
@@ -477,22 +473,14 @@ function ProgramTePhases() {
                 description="A phase is a doctrine; a campaign is the work. Two phases carry no campaign at all — they produce the requirement matrix and the attack-surface picture every later phase is judged against, and recording an empty execution against them would be a fiction."
               >
                 <Table className="table-fixed">
-                  <colgroup>
-                    <col style={{ width: "72px" }} />
-                    <col style={{ width: "120px" }} />
-                    <col style={{ width: "124px" }} />
-                    <col />
-                    <col style={{ width: "168px" }} />
-                    <col style={{ width: "116px" }} />
-                  </colgroup>
                   <thead>
                     <tr>
-                      <Table.Header>Phase</Table.Header>
-                      <Table.Header>Regime</Table.Header>
-                      <Table.Header>Campaign</Table.Header>
+                      <Table.Header width={72}>Phase</Table.Header>
+                      <Table.Header width={120}>Regime</Table.Header>
+                      <Table.Header width={124}>Campaign</Table.Header>
                       <Table.Header>Scope</Table.Header>
-                      <Table.Header>Campaign lead</Table.Header>
-                      <Table.Header>Campaign state</Table.Header>
+                      <Table.Header width={168}>Campaign lead</Table.Header>
+                      <Table.Header width={116}>Campaign state</Table.Header>
                     </tr>
                   </thead>
                   <tbody>
@@ -522,13 +510,11 @@ function ProgramTePhases() {
                                 </Table.Cell>
                                 <Table.Cell>{phase.kind}</Table.Cell>
                                 <Table.Cell>
-                                  <Link
-                                    to="/campaigns/$campaignId"
-                                    params={{ campaignId: id }}
-                                    className="text-brand hover:underline"
-                                  >
-                                    <Id className="text-brand">{id}</Id>
-                                  </Link>
+                                  <TextLink>
+                                    <Link to="/campaigns/$campaignId" params={{ campaignId: id }}>
+                                      <Id>{id}</Id>
+                                    </Link>
+                                  </TextLink>
                                 </Table.Cell>
                                 <Table.Cell className="truncate" title={campaign?.scope ?? ""}>
                                   {campaign ? `${campaign.name} — ${campaign.scope}` : "—"}
@@ -732,17 +718,18 @@ function ProgramTePhases() {
                   title="Chain and path"
                   description="The ordered technique chain, and beneath it the walk through the system it claims. Each hop names the reachability edge or the containment link that carries it, so the claim can be checked on the composition page rather than believed."
                   action={
-                    <Link
-                      to="/programs/$programId/composition"
-                      params={{ programId: program.id }}
-                      // The entry point is where the reader wants to land: the
-                      // composition tree opens on the assumed foothold rather
-                      // than on the system root.
-                      search={selectedScenario.path[0] ? { node: selectedScenario.path[0] } : {}}
-                      className="font-body-small text-brand hover:underline"
-                    >
-                      Open in composition
-                    </Link>
+                    <TextLink size="small">
+                      <Link
+                        to="/programs/$programId/composition"
+                        params={{ programId: program.id }}
+                        // The entry point is where the reader wants to land: the
+                        // composition tree opens on the assumed foothold rather
+                        // than on the system root.
+                        search={selectedScenario.path[0] ? { node: selectedScenario.path[0] } : {}}
+                      >
+                        Open in composition
+                      </Link>
+                    </TextLink>
                   }
                 >
                   <Box paddingBlockStart="space.200">
@@ -927,13 +914,9 @@ function PhaseRail({
           </Badge>
         </KeyValue>
         <Box paddingBlockStart="space.075">
-          <button
-            type="button"
-            onClick={onOpenGate}
-            className="font-body-small text-brand hover:underline"
-          >
+          <Button onClick={onOpenGate} variant="link" size="small">
             Read the criteria
-          </button>
+          </Button>
         </Box>
       </Inspector.Group>
 
@@ -945,13 +928,11 @@ function PhaseRail({
         ) : (
           phase.campaigns.map((id) => (
             <KeyValue key={id} label={id}>
-              <Link
-                to="/campaigns/$campaignId"
-                params={{ campaignId: id }}
-                className="text-brand hover:underline"
-              >
-                {campaignName(id)}
-              </Link>
+              <TextLink>
+                <Link to="/campaigns/$campaignId" params={{ campaignId: id }}>
+                  {campaignName(id)}
+                </Link>
+              </TextLink>
             </KeyValue>
           ))
         )}
@@ -1018,20 +999,17 @@ function MissionFunctionTable({
 
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col />
-        <col style={{ width: "132px" }} />
-        <col style={{ width: "96px" }} />
-        <col style={{ width: "104px" }} />
-        <col style={{ width: "180px" }} />
-      </colgroup>
       <thead>
         <tr>
           <Table.Header>Mission function</Table.Header>
-          <Table.Header>Worst outcome</Table.Header>
-          <Table.Header className="text-right">Effects</Table.Header>
-          <Table.Header className="text-right">Scenarios</Table.Header>
-          <Table.Header>Operator recourse</Table.Header>
+          <Table.Header width={132}>Worst outcome</Table.Header>
+          <Table.Header width={96} className="text-right">
+            Effects
+          </Table.Header>
+          <Table.Header width={104} className="text-right">
+            Scenarios
+          </Table.Header>
+          <Table.Header width={180}>Operator recourse</Table.Header>
         </tr>
       </thead>
       <tbody>

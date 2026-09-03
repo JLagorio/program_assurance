@@ -19,10 +19,11 @@ import {
   Indicator,
   Inline,
   KeyValue,
-  Sheet,
+  PreviewSheet,
   Stack,
   Table,
   Text,
+  TextLink,
 } from "@ledger/design-system";
 
 import { ProposeChange, RevisionActions, RevisionReview } from "./control-set-revisions";
@@ -90,40 +91,33 @@ export function NodePreviewSheet({
   const parts = node ? childrenOf(node.id) : [];
 
   return (
-    <Sheet
+    <PreviewSheet
       open={node !== null}
       onClose={onClose}
       width={760}
+      id={node?.id ?? ""}
       title={node?.name ?? ""}
       subtitle={node ? `${node.kind} · ${pathLabel(node.id)}` : undefined}
-      footer={
-        node ? (
-          <Inline className="w-full" space="space.150" alignBlock="center" spread="space-between">
-            <Inline as="span" space="space.200" alignBlock="center">
-              <Button variant="link" asChild>
-                <Link
-                  to="/programs/$programId/components/$componentId"
-                  params={{ programId, componentId: node.id }}
-                >
-                  Open the full record
-                </Link>
-              </Button>
-              {scope ? (
-                <Button variant="link" asChild>
-                  <Link
-                    to="/programs/$programId/components/$componentId"
-                    params={{ programId, componentId: node.id }}
-                    search={{ tab: "Control set" }}
-                  >
-                    Control set and revisions
-                  </Link>
-                </Button>
-              ) : null}
-            </Inline>
-            {open ? <RevisionActions revision={open} /> : null}
-          </Inline>
+      openTo={
+        <Link
+          to="/programs/$programId/components/$componentId"
+          params={{ programId, componentId: node?.id ?? "" }}
+        />
+      }
+      links={
+        scope && node ? (
+          <TextLink>
+            <Link
+              to="/programs/$programId/components/$componentId"
+              params={{ programId, componentId: node.id }}
+              search={{ tab: "Control set" }}
+            >
+              Control set and revisions
+            </Link>
+          </TextLink>
         ) : null
       }
+      actions={open ? <RevisionActions revision={open} /> : null}
     >
       {node ? (
         <Stack space="space.050">
@@ -209,13 +203,14 @@ export function NodePreviewSheet({
                     return (
                       <Table.Row key={a.id}>
                         <Table.Cell className="max-w-none">
-                          <Link
-                            to="/programs/$programId/requirements/$requirementId"
-                            params={{ programId, requirementId: a.requirement }}
-                            className="hover:underline"
-                          >
-                            <Id className="text-brand">{a.requirement}</Id>
-                          </Link>
+                          <TextLink>
+                            <Link
+                              to="/programs/$programId/requirements/$requirementId"
+                              params={{ programId, requirementId: a.requirement }}
+                            >
+                              <Id>{a.requirement}</Id>
+                            </Link>
+                          </TextLink>
                         </Table.Cell>
                         <Table.Cell className="truncate" title={req?.text}>
                           {req?.text ?? "—"}
@@ -272,14 +267,15 @@ export function NodePreviewSheet({
                       return (
                         <Table.Row key={control}>
                           <Table.Cell className="max-w-none">
-                            <Link
-                              to="/programs/$programId/controls/$controlId"
-                              params={{ programId, controlId: control }}
-                              search={{ tab: undefined }}
-                              className="hover:underline"
-                            >
-                              <Id className="text-brand">{control}</Id>
-                            </Link>
+                            <TextLink>
+                              <Link
+                                to="/programs/$programId/controls/$controlId"
+                                params={{ programId, controlId: control }}
+                                search={{ tab: undefined }}
+                              >
+                                <Id>{control}</Id>
+                              </Link>
+                            </TextLink>
                           </Table.Cell>
                           <Table.Cell className="truncate">
                             {controlById(control)?.title ?? "—"}
@@ -375,6 +371,6 @@ export function NodePreviewSheet({
           ) : null}
         </Stack>
       ) : null}
-    </Sheet>
+    </PreviewSheet>
   );
 }

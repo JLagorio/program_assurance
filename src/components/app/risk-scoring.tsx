@@ -183,20 +183,19 @@ export function FactorTable({ score }: { score: ResidualScore }) {
       </p>
 
       <Table className="table-fixed">
-        <colgroup>
-          <col style={{ width: "150px" }} />
-          <col />
-          <col style={{ width: "72px" }} />
-          <col style={{ width: "76px" }} />
-          <col style={{ width: "104px" }} />
-        </colgroup>
         <thead>
           <tr>
-            <Table.Header>Factor</Table.Header>
+            <Table.Header width={150}>Factor</Table.Header>
             <Table.Header>Input read</Table.Header>
-            <Table.Header className="text-right">Value</Table.Header>
-            <Table.Header className="text-right">Weight</Table.Header>
-            <Table.Header className="text-right">Contribution</Table.Header>
+            <Table.Header width={72} className="text-right">
+              Value
+            </Table.Header>
+            <Table.Header width={76} className="text-right">
+              Weight
+            </Table.Header>
+            <Table.Header width={104} className="text-right">
+              Contribution
+            </Table.Header>
           </tr>
         </thead>
         <tbody>
@@ -513,28 +512,27 @@ export function TopRisksTable({
   }
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "104px" }} />
-        <col />
-        <col style={{ width: "212px" }} />
-        <col style={{ width: "196px" }} />
-        <col style={{ width: "78px" }} />
-        <col style={{ width: "70px" }} />
-        {showAuthored ? <col style={{ width: "82px" }} /> : null}
-        <col style={{ width: "82px" }} />
-        <col style={{ width: "98px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Subject</Table.Header>
+          <Table.Header width={104}>Subject</Table.Header>
           <Table.Header>Title</Table.Header>
-          <Table.Header>Where</Table.Header>
-          <Table.Header>Largest term</Table.Header>
-          <Table.Header className="text-right">Inherent</Table.Header>
-          <Table.Header className="text-right">Credit</Table.Header>
-          {showAuthored ? <Table.Header className="text-right">Authored</Table.Header> : null}
-          <Table.Header className="text-right">Residual</Table.Header>
-          <Table.Header>Band</Table.Header>
+          <Table.Header width={212}>Where</Table.Header>
+          <Table.Header width={196}>Largest term</Table.Header>
+          <Table.Header className="text-right" width={78}>
+            Inherent
+          </Table.Header>
+          <Table.Header className="text-right" width={70}>
+            Credit
+          </Table.Header>
+          {showAuthored ? (
+            <Table.Header className="text-right" width={82}>
+              Authored
+            </Table.Header>
+          ) : null}
+          <Table.Header className="text-right" width={82}>
+            Residual
+          </Table.Header>
+          <Table.Header width={98}>Band</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -614,19 +612,18 @@ export function MoversTable({ movers }: { movers: RiskMover[] }) {
   }
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "112px" }} />
-        <col style={{ width: "88px" }} />
-        <col style={{ width: "76px" }} />
-        <col style={{ width: "68px" }} />
-        <col />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Subject</Table.Header>
-          <Table.Header className="text-right">Without</Table.Header>
-          <Table.Header className="text-right">Published</Table.Header>
-          <Table.Header className="text-right">Move</Table.Header>
+          <Table.Header width={112}>Subject</Table.Header>
+          <Table.Header width={88} className="text-right">
+            Without
+          </Table.Header>
+          <Table.Header width={76} className="text-right">
+            Published
+          </Table.Header>
+          <Table.Header width={68} className="text-right">
+            Move
+          </Table.Header>
           <Table.Header>Why it moved</Table.Header>
         </tr>
       </thead>
@@ -681,26 +678,24 @@ export function AuthoredComparisonTable({ rows }: { rows: ComparisonRow[] }) {
   }
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "104px" }} />
-        <col />
-        <col style={{ width: "96px" }} />
-        <col style={{ width: "84px" }} />
-        <col style={{ width: "84px" }} />
-        <col style={{ width: "88px" }} />
-        <col style={{ width: "72px" }} />
-        <col style={{ width: "98px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Risk</Table.Header>
+          <Table.Header width={104}>Risk</Table.Header>
           <Table.Header>Title</Table.Header>
-          <Table.Header>Treatment</Table.Header>
-          <Table.Header className="text-right">Authored inherent</Table.Header>
-          <Table.Header className="text-right">Authored residual</Table.Header>
-          <Table.Header className="text-right">Computed residual</Table.Header>
-          <Table.Header className="text-right">Delta</Table.Header>
-          <Table.Header>Computed band</Table.Header>
+          <Table.Header width={96}>Treatment</Table.Header>
+          <Table.Header width={84} className="text-right">
+            Authored inherent
+          </Table.Header>
+          <Table.Header width={84} className="text-right">
+            Authored residual
+          </Table.Header>
+          <Table.Header width={88} className="text-right">
+            Computed residual
+          </Table.Header>
+          <Table.Header width={72} className="text-right">
+            Delta
+          </Table.Header>
+          <Table.Header width={98}>Computed band</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -831,18 +826,14 @@ export function FactorModel() {
         0–100 and a clamp is stated as a caveat, never absorbed.
       </p>
       <Table className="table-fixed">
-        <colgroup>
-          <col style={{ width: "150px" }} />
-          <col style={{ width: "76px" }} />
-          <col />
-          <col style={{ width: "34%" }} />
-        </colgroup>
         <thead>
           <tr>
-            <Table.Header>Factor</Table.Header>
-            <Table.Header className="text-right">Weight</Table.Header>
+            <Table.Header width={150}>Factor</Table.Header>
+            <Table.Header className="text-right" width={76}>
+              Weight
+            </Table.Header>
             <Table.Header>What it reads</Table.Header>
-            <Table.Header>Normalisation</Table.Header>
+            <Table.Header style={{ width: "34%" }}>Normalisation</Table.Header>
           </tr>
         </thead>
         <tbody>
@@ -907,17 +898,15 @@ export function BandLadder({
   return (
     <Box paddingBlockStart="space.200">
       <Table className="table-fixed">
-        <colgroup>
-          <col style={{ width: "120px" }} />
-          <col style={{ width: "96px" }} />
-          {byBand ? <col style={{ width: "96px" }} /> : null}
-          <col />
-        </colgroup>
         <thead>
           <tr>
-            <Table.Header>Band</Table.Header>
-            <Table.Header>Score</Table.Header>
-            {byBand ? <Table.Header className="text-right">In this program</Table.Header> : null}
+            <Table.Header width={120}>Band</Table.Header>
+            <Table.Header width={96}>Score</Table.Header>
+            {byBand ? (
+              <Table.Header className="text-right" width={96}>
+                In this program
+              </Table.Header>
+            ) : null}
             <Table.Header>What it means here</Table.Header>
           </tr>
         </thead>

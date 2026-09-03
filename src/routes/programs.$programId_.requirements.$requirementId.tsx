@@ -18,6 +18,7 @@ import {
   ShowPage,
   Stack,
   Tabs,
+  TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { programs } from "@/lib/grc-data";
@@ -114,14 +115,11 @@ function RequirementRecord() {
           <p className="max-w-layout-measure font-body text-subtle">
             {requirementId} is not a security requirement of {program.id}.
           </p>
-          <Link
-            to="/programs/$programId"
-            params={{ programId }}
-            search={{ tab: "Requirements" }}
-            className="font-body text-brand hover:underline"
-          >
-            Back to security requirements
-          </Link>
+          <TextLink size="medium">
+            <Link to="/programs/$programId" params={{ programId }} search={{ tab: "Requirements" }}>
+              Back to security requirements
+            </Link>
+          </TextLink>
         </Stack>
       </Shell>
     );
@@ -151,11 +149,11 @@ function RequirementRecord() {
                 render={(v) => <Badge tone={requirementStateTone[v]}>{v}</Badge>}
               />
             }
-            below={
+            facts={
               // The facts you act on, on one line above the fold. Reference
               // joins live in the rail; these do not, because needing to open a
               // panel to find out who owns a requirement is the problem.
-              <dl className="flex flex-wrap items-baseline gap-x-300 gap-y-075 border-t border-default pt-100">
+              <>
                 <Fact label="Owner">
                   <Editable.Text
                     value={requirement.owner}
@@ -177,22 +175,22 @@ function RequirementRecord() {
                   {controlSources.length ? (
                     <Inline as="span" space="space.050" shouldWrap>
                       {controlSources.map((d) => (
-                        <Link
-                          key={d.sourceId}
-                          to="/programs/$programId/controls/$controlId"
-                          params={{ programId, controlId: d.sourceId }}
-                          search={{ tab: undefined }}
-                          className="hover:underline"
-                        >
-                          <Id className="text-brand">{d.sourceId}</Id>
-                        </Link>
+                        <TextLink key={d.sourceId}>
+                          <Link
+                            to="/programs/$programId/controls/$controlId"
+                            params={{ programId, controlId: d.sourceId }}
+                            search={{ tab: undefined }}
+                          >
+                            <Id>{d.sourceId}</Id>
+                          </Link>
+                        </TextLink>
                       ))}
                     </Inline>
                   ) : (
                     <span className="text-warning">None</span>
                   )}
                 </Fact>
-              </dl>
+              </>
             }
           />
         }
@@ -228,27 +226,24 @@ function RequirementRecord() {
                 </KeyValue>
               ))}
               <KeyValue label="Rationale">
-                <button
-                  type="button"
-                  onClick={() => go("Provenance")}
-                  className="text-brand hover:underline"
-                >
+                <Button onClick={() => go("Provenance")} variant="link">
                   {requirement.derivations.length} on the Provenance tab
-                </button>
+                </Button>
               </KeyValue>
             </Inspector.Group>
 
             <Inspector.Group title="Position">
               <KeyValue label="Parent">
                 {parent ? (
-                  <Link
-                    to="/programs/$programId/requirements/$requirementId"
-                    params={{ programId, requirementId: parent.id }}
-                    search={{ tab: undefined }}
-                    className="hover:underline"
-                  >
-                    <Id className="text-brand">{parent.id}</Id>
-                  </Link>
+                  <TextLink>
+                    <Link
+                      to="/programs/$programId/requirements/$requirementId"
+                      params={{ programId, requirementId: parent.id }}
+                      search={{ tab: undefined }}
+                    >
+                      <Id>{parent.id}</Id>
+                    </Link>
+                  </TextLink>
                 ) : (
                   "Top level"
                 )}
@@ -257,26 +252,28 @@ function RequirementRecord() {
               <KeyValue label="Revision">{requirement.revision}</KeyValue>
               <KeyValue label="Workstream">
                 {requirement.workstream ? (
-                  <Link
-                    to="/workstreams/$workstreamId"
-                    params={{ workstreamId: requirement.workstream }}
-                    className="hover:underline"
-                  >
-                    <Id className="text-brand">{requirement.workstream}</Id>
-                  </Link>
+                  <TextLink>
+                    <Link
+                      to="/workstreams/$workstreamId"
+                      params={{ workstreamId: requirement.workstream }}
+                    >
+                      <Id>{requirement.workstream}</Id>
+                    </Link>
+                  </TextLink>
                 ) : (
                   "—"
                 )}
               </KeyValue>
               <KeyValue label="Program">
-                <Link
-                  to="/programs/$programId"
-                  params={{ programId }}
-                  search={{ tab: "Requirements" }}
-                  className="hover:underline"
-                >
-                  <Id className="text-brand">{programId}</Id>
-                </Link>
+                <TextLink>
+                  <Link
+                    to="/programs/$programId"
+                    params={{ programId }}
+                    search={{ tab: "Requirements" }}
+                  >
+                    <Id>{programId}</Id>
+                  </Link>
+                </TextLink>
               </KeyValue>
             </Inspector.Group>
           </>
@@ -312,7 +309,7 @@ function RequirementRecord() {
             ) : null}
 
             <Section title="Verification">
-              <dl className="flex flex-wrap items-baseline gap-x-300 gap-y-075 pt-150">
+              <Fact.Group className="pt-150">
                 <Fact label="Method">{requirement.method}</Fact>
                 <Fact label="Success criteria">
                   <span className="font-body font-regular">
@@ -327,7 +324,7 @@ function RequirementRecord() {
                     />
                   </span>
                 </Fact>
-              </dl>
+              </Fact.Group>
             </Section>
           </>
         ) : null}
@@ -355,48 +352,46 @@ function SourceRef({
 
   if (sourceType === "Control statement" || sourceType === "Overlay") {
     return (
-      <Link
-        to="/programs/$programId/controls/$controlId"
-        params={{ programId, controlId: sourceId }}
-        search={{ tab: undefined }}
-        className="hover:underline"
-      >
-        <Id className="text-brand">{sourceId}</Id>
-      </Link>
+      <TextLink>
+        <Link
+          to="/programs/$programId/controls/$controlId"
+          params={{ programId, controlId: sourceId }}
+          search={{ tab: undefined }}
+        >
+          <Id>{sourceId}</Id>
+        </Link>
+      </TextLink>
     );
   }
   if (sourceType === "Threat") {
     return (
-      <Link
-        to="/programs/$programId/te-phases"
-        params={{ programId }}
-        search={{ tab: "Threat scenarios", scenario: sourceId }}
-        className="hover:underline"
-      >
-        <Id className="text-brand">{sourceId}</Id>
-      </Link>
+      <TextLink>
+        <Link
+          to="/programs/$programId/te-phases"
+          params={{ programId }}
+          search={{ tab: "Threat scenarios", scenario: sourceId }}
+        >
+          <Id>{sourceId}</Id>
+        </Link>
+      </TextLink>
     );
   }
   if (sourceId.startsWith("CMP-")) {
     return (
-      <Link
-        to="/library/components/$componentKey"
-        params={{ componentKey: sourceId }}
-        className="hover:underline"
-      >
-        <Id className="text-brand">{sourceId}</Id>
-      </Link>
+      <TextLink>
+        <Link to="/library/components/$componentKey" params={{ componentKey: sourceId }}>
+          <Id>{sourceId}</Id>
+        </Link>
+      </TextLink>
     );
   }
   if (sourceId.startsWith("WS-")) {
     return (
-      <Link
-        to="/workstreams/$workstreamId"
-        params={{ workstreamId: sourceId }}
-        className="hover:underline"
-      >
-        <Id className="text-brand">{sourceId}</Id>
-      </Link>
+      <TextLink>
+        <Link to="/workstreams/$workstreamId" params={{ workstreamId: sourceId }}>
+          <Id>{sourceId}</Id>
+        </Link>
+      </TextLink>
     );
   }
   return (

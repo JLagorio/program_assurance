@@ -582,23 +582,16 @@ export function ReconciliationTable({
 }) {
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "96px" }} />
-        <col style={{ width: "184px" }} />
-        <col style={{ width: "136px" }} />
-        <col style={{ width: "136px" }} />
-        <col style={{ width: "76px" }} />
-        <col style={{ width: "116px" }} />
-        <col />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Asset</Table.Header>
-          <Table.Header>Component</Table.Header>
-          <Table.Header>Scanner declared</Table.Header>
-          <Table.Header>Register tracked</Table.Header>
-          <Table.Header className="text-right">Delta</Table.Header>
-          <Table.Header>State</Table.Header>
+          <Table.Header width={96}>Asset</Table.Header>
+          <Table.Header width={184}>Component</Table.Header>
+          <Table.Header width={136}>Scanner declared</Table.Header>
+          <Table.Header width={136}>Register tracked</Table.Header>
+          <Table.Header width={76} className="text-right">
+            Delta
+          </Table.Header>
+          <Table.Header width={116}>State</Table.Header>
           <Table.Header>Note</Table.Header>
         </tr>
       </thead>
@@ -856,24 +849,21 @@ export function SupplyChainTable({
 
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col />
-        <col style={{ width: "116px" }} />
-        <col style={{ width: "68px" }} />
-        <col style={{ width: "80px" }} />
-        <col style={{ width: "164px" }} />
-        <col style={{ width: "100px" }} />
-        <col style={{ width: "136px" }} />
-      </colgroup>
       <thead>
         <tr>
           <Table.Header>Supplier</Table.Header>
-          <Table.Header>Origin</Table.Header>
-          <Table.Header className="text-right">Parts</Table.Header>
-          <Table.Header className="text-right">Critical</Table.Header>
-          <Table.Header>Attestation</Table.Header>
-          <Table.Header className="text-right">Unattested</Table.Header>
-          <Table.Header>Earliest EOL</Table.Header>
+          <Table.Header width={116}>Origin</Table.Header>
+          <Table.Header width={68} className="text-right">
+            Parts
+          </Table.Header>
+          <Table.Header width={80} className="text-right">
+            Critical
+          </Table.Header>
+          <Table.Header width={164}>Attestation</Table.Header>
+          <Table.Header width={100} className="text-right">
+            Unattested
+          </Table.Header>
+          <Table.Header width={136}>Earliest EOL</Table.Header>
         </tr>
       </thead>
       <tbody>

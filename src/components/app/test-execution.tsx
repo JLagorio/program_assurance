@@ -359,22 +359,14 @@ export function ObjectiveExecutionTable({
 
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "84px" }} />
-        <col />
-        <col style={{ width: "128px" }} />
-        <col style={{ width: "116px" }} />
-        <col style={{ width: "116px" }} />
-        <col style={{ width: "152px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Objective</Table.Header>
+          <Table.Header width={84}>Objective</Table.Header>
           <Table.Header>Statement</Table.Header>
-          <Table.Header>Procedures</Table.Header>
-          <Table.Header>Declared</Table.Header>
-          <Table.Header>Executed</Table.Header>
-          <Table.Header>Decided by</Table.Header>
+          <Table.Header width={128}>Procedures</Table.Header>
+          <Table.Header width={116}>Declared</Table.Header>
+          <Table.Header width={116}>Executed</Table.Header>
+          <Table.Header width={152}>Decided by</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -504,26 +496,22 @@ export function ProcedureList({
 
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "88px" }} />
-        <col />
-        <col style={{ width: "84px" }} />
-        <col style={{ width: "116px" }} />
-        <col style={{ width: "64px" }} />
-        <col style={{ width: "72px" }} />
-        <col style={{ width: "64px" }} />
-        <col style={{ width: "116px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Procedure</Table.Header>
+          <Table.Header width={88}>Procedure</Table.Header>
           <Table.Header>Title</Table.Header>
-          <Table.Header>Objective</Table.Header>
-          <Table.Header>Method</Table.Header>
-          <Table.Header className="text-right">Steps</Table.Header>
-          <Table.Header className="text-right">Minutes</Table.Header>
-          <Table.Header className="text-right">Runs</Table.Header>
-          <Table.Header>Latest verdict</Table.Header>
+          <Table.Header width={84}>Objective</Table.Header>
+          <Table.Header width={116}>Method</Table.Header>
+          <Table.Header width={64} className="text-right">
+            Steps
+          </Table.Header>
+          <Table.Header width={72} className="text-right">
+            Minutes
+          </Table.Header>
+          <Table.Header width={64} className="text-right">
+            Runs
+          </Table.Header>
+          <Table.Header width={116}>Latest verdict</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -584,20 +572,15 @@ export function StepTable({
 
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "40px" }} />
-        <col />
-        <col />
-        <col style={{ width: "240px" }} />
-        {records ? <col style={{ width: "116px" }} /> : null}
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header className="text-right">#</Table.Header>
+          <Table.Header className="text-right" width={40}>
+            #
+          </Table.Header>
           <Table.Header>Action</Table.Header>
           <Table.Header>Expected</Table.Header>
-          <Table.Header>Collect</Table.Header>
-          {records ? <Table.Header>Recorded</Table.Header> : null}
+          <Table.Header width={240}>Collect</Table.Header>
+          {records ? <Table.Header width={116}>Recorded</Table.Header> : null}
         </tr>
       </thead>
       <tbody>
@@ -719,26 +702,18 @@ export function RunTable({
 
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "84px" }} />
-        <col style={{ width: "88px" }} />
-        <col />
-        <col style={{ width: "132px" }} />
-        <col style={{ width: "116px" }} />
-        <col style={{ width: "116px" }} />
-        <col style={{ width: "64px" }} />
-        <col style={{ width: "136px" }} />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Run</Table.Header>
-          <Table.Header>Procedure</Table.Header>
+          <Table.Header width={84}>Run</Table.Header>
+          <Table.Header width={88}>Procedure</Table.Header>
           <Table.Header>Build under test</Table.Header>
-          <Table.Header>Operator</Table.Header>
-          <Table.Header>State</Table.Header>
-          <Table.Header>Verdict</Table.Header>
-          <Table.Header className="text-right">P/F/I</Table.Header>
-          <Table.Header>Started</Table.Header>
+          <Table.Header width={132}>Operator</Table.Header>
+          <Table.Header width={116}>State</Table.Header>
+          <Table.Header width={116}>Verdict</Table.Header>
+          <Table.Header width={64} className="text-right">
+            P/F/I
+          </Table.Header>
+          <Table.Header width={136}>Started</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -1045,25 +1020,15 @@ export function RegressionTable({ rows }: { rows: RegressionRow[] }) {
 
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "92px" }} />
-        <col style={{ width: "116px" }} />
-        <col style={{ width: "96px" }} />
-        <col style={{ width: "104px" }} />
-        <col style={{ width: "96px" }} />
-        <col style={{ width: "104px" }} />
-        <col style={{ width: "120px" }} />
-        <col />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Procedure</Table.Header>
-          <Table.Header>Step</Table.Header>
-          <Table.Header>Prior run</Table.Header>
-          <Table.Header>Prior result</Table.Header>
-          <Table.Header>Current run</Table.Header>
-          <Table.Header>Current result</Table.Header>
-          <Table.Header>Movement</Table.Header>
+          <Table.Header width={92}>Procedure</Table.Header>
+          <Table.Header width={116}>Step</Table.Header>
+          <Table.Header width={96}>Prior run</Table.Header>
+          <Table.Header width={104}>Prior result</Table.Header>
+          <Table.Header width={96}>Current run</Table.Header>
+          <Table.Header width={104}>Current result</Table.Header>
+          <Table.Header width={120}>Movement</Table.Header>
           <Table.Header>Reading</Table.Header>
         </tr>
       </thead>

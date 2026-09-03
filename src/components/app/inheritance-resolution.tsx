@@ -161,25 +161,15 @@ export function ResolutionTable({
 
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "88px" }} />
-        <col style={{ width: "184px" }} />
-        <col style={{ width: "92px" }} />
-        <col style={{ width: "124px" }} />
-        <col style={{ width: "84px" }} />
-        <col style={{ width: "128px" }} />
-        <col style={{ width: "132px" }} />
-        <col />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Control</Table.Header>
-          <Table.Header>Provider</Table.Header>
-          <Table.Header>Tier</Table.Header>
-          <Table.Header>Designation</Table.Header>
-          <Table.Header>Share</Table.Header>
-          <Table.Header>Accepted → offered</Table.Header>
-          <Table.Header>State</Table.Header>
+          <Table.Header width={88}>Control</Table.Header>
+          <Table.Header width={184}>Provider</Table.Header>
+          <Table.Header width={92}>Tier</Table.Header>
+          <Table.Header width={124}>Designation</Table.Header>
+          <Table.Header width={84}>Share</Table.Header>
+          <Table.Header width={128}>Accepted → offered</Table.Header>
+          <Table.Header width={132}>State</Table.Header>
           <Table.Header>This system still owes</Table.Header>
         </tr>
       </thead>
@@ -476,19 +466,12 @@ export function NotApplicableTable({ rows }: { rows: ResolvedInheritance[] }) {
 
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "88px" }} />
-        <col style={{ width: "220px" }} />
-        <col style={{ width: "184px" }} />
-        <col style={{ width: "116px" }} />
-        <col />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Control</Table.Header>
-          <Table.Header>Title</Table.Header>
-          <Table.Header>Offered by</Table.Header>
-          <Table.Header>Model</Table.Header>
+          <Table.Header width={88}>Control</Table.Header>
+          <Table.Header width={220}>Title</Table.Header>
+          <Table.Header width={184}>Offered by</Table.Header>
+          <Table.Header width={116}>Model</Table.Header>
           <Table.Header>Why it does not reach this system</Table.Header>
         </tr>
       </thead>

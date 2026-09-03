@@ -18,6 +18,7 @@ import {
   Progress,
   Table,
   Tabs,
+  TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { PreviewSplit } from "@/components/app/preview-split";
@@ -151,26 +152,18 @@ function RegisterPage() {
           <div className="min-w-0 lg:pe-300">
             {tab === "POA&M" ? (
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "112px" }} />
-                  <col />
-                  <col style={{ width: "132px" }} />
-                  <col style={{ width: "84px" }} />
-                  <col style={{ width: "72px" }} />
-                  <col style={{ width: "112px" }} />
-                  <col style={{ width: "104px" }} />
-                  <col style={{ width: "104px" }} />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>POA&M</Table.Header>
+                    <Table.Header width={112}>POA&M</Table.Header>
                     <Table.Header>Weakness</Table.Header>
-                    <Table.Header>Owner</Table.Header>
-                    <Table.Header className="text-right">Findings</Table.Header>
-                    <Table.Header>Worst</Table.Header>
-                    <Table.Header>Scheduled</Table.Header>
-                    <Table.Header>Risk</Table.Header>
-                    <Table.Header>Status</Table.Header>
+                    <Table.Header width={132}>Owner</Table.Header>
+                    <Table.Header width={84} className="text-right">
+                      Findings
+                    </Table.Header>
+                    <Table.Header width={72}>Worst</Table.Header>
+                    <Table.Header width={112}>Scheduled</Table.Header>
+                    <Table.Header width={104}>Risk</Table.Header>
+                    <Table.Header width={104}>Status</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
@@ -214,26 +207,20 @@ function RegisterPage() {
 
             {tab === "Risks" ? (
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "104px" }} />
-                  <col />
-                  <col style={{ width: "128px" }} />
-                  <col style={{ width: "84px" }} />
-                  <col style={{ width: "68px" }} />
-                  <col style={{ width: "72px" }} />
-                  <col style={{ width: "138px" }} />
-                  <col style={{ width: "108px" }} />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>Risk</Table.Header>
+                    <Table.Header width={104}>Risk</Table.Header>
                     <Table.Header>Statement</Table.Header>
-                    <Table.Header>Owner</Table.Header>
-                    <Table.Header className="text-right">Findings</Table.Header>
-                    <Table.Header className="text-right">CCIs</Table.Header>
-                    <Table.Header>POA&M</Table.Header>
-                    <Table.Header>Residual</Table.Header>
-                    <Table.Header>Disposition</Table.Header>
+                    <Table.Header width={128}>Owner</Table.Header>
+                    <Table.Header width={84} className="text-right">
+                      Findings
+                    </Table.Header>
+                    <Table.Header width={68} className="text-right">
+                      CCIs
+                    </Table.Header>
+                    <Table.Header width={72}>POA&M</Table.Header>
+                    <Table.Header width={138}>Residual</Table.Header>
+                    <Table.Header width={108}>Disposition</Table.Header>
                   </tr>
                 </thead>
                 <tbody>
@@ -291,24 +278,17 @@ function RegisterPage() {
                   package cannot explain — either commit it to a POA&M or aggregate it into a risk.
                 </p>
                 <Table className="table-fixed">
-                  <colgroup>
-                    <col style={{ width: "92px" }} />
-                    <col />
-                    <col style={{ width: "104px" }} />
-                    <col style={{ width: "132px" }} />
-                    <col style={{ width: "76px" }} />
-                    <col style={{ width: "112px" }} />
-                    <col style={{ width: "148px" }} />
-                  </colgroup>
                   <thead>
                     <tr>
-                      <Table.Header>Finding</Table.Header>
+                      <Table.Header width={92}>Finding</Table.Header>
                       <Table.Header>Title</Table.Header>
-                      <Table.Header>CCI</Table.Header>
-                      <Table.Header>Asset</Table.Header>
-                      <Table.Header>Mitigated</Table.Header>
-                      <Table.Header>Lifecycle</Table.Header>
-                      <Table.Header className="text-right">Roll up</Table.Header>
+                      <Table.Header width={104}>CCI</Table.Header>
+                      <Table.Header width={132}>Asset</Table.Header>
+                      <Table.Header width={76}>Mitigated</Table.Header>
+                      <Table.Header width={112}>Lifecycle</Table.Header>
+                      <Table.Header width={148} className="text-right">
+                        Roll up
+                      </Table.Header>
                     </tr>
                   </thead>
                   <tbody>
@@ -365,13 +345,11 @@ function RegisterPage() {
               title={preview.item.title}
               onClose={() => setPreview(null)}
               openTo={
-                <Link
-                  to="/register/poam/$poamId"
-                  params={{ poamId: preview.item.id }}
-                  className="text-brand hover:underline"
-                >
-                  Open POA&M item →
-                </Link>
+                <TextLink>
+                  <Link to="/register/poam/$poamId" params={{ poamId: preview.item.id }}>
+                    Open POA&M item →
+                  </Link>
+                </TextLink>
               }
             >
               <Inspector.Group title="Commitment">
@@ -398,13 +376,11 @@ function RegisterPage() {
               title={preview.item.title}
               onClose={() => setPreview(null)}
               openTo={
-                <Link
-                  to="/register/risks/$riskId"
-                  params={{ riskId: preview.item.id }}
-                  className="text-brand hover:underline"
-                >
-                  Open risk →
-                </Link>
+                <TextLink>
+                  <Link to="/register/risks/$riskId" params={{ riskId: preview.item.id }}>
+                    Open risk →
+                  </Link>
+                </TextLink>
               }
             >
               <Inspector.Group title="Adjudication">

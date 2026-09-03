@@ -14,13 +14,13 @@ import { TargetLink } from "@/components/app/requirements";
 import {
   Badge,
   Button,
-  Count,
   Id,
   Indicator,
   Inline,
   Stack,
   Table,
   Text,
+  TextLink,
   ToggleGroup,
 } from "@ledger/design-system";
 import {
@@ -97,12 +97,8 @@ export function RequirementCoverage({ programId }: { programId: string }) {
           onChange={setFilter}
           items={(Object.keys(filterLabels) as Filter[]).map((k) => ({
             value: k,
-            label: (
-              <Inline as="span" space="space.075" alignBlock="center">
-                {filterLabels[k]}
-                <Count value={counts[k]} max={9999} appearance="default" />
-              </Inline>
-            ),
+            label: filterLabels[k],
+            count: counts[k],
           }))}
         />
         <Text size="small" color="color.text.subtle">
@@ -133,13 +129,14 @@ export function RequirementCoverage({ programId }: { programId: string }) {
             return (
               <Table.Row key={r.id} title={r.text}>
                 <Table.Cell className="max-w-none">
-                  <Link
-                    to="/programs/$programId/requirements/$requirementId"
-                    params={{ programId, requirementId: r.id }}
-                    className="hover:underline"
-                  >
-                    <Id className="text-brand">{r.id}</Id>
-                  </Link>
+                  <TextLink>
+                    <Link
+                      to="/programs/$programId/requirements/$requirementId"
+                      params={{ programId, requirementId: r.id }}
+                    >
+                      <Id>{r.id}</Id>
+                    </Link>
+                  </TextLink>
                 </Table.Cell>
                 <Table.Cell className="truncate">{r.text}</Table.Cell>
                 <Table.Cell className="max-w-none">
@@ -168,16 +165,16 @@ export function RequirementCoverage({ programId }: { programId: string }) {
                   {controls.length || overlays.length ? (
                     <Inline as="span" space="space.100" rowSpace="space.025" shouldWrap>
                       {controls.map((d) => (
-                        <Link
-                          key={d.sourceId}
-                          to="/programs/$programId/controls/$controlId"
-                          params={{ programId, controlId: d.sourceId }}
-                          search={{ tab: undefined }}
-                          className="hover:underline"
-                          title={d.rationale}
-                        >
-                          <Id className="text-brand">{d.sourceId}</Id>
-                        </Link>
+                        <TextLink key={d.sourceId}>
+                          <Link
+                            to="/programs/$programId/controls/$controlId"
+                            params={{ programId, controlId: d.sourceId }}
+                            search={{ tab: undefined }}
+                            title={d.rationale}
+                          >
+                            <Id>{d.sourceId}</Id>
+                          </Link>
+                        </TextLink>
                       ))}
                       {overlays.map((d) => (
                         <Text key={d.sourceId} size="small" color="color.text.subtle">

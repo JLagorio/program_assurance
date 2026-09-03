@@ -11,6 +11,7 @@ import {
   Section,
   ShowPage,
   Table,
+  TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -130,20 +131,15 @@ function PersonDetail() {
           description="Everything this person is committed to, and what they do on it."
         >
           <Table className="table-fixed">
-            <colgroup>
-              <col style={{ width: "104px" }} />
-              <col />
-              <col style={{ width: "200px" }} />
-              <col style={{ width: "92px" }} />
-              <col style={{ width: "88px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>Workstream</Table.Header>
+                <Table.Header width={104}>Workstream</Table.Header>
                 <Table.Header>Title</Table.Header>
-                <Table.Header>Role</Table.Header>
-                <Table.Header>Status</Table.Header>
-                <Table.Header className="text-right">Allocation</Table.Header>
+                <Table.Header width={200}>Role</Table.Header>
+                <Table.Header width={92}>Status</Table.Header>
+                <Table.Header width={88} className="text-right">
+                  Allocation
+                </Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -152,13 +148,11 @@ function PersonDetail() {
                 return (
                   <Table.Row key={w.id}>
                     <Table.Cell>
-                      <Link
-                        to="/workstreams/$workstreamId"
-                        params={{ workstreamId: w.id }}
-                        className="text-brand hover:underline"
-                      >
-                        <Id>{w.id}</Id>
-                      </Link>
+                      <TextLink>
+                        <Link to="/workstreams/$workstreamId" params={{ workstreamId: w.id }}>
+                          <Id>{w.id}</Id>
+                        </Link>
+                      </TextLink>
                     </Table.Cell>
                     <Table.Cell className="truncate">{w.title}</Table.Cell>
                     <Table.Cell className="truncate">
@@ -182,31 +176,23 @@ function PersonDetail() {
           description="People sharing at least one workstream — the coordination surface, not the org chart."
         >
           <Table className="table-fixed">
-            <colgroup>
-              <col style={{ width: "104px" }} />
-              <col style={{ width: "176px" }} />
-              <col />
-              <col style={{ width: "156px" }} />
-            </colgroup>
             <thead>
               <tr>
-                <Table.Header>Person</Table.Header>
-                <Table.Header>Name</Table.Header>
+                <Table.Header width={104}>Person</Table.Header>
+                <Table.Header width={176}>Name</Table.Header>
                 <Table.Header>Title</Table.Header>
-                <Table.Header>Discipline</Table.Header>
+                <Table.Header width={156}>Discipline</Table.Header>
               </tr>
             </thead>
             <tbody>
               {collaborators.map((c) => (
                 <Table.Row key={c.id}>
                   <Table.Cell>
-                    <Link
-                      to="/people/$personId"
-                      params={{ personId: c.id }}
-                      className="text-brand hover:underline"
-                    >
-                      <Id>{c.id}</Id>
-                    </Link>
+                    <TextLink>
+                      <Link to="/people/$personId" params={{ personId: c.id }}>
+                        <Id>{c.id}</Id>
+                      </Link>
+                    </TextLink>
                   </Table.Cell>
                   <Table.Cell className="truncate">{c.name}</Table.Cell>
                   <Table.Cell className="truncate">{c.title}</Table.Cell>

@@ -14,6 +14,7 @@ import {
   ShowPage,
   Stack,
   Table,
+  TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { assetById, bySeverity, isOpen } from "@/lib/findings";
@@ -50,9 +51,9 @@ function PoamRecord() {
       <Shell>
         <Stack space="space.150">
           <h1 className="font-heading-small font-semibold">POA&M item not found</h1>
-          <Link to="/register" className="font-body text-brand hover:underline">
-            Back to the register
-          </Link>
+          <TextLink size="medium">
+            <Link to="/register">Back to the register</Link>
+          </TextLink>
         </Stack>
       </Shell>
     );
@@ -98,23 +99,19 @@ function PoamRecord() {
             </Inspector.Group>
             <Inspector.Group title="Joins">
               <KeyValue label="Program">
-                <Link
-                  to="/programs/$programId"
-                  params={{ programId: item.program }}
-                  className="text-brand hover:underline"
-                >
-                  <Id className="text-brand">{item.program}</Id>
-                </Link>
+                <TextLink>
+                  <Link to="/programs/$programId" params={{ programId: item.program }}>
+                    <Id>{item.program}</Id>
+                  </Link>
+                </TextLink>
               </KeyValue>
               <KeyValue label="Risk">
                 {risk ? (
-                  <Link
-                    to="/register/risks/$riskId"
-                    params={{ riskId: risk.id }}
-                    className="text-brand hover:underline"
-                  >
-                    <Id className="text-brand">{risk.id}</Id>
-                  </Link>
+                  <TextLink>
+                    <Link to="/register/risks/$riskId" params={{ riskId: risk.id }}>
+                      <Id>{risk.id}</Id>
+                    </Link>
+                  </TextLink>
                 ) : (
                   "Not aggregated"
                 )}
@@ -131,15 +128,15 @@ function PoamRecord() {
             controls.length ? (
               <Inline className="font-body-small" as="span" space="space.100" alignBlock="center">
                 {controls.map((c) => (
-                  <Link
-                    key={c}
-                    to="/programs/$programId/controls/$controlId"
-                    params={{ programId: item.program, controlId: c }}
-                    search={{ tab: "Assessment" as const }}
-                    className="text-brand hover:underline"
-                  >
-                    {c} plan
-                  </Link>
+                  <TextLink key={c}>
+                    <Link
+                      to="/programs/$programId/controls/$controlId"
+                      params={{ programId: item.program, controlId: c }}
+                      search={{ tab: "Assessment" as const }}
+                    >
+                      {c} plan
+                    </Link>
+                  </TextLink>
                 ))}
               </Inline>
             ) : null
@@ -165,57 +162,45 @@ function PoamRecord() {
         >
           {fs.length ? (
             <Table className="table-fixed">
-              <colgroup>
-                <col style={{ width: "112px" }} />
-                <col />
-                <col style={{ width: "96px" }} />
-                <col style={{ width: "104px" }} />
-                <col style={{ width: "132px" }} />
-                <col style={{ width: "78px" }} />
-                <col style={{ width: "112px" }} />
-              </colgroup>
               <thead>
                 <tr>
-                  <Table.Header>Finding</Table.Header>
+                  <Table.Header width={112}>Finding</Table.Header>
                   <Table.Header>Title</Table.Header>
-                  <Table.Header>Control</Table.Header>
-                  <Table.Header>CCI</Table.Header>
-                  <Table.Header>Asset</Table.Header>
-                  <Table.Header>Severity</Table.Header>
-                  <Table.Header>Lifecycle</Table.Header>
+                  <Table.Header width={96}>Control</Table.Header>
+                  <Table.Header width={104}>CCI</Table.Header>
+                  <Table.Header width={132}>Asset</Table.Header>
+                  <Table.Header width={78}>Severity</Table.Header>
+                  <Table.Header width={112}>Lifecycle</Table.Header>
                 </tr>
               </thead>
               <tbody>
                 {fs.map((f) => (
                   <Table.Row key={f.id}>
                     <Table.Cell>
-                      <Link
-                        to="/findings/$findingId"
-                        params={{ findingId: f.id }}
-                        className="hover:underline"
-                      >
-                        <Id className="text-brand">{f.id}</Id>
-                      </Link>
+                      <TextLink>
+                        <Link to="/findings/$findingId" params={{ findingId: f.id }}>
+                          <Id>{f.id}</Id>
+                        </Link>
+                      </TextLink>
                     </Table.Cell>
                     <Table.Cell className="truncate">
-                      <Link
-                        to="/findings/$findingId"
-                        params={{ findingId: f.id }}
-                        className="hover:underline"
-                      >
-                        {f.title}
-                      </Link>
+                      <TextLink>
+                        <Link to="/findings/$findingId" params={{ findingId: f.id }}>
+                          {f.title}
+                        </Link>
+                      </TextLink>
                     </Table.Cell>
                     <Table.Cell>
-                      <Link
-                        to="/programs/$programId/controls/$controlId"
-                        params={{ programId: item.program, controlId: f.control }}
-                        search={{ tab: "Assessment" as const }}
-                        className="hover:underline"
-                        title={`Remediation plan for ${f.control}`}
-                      >
-                        <Id className="text-brand">{f.control}</Id>
-                      </Link>
+                      <TextLink>
+                        <Link
+                          to="/programs/$programId/controls/$controlId"
+                          params={{ programId: item.program, controlId: f.control }}
+                          search={{ tab: "Assessment" as const }}
+                          title={`Remediation plan for ${f.control}`}
+                        >
+                          <Id>{f.control}</Id>
+                        </Link>
+                      </TextLink>
                     </Table.Cell>
                     <Table.Cell>
                       <Id>{f.cci}</Id>

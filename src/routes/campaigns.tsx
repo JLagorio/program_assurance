@@ -17,6 +17,7 @@ import {
   Stack,
   Table,
   Tabs,
+  TextLink,
   ToggleGroup,
 } from "@ledger/design-system";
 import { PreviewSplit } from "@/components/app/preview-split";
@@ -135,28 +136,21 @@ function CampaignsPage() {
           <div className="min-w-0 lg:pe-300">
             {tab === "Campaigns" ? (
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "88px" }} />
-                  <col />
-                  <col style={{ width: "132px" }} />
-                  <col style={{ width: "64px" }} />
-                  <col style={{ width: "108px" }} />
-                  <col style={{ width: "148px" }} />
-                  <col style={{ width: "96px" }} />
-                  <col style={{ width: "88px" }} />
-                  <col style={{ width: "72px" }} />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>Campaign</Table.Header>
+                    <Table.Header width={88}>Campaign</Table.Header>
                     <Table.Header>Name</Table.Header>
-                    <Table.Header>Trigger</Table.Header>
-                    <Table.Header>Gate</Table.Header>
-                    <Table.Header>State</Table.Header>
-                    <Table.Header>Lead</Table.Header>
-                    <Table.Header className="text-right">Obj. run</Table.Header>
-                    <Table.Header className="text-right">Findings</Table.Header>
-                    <Table.Header />
+                    <Table.Header width={132}>Trigger</Table.Header>
+                    <Table.Header width={64}>Gate</Table.Header>
+                    <Table.Header width={108}>State</Table.Header>
+                    <Table.Header width={148}>Lead</Table.Header>
+                    <Table.Header width={96} className="text-right">
+                      Obj. run
+                    </Table.Header>
+                    <Table.Header width={88} className="text-right">
+                      Findings
+                    </Table.Header>
+                    <Table.Header width={72} />
                   </tr>
                 </thead>
                 <tbody>
@@ -182,14 +176,15 @@ function CampaignsPage() {
                         </Table.Cell>
                         <Table.Cell className="tabular-nums text-right">{cov.findings}</Table.Cell>
                         <Table.Cell className="text-right">
-                          <Link
-                            to="/campaigns/$campaignId"
-                            params={{ campaignId: c.id }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="font-body-small text-brand hover:underline"
-                          >
-                            Open →
-                          </Link>
+                          <TextLink size="small">
+                            <Link
+                              to="/campaigns/$campaignId"
+                              params={{ campaignId: c.id }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Open →
+                            </Link>
+                          </TextLink>
                         </Table.Cell>
                       </Table.Row>
                     );
@@ -200,24 +195,19 @@ function CampaignsPage() {
 
             {tab === "Events" ? (
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "88px" }} />
-                  <col />
-                  <col style={{ width: "108px" }} />
-                  <col style={{ width: "128px" }} />
-                  <col style={{ width: "148px" }} />
-                  <col style={{ width: "64px" }} />
-                  <col style={{ width: "72px" }} />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>Event</Table.Header>
+                    <Table.Header width={88}>Event</Table.Header>
                     <Table.Header>Name</Table.Header>
-                    <Table.Header>Type</Table.Header>
-                    <Table.Header>State</Table.Header>
-                    <Table.Header>Window</Table.Header>
-                    <Table.Header className="text-right">CCIs</Table.Header>
-                    <Table.Header className="text-right">Findings</Table.Header>
+                    <Table.Header width={108}>Type</Table.Header>
+                    <Table.Header width={128}>State</Table.Header>
+                    <Table.Header width={148}>Window</Table.Header>
+                    <Table.Header width={64} className="text-right">
+                      CCIs
+                    </Table.Header>
+                    <Table.Header width={72} className="text-right">
+                      Findings
+                    </Table.Header>
                   </tr>
                 </thead>
                 <tbody>
@@ -252,22 +242,14 @@ function CampaignsPage() {
 
             {tab === "Objectives" ? (
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: "80px" }} />
-                  <col />
-                  <col style={{ width: "168px" }} />
-                  <col style={{ width: "120px" }} />
-                  <col style={{ width: "88px" }} />
-                  <col style={{ width: "116px" }} />
-                </colgroup>
                 <thead>
                   <tr>
-                    <Table.Header>Objective</Table.Header>
+                    <Table.Header width={80}>Objective</Table.Header>
                     <Table.Header>Statement</Table.Header>
-                    <Table.Header>CCIs covered</Table.Header>
-                    <Table.Header>Method</Table.Header>
-                    <Table.Header>Event</Table.Header>
-                    <Table.Header>Result</Table.Header>
+                    <Table.Header width={168}>CCIs covered</Table.Header>
+                    <Table.Header width={120}>Method</Table.Header>
+                    <Table.Header width={88}>Event</Table.Header>
+                    <Table.Header width={116}>Result</Table.Header>
                   </tr>
                 </thead>
                 <tbody>

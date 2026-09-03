@@ -255,23 +255,17 @@ export function EvidenceBlock({
     <div>
       {work.evidence.length ? (
         <Table>
-          <colgroup>
-            <col style={{ width: "118px" }} />
-            <col />
-            <col style={{ width: "124px" }} />
-            <col style={{ width: "72px" }} />
-          </colgroup>
           <tbody>
             {work.evidence.map((id) => {
               const meta = available.find((a) => a.id === id);
               return (
                 <Table.Row key={id}>
-                  <Table.Id id={id} />
+                  <Table.Id id={id} width={118} />
                   <Table.Cell className="truncate">
                     {meta?.label ?? "Not in the evidence store"}
                   </Table.Cell>
-                  <Table.Cell>{meta?.collected ?? "—"}</Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell width={124}>{meta?.collected ?? "—"}</Table.Cell>
+                  <Table.Cell width={72}>
                     <Button
                       size="xsmall"
                       variant="subtle"
@@ -405,18 +399,16 @@ export function History({ work }: { work: ControlWork }) {
   if (!events.length) return <p className="font-body text-subtle">Nothing yet.</p>;
   return (
     <Table>
-      <colgroup>
-        <col style={{ width: "108px" }} />
-        <col style={{ width: "140px" }} />
-        <col style={{ width: "200px" }} />
-        <col />
-      </colgroup>
       <tbody>
         {events.map((e) => (
           <Table.Row key={e.id}>
-            <Table.Cell>{e.at}</Table.Cell>
-            <Table.Cell className="truncate">{e.actor}</Table.Cell>
-            <Table.Cell className="truncate">{e.summary}</Table.Cell>
+            <Table.Cell width={108}>{e.at}</Table.Cell>
+            <Table.Cell className="truncate" width={140}>
+              {e.actor}
+            </Table.Cell>
+            <Table.Cell className="truncate" width={200}>
+              {e.summary}
+            </Table.Cell>
             <Table.Cell className="truncate" title={e.note}>
               {e.note ?? "—"}
             </Table.Cell>

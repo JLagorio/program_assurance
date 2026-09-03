@@ -374,15 +374,10 @@ export function EmassTable({ sheet, pageSize = 40 }: { sheet: EmassExport; pageS
       {/* Twenty eMASS columns do not fit any viewport. The table keeps its own
           width and scrolls inside this frame so the page body never does. */}
       <Table className="table-fixed" style={{ width: `${total}px` }}>
-        <colgroup>
-          {widths.map((w, i) => (
-            <col key={sheet.columns[i] ?? String(i)} style={{ width: `${w}px` }} />
-          ))}
-        </colgroup>
         <thead>
           <tr>
-            {sheet.columns.map((column) => (
-              <Table.Header key={column} title={column}>
+            {sheet.columns.map((column, i) => (
+              <Table.Header key={column} title={column} width={widths[i]}>
                 {column}
               </Table.Header>
             ))}
@@ -453,20 +448,15 @@ export function BundleManifest({
 
       <Stack space="space.100">
         <Table className="table-fixed">
-          <colgroup>
-            <col style={{ width: "232px" }} />
-            <col />
-            <col style={{ width: "96px" }} />
-            <col style={{ width: "208px" }} />
-            <col style={{ width: "88px" }} />
-          </colgroup>
           <thead>
             <tr>
-              <Table.Header>Path on media</Table.Header>
+              <Table.Header width={232}>Path on media</Table.Header>
               <Table.Header>Produced by</Table.Header>
-              <Table.Header className="text-right">Bytes</Table.Header>
-              <Table.Header>{digestAlgorithm}</Table.Header>
-              <Table.Header />
+              <Table.Header width={96} className="text-right">
+                Bytes
+              </Table.Header>
+              <Table.Header width={208}>{digestAlgorithm}</Table.Header>
+              <Table.Header width={88} />
             </tr>
           </thead>
           <tbody>
@@ -644,16 +634,10 @@ export function ReconcileVerdict({ reconciliation }: { reconciliation: Reconcili
 export function ReconcileTable({ reconciliation }: { reconciliation: Reconciliation }) {
   return (
     <Table className="table-fixed">
-      <colgroup>
-        <col style={{ width: "232px" }} />
-        <col style={{ width: "152px" }} />
-        <col />
-        <col />
-      </colgroup>
       <thead>
         <tr>
-          <Table.Header>Path</Table.Header>
-          <Table.Header>State</Table.Header>
+          <Table.Header width={232}>Path</Table.Header>
+          <Table.Header width={152}>State</Table.Header>
           <Table.Header>Digest here</Table.Header>
           <Table.Header>Digest received</Table.Header>
         </tr>
