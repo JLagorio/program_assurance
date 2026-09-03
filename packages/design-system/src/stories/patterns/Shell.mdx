@@ -17,13 +17,13 @@ and mark.
 
 ## Areas
 
-| Area            | Does                                                                                                                                                                                                                                                                                                  |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Shell.Banner`  | Above everything, `dimension.layout.banner` tall, holding a Banner. Render it while the message is true; it pushes the rest down and is gone when it unmounts.                                                                                                                                        |
-| `Shell.TopNav`  | `dimension.layout.topnav` tall, the full width, sticky. Three slots: `Start`, `Middle`, `End`.                                                                                                                                                                                                        |
-| `Shell.SideNav` | `dimension.layout.sidenav` wide on the sunken surface. Three slots: `Header` and `Footer` stay put, `Body` scrolls and pushes the footer down. Collapses, resizes, flies out, overlays.                                                                                                               |
-| `Shell.Main`    | The page. Fills what the others leave, body scroll.                                                                                                                                                                                                                                                   |
-| `Shell.Panel`   | Beside the page at the end, under the top nav, `dimension.layout.panel` wide. Rendered when there is something to show and unmounted when there is not. It holds a Panel: the record's rail on demand, a thread, a form. Never the peek, which is a Sheet over the nav. It is an area, not a feature. |
+| Area            | Does                                                                                                                                                                                                                                                                                                                                                  |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Shell.Banner`  | Above everything, `dimension.layout.banner` tall, holding a Banner. Render it while the message is true; it pushes the rest down and is gone when it unmounts.                                                                                                                                                                                        |
+| `Shell.TopNav`  | `dimension.layout.topnav` tall, the full width, sticky. Three slots: `Start`, `Middle`, `End`.                                                                                                                                                                                                                                                        |
+| `Shell.SideNav` | `dimension.layout.sidenav` wide on the sunken surface. Three slots: `Header` and `Footer` stay put, `Body` scrolls and pushes the footer down. Collapses, resizes, flies out, overlays.                                                                                                                                                               |
+| `Shell.Main`    | The page. Fills what the others leave, body scroll.                                                                                                                                                                                                                                                                                                   |
+| `Shell.Panel`   | Beside the page at the end, under the top nav, `dimension.layout.panel` wide. On a record it is the rail, always there; elsewhere it is rendered when there is something to show and unmounted when there is not. It holds a Panel: the record's rail, a thread, a form. Never the peek, which is a Sheet over the nav. It is an area, not a feature. |
 
 Each area is a landmark with a skip link. `label` names the side nav, the panel and the top nav's
 end list: say what is in it, "Preview" or "Comments", never "Panel".
@@ -79,11 +79,16 @@ person, for the side nav's footer.
 
 <Canvas of={Stories.Collapsed} />
 
-## The rail on demand
+## The record's rail
 
-A record page keeps at most six facts in its header. The rest, every Inspector group, is the rail, and the rail lives in the panel when the reader asks for it: `Panel.Trigger` in the record header's actions, the same place on every page, opens `Shell.Panel` with a `Panel` inside and an `Inspector` with `sticky` off. It stays open while the tabs change. The peek is a different thing: a Sheet over the page and the nav, about half the screen, previewing one row.
+A record page keeps at most six facts in its header. The rest, details and related information in
+every Inspector group, is the rail, and the rail is the panel: `Shell.Panel` on every record route
+with a `Panel` inside and an `Inspector` with `sticky` off. It is always there, it is never
+dismissed, and it stays while the tabs change. The peek is a different thing: a Sheet over the page
+and the nav, about half the screen, previewing one row. A panel the reader opens and closes, a
+thread or a form, is the third thing: it has a title, a close and a `Panel.Trigger`.
 
-<Canvas of={Stories.RailOnDemand} />
+<Canvas of={Stories.RecordRail} />
 
 ## Wiring it
 
@@ -126,14 +131,12 @@ A record page keeps at most six facts in its header. The rest, every Inspector g
   <Shell.Main>
     <Outlet />
   </Shell.Main>
-  {details ? (
-    <Shell.Panel label="Details">
-      <Shell.Panel.Splitter label="Resize details" />
-      <Panel title="Details" onClose={() => setDetails(false)}>
-        <Inspector sticky={false} groups={groups} />
-      </Panel>
-    </Shell.Panel>
-  ) : null}
+  <Shell.Panel label="Details">
+    <Shell.Panel.Splitter label="Resize details" />
+    <Panel>
+      <Inspector sticky={false} groups={groups} />
+    </Panel>
+  </Shell.Panel>
 </Shell>
 ```
 

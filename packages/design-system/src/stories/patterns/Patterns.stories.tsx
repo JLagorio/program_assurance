@@ -1058,7 +1058,7 @@ export const PanelStory: Story = {
   ),
 };
 
-/** The header's forms, a subheader, a footer, and the rail on demand in the body. */
+/** The header's forms, a subheader, a footer; the record's rail with no header at all; the trigger for a dismissible panel. */
 export const PanelMatrix: Story = {
   render: () => (
     <Stack space="space.300">
@@ -1100,7 +1100,7 @@ export const PanelMatrix: Story = {
           </PanelBox>
         </Inline>
       </Specimens>
-      <Specimens title="With a footer · the rail on demand · the trigger, closed and open">
+      <Specimens title="With a footer · the record's rail, never dismissed · the trigger of a dismissible panel, closed and open">
         <Inline space="space.300" alignBlock="start">
           <PanelBox>
             <Panel
@@ -1117,7 +1117,7 @@ export const PanelMatrix: Story = {
             </Panel>
           </PanelBox>
           <PanelBox height={420}>
-            <Panel title="Details" onClose={() => undefined}>
+            <Panel>
               <Inspector sticky={false} groups={panelGroups} />
             </Panel>
           </PanelBox>

@@ -416,9 +416,8 @@ const railGroups = [
 ];
 const tabs = ["Overview", "Controls", "Evidence", "Findings"] as const;
 
-/** A record page: the header keeps its facts, the rail is in the panel on demand, and it stays while the tabs change. */
+/** A record page: the header keeps its facts, the rail is the panel, always there, and it stays while the tabs change. */
 function RecordDemo() {
-  const [open, setOpen] = useState(true);
   const [tab, setTab] = useState<(typeof tabs)[number]>("Overview");
   return (
     <Shell>
@@ -458,7 +457,6 @@ function RecordDemo() {
               <>
                 <Button>Export</Button>
                 <Button variant="primary">Submit for assessment</Button>
-                <Panel.Trigger isOpen={open} onClick={() => setOpen((v) => !v)} />
               </>
             }
             facts={
@@ -479,7 +477,7 @@ function RecordDemo() {
           <Block title={tab} count={tab === "Overview" ? undefined : 12}>
             <Stack space="space.100">
               <Text color="color.text.subtle">
-                The {tab} tab's work. The rail stays in the panel while the tab changes.
+                The {tab} tab's work. The rail stays while the tab changes.
               </Text>
               {programs.slice(0, 8).map((p) => (
                 <Inline
@@ -501,17 +499,15 @@ function RecordDemo() {
           </Block>
         </Stack>
       </Shell.Main>
-      {open ? (
-        <Shell.Panel label="Details">
-          <Shell.Panel.Splitter label="Resize details" />
-          <Panel title="Details" onClose={() => setOpen(false)}>
-            <Inspector sticky={false} groups={railGroups} />
-          </Panel>
-        </Shell.Panel>
-      ) : null}
+      <Shell.Panel label="Details">
+        <Shell.Panel.Splitter label="Resize details" />
+        <Panel>
+          <Inspector sticky={false} groups={railGroups} />
+        </Panel>
+      </Shell.Panel>
     </Shell>
   );
 }
 
-/** The rail on demand: every Inspector group in the shell's panel, opened from the Details trigger in the record header, staying open across tabs. The peek is a Sheet, not this. */
-export const RailOnDemand: Story = { name: "Rail on demand", render: () => <RecordDemo /> };
+/** The record's rail: details and related information in the shell's panel, always there on a record, never dismissed, staying while the tabs change. The peek is a Sheet, not this. */
+export const RecordRail: Story = { name: "Record rail", render: () => <RecordDemo /> };
