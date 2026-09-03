@@ -14,8 +14,6 @@ Updated 2026-09-02.
 
 ## Kit
 
-- [ ] **Step 9 · Publishable build** with type declarations, when the second project appears.
-
 ## Prototype
 
 - [ ] **Requirements tracking** (`docs/superpowers/specs/2026-09-02-requirements-tracking.md`, in progress, the second session): the coverage bar and the requirement → test link, suspect currency on links, Glance and the peek stack, picker adoption. Step 1 is done.
@@ -28,6 +26,7 @@ Updated 2026-09-02.
 
 ## Done
 
+- 2026-09-02 · **Step 9, the publishable build**: `dist/` with declarations from `npm run build` in the package; the export map resolves `development` to source and `default` to dist; the root build compiles the package first; the tarball proven in a plain Vite consumer.
 - 2026-09-02 · **Verification is a link to a test.** `Progress.Stacked` takes a `hatched` segment for what is not known or not covered; requirements link to test objectives (`src/lib/requirement-verification.ts`), the coverage view carries one bar per row and a Not covered question in place of the Verified filter (Method and Owner dropped), the record lists its objectives with a link action, and the export page has an RTM tab with a column per test event and a CSV.
 - 2026-09-02 · **Gates** in the kit (Components/Status): a met or unmet condition with its reason and action, a list never a score. Quality gates block Approve on the requirement record; a Needs block lists what a requirement still lacks; the queue lists requirements that need something.
 - 2026-09-02 · **Forms validate on submit.** `useRequired` in `src/lib/form.ts`: the Fields it names carry the asterisk, the primary button is always enabled, and pressing it marks the first empty field red with "Required." under it. Applied to POA&M create and edit, new requirement, allocate (both dialogs), observation, enclave access, AO decision, authorization memo, mapping rule, add node, create risk, ingest assessment data, record assessment, propose change. The old footer messages and disabled buttons for those fields are gone.

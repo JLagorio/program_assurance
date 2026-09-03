@@ -3,10 +3,12 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "vite dev",
-    "build": "node scripts/ds-check.mjs && vite build",
+    "build": "node scripts/ds-check.mjs && npm run build -w packages/design-system && vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",

@@ -12,6 +12,8 @@ The package is `@ledger/design-system`. It ships TypeScript source, a generated 
 npm install @ledger/design-system
 ```
 
+The package ships `dist/` (ESM with declarations, from `npm run build`) and `src/`. A bundler that sets the `development` condition (Vite in dev) resolves to source; everything else resolves to dist. The stylesheets always come from `src`, because `ledger.css` scans the source for the classes your build needs.
+
 ## CSS
 
 One stylesheet, in this order. The reset must come before the system: it clears Tailwind's default namespaces (colours, spacing, radii, shadows, fonts) so that only token utilities exist, and it would clear the system's own mappings if it came after them.
