@@ -14,6 +14,7 @@ import {
   Badge,
   Block,
   Button,
+  Fact,
   Grid,
   Id,
   Indicator,
@@ -27,6 +28,7 @@ import {
 } from "@ledger/design-system";
 
 import { ProposeChange, RevisionActions, RevisionReview } from "./control-set-revisions";
+import { ControlHover, RequirementHover } from "./glances";
 import { AllocateToNodeDialog } from "./system-tree";
 import { childrenOf, descendantsOf, nodeById, pathLabel } from "@/lib/composition";
 import { workIndex } from "@/lib/control-board";
@@ -34,6 +36,7 @@ import {
   controlById,
   inForceRevision,
   openRevision,
+  revisionTone,
   useControlSetVersion,
 } from "@/lib/control-set";
 import { positionOf, useWorkVersion } from "@/lib/control-work";
@@ -59,12 +62,15 @@ export function NodePreviewSheet({
   nodeId,
   onClose,
   onSelect,
+  onBack,
 }: {
   programId: string;
   nodeId: string | null;
   onClose: () => void;
-  /** Drill into a child without leaving the sheet. */
+  /** Drill into a child without leaving the sheet: the next frame of the stack. */
   onSelect: (nodeId: string) => void;
+  /** Back to the frame before, when there is one. */
+  onBack?: (() => void) | undefined;
 }) {
   useScopesVersion();
   useControlSetVersion();
@@ -94,10 +100,29 @@ export function NodePreviewSheet({
     <PreviewSheet
       open={node !== null}
       onClose={onClose}
+      onBack={onBack}
       width={760}
       id={node?.id ?? ""}
       title={node?.name ?? ""}
       subtitle={node ? `${node.kind} · ${pathLabel(node.id)}` : undefined}
+      status={
+        open ? (
+          <Indicator tone={revisionTone[open.state]}>
+            v{open.number} {open.state.toLowerCase()}
+          </Indicator>
+        ) : inForce ? (
+          <Indicator tone="success">v{inForce.number} in force</Indicator>
+        ) : undefined
+      }
+      facts={
+        node ? (
+          <>
+            <Fact label="Class">{node.class}</Fact>
+            <Fact label="Zone">{node.zone}</Fact>
+            <Fact label="Criticality">{node.criticality}</Fact>
+          </>
+        ) : undefined
+      }
       openTo={
         <Link
           to="/programs/$programId/components/$componentId"
@@ -123,12 +148,6 @@ export function NodePreviewSheet({
         <Stack space="space.050">
           <Block title="Element">
             <Grid as="dl" columnGap="space.300" templateColumns="repeat(3, minmax(0, 1fr))">
-              <KeyValue label="Id">
-                <Id>{node.id}</Id>
-              </KeyValue>
-              <KeyValue label="Class">{node.class}</KeyValue>
-              <KeyValue label="Zone">{node.zone}</KeyValue>
-              <KeyValue label="Criticality">{node.criticality}</KeyValue>
               <KeyValue label="Supplier">
                 {node.supplier}
                 {node.version !== "—" ? ` · ${node.version}` : ""}
@@ -203,14 +222,16 @@ export function NodePreviewSheet({
                     return (
                       <Table.Row key={a.id}>
                         <Table.Cell className="max-w-none">
-                          <TextLink>
-                            <Link
-                              to="/programs/$programId/requirements/$requirementId"
-                              params={{ programId, requirementId: a.requirement }}
-                            >
-                              <Id>{a.requirement}</Id>
-                            </Link>
-                          </TextLink>
+                          <RequirementHover requirementId={a.requirement}>
+                            <TextLink>
+                              <Link
+                                to="/programs/$programId/requirements/$requirementId"
+                                params={{ programId, requirementId: a.requirement }}
+                              >
+                                <Id>{a.requirement}</Id>
+                              </Link>
+                            </TextLink>
+                          </RequirementHover>
                         </Table.Cell>
                         <Table.Cell className="truncate" title={req?.text}>
                           {req?.text ?? "—"}
@@ -267,15 +288,17 @@ export function NodePreviewSheet({
                       return (
                         <Table.Row key={control}>
                           <Table.Cell className="max-w-none">
-                            <TextLink>
-                              <Link
-                                to="/programs/$programId/controls/$controlId"
-                                params={{ programId, controlId: control }}
-                                search={{ tab: undefined }}
-                              >
-                                <Id>{control}</Id>
-                              </Link>
-                            </TextLink>
+                            <ControlHover controlId={control} programId={programId}>
+                              <TextLink>
+                                <Link
+                                  to="/programs/$programId/controls/$controlId"
+                                  params={{ programId, controlId: control }}
+                                  search={{ tab: undefined }}
+                                >
+                                  <Id>{control}</Id>
+                                </Link>
+                              </TextLink>
+                            </ControlHover>
                           </Table.Cell>
                           <Table.Cell className="truncate">
                             {controlById(control)?.title ?? "—"}

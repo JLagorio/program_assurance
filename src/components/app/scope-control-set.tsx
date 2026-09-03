@@ -28,6 +28,7 @@ import {
 } from "@ledger/design-system";
 
 import { ControlSetRevisions, RevisionHistory } from "./control-set-revisions";
+import { ControlHover } from "./glances";
 import {
   controlSetFor,
   objectives,
@@ -259,15 +260,17 @@ function ControlTable({
         {rows.map((row) => (
           <Table.Row key={row.control.id}>
             <Table.Cell className="max-w-none">
-              <TextLink>
-                <Link
-                  to="/programs/$programId/controls/$controlId"
-                  params={{ programId, controlId: row.control.id }}
-                  search={{ tab: undefined }}
-                >
-                  <Id>{row.control.id}</Id>
-                </Link>
-              </TextLink>
+              <ControlHover controlId={row.control.id} programId={programId}>
+                <TextLink>
+                  <Link
+                    to="/programs/$programId/controls/$controlId"
+                    params={{ programId, controlId: row.control.id }}
+                    search={{ tab: undefined }}
+                  >
+                    <Id>{row.control.id}</Id>
+                  </Link>
+                </TextLink>
+              </ControlHover>
             </Table.Cell>
             <Table.Cell>{row.control.family}</Table.Cell>
             <Table.Cell className="truncate">{row.control.title}</Table.Cell>

@@ -176,6 +176,19 @@ export function coverageOf(requirement: Requirement): RequirementCoverage {
   return c;
 }
 
+/** One phrase for a cell: the result when there is one, the count when there are several. */
+export function coverageWord(c: RequirementCoverage): string {
+  const total = coverageTotal(c);
+  if (total === 1) {
+    if (c.met) return "Met";
+    if (c.partial) return "Partially met";
+    if (c.notMet) return "Not met";
+    if (c.notRun) return "Not run";
+    return "Not covered";
+  }
+  return `${c.met} of ${total} met`;
+}
+
 export function coverageTotal(c: RequirementCoverage): number {
   return c.met + c.partial + c.notMet + c.notRun + c.notCovered;
 }

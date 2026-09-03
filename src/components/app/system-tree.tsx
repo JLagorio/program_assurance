@@ -12,9 +12,9 @@
  */
 
 import { useRequired } from "@/lib/form";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { MoreHorizontal } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
   Absent,
@@ -59,6 +59,7 @@ import {
 import { positionOf, useWorkVersion, workForScope } from "@/lib/control-work";
 import { workIndex } from "@/lib/control-board";
 
+import { ElementHover } from "./glances";
 import { NodePreviewSheet } from "./node-preview";
 import { suspectAllocationsUnder, useLinkCurrencyVersion } from "@/lib/link-currency";
 import {
@@ -133,8 +134,15 @@ export function SystemTree({ programId }: { programId: string }) {
   const [toggled, setToggled] = useState<Set<string>>(() => new Set());
   const [adding, setAdding] = useState<CompositionNode | null>(null);
   const [allocating, setAllocating] = useState<CompositionNode | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: "/programs/$programId" });
+  // The peek stack lives in the URL: the sheet's back chevron and the browser's back agree.
+  const { peek } = useSearch({ from: "/programs/$programId" });
+  const stack = useMemo(() => (peek ? peek.split(",").filter(Boolean) : []), [peek]);
+  const preview = stack[stack.length - 1] ?? null;
+  const setStack = (next: string[]) =>
+    void navigate({
+      search: (prev) => ({ ...prev, peek: next.length ? next.join(",") : undefined }),
+    });
 
   const scopes = scopesForProgram(programId);
   const scopeByElement = new Map(scopes.map((s) => [s.element, s]));
@@ -226,7 +234,7 @@ export function SystemTree({ programId }: { programId: string }) {
                 className="cursor-pointer"
                 aria-level={r.depth + 1}
                 aria-expanded={r.children > 0 ? r.open : undefined}
-                onClick={() => setPreview(r.node.id)}
+                onClick={() => setStack([r.node.id])}
               >
                 <Table.Tree
                   depth={r.depth}
@@ -242,7 +250,14 @@ export function SystemTree({ programId }: { programId: string }) {
                     ) : null
                   }
                 >
-                  {r.node.name}
+                  <ElementHover nodeId={r.node.id}>
+                    <span
+                      tabIndex={0}
+                      className="rounded-xsmall outline-none focus-visible:outline-focused"
+                    >
+                      {r.node.name}
+                    </span>
+                  </ElementHover>
                 </Table.Tree>
                 <Table.Cell className="truncate">{r.node.kind}</Table.Cell>
                 {objectives.map((o) => (
@@ -349,8 +364,9 @@ export function SystemTree({ programId }: { programId: string }) {
       <NodePreviewSheet
         programId={programId}
         nodeId={preview}
-        onClose={() => setPreview(null)}
-        onSelect={setPreview}
+        onClose={() => setStack([])}
+        onSelect={(id) => setStack([...stack, id])}
+        onBack={stack.length > 1 ? () => setStack(stack.slice(0, -1)) : undefined}
       />
     </Stack>
   );

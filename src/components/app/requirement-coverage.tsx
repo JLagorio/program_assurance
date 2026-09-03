@@ -8,6 +8,7 @@
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
+import { ControlHover, RequirementHover } from "@/components/app/glances";
 import { AllocateModal } from "@/components/app/requirement-forms";
 import { TargetLink } from "@/components/app/requirements";
 import {
@@ -27,7 +28,7 @@ import {
 import { suspectLinksFor, useLinkCurrencyVersion } from "@/lib/link-currency";
 import {
   coverageOf,
-  coverageTotal,
+  coverageWord,
   notCoveredRequirements,
   useVerificationVersion,
   type RequirementCoverage,
@@ -75,19 +76,6 @@ export function coverageSegments(c: RequirementCoverage): StackedSegment[] {
       title: `${c.notCovered} not covered`,
     },
   ];
-}
-
-/** One phrase for the cell: the result when there is one, the count when there are several. */
-function coverageWord(c: RequirementCoverage): string {
-  const total = coverageTotal(c);
-  if (total === 1) {
-    if (c.met) return "Met";
-    if (c.partial) return "Partially met";
-    if (c.notMet) return "Not met";
-    if (c.notRun) return "Not run";
-    return "Not covered";
-  }
-  return `${c.met} of ${total} met`;
 }
 
 export function CoverageBar({ coverage }: { coverage: RequirementCoverage }) {
@@ -190,14 +178,16 @@ export function RequirementCoverage({ programId }: { programId: string }) {
             return (
               <Table.Row key={r.id} title={r.text}>
                 <Table.Cell className="max-w-none">
-                  <TextLink>
-                    <Link
-                      to="/programs/$programId/requirements/$requirementId"
-                      params={{ programId, requirementId: r.id }}
-                    >
-                      <Id>{r.id}</Id>
-                    </Link>
-                  </TextLink>
+                  <RequirementHover requirementId={r.id}>
+                    <TextLink>
+                      <Link
+                        to="/programs/$programId/requirements/$requirementId"
+                        params={{ programId, requirementId: r.id }}
+                      >
+                        <Id>{r.id}</Id>
+                      </Link>
+                    </TextLink>
+                  </RequirementHover>
                 </Table.Cell>
                 <Table.Cell className="truncate">{r.text}</Table.Cell>
                 <Table.Cell className="max-w-none">
@@ -229,16 +219,17 @@ export function RequirementCoverage({ programId }: { programId: string }) {
                   {controls.length || overlays.length ? (
                     <Inline as="span" space="space.100" rowSpace="space.025" shouldWrap>
                       {controls.map((d) => (
-                        <TextLink key={d.sourceId}>
-                          <Link
-                            to="/programs/$programId/controls/$controlId"
-                            params={{ programId, controlId: d.sourceId }}
-                            search={{ tab: undefined }}
-                            title={d.rationale}
-                          >
-                            <Id>{d.sourceId}</Id>
-                          </Link>
-                        </TextLink>
+                        <ControlHover key={d.sourceId} controlId={d.sourceId} programId={programId}>
+                          <TextLink>
+                            <Link
+                              to="/programs/$programId/controls/$controlId"
+                              params={{ programId, controlId: d.sourceId }}
+                              search={{ tab: undefined }}
+                            >
+                              <Id>{d.sourceId}</Id>
+                            </Link>
+                          </TextLink>
+                        </ControlHover>
                       ))}
                       {overlays.map((d) => (
                         <Text key={d.sourceId} size="small" color="color.text.subtle">

@@ -25,6 +25,7 @@ The two page archetypes and the parts they are assembled from.
 | **Related** | A small card of linked records with a count and rows that may be buttons. |
 | **Empty** | A dashed frame with a title, one line of why, and the action that fills it. |
 | **PreviewRail** | The right rail as a preview of a row, never the record itself. |
+| **Glance** | The hover rung's body: id and one status, the title, a meta line, at most four facts. Facts only; the click is the peek. |
 | **PreviewSheet** | The peek panel: a Sheet that previews a row over the page. Its header is the compact RecordHeader: the Preview eyebrow with the id and one `status`, the title, the meta line, at most three `facts`. The footer's first item opens the full record, more `links` follow, `actions` sit on the right. `onBack` when it is one frame of a stack. |
 | **PickerSheet** | Choosing many from hundreds: search and filters in a toolbar that does not scroll, a Table with Table.Selection in the body, a footer that counts the chosen rows and names the one action. A second frame of the same sheet fills in per-row fields. |
 | **PageSkeleton** | The page before its data: a title, a tab strip, rows. |
@@ -45,7 +46,9 @@ Three rungs, each one deeper than the last, and a record reads the same on every
 2. **Click is the peek.** The PreviewSheet: the compact header, the facts, and the actions that make sense without leaving. A record opened from inside a peek is the next frame of the same sheet; the back chevron and the browser's back are the same thing when the stack lives in the URL.
 3. **The footer link is the record.** The page, where the work is done. The preview never grows into it.
 
-One preview body per record type, at two densities (glance, peek), rendered by the kit's three shells (HoverCard, PreviewSheet, PreviewRail). Which body a record type gets is the app's.
+One preview body per record type, at two densities (glance, peek), rendered by the kit's three shells (HoverCard, PreviewSheet, PreviewRail). The glance is a `Glance`; which facts a record type shows is the app's.
+
+<Canvas of={Stories.GlanceStory} />
 
 ## Choosing many
 

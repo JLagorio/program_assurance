@@ -12,6 +12,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 
 import { Badge, Box, Editable, Id, Inline, Stack, Table, TextLink } from "@ledger/design-system";
+import { ControlHover, ElementHover, RequirementHover } from "@/components/app/glances";
 import { SuspectFlag } from "@/components/app/link-currency";
 import { cn } from "@/lib/utils";
 import {
@@ -49,15 +50,17 @@ export function TargetLink({
 
   if (target.kind === "node") {
     return (
-      <TextLink className="min-w-0">
-        <Link
-          to="/programs/$programId/components/$componentId"
-          params={{ programId, componentId: target.id }}
-          title={target.detail}
-        >
-          {target.name}
-        </Link>
-      </TextLink>
+      <ElementHover nodeId={target.id}>
+        <TextLink className="min-w-0">
+          <Link
+            to="/programs/$programId/components/$componentId"
+            params={{ programId, componentId: target.id }}
+            title={target.detail}
+          >
+            {target.name}
+          </Link>
+        </TextLink>
+      </ElementHover>
     );
   }
 
@@ -172,14 +175,16 @@ export function RequirementTable({
             >
               <Table.Cell className="max-w-none">
                 <span style={{ paddingLeft: `${depth * 12}px` }}>
-                  <TextLink>
-                    <Link
-                      to="/programs/$programId/requirements/$requirementId"
-                      params={{ programId, requirementId: requirement.id }}
-                    >
-                      <Id>{requirement.id}</Id>
-                    </Link>
-                  </TextLink>
+                  <RequirementHover requirementId={requirement.id}>
+                    <TextLink>
+                      <Link
+                        to="/programs/$programId/requirements/$requirementId"
+                        params={{ programId, requirementId: requirement.id }}
+                      >
+                        <Id>{requirement.id}</Id>
+                      </Link>
+                    </TextLink>
+                  </RequirementHover>
                 </span>
               </Table.Cell>
               <Table.Cell className="truncate">{requirement.type}</Table.Cell>
@@ -268,15 +273,17 @@ function SourceLink({ derivation, programId }: { derivation: Derivation; program
 
   if (sourceType === "Control statement" || sourceType === "Overlay") {
     return (
-      <TextLink>
-        <Link
-          to="/programs/$programId/controls/$controlId"
-          params={{ programId, controlId: sourceId }}
-          search={{ tab: undefined }}
-        >
-          <Id>{sourceId}</Id>
-        </Link>
-      </TextLink>
+      <ControlHover controlId={sourceId} programId={programId}>
+        <TextLink>
+          <Link
+            to="/programs/$programId/controls/$controlId"
+            params={{ programId, controlId: sourceId }}
+            search={{ tab: undefined }}
+          >
+            <Id>{sourceId}</Id>
+          </Link>
+        </TextLink>
+      </ControlHover>
     );
   }
 
@@ -484,14 +491,16 @@ export function ElementAllocationTable({
           return (
             <Table.Row key={a.id} title={a.rationale}>
               <Table.Cell className="max-w-none">
-                <TextLink>
-                  <Link
-                    to="/programs/$programId/requirements/$requirementId"
-                    params={{ programId, requirementId: a.requirement }}
-                  >
-                    <Id>{a.requirement}</Id>
-                  </Link>
-                </TextLink>
+                <RequirementHover requirementId={a.requirement}>
+                  <TextLink>
+                    <Link
+                      to="/programs/$programId/requirements/$requirementId"
+                      params={{ programId, requirementId: a.requirement }}
+                    >
+                      <Id>{a.requirement}</Id>
+                    </Link>
+                  </TextLink>
+                </RequirementHover>
               </Table.Cell>
               <Table.Cell className="truncate" title={requirement?.text}>
                 {requirement?.text ?? "—"}
@@ -631,14 +640,16 @@ function TraceRow({ hop, programId }: { hop: ControlTraceHop; programId: string 
         </TextLink>
       </Table.Cell>
       <Table.Cell>
-        <TextLink>
-          <Link
-            to="/programs/$programId/requirements/$requirementId"
-            params={{ programId, requirementId: hop.requirement }}
-          >
-            <Id>{hop.requirement}</Id>
-          </Link>
-        </TextLink>
+        <RequirementHover requirementId={hop.requirement}>
+          <TextLink>
+            <Link
+              to="/programs/$programId/requirements/$requirementId"
+              params={{ programId, requirementId: hop.requirement }}
+            >
+              <Id>{hop.requirement}</Id>
+            </Link>
+          </TextLink>
+        </RequirementHover>
       </Table.Cell>
       <Table.Cell>
         {hop.via === "direct" ? (
@@ -717,14 +728,16 @@ export function ControlRequirementTable({
           return (
             <Table.Row key={r.id} title={r.text}>
               <Table.Cell className="max-w-none">
-                <TextLink>
-                  <Link
-                    to="/programs/$programId/requirements/$requirementId"
-                    params={{ programId, requirementId: r.id }}
-                  >
-                    <Id>{r.id}</Id>
-                  </Link>
-                </TextLink>
+                <RequirementHover requirementId={r.id}>
+                  <TextLink>
+                    <Link
+                      to="/programs/$programId/requirements/$requirementId"
+                      params={{ programId, requirementId: r.id }}
+                    >
+                      <Id>{r.id}</Id>
+                    </Link>
+                  </TextLink>
+                </RequirementHover>
               </Table.Cell>
               <Table.Cell className="truncate">{r.type}</Table.Cell>
               <Table.Cell className="truncate">{r.text}</Table.Cell>

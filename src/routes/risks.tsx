@@ -12,6 +12,7 @@ import {
   Field,
   FilterChip,
   Grid,
+  Glance,
   HoverCard,
   Id,
   IndexPage,
@@ -87,31 +88,22 @@ const treatments = ["All", "Mitigate", "Transfer", "Accept"] as const;
 
 function RiskPeek({ risk: r }: { risk: Risk }) {
   return (
-    <Stack space="space.100">
-      <Inline space="space.150" alignBlock="start" spread="space-between">
-        <div className="min-w-0">
-          <div className="font-medium">{r.title}</div>
-          <div className="font-body-small text-subtle">
-            {r.framework} · {r.control} · {r.team}
-          </div>
-        </div>
+    <Glance
+      id={r.id}
+      title={r.title}
+      meta={`${r.framework} · ${r.control} · ${r.team}`}
+      status={
         <Badge tone={riskStatusTone[r.status]} size="xsmall">
           {r.status}
         </Badge>
-      </Inline>
-      <dl className="grid gap-y-050 font-body-small" style={{ gridTemplateColumns: "88px 1fr" }}>
-        <dt className="text-subtle">Owner</dt>
-        <dd>{r.owner}</dd>
-        <dt className="text-subtle">Treatment</dt>
-        <dd>{r.treatment}</dd>
-        <dt className="text-subtle">Residual</dt>
-        <dd className="tabular-nums">
-          {r.residual} of {r.inherent} inherent
-        </dd>
-        <dt className="text-subtle">Due</dt>
-        <dd className="tabular-nums">{r.due}</dd>
-      </dl>
-    </Stack>
+      }
+      facts={[
+        { label: "Owner", value: r.owner },
+        { label: "Treatment", value: r.treatment },
+        { label: "Residual", value: `${r.residual} of ${r.inherent} inherent` },
+        { label: "Due", value: r.due },
+      ]}
+    />
   );
 }
 

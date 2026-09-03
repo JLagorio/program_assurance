@@ -10,6 +10,7 @@ import {
   Checkbox,
   Dialog,
   FilterChip,
+  Glance,
   HoverCard,
   Id,
   IndexPage,
@@ -88,31 +89,25 @@ type ColumnKey = (typeof columns)[number]["key"];
 
 function ProgramPeek({ program: p }: { program: Program }) {
   return (
-    <Stack space="space.100">
-      <Inline space="space.150" alignBlock="start" spread="space-between">
-        <div className="min-w-0">
-          <div className="truncate font-medium">{p.name}</div>
-          <div className="font-body-small text-subtle">
-            {p.system} · {p.environment}
-          </div>
-        </div>
+    <Glance
+      id={p.id}
+      title={p.name}
+      meta={`${p.system} · ${p.environment}`}
+      status={
         <Badge tone={programStatusTone[p.status]} size="xsmall">
           {p.status}
         </Badge>
-      </Inline>
-      <dl className="grid gap-y-050 font-body-small" style={{ gridTemplateColumns: "88px 1fr" }}>
-        <dt className="text-subtle">Owner</dt>
-        <dd>{p.owner}</dd>
-        <dt className="text-subtle">Assessor</dt>
-        <dd>{p.assessor}</dd>
-        <dt className="text-subtle">Assessed</dt>
-        <dd className="tabular-nums">
-          {p.controlsAssessed}/{p.controlsTotal} · {p.controlsFailing} failing
-        </dd>
-        <dt className="text-subtle">Expires</dt>
-        <dd className="tabular-nums">{p.expires}</dd>
-      </dl>
-    </Stack>
+      }
+      facts={[
+        { label: "Owner", value: p.owner },
+        { label: "Assessor", value: p.assessor },
+        {
+          label: "Assessed",
+          value: `${p.controlsAssessed}/${p.controlsTotal} · ${p.controlsFailing} failing`,
+        },
+        { label: "Expires", value: p.expires },
+      ]}
+    />
   );
 }
 
