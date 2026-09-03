@@ -29,6 +29,7 @@ import {
   Inline,
   Input,
   InputGroup,
+  DensitySwitch,
   ModeSwitch,
   Shell as DsShell,
   Tooltip,
@@ -134,6 +135,7 @@ export function Shell({ children }: { children: ReactNode }) {
               <Badge tone="warning" className="hidden sm:inline-flex">
                 Audit window open
               </Badge>
+              <DensitySwitch className="hidden md:inline-flex" />
               <ModeSwitch className="hidden md:inline-flex" />
               {topBarActions.map(([Icon, label]) => (
                 <Tooltip key={label} content={label}>

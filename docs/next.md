@@ -14,7 +14,7 @@ Updated 2026-09-03.
 
 ## Kit
 
-- [ ] **Data table.** `useDataTable`, `defineColumns` and `DataTable` on TanStack Table 9: sort, search, filters as chips, selection with a bar, pinned, resizable, reorderable and hideable columns, tree and detail rows, groups, totals, row reordering, virtual scroll, server mode. Spec and order: `docs/superpowers/specs/2026-09-03-data-table.md`, with eight calls for Josef to overturn. The reader's view persists in localStorage, density is a setting beside the mode switch (decided 2026-09-03). Step 0 is a half-day spike.
+- [ ] **Data table**, steps 2–6 of `docs/superpowers/specs/2026-09-03-data-table.md`: selection bar and select-all-pages, column filters on facets, presets; pinned, resizable, reorderable columns and the reader's view in localStorage; tree, detail rows, groups, totals, row reordering; virtual scroll, server mode, the URL adapter, export; editing. Eight calls for Josef to overturn in the spec.
 - [ ] **Step 9 · Publishable build** with type declarations, when the second project appears.
 - [ ] **`docs/guides/component-library.md`** still describes `src/ds`. Rewrite onto the package or retire it in favour of the Storybook docs.
 
@@ -29,6 +29,7 @@ Updated 2026-09-03.
 
 ## Done
 
+- 2026-09-03 · **Data table, steps 0 and 1**: TanStack Table 9 through `useDataTable`, `defineColumns` by kind, `DataTable` with sorting, search, pagination and the states; risks and programs on it, `useSort`/`usePage` deleted; density a setting beside the mode switch, before-paint script and all.
 - 2026-09-02 · **Step 7, the mode switch**: provider, three-state control, storage, before-paint script; the light pin is off the prototype root and the switch sits in the top bar.
 - 2026-09-02 · **Audit items 9–11 in the kit**: `PickerSheet` with its spec, `PreviewSheet` with `onBack`, `status` and `facts` on the compact header, the hover ladder written down.
 - 2026-09-02 · **The spine audit's kit items**, all five: TextLink (147 links, 2 wrapped buttons and 9 text buttons swept onto it), PreviewSheet (node-preview on it), Table.Tree (system-tree on it, `tree-cell.tsx` gone), ToggleGroup `count` (coverage on it), Fact.Group and RecordHeader `facts` (the four strips on them). Every `<colgroup>` in the prototype (119) became `Table.Header width`; two lint rules keep both from coming back. Items 7 and 8 stay as the audit decided.

@@ -1,0 +1,5 @@
+/* Row density. `data-density="compact"` on the root (the DensityProvider and its before-paint script) or on
+   any frame resolves dimension.row to its compact value, so every h-row inside follows without a prop. */
+[data-density="compact"] {
+  --ds-dimension-row: var(--ds-dimension-row-compact);
+}
