@@ -21,10 +21,8 @@ import {
   Badge,
   Button,
   Combobox,
-  Dialog,
   DropdownMenu,
   Field,
-  Grid,
   IconButton,
   Indicator,
   Inline,
@@ -59,20 +57,11 @@ import {
 import { positionOf, useWorkVersion, workForScope } from "@/lib/control-work";
 import { workIndex } from "@/lib/control-board";
 
+import { AllocateRequirementsSheet } from "./allocate-picker";
 import { ElementHover } from "./glances";
 import { NodePreviewSheet } from "./node-preview";
 import { suspectAllocationsUnder, useLinkCurrencyVersion } from "@/lib/link-currency";
-import {
-  addAllocation,
-  allocationsOn,
-  coverages,
-  derivedControlTrace,
-  requirementsForProgram,
-  responsibilities,
-  useRequirementsVersion,
-  type Coverage,
-  type Responsibility,
-} from "@/lib/requirements";
+import { allocationsOn, derivedControlTrace, useRequirementsVersion } from "@/lib/requirements";
 import {
   addScopes,
   controlSetFor,
@@ -355,7 +344,8 @@ export function SystemTree({ programId }: { programId: string }) {
         scopes={scopes}
       />
       {allocating ? (
-        <AllocateToNodeDialog
+        <AllocateRequirementsSheet
+          open
           programId={programId}
           node={allocating}
           onClose={() => setAllocating(null)}
@@ -653,133 +643,5 @@ export function AddNodeSheet({
         ) : null}
       </Stack>
     </Sheet>
-  );
-}
-
-/* ------------------------------------------------- Allocate a requirement */
-
-/**
- * Put one of the program's requirements on this node. The bounded claim is
- * required (`§8`): an allocation without a scope is a wish, not a
- * responsibility.
- */
-export function AllocateToNodeDialog({
-  programId,
-  node,
-  onClose,
-}: {
-  programId: string;
-  node: CompositionNode;
-  onClose: () => void;
-}) {
-  useRequirementsVersion();
-  const already = new Set(allocationsOn(node.id).map((a) => a.requirement));
-  const options = requirementsForProgram(programId)
-    .filter((r) => !already.has(r.id) && r.state !== "Rejected" && r.state !== "Retired")
-    .map((r) => ({ value: r.id, label: `${r.id} · ${r.text}` }));
-  const [requirement, setRequirement] = useState("");
-  const [responsibility, setResponsibility] = useState<Responsibility>("Primary");
-  const [coverage, setCoverage] = useState<Coverage>("Partial");
-  const [scope, setScope] = useState("");
-  const [rationale, setRationale] = useState("");
-  const req = useRequired({ requirement, scope });
-
-  const chosen = requirementsForProgram(programId).find((r) => r.id === requirement) ?? null;
-
-  const submit = () => {
-    if (!req.check()) return;
-    if (!chosen) return;
-    addAllocation({
-      requirement: chosen.id,
-      target: node.id,
-      targetKind: "node",
-      responsibility,
-      coverage,
-      scope: scope.trim(),
-      owner: chosen.owner,
-      rationale: rationale.trim(),
-    });
-    toast.success(`${chosen.id} allocated`, { description: `${node.name} · ${responsibility}` });
-    onClose();
-  };
-
-  return (
-    <Dialog
-      open
-      onClose={onClose}
-      title={`Allocate a requirement to ${node.name}`}
-      description="The requirement keeps its other allocations; coverage is the union across every element that carries it."
-      footer={
-        <>
-          <Button variant="subtle" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={submit}>
-            Allocate
-          </Button>
-        </>
-      }
-    >
-      <Stack space="space.150">
-        <Field isRequired error={req.errorFor("requirement")} label="Requirement">
-          <Combobox
-            aria-label="Requirement"
-            value={requirement}
-            onChange={setRequirement}
-            options={options}
-            placeholder="Choose a requirement…"
-            searchPlaceholder="Search by id or text…"
-            className="w-full"
-          />
-        </Field>
-        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-          <Field label="Responsibility">
-            <Select
-              value={responsibility}
-              onValueChange={(v) => setResponsibility(v as Responsibility)}
-              aria-label="Responsibility"
-            >
-              {responsibilities.map((r) => (
-                <Select.Item key={r} value={r}>
-                  {r}
-                </Select.Item>
-              ))}
-            </Select>
-          </Field>
-          <Field label="Coverage">
-            <Select
-              value={coverage}
-              onValueChange={(v) => setCoverage(v as Coverage)}
-              aria-label="Coverage"
-            >
-              {coverages.map((c) => (
-                <Select.Item key={c} value={c}>
-                  {c}
-                </Select.Item>
-              ))}
-            </Select>
-          </Field>
-        </Grid>
-        <Field
-          isRequired
-          error={req.errorFor("scope")}
-          label="What this element answers"
-          hint="The bounded claim. Required."
-        >
-          <Textarea
-            value={scope}
-            onChange={(e) => setScope(e.target.value)}
-            placeholder="Zeroizes its own key store on the accident signal; does not cover the recorder."
-          />
-        </Field>
-        <Field label="Why here">
-          <Textarea
-            value={rationale}
-            onChange={(e) => setRationale(e.target.value)}
-            placeholder="Holds the only non-volatile store on the bus segment."
-          />
-        </Field>
-      </Stack>
-    </Dialog>
   );
 }

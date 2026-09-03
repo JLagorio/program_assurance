@@ -29,7 +29,7 @@ import {
 
 import { ProposeChange, RevisionActions, RevisionReview } from "./control-set-revisions";
 import { ControlHover, RequirementHover } from "./glances";
-import { AllocateToNodeDialog } from "./system-tree";
+import { AllocateRequirementsSheet } from "./allocate-picker";
 import { childrenOf, descendantsOf, nodeById, pathLabel } from "@/lib/composition";
 import { workIndex } from "@/lib/control-board";
 import {
@@ -386,7 +386,8 @@ export function NodePreviewSheet({
           ) : null}
 
           {allocating ? (
-            <AllocateToNodeDialog
+            <AllocateRequirementsSheet
+              open
               programId={programId}
               node={node}
               onClose={() => setAllocating(false)}

@@ -9,7 +9,7 @@ import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
 import { ControlHover, RequirementHover } from "@/components/app/glances";
-import { AllocateModal } from "@/components/app/requirement-forms";
+import { AllocateElementsSheet } from "@/components/app/allocate-picker";
 import { TargetLink } from "@/components/app/requirements";
 import {
   Badge,
@@ -268,7 +268,7 @@ export function RequirementCoverage({ programId }: { programId: string }) {
       ) : null}
 
       {allocating ? (
-        <AllocateModal
+        <AllocateElementsSheet
           open
           onClose={() => setAllocating(null)}
           programId={programId}

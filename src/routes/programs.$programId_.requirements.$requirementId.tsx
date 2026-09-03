@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import { AllocationTable, ProvenanceTable, RequirementTable } from "@/components/app/requirements";
-import { AllocateModal } from "@/components/app/requirement-forms";
+import { AllocateElementsSheet } from "@/components/app/allocate-picker";
 import {
   Badge,
   Block,
@@ -359,7 +359,7 @@ function RequirementRecord() {
             >
               <AllocationTable allocations={allocations} programId={programId} editable />
             </Section>
-            <AllocateModal
+            <AllocateElementsSheet
               open={allocating}
               onClose={() => setAllocating(false)}
               programId={programId}

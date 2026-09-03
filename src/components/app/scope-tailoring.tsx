@@ -8,6 +8,7 @@
  * carrying its rationale where it disagrees with the engine.
  */
 
+import { TailorControlsSheet } from "./tailor-picker";
 import { useMemo, useState } from "react";
 
 import {
@@ -17,7 +18,6 @@ import {
   Button,
   Checkbox,
   Collapsible,
-  Combobox,
   Field,
   Grid,
   Id,
@@ -43,8 +43,6 @@ import {
   type TailoringDecision,
   type TailoringSource,
 } from "@/lib/control-set";
-import { currentSession } from "@/lib/control-work";
-import { datasetToday } from "@/lib/dataset-clock";
 import type { ImpactLevel } from "@/lib/grc-data";
 import { nistControls } from "@/lib/nist-catalog";
 import { objectives, type Objective, type Triad } from "@/lib/scopes";
@@ -90,6 +88,7 @@ export function ScopeTailoringPane({
   onChange: (patch: Partial<RevisionDraft>) => void;
 }) {
   const show = (s: TailoringSection) => sections.includes(s);
+  const [tailoring, setTailoring] = useState(false);
   const locked = readOnly || (inherits?.on ?? false);
   const p = draft.parameters;
   const below = objectivesBelow(p, ceiling);
@@ -105,43 +104,7 @@ export function ScopeTailoringPane({
 
   const inSet = useMemo(() => new Set(set.controls.map((c) => c.control.id)), [set]);
   const decided = useMemo(() => new Set(draft.tailoring.map((t) => t.control)), [draft.tailoring]);
-  const excludable = useMemo(
-    () =>
-      set.controls
-        .filter((c) => !decided.has(c.control.id))
-        .map((c) => ({
-          value: c.control.id,
-          label: c.control.id,
-          keywords: c.control.title,
-          meta: c.control.family,
-        })),
-    [set, decided],
-  );
-  const includable = useMemo(
-    () =>
-      nistControls
-        .filter((c) => !inSet.has(c.id) && !decided.has(c.id))
-        .map((c) => ({ value: c.id, label: c.id, keywords: c.title, meta: c.family })),
-    [inSet, decided],
-  );
 
-  const addDecision = (control: string, decision: TailoringDecision["decision"]) => {
-    if (!control || decided.has(control)) return;
-    const s = currentSession();
-    onChange({
-      tailoring: [
-        ...draft.tailoring,
-        {
-          control,
-          decision,
-          source: "system-tailoring",
-          rationale: "",
-          authority: `${s.name} · ${s.role}`,
-          at: datasetToday,
-        },
-      ],
-    });
-  };
   const patchDecision = (control: string, patch: Partial<TailoringDecision>) =>
     onChange({
       tailoring: draft.tailoring.map((t) => (t.control === control ? { ...t, ...patch } : t)),
@@ -455,27 +418,17 @@ export function ScopeTailoringPane({
           defaultOpen={draft.tailoring.length > 0}
         >
           {readOnly ? null : (
-            <Inline className="pb-150" space="space.150" alignBlock="end" shouldWrap>
-              <Field label="Tailor out" hint="A control in the set this scope does not owe.">
-                <Combobox
-                  options={excludable}
-                  onChange={(v) => addDecision(v, "excluded")}
-                  placeholder="Choose a control…"
-                  searchPlaceholder="Search the set…"
-                  width={260}
-                  aria-label="Tailor out a control"
-                />
-              </Field>
-              <Field label="Tailor in" hint="A control the categorization did not select.">
-                <Combobox
-                  options={includable}
-                  onChange={(v) => addDecision(v, "included")}
-                  placeholder="Choose a control…"
-                  searchPlaceholder="Search the catalog…"
-                  width={260}
-                  aria-label="Tailor in a control"
-                />
-              </Field>
+            <Inline className="pb-150" space="space.150">
+              <Button size="small" variant="secondary" onClick={() => setTailoring(true)}>
+                Tailor controls…
+              </Button>
+              <TailorControlsSheet
+                open={tailoring}
+                onClose={() => setTailoring(false)}
+                inSet={inSet}
+                decided={decided}
+                onAdd={(ds) => onChange({ tailoring: [...draft.tailoring, ...ds] })}
+              />
             </Inline>
           )}
           {draft.tailoring.length ? (

@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import { NodeRail } from "@/components/app/composition";
 import { DerivedControlTrace, ElementAllocationTable } from "@/components/app/requirements";
-import { ApplicabilityModal } from "@/components/app/requirement-forms";
+import { AllocateRequirementsSheet } from "@/components/app/allocate-picker";
 import { RevisionStrip } from "@/components/app/control-set-revisions";
 import {
   ScopeControlSetTab,
@@ -359,7 +359,7 @@ function ComponentRecord() {
                 <Button size="small" variant="primary" onClick={() => setDeciding(true)}>
                   {undecided.length
                     ? `Review ${undecided.length} unanswered`
-                    : "Review applicability"}
+                    : "Allocate requirements"}
                 </Button>
               }
             >
@@ -518,14 +518,11 @@ function ComponentRecord() {
               </Section>
             ) : null}
 
-            <ApplicabilityModal
+            <AllocateRequirementsSheet
               open={deciding}
               onClose={() => setDeciding(false)}
               programId={program.id}
-              targetId={node.id}
-              targetName={node.name}
-              targetKind="node"
-              decidedBy={program.owner}
+              node={node}
             />
 
             <Section title="Open findings">
