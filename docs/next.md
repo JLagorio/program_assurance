@@ -17,6 +17,10 @@ Updated 2026-09-02.
 - [ ] **Step 7 · Mode switch.** Provider, three-state control, storage function, before-paint snippet. Then the `data-color-mode="light"` pin on the prototype root comes off.
 - [ ] **Step 9 · Publishable build** with type declarations, when the second project appears.
 - [ ] **`docs/guides/component-library.md`** still describes `src/ds`. Rewrite onto the package or retire it in favour of the Storybook docs.
+- [ ] **Audit items 9–11** (flagged 2026-09-02 evening, after the sweep; commit 142cf70). Needs a go from Josef on 9; 10 and 11 are small and can follow the same day.
+  - 9 · `PickerSheet`: choosing many from hundreds. A Sheet whose body is search, FilterChips, a sortable Table with Table.Selection, and a sticky footer that adds the selection; a second frame for per-row fields as Editable cells with a default applied to all. A new family with product questions in it (the footer copy, the second frame, "does not apply, because" as a row action), so it gets its own spec paragraph and a go.
+  - 10 · PreviewSheet gains `back`/`onBack`; its header becomes the compact RecordHeader (id, title, meta, at most three facts, one status). The stack lives in the URL (`?peek=…`). Kit side is a day's work on the pattern that landed today; the URL stack is the app's.
+  - 11 · The hover ladder, as a written rule in Patterns.mdx: hover on an id is a glance (HoverCard, facts only), click is the peek (PreviewSheet, facts and in-place actions), the footer link is the record. One preview body per record type at two densities is the app's to unify.
 
 ## Prototype
 
