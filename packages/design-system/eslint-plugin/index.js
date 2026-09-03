@@ -553,7 +553,7 @@ plugin.configs.recommended = [
       "ledger/no-static-design-value": "error",
       "ledger/no-non-token-class": "error",
       "ledger/no-deprecated-token": "error",
-      "ledger/no-deprecated-name": "warn",
+      "ledger/no-deprecated-name": "error",
       "ledger/prefer-text-link": "error",
       "ledger/no-colgroup": "error",
       "ledger/use-primitives": "warn",

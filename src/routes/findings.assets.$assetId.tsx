@@ -9,8 +9,10 @@ import {
   Inline,
   Inspector,
   KeyValue,
+  Panel,
   RecordHeader,
   Section,
+  Shell as DsShell,
   ShowPage,
   Stack,
   Table,
@@ -91,20 +93,97 @@ function AssetRecord() {
 
   return (
     <Shell>
-      <ShowPage
-        header={
-          <RecordHeader
-            back={<Link to="/findings" />}
-            id={asset.id}
-            title={asset.name}
-            meta={`${asset.kind} · ${asset.technology} · ${asset.environment}`}
-            actions={<Button variant="secondary">Re-scan asset</Button>}
-          />
-        }
-        tabs={<div className="border-b border-default" />}
-        showRail
-        rail={
-          <>
+      <>
+        <ShowPage
+          header={
+            <RecordHeader
+              back={<Link to="/findings" />}
+              id={asset.id}
+              title={asset.name}
+              meta={`${asset.kind} · ${asset.technology} · ${asset.environment}`}
+              actions={<Button variant="secondary">Re-scan asset</Button>}
+            />
+          }
+          tabs={<div className="border-b border-default" />}
+        >
+          {anchor && tree ? (
+            <Section
+              title="Composition"
+              description={`${asset.name} is anchored at ${anchor.id}. Findings resolve to the exact hardware, firmware or software part beneath it, not to the host.`}
+            >
+              <Inline
+                className="pb-150 pt-150 font-body-small"
+                space="space.050"
+                alignBlock="center"
+                shouldWrap
+              >
+                {trail.map((n, i) => {
+                  const last = i === trail.length - 1;
+                  return (
+                    <Inline
+                      key={n.id}
+                      as="span"
+                      display="inline-flex"
+                      space="space.050"
+                      alignBlock="center"
+                    >
+                      {i > 0 ? <span className="text-subtle">/</span> : null}
+                      <span className={last ? "font-medium" : "text-subtle"}>{n.name}</span>
+                    </Inline>
+                  );
+                })}
+              </Inline>
+              <BomTree root={tree} defaultExpandedDepth={2} />
+            </Section>
+          ) : null}
+
+          <Section
+            title="Findings on this asset"
+            description={`${open} open of ${rows.length} raised. Every row joins to a CCI through its rule or procedure.`}
+          >
+            <Table className="table-fixed">
+              <thead>
+                <tr>
+                  <Table.Header width={112}>Finding</Table.Header>
+                  <Table.Header>Title</Table.Header>
+                  <Table.Header width={104}>CCI</Table.Header>
+                  <Table.Header width={124}>Source</Table.Header>
+                  <Table.Header width={78}>Severity</Table.Header>
+                  <Table.Header width={112}>Lifecycle</Table.Header>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((f) => (
+                  <Table.Row key={f.id}>
+                    <Table.Cell>
+                      <TextLink>
+                        <Link to="/findings/$findingId" params={{ findingId: f.id }}>
+                          <Id>{f.id}</Id>
+                        </Link>
+                      </TextLink>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">{f.title}</Table.Cell>
+                    <Table.Cell>
+                      <Id>{f.cci}</Id>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">{f.source}</Table.Cell>
+                    <Table.Cell>
+                      <Indicator tone={severityTone(f.mitigatedSeverity)}>
+                        {f.mitigatedSeverity}
+                      </Indicator>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">
+                      <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </tbody>
+            </Table>
+          </Section>
+        </ShowPage>
+        <DsShell.Panel label="Details">
+          <DsShell.Panel.Splitter label="Resize details" />
+          <Panel flush>
             <Inspector.Group title="Inventory">
               <KeyValue label="Asset">
                 <Id>{asset.id}</Id>
@@ -163,84 +242,9 @@ function AssetRecord() {
                 )}
               </KeyValue>
             </Inspector.Group>
-          </>
-        }
-      >
-        {anchor && tree ? (
-          <Section
-            title="Composition"
-            description={`${asset.name} is anchored at ${anchor.id}. Findings resolve to the exact hardware, firmware or software part beneath it, not to the host.`}
-          >
-            <Inline
-              className="pb-150 pt-150 font-body-small"
-              space="space.050"
-              alignBlock="center"
-              shouldWrap
-            >
-              {trail.map((n, i) => {
-                const last = i === trail.length - 1;
-                return (
-                  <Inline
-                    key={n.id}
-                    as="span"
-                    display="inline-flex"
-                    space="space.050"
-                    alignBlock="center"
-                  >
-                    {i > 0 ? <span className="text-subtle">/</span> : null}
-                    <span className={last ? "font-medium" : "text-subtle"}>{n.name}</span>
-                  </Inline>
-                );
-              })}
-            </Inline>
-            <BomTree root={tree} defaultExpandedDepth={2} />
-          </Section>
-        ) : null}
-
-        <Section
-          title="Findings on this asset"
-          description={`${open} open of ${rows.length} raised. Every row joins to a CCI through its rule or procedure.`}
-        >
-          <Table className="table-fixed">
-            <thead>
-              <tr>
-                <Table.Header width={112}>Finding</Table.Header>
-                <Table.Header>Title</Table.Header>
-                <Table.Header width={104}>CCI</Table.Header>
-                <Table.Header width={124}>Source</Table.Header>
-                <Table.Header width={78}>Severity</Table.Header>
-                <Table.Header width={112}>Lifecycle</Table.Header>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((f) => (
-                <Table.Row key={f.id}>
-                  <Table.Cell>
-                    <TextLink>
-                      <Link to="/findings/$findingId" params={{ findingId: f.id }}>
-                        <Id>{f.id}</Id>
-                      </Link>
-                    </TextLink>
-                  </Table.Cell>
-                  <Table.Cell className="truncate">{f.title}</Table.Cell>
-                  <Table.Cell>
-                    <Id>{f.cci}</Id>
-                  </Table.Cell>
-                  <Table.Cell className="truncate">{f.source}</Table.Cell>
-                  <Table.Cell>
-                    <Indicator tone={severityTone(f.mitigatedSeverity)}>
-                      {f.mitigatedSeverity}
-                    </Indicator>
-                  </Table.Cell>
-                  <Table.Cell className="truncate">
-                    <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </tbody>
-          </Table>
-        </Section>
-      </ShowPage>
+          </Panel>
+        </DsShell.Panel>
+      </>
     </Shell>
   );
 }

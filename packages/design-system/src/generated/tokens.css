@@ -259,8 +259,6 @@
   --ds-dimension-layout-list: 340px;
   --ds-dimension-layout-rail: 272px;
   --ds-dimension-layout-measure: 720px;
-  --ds-dimension-layout-sidebar: 228px;
-  --ds-dimension-layout-topbar: 48px;
   --ds-elevation-surface: var(--ds-color-neutral-0);
   --ds-elevation-surface-hovered: var(--ds-color-neutral-100);
   --ds-elevation-surface-pressed: var(--ds-color-neutral-200);

@@ -155,7 +155,6 @@
     "h-control-small",
     "h-control-xsmall",
     "h-layout-banner",
-    "h-layout-topbar",
     "h-layout-topnav",
     "h-row",
     "h-row-compact",
@@ -231,7 +230,6 @@
     "w-layout-list",
     "w-layout-panel",
     "w-layout-rail",
-    "w-layout-sidebar",
     "w-layout-sidenav"
   ],
   "spaceKeys": [
@@ -250,16 +248,5 @@
     "050",
     "075"
   ],
-  "deprecated": {
-    "dimension.layout.sidebar": {
-      "replacement": "dimension.layout.sidenav",
-      "class": "w-layout-sidebar",
-      "replacementClass": "w-layout-sidenav"
-    },
-    "dimension.layout.topbar": {
-      "replacement": "dimension.layout.topnav",
-      "class": "h-layout-topbar",
-      "replacementClass": "h-layout-topnav"
-    }
-  }
+  "deprecated": {}
 }

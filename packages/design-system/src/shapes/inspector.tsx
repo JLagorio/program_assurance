@@ -1,7 +1,9 @@
-import type { ReactNode } from "react";
+import { useContext, type ReactNode } from "react";
 
 import { Accordion, Collapsible } from "../components/disclosure";
 import { ScrollArea } from "../components/scroll-area";
+import { cn } from "../lib/cn";
+import { PanelContext } from "../lib/panel-context";
 
 export type InspectorGroupData = { title: string; rows: { label: string; value: ReactNode }[] };
 
@@ -16,21 +18,31 @@ function Row({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
-/** Facts that stay put: sticky under the top nav, always present, every group open until the reader folds it. With `sticky` off it is the same groups in a surface that scrolls on its own, the shell's Panel. */
+/** Facts that stay put: sticky under the top nav, always present, every group open until the reader folds it. Inside a Panel it is the same groups in a surface that scrolls on its own; in a flush Panel its rules run edge to edge and the first one sits on the top nav's border. */
 function InspectorRoot({
   groups,
   footer,
-  sticky = true,
+  sticky,
 }: {
   groups: InspectorGroupData[];
   footer?: ReactNode;
+  /** Off inside a Panel by default. */
   sticky?: boolean | undefined;
 }) {
+  const panel = useContext(PanelContext);
+  const isSticky = sticky ?? panel === null;
+  const flush = panel?.flush ?? false;
   const body = (
     <>
       <Accordion type="multiple" defaultValue={groups.map((g) => g.title)} className="border-b-0">
-        {groups.map((g) => (
-          <Accordion.Item key={g.title} value={g.title} title={g.title}>
+        {groups.map((g, index) => (
+          <Accordion.Item
+            key={g.title}
+            value={g.title}
+            title={g.title}
+            inset={flush}
+            className={flush && index === 0 ? "border-t-0" : undefined}
+          >
             <dl className="flex flex-col gap-025">
               {g.rows.map((r) => (
                 <Row key={r.label} label={r.label} value={r.value} />
@@ -39,10 +51,10 @@ function InspectorRoot({
           </Accordion.Item>
         ))}
       </Accordion>
-      {footer ? <div className="pt-150">{footer}</div> : null}
+      {footer ? <div className={cn("pt-150", flush && "px-300 pb-200")}>{footer}</div> : null}
     </>
   );
-  if (!sticky) return <div>{body}</div>;
+  if (!isSticky) return <div>{body}</div>;
   return (
     <aside className="lg:sticky-rail">
       <ScrollArea className="max-h-full">{body}</ScrollArea>
@@ -50,7 +62,7 @@ function InspectorRoot({
   );
 }
 
-/** One group of facts on its own: the folding row of an Inspector segment, open by default, KeyValue rows as children. */
+/** One group of facts on its own: the folding row of an Inspector segment, open by default, KeyValue rows as children. In a flush Panel it is inset and runs edge to edge. */
 function InspectorGroup({
   title,
   children,
@@ -60,8 +72,14 @@ function InspectorGroup({
   children: ReactNode;
   action?: ReactNode;
 }) {
+  const panel = useContext(PanelContext);
   return (
-    <Collapsible title={title} defaultOpen className="first:border-t-0">
+    <Collapsible
+      title={title}
+      defaultOpen
+      inset={panel?.flush ?? false}
+      className="first:border-t-0"
+    >
       {action ? <div className="flex justify-end pb-050">{action}</div> : null}
       <dl className="flex flex-col gap-025">{children}</dl>
     </Collapsible>

@@ -18,8 +18,10 @@ import {
   Inline,
   Inspector,
   KeyValue,
+  Panel,
   RecordHeader,
   Section,
+  Shell as DsShell,
   ShowPage,
   Stack,
   Table,
@@ -157,95 +159,244 @@ function RequirementRecord() {
 
   return (
     <Shell>
-      <ShowPage
-        header={
-          <RecordHeader
-            back={<Link to="/programs/$programId" params={{ programId }} />}
-            id={requirement.id}
-            title={requirement.text}
-            meta={`${program.acronym} · ${requirement.type} · revision ${requirement.revision}`}
-            actions={
-              <Editable.Select
-                label="State"
-                options={requirementStates}
-                value={requirement.state}
-                validate={(next) =>
-                  next === "Approved" && firstUnmet
-                    ? `${firstUnmet.label}: ${firstUnmet.reason}`
-                    : null
+      <>
+        <ShowPage
+          header={
+            <RecordHeader
+              back={<Link to="/programs/$programId" params={{ programId }} />}
+              id={requirement.id}
+              title={requirement.text}
+              meta={`${program.acronym} · ${requirement.type} · revision ${requirement.revision}`}
+              actions={
+                <Editable.Select
+                  label="State"
+                  options={requirementStates}
+                  value={requirement.state}
+                  validate={(next) =>
+                    next === "Approved" && firstUnmet
+                      ? `${firstUnmet.label}: ${firstUnmet.reason}`
+                      : null
+                  }
+                  onChange={(next) => setRequirementField(requirement.id, { state: next })}
+                  save={(next) => saveRequirementField(`${requirement.id} state`, next)}
+                  render={(v) => <Badge tone={requirementStateTone[v]}>{v}</Badge>}
+                />
+              }
+              facts={
+                // The facts you act on, on one line above the fold. Reference
+                // joins live in the rail; these do not, because needing to open a
+                // panel to find out who owns a requirement is the problem.
+                <>
+                  <Fact label="Owner">
+                    <Editable.Text
+                      value={requirement.owner}
+                      onChange={(next) => setRequirementField(requirement.id, { owner: next })}
+                      save={(next) => saveRequirementField(`${requirement.id} owner`, next)}
+                    />
+                  </Fact>
+                  <Fact label="Method">
+                    <Editable.Select
+                      label="Verification method"
+                      options={verificationMethods}
+                      value={requirement.method}
+                      onChange={(next) => setRequirementField(requirement.id, { method: next })}
+                      save={(next) => saveRequirementField(`${requirement.id} method`, next)}
+                    />
+                  </Fact>
+                  <Fact label="Allocations">{allocations.length || "None"}</Fact>
+                  <Fact label="From catalog">
+                    {controlSources.length ? (
+                      <Inline as="span" space="space.050" shouldWrap>
+                        {controlSources.map((d) => (
+                          <TextLink key={d.sourceId}>
+                            <Link
+                              to="/programs/$programId/controls/$controlId"
+                              params={{ programId, controlId: d.sourceId }}
+                              search={{ tab: undefined }}
+                            >
+                              <Id>{d.sourceId}</Id>
+                            </Link>
+                          </TextLink>
+                        ))}
+                      </Inline>
+                    ) : (
+                      <span className="text-warning">None</span>
+                    )}
+                  </Fact>
+                </>
+              }
+            />
+          }
+          tabs={
+            <Tabs>
+              {(
+                [
+                  ["Overview", allocations.length || null],
+                  ["Provenance", requirement.derivations.length || null],
+                ] as [RequirementTab, number | null][]
+              ).map(([key, count]) => (
+                <Tabs.Tab
+                  key={key}
+                  isSelected={tab === key}
+                  onClick={() => go(key)}
+                  count={count || null}
+                >
+                  {key}
+                </Tabs.Tab>
+              ))}
+            </Tabs>
+          }
+        >
+          {tab === "Overview" ? (
+            <>
+              {needs.length ? (
+                <Block title="Needs" count={needs.length}>
+                  <Gates>
+                    {needs.map((n) => (
+                      <Gates.Item
+                        key={n.key}
+                        met={false}
+                        label={n.label}
+                        reason={n.reason}
+                        action={
+                          n.key === "allocate" ? (
+                            <Button size="small" variant="link" onClick={() => setAllocating(true)}>
+                              Allocate
+                            </Button>
+                          ) : undefined
+                        }
+                      />
+                    ))}
+                  </Gates>
+                </Block>
+              ) : null}
+              <Section
+                title="Allocation"
+                action={
+                  <Button size="small" onClick={() => setAllocating(true)}>
+                    Allocate to…
+                  </Button>
                 }
-                onChange={(next) => setRequirementField(requirement.id, { state: next })}
-                save={(next) => saveRequirementField(`${requirement.id} state`, next)}
-                render={(v) => <Badge tone={requirementStateTone[v]}>{v}</Badge>}
-              />
-            }
-            facts={
-              // The facts you act on, on one line above the fold. Reference
-              // joins live in the rail; these do not, because needing to open a
-              // panel to find out who owns a requirement is the problem.
-              <>
-                <Fact label="Owner">
-                  <Editable.Text
-                    value={requirement.owner}
-                    onChange={(next) => setRequirementField(requirement.id, { owner: next })}
-                    save={(next) => saveRequirementField(`${requirement.id} owner`, next)}
-                  />
-                </Fact>
-                <Fact label="Method">
-                  <Editable.Select
-                    label="Verification method"
-                    options={verificationMethods}
-                    value={requirement.method}
-                    onChange={(next) => setRequirementField(requirement.id, { method: next })}
-                    save={(next) => saveRequirementField(`${requirement.id} method`, next)}
-                  />
-                </Fact>
-                <Fact label="Allocations">{allocations.length || "None"}</Fact>
-                <Fact label="From catalog">
-                  {controlSources.length ? (
-                    <Inline as="span" space="space.050" shouldWrap>
-                      {controlSources.map((d) => (
-                        <TextLink key={d.sourceId}>
-                          <Link
-                            to="/programs/$programId/controls/$controlId"
-                            params={{ programId, controlId: d.sourceId }}
-                            search={{ tab: undefined }}
-                          >
-                            <Id>{d.sourceId}</Id>
-                          </Link>
-                        </TextLink>
-                      ))}
-                    </Inline>
-                  ) : (
-                    <span className="text-warning">None</span>
-                  )}
-                </Fact>
-              </>
-            }
-          />
-        }
-        tabs={
-          <Tabs>
-            {(
-              [
-                ["Overview", allocations.length || null],
-                ["Provenance", requirement.derivations.length || null],
-              ] as [RequirementTab, number | null][]
-            ).map(([key, count]) => (
-              <Tabs.Tab
-                key={key}
-                isSelected={tab === key}
-                onClick={() => go(key)}
-                count={count || null}
               >
-                {key}
-              </Tabs.Tab>
-            ))}
-          </Tabs>
-        }
-        showRail={tab === "Overview"}
-        rail={
-          <>
+                <AllocationTable allocations={allocations} programId={programId} editable />
+              </Section>
+              <AllocateElementsSheet
+                open={allocating}
+                onClose={() => setAllocating(false)}
+                programId={programId}
+                requirement={requirement}
+              />
+
+              {children.length > 0 ? (
+                <Section title="Decomposed into">
+                  <RequirementTable
+                    requirements={children}
+                    programId={programId}
+                    allocationCount={(id) => allocationsFor(id).length}
+                  />
+                </Section>
+              ) : null}
+
+              <Section
+                title="Verification"
+                action={
+                  candidates.length ? (
+                    <Combobox
+                      aria-label="Link a test objective"
+                      value=""
+                      onChange={(id) => linkVerification(requirement.id, id, currentSession().name)}
+                      options={candidates.map((o) => ({
+                        value: o.id,
+                        label: `${o.id} · ${o.statement}`,
+                      }))}
+                      placeholder="Link a test objective…"
+                      searchPlaceholder="Search objectives…"
+                      width={260}
+                    />
+                  ) : null
+                }
+              >
+                {objectives.length ? (
+                  <Table className="pt-050">
+                    <thead>
+                      <Table.Row>
+                        <Table.Header width={80}>Objective</Table.Header>
+                        <Table.Header>Statement</Table.Header>
+                        <Table.Header width={220}>Event</Table.Header>
+                        <Table.Header width={120}>Result</Table.Header>
+                        <Table.Header width={96}>Evidence</Table.Header>
+                      </Table.Row>
+                    </thead>
+                    <tbody>
+                      {objectives.map((o) => {
+                        const event = o.event ? eventById.get(o.event) : undefined;
+                        const campaign = event ? campaignById.get(event.campaign) : undefined;
+                        return (
+                          <Table.Row key={o.id}>
+                            <Table.Cell>
+                              <Id>{o.id}</Id>
+                            </Table.Cell>
+                            <Table.Cell className="truncate" title={o.statement}>
+                              {o.statement}
+                            </Table.Cell>
+                            <Table.Cell className="truncate">
+                              {event && campaign ? (
+                                <TextLink>
+                                  <Link
+                                    to="/campaigns/$campaignId"
+                                    params={{ campaignId: campaign.id }}
+                                    title={event.window}
+                                  >
+                                    {event.name}
+                                  </Link>
+                                </TextLink>
+                              ) : (
+                                "—"
+                              )}
+                            </Table.Cell>
+                            <Table.Cell>
+                              <Indicator tone={objectiveTone(o.result)}>{o.result}</Indicator>
+                            </Table.Cell>
+                            <Table.Cell>{o.evidence ? <Id>{o.evidence}</Id> : "—"}</Table.Cell>
+                          </Table.Row>
+                        );
+                      })}
+                    </tbody>
+                  </Table>
+                ) : null}
+                <Fact.Group className="pt-150">
+                  <Fact label="Method">{requirement.method}</Fact>
+                  <Fact label="Success criteria">
+                    <span className="font-body font-regular">
+                      <Editable.Text
+                        value={requirement.successCriteria}
+                        onChange={(next) =>
+                          setRequirementField(requirement.id, { successCriteria: next })
+                        }
+                        save={(next) =>
+                          saveRequirementField(`${requirement.id} success criteria`, next)
+                        }
+                      />
+                    </span>
+                  </Fact>
+                </Fact.Group>
+              </Section>
+            </>
+          ) : null}
+
+          {tab === "Provenance" ? (
+            <Section title="Provenance">
+              <ProvenanceTable
+                derivations={requirement.derivations}
+                programId={programId}
+                requirementId={requirement.id}
+              />
+            </Section>
+          ) : null}
+        </ShowPage>
+        <DsShell.Panel label="Details">
+          <DsShell.Panel.Splitter label="Resize details" />
+          <Panel flush>
             <Collapsible
               title="Gates"
               count={unmet.length || null}
@@ -323,156 +474,9 @@ function RequirementRecord() {
                 </TextLink>
               </KeyValue>
             </Inspector.Group>
-          </>
-        }
-      >
-        {tab === "Overview" ? (
-          <>
-            {needs.length ? (
-              <Block title="Needs" count={needs.length}>
-                <Gates>
-                  {needs.map((n) => (
-                    <Gates.Item
-                      key={n.key}
-                      met={false}
-                      label={n.label}
-                      reason={n.reason}
-                      action={
-                        n.key === "allocate" ? (
-                          <Button size="small" variant="link" onClick={() => setAllocating(true)}>
-                            Allocate
-                          </Button>
-                        ) : undefined
-                      }
-                    />
-                  ))}
-                </Gates>
-              </Block>
-            ) : null}
-            <Section
-              title="Allocation"
-              action={
-                <Button size="small" onClick={() => setAllocating(true)}>
-                  Allocate to…
-                </Button>
-              }
-            >
-              <AllocationTable allocations={allocations} programId={programId} editable />
-            </Section>
-            <AllocateElementsSheet
-              open={allocating}
-              onClose={() => setAllocating(false)}
-              programId={programId}
-              requirement={requirement}
-            />
-
-            {children.length > 0 ? (
-              <Section title="Decomposed into">
-                <RequirementTable
-                  requirements={children}
-                  programId={programId}
-                  allocationCount={(id) => allocationsFor(id).length}
-                />
-              </Section>
-            ) : null}
-
-            <Section
-              title="Verification"
-              action={
-                candidates.length ? (
-                  <Combobox
-                    aria-label="Link a test objective"
-                    value=""
-                    onChange={(id) => linkVerification(requirement.id, id, currentSession().name)}
-                    options={candidates.map((o) => ({
-                      value: o.id,
-                      label: `${o.id} · ${o.statement}`,
-                    }))}
-                    placeholder="Link a test objective…"
-                    searchPlaceholder="Search objectives…"
-                    width={260}
-                  />
-                ) : null
-              }
-            >
-              {objectives.length ? (
-                <Table className="pt-050">
-                  <thead>
-                    <Table.Row>
-                      <Table.Header width={80}>Objective</Table.Header>
-                      <Table.Header>Statement</Table.Header>
-                      <Table.Header width={220}>Event</Table.Header>
-                      <Table.Header width={120}>Result</Table.Header>
-                      <Table.Header width={96}>Evidence</Table.Header>
-                    </Table.Row>
-                  </thead>
-                  <tbody>
-                    {objectives.map((o) => {
-                      const event = o.event ? eventById.get(o.event) : undefined;
-                      const campaign = event ? campaignById.get(event.campaign) : undefined;
-                      return (
-                        <Table.Row key={o.id}>
-                          <Table.Cell>
-                            <Id>{o.id}</Id>
-                          </Table.Cell>
-                          <Table.Cell className="truncate" title={o.statement}>
-                            {o.statement}
-                          </Table.Cell>
-                          <Table.Cell className="truncate">
-                            {event && campaign ? (
-                              <TextLink>
-                                <Link
-                                  to="/campaigns/$campaignId"
-                                  params={{ campaignId: campaign.id }}
-                                  title={event.window}
-                                >
-                                  {event.name}
-                                </Link>
-                              </TextLink>
-                            ) : (
-                              "—"
-                            )}
-                          </Table.Cell>
-                          <Table.Cell>
-                            <Indicator tone={objectiveTone(o.result)}>{o.result}</Indicator>
-                          </Table.Cell>
-                          <Table.Cell>{o.evidence ? <Id>{o.evidence}</Id> : "—"}</Table.Cell>
-                        </Table.Row>
-                      );
-                    })}
-                  </tbody>
-                </Table>
-              ) : null}
-              <Fact.Group className="pt-150">
-                <Fact label="Method">{requirement.method}</Fact>
-                <Fact label="Success criteria">
-                  <span className="font-body font-regular">
-                    <Editable.Text
-                      value={requirement.successCriteria}
-                      onChange={(next) =>
-                        setRequirementField(requirement.id, { successCriteria: next })
-                      }
-                      save={(next) =>
-                        saveRequirementField(`${requirement.id} success criteria`, next)
-                      }
-                    />
-                  </span>
-                </Fact>
-              </Fact.Group>
-            </Section>
-          </>
-        ) : null}
-
-        {tab === "Provenance" ? (
-          <Section title="Provenance">
-            <ProvenanceTable
-              derivations={requirement.derivations}
-              programId={programId}
-              requirementId={requirement.id}
-            />
-          </Section>
-        ) : null}
-      </ShowPage>
+          </Panel>
+        </DsShell.Panel>
+      </>
     </Shell>
   );
 }

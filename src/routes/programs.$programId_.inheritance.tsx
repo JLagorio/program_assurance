@@ -17,8 +17,10 @@ import {
   Id,
   Inspector,
   KeyValue,
+  Panel,
   RecordHeader,
   Section,
+  Shell as DsShell,
   ShowPage,
   Tabs,
   TextLink,
@@ -136,146 +138,158 @@ function ProgramInheritance() {
 
   return (
     <Shell>
-      <ShowPage
-        header={
-          <RecordHeader
-            back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
-            id={program.id}
-            title={`${program.name} — inheritance resolution`}
-            meta={`${program.system} · ${program.environment} · impact ${program.impact} · ${plural(rows.length, "inherited control")} from ${plural(providerCount, "provider")}`}
-            actions={
-              <>
-                {failing > 0 ? (
-                  <Badge tone="danger">{failing} provider failed</Badge>
-                ) : (
-                  <Badge tone="success">No failing provider</Badge>
-                )}
-                {unstated > 0 ? <Badge tone="danger">{unstated} obligation unstated</Badge> : null}
-                <TextLink size="small">
-                  <Link to="/programs/$programId" params={{ programId: program.id }}>
-                    Program record
-                  </Link>
-                </TextLink>
-              </>
-            }
-          />
-        }
-        tabs={
-          <Tabs>
-            {inheritanceTabs.map((key) => (
-              <Tabs.Tab
-                key={key}
-                isSelected={tab === key}
-                onClick={() => go(key)}
-                count={counts[key] || null}
-              >
-                {key}
-              </Tabs.Tab>
-            ))}
-          </Tabs>
-        }
-        showRail={tab === "Resolved" && selected !== null}
-        rail={
-          selected ? (
-            <>
-              <ResolutionRail row={selected} />
-              <Inspector.Group title="Joins">
-                <KeyValue label="Provider">
-                  <TextLink>
-                    <Link
-                      to="/library/components/$componentKey"
-                      params={{ componentKey: selected.component.key }}
-                    >
-                      <Id>{selected.component.key}</Id>
-                    </Link>
-                  </TextLink>
-                </KeyValue>
-                <KeyValue label="Control">
-                  <TextLink>
-                    <Link
-                      to="/programs/$programId/controls/$controlId"
-                      params={{ programId: program.id, controlId: selected.control }}
-                    >
-                      <Id>{selected.control}</Id>
-                    </Link>
-                  </TextLink>
-                </KeyValue>
-                <KeyValue label="Matrix">
-                  <TextLink>
-                    <Link to="/programs/$programId/sctm" params={{ programId: program.id }}>
-                      <span className="font-body-small">Open the SCTM</span>
-                    </Link>
-                  </TextLink>
-                </KeyValue>
-                <KeyValue label="Program">
-                  <TextLink>
+      <>
+        <ShowPage
+          header={
+            <RecordHeader
+              back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+              id={program.id}
+              title={`${program.name} — inheritance resolution`}
+              meta={`${program.system} · ${program.environment} · impact ${program.impact} · ${plural(rows.length, "inherited control")} from ${plural(providerCount, "provider")}`}
+              actions={
+                <>
+                  {failing > 0 ? (
+                    <Badge tone="danger">{failing} provider failed</Badge>
+                  ) : (
+                    <Badge tone="success">No failing provider</Badge>
+                  )}
+                  {unstated > 0 ? (
+                    <Badge tone="danger">{unstated} obligation unstated</Badge>
+                  ) : null}
+                  <TextLink size="small">
                     <Link to="/programs/$programId" params={{ programId: program.id }}>
-                      <Id>{program.id}</Id>
+                      Program record
                     </Link>
                   </TextLink>
-                </KeyValue>
-              </Inspector.Group>
+                </>
+              }
+            />
+          }
+          tabs={
+            <Tabs>
+              {inheritanceTabs.map((key) => (
+                <Tabs.Tab
+                  key={key}
+                  isSelected={tab === key}
+                  onClick={() => go(key)}
+                  count={counts[key] || null}
+                >
+                  {key}
+                </Tabs.Tab>
+              ))}
+            </Tabs>
+          }
+        >
+          {tab === "Resolved" ? (
+            <>
+              <Section
+                title="Inheritance posture"
+                description="Every offer a reusable component makes to this system, resolved against the CCP tier ladder and checked against what the consumer actually accepted. A failing provider stays a deficiency here — it is never re-scored as Not assessed, because that would sever the POA&M obligation."
+              >
+                <InheritanceSummaryStats summary={summary} unstated={unstated} />
+              </Section>
+
+              <Section
+                title="Resolved controls"
+                description={`${plural(rows.length, "control")} reach this system. ${drifted} of them were accepted at a version the provider has since moved past; ${summary.current} are current. Select a row to see why that provider won and what is still owed.`}
+              >
+                <ResolutionTable
+                  rows={rows}
+                  selected={selected?.control ?? null}
+                  onSelect={select}
+                />
+              </Section>
             </>
-          ) : null
-        }
-      >
-        {tab === "Resolved" ? (
-          <>
+          ) : null}
+
+          {tab === "Conflicts" ? (
             <Section
-              title="Inheritance posture"
-              description="Every offer a reusable component makes to this system, resolved against the CCP tier ladder and checked against what the consumer actually accepted. A failing provider stays a deficiency here — it is never re-scored as Not assessed, because that would sever the POA&M obligation."
+              title="Why this provider"
+              description="Two components offered the same control. The nearer provider on the eMASS common-control-provider ladder wins, because that is who the AO holds accountable — but the candidate that lost is kept on the record with the reason, not dropped."
             >
-              <InheritanceSummaryStats summary={summary} unstated={unstated} />
+              <Box paddingBlockStart="space.050">
+                <ConflictList items={conflicts} nameOf={nameOf} />
+              </Box>
             </Section>
+          ) : null}
 
+          {tab === "Obligations" ? (
             <Section
-              title="Resolved controls"
-              description={`${plural(rows.length, "control")} reach this system. ${drifted} of them were accepted at a version the provider has since moved past; ${summary.current} are current. Select a row to see why that provider won and what is still owed.`}
+              title="What this system still owes"
+              description={
+                obligations.length === 0
+                  ? "Nothing on this system carries residual work on an inherited control: every offer it accepted is implemented by the provider end to end."
+                  : `${plural(obligations.length, "control")} carry residual work on this side of the boundary — the provider implements part of the control and names the rest as the consumer's. ${
+                      unstated > 0
+                        ? `${unstated} of them name no obligation at all, which is the gap: shared responsibility that nobody has written down.`
+                        : "Each one states what is owed."
+                    }`
+              }
             >
-              <ResolutionTable rows={rows} selected={selected?.control ?? null} onSelect={select} />
+              <Box paddingBlockStart="space.050">
+                <ObligationList rows={obligations} />
+              </Box>
             </Section>
-          </>
-        ) : null}
+          ) : null}
 
-        {tab === "Conflicts" ? (
-          <Section
-            title="Why this provider"
-            description="Two components offered the same control. The nearer provider on the eMASS common-control-provider ladder wins, because that is who the AO holds accountable — but the candidate that lost is kept on the record with the reason, not dropped."
-          >
-            <Box paddingBlockStart="space.050">
-              <ConflictList items={conflicts} nameOf={nameOf} />
-            </Box>
-          </Section>
+          {tab === "Not applicable" ? (
+            <Section
+              title="Offered but not applicable"
+              description="A provider listed this system as a consumer, but the offer is scoped to inventory the system does not carry. These belong in the inherited-controls appendix with the reason, not in the matrix — and not silently missing from either."
+            >
+              <NotApplicableTable rows={notApplicable} />
+            </Section>
+          ) : null}
+        </ShowPage>
+        {tab === "Resolved" && selected !== null ? (
+          <DsShell.Panel label="Details">
+            <DsShell.Panel.Splitter label="Resize details" />
+            <Panel flush>
+              {selected ? (
+                <>
+                  <ResolutionRail row={selected} />
+                  <Inspector.Group title="Joins">
+                    <KeyValue label="Provider">
+                      <TextLink>
+                        <Link
+                          to="/library/components/$componentKey"
+                          params={{ componentKey: selected.component.key }}
+                        >
+                          <Id>{selected.component.key}</Id>
+                        </Link>
+                      </TextLink>
+                    </KeyValue>
+                    <KeyValue label="Control">
+                      <TextLink>
+                        <Link
+                          to="/programs/$programId/controls/$controlId"
+                          params={{ programId: program.id, controlId: selected.control }}
+                        >
+                          <Id>{selected.control}</Id>
+                        </Link>
+                      </TextLink>
+                    </KeyValue>
+                    <KeyValue label="Matrix">
+                      <TextLink>
+                        <Link to="/programs/$programId/sctm" params={{ programId: program.id }}>
+                          <span className="font-body-small">Open the SCTM</span>
+                        </Link>
+                      </TextLink>
+                    </KeyValue>
+                    <KeyValue label="Program">
+                      <TextLink>
+                        <Link to="/programs/$programId" params={{ programId: program.id }}>
+                          <Id>{program.id}</Id>
+                        </Link>
+                      </TextLink>
+                    </KeyValue>
+                  </Inspector.Group>
+                </>
+              ) : null}
+            </Panel>
+          </DsShell.Panel>
         ) : null}
-
-        {tab === "Obligations" ? (
-          <Section
-            title="What this system still owes"
-            description={
-              obligations.length === 0
-                ? "Nothing on this system carries residual work on an inherited control: every offer it accepted is implemented by the provider end to end."
-                : `${plural(obligations.length, "control")} carry residual work on this side of the boundary — the provider implements part of the control and names the rest as the consumer's. ${
-                    unstated > 0
-                      ? `${unstated} of them name no obligation at all, which is the gap: shared responsibility that nobody has written down.`
-                      : "Each one states what is owed."
-                  }`
-            }
-          >
-            <Box paddingBlockStart="space.050">
-              <ObligationList rows={obligations} />
-            </Box>
-          </Section>
-        ) : null}
-
-        {tab === "Not applicable" ? (
-          <Section
-            title="Offered but not applicable"
-            description="A provider listed this system as a consumer, but the offer is scoped to inventory the system does not carry. These belong in the inherited-controls appendix with the reason, not in the matrix — and not silently missing from either."
-          >
-            <NotApplicableTable rows={notApplicable} />
-          </Section>
-        ) : null}
-      </ShowPage>
+      </>
     </Shell>
   );
 }

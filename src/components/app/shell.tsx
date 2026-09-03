@@ -35,8 +35,9 @@ import {
 } from "@ledger/design-system";
 
 /**
- * The product's frame, composed from the package's Shell parts. The sidebar holds objects and
- * queues; it never holds phases, because a phase is a state of a program, reached by opening it.
+ * The product's frame on the package's navigation system. The side nav holds objects and queues;
+ * it never holds phases, because a phase is a state of a program, reached by opening it. A record
+ * route renders its rail into DsShell.Panel from wherever it is; the shell places it.
  */
 const navGroups: {
   label: string;
@@ -78,7 +79,7 @@ const navGroups: {
   },
 ];
 
-const topBarActions = [
+const topNavEnd = [
   [CircleHelp, "Help and shortcuts"],
   [Bell, "Notifications"],
   [Settings, "Settings"],
@@ -87,64 +88,14 @@ const topBarActions = [
 export function Shell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <DsShell
-      sidebar={
-        <DsShell.Sidebar
-          brand={
-            <DsShell.Brand
-              mark={<DsShell.Mark />}
-              name="Equinox"
-              detail="Northwind Corp"
-              onClick={() => undefined}
-            />
-          }
-          footer={
-            <DsShell.User
-              avatar={<Avatar name="Sarah Chen" size="small" />}
-              name="Sarah Chen"
-              role="Compliance lead"
-              onClick={() => undefined}
-            />
-          }
-        >
-          {navGroups.map((group) => (
-            <DsShell.NavGroup key={group.label} label={group.label}>
-              {group.items.map((item) => {
-                const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
-                return (
-                  <DsShell.NavItem
-                    key={item.label}
-                    asChild
-                    icon={item.icon}
-                    isActive={active}
-                    badge={item.badge}
-                  >
-                    <Link to={item.to}>{item.label}</Link>
-                  </DsShell.NavItem>
-                );
-              })}
-            </DsShell.NavGroup>
-          ))}
-        </DsShell.Sidebar>
-      }
-      topBar={
-        <DsShell.TopBar
-          actions={
-            <>
-              <Badge tone="warning" className="hidden sm:inline-flex">
-                Audit window open
-              </Badge>
-              <ModeSwitch className="hidden md:inline-flex" />
-              {topBarActions.map(([Icon, label]) => (
-                <Tooltip key={label} content={label}>
-                  <IconButton label={label} variant="subtle">
-                    <Icon className="size-icon-medium" />
-                  </IconButton>
-                </Tooltip>
-              ))}
-            </>
-          }
-        >
+    <DsShell sideNavShortcut>
+      <DsShell.TopNav>
+        <DsShell.TopNav.Start toggle={<DsShell.SideNav.ToggleButton />}>
+          <DsShell.AppLogo asChild name="Equinox" secondaryName="Northwind Corp">
+            <Link to="/" aria-label="Equinox home" />
+          </DsShell.AppLogo>
+        </DsShell.TopNav.Start>
+        <DsShell.TopNav.Middle>
           <InputGroup
             leading={<Search />}
             trailing={
@@ -166,10 +117,53 @@ export function Shell({ children }: { children: ReactNode }) {
               className="h-control-small"
             />
           </InputGroup>
-        </DsShell.TopBar>
-      }
-    >
-      {children}
+        </DsShell.TopNav.Middle>
+        <DsShell.TopNav.End>
+          <Badge tone="warning" className="hidden sm:inline-flex">
+            Audit window open
+          </Badge>
+          <ModeSwitch />
+          {topNavEnd.map(([Icon, label]) => (
+            <Tooltip key={label} content={label}>
+              <IconButton label={label} variant="subtle">
+                <Icon className="size-icon-medium" />
+              </IconButton>
+            </Tooltip>
+          ))}
+        </DsShell.TopNav.End>
+      </DsShell.TopNav>
+      <DsShell.SideNav>
+        <DsShell.SideNav.Body>
+          {navGroups.map((group) => (
+            <DsShell.SideNav.Section key={group.label} heading={group.label}>
+              {group.items.map((item) => {
+                const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
+                return (
+                  <DsShell.SideNav.Item
+                    key={item.label}
+                    asChild
+                    icon={item.icon}
+                    isActive={active}
+                    badge={item.badge}
+                  >
+                    <Link to={item.to}>{item.label}</Link>
+                  </DsShell.SideNav.Item>
+                );
+              })}
+            </DsShell.SideNav.Section>
+          ))}
+        </DsShell.SideNav.Body>
+        <DsShell.SideNav.Footer>
+          <DsShell.Profile
+            avatar={<Avatar name="Sarah Chen" size="small" />}
+            name="Sarah Chen"
+            role="Compliance lead"
+            onClick={() => undefined}
+          />
+        </DsShell.SideNav.Footer>
+        <DsShell.SideNav.Splitter label="Resize side navigation" />
+      </DsShell.SideNav>
+      <DsShell.Main>{children}</DsShell.Main>
     </DsShell>
   );
 }

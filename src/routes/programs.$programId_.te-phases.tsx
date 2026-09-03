@@ -12,8 +12,10 @@ import {
   Inspector,
   KeyValue,
   NativeSelect,
+  Panel,
   RecordHeader,
   Section,
+  Shell as DsShell,
   ShowPage,
   Table,
   Tabs,
@@ -377,483 +379,499 @@ function ProgramTePhases() {
 
   return (
     <Shell>
-      <ShowPage
-        header={
-          <RecordHeader
-            back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
-            id={program.id}
-            title={`${program.name} — cyber test & evaluation`}
-            meta={`${phases.length} phases · ${programCriteria.length} gate criteria · ${scenarios.length} threat scenarios · ${effects.length} mission effects`}
-            actions={
-              <>
-                {/* A program with no phase record has neither a clean gate nor a
+      <>
+        <ShowPage
+          header={
+            <RecordHeader
+              back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+              id={program.id}
+              title={`${program.name} — cyber test & evaluation`}
+              meta={`${phases.length} phases · ${programCriteria.length} gate criteria · ${scenarios.length} threat scenarios · ${effects.length} mission effects`}
+              actions={
+                <>
+                  {/* A program with no phase record has neither a clean gate nor a
                     dirty one, and claiming "no phase blocked" over an empty
                     record would be the laundering this page exists to avoid. */}
-                {phases.length === 0 ? (
-                  <Badge>No cyber T&amp;E record</Badge>
-                ) : (
-                  <>
-                    <Badge tone={blockedPhases > 0 ? "warning" : "success"}>
-                      {blockedPhases === 0
-                        ? "No phase blocked"
-                        : `${blockedPhases} phase${blockedPhases === 1 ? "" : "s"} blocked`}
-                    </Badge>
-                    <Badge tone={unsignedCount > 0 ? "danger" : "success"}>
-                      {unsignedCount === 0
-                        ? "Every attestation signed"
-                        : `${unsignedCount} unsigned attestation${unsignedCount === 1 ? "" : "s"}`}
-                    </Badge>
-                  </>
-                )}
-                <TextLink size="small">
-                  <Link to="/programs/$programId/composition" params={{ programId: program.id }}>
-                    Composition
-                  </Link>
-                </TextLink>
-                <TextLink size="small">
-                  <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>
-                    Baseline
-                  </Link>
-                </TextLink>
-              </>
-            }
-          />
-        }
-        tabs={
-          <Tabs>
-            {teTabs.map((key) => (
-              <Tabs.Tab
-                key={key}
-                isSelected={tab === key}
-                onClick={() => go(key)}
-                count={counts[key] || null}
-              >
-                {key}
-              </Tabs.Tab>
-            ))}
-          </Tabs>
-        }
-        showRail={railBody !== null}
-        rail={railBody}
-      >
-        {tab === "Phases" ? (
-          <>
-            <Section
-              title="The six-phase model"
-              description="The DoD Cybersecurity Test and Evaluation Guidebook defines six phases, not three. All six are carried here so the model is not wrong about its own shape, and each one names the lifecycle gate it informs. Selecting a phase opens its record in the rail; its gate is one click away."
-              action={
-                <span className="tabular-nums font-body-small text-subtle">
-                  {phases.filter((p) => p.state === "Complete").length} complete ·{" "}
-                  {phases.filter((p) => p.kind === "Developmental").length} developmental ·{" "}
-                  {phases.filter((p) => p.kind === "Operational").length} operational
-                </span>
+                  {phases.length === 0 ? (
+                    <Badge>No cyber T&amp;E record</Badge>
+                  ) : (
+                    <>
+                      <Badge tone={blockedPhases > 0 ? "warning" : "success"}>
+                        {blockedPhases === 0
+                          ? "No phase blocked"
+                          : `${blockedPhases} phase${blockedPhases === 1 ? "" : "s"} blocked`}
+                      </Badge>
+                      <Badge tone={unsignedCount > 0 ? "danger" : "success"}>
+                        {unsignedCount === 0
+                          ? "Every attestation signed"
+                          : `${unsignedCount} unsigned attestation${unsignedCount === 1 ? "" : "s"}`}
+                      </Badge>
+                    </>
+                  )}
+                  <TextLink size="small">
+                    <Link to="/programs/$programId/composition" params={{ programId: program.id }}>
+                      Composition
+                    </Link>
+                  </TextLink>
+                  <TextLink size="small">
+                    <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>
+                      Baseline
+                    </Link>
+                  </TextLink>
+                </>
               }
-            >
-              {phases.length === 0 ? (
-                <Box paddingBlockStart="space.200">
-                  <Empty
-                    title="No cyber T&E phases recorded"
-                    description={`${program.id} carries no phase record, so there is no gate to judge and no threat portrayal to execute against.`}
-                  />
-                </Box>
-              ) : (
-                <PhaseTrack
-                  phases={phases}
-                  readiness={readiness}
-                  selected={selectedPhase?.id ?? null}
-                  onSelect={selectPhase}
-                  campaignName={campaignName}
-                />
-              )}
-            </Section>
-
-            {phases.length === 0 ? null : (
+            />
+          }
+          tabs={
+            <Tabs>
+              {teTabs.map((key) => (
+                <Tabs.Tab
+                  key={key}
+                  isSelected={tab === key}
+                  onClick={() => go(key)}
+                  count={counts[key] || null}
+                >
+                  {key}
+                </Tabs.Tab>
+              ))}
+            </Tabs>
+          }
+        >
+          {tab === "Phases" ? (
+            <>
               <Section
-                title="What each phase is executing"
-                description="A phase is a doctrine; a campaign is the work. Two phases carry no campaign at all — they produce the requirement matrix and the attack-surface picture every later phase is judged against, and recording an empty execution against them would be a fiction."
+                title="The six-phase model"
+                description="The DoD Cybersecurity Test and Evaluation Guidebook defines six phases, not three. All six are carried here so the model is not wrong about its own shape, and each one names the lifecycle gate it informs. Selecting a phase opens its record in the rail; its gate is one click away."
+                action={
+                  <span className="tabular-nums font-body-small text-subtle">
+                    {phases.filter((p) => p.state === "Complete").length} complete ·{" "}
+                    {phases.filter((p) => p.kind === "Developmental").length} developmental ·{" "}
+                    {phases.filter((p) => p.kind === "Operational").length} operational
+                  </span>
+                }
               >
-                <Table className="table-fixed">
-                  <thead>
-                    <tr>
-                      <Table.Header width={72}>Phase</Table.Header>
-                      <Table.Header width={120}>Regime</Table.Header>
-                      <Table.Header width={124}>Campaign</Table.Header>
-                      <Table.Header>Scope</Table.Header>
-                      <Table.Header width={168}>Campaign lead</Table.Header>
-                      <Table.Header width={116}>Campaign state</Table.Header>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {phases.flatMap((phase) =>
-                      phase.campaigns.length === 0
-                        ? [
-                            <Table.Row key={phase.id}>
-                              <Table.Cell>
-                                <Id>{phase.id}</Id>
-                              </Table.Cell>
-                              <Table.Cell>{phase.kind}</Table.Cell>
-                              <Table.Cell>—</Table.Cell>
-                              <Table.Cell className="truncate">
-                                No campaign — {phase.short} produces the record later phases are
-                                judged against
-                              </Table.Cell>
-                              <Table.Cell>—</Table.Cell>
-                              <Table.Cell>—</Table.Cell>
-                            </Table.Row>,
-                          ]
-                        : phase.campaigns.map((id) => {
-                            const campaign = campaignById.get(id) ?? null;
-                            return (
-                              <Table.Row key={`${phase.id}-${id}`}>
+                {phases.length === 0 ? (
+                  <Box paddingBlockStart="space.200">
+                    <Empty
+                      title="No cyber T&E phases recorded"
+                      description={`${program.id} carries no phase record, so there is no gate to judge and no threat portrayal to execute against.`}
+                    />
+                  </Box>
+                ) : (
+                  <PhaseTrack
+                    phases={phases}
+                    readiness={readiness}
+                    selected={selectedPhase?.id ?? null}
+                    onSelect={selectPhase}
+                    campaignName={campaignName}
+                  />
+                )}
+              </Section>
+
+              {phases.length === 0 ? null : (
+                <Section
+                  title="What each phase is executing"
+                  description="A phase is a doctrine; a campaign is the work. Two phases carry no campaign at all — they produce the requirement matrix and the attack-surface picture every later phase is judged against, and recording an empty execution against them would be a fiction."
+                >
+                  <Table className="table-fixed">
+                    <thead>
+                      <tr>
+                        <Table.Header width={72}>Phase</Table.Header>
+                        <Table.Header width={120}>Regime</Table.Header>
+                        <Table.Header width={124}>Campaign</Table.Header>
+                        <Table.Header>Scope</Table.Header>
+                        <Table.Header width={168}>Campaign lead</Table.Header>
+                        <Table.Header width={116}>Campaign state</Table.Header>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {phases.flatMap((phase) =>
+                        phase.campaigns.length === 0
+                          ? [
+                              <Table.Row key={phase.id}>
                                 <Table.Cell>
                                   <Id>{phase.id}</Id>
                                 </Table.Cell>
                                 <Table.Cell>{phase.kind}</Table.Cell>
-                                <Table.Cell>
-                                  <TextLink>
-                                    <Link to="/campaigns/$campaignId" params={{ campaignId: id }}>
-                                      <Id>{id}</Id>
-                                    </Link>
-                                  </TextLink>
-                                </Table.Cell>
-                                <Table.Cell className="truncate" title={campaign?.scope ?? ""}>
-                                  {campaign ? `${campaign.name} — ${campaign.scope}` : "—"}
-                                </Table.Cell>
+                                <Table.Cell>—</Table.Cell>
                                 <Table.Cell className="truncate">
-                                  {campaign?.lead ?? "—"}
+                                  No campaign — {phase.short} produces the record later phases are
+                                  judged against
                                 </Table.Cell>
-                                <Table.Cell>
-                                  {campaign ? (
-                                    <Badge tone={statusTone(campaign.state)}>
-                                      {campaign.state}
-                                    </Badge>
-                                  ) : (
-                                    <span className="text-subtle">—</span>
-                                  )}
-                                </Table.Cell>
-                              </Table.Row>
-                            );
-                          }),
-                    )}
-                  </tbody>
-                </Table>
-              </Section>
-            )}
-          </>
-        ) : null}
+                                <Table.Cell>—</Table.Cell>
+                                <Table.Cell>—</Table.Cell>
+                              </Table.Row>,
+                            ]
+                          : phase.campaigns.map((id) => {
+                              const campaign = campaignById.get(id) ?? null;
+                              return (
+                                <Table.Row key={`${phase.id}-${id}`}>
+                                  <Table.Cell>
+                                    <Id>{phase.id}</Id>
+                                  </Table.Cell>
+                                  <Table.Cell>{phase.kind}</Table.Cell>
+                                  <Table.Cell>
+                                    <TextLink>
+                                      <Link to="/campaigns/$campaignId" params={{ campaignId: id }}>
+                                        <Id>{id}</Id>
+                                      </Link>
+                                    </TextLink>
+                                  </Table.Cell>
+                                  <Table.Cell className="truncate" title={campaign?.scope ?? ""}>
+                                    {campaign ? `${campaign.name} — ${campaign.scope}` : "—"}
+                                  </Table.Cell>
+                                  <Table.Cell className="truncate">
+                                    {campaign?.lead ?? "—"}
+                                  </Table.Cell>
+                                  <Table.Cell>
+                                    {campaign ? (
+                                      <Badge tone={statusTone(campaign.state)}>
+                                        {campaign.state}
+                                      </Badge>
+                                    ) : (
+                                      <span className="text-subtle">—</span>
+                                    )}
+                                  </Table.Cell>
+                                </Table.Row>
+                              );
+                            }),
+                      )}
+                    </tbody>
+                  </Table>
+                </Section>
+              )}
+            </>
+          ) : null}
 
-        {tab === "Gate readiness" ? (
-          <>
-            {selectedPhase && selectedReadiness ? (
-              <>
-                <Toolbar
-                  actions={
-                    <span className="tabular-nums font-body-small text-subtle">
-                      {derivedCount} derived · {attestedCount} attested · {unsignedCount} unsigned
-                    </span>
-                  }
-                >
-                  <span className="font-body-small text-subtle">Phase</span>
-                  <NativeSelect
-                    value={selectedPhase.id}
-                    onChange={(e) => {
-                      const next = e.target.value;
-                      if (isPhaseId(next)) selectPhase(next);
-                    }}
-                    aria-label="Phase"
-                    className="h-control-small font-body"
-                    style={{ width: 560 }}
+          {tab === "Gate readiness" ? (
+            <>
+              {selectedPhase && selectedReadiness ? (
+                <>
+                  <Toolbar
+                    actions={
+                      <span className="tabular-nums font-body-small text-subtle">
+                        {derivedCount} derived · {attestedCount} attested · {unsignedCount} unsigned
+                      </span>
+                    }
                   >
-                    {phases.map((p) => {
-                      const r = readiness.get(p.id);
-                      return (
-                        <option key={p.id} value={p.id}>
-                          {p.id} — {p.short} — {p.kind} — {p.state}
-                          {r
-                            ? ` — entry ${r.entryMet}/${r.entryTotal}, exit ${r.exitMet}/${r.exitTotal}`
-                            : ""}
-                        </option>
-                      );
-                    })}
-                  </NativeSelect>
-                </Toolbar>
+                    <span className="font-body-small text-subtle">Phase</span>
+                    <NativeSelect
+                      value={selectedPhase.id}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        if (isPhaseId(next)) selectPhase(next);
+                      }}
+                      aria-label="Phase"
+                      className="h-control-small font-body"
+                      style={{ width: 560 }}
+                    >
+                      {phases.map((p) => {
+                        const r = readiness.get(p.id);
+                        return (
+                          <option key={p.id} value={p.id}>
+                            {p.id} — {p.short} — {p.kind} — {p.state}
+                            {r
+                              ? ` — entry ${r.entryMet}/${r.entryTotal}, exit ${r.exitMet}/${r.exitTotal}`
+                              : ""}
+                          </option>
+                        );
+                      })}
+                    </NativeSelect>
+                  </Toolbar>
 
+                  <Section
+                    title={`${selectedPhase.id} — ${selectedPhase.name}`}
+                    description={selectedPhase.purpose}
+                    action={
+                      <span className="font-body-small text-subtle">
+                        Informs {selectedPhase.gate}
+                      </span>
+                    }
+                  >
+                    <PhaseReadinessSummary
+                      phase={selectedPhase}
+                      readiness={selectedReadiness}
+                      criteria={phaseCriteria}
+                    />
+                  </Section>
+
+                  <Section
+                    title="Entry criteria"
+                    description="What has to be true before the phase may open. A derived criterion is recomputed on every render from the SCTM, the finding register, the scan record, the run log, the change log and the composition graph; an attested one reports a signature, because no platform can judge whether an agreement was negotiated in good faith."
+                  >
+                    <CriteriaTable
+                      criteria={phaseCriteria}
+                      results={criterionResults}
+                      kind="Entry"
+                    />
+                  </Section>
+
+                  <Section
+                    title="Exit criteria"
+                    description="What has to be true before the phase may close. These are re-read against today's register rather than against the record as it stood on the day the phase was signed off — which is why a phase can be Complete and still fail its own exit criteria here. That divergence is the point of a derived gate, and it is reported rather than reconciled away."
+                  >
+                    <CriteriaTable
+                      criteria={phaseCriteria}
+                      results={criterionResults}
+                      kind="Exit"
+                    />
+                  </Section>
+
+                  <Section
+                    title="Why two kinds of criterion"
+                    description="A phase gate that is a row of checkboxes proves nothing: it records that somebody ticked, not that anything is true."
+                  >
+                    <Grid
+                      className="pt-200"
+                      gap="space.150"
+                      templateColumns={{ sm: "repeat(2, minmax(0, 1fr))" }}
+                    >
+                      <Box
+                        className="rounded-large border border-brand bg-selected"
+                        paddingInline="space.200"
+                        paddingBlock="space.150"
+                      >
+                        <Inline space="space.100" alignBlock="baseline">
+                          <span className="tabular-nums font-heading-small font-semibold text-brand">
+                            {derivedCount}
+                          </span>
+                          <span className="font-body-small font-medium">derived</span>
+                        </Inline>
+                        <p className="pt-075 font-body-small text-subtle">
+                          Computed from records the platform already holds, and re-computed every
+                          time anything underneath them moves. Each one prints the sentence it
+                          produced, with the real numbers in it and the ids it read, so a reader can
+                          go and disagree with the arithmetic rather than with the verdict.
+                        </p>
+                      </Box>
+                      <Box
+                        className="rounded-large border border-default bg-surface-sunken"
+                        paddingInline="space.200"
+                        paddingBlock="space.150"
+                      >
+                        <Inline space="space.100" alignBlock="baseline">
+                          <span className="tabular-nums font-heading-small font-semibold">
+                            {attestedCount}
+                          </span>
+                          <span className="font-body-small font-medium">attested</span>
+                        </Inline>
+                        <p className="pt-075 font-body-small text-subtle">
+                          A signed test plan, an approved threat portrayal, an ROE agreement, an
+                          operational test agency concurrence. No selector can judge these, so the
+                          platform does not pretend to — it records who signed and when, and{" "}
+                          {unsignedCount === 0
+                            ? "every one of them is on file."
+                            : `${unsignedCount} of them ${unsignedCount === 1 ? "has" : "have"} no signature at all, which is rendered as the gap it is rather than as a pending computation.`}
+                        </p>
+                      </Box>
+                    </Grid>
+                  </Section>
+                </>
+              ) : (
+                <Box paddingBlockStart="space.200">
+                  <Empty
+                    title="No phase to judge"
+                    description={`${program.id} carries no cyber T&E phase record, so there is no entry or exit criterion to evaluate.`}
+                  />
+                </Box>
+              )}
+            </>
+          ) : null}
+
+          {tab === "Threat scenarios" ? (
+            scenarios.length === 0 ? (
+              <Box paddingBlockStart="space.200">
+                <Empty
+                  title="No threat scenario written"
+                  description={`${program.id} carries no threat portrayal, so there is no attack surface characterised and nothing for a red team to execute against.`}
+                />
+              </Box>
+            ) : (
+              <>
                 <Section
-                  title={`${selectedPhase.id} — ${selectedPhase.name}`}
-                  description={selectedPhase.purpose}
+                  title="Attack surface exercised"
+                  description="Every technique below is a real ATT&CK id with its published name and tactic, and every scenario path is walked against the actual composition graph. A scenario whose path is not traversable is the same class of defect as a fabricated technique id, so the walk is printed rather than asserted."
                   action={
-                    <span className="font-body-small text-subtle">
-                      Informs {selectedPhase.gate}
+                    <span className="tabular-nums font-body-small text-subtle">
+                      {brokenPaths === 0
+                        ? "Every path traversable"
+                        : `${brokenPaths} unwalkable path${brokenPaths === 1 ? "" : "s"}`}
                     </span>
                   }
                 >
-                  <PhaseReadinessSummary
-                    phase={selectedPhase}
-                    readiness={selectedReadiness}
-                    criteria={phaseCriteria}
-                  />
+                  <AttackSurfaceSummary coverage={coverage} scenarios={scenarios} />
                 </Section>
 
                 <Section
-                  title="Entry criteria"
-                  description="What has to be true before the phase may open. A derived criterion is recomputed on every render from the SCTM, the finding register, the scan record, the run log, the change log and the composition graph; an attested one reports a signature, because no platform can judge whether an agreement was negotiated in good faith."
+                  title="Threat scenarios"
+                  description="Tier is a property of the portrayal, not a verdict: a DoD Cyber Table Top tier VI adversary is a different assumption about who is attacking, not worse news than a tier II one. Cooperative CVPA scenarios and adversarial AA scenarios sit in the same table because they cover the same surface — the phase column says which regime authored each."
+                  action={
+                    <span className="tabular-nums font-body-small text-subtle">
+                      {coverage.exercised} executed of {scenarios.length}
+                    </span>
+                  }
                 >
-                  <CriteriaTable criteria={phaseCriteria} results={criterionResults} kind="Entry" />
+                  <Box paddingBlockStart="space.100">
+                    <ScenarioTable
+                      scenarios={scenarios}
+                      selected={selectedScenario?.id ?? null}
+                      onSelect={selectScenario}
+                      phaseShort={phaseShort}
+                      showPhase
+                    />
+                  </Box>
                 </Section>
 
-                <Section
-                  title="Exit criteria"
-                  description="What has to be true before the phase may close. These are re-read against today's register rather than against the record as it stood on the day the phase was signed off — which is why a phase can be Complete and still fail its own exit criteria here. That divergence is the point of a derived gate, and it is reported rather than reconciled away."
-                >
-                  <CriteriaTable criteria={phaseCriteria} results={criterionResults} kind="Exit" />
-                </Section>
+                {selectedScenario ? (
+                  <Section
+                    title="Chain and path"
+                    description="The ordered technique chain, and beneath it the walk through the system it claims. Each hop names the reachability edge or the containment link that carries it, so the claim can be checked on the composition page rather than believed."
+                    action={
+                      <TextLink size="small">
+                        <Link
+                          to="/programs/$programId/composition"
+                          params={{ programId: program.id }}
+                          // The entry point is where the reader wants to land: the
+                          // composition tree opens on the assumed foothold rather
+                          // than on the system root.
+                          search={
+                            selectedScenario.path[0] ? { node: selectedScenario.path[0] } : {}
+                          }
+                        >
+                          Open in composition
+                        </Link>
+                      </TextLink>
+                    }
+                  >
+                    <Box paddingBlockStart="space.200">
+                      <AttackChain
+                        scenario={selectedScenario}
+                        path={scenarioPath}
+                        hops={scenarioHops}
+                        effects={scenarioEffects}
+                      />
+                    </Box>
+                  </Section>
+                ) : null}
+              </>
+            )
+          ) : null}
 
+          {tab === "Mission effects" ? (
+            effects.length === 0 ? (
+              <Box paddingBlockStart="space.200">
+                <Empty
+                  title="No mission effect recorded"
+                  description={`${program.id} has executed no scenario against a mission function, so there is nothing to score. An adversarial assessment with no recorded effect has not been run — it is not a clean result.`}
+                />
+              </Box>
+            ) : (
+              <>
                 <Section
-                  title="Why two kinds of criterion"
-                  description="A phase gate that is a row of checkboxes proves nothing: it records that somebody ticked, not that anything is true."
+                  title="What the adversary did to the mission"
+                  description="An adversarial assessment is scored in mission effect, not in findings count — an AA that reports twelve CAT II findings and no mission effect has missed its own point. Each row records what an operator would have seen, how long it lasted and what they could do about it."
+                  action={
+                    <span className="tabular-nums font-body-small text-subtle">
+                      {effects.filter((e) => e.effect === "No effect").length} of {effects.length}{" "}
+                      with no effect
+                    </span>
+                  }
                 >
                   <Grid
                     className="pt-200"
                     gap="space.150"
-                    templateColumns={{ sm: "repeat(2, minmax(0, 1fr))" }}
+                    templateColumns={{ sm: "repeat(3, minmax(0, 1fr))" }}
                   >
                     <Box
-                      className="rounded-large border border-brand bg-selected"
+                      className="rounded-large border border-danger-subtle bg-danger"
                       paddingInline="space.200"
                       paddingBlock="space.150"
                     >
                       <Inline space="space.100" alignBlock="baseline">
-                        <span className="tabular-nums font-heading-small font-semibold text-brand">
-                          {derivedCount}
+                        <span className="tabular-nums font-heading-small font-semibold text-danger">
+                          {
+                            effects.filter(
+                              (e) =>
+                                e.effect === "Denied" ||
+                                e.effect === "Destroyed" ||
+                                e.effect === "Exfiltrated",
+                            ).length
+                          }
                         </span>
-                        <span className="font-body-small font-medium">derived</span>
+                        <span className="font-body-small font-medium">mission denied or taken</span>
                       </Inline>
                       <p className="pt-075 font-body-small text-subtle">
-                        Computed from records the platform already holds, and re-computed every time
-                        anything underneath them moves. Each one prints the sentence it produced,
-                        with the real numbers in it and the ids it read, so a reader can go and
-                        disagree with the arithmetic rather than with the verdict.
+                        The adversary stopped the mission, destroyed what it runs on, or took the
+                        data it runs on. These are the results a findings count cannot express.
                       </p>
                     </Box>
                     <Box
-                      className="rounded-large border border-default bg-surface-sunken"
+                      className="rounded-large border border-warning-subtle bg-warning"
                       paddingInline="space.200"
                       paddingBlock="space.150"
                     >
                       <Inline space="space.100" alignBlock="baseline">
-                        <span className="tabular-nums font-heading-small font-semibold">
-                          {attestedCount}
+                        <span className="tabular-nums font-heading-small font-semibold text-warning">
+                          {
+                            effects.filter(
+                              (e) => e.effect === "Degraded" || e.effect === "Manipulated",
+                            ).length
+                          }
                         </span>
-                        <span className="font-body-small font-medium">attested</span>
+                        <span className="font-body-small font-medium">degraded or manipulated</span>
                       </Inline>
                       <p className="pt-075 font-body-small text-subtle">
-                        A signed test plan, an approved threat portrayal, an ROE agreement, an
-                        operational test agency concurrence. No selector can judge these, so the
-                        platform does not pretend to — it records who signed and when, and{" "}
-                        {unsignedCount === 0
-                          ? "every one of them is on file."
-                          : `${unsignedCount} of them ${unsignedCount === 1 ? "has" : "have"} no signature at all, which is rendered as the gap it is rather than as a pending computation.`}
+                        The mission continued, worse or wrong. A degraded effect with a workaround
+                        is still an effect: the workaround is manual, and the page names it so the
+                        cost is visible.
+                      </p>
+                    </Box>
+                    <Box
+                      className="rounded-large border border-success-subtle bg-success"
+                      paddingInline="space.200"
+                      paddingBlock="space.150"
+                    >
+                      <Inline space="space.100" alignBlock="baseline">
+                        <span className="tabular-nums font-heading-small font-semibold text-success">
+                          {effects.filter((e) => e.effect === "No effect").length}
+                        </span>
+                        <span className="font-body-small font-medium">no effect</span>
+                      </Inline>
+                      <p className="pt-075 font-body-small text-subtle">
+                        Executed, and the objective was not achieved — the control held and refused
+                        the adversary. That is a result, and a product that records only the
+                        successes is lying about what the assessment found.
                       </p>
                     </Box>
                   </Grid>
                 </Section>
-              </>
-            ) : (
-              <Box paddingBlockStart="space.200">
-                <Empty
-                  title="No phase to judge"
-                  description={`${program.id} carries no cyber T&E phase record, so there is no entry or exit criterion to evaluate.`}
-                />
-              </Box>
-            )}
-          </>
-        ) : null}
 
-        {tab === "Threat scenarios" ? (
-          scenarios.length === 0 ? (
-            <Box paddingBlockStart="space.200">
-              <Empty
-                title="No threat scenario written"
-                description={`${program.id} carries no threat portrayal, so there is no attack surface characterised and nothing for a red team to execute against.`}
-              />
-            </Box>
-          ) : (
-            <>
-              <Section
-                title="Attack surface exercised"
-                description="Every technique below is a real ATT&CK id with its published name and tactic, and every scenario path is walked against the actual composition graph. A scenario whose path is not traversable is the same class of defect as a fabricated technique id, so the walk is printed rather than asserted."
-                action={
-                  <span className="tabular-nums font-body-small text-subtle">
-                    {brokenPaths === 0
-                      ? "Every path traversable"
-                      : `${brokenPaths} unwalkable path${brokenPaths === 1 ? "" : "s"}`}
-                  </span>
-                }
-              >
-                <AttackSurfaceSummary coverage={coverage} scenarios={scenarios} />
-              </Section>
-
-              <Section
-                title="Threat scenarios"
-                description="Tier is a property of the portrayal, not a verdict: a DoD Cyber Table Top tier VI adversary is a different assumption about who is attacking, not worse news than a tier II one. Cooperative CVPA scenarios and adversarial AA scenarios sit in the same table because they cover the same surface — the phase column says which regime authored each."
-                action={
-                  <span className="tabular-nums font-body-small text-subtle">
-                    {coverage.exercised} executed of {scenarios.length}
-                  </span>
-                }
-              >
-                <Box paddingBlockStart="space.100">
-                  <ScenarioTable
-                    scenarios={scenarios}
-                    selected={selectedScenario?.id ?? null}
-                    onSelect={selectScenario}
-                    phaseShort={phaseShort}
-                    showPhase
-                  />
-                </Box>
-              </Section>
-
-              {selectedScenario ? (
                 <Section
-                  title="Chain and path"
-                  description="The ordered technique chain, and beneath it the walk through the system it claims. Each hop names the reachability edge or the containment link that carries it, so the claim can be checked on the composition page rather than believed."
-                  action={
-                    <TextLink size="small">
-                      <Link
-                        to="/programs/$programId/composition"
-                        params={{ programId: program.id }}
-                        // The entry point is where the reader wants to land: the
-                        // composition tree opens on the assumed foothold rather
-                        // than on the system root.
-                        search={selectedScenario.path[0] ? { node: selectedScenario.path[0] } : {}}
-                      >
-                        Open in composition
-                      </Link>
-                    </TextLink>
-                  }
+                  title="Confirmed effects"
+                  description="Each effect names the run or event that confirmed it, whether it was reproduced on a second attempt, and the finding it raised. An effect with no finding and no workaround is what blocks the adversarial assessment's exit criterion."
                 >
-                  <Box paddingBlockStart="space.200">
-                    <AttackChain
-                      scenario={selectedScenario}
-                      path={scenarioPath}
-                      hops={scenarioHops}
-                      effects={scenarioEffects}
-                    />
+                  <Box paddingBlockStart="space.100">
+                    <MissionEffectTable effects={effects} scenarioName={scenarioName} />
                   </Box>
                 </Section>
-              ) : null}
-            </>
-          )
-        ) : null}
 
-        {tab === "Mission effects" ? (
-          effects.length === 0 ? (
-            <Box paddingBlockStart="space.200">
-              <Empty
-                title="No mission effect recorded"
-                description={`${program.id} has executed no scenario against a mission function, so there is nothing to score. An adversarial assessment with no recorded effect has not been run — it is not a clean result.`}
-              />
-            </Box>
-          ) : (
-            <>
-              <Section
-                title="What the adversary did to the mission"
-                description="An adversarial assessment is scored in mission effect, not in findings count — an AA that reports twelve CAT II findings and no mission effect has missed its own point. Each row records what an operator would have seen, how long it lasted and what they could do about it."
-                action={
-                  <span className="tabular-nums font-body-small text-subtle">
-                    {effects.filter((e) => e.effect === "No effect").length} of {effects.length}{" "}
-                    with no effect
-                  </span>
-                }
-              >
-                <Grid
-                  className="pt-200"
-                  gap="space.150"
-                  templateColumns={{ sm: "repeat(3, minmax(0, 1fr))" }}
+                <Section
+                  title="Mission functions touched"
+                  description="The same read-out from the mission's side rather than the adversary's: which functions have been exercised at all, and what the worst recorded outcome against each of them was."
                 >
-                  <Box
-                    className="rounded-large border border-danger-subtle bg-danger"
-                    paddingInline="space.200"
-                    paddingBlock="space.150"
-                  >
-                    <Inline space="space.100" alignBlock="baseline">
-                      <span className="tabular-nums font-heading-small font-semibold text-danger">
-                        {
-                          effects.filter(
-                            (e) =>
-                              e.effect === "Denied" ||
-                              e.effect === "Destroyed" ||
-                              e.effect === "Exfiltrated",
-                          ).length
-                        }
-                      </span>
-                      <span className="font-body-small font-medium">mission denied or taken</span>
-                    </Inline>
-                    <p className="pt-075 font-body-small text-subtle">
-                      The adversary stopped the mission, destroyed what it runs on, or took the data
-                      it runs on. These are the results a findings count cannot express.
-                    </p>
-                  </Box>
-                  <Box
-                    className="rounded-large border border-warning-subtle bg-warning"
-                    paddingInline="space.200"
-                    paddingBlock="space.150"
-                  >
-                    <Inline space="space.100" alignBlock="baseline">
-                      <span className="tabular-nums font-heading-small font-semibold text-warning">
-                        {
-                          effects.filter(
-                            (e) => e.effect === "Degraded" || e.effect === "Manipulated",
-                          ).length
-                        }
-                      </span>
-                      <span className="font-body-small font-medium">degraded or manipulated</span>
-                    </Inline>
-                    <p className="pt-075 font-body-small text-subtle">
-                      The mission continued, worse or wrong. A degraded effect with a workaround is
-                      still an effect: the workaround is manual, and the page names it so the cost
-                      is visible.
-                    </p>
-                  </Box>
-                  <Box
-                    className="rounded-large border border-success-subtle bg-success"
-                    paddingInline="space.200"
-                    paddingBlock="space.150"
-                  >
-                    <Inline space="space.100" alignBlock="baseline">
-                      <span className="tabular-nums font-heading-small font-semibold text-success">
-                        {effects.filter((e) => e.effect === "No effect").length}
-                      </span>
-                      <span className="font-body-small font-medium">no effect</span>
-                    </Inline>
-                    <p className="pt-075 font-body-small text-subtle">
-                      Executed, and the objective was not achieved — the control held and refused
-                      the adversary. That is a result, and a product that records only the successes
-                      is lying about what the assessment found.
-                    </p>
-                  </Box>
-                </Grid>
-              </Section>
-
-              <Section
-                title="Confirmed effects"
-                description="Each effect names the run or event that confirmed it, whether it was reproduced on a second attempt, and the finding it raised. An effect with no finding and no workaround is what blocks the adversarial assessment's exit criterion."
-              >
-                <Box paddingBlockStart="space.100">
-                  <MissionEffectTable effects={effects} scenarioName={scenarioName} />
-                </Box>
-              </Section>
-
-              <Section
-                title="Mission functions touched"
-                description="The same read-out from the mission's side rather than the adversary's: which functions have been exercised at all, and what the worst recorded outcome against each of them was."
-              >
-                <MissionFunctionTable effects={effects} />
-              </Section>
-            </>
-          )
+                  <MissionFunctionTable effects={effects} />
+                </Section>
+              </>
+            )
+          ) : null}
+        </ShowPage>
+        {railBody !== null ? (
+          <DsShell.Panel label="Details">
+            <DsShell.Panel.Splitter label="Resize details" />
+            <Panel flush>{railBody}</Panel>
+          </DsShell.Panel>
         ) : null}
-      </ShowPage>
+      </>
     </Shell>
   );
 }

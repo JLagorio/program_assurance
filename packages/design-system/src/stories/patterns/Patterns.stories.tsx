@@ -113,32 +113,6 @@ function Show() {
           ))}
         </Tabs>
       }
-      showRail={tab === "overview"}
-      rail={
-        <Stack space="space.300">
-          <dl>
-            <KeyValue label="Owner">Dana Whitfield</KeyValue>
-            <KeyValue label="Status">
-              <Badge tone="success">Verified</Badge>
-            </KeyValue>
-            <KeyValue label="Frequency">Quarterly</KeyValue>
-          </dl>
-          <Related title="Related controls" count={2}>
-            <Related.Row
-              label="CTRL-0418 Vendor master change"
-              meta="Finance"
-              onClick={() => undefined}
-            />
-            <Related.Row
-              label="CTRL-0419 Payment release"
-              meta="Finance"
-              trailing="Due 18 Sep"
-              onClick={() => undefined}
-            />
-          </Related>
-          <Related title="Assessors" empty="No assessor assigned." />
-        </Stack>
-      }
     >
       <Section title="Objective" description="What the control prevents.">
         <Text className="pt-150">
@@ -884,17 +858,6 @@ export const ArchetypesMatrix: Story = {
             <Tabs.Tab count={26}>Controls</Tabs.Tab>
           </Tabs>
         }
-        showRail
-        rail={
-          <Stack space="space.100">
-            <KeyValue label="Owner">
-              <Person name="Grace Hoppel" />
-            </KeyValue>
-            <KeyValue label="Status">
-              <Badge tone="information">In assessment</Badge>
-            </KeyValue>
-          </Stack>
-        }
       >
         <Section title="Control coverage">
           <Text size="small" color="color.text.subtle">
@@ -1051,8 +1014,8 @@ export const PanelStory: Story = {
   name: "Panel",
   render: () => (
     <PanelBox height={420}>
-      <Panel title="Details" onClose={() => undefined}>
-        <Inspector sticky={false} groups={panelGroups} />
+      <Panel flush>
+        <Inspector groups={panelGroups} />
       </Panel>
     </PanelBox>
   ),
@@ -1117,8 +1080,8 @@ export const PanelMatrix: Story = {
             </Panel>
           </PanelBox>
           <PanelBox height={420}>
-            <Panel>
-              <Inspector sticky={false} groups={panelGroups} />
+            <Panel flush>
+              <Inspector groups={panelGroups} />
             </Panel>
           </PanelBox>
           <Inline space="space.100" alignBlock="center">

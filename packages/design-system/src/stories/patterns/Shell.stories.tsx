@@ -501,8 +501,8 @@ function RecordDemo() {
       </Shell.Main>
       <Shell.Panel label="Details">
         <Shell.Panel.Splitter label="Resize details" />
-        <Panel>
-          <Inspector sticky={false} groups={railGroups} />
+        <Panel flush>
+          <Inspector groups={railGroups} />
         </Panel>
       </Shell.Panel>
     </Shell>

@@ -6,9 +6,11 @@ import {
   Inline,
   Inspector,
   KeyValue,
+  Panel,
   Progress,
   RecordHeader,
   Section,
+  Shell as DsShell,
   ShowPage,
   Table,
   TextLink,
@@ -64,25 +66,104 @@ function PersonDetail() {
 
   return (
     <Shell>
-      <ShowPage
-        header={
-          <RecordHeader
-            back={
-              <Link
-                to="/programs/$programId"
-                params={{ programId: streams[0]?.program ?? "PRG-1041" }}
-              />
-            }
-            id={person.id}
-            title={person.name}
-            meta={`${person.title} · ${person.org} · ${person.site}`}
-            actions={<Badge tone="neutral">{person.discipline}</Badge>}
-          />
-        }
-        tabs={<div className="border-b border-default" />}
-        showRail
-        rail={
-          <>
+      <>
+        <ShowPage
+          header={
+            <RecordHeader
+              back={
+                <Link
+                  to="/programs/$programId"
+                  params={{ programId: streams[0]?.program ?? "PRG-1041" }}
+                />
+              }
+              id={person.id}
+              title={person.name}
+              meta={`${person.title} · ${person.org} · ${person.site}`}
+              actions={<Badge tone="neutral">{person.discipline}</Badge>}
+            />
+          }
+          tabs={<div className="border-b border-default" />}
+        >
+          <Section
+            title="Workstreams"
+            description="Everything this person is committed to, and what they do on it."
+          >
+            <Table className="table-fixed">
+              <thead>
+                <tr>
+                  <Table.Header width={104}>Workstream</Table.Header>
+                  <Table.Header>Title</Table.Header>
+                  <Table.Header width={200}>Role</Table.Header>
+                  <Table.Header width={92}>Status</Table.Header>
+                  <Table.Header width={88} className="text-right">
+                    Allocation
+                  </Table.Header>
+                </tr>
+              </thead>
+              <tbody>
+                {streams.map((w) => {
+                  const m = w.members.find((x) => x.person === person.id);
+                  return (
+                    <Table.Row key={w.id}>
+                      <Table.Cell>
+                        <TextLink>
+                          <Link to="/workstreams/$workstreamId" params={{ workstreamId: w.id }}>
+                            <Id>{w.id}</Id>
+                          </Link>
+                        </TextLink>
+                      </Table.Cell>
+                      <Table.Cell className="truncate">{w.title}</Table.Cell>
+                      <Table.Cell className="truncate">
+                        {m?.role ?? (w.lead === person.id ? "Workstream lead" : "—")}
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
+                      </Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">
+                        {m ? `${m.allocation}%` : "—"}
+                      </Table.Cell>
+                    </Table.Row>
+                  );
+                })}
+              </tbody>
+            </Table>
+          </Section>
+
+          <Section
+            title="Works with"
+            description="People sharing at least one workstream — the coordination surface, not the org chart."
+          >
+            <Table className="table-fixed">
+              <thead>
+                <tr>
+                  <Table.Header width={104}>Person</Table.Header>
+                  <Table.Header width={176}>Name</Table.Header>
+                  <Table.Header>Title</Table.Header>
+                  <Table.Header width={156}>Discipline</Table.Header>
+                </tr>
+              </thead>
+              <tbody>
+                {collaborators.map((c) => (
+                  <Table.Row key={c.id}>
+                    <Table.Cell>
+                      <TextLink>
+                        <Link to="/people/$personId" params={{ personId: c.id }}>
+                          <Id>{c.id}</Id>
+                        </Link>
+                      </TextLink>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">{c.name}</Table.Cell>
+                    <Table.Cell className="truncate">{c.title}</Table.Cell>
+                    <Table.Cell className="truncate">{c.discipline}</Table.Cell>
+                  </Table.Row>
+                ))}
+              </tbody>
+            </Table>
+          </Section>
+        </ShowPage>
+        <DsShell.Panel label="Details">
+          <DsShell.Panel.Splitter label="Resize details" />
+          <Panel flush>
             <Inspector.Group title="Profile">
               <KeyValue label="Discipline">{person.discipline}</KeyValue>
               <KeyValue label="Org">{person.org}</KeyValue>
@@ -123,86 +204,9 @@ function PersonDetail() {
                 )}
               </Inline>
             </Inspector.Group>
-          </>
-        }
-      >
-        <Section
-          title="Workstreams"
-          description="Everything this person is committed to, and what they do on it."
-        >
-          <Table className="table-fixed">
-            <thead>
-              <tr>
-                <Table.Header width={104}>Workstream</Table.Header>
-                <Table.Header>Title</Table.Header>
-                <Table.Header width={200}>Role</Table.Header>
-                <Table.Header width={92}>Status</Table.Header>
-                <Table.Header width={88} className="text-right">
-                  Allocation
-                </Table.Header>
-              </tr>
-            </thead>
-            <tbody>
-              {streams.map((w) => {
-                const m = w.members.find((x) => x.person === person.id);
-                return (
-                  <Table.Row key={w.id}>
-                    <Table.Cell>
-                      <TextLink>
-                        <Link to="/workstreams/$workstreamId" params={{ workstreamId: w.id }}>
-                          <Id>{w.id}</Id>
-                        </Link>
-                      </TextLink>
-                    </Table.Cell>
-                    <Table.Cell className="truncate">{w.title}</Table.Cell>
-                    <Table.Cell className="truncate">
-                      {m?.role ?? (w.lead === person.id ? "Workstream lead" : "—")}
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
-                    </Table.Cell>
-                    <Table.Cell className="tabular-nums text-right">
-                      {m ? `${m.allocation}%` : "—"}
-                    </Table.Cell>
-                  </Table.Row>
-                );
-              })}
-            </tbody>
-          </Table>
-        </Section>
-
-        <Section
-          title="Works with"
-          description="People sharing at least one workstream — the coordination surface, not the org chart."
-        >
-          <Table className="table-fixed">
-            <thead>
-              <tr>
-                <Table.Header width={104}>Person</Table.Header>
-                <Table.Header width={176}>Name</Table.Header>
-                <Table.Header>Title</Table.Header>
-                <Table.Header width={156}>Discipline</Table.Header>
-              </tr>
-            </thead>
-            <tbody>
-              {collaborators.map((c) => (
-                <Table.Row key={c.id}>
-                  <Table.Cell>
-                    <TextLink>
-                      <Link to="/people/$personId" params={{ personId: c.id }}>
-                        <Id>{c.id}</Id>
-                      </Link>
-                    </TextLink>
-                  </Table.Cell>
-                  <Table.Cell className="truncate">{c.name}</Table.Cell>
-                  <Table.Cell className="truncate">{c.title}</Table.Cell>
-                  <Table.Cell className="truncate">{c.discipline}</Table.Cell>
-                </Table.Row>
-              ))}
-            </tbody>
-          </Table>
-        </Section>
-      </ShowPage>
+          </Panel>
+        </DsShell.Panel>
+      </>
     </Shell>
   );
 }

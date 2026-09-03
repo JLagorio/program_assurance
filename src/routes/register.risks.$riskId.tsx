@@ -12,9 +12,11 @@ import {
   Inline,
   Inspector,
   KeyValue,
+  Panel,
   Progress,
   RecordHeader,
   Section,
+  Shell as DsShell,
   ShowPage,
   Stack,
   Table,
@@ -92,25 +94,268 @@ function RiskRecord() {
 
   return (
     <Shell>
-      <ShowPage
-        header={
-          <RecordHeader
-            back={<Link to="/register" />}
-            id={risk.id}
-            title={risk.title}
-            meta={`${risk.owner} · reviewed ${risk.reviewed}`}
-            actions={
-              <>
-                <Badge tone={statusTone(risk.disposition)}>{risk.disposition}</Badge>
-                <Button variant="primary">Record AO decision</Button>
-              </>
+      <>
+        <ShowPage
+          header={
+            <RecordHeader
+              back={<Link to="/register" />}
+              id={risk.id}
+              title={risk.title}
+              meta={`${risk.owner} · reviewed ${risk.reviewed}`}
+              actions={
+                <>
+                  <Badge tone={statusTone(risk.disposition)}>{risk.disposition}</Badge>
+                  <Button variant="primary">Record AO decision</Button>
+                </>
+              }
+            />
+          }
+          tabs={<div className="border-b border-default" />}
+        >
+          <Section title="Risk statement">
+            <p className="max-w-layout-measure font-body">{risk.statement}</p>
+            {risk.aoNote ? (
+              <p className="pt-150 max-w-layout-measure font-body-small text-subtle">
+                AO note — {risk.aoNote}
+              </p>
+            ) : null}
+          </Section>
+
+          <Section
+            title="Residual risk"
+            description={
+              computed
+                ? `Computed ${computed.score} of 100 — ${computed.band} — against the assessor's authored ${risk.residual}. Neither number replaces the other.`
+                : "No finding is joined to this risk, so there is nothing to compute a residual from."
             }
-          />
-        }
-        tabs={<div className="border-b border-default" />}
-        showRail
-        rail={
-          <>
+          >
+            {computed && comparison ? (
+              <>
+                <Grid
+                  className="pt-200"
+                  gap="space.150"
+                  templateColumns={{ md: "repeat(2, minmax(0, 1fr))" }}
+                >
+                  <Box className="rounded-medium border border-default" padding="space.150">
+                    <p className="font-heading-xxsmall uppercase text-subtle">
+                      Authored — risk register
+                    </p>
+                    <Inline className="pt-100" space="space.100" alignBlock="baseline">
+                      <span className="tabular-nums font-heading-large font-semibold">
+                        {comparison.authored.residual}
+                      </span>
+                      <span className="font-body-small text-subtle">residual / 100</span>
+                    </Inline>
+                    <Box paddingBlockStart="space.150">
+                      <Progress
+                        value={comparison.authored.residual}
+                        tone={residualTone(risk.residual)}
+                      />
+                    </Box>
+                    <dl className="pt-150 space-y-075 font-body-small">
+                      <Inline space="space.150" alignBlock="baseline" spread="space-between">
+                        <dt className="text-subtle">Likelihood × impact</dt>
+                        <dd className="tabular-nums">
+                          {comparison.authored.likelihood} × {comparison.authored.impact}
+                        </dd>
+                      </Inline>
+                      <Inline space="space.150" alignBlock="baseline" spread="space-between">
+                        <dt className="text-subtle">Inherent</dt>
+                        <dd className="tabular-nums">{comparison.authored.inherent}</dd>
+                      </Inline>
+                      <Inline
+                        className="border-t border-default pt-075"
+                        space="space.150"
+                        alignBlock="baseline"
+                        spread="space-between"
+                      >
+                        <dt className="font-medium">Residual</dt>
+                        <dd className="tabular-nums font-medium">{comparison.authored.residual}</dd>
+                      </Inline>
+                    </dl>
+                    <p className="pt-100 font-body-xsmall text-subtle">
+                      {risk.owner} wrote this down on {risk.reviewed}. It is the number the AO has
+                      seen, and nothing on this page overwrites it.
+                    </p>
+                  </Box>
+
+                  <Box className="rounded-medium border border-default" padding="space.150">
+                    <p className="font-heading-xxsmall uppercase text-subtle">
+                      Computed — evidence trail
+                    </p>
+                    <Inline className="pt-100" space="space.100" alignBlock="baseline">
+                      <span className="tabular-nums font-heading-large font-semibold">
+                        {computed.score}
+                      </span>
+                      <span className="font-body-small text-subtle">residual / 100</span>
+                      <Badge tone={bandTone[computed.band]}>{computed.band}</Badge>
+                    </Inline>
+                    <Box paddingBlockStart="space.150">
+                      <Progress value={computed.score} tone={bandTone[computed.band]} />
+                    </Box>
+                    <dl className="pt-150 space-y-075 font-body-small">
+                      <Inline space="space.150" alignBlock="baseline" spread="space-between">
+                        <dt className="text-subtle">Inherent</dt>
+                        <dd className="tabular-nums">{computed.inherent}</dd>
+                      </Inline>
+                      <Inline space="space.150" alignBlock="baseline" spread="space-between">
+                        <dt className="text-subtle">Mitigation credit</dt>
+                        <dd className={credit < 0 ? "tabular-nums text-success" : "tabular-nums"}>
+                          {signed(credit)}
+                        </dd>
+                      </Inline>
+                      <Inline
+                        className="border-t border-default pt-075"
+                        space="space.150"
+                        alignBlock="baseline"
+                        spread="space-between"
+                      >
+                        <dt className="font-medium">Residual</dt>
+                        <dd className="tabular-nums font-medium">{computed.score}</dd>
+                      </Inline>
+                    </dl>
+                    <p className="pt-100 font-body-xsmall text-subtle">
+                      Aggregated from the {fs.length} joined finding{fs.length === 1 ? "" : "s"} by
+                      taking the worst reading on each of the six factors — a risk is no more
+                      mitigated than its least-mitigated component.
+                    </p>
+                  </Box>
+                </Grid>
+
+                <Box paddingBlockStart="space.200">
+                  <TextBlock label="Disagreement">{comparison.note}</TextBlock>
+                  <TextBlock label="Greatest leverage">{computed.leverage}</TextBlock>
+                  <TextBlock label="Caveats">
+                    {computed.caveats.length === 0 ? (
+                      <span className="text-subtle">
+                        None. Every one of the six terms was computed from live evidence, so the
+                        score is not provisional.
+                      </span>
+                    ) : (
+                      <Stack as="ul" space="space.075">
+                        {computed.caveats.map((c) => (
+                          <Box
+                            key={c}
+                            className="border-s border-default"
+                            as="li"
+                            paddingInlineStart="space.100"
+                          >
+                            {c}
+                          </Box>
+                        ))}
+                      </Stack>
+                    )}
+                  </TextBlock>
+                </Box>
+              </>
+            ) : (
+              <Empty
+                title="Nothing to compute from"
+                description={`${risk.id} has no finding joined to it, so there is no severity, exposure or mission evidence to read. Deriving a residual from the authored likelihood and impact would re-badge the assessor's judgement as a calculation, which is exactly what the score exists to prevent. The authored ${risk.residual} stands on its own.`}
+              />
+            )}
+          </Section>
+
+          {computed ? (
+            <Section
+              title="Calculation"
+              description="Five weighted terms and one credit. Each row carries the input it read, the arithmetic, the ids it rests on, and one sentence an assessor can disagree with."
+            >
+              <FactorTrail factors={computed.factors} score={computed.score} />
+            </Section>
+          ) : null}
+
+          <Section
+            title="Reducing POA&M items"
+            description={
+              poams.length
+                ? "Each commitment below lowers the residual score when it completes."
+                : "Nothing is scheduled against this risk — the residual is untreated."
+            }
+          >
+            {poams.length ? (
+              <Table className="table-fixed">
+                <thead>
+                  <tr>
+                    <Table.Header width={112}>POA&M</Table.Header>
+                    <Table.Header>Weakness</Table.Header>
+                    <Table.Header width={140}>Owner</Table.Header>
+                    <Table.Header width={116}>Scheduled</Table.Header>
+                    <Table.Header width={104}>Status</Table.Header>
+                  </tr>
+                </thead>
+                <tbody>
+                  {poams.map((p) => (
+                    <Table.Row key={p.id}>
+                      <Table.Cell>
+                        <TextLink>
+                          <Link to="/register/poam/$poamId" params={{ poamId: p.id }}>
+                            <Id>{p.id}</Id>
+                          </Link>
+                        </TextLink>
+                      </Table.Cell>
+                      <Table.Cell className="truncate">{p.title}</Table.Cell>
+                      <Table.Cell className="truncate">{p.owner}</Table.Cell>
+                      <Table.Cell className="truncate">{p.scheduledCompletion}</Table.Cell>
+                      <Table.Cell className="truncate">
+                        <Badge tone={statusTone(p.status)}>{p.status}</Badge>
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </tbody>
+              </Table>
+            ) : null}
+          </Section>
+
+          <Section
+            title="Aggregated findings"
+            description={`${openCount(fs)} open of ${fs.length}, across ${ccis.length} CCI${ccis.length === 1 ? "" : "s"}.`}
+          >
+            <Table className="table-fixed">
+              <thead>
+                <tr>
+                  <Table.Header width={112}>Finding</Table.Header>
+                  <Table.Header>Title</Table.Header>
+                  <Table.Header width={104}>CCI</Table.Header>
+                  <Table.Header width={140}>Asset</Table.Header>
+                  <Table.Header width={78}>Severity</Table.Header>
+                  <Table.Header width={112}>Lifecycle</Table.Header>
+                </tr>
+              </thead>
+              <tbody>
+                {fs.map((f) => (
+                  <Table.Row key={f.id}>
+                    <Table.Cell>
+                      <TextLink>
+                        <Link to="/findings/$findingId" params={{ findingId: f.id }}>
+                          <Id>{f.id}</Id>
+                        </Link>
+                      </TextLink>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">{f.title}</Table.Cell>
+                    <Table.Cell>
+                      <Id>{f.cci}</Id>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">
+                      {assetById.get(f.asset)?.name ?? f.asset}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Indicator tone={severityTone(f.mitigatedSeverity)}>
+                        {f.mitigatedSeverity}
+                      </Indicator>
+                    </Table.Cell>
+                    <Table.Cell className="truncate">
+                      <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </tbody>
+            </Table>
+          </Section>
+        </ShowPage>
+        <DsShell.Panel label="Details">
+          <DsShell.Panel.Splitter label="Resize details" />
+          <Panel flush>
             <Inspector.Group title="Exposure">
               <KeyValue label="Risk">
                 <Id>{risk.id}</Id>
@@ -172,250 +417,9 @@ function RiskRecord() {
                 ))}
               </Inline>
             </Inspector.Group>
-          </>
-        }
-      >
-        <Section title="Risk statement">
-          <p className="max-w-layout-measure font-body">{risk.statement}</p>
-          {risk.aoNote ? (
-            <p className="pt-150 max-w-layout-measure font-body-small text-subtle">
-              AO note — {risk.aoNote}
-            </p>
-          ) : null}
-        </Section>
-
-        <Section
-          title="Residual risk"
-          description={
-            computed
-              ? `Computed ${computed.score} of 100 — ${computed.band} — against the assessor's authored ${risk.residual}. Neither number replaces the other.`
-              : "No finding is joined to this risk, so there is nothing to compute a residual from."
-          }
-        >
-          {computed && comparison ? (
-            <>
-              <Grid
-                className="pt-200"
-                gap="space.150"
-                templateColumns={{ md: "repeat(2, minmax(0, 1fr))" }}
-              >
-                <Box className="rounded-medium border border-default" padding="space.150">
-                  <p className="font-heading-xxsmall uppercase text-subtle">
-                    Authored — risk register
-                  </p>
-                  <Inline className="pt-100" space="space.100" alignBlock="baseline">
-                    <span className="tabular-nums font-heading-large font-semibold">
-                      {comparison.authored.residual}
-                    </span>
-                    <span className="font-body-small text-subtle">residual / 100</span>
-                  </Inline>
-                  <Box paddingBlockStart="space.150">
-                    <Progress
-                      value={comparison.authored.residual}
-                      tone={residualTone(risk.residual)}
-                    />
-                  </Box>
-                  <dl className="pt-150 space-y-075 font-body-small">
-                    <Inline space="space.150" alignBlock="baseline" spread="space-between">
-                      <dt className="text-subtle">Likelihood × impact</dt>
-                      <dd className="tabular-nums">
-                        {comparison.authored.likelihood} × {comparison.authored.impact}
-                      </dd>
-                    </Inline>
-                    <Inline space="space.150" alignBlock="baseline" spread="space-between">
-                      <dt className="text-subtle">Inherent</dt>
-                      <dd className="tabular-nums">{comparison.authored.inherent}</dd>
-                    </Inline>
-                    <Inline
-                      className="border-t border-default pt-075"
-                      space="space.150"
-                      alignBlock="baseline"
-                      spread="space-between"
-                    >
-                      <dt className="font-medium">Residual</dt>
-                      <dd className="tabular-nums font-medium">{comparison.authored.residual}</dd>
-                    </Inline>
-                  </dl>
-                  <p className="pt-100 font-body-xsmall text-subtle">
-                    {risk.owner} wrote this down on {risk.reviewed}. It is the number the AO has
-                    seen, and nothing on this page overwrites it.
-                  </p>
-                </Box>
-
-                <Box className="rounded-medium border border-default" padding="space.150">
-                  <p className="font-heading-xxsmall uppercase text-subtle">
-                    Computed — evidence trail
-                  </p>
-                  <Inline className="pt-100" space="space.100" alignBlock="baseline">
-                    <span className="tabular-nums font-heading-large font-semibold">
-                      {computed.score}
-                    </span>
-                    <span className="font-body-small text-subtle">residual / 100</span>
-                    <Badge tone={bandTone[computed.band]}>{computed.band}</Badge>
-                  </Inline>
-                  <Box paddingBlockStart="space.150">
-                    <Progress value={computed.score} tone={bandTone[computed.band]} />
-                  </Box>
-                  <dl className="pt-150 space-y-075 font-body-small">
-                    <Inline space="space.150" alignBlock="baseline" spread="space-between">
-                      <dt className="text-subtle">Inherent</dt>
-                      <dd className="tabular-nums">{computed.inherent}</dd>
-                    </Inline>
-                    <Inline space="space.150" alignBlock="baseline" spread="space-between">
-                      <dt className="text-subtle">Mitigation credit</dt>
-                      <dd className={credit < 0 ? "tabular-nums text-success" : "tabular-nums"}>
-                        {signed(credit)}
-                      </dd>
-                    </Inline>
-                    <Inline
-                      className="border-t border-default pt-075"
-                      space="space.150"
-                      alignBlock="baseline"
-                      spread="space-between"
-                    >
-                      <dt className="font-medium">Residual</dt>
-                      <dd className="tabular-nums font-medium">{computed.score}</dd>
-                    </Inline>
-                  </dl>
-                  <p className="pt-100 font-body-xsmall text-subtle">
-                    Aggregated from the {fs.length} joined finding{fs.length === 1 ? "" : "s"} by
-                    taking the worst reading on each of the six factors — a risk is no more
-                    mitigated than its least-mitigated component.
-                  </p>
-                </Box>
-              </Grid>
-
-              <Box paddingBlockStart="space.200">
-                <TextBlock label="Disagreement">{comparison.note}</TextBlock>
-                <TextBlock label="Greatest leverage">{computed.leverage}</TextBlock>
-                <TextBlock label="Caveats">
-                  {computed.caveats.length === 0 ? (
-                    <span className="text-subtle">
-                      None. Every one of the six terms was computed from live evidence, so the score
-                      is not provisional.
-                    </span>
-                  ) : (
-                    <Stack as="ul" space="space.075">
-                      {computed.caveats.map((c) => (
-                        <Box
-                          key={c}
-                          className="border-s border-default"
-                          as="li"
-                          paddingInlineStart="space.100"
-                        >
-                          {c}
-                        </Box>
-                      ))}
-                    </Stack>
-                  )}
-                </TextBlock>
-              </Box>
-            </>
-          ) : (
-            <Empty
-              title="Nothing to compute from"
-              description={`${risk.id} has no finding joined to it, so there is no severity, exposure or mission evidence to read. Deriving a residual from the authored likelihood and impact would re-badge the assessor's judgement as a calculation, which is exactly what the score exists to prevent. The authored ${risk.residual} stands on its own.`}
-            />
-          )}
-        </Section>
-
-        {computed ? (
-          <Section
-            title="Calculation"
-            description="Five weighted terms and one credit. Each row carries the input it read, the arithmetic, the ids it rests on, and one sentence an assessor can disagree with."
-          >
-            <FactorTrail factors={computed.factors} score={computed.score} />
-          </Section>
-        ) : null}
-
-        <Section
-          title="Reducing POA&M items"
-          description={
-            poams.length
-              ? "Each commitment below lowers the residual score when it completes."
-              : "Nothing is scheduled against this risk — the residual is untreated."
-          }
-        >
-          {poams.length ? (
-            <Table className="table-fixed">
-              <thead>
-                <tr>
-                  <Table.Header width={112}>POA&M</Table.Header>
-                  <Table.Header>Weakness</Table.Header>
-                  <Table.Header width={140}>Owner</Table.Header>
-                  <Table.Header width={116}>Scheduled</Table.Header>
-                  <Table.Header width={104}>Status</Table.Header>
-                </tr>
-              </thead>
-              <tbody>
-                {poams.map((p) => (
-                  <Table.Row key={p.id}>
-                    <Table.Cell>
-                      <TextLink>
-                        <Link to="/register/poam/$poamId" params={{ poamId: p.id }}>
-                          <Id>{p.id}</Id>
-                        </Link>
-                      </TextLink>
-                    </Table.Cell>
-                    <Table.Cell className="truncate">{p.title}</Table.Cell>
-                    <Table.Cell className="truncate">{p.owner}</Table.Cell>
-                    <Table.Cell className="truncate">{p.scheduledCompletion}</Table.Cell>
-                    <Table.Cell className="truncate">
-                      <Badge tone={statusTone(p.status)}>{p.status}</Badge>
-                    </Table.Cell>
-                  </Table.Row>
-                ))}
-              </tbody>
-            </Table>
-          ) : null}
-        </Section>
-
-        <Section
-          title="Aggregated findings"
-          description={`${openCount(fs)} open of ${fs.length}, across ${ccis.length} CCI${ccis.length === 1 ? "" : "s"}.`}
-        >
-          <Table className="table-fixed">
-            <thead>
-              <tr>
-                <Table.Header width={112}>Finding</Table.Header>
-                <Table.Header>Title</Table.Header>
-                <Table.Header width={104}>CCI</Table.Header>
-                <Table.Header width={140}>Asset</Table.Header>
-                <Table.Header width={78}>Severity</Table.Header>
-                <Table.Header width={112}>Lifecycle</Table.Header>
-              </tr>
-            </thead>
-            <tbody>
-              {fs.map((f) => (
-                <Table.Row key={f.id}>
-                  <Table.Cell>
-                    <TextLink>
-                      <Link to="/findings/$findingId" params={{ findingId: f.id }}>
-                        <Id>{f.id}</Id>
-                      </Link>
-                    </TextLink>
-                  </Table.Cell>
-                  <Table.Cell className="truncate">{f.title}</Table.Cell>
-                  <Table.Cell>
-                    <Id>{f.cci}</Id>
-                  </Table.Cell>
-                  <Table.Cell className="truncate">
-                    {assetById.get(f.asset)?.name ?? f.asset}
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Indicator tone={severityTone(f.mitigatedSeverity)}>
-                      {f.mitigatedSeverity}
-                    </Indicator>
-                  </Table.Cell>
-                  <Table.Cell className="truncate">
-                    <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </tbody>
-          </Table>
-        </Section>
-      </ShowPage>
+          </Panel>
+        </DsShell.Panel>
+      </>
     </Shell>
   );
 }

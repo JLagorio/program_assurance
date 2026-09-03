@@ -24,6 +24,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 
 import { IconButton } from "../components/button";
 import { Kbd } from "../components/kbd";
@@ -32,7 +33,6 @@ import { Tooltip } from "../components/tooltip";
 import { Eyebrow } from "../components/typography";
 import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
-import { legacy, type NavItemProps } from "./legacy";
 
 /*
  * The navigation system. Shell is the root; its areas are its immediate children in a fixed
@@ -75,6 +75,8 @@ type ShellApi = {
   setBanner: (present: boolean) => void;
   registerSkipLink: (link: SkipLink) => () => void;
   skipLinks: SkipLink[];
+  /** Where Shell.Panel lands, wherever it is rendered: the last grid child. */
+  panelHost: HTMLElement | null;
   listeners: {
     onCollapse?: ((args: { trigger: Trigger }) => void) | undefined;
     onExpand?: ((args: { trigger: Trigger }) => void) | undefined;
@@ -101,6 +103,7 @@ const detached: ShellApi = {
   setBanner: noop,
   registerSkipLink: () => noop,
   skipLinks: [],
+  panelHost: null,
   listeners: {},
 };
 
@@ -142,23 +145,9 @@ export type ShellProps = {
   /** Ctrl+[ toggles the side nav. Off by default; ignored while a dialog is open. */
   sideNavShortcut?: boolean | undefined;
   className?: string | undefined;
-  /** @deprecated The old frame's sidebar. Render Shell.SideNav as a child instead. */
-  sidebar?: ReactNode;
-  /** @deprecated The old frame's top bar. Render Shell.TopNav as a child instead. */
-  topBar?: ReactNode;
 };
 
-function ShellRoot(props: ShellProps) {
-  if (props.sidebar !== undefined || props.topBar !== undefined)
-    return (
-      <legacy.Root sidebar={props.sidebar} topBar={props.topBar}>
-        {props.children}
-      </legacy.Root>
-    );
-  return <NavigationRoot {...props} />;
-}
-
-function NavigationRoot({
+function ShellRoot({
   children,
   defaultSideNavCollapsed = false,
   sideNavShortcut = false,
@@ -172,6 +161,7 @@ function NavigationRoot({
   const [panelWidth, setPanelWidth] = useState<number | null>(null);
   const [hasBanner, setBanner] = useState(false);
   const [skipLinks, setSkipLinks] = useState<SkipLink[]>([]);
+  const [panelHost, setPanelHost] = useState<HTMLElement | null>(null);
   const listeners = useRef<ShellApi["listeners"]>({});
   const peekTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -301,6 +291,7 @@ function NavigationRoot({
       setBanner,
       registerSkipLink,
       skipLinks,
+      panelHost,
       listeners: listeners.current,
     }),
     [
@@ -321,6 +312,7 @@ function NavigationRoot({
       holdPeek,
       registerSkipLink,
       skipLinks,
+      panelHost,
     ],
   );
 
@@ -335,6 +327,7 @@ function NavigationRoot({
       <div className={cn("shell-root bg-surface text-default", className)} style={vars}>
         <SkipLinks />
         {children}
+        <div className="contents" ref={setPanelHost} />
       </div>
     </ShellContext.Provider>
   );
@@ -1028,15 +1021,18 @@ export type ShellPanelProps = {
   children: ReactNode;
 };
 
-/** The area beside the page, at the end. Render it when there is something to show and unmount it when there is not; below the large breakpoint it overlays the page. What is in it is the product's: a preview, a thread, a form. */
+/** The area beside the page, at the end. Render it anywhere under the Shell, a route or a page, and it lands in the panel area after mount; the server's page is one column until then. Mount it when there is something to show and unmount it when there is not; below the large breakpoint it overlays the page. What is in it is the product's: a Panel with the record's rail, a thread, a form. */
 function PanelRoot({ id, label = "Panel", defaultWidth, className, children }: ShellPanelProps) {
+  const inShell = useContext(ShellContext) !== null;
   const shell = useShell();
   const skipId = useSkipLink(id, label);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   // The first width only; later widths come from the splitter.
   useEffect(() => {
     if (defaultWidth) shell.setPanelWidth(defaultWidth);
   }, []);
-  return (
+  const aside = (
     <aside
       id={skipId}
       tabIndex={-1}
@@ -1049,6 +1045,9 @@ function PanelRoot({ id, label = "Panel", defaultWidth, className, children }: S
       {children}
     </aside>
   );
+  if (!inShell) return aside;
+  if (!shell.panelHost || !mounted) return null;
+  return createPortal(aside, shell.panelHost);
 }
 
 /** Makes the panel resizable from its start edge. */
@@ -1079,18 +1078,4 @@ export const Shell = Object.assign(ShellRoot, {
   AppSwitcher,
   Mark,
   Profile,
-  /** @deprecated Use Shell.SideNav with Header, Body and Footer. */
-  Sidebar: legacy.Sidebar,
-  /** @deprecated Use Shell.TopNav with Start, Middle and End. */
-  TopBar: legacy.TopBar,
-  /** @deprecated Use Shell.AppLogo; `detail` is `secondaryName`. */
-  Brand: legacy.Brand,
-  /** @deprecated Use Shell.SideNav.Section; `label` is `heading`. */
-  NavGroup: legacy.NavGroup,
-  /** @deprecated Use Shell.SideNav.Item. */
-  NavItem: legacy.NavItem,
-  /** @deprecated Use Shell.Profile. */
-  User: legacy.User,
 });
-
-export type { NavItemProps };

@@ -9,8 +9,10 @@ import {
   Inline,
   Inspector,
   KeyValue,
+  Panel,
   RecordHeader,
   Section,
+  Shell as DsShell,
   ShowPage,
   Stack,
   Table,
@@ -66,25 +68,134 @@ function PoamRecord() {
 
   return (
     <Shell>
-      <ShowPage
-        header={
-          <RecordHeader
-            back={<Link to="/register" />}
-            id={item.id}
-            title={item.title}
-            meta={`${item.owner} · scheduled ${item.scheduledCompletion}`}
-            actions={
-              <>
-                <Badge tone={statusTone(item.status)}>{item.status}</Badge>
-                <Button variant="secondary">Update milestone</Button>
-              </>
+      <>
+        <ShowPage
+          header={
+            <RecordHeader
+              back={<Link to="/register" />}
+              id={item.id}
+              title={item.title}
+              meta={`${item.owner} · scheduled ${item.scheduledCompletion}`}
+              actions={
+                <>
+                  <Badge tone={statusTone(item.status)}>{item.status}</Badge>
+                  <Button variant="secondary">Update milestone</Button>
+                </>
+              }
+            />
+          }
+          tabs={<div className="border-b border-default" />}
+        >
+          <Section
+            title="Planned remediation"
+            description="The commitment. The dated task plan behind it lives on the control."
+            action={
+              controls.length ? (
+                <Inline className="font-body-small" as="span" space="space.100" alignBlock="center">
+                  {controls.map((c) => (
+                    <TextLink key={c}>
+                      <Link
+                        to="/programs/$programId/controls/$controlId"
+                        params={{ programId: item.program, controlId: c }}
+                        search={{ tab: "Assessment" as const }}
+                      >
+                        {c} plan
+                      </Link>
+                    </TextLink>
+                  ))}
+                </Inline>
+              ) : null
             }
-          />
-        }
-        tabs={<div className="border-b border-default" />}
-        showRail
-        rail={
-          <>
+          >
+            <p className="max-w-layout-measure pt-150 font-body">{item.remediation}</p>
+          </Section>
+
+          <Section
+            title="Latest milestone"
+            description={
+              slipped
+                ? `Slipped from ${item.originalCompletion} to ${item.scheduledCompletion}.`
+                : "On the original schedule."
+            }
+          >
+            <p className="max-w-layout-measure font-body text-subtle">{item.milestoneNote}</p>
+          </Section>
+
+          <Section
+            title="Findings this item closes"
+            description={`${openCount(fs)} still open of ${fs.length}. The item cannot complete while any row remains open.`}
+          >
+            {fs.length ? (
+              <Table className="table-fixed">
+                <thead>
+                  <tr>
+                    <Table.Header width={112}>Finding</Table.Header>
+                    <Table.Header>Title</Table.Header>
+                    <Table.Header width={96}>Control</Table.Header>
+                    <Table.Header width={104}>CCI</Table.Header>
+                    <Table.Header width={132}>Asset</Table.Header>
+                    <Table.Header width={78}>Severity</Table.Header>
+                    <Table.Header width={112}>Lifecycle</Table.Header>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fs.map((f) => (
+                    <Table.Row key={f.id}>
+                      <Table.Cell>
+                        <TextLink>
+                          <Link to="/findings/$findingId" params={{ findingId: f.id }}>
+                            <Id>{f.id}</Id>
+                          </Link>
+                        </TextLink>
+                      </Table.Cell>
+                      <Table.Cell className="truncate">
+                        <TextLink>
+                          <Link to="/findings/$findingId" params={{ findingId: f.id }}>
+                            {f.title}
+                          </Link>
+                        </TextLink>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <TextLink>
+                          <Link
+                            to="/programs/$programId/controls/$controlId"
+                            params={{ programId: item.program, controlId: f.control }}
+                            search={{ tab: "Assessment" as const }}
+                            title={`Remediation plan for ${f.control}`}
+                          >
+                            <Id>{f.control}</Id>
+                          </Link>
+                        </TextLink>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Id>{f.cci}</Id>
+                      </Table.Cell>
+                      <Table.Cell className="truncate">
+                        {assetById.get(f.asset)?.name ?? f.asset}
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Indicator tone={severityTone(f.mitigatedSeverity)}>
+                          {f.mitigatedSeverity}
+                        </Indicator>
+                      </Table.Cell>
+                      <Table.Cell className="truncate">
+                        <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </tbody>
+              </Table>
+            ) : (
+              <Empty
+                title="No findings attached"
+                description="This commitment has nothing to close."
+              />
+            )}
+          </Section>
+        </ShowPage>
+        <DsShell.Panel label="Details">
+          <DsShell.Panel.Splitter label="Resize details" />
+          <Panel flush>
             <Inspector.Group title="Commitment">
               <KeyValue label="POA&M">
                 <Id>{item.id}</Id>
@@ -118,116 +229,9 @@ function PoamRecord() {
               </KeyValue>
               <KeyValue label="Open findings">{fs.filter(isOpen).length}</KeyValue>
             </Inspector.Group>
-          </>
-        }
-      >
-        <Section
-          title="Planned remediation"
-          description="The commitment. The dated task plan behind it lives on the control."
-          action={
-            controls.length ? (
-              <Inline className="font-body-small" as="span" space="space.100" alignBlock="center">
-                {controls.map((c) => (
-                  <TextLink key={c}>
-                    <Link
-                      to="/programs/$programId/controls/$controlId"
-                      params={{ programId: item.program, controlId: c }}
-                      search={{ tab: "Assessment" as const }}
-                    >
-                      {c} plan
-                    </Link>
-                  </TextLink>
-                ))}
-              </Inline>
-            ) : null
-          }
-        >
-          <p className="max-w-layout-measure pt-150 font-body">{item.remediation}</p>
-        </Section>
-
-        <Section
-          title="Latest milestone"
-          description={
-            slipped
-              ? `Slipped from ${item.originalCompletion} to ${item.scheduledCompletion}.`
-              : "On the original schedule."
-          }
-        >
-          <p className="max-w-layout-measure font-body text-subtle">{item.milestoneNote}</p>
-        </Section>
-
-        <Section
-          title="Findings this item closes"
-          description={`${openCount(fs)} still open of ${fs.length}. The item cannot complete while any row remains open.`}
-        >
-          {fs.length ? (
-            <Table className="table-fixed">
-              <thead>
-                <tr>
-                  <Table.Header width={112}>Finding</Table.Header>
-                  <Table.Header>Title</Table.Header>
-                  <Table.Header width={96}>Control</Table.Header>
-                  <Table.Header width={104}>CCI</Table.Header>
-                  <Table.Header width={132}>Asset</Table.Header>
-                  <Table.Header width={78}>Severity</Table.Header>
-                  <Table.Header width={112}>Lifecycle</Table.Header>
-                </tr>
-              </thead>
-              <tbody>
-                {fs.map((f) => (
-                  <Table.Row key={f.id}>
-                    <Table.Cell>
-                      <TextLink>
-                        <Link to="/findings/$findingId" params={{ findingId: f.id }}>
-                          <Id>{f.id}</Id>
-                        </Link>
-                      </TextLink>
-                    </Table.Cell>
-                    <Table.Cell className="truncate">
-                      <TextLink>
-                        <Link to="/findings/$findingId" params={{ findingId: f.id }}>
-                          {f.title}
-                        </Link>
-                      </TextLink>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <TextLink>
-                        <Link
-                          to="/programs/$programId/controls/$controlId"
-                          params={{ programId: item.program, controlId: f.control }}
-                          search={{ tab: "Assessment" as const }}
-                          title={`Remediation plan for ${f.control}`}
-                        >
-                          <Id>{f.control}</Id>
-                        </Link>
-                      </TextLink>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Id>{f.cci}</Id>
-                    </Table.Cell>
-                    <Table.Cell className="truncate">
-                      {assetById.get(f.asset)?.name ?? f.asset}
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Indicator tone={severityTone(f.mitigatedSeverity)}>
-                        {f.mitigatedSeverity}
-                      </Indicator>
-                    </Table.Cell>
-                    <Table.Cell className="truncate">
-                      <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
-                    </Table.Cell>
-                  </Table.Row>
-                ))}
-              </tbody>
-            </Table>
-          ) : (
-            <Empty
-              title="No findings attached"
-              description="This commitment has nothing to close."
-            />
-          )}
-        </Section>
-      </ShowPage>
+          </Panel>
+        </DsShell.Panel>
+      </>
     </Shell>
   );
 }

@@ -151,8 +151,6 @@ export const classByToken = {
   "dimension.layout.list": "w-layout-list",
   "dimension.layout.rail": "w-layout-rail",
   "dimension.layout.measure": "max-w-layout-measure",
-  "dimension.layout.sidebar": "w-layout-sidebar",
-  "dimension.layout.topbar": "h-layout-topbar",
   "elevation.surface": "bg-surface",
   "elevation.surface.hovered": "bg-surface-hovered",
   "elevation.surface.pressed": "bg-surface-pressed",

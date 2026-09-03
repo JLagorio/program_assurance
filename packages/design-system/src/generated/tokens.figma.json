@@ -1944,24 +1944,6 @@
       "measure": {
         "$value": "720px",
         "$description": "The widest a run of prose grows: statements, notes, descriptions."
-      },
-      "sidebar": {
-        "$value": "228px",
-        "$description": "Deprecated: dimension.layout.sidenav.",
-        "$extensions": {
-          "ledger": {
-            "deprecated": "dimension.layout.sidenav"
-          }
-        }
-      },
-      "topbar": {
-        "$value": "48px",
-        "$description": "Deprecated: dimension.layout.topnav.",
-        "$extensions": {
-          "ledger": {
-            "deprecated": "dimension.layout.topnav"
-          }
-        }
       }
     }
   },

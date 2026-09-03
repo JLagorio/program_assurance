@@ -9,8 +9,10 @@ import {
   Inline,
   Inspector,
   KeyValue,
+  Panel,
   RecordHeader,
   Section,
+  Shell as DsShell,
   ShowPage,
   Stack,
   TextLink,
@@ -64,25 +66,57 @@ function ComponentRecord() {
 
   return (
     <Shell>
-      <ShowPage
-        header={
-          <RecordHeader
-            back={<Link to="/library/components" />}
-            id={component.id}
-            title={component.name}
-            meta={`${component.type} · ${component.version} · ${component.owner}`}
-            actions={
-              <>
-                <Badge tone={componentHealthTone[component.health]}>{component.health}</Badge>
-                <Button variant="secondary">Edit definition</Button>
-              </>
+      <>
+        <ShowPage
+          header={
+            <RecordHeader
+              back={<Link to="/library/components" />}
+              id={component.id}
+              title={component.name}
+              meta={`${component.type} · ${component.version} · ${component.owner}`}
+              actions={
+                <>
+                  <Badge tone={componentHealthTone[component.health]}>{component.health}</Badge>
+                  <Button variant="secondary">Edit definition</Button>
+                </>
+              }
+            />
+          }
+          tabs={<div className="border-b border-default" />}
+        >
+          <p className="max-w-layout-measure font-body text-subtle">{component.summary}</p>
+
+          <Section
+            title="Provided controls"
+            description="What consuming programs inherit, and how fresh the evidence behind it is."
+          >
+            <ProvidedControlsTable component={component} />
+          </Section>
+
+          <Section
+            title="Blast radius"
+            description={`Consumed by ${component.consumers.length} program${component.consumers.length === 1 ? "" : "s"}. Evidence or status changes here re-open every inherited row.`}
+            action={
+              stale ? (
+                <Inline
+                  className="font-body-small font-medium text-warning"
+                  as="span"
+                  display="inline-flex"
+                  space="space.075"
+                  alignBlock="center"
+                >
+                  <AlertTriangle className="size-icon-small" />
+                  {stale} stale definition{stale === 1 ? "" : "s"} propagating
+                </Inline>
+              ) : null
             }
-          />
-        }
-        tabs={<div className="border-b border-default" />}
-        showRail
-        rail={
-          <>
+          >
+            <ConsumerTable component={component} />
+          </Section>
+        </ShowPage>
+        <DsShell.Panel label="Details">
+          <DsShell.Panel.Splitter label="Resize details" />
+          <Panel flush>
             <Inspector.Group title="Definition">
               <KeyValue label="Provider">
                 <Id>{component.id}</Id>
@@ -122,39 +156,9 @@ function ComponentRecord() {
                 )}
               </KeyValue>
             </Inspector.Group>
-          </>
-        }
-      >
-        <p className="max-w-layout-measure font-body text-subtle">{component.summary}</p>
-
-        <Section
-          title="Provided controls"
-          description="What consuming programs inherit, and how fresh the evidence behind it is."
-        >
-          <ProvidedControlsTable component={component} />
-        </Section>
-
-        <Section
-          title="Blast radius"
-          description={`Consumed by ${component.consumers.length} program${component.consumers.length === 1 ? "" : "s"}. Evidence or status changes here re-open every inherited row.`}
-          action={
-            stale ? (
-              <Inline
-                className="font-body-small font-medium text-warning"
-                as="span"
-                display="inline-flex"
-                space="space.075"
-                alignBlock="center"
-              >
-                <AlertTriangle className="size-icon-small" />
-                {stale} stale definition{stale === 1 ? "" : "s"} propagating
-              </Inline>
-            ) : null
-          }
-        >
-          <ConsumerTable component={component} />
-        </Section>
-      </ShowPage>
+          </Panel>
+        </DsShell.Panel>
+      </>
     </Shell>
   );
 }

@@ -28,11 +28,13 @@ import {
   Inspector,
   Kbd,
   KeyValue,
+  Panel,
   Person,
   Progress,
   RecordHeader,
   Section,
   Select,
+  Shell as DsShell,
   ShowPage,
   Stack,
   Table,
@@ -560,481 +562,487 @@ function ProgramDetail() {
 
   return (
     <Shell>
-      <ShowPage
-        header={
-          <RecordHeader
-            back={<Link to="/programs" />}
-            id={program.id}
-            title={program.name}
-            actions={
-              <>
-                <DropdownMenu
-                  align="end"
-                  width={240}
-                  trigger={
-                    <Button variant="secondary" size="small">
-                      Views <ChevronDown className="size-icon-small" />
-                    </Button>
-                  }
-                >
-                  {(close) => (
-                    <>
-                      {programViews.map((group) => (
-                        <Fragment key={group.label}>
-                          <DropdownMenu.Label>{group.label}</DropdownMenu.Label>
-                          {group.items.map((v) => (
-                            <DropdownMenu.Item
-                              key={v.to}
-                              onSelect={() => {
-                                close();
-                                navigate({
-                                  to: v.to,
-                                  params: { programId: program.id },
-                                  search: v.search,
-                                } as never);
-                              }}
-                            >
-                              {v.label}
-                            </DropdownMenu.Item>
-                          ))}
-                        </Fragment>
-                      ))}
-                    </>
-                  )}
-                </DropdownMenu>
-
-                <ButtonGroup>
-                  <Button variant="primary" size="small" onClick={runPrimary}>
-                    {state.primaryAction}
-                  </Button>
+      <>
+        <ShowPage
+          header={
+            <RecordHeader
+              back={<Link to="/programs" />}
+              id={program.id}
+              title={program.name}
+              actions={
+                <>
                   <DropdownMenu
-                    width={200}
                     align="end"
+                    width={240}
                     trigger={
-                      <Button
-                        variant="primary"
-                        size="small"
-                        className="px-0 w-300"
-                        aria-label="More actions"
-                      >
-                        <ChevronDown className="size-icon-small" />
+                      <Button variant="secondary" size="small">
+                        Views <ChevronDown className="size-icon-small" />
                       </Button>
                     }
                   >
                     {(close) => (
                       <>
-                        <DropdownMenu.Item
-                          onSelect={() => {
-                            palette.setOpen(true);
-                            close();
-                          }}
-                        >
-                          Command palette
-                          <Kbd>⌘K</Kbd>
-                        </DropdownMenu.Item>
-                        <DropdownMenu.Item
-                          onSelect={() => {
-                            setCdrOpen(true);
-                            close();
-                          }}
-                        >
-                          Export CDR package
-                        </DropdownMenu.Item>
-                        <DropdownMenu.Item
-                          onSelect={() => {
-                            setAssessing(true);
-                            close();
-                          }}
-                        >
-                          Record assessment
-                        </DropdownMenu.Item>
-                        <DropdownMenu.Item onSelect={close}>Duplicate program</DropdownMenu.Item>
-                        <DropdownMenu.Item
-                          onSelect={() => {
-                            setArchiving(true);
-                            close();
-                          }}
-                        >
-                          Archive
-                        </DropdownMenu.Item>
+                        {programViews.map((group) => (
+                          <Fragment key={group.label}>
+                            <DropdownMenu.Label>{group.label}</DropdownMenu.Label>
+                            {group.items.map((v) => (
+                              <DropdownMenu.Item
+                                key={v.to}
+                                onSelect={() => {
+                                  close();
+                                  navigate({
+                                    to: v.to,
+                                    params: { programId: program.id },
+                                    search: v.search,
+                                  } as never);
+                                }}
+                              >
+                                {v.label}
+                              </DropdownMenu.Item>
+                            ))}
+                          </Fragment>
+                        ))}
                       </>
                     )}
                   </DropdownMenu>
-                </ButtonGroup>
-              </>
-            }
-          />
-        }
-        tabs={
-          <Tabs>
-            {(
-              [
-                ["Overview", null],
-                ["Controls", coverage.segments[2]?.value || null],
-                ["Controls v2", null],
-                ["Controls v3", null],
-                ["Systems", scopeRows.length || null],
-                ["Requirements", requirementRows.length || null],
-                ["Timeline", outlook.remaining.length || null],
-                ["Findings", posture.findingsOpen || null],
-                ["Evidence", posture.evidenceStale || null],
-                ["POA&M", posture.poamOpen || null],
-                ["Team", teamSize],
-                ["Activity", null],
-              ] as [Tab, number | null][]
-            ).map(([key, count]) => (
-              <Tabs.Tab
-                key={key}
-                isSelected={tab === key}
-                onClick={() => setTab(key)}
-                count={count || null}
-              >
-                {key}
-              </Tabs.Tab>
-            ))}
-          </Tabs>
-        }
-        showRail={tab === "Overview"}
-        rail={rail}
-      >
-        {locked ? <LockedNotice stage={stageFilter!} gate={state.currentGate?.id} /> : null}
 
-        {tab === "Overview" ? (
-          <>
-            <CoverageBand
-              coverage={coverage}
-              baseline={`${program.baseline} — ${program.impact}`}
-              onSelectFamily={(f) => {
+                  <ButtonGroup>
+                    <Button variant="primary" size="small" onClick={runPrimary}>
+                      {state.primaryAction}
+                    </Button>
+                    <DropdownMenu
+                      width={200}
+                      align="end"
+                      trigger={
+                        <Button
+                          variant="primary"
+                          size="small"
+                          className="px-0 w-300"
+                          aria-label="More actions"
+                        >
+                          <ChevronDown className="size-icon-small" />
+                        </Button>
+                      }
+                    >
+                      {(close) => (
+                        <>
+                          <DropdownMenu.Item
+                            onSelect={() => {
+                              palette.setOpen(true);
+                              close();
+                            }}
+                          >
+                            Command palette
+                            <Kbd>⌘K</Kbd>
+                          </DropdownMenu.Item>
+                          <DropdownMenu.Item
+                            onSelect={() => {
+                              setCdrOpen(true);
+                              close();
+                            }}
+                          >
+                            Export CDR package
+                          </DropdownMenu.Item>
+                          <DropdownMenu.Item
+                            onSelect={() => {
+                              setAssessing(true);
+                              close();
+                            }}
+                          >
+                            Record assessment
+                          </DropdownMenu.Item>
+                          <DropdownMenu.Item onSelect={close}>Duplicate program</DropdownMenu.Item>
+                          <DropdownMenu.Item
+                            onSelect={() => {
+                              setArchiving(true);
+                              close();
+                            }}
+                          >
+                            Archive
+                          </DropdownMenu.Item>
+                        </>
+                      )}
+                    </DropdownMenu>
+                  </ButtonGroup>
+                </>
+              }
+            />
+          }
+          tabs={
+            <Tabs>
+              {(
+                [
+                  ["Overview", null],
+                  ["Controls", coverage.segments[2]?.value || null],
+                  ["Controls v2", null],
+                  ["Controls v3", null],
+                  ["Systems", scopeRows.length || null],
+                  ["Requirements", requirementRows.length || null],
+                  ["Timeline", outlook.remaining.length || null],
+                  ["Findings", posture.findingsOpen || null],
+                  ["Evidence", posture.evidenceStale || null],
+                  ["POA&M", posture.poamOpen || null],
+                  ["Team", teamSize],
+                  ["Activity", null],
+                ] as [Tab, number | null][]
+              ).map(([key, count]) => (
+                <Tabs.Tab
+                  key={key}
+                  isSelected={tab === key}
+                  onClick={() => setTab(key)}
+                  count={count || null}
+                >
+                  {key}
+                </Tabs.Tab>
+              ))}
+            </Tabs>
+          }
+        >
+          {locked ? <LockedNotice stage={stageFilter!} gate={state.currentGate?.id} /> : null}
+
+          {tab === "Overview" ? (
+            <>
+              <CoverageBand
+                coverage={coverage}
+                baseline={`${program.baseline} — ${program.impact}`}
+                onSelectFamily={(f) => {
+                  setFamily(f);
+                  setStatusFilter("All");
+                  setTab("Controls");
+                }}
+                onSelectSegment={(key) => {
+                  setStatusFilter(segmentStatus[key] ?? "All");
+                  setFamily("All");
+                  setTab("Controls");
+                }}
+              />
+
+              <MilestoneTrack nodes={milestones} onSelect={() => setTab("Timeline")} />
+
+              <GateOutlookSection
+                rows={outlook.remaining}
+                programId={program.id}
+                onSelect={() => setTab("Timeline")}
+              />
+
+              <OpenWorkSection
+                actions={actions}
+                onRun={(a) => {
+                  if (a.cta === "Record result") setAssessing(true);
+                  else setTab(a.target);
+                }}
+              />
+
+              <Section title="Activity">
+                <ActivityTimeline programId={program.id} events={feed} />
+              </Section>
+            </>
+          ) : null}
+
+          {tab === "Controls" ? (
+            <>
+              <Section
+                title="Inheritance"
+                description="Which common control provider actually satisfies each inherited row, what this program still owes on a shared control, and where an accepted inheritance has drifted from the provider's current assessment."
+                action={
+                  <TextLink size="small" className="inline-flex items-center gap-025">
+                    <Link
+                      to="/programs/$programId/inheritance"
+                      params={{ programId: program.id }}
+                      search={{ tab: undefined, control: undefined }}
+                    >
+                      Open inheritance
+                    </Link>
+                  </TextLink>
+                }
+              >
+                <p className="pt-100 font-body-small text-subtle">
+                  {inheritedComponents.length} common control{" "}
+                  {inheritedComponents.length === 1 ? "provider reaches" : "providers reach"}{" "}
+                  {program.acronym}. Precedence between overlapping offers, applicability against
+                  this program's own inventory, and the residual consumer obligations are resolved
+                  there.
+                </p>
+              </Section>
+
+              <Section
+                title="Configuration baseline"
+                description="The authorized build, the changes proposed against it, and which determinations those changes invalidate. A change the ISSE analysed as having no security impact is recorded and contained — it does not turn the matrix amber."
+                action={
+                  <TextLink size="small" className="inline-flex items-center gap-025">
+                    <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>
+                      Open baseline
+                    </Link>
+                  </TextLink>
+                }
+              >
+                <p className="pt-100 font-body-small text-subtle">
+                  A determination is only as current as the configuration it was taken against. The
+                  baseline page carries the pin diff, the CM-3(2) security impact analyses, the
+                  invalidated rows and the retest queue.
+                </p>
+              </Section>
+
+              <ControlSetsSummary scopes={scopeRows} onOpen={() => setTab("Systems")} />
+
+              <SctmMatrixSection
+                programId={program.id}
+                family={family}
+                onFamily={setFamily}
+                status={statusFilter}
+                onStatus={setStatusFilter}
+              />
+            </>
+          ) : null}
+
+          {tab === "Controls v2" ? <ControlBoard programId={program.id} /> : null}
+          {tab === "Controls v3" ? <ControlWorkspace programId={program.id} /> : null}
+
+          {tab === "Timeline" ? (
+            <RmfTimeline
+              programId={program.id}
+              rows={matrix}
+              onOpenControls={(f) => {
                 setFamily(f);
                 setStatusFilter("All");
                 setTab("Controls");
               }}
-              onSelectSegment={(key) => {
-                setStatusFilter(segmentStatus[key] ?? "All");
-                setFamily("All");
-                setTab("Controls");
-              }}
             />
+          ) : null}
 
-            <MilestoneTrack nodes={milestones} onSelect={() => setTab("Timeline")} />
+          {tab === "Findings" ? (
+            <>
+              <Section
+                title="Cyber test and evaluation"
+                description="The six DoD Cybersecurity T&E phases, their entry and exit criteria, the threat scenarios the red team walks and the mission effects those scenarios actually achieved."
+                action={
+                  <TextLink size="small" className="inline-flex items-center gap-025">
+                    <Link
+                      to="/programs/$programId/te-phases"
+                      params={{ programId: program.id }}
+                      search={{ tab: undefined }}
+                    >
+                      Open T&amp;E phases
+                    </Link>
+                  </TextLink>
+                }
+              >
+                <p className="pt-100 font-body-small text-subtle">
+                  A phase gate that is a checkbox is worthless. Wherever the platform can already
+                  judge a criterion it does — off {program.acronym}&apos;s own scan record, SCTM,
+                  finding register and change log — and the gate page prints the computed sentence
+                  and the evidence ids behind it rather than a tick.
+                </p>
+              </Section>
 
-            <GateOutlookSection
-              rows={outlook.remaining}
-              programId={program.id}
-              onSelect={() => setTab("Timeline")}
-            />
+              <Section
+                title="Verification"
+                description={`Scanner ingest, findings and assessor readiness for ${program.name}.`}
+                action={
+                  <TextLink size="small" className="inline-flex items-center gap-025">
+                    <Link to="/programs/$programId/ingestion" params={{ programId: program.id }}>
+                      Open ingestion
+                    </Link>
+                  </TextLink>
+                }
+              >
+                <Box paddingBlockStart="space.200">
+                  <VerificationSection programName={program.name} />
+                </Box>
+              </Section>
+            </>
+          ) : null}
 
-            <OpenWorkSection
-              actions={actions}
-              onRun={(a) => {
-                if (a.cta === "Record result") setAssessing(true);
-                else setTab(a.target);
-              }}
-            />
+          {tab === "Evidence" ? (
+            <>
+              <Section
+                title="Interoperability and transfer"
+                description="The same body of evidence has to leave this platform three ways: as OSCAL 1.1.2 an assessor can import, as the eMASS CSV column sets a package submission actually requires, and as a hashed bundle that can cross an air gap and be reconciled on the far side."
+                action={
+                  <TextLink size="small" className="inline-flex items-center gap-025">
+                    <Link
+                      to="/programs/$programId/export"
+                      params={{ programId: program.id }}
+                      search={{ tab: undefined }}
+                    >
+                      Open export
+                    </Link>
+                  </TextLink>
+                }
+              >
+                <p className="pt-100 font-body-small text-subtle">
+                  Every artifact is generated from {program.acronym}&apos;s live SCTM, composition
+                  graph and finding register rather than re-keyed, so an export taken twice is byte
+                  identical and the manifest hash means something. The reconciliation view diffs a
+                  bundle received from the far side against the one generated here and says, in one
+                  sentence, what moved.
+                </p>
+              </Section>
 
-            <Section title="Activity">
-              <ActivityTimeline programId={program.id} events={feed} />
-            </Section>
-          </>
-        ) : null}
+              <LifecycleSection programId={program.id} programName={program.name} />
+              <DigitalThreadSection programId={program.id} programName={program.name} />
+            </>
+          ) : null}
 
-        {tab === "Controls" ? (
-          <>
-            <Section
-              title="Inheritance"
-              description="Which common control provider actually satisfies each inherited row, what this program still owes on a shared control, and where an accepted inheritance has drifted from the provider's current assessment."
-              action={
-                <TextLink size="small" className="inline-flex items-center gap-025">
-                  <Link
-                    to="/programs/$programId/inheritance"
-                    params={{ programId: program.id }}
-                    search={{ tab: undefined, control: undefined }}
-                  >
-                    Open inheritance
-                  </Link>
-                </TextLink>
-              }
-            >
-              <p className="pt-100 font-body-small text-subtle">
-                {inheritedComponents.length} common control{" "}
-                {inheritedComponents.length === 1 ? "provider reaches" : "providers reach"}{" "}
-                {program.acronym}. Precedence between overlapping offers, applicability against this
-                program's own inventory, and the residual consumer obligations are resolved there.
-              </p>
-            </Section>
+          {tab === "POA&M" ? (
+            <>
+              <Section
+                title="Residual risk"
+                description="CAT I/II/III is a severity, not a risk. Every finding carries a 0-100 residual built from severity, mitigation credit, exploitability, exposure, mission impact and evidence currency — with the whole calculation attached to it."
+                action={
+                  <TextLink size="small" className="inline-flex items-center gap-025">
+                    <Link
+                      to="/programs/$programId/risk"
+                      params={{ programId: program.id }}
+                      search={{ tab: undefined }}
+                    >
+                      Open risk scoring
+                    </Link>
+                  </TextLink>
+                }
+              >
+                <p className="pt-100 font-body-small text-subtle">
+                  {posture.findingsOpen} open finding
+                  {posture.findingsOpen === 1 ? " is" : "s are"} scored, banded and ranked there,
+                  and the register risks show the computed residual beside the number the assessor
+                  wrote down. Where the two disagree, the disagreement is the finding — the authored
+                  value is never overwritten.
+                </p>
+              </Section>
 
-            <Section
-              title="Configuration baseline"
-              description="The authorized build, the changes proposed against it, and which determinations those changes invalidate. A change the ISSE analysed as having no security impact is recorded and contained — it does not turn the matrix amber."
-              action={
-                <TextLink size="small" className="inline-flex items-center gap-025">
-                  <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>
-                    Open baseline
-                  </Link>
-                </TextLink>
-              }
-            >
-              <p className="pt-100 font-body-small text-subtle">
-                A determination is only as current as the configuration it was taken against. The
-                baseline page carries the pin diff, the CM-3(2) security impact analyses, the
-                invalidated rows and the retest queue.
-              </p>
-            </Section>
+              <Section
+                title="POA&M items"
+                description="Open commitments for this program. Managed in the register."
+                action={
+                  <TextLink size="small" className="inline-flex items-center gap-025">
+                    <Link to="/register">
+                      Open register
+                      <ChevronRight className="size-icon-small" />
+                    </Link>
+                  </TextLink>
+                }
+              >
+                {programPoams.length === 0 ? (
+                  <Empty
+                    title="No POA&M items"
+                    description="Commitments raised against this program will appear here."
+                  />
+                ) : (
+                  <Table className="table-fixed">
+                    <thead>
+                      <tr>
+                        <Table.Header width={96}>ID</Table.Header>
+                        <Table.Header>Weakness</Table.Header>
+                        <Table.Header width={120}>Status</Table.Header>
+                        <Table.Header width={140}>Owner</Table.Header>
+                        <Table.Header width={120} className="text-right">
+                          Scheduled
+                        </Table.Header>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {programPoams.map((p) => (
+                        <Table.Row key={p.id}>
+                          <Table.Cell>
+                            <TextLink>
+                              <Link to="/register/poam/$poamId" params={{ poamId: p.id }}>
+                                <Id>{p.id}</Id>
+                              </Link>
+                            </TextLink>
+                          </Table.Cell>
+                          <Table.Cell className="truncate">{p.title}</Table.Cell>
+                          <Table.Cell>
+                            <Badge tone={statusTone(p.status)}>{p.status}</Badge>
+                          </Table.Cell>
+                          <Table.Cell className="truncate">
+                            <Person name={p.owner} />
+                          </Table.Cell>
+                          <Table.Cell className="tabular-nums text-right">
+                            {p.scheduledCompletion}
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </tbody>
+                  </Table>
+                )}
+              </Section>
+            </>
+          ) : null}
 
-            <ControlSetsSummary scopes={scopeRows} onOpen={() => setTab("Systems")} />
+          {tab === "Systems" ? (
+            <ScopeTable scopes={scopeRows} rollup={rollup} programId={program.id} />
+          ) : null}
 
-            <SctmMatrixSection
-              programId={program.id}
-              family={family}
-              onFamily={setFamily}
-              status={statusFilter}
-              onStatus={setStatusFilter}
-            />
-          </>
-        ) : null}
+          {tab === "Requirements" ? (
+            <>
+              <Inline alignInline="end">
+                <Button variant="primary" size="small" onClick={() => setNewRequirement(true)}>
+                  New requirement
+                </Button>
+              </Inline>
+              <NewRequirementModal
+                open={newRequirement}
+                onClose={() => setNewRequirement(false)}
+                programId={program.id}
+              />
+            </>
+          ) : null}
 
-        {tab === "Controls v2" ? <ControlBoard programId={program.id} /> : null}
-        {tab === "Controls v3" ? <ControlWorkspace programId={program.id} /> : null}
+          {tab === "Requirements" ? (
+            requirementRows.length ? (
+              <RequirementCoverage programId={program.id} />
+            ) : (
+              <Empty
+                title="No security requirements"
+                description={`${program.id} has no engineering requirements yet. Controls are obligations until a requirement states what the system must do.`}
+              />
+            )
+          ) : null}
 
-        {tab === "Timeline" ? (
-          <RmfTimeline
-            programId={program.id}
-            rows={matrix}
-            onOpenControls={(f) => {
-              setFamily(f);
-              setStatusFilter("All");
-              setTab("Controls");
-            }}
-          />
-        ) : null}
+          {tab === "Activity" ? (
+            <>
+              <Section
+                title="Continuous monitoring"
+                description="After the ATO the question stops being whether this system was ever assessed and becomes whether what is running is still what was authorized. The drift score, the SLCM assessment schedule, evidence freshness against its SLA, scan cadence and POA&M slippage are all computed there."
+                action={
+                  <TextLink size="small" className="inline-flex items-center gap-025">
+                    <Link
+                      to="/programs/$programId/conmon"
+                      params={{ programId: program.id }}
+                      search={{ tab: undefined }}
+                    >
+                      Open ConMon
+                    </Link>
+                  </TextLink>
+                }
+              >
+                <p className="pt-100 font-body-small text-subtle">
+                  The timeline below records what happened to {program.acronym}. The ConMon page
+                  records what has drifted since — an unrecorded configuration change, a
+                  determination the change invalidated, evidence past its collection interval, an
+                  SLCM assessment that has gone overdue — each stated with the numbers behind it and
+                  the next step.
+                </p>
+              </Section>
 
-        {tab === "Findings" ? (
-          <>
-            <Section
-              title="Cyber test and evaluation"
-              description="The six DoD Cybersecurity T&E phases, their entry and exit criteria, the threat scenarios the red team walks and the mission effects those scenarios actually achieved."
-              action={
-                <TextLink size="small" className="inline-flex items-center gap-025">
-                  <Link
-                    to="/programs/$programId/te-phases"
-                    params={{ programId: program.id }}
-                    search={{ tab: undefined }}
-                  >
-                    Open T&amp;E phases
-                  </Link>
-                </TextLink>
-              }
-            >
-              <p className="pt-100 font-body-small text-subtle">
-                A phase gate that is a checkbox is worthless. Wherever the platform can already
-                judge a criterion it does — off {program.acronym}&apos;s own scan record, SCTM,
-                finding register and change log — and the gate page prints the computed sentence and
-                the evidence ids behind it rather than a tick.
-              </p>
-            </Section>
+              <AuthorizationSection programId={program.id} programName={program.name} />
 
-            <Section
-              title="Verification"
-              description={`Scanner ingest, findings and assessor readiness for ${program.name}.`}
-              action={
-                <TextLink size="small" className="inline-flex items-center gap-025">
-                  <Link to="/programs/$programId/ingestion" params={{ programId: program.id }}>
-                    Open ingestion
-                  </Link>
-                </TextLink>
-              }
-            >
-              <Box paddingBlockStart="space.200">
-                <VerificationSection programName={program.name} />
-              </Box>
-            </Section>
-          </>
-        ) : null}
+              <Section
+                title="Activity"
+                description="Continuous monitoring events and record changes for this program."
+              >
+                <ActivityTimeline programId={program.id} events={feed} />
+              </Section>
+            </>
+          ) : null}
 
-        {tab === "Evidence" ? (
-          <>
-            <Section
-              title="Interoperability and transfer"
-              description="The same body of evidence has to leave this platform three ways: as OSCAL 1.1.2 an assessor can import, as the eMASS CSV column sets a package submission actually requires, and as a hashed bundle that can cross an air gap and be reconciled on the far side."
-              action={
-                <TextLink size="small" className="inline-flex items-center gap-025">
-                  <Link
-                    to="/programs/$programId/export"
-                    params={{ programId: program.id }}
-                    search={{ tab: undefined }}
-                  >
-                    Open export
-                  </Link>
-                </TextLink>
-              }
-            >
-              <p className="pt-100 font-body-small text-subtle">
-                Every artifact is generated from {program.acronym}&apos;s live SCTM, composition
-                graph and finding register rather than re-keyed, so an export taken twice is byte
-                identical and the manifest hash means something. The reconciliation view diffs a
-                bundle received from the far side against the one generated here and says, in one
-                sentence, what moved.
-              </p>
-            </Section>
-
-            <LifecycleSection programId={program.id} programName={program.name} />
-            <DigitalThreadSection programId={program.id} programName={program.name} />
-          </>
-        ) : null}
-
-        {tab === "POA&M" ? (
-          <>
-            <Section
-              title="Residual risk"
-              description="CAT I/II/III is a severity, not a risk. Every finding carries a 0-100 residual built from severity, mitigation credit, exploitability, exposure, mission impact and evidence currency — with the whole calculation attached to it."
-              action={
-                <TextLink size="small" className="inline-flex items-center gap-025">
-                  <Link
-                    to="/programs/$programId/risk"
-                    params={{ programId: program.id }}
-                    search={{ tab: undefined }}
-                  >
-                    Open risk scoring
-                  </Link>
-                </TextLink>
-              }
-            >
-              <p className="pt-100 font-body-small text-subtle">
-                {posture.findingsOpen} open finding
-                {posture.findingsOpen === 1 ? " is" : "s are"} scored, banded and ranked there, and
-                the register risks show the computed residual beside the number the assessor wrote
-                down. Where the two disagree, the disagreement is the finding — the authored value
-                is never overwritten.
-              </p>
-            </Section>
-
-            <Section
-              title="POA&M items"
-              description="Open commitments for this program. Managed in the register."
-              action={
-                <TextLink size="small" className="inline-flex items-center gap-025">
-                  <Link to="/register">
-                    Open register
-                    <ChevronRight className="size-icon-small" />
-                  </Link>
-                </TextLink>
-              }
-            >
-              {programPoams.length === 0 ? (
-                <Empty
-                  title="No POA&M items"
-                  description="Commitments raised against this program will appear here."
-                />
-              ) : (
-                <Table className="table-fixed">
-                  <thead>
-                    <tr>
-                      <Table.Header width={96}>ID</Table.Header>
-                      <Table.Header>Weakness</Table.Header>
-                      <Table.Header width={120}>Status</Table.Header>
-                      <Table.Header width={140}>Owner</Table.Header>
-                      <Table.Header width={120} className="text-right">
-                        Scheduled
-                      </Table.Header>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {programPoams.map((p) => (
-                      <Table.Row key={p.id}>
-                        <Table.Cell>
-                          <TextLink>
-                            <Link to="/register/poam/$poamId" params={{ poamId: p.id }}>
-                              <Id>{p.id}</Id>
-                            </Link>
-                          </TextLink>
-                        </Table.Cell>
-                        <Table.Cell className="truncate">{p.title}</Table.Cell>
-                        <Table.Cell>
-                          <Badge tone={statusTone(p.status)}>{p.status}</Badge>
-                        </Table.Cell>
-                        <Table.Cell className="truncate">
-                          <Person name={p.owner} />
-                        </Table.Cell>
-                        <Table.Cell className="tabular-nums text-right">
-                          {p.scheduledCompletion}
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
-                  </tbody>
-                </Table>
-              )}
-            </Section>
-          </>
-        ) : null}
-
-        {tab === "Systems" ? (
-          <ScopeTable scopes={scopeRows} rollup={rollup} programId={program.id} />
-        ) : null}
-
-        {tab === "Requirements" ? (
-          <>
-            <Inline alignInline="end">
-              <Button variant="primary" size="small" onClick={() => setNewRequirement(true)}>
-                New requirement
-              </Button>
-            </Inline>
-            <NewRequirementModal
-              open={newRequirement}
-              onClose={() => setNewRequirement(false)}
-              programId={program.id}
-            />
-          </>
-        ) : null}
-
-        {tab === "Requirements" ? (
-          requirementRows.length ? (
-            <RequirementCoverage programId={program.id} />
-          ) : (
-            <Empty
-              title="No security requirements"
-              description={`${program.id} has no engineering requirements yet. Controls are obligations until a requirement states what the system must do.`}
-            />
-          )
-        ) : null}
-
-        {tab === "Activity" ? (
-          <>
-            <Section
-              title="Continuous monitoring"
-              description="After the ATO the question stops being whether this system was ever assessed and becomes whether what is running is still what was authorized. The drift score, the SLCM assessment schedule, evidence freshness against its SLA, scan cadence and POA&M slippage are all computed there."
-              action={
-                <TextLink size="small" className="inline-flex items-center gap-025">
-                  <Link
-                    to="/programs/$programId/conmon"
-                    params={{ programId: program.id }}
-                    search={{ tab: undefined }}
-                  >
-                    Open ConMon
-                  </Link>
-                </TextLink>
-              }
-            >
-              <p className="pt-100 font-body-small text-subtle">
-                The timeline below records what happened to {program.acronym}. The ConMon page
-                records what has drifted since — an unrecorded configuration change, a determination
-                the change invalidated, evidence past its collection interval, an SLCM assessment
-                that has gone overdue — each stated with the numbers behind it and the next step.
-              </p>
-            </Section>
-
-            <AuthorizationSection programId={program.id} programName={program.name} />
-
-            <Section
-              title="Activity"
-              description="Continuous monitoring events and record changes for this program."
-            >
-              <ActivityTimeline programId={program.id} events={feed} />
-            </Section>
-          </>
-        ) : null}
-
-        {tab === "Team" ? <TeamSection programId={program.id} /> : null}
-      </ShowPage>
+          {tab === "Team" ? <TeamSection programId={program.id} /> : null}
+        </ShowPage>
+        <DsShell.Panel label="Details">
+          <DsShell.Panel.Splitter label="Resize details" />
+          <Panel flush>{rail}</Panel>
+        </DsShell.Panel>
+      </>
 
       <CommandPalette
         open={palette.open}

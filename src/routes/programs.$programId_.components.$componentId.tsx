@@ -19,8 +19,10 @@ import {
   Fact,
   Id,
   Indicator,
+  Panel,
   RecordHeader,
   Section,
+  Shell as DsShell,
   ShowPage,
   Stack,
   Table,
@@ -191,423 +193,429 @@ function ComponentRecord() {
 
   return (
     <Shell>
-      <ShowPage
-        header={
-          <RecordHeader
-            back={
-              anchored ? (
-                <Link
-                  to="/programs/$programId"
-                  params={{ programId }}
-                  search={{ tab: "Systems" }}
-                />
-              ) : (
-                <Link to="/programs/$programId/composition" params={{ programId }} />
-              )
-            }
-            id={node.id}
-            title={node.name}
-            meta={`${node.kind} · ${node.class}${node.version === "—" ? "" : ` · ${node.version}`} · ${program.acronym}`}
-            actions={
-              <>
-                <Badge tone={node.attested ? "success" : "warning"}>
-                  {node.attested ? "Attested" : "Not attested"}
-                </Badge>
-                {posture?.worst ? (
-                  <Indicator tone={severityTone(posture.worst)}>{posture.worst} open</Indicator>
-                ) : null}
-                {anchored ? (
-                  <Badge tone={anchored.independentlyAuthorized ? "warning" : "neutral"}>
-                    {anchored.independentlyAuthorized
-                      ? "Separately authorized"
-                      : "Inside the program ATO"}
+      <>
+        <ShowPage
+          header={
+            <RecordHeader
+              back={
+                anchored ? (
+                  <Link
+                    to="/programs/$programId"
+                    params={{ programId }}
+                    search={{ tab: "Systems" }}
+                  />
+                ) : (
+                  <Link to="/programs/$programId/composition" params={{ programId }} />
+                )
+              }
+              id={node.id}
+              title={node.name}
+              meta={`${node.kind} · ${node.class}${node.version === "—" ? "" : ` · ${node.version}`} · ${program.acronym}`}
+              actions={
+                <>
+                  <Badge tone={node.attested ? "success" : "warning"}>
+                    {node.attested ? "Attested" : "Not attested"}
                   </Badge>
-                ) : null}
-              </>
-            }
-            facts={
-              <>
-                {anchored && anchoredSet ? <ScopeFacts scope={anchored} set={anchoredSet} /> : null}
-                <Fact label="Supplier">{node.supplier}</Fact>
-                {node.partNumber ? (
-                  <Fact label="Part number">
-                    <Id>{node.partNumber}</Id>
+                  {posture?.worst ? (
+                    <Indicator tone={severityTone(posture.worst)}>{posture.worst} open</Indicator>
+                  ) : null}
+                  {anchored ? (
+                    <Badge tone={anchored.independentlyAuthorized ? "warning" : "neutral"}>
+                      {anchored.independentlyAuthorized
+                        ? "Separately authorized"
+                        : "Inside the program ATO"}
+                    </Badge>
+                  ) : null}
+                </>
+              }
+              facts={
+                <>
+                  {anchored && anchoredSet ? (
+                    <ScopeFacts scope={anchored} set={anchoredSet} />
+                  ) : null}
+                  <Fact label="Supplier">{node.supplier}</Fact>
+                  {node.partNumber ? (
+                    <Fact label="Part number">
+                      <Id>{node.partNumber}</Id>
+                    </Fact>
+                  ) : null}
+                  <Fact label="Trust zone">{node.zone}</Fact>
+                  <Fact label="Criticality">{node.criticality}</Fact>
+                  <Fact label="Scopes">{scopes.length}</Fact>
+                  <Fact label="Requirements">{allocations.length || "None"}</Fact>
+                  <Fact label="Controls reached">{trace.controls.length || "None"}</Fact>
+                  <Fact label="Sits in">
+                    {parent ? (
+                      <TextLink>
+                        <Link
+                          to="/programs/$programId/components/$componentId"
+                          params={{ programId, componentId: parent.id }}
+                        >
+                          {parent.name}
+                        </Link>
+                      </TextLink>
+                    ) : (
+                      "Top of the tree"
+                    )}
                   </Fact>
-                ) : null}
-                <Fact label="Trust zone">{node.zone}</Fact>
-                <Fact label="Criticality">{node.criticality}</Fact>
-                <Fact label="Scopes">{scopes.length}</Fact>
-                <Fact label="Requirements">{allocations.length || "None"}</Fact>
-                <Fact label="Controls reached">{trace.controls.length || "None"}</Fact>
-                <Fact label="Sits in">
-                  {parent ? (
-                    <TextLink>
-                      <Link
-                        to="/programs/$programId/components/$componentId"
-                        params={{ programId, componentId: parent.id }}
-                      >
-                        {parent.name}
-                      </Link>
-                    </TextLink>
-                  ) : (
-                    "Top of the tree"
-                  )}
-                </Fact>
-              </>
-            }
-            below={anchored ? <RevisionStrip scopeId={anchored.id} /> : null}
-          />
-        }
-        tabs={
-          anchored ? (
-            <Tabs>
-              {nodeTabs.map((key) => (
-                <Tabs.Tab
-                  key={key}
-                  isSelected={tab === key}
-                  onClick={() => go(key)}
-                  count={key === "Control set" ? (anchoredSet?.total ?? null) : null}
+                </>
+              }
+              below={anchored ? <RevisionStrip scopeId={anchored.id} /> : null}
+            />
+          }
+          tabs={
+            anchored ? (
+              <Tabs>
+                {nodeTabs.map((key) => (
+                  <Tabs.Tab
+                    key={key}
+                    isSelected={tab === key}
+                    onClick={() => go(key)}
+                    count={key === "Control set" ? (anchoredSet?.total ?? null) : null}
+                  >
+                    {key}
+                  </Tabs.Tab>
+                ))}
+              </Tabs>
+            ) : undefined
+          }
+        >
+          {tab === "Control set" && anchored ? (
+            <ScopeControlSetTab programId={program.id} scope={anchored} />
+          ) : (
+            <>
+              {scopes.some((sc) => sc.id !== anchored?.id) ? (
+                <Section
+                  title="Assessment scopes"
+                  description={
+                    serves.length
+                      ? "This component serves more than one scope. Its obligations are the union, and the strictest categorization governs."
+                      : "The scope whose obligations reach this component."
+                  }
                 >
-                  {key}
-                </Tabs.Tab>
-              ))}
-            </Tabs>
-          ) : undefined
-        }
-        showRail={tab === "Overview"}
-        rail={
-          <>
-            <NodeRail node={node} posture={posture} />
-            {anchored ? <ScopeRailGroups scope={anchored} /> : null}
-          </>
-        }
-      >
-        {tab === "Control set" && anchored ? (
-          <ScopeControlSetTab programId={program.id} scope={anchored} />
-        ) : (
-          <>
-            {scopes.some((sc) => sc.id !== anchored?.id) ? (
+                  <Table className="pt-050">
+                    <thead>
+                      <Table.Row>
+                        <Table.Header width={104}>Scope</Table.Header>
+                        <Table.Header width={220}>Name</Table.Header>
+                        <Table.Header width={56} title="Confidentiality">
+                          C
+                        </Table.Header>
+                        <Table.Header width={56} title="Integrity">
+                          I
+                        </Table.Header>
+                        <Table.Header width={56} title="Availability">
+                          A
+                        </Table.Header>
+                        <Table.Header width={84}>Reached by</Table.Header>
+                        <Table.Header>Role here</Table.Header>
+                      </Table.Row>
+                    </thead>
+                    <tbody>
+                      {scopes
+                        .filter((sc) => sc.id !== anchored?.id)
+                        .map((sc) => {
+                          const t = triadOf(sc);
+                          const edge = serves.find((e) => e.scope === sc.id);
+                          const set = controlSetFor(sc.id);
+                          return (
+                            <Table.Row key={sc.id} title={edge?.rationale ?? sc.mission}>
+                              <Table.Cell className="max-w-none">
+                                <TextLink>
+                                  <Link
+                                    to="/programs/$programId/components/$componentId"
+                                    params={{ programId, componentId: sc.element }}
+                                    search={{ tab: "Control set" }}
+                                  >
+                                    <Id>{sc.id}</Id>
+                                  </Link>
+                                </TextLink>
+                              </Table.Cell>
+                              <Table.Cell className="truncate">{sc.name}</Table.Cell>
+                              <Table.Cell>{t.Confidentiality.slice(0, 1)}</Table.Cell>
+                              <Table.Cell>{t.Integrity.slice(0, 1)}</Table.Cell>
+                              <Table.Cell>{t.Availability.slice(0, 1)}</Table.Cell>
+                              <Table.Cell>
+                                <Badge size="xsmall" tone={edge ? "information" : "neutral"}>
+                                  {edge ? "Serves" : "Contains"}
+                                </Badge>
+                              </Table.Cell>
+                              <Table.Cell className="truncate">
+                                {edge ? edge.role : `${set?.total ?? 0} controls in force`}
+                              </Table.Cell>
+                            </Table.Row>
+                          );
+                        })}
+                    </tbody>
+                  </Table>
+                </Section>
+              ) : null}
+
               <Section
-                title="Assessment scopes"
-                description={
-                  serves.length
-                    ? "This component serves more than one scope. Its obligations are the union, and the strictest categorization governs."
-                    : "The scope whose obligations reach this component."
+                title="Security requirements allocated here"
+                action={
+                  <Button size="small" variant="primary" onClick={() => setDeciding(true)}>
+                    {undecided.length
+                      ? `Review ${undecided.length} unanswered`
+                      : "Allocate requirements"}
+                  </Button>
                 }
               >
-                <Table className="pt-050">
-                  <thead>
-                    <Table.Row>
-                      <Table.Header width={104}>Scope</Table.Header>
-                      <Table.Header width={220}>Name</Table.Header>
-                      <Table.Header width={56} title="Confidentiality">
-                        C
-                      </Table.Header>
-                      <Table.Header width={56} title="Integrity">
-                        I
-                      </Table.Header>
-                      <Table.Header width={56} title="Availability">
-                        A
-                      </Table.Header>
-                      <Table.Header width={84}>Reached by</Table.Header>
-                      <Table.Header>Role here</Table.Header>
-                    </Table.Row>
-                  </thead>
-                  <tbody>
-                    {scopes
-                      .filter((sc) => sc.id !== anchored?.id)
-                      .map((sc) => {
-                        const t = triadOf(sc);
-                        const edge = serves.find((e) => e.scope === sc.id);
-                        const set = controlSetFor(sc.id);
-                        return (
-                          <Table.Row key={sc.id} title={edge?.rationale ?? sc.mission}>
-                            <Table.Cell className="max-w-none">
-                              <TextLink>
-                                <Link
-                                  to="/programs/$programId/components/$componentId"
-                                  params={{ programId, componentId: sc.element }}
-                                  search={{ tab: "Control set" }}
-                                >
-                                  <Id>{sc.id}</Id>
-                                </Link>
-                              </TextLink>
-                            </Table.Cell>
-                            <Table.Cell className="truncate">{sc.name}</Table.Cell>
-                            <Table.Cell>{t.Confidentiality.slice(0, 1)}</Table.Cell>
-                            <Table.Cell>{t.Integrity.slice(0, 1)}</Table.Cell>
-                            <Table.Cell>{t.Availability.slice(0, 1)}</Table.Cell>
-                            <Table.Cell>
-                              <Badge size="xsmall" tone={edge ? "information" : "neutral"}>
-                                {edge ? "Serves" : "Contains"}
-                              </Badge>
-                            </Table.Cell>
-                            <Table.Cell className="truncate">
-                              {edge ? edge.role : `${set?.total ?? 0} controls in force`}
-                            </Table.Cell>
-                          </Table.Row>
-                        );
-                      })}
-                  </tbody>
-                </Table>
+                <ElementAllocationTable
+                  allocations={allocations}
+                  programId={programId}
+                  requirementFor={(id) => requirementById.get(id)}
+                />
               </Section>
-            ) : null}
 
-            <Section
-              title="Security requirements allocated here"
-              action={
-                <Button size="small" variant="primary" onClick={() => setDeciding(true)}>
-                  {undecided.length
-                    ? `Review ${undecided.length} unanswered`
-                    : "Allocate requirements"}
-                </Button>
-              }
-            >
-              <ElementAllocationTable
-                allocations={allocations}
-                programId={programId}
-                requirementFor={(id) => requirementById.get(id)}
-              />
-            </Section>
+              <Section
+                title="Controls reached"
+                description="Derived from the allocations above — never stored against this component"
+              >
+                <DerivedControlTrace trace={trace} programId={programId} />
+              </Section>
 
-            <Section
-              title="Controls reached"
-              description="Derived from the allocations above — never stored against this component"
-            >
-              <DerivedControlTrace trace={trace} programId={programId} />
-            </Section>
-
-            {children.length > 0 ? (
-              <Section title="Contains">
-                <Table className="pt-050">
-                  <thead>
-                    <Table.Row>
-                      <Table.Header width={104}>Component</Table.Header>
-                      <Table.Header>Name</Table.Header>
-                      <Table.Header width={132}>Kind</Table.Header>
-                      <Table.Header width={120}>Version</Table.Header>
-                      <Table.Header width={132}>Supplier</Table.Header>
-                      <Table.Header width={96} className="text-right">
-                        Reqs
-                      </Table.Header>
-                    </Table.Row>
-                  </thead>
-                  <tbody>
-                    {children.map((child) => (
-                      <Table.Row key={child.id}>
-                        <Table.Cell className="max-w-none">
-                          <TextLink>
-                            <Link
-                              to="/programs/$programId/components/$componentId"
-                              params={{ programId, componentId: child.id }}
-                            >
-                              <Id>{child.id}</Id>
-                            </Link>
-                          </TextLink>
-                        </Table.Cell>
-                        <Table.Cell className="truncate">{child.name}</Table.Cell>
-                        <Table.Cell className="truncate">{child.kind}</Table.Cell>
-                        <Table.Cell className="truncate">{child.version}</Table.Cell>
-                        <Table.Cell className="truncate">{child.supplier}</Table.Cell>
-                        <Table.Cell className="tabular-nums text-right">
-                          {allocationsOn(child.id).length || <span className="text-subtle">—</span>}
-                        </Table.Cell>
+              {children.length > 0 ? (
+                <Section title="Contains">
+                  <Table className="pt-050">
+                    <thead>
+                      <Table.Row>
+                        <Table.Header width={104}>Component</Table.Header>
+                        <Table.Header>Name</Table.Header>
+                        <Table.Header width={132}>Kind</Table.Header>
+                        <Table.Header width={120}>Version</Table.Header>
+                        <Table.Header width={132}>Supplier</Table.Header>
+                        <Table.Header width={96} className="text-right">
+                          Reqs
+                        </Table.Header>
                       </Table.Row>
-                    ))}
-                  </tbody>
-                </Table>
-              </Section>
-            ) : null}
-
-            {out.length + inbound.length > 0 ? (
-              <Section title="Connections">
-                <Table className="pt-050">
-                  <thead>
-                    <Table.Row>
-                      <Table.Header width={88}>Direction</Table.Header>
-                      <Table.Header width={104}>Component</Table.Header>
-                      <Table.Header>Name</Table.Header>
-                      <Table.Header width={132}>Relation</Table.Header>
-                      <Table.Header width={108}>Boundary</Table.Header>
-                    </Table.Row>
-                  </thead>
-                  <tbody>
-                    {[
-                      ...out.map((e) => ({ edge: e, dir: "Out" as const, other: e.to })),
-                      ...inbound.map((e) => ({ edge: e, dir: "In" as const, other: e.from })),
-                    ].map(({ edge, dir, other }, i) => {
-                      const peer = nodeById.get(other);
-                      return (
-                        <Table.Row key={`${edge.from}-${edge.to}-${i}`} title={edge.via}>
-                          <Table.Cell>{dir}</Table.Cell>
+                    </thead>
+                    <tbody>
+                      {children.map((child) => (
+                        <Table.Row key={child.id}>
                           <Table.Cell className="max-w-none">
                             <TextLink>
                               <Link
                                 to="/programs/$programId/components/$componentId"
-                                params={{ programId, componentId: other }}
+                                params={{ programId, componentId: child.id }}
                               >
-                                <Id>{other}</Id>
+                                <Id>{child.id}</Id>
                               </Link>
                             </TextLink>
                           </Table.Cell>
-                          <Table.Cell className="truncate">{peer?.name ?? other}</Table.Cell>
-                          <Table.Cell className="truncate">
-                            {edge.kind} — {edge.via}
-                          </Table.Cell>
-                          <Table.Cell>
-                            {crossesBoundary(edge) ? (
-                              <Badge size="xsmall" tone="warning">
-                                Crosses
-                              </Badge>
-                            ) : (
+                          <Table.Cell className="truncate">{child.name}</Table.Cell>
+                          <Table.Cell className="truncate">{child.kind}</Table.Cell>
+                          <Table.Cell className="truncate">{child.version}</Table.Cell>
+                          <Table.Cell className="truncate">{child.supplier}</Table.Cell>
+                          <Table.Cell className="tabular-nums text-right">
+                            {allocationsOn(child.id).length || (
                               <span className="text-subtle">—</span>
                             )}
                           </Table.Cell>
                         </Table.Row>
-                      );
-                    })}
-                  </tbody>
-                </Table>
-              </Section>
-            ) : null}
+                      ))}
+                    </tbody>
+                  </Table>
+                </Section>
+              ) : null}
 
-            {skipped.length > 0 ? (
-              <Section
-                title="Ruled out here"
-                description="Considered for this component and excluded. An absence would be indistinguishable from nobody having looked."
-              >
-                <Table className="pt-050">
-                  <thead>
-                    <Table.Row>
-                      <Table.Header width={112}>Requirement</Table.Header>
-                      <Table.Header width={320}>Shall statement</Table.Header>
-                      <Table.Header>Why it does not apply here</Table.Header>
-                      <Table.Header width={124}>Decided by</Table.Header>
-                      <Table.Header width={108}>Decided</Table.Header>
-                    </Table.Row>
-                  </thead>
-                  <tbody>
-                    {skipped.map((d) => {
-                      const r = getRequirement(d.requirement);
-                      return (
-                        <Table.Row key={d.id}>
+              {out.length + inbound.length > 0 ? (
+                <Section title="Connections">
+                  <Table className="pt-050">
+                    <thead>
+                      <Table.Row>
+                        <Table.Header width={88}>Direction</Table.Header>
+                        <Table.Header width={104}>Component</Table.Header>
+                        <Table.Header>Name</Table.Header>
+                        <Table.Header width={132}>Relation</Table.Header>
+                        <Table.Header width={108}>Boundary</Table.Header>
+                      </Table.Row>
+                    </thead>
+                    <tbody>
+                      {[
+                        ...out.map((e) => ({ edge: e, dir: "Out" as const, other: e.to })),
+                        ...inbound.map((e) => ({ edge: e, dir: "In" as const, other: e.from })),
+                      ].map(({ edge, dir, other }, i) => {
+                        const peer = nodeById.get(other);
+                        return (
+                          <Table.Row key={`${edge.from}-${edge.to}-${i}`} title={edge.via}>
+                            <Table.Cell>{dir}</Table.Cell>
+                            <Table.Cell className="max-w-none">
+                              <TextLink>
+                                <Link
+                                  to="/programs/$programId/components/$componentId"
+                                  params={{ programId, componentId: other }}
+                                >
+                                  <Id>{other}</Id>
+                                </Link>
+                              </TextLink>
+                            </Table.Cell>
+                            <Table.Cell className="truncate">{peer?.name ?? other}</Table.Cell>
+                            <Table.Cell className="truncate">
+                              {edge.kind} — {edge.via}
+                            </Table.Cell>
+                            <Table.Cell>
+                              {crossesBoundary(edge) ? (
+                                <Badge size="xsmall" tone="warning">
+                                  Crosses
+                                </Badge>
+                              ) : (
+                                <span className="text-subtle">—</span>
+                              )}
+                            </Table.Cell>
+                          </Table.Row>
+                        );
+                      })}
+                    </tbody>
+                  </Table>
+                </Section>
+              ) : null}
+
+              {skipped.length > 0 ? (
+                <Section
+                  title="Ruled out here"
+                  description="Considered for this component and excluded. An absence would be indistinguishable from nobody having looked."
+                >
+                  <Table className="pt-050">
+                    <thead>
+                      <Table.Row>
+                        <Table.Header width={112}>Requirement</Table.Header>
+                        <Table.Header width={320}>Shall statement</Table.Header>
+                        <Table.Header>Why it does not apply here</Table.Header>
+                        <Table.Header width={124}>Decided by</Table.Header>
+                        <Table.Header width={108}>Decided</Table.Header>
+                      </Table.Row>
+                    </thead>
+                    <tbody>
+                      {skipped.map((d) => {
+                        const r = getRequirement(d.requirement);
+                        return (
+                          <Table.Row key={d.id}>
+                            <Table.Cell className="max-w-none">
+                              <TextLink>
+                                <Link
+                                  to="/programs/$programId/requirements/$requirementId"
+                                  params={{ programId, requirementId: d.requirement }}
+                                  search={{ tab: undefined }}
+                                >
+                                  <Id>{d.requirement}</Id>
+                                </Link>
+                              </TextLink>
+                            </Table.Cell>
+                            <Table.Cell className="truncate" title={r?.text}>
+                              {r?.text ?? "—"}
+                            </Table.Cell>
+                            <Table.Cell className="whitespace-normal py-100 align-top">
+                              {d.rationale}
+                            </Table.Cell>
+                            <Table.Cell className="truncate">{d.decidedBy}</Table.Cell>
+                            <Table.Cell>{d.decidedOn}</Table.Cell>
+                          </Table.Row>
+                        );
+                      })}
+                    </tbody>
+                  </Table>
+                </Section>
+              ) : null}
+
+              <AllocateRequirementsSheet
+                open={deciding}
+                onClose={() => setDeciding(false)}
+                programId={program.id}
+                node={node}
+              />
+
+              <Section title="Open findings">
+                {open.length ? (
+                  <Table className="pt-050">
+                    <thead>
+                      <Table.Row>
+                        <Table.Header width={104}>Finding</Table.Header>
+                        <Table.Header width={88}>Severity</Table.Header>
+                        <Table.Header>Title</Table.Header>
+                        <Table.Header width={104}>Control</Table.Header>
+                        <Table.Header width={120}>Status</Table.Header>
+                      </Table.Row>
+                    </thead>
+                    <tbody>
+                      {open.map((f) => (
+                        <Table.Row key={f.id}>
                           <Table.Cell className="max-w-none">
                             <TextLink>
-                              <Link
-                                to="/programs/$programId/requirements/$requirementId"
-                                params={{ programId, requirementId: d.requirement }}
-                                search={{ tab: undefined }}
-                              >
-                                <Id>{d.requirement}</Id>
+                              <Link to="/findings/$findingId" params={{ findingId: f.id }}>
+                                <Id>{f.id}</Id>
                               </Link>
                             </TextLink>
                           </Table.Cell>
-                          <Table.Cell className="truncate" title={r?.text}>
-                            {r?.text ?? "—"}
+                          <Table.Cell>
+                            <Indicator tone={severityTone(f.mitigatedSeverity)}>
+                              {f.mitigatedSeverity}
+                            </Indicator>
                           </Table.Cell>
-                          <Table.Cell className="whitespace-normal py-100 align-top">
-                            {d.rationale}
+                          <Table.Cell className="truncate">{f.title}</Table.Cell>
+                          <Table.Cell>
+                            <TextLink>
+                              <Link
+                                to="/programs/$programId/controls/$controlId"
+                                params={{ programId, controlId: f.control }}
+                                search={{ tab: undefined }}
+                              >
+                                <Id>{f.control}</Id>
+                              </Link>
+                            </TextLink>
                           </Table.Cell>
-                          <Table.Cell className="truncate">{d.decidedBy}</Table.Cell>
-                          <Table.Cell>{d.decidedOn}</Table.Cell>
+                          <Table.Cell className="truncate">{f.lifecycle}</Table.Cell>
                         </Table.Row>
-                      );
-                    })}
-                  </tbody>
-                </Table>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : (
+                  <Box paddingBlockStart="space.150">
+                    <Empty
+                      title="No open findings"
+                      description={
+                        node.asset
+                          ? `Nothing open against ${node.asset}.`
+                          : "This component is not a tracked boundary asset, so findings attach to its host instead."
+                      }
+                    />
+                  </Box>
+                )}
               </Section>
-            ) : null}
 
-            <AllocateRequirementsSheet
-              open={deciding}
-              onClose={() => setDeciding(false)}
-              programId={program.id}
-              node={node}
-            />
-
-            <Section title="Open findings">
-              {open.length ? (
-                <Table className="pt-050">
-                  <thead>
-                    <Table.Row>
-                      <Table.Header width={104}>Finding</Table.Header>
-                      <Table.Header width={88}>Severity</Table.Header>
-                      <Table.Header>Title</Table.Header>
-                      <Table.Header width={104}>Control</Table.Header>
-                      <Table.Header width={120}>Status</Table.Header>
-                    </Table.Row>
-                  </thead>
-                  <tbody>
-                    {open.map((f) => (
-                      <Table.Row key={f.id}>
-                        <Table.Cell className="max-w-none">
-                          <TextLink>
-                            <Link to="/findings/$findingId" params={{ findingId: f.id }}>
-                              <Id>{f.id}</Id>
-                            </Link>
-                          </TextLink>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Indicator tone={severityTone(f.mitigatedSeverity)}>
-                            {f.mitigatedSeverity}
-                          </Indicator>
-                        </Table.Cell>
-                        <Table.Cell className="truncate">{f.title}</Table.Cell>
-                        <Table.Cell>
-                          <TextLink>
-                            <Link
-                              to="/programs/$programId/controls/$controlId"
-                              params={{ programId, controlId: f.control }}
-                              search={{ tab: undefined }}
-                            >
-                              <Id>{f.control}</Id>
-                            </Link>
-                          </TextLink>
-                        </Table.Cell>
-                        <Table.Cell className="truncate">{f.lifecycle}</Table.Cell>
-                      </Table.Row>
-                    ))}
-                  </tbody>
-                </Table>
-              ) : (
-                <Box paddingBlockStart="space.150">
-                  <Empty
-                    title="No open findings"
-                    description={
-                      node.asset
-                        ? `Nothing open against ${node.asset}.`
-                        : "This component is not a tracked boundary asset, so findings attach to its host instead."
-                    }
-                  />
-                </Box>
-              )}
-            </Section>
-
-            <Section title="Provenance">
-              <Fact.Group className="pt-150">
-                <Fact label="Declared by">{node.bomSource}</Fact>
-                <Fact label="BOM document">
-                  {bom ? (
-                    <span title={`${bom.name} · ${bom.producer} · ${bom.received}`}>
-                      <Id>{bom.id}</Id>
-                    </span>
-                  ) : (
-                    "Hand-declared"
-                  )}
-                </Fact>
-                <Fact label="Path">
-                  {pathOf(node.id)
-                    .map((n) => n.name)
-                    .join(" / ")}
-                </Fact>
-              </Fact.Group>
-              {node.note ? (
-                <p className="max-w-layout-measure pt-100 font-body text-subtle">{node.note}</p>
-              ) : null}
-            </Section>
-          </>
-        )}
-      </ShowPage>
+              <Section title="Provenance">
+                <Fact.Group className="pt-150">
+                  <Fact label="Declared by">{node.bomSource}</Fact>
+                  <Fact label="BOM document">
+                    {bom ? (
+                      <span title={`${bom.name} · ${bom.producer} · ${bom.received}`}>
+                        <Id>{bom.id}</Id>
+                      </span>
+                    ) : (
+                      "Hand-declared"
+                    )}
+                  </Fact>
+                  <Fact label="Path">
+                    {pathOf(node.id)
+                      .map((n) => n.name)
+                      .join(" / ")}
+                  </Fact>
+                </Fact.Group>
+                {node.note ? (
+                  <p className="max-w-layout-measure pt-100 font-body text-subtle">{node.note}</p>
+                ) : null}
+              </Section>
+            </>
+          )}
+        </ShowPage>
+        <DsShell.Panel label="Details">
+          <DsShell.Panel.Splitter label="Resize details" />
+          <Panel flush>
+            <NodeRail node={node} posture={posture} />
+            {anchored ? <ScopeRailGroups scope={anchored} /> : null}
+          </Panel>
+        </DsShell.Panel>
+      </>
     </Shell>
   );
 }

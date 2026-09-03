@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { IconButton } from "../components/button";
 import { Tooltip } from "../components/tooltip";
 import { cn } from "../lib/cn";
+import { PanelContext } from "../lib/panel-context";
 
 export type PanelProps = {
   /** What is shown: the object when the panel shows it ("Comments"), the action when it completes one ("Edit settings"). A record's rail has no title; it is the record's. */
@@ -20,6 +21,8 @@ export type PanelProps = {
   subheader?: ReactNode;
   /** Actions pinned to the bottom, right-aligned: Cancel, then the primary. */
   footer?: ReactNode;
+  /** The body without padding, for content whose rules run edge to edge: the record's rail. The Inspector insets itself. */
+  flush?: boolean | undefined;
   className?: string | undefined;
   children: ReactNode;
 };
@@ -28,7 +31,7 @@ export type PanelProps = {
  * The surface inside the shell's Panel area: an optional header that names what is shown, the
  * body, an optional footer. The area scrolls; the header and the footer stay put. Two uses. The
  * record's rail, details and related information, is always there on a record and is never
- * dismissed: no title, no close, an Inspector with `sticky` off. A panel the reader opens, a
+ * dismissed: no title, no close, `flush`, an Inspector inside that runs edge to edge. A panel the reader opens, a
  * thread, a form, has a title, a close and a Panel.Trigger. The peek is neither; it is a Sheet
  * over the nav.
  */
@@ -40,6 +43,7 @@ function PanelRoot({
   onClose,
   subheader,
   footer,
+  flush = false,
   className,
   children,
 }: PanelProps) {
@@ -75,7 +79,9 @@ function PanelRoot({
           ) : null}
         </div>
       ) : null}
-      <div className="flex-1 px-300 py-200">{children}</div>
+      <PanelContext.Provider value={{ flush }}>
+        <div className={cn("flex-1", !flush && "px-300 py-200")}>{children}</div>
+      </PanelContext.Provider>
       {footer ? (
         <div className="sticky bottom-0 flex shrink-0 items-center justify-end gap-100 border-t border-default bg-surface px-300 py-100">
           {footer}

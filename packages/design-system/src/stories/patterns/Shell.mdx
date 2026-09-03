@@ -143,11 +143,10 @@ thread or a form, is the third thing: it has a title, a close and a `Panel.Trigg
 The sidebar never holds phases: a phase is a state of a programme, reached by opening that
 programme. The side nav holds objects and queues.
 
-## The old frame
+## Renames
 
-`Shell` with `sidebar` and `topBar` props, and `Shell.Sidebar`, `Shell.TopBar`, `Shell.Brand`,
-`Shell.NavGroup`, `Shell.NavItem` and `Shell.User`, are the frame before the navigation system.
-They still render, unchanged, so a consumer moves in a commit of its own; `ledger/no-deprecated-name`
-names the replacement for each and fixes the one-to-one renames.
+The frame before the navigation system (`Shell.Sidebar`, `TopBar`, `Brand`, `NavGroup`, `NavItem`,
+`User`) is gone. `ledger/no-deprecated-name` still names the replacement for each and fixes the
+one-to-one renames, so a consumer on the old names lints its way across.
 
 <Canvas of={Stories.ShellMatrix} />

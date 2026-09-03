@@ -12,10 +12,12 @@ import {
   Inline,
   Inspector,
   KeyValue,
+  Panel,
   Person,
   Progress,
   RecordHeader,
   Section,
+  Shell as DsShell,
   ShowPage,
   Stack,
   Table,
@@ -124,74 +126,422 @@ function FindingRecord() {
 
   return (
     <Shell>
-      <ShowPage
-        header={
-          <RecordHeader
-            back={<Link to="/findings" />}
-            id={finding.id}
-            title={finding.title}
-            meta={`${finding.control}${catalogTitle ? ` ${catalogTitle}` : ""} · ${finding.source} · ${finding.owner}`}
-            actions={
-              <>
-                <Indicator tone={severityTone(finding.mitigatedSeverity)}>
-                  {finding.mitigatedSeverity}
-                </Indicator>
-                <Badge tone={statusTone(finding.lifecycle)}>{finding.lifecycle}</Badge>
-                {finding.poam ? (
-                  <Link to="/register/poam/$poamId" params={{ poamId: finding.poam }}>
+      <>
+        <ShowPage
+          header={
+            <RecordHeader
+              back={<Link to="/findings" />}
+              id={finding.id}
+              title={finding.title}
+              meta={`${finding.control}${catalogTitle ? ` ${catalogTitle}` : ""} · ${finding.source} · ${finding.owner}`}
+              actions={
+                <>
+                  <Indicator tone={severityTone(finding.mitigatedSeverity)}>
+                    {finding.mitigatedSeverity}
+                  </Indicator>
+                  <Badge tone={statusTone(finding.lifecycle)}>{finding.lifecycle}</Badge>
+                  {finding.poam ? (
+                    <Link to="/register/poam/$poamId" params={{ poamId: finding.poam }}>
+                      <Button variant="secondary" size="small">
+                        Open {finding.poam}
+                      </Button>
+                    </Link>
+                  ) : (
                     <Button variant="secondary" size="small">
-                      Open {finding.poam}
+                      Add to POA&amp;M
                     </Button>
-                  </Link>
-                ) : (
-                  <Button variant="secondary" size="small">
-                    Add to POA&amp;M
-                  </Button>
-                )}
-              </>
-            }
-          />
-        }
-        tabs={
-          <Tabs>
-            {(
-              [
-                ["Finding", null],
-                ["Assessment", null],
-                ["Remediation", plan ? plan.total : null],
-                ["Residual risk", null],
-              ] as [FindingTab, number | null][]
-            ).map(([key, count]) => (
-              <Tabs.Tab
-                key={key}
-                isSelected={tab === key}
-                onClick={() => go(key)}
-                trailing={
-                  key === "Residual risk" ? (
-                    residual ? (
-                      <Badge tone={bandTone[residual.band]} size="xsmall" className="tabular-nums">
-                        {residual.score}
-                      </Badge>
+                  )}
+                </>
+              }
+            />
+          }
+          tabs={
+            <Tabs>
+              {(
+                [
+                  ["Finding", null],
+                  ["Assessment", null],
+                  ["Remediation", plan ? plan.total : null],
+                  ["Residual risk", null],
+                ] as [FindingTab, number | null][]
+              ).map(([key, count]) => (
+                <Tabs.Tab
+                  key={key}
+                  isSelected={tab === key}
+                  onClick={() => go(key)}
+                  trailing={
+                    key === "Residual risk" ? (
+                      residual ? (
+                        <Badge
+                          tone={bandTone[residual.band]}
+                          size="xsmall"
+                          className="tabular-nums"
+                        >
+                          {residual.score}
+                        </Badge>
+                      ) : null
+                    ) : count ? (
+                      <Box
+                        className="tabular-nums rounded-small bg-neutral font-body-xsmall font-medium text-subtle"
+                        as="span"
+                        paddingInline="space.050"
+                      >
+                        {count}
+                      </Box>
                     ) : null
-                  ) : count ? (
-                    <Box
-                      className="tabular-nums rounded-small bg-neutral font-body-xsmall font-medium text-subtle"
-                      as="span"
-                      paddingInline="space.050"
+                  }
+                >
+                  {key === "Remediation" ? "Remediation plan" : key}
+                </Tabs.Tab>
+              ))}
+            </Tabs>
+          }
+        >
+          {tab === "Finding" ? (
+            <>
+              <Section
+                title="Finding statement"
+                description={`The condition, stated against ${finding.cci}.`}
+              >
+                <p className="max-w-layout-measure pt-150 font-body">{finding.detail}</p>
+                {cci ? (
+                  <p className="pt-150 max-w-layout-measure border-s border-default ps-150 font-body-small text-subtle">
+                    <Id className="text-subtle">{cci.id}</Id> — {cci.definition}
+                  </p>
+                ) : null}
+              </Section>
+
+              <Section
+                title="Requirement"
+                description="Where the statement comes from, and what it knocks down."
+              >
+                <Box paddingBlockStart="space.050">
+                  <TextBlock label="Control">
+                    {controlLink}
+                    {catalogTitle ? (
+                      <Box className="text-subtle" as="span" paddingInlineStart="space.100">
+                        {catalogTitle}
+                      </Box>
+                    ) : null}
+                  </TextBlock>
+                  <TextBlock label="Assessment status">
+                    {controlRow ? (
+                      <>
+                        <Badge tone={statusTone(controlRow.status)} size="xsmall">
+                          {controlRow.status}
+                        </Badge>
+                        <Box className="text-subtle" as="span" paddingInlineStart="space.100">
+                          {controlRow.openFindings} open finding
+                          {controlRow.openFindings === 1 ? "" : "s"} against this control
+                        </Box>
+                      </>
+                    ) : (
+                      <span className="text-subtle">
+                        Not in the tailored baseline for {programId}
+                      </span>
+                    )}
+                  </TextBlock>
+                  <TextBlock label="Verified by">
+                    {finding.source}
+                    {finding.rule ? (
+                      <Box className="text-subtle" as="span" paddingInlineStart="space.100">
+                        rule {finding.rule}
+                      </Box>
+                    ) : null}
+                  </TextBlock>
+                  <TextBlock label="Asset">
+                    <TextLink>
+                      <Link to="/findings/assets/$assetId" params={{ assetId: finding.asset }}>
+                        {asset?.name ?? finding.asset}
+                      </Link>
+                    </TextLink>
+                    {asset ? (
+                      <Box className="text-subtle" as="span" paddingInlineStart="space.100">
+                        {asset.kind} · {asset.technology} · {asset.environment}
+                      </Box>
+                    ) : null}
+                  </TextBlock>
+                </Box>
+              </Section>
+
+              <Section
+                title="Same CCI"
+                description={`${siblings.length} other finding${siblings.length === 1 ? "" : "s"} verify the same requirement.`}
+              >
+                {siblings.length ? (
+                  <Table className="table-fixed">
+                    <thead>
+                      <tr>
+                        <Table.Header width={112}>Finding</Table.Header>
+                        <Table.Header>Title</Table.Header>
+                        <Table.Header width={160}>Asset</Table.Header>
+                        <Table.Header width={78}>Severity</Table.Header>
+                        <Table.Header width={112}>Lifecycle</Table.Header>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {siblings.map((f) => (
+                        <Table.Row key={f.id}>
+                          <Table.Cell>
+                            <TextLink>
+                              <Link to="/findings/$findingId" params={{ findingId: f.id }}>
+                                <Id>{f.id}</Id>
+                              </Link>
+                            </TextLink>
+                          </Table.Cell>
+                          <Table.Cell className="truncate">{f.title}</Table.Cell>
+                          <Table.Cell className="truncate">
+                            {assetById.get(f.asset)?.name ?? f.asset}
+                          </Table.Cell>
+                          <Table.Cell>
+                            <Indicator tone={severityTone(f.mitigatedSeverity)}>
+                              {f.mitigatedSeverity}
+                            </Indicator>
+                          </Table.Cell>
+                          <Table.Cell className="truncate">
+                            <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : (
+                  <p className="pt-100 font-body text-subtle">
+                    This finding is the only evidence against {finding.cci}.
+                  </p>
+                )}
+              </Section>
+            </>
+          ) : null}
+
+          {tab === "Assessment" ? (
+            <>
+              <Section
+                title="Assessment"
+                description={`${finding.assessment.method} · ${finding.assessment.assessedBy} · ${finding.assessment.assessedOn}`}
+              >
+                <Box paddingBlockStart="space.050">
+                  <TextBlock label="Method">
+                    <Badge
+                      tone={
+                        finding.assessment.method === "Test"
+                          ? "warning"
+                          : finding.assessment.method === "Interview"
+                            ? "information"
+                            : "neutral"
+                      }
+                      size="xsmall"
                     >
-                      {count}
+                      {finding.assessment.method}
+                    </Badge>
+                    <Box className="text-subtle" as="span" paddingInlineStart="space.100">
+                      {finding.source}
                     </Box>
-                  ) : null
+                  </TextBlock>
+                  <TextBlock label="Procedure">{finding.assessment.procedure}</TextBlock>
+                  <TextBlock label="Assessor">
+                    <Person name={finding.assessment.assessedBy} />
+                  </TextBlock>
+                  <TextBlock label="Assessed on">{finding.assessment.assessedOn}</TextBlock>
+                  <TextBlock label="Evidence">
+                    {[finding.sourceArtifact, ...finding.assessment.evidence]
+                      .filter((v, i, a) => a.indexOf(v) === i)
+                      .map((id, i) => (
+                        <span key={id}>
+                          {i > 0 && " · "}
+                          <TextLink>
+                            <Link to="/evidence">
+                              <Id>{id}</Id>
+                            </Link>
+                          </TextLink>
+                        </span>
+                      ))}
+                  </TextBlock>
+                </Box>
+              </Section>
+
+              <Section
+                title="Determination"
+                description="The assessor's conclusion, carried verbatim into the SAR."
+              >
+                <p className="max-w-layout-measure pt-150 font-body">
+                  {finding.assessment.determination}
+                </p>
+              </Section>
+
+              <Section
+                title="Severity"
+                description={
+                  finding.rawSeverity === finding.mitigatedSeverity
+                    ? `Raw and mitigated severity agree at ${finding.mitigatedSeverity} — nothing reduces the exposure.`
+                    : `Raw ${finding.rawSeverity} reduced to ${finding.mitigatedSeverity} on the strength of a mitigation.`
                 }
               >
-                {key === "Remediation" ? "Remediation plan" : key}
-              </Tabs.Tab>
-            ))}
-          </Tabs>
-        }
-        showRail={tab === "Finding"}
-        rail={
-          <>
+                <Box paddingBlockStart="space.050">
+                  <TextBlock label="Raw">
+                    <Indicator tone={severityTone(finding.rawSeverity)}>
+                      {finding.rawSeverity}
+                    </Indicator>
+                  </TextBlock>
+                  <TextBlock label="Mitigated">
+                    <Indicator tone={severityTone(finding.mitigatedSeverity)}>
+                      {finding.mitigatedSeverity}
+                    </Indicator>
+                  </TextBlock>
+                  <TextBlock label="Mitigation">
+                    {finding.mitigation ?? <span className="text-subtle">None on record.</span>}
+                  </TextBlock>
+                  <TextBlock label="Occurrences">
+                    {finding.occurrences} across {finding.firstSeen} — {finding.lastSeen}
+                  </TextBlock>
+                </Box>
+              </Section>
+
+              <Section
+                title="Recommendation"
+                description="What the assessor says should happen, whether or not it is scheduled."
+              >
+                <p className="max-w-layout-measure pt-150 font-body">{finding.recommendation}</p>
+              </Section>
+            </>
+          ) : null}
+
+          {tab === "Remediation" ? (
+            plan ? (
+              <RemediationPlanSection
+                plan={plan}
+                programId={programId}
+                description={`The plan for ${finding.control}, which ${finding.id} closes on re-test. ${plan.complete} of ${plan.total} steps complete · ${plan.start} → ${plan.due}.`}
+              />
+            ) : (
+              <Section title="Remediation plan">
+                <Empty
+                  title={
+                    controlRow
+                      ? "Nothing scheduled against this finding"
+                      : "No plan behind this finding"
+                  }
+                  description={
+                    !controlRow
+                      ? `${finding.control} is not in the tailored baseline for ${programId}${poam ? `, so ${poam.id} carries the commitment on its own` : ""}. Tailor the control in, or work the item from the register.`
+                      : isOpen(finding)
+                        ? `${finding.control} carries no POA&M section and no open remediation. Add ${finding.id} to a POA&M item to put a dated plan behind it.`
+                        : `${finding.id} is ${finding.lifecycle.toLowerCase()} and ${finding.control} is ${controlRow.status.toLowerCase()}, so no plan is running. ${finding.risk ? `The residual sits on ${finding.risk}.` : ""}`
+                  }
+                />
+              </Section>
+            )
+          ) : null}
+
+          {tab === "Residual risk" ? (
+            residual ? (
+              <>
+                <Section
+                  title="Residual risk"
+                  description={
+                    isDeficiency(finding)
+                      ? `${residual.score} of 100 — ${residual.band}. CAT I/II/III grades how badly the requirement is missed; this grades what ${finding.id} is costing the program once reachability, demonstrated exploitation, mission effect and the currency of the evidence are read off the record.`
+                      : `${residual.score} of 100 — ${residual.band}. CAT I/II/III grades how badly the requirement is missed; this grades what the reported condition WOULD have cost the program once reachability, demonstrated exploitation, mission effect and the currency of the evidence are read off the record. ${finding.id} is ${finding.lifecycle.toLowerCase()}, so it is scored so the trail survives closure, not carried in the aggregate.`
+                  }
+                >
+                  <Grid
+                    className="pt-200"
+                    gap="space.200"
+                    templateColumns={{ md: "minmax(0,232px) minmax(0,1fr)" }}
+                  >
+                    <Box className="rounded-medium border border-default" padding="space.150">
+                      <Inline space="space.100" alignBlock="baseline">
+                        <span className="tabular-nums font-heading-large font-semibold">
+                          {residual.score}
+                        </span>
+                        <span className="font-body-small text-subtle">/ 100</span>
+                        <Badge tone={bandTone[residual.band]}>{residual.band}</Badge>
+                      </Inline>
+                      <Box paddingBlockStart="space.150">
+                        <Progress value={residual.score} tone={bandTone[residual.band]} />
+                      </Box>
+                      <dl className="pt-150 space-y-075 font-body-small">
+                        <Inline space="space.150" alignBlock="baseline" spread="space-between">
+                          <dt className="text-subtle">Inherent</dt>
+                          <dd className="tabular-nums">{residual.inherent}</dd>
+                        </Inline>
+                        <Inline space="space.150" alignBlock="baseline" spread="space-between">
+                          <dt className="text-subtle">Mitigation credit</dt>
+                          <dd className={credit < 0 ? "tabular-nums text-success" : "tabular-nums"}>
+                            {signed(credit)}
+                          </dd>
+                        </Inline>
+                        <Inline
+                          className="border-t border-default pt-075"
+                          space="space.150"
+                          alignBlock="baseline"
+                          spread="space-between"
+                        >
+                          <dt className="font-medium">Residual</dt>
+                          <dd className="tabular-nums font-medium">{residual.score}</dd>
+                        </Inline>
+                      </dl>
+                    </Box>
+                    <div>
+                      <TextBlock label="Band">
+                        <Badge tone={bandTone[residual.band]} size="xsmall">
+                          {residual.band}
+                        </Badge>
+                        <Box className="text-subtle" as="span" paddingInlineStart="space.100">
+                          {bandScale}
+                        </Box>
+                      </TextBlock>
+                      <TextBlock label="Greatest leverage">{residual.leverage}</TextBlock>
+                      <TextBlock label="Credit">
+                        {credit < 0
+                          ? `${finding.mitigation ? "The recorded compensating control" : "The gap between the raw and adjudicated grade"} buys ${Math.abs(credit)} point${Math.abs(credit) === 1 ? "" : "s"} off the inherent ${residual.inherent}. It is shown as its own negative term so it can be argued with rather than absorbed.`
+                          : "No credit is claimed — nothing on record reduces this weakness below the grade it was given."}
+                      </TextBlock>
+                      <TextBlock label="Caveats">
+                        {residual.caveats.length === 0 ? (
+                          <span className="text-subtle">
+                            None. Every one of the six terms was computed from live evidence, so the
+                            score is not provisional.
+                          </span>
+                        ) : (
+                          <Stack as="ul" space="space.075">
+                            {residual.caveats.map((c) => (
+                              <Box
+                                key={c}
+                                className="border-s border-default"
+                                as="li"
+                                paddingInlineStart="space.100"
+                              >
+                                {c}
+                              </Box>
+                            ))}
+                          </Stack>
+                        )}
+                      </TextBlock>
+                    </div>
+                  </Grid>
+                </Section>
+
+                <Section
+                  title="Calculation"
+                  description="Five weighted terms and one credit. Each row carries the input it read, the arithmetic, the ids it rests on, and one sentence an assessor can disagree with."
+                >
+                  <FactorTrail factors={residual.factors} score={residual.score} />
+                </Section>
+              </>
+            ) : (
+              <Section title="Residual risk">
+                <Empty
+                  title="No residual score"
+                  description={`${finding.id} carries no scored factors. A residual is only published where severity, exposure, mission impact and evidence currency can all be read from the record; scoring it without them would launder judgement as arithmetic.`}
+                />
+              </Section>
+            )
+          ) : null}
+        </ShowPage>
+        <DsShell.Panel label="Details">
+          <DsShell.Panel.Splitter label="Resize details" />
+          <Panel flush>
             <Inspector.Group title="Join keys">
               <KeyValue label="CCI">
                 <Id>{finding.cci}</Id>
@@ -273,351 +623,9 @@ function FindingRecord() {
                 </TextLink>
               </KeyValue>
             </Inspector.Group>
-          </>
-        }
-      >
-        {tab === "Finding" ? (
-          <>
-            <Section
-              title="Finding statement"
-              description={`The condition, stated against ${finding.cci}.`}
-            >
-              <p className="max-w-layout-measure pt-150 font-body">{finding.detail}</p>
-              {cci ? (
-                <p className="pt-150 max-w-layout-measure border-s border-default ps-150 font-body-small text-subtle">
-                  <Id className="text-subtle">{cci.id}</Id> — {cci.definition}
-                </p>
-              ) : null}
-            </Section>
-
-            <Section
-              title="Requirement"
-              description="Where the statement comes from, and what it knocks down."
-            >
-              <Box paddingBlockStart="space.050">
-                <TextBlock label="Control">
-                  {controlLink}
-                  {catalogTitle ? (
-                    <Box className="text-subtle" as="span" paddingInlineStart="space.100">
-                      {catalogTitle}
-                    </Box>
-                  ) : null}
-                </TextBlock>
-                <TextBlock label="Assessment status">
-                  {controlRow ? (
-                    <>
-                      <Badge tone={statusTone(controlRow.status)} size="xsmall">
-                        {controlRow.status}
-                      </Badge>
-                      <Box className="text-subtle" as="span" paddingInlineStart="space.100">
-                        {controlRow.openFindings} open finding
-                        {controlRow.openFindings === 1 ? "" : "s"} against this control
-                      </Box>
-                    </>
-                  ) : (
-                    <span className="text-subtle">
-                      Not in the tailored baseline for {programId}
-                    </span>
-                  )}
-                </TextBlock>
-                <TextBlock label="Verified by">
-                  {finding.source}
-                  {finding.rule ? (
-                    <Box className="text-subtle" as="span" paddingInlineStart="space.100">
-                      rule {finding.rule}
-                    </Box>
-                  ) : null}
-                </TextBlock>
-                <TextBlock label="Asset">
-                  <TextLink>
-                    <Link to="/findings/assets/$assetId" params={{ assetId: finding.asset }}>
-                      {asset?.name ?? finding.asset}
-                    </Link>
-                  </TextLink>
-                  {asset ? (
-                    <Box className="text-subtle" as="span" paddingInlineStart="space.100">
-                      {asset.kind} · {asset.technology} · {asset.environment}
-                    </Box>
-                  ) : null}
-                </TextBlock>
-              </Box>
-            </Section>
-
-            <Section
-              title="Same CCI"
-              description={`${siblings.length} other finding${siblings.length === 1 ? "" : "s"} verify the same requirement.`}
-            >
-              {siblings.length ? (
-                <Table className="table-fixed">
-                  <thead>
-                    <tr>
-                      <Table.Header width={112}>Finding</Table.Header>
-                      <Table.Header>Title</Table.Header>
-                      <Table.Header width={160}>Asset</Table.Header>
-                      <Table.Header width={78}>Severity</Table.Header>
-                      <Table.Header width={112}>Lifecycle</Table.Header>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {siblings.map((f) => (
-                      <Table.Row key={f.id}>
-                        <Table.Cell>
-                          <TextLink>
-                            <Link to="/findings/$findingId" params={{ findingId: f.id }}>
-                              <Id>{f.id}</Id>
-                            </Link>
-                          </TextLink>
-                        </Table.Cell>
-                        <Table.Cell className="truncate">{f.title}</Table.Cell>
-                        <Table.Cell className="truncate">
-                          {assetById.get(f.asset)?.name ?? f.asset}
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Indicator tone={severityTone(f.mitigatedSeverity)}>
-                            {f.mitigatedSeverity}
-                          </Indicator>
-                        </Table.Cell>
-                        <Table.Cell className="truncate">
-                          <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
-                  </tbody>
-                </Table>
-              ) : (
-                <p className="pt-100 font-body text-subtle">
-                  This finding is the only evidence against {finding.cci}.
-                </p>
-              )}
-            </Section>
-          </>
-        ) : null}
-
-        {tab === "Assessment" ? (
-          <>
-            <Section
-              title="Assessment"
-              description={`${finding.assessment.method} · ${finding.assessment.assessedBy} · ${finding.assessment.assessedOn}`}
-            >
-              <Box paddingBlockStart="space.050">
-                <TextBlock label="Method">
-                  <Badge
-                    tone={
-                      finding.assessment.method === "Test"
-                        ? "warning"
-                        : finding.assessment.method === "Interview"
-                          ? "information"
-                          : "neutral"
-                    }
-                    size="xsmall"
-                  >
-                    {finding.assessment.method}
-                  </Badge>
-                  <Box className="text-subtle" as="span" paddingInlineStart="space.100">
-                    {finding.source}
-                  </Box>
-                </TextBlock>
-                <TextBlock label="Procedure">{finding.assessment.procedure}</TextBlock>
-                <TextBlock label="Assessor">
-                  <Person name={finding.assessment.assessedBy} />
-                </TextBlock>
-                <TextBlock label="Assessed on">{finding.assessment.assessedOn}</TextBlock>
-                <TextBlock label="Evidence">
-                  {[finding.sourceArtifact, ...finding.assessment.evidence]
-                    .filter((v, i, a) => a.indexOf(v) === i)
-                    .map((id, i) => (
-                      <span key={id}>
-                        {i > 0 && " · "}
-                        <TextLink>
-                          <Link to="/evidence">
-                            <Id>{id}</Id>
-                          </Link>
-                        </TextLink>
-                      </span>
-                    ))}
-                </TextBlock>
-              </Box>
-            </Section>
-
-            <Section
-              title="Determination"
-              description="The assessor's conclusion, carried verbatim into the SAR."
-            >
-              <p className="max-w-layout-measure pt-150 font-body">
-                {finding.assessment.determination}
-              </p>
-            </Section>
-
-            <Section
-              title="Severity"
-              description={
-                finding.rawSeverity === finding.mitigatedSeverity
-                  ? `Raw and mitigated severity agree at ${finding.mitigatedSeverity} — nothing reduces the exposure.`
-                  : `Raw ${finding.rawSeverity} reduced to ${finding.mitigatedSeverity} on the strength of a mitigation.`
-              }
-            >
-              <Box paddingBlockStart="space.050">
-                <TextBlock label="Raw">
-                  <Indicator tone={severityTone(finding.rawSeverity)}>
-                    {finding.rawSeverity}
-                  </Indicator>
-                </TextBlock>
-                <TextBlock label="Mitigated">
-                  <Indicator tone={severityTone(finding.mitigatedSeverity)}>
-                    {finding.mitigatedSeverity}
-                  </Indicator>
-                </TextBlock>
-                <TextBlock label="Mitigation">
-                  {finding.mitigation ?? <span className="text-subtle">None on record.</span>}
-                </TextBlock>
-                <TextBlock label="Occurrences">
-                  {finding.occurrences} across {finding.firstSeen} — {finding.lastSeen}
-                </TextBlock>
-              </Box>
-            </Section>
-
-            <Section
-              title="Recommendation"
-              description="What the assessor says should happen, whether or not it is scheduled."
-            >
-              <p className="max-w-layout-measure pt-150 font-body">{finding.recommendation}</p>
-            </Section>
-          </>
-        ) : null}
-
-        {tab === "Remediation" ? (
-          plan ? (
-            <RemediationPlanSection
-              plan={plan}
-              programId={programId}
-              description={`The plan for ${finding.control}, which ${finding.id} closes on re-test. ${plan.complete} of ${plan.total} steps complete · ${plan.start} → ${plan.due}.`}
-            />
-          ) : (
-            <Section title="Remediation plan">
-              <Empty
-                title={
-                  controlRow
-                    ? "Nothing scheduled against this finding"
-                    : "No plan behind this finding"
-                }
-                description={
-                  !controlRow
-                    ? `${finding.control} is not in the tailored baseline for ${programId}${poam ? `, so ${poam.id} carries the commitment on its own` : ""}. Tailor the control in, or work the item from the register.`
-                    : isOpen(finding)
-                      ? `${finding.control} carries no POA&M section and no open remediation. Add ${finding.id} to a POA&M item to put a dated plan behind it.`
-                      : `${finding.id} is ${finding.lifecycle.toLowerCase()} and ${finding.control} is ${controlRow.status.toLowerCase()}, so no plan is running. ${finding.risk ? `The residual sits on ${finding.risk}.` : ""}`
-                }
-              />
-            </Section>
-          )
-        ) : null}
-
-        {tab === "Residual risk" ? (
-          residual ? (
-            <>
-              <Section
-                title="Residual risk"
-                description={
-                  isDeficiency(finding)
-                    ? `${residual.score} of 100 — ${residual.band}. CAT I/II/III grades how badly the requirement is missed; this grades what ${finding.id} is costing the program once reachability, demonstrated exploitation, mission effect and the currency of the evidence are read off the record.`
-                    : `${residual.score} of 100 — ${residual.band}. CAT I/II/III grades how badly the requirement is missed; this grades what the reported condition WOULD have cost the program once reachability, demonstrated exploitation, mission effect and the currency of the evidence are read off the record. ${finding.id} is ${finding.lifecycle.toLowerCase()}, so it is scored so the trail survives closure, not carried in the aggregate.`
-                }
-              >
-                <Grid
-                  className="pt-200"
-                  gap="space.200"
-                  templateColumns={{ md: "minmax(0,232px) minmax(0,1fr)" }}
-                >
-                  <Box className="rounded-medium border border-default" padding="space.150">
-                    <Inline space="space.100" alignBlock="baseline">
-                      <span className="tabular-nums font-heading-large font-semibold">
-                        {residual.score}
-                      </span>
-                      <span className="font-body-small text-subtle">/ 100</span>
-                      <Badge tone={bandTone[residual.band]}>{residual.band}</Badge>
-                    </Inline>
-                    <Box paddingBlockStart="space.150">
-                      <Progress value={residual.score} tone={bandTone[residual.band]} />
-                    </Box>
-                    <dl className="pt-150 space-y-075 font-body-small">
-                      <Inline space="space.150" alignBlock="baseline" spread="space-between">
-                        <dt className="text-subtle">Inherent</dt>
-                        <dd className="tabular-nums">{residual.inherent}</dd>
-                      </Inline>
-                      <Inline space="space.150" alignBlock="baseline" spread="space-between">
-                        <dt className="text-subtle">Mitigation credit</dt>
-                        <dd className={credit < 0 ? "tabular-nums text-success" : "tabular-nums"}>
-                          {signed(credit)}
-                        </dd>
-                      </Inline>
-                      <Inline
-                        className="border-t border-default pt-075"
-                        space="space.150"
-                        alignBlock="baseline"
-                        spread="space-between"
-                      >
-                        <dt className="font-medium">Residual</dt>
-                        <dd className="tabular-nums font-medium">{residual.score}</dd>
-                      </Inline>
-                    </dl>
-                  </Box>
-                  <div>
-                    <TextBlock label="Band">
-                      <Badge tone={bandTone[residual.band]} size="xsmall">
-                        {residual.band}
-                      </Badge>
-                      <Box className="text-subtle" as="span" paddingInlineStart="space.100">
-                        {bandScale}
-                      </Box>
-                    </TextBlock>
-                    <TextBlock label="Greatest leverage">{residual.leverage}</TextBlock>
-                    <TextBlock label="Credit">
-                      {credit < 0
-                        ? `${finding.mitigation ? "The recorded compensating control" : "The gap between the raw and adjudicated grade"} buys ${Math.abs(credit)} point${Math.abs(credit) === 1 ? "" : "s"} off the inherent ${residual.inherent}. It is shown as its own negative term so it can be argued with rather than absorbed.`
-                        : "No credit is claimed — nothing on record reduces this weakness below the grade it was given."}
-                    </TextBlock>
-                    <TextBlock label="Caveats">
-                      {residual.caveats.length === 0 ? (
-                        <span className="text-subtle">
-                          None. Every one of the six terms was computed from live evidence, so the
-                          score is not provisional.
-                        </span>
-                      ) : (
-                        <Stack as="ul" space="space.075">
-                          {residual.caveats.map((c) => (
-                            <Box
-                              key={c}
-                              className="border-s border-default"
-                              as="li"
-                              paddingInlineStart="space.100"
-                            >
-                              {c}
-                            </Box>
-                          ))}
-                        </Stack>
-                      )}
-                    </TextBlock>
-                  </div>
-                </Grid>
-              </Section>
-
-              <Section
-                title="Calculation"
-                description="Five weighted terms and one credit. Each row carries the input it read, the arithmetic, the ids it rests on, and one sentence an assessor can disagree with."
-              >
-                <FactorTrail factors={residual.factors} score={residual.score} />
-              </Section>
-            </>
-          ) : (
-            <Section title="Residual risk">
-              <Empty
-                title="No residual score"
-                description={`${finding.id} carries no scored factors. A residual is only published where severity, exposure, mission impact and evidence currency can all be read from the record; scoring it without them would launder judgement as arithmetic.`}
-              />
-            </Section>
-          )
-        ) : null}
-      </ShowPage>
+          </Panel>
+        </DsShell.Panel>
+      </>
     </Shell>
   );
 }

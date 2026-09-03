@@ -49,10 +49,10 @@ design system will serve several internal products. The parts document themselve
    which are deprecated and still emitted; `banner` (48) and `panel` (320) are new. The build maps
    the height ones to `h-` utilities. The defaults are sign-off values.
 7. **Deprecation ships in the package.** The old frame (`Shell` with `sidebar` and `topBar`,
-   `Shell.Sidebar`, `TopBar`, `Brand`, `NavGroup`, `NavItem`, `User`) still renders, unchanged, from
-   `src/shell/legacy.tsx`. `ledger/no-deprecated-name` names the replacement for each, alias-aware,
-   and fixes the four one-to-one renames with their prop renames; it is an error in the package
-   and a warning for consumers until the prototype's cutover, then an error. This is the policy for
+   `Shell.Sidebar`, `TopBar`, `Brand`, `NavGroup`, `NavItem`, `User`) rendered unchanged from a
+   legacy file until the prototype's cutover, then left. `ledger/no-deprecated-name` names the
+   replacement for each, alias-aware, and fixes the four one-to-one renames with their prop
+   renames; it is an error everywhere. This is the policy for
    every rename from the second consumer on: the alias map in a consumer's own lint was the
    one-consumer shortcut.
 
@@ -68,10 +68,18 @@ design system will serve several internal products. The parts document themselve
   package and would be the model when a product needs more.
 - No per-product theming of the top nav.
 
-## The prototype's cutover
+## The prototype's cutover (done 2026-09-03)
 
-On Josef's go: `eslint --fix` on `src/components/app/shell.tsx` does the four renames; the sidebar
-and the top bar are restructured by hand into `Shell.SideNav` and `Shell.TopNav` with the brand in
-`TopNav.Start`; then `legacy.tsx` and the deprecated tokens go, and the lint rule becomes an error
-for consumers. Moving a record page's rail into the panel is a call per page; the
-PreviewRail beside the index tables and the PreviewSheet stay as they are.
+`src/components/app/shell.tsx` is on `Shell.TopNav`, `Shell.SideNav` and `Shell.Main` with the brand
+in `TopNav.Start`, the shortcut on and a splitter. The old frame, its aliases and the deprecated
+layout tokens are gone from the package; `ledger/no-deprecated-name` is an error for consumers.
+
+The rail moved with it. `ShowPage` no longer takes `rail` or `showRail`: the seventeen record routes
+render `Shell.Panel` beside their ShowPage, with `Panel flush` and the same rail inside, and the
+shell places it (a portal, after mount; the server's page is one column until then). The four
+record pages (program, requirement, element, finding) show their rail on every tab, never
+dismissed; the routes whose rail is the detail of a selected row (SCTM, composition, inheritance,
+campaigns, T&E phases, ingestion, baseline) keep their condition, so the panel comes and goes with
+the selection. The rail runs edge to edge: the Inspector insets itself inside a flush Panel and its
+first rule sits on the top nav's border. The PreviewRail beside the index tables and the
+PreviewSheet stay as they are.

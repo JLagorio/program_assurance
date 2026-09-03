@@ -3626,34 +3626,6 @@
     "utility": "max-w-layout-measure"
   },
   {
-    "name": "dimension.layout.sidebar",
-    "cssVar": "--ds-dimension-layout-sidebar",
-    "type": "dimension",
-    "group": "dimension",
-    "description": "Deprecated: dimension.layout.sidenav.",
-    "light": "228px",
-    "dark": null,
-    "lightResolved": "228px",
-    "darkResolved": null,
-    "introduced": null,
-    "deprecated": "dimension.layout.sidenav",
-    "utility": "w-layout-sidebar"
-  },
-  {
-    "name": "dimension.layout.topbar",
-    "cssVar": "--ds-dimension-layout-topbar",
-    "type": "dimension",
-    "group": "dimension",
-    "description": "Deprecated: dimension.layout.topnav.",
-    "light": "48px",
-    "dark": null,
-    "lightResolved": "48px",
-    "darkResolved": null,
-    "introduced": null,
-    "deprecated": "dimension.layout.topnav",
-    "utility": "h-layout-topbar"
-  },
-  {
     "name": "elevation.surface",
     "cssVar": "--ds-elevation-surface",
     "type": "color",
