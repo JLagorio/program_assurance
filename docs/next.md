@@ -2,7 +2,7 @@
 
 A living list for the design system and the prototype. Josef owns the decisions; whoever is working owns the work. Tick a box when it lands and move it to Done with the date. Keep it short: one line per item, the reasoning lives in the spec or the audit it points at.
 
-Updated 2026-09-02.
+Updated 2026-09-03.
 
 ## Decisions waiting on Josef
 
@@ -14,6 +14,7 @@ Updated 2026-09-02.
 
 ## Kit
 
+- [ ] **Data table.** `useDataTable`, `defineColumns` and `DataTable` on TanStack Table 9: sort, search, filters as chips, selection with a bar, pinned, resizable, reorderable and hideable columns, tree and detail rows, groups, totals, row reordering, virtual scroll, server mode. Spec and order: `docs/superpowers/specs/2026-09-03-data-table.md`, with eight calls for Josef to overturn and three open questions. Step 0 is a half-day spike.
 - [ ] **Step 9 · Publishable build** with type declarations, when the second project appears.
 - [ ] **`docs/guides/component-library.md`** still describes `src/ds`. Rewrite onto the package or retire it in favour of the Storybook docs.
 
