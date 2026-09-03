@@ -29,6 +29,6 @@ Everything that floats over the page, from the smallest label to a full task. Ev
 
 - A Dialog has a title, a body, and a footer of actions with the primary on the right. Header and footer stay put while a long body scrolls. An `aside` puts facts beside the body.
 - An AlertDialog has no close button and does not close on an outside click. `pending` holds it open with the confirm button busy while the caller saves. Use `tone="danger"` when the action destroys.
-- A Sheet defaults to the end edge at 420px. Use it for a record's detail when the list behind should stay in view.
+- A Sheet defaults to the end edge at 420px. Use it for a record's detail when the list behind should stay in view. Its header takes `eyebrow` above the title and `facts` under the subtitle, `toolbar` is a row between header and body that does not scroll, and `onBack` puts a chevron before the title for a sheet that is one frame of a stack.
 - The blanket is `color.blanket`; nothing else paints it.
 - Triggers are elements: `trigger={<Button>…</Button>}` or the child of a Tooltip. The component clones the element and adds the aria; the element must take a ref and spread its props.

@@ -25,7 +25,8 @@ The two page archetypes and the parts they are assembled from.
 | **Related** | A small card of linked records with a count and rows that may be buttons. |
 | **Empty** | A dashed frame with a title, one line of why, and the action that fills it. |
 | **PreviewRail** | The right rail as a preview of a row, never the record itself. |
-| **PreviewSheet** | The peek panel: a Sheet that previews a row over the page. Its header carries the Preview eyebrow and the id; its footer's first item opens the full record, more `links` follow, `actions` sit on the right. |
+| **PreviewSheet** | The peek panel: a Sheet that previews a row over the page. Its header is the compact RecordHeader: the Preview eyebrow with the id and one `status`, the title, the meta line, at most three `facts`. The footer's first item opens the full record, more `links` follow, `actions` sit on the right. `onBack` when it is one frame of a stack. |
+| **PickerSheet** | Choosing many from hundreds: search and filters in a toolbar that does not scroll, a Table with Table.Selection in the body, a footer that counts the chosen rows and names the one action. A second frame of the same sheet fills in per-row fields. |
 | **PageSkeleton** | The page before its data: a title, a tab strip, rows. |
 
 ## Rail or sheet
@@ -35,5 +36,21 @@ Both preview a row and leave the list in place; neither is the record. The **rai
 <Canvas of={Stories.Preview} />
 
 <Canvas of={Stories.PreviewSheetStory} />
+
+## The hover ladder
+
+Three rungs, each one deeper than the last, and a record reads the same on every rung because the same parts draw it.
+
+1. **Hover on an id or a name is a glance.** A HoverCard: facts only, no actions. It opens on focus too. Program and risk ids do this today.
+2. **Click is the peek.** The PreviewSheet: the compact header, the facts, and the actions that make sense without leaving. A record opened from inside a peek is the next frame of the same sheet; the back chevron and the browser's back are the same thing when the stack lives in the URL.
+3. **The footer link is the record.** The page, where the work is done. The preview never grows into it.
+
+One preview body per record type, at two densities (glance, peek), rendered by the kit's three shells (HoverCard, PreviewSheet, PreviewRail). Which body a record type gets is the app's.
+
+## Choosing many
+
+When the question is "which of these many belong on this one" and the many are found by attribute rather than by name, the picker is a PickerSheet, not a Combobox. Frame one chooses: search and filters that stay put, a sortable Table with Table.Selection, a selection that survives search, a footer that counts. Frame two, when the chosen rows need fields of their own, shows them as a compact table with Editable cells and a defaults row applied to all; the back chevron keeps the selection. The kit owns the frame; the caller owns the columns, rows and selection. The spec is `docs/superpowers/specs/2026-09-02-picker-sheet.md`.
+
+<Canvas of={Stories.PickerSheetStory} />
 
 <Canvas of={Stories.Loading} />

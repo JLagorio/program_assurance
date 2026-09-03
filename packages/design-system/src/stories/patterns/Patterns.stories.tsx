@@ -6,10 +6,12 @@ import {
   Avatar,
   Badge,
   Button,
+  Editable,
   Fact,
   FilterChip,
   Id,
   KeyValue,
+  NativeSelect,
   Tabs,
   Breadcrumb,
   Person,
@@ -22,6 +24,7 @@ import {
   IndexPage,
   PageHeader,
   PageSkeleton,
+  PickerSheet,
   PreviewRail,
   PreviewSheet,
   RecordHeader,
@@ -182,7 +185,25 @@ export const Preview: Story = {
 export const Loading: Story = { render: () => <PageSkeleton rows={5} /> };
 
 function PreviewSheetStates() {
-  const [open, setOpen] = useState<"plain" | "full" | null>(null);
+  const [open, setOpen] = useState<"plain" | "full" | "stack" | null>(null);
+  const [depth, setDepth] = useState(0);
+  const close = () => {
+    setOpen(null);
+    setDepth(0);
+  };
+  const stacked = open === "stack" && depth > 0;
+  const requirementCell = (id: string) =>
+    open === "stack" ? (
+      <Button variant="link" onClick={() => setDepth(1)}>
+        <Id>{id}</Id>
+      </Button>
+    ) : (
+      <TextLink>
+        <a href="#req">
+          <Id>{id}</Id>
+        </a>
+      </TextLink>
+    );
   return (
     <Stack space="space.200">
       <Specimens title="PreviewSheet">
@@ -192,13 +213,45 @@ function PreviewSheetStates() {
         <Button variant="secondary" onClick={() => setOpen("full")}>
           With links and actions
         </Button>
+        <Button variant="secondary" onClick={() => setOpen("stack")}>
+          Compact header, a frame deeper
+        </Button>
       </Specimens>
       <PreviewSheet
         open={open !== null}
-        onClose={() => setOpen(null)}
-        id="CMP-0113"
-        title="Telemetry gateway"
-        subtitle="Component · Ground segment / Mission control"
+        onClose={close}
+        onBack={stacked ? () => setDepth(0) : undefined}
+        id={stacked ? "REQ-0118" : "CMP-0113"}
+        title={stacked ? "The gateway shall encrypt telemetry in transit" : "Telemetry gateway"}
+        subtitle={
+          stacked
+            ? "Requirement · Derived · Dan Whitlock"
+            : "Component · Ground segment / Mission control"
+        }
+        status={
+          open === "stack" ? (
+            <Badge size="xsmall" tone={stacked ? "success" : "information"}>
+              {stacked ? "Verified" : "In assessment"}
+            </Badge>
+          ) : undefined
+        }
+        facts={
+          open === "stack" ? (
+            stacked ? (
+              <>
+                <Fact label="Method">Test</Fact>
+                <Fact label="Owner">Dan Whitlock</Fact>
+                <Fact label="Allocated to">2 elements</Fact>
+              </>
+            ) : (
+              <>
+                <Fact label="Class">Boundary</Fact>
+                <Fact label="Zone">Enclave</Fact>
+                <Fact label="Criticality">High</Fact>
+              </>
+            )
+          ) : undefined
+        }
         openTo={<a href="#record" />}
         links={
           open === "full" ? (
@@ -216,75 +269,334 @@ function PreviewSheetStates() {
           ) : null
         }
       >
-        <Stack space="space.300">
-          <Section title="Element">
-            <Fact.Group>
-              <Fact label="Id">
-                <Id>CMP-0113</Id>
-              </Fact>
-              <Fact label="Class">Boundary</Fact>
-              <Fact label="Zone">Enclave</Fact>
-              <Fact label="Criticality">High</Fact>
-            </Fact.Group>
+        {stacked ? (
+          <Section title="Shall statement">
+            <Text className="pt-150">
+              The gateway shall encrypt telemetry in transit between the ground segment and the
+              mission control network, using FIPS 140-3 validated modules.
+            </Text>
           </Section>
-          <Section title="Requirements">
-            <Table>
-              <thead>
-                <tr>
-                  <Table.Header width={110}>Requirement</Table.Header>
-                  <Table.Header>Shall statement</Table.Header>
-                  <Table.Header width={96}>State</Table.Header>
-                </tr>
-              </thead>
-              <tbody>
-                <Table.Row>
-                  <Table.Cell>
-                    <TextLink>
-                      <a href="#req">
-                        <Id>REQ-0118</Id>
-                      </a>
-                    </TextLink>
-                  </Table.Cell>
-                  <Table.Cell className="truncate">
-                    The gateway shall encrypt telemetry in transit.
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Badge size="xsmall" tone="success">
-                      Verified
-                    </Badge>
-                  </Table.Cell>
-                </Table.Row>
-                <Table.Row>
-                  <Table.Cell>
-                    <TextLink>
-                      <a href="#req">
-                        <Id>REQ-0121</Id>
-                      </a>
-                    </TextLink>
-                  </Table.Cell>
-                  <Table.Cell className="truncate">
-                    The gateway shall log every command it forwards.
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Badge size="xsmall" tone="warning">
-                      Allocated
-                    </Badge>
-                  </Table.Cell>
-                </Table.Row>
-              </tbody>
-            </Table>
-          </Section>
-        </Stack>
+        ) : (
+          <Stack space="space.300">
+            {open !== "stack" ? (
+              <Section title="Element">
+                <Fact.Group>
+                  <Fact label="Id">
+                    <Id>CMP-0113</Id>
+                  </Fact>
+                  <Fact label="Class">Boundary</Fact>
+                  <Fact label="Zone">Enclave</Fact>
+                  <Fact label="Criticality">High</Fact>
+                </Fact.Group>
+              </Section>
+            ) : null}
+            <Section title="Requirements">
+              <Table>
+                <thead>
+                  <tr>
+                    <Table.Header width={110}>Requirement</Table.Header>
+                    <Table.Header>Shall statement</Table.Header>
+                    <Table.Header width={96}>State</Table.Header>
+                  </tr>
+                </thead>
+                <tbody>
+                  <Table.Row>
+                    <Table.Cell>{requirementCell("REQ-0118")}</Table.Cell>
+                    <Table.Cell className="truncate">
+                      The gateway shall encrypt telemetry in transit.
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge size="xsmall" tone="success">
+                        Verified
+                      </Badge>
+                    </Table.Cell>
+                  </Table.Row>
+                  <Table.Row>
+                    <Table.Cell>{requirementCell("REQ-0121")}</Table.Cell>
+                    <Table.Cell className="truncate">
+                      The gateway shall log every command it forwards.
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge size="xsmall" tone="warning">
+                        Allocated
+                      </Badge>
+                    </Table.Cell>
+                  </Table.Row>
+                </tbody>
+              </Table>
+            </Section>
+          </Stack>
+        )}
       </PreviewSheet>
     </Stack>
   );
 }
-/** Facts only, and with a second link and actions. Open one. */
+/** Facts only; with a second link and actions; the compact header with status and facts, and a requirement opened a frame deeper with the back chevron. Open one. */
 export const PreviewSheetStory: Story = {
   name: "Preview sheet",
   render: () => <PreviewSheetStates />,
 };
 export const PreviewSheetMatrix: Story = { render: () => <PreviewSheetStates /> };
+
+const families = ["AC", "AU", "CM", "IA", "SC", "SI"] as const;
+const statements = [
+  "The system shall encrypt telemetry in transit.",
+  "The system shall log every privileged command.",
+  "The system shall lock an account after five failed attempts.",
+  "The system shall verify firmware signatures before boot.",
+  "The system shall retain audit records for one year.",
+  "The system shall separate operator and maintainer roles.",
+  "The system shall time out an idle session after fifteen minutes.",
+];
+const catalogue = Array.from({ length: 28 }, (_, i) => ({
+  id: `REQ-${String(101 + i).padStart(4, "0")}`,
+  text: statements[i % statements.length]!,
+  family: families[i % families.length]!,
+  state: (["Approved", "Draft", "Verified"] as const)[i % 3]!,
+}));
+const stateTone = { Approved: "information", Draft: "neutral", Verified: "success" } as const;
+const responsibilities = ["Primary", "Supporting", "Inherited"] as const;
+const coverages = ["Full", "Partial"] as const;
+type Fields = {
+  responsibility: (typeof responsibilities)[number];
+  coverage: (typeof coverages)[number];
+};
+
+function PickerStates() {
+  const [open, setOpen] = useState(false);
+  const [frame, setFrame] = useState<"choose" | "details">("choose");
+  const [query, setQuery] = useState("");
+  const [family, setFamily] = useState<(typeof families)[number] | null>(null);
+  const [sort, setSort] = useState<"asc" | "desc">("asc");
+  const [chosen, setChosen] = useState<Set<string>>(() => new Set());
+  const [fields, setFields] = useState<Record<string, Fields>>({});
+  const q = query.trim().toLowerCase();
+  const rows = catalogue
+    .filter(
+      (r) =>
+        (!q || r.text.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)) &&
+        (!family || r.family === family),
+    )
+    .sort((a, b) => (sort === "asc" ? a.id.localeCompare(b.id) : b.id.localeCompare(a.id)));
+  const toggle = (id: string) =>
+    setChosen((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const allShown = rows.length > 0 && rows.every((r) => chosen.has(r.id));
+  const someShown = rows.some((r) => chosen.has(r.id));
+  const fieldOf = (id: string): Fields =>
+    fields[id] ?? { responsibility: "Primary", coverage: "Full" };
+  const setField = (id: string, patch: Partial<Fields>) =>
+    setFields((f) => ({ ...f, [id]: { ...fieldOf(id), ...patch } }));
+  const applyAll = (patch: Partial<Fields>) =>
+    setFields(Object.fromEntries([...chosen].map((id) => [id, { ...fieldOf(id), ...patch }])));
+  const reset = () => {
+    setOpen(false);
+    setFrame("choose");
+  };
+  const nextFamily = () =>
+    setFamily((f) => (f === null ? families[0] : (families[families.indexOf(f) + 1] ?? null)));
+  const chosenRows = catalogue.filter((r) => chosen.has(r.id));
+  return (
+    <Stack space="space.200">
+      <Specimens title="PickerSheet">
+        <Button variant="secondary" onClick={() => setOpen(true)}>
+          Allocate requirements
+        </Button>
+        <Text size="small" color="color.text.subtle">
+          {chosen.size} chosen so far
+        </Text>
+      </Specimens>
+      {frame === "choose" ? (
+        <PickerSheet
+          open={open}
+          onClose={reset}
+          title="Allocate requirements"
+          subtitle="Flight computer · 14 allocated today"
+          search={{ value: query, onChange: setQuery, placeholder: "Search requirements" }}
+          filters={
+            <>
+              <FilterChip
+                label="Family"
+                value={family ?? undefined}
+                isActive={family !== null}
+                onClick={nextFamily}
+              />
+              <FilterChip label="State" />
+            </>
+          }
+          selected={chosen.size}
+          total={rows.length}
+          onClear={() => setChosen(new Set())}
+          action={{ label: `Continue with ${chosen.size}`, onClick: () => setFrame("details") }}
+        >
+          <Table>
+            <thead>
+              <tr>
+                <Table.Selection
+                  header
+                  checked={allShown ? true : someShown ? "indeterminate" : false}
+                  onCheckedChange={(checked) =>
+                    setChosen((prev) => {
+                      const next = new Set(prev);
+                      for (const r of rows)
+                        if (checked) next.add(r.id);
+                        else next.delete(r.id);
+                      return next;
+                    })
+                  }
+                  label="Select every row shown"
+                />
+                <Table.Header
+                  width={110}
+                  sort={sort}
+                  onSort={() => setSort((s) => (s === "asc" ? "desc" : "asc"))}
+                >
+                  Requirement
+                </Table.Header>
+                <Table.Header>Shall statement</Table.Header>
+                <Table.Header width={72}>Family</Table.Header>
+                <Table.Header width={96}>State</Table.Header>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <Table.Row
+                  key={r.id}
+                  isSelected={chosen.has(r.id)}
+                  onClick={() => toggle(r.id)}
+                  className="cursor-pointer"
+                >
+                  <Table.Selection
+                    checked={chosen.has(r.id)}
+                    onCheckedChange={() => toggle(r.id)}
+                    label={`Select ${r.id}`}
+                  />
+                  <Table.Cell>
+                    <Id>{r.id}</Id>
+                  </Table.Cell>
+                  <Table.Cell className="truncate" title={r.text}>
+                    {r.text}
+                  </Table.Cell>
+                  <Table.Cell>{r.family}</Table.Cell>
+                  <Table.Cell>
+                    <Badge size="xsmall" tone={stateTone[r.state]}>
+                      {r.state}
+                    </Badge>
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </tbody>
+          </Table>
+        </PickerSheet>
+      ) : (
+        <PickerSheet
+          open={open}
+          onClose={reset}
+          onBack={() => setFrame("choose")}
+          title="Allocate requirements"
+          subtitle="Flight computer · responsibility and coverage for each"
+          toolbar={
+            <Inline space="space.150" alignBlock="center">
+              <Text size="small" color="color.text.subtle">
+                Apply to all
+              </Text>
+              <Box style={{ width: 140 }}>
+                <NativeSelect
+                  aria-label="Responsibility for all"
+                  className="[&>select]:h-control-small"
+                  defaultValue=""
+                  onChange={(e) =>
+                    e.target.value &&
+                    applyAll({ responsibility: e.target.value as Fields["responsibility"] })
+                  }
+                >
+                  <option value="">Responsibility</option>
+                  {responsibilities.map((r) => (
+                    <option key={r}>{r}</option>
+                  ))}
+                </NativeSelect>
+              </Box>
+              <Box style={{ width: 120 }}>
+                <NativeSelect
+                  aria-label="Coverage for all"
+                  className="[&>select]:h-control-small"
+                  defaultValue=""
+                  onChange={(e) =>
+                    e.target.value && applyAll({ coverage: e.target.value as Fields["coverage"] })
+                  }
+                >
+                  <option value="">Coverage</option>
+                  {coverages.map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </NativeSelect>
+              </Box>
+            </Inline>
+          }
+          selected={chosen.size}
+          action={{ label: `Allocate ${chosen.size} to Flight computer`, onClick: reset }}
+        >
+          <Table>
+            <thead>
+              <tr>
+                <Table.Header width={110}>Requirement</Table.Header>
+                <Table.Header>Shall statement</Table.Header>
+                <Table.Header width={130}>Responsibility</Table.Header>
+                <Table.Header width={96}>Coverage</Table.Header>
+                <Table.Header width={120} />
+              </tr>
+            </thead>
+            <tbody>
+              {chosenRows.map((r) => {
+                const f = fieldOf(r.id);
+                return (
+                  <Table.Row key={r.id} isStatic>
+                    <Table.Cell>
+                      <Id>{r.id}</Id>
+                    </Table.Cell>
+                    <Table.Cell className="truncate" title={r.text}>
+                      {r.text}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Editable.Select
+                        label="Responsibility"
+                        options={responsibilities}
+                        value={f.responsibility}
+                        onChange={(next) => setField(r.id, { responsibility: next })}
+                        save={async () => undefined}
+                      />
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Editable.Select
+                        label="Coverage"
+                        options={coverages}
+                        value={f.coverage}
+                        onChange={(next) => setField(r.id, { coverage: next })}
+                        save={async () => undefined}
+                      />
+                    </Table.Cell>
+                    <Table.Cell className="text-right">
+                      <Button variant="link" size="small" onClick={() => toggle(r.id)}>
+                        Does not apply
+                      </Button>
+                    </Table.Cell>
+                  </Table.Row>
+                );
+              })}
+            </tbody>
+          </Table>
+        </PickerSheet>
+      )}
+    </Stack>
+  );
+}
+/** Frame one chooses from a catalogue of 28 with search, a family filter, a sortable id column and selection that survives the search; frame two sets responsibility and coverage per row with a defaults row. Open it. */
+export const PickerSheetStory: Story = { name: "Picker sheet", render: () => <PickerStates /> };
+export const PickerSheetMatrix: Story = { render: () => <PickerStates /> };
 
 /** Plain, with a header, with a description and an action. */
 export const CardMatrix: Story = {

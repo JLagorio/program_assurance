@@ -1,17 +1,25 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
+import { ChevronLeft, X } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "../lib/cn";
+import { IconButton } from "./button";
 import { overlayClose } from "./dialog";
+import { Fact } from "./typography";
 
 export type SheetProps = {
   open: boolean;
   onClose: () => void;
   title: ReactNode;
   subtitle?: ReactNode;
-  /** A row above the title: an Eyebrow, an id. */
+  /** A row above the title: an Eyebrow, an id, a status. */
   eyebrow?: ReactNode;
+  /** Facts under the subtitle, as a Fact.Group. At most three in a sheet. */
+  facts?: ReactNode;
+  /** A back chevron before the title, for a sheet that is one frame of a stack. */
+  onBack?: (() => void) | undefined;
+  /** A row between the header and the body that does not scroll: search and filters, a defaults row. */
+  toolbar?: ReactNode;
   footer?: ReactNode;
   side?: "end" | "start" | undefined;
   width?: number | undefined;
@@ -25,6 +33,9 @@ export function Sheet({
   title,
   subtitle,
   eyebrow,
+  facts,
+  onBack,
+  toolbar,
   footer,
   side = "end",
   width = 420,
@@ -49,17 +60,28 @@ export function Sheet({
               : "start-0 data-[state=open]:animate-slide-in-start data-[state=closed]:animate-slide-out-start",
           )}
         >
-          <div className="flex shrink-0 flex-col gap-025 border-b border-default py-150 pe-600 ps-200">
-            {eyebrow ? <div className="flex items-center gap-100 pb-025">{eyebrow}</div> : null}
-            <DialogPrimitive.Title className="truncate font-heading-xsmall text-default">
-              {title}
-            </DialogPrimitive.Title>
-            {subtitle ? (
-              <DialogPrimitive.Description className="truncate font-body-small text-subtle">
-                {subtitle}
-              </DialogPrimitive.Description>
+          <div className="flex shrink-0 items-start gap-100 border-b border-default py-150 pe-600 ps-200">
+            {onBack ? (
+              <IconButton label="Back" variant="subtle" size="small" onClick={onBack}>
+                <ChevronLeft className="size-icon-small" />
+              </IconButton>
             ) : null}
+            <div className="flex min-w-0 flex-1 flex-col gap-025">
+              {eyebrow ? <div className="flex items-center gap-100 pb-025">{eyebrow}</div> : null}
+              <DialogPrimitive.Title className="truncate font-heading-xsmall text-default">
+                {title}
+              </DialogPrimitive.Title>
+              {subtitle ? (
+                <DialogPrimitive.Description className="truncate font-body-small text-subtle">
+                  {subtitle}
+                </DialogPrimitive.Description>
+              ) : null}
+              {facts ? <Fact.Group className="pt-075">{facts}</Fact.Group> : null}
+            </div>
           </div>
+          {toolbar ? (
+            <div className="shrink-0 border-b border-default px-200 py-100">{toolbar}</div>
+          ) : null}
           <div className="min-h-0 flex-1 overflow-y-auto px-200 py-150">{children}</div>
           {footer ? (
             <div className="flex shrink-0 items-center justify-end gap-100 border-t border-default bg-surface-sunken px-200 py-100">
