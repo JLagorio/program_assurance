@@ -1,10 +1,9 @@
 import { useCallback, useState } from "react";
 
 /**
- * Required fields for a form that submits on a button. Pass the current values keyed by field;
- * `check()` on submit marks the first empty one and returns false; `errorFor(key)` feeds the
- * Field's `error`, which turns the control's border red and shows the message under it. The
- * asterisk is the Field's `isRequired`, set beside it so the two never drift.
+ * Required fields, checked on submit. Name the values; the Fields they belong to carry
+ * `isRequired` and `error={req.errorFor(key)}`; the primary button stays enabled and calls
+ * `req.check()` first. The first empty field turns red with the message under it.
  */
 export function useRequired<K extends string>(
   values: Record<K, string | null | undefined>,

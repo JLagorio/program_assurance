@@ -25,11 +25,12 @@ import {
   Table,
   Tabs,
   toast,
+  usePage,
+  useSort,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { programStatusTone, programs, type Program } from "@/lib/grc-data";
 import { useProgramsVersion } from "@/lib/program-store";
-import { usePage, useSort } from "@/lib/table-state";
 
 export const Route = createFileRoute("/programs")({
   head: () => ({

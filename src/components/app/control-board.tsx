@@ -67,7 +67,7 @@ import { peopleForProgram } from "@/lib/people";
 import { allocationsFor, requirementsForControl } from "@/lib/requirements";
 import { determinationTone, rowCurrencyTone, useControlText, useSctm } from "@/lib/sctm";
 import { controlSetFor, scopesForProgram } from "@/lib/scopes";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 
 /* ── Stage strip ─────────────────────────────────────────────────────────── */
 

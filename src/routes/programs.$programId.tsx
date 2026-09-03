@@ -1,4 +1,3 @@
-import { useRequired } from "@/lib/form";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { Fragment, useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -15,6 +14,7 @@ import {
   Button,
   ButtonGroup,
   Combobox,
+  CommandPalette,
   DatePicker,
   Dialog,
   Dot,
@@ -43,6 +43,8 @@ import {
   TextLink,
   toast,
   Toolbar,
+  useCommandPalette,
+  useRequired,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { AuthorizationSection } from "@/components/app/authorization";
@@ -61,7 +63,6 @@ import { findingsForProgram, nextActions, programPosture } from "@/lib/program-a
 import { programActivity } from "@/lib/program-activity";
 import { coverageFromRows, gateOutlook, programMilestones } from "@/lib/program-coverage";
 import { isOpen } from "@/lib/findings";
-import { CommandPalette, useCommandPalette } from "@/components/app/command-palette";
 import { programCommands } from "@/lib/program-commands";
 import { NewRequirementModal } from "@/components/app/requirement-forms";
 import { ControlSetsSummary, ScopeTable } from "@/components/app/scopes";

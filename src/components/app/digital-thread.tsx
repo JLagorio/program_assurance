@@ -1,4 +1,3 @@
-import { useRequired } from "@/lib/form";
 import { useMemo, useState } from "react";
 import { Check, Download, Plus, RefreshCw, X } from "lucide-react";
 
@@ -23,6 +22,7 @@ import {
   Table,
   Textarea,
   toast,
+  useRequired,
 } from "@ledger/design-system";
 import {
   artifactShort,

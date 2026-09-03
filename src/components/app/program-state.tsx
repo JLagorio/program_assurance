@@ -10,7 +10,7 @@ import { useState } from "react";
 import { Check, ChevronRight, Lock } from "lucide-react";
 
 import { Badge, Button, Dot, Id, Inline, Person, Section, Table } from "@ledger/design-system";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 import type { ProgramState, Stage } from "@/lib/program-stage";
 import { stages } from "@/lib/program-stage";
 import type { NextAction, Posture } from "@/lib/program-actions";

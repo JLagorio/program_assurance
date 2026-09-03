@@ -8,8 +8,6 @@
  */
 
 import { useState } from "react";
-
-import { RecordPicker } from "@/components/app/record-picker";
 import {
   ActionBar,
   Badge,
@@ -25,8 +23,8 @@ import {
   Table,
   Textarea,
 } from "@ledger/design-system";
-import type { ActionBarAction } from "@ledger/design-system";
-import { cn } from "@/lib/utils";
+import { ActionBarAction, RecordPicker } from "@ledger/design-system";
+import { cn } from "@ledger/design-system/cn";
 import {
   activityFor,
   addComment,

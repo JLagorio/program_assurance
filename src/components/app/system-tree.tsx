@@ -1,17 +1,3 @@
-/**
- * The System tab's spine: the system as built, broken down into subsystems and
- * components, and against every node what it owes — the requirements
- * allocated to it, the controls those requirements reach, how far the work on
- * those controls has got, and (for a categorized node) the control set in
- * force. The node record is one click away and is where the work happens;
- * this is the map.
- *
- * Nothing here stores a control-to-node edge. Controls "reached" come from
- * `derivedControlTrace` (allocation → requirement → derivation), and a
- * System or Subsystem node's controls are its scope's control set.
- */
-
-import { useRequired } from "@/lib/form";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { MoreHorizontal } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -35,6 +21,7 @@ import {
   Text,
   Textarea,
   toast,
+  useRequired,
 } from "@ledger/design-system";
 import {
   addCompositionNodes,

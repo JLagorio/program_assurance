@@ -23,7 +23,7 @@ import {
   TextLink,
   Toolbar,
 } from "@ledger/design-system";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 import { saveProgramField } from "@/lib/program-save";
 import {
   controlStatuses,

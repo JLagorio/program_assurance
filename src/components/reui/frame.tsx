@@ -1,6 +1,6 @@
-import { cva, type VariantProps } from "class-variance-authority"
+import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@ledger/design-system/cn";
 
 /**
  * CSS variable architecture for FramePanel theming:
@@ -85,8 +85,8 @@ const frameVariants = cva(
       stacked: false,
       dense: false,
     },
-  }
-)
+  },
+);
 
 function Frame({
   className,
@@ -98,22 +98,15 @@ function Frame({
 }: React.ComponentProps<"div"> & VariantProps<typeof frameVariants>) {
   return (
     <div
-      className={cn(
-        frameVariants({ variant, spacing, stacked, dense }),
-        className
-      )}
+      className={cn(frameVariants({ variant, spacing, stacked, dense }), className)}
       data-slot="frame"
       data-spacing={spacing}
       {...props}
     />
-  )
+  );
 }
 
-function FramePanel({
-  className,
-  fit,
-  ...props
-}: React.ComponentProps<"div"> & { fit?: boolean }) {
+function FramePanel({ className, fit, ...props }: React.ComponentProps<"div"> & { fit?: boolean }) {
   return (
     <div
       className={cn(
@@ -126,12 +119,12 @@ function FramePanel({
         "before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--frame-panel-radius)_-_1px)] before:shadow-black/5",
         "dark:bg-clip-border dark:before:shadow-white/5",
         "px-(--frame-panel-px) py-(--frame-panel-py)",
-        className
+        className,
       )}
       data-slot="frame-panel"
       {...props}
     />
-  )
+  );
 }
 
 function FrameHeader({ className, ...props }: React.ComponentProps<"header">) {
@@ -139,12 +132,12 @@ function FrameHeader({ className, ...props }: React.ComponentProps<"header">) {
     <header
       className={cn(
         "flex flex-col gap-(--frame-panel-header-gap) px-(--frame-panel-header-px) py-(--frame-panel-header-py)",
-        className
+        className,
       )}
       data-slot="frame-panel-header"
       {...props}
     />
-  )
+  );
 }
 
 function FrameTitle({ className, ...props }: React.ComponentProps<"div">) {
@@ -154,20 +147,17 @@ function FrameTitle({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="frame-panel-title"
       {...props}
     />
-  )
+  );
 }
 
-function FrameDescription({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+function FrameDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       className={cn("text-muted-foreground text-sm", className)}
       data-slot="frame-panel-description"
       {...props}
     />
-  )
+  );
 }
 
 function FrameFooter({ className, ...props }: React.ComponentProps<"footer">) {
@@ -175,20 +165,12 @@ function FrameFooter({ className, ...props }: React.ComponentProps<"footer">) {
     <footer
       className={cn(
         "flex flex-col gap-(--frame-panel-footer-gap) px-(--frame-panel-footer-px) py-(--frame-panel-footer-py)",
-        className
+        className,
       )}
       data-slot="frame-panel-footer"
       {...props}
     />
-  )
+  );
 }
 
-export {
-  Frame,
-  FramePanel,
-  FrameHeader,
-  FrameTitle,
-  FrameDescription,
-  FrameFooter,
-  frameVariants,
-}
+export { Frame, FramePanel, FrameHeader, FrameTitle, FrameDescription, FrameFooter, frameVariants };

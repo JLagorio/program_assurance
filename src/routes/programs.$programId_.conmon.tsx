@@ -41,7 +41,7 @@ import {
 } from "@/lib/conmon";
 import { programs } from "@/lib/grc-data";
 import { buildControlTextIndex } from "@/lib/sctm";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 
 const conmonTabs = [
   "Drift",

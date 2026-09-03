@@ -69,7 +69,7 @@ import {
   type SecurityImpact,
   type TouchedNode,
 } from "@/lib/baselines";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 
 type NodeNamer = (nodeId: string) => string;
 type AuditRecord = ChangeImpact["records"][number];

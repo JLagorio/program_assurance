@@ -1,20 +1,18 @@
-/**
- * Record-scoped ⌘K palette. Commands are plain objects supplied by the caller
- * so the palette stays presentational and every record page can reuse it.
- */
-
 import { useEffect, useState } from "react";
 
-import { Command } from "@ledger/design-system";
+import { Command } from "../components/command";
 
 export type PaletteCommand = {
   id: string;
+  /** Commands with the same group, in sequence, share a heading. */
   group: string;
   label: string;
-  hint?: string;
+  /** Right-aligned: a shortcut, a count, a hint. */
+  hint?: string | undefined;
   run: () => void;
 };
 
+/** The palette's open state, toggled by ⌘K or Ctrl+K anywhere on the page. */
 export function useCommandPalette() {
   const [open, setOpen] = useState(false);
   useEffect(() => {
@@ -30,6 +28,11 @@ export function useCommandPalette() {
   return { open, setOpen };
 }
 
+/**
+ * A ⌘K palette over a page or a record. The commands are plain objects the caller supplies, so
+ * the palette stays presentational and every page can reuse it; choosing one closes the palette
+ * and runs it.
+ */
 export function CommandPalette({
   open,
   onClose,
@@ -39,7 +42,7 @@ export function CommandPalette({
   open: boolean;
   onClose: () => void;
   commands: PaletteCommand[];
-  placeholder?: string;
+  placeholder?: string | undefined;
 }) {
   const groups: [string, PaletteCommand[]][] = [];
   for (const c of commands) {
@@ -47,7 +50,6 @@ export function CommandPalette({
     if (last && last[0] === c.group) last[1].push(c);
     else groups.push([c.group, [c]]);
   }
-
   return (
     <Command.Dialog open={open} onClose={onClose} label="Command palette">
       <Command.Input placeholder={placeholder} />

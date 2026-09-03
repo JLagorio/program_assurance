@@ -24,7 +24,7 @@ import {
   Table,
   TextLink,
 } from "@ledger/design-system";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 import { planDay, spanDays, taskStatusTone, type RemediationPlan } from "@/lib/remediation";
 import { statusTone } from "@/lib/spine";
 

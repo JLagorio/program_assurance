@@ -11,10 +11,10 @@ import {
   KeyValue,
   PageHeader,
   PreviewRail,
+  PreviewSplit,
   Table,
   TextLink,
 } from "@ledger/design-system";
-import { PreviewSplit } from "@/components/app/preview-split";
 import { Shell } from "@/components/app/shell";
 import { packageStateTone, packages, readiness, type Pkg } from "@/lib/packages";
 

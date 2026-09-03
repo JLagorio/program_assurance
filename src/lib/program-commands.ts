@@ -1,9 +1,4 @@
-/**
- * Pure command list for a program record. No React, no side effects of its
- * own — the caller supplies the handlers and the palette renders the result.
- */
-
-import type { PaletteCommand as Command } from "@/components/app/command-palette";
+import type { PaletteCommand as Command } from "@ledger/design-system";
 import type { Program } from "@/lib/grc-data";
 import { stages, type Stage } from "@/lib/program-stage";
 import { poamItems } from "@/lib/register";

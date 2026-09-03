@@ -58,7 +58,7 @@ import {
   type RiskMover,
   type ScoreFactor,
 } from "@/lib/risk-scoring";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 
 /* ── Shared bits ─────────────────────────────────────────────────────────── */
 

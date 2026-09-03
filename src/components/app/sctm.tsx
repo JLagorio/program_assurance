@@ -43,7 +43,7 @@ import {
 } from "@ledger/design-system";
 import type { Tone } from "@ledger/design-system";
 import { inheritanceStateTone } from "@/lib/inheritance";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 import {
   determinationTone,
   rowCurrencyTone,

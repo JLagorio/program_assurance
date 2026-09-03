@@ -24,11 +24,12 @@ import {
   Box,
   Breadcrumb,
   Collapsible,
-  Grid,
   Id,
   Indicator,
   Inspector,
   NativeSelect,
+  Panel,
+  Shell as DsShell,
   Stack,
   Table,
   Tabs,
@@ -214,203 +215,202 @@ function ControlRecord() {
           }
         />
 
-        <Grid
-          className="pt-200"
-          columnGap="space.400"
-          templateColumns={{ lg: "minmax(0,1fr) 300px" }}
-        >
-          <div className="min-w-0">
-            {tab === "Implementation" ? (
-              <>
-                <Block title="Implementation statement">
-                  <Narrative work={work} onChange={refresh} />
-                </Block>
-                <Block title="Contributors" count={derived.length}>
-                  <ControlRequirementTable
-                    requirements={derived}
-                    programId={programId}
-                    controlId={controlId}
-                    allocationCount={(id: string) => allocationsFor(id).length}
-                  />
-                </Block>
-                <Block title="Evidence" count={work.evidence.length}>
-                  <EvidenceBlock work={work} available={evidenceCatalog} onChange={refresh} />
-                </Block>
-              </>
-            ) : null}
-
-            {tab === "Assessment" ? (
-              <>
-                <Block title="Determination">
-                  <Determination work={work} onChange={refresh} />
-                </Block>
-                <Block title="Open findings" count={open.length}>
-                  {open.length ? (
-                    <Table>
-                      <tbody>
-                        {open.map((f) => (
-                          <Table.Row key={f.id}>
-                            <Table.Cell className="max-w-none" width={104}>
-                              <TextLink>
-                                <Link to="/findings/$findingId" params={{ findingId: f.id }}>
-                                  <Id>{f.id}</Id>
-                                </Link>
-                              </TextLink>
-                            </Table.Cell>
-                            <Table.Cell width={88}>
-                              <Indicator tone={severityTone(f.mitigatedSeverity)}>
-                                {f.mitigatedSeverity}
-                              </Indicator>
-                            </Table.Cell>
-                            <Table.Cell className="truncate">{f.title}</Table.Cell>
-                          </Table.Row>
-                        ))}
-                      </tbody>
-                    </Table>
-                  ) : (
-                    <p className="font-body text-subtle">None open.</p>
-                  )}
-                </Block>
-                <Block title="Discussion" count={null}>
-                  <Comments work={work} onChange={refresh} />
-                </Block>
-              </>
-            ) : null}
-
-            {tab === "Catalog" ? (
-              <>
-                <Block title="Control statement">
-                  {detail.statement.length ? (
-                    <StatementList items={detail.statement} />
-                  ) : (
-                    <p className="font-body text-subtle">None published.</p>
-                  )}
-                </Block>
-                <Block title="Assessment objectives" count={detail.objectives.length}>
-                  <ObjectiveList items={detail.objectives} />
-                </Block>
-                <Block title="Parameters" count={detail.params.length}>
-                  <ParameterTable params={detail.params} />
-                </Block>
-                <Block title="Assessment methods" count={detail.methods.length}>
-                  <MethodList methods={detail.methods} />
-                </Block>
-                <Collapsible title="Discussion and references" count={detail.discussion.length}>
-                  <Stack className="max-w-layout-measure font-body text-subtle" space="space.100">
-                    {detail.discussion.map((p, i) => (
-                      <p key={i}>{p}</p>
-                    ))}
-                  </Stack>
-                  <Box paddingBlockStart="space.150">
-                    <ReferenceList references={detail.references} />
-                  </Box>
-                </Collapsible>
-              </>
-            ) : null}
-
-            {tab === "History" ? (
-              <Block title="History">
-                <History work={work} />
+        <Box className="min-w-0" paddingBlockStart="space.200">
+          {tab === "Implementation" ? (
+            <>
+              <Block title="Implementation statement">
+                <Narrative work={work} onChange={refresh} />
               </Block>
-            ) : null}
-          </div>
+              <Block title="Contributors" count={derived.length}>
+                <ControlRequirementTable
+                  requirements={derived}
+                  programId={programId}
+                  controlId={controlId}
+                  allocationCount={(id: string) => allocationsFor(id).length}
+                />
+              </Block>
+              <Block title="Evidence" count={work.evidence.length}>
+                <EvidenceBlock work={work} available={evidenceCatalog} onChange={refresh} />
+              </Block>
+            </>
+          ) : null}
 
-          <Inspector
-            groups={[
-              {
-                title: "Working as",
-                rows: [
-                  {
-                    label: "Scope",
-                    value: (
-                      <NativeSelect
-                        className="h-control-small font-body-small"
-                        value={scopeId}
-                        onChange={(e) => setScopeId(e.target.value)}
-                        aria-label="Assessment scope"
-                      >
-                        {scopes.map((sc) => (
-                          <option key={sc.id} value={sc.id}>
-                            {sc.name}
-                          </option>
-                        ))}
-                      </NativeSelect>
-                    ),
-                  },
-                  {
-                    label: "Role",
-                    value: (
-                      <NativeSelect
-                        className="h-control-small font-body-small"
-                        value={session.role}
-                        onChange={(e) => {
-                          setSession({ role: e.target.value as (typeof roles)[number] });
-                          refresh();
-                        }}
-                        aria-label="Acting as"
-                      >
-                        {roles.map((r) => (
-                          <option key={r}>{r}</option>
-                        ))}
-                      </NativeSelect>
-                    ),
-                  },
-                  { label: "Owner", value: work.owner ?? "Unassigned" },
-                ],
-              },
-              {
-                title: "Gates",
-                rows: [{ label: "", value: <GateList work={work} context={context} /> }],
-              },
-              {
-                title: "Selection",
-                rows: [
-                  { label: "Family", value: `${row.family} — ${row.familyName}` },
-                  {
-                    label: "Selected by",
-                    value: selection?.selectedBy.length
-                      ? selection.selectedBy.join(" · ")
-                      : (selection?.source ?? "—"),
-                  },
-                  { label: "Baselines", value: row.baselines.join(", ") || "Tailored in" },
-                  { label: "Origination", value: row.implementation },
-                ],
-              },
-              {
-                title: "Linked",
-                rows: [
-                  {
-                    label: "Findings",
-                    value: open.length ? (
-                      <Badge size="xsmall" tone="danger">
-                        {open.length} open
-                      </Badge>
-                    ) : (
-                      "None"
-                    ),
-                  },
-                  {
-                    label: "POA&M",
-                    value: row.poam ? (
-                      <TextLink>
-                        <Link to="/register/poam/$poamId" params={{ poamId: row.poam }}>
-                          <Id>{row.poam}</Id>
-                        </Link>
-                      </TextLink>
-                    ) : (
-                      "None"
-                    ),
-                  },
-                  {
-                    label: "Revision",
-                    value: work.narrativeRevision ? `r${work.narrativeRevision}` : "—",
-                  },
-                  { label: "Catalog", value: catalogVersion },
-                ],
-              },
-            ]}
-          />
-        </Grid>
+          {tab === "Assessment" ? (
+            <>
+              <Block title="Determination">
+                <Determination work={work} onChange={refresh} />
+              </Block>
+              <Block title="Open findings" count={open.length}>
+                {open.length ? (
+                  <Table>
+                    <tbody>
+                      {open.map((f) => (
+                        <Table.Row key={f.id}>
+                          <Table.Cell className="max-w-none" width={104}>
+                            <TextLink>
+                              <Link to="/findings/$findingId" params={{ findingId: f.id }}>
+                                <Id>{f.id}</Id>
+                              </Link>
+                            </TextLink>
+                          </Table.Cell>
+                          <Table.Cell width={88}>
+                            <Indicator tone={severityTone(f.mitigatedSeverity)}>
+                              {f.mitigatedSeverity}
+                            </Indicator>
+                          </Table.Cell>
+                          <Table.Cell className="truncate">{f.title}</Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : (
+                  <p className="font-body text-subtle">None open.</p>
+                )}
+              </Block>
+              <Block title="Discussion" count={null}>
+                <Comments work={work} onChange={refresh} />
+              </Block>
+            </>
+          ) : null}
+
+          {tab === "Catalog" ? (
+            <>
+              <Block title="Control statement">
+                {detail.statement.length ? (
+                  <StatementList items={detail.statement} />
+                ) : (
+                  <p className="font-body text-subtle">None published.</p>
+                )}
+              </Block>
+              <Block title="Assessment objectives" count={detail.objectives.length}>
+                <ObjectiveList items={detail.objectives} />
+              </Block>
+              <Block title="Parameters" count={detail.params.length}>
+                <ParameterTable params={detail.params} />
+              </Block>
+              <Block title="Assessment methods" count={detail.methods.length}>
+                <MethodList methods={detail.methods} />
+              </Block>
+              <Collapsible title="Discussion and references" count={detail.discussion.length}>
+                <Stack className="max-w-layout-measure font-body text-subtle" space="space.100">
+                  {detail.discussion.map((p, i) => (
+                    <p key={i}>{p}</p>
+                  ))}
+                </Stack>
+                <Box paddingBlockStart="space.150">
+                  <ReferenceList references={detail.references} />
+                </Box>
+              </Collapsible>
+            </>
+          ) : null}
+
+          {tab === "History" ? (
+            <Block title="History">
+              <History work={work} />
+            </Block>
+          ) : null}
+        </Box>
+
+        <DsShell.Panel label="Details">
+          <DsShell.Panel.Splitter label="Resize details" />
+          <Panel flush>
+            <Inspector
+              groups={[
+                {
+                  title: "Working as",
+                  rows: [
+                    {
+                      label: "Scope",
+                      value: (
+                        <NativeSelect
+                          className="h-control-small font-body-small"
+                          value={scopeId}
+                          onChange={(e) => setScopeId(e.target.value)}
+                          aria-label="Assessment scope"
+                        >
+                          {scopes.map((sc) => (
+                            <option key={sc.id} value={sc.id}>
+                              {sc.name}
+                            </option>
+                          ))}
+                        </NativeSelect>
+                      ),
+                    },
+                    {
+                      label: "Role",
+                      value: (
+                        <NativeSelect
+                          className="h-control-small font-body-small"
+                          value={session.role}
+                          onChange={(e) => {
+                            setSession({ role: e.target.value as (typeof roles)[number] });
+                            refresh();
+                          }}
+                          aria-label="Acting as"
+                        >
+                          {roles.map((r) => (
+                            <option key={r}>{r}</option>
+                          ))}
+                        </NativeSelect>
+                      ),
+                    },
+                    { label: "Owner", value: work.owner ?? "Unassigned" },
+                  ],
+                },
+                {
+                  title: "Gates",
+                  rows: [{ label: "", value: <GateList work={work} context={context} /> }],
+                },
+                {
+                  title: "Selection",
+                  rows: [
+                    { label: "Family", value: `${row.family} — ${row.familyName}` },
+                    {
+                      label: "Selected by",
+                      value: selection?.selectedBy.length
+                        ? selection.selectedBy.join(" · ")
+                        : (selection?.source ?? "—"),
+                    },
+                    { label: "Baselines", value: row.baselines.join(", ") || "Tailored in" },
+                    { label: "Origination", value: row.implementation },
+                  ],
+                },
+                {
+                  title: "Linked",
+                  rows: [
+                    {
+                      label: "Findings",
+                      value: open.length ? (
+                        <Badge size="xsmall" tone="danger">
+                          {open.length} open
+                        </Badge>
+                      ) : (
+                        "None"
+                      ),
+                    },
+                    {
+                      label: "POA&M",
+                      value: row.poam ? (
+                        <TextLink>
+                          <Link to="/register/poam/$poamId" params={{ poamId: row.poam }}>
+                            <Id>{row.poam}</Id>
+                          </Link>
+                        </TextLink>
+                      ) : (
+                        "None"
+                      ),
+                    },
+                    {
+                      label: "Revision",
+                      value: work.narrativeRevision ? `r${work.narrativeRevision}` : "—",
+                    },
+                    { label: "Catalog", value: catalogVersion },
+                  ],
+                },
+              ]}
+            />
+          </Panel>
+        </DsShell.Panel>
       </div>
     </Shell>
   );

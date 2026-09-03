@@ -21,7 +21,7 @@ import {
 import { Shell } from "@/components/app/shell";
 import { ControlMatrixSection, FamilyCoverageTable } from "@/components/app/control-matrix";
 import { CoverageBand } from "@/components/app/coverage";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
 import { gatesForProgram, lifecyclePhases, programs, gateKindTone } from "@/lib/grc-data";
 import { catalogVersion } from "@/lib/nist-catalog";

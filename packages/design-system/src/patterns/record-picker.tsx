@@ -1,23 +1,24 @@
-/**
- * Pick one record from a list: evidence to link, a requirement to derive
- * from, a person to assign. Presentational; the caller supplies the records
- * and gets the chosen one back.
- */
-
-import { Badge, Command, Id } from "@ledger/design-system";
+import { Badge, type Tone } from "../components/badge";
+import { Command } from "../components/command";
+import { Id } from "../components/id";
 
 export type PickerRecord = {
   id: string;
-  /** The line a person actually reads. */
+  /** The line a person reads. */
   title: string;
-  /** Secondary line: kind, source, date. */
-  meta?: string;
-  /** Right-aligned chip: state, freshness, severity. */
-  badge?: { label: string; tone?: "neutral" | "success" | "warning" | "danger" | "information" };
-  /** Extra text matched against the query but not displayed. */
-  keywords?: string;
+  /** Under it: kind, source, date. */
+  meta?: string | undefined;
+  /** Right-aligned: state, freshness, severity. */
+  badge?: { label: string; tone?: Tone | undefined } | undefined;
+  /** Matched against the query, never shown. */
+  keywords?: string | undefined;
 };
 
+/**
+ * Pick one record from a list: evidence to link, a requirement to derive from, a person to
+ * assign. Presentational: the caller supplies the records and gets the chosen one back. For
+ * choosing many by attribute, use PickerSheet.
+ */
 export function RecordPicker({
   open,
   onClose,
@@ -33,7 +34,7 @@ export function RecordPicker({
   records: PickerRecord[];
   title: string;
   placeholder: string;
-  emptyHint?: string;
+  emptyHint?: string | undefined;
 }) {
   return (
     <Command.Dialog open={open} onClose={onClose} label={title} width="large">
@@ -67,7 +68,7 @@ export function RecordPicker({
       </Command.List>
       <Command.Footer>
         <span>↑↓ navigate</span>
-        <span>↵ link</span>
+        <span>↵ choose</span>
         <span>esc close</span>
       </Command.Footer>
     </Command.Dialog>

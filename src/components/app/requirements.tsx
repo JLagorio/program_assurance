@@ -14,7 +14,7 @@ import { ArrowRight } from "lucide-react";
 import { Badge, Box, Editable, Id, Inline, Stack, Table, TextLink } from "@ledger/design-system";
 import { ControlHover, ElementHover, RequirementHover } from "@/components/app/glances";
 import { SuspectFlag } from "@/components/app/link-currency";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 import {
   allocationStateTone,
   allocationStates,

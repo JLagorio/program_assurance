@@ -1,4 +1,3 @@
-import { useRequired } from "@/lib/form";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Download, ListFilter, Plus } from "lucide-react";
@@ -11,8 +10,8 @@ import {
   Dialog,
   Field,
   FilterChip,
-  Grid,
   Glance,
+  Grid,
   HoverCard,
   Id,
   IndexPage,
@@ -30,10 +29,12 @@ import {
   Tabs,
   Textarea,
   toast,
+  usePage,
+  useRequired,
+  useSort,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { riskStatusTone, risks, type Risk } from "@/lib/grc-data";
-import { usePage, useSort } from "@/lib/table-state";
 
 export const Route = createFileRoute("/risks")({
   head: () => ({

@@ -1,4 +1,3 @@
-import { useRequired } from "@/lib/form";
 import { useMemo, useState } from "react";
 import { Check, FileSignature, Lock, Plus, ShieldCheck, UserPlus } from "lucide-react";
 
@@ -22,6 +21,7 @@ import {
   Stack,
   Table,
   Textarea,
+  useRequired,
 } from "@ledger/design-system";
 import {
   authorization,

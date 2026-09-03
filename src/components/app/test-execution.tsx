@@ -49,7 +49,7 @@ import {
   type TestProcedure,
   type TestRun,
 } from "@/lib/test-execution";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 
 /* ── Row shapes the route assembles ──────────────────────────────────────── */
 

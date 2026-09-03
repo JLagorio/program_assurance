@@ -17,7 +17,7 @@ import {
   Timeline,
   ToggleGroup,
 } from "@ledger/design-system";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 import { useActivityFilters, useReadState } from "@/lib/activity-prefs";
 import {
   absoluteStamp,

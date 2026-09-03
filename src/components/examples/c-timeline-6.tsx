@@ -1,9 +1,5 @@
-import { Badge } from "@/components/reui/badge"
-import {
-  Frame,
-  FrameHeader,
-  FramePanel,
-} from "@/components/reui/frame"
+import { Badge } from "@/components/reui/badge";
+import { Frame, FrameHeader, FramePanel } from "@/components/reui/frame";
 import {
   Timeline,
   TimelineContent,
@@ -12,21 +8,13 @@ import {
   TimelineItem,
   TimelineSeparator,
   TimelineTitle,
-} from "@/components/reui/timeline"
+} from "@/components/reui/timeline";
 
-import { cn } from "@/lib/utils"
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import { Spinner } from "@/components/ui/spinner"
-import { RiCheckLine, RiCircleLine, RiArrowRightLine } from "@remixicon/react"
+import { cn } from "@ledger/design-system/cn";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Spinner } from "@/components/ui/spinner";
+import { RiCheckLine, RiCircleLine, RiArrowRightLine } from "@remixicon/react";
 
 const pipelineSteps = [
   {
@@ -37,8 +25,7 @@ const pipelineSteps = [
     description: "Successfully fetched latest changes from the main branch.",
     user: {
       name: "Alex Johnson",
-      avatar:
-        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=96&h=96&dpr=2&q=80",
+      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=96&h=96&dpr=2&q=80",
     },
   },
   {
@@ -49,8 +36,7 @@ const pipelineSteps = [
     description: "All npm packages installed and cached for future builds.",
     user: {
       name: "Sarah Chen",
-      avatar:
-        "https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=96&h=96&dpr=2&q=80",
+      avatar: "https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=96&h=96&dpr=2&q=80",
     },
   },
   {
@@ -61,8 +47,7 @@ const pipelineSteps = [
     description: "Running 142 test suites across the entire codebase...",
     user: {
       name: "Michael Rodriguez",
-      avatar:
-        "https://images.unsplash.com/photo-1584308972272-9e4e7685e80f?w=96&h=96&dpr=2&q=80",
+      avatar: "https://images.unsplash.com/photo-1584308972272-9e4e7685e80f?w=96&h=96&dpr=2&q=80",
     },
   },
   {
@@ -73,42 +58,26 @@ const pipelineSteps = [
     description: "Optimizing assets and generating static site pages.",
     user: {
       name: "Emma Wilson",
-      avatar:
-        "https://images.unsplash.com/photo-1485893086445-ed75865251e0?w=96&h=96&dpr=2&q=80",
+      avatar: "https://images.unsplash.com/photo-1485893086445-ed75865251e0?w=96&h=96&dpr=2&q=80",
     },
   },
-]
+];
 
 function StatusIcon({ status }: { status: string }) {
-  if (status === "completed")
-    return (
-      <RiCheckLine className="size-3.5" />
-    )
-  if (status === "active") return <Spinner className="size-3.5" />
-  return (
-    <RiCircleLine className="size-3.5" />
-  )
+  if (status === "completed") return <RiCheckLine className="size-3.5" />;
+  if (status === "active") return <Spinner className="size-3.5" />;
+  return <RiCircleLine className="size-3.5" />;
 }
 
-function StatusBadge({
-  status,
-  duration,
-}: {
-  status: string
-  duration: string
-}) {
+function StatusBadge({ status, duration }: { status: string; duration: string }) {
   const variant =
-    status === "completed"
-      ? "success-light"
-      : status === "active"
-        ? "info-light"
-        : "warning-light"
+    status === "completed" ? "success-light" : status === "active" ? "info-light" : "warning-light";
 
   return (
     <Badge variant={variant} size="sm">
       {duration}
     </Badge>
-  )
+  );
 }
 
 export function Pattern() {
@@ -120,15 +89,13 @@ export function Pattern() {
             <TimelineHeader>
               <TimelineSeparator className="group-data-[orientation=vertical]/timeline:-left-7 group-data-[orientation=vertical]/timeline:h-[calc(100%-1.5rem-0.25rem)] group-data-[orientation=vertical]/timeline:translate-y-7" />
               <div className="flex items-center gap-2">
-                <TimelineTitle className="text-sm font-semibold">
-                  {step.title}
-                </TimelineTitle>
+                <TimelineTitle className="text-sm font-semibold">{step.title}</TimelineTitle>
                 <StatusBadge status={step.status} duration={step.duration} />
               </div>
               <TimelineIndicator
                 className={cn(
                   "bg-muted text-muted-foreground group-data-completed/timeline-item:bg-primary group-data-completed/timeline-item:text-primary-foreground flex size-6 items-center justify-center border-none group-data-[orientation=vertical]/timeline:-left-7",
-                  step.status === "active" && "ring-primary/20 ring-2"
+                  step.status === "active" && "ring-primary/20 ring-2",
                 )}
               >
                 <StatusIcon status={step.status} />
@@ -141,13 +108,8 @@ export function Pattern() {
                     <FrameHeader className="flex grow flex-row items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <Avatar className="size-5">
-                          <AvatarImage
-                            src={step.user.avatar}
-                            alt={step.user.name}
-                          />
-                          <AvatarFallback>
-                            {step.user.name.charAt(0)}
-                          </AvatarFallback>
+                          <AvatarImage src={step.user.avatar} alt={step.user.name} />
+                          <AvatarFallback>{step.user.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <span className="text-muted-foreground text-xs font-medium">
                           {step.user.name}
@@ -170,5 +132,5 @@ export function Pattern() {
         ))}
       </Timeline>
     </div>
-  )
+  );
 }

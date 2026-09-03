@@ -42,7 +42,7 @@ import {
   scoreFinding,
   type ResidualScore,
 } from "@/lib/risk-scoring";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 
 const riskTabs = ["Posture", "Scored findings", "Calculation"] as const;
 type RiskTab = (typeof riskTabs)[number];

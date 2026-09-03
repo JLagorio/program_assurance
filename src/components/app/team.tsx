@@ -9,6 +9,7 @@ import {
   Inspector,
   KeyValue,
   PreviewRail,
+  PreviewSplit,
   Progress,
   Section,
   Stack,
@@ -16,7 +17,6 @@ import {
   Tabs,
   TextLink,
 } from "@ledger/design-system";
-import { PreviewSplit } from "@/components/app/preview-split";
 import {
   allocationFor,
   crossDisciplineEdges,

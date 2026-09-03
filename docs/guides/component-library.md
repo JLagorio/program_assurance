@@ -24,7 +24,7 @@ the layers below it, by relative path, so the dependency graph stays visible.
 
 Domain files (`src/components/app/*.tsx`) and routes assemble these. They may own a tone map for
 their vocabulary and a component that binds data to a pattern. They never declare a primitive or a
-copy of a kit part; the lint (`kit/no-kit-shadow`) names the kit part to import instead.
+copy of a kit part; the lint (`ledger/no-kit-shadow`) names the kit part to import instead.
 
 ## Importing
 
@@ -52,6 +52,11 @@ The stylesheet is three imports after Tailwind, in this order:
 @import "@ledger/design-system/base.css";
 ```
 
+Hooks that belong with parts live in the package too: `useRequired` for a form's required fields,
+`useSort` and `usePage` for a Table, `useCommandPalette` for the ⌘K palette, `useSideNav` for the
+shell. A product keeps no copy of anything generic; the prototype is the test vehicle, and when it
+breaks the system is what gets fixed.
+
 Links are slots. The package has no router: a Button or TextLink takes the router's Link as its
 child (`asChild`), Item and RecordHeader take a link element as a prop.
 
@@ -71,8 +76,8 @@ child (`asChild`), Item and RecordHeader take a link element as a prop.
 
 ## What the lint enforces
 
-The package ships an ESLint plugin with two presets. The root config applies `recommended` to
-product code and keeps three assembly rules of its own.
+The package ships an ESLint plugin with two presets: `package` for its own code, `recommended` for
+every product. A product's own config adds nothing about the kit.
 
 | Rule                            | Reports                                                                 | Instead                                               |
 | ------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------- |
@@ -86,9 +91,9 @@ product code and keeps three assembly rules of its own.
 | `ledger/prefer-text-link`       | A Link or anchor carrying `text-brand` or `hover:underline`             | TextLink around the link element.                     |
 | `ledger/no-colgroup`            | `<colgroup>`                                                            | `width` on each Table.Header.                         |
 | `ledger/use-primitives`         | A `div` or `span` carrying layout classes (warning)                     | Box, Stack, Inline, Flex or Grid.                     |
-| `kit/cell-plain`                | A Table.Cell carrying a neutral colour, weight or type token            | Nothing; only a status colour may differ.             |
-| `kit/id-not-blue`               | An Id with `text-brand` outside a link or button                        | Wrap it in a link, or drop the class.                 |
-| `kit/no-kit-shadow`             | A local component named like a kit part                                 | Import the kit part.                                  |
+| `ledger/cell-plain`             | A Table.Cell carrying a neutral colour, weight or type token            | Nothing; only a status colour may differ.             |
+| `ledger/id-not-blue`            | An Id with `text-brand` outside a link or button                        | Wrap it in a link, or drop the class.                 |
+| `ledger/no-kit-shadow`          | A local component named like a kit part                                 | Import the kit part.                                  |
 
 ## Rules that stay in the head
 
@@ -116,6 +121,19 @@ product code and keeps three assembly rules of its own.
    what is missing; `npm run build` runs it first.
 3. Add a row to the family's MDX page. If it is a new family, a new MDX page.
 4. Check it in both modes in Storybook. Then, and only on a go, move the prototype onto it.
+
+## Versioning and publishing
+
+Semantic versions, recorded in `packages/design-system/CHANGELOG.md` with the story that shows each
+change. Until 1.0 a rename or a removed prop is a minor step; it ships with a deprecation the lint
+fixes wherever one is possible (`ledger/no-deprecated-name`, `ledger/no-deprecated-token`), and the
+old name stays one version. CI (`.github/workflows/ci.yml`) runs the contract on every push: the
+generated tokens match the source, every export has a story and every family a matrix, the
+package and the prototype typecheck and lint, the tests pass, everything builds, the Storybook
+builds, and the package packs; the tarball is the build's artifact. A second product in another
+repository installs that tarball, or the package from the organisation's registry once there is
+one: `npm publish` from the package folder is the whole release, after `npm version` and a
+changelog entry.
 
 ## What is underneath
 

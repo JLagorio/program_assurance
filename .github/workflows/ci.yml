@@ -1,0 +1,46 @@
+# The contract, run on every push and pull request: the tokens are current, every export has a
+# story and every family a matrix, the package and the prototype typecheck and lint, the tests
+# pass, everything builds, and the package packs. The prototype is the test vehicle: when it
+# breaks, the system needs updating.
+name: CI
+on:
+  push:
+    branches: [main, design-system]
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: The generated tokens match the source
+        run: npm run build:tokens -w packages/design-system && git diff --exit-code -- packages/design-system/src/generated
+      - name: Every export has a story, every family a matrix
+        run: node scripts/ds-check.mjs
+      - name: The package typechecks, lints and passes its tests
+        run: npm run typecheck -w packages/design-system && npm run lint -w packages/design-system && npm test -w packages/design-system
+      - name: The prototype typechecks and lints
+        run: npx tsc --noEmit -p tsconfig.json && npx eslint .
+      - name: Everything builds
+        run: npm run build
+      - name: The package packs
+        run: npm pack -w packages/design-system --pack-destination out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ledger-design-system
+          path: out/*.tgz
+  storybook:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: The Storybook builds
+        run: npm run build-storybook -w packages/design-system

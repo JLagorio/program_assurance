@@ -1,17 +1,3 @@
-/**
- * Control-set change management, as pieces that can sit wherever the reader
- * starts: the program's Systems tab (every change across the program), the
- * approver's queue (decide without leaving), and the scope record (the one
- * place a draft is edited).
- *
- * `§5.2` step 7 made concrete. The in-force revision is never edited; a
- * change is a new draft, its delta against the in-force set is computed rather
- * than described, each removed control names the work record it retires, and
- * approval is the one action that touches the live scope. Every action carries
- * its reason when it is blocked and its consequence before it is taken.
- */
-
-import { useRequired } from "@/lib/form";
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
@@ -35,6 +21,7 @@ import {
   TextLink,
   Timeline,
   toast,
+  useRequired,
 } from "@ledger/design-system";
 import {
   approvalConsequence,

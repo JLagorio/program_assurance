@@ -4,6 +4,7 @@ import { ChevronLeft, MoreHorizontal, Paperclip, Pencil } from "lucide-react";
 
 import {
   Badge,
+  Box,
   Button,
   DatePicker,
   Dialog,
@@ -15,7 +16,9 @@ import {
   Inspector,
   KeyValue,
   NativeSelect,
+  Panel,
   Section,
+  Shell as DsShell,
   Stack,
   Table,
   Textarea,
@@ -126,11 +129,7 @@ function RiskDetail() {
           </Inline>
         </Inline>
 
-        <Grid
-          className="border-t border-default pt-250"
-          gap="space.300"
-          templateColumns={{ base: "repeat(1, minmax(0, 1fr))", xl: "minmax(0,1fr) 272px" }}
-        >
+        <Box className="border-t border-default" paddingBlockStart="space.250">
           <Stack space="space.300">
             <Section title="Summary">
               <p className="pt-100 font-body">{risk.summary}</p>
@@ -178,44 +177,47 @@ function RiskDetail() {
               </Timeline>
             </Section>
           </Stack>
-
-          <aside className="xl:border-l xl:border-default xl:ps-300">
-            <Inspector.Group
-              title="Properties"
-              action={
-                <button className="text-subtle transition-colors hover:text-default">
-                  <Pencil className="size-icon-small" />
-                </button>
-              }
-            >
-              <KeyValue label="Risk ID">
-                <Id>{risk.id}</Id>
-              </KeyValue>
-              <KeyValue label="Owner">{risk.owner}</KeyValue>
-              <KeyValue label="Team">{risk.team}</KeyValue>
-              <KeyValue label="Treatment">{risk.treatment}</KeyValue>
-              <KeyValue label="Framework">
-                {risk.framework} · {risk.control}
-              </KeyValue>
-            </Inspector.Group>
-
-            <Inspector.Group title="Dates">
-              <KeyValue label="Opened">{risk.opened}</KeyValue>
-              <KeyValue label="Target date">{risk.due}</KeyValue>
-              <KeyValue label="Last updated">{risk.updated}</KeyValue>
-            </Inspector.Group>
-
-            <Inspector.Group title="Control coverage">
-              <p className="font-body-small text-subtle">
-                Maps to one failing control. Closing it requires two consecutive passing runs.
-              </p>
-              <TextLink size="small" className="pt-075 inline-block">
-                <Link to="/controls">View {risk.control}</Link>
-              </TextLink>
-            </Inspector.Group>
-          </aside>
-        </Grid>
+        </Box>
       </Stack>
+
+      <DsShell.Panel label="Details">
+        <DsShell.Panel.Splitter label="Resize details" />
+        <Panel flush>
+          <Inspector.Group
+            title="Properties"
+            action={
+              <button className="text-subtle transition-colors hover:text-default">
+                <Pencil className="size-icon-small" />
+              </button>
+            }
+          >
+            <KeyValue label="Risk ID">
+              <Id>{risk.id}</Id>
+            </KeyValue>
+            <KeyValue label="Owner">{risk.owner}</KeyValue>
+            <KeyValue label="Team">{risk.team}</KeyValue>
+            <KeyValue label="Treatment">{risk.treatment}</KeyValue>
+            <KeyValue label="Framework">
+              {risk.framework} · {risk.control}
+            </KeyValue>
+          </Inspector.Group>
+
+          <Inspector.Group title="Dates">
+            <KeyValue label="Opened">{risk.opened}</KeyValue>
+            <KeyValue label="Target date">{risk.due}</KeyValue>
+            <KeyValue label="Last updated">{risk.updated}</KeyValue>
+          </Inspector.Group>
+
+          <Inspector.Group title="Control coverage">
+            <p className="font-body-small text-subtle">
+              Maps to one failing control. Closing it requires two consecutive passing runs.
+            </p>
+            <TextLink size="small" className="pt-075 inline-block">
+              <Link to="/controls">View {risk.control}</Link>
+            </TextLink>
+          </Inspector.Group>
+        </Panel>
+      </DsShell.Panel>
 
       <Dialog
         open={treating}

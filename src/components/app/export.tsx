@@ -61,7 +61,7 @@ import {
 } from "@/lib/airgap";
 import type { EmassExport } from "@/lib/emass";
 import { oscalVersion, type JsonObject, type JsonValue, type OscalDocument } from "@/lib/oscal";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 
 /* ── Shared bits ─────────────────────────────────────────────────────────── */
 

@@ -1,11 +1,13 @@
 import { Children, type ReactNode } from "react";
 
-import { Grid, Resizable } from "@ledger/design-system";
+import { Resizable } from "../components/resizable";
+import { Grid } from "../primitives/grid";
 
 /**
- * A list with a preview rail the reader sizes for themselves. The first child
- * is the list; whatever follows (the open PreviewRail, or nothing) is the rail.
- * Closed, it is just the list at full width.
+ * An index table with a preview rail the reader sizes for themselves. The first child is the
+ * list; whatever follows (the open PreviewRail, or nothing) is the rail. Closed, it is just the
+ * list at full width. This is the rail beside a table, not the record's rail, which is the
+ * shell's panel.
  */
 export function PreviewSplit({ open, children }: { open: boolean; children: ReactNode }) {
   const [list, ...rail] = Children.toArray(children);

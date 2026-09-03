@@ -1,6 +1,6 @@
 {
   "name": "@ledger/design-system",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Ledger: tokens, primitives and components. DTCG source in tokens/, generated outputs in src/generated/.",
   "type": "module",
@@ -48,7 +48,8 @@
     "tokens",
     "build",
     "eslint-plugin",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "peerDependencies": {
     "react": "^19.0.0",
@@ -83,5 +84,10 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.0.0",
     "vaul": "^1.1.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JLagorio/program_assurance.git",
+    "directory": "packages/design-system"
   }
 }

@@ -10,8 +10,9 @@ import {
   RadioGroup,
   Switch,
   Textarea,
+  useRequired,
 } from "../../components";
-import { Inline, Stack } from "../../primitives";
+import { Inline, Stack, Text } from "../../primitives";
 import { Matrix, Specimens } from "../_lib/matrix";
 
 const meta = {
@@ -189,4 +190,40 @@ export const ControlsMatrix: Story = {
       </Specimens>
     </Stack>
   ),
+};
+
+/** The required fields, checked on submit: the asterisk from `isRequired`, the first empty one red with the message under it. */
+function RequiredForm() {
+  const [title, setTitle] = useState("");
+  const [owner, setOwner] = useState("");
+  const [saved, setSaved] = useState(false);
+  const req = useRequired({ title, owner });
+  return (
+    <Stack space="space.150" className="max-w-layout-measure">
+      <Field label="Title" isRequired error={req.errorFor("title")}>
+        <Input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="What is at risk"
+        />
+      </Field>
+      <Field label="Owner" isRequired error={req.errorFor("owner")}>
+        <Input
+          value={owner}
+          onChange={(e) => setOwner(e.target.value)}
+          placeholder="Who answers for it"
+        />
+      </Field>
+      <Inline space="space.100" alignBlock="center">
+        <Button variant="primary" onClick={() => setSaved(req.check())}>
+          Save
+        </Button>
+        {saved ? <Text color="color.text.subtle">Saved.</Text> : null}
+      </Inline>
+    </Stack>
+  );
+}
+export const RequiredOnSubmit: Story = {
+  name: "Required on submit",
+  render: () => <RequiredForm />,
 };

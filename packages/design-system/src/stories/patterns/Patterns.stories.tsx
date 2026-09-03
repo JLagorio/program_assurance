@@ -23,19 +23,25 @@ import {
 } from "../../components";
 import {
   Card,
+  CommandPalette,
   Empty,
   Glance,
   IndexPage,
   PageHeader,
   PageSkeleton,
+  type PaletteCommand,
   Panel,
+  type PickerRecord,
   PickerSheet,
   PreviewRail,
   PreviewSheet,
+  PreviewSplit,
   RecordHeader,
+  RecordPicker,
   Related,
   Section,
   ShowPage,
+  useCommandPalette,
 } from "../../patterns";
 import { Stack, Text, Box, Inline } from "../../primitives";
 import { Inspector } from "../../shapes";
@@ -1091,5 +1097,143 @@ export const PanelMatrix: Story = {
         </Inline>
       </Specimens>
     </Stack>
+  ),
+};
+
+const splitRows = [
+  { id: "PRG-001", title: "Ground segment refresh", phase: "Assess" },
+  { id: "PRG-002", title: "Payload integration", phase: "Authorise" },
+  { id: "PRG-003", title: "Fleet telemetry", phase: "Monitor" },
+  { id: "PRG-004", title: "Range safety", phase: "Prepare" },
+];
+
+/** The list, and beside it the rail of the chosen row, sized by the reader. */
+function SplitDemo({ open }: { open: boolean }) {
+  const [selected, setSelected] = useState<string | null>(open ? "PRG-002" : null);
+  const row = splitRows.find((r) => r.id === selected);
+  return (
+    <PreviewSplit open={row !== undefined}>
+      <Table>
+        <thead>
+          <tr>
+            <Table.Header width={120}>Program</Table.Header>
+            <Table.Header>Title</Table.Header>
+            <Table.Header width={120}>Phase</Table.Header>
+          </tr>
+        </thead>
+        <tbody>
+          {splitRows.map((r) => (
+            <Table.Row key={r.id} isSelected={r.id === selected} onClick={() => setSelected(r.id)}>
+              <Table.Id id={r.id} />
+              <Table.Cell>{r.title}</Table.Cell>
+              <Table.Cell>{r.phase}</Table.Cell>
+            </Table.Row>
+          ))}
+        </tbody>
+      </Table>
+      {row ? (
+        <PreviewRail id={row.id} title={row.title} onClose={() => setSelected(null)}>
+          <Text color="color.text.subtle">
+            Phase {row.phase}. The rail beside a table, sized by the reader; the record's own rail
+            is the shell's panel.
+          </Text>
+        </PreviewRail>
+      ) : null}
+    </PreviewSplit>
+  );
+}
+export const PreviewSplitStory: Story = { name: "Preview split", render: () => <SplitDemo open /> };
+export const PreviewSplitMatrix: Story = {
+  render: () => (
+    <Stack space="space.300">
+      <Specimens title="Closed: the list at full width">
+        <SplitDemo open={false} />
+      </Specimens>
+      <Specimens title="Open: the rail the reader sizes, from 18% to 45%">
+        <SplitDemo open />
+      </Specimens>
+    </Stack>
+  ),
+};
+
+const commands: PaletteCommand[] = [
+  { id: "assess", group: "Record", label: "Record an assessment", hint: "A", run: () => undefined },
+  { id: "export", group: "Record", label: "Export the SSP", hint: "⇧E", run: () => undefined },
+  { id: "controls", group: "Go to", label: "Controls", run: () => undefined },
+  { id: "findings", group: "Go to", label: "Findings", run: () => undefined },
+  { id: "mode", group: "Preferences", label: "Switch the colour mode", run: () => undefined },
+];
+
+function PaletteDemo() {
+  const palette = useCommandPalette();
+  return (
+    <Stack space="space.150">
+      <Button onClick={() => palette.setOpen(true)}>Open the palette, or press ⌘K</Button>
+      <CommandPalette
+        open={palette.open}
+        onClose={() => palette.setOpen(false)}
+        commands={commands}
+      />
+    </Stack>
+  );
+}
+export const CommandPaletteStory: Story = {
+  name: "Command palette",
+  render: () => <PaletteDemo />,
+};
+/** Open, with three groups and hints on two commands: the one state a palette has. */
+export const CommandPaletteMatrix: Story = {
+  render: () => <CommandPalette open onClose={() => undefined} commands={commands} />,
+};
+
+const pickerRecords: PickerRecord[] = [
+  {
+    id: "EV-0412",
+    title: "Firewall ruleset export",
+    meta: "Evidence · 12 Aug 2026",
+    badge: { label: "Fresh", tone: "success" },
+  },
+  {
+    id: "EV-0388",
+    title: "Access review, Q2",
+    meta: "Evidence · 30 Jun 2026",
+    badge: { label: "Stale", tone: "warning" },
+  },
+  { id: "EV-0301", title: "Pen test report", meta: "Evidence · 14 Mar 2026" },
+  { id: "EV-0290", title: "Backup restore drill", keywords: "dr disaster recovery" },
+];
+
+function PickerDemo() {
+  const [open, setOpen] = useState(false);
+  const [picked, setPicked] = useState<PickerRecord | null>(null);
+  return (
+    <Stack space="space.150">
+      <Inline space="space.100" alignBlock="center">
+        <Button onClick={() => setOpen(true)}>Link evidence</Button>
+        {picked ? <Text color="color.text.subtle">Linked {picked.id}.</Text> : null}
+      </Inline>
+      <RecordPicker
+        open={open}
+        onClose={() => setOpen(false)}
+        onPick={setPicked}
+        records={pickerRecords}
+        title="Link evidence"
+        placeholder="Search evidence…"
+      />
+    </Stack>
+  );
+}
+export const RecordPickerStory: Story = { name: "Record picker", render: () => <PickerDemo /> };
+/** Open, with a badge, without one, with a meta line, without one. */
+export const RecordPickerMatrix: Story = {
+  render: () => (
+    <RecordPicker
+      open
+      onClose={() => undefined}
+      onPick={() => undefined}
+      records={pickerRecords}
+      title="Link evidence"
+      placeholder="Search evidence…"
+    />
   ),
 };

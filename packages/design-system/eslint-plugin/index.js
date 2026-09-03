@@ -252,6 +252,102 @@ const deprecatedNames = {
   "Shell.User": { to: "Shell.Profile", fix: true },
 };
 
+/* ---------- how a product assembles the kit ---------- */
+
+/** Every component the kit exports, read from the package's own layers so the list never drifts. */
+function kitNames() {
+  const names = new Set();
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(p);
+      else if (/\.tsx?$/.test(p))
+        for (const m of fs
+          .readFileSync(p, "utf8")
+          .matchAll(/^export (?:function|const) ([A-Z]\w*)/gm))
+          names.add(m[1]);
+    }
+  };
+  for (const layer of ["primitives", "components", "patterns", "shapes", "shell", "mode"]) {
+    const dir = path.join(here, "../src", layer);
+    if (fs.existsSync(dir)) walk(dir);
+  }
+  return names;
+}
+const KIT = kitNames();
+/** Names a product used before the vocabulary; a local component under one of these is a copy of the kit part named. */
+const LEGACY = {
+  Dash: "Absent",
+  Notice: "Alert",
+  Modal: "Dialog",
+  Menu: "DropdownMenu",
+  Meter: "Progress",
+  EmptyState: "Empty",
+  SegmentedControl: "ToggleGroup",
+  Disclosure: "Collapsible",
+  Radio: "RadioGroup",
+  Mono: "Id",
+  IdList: "Id.List",
+  IdCell: "Table.Id",
+  Severity: "Indicator",
+  Label: "Eyebrow",
+  Tile: "Stat.Tile",
+  Tiles: "Tiles",
+  TabStrip: "Tabs",
+  RailGroup: "Inspector.Group",
+  CardHeader: "Card.Header",
+  StackedBar: "Progress.Stacked",
+  AvatarStack: "Avatar.Stack",
+  MenuItem: "DropdownMenu.Item",
+  MenuLabel: "DropdownMenu.Label",
+  RelatedCard: "Related",
+  RelatedRow: "Related.Row",
+  WorkPaneRow: "WorkPane.Row",
+  TreeCell: "Table.Tree",
+  Facts: "Fact.Group",
+  Sidebar: "Shell.SideNav",
+  TopBar: "Shell.TopNav",
+  NavItem: "Shell.SideNav.Item",
+  PreviewSplit: "PreviewSplit",
+  CommandPalette: "CommandPalette",
+  RecordPicker: "RecordPicker",
+};
+/** Neutral colour, weight and type tokens a table cell may not carry; a status colour (text-danger, text-warning) is data, not design. */
+const CELL_FORBIDDEN =
+  /^(text-(default|subtle|subtlest|brand|selected|inverse|disabled)|font-(body(-large|-small|-xsmall)?|heading-\w+|code|medium|semibold|regular))$/;
+/** Every string literal reachable inside an attribute value: "a b", cn("a", x && "b"), `a ${b}`. */
+function stringLiterals(node, out = []) {
+  if (!node) return out;
+  switch (node.type) {
+    case "Literal":
+      if (typeof node.value === "string") out.push(node.value);
+      break;
+    case "TemplateLiteral":
+      for (const q of node.quasis) out.push(q.value.cooked ?? "");
+      for (const e of node.expressions) stringLiterals(e, out);
+      break;
+    case "JSXExpressionContainer":
+      stringLiterals(node.expression, out);
+      break;
+    case "CallExpression":
+      for (const a of node.arguments) stringLiterals(a, out);
+      break;
+    case "ConditionalExpression":
+      stringLiterals(node.consequent, out);
+      stringLiterals(node.alternate, out);
+      break;
+    case "LogicalExpression":
+      stringLiterals(node.right, out);
+      break;
+    case "ArrayExpression":
+      for (const el of node.elements) stringLiterals(el, out);
+      break;
+    default:
+      break;
+  }
+  return out;
+}
+
 const rules = {
   "prefer-text-link": rule(
     "Navigation that reads as text is TextLink; the classes that fake it are not written by hand.",
@@ -444,6 +540,77 @@ const rules = {
     },
     { fixable: "code" },
   ),
+  "cell-plain": rule(
+    "A Table.Cell carries no neutral colour, weight or type token; only a status colour may differ.",
+    (context) => ({
+      JSXOpeningElement(node) {
+        if (jsxTag(node.name) !== "Table.Cell") return;
+        const attr = jsxAttr(node, "className");
+        if (!attr) return;
+        const bad = stringLiterals(attr.value)
+          .flatMap((s) => s.split(/\s+/))
+          .filter((t) => CELL_FORBIDDEN.test(t));
+        if (bad.length)
+          context.report({
+            node: attr,
+            message: `Table.Cell is one style. Drop ${bad.join(", ")}; only Badge, Dot, Indicator or a status colour may differ.`,
+          });
+      },
+    }),
+  ),
+  "id-not-blue": rule("An Id is blue only inside a link or a button.", (context) => ({
+    JSXOpeningElement(node) {
+      if (jsxTag(node.name) !== "Id") return;
+      const attr = jsxAttr(node, "className");
+      if (!attr) return;
+      if (!stringLiterals(attr.value).some((s) => /(^|\s)text-brand(\s|$)/.test(s))) return;
+      for (let p = node.parent; p; p = p.parent)
+        if (
+          p.type === "JSXElement" &&
+          /^(Link|a|button|Button|TextLink)$/.test(jsxTag(p.openingElement.name))
+        )
+          return;
+      context.report({
+        node: attr,
+        message:
+          "A bare Id is never blue. Blue means link: wrap it in a link or a button, or drop text-brand.",
+      });
+    },
+  })),
+  "no-kit-shadow": rule(
+    "Product code imports kit parts instead of declaring its own.",
+    (context) => {
+      const check = (id) => {
+        if (!id) return;
+        if (KIT.has(id.name))
+          context.report({
+            node: id,
+            message: `${id.name} is a kit part. Import it from @ledger/design-system instead of declaring a local copy.`,
+          });
+        else if (LEGACY[id.name])
+          context.report({
+            node: id,
+            message: `${id.name} is ${LEGACY[id.name]} in the kit. Import that instead of declaring a local copy.`,
+          });
+      };
+      const topLevel = (n) => n.type === "Program" || n.type === "ExportNamedDeclaration";
+      return {
+        FunctionDeclaration(node) {
+          if (topLevel(node.parent)) check(node.id);
+        },
+        VariableDeclarator(node) {
+          if (
+            node.id.type === "Identifier" &&
+            node.init &&
+            /FunctionExpression$/.test(node.init.type) &&
+            node.parent.parent &&
+            topLevel(node.parent.parent)
+          )
+            check(node.id);
+        },
+      };
+    },
+  ),
   "use-primitives": rule(
     "Layout in product code goes through Box, Stack, Inline, Flex and Grid.",
     (context) => ({
@@ -554,6 +721,9 @@ plugin.configs.recommended = [
       "ledger/no-non-token-class": "error",
       "ledger/no-deprecated-token": "error",
       "ledger/no-deprecated-name": "error",
+      "ledger/cell-plain": "error",
+      "ledger/id-not-blue": "error",
+      "ledger/no-kit-shadow": "error",
       "ledger/prefer-text-link": "error",
       "ledger/no-colgroup": "error",
       "ledger/use-primitives": "warn",

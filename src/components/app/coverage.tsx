@@ -7,7 +7,7 @@
  */
 
 import { Box, Grid, Id, Inline, Progress, Section, Stepper } from "@ledger/design-system";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 import type { Coverage, MilestoneNode } from "@/lib/program-coverage";
 
 const toneText: Record<string, string> = {

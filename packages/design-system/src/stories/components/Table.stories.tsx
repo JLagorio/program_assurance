@@ -10,10 +10,12 @@ import {
   Pagination,
   Person,
   Table,
-  Toolbar,
   type Tone,
+  Toolbar,
+  usePage,
+  useSort,
 } from "../../components";
-import { Stack, Text, Box } from "../../primitives";
+import { Box, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 
 const meta = {
@@ -518,3 +520,65 @@ export const ToolbarMatrix: Story = {
     </Stack>
   ),
 };
+
+const risks = Array.from({ length: 23 }, (_, i) => ({
+  id: `RSK-${String(i + 1).padStart(3, "0")}`,
+  title:
+    [
+      "Export resolver leaks tenants",
+      "Stale admin accounts",
+      "Unsigned firmware",
+      "Backups untested",
+    ][i % 4] ?? "",
+  score: (i * 37) % 100,
+  owner: ["Sarah Chen", "Linus Aarto", "Priya Raghavan"][i % 3] ?? "",
+}));
+const riskReaders = {
+  id: (r: (typeof risks)[number]) => r.id,
+  score: (r: (typeof risks)[number]) => r.score,
+  owner: (r: (typeof risks)[number]) => r.owner,
+};
+
+/** useSort feeds the headers; usePage feeds Pagination. The page clamps when the list shrinks. */
+function SortedPaged() {
+  const sort = useSort(risks, riskReaders, { key: "score", dir: "desc" });
+  const page = usePage(sort.rows, 8);
+  return (
+    <Stack space="space.150">
+      <Table>
+        <thead>
+          <tr>
+            <Table.Header sort={sort.dir("id")} onSort={() => sort.toggle("id")} width={120}>
+              Risk
+            </Table.Header>
+            <Table.Header>Title</Table.Header>
+            <Table.Header sort={sort.dir("score")} onSort={() => sort.toggle("score")} width={96}>
+              Score
+            </Table.Header>
+            <Table.Header sort={sort.dir("owner")} onSort={() => sort.toggle("owner")} width={160}>
+              Owner
+            </Table.Header>
+          </tr>
+        </thead>
+        <tbody>
+          {page.rows.map((r) => (
+            <Table.Row key={r.id}>
+              <Table.Id id={r.id} />
+              <Table.Cell>{r.title}</Table.Cell>
+              <Table.Cell className="tabular-nums">{r.score}</Table.Cell>
+              <Table.Cell>{r.owner}</Table.Cell>
+            </Table.Row>
+          ))}
+        </tbody>
+      </Table>
+      <Pagination
+        page={page.page}
+        pageCount={page.pageCount}
+        onPageChange={page.setPage}
+        total={page.total}
+        pageSize={page.pageSize}
+      />
+    </Stack>
+  );
+}
+export const SortedAndPaged: Story = { name: "Sorted and paged", render: () => <SortedPaged /> };

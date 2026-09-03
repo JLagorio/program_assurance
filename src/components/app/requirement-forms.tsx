@@ -1,9 +1,3 @@
-/**
- * Write paths for the requirements layer: author a requirement. Allocation and
- * applicability live in allocate-picker.tsx, as frames of one picker.
- */
-
-import { useRequired } from "@/lib/form";
 import { useMemo, useState } from "react";
 
 import {
@@ -15,6 +9,7 @@ import {
   Input,
   NativeSelect,
   Textarea,
+  useRequired,
 } from "@ledger/design-system";
 import {
   addRequirement,

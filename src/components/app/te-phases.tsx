@@ -63,7 +63,7 @@ import {
   type TePhaseId,
   type ThreatScenario,
 } from "@/lib/te-phases";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 
 /* ── Shared bits ─────────────────────────────────────────────────────────── */
 

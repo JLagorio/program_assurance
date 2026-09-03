@@ -45,7 +45,7 @@ import {
   type inheritanceSummary,
   type ResolvedInheritance,
 } from "@/lib/inheritance";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 
 /* ── Shared reads ────────────────────────────────────────────────────────── */
 

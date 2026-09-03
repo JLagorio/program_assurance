@@ -15,13 +15,13 @@ import {
   KeyValue,
   PageHeader,
   PreviewRail,
+  PreviewSplit,
   Table,
   Tabs,
   TextLink,
   ToggleGroup,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
-import { PreviewSplit } from "@/components/app/preview-split";
 import {
   assetById,
   assets,

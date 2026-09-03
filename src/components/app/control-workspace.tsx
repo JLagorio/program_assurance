@@ -53,7 +53,7 @@ import { nodeById } from "@/lib/composition";
 import { useWorkVersion } from "@/lib/control-work";
 import { programs } from "@/lib/grc-data";
 import { useControlText, useSctm } from "@/lib/sctm";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 
 /* ── Geometry ────────────────────────────────────────────────────────────── */
 

@@ -14,13 +14,13 @@ import {
   KeyValue,
   PageHeader,
   PreviewRail,
+  PreviewSplit,
   Stack,
   Table,
   Tabs,
   TextLink,
   ToggleGroup,
 } from "@ledger/design-system";
-import { PreviewSplit } from "@/components/app/preview-split";
 import { Shell } from "@/components/app/shell";
 import {
   campaignById,

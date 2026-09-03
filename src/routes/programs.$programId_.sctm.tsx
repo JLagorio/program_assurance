@@ -33,7 +33,7 @@ import {
   type RowCurrency,
   type SctmRow,
 } from "@/lib/sctm";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 
 const sctmTabs = ["Matrix", "Coverage", "Gaps"] as const;
 type SctmTab = (typeof sctmTabs)[number];

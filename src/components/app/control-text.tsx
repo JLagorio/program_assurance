@@ -10,7 +10,7 @@
 import type { ReactNode } from "react";
 
 import { Badge, Box, Id, Inline, Stack, Table, TextLink } from "@ledger/design-system";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 import type {
   NistMethod,
   NistObjective,

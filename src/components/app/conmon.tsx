@@ -54,7 +54,7 @@ import {
   type SlippageRow,
 } from "@/lib/conmon";
 import { statusTone } from "@/lib/spine";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 
 /* ── Shared bits ─────────────────────────────────────────────────────────── */
 

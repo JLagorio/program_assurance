@@ -23,7 +23,7 @@ import {
   Table,
   TextLink,
 } from "@ledger/design-system";
-import { cn } from "@/lib/utils";
+import { cn } from "@ledger/design-system/cn";
 import { gatesForProgram, gateKindTone, lifecyclePhases, type ProgramGate } from "@/lib/grc-data";
 import { daysUntil } from "@/lib/program-stage";
 import { workstreamsForProgram } from "@/lib/people";
