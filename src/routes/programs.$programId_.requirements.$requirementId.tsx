@@ -29,6 +29,7 @@ import {
 import { Shell } from "@/components/app/shell";
 import { campaignById, eventById, objectiveTone } from "@/lib/campaigns";
 import { currentSession } from "@/lib/control-work";
+import { useLinkCurrencyVersion } from "@/lib/link-currency";
 import { programs } from "@/lib/grc-data";
 import {
   linkVerification,
@@ -106,6 +107,7 @@ function RequirementRecord() {
   // re-renders the header counts in the same tick.
   const storeVersion = useRequirementsVersion();
   const verificationVersion = useVerificationVersion();
+  const currencyVersion = useLinkCurrencyVersion();
   const [allocating, setAllocating] = useState(false);
   const requirement = useMemo(
     () => getRequirement(requirementId) ?? null,
@@ -463,7 +465,11 @@ function RequirementRecord() {
 
         {tab === "Provenance" ? (
           <Section title="Provenance">
-            <ProvenanceTable derivations={requirement.derivations} programId={programId} />
+            <ProvenanceTable
+              derivations={requirement.derivations}
+              programId={programId}
+              requirementId={requirement.id}
+            />
           </Section>
         ) : null}
       </ShowPage>

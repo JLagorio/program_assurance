@@ -9,6 +9,8 @@
 
 import { useSyncExternalStore } from "react";
 
+import { suspectLinksFor } from "@/lib/link-currency";
+
 import {
   eventById,
   objectiveById,
@@ -299,5 +301,15 @@ export function needsWithVerification(requirement: Requirement): RequirementNeed
   const past = requirement.state === "Approved" || requirement.state === "Verified";
   if (leaf && past && objectivesForRequirement(requirement.id).length === 0)
     out.push({ key: "verify", label: "Verify", reason: "No test objective names it." });
+  const suspect = suspectLinksFor(requirement);
+  if (suspect.length)
+    out.push({
+      key: "review",
+      label: "Review",
+      reason:
+        suspect.length === 1
+          ? (suspect[0]?.state.causes[0]?.detail ?? "A link is suspect.")
+          : `${suspect.length} links are suspect.`,
+    });
   return out;
 }

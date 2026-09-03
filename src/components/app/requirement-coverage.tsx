@@ -24,6 +24,7 @@ import {
   ToggleGroup,
   type StackedSegment,
 } from "@ledger/design-system";
+import { suspectLinksFor, useLinkCurrencyVersion } from "@/lib/link-currency";
 import {
   coverageOf,
   coverageTotal,
@@ -42,7 +43,7 @@ import {
   type Requirement,
 } from "@/lib/requirements";
 
-type Filter = "all" | "unallocated" | "no-control" | "from-control" | "not-covered";
+type Filter = "all" | "unallocated" | "no-control" | "from-control" | "not-covered" | "suspect";
 
 const filterLabels: Record<Filter, string> = {
   all: "All",
@@ -50,6 +51,7 @@ const filterLabels: Record<Filter, string> = {
   "no-control": "No control",
   "from-control": "From a control",
   "not-covered": "Not covered",
+  suspect: "Suspect",
 };
 
 function fromControl(r: Requirement): boolean {
@@ -104,6 +106,7 @@ export function CoverageBar({ coverage }: { coverage: RequirementCoverage }) {
 export function RequirementCoverage({ programId }: { programId: string }) {
   const version = useRequirementsVersion();
   const verificationVersion = useVerificationVersion();
+  const currencyVersion = useLinkCurrencyVersion();
   const [filter, setFilter] = useState<Filter>("all");
   const [allocating, setAllocating] = useState<Requirement | null>(null);
 
@@ -113,8 +116,11 @@ export function RequirementCoverage({ programId }: { programId: string }) {
       unallocated: new Set(unallocatedRequirements(programId).map((r) => r.id)),
       noControl: new Set(unmappedRequirements(programId).map((r) => r.id)),
       notCovered: new Set(notCoveredRequirements(programId).map((r) => r.id)),
+      suspect: new Map(
+        requirementsForProgram(programId).map((r) => [r.id, suspectLinksFor(r).length]),
+      ),
     }),
-    [programId, version, verificationVersion],
+    [programId, version, verificationVersion, currencyVersion],
   );
   const summary = useMemo(() => requirementSummary(programId), [programId, version]);
 
@@ -128,6 +134,8 @@ export function RequirementCoverage({ programId }: { programId: string }) {
         return fromControl(r);
       case "not-covered":
         return sets.notCovered.has(r.id);
+      case "suspect":
+        return (sets.suspect.get(r.id) ?? 0) > 0;
       default:
         return true;
     }
@@ -139,6 +147,7 @@ export function RequirementCoverage({ programId }: { programId: string }) {
     "no-control": sets.noControl.size,
     "from-control": all.filter(fromControl).length,
     "not-covered": sets.notCovered.size,
+    suspect: [...sets.suspect.values()].filter((n) => n > 0).length,
   };
 
   return (
@@ -205,6 +214,9 @@ export function RequirementCoverage({ programId }: { programId: string }) {
                       ))}
                       {allocs.length > 3 ? (
                         <Text color="color.text.subtle">+{allocs.length - 3}</Text>
+                      ) : null}
+                      {sets.suspect.get(r.id) ? (
+                        <Indicator tone="warning">{sets.suspect.get(r.id)} suspect</Indicator>
                       ) : null}
                     </Inline>
                   ) : (

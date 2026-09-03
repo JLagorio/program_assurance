@@ -12,6 +12,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 
 import { Badge, Box, Editable, Id, Inline, Stack, Table, TextLink } from "@ledger/design-system";
+import { SuspectFlag } from "@/components/app/link-currency";
 import { cn } from "@/lib/utils";
 import {
   allocationStateTone,
@@ -157,7 +158,7 @@ export function RequirementTable({
           </Table.Header>
           <Table.Header width={104}>Method</Table.Header>
           <Table.Header width={116}>Owner</Table.Header>
-          <Table.Header width={104}>State</Table.Header>
+          <Table.Header width={150}>State</Table.Header>
         </Table.Row>
       </thead>
       <tbody>
@@ -213,9 +214,12 @@ export function RequirementTable({
 export function ProvenanceTable({
   derivations,
   programId,
+  requirementId,
 }: {
   derivations: Derivation[];
   programId: string;
+  /** When given, each source row carries its currency flag. */
+  requirementId?: string | undefined;
 }) {
   if (derivations.length === 0) {
     return <p className="pt-150 font-body text-danger">No provenance recorded.</p>;
@@ -226,7 +230,7 @@ export function ProvenanceTable({
       <thead>
         <Table.Row>
           <Table.Header width={150}>Source type</Table.Header>
-          <Table.Header width={108}>Source</Table.Header>
+          <Table.Header width={150}>Source</Table.Header>
           <Table.Header width={260}>Name</Table.Header>
           <Table.Header>Why it produces this requirement</Table.Header>
         </Table.Row>
@@ -240,7 +244,15 @@ export function ProvenanceTable({
               </Badge>
             </Table.Cell>
             <Table.Cell className="align-top py-100">
-              <SourceLink derivation={d} programId={programId} />
+              <Stack as="span" space="space.025">
+                <SourceLink derivation={d} programId={programId} />
+                {requirementId ? (
+                  <SuspectFlag
+                    link={{ kind: "derivation", requirement: requirementId, source: d.sourceId }}
+                    name={`${d.sourceId} → ${requirementId}`}
+                  />
+                ) : null}
+              </Stack>
             </Table.Cell>
             <Table.Cell className={wrap}>{d.sourceLabel}</Table.Cell>
             <Table.Cell className={wrap}>{d.rationale}</Table.Cell>
@@ -332,7 +344,7 @@ export function AllocationTable({
           <Table.Header width={92}>Coverage</Table.Header>
           <Table.Header>Scope of the claim</Table.Header>
           <Table.Header width={124}>Owner</Table.Header>
-          <Table.Header width={104}>State</Table.Header>
+          <Table.Header width={150}>State</Table.Header>
         </Table.Row>
       </thead>
       <tbody>
@@ -405,24 +417,30 @@ export function AllocationTable({
               )}
             </Table.Cell>
             <Table.Cell>
-              {editable ? (
-                <Editable.Select
-                  label="State"
-                  options={allocationStates}
-                  value={a.state}
-                  onChange={(next) => setAllocationField(a.id, { state: next })}
-                  save={(next) => saveRequirementField(`${a.id} state`, next)}
-                  render={(v) => (
-                    <Badge size="xsmall" tone={allocationStateTone[v]}>
-                      {v}
-                    </Badge>
-                  )}
+              <Stack as="span" space="space.025">
+                {editable ? (
+                  <Editable.Select
+                    label="State"
+                    options={allocationStates}
+                    value={a.state}
+                    onChange={(next) => setAllocationField(a.id, { state: next })}
+                    save={(next) => saveRequirementField(`${a.id} state`, next)}
+                    render={(v) => (
+                      <Badge size="xsmall" tone={allocationStateTone[v]}>
+                        {v}
+                      </Badge>
+                    )}
+                  />
+                ) : (
+                  <Badge size="xsmall" tone={allocationStateTone[a.state]}>
+                    {a.state}
+                  </Badge>
+                )}
+                <SuspectFlag
+                  link={{ kind: "allocation", id: a.id }}
+                  name={`${a.requirement} on ${resolveTarget(a).name}`}
                 />
-              ) : (
-                <Badge size="xsmall" tone={allocationStateTone[a.state]}>
-                  {a.state}
-                </Badge>
-              )}
+              </Stack>
             </Table.Cell>
           </Table.Row>
         ))}
@@ -457,7 +475,7 @@ export function ElementAllocationTable({
           <Table.Header width={92}>Coverage</Table.Header>
           <Table.Header width={260}>Scope of the claim</Table.Header>
           <Table.Header width={124}>Owner</Table.Header>
-          <Table.Header width={104}>State</Table.Header>
+          <Table.Header width={150}>State</Table.Header>
         </Table.Row>
       </thead>
       <tbody>
@@ -493,9 +511,15 @@ export function ElementAllocationTable({
               </Table.Cell>
               <Table.Cell className="truncate">{a.owner}</Table.Cell>
               <Table.Cell>
-                <Badge size="xsmall" tone={allocationStateTone[a.state]}>
-                  {a.state}
-                </Badge>
+                <Stack as="span" space="space.025">
+                  <Badge size="xsmall" tone={allocationStateTone[a.state]}>
+                    {a.state}
+                  </Badge>
+                  <SuspectFlag
+                    link={{ kind: "allocation", id: a.id }}
+                    name={`${a.requirement} on ${resolveTarget(a).name}`}
+                  />
+                </Stack>
               </Table.Cell>
             </Table.Row>
           );
@@ -679,7 +703,7 @@ export function ControlRequirementTable({
           <Table.Header width={72} className="text-right">
             Alloc
           </Table.Header>
-          <Table.Header width={104}>State</Table.Header>
+          <Table.Header width={150}>State</Table.Header>
         </Table.Row>
       </thead>
       <tbody>

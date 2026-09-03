@@ -66,3 +66,27 @@ export const frameworks: Framework[] = [
 export const frameworkById = new Map(frameworks.map((f) => [f.id, f]));
 
 export const defaultFramework: FrameworkId = "nist-800-53-r5";
+
+/* ---------------------------------------------------------- Edition changes */
+
+/**
+ * Control text that changed between editions. A derivation that cites the
+ * control goes suspect until someone re-reads the requirement against the new
+ * text; the DOORS rule, applied to the one link where the framework is the
+ * upstream.
+ */
+export type EditionChange = {
+  control: string;
+  edition: string;
+  on: string;
+  summary: string;
+};
+
+export const editionChanges: EditionChange[] = [
+  {
+    control: "SC-12",
+    edition: "Rev. 5.1.1",
+    on: "Aug 29, 2026",
+    summary: "The key-establishment parameter now names the cryptoperiod.",
+  },
+];

@@ -60,6 +60,7 @@ import { positionOf, useWorkVersion, workForScope } from "@/lib/control-work";
 import { workIndex } from "@/lib/control-board";
 
 import { NodePreviewSheet } from "./node-preview";
+import { suspectAllocationsUnder, useLinkCurrencyVersion } from "@/lib/link-currency";
 import {
   addAllocation,
   allocationsOn,
@@ -125,6 +126,7 @@ export function SystemTree({ programId }: { programId: string }) {
   useScopesVersion();
   useControlSetVersion();
   useRequirementsVersion();
+  useLinkCurrencyVersion();
   useWorkVersion();
 
   // Ids whose default fold state the reader has flipped.
@@ -433,15 +435,29 @@ function WorkBar({ work }: { work: WorkSummary }) {
 function ControlSetCell({ scope }: { scope: AssessmentScope }) {
   const open = openRevision(scope.id);
   const inForce = inForceRevision(scope.id);
+  const suspect = suspectAllocationsUnder([
+    scope.element,
+    ...descendantsOf(scope.element).map((n) => n.id),
+  ]);
+  const flag = suspect ? <Indicator tone="warning">{suspect} suspect</Indicator> : null;
   if (open) {
     return (
-      <Indicator tone={revisionTone[open.state]}>
-        v{open.number} {open.state.toLowerCase()}
-      </Indicator>
+      <Inline as="span" space="space.100" alignBlock="center">
+        <Indicator tone={revisionTone[open.state]}>
+          v{open.number} {open.state.toLowerCase()}
+        </Indicator>
+        {flag}
+      </Inline>
     );
   }
-  if (inForce) return <Indicator tone="success">v{inForce.number} in force</Indicator>;
-  return <Absent />;
+  if (inForce)
+    return (
+      <Inline as="span" space="space.100" alignBlock="center">
+        <Indicator tone="success">v{inForce.number} in force</Indicator>
+        {flag}
+      </Inline>
+    );
+  return flag ?? <Absent />;
 }
 
 /* --------------------------------------------------------- Add a node */

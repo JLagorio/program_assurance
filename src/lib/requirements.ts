@@ -1317,7 +1317,7 @@ export function qualityGates(input: Requirement): RequirementGate[] {
 
 /** What a requirement still needs, each with the one action that supplies it. The ReqSuite idea: the model lists the missing relations. */
 export type RequirementNeed = {
-  key: "allocate" | "claim" | "accept" | "criterion" | "quality" | "verify";
+  key: "allocate" | "claim" | "accept" | "criterion" | "quality" | "verify" | "review";
   label: string;
   reason: string;
 };
