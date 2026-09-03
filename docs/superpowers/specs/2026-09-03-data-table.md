@@ -93,10 +93,10 @@ Each row: the option on the hook, the TanStack feature under it, the part that d
 | Open and preview | `c.id("id", { onPreview })`, `onRowClick` | The row is a link (`TextLink` on the id) | `Table.Id` (exists) | Register |
 | Paginate | `pageSize`, `pagination`/`onPaginationChange`; `rowCount` when the server pages | `rowPaginationFeature`, `createPaginatedRowModel`, `manualPagination` | `Pagination` (exists) under the table | Pagination |
 | Scroll instead | `virtualize`, `height` | `@tanstack/react-virtual` on the `Table.Scroll` frame; rows are `dimension.row` tall so no measuring | `Table.Scroll` with a spacer row above and below | Virtualized |
-| Pin columns | `pin: "start" \| "end"` on a column; `pinnable` lets the reader pin from the column menu | `columnPinningFeature`; `column.getStart()` and `getAfter()` give the offsets | `Table.Header`/`Table.Cell` `pinned` with `insetInlineStart`/`End` from the offset; a shadow on the inner edge while the frame is scrolled (`data-scrolled-start`/`-end` on `Table.Scroll`) | Pinned columns |
+| Pin columns | `pin: "start" \| "end"` on a column is the author's default; the reader pins and unpins from the column menu and it is kept in their view | `columnPinningFeature`; `column.getStart()` and `getAfter()` give the offsets | `Table.Header`/`Table.Cell` `pinned` with `insetInlineStart`/`End` from the offset; a shadow on the inner edge while the frame is scrolled (`data-scrolled-start`/`-end` on `Table.Scroll`) | Pinned columns |
 | Resize columns | `resizable` | `columnSizingFeature` + `columnResizingFeature`, `columnResizeMode: "onEnd"` | A handle on the trailing edge of `Table.Header`, `min-width` from the kind, a double-click resets | Resizing |
 | Reorder columns | `reorderColumns` | `columnOrderingFeature`; `@dnd-kit/core` + `@dnd-kit/sortable` (horizontal) on the header row, `KeyboardSensor` for the keyboard, `restrictToHorizontalAxis` | A grip on `Table.Header` hover; the dragged header as an overlay; pinned columns stay in their band | Reordering columns |
-| Hide columns | `hideable` | `columnVisibilityFeature` | `DataTable.Columns`: a `DropdownMenu` with `Item isSelected` per column (audit decision: cut first, menu later) | Column choice |
+| Hide columns | `hideable` (default on; `hideable: false` on a column that must stay) | `columnVisibilityFeature` | `DataTable.Columns`: a `DropdownMenu` with `Item isSelected` per column, then Reset view. The audit's "cut first, menu later" resolves to both: the author cuts the columns nobody needs, the reader hides the rest | Column choice |
 | Column groups | `c.group("Confidentiality", [...])` | Header groups | Two header rows; the group heading spans and is centred | Column groups |
 | Nested rows | `tree: { getChildren, initialExpanded }` | `rowExpandingFeature`, `getSubRows`, `createExpandedRowModel`; `manualExpanding` for children loaded on open | `Table.Tree` (exists) in the first data column; `role="treegrid"`, `aria-level`, `aria-expanded`; arrow keys open, close, move | Tree |
 | Child tables | `detail: (row) => ReactNode` | `rowExpandingFeature` with `getRowCanExpand` | `Table.Detail`: the expanded row's content spanning every column; a chevron cell at the start; `aria-controls` from the chevron to the detail row; a `Table` or `DataTable` inside | Detail rows |
@@ -106,7 +106,7 @@ Each row: the option on the hook, the TanStack feature under it, the part that d
 | Reorder rows | `reorderRows`, `onReorder(from, to)` | `@dnd-kit/sortable` (vertical) on the body; sorting and grouping switch off while it is on | `Table.Handle`: a grip cell, first column after selection | Reordering rows |
 | Edit in place | `c.text("claim", { editable: { validate, save } })` | Nothing of TanStack's | `Editable` (exists) inside `Table.Cell`; Tab and Enter move down the column | Editing |
 | Server mode | `manual: { sorting, filtering, pagination }`, `rowCount` | `manual*` on every row model | Nothing changes in the frame | Server |
-| Density | `density: "default" \| "compact"` | Nothing | `dimension.row.default` (40) and `.compact` (36); the header stays 32 | Matrix |
+| Density | None on the table: a setting, beside the mode switch, read through `data-density` on the root | Nothing | `dimension.row.default` (40) and `.compact` (36); the header stays 32; `Table` reads the attribute in CSS, so a bare `Table` follows the setting too | Matrix |
 | States | `state: "ready" \| "loading" \| "empty" \| "error"`, `empty` and `error` slots | Nothing | Skeleton rows inside the frame; `Empty` inside the frame; `Alert` inside the frame; the header stays | States |
 | Export | `toRows(table)` | The visible cells of the current row model | A lib function; the RTM export (requirements spec) is its first use | — |
 
@@ -129,6 +129,18 @@ Written into `Table.mdx` under "Rules", and enforced where a rule can be.
 - **Loading** never removes the header or changes the height of what is already there.
 - **Lint.** `ledger/cell-plain` (exists) covers `DataTable` cells because they are `Table.Cell`. New: `ledger/no-hand-sort`, a `.sort(` in a file that renders `Table.Header sort` is a `DataTable` waiting to happen.
 
+## The reader's view
+
+Decided 2026-09-03 (Josef): every rendering of a table is that reader's own, so the layout persists in `localStorage`, per table, per browser; the reader can pin; density is a setting, not a prop.
+
+- **Two owners of state.** The URL owns the question: sort, filters, search, page, expanded rows, the peek. It is shareable and the back button works. `localStorage` owns the reader's layout: column order, widths, visibility and pinning. A shared link never carries one reader's layout, and a reload never loses it.
+- **`view` on the hook.** `useDataTable({ view: "risks", … })` names the table; the hook reads `ledger.table.risks.view` on mount, applies it over the author's defaults, and writes it on every change of the four slices. No `view`, nothing persists.
+- **Reconciling with the columns.** A stored column id the table no longer has is dropped; a column the store does not know takes its default place. The store is `{ v: 1, order, sizing, visibility, pinning }`; a bump of `v` discards older stores.
+- **Reset view** is the last item of `DataTable.Columns` and clears the store for that table.
+- **Hydration.** The app renders on the server, so the default layout is what the server sends and the stored view applies after mount, in one commit. Widths and order can shift once on first paint; the setting for density does not, because it rides the mode switch's before-paint script.
+- **Density is a setting.** It joins the mode switch: the same provider and store (`ledger.density`, `"default" | "compact"`), a `data-density` attribute set before paint, the control beside the mode switch. `Table` resolves `h-row` from the attribute, so every table in the app follows it and no table takes a `density` prop. The one exception is a table that is compact by design, such as PickerSheet's, which sets `data-density` on its own frame.
+- **Storage is a convenience.** Every read and write is wrapped; a private window or a cleared site renders the defaults.
+
 ## Files
 
 ```
@@ -145,6 +157,8 @@ packages/design-system/src/
     reorder.tsx                  the dnd-kit contexts for headers and rows
     virtual.tsx                  the virtualizer bound to Table.Scroll
     to-rows.ts                   export
+    view-store.ts                the reader's view in localStorage, reconciled with the columns
+  mode/                          + density: the same provider and before-paint script as the mode switch, `data-density` on the root
   stories/patterns/DataTable.stories.tsx   one story per feature row above, then Matrix
   stories/patterns/DataTable.mdx           the rule for which table; the option table
   stories/components/Table.mdx             + Rules, + Scroll, Detail, Handle
@@ -167,9 +181,9 @@ Then, as they come up: the coverage view (presets are the saved questions; the b
 Each step is one commit, Storybook first, app second, screenshots for Josef, `docs/next.md` ticked.
 
 0. **Spike**, half a day. Install v9, put the risks table through `createTableHook` and the existing `Table` parts. Confirm the typing holds with `cellComponents`, and that `Subscribe` keeps a 1,000-row selection cheap. Decision gate: v9 or v8.
-1. **Foundation.** `features.ts`, `useDataTable`, `defineColumns` with the seven kinds, `DataTable` with sorting, search, pagination, states, density, `Table.Scroll`. Risks index on it. `useSort`/`usePage` gone. Stories: Register, Sorting, Searching, Pagination, States, Matrix.
+1. **Foundation.** `features.ts`, `useDataTable`, `defineColumns` with the seven kinds, `DataTable` with sorting, search, pagination, states, `Table.Scroll`; density as a setting beside the mode switch. Risks index on it. `useSort`/`usePage` gone. Stories: Register, Sorting, Searching, Pagination, States, Matrix.
 2. **Choosing.** Selection, the bar, select-all-pages, row actions, column filters on facets, presets. PickerSheet on it. Stories: Selection, Row actions, Filtering, Presets.
-3. **Columns.** Pinning with offsets and the edge shadow, resizing, hiding, column groups, reordering by drag and keyboard. Stories: Pinned columns, Resizing, Column choice, Column groups, Reordering columns.
+3. **Columns.** Pinning with offsets and the edge shadow, resizing, hiding, column groups, reordering by drag and keyboard, and the reader's view in `localStorage` with Reset view. Stories: Pinned columns, Resizing, Column choice, Column groups, Reordering columns, Saved view.
 4. **Rows.** Tree mode with the treegrid keyboard, detail rows, groups on the grouped row model, pinned rows and totals, row reordering with the handle. System tree on it. Stories: Tree, Detail rows, Groups, Pinned rows, Totals, Reordering rows.
 5. **Scale.** Virtualization, server mode, the URL adapter, `toRows`. Stories: Virtualized, Server.
 6. **Editing.** `Editable` cells with the column keyboard model, the grid role when a table is editable. PickerSheet frame two on it. Story: Editing.
@@ -187,8 +201,8 @@ Steps 3, 4 and 5 are independent once 1 and 2 have landed, so two agents can tak
 7. Sorting is **one column** by default; shift-click for a second only when a table says `multiSort`.
 8. **Three surfaces migrate**, not seventy-six. The rest move when touched.
 
-## Open for Josef
+## Decided 2026-09-03
 
-- Where a reader's column choices, order and widths persist: per table id in `localStorage`, or nowhere until accounts exist.
-- Whether the reader can pin columns, or only the author.
-- The default density of a register: 40 today; Atlassian and Base Web both default to their taller row and offer compact.
+- A reader's column choices, order, widths and pins persist per table in `localStorage`; the URL keeps the question. Section "The reader's view".
+- The reader can pin; the author's `pin` is only the default.
+- Density is a setting beside the mode switch, not a prop; 40 stays the default and compact is the reader's choice.

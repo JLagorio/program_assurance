@@ -14,7 +14,7 @@ Updated 2026-09-03.
 
 ## Kit
 
-- [ ] **Data table.** `useDataTable`, `defineColumns` and `DataTable` on TanStack Table 9: sort, search, filters as chips, selection with a bar, pinned, resizable, reorderable and hideable columns, tree and detail rows, groups, totals, row reordering, virtual scroll, server mode. Spec and order: `docs/superpowers/specs/2026-09-03-data-table.md`, with eight calls for Josef to overturn and three open questions. Step 0 is a half-day spike.
+- [ ] **Data table.** `useDataTable`, `defineColumns` and `DataTable` on TanStack Table 9: sort, search, filters as chips, selection with a bar, pinned, resizable, reorderable and hideable columns, tree and detail rows, groups, totals, row reordering, virtual scroll, server mode. Spec and order: `docs/superpowers/specs/2026-09-03-data-table.md`, with eight calls for Josef to overturn. The reader's view persists in localStorage, density is a setting beside the mode switch (decided 2026-09-03). Step 0 is a half-day spike.
 - [ ] **Step 9 · Publishable build** with type declarations, when the second project appears.
 - [ ] **`docs/guides/component-library.md`** still describes `src/ds`. Rewrite onto the package or retire it in favour of the Storybook docs.
 
