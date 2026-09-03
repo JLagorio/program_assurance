@@ -1,4 +1,2 @@
-# Kit exports that do not have a story yet. Shrink this list; never grow it.
-IndexPage
-PreviewRail
-ShowPage
+# Package exports without a story, and families (matrix:<file>) without a Matrix story. Shrink this list; never grow it.
+

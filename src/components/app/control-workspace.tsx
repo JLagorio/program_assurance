@@ -76,7 +76,7 @@ function fillFor(n: TreeNode, leaf: boolean): { className: string; style: CSSPro
     return { className: "fill-current text-subtle", style: { fillOpacity: leaf ? 0.42 : 0.16 } };
   if (n.st === "ns")
     return {
-      className: "fill-legacy-danger",
+      className: "fill-chart-danger",
       style: { fillOpacity: leaf ? 0.85 : 0.12 + 0.3 * Math.min(1, n.frac * 2.4) },
     };
   return { className: "fill-[url(#hatch)]", style: { fillOpacity: leaf ? 1 : 0.6 } };
@@ -287,7 +287,7 @@ function vRadial(n: TreeNode, go: (id: string) => void): Shape {
     let r = R0;
     const segs: [string, number, CSSProperties][] = [
       ["fill-current text-subtle", k.agg.sat, { fillOpacity: 0.42 }],
-      ["fill-legacy-danger", k.agg.ns, {}],
+      ["fill-chart-danger", k.agg.ns, {}],
       ["fill-[url(#hatch)]", k.agg.nd, {}],
     ];
     for (const [cls, v, style] of segs) {
@@ -380,7 +380,7 @@ function vPolar(n: TreeNode, go: (id: string) => void): Shape {
       x: CX + Math.cos(a) * (R1 + 22),
       y: CY + Math.sin(a) * (R1 + 22),
       t: k.label,
-      className: k.agg.ns ? "fill-legacy-danger" : "fill-current text-default",
+      className: k.agg.ns ? "fill-chart-danger" : "fill-current text-default",
       size: 11,
       pick: () => go(k.id),
     });
@@ -388,7 +388,7 @@ function vPolar(n: TreeNode, go: (id: string) => void): Shape {
   if (pts.length > 2) {
     s.paths.unshift({
       d: `M ${pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" L ")} Z`,
-      className: "fill-legacy-danger stroke-current icon-danger",
+      className: "fill-chart-danger stroke-current icon-danger",
       style: { fillOpacity: 0.08, strokeOpacity: 0.45, strokeWidth: 1.5 },
     });
   }
@@ -598,7 +598,7 @@ function vWheel(n: TreeNode, go: (id: string) => void): Shape {
       x: CX + Math.cos(mid) * (R + 30),
       y: CY + Math.sin(mid) * (R + 30),
       t: k.label,
-      className: k.agg.ns ? "fill-legacy-danger" : "fill-current text-default",
+      className: k.agg.ns ? "fill-chart-danger" : "fill-current text-default",
       size: 11,
       pick: () => go(id),
     });
@@ -763,7 +763,7 @@ function vBlast(b: Blast | null): Shape {
   for (const [i, r] of [66, 106, R1, 216, R2].entries()) {
     s.paths.push({
       d: arc(r - 0.5, r + 0.5, -Math.PI / 2, TAU - Math.PI / 2 - 0.001),
-      className: "fill-legacy-danger",
+      className: "fill-chart-danger",
       style: { fillOpacity: 0.2 - i * 0.03 },
     });
   }
@@ -786,7 +786,7 @@ function vBlast(b: Blast | null): Shape {
       x,
       y,
       r: 5 + Math.min(9, g.rows.length * 0.3),
-      className: "fill-legacy-danger",
+      className: "fill-chart-danger",
       tip: `${g.name} · ${g.zone} · ${g.rows.length} affected requirements`,
     });
     const n = g.rows.length;
@@ -808,7 +808,7 @@ function vBlast(b: Blast | null): Shape {
         x: dx,
         y: dy,
         r: inv ? 3.2 : 2.6,
-        className: inv ? "fill-legacy-danger" : "fill-legacy-warning",
+        className: inv ? "fill-chart-danger" : "fill-chart-warning",
         tip: `${r.control} ${r.requirement} — ${r.statement} · ${r.currency} · ${r.determination}`,
       });
     });
@@ -881,10 +881,10 @@ function ClosurePipeline({
   });
   const yEnd = y - gap;
   const fanClass: Record<BeadTone, string> = {
-    sat: "fill-legacy-success stroke-current icon-success",
-    ns: "fill-legacy-danger stroke-current icon-danger",
+    sat: "fill-chart-success stroke-current icon-success",
+    ns: "fill-chart-danger stroke-current icon-danger",
     nd: "fill-current text-subtle stroke-current icon-subtle",
-    warn: "fill-legacy-warning stroke-current icon-warning",
+    warn: "fill-chart-warning stroke-current icon-warning",
     info: "fill-current stroke-current icon-brand",
     neu: "fill-current text-subtle stroke-current icon-subtle",
   };
@@ -964,7 +964,7 @@ function ClosurePipeline({
                     )}
                     style={
                       b.tone === "nd" && !on
-                        ? { ...hatch, color: "var(--color-muted-foreground, currentColor)" }
+                        ? { ...hatch, color: token("color.icon.subtle") }
                         : undefined
                     }
                   />
