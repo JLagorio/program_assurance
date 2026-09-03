@@ -11,8 +11,12 @@ Updated 2026-09-02.
 - [ ] **Where the data drives the UI** (`docs/superpowers/specs/2026-09-02-ui-patterns-audit.md`): the tree's ten columns (proposal: fold C/I/A into the Control set cell and Kind into the name hint, leaving seven); the categorized element's fourteen header facts against the rule of six (proposal: drop Scopes, Requirements and Controls reached); coverage's Method and Owner columns (proposal: drop them, they are on the requirement record).
 - [ ] **Chart's first screen.** Candidates: the program dashboard's coverage by family, the home page's framework coverage. Risk scoring stays without a sparkline or gauge on purpose.
 - [ ] **A non-modal Sheet**, only if the peek panel should stay open while the table behind it is clicked (audit item 7).
+- [ ] **Shell defaults.** The side nav at 228px (min 200, max half the viewport), the panel at 320px (min 240), the banner at 48px: sign-off values in `tokens/dimension.json`.
+- [ ] **The prototype's cutover to the navigation system.** `src/components/app/shell.tsx` onto `Shell.SideNav` and `Shell.TopNav` with the brand in `TopNav.Start` (`eslint --fix` does four of the six renames), the two `PreviewSplit` indexes onto `Shell.Panel`; then `legacy.tsx` and the deprecated layout tokens go and `ledger/no-deprecated-name` becomes an error for consumers. Plan in `docs/superpowers/specs/2026-09-02-navigation-system.md`.
 
 ## Kit
+
+- [ ] **Flyout lock.** A popover opened inside the side nav's flyout does not hold it open yet; Atlassian's does.
 
 ## Prototype
 
@@ -22,6 +26,7 @@ Updated 2026-09-02.
 
 ## Done
 
+- 2026-09-02 · **The navigation system.** `Shell` on Atlassian's grammar: Banner, TopNav (Start, Middle, End), SideNav (Header, Body, Footer, Section, Item, Expandable, ToggleButton, Splitter), Main, Panel (Splitter); AppLogo, AppSwitcher, Profile; `useSideNav`. Collapse, flyout, resize, overlay below 1024, Ctrl+[ opt-in, skip links, end items folding into More below 768. The `Banner` component. Layout tokens renamed (sidenav, topnav; banner and panel added; sidebar and topbar deprecated). `ledger/no-deprecated-name` names and fixes the old parts; the old frame still renders until the prototype's cutover. Spec: `docs/superpowers/specs/2026-09-02-navigation-system.md`.
 - 2026-09-02 · **Picker adoption.** `AllocateRequirementsSheet` (requirements onto an element: the tree kebab, the element preview, the element record) and `AllocateElementsSheet` (elements onto a requirement: the coverage view, the requirement record) in `src/components/app/allocate-picker.tsx`; "Does not apply, because" is the row action in frame two, so `ApplicabilityModal` and `AllocateModal` are gone. `TailorControlsSheet` replaces the tailoring pane's two Comboboxes and asks for the rationale before a decision lands. Every allocation made through a picker is reviewed against today's changes, so it is not born Suspect.
 - 2026-09-02 · **Glance** in the kit (Patterns/Pages): the hover rung's body, id and one status, title, meta, at most four facts. Element, requirement and control glances (`src/components/app/glances.tsx`) hang off every id and name on the spine surfaces; the program and risk peeks are on it. The element preview has the compact header (status, three facts) and a back chevron; the peek stack lives in `?peek=` on the program route, so the chevron and the browser's back agree.
 - 2026-09-02 · **Suspect links.** A derivation or allocation goes Suspect when its upstream changes (control text with the edition, the control leaving the scope's set, the requirement revised, a configuration change touching the element) and stays so until a named review; `src/lib/link-currency.ts`. The flag sits at the row with its Review action, the coverage view asks the Suspect question, the tree counts them on the scope row, the queue lists them as needs.

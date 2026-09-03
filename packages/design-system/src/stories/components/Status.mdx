@@ -6,13 +6,19 @@ import * as Stories from "./Status.stories";
 
 # Status surfaces
 
-Alert, Progress and Stat read the same tone table as Badge, so a tone means one thing everywhere.
+Alert, Banner, Progress and Stat read the same tone table as Badge, so a tone means one thing everywhere.
 
 ## Alert
 
 A tinted callout in a rail or above a table: a Dot, a title in the tone colour, an optional body. Danger announces itself (`role="alert"`); the others are polite.
 
 <Canvas of={Stories.Alerts} />
+
+## Banner
+
+A message about the whole site, in the shell's Banner area: the loss of data or a function, or something site-wide that changes what the reader can do. One at a time, never dismissible, gone when no longer true. It is one line and truncates rather than wraps; the `action` is one link or button drawn in the banner's own colour. Alert is inline in a rail or above a table; Banner is the screen's.
+
+<Canvas of={Stories.Banners} />
 
 ## Progress
 

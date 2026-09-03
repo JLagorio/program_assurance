@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Alert, Button, Gates, Progress, Stat, Tiles, tones } from "../../components";
+import { Alert, Banner, Button, Gates, Progress, Stat, Tiles, tones } from "../../components";
 import { Inline, Stack, Text, Box } from "../../primitives";
 import { Matrix, Specimens } from "../_lib/matrix";
 
@@ -248,6 +248,45 @@ export const GatesMatrix: Story = {
             />
           </Gates>
         </Box>
+      )}
+    />
+  ),
+};
+
+export const Banners: Story = {
+  render: () => (
+    <Stack space="space.100">
+      <Banner tone="warning" action={<a href="#renew">Ask for an extension</a>}>
+        The audit window closes in three days; evidence uploads lock after that.
+      </Banner>
+      <Banner tone="danger">
+        We have lost the connection to the evidence store. Uploads are not being saved.
+      </Banner>
+      <Banner tone="information" action={<button type="button">See what changed</button>}>
+        The control catalogue moved to revision 5.2 overnight.
+      </Banner>
+    </Stack>
+  ),
+};
+
+/** Every tone, alone, with an action, and truncated in a narrow screen. */
+export const BannerMatrix: Story = {
+  render: () => (
+    <Matrix
+      rows={["information", "warning", "danger"] as const}
+      cols={["message", "with an action", "narrow, truncated"] as const}
+      rowLabel="tone"
+      render={(tone, col) => (
+        <div style={{ width: col === "narrow, truncated" ? 320 : 480 }}>
+          <Banner
+            tone={tone}
+            action={col === "with an action" ? <a href="#action">Do the thing</a> : undefined}
+          >
+            {col === "narrow, truncated"
+              ? "A message long enough that it cannot fit on one line of a narrow screen and is cut"
+              : "A message about the whole site, one line."}
+          </Banner>
+        </div>
       )}
     />
   ),

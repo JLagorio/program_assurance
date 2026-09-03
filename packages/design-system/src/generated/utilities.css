@@ -548,8 +548,17 @@
   width: var(--ds-dimension-icon-medium);
   height: var(--ds-dimension-icon-medium);
 }
-@utility w-layout-sidebar {
-  width: var(--ds-dimension-layout-sidebar);
+@utility w-layout-sidenav {
+  width: var(--ds-dimension-layout-sidenav);
+}
+@utility h-layout-topnav {
+  height: var(--ds-dimension-layout-topnav);
+}
+@utility h-layout-banner {
+  height: var(--ds-dimension-layout-banner);
+}
+@utility w-layout-panel {
+  width: var(--ds-dimension-layout-panel);
 }
 @utility w-layout-list {
   width: var(--ds-dimension-layout-list);
@@ -559,6 +568,9 @@
 }
 @utility max-w-layout-measure {
   max-width: var(--ds-dimension-layout-measure);
+}
+@utility w-layout-sidebar {
+  width: var(--ds-dimension-layout-sidebar);
 }
 @utility h-layout-topbar {
   height: var(--ds-dimension-layout-topbar);

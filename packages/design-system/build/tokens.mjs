@@ -35,7 +35,11 @@ const publicPath = (token) => token.path.filter((seg) => seg !== "default");
 const dotName = (token) => publicPath(token).join(".");
 const cssVar = (token) => `--${PREFIX}-${publicPath(token).map(kebab).join("-")}`;
 const cssVarFromPath = (dotted) =>
-  `--${PREFIX}-${dotted.split(".").filter((s) => s !== "default").map(kebab).join("-")}`;
+  `--${PREFIX}-${dotted
+    .split(".")
+    .filter((s) => s !== "default")
+    .map(kebab)
+    .join("-")}`;
 
 const rest = (segs, from) => segs.slice(from).map(kebab).join("-");
 
@@ -44,42 +48,101 @@ function utilityFor(token) {
   const p = publicPath(token);
   const [a, b] = p;
   if (a === "color") {
-    if (["neutral", "darkNeutral", "blue", "green", "orange", "red", "teal", "purple"].includes(b)) return null; // palette: unreachable by design
-    if (b === "background") return { kind: "utility", cls: `bg-${rest(p, 2)}`, prop: "background-color" };
+    if (["neutral", "darkNeutral", "blue", "green", "orange", "red", "teal", "purple"].includes(b))
+      return null; // palette: unreachable by design
+    if (b === "background")
+      return { kind: "utility", cls: `bg-${rest(p, 2)}`, prop: "background-color" };
     if (b === "blanket") return { kind: "utility", cls: "bg-blanket", prop: "background-color" };
-    if (b === "skeleton") return { kind: "utility", cls: `bg-skeleton${p[2] ? "-" + rest(p, 2) : ""}`, prop: "background-color" };
-    if (b === "text") return { kind: "utility", cls: `text-${p.length > 2 ? rest(p, 2) : "default"}`, prop: "color" };
-    if (b === "icon") return { kind: "utility", cls: `icon-${p.length > 2 ? rest(p, 2) : "default"}`, prop: "color" };
-    if (b === "border") return { kind: "utility", cls: `border-${p.length > 2 ? rest(p, 2) : "default"}`, prop: "border-color" };
-    if (b === "chart") return { kind: "svg", cls: `fill-chart-${rest(p, 2)}`, strokeCls: `stroke-chart-${rest(p, 2)}`, bgCls: `bg-chart-${rest(p, 2)}` }; // an SVG series paints fill or stroke; a legend swatch paints background
+    if (b === "skeleton")
+      return {
+        kind: "utility",
+        cls: `bg-skeleton${p[2] ? "-" + rest(p, 2) : ""}`,
+        prop: "background-color",
+      };
+    if (b === "text")
+      return {
+        kind: "utility",
+        cls: `text-${p.length > 2 ? rest(p, 2) : "default"}`,
+        prop: "color",
+      };
+    if (b === "icon")
+      return {
+        kind: "utility",
+        cls: `icon-${p.length > 2 ? rest(p, 2) : "default"}`,
+        prop: "color",
+      };
+    if (b === "border")
+      return {
+        kind: "utility",
+        cls: `border-${p.length > 2 ? rest(p, 2) : "default"}`,
+        prop: "border-color",
+      };
+    if (b === "chart")
+      return {
+        kind: "svg",
+        cls: `fill-chart-${rest(p, 2)}`,
+        strokeCls: `stroke-chart-${rest(p, 2)}`,
+        bgCls: `bg-chart-${rest(p, 2)}`,
+      }; // an SVG series paints fill or stroke; a legend swatch paints background
   }
-  if (a === "elevation" && b === "surface") return { kind: "utility", cls: `bg-surface${p[2] ? "-" + rest(p, 2) : ""}`, prop: "background-color" };
-  if (a === "utility") return { kind: "utility", cls: "bg-surface-current", prop: "background-color" };
-  if (a === "elevation" && b === "shadow") return { kind: "theme", ns: "shadow", key: rest(p, 2), cls: `shadow-${rest(p, 2)}` };
+  if (a === "elevation" && b === "surface")
+    return {
+      kind: "utility",
+      cls: `bg-surface${p[2] ? "-" + rest(p, 2) : ""}`,
+      prop: "background-color",
+    };
+  if (a === "utility")
+    return { kind: "utility", cls: "bg-surface-current", prop: "background-color" };
+  if (a === "elevation" && b === "shadow")
+    return { kind: "theme", ns: "shadow", key: rest(p, 2), cls: `shadow-${rest(p, 2)}` };
   if (a === "opacity") return { kind: "utility", cls: `opacity-${rest(p, 1)}`, prop: "opacity" };
   if (a === "font") {
-    if (b === "weight") return { kind: "theme", ns: "font-weight", key: rest(p, 2), cls: `font-${rest(p, 2)}` };
+    if (b === "weight")
+      return { kind: "theme", ns: "font-weight", key: rest(p, 2), cls: `font-${rest(p, 2)}` };
     if (b === "family" || b === "letterSpacing") return null;
     return { kind: "typography", cls: `font-${rest(p, 1)}` };
   }
   if (a === "space") {
     if (b === "negative") return null;
-    return { kind: "theme", ns: "spacing", key: rest(p, 1), cls: `p-${rest(p, 1)} · gap-${rest(p, 1)} · m-${rest(p, 1)} · w-${rest(p, 1)} …` };
+    return {
+      kind: "theme",
+      ns: "spacing",
+      key: rest(p, 1),
+      cls: `p-${rest(p, 1)} · gap-${rest(p, 1)} · m-${rest(p, 1)} · w-${rest(p, 1)} …`,
+    };
   }
-  if (a === "radius") return { kind: "theme", ns: "radius", key: rest(p, 1), cls: `rounded-${rest(p, 1)}` };
-  if (a === "border" && b === "width") return { kind: "utility", cls: `border-w-${p.length > 2 ? rest(p, 2) : "default"}`, prop: "border-width" };
+  if (a === "radius")
+    return { kind: "theme", ns: "radius", key: rest(p, 1), cls: `rounded-${rest(p, 1)}` };
+  if (a === "border" && b === "width")
+    return {
+      kind: "utility",
+      cls: `border-w-${p.length > 2 ? rest(p, 2) : "default"}`,
+      prop: "border-width",
+    };
   if (a === "dimension") {
     if (b === "icon") return { kind: "size", cls: `size-icon-${rest(p, 2)}` };
-    if (b === "control") return { kind: "control", cls: `h-control-${rest(p, 2)}`, sizeCls: `size-control-${rest(p, 2)}` };
+    if (b === "control")
+      return {
+        kind: "control",
+        cls: `h-control-${rest(p, 2)}`,
+        sizeCls: `size-control-${rest(p, 2)}`,
+      };
     if (b === "layout") {
-      if (p[2] === "measure") return { kind: "utility", cls: "max-w-layout-measure", prop: "max-width" };
-      return { kind: "utility", cls: `${p[2] === "topbar" ? "h" : "w"}-layout-${rest(p, 2)}`, prop: p[2] === "topbar" ? "height" : "width" };
+      if (p[2] === "measure")
+        return { kind: "utility", cls: "max-w-layout-measure", prop: "max-width" };
+      return {
+        kind: "utility",
+        cls: `${/^(topbar|topnav|banner)$/.test(p[2]) ? "h" : "w"}-layout-${rest(p, 2)}`,
+        prop: /^(topbar|topnav|banner)$/.test(p[2]) ? "height" : "width",
+      };
     }
     return { kind: "utility", cls: `h-${b}${p[2] ? "-" + rest(p, 2) : ""}`, prop: "height" };
   }
   if (a === "motion") {
-    if (b === "duration") return { kind: "utility", cls: `duration-${rest(p, 2)}`, prop: "transition-duration" };
-    if (b === "easing") return { kind: "theme", ns: "ease", key: rest(p, 2), cls: `ease-${rest(p, 2)}` };
+    if (b === "duration")
+      return { kind: "utility", cls: `duration-${rest(p, 2)}`, prop: "transition-duration" };
+    if (b === "easing")
+      return { kind: "theme", ns: "ease", key: rest(p, 2), cls: `ease-${rest(p, 2)}` };
   }
   return null;
 }
@@ -96,7 +159,8 @@ function cssValue(original, resolved, type) {
 }
 
 function literal(v, type) {
-  if (type === "fontFamily" && Array.isArray(v)) return v.map((f) => (/^[a-z-]+$/.test(f) ? f : `"${f}"`)).join(", ");
+  if (type === "fontFamily" && Array.isArray(v))
+    return v.map((f) => (/^[a-z-]+$/.test(f) ? f : `"${f}"`)).join(", ");
   if (type === "cubicBezier" && Array.isArray(v)) return `cubic-bezier(${v.join(", ")})`;
   if (Array.isArray(v)) return v.join(", ");
   return String(v);
@@ -106,10 +170,16 @@ function literal(v, type) {
 function typographyCss(token) {
   const o = token.original.$value;
   const r = token.$value;
-  const fam = isRef(o.fontFamily) ? `var(${cssVarFromPath(refPath(o.fontFamily))})` : literal(r.fontFamily, "fontFamily");
-  const weight = isRef(o.fontWeight) ? `var(${cssVarFromPath(refPath(o.fontWeight))})` : r.fontWeight;
+  const fam = isRef(o.fontFamily)
+    ? `var(${cssVarFromPath(refPath(o.fontFamily))})`
+    : literal(r.fontFamily, "fontFamily");
+  const weight = isRef(o.fontWeight)
+    ? `var(${cssVarFromPath(refPath(o.fontWeight))})`
+    : r.fontWeight;
   const shorthand = `${weight} ${r.fontSize}/${r.lineHeight} ${fam}`;
-  const spacing = isRef(o.letterSpacing) ? `var(${cssVarFromPath(refPath(o.letterSpacing))})` : r.letterSpacing;
+  const spacing = isRef(o.letterSpacing)
+    ? `var(${cssVarFromPath(refPath(o.letterSpacing))})`
+    : r.letterSpacing;
   return { shorthand, spacing };
 }
 
@@ -137,14 +207,33 @@ const themeLines = [];
 const utilityBlocks = [];
 const docs = [];
 const names = {}; // dotName -> cssVar
-const groups = { bg: [], text: [], icon: [], border: [], "border-w": [], font: [], "font-weight": [], rounded: [], shadow: [], h: [], size: [], opacity: [], duration: [], ease: [] };
+const groups = {
+  bg: [],
+  text: [],
+  icon: [],
+  border: [],
+  "border-w": [],
+  font: [],
+  "font-weight": [],
+  rounded: [],
+  shadow: [],
+  h: [],
+  size: [],
+  opacity: [],
+  duration: [],
+  ease: [],
+};
 const allClasses = [];
 const classByToken = {};
 const spaceKeys = [];
 
 const groupOf = (token) => {
   const p = publicPath(token);
-  if (p[0] === "color" && ["neutral", "darkNeutral", "blue", "green", "orange", "red"].includes(p[1])) return "palette";
+  if (
+    p[0] === "color" &&
+    ["neutral", "darkNeutral", "blue", "green", "orange", "red"].includes(p[1])
+  )
+    return "palette";
   if (p[0] === "color") return p[1];
   if (p[0] === "elevation") return p[1];
   if (p[0] === "utility") return "surface";
@@ -185,7 +274,9 @@ for (const token of all) {
       if (u.ns === "font-weight") groups["font-weight"].push(u.key);
       if (u.ns === "ease") groups.ease.push(u.key);
     } else if (u.kind === "typography") {
-      utilityBlocks.push(`@utility ${u.cls} {\n  font: var(${v});\n  letter-spacing: var(${v}-letter-spacing);\n}`);
+      utilityBlocks.push(
+        `@utility ${u.cls} {\n  font: var(${v});\n  letter-spacing: var(${v}-letter-spacing);\n}`,
+      );
       groups.font.push(u.cls.slice(5));
     } else if (u.kind === "svg") {
       utilityBlocks.push(`@utility ${u.cls} {\n  fill: var(${v});\n}`);
@@ -231,8 +322,10 @@ for (const token of all) {
 
 /* ---------- emit ---------- */
 
-const header = (what) => `/* Generated by build/tokens.mjs — ${what}. Do not edit; edit tokens/*.json and rebuild. */\n`;
-const block = (sel, vars) => `${sel} {\n${vars.map(([k, val]) => `  ${k}: ${val};`).join("\n")}\n}\n`;
+const header = (what) =>
+  `/* Generated by build/tokens.mjs — ${what}. Do not edit; edit tokens/*.json and rebuild. */\n`;
+const block = (sel, vars) =>
+  `${sel} {\n${vars.map(([k, val]) => `  ${k}: ${val};`).join("\n")}\n}\n`;
 
 fs.mkdirSync(outDir, { recursive: true });
 
@@ -242,7 +335,10 @@ fs.writeFileSync(
     block(":root", lightVars) +
     "\n" +
     // an explicit light scope, so a nested light region inside a dark page (a mode-by-mode story) reads light
-    block('[data-color-mode="light"]', lightVars.filter(([k]) => darkVars.some(([dk]) => dk === k))) +
+    block(
+      '[data-color-mode="light"]',
+      lightVars.filter(([k]) => darkVars.some(([dk]) => dk === k)),
+    ) +
     "\n" +
     block('[data-color-mode="dark"]', darkVars) +
     "\n@media (prefers-color-scheme: dark) {\n" +
@@ -288,7 +384,14 @@ const composed = [
 }`,
 ];
 allClasses.push("outline-focused");
-fs.writeFileSync(path.join(outDir, "utilities.css"), header("one utility per token, on its own property") + utilityBlocks.join("\n") + "\n" + composed.join("\n") + "\n");
+fs.writeFileSync(
+  path.join(outDir, "utilities.css"),
+  header("one utility per token, on its own property") +
+    utilityBlocks.join("\n") +
+    "\n" +
+    composed.join("\n") +
+    "\n",
+);
 
 const tsHeader = "// Generated by build/tokens.mjs. Do not edit; edit tokens/*.json and rebuild.\n";
 fs.writeFileSync(
@@ -316,7 +419,8 @@ export const utilities = ${JSON.stringify(allClasses.sort(), null, 2)} as const;
 const groupEntries = Object.entries(groups)
   .filter(([, v]) => v.length)
   .map(([k, v]) => {
-    const id = { bg: "bg-color", text: "text-color", border: "border-color", font: "font-family" }[k] ?? k;
+    const id =
+      { bg: "bg-color", text: "text-color", border: "border-color", font: "font-family" }[k] ?? k;
     const prefix = k === "font-weight" ? "font" : k;
     return `    "${id}": [{ "${prefix}": ${JSON.stringify([...new Set(v)])} }],`;
   });
@@ -343,11 +447,23 @@ for (const token of all) {
   if (!dep) continue;
   const name = dotName(token);
   const replacement = typeof dep === "string" ? dep : null;
-  deprecated[name] = { replacement, class: classByToken[name] ?? null, replacementClass: replacement ? (classByToken[replacement] ?? null) : null };
+  deprecated[name] = {
+    replacement,
+    class: classByToken[name] ?? null,
+    replacementClass: replacement ? (classByToken[replacement] ?? null) : null,
+  };
 }
 fs.writeFileSync(
   path.join(outDir, "utilities.json"),
-  JSON.stringify({ classes: [...new Set(allClasses)].sort(), spaceKeys: spaceKeys.map(([, k]) => k), deprecated }, null, 2) + "\n",
+  JSON.stringify(
+    {
+      classes: [...new Set(allClasses)].sort(),
+      spaceKeys: spaceKeys.map(([, k]) => k),
+      deprecated,
+    },
+    null,
+    2,
+  ) + "\n",
 );
 
 fs.writeFileSync(
@@ -360,10 +476,22 @@ export type ClassToken = keyof typeof classByToken;
 `,
 );
 
-const spaceProps = { p: "p", px: "px", py: "py", pt: "pt", pb: "pb", ps: "ps", pe: "pe", gap: "gap", gapX: "gap-x", gapY: "gap-y" };
+const spaceProps = {
+  p: "p",
+  px: "px",
+  py: "py",
+  pt: "pt",
+  pb: "pb",
+  ps: "ps",
+  pe: "pe",
+  gap: "gap",
+  gapX: "gap-x",
+  gapY: "gap-y",
+};
 const bleedProps = { m: "-m", mx: "-mx", my: "-my", mt: "-mt", mb: "-mb", ms: "-ms", me: "-me" };
 spaceKeys.sort((a, b) => Number(a[1]) - Number(b[1]));
-const mapFor = (prefix) => Object.fromEntries(spaceKeys.map(([name, key]) => [name, `${prefix}-${key}`]));
+const mapFor = (prefix) =>
+  Object.fromEntries(spaceKeys.map(([name, key]) => [name, `${prefix}-${key}`]));
 fs.writeFileSync(
   path.join(outDir, "space.ts"),
   tsHeader +
@@ -373,21 +501,34 @@ export const spaceTokens = ${JSON.stringify(spaceKeys.map(([n]) => n))} as const
 export type SpaceToken = (typeof spaceTokens)[number];
 
 export const spaceClasses = {
-${Object.entries(spaceProps).map(([k, prefix]) => `  ${k}: ${JSON.stringify(mapFor(prefix))},`).join("\n")}
+${Object.entries(spaceProps)
+  .map(([k, prefix]) => `  ${k}: ${JSON.stringify(mapFor(prefix))},`)
+  .join("\n")}
 } as const;
 
 /** Negative margins for Bleed, keyed by the positive token the caller names. */
 export const bleedClasses = {
-${Object.entries(bleedProps).map(([k, prefix]) => `  ${k}: ${JSON.stringify(mapFor(prefix))},`).join("\n")}
+${Object.entries(bleedProps)
+  .map(([k, prefix]) => `  ${k}: ${JSON.stringify(mapFor(prefix))},`)
+  .join("\n")}
 } as const;
 `,
 );
 
 // Figma export: the merged DTCG source, untouched.
 const merged = {};
-const deep = (a, b) => { for (const [k, v] of Object.entries(b)) a[k] = v && typeof v === "object" && !Array.isArray(v) ? deep(a[k] ?? {}, v) : v; return a; };
-for (const f of fs.readdirSync(path.join(root, "tokens")).filter((f) => f.endsWith(".json")).sort())
+const deep = (a, b) => {
+  for (const [k, v] of Object.entries(b))
+    a[k] = v && typeof v === "object" && !Array.isArray(v) ? deep(a[k] ?? {}, v) : v;
+  return a;
+};
+for (const f of fs
+  .readdirSync(path.join(root, "tokens"))
+  .filter((f) => f.endsWith(".json"))
+  .sort())
   deep(merged, JSON.parse(fs.readFileSync(path.join(root, "tokens", f), "utf8")));
 fs.writeFileSync(path.join(outDir, "tokens.figma.json"), JSON.stringify(merged, null, 2) + "\n");
 
-console.log(`tokens: ${all.length} · dark values: ${darkVars.length} · utilities: ${allClasses.length} · theme keys: ${themeLines.length}`);
+console.log(
+  `tokens: ${all.length} · dark values: ${darkVars.length} · utilities: ${allClasses.length} · theme keys: ${themeLines.length}`,
+);

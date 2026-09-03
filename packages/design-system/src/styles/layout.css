@@ -6,14 +6,95 @@
 @utility grid-cols-list-detail {
   grid-template-columns: var(--ds-dimension-layout-list) minmax(0, 1fr);
 }
-/* A rail that stays put under the shell's top bar and scrolls inside itself. */
+/* A rail that stays put under the shell's header and scrolls inside itself. The shell sets
+   --shell-top (banner plus top nav); outside a shell it is the top nav's height. */
 @utility sticky-rail {
   position: sticky;
-  top: calc(var(--ds-dimension-layout-topbar) + var(--ds-space-300));
+  top: calc(var(--shell-top, var(--ds-dimension-layout-topnav)) + var(--ds-space-300));
   align-self: flex-start;
-  max-height: calc(100vh - var(--ds-dimension-layout-topbar) - var(--ds-space-600));
+  max-height: calc(
+    100vh - var(--shell-top, var(--ds-dimension-layout-topnav)) - var(--ds-space-600)
+  );
 }
-/* A work surface that fills the viewport under the shell's top bar and a page header. */
+/* A work surface that fills the viewport under the shell's header and a page header. */
 @utility min-h-work {
-  min-height: calc(100vh - var(--ds-dimension-layout-topbar) - var(--ds-space-1000) - var(--ds-space-600));
+  min-height: calc(
+    100vh - var(--shell-top, var(--ds-dimension-layout-topnav)) - var(--ds-space-1000) -
+      var(--ds-space-600)
+  );
+}
+
+/* The navigation system. The root is a grid of named areas in a fixed order: banner, top nav,
+   side nav, main, panel. The banner and the top nav stick to the top; the side nav and the panel
+   stick under them and scroll inside themselves; main uses the body scroll. An area that is not
+   rendered takes no column. The root sets the widths as variables from its state. */
+@utility shell-root {
+  --shell-top: calc(var(--shell-banner, 0px) + var(--ds-dimension-layout-topnav));
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-areas:
+    "banner banner banner"
+    "topnav topnav topnav"
+    "sidenav main panel";
+  min-height: 100dvh;
+}
+@utility shell-banner {
+  grid-area: banner;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  height: var(--ds-dimension-layout-banner);
+}
+@utility shell-topnav {
+  grid-area: topnav;
+  position: sticky;
+  top: var(--shell-banner, 0px);
+  z-index: 30;
+  height: var(--ds-dimension-layout-topnav);
+}
+/* The start slot takes the side nav's width while the side nav is expanded, so the logo reads as
+   the head of that column and the side nav looks full height. */
+@utility shell-topnav-start {
+  width: var(--shell-sidenav-width);
+}
+@utility shell-sidenav {
+  grid-area: sidenav;
+  position: sticky;
+  top: var(--shell-top);
+  height: calc(100dvh - var(--shell-top));
+  width: var(--shell-sidenav-width);
+}
+@utility shell-main {
+  grid-area: main;
+  min-width: 0;
+}
+@utility shell-panel {
+  grid-area: panel;
+  position: sticky;
+  top: var(--shell-top);
+  height: calc(100dvh - var(--shell-top));
+  width: var(--shell-panel-width);
+}
+/* Below the large breakpoint, and for the flyout, the side nav and the panel overlay the page. They
+   keep their grid area, and they carry no other position class: a stray `relative` outranks the
+   `fixed` here, puts the overlay back in flow, and pushes the header down by its height. The
+   splitter positions against the fixed or sticky area itself. */
+@utility shell-sidenav-overlay {
+  grid-area: sidenav;
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: 50;
+  height: 100dvh;
+  width: min(var(--shell-sidenav-width), 90vw);
+}
+@utility shell-panel-overlay {
+  grid-area: panel;
+  position: fixed;
+  top: var(--shell-top);
+  bottom: 0;
+  inset-inline-end: 0;
+  z-index: 40;
+  width: min(var(--shell-panel-width), 90vw);
 }

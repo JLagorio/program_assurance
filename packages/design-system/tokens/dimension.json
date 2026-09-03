@@ -48,9 +48,21 @@
       }
     },
     "layout": {
-      "sidebar": {
+      "sidenav": {
         "$value": "228px",
-        "$description": "The shell sidebar."
+        "$description": "The side nav, expanded. The reader may resize it."
+      },
+      "topnav": {
+        "$value": "48px",
+        "$description": "The top nav."
+      },
+      "banner": {
+        "$value": "48px",
+        "$description": "The banner area above the top nav, when one is shown."
+      },
+      "panel": {
+        "$value": "320px",
+        "$description": "The panel beside the main area, before the reader resizes it."
       },
       "list": {
         "$value": "340px",
@@ -64,9 +76,23 @@
         "$value": "720px",
         "$description": "The widest a run of prose grows: statements, notes, descriptions."
       },
+      "sidebar": {
+        "$value": "228px",
+        "$description": "Deprecated: dimension.layout.sidenav.",
+        "$extensions": {
+          "ledger": {
+            "deprecated": "dimension.layout.sidenav"
+          }
+        }
+      },
       "topbar": {
         "$value": "48px",
-        "$description": "The shell top bar."
+        "$description": "Deprecated: dimension.layout.topnav.",
+        "$extensions": {
+          "ledger": {
+            "deprecated": "dimension.layout.topnav"
+          }
+        }
       }
     }
   }

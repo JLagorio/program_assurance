@@ -6,25 +6,128 @@ import * as Stories from "./Shell.stories";
 
 # Shell
 
-The application frame: a sidebar of objects and queues, a top bar, the page. The package owns the frame and the look of a nav item; the product owns the nav data and the router. A `Shell.NavItem` is `asChild` around the router's Link, and `isActive` is the product's call from the current route.
-
-The sidebar is `dimension.layout.sidebar` wide on the sunken surface and hides below the large breakpoint; the top bar is `dimension.layout.topbar` tall and sticky. The sidebar never holds phases: a phase is a state of a programme, reached by opening that programme.
+The navigation system: how a reader gets around a product. `Shell` is the root, and its areas are
+its immediate children in a fixed order, which is also the keyboard, landmark and skip-link order:
+**Banner, TopNav, SideNav, Main, Panel**. The package owns the areas and how they behave; the
+product owns what goes in them: the nav data, the router, the search, the actions, whatever fills
+the panel. Every product on the system shares one brand and one behaviour, and brings its own name
+and mark.
 
 <Canvas of={Stories.Frame} />
 
+## Areas
+
+| Area            | Does                                                                                                                                                                                                                                |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Shell.Banner`  | Above everything, `dimension.layout.banner` tall, holding a Banner. Render it while the message is true; it pushes the rest down and is gone when it unmounts.                                                                      |
+| `Shell.TopNav`  | `dimension.layout.topnav` tall, the full width, sticky. Three slots: `Start`, `Middle`, `End`.                                                                                                                                      |
+| `Shell.SideNav` | `dimension.layout.sidenav` wide on the sunken surface. Three slots: `Header` and `Footer` stay put, `Body` scrolls and pushes the footer down. Collapses, resizes, flies out, overlays.                                             |
+| `Shell.Main`    | The page. Fills what the others leave, body scroll.                                                                                                                                                                                 |
+| `Shell.Panel`   | Beside the page at the end, `dimension.layout.panel` wide. Rendered when there is something to show and unmounted when there is not. What is in it is the product's: a PreviewRail, a thread, a form. It is an area, not a feature. |
+
+Each area is a landmark with a skip link. `label` names the side nav, the panel and the top nav's
+end list: say what is in it, "Preview" or "Comments", never "Panel".
+
+## Top nav slots and items
+
+| Slot            | Holds                                                                                                                                                                                                                                                                              |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TopNav.Start`  | `toggle` takes the `SideNav.ToggleButton`; children are the `AppSwitcher` and the `AppLogo`. While the side nav is expanded the slot takes the side nav's width and surface, so the logo heads that column and the side nav reads full height; the toggle moves to the slot's end. |
+| `TopNav.Middle` | The search first, then the create action. Centred while the side nav is collapsed, start-aligned while it is expanded.                                                                                                                                                             |
+| `TopNav.End`    | A list of icon buttons, right-aligned: mode, help, notifications, settings. Below the medium breakpoint they fold into one More button.                                                                                                                                            |
+
+`Shell.AppLogo` is the product's mark and name with a `secondaryName` under it, hidden with the
+name below the large breakpoint. As a link home it is `asChild` around the router's Link with no
+children of its own; with `onClick` it is a switcher and grows a chevron. `Shell.Mark` is the
+default mark. `Shell.AppSwitcher` opens the switcher between products. `Shell.Profile` is the
+person, for the side nav's footer.
+
+## Side nav slots and items
+
+| Part                   | Does                                                                                                                                                                   |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SideNav.Section`      | A group of items under an eyebrow `heading`.                                                                                                                           |
+| `SideNav.Item`         | One destination: `asChild` around the router's Link, or `href`, or a button when it only has `onClick`. `icon`, `badge` on the right, `isActive` for the current page. |
+| `SideNav.Expandable`   | A row that opens a level of items under it, indented one step per level. Uncontrolled with `defaultOpen`, or `open` and `onOpenChange`.                                |
+| `SideNav.ToggleButton` | Shows and hides the side nav, in `TopNav.Start`'s `toggle` slot. Its tooltip shows the shortcut when one is on.                                                        |
+| `SideNav.Splitter`     | Makes the side nav resizable from its end edge. A double-click collapses it.                                                                                           |
+
+## Behaviour
+
+- **Collapse and expand.** The toggle button, `useSideNav()` from product code, or Ctrl+[ when
+  `sideNavShortcut` is on at the root (off by default, ignored while a dialog is open).
+  `defaultSideNavCollapsed` on the root sets the first render; `onCollapse` and `onExpand` on the
+  side nav keep a stored preference current.
+- **Flyout.** Hovering the toggle while the side nav is collapsed flies it out over the page; moving
+  away closes it. A popover opened inside the flyout does not hold it open yet.
+- **Resize.** The splitter drags between 200px and half the viewport; the arrow keys move it 16px;
+  `onResizeEnd` reports the final width for `defaultWidth` on the next load. The width survives a
+  collapse.
+- **Overlay.** Below the large breakpoint the side nav is collapsed and opens over the page behind
+  a scrim, at most 90% of the viewport wide; Escape or the scrim closes it. The panel overlays the
+  page too, without a scrim.
+- **Resizable panel.** `Panel.Splitter` drags from the panel's start edge, between 240px and half
+  the viewport.
+
+| Breakpoint            | Side nav          | Panel             | Top nav                                  |
+| --------------------- | ----------------- | ----------------- | ---------------------------------------- |
+| below `md` (768px)    | overlay           | overlay           | logo mark only, end items fold into More |
+| `md` to `lg` (1024px) | overlay           | overlay           | logo mark only                           |
+| `lg` and up           | inline, resizable | inline, resizable | logo lockup, all items                   |
+
+<Canvas of={Stories.WithBannerAndPanel} />
+
+<Canvas of={Stories.Collapsed} />
+
+## Wiring it
+
 ```tsx
-<Shell
-  sidebar={
-    <Shell.Sidebar brand={<Shell.Brand mark={<Shell.Mark />} name="Equinox" detail="Northwind Corp" />}>
-      <Shell.NavGroup label="Work">
-        <Shell.NavItem asChild icon={ShieldCheck} isActive={pathname.startsWith("/scope")}>
+<Shell sideNavShortcut defaultSideNavCollapsed={stored.collapsed}>
+  <Shell.TopNav>
+    <Shell.TopNav.Start toggle={<Shell.SideNav.ToggleButton />}>
+      <Shell.AppLogo asChild name="Equinox" secondaryName="Northwind Corp">
+        <Link to="/" aria-label="Equinox home" />
+      </Shell.AppLogo>
+    </Shell.TopNav.Start>
+    <Shell.TopNav.Middle>{search}</Shell.TopNav.Middle>
+    <Shell.TopNav.End>
+      <ModeSwitch />
+      <IconButton label="Help" variant="subtle">…</IconButton>
+    </Shell.TopNav.End>
+  </Shell.TopNav>
+  <Shell.SideNav defaultWidth={stored.width} onCollapse={remember} onExpand={remember}>
+    <Shell.SideNav.Body>
+      <Shell.SideNav.Section heading="Work">
+        <Shell.SideNav.Item asChild icon={ShieldCheck} isActive={pathname.startsWith("/scope")}>
           <Link to="/scope">My queue</Link>
-        </Shell.NavItem>
-      </Shell.NavGroup>
-    </Shell.Sidebar>
-  }
-  topBar={<Shell.TopBar actions={…}>{search}</Shell.TopBar>}
->
-  <Outlet />
+        </Shell.SideNav.Item>
+      </Shell.SideNav.Section>
+    </Shell.SideNav.Body>
+    <Shell.SideNav.Footer>
+      <Shell.Profile avatar={<Avatar name="Sarah Chen" size="small" />} name="Sarah Chen" role="Compliance lead" />
+    </Shell.SideNav.Footer>
+    <Shell.SideNav.Splitter label="Resize side navigation" onResizeEnd={({ finalWidth }) => remember(finalWidth)} />
+  </Shell.SideNav>
+  <Shell.Main>
+    <Outlet />
+  </Shell.Main>
+  {preview ? (
+    <Shell.Panel label="Preview">
+      <Shell.Panel.Splitter label="Resize preview" />
+      <PreviewRail … />
+    </Shell.Panel>
+  ) : null}
 </Shell>
 ```
+
+The sidebar never holds phases: a phase is a state of a programme, reached by opening that
+programme. The side nav holds objects and queues.
+
+## The old frame
+
+`Shell` with `sidebar` and `topBar` props, and `Shell.Sidebar`, `Shell.TopBar`, `Shell.Brand`,
+`Shell.NavGroup`, `Shell.NavItem` and `Shell.User`, are the frame before the navigation system.
+They still render, unchanged, so a consumer moves in a commit of its own; `ledger/no-deprecated-name`
+names the replacement for each and fixes the one-to-one renames.
+
+<Canvas of={Stories.ShellMatrix} />

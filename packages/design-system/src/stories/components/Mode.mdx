@@ -12,11 +12,11 @@ The colour mode is an attribute on the root: `data-color-mode="light"` or `"dark
 
 ## Three parts
 
-| Part | Does |
-| --- | --- |
-| `modeScript` | A string for the document head. It applies the stored choice before the first paint so nothing flashes. `modeScriptFor(key)` for a custom storage key. |
+| Part           | Does                                                                                                                                                                                                                        |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modeScript`   | A string for the document head. It applies the stored choice before the first paint so nothing flashes. `modeScriptFor(key)` for a custom storage key.                                                                      |
 | `ModeProvider` | Owns the choice. On mount it reads storage and applies it (a no-op after the script); every change is stored and applied at once. `useMode()` returns `{ mode, setMode, resolved }`, where `resolved` is what is on screen. |
-| `ModeSwitch` | The three-state control: light, dark, system. Icons only in chrome, `showLabels` in a settings form. `value` and `onChange` override the provider. |
+| `ModeSwitch`   | The three-state control: light, dark, system. Icons only in chrome, `showLabels` in a settings form. `value` and `onChange` override the provider.                                                                          |
 
 ## Wiring it
 
@@ -24,7 +24,12 @@ Plain HTML: put the script in the head, above the stylesheet.
 
 ```html
 <script>
-  (function(){try{var m=localStorage.getItem("ledger.color-mode");if(m==="light"||m==="dark")document.documentElement.dataset.colorMode=m;}catch(e){}})();
+  (function () {
+    try {
+      var m = localStorage.getItem("ledger.color-mode");
+      if (m === "light" || m === "dark") document.documentElement.dataset.colorMode = m;
+    } catch (e) {}
+  })();
 </script>
 ```
 
@@ -36,8 +41,16 @@ import { modeScript, ModeProvider, ModeSwitch } from "@ledger/design-system";
 head: () => ({ scripts: [{ children: modeScript }] });
 // …
 <ModeProvider>
-  <Shell topBar={<Shell.TopBar actions={<ModeSwitch />} />}>…</Shell>
-</ModeProvider>
+  <Shell>
+    <Shell.TopNav>
+      …
+      <Shell.TopNav.End>
+        <ModeSwitch />
+      </Shell.TopNav.End>
+    </Shell.TopNav>
+    …
+  </Shell>
+</ModeProvider>;
 ```
 
 Do not also pin `data-color-mode` on the root in markup: the pin wins over the script and the switch cannot move it.

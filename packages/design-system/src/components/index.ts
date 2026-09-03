@@ -1,4 +1,5 @@
 export { Alert } from "./alert";
+export { Banner, type BannerProps, type BannerTone } from "./banner";
 export { Avatar, Person } from "./avatar";
 export { Badge, Count, Dot, Indicator, toneClasses, tones, type BadgeProps, type CountProps, type IndicatorProps, type Tone } from "./badge";
 export { Breadcrumb, type BreadcrumbItemProps } from "./breadcrumb";

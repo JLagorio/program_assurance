@@ -19,7 +19,7 @@ the layers below it, by relative path, so the dependency graph stays visible.
 | 2   | **Components** | `src/components` | One job each, on Radix where there is behaviour: Button, Badge, Table, Tabs, the controls, the overlays, the pickers, Chart.                         |
 | 3   | **Patterns**   | `src/patterns`   | Several components with a contract and no domain words: PageHeader, RecordHeader, Card, PreviewRail, PreviewSheet, PickerSheet, the page archetypes. |
 | 4   | **Shapes**     | `src/shapes`     | A whole screen region and the job it does: ActionBar, Block, Inspector, WorkPane.                                                                    |
-| 5   | **Shell**      | `src/shell`      | The frame around a screen: sidebar, brand, nav, user, top bar. It knows nothing about routes.                                                        |
+| 5   | **Shell**      | `src/shell`      | The navigation system: banner, top nav, side nav, main, panel, and the items that go in them. It knows nothing about routes.                         |
 | 6   | **Mode**       | `src/mode`       | The colour mode: provider, switch, storage, the before-paint script.                                                                                 |
 
 Domain files (`src/components/app/*.tsx`) and routes assemble these. They may own a tone map for
@@ -74,20 +74,21 @@ child (`asChild`), Item and RecordHeader take a link element as a prop.
 The package ships an ESLint plugin with two presets. The root config applies `recommended` to
 product code and keeps three assembly rules of its own.
 
-| Rule                            | Reports                                                                 | Instead                                   |
-| ------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------- |
-| `ledger/no-arbitrary-value`     | `text-[13px]`, `w-[240px]`                                              | A token utility or a primitive prop.      |
-| `ledger/no-non-token-class`     | A class that is neither a token utility nor a documented structural one | A token utility.                          |
-| `ledger/no-margin`              | `mt-200`, `-mx-100`                                                     | Stack or Inline space, or Bleed.          |
-| `ledger/no-static-design-value` | `rounded`, `opacity-50`, `duration-200`, `bg-white`                     | The named token.                          |
-| `ledger/no-dark-variant`        | `dark:`                                                                 | Nothing; every token flips by itself.     |
-| `ledger/no-deprecated-token`    | A deprecated token's utility                                            | Its replacement, applied by `--fix`.      |
-| `ledger/prefer-text-link`       | A Link or anchor carrying `text-brand` or `hover:underline`             | TextLink around the link element.         |
-| `ledger/no-colgroup`            | `<colgroup>`                                                            | `width` on each Table.Header.             |
-| `ledger/use-primitives`         | A `div` or `span` carrying layout classes (warning)                     | Box, Stack, Inline, Flex or Grid.         |
-| `kit/cell-plain`                | A Table.Cell carrying a neutral colour, weight or type token            | Nothing; only a status colour may differ. |
-| `kit/id-not-blue`               | An Id with `text-brand` outside a link or button                        | Wrap it in a link, or drop the class.     |
-| `kit/no-kit-shadow`             | A local component named like a kit part                                 | Import the kit part.                      |
+| Rule                            | Reports                                                                 | Instead                                               |
+| ------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------- |
+| `ledger/no-arbitrary-value`     | `text-[13px]`, `w-[240px]`                                              | A token utility or a primitive prop.                  |
+| `ledger/no-non-token-class`     | A class that is neither a token utility nor a documented structural one | A token utility.                                      |
+| `ledger/no-margin`              | `mt-200`, `-mx-100`                                                     | Stack or Inline space, or Bleed.                      |
+| `ledger/no-static-design-value` | `rounded`, `opacity-50`, `duration-200`, `bg-white`                     | The named token.                                      |
+| `ledger/no-dark-variant`        | `dark:`                                                                 | Nothing; every token flips by itself.                 |
+| `ledger/no-deprecated-token`    | A deprecated token's utility                                            | Its replacement, applied by `--fix`.                  |
+| `ledger/no-deprecated-name`     | A part's old name (`Shell.Sidebar`, `Shell.NavItem`)                    | Its replacement; `--fix` does the one-to-one renames. |
+| `ledger/prefer-text-link`       | A Link or anchor carrying `text-brand` or `hover:underline`             | TextLink around the link element.                     |
+| `ledger/no-colgroup`            | `<colgroup>`                                                            | `width` on each Table.Header.                         |
+| `ledger/use-primitives`         | A `div` or `span` carrying layout classes (warning)                     | Box, Stack, Inline, Flex or Grid.                     |
+| `kit/cell-plain`                | A Table.Cell carrying a neutral colour, weight or type token            | Nothing; only a status colour may differ.             |
+| `kit/id-not-blue`               | An Id with `text-brand` outside a link or button                        | Wrap it in a link, or drop the class.                 |
+| `kit/no-kit-shadow`             | A local component named like a kit part                                 | Import the kit part.                                  |
 
 ## Rules that stay in the head
 
@@ -98,6 +99,8 @@ product code and keeps three assembly rules of its own.
   the actions that make sense without leaving); the footer link is the record.
 - Rail beside an index table that leaves room; sheet over a full-width table and wherever the
   preview carries actions. Never both on one page.
+- The shell's Panel is an area, not a feature: the product renders it when there is something
+  beside the page and unmounts it when there is not. A preview is a pattern that may go in it.
 - A screen is shaped by the reader's question. When a column, fact or block exists because the
   store has the field, it goes.
 - A real pattern the kit lacks is flagged in writing with a recommendation (kit or bespoke); the
@@ -128,4 +131,6 @@ imports any of these directly.
 - `docs/superpowers/specs/2026-09-02-ui-patterns-audit.md`: the audit of the spine surfaces, the
   decisions, and the patterns flagged after it.
 - `docs/superpowers/specs/2026-09-02-picker-sheet.md`: choosing many from hundreds.
+- `docs/superpowers/specs/2026-09-02-navigation-system.md`: the shell on Atlassian's grammar, what was
+  left out, and the prototype's cutover plan.
 - `docs/next.md`: the living list of what is next and what is waiting on a decision.

@@ -3528,18 +3528,60 @@
     "utility": "size-icon-medium"
   },
   {
-    "name": "dimension.layout.sidebar",
-    "cssVar": "--ds-dimension-layout-sidebar",
+    "name": "dimension.layout.sidenav",
+    "cssVar": "--ds-dimension-layout-sidenav",
     "type": "dimension",
     "group": "dimension",
-    "description": "The shell sidebar.",
+    "description": "The side nav, expanded. The reader may resize it.",
     "light": "228px",
     "dark": null,
     "lightResolved": "228px",
     "darkResolved": null,
     "introduced": null,
     "deprecated": null,
-    "utility": "w-layout-sidebar"
+    "utility": "w-layout-sidenav"
+  },
+  {
+    "name": "dimension.layout.topnav",
+    "cssVar": "--ds-dimension-layout-topnav",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "The top nav.",
+    "light": "48px",
+    "dark": null,
+    "lightResolved": "48px",
+    "darkResolved": null,
+    "introduced": null,
+    "deprecated": null,
+    "utility": "h-layout-topnav"
+  },
+  {
+    "name": "dimension.layout.banner",
+    "cssVar": "--ds-dimension-layout-banner",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "The banner area above the top nav, when one is shown.",
+    "light": "48px",
+    "dark": null,
+    "lightResolved": "48px",
+    "darkResolved": null,
+    "introduced": null,
+    "deprecated": null,
+    "utility": "h-layout-banner"
+  },
+  {
+    "name": "dimension.layout.panel",
+    "cssVar": "--ds-dimension-layout-panel",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "The panel beside the main area, before the reader resizes it.",
+    "light": "320px",
+    "dark": null,
+    "lightResolved": "320px",
+    "darkResolved": null,
+    "introduced": null,
+    "deprecated": null,
+    "utility": "w-layout-panel"
   },
   {
     "name": "dimension.layout.list",
@@ -3584,17 +3626,31 @@
     "utility": "max-w-layout-measure"
   },
   {
+    "name": "dimension.layout.sidebar",
+    "cssVar": "--ds-dimension-layout-sidebar",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "Deprecated: dimension.layout.sidenav.",
+    "light": "228px",
+    "dark": null,
+    "lightResolved": "228px",
+    "darkResolved": null,
+    "introduced": null,
+    "deprecated": "dimension.layout.sidenav",
+    "utility": "w-layout-sidebar"
+  },
+  {
     "name": "dimension.layout.topbar",
     "cssVar": "--ds-dimension-layout-topbar",
     "type": "dimension",
     "group": "dimension",
-    "description": "The shell top bar.",
+    "description": "Deprecated: dimension.layout.topnav.",
     "light": "48px",
     "dark": null,
     "lightResolved": "48px",
     "darkResolved": null,
     "introduced": null,
-    "deprecated": null,
+    "deprecated": "dimension.layout.topnav",
     "utility": "h-layout-topbar"
   },
   {

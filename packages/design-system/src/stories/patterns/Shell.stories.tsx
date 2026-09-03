@@ -2,21 +2,39 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   Archive,
   Bell,
+  Boxes,
   Bug,
   CircleHelp,
   ClipboardList,
   Command as CommandIcon,
   FileCheck2,
+  FlaskConical,
   Gauge,
+  Library,
+  Plus,
   Search,
   Settings,
+  ShieldAlert,
   ShieldCheck,
+  X,
 } from "lucide-react";
+import { useState } from "react";
 
-import { Avatar, Badge, IconButton, Input, InputGroup, Tooltip, Count } from "../../components";
+import {
+  Avatar,
+  Badge,
+  Banner,
+  Button,
+  Count,
+  IconButton,
+  Input,
+  InputGroup,
+  Tooltip,
+} from "../../components";
+import { ModeSwitch } from "../../mode";
 import { PageHeader } from "../../patterns";
-import { Shell } from "../../shell";
-import { Text, Stack, Box, Inline } from "../../primitives";
+import { Box, Inline, Stack, Text } from "../../primitives";
+import { Shell, useSideNav } from "../../shell";
 import { Specimens } from "../_lib/matrix";
 
 const meta = {
@@ -26,75 +44,122 @@ const meta = {
 export default meta;
 type Story = StoryObj;
 
-export const Frame: Story = {
-  render: () => (
-    <Shell
-      sidebar={
-        <Shell.Sidebar
-          brand={
-            <Shell.Brand
-              mark={<Shell.Mark />}
-              name="Equinox"
-              detail="Northwind Corp"
-              onClick={() => undefined}
-            />
-          }
-          footer={
-            <Shell.User
-              avatar={<Avatar name="Sarah Chen" size="small" />}
-              name="Sarah Chen"
-              role="Compliance lead"
-              onClick={() => undefined}
-            />
-          }
-        >
-          <Shell.NavGroup label="Work">
-            <Shell.NavItem asChild icon={ShieldCheck} badge="1">
-              <a href="#queue">My queue</a>
-            </Shell.NavItem>
-            <Shell.NavItem asChild icon={ClipboardList} isActive>
-              <a href="#programs">Programs</a>
-            </Shell.NavItem>
-            <Shell.NavItem asChild icon={Gauge}>
-              <a href="#portfolio">Portfolio</a>
-            </Shell.NavItem>
-          </Shell.NavGroup>
-          <Shell.NavGroup label="Risk">
-            <Shell.NavItem asChild icon={Bug} badge="7">
-              <a href="#findings">Findings and assets</a>
-            </Shell.NavItem>
-            <Shell.NavItem asChild icon={FileCheck2}>
-              <a href="#controls">Control catalog</a>
-            </Shell.NavItem>
-            <Shell.NavItem asChild icon={Archive}>
-              <a href="#evidence">Evidence</a>
-            </Shell.NavItem>
-          </Shell.NavGroup>
-        </Shell.Sidebar>
-      }
-      topBar={
-        <Shell.TopBar
-          actions={
-            <>
-              <Badge tone="warning" className="hidden sm:inline-flex">
-                Audit window open
-              </Badge>
-              {(
-                [
-                  [CircleHelp, "Help"],
-                  [Bell, "Notifications"],
-                  [Settings, "Settings"],
-                ] as const
-              ).map(([Icon, label]) => (
-                <Tooltip key={label} content={label}>
-                  <IconButton label={label} variant="subtle">
-                    <Icon className="size-icon-medium" />
-                  </IconButton>
-                </Tooltip>
-              ))}
-            </>
-          }
-        >
+const programs = Array.from({ length: 28 }, (_, i) => ({
+  id: `PRG-${String(i + 1).padStart(3, "0")}`,
+  title: ["Ground segment refresh", "Payload integration", "Fleet telemetry", "Range safety"][
+    i % 4
+  ],
+  phase: ["Assess", "Authorise", "Monitor", "Prepare"][i % 4],
+}));
+
+/** The hook from product code: the same toggle the top nav's button has. */
+function SideNavControls() {
+  const nav = useSideNav();
+  return (
+    <Button onClick={nav.toggle}>
+      {nav.isExpanded ? "Hide the side nav" : "Show the side nav"}
+    </Button>
+  );
+}
+
+function Nav() {
+  return (
+    <>
+      <Shell.SideNav.Section heading="Work">
+        <Shell.SideNav.Item asChild icon={ShieldCheck} badge="1">
+          <a href="#queue">My queue</a>
+        </Shell.SideNav.Item>
+        <Shell.SideNav.Item asChild icon={ClipboardList} isActive>
+          <a href="#programs">Programs</a>
+        </Shell.SideNav.Item>
+        <Shell.SideNav.Item asChild icon={FlaskConical}>
+          <a href="#campaigns">Test campaigns</a>
+        </Shell.SideNav.Item>
+        <Shell.SideNav.Item asChild icon={Gauge}>
+          <a href="#portfolio">Portfolio</a>
+        </Shell.SideNav.Item>
+      </Shell.SideNav.Section>
+      <Shell.SideNav.Section heading="Risk">
+        <Shell.SideNav.Expandable icon={Bug} label="Findings and assets" badge="7" defaultOpen>
+          <Shell.SideNav.Item asChild>
+            <a href="#findings">Findings</a>
+          </Shell.SideNav.Item>
+          <Shell.SideNav.Item asChild>
+            <a href="#assets">Assets</a>
+          </Shell.SideNav.Item>
+        </Shell.SideNav.Expandable>
+        <Shell.SideNav.Item asChild icon={ShieldAlert} badge="4">
+          <a href="#register">POA&M and risk</a>
+        </Shell.SideNav.Item>
+        <Shell.SideNav.Item asChild icon={Archive}>
+          <a href="#packages">Packages</a>
+        </Shell.SideNav.Item>
+      </Shell.SideNav.Section>
+      <Shell.SideNav.Section heading="Libraries">
+        <Shell.SideNav.Item asChild icon={FileCheck2}>
+          <a href="#controls">Control catalog</a>
+        </Shell.SideNav.Item>
+        <Shell.SideNav.Item asChild icon={Boxes}>
+          <a href="#stigs">STIG and SRG library</a>
+        </Shell.SideNav.Item>
+        <Shell.SideNav.Item asChild icon={Library}>
+          <a href="#providers">Providers</a>
+        </Shell.SideNav.Item>
+      </Shell.SideNav.Section>
+    </>
+  );
+}
+
+function EndItems() {
+  return (
+    <>
+      <ModeSwitch />
+      {(
+        [
+          [CircleHelp, "Help"],
+          [Bell, "Notifications"],
+          [Settings, "Settings"],
+        ] as const
+      ).map(([Icon, label]) => (
+        <Tooltip key={label} content={label}>
+          <IconButton label={label} variant="subtle">
+            <Icon className="size-icon-medium" />
+          </IconButton>
+        </Tooltip>
+      ))}
+    </>
+  );
+}
+
+/** The whole system on one product. Banner and panel open and close from the page. */
+function Demo({
+  banner = false,
+  panel = false,
+  collapsed = false,
+}: {
+  banner?: boolean;
+  panel?: boolean;
+  collapsed?: boolean;
+}) {
+  const [showBanner, setShowBanner] = useState(banner);
+  const [showPanel, setShowPanel] = useState(panel);
+  return (
+    <Shell defaultSideNavCollapsed={collapsed} sideNavShortcut>
+      {showBanner ? (
+        <Shell.Banner>
+          <Banner tone="warning" action={<a href="#renew">Ask for an extension</a>}>
+            The audit window closes in three days; evidence uploads lock after that.
+          </Banner>
+        </Shell.Banner>
+      ) : null}
+      <Shell.TopNav>
+        <Shell.TopNav.Start toggle={<Shell.SideNav.ToggleButton />}>
+          <Shell.AppSwitcher onClick={() => undefined} />
+          <Shell.AppLogo asChild name="Equinox" secondaryName="Northwind Corp">
+            <a href="#home" aria-label="Equinox home" />
+          </Shell.AppLogo>
+        </Shell.TopNav.Start>
+        <Shell.TopNav.Middle>
           <InputGroup
             leading={<Search />}
             trailing={
@@ -102,7 +167,7 @@ export const Frame: Story = {
                 <CommandIcon className="size-100" />K
               </span>
             }
-            width={420}
+            width={480}
           >
             <Input
               type="search"
@@ -111,77 +176,202 @@ export const Frame: Story = {
               className="h-control-small"
             />
           </InputGroup>
-        </Shell.TopBar>
-      }
-    >
-      <PageHeader
-        eyebrow="Work"
-        title="Programs"
-        description="Every programme in flight, with its phase and its next gate."
-      />
-      <Text color="color.text.subtle" className="pt-300">
-        The page.
-      </Text>
+          <Button variant="primary">
+            <Plus className="size-icon-small" />
+            Create
+          </Button>
+        </Shell.TopNav.Middle>
+        <Shell.TopNav.End>
+          <EndItems />
+        </Shell.TopNav.End>
+      </Shell.TopNav>
+      <Shell.SideNav>
+        <Shell.SideNav.Body>
+          <Nav />
+        </Shell.SideNav.Body>
+        <Shell.SideNav.Footer>
+          <Shell.Profile
+            avatar={<Avatar name="Sarah Chen" size="small" />}
+            name="Sarah Chen"
+            role="Compliance lead"
+            onClick={() => undefined}
+          />
+        </Shell.SideNav.Footer>
+        <Shell.SideNav.Splitter label="Resize side navigation" />
+      </Shell.SideNav>
+      <Shell.Main>
+        <PageHeader
+          eyebrow="Work"
+          title="Programs"
+          description="Every programme in flight, with its phase and its next gate."
+          actions={
+            <>
+              <Button onClick={() => setShowBanner((v) => !v)}>
+                {showBanner ? "Drop the banner" : "Raise a banner"}
+              </Button>
+              <Button onClick={() => setShowPanel((v) => !v)}>
+                {showPanel ? "Close the panel" : "Open the panel"}
+              </Button>
+              <SideNavControls />
+            </>
+          }
+        />
+        <Stack space="space.100" className="pt-300">
+          {programs.map((p) => (
+            <Inline
+              key={p.id}
+              space="space.200"
+              alignBlock="center"
+              className="border-b border-default py-100"
+            >
+              <Text size="small" color="color.text.subtle" className="tabular-nums">
+                {p.id}
+              </Text>
+              <Text>{p.title}</Text>
+              <Badge tone="neutral" size="xsmall">
+                {p.phase}
+              </Badge>
+            </Inline>
+          ))}
+        </Stack>
+      </Shell.Main>
+      {showPanel ? (
+        <Shell.Panel label="Preview">
+          <Shell.Panel.Splitter label="Resize preview" />
+          <Inline
+            space="space.100"
+            alignBlock="center"
+            spread="space-between"
+            className="border-b border-default px-200 py-100"
+          >
+            <Text weight="medium">PRG-014 · Payload integration</Text>
+            <IconButton label="Close preview" variant="subtle" onClick={() => setShowPanel(false)}>
+              <X className="size-icon-medium" />
+            </IconButton>
+          </Inline>
+          <Box padding="space.200">
+            <Stack space="space.150">
+              <Text color="color.text.subtle">
+                Whatever the product puts here: a PreviewRail, a thread, a form. The area is the
+                shell's; the preview is not.
+              </Text>
+              <Text>
+                Phase: Authorise. Owner: Sarah Chen. Next gate: SCA sign-off, 12 September.
+              </Text>
+            </Stack>
+          </Box>
+        </Shell.Panel>
+      ) : null}
     </Shell>
-  ),
-};
+  );
+}
 
-/** Every state of a nav item, a group, the brand, the user, and a top bar with actions. */
+export const Frame: Story = { render: () => <Demo /> };
+
+/** A banner above the top nav and a panel beside the page. Both push the layout; neither covers it. */
+export const WithBannerAndPanel: Story = { render: () => <Demo banner panel /> };
+
+/** Collapsed on first render. Hover the toggle for the flyout; Ctrl+[ toggles. */
+export const Collapsed: Story = { render: () => <Demo collapsed /> };
+
+/** Every part on its own: the items and their states, the levels, the logo's forms, the buttons, the end list. */
 export const ShellMatrix: Story = {
+  parameters: { layout: "padded" },
   render: () => (
-    <Stack space="space.300">
-      <Box
-        className="w-layout-sidebar rounded-medium border border-default"
-        backgroundColor="elevation.surface"
-      >
-        <Shell.Sidebar
-          brand={<Shell.Brand mark={<Shell.Mark />} name="Equinox" detail="Northwind Corp" />}
-          footer={
-            <Shell.User
-              avatar={<Avatar name="Sarah Chen" />}
+    <Stack space="space.400">
+      <Specimens title="Side nav items and levels">
+        <Box
+          className="w-layout-sidenav rounded-medium border border-default p-150"
+          backgroundColor="elevation.surface.sunken"
+        >
+          <Stack space="space.200">
+            <Shell.SideNav.Section heading="States">
+              <Shell.SideNav.Item icon={ClipboardList} href="#plain">
+                Plain
+              </Shell.SideNav.Item>
+              <Shell.SideNav.Item icon={Gauge} href="#active" isActive>
+                Active
+              </Shell.SideNav.Item>
+              <Shell.SideNav.Item icon={ShieldCheck} href="#count" badge={<Count value={7} />}>
+                With a count
+              </Shell.SideNav.Item>
+              <Shell.SideNav.Item
+                icon={Bell}
+                href="#badge"
+                badge={
+                  <Badge tone="danger" size="xsmall">
+                    New
+                  </Badge>
+                }
+              >
+                With a badge
+              </Shell.SideNav.Item>
+              <Shell.SideNav.Item href="#noicon">No icon</Shell.SideNav.Item>
+              <Shell.SideNav.Item asChild icon={ClipboardList}>
+                <a href="#link">A link child</a>
+              </Shell.SideNav.Item>
+              <Shell.SideNav.Item icon={Plus} onClick={() => undefined}>
+                A button
+              </Shell.SideNav.Item>
+            </Shell.SideNav.Section>
+            <Shell.SideNav.Section heading="Levels">
+              <Shell.SideNav.Expandable
+                icon={Bug}
+                label="Findings and assets"
+                badge="12"
+                defaultOpen
+              >
+                <Shell.SideNav.Item href="#open" isActive>
+                  Findings
+                </Shell.SideNav.Item>
+                <Shell.SideNav.Expandable label="Assets" defaultOpen>
+                  <Shell.SideNav.Item href="#servers">Servers</Shell.SideNav.Item>
+                  <Shell.SideNav.Item href="#endpoints">Endpoints</Shell.SideNav.Item>
+                </Shell.SideNav.Expandable>
+              </Shell.SideNav.Expandable>
+              <Shell.SideNav.Expandable icon={Boxes} label="Libraries">
+                <Shell.SideNav.Item href="#hidden">Hidden until opened</Shell.SideNav.Item>
+              </Shell.SideNav.Expandable>
+            </Shell.SideNav.Section>
+          </Stack>
+        </Box>
+      </Specimens>
+      <Specimens title="App logo: plain, with a secondary name, as a link, as a switcher, with a mark of its own">
+        <Inline space="space.500" alignBlock="center">
+          <Shell.AppLogo name="Equinox" />
+          <Shell.AppLogo name="Equinox" secondaryName="Northwind Corp" />
+          <Shell.AppLogo asChild name="Equinox" secondaryName="Northwind Corp">
+            <a href="#home" aria-label="Equinox home" />
+          </Shell.AppLogo>
+          <Shell.AppLogo name="Equinox" secondaryName="Northwind Corp" onClick={() => undefined} />
+          <Shell.AppLogo
+            name="Meridian"
+            secondaryName="Northwind Corp"
+            mark={<Avatar name="Meridian" size="small" />}
+          />
+        </Inline>
+      </Specimens>
+      <Specimens title="Toggle button, app switcher, profile">
+        <Inline space="space.400" alignBlock="center">
+          <Shell.SideNav.ToggleButton />
+          <Shell.AppSwitcher />
+          <Box className="w-layout-sidenav">
+            <Shell.Profile
+              avatar={<Avatar name="Sarah Chen" size="small" />}
               name="Sarah Chen"
               role="Compliance lead"
+              onClick={() => undefined}
             />
-          }
-        >
-          <Shell.NavGroup label="States">
-            <Shell.NavItem icon={ClipboardList}>Plain</Shell.NavItem>
-            <Shell.NavItem icon={Gauge} isActive>
-              Active
-            </Shell.NavItem>
-            <Shell.NavItem icon={ShieldCheck} badge={<Count value={7} />}>
-              With a count
-            </Shell.NavItem>
-            <Shell.NavItem
-              icon={Bell}
-              badge={
-                <Badge tone="danger" size="xsmall">
-                  New
-                </Badge>
-              }
-            >
-              With a badge
-            </Shell.NavItem>
-            <Shell.NavItem>No icon</Shell.NavItem>
-            <Shell.NavItem asChild icon={ClipboardList}>
-              <a href="#link">A link child</a>
-            </Shell.NavItem>
-          </Shell.NavGroup>
-        </Shell.Sidebar>
-      </Box>
-      <Box className="rounded-medium border border-default" backgroundColor="elevation.surface">
-        <Shell.TopBar
-          actions={
-            <Inline space="space.100" alignBlock="center">
-              <Badge tone="warning">Audit window open</Badge>
-            </Inline>
-          }
-        >
-          <Text size="small" color="color.text.subtle">
-            Search sits here.
-          </Text>
-        </Shell.TopBar>
-      </Box>
+          </Box>
+        </Inline>
+      </Specimens>
+      <Specimens title="Top nav end items, a list that folds into More below the medium breakpoint">
+        <Box className="rounded-medium border border-default" backgroundColor="elevation.surface">
+          <Shell.TopNav.End>
+            <EndItems />
+          </Shell.TopNav.End>
+        </Box>
+      </Specimens>
     </Stack>
   ),
 };
