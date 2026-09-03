@@ -6,11 +6,15 @@ import {
   Avatar,
   Badge,
   Button,
+  Fact,
   FilterChip,
+  Id,
   KeyValue,
   Tabs,
   Breadcrumb,
   Person,
+  Table,
+  TextLink,
 } from "../../components";
 import {
   Card,
@@ -19,13 +23,14 @@ import {
   PageHeader,
   PageSkeleton,
   PreviewRail,
+  PreviewSheet,
   RecordHeader,
   Related,
   Section,
   ShowPage,
 } from "../../patterns";
 import { Stack, Text, Box, Inline } from "../../primitives";
-import { Specimens, bothModes } from "../_lib/matrix";
+import { Specimens } from "../_lib/matrix";
 
 const meta = {
   title: "Patterns/Pages",
@@ -155,7 +160,11 @@ export const Preview: Story = {
         id="CTRL-0450"
         title="Privileged access review"
         onClose={() => undefined}
-        openTo={<Button variant="link">Open control</Button>}
+        openTo={
+          <TextLink size="small">
+            <a href="#open">Open control</a>
+          </TextLink>
+        }
       >
         <dl>
           <KeyValue label="Owner">
@@ -172,9 +181,113 @@ export const Preview: Story = {
 
 export const Loading: Story = { render: () => <PageSkeleton rows={5} /> };
 
+function PreviewSheetStates() {
+  const [open, setOpen] = useState<"plain" | "full" | null>(null);
+  return (
+    <Stack space="space.200">
+      <Specimens title="PreviewSheet">
+        <Button variant="secondary" onClick={() => setOpen("plain")}>
+          Facts only
+        </Button>
+        <Button variant="secondary" onClick={() => setOpen("full")}>
+          With links and actions
+        </Button>
+      </Specimens>
+      <PreviewSheet
+        open={open !== null}
+        onClose={() => setOpen(null)}
+        id="CMP-0113"
+        title="Telemetry gateway"
+        subtitle="Component · Ground segment / Mission control"
+        openTo={<a href="#record" />}
+        links={
+          open === "full" ? (
+            <TextLink>
+              <a href="#controls">Control set and revisions</a>
+            </TextLink>
+          ) : null
+        }
+        actions={
+          open === "full" ? (
+            <>
+              <Button variant="secondary">Propose change</Button>
+              <Button variant="primary">Allocate</Button>
+            </>
+          ) : null
+        }
+      >
+        <Stack space="space.300">
+          <Section title="Element">
+            <Fact.Group>
+              <Fact label="Id">
+                <Id>CMP-0113</Id>
+              </Fact>
+              <Fact label="Class">Boundary</Fact>
+              <Fact label="Zone">Enclave</Fact>
+              <Fact label="Criticality">High</Fact>
+            </Fact.Group>
+          </Section>
+          <Section title="Requirements">
+            <Table>
+              <thead>
+                <tr>
+                  <Table.Header width={110}>Requirement</Table.Header>
+                  <Table.Header>Shall statement</Table.Header>
+                  <Table.Header width={96}>State</Table.Header>
+                </tr>
+              </thead>
+              <tbody>
+                <Table.Row>
+                  <Table.Cell>
+                    <TextLink>
+                      <a href="#req">
+                        <Id>REQ-0118</Id>
+                      </a>
+                    </TextLink>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">
+                    The gateway shall encrypt telemetry in transit.
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Badge size="xsmall" tone="success">
+                      Verified
+                    </Badge>
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.Cell>
+                    <TextLink>
+                      <a href="#req">
+                        <Id>REQ-0121</Id>
+                      </a>
+                    </TextLink>
+                  </Table.Cell>
+                  <Table.Cell className="truncate">
+                    The gateway shall log every command it forwards.
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Badge size="xsmall" tone="warning">
+                      Allocated
+                    </Badge>
+                  </Table.Cell>
+                </Table.Row>
+              </tbody>
+            </Table>
+          </Section>
+        </Stack>
+      </PreviewSheet>
+    </Stack>
+  );
+}
+/** Facts only, and with a second link and actions. Open one. */
+export const PreviewSheetStory: Story = {
+  name: "Preview sheet",
+  render: () => <PreviewSheetStates />,
+};
+export const PreviewSheetMatrix: Story = { render: () => <PreviewSheetStates /> };
+
 /** Plain, with a header, with a description and an action. */
 export const CardMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.200" className="w-layout-list">
       <Card>
@@ -212,7 +325,6 @@ export const CardMatrix: Story = {
 
 /** Title only, with a description, with an action. */
 export const EmptyMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300">
       <Empty title="No findings" />
@@ -228,7 +340,6 @@ export const EmptyMatrix: Story = {
 
 /** Title alone, with an eyebrow and description, with actions. */
 export const PageHeaderMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.400">
       <PageHeader title="Programs" />
@@ -253,7 +364,6 @@ export const PageHeaderMatrix: Story = {
 
 /** Three rows and the default eight. */
 export const PageSkeletonMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.400">
       <PageSkeleton rows={3} />
@@ -264,7 +374,6 @@ export const PageSkeletonMatrix: Story = {
 
 /** With a title and an open-record link, and with the id alone. */
 export const PreviewRailMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Inline space="space.300" alignBlock="start" shouldWrap>
       <Box className="w-layout-rail">
@@ -273,9 +382,9 @@ export const PreviewRailMatrix: Story = {
           title="Router management plane accepts unencrypted telnet"
           onClose={() => {}}
           openTo={
-            <a href="#open" className="font-body-small text-brand hover:underline">
-              Open
-            </a>
+            <TextLink size="small">
+              <a href="#open">Open</a>
+            </TextLink>
           }
         >
           <Stack space="space.100">
@@ -295,12 +404,29 @@ export const PreviewRailMatrix: Story = {
   ),
 };
 
-/** Id and title; with a back chevron, meta and actions; with a breadcrumb and a row below. */
+/** Id and title; with a back chevron, meta and actions; with facts; with a breadcrumb and a row below. */
 export const RecordHeaderMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.400">
       <RecordHeader id="PRG-1041" title="Atlas payments platform" />
+      <RecordHeader
+        id="REQ-0118"
+        title="The gateway shall encrypt telemetry in transit"
+        facts={
+          <>
+            <Fact label="Owner">Dana Whitfield</Fact>
+            <Fact label="Method">Test</Fact>
+            <Fact label="State">
+              <Badge tone="success">Verified</Badge>
+            </Fact>
+            <Fact label="Allocated to">
+              <TextLink>
+                <a href="#cmp">Telemetry gateway</a>
+              </TextLink>
+            </Fact>
+          </>
+        }
+      />
       <RecordHeader
         back={<a href="#back" />}
         id="PRG-1041"
@@ -345,7 +471,6 @@ export const RecordHeaderMatrix: Story = {
 
 /** Rows with every slot, an action, and the empty case. */
 export const RelatedMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300" className="w-layout-rail">
       <Related
@@ -381,7 +506,6 @@ export const RelatedMatrix: Story = {
 
 /** Title; with a description; with an action. */
 export const SectionMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.400" className="max-w-layout-measure">
       <Section title="Control coverage">
@@ -400,9 +524,9 @@ export const SectionMatrix: Story = {
       <Section
         title="Control coverage"
         action={
-          <a href="#all" className="font-body-small text-brand hover:underline">
-            Full timeline
-          </a>
+          <TextLink size="small">
+            <a href="#all">Full timeline</a>
+          </TextLink>
         }
       >
         <Text size="small" color="color.text.subtle">

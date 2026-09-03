@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Chart, Stat, Tiles, type ChartSeries } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
-import { Specimens, bothModes } from "../_lib/matrix";
+import { Specimens } from "../_lib/matrix";
 
 const meta = {
   title: "Components/Chart",
@@ -139,7 +139,6 @@ export const SparklineStory: Story = {
 
 /** Every chart kind, in both modes: bars, stacked bars, horizontal bars, lines, areas, a donut, a sparkline, and the categorical set. */
 export const ChartMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Bar · one series, brand">

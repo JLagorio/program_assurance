@@ -1,11 +1,10 @@
-import type { Decorator } from "@storybook/react-vite";
 import type { ReactNode } from "react";
 
 import { Box, Inline, Stack, Text } from "../../primitives";
 
 /**
  * The matrix is the contract: every variant down the side, every state or size across the top,
- * one cell per pairing. A family's Matrix story is what Josef signs off, in both modes.
+ * one cell per pairing. A family's Matrix story is what Josef signs off; the toolbar switches the mode.
  */
 export function Matrix<R extends string, C extends string>({
   rows,
@@ -66,28 +65,3 @@ export function Specimens({ title, children }: { title: string; children: ReactN
     </Stack>
   );
 }
-
-/**
- * Renders the story twice, light beside dark, whatever the toolbar says. Each half is its own
- * mode scope (tokens.css defines both), so the two share nothing but the story.
- */
-export const bothModes: Decorator = (Story) => (
-  <div className="grid gap-200 lg:grid-cols-2">
-    {(["light", "dark"] as const).map((mode) => (
-      <div key={mode} data-color-mode={mode} className="min-w-0">
-        <Box
-          backgroundColor="elevation.surface"
-          padding="space.200"
-          className="rounded-large border border-default"
-        >
-          <Stack space="space.200">
-            <Text size="xsmall" color="color.text.subtlest">
-              {mode}
-            </Text>
-            <Story />
-          </Stack>
-        </Box>
-      </div>
-    ))}
-  </div>
-);

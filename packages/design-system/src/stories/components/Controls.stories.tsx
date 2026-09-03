@@ -12,7 +12,7 @@ import {
   Textarea,
 } from "../../components";
 import { Inline, Stack } from "../../primitives";
-import { Matrix, Specimens, bothModes } from "../_lib/matrix";
+import { Matrix, Specimens } from "../_lib/matrix";
 
 const meta = {
   title: "Components/Controls",
@@ -118,7 +118,6 @@ const stateProps = (s: TextState) => ({
 
 /** Every text control by every state; every choice control off, on and disabled; Field with a hint, an error and a requirement. */
 export const ControlsMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300">
       <Matrix

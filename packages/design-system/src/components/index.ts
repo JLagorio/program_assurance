@@ -37,6 +37,7 @@ export { Spinner } from "./spinner";
 export { Stat, Tiles } from "./stat";
 export { Stepper, type StepState, type StepperItemProps } from "./stepper";
 export { Table, type ThProps } from "./table";
+export { TextLink, type TextLinkProps } from "./text-link";
 export { Tabs, type TabProps, type TabsProps } from "./tabs";
 export { Timeline, type TimelineItemProps } from "./timeline";
 export { Toaster, toast } from "./toaster";

@@ -4,7 +4,6 @@ import { useState } from "react";
 
 import { Button, Command, Kbd, Badge } from "../../components";
 import { Inline, Text, Stack } from "../../primitives";
-import { bothModes } from "../_lib/matrix";
 
 const meta = {
   title: "Components/Command",
@@ -106,7 +105,6 @@ export const AsDialog: Story = { render: () => <DialogDemo /> };
 
 /** Every state an item can be in, inline: plain, with a trailing hint, disabled, in a group, after a separator, and the empty and footer rows. */
 export const CommandMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.200">
       <Command label="Matrix" className="rounded-large border border-default">

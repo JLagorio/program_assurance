@@ -13,15 +13,16 @@ import {
   HoverCard,
   IconButton,
   Input,
+  Kbd,
   KeyValue,
   Popover,
   Sheet,
   Textarea,
+  TextLink,
   Tooltip,
-  Kbd,
 } from "../../components";
 import { Inline, Stack, Text, Box, Grid } from "../../primitives";
-import { Matrix, Specimens, bothModes } from "../_lib/matrix";
+import { Matrix, Specimens } from "../_lib/matrix";
 
 const meta = {
   title: "Components/Overlays",
@@ -316,18 +317,18 @@ export const HoverCardMatrix: Story = {
             </Stack>
           }
         >
-          <a href="#rsk" className="text-brand hover:underline">
-            Hover me
-          </a>
+          <TextLink>
+            <a href="#rsk">Hover me</a>
+          </TextLink>
         </HoverCard>
         <HoverCard
           content={<Text size="small">Wider card on the right.</Text>}
           side="right"
           width={320}
         >
-          <a href="#rsk2" className="text-brand hover:underline">
-            Right side
-          </a>
+          <TextLink>
+            <a href="#rsk2">Right side</a>
+          </TextLink>
         </HoverCard>
       </Inline>
       <Box style={{ height: 140 }}>
@@ -342,9 +343,9 @@ export const HoverCardMatrix: Story = {
           }
           defaultOpen
         >
-          <a href="#rsk3" className="text-brand hover:underline">
-            Held open
-          </a>
+          <TextLink>
+            <a href="#rsk3">Held open</a>
+          </TextLink>
         </HoverCard>
       </Box>
     </Stack>

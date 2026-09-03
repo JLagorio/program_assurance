@@ -2,7 +2,13 @@ import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import * as SwitchPrimitive from "@radix-ui/react-switch";
 import { Check, ChevronDown, Minus } from "lucide-react";
-import type { ComponentProps, ComponentPropsWithoutRef, ReactNode } from "react";
+import {
+  cloneElement,
+  isValidElement,
+  type ComponentProps,
+  type ComponentPropsWithoutRef,
+  type ReactNode,
+} from "react";
 
 import { cn } from "../lib/cn";
 
@@ -25,8 +31,13 @@ export type FieldProps = {
 };
 
 export function Field({ label, hint, error, isRequired, children, className }: FieldProps) {
+  // The one control inside takes aria-invalid, so its border turns; the message under it is the alert.
+  const control =
+    error && isValidElement<{ "aria-invalid"?: boolean }>(children)
+      ? cloneElement(children, { "aria-invalid": true })
+      : children;
   return (
-    <label className={cn("flex flex-col gap-050", className)} aria-invalid={error ? true : undefined}>
+    <label className={cn("flex flex-col gap-050", className)}>
       <span className="font-body-small font-medium text-subtle">
         {label}
         {isRequired ? (
@@ -35,7 +46,7 @@ export function Field({ label, hint, error, isRequired, children, className }: F
           </span>
         ) : null}
       </span>
-      {children}
+      {control}
       {error ? (
         <span role="alert" className="font-body-small text-danger">
           {error}
@@ -49,7 +60,7 @@ export function Field({ label, hint, error, isRequired, children, className }: F
 
 /** The hairline control: Input, NativeSelect, Textarea, and the button triggers of Select, Combobox and DatePicker. */
 export const controlBase =
-  "h-control-medium w-full rounded-medium border border-input bg-input px-100 font-body text-default outline-none transition-colors duration-fast ease-standard placeholder:text-subtlest hover:bg-input-hovered focus-visible:border-focused focus-visible:outline-focused disabled:cursor-not-allowed disabled:border-disabled disabled:bg-disabled disabled:text-disabled";
+  "h-control-medium w-full rounded-medium border border-input bg-input px-100 font-body text-default outline-none transition-colors duration-fast ease-standard placeholder:text-subtlest hover:bg-input-hovered aria-[invalid=true]:border-danger focus-visible:border-focused focus-visible:outline-focused disabled:cursor-not-allowed disabled:border-disabled disabled:bg-disabled disabled:text-disabled";
 
 export function Input({ className, ...props }: ComponentProps<"input">) {
   return <input className={cn(controlBase, className)} {...props} />;
@@ -60,29 +71,54 @@ export function NativeSelect({ className, ...props }: ComponentProps<"select">) 
   return (
     <span className={cn("relative block w-full", className)}>
       <select className={cn(controlBase, "appearance-none pe-400")} {...props} />
-      <ChevronDown aria-hidden className="pointer-events-none absolute end-100 top-1/2 size-icon-small -translate-y-1/2 icon-subtle" />
+      <ChevronDown
+        aria-hidden
+        className="pointer-events-none absolute end-100 top-1/2 size-icon-small -translate-y-1/2 icon-subtle"
+      />
     </span>
   );
 }
 
 export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
-  return <textarea className={cn(controlBase, "h-auto min-h-800 resize-y py-075", className)} {...props} />;
+  return (
+    <textarea
+      className={cn(controlBase, "h-auto min-h-800 resize-y py-075", className)}
+      {...props}
+    />
+  );
 }
 
 /* The choice controls. A checked state is the blue budget's "selection" use. */
 
-function Choice({ control, disabled, children }: { control: ReactNode; disabled?: boolean | undefined; children: ReactNode }) {
+function Choice({
+  control,
+  disabled,
+  children,
+}: {
+  control: ReactNode;
+  disabled?: boolean | undefined;
+  children: ReactNode;
+}) {
   return (
-    <label className={cn("inline-flex items-center gap-100 font-body text-default", disabled && "cursor-not-allowed text-disabled")}>
+    <label
+      className={cn(
+        "inline-flex items-center gap-100 font-body text-default",
+        disabled && "cursor-not-allowed text-disabled",
+      )}
+    >
       {control}
       <span className="select-none">{children}</span>
     </label>
   );
 }
 
-const choiceBase = "shrink-0 outline-none transition-colors duration-fast ease-standard focus-visible:outline-focused disabled:cursor-not-allowed";
+const choiceBase =
+  "shrink-0 outline-none transition-colors duration-fast ease-standard focus-visible:outline-focused disabled:cursor-not-allowed";
 
-export type CheckboxProps = Omit<ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>, "children"> & { children?: ReactNode };
+export type CheckboxProps = Omit<
+  ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>,
+  "children"
+> & { children?: ReactNode };
 
 export function Checkbox({ children, className, ...props }: CheckboxProps) {
   const box = (
@@ -97,7 +133,11 @@ export function Checkbox({ children, className, ...props }: CheckboxProps) {
       {...props}
     >
       <CheckboxPrimitive.Indicator className="flex items-center justify-center">
-        {props.checked === "indeterminate" ? <Minus className="size-150" strokeWidth={2.5} /> : <Check className="size-150" strokeWidth={2.5} />}
+        {props.checked === "indeterminate" ? (
+          <Minus className="size-150" strokeWidth={2.5} />
+        ) : (
+          <Check className="size-150" strokeWidth={2.5} />
+        )}
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   );
@@ -110,7 +150,10 @@ export function Checkbox({ children, className, ...props }: CheckboxProps) {
   );
 }
 
-export type SwitchProps = Omit<ComponentPropsWithoutRef<typeof SwitchPrimitive.Root>, "children"> & { children?: ReactNode };
+export type SwitchProps = Omit<
+  ComponentPropsWithoutRef<typeof SwitchPrimitive.Root>,
+  "children"
+> & { children?: ReactNode };
 
 export function Switch({ children, className, ...props }: SwitchProps) {
   const control = (
@@ -134,11 +177,17 @@ export function Switch({ children, className, ...props }: SwitchProps) {
   );
 }
 
-function RadioGroupRoot({ className, ...props }: ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>) {
+function RadioGroupRoot({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>) {
   return <RadioGroupPrimitive.Root className={cn("flex flex-col gap-100", className)} {...props} />;
 }
 
-export type RadioGroupItemProps = Omit<ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>, "children"> & { children?: ReactNode };
+export type RadioGroupItemProps = Omit<
+  ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>,
+  "children"
+> & { children?: ReactNode };
 
 function RadioGroupItem({ children, className, ...props }: RadioGroupItemProps) {
   const dot = (

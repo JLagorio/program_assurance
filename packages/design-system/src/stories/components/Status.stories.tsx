@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Alert, Progress, Stat, Tiles, tones } from "../../components";
 import { Inline, Stack, Text, Box } from "../../primitives";
-import { Matrix, Specimens, bothModes } from "../_lib/matrix";
+import { Matrix, Specimens } from "../_lib/matrix";
 
 const meta = {
   title: "Components/Status",
@@ -78,7 +78,6 @@ export const Stats: Story = {
 
 /** Every tone, plain and titled. */
 export const AlertMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Matrix
       rows={tones}
@@ -99,7 +98,6 @@ export const AlertMatrix: Story = {
 
 /** Every tone at three values, and the stacked bar at two heights. */
 export const ProgressMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300">
       <Matrix
@@ -139,7 +137,6 @@ export const ProgressMatrix: Story = {
 
 /** Stat and Stat.Tile in every tone; Tiles as a card and as a band. */
 export const StatMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300">
       <Matrix

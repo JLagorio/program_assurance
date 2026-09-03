@@ -14,7 +14,7 @@ import {
   type Tone,
 } from "../../components";
 import { Stack, Text, Box } from "../../primitives";
-import { Specimens, bothModes } from "../_lib/matrix";
+import { Specimens } from "../_lib/matrix";
 
 const meta = {
   title: "Components/Table",
@@ -240,6 +240,108 @@ function Grouped() {
 
 export const Groups: Story = { render: () => <Grouped /> };
 
+const parts = [
+  { id: "SYS-01", name: "Ground segment", kind: "System", depth: 0, children: 2, controls: 212 },
+  {
+    id: "SUB-011",
+    name: "Mission control",
+    kind: "Subsystem",
+    depth: 1,
+    children: 2,
+    controls: 140,
+  },
+  {
+    id: "CMP-0113",
+    name: "Telemetry gateway",
+    kind: "Component",
+    depth: 2,
+    children: 0,
+    controls: 86,
+  },
+  {
+    id: "CMP-0114",
+    name: "Operator console",
+    kind: "Component",
+    depth: 2,
+    children: 0,
+    controls: 54,
+  },
+  { id: "SUB-012", name: "Antenna array", kind: "Subsystem", depth: 1, children: 1, controls: 72 },
+  {
+    id: "CMP-0121",
+    name: "Pedestal controller",
+    kind: "Component",
+    depth: 2,
+    children: 0,
+    controls: 72,
+  },
+];
+
+/** A hierarchy with columns: the treegrid. The caller flattens and folds; Table.Tree is the name cell. */
+function TreeGrid() {
+  const [open, setOpen] = useState(() => new Set(["SYS-01", "SUB-011"]));
+  const toggle = (id: string) =>
+    setOpen((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const rows: typeof parts = [];
+  let hideBelow = Infinity;
+  for (const p of parts) {
+    if (p.depth > hideBelow) continue;
+    hideBelow = Infinity;
+    rows.push(p);
+    if (p.children && !open.has(p.id)) hideBelow = p.depth;
+  }
+  return (
+    <Table role="treegrid">
+      <thead>
+        <tr>
+          <Table.Header>Element</Table.Header>
+          <Table.Header width={110}>Kind</Table.Header>
+          <Table.Header width={96} className="text-right">
+            Controls
+          </Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((p) => {
+          const expanded = open.has(p.id);
+          return (
+            <Table.Row
+              key={p.id}
+              aria-level={p.depth + 1}
+              aria-expanded={p.children ? expanded : undefined}
+            >
+              <Table.Tree
+                depth={p.depth}
+                hasChildren={p.children > 0}
+                expanded={expanded}
+                onToggle={() => toggle(p.id)}
+                label={p.name}
+                hint={
+                  p.children && !expanded ? (
+                    <Text size="xsmall" color="color.text.subtle">
+                      {p.children} part{p.children === 1 ? "" : "s"}
+                    </Text>
+                  ) : null
+                }
+              >
+                {p.name}
+              </Table.Tree>
+              <Table.Cell>{p.kind}</Table.Cell>
+              <Table.Cell className="text-right">{p.controls}</Table.Cell>
+            </Table.Row>
+          );
+        })}
+      </tbody>
+    </Table>
+  );
+}
+export const TreeStory: Story = { name: "Tree", render: () => <TreeGrid /> };
+
 function GroupStates() {
   const [open, setOpen] = useState(true);
   return (
@@ -293,7 +395,6 @@ function GroupStates() {
 
 /** Every header, row, cell and id state, then a group open and closed. */
 export const TableMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300">
       <Table>
@@ -362,13 +463,13 @@ export const TableMatrix: Story = {
         </tbody>
       </Table>
       <GroupStates />
+      <TreeGrid />
     </Stack>
   ),
 };
 
 /** Inactive, active, with a value, and disabled. */
 export const ChipMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Specimens title="FilterChip">
       <FilterChip label="Impact" />
@@ -381,7 +482,6 @@ export const ChipMatrix: Story = {
 
 /** First page, a middle page with the range, the last page, and a single page. */
 export const PaginationMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.200" className="max-w-layout-measure">
       <Pagination page={1} pageCount={12} onPageChange={() => {}} total={289} pageSize={25} />
@@ -394,7 +494,6 @@ export const PaginationMatrix: Story = {
 
 /** Search only, with filters, with actions, and dense. */
 export const ToolbarMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.200" className="max-w-layout-measure">
       <Toolbar search="" onSearch={() => {}} placeholder="Search controls" />

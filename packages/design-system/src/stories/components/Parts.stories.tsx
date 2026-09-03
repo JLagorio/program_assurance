@@ -14,7 +14,7 @@ import {
   ToggleGroup,
 } from "../../components";
 import { Inline, Stack, Text, Box } from "../../primitives";
-import { Matrix, Specimens, bothModes } from "../_lib/matrix";
+import { Matrix, Specimens } from "../_lib/matrix";
 
 const meta = {
   title: "Components/Parts",
@@ -102,7 +102,6 @@ export const Small: Story = {
 
 /** Groups by size and variant, a split group, and a disabled member. */
 export const ButtonGroupMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Matrix
       rows={["secondary", "subtle"] as const}
@@ -126,7 +125,6 @@ export const ButtonGroupMatrix: Story = {
 
 /** Single keys, a chord, and inline in a sentence. */
 export const KbdMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.200">
       <Specimens title="Keys">
@@ -145,7 +143,6 @@ export const KbdMatrix: Story = {
 
 /** Horizontal and vertical. */
 export const SeparatorMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300">
       <Separator />
@@ -160,7 +157,6 @@ export const SeparatorMatrix: Story = {
 
 /** Line counts and a shaped one. */
 export const SkeletonMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300" className="w-layout-list">
       <Skeleton lines={1} />
@@ -175,7 +171,6 @@ export const SkeletonMatrix: Story = {
 
 /** Both sizes, and on a bold surface. */
 export const SpinnerMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Inline space="space.300" alignBlock="center">
       <Spinner size="small" />
@@ -193,7 +188,6 @@ export const SpinnerMatrix: Story = {
 
 /** Toggle by size, off, on and disabled; a group in each size. */
 export const ToggleMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300">
       <Matrix
@@ -237,6 +231,16 @@ export const ToggleMatrix: Story = {
             { value: "i", label: <Italic className="size-icon-small" /> },
           ]}
           value="b"
+          onChange={() => {}}
+        />
+        <ToggleGroup
+          aria-label="Requirements"
+          items={[
+            { value: "all", label: "All", count: 372 },
+            { value: "unallocated", label: "Unallocated", count: 14 },
+            { value: "verified", label: "Verified", count: 0 },
+          ]}
+          value="all"
           onChange={() => {}}
         />
       </Specimens>

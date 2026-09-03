@@ -8,7 +8,7 @@ import * as Stories from "./Patterns.stories";
 
 The two page archetypes and the parts they are assembled from.
 
-**IndexPage** is a header, one filter row, one dense table. The only inline detail surface is the PreviewRail, opened from the eye in a Table.Id cell.
+**IndexPage** is a header, one filter row, one dense table. The inline detail surface is the PreviewRail, opened from the eye in a Table.Id cell; the record itself is never inline.
 
 <Canvas of={Stories.Index} />
 
@@ -19,14 +19,21 @@ The two page archetypes and the parts they are assembled from.
 | Part | Does |
 | --- | --- |
 | **PageHeader** | Eyebrow, title on `font.heading.medium`, one line, actions on the right. |
-| **RecordHeader** | Back chevron (`back` takes a link element), id and meta, title, actions, and `below` for a persistent state strip. |
+| **RecordHeader** | Back chevron (`back` takes a link element), id and meta, title, actions, `facts` for the strip of Facts under the title (at most six; the rest go in the rail), and `below` for a persistent state strip. |
 | **Section** | A titled region with a rule under its heading. Prefer Block for work and Collapsible for reference. |
 | **Card** | A framed block on the raised surface, with an optional header row. It records its surface so a sticky table header inside it stays opaque. |
 | **Related** | A small card of linked records with a count and rows that may be buttons. |
 | **Empty** | A dashed frame with a title, one line of why, and the action that fills it. |
 | **PreviewRail** | The right rail as a preview of a row, never the record itself. |
+| **PreviewSheet** | The peek panel: a Sheet that previews a row over the page. Its header carries the Preview eyebrow and the id; its footer's first item opens the full record, more `links` follow, `actions` sit on the right. |
 | **PageSkeleton** | The page before its data: a title, a tab strip, rows. |
 
+## Rail or sheet
+
+Both preview a row and leave the list in place; neither is the record. The **rail** goes beside an IndexPage table that leaves room for it, opened from the eye on the id. The **sheet** goes over a full-width table (a tree, a board), and wherever the preview carries actions, opened from the row. A page uses one or the other, never both.
+
 <Canvas of={Stories.Preview} />
+
+<Canvas of={Stories.PreviewSheetStory} />
 
 <Canvas of={Stories.Loading} />

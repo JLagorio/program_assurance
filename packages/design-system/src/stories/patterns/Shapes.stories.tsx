@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Badge, Button, Indicator, KeyValue, Tabs, type Tone, Person, Id } from "../../components";
 import { ActionBar, Block, Inspector, WorkPane } from "../../shapes";
 import { Stack, Text, Box, Inline } from "../../primitives";
-import { Specimens, bothModes } from "../_lib/matrix";
+import { Specimens } from "../_lib/matrix";
 
 const meta = {
   title: "Patterns/Shapes",
@@ -159,7 +159,6 @@ const noop = () => {};
 
 /** A primary allowed and a secondary blocked; every action blocked; a state with a control; with a breadcrumb and tabs. */
 export const ActionBarMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.400">
       <ActionBar
@@ -221,7 +220,6 @@ export const ActionBarMatrix: Story = {
 
 /** Title alone, with a count, with an action, and a count of zero. */
 export const BlockMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300" className="max-w-layout-measure">
       <Block title="Findings">
@@ -250,7 +248,6 @@ export const BlockMatrix: Story = {
 
 /** Grouped facts with a footer, and a standalone group with an action. */
 export const InspectorMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Inline space="space.300" alignBlock="start" shouldWrap>
       <Box className="w-layout-rail">

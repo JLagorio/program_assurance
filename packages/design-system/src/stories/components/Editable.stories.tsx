@@ -3,7 +3,6 @@ import { useState } from "react";
 
 import { Badge, Editable, KeyValue, type Tone } from "../../components";
 import { Stack, Text } from "../../primitives";
-import { bothModes } from "../_lib/matrix";
 
 const meta = {
   title: "Components/Editable",
@@ -117,7 +116,6 @@ function EditableStates() {
 
 /** Idle, empty, validating, failing to save, and a select. Edit a row to see the saving and saved states. */
 export const EditableMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.200">
       <EditableStates />

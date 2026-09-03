@@ -4,6 +4,7 @@ export { Empty } from "./empty";
 export { PageHeader } from "./page-header";
 export { PageSkeleton } from "./page-skeleton";
 export { PreviewRail } from "./preview-rail";
+export { PreviewSheet } from "./preview-sheet";
 export { RecordHeader } from "./record-header";
 export { Related } from "./related";
 export { Section } from "./section";

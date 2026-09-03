@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { Tabs, Badge } from "../../components";
 import { Stack, Text } from "../../primitives";
-import { Specimens, bothModes } from "../_lib/matrix";
+import { Specimens } from "../_lib/matrix";
 
 const meta = {
   title: "Components/Tabs",
@@ -62,7 +62,6 @@ export const AsLinks: Story = {
 
 /** Every state a tab can be in on one rail: plain, selected, with a count, with a badge, disabled, and a link. */
 export const TabsMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300">
       <Specimens title="States">

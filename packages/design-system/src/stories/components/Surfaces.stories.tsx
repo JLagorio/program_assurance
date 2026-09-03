@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Button, CodeBlock, Resizable, ScrollArea, Toaster, toast } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
-import { Specimens, bothModes } from "../_lib/matrix";
+import { Specimens } from "../_lib/matrix";
 
 const meta = {
   title: "Components/Surfaces",
@@ -89,7 +89,6 @@ export const Toasts: Story = {
 
 /** A few lines, numbered from a start line, and a capped height that scrolls. */
 export const CodeBlockMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300">
       <CodeBlock
@@ -144,7 +143,6 @@ export const ResizableMatrix: Story = {
 
 /** Vertical, horizontal, and both. */
 export const ScrollAreaMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Inline space="space.300" alignBlock="start" shouldWrap>
       {(["vertical", "horizontal", "both"] as const).map((o) => (

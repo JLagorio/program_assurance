@@ -37,6 +37,14 @@ Pass `asChild` and the child element takes the button's classes. This is how a r
 
 <Canvas of={Stories.AsLink} />
 
+## TextLink
+
+Navigation that reads as text: brand colour, an underline on hover, the focus outline. `asChild` is on by default, so the router's Link goes inside and takes the classes; `asChild={false}` renders an anchor from `href`. Left unset, `size` inherits the surrounding text; `weight="medium"` is for a link that stands alone (a footer's "Open the full record"). The lint reports a Link carrying `text-brand` or `hover:underline` by hand.
+
+`Button variant="link"` is the other thing: an action that only looks like a link (drill into a child, show more). Navigation is TextLink.
+
+<Canvas of={Stories.TextLinks} />
+
 ## Selected
 
 `isSelected` marks a toggle that is on: a filter that is applied, a view that is chosen. It sets `aria-pressed` and paints the selected role.

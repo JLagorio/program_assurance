@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Accordion, Collapsible } from "../../components";
 import { Stack, Text } from "../../primitives";
-import { Specimens, bothModes } from "../_lib/matrix";
+import { Specimens } from "../_lib/matrix";
 
 const meta = {
   title: "Components/Disclosure",
@@ -51,7 +51,6 @@ export const AccordionStory: Story = {
 
 /** Collapsible closed and open, with and without a count; Accordion single and multiple. */
 export const DisclosureMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Collapsible">

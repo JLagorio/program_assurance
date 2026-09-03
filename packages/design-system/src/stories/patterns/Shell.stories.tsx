@@ -17,7 +17,7 @@ import { Avatar, Badge, IconButton, Input, InputGroup, Tooltip, Count } from "..
 import { PageHeader } from "../../patterns";
 import { Shell } from "../../shell";
 import { Text, Stack, Box, Inline } from "../../primitives";
-import { Specimens, bothModes } from "../_lib/matrix";
+import { Specimens } from "../_lib/matrix";
 
 const meta = {
   title: "Patterns/Shell",
@@ -128,7 +128,6 @@ export const Frame: Story = {
 
 /** Every state of a nav item, a group, the brand, the user, and a top bar with actions. */
 export const ShellMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300">
       <Box

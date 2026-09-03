@@ -197,7 +197,33 @@ const isKnown = (base) => {
 
 const rule = (description, create, extra = {}) => ({ meta: { type: "problem", docs: { description }, schema: [], ...extra }, create });
 
+const jsxTag = (n) => (n.type === "JSXIdentifier" ? n.name : n.type === "JSXMemberExpression" ? `${jsxTag(n.object)}.${n.property.name}` : "");
+const jsxAttr = (node, name) => node.attributes.find((a) => a.type === "JSXAttribute" && a.name.name === name);
+const attrIsTrue = (a) => a && (a.value === null || (a.value.type === "JSXExpressionContainer" && a.value.expression.type === "Literal" && a.value.expression.value === true));
+
 const rules = {
+  "prefer-text-link": rule("Navigation that reads as text is TextLink; the classes that fake it are not written by hand.", (context) => ({
+    JSXOpeningElement(node) {
+      const name = jsxTag(node.name);
+      if (/^(a|Link|NavLink)$/.test(name)) {
+        const attr = jsxAttr(node, "className");
+        if (!attr) return;
+        const out = [];
+        collect(attr.value, out);
+        if (/(^|\s)(hover:underline|text-brand)(\s|$)/.test(out.map((o) => o.text).join(" ")))
+          context.report({ node: attr, message: `<${name}> carries the text-link classes. Wrap it in TextLink and drop text-brand and hover:underline.` });
+      } else if (name === "Button") {
+        const variant = jsxAttr(node, "variant");
+        if (variant?.value?.type === "Literal" && variant.value.value === "link" && attrIsTrue(jsxAttr(node, "asChild")))
+          context.report({ node, message: 'A Button that wraps a link is TextLink. variant="link" is for an action that reads as text.' });
+      }
+    },
+  })),
+  "no-colgroup": rule("Column widths are content decisions and go on Table.Header width, not in a colgroup.", (context) => ({
+    JSXOpeningElement(node) {
+      if (jsxTag(node.name) === "colgroup") context.report({ node, message: "<colgroup> fixes widths away from the header. Put width on each Table.Header instead." });
+    },
+  })),
   "no-arbitrary-value": rule("Arbitrary values (text-[13px], w-[240px]) bypass the tokens.", (context) =>
     forEachClass(context, ({ cls, base }, node) => {
       if (/^\[|-\[|\/\[/.test(base)) context.report({ node, message: `"${cls}" is an arbitrary value. Use a token utility or a primitive prop.` });
@@ -296,6 +322,8 @@ plugin.configs.package = [
       "ledger/no-static-design-value": "error",
       "ledger/no-non-token-class": "error",
       "ledger/no-deprecated-token": "error",
+      "ledger/prefer-text-link": "error",
+      "ledger/no-colgroup": "error",
       ...portability,
     },
   },
@@ -323,6 +351,8 @@ plugin.configs.recommended = [
       "ledger/no-static-design-value": "error",
       "ledger/no-non-token-class": "error",
       "ledger/no-deprecated-token": "error",
+      "ledger/prefer-text-link": "error",
+      "ledger/no-colgroup": "error",
       "ledger/use-primitives": "warn",
     },
   },

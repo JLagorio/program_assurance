@@ -15,6 +15,7 @@ import {
   KeyValue,
   Prose,
   Stepper,
+  TextLink,
   Timeline,
   Tree,
   Id,
@@ -22,7 +23,7 @@ import {
   tones,
 } from "../../components";
 import { Inline, Stack, Text, Box } from "../../primitives";
-import { Matrix, Specimens, bothModes } from "../_lib/matrix";
+import { Matrix, Specimens } from "../_lib/matrix";
 
 const meta = {
   title: "Components/Lists",
@@ -83,13 +84,13 @@ export const Items: Story = {
 export const Facts: Story = {
   render: () => (
     <Stack space="space.400" className="max-w-[420px]">
-      <dl className="flex flex-wrap gap-300">
+      <Fact.Group>
         <Fact label="Owner">Dana Whitfield</Fact>
         <Fact label="Frequency">Quarterly</Fact>
         <Fact label="Assessor">
           <Absent />
         </Fact>
-      </dl>
+      </Fact.Group>
       <dl>
         <KeyValue label="Control">CTRL-0412</KeyValue>
         <KeyValue label="Status">
@@ -279,7 +280,6 @@ export const Inlines: Story = {
 
 /** Both sizes, a Person, and a stack that overflows. */
 export const AvatarMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300">
       <Matrix
@@ -320,7 +320,6 @@ export const AvatarMatrix: Story = {
 
 /** Short, long enough to wrap, a lone current page, and a link child. */
 export const BreadcrumbMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.200">
       <Breadcrumb>
@@ -353,7 +352,6 @@ export const BreadcrumbMatrix: Story = {
 
 /** An Id in text, in a link, and the list with many and with none. */
 export const IdMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.200">
       <Text>
@@ -361,9 +359,11 @@ export const IdMatrix: Story = {
       </Text>
       <Text>
         Inside a link it is blue because the link is:{" "}
-        <a href="#f" className="text-brand hover:underline">
-          <Id>FND-2231</Id>
-        </a>
+        <TextLink>
+          <a href="#f">
+            <Id>FND-2231</Id>
+          </a>
+        </TextLink>
         .
       </Text>
       <Id.List ids={["AC-2", "AC-2(1)", "AC-2(3)", "AC-3", "AC-6(1)", "AC-7", "AC-11", "AC-17"]} />
@@ -375,7 +375,6 @@ export const IdMatrix: Story = {
 
 /** Every slot and every state of a row, then a group with nothing in it. */
 export const ItemMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300" className="max-w-layout-measure">
       <Item.Group>
@@ -424,7 +423,6 @@ export const ItemMatrix: Story = {
 
 /** Label widths, a wrapping value, and an absent one. */
 export const KeyValueMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.100" className="w-layout-list">
       <KeyValue label="Owner">Dana Whitlock</KeyValue>
@@ -447,7 +445,6 @@ export const KeyValueMatrix: Story = {
 
 /** Every step state, horizontal and vertical, with and without meta. */
 export const StepperMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300">
       <Stepper>
@@ -471,7 +468,6 @@ export const StepperMatrix: Story = {
 
 /** Every tone as a marker, the active and emphasised rows, a custom marker, a trailing slot, and a group. */
 export const TimelineMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Box className="max-w-layout-measure">
       <Timeline>
@@ -516,7 +512,6 @@ export const TimelineMatrix: Story = {
 
 /** Depth, guide lines, expanded and collapsed parents, a leaf, a selected row and a trailing slot. */
 export const TreeMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Box className="w-layout-list">
       <Tree label="Composition">
@@ -554,7 +549,6 @@ export const TreeMatrix: Story = {
 
 /** Eyebrow in every tone; Absent; Prose in every tone; Fact. */
 export const TypographyMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Eyebrow">
@@ -577,11 +571,16 @@ export const TypographyMatrix: Story = {
           </Prose>
         ))}
       </Stack>
-      <Inline space="space.300">
+      <Fact.Group>
         <Fact label="Controls">340</Fact>
         <Fact label="Satisfied">298</Fact>
         <Fact label="Open findings">5</Fact>
-      </Inline>
+        <Fact label="Owner">Dana Whitfield</Fact>
+        <Fact label="Frequency">Quarterly</Fact>
+        <Fact label="Assessor">
+          <Absent />
+        </Fact>
+      </Fact.Group>
     </Stack>
   ),
 };

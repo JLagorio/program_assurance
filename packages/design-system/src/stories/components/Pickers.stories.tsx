@@ -4,7 +4,7 @@ import type { DateRange } from "react-day-picker";
 
 import { Calendar, Combobox, DatePicker, Dot, Field, Select } from "../../components";
 import { Inline, Stack } from "../../primitives";
-import { Specimens, bothModes } from "../_lib/matrix";
+import { Specimens } from "../_lib/matrix";
 
 const meta = {
   title: "Components/Pickers",
@@ -98,7 +98,6 @@ const owners = [
 
 /** Single and range selections, days before today disabled. */
 export const CalendarMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Inline space="space.300" alignBlock="start" shouldWrap>
       <Calendar
@@ -122,7 +121,6 @@ export const CalendarMatrix: Story = {
 
 /** Empty, with a value, disabled, and narrow. */
 export const ComboboxMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Specimens title="Combobox">
       <Combobox options={owners} onChange={() => {}} aria-label="Owner" />
@@ -141,7 +139,6 @@ export const ComboboxMatrix: Story = {
 
 /** Empty, with a value, disabled. */
 export const DatePickerMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Specimens title="DatePicker">
       <DatePicker aria-label="Due" onChange={() => {}} />
@@ -153,7 +150,6 @@ export const DatePickerMatrix: Story = {
 
 /** Placeholder, value, disabled, a group with a separator and dots, and a fixed width. */
 export const SelectMatrix: Story = {
-  decorators: [bothModes],
   render: () => (
     <Specimens title="Select">
       <Select placeholder="Choose a status" onValueChange={() => {}} aria-label="Status">

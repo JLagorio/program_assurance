@@ -10,6 +10,8 @@ export type SheetProps = {
   onClose: () => void;
   title: ReactNode;
   subtitle?: ReactNode;
+  /** A row above the title: an Eyebrow, an id. */
+  eyebrow?: ReactNode;
   footer?: ReactNode;
   side?: "end" | "start" | undefined;
   width?: number | undefined;
@@ -17,7 +19,17 @@ export type SheetProps = {
 };
 
 /** A detail surface that slides in from an edge and leaves the page visible. For the bottom sheet with a drag handle, Drawer. */
-export function Sheet({ open, onClose, title, subtitle, footer, side = "end", width = 420, children }: SheetProps) {
+export function Sheet({
+  open,
+  onClose,
+  title,
+  subtitle,
+  eyebrow,
+  footer,
+  side = "end",
+  width = 420,
+  children,
+}: SheetProps) {
   return (
     <DialogPrimitive.Root
       open={open}
@@ -38,13 +50,28 @@ export function Sheet({ open, onClose, title, subtitle, footer, side = "end", wi
           )}
         >
           <div className="flex shrink-0 flex-col gap-025 border-b border-default py-150 pe-600 ps-200">
-            <DialogPrimitive.Title className="truncate font-heading-xsmall text-default">{title}</DialogPrimitive.Title>
-            {subtitle ? <DialogPrimitive.Description className="truncate font-body-small text-subtle">{subtitle}</DialogPrimitive.Description> : null}
+            {eyebrow ? <div className="flex items-center gap-100 pb-025">{eyebrow}</div> : null}
+            <DialogPrimitive.Title className="truncate font-heading-xsmall text-default">
+              {title}
+            </DialogPrimitive.Title>
+            {subtitle ? (
+              <DialogPrimitive.Description className="truncate font-body-small text-subtle">
+                {subtitle}
+              </DialogPrimitive.Description>
+            ) : null}
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-200 py-150">{children}</div>
-          {footer ? <div className="flex shrink-0 items-center justify-end gap-100 border-t border-default bg-surface-sunken px-200 py-100">{footer}</div> : null}
+          {footer ? (
+            <div className="flex shrink-0 items-center justify-end gap-100 border-t border-default bg-surface-sunken px-200 py-100">
+              {footer}
+            </div>
+          ) : null}
           <DialogPrimitive.Close asChild>
-            <button type="button" aria-label="Close" className={cn(overlayClose, "absolute end-150 top-150")}>
+            <button
+              type="button"
+              aria-label="Close"
+              className={cn(overlayClose, "absolute end-150 top-150")}
+            >
               <X className="size-icon-small" />
             </button>
           </DialogPrimitive.Close>

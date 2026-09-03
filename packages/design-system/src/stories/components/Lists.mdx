@@ -16,7 +16,7 @@ Every breadcrumb but the last is a link back up the record tree; pass `asChild` 
 
 ## Facts
 
-`Fact` is an inline label and value for the strip under a record header (wrap a row in a `dl`). `KeyValue` is one rail row with a label column. `Prose` is a labelled paragraph. `Eyebrow` is the uppercase micro-label on `font.heading.xxsmall`. `Absent` is the muted dash.
+`Fact` is an inline label and value; a row of them is a `Fact.Group`, the facts strip. Under a record header it goes in the `facts` slot and holds at most six, the ones the reader acts on; the rest belong in the rail. `KeyValue` is one rail row with a label column. `Prose` is a labelled paragraph. `Eyebrow` is the uppercase micro-label on `font.heading.xxsmall`. `Absent` is the muted dash.
 
 <Canvas of={Stories.Facts} />
 

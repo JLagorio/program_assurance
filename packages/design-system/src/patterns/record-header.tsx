@@ -3,6 +3,7 @@ import { cloneElement, type ReactElement, type ReactNode } from "react";
 
 import { Id } from "../components/id";
 import { Tooltip } from "../components/tooltip";
+import { Fact } from "../components/typography";
 
 const backClass =
   "inline-flex size-control-xsmall shrink-0 items-center justify-center rounded-medium icon-subtle outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused";
@@ -15,14 +16,19 @@ export function RecordHeader({
   title,
   meta,
   actions,
+  facts,
   below,
 }: {
-  back?: ReactElement<{ className?: string | undefined; children?: ReactNode; "aria-label"?: string }> | undefined;
+  back?:
+    | ReactElement<{ className?: string | undefined; children?: ReactNode; "aria-label"?: string }>
+    | undefined;
   breadcrumb?: ReactNode;
   id: ReactNode;
   title: ReactNode;
   meta?: ReactNode;
   actions?: ReactNode;
+  /** Facts under the title, on one line above the fold: the ones the reader acts on. At most six; the rest go in the rail. */
+  facts?: ReactNode;
   /** Persistent state strip under the title row (a lifecycle). */
   below?: ReactNode;
 }) {
@@ -31,7 +37,13 @@ export function RecordHeader({
       {breadcrumb ? <div className="ps-500">{breadcrumb}</div> : null}
       <div className="flex items-start gap-150">
         {back ? (
-          <Tooltip content="Back">{cloneElement(back, { className: backClass, "aria-label": "Back", children: <ChevronLeft className="size-icon-medium" /> })}</Tooltip>
+          <Tooltip content="Back">
+            {cloneElement(back, {
+              className: backClass,
+              "aria-label": "Back",
+              children: <ChevronLeft className="size-icon-medium" />,
+            })}
+          </Tooltip>
         ) : null}
         <div className="flex min-w-0 flex-1 flex-col gap-025">
           <div className="flex items-baseline gap-100">
@@ -42,6 +54,7 @@ export function RecordHeader({
         </div>
         {actions ? <div className="flex shrink-0 items-center gap-100">{actions}</div> : null}
       </div>
+      {facts ? <Fact.Group className="border-t border-default pt-100">{facts}</Fact.Group> : null}
       {below}
     </div>
   );
