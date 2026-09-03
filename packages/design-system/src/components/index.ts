@@ -5,6 +5,7 @@ export { Breadcrumb, type BreadcrumbItemProps } from "./breadcrumb";
 export { Button, IconButton, type ButtonProps, type IconButtonProps } from "./button";
 export { ButtonGroup } from "./button-group";
 export { Calendar, type CalendarProps } from "./calendar";
+export { Chart, chartColor, type ChartDatum, type ChartSeries, type ChartTone } from "./chart";
 export { FilterChip, type FilterChipProps } from "./chip";
 export { CodeBlock } from "./code-block";
 export { Combobox, type ComboboxOption, type ComboboxProps } from "./combobox";

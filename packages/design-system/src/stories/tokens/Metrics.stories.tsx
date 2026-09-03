@@ -41,7 +41,10 @@ export const Dimension: Story = {
         <div className="flex items-end gap-300">
           {under("dimension.icon").map((d) => (
             <div key={d.name} className="flex flex-col items-start gap-050">
-              <div className="rounded-small bg-neutral-bold" style={{ width: `var(${d.cssVar})`, height: `var(${d.cssVar})` }} />
+              <div
+                className="rounded-small bg-neutral-bold"
+                style={{ width: `var(${d.cssVar})`, height: `var(${d.cssVar})` }}
+              />
               <span className="font-body text-default">{d.name.split(".").slice(-1)[0]}</span>
               <Spec>{d.utility}</Spec>
               <Spec>{d.light}</Spec>

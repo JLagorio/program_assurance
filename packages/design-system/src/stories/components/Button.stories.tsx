@@ -21,13 +21,24 @@ export const Matrix: Story = {
     <Stack space="space.300">
       {variants.map((v) => (
         <Inline key={v} space="space.300" alignBlock="center">
-          <Text size="xsmall" color="color.text.subtlest" className="w-800">{v}</Text>
+          <Text size="xsmall" color="color.text.subtlest" className="w-800">
+            {v}
+          </Text>
           {sizes.map((s) => (
-            <Button key={s} variant={v} size={s}>Schedule assessment</Button>
+            <Button key={s} variant={v} size={s}>
+              Schedule assessment
+            </Button>
           ))}
-          <Button variant={v} disabled>Disabled</Button>
-          <Button variant={v} isSelected>Selected</Button>
-          <Button variant={v}><Plus className="size-icon-small" />With icon</Button>
+          <Button variant={v} disabled>
+            Disabled
+          </Button>
+          <Button variant={v} isSelected>
+            Selected
+          </Button>
+          <Button variant={v}>
+            <Plus className="size-icon-small" />
+            With icon
+          </Button>
         </Inline>
       ))}
     </Stack>
@@ -37,11 +48,21 @@ export const Matrix: Story = {
 export const IconButtons: Story = {
   render: () => (
     <Inline space="space.300" alignBlock="center">
-      <IconButton label="Search"><Search className="size-icon-small" /></IconButton>
-      <IconButton label="Settings" variant="subtle"><Settings className="size-icon-small" /></IconButton>
-      <IconButton label="Download" size="medium"><Download className="size-icon-medium" /></IconButton>
-      <IconButton label="Filters" isSelected><Settings className="size-icon-small" /></IconButton>
-      <IconButton label="Disabled" disabled><Search className="size-icon-small" /></IconButton>
+      <IconButton label="Search">
+        <Search className="size-icon-small" />
+      </IconButton>
+      <IconButton label="Settings" variant="subtle">
+        <Settings className="size-icon-small" />
+      </IconButton>
+      <IconButton label="Download" size="medium">
+        <Download className="size-icon-medium" />
+      </IconButton>
+      <IconButton label="Filters" isSelected>
+        <Settings className="size-icon-small" />
+      </IconButton>
+      <IconButton label="Disabled" disabled>
+        <Search className="size-icon-small" />
+      </IconButton>
     </Inline>
   ),
 };
@@ -49,9 +70,16 @@ export const IconButtons: Story = {
 export const AsLink: Story = {
   render: () => (
     <Inline space="space.200" alignBlock="center">
-      <Button asChild variant="primary"><a href="#top">A link that looks like a button</a></Button>
-      <Button asChild variant="link"><a href="#top">A link that looks like a link</a></Button>
-      <Button variant="secondary">Open<ChevronDown className="size-icon-small" /></Button>
+      <Button asChild variant="primary">
+        <a href="#top">A link that looks like a button</a>
+      </Button>
+      <Button asChild variant="link">
+        <a href="#top">A link that looks like a link</a>
+      </Button>
+      <Button variant="secondary">
+        Open
+        <ChevronDown className="size-icon-small" />
+      </Button>
     </Inline>
   ),
 };

@@ -1256,6 +1256,162 @@
           }
         }
       }
+    },
+    "chart": {
+      "$type": "color",
+      "brand": {
+        "$value": "{color.blue.600}",
+        "$description": "The brand series: the one the reader is asked to look at.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.400}",
+            "introduced": "0.2.0"
+          }
+        }
+      },
+      "neutral": {
+        "$value": "{color.neutral.500}",
+        "$description": "A series that is context, not the point: totals, the remainder, last period.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.500}",
+            "introduced": "0.2.0"
+          }
+        }
+      },
+      "information": {
+        "$value": "{color.blue.500}",
+        "$description": "A series carrying an informational status.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.blue.400}",
+            "introduced": "0.2.0"
+          }
+        }
+      },
+      "success": {
+        "$value": "{color.green.600}",
+        "$description": "A series carrying a success status: satisfied, closed, on time.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.green.400}",
+            "introduced": "0.2.0"
+          }
+        }
+      },
+      "warning": {
+        "$value": "{color.orange.600}",
+        "$description": "A series carrying a warning status: partial, at risk, due soon.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.orange.400}",
+            "introduced": "0.2.0"
+          }
+        }
+      },
+      "danger": {
+        "$value": "{color.red.600}",
+        "$description": "A series carrying a danger status: other than satisfied, overdue, open.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.red.400}",
+            "introduced": "0.2.0"
+          }
+        }
+      },
+      "track": {
+        "$value": "{color.neutral.200}",
+        "$description": "The unfilled part of a ring or bar: the whole against which a series is read.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.300}",
+            "introduced": "0.2.0"
+          }
+        }
+      },
+      "categorical": {
+        "$type": "color",
+        "1": {
+          "$value": "{color.blue.600}",
+          "$description": "Categorical series 1, when the categories carry no status.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.400}",
+              "introduced": "0.2.0"
+            }
+          }
+        },
+        "2": {
+          "$value": "{color.teal.600}",
+          "$description": "Categorical series 2, when the categories carry no status.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.teal.400}",
+              "introduced": "0.2.0"
+            }
+          }
+        },
+        "3": {
+          "$value": "{color.purple.600}",
+          "$description": "Categorical series 3, when the categories carry no status.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.purple.400}",
+              "introduced": "0.2.0"
+            }
+          }
+        },
+        "4": {
+          "$value": "{color.orange.600}",
+          "$description": "Categorical series 4, when the categories carry no status.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.400}",
+              "introduced": "0.2.0"
+            }
+          }
+        },
+        "5": {
+          "$value": "{color.green.600}",
+          "$description": "Categorical series 5, when the categories carry no status.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.400}",
+              "introduced": "0.2.0"
+            }
+          }
+        },
+        "6": {
+          "$value": "{color.red.600}",
+          "$description": "Categorical series 6, when the categories carry no status.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.400}",
+              "introduced": "0.2.0"
+            }
+          }
+        },
+        "7": {
+          "$value": "{color.neutral.600}",
+          "$description": "Categorical series 7, when the categories carry no status.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.600}",
+              "introduced": "0.2.0"
+            }
+          }
+        },
+        "8": {
+          "$value": "{color.blue.400}",
+          "$description": "Categorical series 8, when the categories carry no status.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.300}",
+              "introduced": "0.2.0"
+            }
+          }
+        }
+      }
     }
   }
 }

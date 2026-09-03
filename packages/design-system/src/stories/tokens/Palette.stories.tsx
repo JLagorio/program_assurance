@@ -23,7 +23,10 @@ function Ramp({ prefix, on }: { prefix: string; on: "light" | "dark" }) {
         <div key={d.name} className="flex w-[84px] flex-col gap-050">
           <div
             className="h-600 rounded-medium"
-            style={{ backgroundColor: `var(${d.cssVar})`, boxShadow: "inset 0 0 0 1px var(--ds-color-border)" }}
+            style={{
+              backgroundColor: `var(${d.cssVar})`,
+              boxShadow: "inset 0 0 0 1px var(--ds-color-border)",
+            }}
           />
           <span className="font-body-small text-default">{d.name.split(".").pop()}</span>
           <Spec>{d.light.replace("oklch", "").replace(/[()]/g, "")}</Spec>

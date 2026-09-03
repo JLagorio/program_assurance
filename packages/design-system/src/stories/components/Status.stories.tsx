@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Alert, Progress, Stat, Tiles, tones } from "../../components";
-import { Inline, Stack, Text } from "../../primitives";
+import { Inline, Stack, Text, Box } from "../../primitives";
+import { Matrix, Specimens, bothModes } from "../_lib/matrix";
 
 const meta = {
   title: "Components/Status",
@@ -13,11 +14,17 @@ type Story = StoryObj;
 export const Alerts: Story = {
   render: () => (
     <Stack space="space.200" className="max-w-[560px]">
-      <Alert tone="warning" title="3 controls are due this week">Verification for CTRL-0412, CTRL-0418 and CTRL-0450 is due by Friday.</Alert>
-      <Alert tone="danger" title="Evidence expired">The bank reconciliation for July no longer covers the period.</Alert>
+      <Alert tone="warning" title="3 controls are due this week">
+        Verification for CTRL-0412, CTRL-0418 and CTRL-0450 is due by Friday.
+      </Alert>
+      <Alert tone="danger" title="Evidence expired">
+        The bank reconciliation for July no longer covers the period.
+      </Alert>
       <Alert tone="success" title="Assessment complete" />
       <Alert tone="information">Only a body. The tone sets the fill and the text.</Alert>
-      <Alert tone="neutral" title="Draft">Neutral reads as a note, not a warning.</Alert>
+      <Alert tone="neutral" title="Draft">
+        Neutral reads as a note, not a warning.
+      </Alert>
     </Stack>
   ),
 };
@@ -27,7 +34,9 @@ export const Bars: Story = {
     <Stack space="space.300" className="max-w-[480px]">
       {tones.map((t) => (
         <Inline key={t} space="space.300" alignBlock="center">
-          <Text size="xsmall" color="color.text.subtlest" className="w-800">{t}</Text>
+          <Text size="xsmall" color="color.text.subtlest" className="w-800">
+            {t}
+          </Text>
           <Progress value={t === "neutral" ? 20 : 64} tone={t} />
         </Inline>
       ))}
@@ -63,6 +72,118 @@ export const Stats: Story = {
         <Stat label="Critical" value={2} tone="danger" />
         <Stat label="Closed this month" value={31} tone="success" />
       </Inline>
+    </Stack>
+  ),
+};
+
+/** Every tone, plain and titled. */
+export const AlertMatrix: Story = {
+  decorators: [bothModes],
+  render: () => (
+    <Matrix
+      rows={tones}
+      cols={["plain", "titled"] as const}
+      rowLabel="tone"
+      render={(tone, col) => (
+        <Box style={{ width: 300 }}>
+          <Alert tone={tone} title={col === "titled" ? "Evidence expires in 12 days" : undefined}>
+            {col === "titled"
+              ? "Three artifacts on this control were collected more than a year ago."
+              : "Three artifacts were collected more than a year ago."}
+          </Alert>
+        </Box>
+      )}
+    />
+  ),
+};
+
+/** Every tone at three values, and the stacked bar at two heights. */
+export const ProgressMatrix: Story = {
+  decorators: [bothModes],
+  render: () => (
+    <Stack space="space.300">
+      <Matrix
+        rows={tones}
+        cols={["0", "40", "100"] as const}
+        rowLabel="tone"
+        render={(tone, v) => (
+          <Box style={{ width: 160 }}>
+            <Progress value={Number(v)} tone={tone} />
+          </Box>
+        )}
+      />
+      <Specimens title="Stacked">
+        <Box style={{ width: 320 }}>
+          <Progress.Stacked
+            segments={[
+              { key: "s", value: 298, tone: "success", title: "Satisfied" },
+              { key: "p", value: 40, tone: "warning", title: "Partial" },
+              { key: "o", value: 26, tone: "danger", title: "Other than satisfied" },
+              { key: "n", value: 8, tone: "neutral", title: "Not assessed" },
+            ]}
+          />
+        </Box>
+        <Box style={{ width: 320 }}>
+          <Progress.Stacked
+            height={4}
+            segments={[
+              { key: "s", value: 3, tone: "success" },
+              { key: "o", value: 1, tone: "danger" },
+            ]}
+          />
+        </Box>
+      </Specimens>
+    </Stack>
+  ),
+};
+
+/** Stat and Stat.Tile in every tone; Tiles as a card and as a band. */
+export const StatMatrix: Story = {
+  decorators: [bothModes],
+  render: () => (
+    <Stack space="space.300">
+      <Matrix
+        rows={tones}
+        cols={["Stat", "Tile"] as const}
+        rowLabel="tone"
+        render={(tone, col) =>
+          col === "Stat" ? (
+            <Stat label="Open findings" value={5} tone={tone} />
+          ) : (
+            <Box style={{ width: 200 }}>
+              <Stat.Tile label="Open findings" value={5} note="1 CAT I" tone={tone} />
+            </Box>
+          )
+        }
+      />
+      <Specimens title="Tiles · card, 3 columns">
+        <Box style={{ width: 600 }}>
+          <Tiles cols={3}>
+            <Stat.Tile label="Coverage" value="80%" note="298 of 372" tone="success" />
+            <Stat.Tile
+              label="Not satisfied"
+              value={74}
+              note="26 other · 40 partial"
+              tone="warning"
+            />
+            <Stat.Tile label="Open findings" value={5} note="1 CAT I" tone="danger" />
+          </Tiles>
+        </Box>
+      </Specimens>
+      <Specimens title="Tiles · band, 4 columns">
+        <Box style={{ width: 600 }}>
+          <Tiles cols={4} frame="band">
+            <Stat.Tile label="Coverage" value="80%" />
+            <Stat.Tile label="Not satisfied" value={74} />
+            <Stat.Tile label="Open findings" value={5} />
+            <Stat.Tile label="Gates" value={5} note="Next: MS-C" />
+          </Tiles>
+        </Box>
+      </Specimens>
+      <Text size="xsmall" color="color.text.subtlest">
+        A tone on a stat is data: the number is a status. Neutral is the default and most numbers
+        stay neutral.
+      </Text>
     </Stack>
   ),
 };

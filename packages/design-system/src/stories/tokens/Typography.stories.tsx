@@ -31,7 +31,10 @@ export const Specimen: Story = {
             const d = under(name).find((x) => x.name === name);
             if (!d) return null;
             return (
-              <div key={name} className="grid grid-cols-[220px_minmax(0,1fr)] items-baseline gap-300 py-150">
+              <div
+                key={name}
+                className="grid grid-cols-[220px_minmax(0,1fr)] items-baseline gap-300 py-150"
+              >
                 <div className="flex flex-col gap-025">
                   <span className="font-body text-default">{name}</span>
                   <Spec>{d.utility}</Spec>

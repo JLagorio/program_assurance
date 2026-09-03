@@ -13,18 +13,41 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const labels = { neutral: "Draft", information: "In review", success: "Verified", warning: "Due soon", danger: "Overdue" } as const;
+const labels = {
+  neutral: "Draft",
+  information: "In review",
+  success: "Verified",
+  warning: "Due soon",
+  danger: "Overdue",
+} as const;
 
 export const Matrix: Story = {
   render: () => (
     <Stack space="space.300">
       {tones.map((t) => (
         <Inline key={t} space="space.300" alignBlock="center">
-          <Text size="xsmall" color="color.text.subtlest" className="w-800">{t}</Text>
+          <Text size="xsmall" color="color.text.subtlest" className="w-800">
+            {t}
+          </Text>
           <Badge tone={t}>{labels[t]}</Badge>
-          <Badge tone={t} size="xsmall">{labels[t]}</Badge>
-          <Badge tone={t} appearance="bold">{labels[t]}</Badge>
-          <Badge tone={t} icon={t === "danger" ? <AlertTriangle className="size-150" /> : <CheckCircle2 className="size-150" />}>{labels[t]}</Badge>
+          <Badge tone={t} size="xsmall">
+            {labels[t]}
+          </Badge>
+          <Badge tone={t} appearance="bold">
+            {labels[t]}
+          </Badge>
+          <Badge
+            tone={t}
+            icon={
+              t === "danger" ? (
+                <AlertTriangle className="size-150" />
+              ) : (
+                <CheckCircle2 className="size-150" />
+              )
+            }
+          >
+            {labels[t]}
+          </Badge>
           <Indicator tone={t}>{labels[t]}</Indicator>
           <Dot tone={t} />
         </Inline>
@@ -64,4 +87,6 @@ export const InContext: Story = {
   ),
 };
 
-export const Playground: Story = { args: { tone: "success", appearance: "subtle", size: "small", children: "Verified" } };
+export const Playground: Story = {
+  args: { tone: "success", appearance: "subtle", size: "small", children: "Verified" },
+};

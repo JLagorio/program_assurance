@@ -1,8 +1,18 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Button, Checkbox, Field, Input, NativeSelect, RadioGroup, Switch, Textarea } from "../../components";
+import {
+  Button,
+  Checkbox,
+  Field,
+  Input,
+  NativeSelect,
+  RadioGroup,
+  Switch,
+  Textarea,
+} from "../../components";
 import { Inline, Stack } from "../../primitives";
+import { Matrix, Specimens, bothModes } from "../_lib/matrix";
 
 const meta = {
   title: "Components/Controls",
@@ -19,7 +29,9 @@ export const Fields: Story = {
       </Field>
       <Field label="Owner">
         <NativeSelect defaultValue="">
-          <option value="" disabled>Choose an owner</option>
+          <option value="" disabled>
+            Choose an owner
+          </option>
           <option>Dana Whitfield</option>
           <option>Priya Natarajan</option>
           <option>Marcus Oyelaran</option>
@@ -45,23 +57,33 @@ function Choices() {
   return (
     <Stack space="space.400">
       <Stack space="space.150">
-        <Checkbox checked={all} onCheckedChange={(v) => setAll(v === true)}>Select every control in the family</Checkbox>
+        <Checkbox checked={all} onCheckedChange={(v) => setAll(v === true)}>
+          Select every control in the family
+        </Checkbox>
         <Checkbox defaultChecked>Evidence attached</Checkbox>
         <Checkbox>Requires walkthrough</Checkbox>
         <Checkbox disabled>Locked by policy</Checkbox>
-        <Checkbox disabled defaultChecked>Locked and checked</Checkbox>
+        <Checkbox disabled defaultChecked>
+          Locked and checked
+        </Checkbox>
       </Stack>
       <Stack space="space.150">
-        <Switch checked={notify} onCheckedChange={setNotify}>Notify the owner on status change</Switch>
+        <Switch checked={notify} onCheckedChange={setNotify}>
+          Notify the owner on status change
+        </Switch>
         <Switch>Include in the board pack</Switch>
         <Switch disabled>Managed by the programme</Switch>
-        <Switch disabled defaultChecked>Managed and on</Switch>
+        <Switch disabled defaultChecked>
+          Managed and on
+        </Switch>
       </Stack>
       <RadioGroup defaultValue="quarterly">
         <RadioGroup.Item value="monthly">Monthly</RadioGroup.Item>
         <RadioGroup.Item value="quarterly">Quarterly</RadioGroup.Item>
         <RadioGroup.Item value="annually">Annually</RadioGroup.Item>
-        <RadioGroup.Item value="never" disabled>Not scheduled</RadioGroup.Item>
+        <RadioGroup.Item value="never" disabled>
+          Not scheduled
+        </RadioGroup.Item>
       </RadioGroup>
     </Stack>
   );
@@ -82,5 +104,90 @@ export const Bare: Story = {
         <RadioGroup.Item value="b" aria-label="B" />
       </RadioGroup>
     </Inline>
+  ),
+};
+
+const textStates = ["default", "filled", "disabled", "invalid", "read only"] as const;
+type TextState = (typeof textStates)[number];
+const stateProps = (s: TextState) => ({
+  defaultValue: s === "default" ? undefined : "Northwind payroll",
+  disabled: s === "disabled",
+  "aria-invalid": s === "invalid" ? true : undefined,
+  readOnly: s === "read only",
+});
+
+/** Every text control by every state; every choice control off, on and disabled; Field with a hint, an error and a requirement. */
+export const ControlsMatrix: Story = {
+  decorators: [bothModes],
+  render: () => (
+    <Stack space="space.300">
+      <Matrix
+        rows={["Input", "Textarea", "NativeSelect"] as const}
+        cols={textStates}
+        rowLabel="control"
+        render={(row, s) => {
+          const p = stateProps(s);
+          if (row === "Input")
+            return <Input placeholder="Placeholder" {...p} style={{ width: 180 }} />;
+          if (row === "Textarea")
+            return <Textarea placeholder="Placeholder" {...p} style={{ width: 180 }} rows={2} />;
+          return (
+            <NativeSelect
+              disabled={p.disabled}
+              aria-invalid={p["aria-invalid"]}
+              defaultValue={p.defaultValue ? "b" : ""}
+              style={{ width: 180 }}
+            >
+              <option value="">Choose…</option>
+              <option value="b">Northwind payroll</option>
+            </NativeSelect>
+          );
+        }}
+      />
+      <Matrix
+        rows={["Checkbox", "Switch", "Radio"] as const}
+        cols={["off", "on", "off · disabled", "on · disabled", "mixed"] as const}
+        rowLabel="control"
+        render={(row, s) => {
+          const on = s.startsWith("on") || s === "mixed";
+          const disabled = s.includes("disabled");
+          if (row === "Checkbox")
+            return (
+              <Checkbox
+                checked={s === "mixed" ? "indeterminate" : on}
+                disabled={disabled}
+                onCheckedChange={() => {}}
+              >
+                Label
+              </Checkbox>
+            );
+          if (row === "Switch")
+            return s === "mixed" ? null : (
+              <Switch checked={on} disabled={disabled} onCheckedChange={() => {}}>
+                Label
+              </Switch>
+            );
+          return s === "mixed" ? null : (
+            <RadioGroup value={on ? "a" : ""} onValueChange={() => {}} disabled={disabled}>
+              <RadioGroup.Item value="a">Label</RadioGroup.Item>
+            </RadioGroup>
+          );
+        }}
+      />
+      <Specimens title="Field">
+        <Field label="Owner">
+          <Input defaultValue="Dana Whitlock" style={{ width: 200 }} />
+        </Field>
+        <Field label="Owner" hint="The person who answers for it.">
+          <Input defaultValue="Dana Whitlock" style={{ width: 200 }} />
+        </Field>
+        <Field label="Owner" error="Pick someone on the program.">
+          <Input aria-invalid style={{ width: 200 }} />
+        </Field>
+        <Field label="Owner" isRequired>
+          <Input style={{ width: 200 }} />
+        </Field>
+      </Specimens>
+    </Stack>
   ),
 };

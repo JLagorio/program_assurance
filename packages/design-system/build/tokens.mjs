@@ -44,13 +44,14 @@ function utilityFor(token) {
   const p = publicPath(token);
   const [a, b] = p;
   if (a === "color") {
-    if (["neutral", "darkNeutral", "blue", "green", "orange", "red"].includes(b)) return null; // palette: unreachable by design
+    if (["neutral", "darkNeutral", "blue", "green", "orange", "red", "teal", "purple"].includes(b)) return null; // palette: unreachable by design
     if (b === "background") return { kind: "utility", cls: `bg-${rest(p, 2)}`, prop: "background-color" };
     if (b === "blanket") return { kind: "utility", cls: "bg-blanket", prop: "background-color" };
     if (b === "skeleton") return { kind: "utility", cls: `bg-skeleton${p[2] ? "-" + rest(p, 2) : ""}`, prop: "background-color" };
     if (b === "text") return { kind: "utility", cls: `text-${p.length > 2 ? rest(p, 2) : "default"}`, prop: "color" };
     if (b === "icon") return { kind: "utility", cls: `icon-${p.length > 2 ? rest(p, 2) : "default"}`, prop: "color" };
     if (b === "border") return { kind: "utility", cls: `border-${p.length > 2 ? rest(p, 2) : "default"}`, prop: "border-color" };
+    if (b === "chart") return { kind: "svg", cls: `fill-chart-${rest(p, 2)}`, strokeCls: `stroke-chart-${rest(p, 2)}`, bgCls: `bg-chart-${rest(p, 2)}` }; // an SVG series paints fill or stroke; a legend swatch paints background
   }
   if (a === "elevation" && b === "surface") return { kind: "utility", cls: `bg-surface${p[2] ? "-" + rest(p, 2) : ""}`, prop: "background-color" };
   if (a === "utility") return { kind: "utility", cls: "bg-surface-current", prop: "background-color" };
@@ -186,6 +187,11 @@ for (const token of all) {
     } else if (u.kind === "typography") {
       utilityBlocks.push(`@utility ${u.cls} {\n  font: var(${v});\n  letter-spacing: var(${v}-letter-spacing);\n}`);
       groups.font.push(u.cls.slice(5));
+    } else if (u.kind === "svg") {
+      utilityBlocks.push(`@utility ${u.cls} {\n  fill: var(${v});\n}`);
+      utilityBlocks.push(`@utility ${u.strokeCls} {\n  stroke: var(${v});\n}`);
+      utilityBlocks.push(`@utility ${u.bgCls} {\n  background-color: var(${v});\n}`);
+      allClasses.push(u.strokeCls, u.bgCls);
     } else if (u.kind === "size") {
       utilityBlocks.push(`@utility ${u.cls} {\n  width: var(${v});\n  height: var(${v});\n}`);
       groups.size.push(u.cls.slice(5));
@@ -234,6 +240,9 @@ fs.writeFileSync(
   path.join(outDir, "tokens.css"),
   header("custom properties, both modes") +
     block(":root", lightVars) +
+    "\n" +
+    // an explicit light scope, so a nested light region inside a dark page (a mode-by-mode story) reads light
+    block('[data-color-mode="light"]', lightVars.filter(([k]) => darkVars.some(([dk]) => dk === k))) +
     "\n" +
     block('[data-color-mode="dark"]', darkVars) +
     "\n@media (prefers-color-scheme: dark) {\n" +

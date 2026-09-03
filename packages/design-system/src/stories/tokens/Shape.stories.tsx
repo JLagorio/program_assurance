@@ -16,7 +16,10 @@ export const Radius: Story = {
         <div className="flex flex-wrap gap-300">
           {under("radius").map((d) => (
             <div key={d.name} className="flex w-[132px] flex-col gap-050">
-              <div className="h-800 border border-bold bg-surface-raised" style={{ borderRadius: `var(${d.cssVar})` }} />
+              <div
+                className="h-800 border border-bold bg-surface-raised"
+                style={{ borderRadius: `var(${d.cssVar})` }}
+              />
               <span className="font-body text-default">{d.name}</span>
               <Spec>{d.utility}</Spec>
               <Spec>{d.light}</Spec>
@@ -31,7 +34,9 @@ export const Radius: Story = {
             <div key={d.name} className="flex w-[180px] flex-col gap-050">
               <div
                 className="h-600 rounded-medium bg-surface"
-                style={{ border: `var(${d.cssVar}) solid ${d.name.endsWith("focused") ? "var(--ds-color-border-focused)" : d.name.endsWith("selected") ? "var(--ds-color-border-selected)" : "var(--ds-color-border-bold)"}` }}
+                style={{
+                  border: `var(${d.cssVar}) solid ${d.name.endsWith("focused") ? "var(--ds-color-border-focused)" : d.name.endsWith("selected") ? "var(--ds-color-border-selected)" : "var(--ds-color-border-bold)"}`,
+                }}
               />
               <span className="font-body text-default">{d.name}</span>
               <Spec>{d.utility}</Spec>

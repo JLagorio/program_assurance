@@ -1,0 +1,47 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Chart.stories";
+
+<Meta of={Stories} />
+
+# Chart
+
+Charts on the chart tokens. Recharts draws; the kit decides the paint, the type, the grid and the tooltip, so a chart reads like the rest of the page in both modes.
+
+<Canvas of={Stories.Stacked} />
+
+## Series and tones
+
+Every series names a `color.chart.*` token through its `tone`:
+
+| Tone | Use |
+| --- | --- |
+| `success`, `warning`, `danger`, `information` | The series carries a status: satisfied, at risk, overdue. |
+| `brand` | The one series the reader is asked to look at. |
+| `neutral` | Context: totals, the remainder, last period. |
+| `categorical.1` … `categorical.8` | Categories with no status. The default when a series has no tone, in order. |
+
+A status tone on a chart is data, the same rule as a Badge or a Stat. The chart hues (`teal`, `purple`) exist for the categorical set only; nothing outside `color.chart` reaches them, and the `fill-chart-*`, `stroke-chart-*` and `bg-chart-*` utilities let a bespoke SVG take the same paint.
+
+## Kinds
+
+| Part | Does |
+| --- | --- |
+| `Chart.Bar` | Bars per category; `stacked` stacks the series, `horizontal` turns the axes. |
+| `Chart.Line` | A line per series, no dots until hover. |
+| `Chart.Area` | A filled line per series; `stacked` stacks them. |
+| `Chart.Donut` | A ring on a `color.chart.track` with a `label` in the middle. `size` and `thickness` are pixels. |
+| `Chart.Sparkline` | A line with no axes, for a cell or a stat. |
+| `Chart.Legend` | Swatch and label per series. Place it yourself, usually above the chart on the right. |
+
+`data` is an array of plain records; `x` names the category key; each entry in `series` names a value key. Axes are `font.body.xsmall` in `color.text.subtlest`, grid lines are `color.border`, the tooltip is the overlay surface.
+
+<Canvas of={Stories.LinesStory} />
+<Canvas of={Stories.DonutStory} />
+<Canvas of={Stories.SparklineStory} />
+
+## Details
+
+- Charts do not animate. The data is the point, and a bar sliding into place says nothing about it.
+- `chartColor(tone)` returns the `var()` for a tone, for anything recharts does not cover.
+- The bespoke diagrams in the product (the control workspace's rings and fan) stay bespoke and take their paint from the same tokens.

@@ -25,7 +25,15 @@ export const allDocs = docs as TokenDoc[];
 export const under = (prefix: string) =>
   allDocs.filter((d) => d.name === prefix || d.name.startsWith(prefix + "."));
 
-export function Page({ title, lede, children }: { title: string; lede?: ReactNode; children: ReactNode }) {
+export function Page({
+  title,
+  lede,
+  children,
+}: {
+  title: string;
+  lede?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <div className="mx-auto flex max-w-[1180px] flex-col gap-600 py-100">
       <header className="flex flex-col gap-050">
@@ -52,7 +60,15 @@ export function Spec({ children }: { children: ReactNode }) {
 }
 
 /** Renders `children` inside a forced colour mode, so light and dark sit side by side. */
-export function Mode({ mode, children, className }: { mode: "light" | "dark"; children: ReactNode; className?: string }) {
+export function Mode({
+  mode,
+  children,
+  className,
+}: {
+  mode: "light" | "dark";
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <div data-color-mode={mode} className={"bg-surface text-default " + (className ?? "")}>
       {children}
@@ -69,11 +85,20 @@ function SwatchBody({ d }: { d: TokenDoc }) {
       </span>
     );
   if (d.group === "border")
-    return <span className="block size-400 rounded-medium bg-surface" style={{ border: `2px solid ${v}` }} />;
+    return (
+      <span
+        className="block size-400 rounded-medium bg-surface"
+        style={{ border: `2px solid ${v}` }}
+      />
+    );
   if (d.group === "shadow")
-    return <span className="block size-400 rounded-medium bg-surface-raised" style={{ boxShadow: v }} />;
+    return (
+      <span className="block size-400 rounded-medium bg-surface-raised" style={{ boxShadow: v }} />
+    );
   if (d.group === "opacity")
-    return <span className="block size-400 rounded-medium bg-neutral-bold" style={{ opacity: v }} />;
+    return (
+      <span className="block size-400 rounded-medium bg-neutral-bold" style={{ opacity: v }} />
+    );
   return null;
 }
 
@@ -111,8 +136,12 @@ export function TokenTable({ rows }: { rows: TokenDoc[] }) {
                 <div className="flex flex-col gap-025">
                   <span className="text-default">{d.name}</span>
                   {d.utility ? <Spec>{d.utility}</Spec> : null}
-                  {d.description ? <span className="font-body-small text-subtle">{d.description}</span> : null}
-                  {d.deprecated ? <span className="font-body-small text-danger">Deprecated: {d.deprecated}</span> : null}
+                  {d.description ? (
+                    <span className="font-body-small text-subtle">{d.description}</span>
+                  ) : null}
+                  {d.deprecated ? (
+                    <span className="font-body-small text-danger">Deprecated: {d.deprecated}</span>
+                  ) : null}
                 </div>
               </td>
               <td className="w-[27%] px-150 py-100">

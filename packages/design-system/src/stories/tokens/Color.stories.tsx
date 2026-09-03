@@ -12,7 +12,18 @@ const lede =
 export const Background: Story = {
   render: () => (
     <Page title="Color · background" lede={lede}>
-      {["neutral", "brand", "selected", "danger", "warning", "success", "information", "disabled", "input", "inverse"].map((role) => (
+      {[
+        "neutral",
+        "brand",
+        "selected",
+        "danger",
+        "warning",
+        "success",
+        "information",
+        "disabled",
+        "input",
+        "inverse",
+      ].map((role) => (
         <Group key={role} title={role}>
           <TokenTable rows={under(`color.background.${role}`)} />
         </Group>
@@ -34,7 +45,10 @@ export const Text: Story = {
 
 export const Icon: Story = {
   render: () => (
-    <Page title="Color · icon" lede="Icons mirror text, one step bolder where a thin glyph needs it. Reached as icon-*.">
+    <Page
+      title="Color · icon"
+      lede="Icons mirror text, one step bolder where a thin glyph needs it. Reached as icon-*."
+    >
       <TokenTable rows={under("color.icon")} />
     </Page>
   ),
@@ -55,7 +69,9 @@ export const Elevation: Story = {
       lede="Surfaces pair with shadows: raised with shadow.raised, overlay with shadow.overlay. In dark, surfaces climb in lightness instead of casting more shadow. utility.elevation.surface.current is set by surface-owning components and read by sticky and masking children."
     >
       <Group title="surface">
-        <TokenTable rows={[...under("elevation.surface"), ...under("utility.elevation.surface.current")]} />
+        <TokenTable
+          rows={[...under("elevation.surface"), ...under("utility.elevation.surface.current")]}
+        />
       </Group>
       <Group title="shadow">
         <TokenTable rows={under("elevation.shadow")} />
