@@ -14,7 +14,7 @@ export type HeadingProps = {
   /** font.heading.medium (page titles) · small (section headings) · xsmall (dialog and card titles) */
   size: keyof typeof size;
   color?: TextColorToken;
-  className?: string;
+  className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"h2">, "children" | "className" | "color">;
 
 export function Heading({ as, size: s, color, className, children, ...rest }: HeadingProps) {

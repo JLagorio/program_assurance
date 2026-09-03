@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Count } from "../components/badge";
 
 /** A block of work, always open. The counterpart to Collapsible: a heading plus a count is the whole label. */
-export function Block({ title, count, action, children }: { title: string; count?: number | null | undefined; action?: ReactNode; children: ReactNode }) {
+export function Block({ title, count, action, children }: { title: string; count?: number | string | null | undefined; action?: ReactNode; children: ReactNode }) {
   return (
     <section className="border-t border-default pt-100">
       <div className="flex h-control-small items-center gap-100">

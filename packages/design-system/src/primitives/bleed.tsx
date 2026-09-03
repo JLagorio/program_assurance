@@ -12,7 +12,7 @@ export type BleedProps = {
   inline?: SpaceToken;
   /** Pull out on the block (vertical) axis. */
   block?: SpaceToken;
-  className?: string;
+  className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"div">, "children" | "className">;
 
 /** The only sanctioned negative spacing: a child that escapes its parent's padding, e.g. a full-bleed table inside a card. */

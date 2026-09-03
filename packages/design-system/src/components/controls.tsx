@@ -21,7 +21,7 @@ export type FieldProps = {
   error?: ReactNode;
   isRequired?: boolean | undefined;
   children: ReactNode;
-  className?: string;
+  className?: string | undefined;
 };
 
 export function Field({ label, hint, error, isRequired, children, className }: FieldProps) {

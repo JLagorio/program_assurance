@@ -15,7 +15,7 @@ export type ItemProps = {
   trailing?: ReactNode;
   actions?: ReactNode;
   /** A link element (a router's Link) that becomes the row. It receives the row's classes and content. */
-  link?: ReactElement<{ className?: string; children?: ReactNode }> | undefined;
+  link?: ReactElement<{ className?: string | undefined; children?: ReactNode }> | undefined;
   onSelect?: (() => void) | undefined;
   isActive?: boolean | undefined;
   className?: string | undefined;

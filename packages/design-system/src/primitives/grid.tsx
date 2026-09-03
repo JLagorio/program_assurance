@@ -21,7 +21,7 @@ export type GridProps = {
   alignItems?: keyof typeof alignItems;
   justifyContent?: keyof typeof justifyContent;
   autoFlow?: keyof typeof autoFlow;
-  className?: string;
+  className?: string | undefined;
   style?: CSSProperties;
 } & Omit<ComponentPropsWithoutRef<"div">, "children" | "className" | "style">;
 

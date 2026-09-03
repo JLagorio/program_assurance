@@ -105,7 +105,7 @@ function SelectionCell({ header = false, checked, onCheckedChange, label, disabl
 }
 
 /** A band of rows under one heading that opens and closes. Renders a tbody, so several groups stack inside one Table. */
-function TableGroup({ colSpan, open, onToggle, title, count, trailing, children }: { colSpan: number; open: boolean; onToggle: () => void; title: ReactNode; count?: number | null | undefined; trailing?: ReactNode; children?: ReactNode }) {
+function TableGroup({ colSpan, open, onToggle, title, count, trailing, children }: { colSpan: number; open: boolean; onToggle: () => void; title: ReactNode; count?: number | string | null | undefined; trailing?: ReactNode; children?: ReactNode }) {
   return (
     <tbody className="border-t border-default">
       <tr className="cursor-pointer bg-surface-sunken transition-colors duration-fast ease-standard hover:bg-surface-hovered" onClick={onToggle}>

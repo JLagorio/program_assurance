@@ -12,9 +12,9 @@ import { cn } from "../lib/cn";
 
 export type TabsProps = {
   /** The tablist's accessible name. */
-  label?: string;
+  label?: string | undefined;
   children: ReactNode;
-  className?: string;
+  className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"div">, "children" | "className">;
 
 function TabsRoot({ label, className, children, ...rest }: TabsProps) {
@@ -32,7 +32,7 @@ export type TabProps = {
   /** A Count or a Badge after the label. */
   trailing?: ReactNode;
   children: ReactNode;
-  className?: string;
+  className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"button">, "children" | "className" | "disabled">;
 
 function Tab({ isSelected, asChild, disabled, trailing, className, children, type, ...rest }: TabProps) {

@@ -34,7 +34,7 @@ export type BadgeProps = {
   size?: keyof typeof badgeSizes;
   icon?: ReactNode;
   children: ReactNode;
-  className?: string;
+  className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"span">, "children" | "className">;
 
 /** A short status word in a soft fill. Atlassian calls this a Lozenge. */
@@ -59,16 +59,16 @@ const countAppearances = {
 } as const;
 
 export type CountProps = {
-  /** The number. Anything above `max` renders as `max+`. */
-  value: number;
+  /** The number. Anything above `max` renders as `max+`; a string renders as given. */
+  value: number | string;
   max?: number;
   appearance?: keyof typeof countAppearances;
-  className?: string;
+  className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"span">, "children" | "className">;
 
 /** A number in a pill: unread items, rows in a group, results behind a filter. Atlassian calls this a Badge. */
 export function Count({ value, max = 99, appearance = "default", className, ...rest }: CountProps) {
-  const text = value > max ? `${max}+` : String(value);
+  const text = typeof value === "number" && value > max ? `${max}+` : String(value);
   return (
     <span
       className={cn(
@@ -95,7 +95,7 @@ export function Dot({ tone = "neutral", className }: { tone?: Tone | undefined; 
 export type IndicatorProps = {
   tone?: Tone | undefined;
   children: ReactNode;
-  className?: string;
+  className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"span">, "children" | "className">;
 
 /** Severity as a Dot plus text. Never a pill, so the status column stays the only pill in a row. */

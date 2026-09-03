@@ -77,7 +77,7 @@ function NavGroup({ label, children }: { label: string; children: ReactNode }) {
 export type NavItemProps = {
   asChild?: boolean | undefined;
   isActive?: boolean | undefined;
-  icon?: ComponentType<{ className?: string; strokeWidth?: number }> | undefined;
+  icon?: ComponentType<{ className?: string | undefined; strokeWidth?: number }> | undefined;
   /** A count on the right. */
   badge?: ReactNode;
   children: ReactNode;

@@ -24,7 +24,7 @@ export type InlineProps = {
   separator?: ReactNode;
   /** `fill` takes the available inline size. */
   grow?: "hug" | "fill";
-  className?: string;
+  className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"div">, "children" | "className">;
 
 /** Horizontal layout. Children sit left to right with one token of space between them. */

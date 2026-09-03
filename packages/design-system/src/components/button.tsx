@@ -39,7 +39,7 @@ export type ButtonProps = {
   /** Marks the button as the current choice (aria-pressed) and paints it selected. */
   isSelected?: boolean | undefined;
   children?: ReactNode;
-  className?: string;
+  className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"button">, "children" | "className">;
 
 export function Button({ variant = "secondary", size = "medium", asChild, isSelected, className, type, children, ...rest }: ButtonProps) {
@@ -71,7 +71,7 @@ export type IconButtonProps = {
   asChild?: boolean | undefined;
   isSelected?: boolean | undefined;
   children?: ReactNode;
-  className?: string;
+  className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"button">, "children" | "className" | "aria-label">;
 
 const iconSizes = { small: "size-control-small", medium: "size-control-medium" } as const;

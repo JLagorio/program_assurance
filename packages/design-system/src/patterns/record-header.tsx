@@ -17,7 +17,7 @@ export function RecordHeader({
   actions,
   below,
 }: {
-  back?: ReactElement<{ className?: string; children?: ReactNode; "aria-label"?: string }> | undefined;
+  back?: ReactElement<{ className?: string | undefined; children?: ReactNode; "aria-label"?: string }> | undefined;
   breadcrumb?: ReactNode;
   id: ReactNode;
   title: ReactNode;

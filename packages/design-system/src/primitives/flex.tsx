@@ -19,7 +19,7 @@ export type FlexProps = {
   alignItems?: keyof typeof alignItems;
   justifyContent?: keyof typeof justifyContent;
   wrap?: keyof typeof wrap;
-  className?: string;
+  className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"div">, "children" | "className">;
 
 /** The general flex container, for the layouts Stack and Inline do not express. */

@@ -18,7 +18,7 @@ export type BoxProps = {
   paddingInlineEnd?: SpaceToken;
   /** A semantic background or an elevation surface. A surface is also published as the current surface for sticky and masking children. */
   backgroundColor?: BackgroundToken;
-  className?: string;
+  className?: string | undefined;
   style?: CSSProperties;
 } & Omit<ComponentPropsWithoutRef<"div">, "children" | "className" | "style">;
 

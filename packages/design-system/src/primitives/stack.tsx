@@ -20,7 +20,7 @@ export type StackProps = {
   spread?: "space-between";
   /** `fill` takes the available block size. */
   grow?: "hug" | "fill";
-  className?: string;
+  className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"div">, "children" | "className">;
 
 /** Vertical layout. Children stack top to bottom with one token of space between them. */

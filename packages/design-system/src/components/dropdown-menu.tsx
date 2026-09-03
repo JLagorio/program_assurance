@@ -6,8 +6,8 @@ import { cn } from "../lib/cn";
 import { menuItem, menuItemDisabled, menuItemHighlighted, menuItemSelected, menuLabel, menuMotion, menuSeparator, menuSurface } from "./menu";
 
 export type DropdownMenuProps = {
-  /** One element, usually a Button. It opens and closes the menu and carries the aria. */
-  trigger: ReactNode | ((props: { open: boolean }) => ReactNode);
+  /** One element, usually a Button. It opens and closes the menu and carries the aria. The render form receives `open`; `toggle` is inert and kept for older call sites. */
+  trigger: ReactNode | ((props: { open: boolean; toggle: () => void }) => ReactNode);
   align?: "start" | "end" | undefined;
   width?: number | undefined;
   defaultOpen?: boolean | undefined;
@@ -20,7 +20,7 @@ function DropdownMenuRoot({ trigger, align = "start", width = 200, defaultOpen =
   const close = () => setOpen(false);
   return (
     <DropdownMenuPrimitive.Root open={open} onOpenChange={setOpen}>
-      <DropdownMenuPrimitive.Trigger asChild>{typeof trigger === "function" ? trigger({ open }) : trigger}</DropdownMenuPrimitive.Trigger>
+      <DropdownMenuPrimitive.Trigger asChild>{typeof trigger === "function" ? trigger({ open, toggle: () => undefined }) : trigger}</DropdownMenuPrimitive.Trigger>
       <DropdownMenuPrimitive.Portal>
         <DropdownMenuPrimitive.Content align={align} sideOffset={4} collisionPadding={8} style={{ width }} className={cn(menuSurface, menuMotion)}>
           {typeof children === "function" ? children(close) : children}

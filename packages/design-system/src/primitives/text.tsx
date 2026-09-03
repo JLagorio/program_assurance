@@ -20,7 +20,7 @@ export type TextProps = {
   align?: keyof typeof align;
   /** Clamp to this many lines with an ellipsis. */
   maxLines?: keyof typeof maxLines;
-  className?: string;
+  className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"span">, "children" | "className" | "color">;
 
 /** Body text. The size is a composite type token, so family, size, leading and tracking always agree. */
