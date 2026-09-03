@@ -15,8 +15,6 @@ Updated 2026-09-03.
 
 ## Kit
 
-- [ ] **Flyout lock.** A popover opened inside the side nav's flyout does not hold it open yet; Atlassian's does.
-
 ## Prototype
 
 - [ ] **The `ia` driver scenario** (scratchpad `drive.mjs`) fails at the persona switch: `select[aria-label="Role"]` is not found after the top-bar work. Unowned; the other four scenarios pass.

@@ -17,13 +17,13 @@ and mark.
 
 ## Areas
 
-| Area            | Does                                                                                                                                                                                                                                                                                                                                                  |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Shell.Banner`  | Above everything, `dimension.layout.banner` tall, holding a Banner. Render it while the message is true; it pushes the rest down and is gone when it unmounts.                                                                                                                                                                                        |
-| `Shell.TopNav`  | `dimension.layout.topnav` tall, the full width, sticky. Three slots: `Start`, `Middle`, `End`.                                                                                                                                                                                                                                                        |
-| `Shell.SideNav` | `dimension.layout.sidenav` wide on the sunken surface. Three slots: `Header` and `Footer` stay put, `Body` scrolls and pushes the footer down. Collapses, resizes, flies out, overlays.                                                                                                                                                               |
-| `Shell.Main`    | The page. Fills what the others leave, body scroll.                                                                                                                                                                                                                                                                                                   |
-| `Shell.Panel`   | Beside the page at the end, under the top nav, `dimension.layout.panel` wide. On a record it is the rail, always there; elsewhere it is rendered when there is something to show and unmounted when there is not. It holds a Panel: the record's rail, a thread, a form. Never the peek, which is a Sheet over the nav. It is an area, not a feature. |
+| Area            | Does                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Shell.Banner`  | Above everything, `dimension.layout.banner` tall, holding a Banner. Render it while the message is true; it pushes the rest down and is gone when it unmounts.                                                                                                                                                                                                                                                                                                                                             |
+| `Shell.TopNav`  | `dimension.layout.topnav` tall, the full width, sticky. Three slots: `Start`, `Middle`, `End`.                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `Shell.SideNav` | `dimension.layout.sidenav` wide on the sunken surface. Three slots: `Header` and `Footer` stay put, `Body` scrolls and pushes the footer down. Collapses, resizes, flies out, overlays.                                                                                                                                                                                                                                                                                                                    |
+| `Shell.Main`    | The page. Fills what the others leave, body scroll.                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `Shell.Panel`   | Beside the page at the end, under the top nav, `dimension.layout.panel` wide. Render it anywhere under the Shell, a route or a page: it is fixed beside the page and the root reserves its column, on the server as on the client. On a record it is the rail, always there; elsewhere it is rendered when there is something to show and unmounted when there is not. It holds a Panel: the record's rail, a thread, a form. Never the peek, which is a Sheet over the nav. It is an area, not a feature. |
 
 Each area is a landmark with a skip link. `label` names the side nav, the panel and the top nav's
 end list: say what is in it, "Preview" or "Comments", never "Panel".
@@ -59,7 +59,11 @@ person, for the side nav's footer.
   `defaultSideNavCollapsed` on the root sets the first render; `onCollapse` and `onExpand` on the
   side nav keep a stored preference current.
 - **Flyout.** Hovering the toggle while the side nav is collapsed flies it out over the page; moving
-  away closes it. A popover opened inside the flyout does not hold it open yet.
+  away closes it. A popup opened inside the flyout holds it open; the next click outside closes
+  both.
+- **Remembered.** `persist` on the root keeps the collapsed state and the dragged widths in this
+  browser, under `ledger.shell` or a key of your own. Put `shellScript` in the document head so the
+  first paint honours it; nothing flashes open on reload.
 - **Resize.** The splitter drags between 200px and half the viewport; the arrow keys move it 16px;
   `onResizeEnd` reports the final width for `defaultWidth` on the next load. The width survives a
   collapse.
@@ -93,7 +97,10 @@ thread or a form, is the third thing: it has a title, a close and a `Panel.Trigg
 ## Wiring it
 
 ```tsx
-<Shell sideNavShortcut defaultSideNavCollapsed={stored.collapsed}>
+head: () => ({ scripts: [{ children: modeScript }, { children: shellScript }] });
+// The scripts mark <html> before React hydrates: <html lang="en" suppressHydrationWarning>
+// …
+<Shell sideNavShortcut persist>
   <Shell.TopNav>
     <Shell.TopNav.Start toggle={<Shell.SideNav.ToggleButton />}>
       <Shell.AppLogo asChild name="Equinox" secondaryName="Northwind Corp">
@@ -108,7 +115,7 @@ thread or a form, is the third thing: it has a title, a close and a `Panel.Trigg
       </IconButton>
     </Shell.TopNav.End>
   </Shell.TopNav>
-  <Shell.SideNav defaultWidth={stored.width} onCollapse={remember} onExpand={remember}>
+  <Shell.SideNav>
     <Shell.SideNav.Body>
       <Shell.SideNav.Section heading="Work">
         <Shell.SideNav.Item asChild icon={ShieldCheck} isActive={pathname.startsWith("/scope")}>
@@ -123,10 +130,7 @@ thread or a form, is the third thing: it has a title, a close and a `Panel.Trigg
         role="Compliance lead"
       />
     </Shell.SideNav.Footer>
-    <Shell.SideNav.Splitter
-      label="Resize side navigation"
-      onResizeEnd={({ finalWidth }) => remember(finalWidth)}
-    />
+    <Shell.SideNav.Splitter label="Resize side navigation" />
   </Shell.SideNav>
   <Shell.Main>
     <Outlet />
@@ -137,7 +141,7 @@ thread or a form, is the third thing: it has a title, a close and a `Panel.Trigg
       <Inspector sticky={false} groups={groups} />
     </Panel>
   </Shell.Panel>
-</Shell>
+</Shell>;
 ```
 
 The sidebar never holds phases: a phase is a state of a programme, reached by opening that

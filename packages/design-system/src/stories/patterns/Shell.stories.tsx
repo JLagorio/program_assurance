@@ -37,7 +37,7 @@ import { ModeSwitch } from "../../mode";
 import { PageHeader, Panel, RecordHeader } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Block, Inspector } from "../../shapes";
-import { Shell, useSideNav } from "../../shell";
+import { SHELL_STORAGE_KEY, Shell, shellScript, shellScriptFor, useSideNav } from "../../shell";
 import { Specimens } from "../_lib/matrix";
 
 const meta = {
@@ -139,15 +139,17 @@ function Demo({
   banner = false,
   panel = false,
   collapsed = false,
+  persist,
 }: {
   banner?: boolean;
   panel?: boolean;
   collapsed?: boolean;
+  persist?: string | undefined;
 }) {
   const [showBanner, setShowBanner] = useState(banner);
   const [showPanel, setShowPanel] = useState(panel);
   return (
-    <Shell defaultSideNavCollapsed={collapsed} sideNavShortcut>
+    <Shell defaultSideNavCollapsed={collapsed} sideNavShortcut persist={persist}>
       {showBanner ? (
         <Shell.Banner>
           <Banner tone="warning" action={<a href="#renew">Ask for an extension</a>}>
@@ -276,6 +278,19 @@ export const WithBannerAndPanel: Story = { render: () => <Demo banner panel /> }
 
 /** Collapsed on first render. Hover the toggle for the flyout; Ctrl+[ toggles. */
 export const Collapsed: Story = { render: () => <Demo collapsed /> };
+
+const storyKey = `${SHELL_STORAGE_KEY}.story`;
+/** Collapse it, drag it, reload: the browser remembers. The shell script for the head is `shellScript`, or `shellScriptFor(key)` for a key of your own. The head script is not in Storybook, so here the side nav may flash on reload; in an app with the script it does not. */
+export const Remembered: Story = {
+  render: () => <Demo persist={storyKey} />,
+  parameters: {
+    docs: {
+      description: {
+        story: `Stored under ${storyKey}. Head script: ${shellScriptFor(storyKey).length} characters; the default is shellScript (${shellScript.length}).`,
+      },
+    },
+  },
+};
 
 /** Every part on its own: the items and their states, the levels, the logo's forms, the buttons, the end list. */
 export const ShellMatrix: Story = {

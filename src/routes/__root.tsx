@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
-import { Box, Inline, ModeProvider, Toaster, modeScript } from "@ledger/design-system";
+import { Box, Inline, ModeProvider, Toaster, modeScript, shellScript } from "@ledger/design-system";
 
 import appCss from "../styles.css?url";
 import { PersonaSwitch } from "../components/app/persona-switch";
@@ -81,7 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: "Equinox" },
     ],
     // Applies the stored colour mode before the first paint; the ModeProvider takes over after mount.
-    scripts: [{ children: modeScript }],
+    scripts: [{ children: modeScript }, { children: shellScript }],
     links: [
       {
         rel: "stylesheet",
@@ -104,7 +104,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    // The mode and shell scripts mark this element before React hydrates; the mismatch is theirs.
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

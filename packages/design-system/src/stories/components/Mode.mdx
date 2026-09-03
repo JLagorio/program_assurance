@@ -53,6 +53,6 @@ head: () => ({ scripts: [{ children: modeScript }] });
 </ModeProvider>;
 ```
 
-Do not also pin `data-color-mode` on the root in markup: the pin wins over the script and the switch cannot move it.
+Do not also pin `data-color-mode` on the root in markup: the pin wins over the script and the switch cannot move it. Put `suppressHydrationWarning` on the `<html>` element: the script marks it before React hydrates, and React would otherwise report the mismatch.
 
 <Canvas of={Stories.ControlledStory} />

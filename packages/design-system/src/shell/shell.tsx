@@ -24,7 +24,6 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
-import { createPortal } from "react-dom";
 
 import { IconButton } from "../components/button";
 import { Kbd } from "../components/kbd";
@@ -33,6 +32,7 @@ import { Tooltip } from "../components/tooltip";
 import { Eyebrow } from "../components/typography";
 import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
+import { applyShell, readShell, SHELL_STORAGE_KEY, writeShell } from "./storage";
 
 /*
  * The navigation system. Shell is the root; its areas are its immediate children in a fixed
@@ -75,8 +75,6 @@ type ShellApi = {
   setBanner: (present: boolean) => void;
   registerSkipLink: (link: SkipLink) => () => void;
   skipLinks: SkipLink[];
-  /** Where Shell.Panel lands, wherever it is rendered: the last grid child. */
-  panelHost: HTMLElement | null;
   listeners: {
     onCollapse?: ((args: { trigger: Trigger }) => void) | undefined;
     onExpand?: ((args: { trigger: Trigger }) => void) | undefined;
@@ -103,7 +101,6 @@ const detached: ShellApi = {
   setBanner: noop,
   registerSkipLink: () => noop,
   skipLinks: [],
-  panelHost: null,
   listeners: {},
 };
 
@@ -144,6 +141,8 @@ export type ShellProps = {
   defaultSideNavCollapsed?: boolean | undefined;
   /** Ctrl+[ toggles the side nav. Off by default; ignored while a dialog is open. */
   sideNavShortcut?: boolean | undefined;
+  /** Remember the collapsed state and the dragged widths in this browser: `true` for the default key, or a key of your own. Put `shellScript` in the document head so the first paint honours it. */
+  persist?: string | boolean | undefined;
   className?: string | undefined;
 };
 
@@ -151,6 +150,7 @@ function ShellRoot({
   children,
   defaultSideNavCollapsed = false,
   sideNavShortcut = false,
+  persist,
   className,
 }: ShellProps) {
   const [isDesktop, setIsDesktop] = useState(true);
@@ -161,7 +161,6 @@ function ShellRoot({
   const [panelWidth, setPanelWidth] = useState<number | null>(null);
   const [hasBanner, setBanner] = useState(false);
   const [skipLinks, setSkipLinks] = useState<SkipLink[]>([]);
-  const [panelHost, setPanelHost] = useState<HTMLElement | null>(null);
   const listeners = useRef<ShellApi["listeners"]>({});
   const peekTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -172,6 +171,28 @@ function ShellRoot({
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, []);
+
+  // What the browser remembers: read once after mount, then write every change.
+  const storageKey = persist === true ? SHELL_STORAGE_KEY : persist || null;
+  const [restored, setRestored] = useState(false);
+  useEffect(() => {
+    if (!storageKey) return;
+    const stored = readShell(storageKey);
+    if (stored?.collapsed !== undefined) setExpanded(!stored.collapsed);
+    if (stored?.sideNavWidth) setSideNavWidth(stored.sideNavWidth);
+    if (stored?.panelWidth) setPanelWidth(stored.panelWidth);
+    setRestored(true);
+  }, [storageKey]);
+  useEffect(() => {
+    if (!storageKey || !restored) return;
+    const value = {
+      collapsed: !expanded,
+      sideNavWidth: sideNavWidth ?? undefined,
+      panelWidth: panelWidth ?? undefined,
+    };
+    writeShell(storageKey, value);
+    applyShell(value);
+  }, [storageKey, restored, expanded, sideNavWidth, panelWidth]);
 
   // An overlay does not survive a change of viewport class.
   useEffect(() => {
@@ -291,7 +312,6 @@ function ShellRoot({
       setBanner,
       registerSkipLink,
       skipLinks,
-      panelHost,
       listeners: listeners.current,
     }),
     [
@@ -312,14 +332,14 @@ function ShellRoot({
       holdPeek,
       registerSkipLink,
       skipLinks,
-      panelHost,
     ],
   );
 
+  // The widths come from the tokens, or from what the reader dragged and the browser remembered.
   const vars = {
     "--shell-banner": hasBanner ? token("dimension.layout.banner") : "0px",
-    "--shell-sidenav-width": sideNavWidth ? `${sideNavWidth}px` : token("dimension.layout.sidenav"),
-    "--shell-panel-width": panelWidth ? `${panelWidth}px` : token("dimension.layout.panel"),
+    ...(sideNavWidth ? { "--shell-sidenav-width": `${sideNavWidth}px` } : {}),
+    ...(panelWidth ? { "--shell-panel-width": `${panelWidth}px` } : {}),
   } as CSSProperties;
 
   return (
@@ -327,7 +347,6 @@ function ShellRoot({
       <div className={cn("shell-root bg-surface text-default", className)} style={vars}>
         <SkipLinks />
         {children}
-        <div className="contents" ref={setPanelHost} />
       </div>
     </ShellContext.Provider>
   );
@@ -422,6 +441,7 @@ function TopNavStart({ toggle, children }: { toggle?: ReactNode; children?: Reac
   const inline = isDesktop && sideNav.expanded;
   return (
     <div
+      data-shell-slot="start"
       className={cn(
         "flex shrink-0 items-center gap-100 px-150",
         inline && "lg:shell-topnav-start lg:border-e lg:border-default lg:bg-surface-sunken",
@@ -640,8 +660,25 @@ function SideNavRoot({
   children,
 }: SideNavProps) {
   const shell = useShell();
-  const skipId = useSkipLink(id, label);
+  const navRef = useRef<HTMLElement>(null);
   const { expanded, open, peeking } = shell.sideNav;
+  // While the flyout is held open by a popup, a click outside both closes it.
+  useEffect(() => {
+    if (!peeking) return;
+    const onDown = (e: PointerEvent) => {
+      const target = e.target instanceof Element ? e.target : null;
+      if (
+        !target ||
+        navRef.current?.contains(target) ||
+        target.closest("[data-radix-popper-content-wrapper]")
+      )
+        return;
+      shell.endPeek(true);
+    };
+    document.addEventListener("pointerdown", onDown, true);
+    return () => document.removeEventListener("pointerdown", onDown, true);
+  }, [peeking, shell]);
+  const skipId = useSkipLink(id, label);
   // The first width only; later widths come from the splitter.
   useEffect(() => {
     if (defaultWidth) shell.setSideNavWidth(defaultWidth);
@@ -661,9 +698,11 @@ function SideNavRoot({
         />
       ) : null}
       <nav
+        ref={navRef}
         id={skipId}
         tabIndex={-1}
         aria-label={label}
+        data-shell-area="sidenav"
         className={cn(
           "flex-col border-e border-default bg-surface-sunken outline-none",
           open
@@ -672,7 +711,15 @@ function SideNavRoot({
           className,
         )}
         onPointerEnter={peeking ? shell.holdPeek : undefined}
-        onPointerLeave={peeking ? () => shell.endPeek() : undefined}
+        onPointerLeave={
+          peeking
+            ? () => {
+                // A popup open inside the flyout holds it; the next click outside closes it.
+                if (navRef.current?.querySelector('[data-state="open"]')) shell.holdPeek();
+                else shell.endPeek();
+              }
+            : undefined
+        }
       >
         {children}
       </nav>
@@ -1021,33 +1068,28 @@ export type ShellPanelProps = {
   children: ReactNode;
 };
 
-/** The area beside the page, at the end. Render it anywhere under the Shell, a route or a page, and it lands in the panel area after mount; the server's page is one column until then. Mount it when there is something to show and unmount it when there is not; below the large breakpoint it overlays the page. What is in it is the product's: a Panel with the record's rail, a thread, a form. */
+/** The area beside the page, at the end. Render it anywhere under the Shell, a route or a page: it is fixed beside the page and the root reserves its column, on the server as on the client. Mount it when there is something to show and unmount it when there is not; below the large breakpoint it overlays the page. What is in it is the product's: a Panel with the record's rail, a thread, a form. */
 function PanelRoot({ id, label = "Panel", defaultWidth, className, children }: ShellPanelProps) {
-  const inShell = useContext(ShellContext) !== null;
   const shell = useShell();
   const skipId = useSkipLink(id, label);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
   // The first width only; later widths come from the splitter.
   useEffect(() => {
     if (defaultWidth) shell.setPanelWidth(defaultWidth);
   }, []);
-  const aside = (
+  return (
     <aside
       id={skipId}
       tabIndex={-1}
       aria-label={label}
+      data-shell-area="panel"
       className={cn(
-        "shell-panel-overlay flex flex-col overflow-y-auto border-s border-default bg-surface shadow-overlay outline-none lg:shell-panel lg:shadow-none",
+        "shell-panel flex flex-col overflow-y-auto border-s border-default bg-surface shadow-overlay outline-none lg:shadow-none",
         className,
       )}
     >
       {children}
     </aside>
   );
-  if (!inShell) return aside;
-  if (!shell.panelHost || !mounted) return null;
-  return createPortal(aside, shell.panelHost);
 }
 
 /** Makes the panel resizable from its start edge. */

@@ -30,8 +30,12 @@
    rendered takes no column. The root sets the widths as variables from its state. */
 @utility shell-root {
   --shell-top: calc(var(--shell-banner, 0px) + var(--ds-dimension-layout-topnav));
+  /* The tokens, unless the browser remembered a dragged width (set on the root element by the
+     shell script) or the root sets one inline after a drag. */
+  --shell-sidenav-width: var(--shell-sidenav-stored, var(--ds-dimension-layout-sidenav));
+  --shell-panel-width: var(--shell-panel-stored, var(--ds-dimension-layout-panel));
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) var(--shell-panel-inset, 0px);
   grid-template-rows: auto auto minmax(0, 1fr);
   grid-template-areas:
     "banner banner banner"
@@ -70,16 +74,20 @@
   min-width: 0;
 }
 @utility shell-panel {
-  grid-area: panel;
-  position: sticky;
+  position: fixed;
   top: var(--shell-top);
+  inset-inline-end: 0;
+  z-index: 40;
   height: calc(100dvh - var(--shell-top));
-  width: var(--shell-panel-width);
+  width: min(var(--shell-panel-width), 90vw);
+  @media (width >= 64rem) {
+    width: var(--shell-panel-width);
+  }
 }
-/* Below the large breakpoint, and for the flyout, the side nav and the panel overlay the page. They
-   keep their grid area, and they carry no other position class: a stray `relative` outranks the
-   `fixed` here, puts the overlay back in flow, and pushes the header down by its height. The
-   splitter positions against the fixed or sticky area itself. */
+/* Below the large breakpoint, and for the flyout, the side nav overlays the page. It keeps its grid
+   area and carries no other position class: a stray `relative` outranks the `fixed` here, puts the
+   overlay back in flow, and pushes the header down by its height. The splitter positions against
+   the fixed or sticky area itself. */
 @utility shell-sidenav-overlay {
   grid-area: sidenav;
   position: fixed;
@@ -89,12 +97,23 @@
   height: 100dvh;
   width: min(var(--shell-sidenav-width), 90vw);
 }
-@utility shell-panel-overlay {
-  grid-area: panel;
-  position: fixed;
-  top: var(--shell-top);
-  bottom: 0;
-  inset-inline-end: 0;
-  z-index: 40;
-  width: min(var(--shell-panel-width), 90vw);
+
+/* The panel is fixed beside the page, wherever in the tree it is rendered, so the server renders
+   it too. While one is on the page, on the large breakpoint, the root reserves its column. */
+@media (width >= 64rem) {
+  .shell-root:has([data-shell-area="panel"]) {
+    --shell-panel-inset: var(--shell-panel-width);
+  }
+}
+/* Before React takes over, the collapsed state the shell script found in storage hides the side
+   nav and narrows the start slot, so a collapsed side nav does not flash open on reload. */
+@media (width >= 64rem) {
+  html[data-shell-sidenav="collapsed"] [data-shell-area="sidenav"] {
+    display: none;
+  }
+  html[data-shell-sidenav="collapsed"] [data-shell-slot="start"] {
+    width: auto;
+    background-color: transparent;
+    border-inline-end-width: 0;
+  }
 }

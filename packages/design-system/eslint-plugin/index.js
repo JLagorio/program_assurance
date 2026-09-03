@@ -188,7 +188,7 @@ const structural = [
   /^(inert)$/,
   /^gap(-x|-y)?-px$/, // a hairline gutter between tiles, painted with the border token
   /^animate-(rise|enter|exit|fade-in|fade-out|slide-(in|out)-(start|end|top|bottom))$/, // motion.css, on the motion tokens
-  /^(grid-cols-main-rail|grid-cols-list-detail|sticky-rail|min-h-work|shell-(root|banner|topnav|topnav-start|sidenav|sidenav-overlay|main|panel|panel-overlay))$/, // layout.css, on the layout dimension tokens
+  /^(grid-cols-main-rail|grid-cols-list-detail|sticky-rail|min-h-work|shell-(root|banner|topnav|topnav-start|sidenav|sidenav-overlay|main|panel))$/, // layout.css, on the layout dimension tokens
   /^table-(auto|fixed)$/, // column algorithm, not a design value
   /^opacity-(0|100)$/, // hidden and shown; the design opacities are opacity-disabled and opacity-loading
   /^(bg|border)-transparent$/, // no paint, which is structure: a placeholder border that holds layout, a row that must not light up

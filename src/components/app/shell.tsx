@@ -24,7 +24,6 @@ import type { ReactNode } from "react";
 
 import {
   Avatar,
-  Badge,
   IconButton,
   Inline,
   Input,
@@ -88,7 +87,7 @@ const topNavEnd = [
 export function Shell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <DsShell sideNavShortcut>
+    <DsShell sideNavShortcut persist>
       <DsShell.TopNav>
         <DsShell.TopNav.Start toggle={<DsShell.SideNav.ToggleButton />}>
           <DsShell.AppLogo asChild name="Equinox" secondaryName="Northwind Corp">
@@ -119,9 +118,6 @@ export function Shell({ children }: { children: ReactNode }) {
           </InputGroup>
         </DsShell.TopNav.Middle>
         <DsShell.TopNav.End>
-          <Badge tone="warning" className="hidden sm:inline-flex">
-            Audit window open
-          </Badge>
           <ModeSwitch />
           {topNavEnd.map(([Icon, label]) => (
             <Tooltip key={label} content={label}>
