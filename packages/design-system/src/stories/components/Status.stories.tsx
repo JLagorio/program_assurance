@@ -123,6 +123,16 @@ export const ProgressMatrix: Story = {
         </Box>
         <Box style={{ width: 320 }}>
           <Progress.Stacked
+            segments={[
+              { key: "m", value: 12, tone: "success", title: "Met" },
+              { key: "x", value: 3, tone: "danger", title: "Not met" },
+              { key: "r", value: 5, tone: "information", title: "Not run" },
+              { key: "u", value: 9, tone: "neutral", appearance: "hatched", title: "Not covered" },
+            ]}
+          />
+        </Box>
+        <Box style={{ width: 320 }}>
+          <Progress.Stacked
             height={4}
             segments={[
               { key: "s", value: 3, tone: "success" },

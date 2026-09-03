@@ -11,17 +11,20 @@ import {
   downloadText,
 } from "@/components/app/export";
 import {
+  Absent,
   Badge,
   Box,
   Breadcrumb,
   Empty,
   Id,
+  Indicator,
   Inline,
   RecordHeader,
   Section,
   Select,
   ShowPage,
   Stack,
+  Table,
   Tabs,
   TextLink,
   Toolbar,
@@ -43,6 +46,8 @@ import {
   type EmassExportKind,
 } from "@/lib/emass";
 import { programs } from "@/lib/grc-data";
+import { objectiveTone } from "@/lib/campaigns";
+import { rtm, rtmCsv, useVerificationVersion } from "@/lib/requirement-verification";
 import {
   oscalAssessmentPlan,
   oscalAssessmentResults,
@@ -57,7 +62,7 @@ import {
 } from "@/lib/oscal";
 import { useSctm, type SctmRow } from "@/lib/sctm";
 
-const exportTabs = ["OSCAL", "eMASS", "Air-gap bundle", "Reconciliation"] as const;
+const exportTabs = ["OSCAL", "eMASS", "RTM", "Air-gap bundle", "Reconciliation"] as const;
 type ExportTab = (typeof exportTabs)[number];
 
 /**
@@ -187,6 +192,13 @@ function ProgramExport() {
   );
   const sheetCsv = useMemo(() => (sheet ? emassCsv(sheet) : ""), [sheet]);
 
+  const verificationVersion = useVerificationVersion();
+  const matrix = useMemo(() => rtm(program.id), [program.id, verificationVersion]);
+  const matrixCsv = useMemo(
+    () => (tab === "RTM" ? rtmCsv(program.id) : ""),
+    [tab, program.id, verificationVersion],
+  );
+
   const needsBundle = tab === "Air-gap bundle" || tab === "Reconciliation";
   const bundle = useMemo(
     () => (needsBundle ? buildBundle(program.id, rows) : null),
@@ -208,6 +220,7 @@ function ProgramExport() {
   // count that belongs on a tab strip is one that is always true: the bundle's
   // own header states its artifact count and total bytes.
   const counts: Record<ExportTab, number | null> = {
+    RTM: matrix.rows.length,
     OSCAL: oscalModels.length,
     eMASS: emassExportKinds.length,
     "Air-gap bundle": null,
@@ -350,6 +363,79 @@ function ProgramExport() {
 
             <Box paddingBlockStart="space.100">
               <EmassTable key={sheet.kind} sheet={sheet} />
+            </Box>
+          </Section>
+        ) : null}
+
+        {tab === "RTM" ? (
+          <Section
+            title="Requirements traceability matrix"
+            action={
+              <DownloadButton
+                filename={`${slug}-rtm.csv`}
+                text={matrixCsv}
+                mime="text/csv;charset=utf-8"
+                label="Download CSV"
+                variant="primary"
+              />
+            }
+          >
+            <Box paddingBlockStart="space.100">
+              <Table>
+                <thead>
+                  <Table.Row>
+                    <Table.Header width={104}>Requirement</Table.Header>
+                    <Table.Header>Statement</Table.Header>
+                    <Table.Header width={96}>Source</Table.Header>
+                    <Table.Header width={180}>Allocated to</Table.Header>
+                    <Table.Header width={96}>Method</Table.Header>
+                    <Table.Header width={80}>Objective</Table.Header>
+                    {matrix.events.map((e) => (
+                      <Table.Header key={e.id} width={112} title={`${e.name} · ${e.window}`}>
+                        {e.id}
+                      </Table.Header>
+                    ))}
+                    <Table.Header width={96}>Evidence</Table.Header>
+                  </Table.Row>
+                </thead>
+                <tbody>
+                  {matrix.rows.map((r) => (
+                    <Table.Row key={`${r.requirement}-${r.objective ?? "none"}`}>
+                      <Table.Cell width={104}>
+                        <Id>{r.requirement}</Id>
+                      </Table.Cell>
+                      <Table.Cell className="truncate" title={r.statement}>
+                        {r.statement}
+                      </Table.Cell>
+                      <Table.Cell className="truncate" width={96}>
+                        {r.sources.length ? r.sources.join(", ") : <Absent />}
+                      </Table.Cell>
+                      <Table.Cell className="truncate" width={180} title={r.allocatedTo.join(", ")}>
+                        {r.allocatedTo.length ? r.allocatedTo.join(", ") : <Absent />}
+                      </Table.Cell>
+                      <Table.Cell className="truncate" width={96}>
+                        {r.method}
+                      </Table.Cell>
+                      <Table.Cell width={80} title={r.objectiveStatement}>
+                        {r.objective ? <Id>{r.objective}</Id> : <Absent />}
+                      </Table.Cell>
+                      {matrix.events.map((e) => {
+                        const result = r.results[e.id];
+                        return (
+                          <Table.Cell key={e.id} width={112}>
+                            {result ? (
+                              <Indicator tone={objectiveTone(result)}>{result}</Indicator>
+                            ) : null}
+                          </Table.Cell>
+                        );
+                      })}
+                      <Table.Cell width={96}>
+                        {r.evidence ? <Id>{r.evidence}</Id> : <Absent />}
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </tbody>
+              </Table>
             </Box>
           </Section>
         ) : null}

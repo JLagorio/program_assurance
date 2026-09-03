@@ -33,7 +33,8 @@ import {
   type RevisionState,
 } from "@/lib/control-set";
 import { programs } from "@/lib/grc-data";
-import { needsOf, requirementsForProgram, useRequirementsVersion } from "@/lib/requirements";
+import { needsWithVerification, useVerificationVersion } from "@/lib/requirement-verification";
+import { requirementsForProgram, useRequirementsVersion } from "@/lib/requirements";
 import { scopeById } from "@/lib/scopes";
 
 export const Route = createFileRoute("/scope")({
@@ -68,13 +69,14 @@ const filters: (RevisionState | "All")[] = [
 function ScopeApprovals() {
   const version = useControlSetVersion();
   const requirementsVersion = useRequirementsVersion();
+  const verificationVersion = useVerificationVersion();
   const needing = useMemo(
     () =>
       programs
         .flatMap((p) => requirementsForProgram(p.id))
-        .map((r) => ({ requirement: r, needs: needsOf(r) }))
+        .map((r) => ({ requirement: r, needs: needsWithVerification(r) }))
         .filter((x) => x.needs.length > 0),
-    [requirementsVersion],
+    [requirementsVersion, verificationVersion],
   );
   const [tab, setTab] = useState<(typeof filters)[number]>("All");
   const [reviewing, setReviewing] = useState<string | null>(null);

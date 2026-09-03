@@ -185,6 +185,20 @@ export const events: TestEvent[] = [
     findings: [],
     notes: "Degraded-comms procedures walked with the AO's staff; no findings.",
   },
+  {
+    id: "TE-0050",
+    campaign: "TC-0031",
+    name: "Secure boot verification — tactical edge",
+    kind: "Cooperative",
+    state: "Data reduction",
+    window: "Aug 27 – Aug 29",
+    team: "Mission software + SSE",
+    assets: ["AST-0311"],
+    objectives: ["TO-130", "TO-131", "TO-132"],
+    findings: [],
+    notes:
+      "Signed, unsigned and corrupted images tried at each stage; a lower security version was still accepted on the ROMMON path.",
+  },
 ];
 
 export const objectives: TestObjective[] = [
@@ -257,6 +271,35 @@ export const objectives: TestObjective[] = [
     result: "Met",
     event: "TE-0038",
     evidence: "EVD-8830",
+  },
+  {
+    id: "TO-130",
+    statement:
+      "Each boot stage refuses an image whose signature does not verify under the production key hierarchy.",
+    ccis: ["CCI-002710"],
+    method: "Demonstration",
+    result: "Met",
+    event: "TE-0050",
+    evidence: "EVD-8871",
+  },
+  {
+    id: "TO-131",
+    statement:
+      "Firmware carrying a security version below the recorded minimum is refused before execution.",
+    ccis: ["CCI-002712"],
+    method: "Demonstration",
+    result: "Not met",
+    event: "TE-0050",
+    evidence: "EVD-8872",
+  },
+  {
+    id: "TO-132",
+    statement:
+      "A failed authentication halts boot and enters recovery without handing control to an operational image.",
+    ccis: ["CCI-002718"],
+    method: "Demonstration",
+    result: "Not run",
+    event: "TE-0050",
   },
 ];
 

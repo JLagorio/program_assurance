@@ -1,9 +1,8 @@
 /**
  * The Requirements tab as a coverage view: every requirement in the program,
  * which elements carry it (the union across allocations), which controls it
- * traces to, and the two lists that matter for the model — requirements no
- * control produced (engineering intent, tracked on purpose) and requirements
- * nothing is yet responsible for.
+ * traces to, and how far its verification has run. The filters are the
+ * questions a reader asks of the list; the bar is the one status per row.
  */
 
 import { Link } from "@tanstack/react-router";
@@ -17,12 +16,21 @@ import {
   Id,
   Indicator,
   Inline,
+  Progress,
   Stack,
   Table,
   Text,
   TextLink,
   ToggleGroup,
+  type StackedSegment,
 } from "@ledger/design-system";
+import {
+  coverageOf,
+  coverageTotal,
+  notCoveredRequirements,
+  useVerificationVersion,
+  type RequirementCoverage,
+} from "@/lib/requirement-verification";
 import {
   allocationsFor,
   requirementSummary,
@@ -34,14 +42,14 @@ import {
   type Requirement,
 } from "@/lib/requirements";
 
-type Filter = "all" | "unallocated" | "no-control" | "from-control" | "verified";
+type Filter = "all" | "unallocated" | "no-control" | "from-control" | "not-covered";
 
 const filterLabels: Record<Filter, string> = {
   all: "All",
   unallocated: "Unallocated",
   "no-control": "No control",
   "from-control": "From a control",
-  verified: "Verified",
+  "not-covered": "Not covered",
 };
 
 function fromControl(r: Requirement): boolean {
@@ -50,8 +58,52 @@ function fromControl(r: Requirement): boolean {
   );
 }
 
+/** The bar's segments: one per result, and a hatched hole for what no test names. */
+export function coverageSegments(c: RequirementCoverage): StackedSegment[] {
+  return [
+    { key: "met", value: c.met, tone: "success", title: `${c.met} met` },
+    { key: "partial", value: c.partial, tone: "warning", title: `${c.partial} partially met` },
+    { key: "notMet", value: c.notMet, tone: "danger", title: `${c.notMet} not met` },
+    { key: "notRun", value: c.notRun, tone: "information", title: `${c.notRun} not run` },
+    {
+      key: "notCovered",
+      value: c.notCovered,
+      tone: "neutral",
+      appearance: "hatched",
+      title: `${c.notCovered} not covered`,
+    },
+  ];
+}
+
+/** One phrase for the cell: the result when there is one, the count when there are several. */
+function coverageWord(c: RequirementCoverage): string {
+  const total = coverageTotal(c);
+  if (total === 1) {
+    if (c.met) return "Met";
+    if (c.partial) return "Partially met";
+    if (c.notMet) return "Not met";
+    if (c.notRun) return "Not run";
+    return "Not covered";
+  }
+  return `${c.met} of ${total} met`;
+}
+
+export function CoverageBar({ coverage }: { coverage: RequirementCoverage }) {
+  return (
+    <Inline as="span" space="space.100" alignBlock="center">
+      <span className="shrink-0" style={{ width: 56 }}>
+        <Progress.Stacked height={6} segments={coverageSegments(coverage)} />
+      </span>
+      <Text size="xsmall" color="color.text.subtle" maxLines={1}>
+        {coverageWord(coverage)}
+      </Text>
+    </Inline>
+  );
+}
+
 export function RequirementCoverage({ programId }: { programId: string }) {
   const version = useRequirementsVersion();
+  const verificationVersion = useVerificationVersion();
   const [filter, setFilter] = useState<Filter>("all");
   const [allocating, setAllocating] = useState<Requirement | null>(null);
 
@@ -60,8 +112,9 @@ export function RequirementCoverage({ programId }: { programId: string }) {
     () => ({
       unallocated: new Set(unallocatedRequirements(programId).map((r) => r.id)),
       noControl: new Set(unmappedRequirements(programId).map((r) => r.id)),
+      notCovered: new Set(notCoveredRequirements(programId).map((r) => r.id)),
     }),
-    [programId, version],
+    [programId, version, verificationVersion],
   );
   const summary = useMemo(() => requirementSummary(programId), [programId, version]);
 
@@ -73,8 +126,8 @@ export function RequirementCoverage({ programId }: { programId: string }) {
         return sets.noControl.has(r.id);
       case "from-control":
         return fromControl(r);
-      case "verified":
-        return r.state === "Verified";
+      case "not-covered":
+        return sets.notCovered.has(r.id);
       default:
         return true;
     }
@@ -85,7 +138,7 @@ export function RequirementCoverage({ programId }: { programId: string }) {
     unallocated: sets.unallocated.size,
     "no-control": sets.noControl.size,
     "from-control": all.filter(fromControl).length,
-    verified: summary.verified,
+    "not-covered": sets.notCovered.size,
   };
 
   return (
@@ -112,9 +165,8 @@ export function RequirementCoverage({ programId }: { programId: string }) {
             <Table.Header width={104}>Requirement</Table.Header>
             <Table.Header>Shall statement</Table.Header>
             <Table.Header width={240}>Carried by</Table.Header>
-            <Table.Header width={200}>Controls</Table.Header>
-            <Table.Header width={96}>Method</Table.Header>
-            <Table.Header width={120}>Owner</Table.Header>
+            <Table.Header width={170}>Controls</Table.Header>
+            <Table.Header width={168}>Verification</Table.Header>
             <Table.Header width={104}>State</Table.Header>
             <Table.Header width={84} className="text-right">
               {" "}
@@ -188,8 +240,9 @@ export function RequirementCoverage({ programId }: { programId: string }) {
                     </Indicator>
                   )}
                 </Table.Cell>
-                <Table.Cell className="truncate">{r.method}</Table.Cell>
-                <Table.Cell className="truncate">{r.owner}</Table.Cell>
+                <Table.Cell className="max-w-none">
+                  <CoverageBar coverage={coverageOf(r)} />
+                </Table.Cell>
                 <Table.Cell>
                   <Badge size="xsmall" tone={requirementStateTone[r.state]}>
                     {r.state}

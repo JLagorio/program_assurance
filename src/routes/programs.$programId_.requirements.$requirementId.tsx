@@ -9,10 +9,12 @@ import {
   Block,
   Button,
   Collapsible,
+  Combobox,
   Editable,
   Fact,
   Gates,
   Id,
+  Indicator,
   Inline,
   Inspector,
   KeyValue,
@@ -20,18 +22,27 @@ import {
   Section,
   ShowPage,
   Stack,
+  Table,
   Tabs,
   TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
+import { campaignById, eventById, objectiveTone } from "@/lib/campaigns";
+import { currentSession } from "@/lib/control-work";
 import { programs } from "@/lib/grc-data";
+import {
+  linkVerification,
+  needsWithVerification,
+  objectivesForRequirement,
+  unlinkedObjectives,
+  useVerificationVersion,
+} from "@/lib/requirement-verification";
 import {
   allocationsFor,
   ancestorsOfRequirement,
   childrenOfRequirement,
   derivationSourceTone,
   getRequirement,
-  needsOf,
   qualityGates,
   requirementStateTone,
   requirementStates,
@@ -94,6 +105,7 @@ function RequirementRecord() {
   // Keyed off the store version so an edit made in the allocation table
   // re-renders the header counts in the same tick.
   const storeVersion = useRequirementsVersion();
+  const verificationVersion = useVerificationVersion();
   const [allocating, setAllocating] = useState(false);
   const requirement = useMemo(
     () => getRequirement(requirementId) ?? null,
@@ -136,7 +148,9 @@ function RequirementRecord() {
   const gates = qualityGates(requirement);
   const unmet = gates.filter((g) => !g.met);
   const firstUnmet = unmet[0] ?? null;
-  const needs = needsOf(requirement);
+  const needs = needsWithVerification(requirement);
+  const objectives = objectivesForRequirement(requirement.id);
+  const candidates = unlinkedObjectives(requirement.id);
   const go = (next: RequirementTab) => navigate({ search: { tab: next }, replace: true });
 
   return (
@@ -360,7 +374,73 @@ function RequirementRecord() {
               </Section>
             ) : null}
 
-            <Section title="Verification">
+            <Section
+              title="Verification"
+              action={
+                candidates.length ? (
+                  <Combobox
+                    aria-label="Link a test objective"
+                    value=""
+                    onChange={(id) => linkVerification(requirement.id, id, currentSession().name)}
+                    options={candidates.map((o) => ({
+                      value: o.id,
+                      label: `${o.id} · ${o.statement}`,
+                    }))}
+                    placeholder="Link a test objective…"
+                    searchPlaceholder="Search objectives…"
+                    width={260}
+                  />
+                ) : null
+              }
+            >
+              {objectives.length ? (
+                <Table className="pt-050">
+                  <thead>
+                    <Table.Row>
+                      <Table.Header width={80}>Objective</Table.Header>
+                      <Table.Header>Statement</Table.Header>
+                      <Table.Header width={220}>Event</Table.Header>
+                      <Table.Header width={120}>Result</Table.Header>
+                      <Table.Header width={96}>Evidence</Table.Header>
+                    </Table.Row>
+                  </thead>
+                  <tbody>
+                    {objectives.map((o) => {
+                      const event = o.event ? eventById.get(o.event) : undefined;
+                      const campaign = event ? campaignById.get(event.campaign) : undefined;
+                      return (
+                        <Table.Row key={o.id}>
+                          <Table.Cell>
+                            <Id>{o.id}</Id>
+                          </Table.Cell>
+                          <Table.Cell className="truncate" title={o.statement}>
+                            {o.statement}
+                          </Table.Cell>
+                          <Table.Cell className="truncate">
+                            {event && campaign ? (
+                              <TextLink>
+                                <Link
+                                  to="/campaigns/$campaignId"
+                                  params={{ campaignId: campaign.id }}
+                                  title={event.window}
+                                >
+                                  {event.name}
+                                </Link>
+                              </TextLink>
+                            ) : (
+                              "—"
+                            )}
+                          </Table.Cell>
+                          <Table.Cell>
+                            <Indicator tone={objectiveTone(o.result)}>{o.result}</Indicator>
+                          </Table.Cell>
+                          <Table.Cell>{o.evidence ? <Id>{o.evidence}</Id> : "—"}</Table.Cell>
+                        </Table.Row>
+                      );
+                    })}
+                  </tbody>
+                </Table>
+              ) : null}
               <Fact.Group className="pt-150">
                 <Fact label="Method">{requirement.method}</Fact>
                 <Fact label="Success criteria">
