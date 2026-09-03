@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { ChevronDown, ChevronRight, Lock, Pencil } from "lucide-react";
@@ -8,33 +8,39 @@ import { CdrPackageModal, DigitalThreadSection } from "@/components/app/digital-
 import { InheritChip } from "@/components/app/inheritance";
 import { LifecycleSection } from "@/components/app/lifecycle";
 import {
-  Badge,
-  Button,
-  Kbd,
-  DropdownMenu,
-  Person,
-  Toolbar,
-  Dot,
-  Field,
-  KeyValue,
-  Progress,
-  Table,
-  Textarea,
-  Id,
-  Tabs,
-  Dialog,
-  Editable,
-  DatePicker,
   AlertDialog,
+  Badge,
+  Box,
+  Button,
   ButtonGroup,
-  toast,
   Combobox,
+  DatePicker,
+  Dialog,
+  Dot,
+  DropdownMenu,
+  Editable,
+  Empty,
+  Field,
+  Grid,
+  Id,
+  Inline,
+  Inspector,
+  Kbd,
+  KeyValue,
+  Person,
+  Progress,
+  RecordHeader,
+  Section,
   Select,
-} from "@/ds/primitives";
-import { Empty, RecordHeader, Section, ShowPage } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
-import { Shell } from "@/ds/shell";
-import { TailoringSection } from "@/components/app/tailoring";
+  ShowPage,
+  Stack,
+  Table,
+  Tabs,
+  Textarea,
+  toast,
+  Toolbar,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { AuthorizationSection } from "@/components/app/authorization";
 import { VerificationSection } from "@/components/app/verification";
 import { TeamSection } from "@/components/app/team";
@@ -54,7 +60,7 @@ import { isOpen } from "@/lib/findings";
 import { CommandPalette, useCommandPalette } from "@/components/app/command-palette";
 import { programCommands } from "@/lib/program-commands";
 import { NewRequirementModal } from "@/components/app/requirement-forms";
-import { ScopeTable } from "@/components/app/scopes";
+import { ControlSetsSummary, ScopeTable } from "@/components/app/scopes";
 import { RequirementTable } from "@/components/app/requirements";
 import { programControls, programStatuses, programStatusTone, programs } from "@/lib/grc-data";
 import { allocationsFor, requirementsForProgram, useRequirementsVersion } from "@/lib/requirements";
@@ -131,6 +137,60 @@ const tabOrder: Tab[] = [
   "Team",
   "Activity",
 ];
+
+/**
+ * The pages that hang off a program. They live in the header's Views menu,
+ * grouped by the question each answers: what is the system made of, was it
+ * assessed, and is it still what we authorized. Not in the rail — the rail
+ * holds properties, not navigation.
+ */
+const programViews = [
+  {
+    label: "System",
+    items: [
+      { label: "System composition", to: "/programs/$programId/composition", search: undefined },
+      { label: "Configuration baseline", to: "/programs/$programId/baseline", search: undefined },
+    ],
+  },
+  {
+    label: "Assessment",
+    items: [
+      { label: "Traceability matrix", to: "/programs/$programId/sctm", search: undefined },
+      {
+        label: "Inheritance resolution",
+        to: "/programs/$programId/inheritance",
+        search: { tab: undefined, control: undefined },
+      },
+      {
+        label: "Cyber T&E phases",
+        to: "/programs/$programId/te-phases",
+        search: { tab: undefined },
+      },
+      { label: "Scanner ingestion", to: "/programs/$programId/ingestion", search: undefined },
+    ],
+  },
+  {
+    label: "Operate and report",
+    items: [
+      { label: "Program dashboard", to: "/programs/$programId/dashboard", search: undefined },
+      {
+        label: "Continuous monitoring",
+        to: "/programs/$programId/conmon",
+        search: { tab: undefined },
+      },
+      {
+        label: "Residual risk scoring",
+        to: "/programs/$programId/risk",
+        search: { tab: undefined },
+      },
+      {
+        label: "OSCAL, eMASS and transfer",
+        to: "/programs/$programId/export",
+        search: { tab: undefined },
+      },
+    ],
+  },
+] as const;
 
 /** Where each lifecycle stage's work actually lives. */
 const stageHome: Record<Stage, Tab> = {
@@ -269,10 +329,10 @@ function ProgramDetail() {
         title="Properties"
         action={
           <button
-            className="text-muted-foreground transition-colors hover:text-foreground"
+            className="text-subtle transition-colors hover:text-default"
             aria-label="Edit properties"
           >
-            <Pencil className="size-3.5" />
+            <Pencil className="size-icon-small" />
           </button>
         }
       >
@@ -326,11 +386,14 @@ function ProgramDetail() {
               <button
                 type="button"
                 onClick={toggle}
-                className="-mx-1 flex w-[calc(100%+8px)] items-center gap-1.5 rounded px-1 py-0.5 text-left transition-colors hover:bg-muted"
+                className="-mx-1 flex w-[calc(100%+8px)] items-center gap-075 rounded-small px-050 py-025 text-left transition-colors hover:bg-neutral-subtle-hovered"
               >
                 <Dot tone={state.blockerTone === "danger" ? "danger" : "information"} />
                 <span className="truncate">{stageFilter ?? state.currentStage}</span>
-                <ChevronDown className="ml-auto size-3 shrink-0 text-muted-foreground" />
+                <ChevronDown
+                  className="ml-auto shrink-0 text-subtle"
+                  style={{ width: 600, height: 600 }}
+                />
               </button>
             )}
           >
@@ -355,10 +418,10 @@ function ProgramDetail() {
         </KeyValue>
         <KeyValue label="Current gate">
           {state.currentGate ? (
-            <span className="flex items-center gap-1.5">
-              <Id className="text-muted-foreground">{state.currentGate.id}</Id>
+            <Inline as="span" space="space.075" alignBlock="center">
+              <Id className="text-subtle">{state.currentGate.id}</Id>
               <span className="truncate">{state.currentGate.name}</span>
-            </span>
+            </Inline>
           ) : (
             "—"
           )}
@@ -370,10 +433,10 @@ function ProgramDetail() {
             <span
               className={
                 state.daysOut < 0
-                  ? "tnum text-legacy-danger"
+                  ? "tabular-nums text-danger"
                   : state.daysOut < 30
-                    ? "tnum text-legacy-warning"
-                    : "tnum"
+                    ? "tabular-nums text-warning"
+                    : "tabular-nums"
               }
             >
               {state.daysOut < 0 ? `${Math.abs(state.daysOut)}d overdue` : `${state.daysOut}d out`}
@@ -382,17 +445,15 @@ function ProgramDetail() {
         </KeyValue>
         <KeyValue label="Blocker">
           {state.blocker ? (
-            <span className="block text-12 font-medium text-legacy-danger">{state.blocker}</span>
+            <span className="block font-body-small font-medium text-danger">{state.blocker}</span>
           ) : (
-            <span className="text-muted-foreground">None</span>
+            <span className="text-subtle">None</span>
           )}
         </KeyValue>
       </Inspector.Group>
 
       <Inspector.Group title="About">
-        <p className="pb-1 pt-0.5 text-[12.5px] leading-relaxed text-muted-foreground">
-          {program.summary}
-        </p>
+        <p className="pb-050 pt-025 font-body-small text-subtle">{program.summary}</p>
         <KeyValue label="System">
           <Editable.Text
             value={fields.system}
@@ -413,24 +474,26 @@ function ProgramDetail() {
 
       <Inspector.Group title="Posture">
         <KeyValue label="Controls">
-          <span className="tnum">
+          <span className="tabular-nums">
             {posture.controlsSatisfied}/{posture.controlsTotal} satisfied
           </span>
         </KeyValue>
         <KeyValue label="Open findings">
-          <span className={posture.catI > 0 ? "tnum text-legacy-danger" : "tnum"}>
+          <span className={posture.catI > 0 ? "tabular-nums text-danger" : "tabular-nums"}>
             {posture.findingsOpen}
             {posture.catI ? ` · ${posture.catI} CAT I` : ""}
           </span>
         </KeyValue>
         <KeyValue label="POA&M open">
-          <span className={posture.poamOverdue > 0 ? "tnum text-legacy-danger" : "tnum"}>
+          <span className={posture.poamOverdue > 0 ? "tabular-nums text-danger" : "tabular-nums"}>
             {posture.poamOpen}
             {posture.poamOverdue ? ` · ${posture.poamOverdue} overdue` : ""}
           </span>
         </KeyValue>
         <KeyValue label="Evidence stale">
-          <span className={posture.evidenceStale > 0 ? "tnum text-legacy-warning" : "tnum"}>
+          <span
+            className={posture.evidenceStale > 0 ? "tabular-nums text-warning" : "tabular-nums"}
+          >
             {posture.evidenceStale}
           </span>
         </KeyValue>
@@ -444,122 +507,12 @@ function ProgramDetail() {
             giving the bare word "Inherited" a second, larger value.
           */}
           <span
-            className="tnum"
+            className="tabular-nums"
             title={`${coverage.inherited} of ${inheritance.size} resolved offers are fully inherited (Common). The rest are Hybrid or System-Specific and still carry a consumer obligation.`}
           >
             {coverage.inherited} of {inheritance.size} resolved
           </span>
         </KeyValue>
-      </Inspector.Group>
-
-      {/*
-        Ten sub-pages now hang off this record. Listed flat they read as an
-        undifferentiated stack of blue text, and the numbers in "Posture" got
-        lost among them — so the navigation is its own group, clustered by the
-        question each page answers: what is the system made of, was it assessed,
-        and is it still what we authorized.
-      */}
-      <Inspector.Group title="Program views">
-        <div className="space-y-2.5 pt-0.5">
-          <div>
-            <div className="pb-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
-              System
-            </div>
-            <div className="space-y-1 text-[12.5px]">
-              <Link
-                to="/programs/$programId/composition"
-                params={{ programId: program.id }}
-                className="block text-primary hover:underline"
-              >
-                System composition
-              </Link>
-              <Link
-                to="/programs/$programId/baseline"
-                params={{ programId: program.id }}
-                className="block text-primary hover:underline"
-              >
-                Configuration baseline
-              </Link>
-            </div>
-          </div>
-
-          <div>
-            <div className="pb-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
-              Assessment
-            </div>
-            <div className="space-y-1 text-[12.5px]">
-              <Link
-                to="/programs/$programId/sctm"
-                params={{ programId: program.id }}
-                className="block text-primary hover:underline"
-              >
-                Traceability matrix
-              </Link>
-              <Link
-                to="/programs/$programId/inheritance"
-                params={{ programId: program.id }}
-                search={{ tab: undefined, control: undefined }}
-                className="block text-primary hover:underline"
-              >
-                Inheritance resolution
-              </Link>
-              <Link
-                to="/programs/$programId/te-phases"
-                params={{ programId: program.id }}
-                search={{ tab: undefined }}
-                className="block text-primary hover:underline"
-              >
-                Cyber T&amp;E phases
-              </Link>
-              <Link
-                to="/programs/$programId/ingestion"
-                params={{ programId: program.id }}
-                className="block text-primary hover:underline"
-              >
-                Scanner ingestion
-              </Link>
-            </div>
-          </div>
-
-          <div>
-            <div className="pb-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
-              Operate and report
-            </div>
-            <div className="space-y-1 text-[12.5px]">
-              <Link
-                to="/programs/$programId/dashboard"
-                params={{ programId: program.id }}
-                className="block text-primary hover:underline"
-              >
-                Program dashboard
-              </Link>
-              <Link
-                to="/programs/$programId/conmon"
-                params={{ programId: program.id }}
-                search={{ tab: undefined }}
-                className="block text-primary hover:underline"
-              >
-                Continuous monitoring
-              </Link>
-              <Link
-                to="/programs/$programId/risk"
-                params={{ programId: program.id }}
-                search={{ tab: undefined }}
-                className="block text-primary hover:underline"
-              >
-                Residual risk scoring
-              </Link>
-              <Link
-                to="/programs/$programId/export"
-                params={{ programId: program.id }}
-                search={{ tab: undefined }}
-                className="block text-primary hover:underline"
-              >
-                OSCAL, eMASS and transfer
-              </Link>
-            </div>
-          </div>
-        </div>
       </Inspector.Group>
 
       <Inspector.Group title="Authorization">
@@ -579,39 +532,26 @@ function ProgramDetail() {
       </Inspector.Group>
 
       <Inspector.Group title="Inherits from">
-        <div className="space-y-1.5 text-[12.5px]">
+        <Stack className="font-body-small" space="space.075">
           {inheritedComponents.map((c) => (
-            <div key={c.id} className="flex items-center justify-between gap-2">
+            <Inline key={c.id} space="space.100" alignBlock="center" spread="space-between">
               <Link
                 to="/library/components/$componentKey"
                 params={{ componentKey: c.key }}
-                className="truncate text-primary hover:underline"
+                className="truncate text-brand hover:underline"
               >
                 {c.name}
               </Link>
               {c.sourceProgramId && !c.sourceAccessible ? (
                 <Lock
-                  className="size-3 shrink-0 text-muted-foreground"
+                  className="shrink-0 text-subtle"
                   aria-label="Source system not in your enclave"
+                  style={{ width: 600, height: 600 }}
                 />
               ) : null}
-            </div>
+            </Inline>
           ))}
-        </div>
-      </Inspector.Group>
-
-      <Inspector.Group title="Linked records">
-        <div className="space-y-1 text-[12.5px]">
-          <Link to="/register" className="block text-primary hover:underline">
-            {programPoams.length} POA&M items
-          </Link>
-          <Link to="/controls" className="block text-primary hover:underline">
-            Control library mappings
-          </Link>
-          <Link to="/evidence" className="block text-primary hover:underline">
-            128 evidence artifacts
-          </Link>
-        </div>
+        </Stack>
       </Inspector.Group>
     </>
   );
@@ -621,16 +561,45 @@ function ProgramDetail() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/programs"
+            back={<Link to="/programs" />}
             id={program.id}
             title={program.name}
             actions={
               <>
-                <Link to="/programs/$programId/dashboard" params={{ programId: program.id }}>
-                  <Button variant="secondary" size="small">
-                    Dashboard
-                  </Button>
-                </Link>
+                <DropdownMenu
+                  align="end"
+                  width={240}
+                  trigger={
+                    <Button variant="secondary" size="small">
+                      Views <ChevronDown className="size-icon-small" />
+                    </Button>
+                  }
+                >
+                  {(close) => (
+                    <>
+                      {programViews.map((group) => (
+                        <Fragment key={group.label}>
+                          <DropdownMenu.Label>{group.label}</DropdownMenu.Label>
+                          {group.items.map((v) => (
+                            <DropdownMenu.Item
+                              key={v.to}
+                              onSelect={() => {
+                                close();
+                                navigate({
+                                  to: v.to,
+                                  params: { programId: program.id },
+                                  search: v.search,
+                                } as never);
+                              }}
+                            >
+                              {v.label}
+                            </DropdownMenu.Item>
+                          ))}
+                        </Fragment>
+                      ))}
+                    </>
+                  )}
+                </DropdownMenu>
 
                 <ButtonGroup>
                   <Button variant="primary" size="small" onClick={runPrimary}>
@@ -643,10 +612,11 @@ function ProgramDetail() {
                       <Button
                         variant="primary"
                         size="small"
-                        className="w-7 px-0"
+                        className="px-0"
                         aria-label="More actions"
+                        style={{ width: 1200 }}
                       >
-                        <ChevronDown className="size-3.5" />
+                        <ChevronDown className="size-icon-small" />
                       </Button>
                     }
                   >
@@ -695,8 +665,8 @@ function ProgramDetail() {
           />
         }
         tabs={
-          <Tabs
-            items={(
+          <Tabs>
+            {(
               [
                 ["Overview", null],
                 ["Controls", coverage.segments[2]?.value || null],
@@ -711,18 +681,17 @@ function ProgramDetail() {
                 ["Team", teamSize],
                 ["Activity", null],
               ] as [Tab, number | null][]
-            ).map(([key, count]) => ({
-              key,
-              label: key,
-              active: tab === key,
-              onSelect: () => setTab(key),
-              trailing: count ? (
-                <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                  {count}
-                </span>
-              ) : null,
-            }))}
-          />
+            ).map(([key, count]) => (
+              <Tabs.Tab
+                key={key}
+                isSelected={tab === key}
+                onClick={() => setTab(key)}
+                count={count || null}
+              >
+                {key}
+              </Tabs.Tab>
+            ))}
+          </Tabs>
         }
         showRail={tab === "Overview"}
         rail={rail}
@@ -778,13 +747,13 @@ function ProgramDetail() {
                   to="/programs/$programId/inheritance"
                   params={{ programId: program.id }}
                   search={{ tab: undefined, control: undefined }}
-                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                  className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
                 >
                   Open inheritance
                 </Link>
               }
             >
-              <p className="pt-2 text-[12.5px] text-muted-foreground">
+              <p className="pt-100 font-body-small text-subtle">
                 {inheritedComponents.length} common control{" "}
                 {inheritedComponents.length === 1 ? "provider reaches" : "providers reach"}{" "}
                 {program.acronym}. Precedence between overlapping offers, applicability against this
@@ -799,20 +768,20 @@ function ProgramDetail() {
                 <Link
                   to="/programs/$programId/baseline"
                   params={{ programId: program.id }}
-                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                  className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
                 >
                   Open baseline
                 </Link>
               }
             >
-              <p className="pt-2 text-[12.5px] text-muted-foreground">
+              <p className="pt-100 font-body-small text-subtle">
                 A determination is only as current as the configuration it was taken against. The
                 baseline page carries the pin diff, the CM-3(2) security impact analyses, the
                 invalidated rows and the retest queue.
               </p>
             </Section>
 
-            <TailoringSection programId={program.id} programOwner={program.owner} />
+            <ControlSetsSummary scopes={scopeRows} onOpen={() => setTab("Systems")} />
 
             <SctmMatrixSection
               programId={program.id}
@@ -849,13 +818,13 @@ function ProgramDetail() {
                   to="/programs/$programId/te-phases"
                   params={{ programId: program.id }}
                   search={{ tab: undefined }}
-                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                  className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
                 >
                   Open T&amp;E phases
                 </Link>
               }
             >
-              <p className="pt-2 text-[12.5px] text-muted-foreground">
+              <p className="pt-100 font-body-small text-subtle">
                 A phase gate that is a checkbox is worthless. Wherever the platform can already
                 judge a criterion it does — off {program.acronym}&apos;s own scan record, SCTM,
                 finding register and change log — and the gate page prints the computed sentence and
@@ -870,15 +839,15 @@ function ProgramDetail() {
                 <Link
                   to="/programs/$programId/ingestion"
                   params={{ programId: program.id }}
-                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                  className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
                 >
                   Open ingestion
                 </Link>
               }
             >
-              <div className="pt-4">
+              <Box paddingBlockStart="space.200">
                 <VerificationSection programName={program.name} />
-              </div>
+              </Box>
             </Section>
           </>
         ) : null}
@@ -893,13 +862,13 @@ function ProgramDetail() {
                   to="/programs/$programId/export"
                   params={{ programId: program.id }}
                   search={{ tab: undefined }}
-                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                  className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
                 >
                   Open export
                 </Link>
               }
             >
-              <p className="pt-2 text-[12.5px] text-muted-foreground">
+              <p className="pt-100 font-body-small text-subtle">
                 Every artifact is generated from {program.acronym}&apos;s live SCTM, composition
                 graph and finding register rather than re-keyed, so an export taken twice is byte
                 identical and the manifest hash means something. The reconciliation view diffs a
@@ -923,13 +892,13 @@ function ProgramDetail() {
                   to="/programs/$programId/risk"
                   params={{ programId: program.id }}
                   search={{ tab: undefined }}
-                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                  className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
                 >
                   Open risk scoring
                 </Link>
               }
             >
-              <p className="pt-2 text-[12.5px] text-muted-foreground">
+              <p className="pt-100 font-body-small text-subtle">
                 {posture.findingsOpen} open finding
                 {posture.findingsOpen === 1 ? " is" : "s are"} scored, banded and ranked there, and
                 the register risks show the computed residual beside the number the assessor wrote
@@ -944,10 +913,10 @@ function ProgramDetail() {
               action={
                 <Link
                   to="/register"
-                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                  className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
                 >
                   Open register
-                  <ChevronRight className="size-3.5" />
+                  <ChevronRight className="size-icon-small" />
                 </Link>
               }
             >
@@ -981,9 +950,9 @@ function ProgramDetail() {
                           <Link
                             to="/register/poam/$poamId"
                             params={{ poamId: p.id }}
-                            className="text-primary hover:underline"
+                            className="text-brand hover:underline"
                           >
-                            <Id className="text-primary">{p.id}</Id>
+                            <Id className="text-brand">{p.id}</Id>
                           </Link>
                         </Table.Cell>
                         <Table.Cell className="truncate">{p.title}</Table.Cell>
@@ -993,7 +962,9 @@ function ProgramDetail() {
                         <Table.Cell className="truncate">
                           <Person name={p.owner} />
                         </Table.Cell>
-                        <Table.Cell className="tnum text-right">{p.scheduledCompletion}</Table.Cell>
+                        <Table.Cell className="tabular-nums text-right">
+                          {p.scheduledCompletion}
+                        </Table.Cell>
                       </Table.Row>
                     ))}
                   </tbody>
@@ -1009,11 +980,11 @@ function ProgramDetail() {
 
         {tab === "Requirements" ? (
           <>
-            <div className="flex justify-end">
+            <Inline alignInline="end">
               <Button variant="primary" size="small" onClick={() => setNewRequirement(true)}>
                 New requirement
               </Button>
-            </div>
+            </Inline>
             <NewRequirementModal
               open={newRequirement}
               onClose={() => setNewRequirement(false)}
@@ -1047,13 +1018,13 @@ function ProgramDetail() {
                   to="/programs/$programId/conmon"
                   params={{ programId: program.id }}
                   search={{ tab: undefined }}
-                  className="inline-flex items-center gap-0.5 text-[12.5px] text-primary hover:underline"
+                  className="inline-flex items-center gap-025 font-body-small text-brand hover:underline"
                 >
                   Open ConMon
                 </Link>
               }
             >
-              <p className="pt-2 text-[12.5px] text-muted-foreground">
+              <p className="pt-100 font-body-small text-subtle">
                 The timeline below records what happened to {program.acronym}. The ConMon page
                 records what has drifted since — an unrecorded configuration change, a determination
                 the change invalidated, evidence past its collection interval, an SLCM assessment
@@ -1126,8 +1097,8 @@ function ProgramDetail() {
           </>
         }
       >
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+        <Stack space="space.150">
+          <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
             <Field label="Control">
               <Combobox
                 value={assessControl}
@@ -1153,8 +1124,8 @@ function ProgramDetail() {
                 ))}
               </Select>
             </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
+          </Grid>
+          <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
             <Field label="Assessment method">
               <Select defaultValue="Test" aria-label="Assessment method">
                 {["Examine", "Interview", "Test"].map((m) => (
@@ -1167,11 +1138,11 @@ function ProgramDetail() {
             <Field label="Assessed on">
               <DatePicker defaultValue="2026-08-27" />
             </Field>
-          </div>
+          </Grid>
           <Field label="Assessor findings" hint="Included verbatim in the SAR export.">
             <Textarea placeholder="Privileged function invocations on the settlement service are not forwarded to the audit sink; sampling of 20 events found 6 missing." />
           </Field>
-        </div>
+        </Stack>
       </Dialog>
     </Shell>
   );

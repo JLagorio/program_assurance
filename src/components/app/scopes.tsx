@@ -12,28 +12,35 @@ import { useMemo, useState } from "react";
 
 import {
   Badge,
+  Box,
   Button,
   Combobox,
   Field,
   Id,
   Indicator,
+  Inline,
   Input,
+  Section,
   Select,
   Sheet,
+  Stack,
   Table,
   Textarea,
   toast,
-} from "@/ds/primitives";
+} from "@ledger/design-system";
 import { addCompositionNodes, nextNodeId, nodesForProgram } from "@/lib/composition";
 import {
   createInitialRevision,
   currentRevision,
   initialOverlayDecisions,
+  openRevision,
   revisionTone,
   useControlSetVersion,
 } from "@/lib/control-set";
 import { addScopes, controlSetFor, objectives, triadOf } from "@/lib/scopes";
 import type { AssessmentScope, ProgramRollup } from "@/lib/scopes";
+
+import { ProgramChanges } from "./control-set-revisions";
 
 const impactTone = { Low: "neutral", Moderate: "warning", High: "danger" } as const;
 
@@ -52,12 +59,13 @@ export function ScopeTable({
   const [adding, setAdding] = useState(false);
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button size="sm" onClick={() => setAdding(true)}>
-          <Plus className="size-3.5" /> Add subsystem
+    <Stack space="space.200">
+      <ProgramChanges programId={programId} />
+      <Inline alignInline="end">
+        <Button size="small" onClick={() => setAdding(true)}>
+          <Plus className="size-icon-small" /> Add subsystem
         </Button>
-      </div>
+      </Inline>
       <Table>
         <colgroup>
           <col style={{ width: "104px" }} />
@@ -105,20 +113,20 @@ export function ScopeTable({
                     search={{ tab: undefined }}
                     className="hover:underline"
                   >
-                    <Id className="text-primary">{scope.id}</Id>
+                    <Id className="text-brand">{scope.id}</Id>
                   </Link>
                 </Table.Cell>
                 <Table.Cell className="truncate">{scope.name}</Table.Cell>
                 {objectives.map((o) => (
                   <Table.Cell key={o}>
-                    <Badge size="xs" tone={impactTone[triad[o]]}>
+                    <Badge size="xsmall" tone={impactTone[triad[o]]}>
                       {triad[o].slice(0, 1)}
                     </Badge>
                   </Table.Cell>
                 ))}
-                <Table.Cell className="tnum text-right">{set?.total ?? 0}</Table.Cell>
-                <Table.Cell className="tnum text-right">
-                  {unique || <span className="text-muted-foreground">—</span>}
+                <Table.Cell className="tabular-nums text-right">{set?.total ?? 0}</Table.Cell>
+                <Table.Cell className="tabular-nums text-right">
+                  {unique || <span className="text-subtle">—</span>}
                 </Table.Cell>
                 <Table.Cell className="truncate">
                   {set?.overlays.map((o) => o.name).join(", ") || "—"}
@@ -128,7 +136,7 @@ export function ScopeTable({
                     <Link
                       to="/programs/$programId/systems/$scopeId"
                       params={{ programId, scopeId: scope.id }}
-                      search={{ tab: "Revisions" }}
+                      search={{ tab: "Control set" }}
                       className="hover:underline"
                     >
                       <Indicator tone={revisionTone[revision.state]}>
@@ -136,7 +144,7 @@ export function ScopeTable({
                       </Indicator>
                     </Link>
                   ) : (
-                    <span className="text-muted-foreground">—</span>
+                    <span className="text-subtle">—</span>
                   )}
                 </Table.Cell>
               </Table.Row>
@@ -145,19 +153,23 @@ export function ScopeTable({
         </tbody>
       </Table>
 
-      <div className="rounded-lg border border-border px-4 py-3">
-        <p className="text-[12.5px]">
+      <Box
+        className="rounded-large border border-default"
+        paddingInline="space.200"
+        paddingBlock="space.150"
+      >
+        <p className="font-body-small">
           <span className="font-medium">
             {rollup.total} controls in the program set — the union of {rollup.scopes.length} scopes,
             not the highest of them.
           </span>{" "}
-          <span className="text-muted-foreground">
+          <span className="text-subtle">
             {rollup.singleScope} are required by exactly one scope. CNSSI 1253 selects per objective
             and never collapses the triad, so a scope at A=Low sheds contingency obligations while
             keeping every confidentiality control at High.
           </span>
         </p>
-      </div>
+      </Box>
 
       <AddSubsystemSheet
         open={adding}
@@ -165,7 +177,7 @@ export function ScopeTable({
         programId={programId}
         scopes={scopes}
       />
-    </div>
+    </Stack>
   );
 }
 
@@ -261,7 +273,7 @@ function AddSubsystemSheet({
       footer={
         <>
           <Button
-            variant="ghost"
+            variant="subtle"
             onClick={() => {
               reset();
               onClose();
@@ -275,7 +287,7 @@ function AddSubsystemSheet({
         </>
       }
     >
-      <div className="space-y-3">
+      <Stack space="space.150">
         <Field label="Name">
           <Input
             autoFocus
@@ -323,7 +335,52 @@ function AddSubsystemSheet({
             ))}
           </Select>
         </Field>
-      </div>
+      </Stack>
     </Sheet>
+  );
+}
+
+/* ---------------------------------------------------- Controls tab pointer */
+
+/** On the program's Controls tab: where each scope's control set stands, and the one place it changes. */
+export function ControlSetsSummary({
+  scopes,
+  onOpen,
+}: {
+  scopes: AssessmentScope[];
+  onOpen: () => void;
+}) {
+  useControlSetVersion();
+  const open = scopes.filter((s) => openRevision(s.id)).length;
+  return (
+    <Section
+      title="Control sets"
+      description="Each scope's categorization, overlays and tailoring are frozen as a numbered revision. A change is proposed, reviewed and approved on the Systems tab; nothing here is edited in place."
+      action={
+        <Button size="small" variant="secondary" onClick={onOpen}>
+          {open ? `Review ${open} open change${open === 1 ? "" : "s"}` : "Open Systems"}
+        </Button>
+      }
+    >
+      <dl className="grid gap-x-300 gap-y-050 pt-100 font-body-small sm:grid-cols-2 lg:grid-cols-3">
+        {scopes.map((s) => {
+          const rev = currentRevision(s.id);
+          const set = controlSetFor(s.id);
+          return (
+            <Inline key={s.id} space="space.100" alignBlock="baseline">
+              <dt className="min-w-0 truncate">{s.name}</dt>
+              <dd className="flex shrink-0 items-center gap-100 text-subtle">
+                <span className="tabular-nums">{set?.total ?? 0} controls</span>
+                {rev ? (
+                  <Indicator tone={revisionTone[rev.state]}>
+                    v{rev.number} · {rev.state}
+                  </Indicator>
+                ) : null}
+              </dd>
+            </Inline>
+          );
+        })}
+      </dl>
+    </Section>
   );
 }

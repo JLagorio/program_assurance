@@ -12,20 +12,24 @@ import { useMemo, useState } from "react";
 
 import {
   Badge,
+  Block,
+  Box,
   Button,
   Checkbox,
   Collapsible,
   Combobox,
   Field,
+  Grid,
   Id,
   Indicator,
+  Inline,
   Select,
+  Stack,
   Switch,
   Table,
   Textarea,
   ToggleGroup,
-} from "@/ds/primitives";
-import { Block } from "@/ds/shapes";
+} from "@ledger/design-system";
 import {
   contestedOverlays,
   decideOverlay,
@@ -146,7 +150,7 @@ export function ScopeTailoringPane({
     onChange({ tailoring: draft.tailoring.filter((t) => t.control !== control) });
 
   return (
-    <div className="space-y-1">
+    <Stack space="space.050">
       {show("categorization") ? (
         <Block
           title="Categorization"
@@ -159,16 +163,22 @@ export function ScopeTailoringPane({
             ) : null
           }
         >
-          <div className="divide-y divide-border">
+          <div className="divide-y">
             {objectives.map((o) => {
               const key = objectiveKey[o];
               const value = p[key] as ImpactLevel;
               const isBelow = below.includes(o);
               return (
-                <div key={o} className="flex items-center justify-between gap-4 py-2">
+                <Inline
+                  key={o}
+                  className="py-100"
+                  space="space.200"
+                  alignBlock="center"
+                  spread="space-between"
+                >
                   <div className="min-w-0">
-                    <div className="text-[13px]">{o}</div>
-                    <div className="text-[12px] text-muted-foreground">
+                    <div className="font-body">{o}</div>
+                    <div className="font-body-small text-subtle">
                       {ceiling ? (
                         isBelow ? (
                           <Indicator tone="warning">
@@ -183,7 +193,7 @@ export function ScopeTailoringPane({
                     </div>
                   </div>
                   {locked ? (
-                    <Badge size="xs" tone={impactTone[value]}>
+                    <Badge size="xsmall" tone={impactTone[value]}>
                       {value}
                     </Badge>
                   ) : (
@@ -194,12 +204,12 @@ export function ScopeTailoringPane({
                       items={impactLevels.map((l) => ({ value: l, label: l }))}
                     />
                   )}
-                </div>
+                </Inline>
               );
             })}
           </div>
           {below.length > 0 ? (
-            <div className="pt-3">
+            <Box paddingBlockStart="space.150">
               <Field
                 label="Separation basis"
                 hint="A lower categorization is earned with a demonstrated boundary, not asserted."
@@ -211,7 +221,7 @@ export function ScopeTailoringPane({
                   placeholder="Loss of this element degrades but does not halt the mission because…"
                 />
               </Field>
-            </div>
+            </Box>
           ) : null}
         </Block>
       ) : null}
@@ -219,7 +229,7 @@ export function ScopeTailoringPane({
       {show("environment") ? (
         <Block title="Environment">
           {locked ? (
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-1 text-[12.5px] sm:grid-cols-4">
+            <dl className="grid grid-cols-2 gap-x-300 gap-y-050 font-body-small sm:grid-cols-4">
               {(
                 [
                   ["Class", p.systemClass],
@@ -229,12 +239,12 @@ export function ScopeTailoringPane({
                 ] as const
               ).map(([k, v]) => (
                 <div key={k}>
-                  <dt className="text-[12px] text-muted-foreground">{k}</dt>
+                  <dt className="font-body-small text-subtle">{k}</dt>
                   <dd>{v}</dd>
                 </div>
               ))}
               <div className="col-span-2 sm:col-span-4">
-                <dt className="text-[12px] text-muted-foreground">Flags</dt>
+                <dt className="font-body-small text-subtle">Flags</dt>
                 <dd>
                   {[
                     p.handlesPii ? "Handles PII" : null,
@@ -247,8 +257,8 @@ export function ScopeTailoringPane({
               </div>
             </dl>
           ) : (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
+            <Stack space="space.150">
+              <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
                 <Field label="System class">
                   <Select
                     value={p.systemClass}
@@ -309,8 +319,8 @@ export function ScopeTailoringPane({
                     ))}
                   </Select>
                 </Field>
-              </div>
-              <div className="flex flex-wrap gap-x-6 gap-y-2">
+              </Grid>
+              <Inline space="space.300" rowSpace="space.100" shouldWrap>
                 <Checkbox
                   checked={p.handlesPii}
                   onCheckedChange={(v) => setParameters({ handlesPii: v === true })}
@@ -329,8 +339,8 @@ export function ScopeTailoringPane({
                 >
                   Safety-critical
                 </Checkbox>
-              </div>
-            </div>
+              </Inline>
+            </Stack>
           )}
         </Block>
       ) : null}
@@ -384,11 +394,11 @@ export function ScopeTailoringPane({
                     </Table.Cell>
                     <Table.Cell className="truncate">{overlay.authority}</Table.Cell>
                     <Table.Cell>
-                      <Indicator tone={option?.recommended ? "info" : "neutral"}>
+                      <Indicator tone={option?.recommended ? "information" : "neutral"}>
                         {option?.recommended ? "Recommended" : "Not recommended"}
                       </Indicator>
                     </Table.Cell>
-                    <Table.Cell className="tnum text-right">
+                    <Table.Cell className="tabular-nums text-right">
                       {[
                         adds ? `+${adds}` : null,
                         removes ? `−${removes}` : null,
@@ -401,7 +411,7 @@ export function ScopeTailoringPane({
                   disagrees ? (
                     <Table.Row key={`${d.overlay}-why`}>
                       <Table.Cell />
-                      <Table.Cell colSpan={4} className="whitespace-normal py-2 align-top">
+                      <Table.Cell colSpan={4} className="whitespace-normal py-100 align-top">
                         <Field
                           label={
                             d.applied
@@ -435,7 +445,7 @@ export function ScopeTailoringPane({
             </tbody>
           </Table>
           {contested.length ? (
-            <p className="pt-2 text-[12px] text-muted-foreground">
+            <p className="pt-100 font-body-small text-subtle">
               {contested.length} decision{contested.length === 1 ? "" : "s"} disagree
               {contested.length === 1 ? "s" : ""} with the recommendation.
             </p>
@@ -450,7 +460,7 @@ export function ScopeTailoringPane({
           defaultOpen={draft.tailoring.length > 0}
         >
           {readOnly ? null : (
-            <div className="flex flex-wrap items-end gap-3 pb-3">
+            <Inline className="pb-150" space="space.150" alignBlock="end" shouldWrap>
               <Field label="Tailor out" hint="A control in the set this scope does not owe.">
                 <Combobox
                   options={excludable}
@@ -471,7 +481,7 @@ export function ScopeTailoringPane({
                   aria-label="Tailor in a control"
                 />
               </Field>
-            </div>
+            </Inline>
           )}
           {draft.tailoring.length ? (
             <Table>
@@ -480,7 +490,7 @@ export function ScopeTailoringPane({
                 <col />
                 <col style={{ width: "110px" }} />
                 <col style={{ width: "190px" }} />
-                <col style={{ width: "64px" }} />
+                <col style={{ width: "84px" }} />
               </colgroup>
               <thead>
                 <Table.Row>
@@ -501,7 +511,10 @@ export function ScopeTailoringPane({
                       </Table.Cell>
                       <Table.Cell className="truncate">{control?.title ?? "—"}</Table.Cell>
                       <Table.Cell>
-                        <Badge size="xs" tone={t.decision === "excluded" ? "danger" : "info"}>
+                        <Badge
+                          size="xsmall"
+                          tone={t.decision === "excluded" ? "danger" : "information"}
+                        >
                           {t.decision === "excluded" ? "Tailored out" : "Tailored in"}
                         </Badge>
                       </Table.Cell>
@@ -527,8 +540,8 @@ export function ScopeTailoringPane({
                       <Table.Cell className="text-right">
                         {readOnly ? null : (
                           <Button
-                            variant="ghost"
-                            size="xs"
+                            variant="subtle"
+                            size="xsmall"
                             onClick={() => removeDecision(t.control)}
                           >
                             Undo
@@ -538,9 +551,9 @@ export function ScopeTailoringPane({
                     </Table.Row>,
                     <Table.Row key={`${t.control}-why`}>
                       <Table.Cell />
-                      <Table.Cell colSpan={4} className="whitespace-normal py-2 align-top">
+                      <Table.Cell colSpan={4} className="whitespace-normal py-100 align-top">
                         {readOnly ? (
-                          <span className="leading-[1.45]">{t.rationale || "—"}</span>
+                          <span className="">{t.rationale || "—"}</span>
                         ) : (
                           <Field
                             label={
@@ -556,7 +569,7 @@ export function ScopeTailoringPane({
                                 patchDecision(t.control, { rationale: e.target.value })
                               }
                               placeholder="Why this scope does not owe it, or why it owes it after all…"
-                              className="min-h-[48px]"
+                              style={{ minHeight: 48 }}
                             />
                           </Field>
                         )}
@@ -567,14 +580,14 @@ export function ScopeTailoringPane({
               </tbody>
             </Table>
           ) : (
-            <p className="text-[12.5px] text-muted-foreground">
+            <p className="font-body-small text-subtle">
               No control tailored by hand. Overlays already added {set.added.length} and removed{" "}
               {set.removed.length}.
             </p>
           )}
         </Collapsible>
       ) : null}
-    </div>
+    </Stack>
   );
 }
 
@@ -585,31 +598,31 @@ export function ControlSetSummary({ draft }: { draft: RevisionDraft }) {
   const set = useMemo(() => resolveDraft(draft), [draft]);
   const byHand = draft.tailoring.length;
   return (
-    <dl className="space-y-[3px]">
+    <dl className="space-y-050">
       <SummaryRow label="Controls">
-        <span className="tnum font-medium">{set.total}</span>
+        <span className="tabular-nums font-medium">{set.total}</span>
       </SummaryRow>
       {objectives.map((o) => (
         <SummaryRow key={o} label={o}>
-          <span className="flex items-center gap-2">
-            <Badge size="xs" tone={impactTone[set.triad[o]]}>
+          <Inline as="span" space="space.100" alignBlock="center">
+            <Badge size="xsmall" tone={impactTone[set.triad[o]]}>
               {set.triad[o]}
             </Badge>
-            <span className="tnum text-muted-foreground">{set.byObjective[o]}</span>
-          </span>
+            <span className="tabular-nums text-subtle">{set.byObjective[o]}</span>
+          </Inline>
         </SummaryRow>
       ))}
       <SummaryRow label="Overlays">
         {set.overlays.length ? set.overlays.map((o) => o.name).join(", ") : "None"}
       </SummaryRow>
       <SummaryRow label="Added by overlay">
-        <span className="tnum">{set.added.length}</span>
+        <span className="tabular-nums">{set.added.length}</span>
       </SummaryRow>
       <SummaryRow label="Removed">
-        <span className="tnum">{set.removed.length}</span>
+        <span className="tabular-nums">{set.removed.length}</span>
       </SummaryRow>
       <SummaryRow label="By hand">
-        <span className="tnum">{byHand || "—"}</span>
+        <span className="tabular-nums">{byHand || "—"}</span>
       </SummaryRow>
     </dl>
   );
@@ -617,26 +630,32 @@ export function ControlSetSummary({ draft }: { draft: RevisionDraft }) {
 
 function SummaryRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-baseline gap-2">
-      <dt className="w-[104px] shrink-0 text-[12px] leading-[1.5] text-muted-foreground">
+    <Inline space="space.100" alignBlock="baseline">
+      <dt className="shrink-0 font-body-small text-subtle" style={{ width: 104 }}>
         {label}
       </dt>
-      <dd className="min-w-0 flex-1 text-[12.5px]">{children}</dd>
-    </div>
+      <dd className="min-w-0 flex-1 font-body-small">{children}</dd>
+    </Inline>
   );
 }
 
 /** The submit gates, each with why it is or is not met. */
 export function RevisionGates({ gates }: { gates: RevisionGate[] }) {
   return (
-    <ul className="space-y-1">
+    <Stack as="ul" space="space.050">
       {gates.map((g) => (
-        <li key={g.key} className="flex items-baseline gap-2 text-[12.5px]">
+        <Inline
+          key={g.key}
+          className="font-body-small"
+          as="li"
+          space="space.100"
+          alignBlock="baseline"
+        >
           <Indicator tone={g.met ? "success" : "warning"}>{g.label}</Indicator>
-          <span className="min-w-0 text-[12px] text-muted-foreground">{g.detail}</span>
-        </li>
+          <span className="min-w-0 font-body-small text-subtle">{g.detail}</span>
+        </Inline>
       ))}
-    </ul>
+    </Stack>
   );
 }
 

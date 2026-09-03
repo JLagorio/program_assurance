@@ -1,13 +1,28 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Badge, Table, Id, Item, Tabs } from "@/ds/primitives";
-import { PageHeader, Section, IndexPage } from "@/ds/patterns";
-import { Shell } from "@/ds/shell";
+import { ActingAs, RevisionActions, RevisionReview } from "@/components/app/control-set-revisions";
+import {
+  Badge,
+  Button,
+  Id,
+  IndexPage,
+  Inline,
+  Item,
+  PageHeader,
+  Section,
+  Sheet,
+  Stack,
+  Table,
+  Tabs,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import {
   decidedRevisions,
+  openStates,
   pendingRevisions,
   resolveDraft,
+  revisionById,
   revisionTone,
   useControlSetVersion,
   type ControlSetRevision,
@@ -48,6 +63,7 @@ const filters: (RevisionState | "All")[] = [
 function ScopeApprovals() {
   const version = useControlSetVersion();
   const [tab, setTab] = useState<(typeof filters)[number]>("All");
+  const [reviewing, setReviewing] = useState<string | null>(null);
 
   const all = useMemo(() => {
     const seen = new Set<string>();
@@ -65,6 +81,10 @@ function ScopeApprovals() {
     [all, tab],
   );
 
+  // Re-read on every store change so the sheet shows the state an action just produced.
+  const reviewed = reviewing ? revisionById(reviewing) : null;
+  const reviewedScope = reviewed ? scopeById.get(reviewed.scope) : null;
+
   return (
     <Shell>
       <IndexPage
@@ -72,40 +92,44 @@ function ScopeApprovals() {
           <PageHeader
             title="Control-set approvals"
             description="Engineers propose a scope's categorization, overlays and tailoring as a revision; the program manager approves it before it takes effect."
+            actions={<ActingAs />}
           />
         }
       >
-        <Tabs
-          items={filters.map((f) => ({
-            key: f,
-            label: f,
-            active: tab === f,
-            onSelect: () => setTab(f),
-            trailing: (
-              <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                {f === "All" ? all.length : all.filter((r) => r.state === f).length}
-              </span>
-            ),
-          }))}
-        />
+        <Tabs>
+          {filters.map((f) => (
+            <Tabs.Tab
+              key={f}
+              isSelected={tab === f}
+              onClick={() => setTab(f)}
+              count={f === "All" ? all.length : all.filter((r) => r.state === f).length}
+            >
+              {f}
+            </Tabs.Tab>
+          ))}
+        </Tabs>
 
         <Section
           title="Revisions"
-          description="Nothing below the revision in force moves until the proposal is decided."
+          description="Review opens the proposal here; decide it without leaving the queue."
         >
           <Table className="table-fixed">
             <thead>
               <tr>
-                <Table.Header className="w-[104px]">Program</Table.Header>
-                <Table.Header className="w-[200px]">Scope</Table.Header>
-                <Table.Header className="w-[52px]">Rev</Table.Header>
-                <Table.Header className="w-[150px]">State</Table.Header>
+                <Table.Header width={104}>Program</Table.Header>
+                <Table.Header width={200}>Scope</Table.Header>
+                <Table.Header width={52}>Rev</Table.Header>
+                <Table.Header width={150}>State</Table.Header>
                 <Table.Header>Reason</Table.Header>
-                <Table.Header className="w-[130px]">Author</Table.Header>
-                <Table.Header className="w-[112px]">Submitted</Table.Header>
-                <Table.Header className="w-[72px] text-right">Ctrls</Table.Header>
-                <Table.Header className="w-[168px]">Decision</Table.Header>
-                <Table.Header className="w-[76px] text-right">Action</Table.Header>
+                <Table.Header width={130}>Author</Table.Header>
+                <Table.Header width={112}>Submitted</Table.Header>
+                <Table.Header className="text-right" width={72}>
+                  Ctrls
+                </Table.Header>
+                <Table.Header width={168}>Decision</Table.Header>
+                <Table.Header className="text-right" width={88}>
+                  Action
+                </Table.Header>
               </tr>
             </thead>
             <tbody>
@@ -114,42 +138,61 @@ function ScopeApprovals() {
                 const scope = scopeById.get(r.scope);
                 return (
                   <Table.Row key={r.id}>
-                    <Table.Cell className="w-[104px]">
-                      <Id>{r.program}</Id>
+                    <Table.Cell width={104}>
+                      {program ? (
+                        <Link
+                          to="/programs/$programId"
+                          params={{ programId: r.program }}
+                          search={{ tab: "Systems" }}
+                          className="hover:underline"
+                        >
+                          <Id className="text-brand">{r.program}</Id>
+                        </Link>
+                      ) : (
+                        <Id>{r.program}</Id>
+                      )}
                     </Table.Cell>
-                    <Table.Cell className="w-[200px] truncate">{scope?.name ?? r.scope}</Table.Cell>
-                    <Table.Cell className="w-[52px]">
+                    <Table.Cell className="truncate" width={200}>
+                      {program && scope ? (
+                        <Link
+                          to="/programs/$programId/systems/$scopeId"
+                          params={{ programId: r.program, scopeId: r.scope }}
+                          search={{ tab: "Control set" }}
+                          className="text-brand hover:underline"
+                        >
+                          {scope.name}
+                        </Link>
+                      ) : (
+                        (scope?.name ?? r.scope)
+                      )}
+                    </Table.Cell>
+                    <Table.Cell width={52}>
                       <Id>v{r.number}</Id>
                     </Table.Cell>
-                    <Table.Cell className="w-[150px]">
+                    <Table.Cell width={150}>
                       <Badge tone={revisionTone[r.state]}>{r.state}</Badge>
                     </Table.Cell>
                     <Table.Cell className="truncate" title={r.reason}>
                       {r.reason}
                     </Table.Cell>
-                    <Table.Cell className="w-[130px] truncate">{r.author}</Table.Cell>
-                    <Table.Cell className="tnum w-[112px]">{r.submitted ?? "—"}</Table.Cell>
-                    <Table.Cell className="tnum w-[72px] text-right">
+                    <Table.Cell className="truncate" width={130}>
+                      {r.author}
+                    </Table.Cell>
+                    <Table.Cell className="tabular-nums" width={112}>
+                      {r.submitted ?? "—"}
+                    </Table.Cell>
+                    <Table.Cell className="tabular-nums text-right" width={72}>
                       {resolveDraft(r).total}
                     </Table.Cell>
-                    <Table.Cell className="w-[168px] truncate">
+                    <Table.Cell className="truncate" width={168}>
                       {r.decidedBy
                         ? `${r.decidedBy.replace(/\s*\(.*\)$/, "")} · ${r.decided}`
                         : "—"}
                     </Table.Cell>
-                    <Table.Cell className="w-[76px] text-right">
-                      {program && scope ? (
-                        <Link
-                          to="/programs/$programId/systems/$scopeId"
-                          params={{ programId: r.program, scopeId: r.scope }}
-                          search={{ tab: "Revisions" }}
-                          className="text-[13px] text-primary hover:underline"
-                        >
-                          Review
-                        </Link>
-                      ) : (
-                        <span className="text-[13px] text-muted-foreground">—</span>
-                      )}
+                    <Table.Cell className="text-right" width={88}>
+                      <Button size="small" variant="secondary" onClick={() => setReviewing(r.id)}>
+                        {openStates.includes(r.state) ? "Review" : "Open"}
+                      </Button>
                     </Table.Cell>
                   </Table.Row>
                 );
@@ -175,6 +218,35 @@ function ScopeApprovals() {
           </Item.Group>
         </Section>
       </IndexPage>
+
+      <Sheet
+        open={!!reviewed}
+        onClose={() => setReviewing(null)}
+        width={780}
+        title={reviewed ? `${reviewedScope?.name ?? reviewed.scope} · v${reviewed.number}` : ""}
+        subtitle={reviewed ? `${reviewed.program} · ${reviewed.state}` : undefined}
+        footer={
+          reviewed ? (
+            <Inline className="w-full" space="space.150" alignBlock="center" spread="space-between">
+              <Link
+                to="/programs/$programId/systems/$scopeId"
+                params={{ programId: reviewed.program, scopeId: reviewed.scope }}
+                search={{ tab: "Control set" }}
+                className="font-body-small text-brand hover:underline"
+              >
+                Open the scope record
+              </Link>
+              <RevisionActions revision={reviewed} />
+            </Inline>
+          ) : null
+        }
+      >
+        {reviewed ? (
+          <Stack space="space.050">
+            <RevisionReview revision={reviewed} programId={reviewed.program} compact />
+          </Stack>
+        ) : null}
+      </Sheet>
     </Shell>
   );
 }

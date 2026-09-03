@@ -2,13 +2,28 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
-import { ControlSetRevisions, RevisionStrip } from "@/components/app/control-set-revisions";
-import { Badge, FilterChip, KeyValue, Table, Id, Tabs, Fact } from "@/ds/primitives";
-import { RecordHeader, Section, ShowPage } from "@/ds/patterns";
-import { Inspector } from "@/ds/shapes";
-import { Shell } from "@/ds/shell";
+import {
+  ControlSetRevisions,
+  RevisionHistory,
+  RevisionStrip,
+} from "@/components/app/control-set-revisions";
+import {
+  Badge,
+  Fact,
+  FilterChip,
+  Id,
+  Inline,
+  Inspector,
+  KeyValue,
+  RecordHeader,
+  Section,
+  ShowPage,
+  Stack,
+  Table,
+  Tabs,
+} from "@ledger/design-system";
+import { Shell } from "@/components/app/shell";
 import { ancestorsOf, nodeById, nodesForProgram } from "@/lib/composition";
-import { revisionsForScope, useControlSetVersion } from "@/lib/control-set";
 import { programs } from "@/lib/grc-data";
 import { allocationsOn } from "@/lib/requirements";
 import {
@@ -23,15 +38,17 @@ import {
   type Objective,
 } from "@/lib/scopes";
 
-const scopeTabs = ["Overview", "Control set", "Revisions", "Components"] as const;
+const scopeTabs = ["Overview", "Control set", "Components"] as const;
 type ScopeTab = (typeof scopeTabs)[number];
 
 const impactTone = { Low: "neutral", Moderate: "warning", High: "danger" } as const;
 
 export const Route = createFileRoute("/programs/$programId_/systems/$scopeId")({
   validateSearch: (search: Record<string, unknown>): { tab?: ScopeTab | undefined } => {
-    const raw = String(search["tab"] ?? "");
-    return { tab: scopeTabs.find((t) => t.toLowerCase() === raw.toLowerCase()) };
+    const raw = String(search["tab"] ?? "").toLowerCase();
+    // Revisions was a tab of its own until 2026-09-02; old links land on the merged tab.
+    if (raw === "revisions") return { tab: "Control set" };
+    return { tab: scopeTabs.find((t) => t.toLowerCase() === raw) };
   },
   loader: ({ params }) => {
     const program = programs.find((p) => p.id.toLowerCase() === params.programId.toLowerCase());
@@ -60,13 +77,11 @@ function ScopeRecord() {
   const program = Route.useLoaderData();
   const navigate = useNavigate({ from: Route.fullPath });
   const version = useScopesVersion();
-  const revisionVersion = useControlSetVersion();
   const [family, setFamily] = useState("All");
 
   const scope = scopeById.get(scopeId) ?? null;
   const set = useMemo(() => controlSetFor(scopeId), [scopeId, version]);
   const rollup = useMemo(() => rollupControlSet(program.id), [program.id, version]);
-  const revisions = useMemo(() => revisionsForScope(scopeId), [scopeId, revisionVersion]);
 
   const members = useMemo(() => {
     if (!scope) return [];
@@ -81,17 +96,17 @@ function ScopeRecord() {
   if (!scope || !set || scope.program !== program.id) {
     return (
       <Shell>
-        <div className="space-y-3">
-          <h1 className="text-[18px] font-semibold">Assessment scope not found</h1>
+        <Stack space="space.150">
+          <h1 className="font-heading-small font-semibold">Assessment scope not found</h1>
           <Link
             to="/programs/$programId"
             params={{ programId }}
             search={{ tab: "Systems" }}
-            className="text-[13px] text-primary hover:underline"
+            className="font-body text-brand hover:underline"
           >
             Back to systems
           </Link>
-        </div>
+        </Stack>
       </Shell>
     );
   }
@@ -116,8 +131,7 @@ function ScopeRecord() {
       <ShowPage
         header={
           <RecordHeader
-            backTo="/programs/$programId"
-            backParams={{ programId }}
+            back={<Link to="/programs/$programId" params={{ programId }} />}
             id={scope.id}
             title={scope.name}
             meta={`${program.acronym} · ${scope.parameters.systemClass} · ${scope.parameters.classification} · ${scope.parameters.connectivity}`}
@@ -127,8 +141,8 @@ function ScopeRecord() {
               </Badge>
             }
             below={
-              <div className="space-y-2">
-                <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 border-t border-border pt-2.5">
+              <Stack space="space.100">
+                <dl className="flex flex-wrap items-baseline gap-x-300 gap-y-075 border-t border-default pt-100">
                   {objectives.map((o) => (
                     <Fact key={o} label={o.slice(0, 1)}>
                       <Badge size="xsmall" tone={impactTone[triad[o]]}>
@@ -155,31 +169,29 @@ function ScopeRecord() {
                   </Fact>
                 </dl>
                 <RevisionStrip scopeId={scope.id} />
-              </div>
+              </Stack>
             }
           />
         }
         tabs={
-          <Tabs
-            items={(
+          <Tabs>
+            {(
               [
                 ["Overview", null],
                 ["Control set", set.total],
-                ["Revisions", revisions.length],
                 ["Components", members.length],
               ] as [ScopeTab, number | null][]
-            ).map(([key, count]) => ({
-              key,
-              label: key,
-              active: tab === key,
-              onSelect: () => go(key),
-              trailing: count ? (
-                <span className="tnum rounded bg-muted px-1 text-[11px] font-medium text-muted-foreground">
-                  {count}
-                </span>
-              ) : null,
-            }))}
-          />
+            ).map(([key, count]) => (
+              <Tabs.Tab
+                key={key}
+                isSelected={tab === key}
+                onClick={() => go(key)}
+                count={count || null}
+              >
+                {key}
+              </Tabs.Tab>
+            ))}
+          </Tabs>
         }
         showRail={tab === "Overview"}
         rail={
@@ -210,7 +222,7 @@ function ScopeRecord() {
               title="What each objective selects"
               description="CNSSI 1253 selects per objective and takes the union — the triad is never collapsed to its highest value."
             >
-              <Table className="mt-1">
+              <Table className="pt-050">
                 <colgroup>
                   <col style={{ width: "180px" }} />
                   <col style={{ width: "110px" }} />
@@ -234,7 +246,9 @@ function ScopeRecord() {
                           {triad[o]}
                         </Badge>
                       </Table.Cell>
-                      <Table.Cell className="tnum text-right">{set.byObjective[o]}</Table.Cell>
+                      <Table.Cell className="tabular-nums text-right">
+                        {set.byObjective[o]}
+                      </Table.Cell>
                       <Table.Cell className="truncate">{familiesFor(set, o).join(", ")}</Table.Cell>
                     </Table.Row>
                   ))}
@@ -246,12 +260,12 @@ function ScopeRecord() {
               title="Separation basis"
               description="Why this scope may categorize below its siblings."
             >
-              <p className="max-w-3xl pt-3 text-[13px] leading-[1.5]">{scope.separationBasis}</p>
+              <p className="max-w-layout-measure pt-150 font-body">{scope.separationBasis}</p>
             </Section>
 
             <Section title="Overlays applied">
               {set.overlays.length ? (
-                <Table className="mt-1">
+                <Table className="pt-050">
                   <colgroup>
                     <col style={{ width: "240px" }} />
                     <col style={{ width: "220px" }} />
@@ -275,7 +289,7 @@ function ScopeRecord() {
                   </tbody>
                 </Table>
               ) : (
-                <p className="pt-3 text-[13px] text-muted-foreground">
+                <p className="pt-150 font-body text-subtle">
                   No overlay applies to this scope&apos;s parameters.
                 </p>
               )}
@@ -302,10 +316,15 @@ function ScopeRecord() {
         ) : null}
 
         {tab === "Control set" ? (
+          <ControlSetRevisions programId={program.id} scopeId={scope.id} />
+        ) : null}
+
+        {tab === "Control set" ? (
           <Section
-            title="Control set"
+            title="Controls in force"
+            description="The set this scope answers to today. A change is proposed above and approved before it lands here."
             action={
-              <div className="flex flex-wrap gap-1.5">
+              <Inline space="space.075" shouldWrap>
                 {families.slice(0, 12).map((f) => (
                   <FilterChip
                     key={f}
@@ -314,16 +333,14 @@ function ScopeRecord() {
                     onClick={() => setFamily(f)}
                   />
                 ))}
-              </div>
+              </Inline>
             }
           >
             <ControlTable rows={rows} programId={programId} />
           </Section>
         ) : null}
 
-        {tab === "Revisions" ? (
-          <ControlSetRevisions programId={program.id} scopeId={scope.id} />
-        ) : null}
+        {tab === "Control set" ? <RevisionHistory scopeId={scope.id} /> : null}
 
         {tab === "Components" ? (
           <>
@@ -331,7 +348,7 @@ function ScopeRecord() {
               title="Components in this scope"
               description="Everything that inherits this scope's obligations, whether by containment or by an explicit serves relation."
             >
-              <Table className="mt-1">
+              <Table className="pt-050">
                 <colgroup>
                   <col style={{ width: "104px" }} />
                   <col />
@@ -361,7 +378,7 @@ function ScopeRecord() {
                             params={{ programId, componentId: n.id }}
                             className="hover:underline"
                           >
-                            <Id className="text-primary">{n.id}</Id>
+                            <Id className="text-brand">{n.id}</Id>
                           </Link>
                         </Table.Cell>
                         <Table.Cell className="truncate">{n.name}</Table.Cell>
@@ -372,10 +389,8 @@ function ScopeRecord() {
                             {viaServes ? "Serves" : "Contains"}
                           </Badge>
                         </Table.Cell>
-                        <Table.Cell className="tnum text-right">
-                          {allocationsOn(n.id).length || (
-                            <span className="text-muted-foreground">—</span>
-                          )}
+                        <Table.Cell className="tabular-nums text-right">
+                          {allocationsOn(n.id).length || <span className="text-subtle">—</span>}
                         </Table.Cell>
                       </Table.Row>
                     );
@@ -389,7 +404,7 @@ function ScopeRecord() {
                 title="Serves this scope from elsewhere"
                 description="Components that sit under a different subsystem in the build tree but carry this scope's obligations."
               >
-                <Table className="mt-1">
+                <Table className="pt-050">
                   <colgroup>
                     <col style={{ width: "104px" }} />
                     <col style={{ width: "220px" }} />
@@ -415,12 +430,12 @@ function ScopeRecord() {
                               params={{ programId, componentId: e.component }}
                               className="hover:underline"
                             >
-                              <Id className="text-primary">{e.component}</Id>
+                              <Id className="text-brand">{e.component}</Id>
                             </Link>
                           </Table.Cell>
                           <Table.Cell className="truncate">{n?.name ?? e.component}</Table.Cell>
                           <Table.Cell className="truncate">{e.role}</Table.Cell>
-                          <Table.Cell className="whitespace-normal py-2 align-top leading-[1.45]">
+                          <Table.Cell className="whitespace-normal py-100 align-top">
                             {e.rationale}
                           </Table.Cell>
                         </Table.Row>
@@ -456,7 +471,7 @@ function ControlTable({
   showRemoval?: boolean;
 }) {
   return (
-    <Table className="mt-1">
+    <Table className="pt-050">
       <colgroup>
         <col style={{ width: "104px" }} />
         <col style={{ width: "64px" }} />
@@ -483,7 +498,7 @@ function ControlTable({
                 search={{ tab: undefined }}
                 className="hover:underline"
               >
-                <Id className="text-primary">{row.control.id}</Id>
+                <Id className="text-brand">{row.control.id}</Id>
               </Link>
             </Table.Cell>
             <Table.Cell>{row.control.family}</Table.Cell>
@@ -491,11 +506,7 @@ function ControlTable({
             <Table.Cell className="truncate">
               {row.selectedBy.length ? row.selectedBy.map((o) => o.slice(0, 1)).join(" · ") : "—"}
             </Table.Cell>
-            <Table.Cell
-              className={
-                showRemoval ? "whitespace-normal py-2 align-top leading-[1.45]" : "truncate"
-              }
-            >
+            <Table.Cell className={showRemoval ? "whitespace-normal py-100 align-top" : "truncate"}>
               {showRemoval ? (row.tailoredOut?.rationale ?? "—") : row.source}
             </Table.Cell>
           </Table.Row>
