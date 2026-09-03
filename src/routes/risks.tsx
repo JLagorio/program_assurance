@@ -1,3 +1,4 @@
+import { useRequired } from "@/lib/form";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Download, ListFilter, Plus } from "lucide-react";
@@ -379,6 +380,7 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
   const [treatment, setTreatment] = useState("Mitigate");
   const [likelihood, setLikelihood] = useState("3");
   const [impact, setImpact] = useState("4");
+  const req = useRequired({ title, owner });
 
   const inherent = Number(likelihood) * Number(impact) * 4;
   const residual = Math.round(inherent * (treatment === "Accept" ? 0.95 : 0.55));
@@ -431,14 +433,20 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
           <Button variant="secondary" onClick={onClose}>
             Save draft
           </Button>
-          <Button variant="primary" onClick={onClose}>
+          <Button
+            variant="primary"
+            onClick={() => {
+              if (!req.check()) return;
+              onClose();
+            }}
+          >
             Create risk
           </Button>
         </>
       }
     >
       <Stack space="space.150">
-        <Field label="Title">
+        <Field isRequired error={req.errorFor("title")} label="Title">
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -463,7 +471,7 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
               ))}
             </NativeSelect>
           </Field>
-          <Field label="Owner">
+          <Field isRequired error={req.errorFor("owner")} label="Owner">
             <Combobox
               value={owner}
               onChange={setOwner}

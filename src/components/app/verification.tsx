@@ -1,3 +1,4 @@
+import { useRequired } from "@/lib/form";
 import { useMemo, useState } from "react";
 import { AlertTriangle, Check, Plus, RefreshCw, Upload } from "lucide-react";
 
@@ -518,6 +519,7 @@ function IngestModal({
   const [artifact, setArtifact] = useState("");
   const [asset, setAsset] = useState("Mission compute (x4)");
   const [notes, setNotes] = useState("");
+  const req = useRequired({ artifact });
 
   if (!open) return null;
 
@@ -560,7 +562,8 @@ pipeline:
           </Button>
           <Button
             variant="primary"
-            onClick={() =>
+            onClick={() => {
+              if (!req.check()) return;
               onIngest({
                 id: `ING-${2207 + Math.floor(Date.now() % 90)}`,
                 source,
@@ -573,8 +576,8 @@ pipeline:
                 catII: 0,
                 catIII: 0,
                 coverage: 0,
-              })
-            }
+              });
+            }}
           >
             <Upload className="size-icon-small" /> Ingest
           </Button>
@@ -601,7 +604,7 @@ pipeline:
             </NativeSelect>
           </Field>
         </Grid>
-        <Field label="Artifact file" hint={parser}>
+        <Field isRequired error={req.errorFor("artifact")} label="Artifact file" hint={parser}>
           <Input
             value={artifact}
             onChange={(e) => setArtifact(e.target.value)}

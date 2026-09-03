@@ -1,3 +1,4 @@
+import { useRequired } from "@/lib/form";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { Fragment, useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -239,6 +240,7 @@ function ProgramDetail() {
     system: program.system,
     assessor: program.assessor,
   });
+  const req = useRequired({ assessControl });
   const saveField = (field: string) => (value: string) =>
     saveProgramField({ programId: program.id, field, value });
   const required = (label: string) => (v: string) =>
@@ -1070,6 +1072,7 @@ function ProgramDetail() {
             <Button
               variant="primary"
               onClick={() => {
+                if (!req.check()) return;
                 setAssessing(false);
                 toast.success("Assessment recorded", {
                   description: `${program.id} · result saved to the SCTM`,
@@ -1083,7 +1086,7 @@ function ProgramDetail() {
       >
         <Stack space="space.150">
           <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-            <Field label="Control">
+            <Field isRequired error={req.errorFor("assessControl")} label="Control">
               <Combobox
                 value={assessControl}
                 onChange={setAssessControl}

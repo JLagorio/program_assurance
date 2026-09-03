@@ -1,3 +1,4 @@
+import { useRequired } from "@/lib/form";
 import { useMemo, useState } from "react";
 import { Check, Download, Plus, RefreshCw, X } from "lucide-react";
 
@@ -379,6 +380,7 @@ function RuleModal({
 }) {
   const [draft, setDraft] = useState<MappingRule | null>(rule);
   const [controls, setControls] = useState(rule?.controls.join(", ") ?? "");
+  const req = useRequired({ name: draft?.name, signal: draft?.signal, controls });
 
   if (rule && draft?.id !== rule.id) {
     setDraft(rule);
@@ -411,14 +413,20 @@ function RuleModal({
           <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={() => onSave({ ...draft, controls: parsed })}>
+          <Button
+            variant="primary"
+            onClick={() => {
+              if (!req.check()) return;
+              onSave({ ...draft, controls: parsed });
+            }}
+          >
             {creating ? "Create rule" : "Save rule"}
           </Button>
         </>
       }
     >
       <Stack space="space.150">
-        <Field label="Rule name">
+        <Field isRequired error={req.errorFor("name")} label="Rule name">
           <Input
             value={draft.name}
             placeholder="Multifactor authentication"
@@ -441,7 +449,7 @@ function RuleModal({
               ))}
             </NativeSelect>
           </Field>
-          <Field label="Signal">
+          <Field isRequired error={req.errorFor("signal")} label="Signal">
             <NativeSelect
               value={draft.signal}
               onChange={(e) => setDraft({ ...draft, signal: e.target.value as MappingRuleSignal })}
@@ -464,7 +472,12 @@ function RuleModal({
             onChange={(e) => setDraft({ ...draft, match: e.target.value })}
           />
         </Field>
-        <Field label="Mapped controls" hint="Comma separated NIST SP 800-53 Rev. 5 control IDs.">
+        <Field
+          isRequired
+          error={req.errorFor("controls")}
+          label="Mapped controls"
+          hint="Comma separated NIST SP 800-53 Rev. 5 control IDs."
+        >
           <Input
             value={controls}
             placeholder="IA-2, IA-2(1)"

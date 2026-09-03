@@ -11,6 +11,7 @@
  * its reason when it is blocked and its consequence before it is taken.
  */
 
+import { useRequired } from "@/lib/form";
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
@@ -233,12 +234,14 @@ export function ProposeChange({ scopeId }: { scopeId: string }) {
   useWorkVersion();
   const [proposing, setProposing] = useState(false);
   const [reason, setReason] = useState("");
+  const req = useRequired({ reason });
   const session = currentSession();
   const inForce = inForceRevision(scopeId);
   const scope = scopeById.get(scopeId);
   const blocked = proposeBlocked(scopeId, session.role);
 
   const propose = () => {
+    if (!req.check()) return;
     const rev = proposeRevision(scopeId, reason);
     setProposing(false);
     setReason("");
@@ -271,13 +274,18 @@ export function ProposeChange({ scopeId }: { scopeId: string }) {
             <Button variant="subtle" onClick={() => setProposing(false)}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={propose} disabled={!reason.trim()}>
+            <Button variant="primary" onClick={propose}>
               Draft revision
             </Button>
           </>
         }
       >
-        <Field label="What changed" hint="The reason the control set has to move.">
+        <Field
+          isRequired
+          error={req.errorFor("reason")}
+          label="What changed"
+          hint="The reason the control set has to move."
+        >
           <Textarea
             autoFocus
             value={reason}

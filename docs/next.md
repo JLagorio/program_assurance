@@ -15,19 +15,20 @@ Updated 2026-09-02.
 ## Kit
 
 - [ ] **Step 9 · Publishable build** with type declarations, when the second project appears.
-- [ ] **`docs/guides/component-library.md`** still describes `src/ds`. Rewrite onto the package or retire it in favour of the Storybook docs.
 
 ## Prototype
 
 - [ ] **Picker adoption.** "Allocate a requirement" (system-tree.tsx) and the tailoring pane's two Comboboxes move onto `PickerSheet`; `ApplicabilityModal` becomes the row action in its second frame. Spec: `docs/superpowers/specs/2026-09-02-picker-sheet.md`, with three calls for Josef to overturn.
 - [ ] **The peek stack in the URL.** `NodePreviewSheet` drills into a child with no way back; `PreviewSheet` has `onBack` now. Keep the stack in a `?peek=` search param so the chevron and the browser's back are the same thing.
 - [ ] **One preview body per record type**, at two densities (glance for HoverCard, peek for PreviewSheet). `ProgramPeek`, `RiskPeek` and `NodePreviewSheet` are three unrelated bodies today.
-- [ ] **Forms.** No form marks a required field and none validates on submit. The kit side landed 2026-09-02 (Field `isRequired` draws the asterisk, `error` turns the control's border red and shows the message). The app side is per form: name the required fields, pass `error` on submit. 146 Fields, 11 pass either today.
+- [ ] **Forms, the rest.** Seventeen forms now name their required fields (see Done). Left alone on purpose: the edit dialogs of existing records (POA&M edit keeps only its title, gate, finding, remediation, evidence), `ApplicabilityModal` (its two guards are conditional and the picker's second frame replaces it), the treatment and scope-approval forms (uncontrolled inputs the hook cannot read), and the wizard (it blocks progress with its own message; its name fields carry the asterisk only). Whether the required sets are the right ones is Josef's read: the list is in `useRequired({ … })` at the top of each form.
 - [ ] **Hydration mismatch** on `/programs/$programId/baseline` (server text differs from client). Seen 2026-09-02; not the kit's; unowned.
 - [ ] **Link-looking buttons** that are not blue (`<button className="hover:underline">`, rmf-timeline and a few others). Neither `Button variant="link"` nor TextLink; decide whether they are links, actions, or plain text.
 
 ## Done
 
+- 2026-09-02 · **Forms validate on submit.** `useRequired` in `src/lib/form.ts`: the Fields it names carry the asterisk, the primary button is always enabled, and pressing it marks the first empty field red with "Required." under it. Applied to POA&M create and edit, new requirement, allocate (both dialogs), observation, enclave access, AO decision, authorization memo, mapping rule, add node, create risk, ingest assessment data, record assessment, propose change. The old footer messages and disabled buttons for those fields are gone.
+- 2026-09-02 · **`docs/guides/component-library.md`** rewritten onto the package: layers, importing, naming, the lint table, the rules that stay in the head, how to add a part, what is underneath, where the specs are.
 - 2026-09-02 · **Step 7, the mode switch**: provider, three-state control, storage, before-paint script; the light pin is off the prototype root and the switch sits in the top bar.
 - 2026-09-02 · **Audit items 9–11 in the kit**: `PickerSheet` with its spec, `PreviewSheet` with `onBack`, `status` and `facts` on the compact header, the hover ladder written down.
 - 2026-09-02 · **The spine audit's kit items**, all five: TextLink (147 links, 2 wrapped buttons and 9 text buttons swept onto it), PreviewSheet (node-preview on it), Table.Tree (system-tree on it, `tree-cell.tsx` gone), ToggleGroup `count` (coverage on it), Fact.Group and RecordHeader `facts` (the four strips on them). Every `<colgroup>` in the prototype (119) became `Table.Header width`; two lint rules keep both from coming back. Items 7 and 8 stay as the audit decided.

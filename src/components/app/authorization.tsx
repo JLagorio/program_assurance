@@ -1,3 +1,4 @@
+import { useRequired } from "@/lib/form";
 import { useMemo, useState } from "react";
 import { Check, FileSignature, Lock, Plus, ShieldCheck, UserPlus } from "lucide-react";
 
@@ -322,6 +323,7 @@ function ObservationModal({
   const [control, setControl] = useState("");
   const [due, setDue] = useState("Sep 15, 2026");
   const [detail, setDetail] = useState("");
+  const req = useRequired({ title, control });
 
   if (!open) return null;
 
@@ -354,7 +356,8 @@ next: triage -> jira issue`}
           </Button>
           <Button
             variant="primary"
-            onClick={() =>
+            onClick={() => {
+              if (!req.check()) return;
               onLog({
                 id: `OBS-${119 + Math.floor(Date.now() % 40)}`,
                 title: title || "Untitled observation",
@@ -368,8 +371,8 @@ next: triage -> jira issue`}
                 due,
                 detail,
                 response: "",
-              })
-            }
+              });
+            }}
           >
             <Check className="size-icon-small" /> Log observation
           </Button>
@@ -377,7 +380,7 @@ next: triage -> jira issue`}
       }
     >
       <Stack space="space.150">
-        <Field label="Observation">
+        <Field isRequired error={req.errorFor("title")} label="Observation">
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -395,7 +398,7 @@ next: triage -> jira issue`}
               <option>CAT III</option>
             </NativeSelect>
           </Field>
-          <Field label="Control">
+          <Field isRequired error={req.errorFor("control")} label="Control">
             <Input
               value={control}
               onChange={(e) => setControl(e.target.value)}
@@ -551,6 +554,7 @@ function GrantModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("SCA team");
   const [access, setAccess] = useState("Read only");
+  const req = useRequired({ email });
 
   if (!open) return null;
   return (
@@ -564,14 +568,25 @@ function GrantModal({ open, onClose }: { open: boolean; onClose: () => void }) {
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={onClose}>
+          <Button
+            variant="primary"
+            onClick={() => {
+              if (!req.check()) return;
+              onClose();
+            }}
+          >
             <Check className="size-icon-small" /> Send invite
           </Button>
         </>
       }
     >
       <Stack space="space.150">
-        <Field label="Government email" hint=".mil or .gov only">
+        <Field
+          isRequired
+          error={req.errorFor("email")}
+          label="Government email"
+          hint=".mil or .gov only"
+        >
           <Input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -796,6 +811,7 @@ function RiskDecisionModal({
   const [key, setKey] = useState<string | null>(null);
   const [decision, setDecision] = useState<ResidualRisk["decision"]>("Accepted");
   const [rationale, setRationale] = useState("");
+  const req = useRequired({ rationale });
 
   if (risk && key !== risk.id) {
     setKey(risk.id);
@@ -835,7 +851,13 @@ function RiskDecisionModal({
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={() => onSave({ ...risk, decision, rationale })}>
+          <Button
+            variant="primary"
+            onClick={() => {
+              if (!req.check()) return;
+              onSave({ ...risk, decision, rationale });
+            }}
+          >
             <ShieldCheck className="size-icon-small" /> Record decision
           </Button>
         </>
@@ -854,7 +876,7 @@ function RiskDecisionModal({
             <option>Pending AO</option>
           </NativeSelect>
         </Field>
-        <Field label="Rationale for the record">
+        <Field isRequired error={req.errorFor("rationale")} label="Rationale for the record">
           <Textarea
             rows={4}
             value={rationale}
@@ -873,6 +895,7 @@ function MemoModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [conditions, setConditions] = useState(
     "Close POAM-0031 and POAM-0044 within 90 days. Submit continuous monitoring report quarterly.",
   );
+  const req = useRequired({ expires });
 
   if (!open) return null;
   return (
@@ -906,7 +929,13 @@ conditions: |
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={onClose}>
+          <Button
+            variant="primary"
+            onClick={() => {
+              if (!req.check()) return;
+              onClose();
+            }}
+          >
             <FileSignature className="size-icon-small" /> Sign & issue
           </Button>
         </>
@@ -923,7 +952,7 @@ conditions: |
               <option>Denial of authorization</option>
             </NativeSelect>
           </Field>
-          <Field label="Expires">
+          <Field isRequired error={req.errorFor("expires")} label="Expires">
             <Input value={expires} onChange={(e) => setExpires(e.target.value)} />
           </Field>
         </Grid>

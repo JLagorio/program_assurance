@@ -1,3 +1,4 @@
+import { useRequired } from "@/lib/form";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
@@ -672,6 +673,7 @@ function PoamEditModal({
   onDelete: () => void;
 }) {
   const [draft, setDraft] = useState<PoamItem | null>(item);
+  const req = useRequired({ title: draft?.title });
   useEffect(() => setDraft(item), [item]);
 
   if (!item || !draft) return null;
@@ -722,6 +724,7 @@ function PoamEditModal({
     setDraft((d) => (d ? { ...d, props: d.props.filter((_, n) => n !== index) } : d));
 
   const save = () => {
+    if (!req.check()) return;
     const cleanedProps = draft.props
       .map((p) => ({ ...p, name: p.name.trim(), value: p.value.trim() }))
       .filter((p) => p.name.length > 0);
@@ -758,7 +761,7 @@ function PoamEditModal({
           <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={save} disabled={draft.title.trim().length === 0}>
+          <Button variant="primary" onClick={save}>
             Save changes
           </Button>
         </>
@@ -789,7 +792,12 @@ function PoamEditModal({
       }
     >
       <Stack space="space.150">
-        <Field label="Weakness title" hint="markup-line — appears as the poam-item title.">
+        <Field
+          isRequired
+          error={req.errorFor("title")}
+          label="Weakness title"
+          hint="markup-line — appears as the poam-item title."
+        >
           <Input autoFocus value={draft.title} onChange={(e) => set("title", e.target.value)} />
         </Field>
         <Field label="Description" hint="markup-multiline">
@@ -1072,8 +1080,10 @@ function PoamCreateModal({
   const [milestone, setMilestone] = useState("");
   const [milestoneDate, setMilestoneDate] = useState("2026-09-30");
   const [riskId, setRiskId] = useState("");
+  const req = useRequired({ title, control, contact });
 
   const create = () => {
+    if (!req.check()) return;
     const item: PoamItem = {
       uuid: uuid(),
       programId,
@@ -1130,7 +1140,7 @@ function PoamCreateModal({
           <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={create} disabled={title.trim().length === 0}>
+          <Button variant="primary" onClick={create}>
             Create item
           </Button>
         </>
@@ -1182,7 +1192,12 @@ function PoamCreateModal({
       }
     >
       <Stack space="space.150">
-        <Field label="Weakness title" hint="markup-line — appears as the poam-item title.">
+        <Field
+          isRequired
+          error={req.errorFor("title")}
+          label="Weakness title"
+          hint="markup-line — appears as the poam-item title."
+        >
           <Input
             autoFocus
             value={title}
@@ -1201,7 +1216,7 @@ function PoamCreateModal({
           />
         </Field>
         <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
-          <Field label="Control">
+          <Field isRequired error={req.errorFor("control")} label="Control">
             <NativeSelect value={control} onChange={(e) => setControl(e.target.value)}>
               {programControls.map((c) => (
                 <option key={c.id}>{c.id}</option>
@@ -1231,7 +1246,7 @@ function PoamCreateModal({
           <Field label="Scheduled completion">
             <DatePicker value={scheduled} onChange={setScheduled} />
           </Field>
-          <Field label="Point of contact">
+          <Field isRequired error={req.errorFor("contact")} label="Point of contact">
             <NativeSelect value={contact} onChange={(e) => setContact(e.target.value)}>
               {[defaultOwner, ...contacts.filter((c) => c !== defaultOwner)].map((c) => (
                 <option key={c}>{c}</option>

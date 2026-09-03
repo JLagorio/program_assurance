@@ -11,6 +11,7 @@
  * System or Subsystem node's controls are its scope's control set.
  */
 
+import { useRequired } from "@/lib/form";
 import { useNavigate } from "@tanstack/react-router";
 import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
@@ -468,6 +469,7 @@ export function AddNodeSheet({
   const [note, setNote] = useState("");
   const [owner, setOwner] = useState("");
   const [basis, setBasis] = useState("");
+  const req = useRequired({ name });
 
   const chosen = addableKinds.find((k) => k.kind === kind) ?? addableKinds[0]!;
   const isScope = kind === "Subsystem" || kind === "Enclave";
@@ -482,6 +484,7 @@ export function AddNodeSheet({
   };
 
   const create = () => {
+    if (!req.check()) return;
     if (!name.trim() || !parent) return;
     const [node] = addCompositionNodes([
       {
@@ -554,7 +557,7 @@ export function AddNodeSheet({
           >
             Cancel
           </Button>
-          <Button variant="primary" onClick={create} disabled={!name.trim() || !parent}>
+          <Button variant="primary" onClick={create} disabled={!parent}>
             Add {kind.toLowerCase()}
           </Button>
         </>
@@ -570,7 +573,7 @@ export function AddNodeSheet({
             ))}
           </Select>
         </Field>
-        <Field label="Name">
+        <Field isRequired error={req.errorFor("name")} label="Name">
           <Input
             autoFocus
             value={name}
@@ -647,11 +650,12 @@ export function AllocateToNodeDialog({
   const [coverage, setCoverage] = useState<Coverage>("Partial");
   const [scope, setScope] = useState("");
   const [rationale, setRationale] = useState("");
+  const req = useRequired({ requirement, scope });
 
   const chosen = requirementsForProgram(programId).find((r) => r.id === requirement) ?? null;
-  const ready = !!chosen && scope.trim().length > 0;
 
   const submit = () => {
+    if (!req.check()) return;
     if (!chosen) return;
     addAllocation({
       requirement: chosen.id,
@@ -678,14 +682,14 @@ export function AllocateToNodeDialog({
           <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={submit} disabled={!ready}>
+          <Button variant="primary" onClick={submit}>
             Allocate
           </Button>
         </>
       }
     >
       <Stack space="space.150">
-        <Field label="Requirement">
+        <Field isRequired error={req.errorFor("requirement")} label="Requirement">
           <Combobox
             aria-label="Requirement"
             value={requirement}
@@ -724,7 +728,12 @@ export function AllocateToNodeDialog({
             </Select>
           </Field>
         </Grid>
-        <Field label="What this element answers" hint="The bounded claim. Required.">
+        <Field
+          isRequired
+          error={req.errorFor("scope")}
+          label="What this element answers"
+          hint="The bounded claim. Required."
+        >
           <Textarea
             value={scope}
             onChange={(e) => setScope(e.target.value)}
