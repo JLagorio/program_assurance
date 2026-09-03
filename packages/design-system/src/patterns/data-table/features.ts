@@ -8,6 +8,7 @@ import {
   columnResizingFeature,
   columnSizingFeature,
   columnVisibilityFeature,
+  constructFilterFn,
   createExpandedRowModel,
   createFacetedMinMaxValues,
   createFacetedRowModel,
@@ -76,6 +77,41 @@ export type DataTableMeta = {
   label?: string | undefined;
 };
 
+const lower = (v: unknown) => (v == null ? "" : String(v).toLowerCase());
+
+/**
+ * The one filter the kinds share. An array is membership (the facet checkboxes), a string is
+ * equality (a route's tab), `{ contains }` is a substring (a long text column's filter field).
+ */
+const filterFn_matches = constructFilterFn({
+  filter: (dataValue: unknown, filterValue: unknown) => {
+    if (Array.isArray(filterValue)) return filterValue.some((v) => lower(v) === lower(dataValue));
+    if (filterValue && typeof filterValue === "object" && "contains" in filterValue)
+      return lower(dataValue).includes(lower((filterValue as { contains: unknown }).contains));
+    return lower(dataValue) === lower(filterValue);
+  },
+  autoRemove: (v: unknown) =>
+    v == null ||
+    v === "" ||
+    (Array.isArray(v) && v.length === 0) ||
+    (typeof v === "object" &&
+      "contains" in (v as object) &&
+      !(v as { contains: unknown }).contains),
+});
+
+/** ISO date strings against `[from, to]`, either end open. Strings compare as dates when they are ISO. */
+const filterFn_dateRange = constructFilterFn({
+  filter: (dataValue: unknown, filterValue: unknown) => {
+    const [from, to] = Array.isArray(filterValue) ? filterValue : [undefined, undefined];
+    const v = typeof dataValue === "string" ? dataValue : "";
+    if (!v) return false;
+    if (from && v < String(from)) return false;
+    if (to && v > String(to)) return false;
+    return true;
+  },
+  autoRemove: (v: unknown) => !Array.isArray(v) || (!v[0] && !v[1]),
+});
+
 export const dataTableFeatures = tableFeatures({
   rowSortingFeature,
   columnFilteringFeature,
@@ -101,7 +137,7 @@ export const dataTableFeatures = tableFeatures({
   expandedRowModel: createExpandedRowModel(),
   groupedRowModel: createGroupedRowModel(),
   sortFns,
-  filterFns,
+  filterFns: { ...filterFns, matches: filterFn_matches, dateRange: filterFn_dateRange },
   aggregationFns,
   columnMeta: {} as DataTableColumnMeta,
   tableMeta: {} as DataTableMeta,

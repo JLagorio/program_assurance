@@ -10,13 +10,11 @@ import {
   Checkbox,
   DataTable,
   Dialog,
-  FilterChip,
   IndexPage,
   Inline,
   PageHeader,
   Popover,
   Progress,
-  RadioGroup,
   Spinner,
   Stack,
   Tabs,
@@ -24,6 +22,7 @@ import {
   defineColumns,
   toast,
   useDataTable,
+  type ColumnFiltersState,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { programStatusTone, programs, type Program } from "@/lib/grc-data";
@@ -62,8 +61,6 @@ function ProgramsLayout() {
 }
 
 const tabLabels = ["All", "In assessment", "Authorized", "POA&M open", "Draft"] as const;
-
-const impactLevels = ["All", "High", "Moderate", "Low"] as const;
 
 /** The columns the reader can hide, with their labels; the id and the system stay. */
 const hideable = [
@@ -124,17 +121,11 @@ const programColumns = defineColumns<Program>((c) => [
       </>
     ),
   }),
-  c.custom("impact", {
+  c.status("impact", {
     header: "Impact",
     width: 90,
-    sort: (p) => impactRank[p.impact] ?? 0,
-    cell: (p) => (
-      <Badge
-        tone={p.impact === "High" ? "danger" : p.impact === "Moderate" ? "warning" : "neutral"}
-      >
-        {p.impact}
-      </Badge>
-    ),
+    sortBy: (p) => impactRank[p.impact] ?? 0,
+    tone: (p) => (p.impact === "High" ? "danger" : p.impact === "Moderate" ? "warning" : "neutral"),
   }),
   c.custom("baseline", { header: "Baseline", width: 120, cell: (p) => <>Rev. 5 · {p.impact}</> }),
   c.custom("assessment", {
@@ -163,12 +154,9 @@ const programColumns = defineColumns<Program>((c) => [
 function ProgramList() {
   const navigate = useNavigate();
   const programsVersion = useProgramsVersion();
-  const [tab, setTab] = useState("All");
   const [exporting, setExporting] = useState(false);
   const [scheduling, setScheduling] = useState(false);
   const [scheduleDate, setScheduleDate] = useState<Date | undefined>(undefined);
-
-  const [impact, setImpact] = useState<(typeof impactLevels)[number]>("All");
 
   const tabs = useMemo(
     () =>
@@ -182,17 +170,18 @@ function ProgramList() {
     [programsVersion],
   );
 
+  // The route owns the filters: the tabs set the status filter, the chips set theirs, the table filters.
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const tab = String(columnFilters.find((f) => f.id === "status")?.value ?? "All");
+  const setTab = (next: string) =>
+    setColumnFilters((f) => [
+      ...f.filter((x) => x.id !== "status"),
+      ...(next === "All" ? [] : [{ id: "status", value: next }]),
+    ]);
+
   // The seed array is mutated in place when a program is created, so the table gets a fresh copy per version.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const data = useMemo(() => [...programs], [programsVersion]);
-  // The tab and the impact chip are column filters; the table does the filtering.
-  const columnFilters = useMemo(
-    () => [
-      ...(tab === "All" ? [] : [{ id: "status", value: tab }]),
-      ...(impact === "All" ? [] : [{ id: "impact", value: impact }]),
-    ],
-    [tab, impact],
-  );
   const table = useDataTable({
     columns: programColumns,
     data,
@@ -201,6 +190,7 @@ function ProgramList() {
     pageSize: 25,
     label: "Programs",
     state: { columnFilters },
+    onColumnFiltersChange: setColumnFilters,
     initialState: { sorting: [{ id: "id", desc: false }] },
   });
   const selected = table.getSelectedRowModel().rows.map((r) => r.original.id);
@@ -251,31 +241,9 @@ function ProgramList() {
       </Tabs>
 
       <Inline space="space.100" alignBlock="center" shouldWrap>
-        <FilterChip label="Baseline" value="Rev. 5" isActive />
-        <Popover
-          width={180}
-          trigger={
-            <FilterChip
-              label="Impact"
-              {...(impact === "All" ? {} : { value: impact, active: true })}
-            />
-          }
-        >
-          <RadioGroup
-            value={impact}
-            onValueChange={(v) => setImpact(v as (typeof impactLevels)[number])}
-            aria-label="Impact"
-            className="space-y-100"
-          >
-            {impactLevels.map((l) => (
-              <RadioGroup.Item key={l} value={l}>
-                {l === "All" ? "Any impact" : l}
-              </RadioGroup.Item>
-            ))}
-          </RadioGroup>
-        </Popover>
-        <FilterChip label="Owner" />
-        <FilterChip label="Assessor" />
+        <DataTable.Filter table={table} column="impact" />
+        <DataTable.Filter table={table} column="owner" />
+        <DataTable.Filter table={table} column="expires" />
         <Inline className="ml-auto" space="space.100" alignBlock="center">
           <Popover
             width={200}
@@ -311,26 +279,19 @@ function ProgramList() {
         </Inline>
       </Inline>
 
-      {selected.length > 0 ? (
-        <Inline
-          className="rounded-medium border border-brand bg-selected px-150 py-075 font-body text-brand"
-          space="space.100"
-          alignBlock="center"
-        >
-          <span className="tabular-nums font-medium">{selected.length} selected</span>
-          <Inline className="ml-auto" as="span" space="space.100" alignBlock="center">
+      <DataTable.SelectionBar
+        table={table}
+        actions={
+          <>
             <Button variant="secondary" size="small">
               Reassign assessor
             </Button>
             <Button variant="secondary" size="small" onClick={() => setScheduling(true)}>
               Schedule assessment
             </Button>
-            <Button variant="subtle" size="small" onClick={() => table.resetRowSelection()}>
-              Clear
-            </Button>
-          </Inline>
-        </Inline>
-      ) : null}
+          </>
+        }
+      />
 
       <DataTable
         table={table}

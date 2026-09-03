@@ -36,6 +36,8 @@ type Shared<TData> = {
   width?: number | undefined;
   minWidth?: number | undefined;
   sortable?: boolean | undefined;
+  /** Sort by something other than the value: a rank for a status, a number behind a bar. */
+  sortBy?: ((row: TData) => string | number) | undefined;
   /** Draw the cell yourself; the kind still sets alignment, sort and filter. An absent value is `Absent`. */
   cell?: ((row: TData) => ReactNode) | undefined;
 };
@@ -49,6 +51,21 @@ const read =
     row[key];
 
 const isAbsent = (v: unknown) => v === null || v === undefined || v === "";
+
+const compare = (a: string | number, b: string | number) =>
+  typeof a === "number" && typeof b === "number"
+    ? a - b
+    : String(a).localeCompare(String(b), undefined, { numeric: true });
+
+/** The kind's sort, or the row's `sortBy` value when the column gives one. */
+const sortOf = <TData extends RowData>(
+  kind: "alphanumeric" | "basic" | "datetime" | "text",
+  sortBy: ((row: TData) => string | number) | undefined,
+) =>
+  sortBy
+    ? (a: { original: TData }, b: { original: TData }) =>
+        compare(sortBy(a.original), sortBy(b.original))
+    : kind;
 
 const numberFormats = {
   integer: new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }),
@@ -75,6 +92,7 @@ export function columnKinds<TData extends RowData>() {
       width,
       minWidth,
       sortable = true,
+      sortBy,
       cell,
       wrap = false,
     }: Shared<TData> & { wrap?: boolean | undefined } = {},
@@ -85,8 +103,8 @@ export function columnKinds<TData extends RowData>() {
       ...(width === undefined ? {} : { size: width }),
       minSize: minOf(width, minWidth ?? minWidths.text),
       enableSorting: sortable,
-      sortFn: "alphanumeric",
-      filterFn: "includesString",
+      sortFn: sortOf("alphanumeric", sortBy),
+      filterFn: "matches",
       meta: { kind: "text", align: "start", wrap },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
@@ -102,6 +120,7 @@ export function columnKinds<TData extends RowData>() {
       width = minWidths.id,
       minWidth,
       sortable = true,
+      sortBy,
       cell,
       preview,
       active,
@@ -123,8 +142,8 @@ export function columnKinds<TData extends RowData>() {
       size: width,
       minSize: minOf(width, minWidth ?? minWidths.id),
       enableSorting: sortable,
-      sortFn: "alphanumeric",
-      filterFn: "includesString",
+      sortFn: sortOf("alphanumeric", sortBy),
+      filterFn: "matches",
       meta: { kind: "id", align: "start", tone, preview, active, glance },
       cell: ({ row, getValue }) => (cell ? cell(row.original) : String(getValue())),
     });
@@ -136,6 +155,7 @@ export function columnKinds<TData extends RowData>() {
       width,
       minWidth,
       sortable = true,
+      sortBy,
       cell,
       format: fmt = "integer",
     }: Shared<TData> & {
@@ -148,7 +168,7 @@ export function columnKinds<TData extends RowData>() {
       ...(width === undefined ? {} : { size: width }),
       minSize: minOf(width, minWidth ?? minWidths.number),
       enableSorting: sortable,
-      sortFn: "basic",
+      sortFn: sortOf("basic", sortBy),
       filterFn: "inNumberRange",
       enableGlobalFilter: false,
       meta: { kind: "number", align: "end" },
@@ -167,6 +187,7 @@ export function columnKinds<TData extends RowData>() {
       width,
       minWidth,
       sortable = true,
+      sortBy,
       cell,
       format: fmt = "short",
     }: Shared<TData> & { format?: keyof typeof dateFormats | undefined } = {},
@@ -177,8 +198,8 @@ export function columnKinds<TData extends RowData>() {
       ...(width === undefined ? {} : { size: width }),
       minSize: minOf(width, minWidth ?? minWidths.date),
       enableSorting: sortable,
-      sortFn: "datetime",
-      filterFn: "inDateRange",
+      sortFn: sortOf("datetime", sortBy),
+      filterFn: "dateRange",
       enableGlobalFilter: false,
       meta: { kind: "date", align: "start" },
       cell: ({ row, getValue }) => (cell ? cell(row.original) : formatDate(getValue(), fmt)),
@@ -191,6 +212,7 @@ export function columnKinds<TData extends RowData>() {
       width,
       minWidth,
       sortable = true,
+      sortBy,
       cell,
       tone,
     }: Shared<TData> & { tone: (row: TData) => Tone },
@@ -201,8 +223,8 @@ export function columnKinds<TData extends RowData>() {
       ...(width === undefined ? {} : { size: width }),
       minSize: minOf(width, minWidth ?? minWidths.status),
       enableSorting: sortable,
-      sortFn: "alphanumeric",
-      filterFn: "equalsString",
+      sortFn: sortOf("alphanumeric", sortBy),
+      filterFn: "matches",
       meta: { kind: "status", align: "start" },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
@@ -213,7 +235,7 @@ export function columnKinds<TData extends RowData>() {
 
   const person = (
     key: Key<TData>,
-    { header, width, minWidth, sortable = true, cell }: Shared<TData> = {},
+    { header, width, minWidth, sortable = true, sortBy, cell }: Shared<TData> = {},
   ) =>
     helper.accessor(read<TData>(key), {
       id: key,
@@ -221,8 +243,8 @@ export function columnKinds<TData extends RowData>() {
       ...(width === undefined ? {} : { size: width }),
       minSize: minOf(width, minWidth ?? minWidths.person),
       enableSorting: sortable,
-      sortFn: "text",
-      filterFn: "equalsString",
+      sortFn: sortOf("text", sortBy),
+      filterFn: "matches",
       meta: { kind: "person", align: "start" },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);

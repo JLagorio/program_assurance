@@ -43,3 +43,9 @@ head: () => ({ scripts: [{ children: modeScript }] });
 Do not also pin `data-color-mode` on the root in markup: the pin wins over the script and the switch cannot move it.
 
 <Canvas of={Stories.ControlledStory} />
+
+## Density
+
+Row density is the same shape: `data-density="compact"` on the root resolves `dimension.row` to its compact value (36px instead of 40px), so every table follows and no table takes a density prop. `densityScript` goes in the head beside `modeScript`; `DensityProvider` owns the choice under `ledger.density`; `DensitySwitch` is the two-state control, beside the mode switch in chrome. A table that is compact by design sets `data-density` on its own frame instead.
+
+<Canvas of={Stories.DensityLive} />

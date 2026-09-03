@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Download, ListFilter, Plus } from "lucide-react";
 
 import {
@@ -10,7 +10,6 @@ import {
   DataTable,
   Dialog,
   Field,
-  FilterChip,
   Grid,
   Id,
   IndexPage,
@@ -18,9 +17,7 @@ import {
   Input,
   NativeSelect,
   PageHeader,
-  Popover,
   Progress,
-  RadioGroup,
   Spinner,
   Stack,
   Tabs,
@@ -29,6 +26,7 @@ import {
   defineColumns,
   toast,
   useDataTable,
+  type ColumnFiltersState,
   type Tone,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
@@ -72,8 +70,6 @@ function RisksLayout() {
     </Shell>
   );
 }
-
-const treatments = ["All", "Mitigate", "Transfer", "Accept"] as const;
 
 function RiskPeek({ risk: r }: { risk: Risk }) {
   return (
@@ -145,19 +141,16 @@ const riskColumns = defineColumns<Risk>((c) => [
 ]);
 
 function RiskList() {
-  const [tab, setTab] = useState("All");
   const [creating, setCreating] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [treatment, setTreatment] = useState<(typeof treatments)[number]>("All");
-
-  // The tab and the treatment chip are column filters; the table does the filtering.
-  const columnFilters = useMemo(
-    () => [
-      ...(tab === "All" ? [] : [{ id: "status", value: tab }]),
-      ...(treatment === "All" ? [] : [{ id: "treatment", value: treatment }]),
-    ],
-    [tab, treatment],
-  );
+  // The route owns the filters: the tabs set the status filter, the chips set theirs, the table filters.
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const tab = String(columnFilters.find((f) => f.id === "status")?.value ?? "All");
+  const setTab = (next: string) =>
+    setColumnFilters((f) => [
+      ...f.filter((x) => x.id !== "status"),
+      ...(next === "All" ? [] : [{ id: "status", value: next }]),
+    ]);
   const table = useDataTable({
     columns: riskColumns,
     data: risks,
@@ -166,9 +159,9 @@ function RiskList() {
     pageSize: 5,
     label: "Risk register",
     state: { columnFilters },
+    onColumnFiltersChange: setColumnFilters,
     initialState: { sorting: [{ id: "id", desc: true }] },
   });
-  const chosen = table.getSelectedRowModel().rows.length;
   const shown = table.getRowCount();
 
   return (
@@ -216,31 +209,10 @@ function RiskList() {
       </Tabs>
 
       <Inline space="space.100" alignBlock="center" shouldWrap>
-        <FilterChip label="Framework" value="SOC 2" isActive />
-        <FilterChip label="Owner" />
-        <Popover
-          width={180}
-          trigger={
-            <FilterChip
-              label="Treatment"
-              {...(treatment === "All" ? {} : { value: treatment, active: true })}
-            />
-          }
-        >
-          <RadioGroup
-            value={treatment}
-            onValueChange={(v) => setTreatment(v as (typeof treatments)[number])}
-            aria-label="Treatment"
-            className="space-y-100"
-          >
-            {treatments.map((t) => (
-              <RadioGroup.Item key={t} value={t}>
-                {t === "All" ? "Any treatment" : t}
-              </RadioGroup.Item>
-            ))}
-          </RadioGroup>
-        </Popover>
-        <FilterChip label="Updated" />
+        <DataTable.Filter table={table} column="framework" />
+        <DataTable.Filter table={table} column="owner" />
+        <DataTable.Filter table={table} column="treatment" />
+        <DataTable.Filter table={table} column="updated" />
         <Inline className="ml-auto" space="space.100" alignBlock="center">
           <Button variant="secondary" size="small">
             <ListFilter className="size-icon-small" /> Columns
@@ -248,26 +220,19 @@ function RiskList() {
         </Inline>
       </Inline>
 
-      {chosen > 0 ? (
-        <Inline
-          className="rounded-medium border border-brand bg-selected px-150 py-075 font-body text-brand"
-          space="space.100"
-          alignBlock="center"
-        >
-          <span className="tabular-nums font-medium">{chosen} selected</span>
-          <Inline className="ml-auto" as="span" space="space.100" alignBlock="center">
+      <DataTable.SelectionBar
+        table={table}
+        actions={
+          <>
             <Button variant="secondary" size="small">
               Reassign
             </Button>
             <Button variant="secondary" size="small">
               Change treatment
             </Button>
-            <Button variant="subtle" size="small" onClick={() => table.resetRowSelection()}>
-              Clear
-            </Button>
-          </Inline>
-        </Inline>
-      ) : null}
+          </>
+        }
+      />
 
       <DataTable
         table={table}

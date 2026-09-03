@@ -13,6 +13,8 @@ import { Table } from "../../components/table";
 import { cn } from "../../lib/cn";
 import { Empty } from "../empty";
 import type { DataTableFeatures } from "./features";
+import { Filter, Presets, Search } from "./filter";
+import { SelectionBar } from "./selection-bar";
 import type { DataTableInstance } from "./use-data-table";
 
 /*
@@ -190,7 +192,7 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
   );
 }) as <TData extends RowData>(props: BodyRowProps<TData>) => ReactNode;
 
-export function DataTable<TData extends RowData>({
+function DataTableRoot<TData extends RowData>({
   table,
   toolbar,
   state = "ready",
@@ -310,3 +312,10 @@ export function DataTable<TData extends RowData>({
     </div>
   );
 }
+
+export const DataTable = Object.assign(DataTableRoot, {
+  SelectionBar,
+  Filter,
+  Search,
+  Presets,
+});

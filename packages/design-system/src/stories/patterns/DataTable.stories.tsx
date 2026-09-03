@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useMemo, useState } from "react";
 
-import { Button, FilterChip, Toolbar, type Tone } from "../../components";
+import { Button, Toolbar, type Tone } from "../../components";
 import { DataTable, defineColumns, useDataTable, type DataTableState } from "../../patterns";
 import { Inline, Stack, Text } from "../../primitives";
 
@@ -82,7 +82,14 @@ const columns = defineColumns<Finding>((c) => [
   ]),
 ]);
 
-/** The register: sortable headers, the checkbox column, a glance on the id, row actions, five rows a page. */
+const presets = [
+  { id: "all", label: "All" },
+  { id: "overdue", label: "Overdue", filters: [{ id: "status", value: "Overdue" }] },
+  { id: "review", label: "In review", filters: [{ id: "status", value: "In review" }] },
+  { id: "mine", label: "Dana's", filters: [{ id: "owner", value: "Dana Whitfield" }] },
+];
+
+/** The register: search, filters as chips, presets with counts, sortable headers, the checkbox column and its bar, a glance on the id, row actions, eight rows a page. */
 function Register() {
   const table = useDataTable({
     columns,
@@ -93,33 +100,41 @@ function Register() {
     label: "Findings",
     initialState: { sorting: [{ id: "due", desc: false }] },
   });
-  const chosen = table.getSelectedRowModel().rows.length;
   return (
     <Stack space="space.150">
+      <DataTable.Presets table={table} presets={presets} />
+      <DataTable.SelectionBar
+        table={table}
+        actions={
+          <>
+            <Button size="small">Reassign</Button>
+            <Button size="small">Close</Button>
+          </>
+        }
+      />
       <DataTable
         table={table}
         toolbar={
           <Toolbar
-            search={String(table.state.globalFilter ?? "")}
-            onSearch={(v) => table.setGlobalFilter(v)}
-            placeholder="Search findings"
             actions={
               <Button size="small" variant="primary">
                 New finding
               </Button>
             }
           >
-            <FilterChip label="Status" />
-            <FilterChip label="Owner" />
+            <DataTable.Search table={table} placeholder="Search findings" />
+            <DataTable.Filter table={table} column="status" />
+            <DataTable.Filter table={table} column="owner" />
+            <DataTable.Filter table={table} column="family" />
+            <DataTable.Filter table={table} column="open" />
+            <DataTable.Filter table={table} column="due" />
           </Toolbar>
         }
-        empty={{
-          title: "No findings match",
-          description: "Clear the search to see every finding.",
-        }}
+        empty={{ title: "No findings match", description: "Clear the search or a filter." }}
       />
       <Text size="small" color="color.text.subtle">
-        {chosen} chosen · sorted by {table.state.sorting[0]?.id ?? "nothing"}
+        sorted by {table.state.sorting[0]?.id ?? "nothing"} · {table.getRowCount()} of{" "}
+        {findings.length} shown
       </Text>
     </Stack>
   );
@@ -167,12 +182,48 @@ function Thousand() {
 
 export const ThousandRows: Story = { name: "A thousand rows", render: () => <Thousand /> };
 
-/** Every state the renderer draws: sorted, selected, with a glance, with actions, then loading, empty and error. */
+const { SelectionBar, Filter, Search, Presets } = DataTable;
+
+/** The toolbar parts on their own: search, a chip per kind, presets, and the bar with the page chosen and the rest on offer. */
+function Parts() {
+  const table = useDataTable({
+    columns,
+    data: findings,
+    getRowId: (r) => r.id,
+    selectable: true,
+    pageSize: 5,
+    initialState: {
+      rowSelection: {
+        "FND-2200": true,
+        "FND-2201": true,
+        "FND-2202": true,
+        "FND-2203": true,
+        "FND-2204": true,
+      },
+    },
+  });
+  return (
+    <Stack space="space.150">
+      <Inline space="space.100" alignBlock="center" shouldWrap>
+        <Search table={table} />
+        <Filter table={table} column="status" />
+        <Filter table={table} column="owner" />
+        <Filter table={table} column="open" />
+        <Filter table={table} column="due" />
+      </Inline>
+      <Presets table={table} presets={presets} />
+      <SelectionBar table={table} actions={<Button size="small">Reassign</Button>} />
+    </Stack>
+  );
+}
+
+/** Every state the renderer draws: sorted, filtered, selected, with a glance, with actions, then loading, empty and error; then the toolbar parts alone. */
 export const DataTableMatrix: Story = {
   render: () => (
     <Stack space="space.300">
       <Register />
       <States />
+      <Parts />
     </Stack>
   ),
 };
