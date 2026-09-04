@@ -2,7 +2,7 @@
 
 A living list for the design system and the prototype. Josef owns the decisions; whoever is working owns the work. Tick a box when it lands and move it to Done with the date. Keep it short: one line per item, the reasoning lives in the spec or the audit it points at.
 
-Updated 2026-09-03.
+Updated 2026-09-04.
 
 ## Decisions waiting on Josef
 
@@ -15,21 +15,15 @@ Updated 2026-09-03.
 ## Kit
 
 - [ ] **Data table, the calls.** Eight calls made without asking in `docs/superpowers/specs/2026-09-03-data-table.md`, plus one more from step 6: Tab moves across an editable table, Enter moves down. Overturn any in one reading.
-- [ ] **Registers still on `Table`.** The coverage view, the control board and the rest move onto `DataTable` when touched; the rule for which is in the Data table docs page.
-- [ ] **Step 9 · Publishable build** with type declarations, when the second project appears.
-- [ ] **`docs/guides/component-library.md`** still describes `src/ds`. Rewrite onto the package or retire it in favour of the Storybook docs.
 
 ## Prototype
 
-- [ ] **Picker adoption.** (The kit side is done: PickerSheet's story runs both frames on DataTable.) "Allocate a requirement" (system-tree.tsx) and the tailoring pane's two Comboboxes move onto `PickerSheet`; `ApplicabilityModal` becomes the row action in its second frame. Spec: `docs/superpowers/specs/2026-09-02-picker-sheet.md`, with three calls for Josef to overturn.
-- [ ] **The peek stack in the URL.** `NodePreviewSheet` drills into a child with no way back; `PreviewSheet` has `onBack` now. Keep the stack in a `?peek=` search param so the chevron and the browser's back are the same thing.
-- [ ] **One preview body per record type**, at two densities (glance for HoverCard, peek for PreviewSheet). `ProgramPeek`, `RiskPeek` and `NodePreviewSheet` are three unrelated bodies today.
-- [ ] **Forms.** No form marks a required field and none validates on submit. The kit side landed 2026-09-02 (Field `isRequired` draws the asterisk, `error` turns the control's border red and shows the message). The app side is per form: name the required fields, pass `error` on submit. 146 Fields, 11 pass either today.
-- [ ] **Hydration mismatch** on `/programs/$programId/baseline` (server text differs from client). Seen 2026-09-02; not the kit's; unowned.
-- [ ] **Link-looking buttons** that are not blue (`<button className="hover:underline">`, rmf-timeline and a few others). Neither `Button variant="link"` nor TextLink; decide whether they are links, actions, or plain text.
+- [ ] **Registers still on `Table`.** After 2026-09-04 the coverage view, the requirement and allocation tables, the top risks and the four ConMon tables are on `DataTable`; the control board stays a board; the rest move when touched.
+- [ ] **The tree's first peek frame** still starts in `system-tree.tsx` local state; passing `usePeekStack().current` straight through would drop the sync effect in `NodePreviewSheet`.
 
 ## Done
 
+- 2026-09-04 · **The queue, cleared**: picker adoption (allocation, tailoring, applicability on `PickerSheet` with `DataTable` frames); the peek stack in `?peek=` and `Glance` as the one preview body; twenty-three forms marking their required fields and validating on submit (`useFormErrors`); the baseline and ConMon hydration mismatches fixed at the loader; link-looking buttons sorted into `TextLink`, `Button variant="link"` and text; four registers on `DataTable`; the component guide rewritten onto the package; step 9, the publishable build with declarations.
 - 2026-09-03 · **Data table, step 6**: editable text and status cells with the grid role and Enter moving down the column; both PickerSheet frames on DataTable.
 - 2026-09-03 · **Data table, step 5**: virtual scroll, server mode, `toRows`/`toCsv`, and the URL adapter in `src/lib/table-state.ts`; the risks route keeps sort, page, search and filters in the URL and exports its CSV.
 - 2026-09-03 · **Data table, step 4**: tree mode with the treegrid keyboard, detail rows, groups, pinned rows, totals in the footer, row reordering by handle; the system tree on tree mode.
