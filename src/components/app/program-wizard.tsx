@@ -425,7 +425,7 @@ function ProgramStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
     <Block title="Program">
       <Stack space="space.150">
         <Grid gap="space.150" templateColumns="minmax(0,1fr) 140px">
-          <Field label="Program name">
+          <Field label="Program name" isRequired>
             <Input
               autoFocus
               value={draft.name}
@@ -741,7 +741,7 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
       >
         {target ? (
           <Stack space="space.150">
-            <Field label="Name">
+            <Field label="Name" isRequired>
               <Input
                 autoFocus
                 value={target.record.name}

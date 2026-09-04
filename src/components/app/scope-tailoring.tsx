@@ -403,6 +403,7 @@ export function ScopeTailoringPane({
                               : "Why decline a recommended overlay"
                           }
                           hint={d.rationale.trim() ? undefined : "Needs a reason before submit"}
+                          isRequired
                         >
                           <Textarea
                             value={d.rationale}
@@ -533,6 +534,7 @@ export function ScopeTailoringPane({
                                 : "Why this scope owes it after all"
                             }
                             hint={t.rationale.trim() ? undefined : "Needs a reason before submit"}
+                            isRequired
                           >
                             <Textarea
                               value={t.rationale}

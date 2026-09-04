@@ -22,6 +22,7 @@ import {
   Table,
   Textarea,
 } from "@ledger/design-system";
+import { required, useFormErrors } from "@/lib/form";
 import {
   findings as seedFindings,
   findingStatusTone,
@@ -409,6 +410,7 @@ function FindingModal({
   const [due, setDue] = useState("");
   const [mitigation, setMitigation] = useState("");
   const [key, setKey] = useState<string | null>(null);
+  const { errors, validate, clear } = useFormErrors<"owner">();
 
   if (finding && key !== finding.id) {
     setKey(finding.id);
@@ -416,8 +418,14 @@ function FindingModal({
     setOwner(finding.owner);
     setDue(finding.due);
     setMitigation(finding.mitigation);
+    clear();
   }
   if (!finding) return null;
+
+  const save = () => {
+    if (!validate({ owner: required(owner, "An owner is required.") })) return;
+    onSave({ ...finding, status, owner, due, mitigation });
+  };
 
   const blocksIatt = finding.severity === "CAT I" && (status === "Open" || status === "Mitigating");
 
@@ -466,10 +474,7 @@ function FindingModal({
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button
-            variant="primary"
-            onClick={() => onSave({ ...finding, status, owner, due, mitigation })}
-          >
+          <Button variant="primary" onClick={save}>
             <Check className="size-icon-small" /> Save finding
           </Button>
         </>
@@ -478,7 +483,7 @@ function FindingModal({
       <Stack space="space.150">
         <p className="font-body text-subtle">{finding.detail}</p>
         <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
-          <Field label="Status">
+          <Field label="Status" isRequired>
             <NativeSelect
               value={status}
               onChange={(e) => setStatus(e.target.value as FindingStatus)}
@@ -488,7 +493,7 @@ function FindingModal({
               ))}
             </NativeSelect>
           </Field>
-          <Field label="Owner">
+          <Field label="Owner" isRequired error={errors.owner}>
             <Input value={owner} onChange={(e) => setOwner(e.target.value)} />
           </Field>
           <Field label="Mitigation due">
@@ -518,8 +523,31 @@ function IngestModal({
   const [artifact, setArtifact] = useState("");
   const [asset, setAsset] = useState("Mission compute (x4)");
   const [notes, setNotes] = useState("");
+  const { errors, validate, clear } = useFormErrors<"artifact">();
 
   if (!open) return null;
+
+  const close = () => {
+    clear();
+    onClose();
+  };
+  const ingest = () => {
+    if (!validate({ artifact: required(artifact, "An artifact file is required.") })) return;
+    clear();
+    onIngest({
+      id: `ING-${2207 + Math.floor(Date.now() % 90)}`,
+      source,
+      artifact: artifact.trim(),
+      asset,
+      ingested: "Just now",
+      status: "Parsing",
+      findings: 0,
+      catI: 0,
+      catII: 0,
+      catIII: 0,
+      coverage: 0,
+    });
+  };
 
   const parser =
     source === "STIG Viewer"
@@ -533,7 +561,7 @@ function IngestModal({
   return (
     <Dialog
       open
-      onClose={onClose}
+      onClose={close}
       width="large"
       title="Ingest assessment data"
       description="Parsed, deduplicated against existing findings and mapped to NIST 800-53."
@@ -555,27 +583,10 @@ pipeline:
       }
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" onClick={close}>
             Cancel
           </Button>
-          <Button
-            variant="primary"
-            onClick={() =>
-              onIngest({
-                id: `ING-${2207 + Math.floor(Date.now() % 90)}`,
-                source,
-                artifact: artifact || "untitled-import",
-                asset,
-                ingested: "Just now",
-                status: "Parsing",
-                findings: 0,
-                catI: 0,
-                catII: 0,
-                catIII: 0,
-                coverage: 0,
-              })
-            }
-          >
+          <Button variant="primary" onClick={ingest}>
             <Upload className="size-icon-small" /> Ingest
           </Button>
         </>
@@ -583,14 +594,14 @@ pipeline:
     >
       <Stack space="space.150">
         <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-          <Field label="Source">
+          <Field label="Source" isRequired>
             <NativeSelect value={source} onChange={(e) => setSource(e.target.value as ScanSource)}>
               {sources.map((s) => (
                 <option key={s}>{s}</option>
               ))}
             </NativeSelect>
           </Field>
-          <Field label="Asset / boundary component">
+          <Field label="Asset / boundary component" isRequired>
             <NativeSelect value={asset} onChange={(e) => setAsset(e.target.value)}>
               <option>Mission compute (x4)</option>
               <option>UUV payload segment</option>
@@ -601,7 +612,7 @@ pipeline:
             </NativeSelect>
           </Field>
         </Grid>
-        <Field label="Artifact file" hint={parser}>
+        <Field label="Artifact file" hint={parser} isRequired error={errors.artifact}>
           <Input
             value={artifact}
             onChange={(e) => setArtifact(e.target.value)}

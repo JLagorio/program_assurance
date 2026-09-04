@@ -23,6 +23,7 @@ import {
   Timeline,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
+import { required, useFormErrors } from "@/lib/form";
 import { riskStatusTone, risks } from "@/lib/grc-data";
 
 export const Route = createFileRoute("/risks/$riskId")({
@@ -89,6 +90,18 @@ const linkedEvidence = [
 function RiskDetail() {
   const risk = Route.useLoaderData();
   const [treating, setTreating] = useState(false);
+  const [plan, setPlan] = useState("");
+  const { errors, validate, clear } = useFormErrors<"plan">();
+
+  const closeTreatment = () => {
+    clear();
+    setTreating(false);
+  };
+  const addTreatment = () => {
+    if (!validate({ plan: required(plan, "A treatment plan is required.") })) return;
+    setPlan("");
+    closeTreatment();
+  };
 
   return (
     <Shell>
@@ -219,33 +232,42 @@ function RiskDetail() {
 
       <Dialog
         open={treating}
-        onClose={() => setTreating(false)}
+        onClose={closeTreatment}
         title="Add treatment"
         description={`Recorded against ${risk.id}. Reviewers are notified immediately.`}
         footer={
           <>
-            <Button variant="subtle" onClick={() => setTreating(false)}>
+            <Button variant="subtle" onClick={closeTreatment}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={() => setTreating(false)}>
+            <Button variant="primary" onClick={addTreatment}>
               Add treatment
             </Button>
           </>
         }
       >
         <Stack space="space.150">
-          <Field label="Action">
+          <Field label="Action" isRequired>
             <NativeSelect defaultValue="Mitigate">
               {["Mitigate", "Accept", "Transfer", "Avoid"].map((t) => (
                 <option key={t}>{t}</option>
               ))}
             </NativeSelect>
           </Field>
-          <Field label="Plan" hint="Include the control change and how it will be verified.">
-            <Textarea placeholder="Enforce tenant scoping in the export resolver and add a regression test." />
+          <Field
+            label="Plan"
+            hint="Include the control change and how it will be verified."
+            isRequired
+            error={errors.plan}
+          >
+            <Textarea
+              value={plan}
+              onChange={(e) => setPlan(e.target.value)}
+              placeholder="Enforce tenant scoping in the export resolver and add a regression test."
+            />
           </Field>
           <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-            <Field label="Assignee">
+            <Field label="Assignee" isRequired>
               <NativeSelect defaultValue={risk.owner}>
                 {["Sarah Chen", "Linus Aarto", "Marcus Ryde", "Priya Raghavan"].map((o) => (
                   <option key={o}>{o}</option>

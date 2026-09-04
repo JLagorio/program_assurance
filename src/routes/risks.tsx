@@ -31,6 +31,7 @@ import {
   useDataTable,
   type Tone,
 } from "@ledger/design-system";
+import { required, useFormErrors } from "@/lib/form";
 import { useTableSearch, validateTableSearch } from "@/lib/table-state";
 import { Shell } from "@/components/app/shell";
 import { riskStatusTone, risks, type Risk } from "@/lib/grc-data";
@@ -271,6 +272,17 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
   const [treatment, setTreatment] = useState("Mitigate");
   const [likelihood, setLikelihood] = useState("3");
   const [impact, setImpact] = useState("4");
+  const { errors, validate, clear } = useFormErrors<"title" | "owner">();
+
+  const create = () => {
+    const valid = validate({
+      title: required(title, "A title is required."),
+      owner: required(owner, "An owner is required."),
+    });
+    if (!valid) return;
+    clear();
+    onClose();
+  };
 
   const inherent = Number(likelihood) * Number(impact) * 4;
   const residual = Math.round(inherent * (treatment === "Accept" ? 0.95 : 0.55));
@@ -323,14 +335,14 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
           <Button variant="secondary" onClick={onClose}>
             Save draft
           </Button>
-          <Button variant="primary" onClick={onClose}>
+          <Button variant="primary" onClick={create}>
             Create risk
           </Button>
         </>
       }
     >
       <Stack space="space.150">
-        <Field label="Title">
+        <Field label="Title" isRequired error={errors.title}>
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -355,7 +367,7 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
               ))}
             </NativeSelect>
           </Field>
-          <Field label="Owner">
+          <Field label="Owner" isRequired error={errors.owner}>
             <Combobox
               value={owner}
               onChange={setOwner}

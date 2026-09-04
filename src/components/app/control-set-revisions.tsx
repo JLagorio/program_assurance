@@ -63,6 +63,7 @@ import {
 } from "@/lib/control-set";
 import { currentSession, useWorkVersion } from "@/lib/control-work";
 import { positionOf } from "@/lib/control-work";
+import { required, useFormErrors } from "@/lib/form";
 import { frameworkById } from "@/lib/frameworks";
 import { scopeById } from "@/lib/scopes";
 
@@ -128,6 +129,7 @@ export function RevisionActions({
   const session = currentSession();
   const [acting, setActing] = useState<RevisionOffer | null>(null);
   const [note, setNote] = useState("");
+  const noteErrors = useFormErrors<"note">();
 
   const inForce = inForceRevision(revision.scope);
   const delta = useMemo(
@@ -140,8 +142,18 @@ export function RevisionActions({
   );
   const scope = scopeById.get(revision.scope);
 
+  const cancel = () => {
+    noteErrors.clear();
+    setActing(null);
+  };
+
   const perform = () => {
     if (!acting) return;
+    if (
+      acting.def.note === "required" &&
+      !noteErrors.validate({ note: required(note, "A reason is required.") })
+    )
+      return;
     const result = performRevision(revision.id, acting.def.key, note);
     if (!result.ok) {
       toast.error("Not applied", { description: result.reason });
@@ -150,6 +162,7 @@ export function RevisionActions({
     toast.success(acting.def.label, {
       description: `${scope?.name ?? revision.scope} · v${revision.number}`,
     });
+    noteErrors.clear();
     setActing(null);
     setNote("");
   };
@@ -189,32 +202,36 @@ export function RevisionActions({
         acting.def.note === "required" ? (
           <Dialog
             open
-            onClose={() => setActing(null)}
+            onClose={cancel}
             title={acting.def.label}
             description={consequenceFor(acting.def.key, revision, delta)}
             footer={
               <>
-                <Button variant="subtle" onClick={() => setActing(null)}>
+                <Button variant="subtle" onClick={cancel}>
                   Cancel
                 </Button>
                 <Button
                   variant={acting.def.tone === "danger" ? "danger" : "primary"}
                   onClick={perform}
-                  disabled={!note.trim()}
                 >
                   {acting.def.label}
                 </Button>
               </>
             }
           >
-            <Field label="Reason" hint="Recorded on the revision and in its history.">
+            <Field
+              label="Reason"
+              hint="Recorded on the revision and in its history."
+              isRequired
+              error={noteErrors.errors.note}
+            >
               <Textarea autoFocus value={note} onChange={(e) => setNote(e.target.value)} />
             </Field>
           </Dialog>
         ) : (
           <AlertDialog
             open
-            onClose={() => setActing(null)}
+            onClose={cancel}
             onConfirm={perform}
             title={`${acting.def.label} v${revision.number}?`}
             description={consequenceFor(acting.def.key, revision, delta)}
@@ -233,13 +250,21 @@ export function ProposeChange({ scopeId }: { scopeId: string }) {
   useWorkVersion();
   const [proposing, setProposing] = useState(false);
   const [reason, setReason] = useState("");
+  const { errors, validate, clear } = useFormErrors<"reason">();
   const session = currentSession();
   const inForce = inForceRevision(scopeId);
   const scope = scopeById.get(scopeId);
   const blocked = proposeBlocked(scopeId, session.role);
 
+  const cancel = () => {
+    clear();
+    setProposing(false);
+  };
+
   const propose = () => {
+    if (!validate({ reason: required(reason, "A reason is required.") })) return;
     const rev = proposeRevision(scopeId, reason);
+    clear();
     setProposing(false);
     setReason("");
     if (rev) toast.success(`v${rev.number} drafted`, { description: rev.reason });
@@ -259,7 +284,7 @@ export function ProposeChange({ scopeId }: { scopeId: string }) {
       {blocked ? <span className="font-body-xsmall text-subtle">{blocked}</span> : null}
       <Dialog
         open={proposing}
-        onClose={() => setProposing(false)}
+        onClose={cancel}
         title="Propose a change"
         description={
           inForce
@@ -268,16 +293,21 @@ export function ProposeChange({ scopeId }: { scopeId: string }) {
         }
         footer={
           <>
-            <Button variant="subtle" onClick={() => setProposing(false)}>
+            <Button variant="subtle" onClick={cancel}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={propose} disabled={!reason.trim()}>
+            <Button variant="primary" onClick={propose}>
               Draft revision
             </Button>
           </>
         }
       >
-        <Field label="What changed" hint="The reason the control set has to move.">
+        <Field
+          label="What changed"
+          hint="The reason the control set has to move."
+          isRequired
+          error={errors.reason}
+        >
           <Textarea
             autoFocus
             value={reason}

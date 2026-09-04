@@ -39,6 +39,7 @@ import {
   type ScaObservation,
   type ScaObservationStatus,
 } from "@/lib/authorization";
+import { required, useFormErrors } from "@/lib/form";
 
 const severityTone = {
   "CAT I": "danger",
@@ -322,13 +323,37 @@ function ObservationModal({
   const [control, setControl] = useState("");
   const [due, setDue] = useState("Sep 15, 2026");
   const [detail, setDetail] = useState("");
+  const { errors, validate, clear } = useFormErrors<"title">();
 
   if (!open) return null;
+
+  const close = () => {
+    clear();
+    onClose();
+  };
+  const log = () => {
+    if (!validate({ title: required(title, "An observation is required.") })) return;
+    clear();
+    onLog({
+      id: `OBS-${119 + Math.floor(Date.now() % 40)}`,
+      title: title.trim(),
+      severity,
+      control: control || "CA-2",
+      loggedBy: "D. Okafor (SCA)",
+      logged: "Just now",
+      status: "Logged",
+      jira: null,
+      assignee: "—",
+      due,
+      detail,
+      response: "",
+    });
+  };
 
   return (
     <Dialog
       open
-      onClose={onClose}
+      onClose={close}
       width="large"
       title="Log assessor observation"
       description="Logged directly by the SCA in the enclave — no spreadsheets, no email."
@@ -349,35 +374,17 @@ next: triage -> jira issue`}
       }
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" onClick={close}>
             Cancel
           </Button>
-          <Button
-            variant="primary"
-            onClick={() =>
-              onLog({
-                id: `OBS-${119 + Math.floor(Date.now() % 40)}`,
-                title: title || "Untitled observation",
-                severity,
-                control: control || "CA-2",
-                loggedBy: "D. Okafor (SCA)",
-                logged: "Just now",
-                status: "Logged",
-                jira: null,
-                assignee: "—",
-                due,
-                detail,
-                response: "",
-              })
-            }
-          >
+          <Button variant="primary" onClick={log}>
             <Check className="size-icon-small" /> Log observation
           </Button>
         </>
       }
     >
       <Stack space="space.150">
-        <Field label="Observation">
+        <Field label="Observation" isRequired error={errors.title}>
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -385,7 +392,7 @@ next: triage -> jira issue`}
           />
         </Field>
         <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
-          <Field label="Severity">
+          <Field label="Severity" isRequired>
             <NativeSelect
               value={severity}
               onChange={(e) => setSeverity(e.target.value as ScaObservation["severity"])}
@@ -509,7 +516,7 @@ links:
       <Stack space="space.150">
         <p className="font-body text-subtle">{observation.detail}</p>
         <Grid gap="space.150" templateColumns="repeat(4, minmax(0, 1fr))">
-          <Field label="Status">
+          <Field label="Status" isRequired>
             <NativeSelect
               value={status}
               onChange={(e) => setStatus(e.target.value as ScaObservationStatus)}
@@ -526,7 +533,7 @@ links:
               ))}
             </NativeSelect>
           </Field>
-          <Field label="Assignee">
+          <Field label="Assignee" isRequired>
             <NativeSelect value={assignee} onChange={(e) => setAssignee(e.target.value)}>
               {jiraAssignees.map((a) => (
                 <option key={a}>{a}</option>
@@ -551,27 +558,38 @@ function GrantModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("SCA team");
   const [access, setAccess] = useState("Read only");
+  const { errors, validate, clear } = useFormErrors<"email">();
 
   if (!open) return null;
+
+  const close = () => {
+    clear();
+    onClose();
+  };
+  const send = () => {
+    if (!validate({ email: required(email, "A government email is required.") })) return;
+    close();
+  };
+
   return (
     <Dialog
       open
-      onClose={onClose}
+      onClose={close}
       title="Grant enclave access"
       description="Scoped, expiring, read-only access to this authorization package."
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" onClick={close}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={onClose}>
+          <Button variant="primary" onClick={send}>
             <Check className="size-icon-small" /> Send invite
           </Button>
         </>
       }
     >
       <Stack space="space.150">
-        <Field label="Government email" hint=".mil or .gov only">
+        <Field label="Government email" hint=".mil or .gov only" isRequired error={errors.email}>
           <Input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -579,7 +597,7 @@ function GrantModal({ open, onClose }: { open: boolean; onClose: () => void }) {
           />
         </Field>
         <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-          <Field label="Role">
+          <Field label="Role" isRequired>
             <NativeSelect value={role} onChange={(e) => setRole(e.target.value)}>
               <option>SCA</option>
               <option>SCA team</option>
@@ -587,7 +605,7 @@ function GrantModal({ open, onClose }: { open: boolean; onClose: () => void }) {
               <option>AODR</option>
             </NativeSelect>
           </Field>
-          <Field label="Access">
+          <Field label="Access" isRequired>
             <NativeSelect value={access} onChange={(e) => setAccess(e.target.value)}>
               <option>Read only</option>
               <option>Read + comment</option>
@@ -796,13 +814,21 @@ function RiskDecisionModal({
   const [key, setKey] = useState<string | null>(null);
   const [decision, setDecision] = useState<ResidualRisk["decision"]>("Accepted");
   const [rationale, setRationale] = useState("");
+  const { errors, validate, clear } = useFormErrors<"rationale">();
 
   if (risk && key !== risk.id) {
     setKey(risk.id);
     setDecision(risk.decision === "Pending AO" ? "Accepted" : risk.decision);
     setRationale(risk.rationale);
+    clear();
   }
   if (!risk) return null;
+
+  const record = () => {
+    if (!validate({ rationale: required(rationale, "A rationale is required for the record.") }))
+      return;
+    onSave({ ...risk, decision, rationale });
+  };
 
   return (
     <Dialog
@@ -835,7 +861,7 @@ function RiskDecisionModal({
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={() => onSave({ ...risk, decision, rationale })}>
+          <Button variant="primary" onClick={record}>
             <ShieldCheck className="size-icon-small" /> Record decision
           </Button>
         </>
@@ -843,7 +869,7 @@ function RiskDecisionModal({
     >
       <Stack space="space.150">
         <p className="font-body text-subtle">Mitigation in place: {risk.mitigation}</p>
-        <Field label="AO decision">
+        <Field label="AO decision" isRequired>
           <NativeSelect
             value={decision}
             onChange={(e) => setDecision(e.target.value as ResidualRisk["decision"])}
@@ -854,7 +880,7 @@ function RiskDecisionModal({
             <option>Pending AO</option>
           </NativeSelect>
         </Field>
-        <Field label="Rationale for the record">
+        <Field label="Rationale for the record" isRequired error={errors.rationale}>
           <Textarea
             rows={4}
             value={rationale}
@@ -873,12 +899,23 @@ function MemoModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [conditions, setConditions] = useState(
     "Close POAM-0031 and POAM-0044 within 90 days. Submit continuous monitoring report quarterly.",
   );
+  const { errors, validate, clear } = useFormErrors<"expires">();
 
   if (!open) return null;
+
+  const close = () => {
+    clear();
+    onClose();
+  };
+  const issue = () => {
+    if (!validate({ expires: required(expires, "An expiry date is required.") })) return;
+    close();
+  };
+
   return (
     <Dialog
       open
-      onClose={onClose}
+      onClose={close}
       width="large"
       title="Issue authorization memo"
       description="Signed by the Authorizing Official and distributed to the program and the SCA."
@@ -903,10 +940,10 @@ conditions: |
       }
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" onClick={close}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={onClose}>
+          <Button variant="primary" onClick={issue}>
             <FileSignature className="size-icon-small" /> Sign & issue
           </Button>
         </>
@@ -914,7 +951,7 @@ conditions: |
     >
       <Stack space="space.150">
         <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-          <Field label="Authorization type">
+          <Field label="Authorization type" isRequired>
             <NativeSelect value={type} onChange={(e) => setType(e.target.value)}>
               <option>ATO with conditions (36 months)</option>
               <option>ATO (36 months)</option>
@@ -923,7 +960,7 @@ conditions: |
               <option>Denial of authorization</option>
             </NativeSelect>
           </Field>
-          <Field label="Expires">
+          <Field label="Expires" isRequired error={errors.expires}>
             <Input value={expires} onChange={(e) => setExpires(e.target.value)} />
           </Field>
         </Grid>

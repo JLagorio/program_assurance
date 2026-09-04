@@ -39,6 +39,7 @@ import {
   type MappingRuleSignal,
   type ThreadEvidence,
 } from "@/lib/digital-thread";
+import { required, useFormErrors } from "@/lib/form";
 
 const statusFilters: ("All" | EvidenceStatus)[] = [
   "All",
@@ -379,10 +380,12 @@ function RuleModal({
 }) {
   const [draft, setDraft] = useState<MappingRule | null>(rule);
   const [controls, setControls] = useState(rule?.controls.join(", ") ?? "");
+  const { errors, validate, clear } = useFormErrors<"name" | "controls">();
 
   if (rule && draft?.id !== rule.id) {
     setDraft(rule);
     setControls(rule.controls.join(", "));
+    clear();
   }
   if (!rule || !draft) return null;
 
@@ -390,6 +393,15 @@ function RuleModal({
     .split(",")
     .map((c) => c.trim())
     .filter(Boolean);
+
+  const save = () => {
+    const valid = validate({
+      name: required(draft.name, "A rule name is required."),
+      controls: parsed.length > 0 ? false : "At least one mapped control is required.",
+    });
+    if (!valid) return;
+    onSave({ ...draft, controls: parsed });
+  };
 
   return (
     <Dialog
@@ -411,14 +423,14 @@ function RuleModal({
           <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={() => onSave({ ...draft, controls: parsed })}>
+          <Button variant="primary" onClick={save}>
             {creating ? "Create rule" : "Save rule"}
           </Button>
         </>
       }
     >
       <Stack space="space.150">
-        <Field label="Rule name">
+        <Field label="Rule name" isRequired error={errors.name}>
           <Input
             value={draft.name}
             placeholder="Multifactor authentication"
@@ -426,7 +438,7 @@ function RuleModal({
           />
         </Field>
         <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-          <Field label="Source tool">
+          <Field label="Source tool" isRequired>
             <NativeSelect
               value={draft.source}
               onChange={(e) => {
@@ -441,7 +453,7 @@ function RuleModal({
               ))}
             </NativeSelect>
           </Field>
-          <Field label="Signal">
+          <Field label="Signal" isRequired>
             <NativeSelect
               value={draft.signal}
               onChange={(e) => setDraft({ ...draft, signal: e.target.value as MappingRuleSignal })}
@@ -464,7 +476,12 @@ function RuleModal({
             onChange={(e) => setDraft({ ...draft, match: e.target.value })}
           />
         </Field>
-        <Field label="Mapped controls" hint="Comma separated NIST SP 800-53 Rev. 5 control IDs.">
+        <Field
+          label="Mapped controls"
+          hint="Comma separated NIST SP 800-53 Rev. 5 control IDs."
+          isRequired
+          error={errors.controls}
+        >
           <Input
             value={controls}
             placeholder="IA-2, IA-2(1)"

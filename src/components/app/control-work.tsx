@@ -26,6 +26,7 @@ import {
   Textarea,
 } from "@ledger/design-system";
 import type { ActionBarAction } from "@ledger/design-system";
+import { required, useFormErrors } from "@/lib/form";
 import { cn } from "@/lib/utils";
 import {
   activityFor,
@@ -71,8 +72,10 @@ export function ControlActionBar({
   const [pending, setPending] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const noteErrors = useFormErrors<"note">();
 
   const chosen = offers.find((o) => o.def.key === pending);
+  const noteRequired = chosen?.def.note === "required";
 
   const actions: ActionBarAction[] = offers.map((o) => ({
     label: o.def.label,
@@ -83,11 +86,14 @@ export function ControlActionBar({
       setPending(o.def.key);
       setNote("");
       setError(null);
+      noteErrors.clear();
     },
   }));
 
   const fire = () => {
     if (!pending) return;
+    if (noteRequired && !noteErrors.validate({ note: required(note, "A reason is required.") }))
+      return;
     const result = perform(work.id, pending, context, note);
     if (!result.ok) return setError(result.reason);
     setPending(null);
@@ -143,7 +149,11 @@ export function ControlActionBar({
           >
             {session.name} · {session.role}
           </Box>
-          <Field label={chosen?.def.note === "required" ? "Reason (required)" : "Note"}>
+          <Field
+            label={noteRequired ? "Reason" : "Note"}
+            isRequired={noteRequired}
+            error={noteErrors.errors.note}
+          >
             <Textarea value={note} onChange={(e) => setNote(e.target.value)} />
           </Field>
         </Grid>

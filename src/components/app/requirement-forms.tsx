@@ -32,6 +32,7 @@ import {
   useDataTable,
 } from "@ledger/design-system";
 import { nodesForProgram } from "@/lib/composition";
+import { required, useFormErrors } from "@/lib/form";
 import { systemComponents } from "@/lib/reusable-components";
 import {
   addAllocation,
@@ -100,7 +101,7 @@ export function NewRequirementModal({
   const [sourceId, setSourceId] = useState("");
   const [sourceLabel, setSourceLabel] = useState("");
   const [why, setWhy] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const { errors, validate, clear } = useFormErrors<"text" | "owner" | "sourceId" | "why">();
 
   const candidates = useMemo(() => requirementsForProgram(programId), [programId]);
 
@@ -111,14 +112,17 @@ export function NewRequirementModal({
     setSourceId("");
     setSourceLabel("");
     setWhy("");
-    setError(null);
+    clear();
   };
 
   const submit = () => {
-    if (!text.trim()) return setError("The shall statement cannot be empty.");
-    if (!owner.trim()) return setError("A requirement needs an accountable owner.");
-    if (!sourceId.trim()) return setError("A requirement needs at least one derivation source.");
-    if (!why.trim()) return setError("Record why the source produces this requirement.");
+    const valid = validate({
+      text: required(text, "The shall statement cannot be empty."),
+      owner: required(owner, "A requirement needs an accountable owner."),
+      sourceId: required(sourceId, "A requirement needs at least one derivation source."),
+      why: required(why, "Record why the source produces this requirement."),
+    });
+    if (!valid) return;
     addRequirement({
       program: programId,
       parent: parent || null,
@@ -149,7 +153,6 @@ export function NewRequirementModal({
       width="large"
       footer={
         <>
-          {error ? <span className="mr-auto font-body-small text-danger">{error}</span> : null}
           <Button onClick={onClose}>Cancel</Button>
           <Button variant="primary" onClick={submit}>
             Create requirement
@@ -158,7 +161,12 @@ export function NewRequirementModal({
       }
     >
       <Grid gap="space.150">
-        <Field label="Shall statement" hint="One obligation, testable, no compound clauses.">
+        <Field
+          label="Shall statement"
+          hint="One obligation, testable, no compound clauses."
+          isRequired
+          error={errors.text}
+        >
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -183,7 +191,7 @@ export function NewRequirementModal({
               ))}
             </NativeSelect>
           </Field>
-          <Field label="Owner">
+          <Field label="Owner" isRequired error={errors.owner}>
             <Input
               value={owner}
               onChange={(e) => setOwner(e.target.value)}
@@ -226,7 +234,12 @@ export function NewRequirementModal({
                 ))}
               </NativeSelect>
             </Field>
-            <Field label="Source" hint="SI-7(1), THR-0309, CMP-008 …">
+            <Field
+              label="Source"
+              hint="SI-7(1), THR-0309, CMP-008 …"
+              isRequired
+              error={errors.sourceId}
+            >
               <Input value={sourceId} onChange={(e) => setSourceId(e.target.value)} />
             </Field>
             <Field label="Source name">
@@ -237,6 +250,8 @@ export function NewRequirementModal({
             className="pt-150"
             label="Why it produces this requirement"
             hint="&ldquo;The security team asked&rdquo; is not provenance."
+            isRequired
+            error={errors.why}
           >
             <Textarea value={why} onChange={(e) => setWhy(e.target.value)} />
           </Field>
@@ -288,12 +303,15 @@ export function AllocateModal({
   const [scope, setScope] = useState("");
   const [owner, setOwner] = useState(requirement.owner);
   const [rationale, setRationale] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const { errors, validate, clear } = useFormErrors<"target" | "scope">();
 
   const submit = () => {
     const chosen = options.find((o) => o.id === target);
-    if (!chosen) return setError("Pick something to allocate to.");
-    if (!scope.trim()) return setError("State the bounded claim this element answers.");
+    const valid = validate({
+      target: chosen ? false : "Pick something to allocate to.",
+      scope: required(scope, "State the bounded claim this element answers."),
+    });
+    if (!valid || !chosen) return;
     addAllocation({
       requirement: requirement.id,
       target: chosen.id,
@@ -306,7 +324,7 @@ export function AllocateModal({
     });
     setScope("");
     setRationale("");
-    setError(null);
+    clear();
     onClose();
   };
 
@@ -319,7 +337,6 @@ export function AllocateModal({
       width="large"
       footer={
         <>
-          {error ? <span className="mr-auto font-body-small text-danger">{error}</span> : null}
           <Button onClick={onClose}>Cancel</Button>
           <Button variant="primary" onClick={submit}>
             Allocate
@@ -328,7 +345,7 @@ export function AllocateModal({
       }
     >
       <Grid gap="space.150">
-        <Field label="Allocate to">
+        <Field label="Allocate to" isRequired error={errors.target}>
           <NativeSelect value={target} onChange={(e) => setTarget(e.target.value)}>
             {options.map((o) => (
               <option key={`${o.kind}-${o.id}`} value={o.id}>
@@ -362,7 +379,12 @@ export function AllocateModal({
             <Input value={owner} onChange={(e) => setOwner(e.target.value)} />
           </Field>
         </Grid>
-        <Field label="Scope of the claim" hint="What part of the requirement this element answers.">
+        <Field
+          label="Scope of the claim"
+          hint="What part of the requirement this element answers."
+          isRequired
+          error={errors.scope}
+        >
           <Input
             value={scope}
             onChange={(e) => setScope(e.target.value)}

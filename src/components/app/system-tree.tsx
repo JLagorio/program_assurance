@@ -59,6 +59,7 @@ import {
 } from "@/lib/control-set";
 import { positionOf, useWorkVersion, workForScope } from "@/lib/control-work";
 import { workIndex } from "@/lib/control-board";
+import { required, useFormErrors } from "@/lib/form";
 
 import { NodePreviewSheet } from "./node-preview";
 import {
@@ -417,6 +418,7 @@ export function AddNodeSheet({
   const [note, setNote] = useState("");
   const [owner, setOwner] = useState("");
   const [basis, setBasis] = useState("");
+  const { errors, validate, clear } = useFormErrors<"name">();
 
   const chosen = addableKinds.find((k) => k.kind === kind) ?? addableKinds[0]!;
   const isScope = kind === "Subsystem" || kind === "Enclave";
@@ -428,10 +430,11 @@ export function AddNodeSheet({
     setNote("");
     setOwner("");
     setBasis("");
+    clear();
   };
 
   const create = () => {
-    if (!name.trim() || !parent) return;
+    if (!validate({ name: required(name, "A name is required.") }) || !parent) return;
     const [node] = addCompositionNodes([
       {
         id: nextNodeId(),
@@ -503,14 +506,14 @@ export function AddNodeSheet({
           >
             Cancel
           </Button>
-          <Button variant="primary" onClick={create} disabled={!name.trim() || !parent}>
+          <Button variant="primary" onClick={create} disabled={!parent}>
             Add {kind.toLowerCase()}
           </Button>
         </>
       }
     >
       <Stack space="space.150">
-        <Field label="Kind">
+        <Field label="Kind" isRequired>
           <Select value={kind} onValueChange={(v) => setKind(v as NodeKind)} aria-label="Kind">
             {addableKinds.map((k) => (
               <Select.Item key={k.kind} value={k.kind}>
@@ -519,7 +522,7 @@ export function AddNodeSheet({
             ))}
           </Select>
         </Field>
-        <Field label="Name">
+        <Field label="Name" isRequired error={errors.name}>
           <Input
             autoFocus
             value={name}

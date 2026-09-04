@@ -41,6 +41,7 @@ import {
   type SystemClass,
   type SystemParameters,
 } from "@/lib/tailoring";
+import { required, useFormErrors } from "@/lib/form";
 import type { ImpactLevel } from "@/lib/grc-data";
 
 const actionTone = {
@@ -72,6 +73,7 @@ export function TailoringSection({
   const [submitting, setSubmitting] = useState(false);
   const [deciding, setDeciding] = useState<null | "approve" | "changes">(null);
   const [note, setNote] = useState("");
+  const decisionErrors = useFormErrors<"note">();
 
   const seed = scopeApprovals.find((a) => a.programId === programId);
   const [state, setState] = useState<ApprovalState>(seed?.state ?? "Draft");
@@ -109,6 +111,10 @@ export function TailoringSection({
 
   function decide(kind: "approve" | "changes") {
     const approved = kind === "approve";
+    const valid = decisionErrors.validate({
+      note: approved ? false : required(note, "Say what needs to change."),
+    });
+    if (!valid) return;
     setState(approved ? "Approved" : "Changes requested");
     setDecision({ by: `${programOwner} (PM)`, at: now(), note: note || null });
     log(
@@ -438,12 +444,21 @@ export function TailoringSection({
       {/* -------------------------------------------------- decision modal */}
       <Dialog
         open={deciding !== null}
-        onClose={() => setDeciding(null)}
+        onClose={() => {
+          decisionErrors.clear();
+          setDeciding(null);
+        }}
         title={deciding === "approve" ? "Approve compliance scope" : "Request changes"}
         description={`${programId} · ${result.total} controls · ${result.overlays.length} overlays`}
         footer={
           <>
-            <Button variant="subtle" onClick={() => setDeciding(null)}>
+            <Button
+              variant="subtle"
+              onClick={() => {
+                decisionErrors.clear();
+                setDeciding(null);
+              }}
+            >
               Cancel
             </Button>
             <Button
@@ -462,6 +477,8 @@ export function TailoringSection({
               ? "Recorded against the authorization package."
               : "Returned to the systems security engineer."
           }
+          isRequired={deciding === "changes"}
+          error={decisionErrors.errors.note}
         >
           <Textarea value={note} onChange={(e) => setNote(e.target.value)} />
         </Field>

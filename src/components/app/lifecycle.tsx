@@ -27,6 +27,7 @@ import {
   type GateStatus,
   type ProgramGate,
 } from "@/lib/grc-data";
+import { required, useFormErrors } from "@/lib/form";
 
 const statusFilters: Array<"All" | GateStatus> = [
   "All",
@@ -204,13 +205,20 @@ function GateModal({
 }) {
   const [draft, setDraft] = useState<ProgramGate | null>(gate);
   const [note, setNote] = useState("");
+  const { errors, validate, clear } = useFormErrors<"owner">();
 
   // reset when a different gate is opened
   if (gate && draft?.id !== gate.id) {
     setDraft(gate);
     setNote("");
+    clear();
   }
   if (!gate || !draft) return null;
+
+  const save = () => {
+    if (!validate({ owner: required(draft.owner, "An owner is required.") })) return;
+    onSave(draft);
+  };
 
   return (
     <Dialog
@@ -238,7 +246,7 @@ function GateModal({
           <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={() => onSave(draft)}>
+          <Button variant="primary" onClick={save}>
             Save gate
           </Button>
         </>
@@ -246,7 +254,7 @@ function GateModal({
     >
       <Stack space="space.150">
         <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-          <Field label="Status">
+          <Field label="Status" isRequired>
             <NativeSelect
               value={draft.status}
               onChange={(e) => setDraft({ ...draft, status: e.target.value as GateStatus })}
@@ -260,7 +268,7 @@ function GateModal({
               )}
             </NativeSelect>
           </Field>
-          <Field label="Owner">
+          <Field label="Owner" isRequired error={errors.owner}>
             <Input
               value={draft.owner}
               onChange={(e) => setDraft({ ...draft, owner: e.target.value })}

@@ -58,6 +58,7 @@ import { findingsForProgram, nextActions, programPosture } from "@/lib/program-a
 import { programActivity } from "@/lib/program-activity";
 import { coverageFromRows, gateOutlook, programMilestones } from "@/lib/program-coverage";
 import { isOpen } from "@/lib/findings";
+import { required as requiredValue, useFormErrors } from "@/lib/form";
 import { CommandPalette, useCommandPalette } from "@/components/app/command-palette";
 import { programCommands } from "@/lib/program-commands";
 import { NewRequirementModal } from "@/components/app/requirement-forms";
@@ -232,6 +233,7 @@ function ProgramDetail() {
   const [assessing, setAssessing] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [assessControl, setAssessControl] = useState("AC-6(9)");
+  const assessErrors = useFormErrors<"control">();
   const [status, setStatus] = useState(program.status);
   const [owner, setOwner] = useState(program.owner);
   const palette = useCommandPalette();
@@ -1063,17 +1065,30 @@ function ProgramDetail() {
 
       <Dialog
         open={assessing}
-        onClose={() => setAssessing(false)}
+        onClose={() => {
+          assessErrors.clear();
+          setAssessing(false);
+        }}
         title="Record a control assessment"
         description={`${program.id} · ${program.baseline}`}
         footer={
           <>
-            <Button variant="subtle" onClick={() => setAssessing(false)}>
+            <Button
+              variant="subtle"
+              onClick={() => {
+                assessErrors.clear();
+                setAssessing(false);
+              }}
+            >
               Cancel
             </Button>
             <Button
               variant="primary"
               onClick={() => {
+                const valid = assessErrors.validate({
+                  control: requiredValue(assessControl, "A control is required."),
+                });
+                if (!valid) return;
                 setAssessing(false);
                 toast.success("Assessment recorded", {
                   description: `${program.id} · result saved to the SCTM`,
@@ -1087,7 +1102,7 @@ function ProgramDetail() {
       >
         <Stack space="space.150">
           <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-            <Field label="Control">
+            <Field label="Control" isRequired error={assessErrors.errors.control}>
               <Combobox
                 value={assessControl}
                 onChange={setAssessControl}
@@ -1103,7 +1118,7 @@ function ProgramDetail() {
                 className="w-full"
               />
             </Field>
-            <Field label="Result">
+            <Field label="Result" isRequired>
               <Select defaultValue="Other than satisfied" aria-label="Result">
                 {["Satisfied", "Other than satisfied", "Not applicable"].map((r) => (
                   <Select.Item key={r} value={r}>
@@ -1114,7 +1129,7 @@ function ProgramDetail() {
             </Field>
           </Grid>
           <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-            <Field label="Assessment method">
+            <Field label="Assessment method" isRequired>
               <Select defaultValue="Test" aria-label="Assessment method">
                 {["Examine", "Interview", "Test"].map((m) => (
                   <Select.Item key={m} value={m}>

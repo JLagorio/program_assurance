@@ -40,6 +40,7 @@ import {
   type PoamSeverity,
   type PoamStatus,
 } from "@/lib/grc-data";
+import { required, useFormErrors } from "@/lib/form";
 import {
   currentUser,
   diffPoamItems,
@@ -673,6 +674,7 @@ function PoamEditModal({
 }) {
   const [draft, setDraft] = useState<PoamItem | null>(item);
   useEffect(() => setDraft(item), [item]);
+  const { errors, validate } = useFormErrors<"title" | "pointOfContact">();
 
   if (!item || !draft) return null;
 
@@ -722,6 +724,11 @@ function PoamEditModal({
     setDraft((d) => (d ? { ...d, props: d.props.filter((_, n) => n !== index) } : d));
 
   const save = () => {
+    const valid = validate({
+      title: required(draft.title, "A weakness title is required."),
+      pointOfContact: required(draft.pointOfContact, "A point of contact is required."),
+    });
+    if (!valid) return;
     const cleanedProps = draft.props
       .map((p) => ({ ...p, name: p.name.trim(), value: p.value.trim() }))
       .filter((p) => p.name.length > 0);
@@ -758,7 +765,7 @@ function PoamEditModal({
           <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={save} disabled={draft.title.trim().length === 0}>
+          <Button variant="primary" onClick={save}>
             Save changes
           </Button>
         </>
@@ -789,7 +796,12 @@ function PoamEditModal({
       }
     >
       <Stack space="space.150">
-        <Field label="Weakness title" hint="markup-line — appears as the poam-item title.">
+        <Field
+          label="Weakness title"
+          hint="markup-line — appears as the poam-item title."
+          isRequired
+          error={errors.title}
+        >
           <Input autoFocus value={draft.title} onChange={(e) => set("title", e.target.value)} />
         </Field>
         <Field label="Description" hint="markup-multiline">
@@ -803,7 +815,7 @@ function PoamEditModal({
         </Field>
 
         <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
-          <Field label="Controls" hint="token list">
+          <Field label="Controls" hint="token list" isRequired>
             <Input
               value={draft.controls.join(", ")}
               onChange={(e) =>
@@ -840,13 +852,13 @@ function PoamEditModal({
         </Grid>
 
         <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
-          <Field label="Scheduled completion" hint="date-time-with-timezone">
+          <Field label="Scheduled completion" hint="date-time-with-timezone" isRequired>
             <DatePicker
               value={toDateInput(draft.scheduledCompletion)}
               onChange={(iso) => set("scheduledCompletion", toOscalDateTime(iso))}
             />
           </Field>
-          <Field label="Point of contact">
+          <Field label="Point of contact" isRequired error={errors.pointOfContact}>
             <NativeSelect
               value={draft.pointOfContact}
               onChange={(e) => set("pointOfContact", e.target.value)}
@@ -1072,8 +1084,15 @@ function PoamCreateModal({
   const [milestone, setMilestone] = useState("");
   const [milestoneDate, setMilestoneDate] = useState("2026-09-30");
   const [riskId, setRiskId] = useState("");
+  const { errors, validate, clear } = useFormErrors<"title" | "scheduled" | "contact">();
 
   const create = () => {
+    const valid = validate({
+      title: required(title, "A weakness title is required."),
+      scheduled: required(scheduled, "A scheduled completion date is required."),
+      contact: required(contact, "A point of contact is required."),
+    });
+    if (!valid) return;
     const item: PoamItem = {
       uuid: uuid(),
       programId,
@@ -1116,6 +1135,7 @@ function PoamCreateModal({
     setDescription("");
     setMilestone("");
     setRiskId("");
+    clear();
   };
 
   return (
@@ -1130,7 +1150,7 @@ function PoamCreateModal({
           <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={create} disabled={title.trim().length === 0}>
+          <Button variant="primary" onClick={create}>
             Create item
           </Button>
         </>
@@ -1182,7 +1202,12 @@ function PoamCreateModal({
       }
     >
       <Stack space="space.150">
-        <Field label="Weakness title" hint="markup-line — appears as the poam-item title.">
+        <Field
+          label="Weakness title"
+          hint="markup-line — appears as the poam-item title."
+          isRequired
+          error={errors.title}
+        >
           <Input
             autoFocus
             value={title}
@@ -1201,7 +1226,7 @@ function PoamCreateModal({
           />
         </Field>
         <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
-          <Field label="Control">
+          <Field label="Control" isRequired>
             <NativeSelect value={control} onChange={(e) => setControl(e.target.value)}>
               {programControls.map((c) => (
                 <option key={c.id}>{c.id}</option>
@@ -1228,10 +1253,10 @@ function PoamCreateModal({
           </Field>
         </Grid>
         <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
-          <Field label="Scheduled completion">
+          <Field label="Scheduled completion" isRequired error={errors.scheduled}>
             <DatePicker value={scheduled} onChange={setScheduled} />
           </Field>
-          <Field label="Point of contact">
+          <Field label="Point of contact" isRequired error={errors.contact}>
             <NativeSelect value={contact} onChange={(e) => setContact(e.target.value)}>
               {[defaultOwner, ...contacts.filter((c) => c !== defaultOwner)].map((c) => (
                 <option key={c}>{c}</option>
