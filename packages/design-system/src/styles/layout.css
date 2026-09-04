@@ -1,7 +1,9 @@
 /* Page-level layout on the layout dimension tokens. These are the few templates a class string
    cannot say without an arbitrary value; each reads a token, so the widths stay in one place. */
+/* The rail column is the rail token plus the inset its rule takes, so the rail's content is the
+   token wide: the same width the shell's panel gives an inset Panel. */
 @utility grid-cols-main-rail {
-  grid-template-columns: minmax(0, 1fr) var(--ds-dimension-layout-rail);
+  grid-template-columns: minmax(0, 1fr) calc(var(--ds-dimension-layout-rail) + var(--ds-space-300));
 }
 @utility grid-cols-list-detail {
   grid-template-columns: var(--ds-dimension-layout-list) minmax(0, 1fr);

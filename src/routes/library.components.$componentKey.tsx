@@ -9,10 +9,8 @@ import {
   Inline,
   Inspector,
   KeyValue,
-  Panel,
   RecordHeader,
   Section,
-  Shell as DsShell,
   ShowPage,
   Stack,
   TextLink,
@@ -68,6 +66,49 @@ function ComponentRecord() {
     <Shell>
       <>
         <ShowPage
+          rail={
+            <>
+              <Inspector.Group title="Definition">
+                <KeyValue label="Provider">
+                  <Id>{component.id}</Id>
+                </KeyValue>
+                <KeyValue label="Key">
+                  <Id>{component.key}</Id>
+                </KeyValue>
+                <KeyValue label="Type">{component.type}</KeyValue>
+                <KeyValue label="Version">{component.version}</KeyValue>
+                <KeyValue label="Provider">{component.provider}</KeyValue>
+                <KeyValue label="Owner">{component.owner}</KeyValue>
+              </Inspector.Group>
+              <Inspector.Group title="Standing">
+                <KeyValue label="Authorization">{component.authorization}</KeyValue>
+                <KeyValue label="Health">{component.health}</KeyValue>
+                <KeyValue label="Controls">{component.controls.length}</KeyValue>
+                <KeyValue label="Consumers">{component.consumers.length}</KeyValue>
+                <KeyValue label="Updated">{component.updated}</KeyValue>
+              </Inspector.Group>
+              <Inspector.Group title="Source">
+                <KeyValue label="Program">
+                  {component.sourceProgramId ? (
+                    component.sourceAccessible ? (
+                      <TextLink>
+                        <Link
+                          to="/programs/$programId"
+                          params={{ programId: component.sourceProgramId }}
+                        >
+                          <Id>{component.sourceProgramId}</Id>
+                        </Link>
+                      </TextLink>
+                    ) : (
+                      "Not in your enclave"
+                    )
+                  ) : (
+                    "—"
+                  )}
+                </KeyValue>
+              </Inspector.Group>
+            </>
+          }
           header={
             <RecordHeader
               back={<Link to="/library/components" />}
@@ -114,50 +155,6 @@ function ComponentRecord() {
             <ConsumerTable component={component} />
           </Section>
         </ShowPage>
-        <DsShell.Panel label="Details">
-          <DsShell.Panel.Splitter label="Resize details" />
-          <Panel flush>
-            <Inspector.Group title="Definition">
-              <KeyValue label="Provider">
-                <Id>{component.id}</Id>
-              </KeyValue>
-              <KeyValue label="Key">
-                <Id>{component.key}</Id>
-              </KeyValue>
-              <KeyValue label="Type">{component.type}</KeyValue>
-              <KeyValue label="Version">{component.version}</KeyValue>
-              <KeyValue label="Provider">{component.provider}</KeyValue>
-              <KeyValue label="Owner">{component.owner}</KeyValue>
-            </Inspector.Group>
-            <Inspector.Group title="Standing">
-              <KeyValue label="Authorization">{component.authorization}</KeyValue>
-              <KeyValue label="Health">{component.health}</KeyValue>
-              <KeyValue label="Controls">{component.controls.length}</KeyValue>
-              <KeyValue label="Consumers">{component.consumers.length}</KeyValue>
-              <KeyValue label="Updated">{component.updated}</KeyValue>
-            </Inspector.Group>
-            <Inspector.Group title="Source">
-              <KeyValue label="Program">
-                {component.sourceProgramId ? (
-                  component.sourceAccessible ? (
-                    <TextLink>
-                      <Link
-                        to="/programs/$programId"
-                        params={{ programId: component.sourceProgramId }}
-                      >
-                        <Id>{component.sourceProgramId}</Id>
-                      </Link>
-                    </TextLink>
-                  ) : (
-                    "Not in your enclave"
-                  )
-                ) : (
-                  "—"
-                )}
-              </KeyValue>
-            </Inspector.Group>
-          </Panel>
-        </DsShell.Panel>
       </>
     </Shell>
   );

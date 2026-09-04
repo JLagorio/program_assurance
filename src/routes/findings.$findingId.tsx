@@ -12,12 +12,10 @@ import {
   Inline,
   Inspector,
   KeyValue,
-  Panel,
   Person,
   Progress,
   RecordHeader,
   Section,
-  Shell as DsShell,
   ShowPage,
   Stack,
   Table,
@@ -128,6 +126,93 @@ function FindingRecord() {
     <Shell>
       <>
         <ShowPage
+          rail={
+            tab === "Finding" ? (
+              <>
+                <Inspector.Group title="Join keys">
+                  <KeyValue label="CCI">
+                    <Id>{finding.cci}</Id>
+                  </KeyValue>
+                  <KeyValue label="Control">{controlLink}</KeyValue>
+                  <KeyValue label="Asset">
+                    <TextLink>
+                      <Link to="/findings/assets/$assetId" params={{ assetId: finding.asset }}>
+                        {asset?.name ?? finding.asset}
+                      </Link>
+                    </TextLink>
+                  </KeyValue>
+                  <KeyValue label="Rule">{finding.rule ? <Id>{finding.rule}</Id> : "—"}</KeyValue>
+                </Inspector.Group>
+
+                <Inspector.Group title="Provenance">
+                  <KeyValue label="Source">{finding.source}</KeyValue>
+                  <KeyValue label="Artifact">
+                    <Id>{finding.sourceArtifact}</Id>
+                  </KeyValue>
+                  <KeyValue label="First seen">{finding.firstSeen}</KeyValue>
+                  <KeyValue label="Last seen">{finding.lastSeen}</KeyValue>
+                  <KeyValue label="Occurrences">{finding.occurrences}</KeyValue>
+                </Inspector.Group>
+
+                <Inspector.Group title="Severity">
+                  <KeyValue label="Raw">{finding.rawSeverity}</KeyValue>
+                  <KeyValue label="Mitigated">
+                    <Indicator tone={severityTone(finding.mitigatedSeverity)}>
+                      {finding.mitigatedSeverity}
+                    </Indicator>
+                  </KeyValue>
+                  <KeyValue label="Open">{isOpen(finding) ? "Yes" : "No"}</KeyValue>
+                  <KeyValue label="Residual risk">
+                    {residual ? (
+                      <Button onClick={() => go("Residual risk")} variant="link" className="flex">
+                        <span className="tabular-nums font-body-small font-medium">
+                          {residual.score}
+                        </span>
+                        <Badge tone={bandTone[residual.band]}>{residual.band}</Badge>
+                        {!isDeficiency(finding) ? (
+                          <span className="font-body-xsmall text-subtle">not carried</span>
+                        ) : null}
+                      </Button>
+                    ) : (
+                      "—"
+                    )}
+                  </KeyValue>
+                </Inspector.Group>
+
+                <Inspector.Group title="Rolls up to">
+                  <KeyValue label="POA&M">
+                    {finding.poam ? (
+                      <TextLink>
+                        <Link to="/register/poam/$poamId" params={{ poamId: finding.poam }}>
+                          <Id>{finding.poam}</Id>
+                        </Link>
+                      </TextLink>
+                    ) : (
+                      "Not yet scheduled"
+                    )}
+                  </KeyValue>
+                  <KeyValue label="Risk">
+                    {finding.risk ? (
+                      <TextLink>
+                        <Link to="/register/risks/$riskId" params={{ riskId: finding.risk }}>
+                          <Id>{finding.risk}</Id>
+                        </Link>
+                      </TextLink>
+                    ) : (
+                      "Not aggregated"
+                    )}
+                  </KeyValue>
+                  <KeyValue label="Program">
+                    <TextLink>
+                      <Link to="/programs/$programId" params={{ programId }}>
+                        <Id>{programId}</Id>
+                      </Link>
+                    </TextLink>
+                  </KeyValue>
+                </Inspector.Group>
+              </>
+            ) : null
+          }
           header={
             <RecordHeader
               back={<Link to="/findings" />}
@@ -539,92 +624,6 @@ function FindingRecord() {
             )
           ) : null}
         </ShowPage>
-        <DsShell.Panel label="Details">
-          <DsShell.Panel.Splitter label="Resize details" />
-          <Panel flush>
-            <Inspector.Group title="Join keys">
-              <KeyValue label="CCI">
-                <Id>{finding.cci}</Id>
-              </KeyValue>
-              <KeyValue label="Control">{controlLink}</KeyValue>
-              <KeyValue label="Asset">
-                <TextLink>
-                  <Link to="/findings/assets/$assetId" params={{ assetId: finding.asset }}>
-                    {asset?.name ?? finding.asset}
-                  </Link>
-                </TextLink>
-              </KeyValue>
-              <KeyValue label="Rule">{finding.rule ? <Id>{finding.rule}</Id> : "—"}</KeyValue>
-            </Inspector.Group>
-
-            <Inspector.Group title="Provenance">
-              <KeyValue label="Source">{finding.source}</KeyValue>
-              <KeyValue label="Artifact">
-                <Id>{finding.sourceArtifact}</Id>
-              </KeyValue>
-              <KeyValue label="First seen">{finding.firstSeen}</KeyValue>
-              <KeyValue label="Last seen">{finding.lastSeen}</KeyValue>
-              <KeyValue label="Occurrences">{finding.occurrences}</KeyValue>
-            </Inspector.Group>
-
-            <Inspector.Group title="Severity">
-              <KeyValue label="Raw">{finding.rawSeverity}</KeyValue>
-              <KeyValue label="Mitigated">
-                <Indicator tone={severityTone(finding.mitigatedSeverity)}>
-                  {finding.mitigatedSeverity}
-                </Indicator>
-              </KeyValue>
-              <KeyValue label="Open">{isOpen(finding) ? "Yes" : "No"}</KeyValue>
-              <KeyValue label="Residual risk">
-                {residual ? (
-                  <Button onClick={() => go("Residual risk")} variant="link" className="flex">
-                    <span className="tabular-nums font-body-small font-medium">
-                      {residual.score}
-                    </span>
-                    <Badge tone={bandTone[residual.band]}>{residual.band}</Badge>
-                    {!isDeficiency(finding) ? (
-                      <span className="font-body-xsmall text-subtle">not carried</span>
-                    ) : null}
-                  </Button>
-                ) : (
-                  "—"
-                )}
-              </KeyValue>
-            </Inspector.Group>
-
-            <Inspector.Group title="Rolls up to">
-              <KeyValue label="POA&M">
-                {finding.poam ? (
-                  <TextLink>
-                    <Link to="/register/poam/$poamId" params={{ poamId: finding.poam }}>
-                      <Id>{finding.poam}</Id>
-                    </Link>
-                  </TextLink>
-                ) : (
-                  "Not yet scheduled"
-                )}
-              </KeyValue>
-              <KeyValue label="Risk">
-                {finding.risk ? (
-                  <TextLink>
-                    <Link to="/register/risks/$riskId" params={{ riskId: finding.risk }}>
-                      <Id>{finding.risk}</Id>
-                    </Link>
-                  </TextLink>
-                ) : (
-                  "Not aggregated"
-                )}
-              </KeyValue>
-              <KeyValue label="Program">
-                <TextLink>
-                  <Link to="/programs/$programId" params={{ programId }}>
-                    <Id>{programId}</Id>
-                  </Link>
-                </TextLink>
-              </KeyValue>
-            </Inspector.Group>
-          </Panel>
-        </DsShell.Panel>
       </>
     </Shell>
   );

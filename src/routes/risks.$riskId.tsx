@@ -16,9 +16,7 @@ import {
   Inspector,
   KeyValue,
   NativeSelect,
-  Panel,
   Section,
-  Shell as DsShell,
   Stack,
   Table,
   Textarea,
@@ -136,94 +134,92 @@ function RiskDetail() {
         </Inline>
 
         <Box className="border-t border-default" paddingBlockStart="space.250">
-          <Stack space="space.300">
-            <Section title="Summary">
-              <p className="pt-100 font-body">{risk.summary}</p>
-            </Section>
+          <div className="grid gap-400 lg:grid-cols-main-rail lg:gap-0">
+            <Stack space="space.300" className="lg:pe-300">
+              <Section title="Summary">
+                <p className="pt-100 font-body">{risk.summary}</p>
+              </Section>
 
-            <Section
-              title="Linked evidence"
-              action={
-                <Button variant="secondary" size="small" iconBefore={<Paperclip />}>
-                  Attach
-                </Button>
-              }
-            >
-              <Table>
-                <thead>
-                  <tr>
-                    <Table.Header>File</Table.Header>
-                    <Table.Header className="w-1000">Size</Table.Header>
-                    <Table.Header className="text-right w-1000">Added</Table.Header>
-                  </tr>
-                </thead>
-                <tbody>
-                  {linkedEvidence.map((file) => (
-                    <Table.Row key={file.name}>
-                      <Table.Id id={file.name} />
-                      <Table.Cell className="tabular-nums">{file.size}</Table.Cell>
-                      <Table.Cell className="text-right">{file.added}</Table.Cell>
-                    </Table.Row>
+              <Section
+                title="Linked evidence"
+                action={
+                  <Button variant="secondary" size="small" iconBefore={<Paperclip />}>
+                    Attach
+                  </Button>
+                }
+              >
+                <Table>
+                  <thead>
+                    <tr>
+                      <Table.Header>File</Table.Header>
+                      <Table.Header className="w-1000">Size</Table.Header>
+                      <Table.Header className="text-right w-1000">Added</Table.Header>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {linkedEvidence.map((file) => (
+                      <Table.Row key={file.name}>
+                        <Table.Id id={file.name} />
+                        <Table.Cell className="tabular-nums">{file.size}</Table.Cell>
+                        <Table.Cell className="text-right">{file.added}</Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </tbody>
+                </Table>
+              </Section>
+
+              <Section title="Activity">
+                <Timeline className="pt-150">
+                  {timeline.map((event) => (
+                    <Timeline.Item
+                      key={event.title}
+                      tone={event.tone}
+                      title={event.title}
+                      meta={event.actor}
+                      time={event.time}
+                    />
                   ))}
-                </tbody>
-              </Table>
-            </Section>
+                </Timeline>
+              </Section>
+            </Stack>
+            <aside className="border-t border-default pt-300 lg:border-s lg:border-t-0 lg:ps-300 lg:pt-0">
+              <Inspector.Group
+                title="Properties"
+                action={
+                  <button className="text-subtle transition-colors hover:text-default">
+                    <Pencil className="size-icon-small" />
+                  </button>
+                }
+              >
+                <KeyValue label="Risk ID">
+                  <Id>{risk.id}</Id>
+                </KeyValue>
+                <KeyValue label="Owner">{risk.owner}</KeyValue>
+                <KeyValue label="Team">{risk.team}</KeyValue>
+                <KeyValue label="Treatment">{risk.treatment}</KeyValue>
+                <KeyValue label="Framework">
+                  {risk.framework} · {risk.control}
+                </KeyValue>
+              </Inspector.Group>
 
-            <Section title="Activity">
-              <Timeline className="pt-150">
-                {timeline.map((event) => (
-                  <Timeline.Item
-                    key={event.title}
-                    tone={event.tone}
-                    title={event.title}
-                    meta={event.actor}
-                    time={event.time}
-                  />
-                ))}
-              </Timeline>
-            </Section>
-          </Stack>
+              <Inspector.Group title="Dates">
+                <KeyValue label="Opened">{risk.opened}</KeyValue>
+                <KeyValue label="Target date">{risk.due}</KeyValue>
+                <KeyValue label="Last updated">{risk.updated}</KeyValue>
+              </Inspector.Group>
+
+              <Inspector.Group title="Control coverage">
+                <p className="font-body-small text-subtle">
+                  Maps to one failing control. Closing it requires two consecutive passing runs.
+                </p>
+                <TextLink size="small" className="pt-075 inline-block">
+                  <Link to="/controls">View {risk.control}</Link>
+                </TextLink>
+              </Inspector.Group>
+            </aside>
+          </div>
         </Box>
       </Stack>
-
-      <DsShell.Panel label="Details">
-        <DsShell.Panel.Splitter label="Resize details" />
-        <Panel flush>
-          <Inspector.Group
-            title="Properties"
-            action={
-              <button className="text-subtle transition-colors hover:text-default">
-                <Pencil className="size-icon-small" />
-              </button>
-            }
-          >
-            <KeyValue label="Risk ID">
-              <Id>{risk.id}</Id>
-            </KeyValue>
-            <KeyValue label="Owner">{risk.owner}</KeyValue>
-            <KeyValue label="Team">{risk.team}</KeyValue>
-            <KeyValue label="Treatment">{risk.treatment}</KeyValue>
-            <KeyValue label="Framework">
-              {risk.framework} · {risk.control}
-            </KeyValue>
-          </Inspector.Group>
-
-          <Inspector.Group title="Dates">
-            <KeyValue label="Opened">{risk.opened}</KeyValue>
-            <KeyValue label="Target date">{risk.due}</KeyValue>
-            <KeyValue label="Last updated">{risk.updated}</KeyValue>
-          </Inspector.Group>
-
-          <Inspector.Group title="Control coverage">
-            <p className="font-body-small text-subtle">
-              Maps to one failing control. Closing it requires two consecutive passing runs.
-            </p>
-            <TextLink size="small" className="pt-075 inline-block">
-              <Link to="/controls">View {risk.control}</Link>
-            </TextLink>
-          </Inspector.Group>
-        </Panel>
-      </DsShell.Panel>
 
       <Dialog
         open={treating}

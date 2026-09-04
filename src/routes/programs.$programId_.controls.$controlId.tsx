@@ -28,8 +28,6 @@ import {
   Indicator,
   Inspector,
   NativeSelect,
-  Panel,
-  Shell as DsShell,
   Stack,
   Table,
   Tabs,
@@ -215,105 +213,103 @@ function ControlRecord() {
           }
         />
 
-        <Box className="min-w-0" paddingBlockStart="space.200">
-          {tab === "Implementation" ? (
-            <>
-              <Block title="Implementation statement">
-                <Narrative work={work} onChange={refresh} />
-              </Block>
-              <Block title="Contributors" count={derived.length}>
-                <ControlRequirementTable
-                  requirements={derived}
-                  programId={programId}
-                  controlId={controlId}
-                  allocationCount={(id: string) => allocationsFor(id).length}
-                />
-              </Block>
-              <Block title="Evidence" count={work.evidence.length}>
-                <EvidenceBlock work={work} available={evidenceCatalog} onChange={refresh} />
-              </Block>
-            </>
-          ) : null}
+        <div className="grid gap-400 pt-200 lg:grid-cols-main-rail lg:gap-0">
+          <Box className="min-w-0 lg:pe-300">
+            {tab === "Implementation" ? (
+              <>
+                <Block title="Implementation statement">
+                  <Narrative work={work} onChange={refresh} />
+                </Block>
+                <Block title="Contributors" count={derived.length}>
+                  <ControlRequirementTable
+                    requirements={derived}
+                    programId={programId}
+                    controlId={controlId}
+                    allocationCount={(id: string) => allocationsFor(id).length}
+                  />
+                </Block>
+                <Block title="Evidence" count={work.evidence.length}>
+                  <EvidenceBlock work={work} available={evidenceCatalog} onChange={refresh} />
+                </Block>
+              </>
+            ) : null}
 
-          {tab === "Assessment" ? (
-            <>
-              <Block title="Determination">
-                <Determination work={work} onChange={refresh} />
-              </Block>
-              <Block title="Open findings" count={open.length}>
-                {open.length ? (
-                  <Table>
-                    <tbody>
-                      {open.map((f) => (
-                        <Table.Row key={f.id}>
-                          <Table.Cell className="max-w-none" width={104}>
-                            <TextLink>
-                              <Link to="/findings/$findingId" params={{ findingId: f.id }}>
-                                <Id>{f.id}</Id>
-                              </Link>
-                            </TextLink>
-                          </Table.Cell>
-                          <Table.Cell width={88}>
-                            <Indicator tone={severityTone(f.mitigatedSeverity)}>
-                              {f.mitigatedSeverity}
-                            </Indicator>
-                          </Table.Cell>
-                          <Table.Cell className="truncate">{f.title}</Table.Cell>
-                        </Table.Row>
-                      ))}
-                    </tbody>
-                  </Table>
-                ) : (
-                  <p className="font-body text-subtle">None open.</p>
-                )}
-              </Block>
-              <Block title="Discussion" count={null}>
-                <Comments work={work} onChange={refresh} />
-              </Block>
-            </>
-          ) : null}
+            {tab === "Assessment" ? (
+              <>
+                <Block title="Determination">
+                  <Determination work={work} onChange={refresh} />
+                </Block>
+                <Block title="Open findings" count={open.length}>
+                  {open.length ? (
+                    <Table>
+                      <tbody>
+                        {open.map((f) => (
+                          <Table.Row key={f.id}>
+                            <Table.Cell className="max-w-none" width={104}>
+                              <TextLink>
+                                <Link to="/findings/$findingId" params={{ findingId: f.id }}>
+                                  <Id>{f.id}</Id>
+                                </Link>
+                              </TextLink>
+                            </Table.Cell>
+                            <Table.Cell width={88}>
+                              <Indicator tone={severityTone(f.mitigatedSeverity)}>
+                                {f.mitigatedSeverity}
+                              </Indicator>
+                            </Table.Cell>
+                            <Table.Cell className="truncate">{f.title}</Table.Cell>
+                          </Table.Row>
+                        ))}
+                      </tbody>
+                    </Table>
+                  ) : (
+                    <p className="font-body text-subtle">None open.</p>
+                  )}
+                </Block>
+                <Block title="Discussion" count={null}>
+                  <Comments work={work} onChange={refresh} />
+                </Block>
+              </>
+            ) : null}
 
-          {tab === "Catalog" ? (
-            <>
-              <Block title="Control statement">
-                {detail.statement.length ? (
-                  <StatementList items={detail.statement} />
-                ) : (
-                  <p className="font-body text-subtle">None published.</p>
-                )}
-              </Block>
-              <Block title="Assessment objectives" count={detail.objectives.length}>
-                <ObjectiveList items={detail.objectives} />
-              </Block>
-              <Block title="Parameters" count={detail.params.length}>
-                <ParameterTable params={detail.params} />
-              </Block>
-              <Block title="Assessment methods" count={detail.methods.length}>
-                <MethodList methods={detail.methods} />
-              </Block>
-              <Collapsible title="Discussion and references" count={detail.discussion.length}>
-                <Stack className="max-w-layout-measure font-body text-subtle" space="space.100">
-                  {detail.discussion.map((p, i) => (
-                    <p key={i}>{p}</p>
-                  ))}
-                </Stack>
-                <Box paddingBlockStart="space.150">
-                  <ReferenceList references={detail.references} />
-                </Box>
-              </Collapsible>
-            </>
-          ) : null}
+            {tab === "Catalog" ? (
+              <>
+                <Block title="Control statement">
+                  {detail.statement.length ? (
+                    <StatementList items={detail.statement} />
+                  ) : (
+                    <p className="font-body text-subtle">None published.</p>
+                  )}
+                </Block>
+                <Block title="Assessment objectives" count={detail.objectives.length}>
+                  <ObjectiveList items={detail.objectives} />
+                </Block>
+                <Block title="Parameters" count={detail.params.length}>
+                  <ParameterTable params={detail.params} />
+                </Block>
+                <Block title="Assessment methods" count={detail.methods.length}>
+                  <MethodList methods={detail.methods} />
+                </Block>
+                <Collapsible title="Discussion and references" count={detail.discussion.length}>
+                  <Stack className="max-w-layout-measure font-body text-subtle" space="space.100">
+                    {detail.discussion.map((p, i) => (
+                      <p key={i}>{p}</p>
+                    ))}
+                  </Stack>
+                  <Box paddingBlockStart="space.150">
+                    <ReferenceList references={detail.references} />
+                  </Box>
+                </Collapsible>
+              </>
+            ) : null}
 
-          {tab === "History" ? (
-            <Block title="History">
-              <History work={work} />
-            </Block>
-          ) : null}
-        </Box>
-
-        <DsShell.Panel label="Details">
-          <DsShell.Panel.Splitter label="Resize details" />
-          <Panel flush>
+            {tab === "History" ? (
+              <Block title="History">
+                <History work={work} />
+              </Block>
+            ) : null}
+          </Box>
+          <aside className="border-t border-default pt-300 lg:border-s lg:border-t-0 lg:ps-300 lg:pt-0">
             <Inspector
               groups={[
                 {
@@ -409,8 +405,8 @@ function ControlRecord() {
                 },
               ]}
             />
-          </Panel>
-        </DsShell.Panel>
+          </aside>
+        </div>
       </div>
     </Shell>
   );

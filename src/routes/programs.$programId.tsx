@@ -28,13 +28,11 @@ import {
   Inspector,
   Kbd,
   KeyValue,
-  Panel,
   Person,
   Progress,
   RecordHeader,
   Section,
   Select,
-  Shell as DsShell,
   ShowPage,
   Stack,
   Table,
@@ -565,6 +563,7 @@ function ProgramDetail() {
     <Shell>
       <>
         <ShowPage
+          rail={tab === "Overview" ? rail : null}
           header={
             <RecordHeader
               back={<Link to="/programs" />}
@@ -1038,10 +1037,6 @@ function ProgramDetail() {
 
           {tab === "Team" ? <TeamSection programId={program.id} /> : null}
         </ShowPage>
-        <DsShell.Panel label="Details">
-          <DsShell.Panel.Splitter label="Resize details" />
-          <Panel flush>{rail}</Panel>
-        </DsShell.Panel>
       </>
 
       <CommandPalette

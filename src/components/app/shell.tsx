@@ -36,8 +36,9 @@ import {
 
 /**
  * The product's frame on the package's navigation system. The side nav holds objects and queues;
- * it never holds phases, because a phase is a state of a program, reached by opening it. A record
- * route renders its rail into DsShell.Panel from wherever it is; the shell places it.
+ * it never holds phases, because a phase is a state of a program, reached by opening it. A record's
+ * rail is its ShowPage's, beside the overview tab; a route renders the detail of a selected row into
+ * DsShell.Panel from wherever it is, and the shell places it.
  */
 const navGroups: {
   label: string;

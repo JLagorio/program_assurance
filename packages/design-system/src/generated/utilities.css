@@ -604,42 +604,52 @@
 }
 @utility font-body-large {
   font: var(--ds-font-body-large);
+  font-weight: var(--tw-font-weight, var(--ds-font-body-large-weight));
   letter-spacing: var(--ds-font-body-large-letter-spacing);
 }
 @utility font-body-small {
   font: var(--ds-font-body-small);
+  font-weight: var(--tw-font-weight, var(--ds-font-body-small-weight));
   letter-spacing: var(--ds-font-body-small-letter-spacing);
 }
 @utility font-body-xsmall {
   font: var(--ds-font-body-xsmall);
+  font-weight: var(--tw-font-weight, var(--ds-font-body-xsmall-weight));
   letter-spacing: var(--ds-font-body-xsmall-letter-spacing);
 }
 @utility font-body {
   font: var(--ds-font-body);
+  font-weight: var(--tw-font-weight, var(--ds-font-body-weight));
   letter-spacing: var(--ds-font-body-letter-spacing);
 }
 @utility font-heading-large {
   font: var(--ds-font-heading-large);
+  font-weight: var(--tw-font-weight, var(--ds-font-heading-large-weight));
   letter-spacing: var(--ds-font-heading-large-letter-spacing);
 }
 @utility font-heading-medium {
   font: var(--ds-font-heading-medium);
+  font-weight: var(--tw-font-weight, var(--ds-font-heading-medium-weight));
   letter-spacing: var(--ds-font-heading-medium-letter-spacing);
 }
 @utility font-heading-small {
   font: var(--ds-font-heading-small);
+  font-weight: var(--tw-font-weight, var(--ds-font-heading-small-weight));
   letter-spacing: var(--ds-font-heading-small-letter-spacing);
 }
 @utility font-heading-xsmall {
   font: var(--ds-font-heading-xsmall);
+  font-weight: var(--tw-font-weight, var(--ds-font-heading-xsmall-weight));
   letter-spacing: var(--ds-font-heading-xsmall-letter-spacing);
 }
 @utility font-heading-xxsmall {
   font: var(--ds-font-heading-xxsmall);
+  font-weight: var(--tw-font-weight, var(--ds-font-heading-xxsmall-weight));
   letter-spacing: var(--ds-font-heading-xxsmall-letter-spacing);
 }
 @utility font-code {
   font: var(--ds-font-code);
+  font-weight: var(--tw-font-weight, var(--ds-font-code-weight));
   letter-spacing: var(--ds-font-code-letter-spacing);
 }
 @utility duration-fast {

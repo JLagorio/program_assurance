@@ -17,7 +17,7 @@ export function KeyValue({
   return (
     <dl
       className="grid items-baseline gap-150 py-050 font-body"
-      style={{ gridTemplateColumns: `px minmax(0, 1fr)` }}
+      style={{ gridTemplateColumns: `${labelWidth}px minmax(0, 1fr)` }}
     >
       <dt className="truncate text-subtle">{label}</dt>
       <dd className={cn("min-w-0 text-default", wrap ? "" : "truncate")}>{children}</dd>

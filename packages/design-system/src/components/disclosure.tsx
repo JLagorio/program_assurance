@@ -7,7 +7,9 @@ import { cn } from "../lib/cn";
 import { Count } from "./badge";
 
 /* Reference material: present, addressable, closed. Collapsible is one section; Accordion is
-   several that know about each other. Both share one trigger row so a page can mix them. */
+   several that know about each other. Both share one trigger row so a page can mix them. The row
+   is the title, flush with the body under it and semibold so it reads as a section, a count after
+   it, and the chevron at the end: down while closed, up while open. */
 
 const trigger =
   "group/disclosure flex w-full items-center gap-100 rounded-small py-100 text-left outline-none focus-visible:outline-focused";
@@ -21,11 +23,11 @@ function TriggerRow({
 }) {
   return (
     <>
-      <ChevronDown className="size-icon-small shrink-0 -rotate-90 icon-subtle transition-transform duration-fast ease-standard group-data-[state=open]/disclosure:rotate-0" />
-      <span className="font-body font-medium text-default">{title}</span>
+      <span className="min-w-0 truncate font-body font-semibold text-default">{title}</span>
       {count !== undefined && count !== null && count !== 0 ? (
         <Count value={typeof count === "number" ? count : Number(count) || 0} />
       ) : null}
+      <ChevronDown className="ms-auto size-icon-small shrink-0 icon-subtle transition-transform duration-fast ease-standard group-data-[state=open]/disclosure:rotate-180" />
     </>
   );
 }

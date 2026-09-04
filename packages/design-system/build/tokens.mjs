@@ -166,7 +166,7 @@ function literal(v, type) {
   return String(v);
 }
 
-/** Composite typography → the `font` shorthand, with letter-spacing carried separately. */
+/** Composite typography → the `font` shorthand, with letter-spacing and the weight carried separately. The weight is repeated as a longhand under the shorthand, read through Tailwind's `--tw-font-weight`, so `font-medium` and `font-semibold` beside a type utility win whatever order the two land in the stylesheet. */
 function typographyCss(token) {
   const o = token.original.$value;
   const r = token.$value;
@@ -180,7 +180,7 @@ function typographyCss(token) {
   const spacing = isRef(o.letterSpacing)
     ? `var(${cssVarFromPath(refPath(o.letterSpacing))})`
     : r.letterSpacing;
-  return { shorthand, spacing };
+  return { shorthand, spacing, weight };
 }
 
 function prettyRef(v) {
@@ -253,9 +253,9 @@ for (const token of all) {
   let lightCss;
   let extraLight = [];
   if (type === "typography") {
-    const { shorthand, spacing } = typographyCss(token);
+    const { shorthand, spacing, weight } = typographyCss(token);
     lightCss = shorthand;
-    extraLight.push([`${v}-letter-spacing`, spacing]);
+    extraLight.push([`${v}-letter-spacing`, spacing], [`${v}-weight`, weight]);
   } else {
     lightCss = cssValue(token.original.$value, token.$value, type);
   }
@@ -275,7 +275,7 @@ for (const token of all) {
       if (u.ns === "ease") groups.ease.push(u.key);
     } else if (u.kind === "typography") {
       utilityBlocks.push(
-        `@utility ${u.cls} {\n  font: var(${v});\n  letter-spacing: var(${v}-letter-spacing);\n}`,
+        `@utility ${u.cls} {\n  font: var(${v});\n  font-weight: var(--tw-font-weight, var(${v}-weight));\n  letter-spacing: var(${v}-letter-spacing);\n}`,
       );
       groups.font.push(u.cls.slice(5));
     } else if (u.kind === "svg") {

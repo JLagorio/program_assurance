@@ -30,6 +30,12 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 - `KeyValue` had lost its label column to a codemod (`px minmax(0, 1fr)`), so every rail row stacked
   its label over its value. The label column is `labelWidth` again. Shapes/Inspector "Inspector
   groups".
+- `font-medium` and `font-semibold` beside a type utility never applied: `font-body` and the
+  heading utilities set the `font` shorthand and landed after the weight utilities, so a Section
+  title, a tab or a disclosure header written `font-body font-medium` rendered regular. The
+  generated type utilities now repeat the weight as a longhand read through Tailwind's
+  `--tw-font-weight`, so a weight utility beside them wins in either order; the 46 `font-medium`
+  in the kit and the prototype's show as written. Tokens/Typography.
 
 ### Added
 

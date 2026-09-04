@@ -12,11 +12,9 @@ import {
   Inline,
   Inspector,
   KeyValue,
-  Panel,
   Progress,
   RecordHeader,
   Section,
-  Shell as DsShell,
   ShowPage,
   Stack,
   Table,
@@ -96,6 +94,73 @@ function RiskRecord() {
     <Shell>
       <>
         <ShowPage
+          rail={
+            <>
+              <Inspector.Group title="Exposure">
+                <KeyValue label="Risk">
+                  <Id>{risk.id}</Id>
+                </KeyValue>
+                <KeyValue label="Likelihood × impact">
+                  {risk.likelihood} × {risk.impact}
+                </KeyValue>
+                <KeyValue label="Inherent">
+                  <span className="tabular-nums">{risk.inherent}</span>
+                  <Box
+                    className="font-body-xsmall text-subtle"
+                    as="span"
+                    paddingInlineStart="space.075"
+                  >
+                    authored
+                  </Box>
+                </KeyValue>
+                <KeyValue label="Residual">
+                  <Inline as="span" space="space.100" alignBlock="center">
+                    <Progress value={risk.residual} tone={residualTone(risk.residual)} />
+                    <span className="tabular-nums font-body-small font-medium">
+                      {risk.residual}
+                    </span>
+                    <span className="font-body-xsmall text-subtle">authored</span>
+                  </Inline>
+                </KeyValue>
+                <KeyValue label="Computed">
+                  {computed ? (
+                    <Inline as="span" space="space.100" alignBlock="center">
+                      <span className="tabular-nums font-body-small font-medium">
+                        {computed.score}
+                      </span>
+                      <Badge tone={bandTone[computed.band]}>{computed.band}</Badge>
+                    </Inline>
+                  ) : (
+                    "—"
+                  )}
+                </KeyValue>
+                <KeyValue label="Treatment">{risk.treatment}</KeyValue>
+              </Inspector.Group>
+              <Inspector.Group title="Adjudication">
+                <KeyValue label="Disposition">
+                  <Badge tone={statusTone(risk.disposition)}>{risk.disposition}</Badge>
+                </KeyValue>
+                <KeyValue label="Owner">{risk.owner}</KeyValue>
+                <KeyValue label="Reviewed">{risk.reviewed}</KeyValue>
+                <KeyValue label="Program">
+                  <TextLink>
+                    <Link to="/programs/$programId" params={{ programId: risk.program }}>
+                      <Id>{risk.program}</Id>
+                    </Link>
+                  </TextLink>
+                </KeyValue>
+              </Inspector.Group>
+              <Inspector.Group title="CCIs in scope">
+                <Inline space="space.050" shouldWrap>
+                  {ccis.map((c) => (
+                    <Id key={c} className="font-body-xsmall text-subtle">
+                      {c}
+                    </Id>
+                  ))}
+                </Inline>
+              </Inspector.Group>
+            </>
+          }
           header={
             <RecordHeader
               back={<Link to="/register" />}
@@ -353,72 +418,6 @@ function RiskRecord() {
             </Table>
           </Section>
         </ShowPage>
-        <DsShell.Panel label="Details">
-          <DsShell.Panel.Splitter label="Resize details" />
-          <Panel flush>
-            <Inspector.Group title="Exposure">
-              <KeyValue label="Risk">
-                <Id>{risk.id}</Id>
-              </KeyValue>
-              <KeyValue label="Likelihood × impact">
-                {risk.likelihood} × {risk.impact}
-              </KeyValue>
-              <KeyValue label="Inherent">
-                <span className="tabular-nums">{risk.inherent}</span>
-                <Box
-                  className="font-body-xsmall text-subtle"
-                  as="span"
-                  paddingInlineStart="space.075"
-                >
-                  authored
-                </Box>
-              </KeyValue>
-              <KeyValue label="Residual">
-                <Inline as="span" space="space.100" alignBlock="center">
-                  <Progress value={risk.residual} tone={residualTone(risk.residual)} />
-                  <span className="tabular-nums font-body-small font-medium">{risk.residual}</span>
-                  <span className="font-body-xsmall text-subtle">authored</span>
-                </Inline>
-              </KeyValue>
-              <KeyValue label="Computed">
-                {computed ? (
-                  <Inline as="span" space="space.100" alignBlock="center">
-                    <span className="tabular-nums font-body-small font-medium">
-                      {computed.score}
-                    </span>
-                    <Badge tone={bandTone[computed.band]}>{computed.band}</Badge>
-                  </Inline>
-                ) : (
-                  "—"
-                )}
-              </KeyValue>
-              <KeyValue label="Treatment">{risk.treatment}</KeyValue>
-            </Inspector.Group>
-            <Inspector.Group title="Adjudication">
-              <KeyValue label="Disposition">
-                <Badge tone={statusTone(risk.disposition)}>{risk.disposition}</Badge>
-              </KeyValue>
-              <KeyValue label="Owner">{risk.owner}</KeyValue>
-              <KeyValue label="Reviewed">{risk.reviewed}</KeyValue>
-              <KeyValue label="Program">
-                <TextLink>
-                  <Link to="/programs/$programId" params={{ programId: risk.program }}>
-                    <Id>{risk.program}</Id>
-                  </Link>
-                </TextLink>
-              </KeyValue>
-            </Inspector.Group>
-            <Inspector.Group title="CCIs in scope">
-              <Inline space="space.050" shouldWrap>
-                {ccis.map((c) => (
-                  <Id key={c} className="font-body-xsmall text-subtle">
-                    {c}
-                  </Id>
-                ))}
-              </Inline>
-            </Inspector.Group>
-          </Panel>
-        </DsShell.Panel>
       </>
     </Shell>
   );

@@ -6,10 +6,8 @@ import {
   Inline,
   Inspector,
   KeyValue,
-  Panel,
   RecordHeader,
   Section,
-  Shell as DsShell,
   ShowPage,
   Table,
   TextLink,
@@ -62,6 +60,54 @@ function WorkstreamDetail() {
     <Shell>
       <>
         <ShowPage
+          rail={
+            <>
+              <Inspector.Group title="Workstream">
+                <KeyValue label="Program">
+                  <TextLink>
+                    <Link to="/programs/$programId" params={{ programId: ws.program }}>
+                      <Id>{ws.program}</Id>
+                    </Link>
+                  </TextLink>
+                </KeyValue>
+                <KeyValue label="Lead">
+                  {lead ? (
+                    <TextLink>
+                      <Link to="/people/$personId" params={{ personId: lead.id }}>
+                        {lead.name}
+                      </Link>
+                    </TextLink>
+                  ) : (
+                    "—"
+                  )}
+                </KeyValue>
+                <KeyValue label="Stage">{ws.stage}</KeyValue>
+                <KeyValue label="Gate">{ws.gate}</KeyValue>
+                <KeyValue label="Due">{ws.due}</KeyValue>
+                <KeyValue label="Team size">{ws.members.length}</KeyValue>
+              </Inspector.Group>
+
+              <Inspector.Group title="Disciplines">
+                <Inline className="py-050" space="space.075" shouldWrap>
+                  {ws.disciplines.map((d) => (
+                    <Badge key={d} tone="neutral">
+                      {d}
+                    </Badge>
+                  ))}
+                </Inline>
+              </Inspector.Group>
+
+              <Inspector.Group title="Joins">
+                <KeyValue label="Controls">
+                  <Id>{ws.controls.join(", ")}</Id>
+                </KeyValue>
+                <KeyValue label="CCIs">
+                  {ws.ccis.length ? <Id>{ws.ccis.join(", ")}</Id> : "—"}
+                </KeyValue>
+                <KeyValue label="Sibling streams">{workstreams.length}</KeyValue>
+              </Inspector.Group>
+            </>
+          }
           header={
             <RecordHeader
               back={<Link to="/programs/$programId" params={{ programId: ws.program }} />}
@@ -163,55 +209,6 @@ function WorkstreamDetail() {
             </Table>
           </Section>
         </ShowPage>
-        <DsShell.Panel label="Details">
-          <DsShell.Panel.Splitter label="Resize details" />
-          <Panel flush>
-            <Inspector.Group title="Workstream">
-              <KeyValue label="Program">
-                <TextLink>
-                  <Link to="/programs/$programId" params={{ programId: ws.program }}>
-                    <Id>{ws.program}</Id>
-                  </Link>
-                </TextLink>
-              </KeyValue>
-              <KeyValue label="Lead">
-                {lead ? (
-                  <TextLink>
-                    <Link to="/people/$personId" params={{ personId: lead.id }}>
-                      {lead.name}
-                    </Link>
-                  </TextLink>
-                ) : (
-                  "—"
-                )}
-              </KeyValue>
-              <KeyValue label="Stage">{ws.stage}</KeyValue>
-              <KeyValue label="Gate">{ws.gate}</KeyValue>
-              <KeyValue label="Due">{ws.due}</KeyValue>
-              <KeyValue label="Team size">{ws.members.length}</KeyValue>
-            </Inspector.Group>
-
-            <Inspector.Group title="Disciplines">
-              <Inline className="py-050" space="space.075" shouldWrap>
-                {ws.disciplines.map((d) => (
-                  <Badge key={d} tone="neutral">
-                    {d}
-                  </Badge>
-                ))}
-              </Inline>
-            </Inspector.Group>
-
-            <Inspector.Group title="Joins">
-              <KeyValue label="Controls">
-                <Id>{ws.controls.join(", ")}</Id>
-              </KeyValue>
-              <KeyValue label="CCIs">
-                {ws.ccis.length ? <Id>{ws.ccis.join(", ")}</Id> : "—"}
-              </KeyValue>
-              <KeyValue label="Sibling streams">{workstreams.length}</KeyValue>
-            </Inspector.Group>
-          </Panel>
-        </DsShell.Panel>
       </>
     </Shell>
   );

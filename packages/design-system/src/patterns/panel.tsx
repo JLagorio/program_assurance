@@ -6,7 +6,7 @@ import { cn } from "../lib/cn";
 import { PanelContext } from "../lib/panel-context";
 
 export type PanelProps = {
-  /** What is shown: the object when the panel shows it ("Comments"), the action when it completes one ("Edit settings"). A record's rail has no title; it is the record's. */
+  /** What is shown: the object when the panel shows it ("Comments"), the action when it completes one ("Edit settings"). The detail of a selected row has none: the row names it. */
   title?: ReactNode;
   /** An icon or a small mark before the title. */
   icon?: ReactNode;
@@ -14,13 +14,13 @@ export type PanelProps = {
   onBack?: (() => void) | undefined;
   /** Up to two icon buttons before the close: expand, open in a new tab, more. */
   actions?: ReactNode;
-  /** A close, for a panel the reader opened and may dismiss. A record's rail has none: it is always there. */
+  /** A close, for a panel the reader opened and may dismiss. The detail of a selected row has none: clearing the selection closes it. */
   onClose?: (() => void) | undefined;
   /** A row under the header that stays put: a status, a breadcrumb, the name of the object when the title is an action. */
   subheader?: ReactNode;
   /** Actions pinned to the bottom, right-aligned: Cancel, then the primary. */
   footer?: ReactNode;
-  /** The body without padding, for content whose rules run edge to edge: the record's rail. The Inspector insets itself. */
+  /** The body without padding, for content whose rules run edge to edge: the detail of a selected row. The Inspector insets itself. */
   flush?: boolean | undefined;
   className?: string | undefined;
   children: ReactNode;
@@ -29,10 +29,10 @@ export type PanelProps = {
 /**
  * The surface inside the shell's Panel area: an optional header that names what is shown, the
  * body, an optional footer. The area scrolls; the header and the footer stay put. Two uses. The
- * record's rail, details and related information, is always there on a record and is never
- * dismissed: no title, no close, `flush`, an Inspector inside that runs edge to edge. A panel the reader opens, a
- * thread, a form, has a title, a close and a Panel.Trigger. The peek is neither; it is a Sheet
- * over the nav.
+ * detail of a selected row, beside its table, comes and goes with the selection: no title, no
+ * close, `flush`, an Inspector inside that runs edge to edge. A panel the reader opens, a thread,
+ * a form, has a title, a close and a Panel.Trigger. Neither is the record's rail, which is the
+ * ShowPage's and sits beside the overview tab; nor the peek, which is a Sheet over the nav.
  */
 function PanelRoot({
   title,
@@ -86,7 +86,7 @@ function PanelRoot({
   );
 }
 
-/** The button that opens a dismissible panel, in a toolbar or a header: the same place on every page, selected while the panel is open. The record's rail has no trigger. */
+/** The button that opens a dismissible panel, in a toolbar or a header: the same place on every page, selected while the panel is open. The detail of a selected row has no trigger; the row is. */
 function PanelTrigger({
   isOpen,
   onClick,

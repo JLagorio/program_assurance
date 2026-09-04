@@ -20,6 +20,8 @@ design system will serve several internal products. The parts document themselve
   panel is the rail, details and related information in every Inspector group, always there and
   never dismissed, staying while the tabs change. A panel the reader opens, a thread or a form, has
   a close and a trigger; the rail has neither. The `Panel` pattern is the surface for both.
+  _Reversed 2026-09-04, see the cutover section: the rail is the ShowPage's, inside the overview
+  tab; the panel holds the detail of a selected row and the panels a reader opens._
 
 ## Decisions
 
@@ -83,3 +85,13 @@ campaigns, T&E phases, ingestion, baseline) keep their condition, so the panel c
 the selection. The rail runs edge to edge: the Inspector insets itself inside a flush Panel and its
 first rule sits on the top nav's border. The PreviewRail beside the index tables and the
 PreviewSheet stay as they are.
+
+**Reversed 2026-09-04.** Josef, on the program and requirement records: the rail was over-stretched.
+Beside the whole page it sat outside the tab strip, on every tab; it belongs within a tab. `ShowPage`
+takes `rail` again and renders it beside the body, under the tab strip, and the ten record routes
+pass it on their overview tab (the program, requirement, element and finding records) or always
+(the six records without tabs); the risk record and the control detail put their Inspector back
+beside the work. The seven selection panels (SCTM, composition, inheritance, campaigns, T&E phases,
+ingestion, baseline) stay in `Shell.Panel`: they come and go with a selection, so they are panels
+the reader opens, not the rail. `Shell.Panel` is still an area, and what fills it is still the
+product's; the record's rail is no longer one of the things that does.

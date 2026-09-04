@@ -18,10 +18,8 @@ import {
   Inline,
   Inspector,
   KeyValue,
-  Panel,
   RecordHeader,
   Section,
-  Shell as DsShell,
   ShowPage,
   Stack,
   Table,
@@ -161,6 +159,89 @@ function RequirementRecord() {
     <Shell>
       <>
         <ShowPage
+          rail={
+            tab === "Overview" ? (
+              <>
+                <Collapsible
+                  title="Gates"
+                  count={unmet.length || null}
+                  defaultOpen
+                  className="first:border-t-0"
+                >
+                  <Gates>
+                    {gates.map((g) => (
+                      <Gates.Item
+                        key={g.key}
+                        met={g.met}
+                        label={g.label}
+                        reason={g.met ? undefined : g.reason}
+                      />
+                    ))}
+                  </Gates>
+                </Collapsible>
+                <Inspector.Group title="Derives from">
+                  {requirement.derivations.map((d) => (
+                    <KeyValue key={`${d.sourceType}-${d.sourceId}`} label={d.sourceType}>
+                      <Stack as="span" space="space.025">
+                        <SourceRef derivation={d} programId={programId} />
+                        <span className="font-body-xsmall text-subtle">{d.sourceLabel}</span>
+                      </Stack>
+                    </KeyValue>
+                  ))}
+                  <KeyValue label="Rationale">
+                    <Button onClick={() => go("Provenance")} variant="link">
+                      {requirement.derivations.length} on the Provenance tab
+                    </Button>
+                  </KeyValue>
+                </Inspector.Group>
+
+                <Inspector.Group title="Position">
+                  <KeyValue label="Parent">
+                    {parent ? (
+                      <TextLink>
+                        <Link
+                          to="/programs/$programId/requirements/$requirementId"
+                          params={{ programId, requirementId: parent.id }}
+                          search={{ tab: undefined }}
+                        >
+                          <Id>{parent.id}</Id>
+                        </Link>
+                      </TextLink>
+                    ) : (
+                      "Top level"
+                    )}
+                  </KeyValue>
+                  <KeyValue label="Children">{children.length || "None"}</KeyValue>
+                  <KeyValue label="Revision">{requirement.revision}</KeyValue>
+                  <KeyValue label="Workstream">
+                    {requirement.workstream ? (
+                      <TextLink>
+                        <Link
+                          to="/workstreams/$workstreamId"
+                          params={{ workstreamId: requirement.workstream }}
+                        >
+                          <Id>{requirement.workstream}</Id>
+                        </Link>
+                      </TextLink>
+                    ) : (
+                      "—"
+                    )}
+                  </KeyValue>
+                  <KeyValue label="Program">
+                    <TextLink>
+                      <Link
+                        to="/programs/$programId"
+                        params={{ programId }}
+                        search={{ tab: "Requirements" }}
+                      >
+                        <Id>{programId}</Id>
+                      </Link>
+                    </TextLink>
+                  </KeyValue>
+                </Inspector.Group>
+              </>
+            ) : null
+          }
           header={
             <RecordHeader
               back={<Link to="/programs/$programId" params={{ programId }} />}
@@ -394,88 +475,6 @@ function RequirementRecord() {
             </Section>
           ) : null}
         </ShowPage>
-        <DsShell.Panel label="Details">
-          <DsShell.Panel.Splitter label="Resize details" />
-          <Panel flush>
-            <Collapsible
-              title="Gates"
-              count={unmet.length || null}
-              defaultOpen
-              className="first:border-t-0"
-            >
-              <Gates>
-                {gates.map((g) => (
-                  <Gates.Item
-                    key={g.key}
-                    met={g.met}
-                    label={g.label}
-                    reason={g.met ? undefined : g.reason}
-                  />
-                ))}
-              </Gates>
-            </Collapsible>
-            <Inspector.Group title="Derives from">
-              {requirement.derivations.map((d) => (
-                <KeyValue key={`${d.sourceType}-${d.sourceId}`} label={d.sourceType}>
-                  <Stack as="span" space="space.025">
-                    <SourceRef derivation={d} programId={programId} />
-                    <span className="font-body-xsmall text-subtle">{d.sourceLabel}</span>
-                  </Stack>
-                </KeyValue>
-              ))}
-              <KeyValue label="Rationale">
-                <Button onClick={() => go("Provenance")} variant="link">
-                  {requirement.derivations.length} on the Provenance tab
-                </Button>
-              </KeyValue>
-            </Inspector.Group>
-
-            <Inspector.Group title="Position">
-              <KeyValue label="Parent">
-                {parent ? (
-                  <TextLink>
-                    <Link
-                      to="/programs/$programId/requirements/$requirementId"
-                      params={{ programId, requirementId: parent.id }}
-                      search={{ tab: undefined }}
-                    >
-                      <Id>{parent.id}</Id>
-                    </Link>
-                  </TextLink>
-                ) : (
-                  "Top level"
-                )}
-              </KeyValue>
-              <KeyValue label="Children">{children.length || "None"}</KeyValue>
-              <KeyValue label="Revision">{requirement.revision}</KeyValue>
-              <KeyValue label="Workstream">
-                {requirement.workstream ? (
-                  <TextLink>
-                    <Link
-                      to="/workstreams/$workstreamId"
-                      params={{ workstreamId: requirement.workstream }}
-                    >
-                      <Id>{requirement.workstream}</Id>
-                    </Link>
-                  </TextLink>
-                ) : (
-                  "—"
-                )}
-              </KeyValue>
-              <KeyValue label="Program">
-                <TextLink>
-                  <Link
-                    to="/programs/$programId"
-                    params={{ programId }}
-                    search={{ tab: "Requirements" }}
-                  >
-                    <Id>{programId}</Id>
-                  </Link>
-                </TextLink>
-              </KeyValue>
-            </Inspector.Group>
-          </Panel>
-        </DsShell.Panel>
       </>
     </Shell>
   );

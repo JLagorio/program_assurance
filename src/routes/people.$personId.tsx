@@ -6,11 +6,9 @@ import {
   Inline,
   Inspector,
   KeyValue,
-  Panel,
   Progress,
   RecordHeader,
   Section,
-  Shell as DsShell,
   ShowPage,
   Table,
   TextLink,
@@ -68,6 +66,50 @@ function PersonDetail() {
     <Shell>
       <>
         <ShowPage
+          rail={
+            <>
+              <Inspector.Group title="Profile">
+                <KeyValue label="Discipline">{person.discipline}</KeyValue>
+                <KeyValue label="Org">{person.org}</KeyValue>
+                <KeyValue label="Clearance">{person.clearance}</KeyValue>
+                <KeyValue label="Site">{person.site}</KeyValue>
+                <KeyValue label="Email">
+                  <span className="truncate font-body-small">{person.email}</span>
+                </KeyValue>
+              </Inspector.Group>
+
+              <Inspector.Group title="Load">
+                <KeyValue label="Workstreams">{streams.length}</KeyValue>
+                <KeyValue label="Allocation">
+                  <Inline as="span" space="space.100" alignBlock="center">
+                    <span className="w-600">
+                      <Progress
+                        value={Math.min(alloc, 100)}
+                        tone={alloc > 100 ? "danger" : alloc > 85 ? "warning" : "information"}
+                      />
+                    </span>
+                    <span className={alloc > 100 ? "tabular-nums text-danger" : "tabular-nums"}>
+                      {alloc}%
+                    </span>
+                  </Inline>
+                </KeyValue>
+              </Inspector.Group>
+
+              <Inspector.Group title="Controls touched">
+                <Inline className="py-050" space="space.075" shouldWrap>
+                  {controls.length ? (
+                    controls.map((c) => (
+                      <Id key={c} className="text-subtle">
+                        {c}
+                      </Id>
+                    ))
+                  ) : (
+                    <span className="font-body-small text-subtle">—</span>
+                  )}
+                </Inline>
+              </Inspector.Group>
+            </>
+          }
           header={
             <RecordHeader
               back={
@@ -161,51 +203,6 @@ function PersonDetail() {
             </Table>
           </Section>
         </ShowPage>
-        <DsShell.Panel label="Details">
-          <DsShell.Panel.Splitter label="Resize details" />
-          <Panel flush>
-            <Inspector.Group title="Profile">
-              <KeyValue label="Discipline">{person.discipline}</KeyValue>
-              <KeyValue label="Org">{person.org}</KeyValue>
-              <KeyValue label="Clearance">{person.clearance}</KeyValue>
-              <KeyValue label="Site">{person.site}</KeyValue>
-              <KeyValue label="Email">
-                <span className="truncate font-body-small">{person.email}</span>
-              </KeyValue>
-            </Inspector.Group>
-
-            <Inspector.Group title="Load">
-              <KeyValue label="Workstreams">{streams.length}</KeyValue>
-              <KeyValue label="Allocation">
-                <Inline as="span" space="space.100" alignBlock="center">
-                  <span className="w-600">
-                    <Progress
-                      value={Math.min(alloc, 100)}
-                      tone={alloc > 100 ? "danger" : alloc > 85 ? "warning" : "information"}
-                    />
-                  </span>
-                  <span className={alloc > 100 ? "tabular-nums text-danger" : "tabular-nums"}>
-                    {alloc}%
-                  </span>
-                </Inline>
-              </KeyValue>
-            </Inspector.Group>
-
-            <Inspector.Group title="Controls touched">
-              <Inline className="py-050" space="space.075" shouldWrap>
-                {controls.length ? (
-                  controls.map((c) => (
-                    <Id key={c} className="text-subtle">
-                      {c}
-                    </Id>
-                  ))
-                ) : (
-                  <span className="font-body-small text-subtle">—</span>
-                )}
-              </Inline>
-            </Inspector.Group>
-          </Panel>
-        </DsShell.Panel>
       </>
     </Shell>
   );

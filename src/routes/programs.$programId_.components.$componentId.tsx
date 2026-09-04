@@ -19,10 +19,8 @@ import {
   Fact,
   Id,
   Indicator,
-  Panel,
   RecordHeader,
   Section,
-  Shell as DsShell,
   ShowPage,
   Stack,
   Table,
@@ -195,6 +193,14 @@ function ComponentRecord() {
     <Shell>
       <>
         <ShowPage
+          rail={
+            tab === "Overview" ? (
+              <>
+                <NodeRail node={node} posture={posture} />
+                {anchored ? <ScopeRailGroups scope={anchored} /> : null}
+              </>
+            ) : null
+          }
           header={
             <RecordHeader
               back={
@@ -608,13 +614,6 @@ function ComponentRecord() {
             </>
           )}
         </ShowPage>
-        <DsShell.Panel label="Details">
-          <DsShell.Panel.Splitter label="Resize details" />
-          <Panel flush>
-            <NodeRail node={node} posture={posture} />
-            {anchored ? <ScopeRailGroups scope={anchored} /> : null}
-          </Panel>
-        </DsShell.Panel>
       </>
     </Shell>
   );

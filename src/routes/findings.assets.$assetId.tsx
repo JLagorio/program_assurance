@@ -9,10 +9,8 @@ import {
   Inline,
   Inspector,
   KeyValue,
-  Panel,
   RecordHeader,
   Section,
-  Shell as DsShell,
   ShowPage,
   Stack,
   Table,
@@ -95,6 +93,68 @@ function AssetRecord() {
     <Shell>
       <>
         <ShowPage
+          rail={
+            <>
+              <Inspector.Group title="Inventory">
+                <KeyValue label="Asset">
+                  <Id>{asset.id}</Id>
+                </KeyValue>
+                <KeyValue label="Kind">{asset.kind}</KeyValue>
+                <KeyValue label="Technology">{asset.technology}</KeyValue>
+                <KeyValue label="Environment">{asset.environment}</KeyValue>
+                <KeyValue label="Owner">{asset.owner}</KeyValue>
+                <KeyValue label="Program">
+                  <TextLink>
+                    <Link to="/programs/$programId" params={{ programId: asset.program }}>
+                      <Id>{asset.program}</Id>
+                    </Link>
+                  </TextLink>
+                </KeyValue>
+              </Inspector.Group>
+              <Inspector.Group title="Posture">
+                <KeyValue label="Last scan">{asset.lastScan}</KeyValue>
+                <KeyValue label="CCIs covered">{asset.ccisCovered}</KeyValue>
+              </Inspector.Group>
+              <Inspector.Group title="Open findings">
+                <KeyValue label="Scanner declared">
+                  <span className="tabular-nums">
+                    <span className={asset.openCatI ? "font-medium text-danger" : ""}>
+                      {asset.openCatI}
+                    </span>
+                    <span className="text-subtle">
+                      {" "}
+                      / {asset.openCatII} / {asset.openCatIII}
+                    </span>
+                  </span>
+                </KeyValue>
+                <KeyValue label="As of">{asset.lastScan}</KeyValue>
+                <KeyValue label="Register tracked">
+                  {tracked ? (
+                    <span className="tabular-nums">
+                      <span className={tracked.catI ? "font-medium text-danger" : ""}>
+                        {tracked.catI}
+                      </span>
+                      <span className="text-subtle">
+                        {" "}
+                        / {tracked.catII} / {tracked.catIII}
+                      </span>
+                    </span>
+                  ) : (
+                    "—"
+                  )}
+                </KeyValue>
+                <KeyValue label="Delta">
+                  {delta === null ? (
+                    "—"
+                  ) : (
+                    <span className={delta === 0 ? "tabular-nums" : "tabular-nums text-warning"}>
+                      {delta > 0 ? `+${delta}` : delta}
+                    </span>
+                  )}
+                </KeyValue>
+              </Inspector.Group>
+            </>
+          }
           header={
             <RecordHeader
               back={<Link to="/findings" />}
@@ -181,69 +241,6 @@ function AssetRecord() {
             </Table>
           </Section>
         </ShowPage>
-        <DsShell.Panel label="Details">
-          <DsShell.Panel.Splitter label="Resize details" />
-          <Panel flush>
-            <Inspector.Group title="Inventory">
-              <KeyValue label="Asset">
-                <Id>{asset.id}</Id>
-              </KeyValue>
-              <KeyValue label="Kind">{asset.kind}</KeyValue>
-              <KeyValue label="Technology">{asset.technology}</KeyValue>
-              <KeyValue label="Environment">{asset.environment}</KeyValue>
-              <KeyValue label="Owner">{asset.owner}</KeyValue>
-              <KeyValue label="Program">
-                <TextLink>
-                  <Link to="/programs/$programId" params={{ programId: asset.program }}>
-                    <Id>{asset.program}</Id>
-                  </Link>
-                </TextLink>
-              </KeyValue>
-            </Inspector.Group>
-            <Inspector.Group title="Posture">
-              <KeyValue label="Last scan">{asset.lastScan}</KeyValue>
-              <KeyValue label="CCIs covered">{asset.ccisCovered}</KeyValue>
-            </Inspector.Group>
-            <Inspector.Group title="Open findings">
-              <KeyValue label="Scanner declared">
-                <span className="tabular-nums">
-                  <span className={asset.openCatI ? "font-medium text-danger" : ""}>
-                    {asset.openCatI}
-                  </span>
-                  <span className="text-subtle">
-                    {" "}
-                    / {asset.openCatII} / {asset.openCatIII}
-                  </span>
-                </span>
-              </KeyValue>
-              <KeyValue label="As of">{asset.lastScan}</KeyValue>
-              <KeyValue label="Register tracked">
-                {tracked ? (
-                  <span className="tabular-nums">
-                    <span className={tracked.catI ? "font-medium text-danger" : ""}>
-                      {tracked.catI}
-                    </span>
-                    <span className="text-subtle">
-                      {" "}
-                      / {tracked.catII} / {tracked.catIII}
-                    </span>
-                  </span>
-                ) : (
-                  "—"
-                )}
-              </KeyValue>
-              <KeyValue label="Delta">
-                {delta === null ? (
-                  "—"
-                ) : (
-                  <span className={delta === 0 ? "tabular-nums" : "tabular-nums text-warning"}>
-                    {delta > 0 ? `+${delta}` : delta}
-                  </span>
-                )}
-              </KeyValue>
-            </Inspector.Group>
-          </Panel>
-        </DsShell.Panel>
       </>
     </Shell>
   );

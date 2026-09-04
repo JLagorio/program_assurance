@@ -18,7 +18,7 @@ function Row({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
-/** Facts that stay put: sticky under the top nav, always present, every group open until the reader folds it. Inside a Panel it is the same groups in a surface that scrolls on its own; in a flush Panel its rules run edge to edge and the first one sits on the top nav's border. */
+/** Facts that stay put: in a ShowPage's rail or a WorkPane's detail, sticky under the top nav, every group open until the reader folds it. Inside a Panel, the detail of a selected row, it is the same groups in a surface that scrolls on its own; in a flush Panel its rules run edge to edge and the first one sits on the top nav's border. */
 function InspectorRoot({
   groups,
   footer,
@@ -55,10 +55,11 @@ function InspectorRoot({
     </>
   );
   if (!isSticky) return <div>{body}</div>;
+  // A div, not an aside: the rail it sits in (a ShowPage's, a WorkPane's detail) is the landmark.
   return (
-    <aside className="lg:sticky-rail">
+    <div className="lg:sticky-rail">
       <ScrollArea className="max-h-full">{body}</ScrollArea>
-    </aside>
+    </div>
   );
 }
 

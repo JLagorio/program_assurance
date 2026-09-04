@@ -9,10 +9,8 @@ import {
   Inline,
   Inspector,
   KeyValue,
-  Panel,
   RecordHeader,
   Section,
-  Shell as DsShell,
   ShowPage,
   Stack,
   Table,
@@ -70,6 +68,43 @@ function PoamRecord() {
     <Shell>
       <>
         <ShowPage
+          rail={
+            <>
+              <Inspector.Group title="Commitment">
+                <KeyValue label="POA&M">
+                  <Id>{item.id}</Id>
+                </KeyValue>
+                <KeyValue label="Status">
+                  <Badge tone={statusTone(item.status)}>{item.status}</Badge>
+                </KeyValue>
+                <KeyValue label="Owner">{item.owner}</KeyValue>
+                <KeyValue label="Resources">{item.resources}</KeyValue>
+                <KeyValue label="Scheduled">{item.scheduledCompletion}</KeyValue>
+                <KeyValue label="Original">{item.originalCompletion}</KeyValue>
+              </Inspector.Group>
+              <Inspector.Group title="Joins">
+                <KeyValue label="Program">
+                  <TextLink>
+                    <Link to="/programs/$programId" params={{ programId: item.program }}>
+                      <Id>{item.program}</Id>
+                    </Link>
+                  </TextLink>
+                </KeyValue>
+                <KeyValue label="Risk">
+                  {risk ? (
+                    <TextLink>
+                      <Link to="/register/risks/$riskId" params={{ riskId: risk.id }}>
+                        <Id>{risk.id}</Id>
+                      </Link>
+                    </TextLink>
+                  ) : (
+                    "Not aggregated"
+                  )}
+                </KeyValue>
+                <KeyValue label="Open findings">{fs.filter(isOpen).length}</KeyValue>
+              </Inspector.Group>
+            </>
+          }
           header={
             <RecordHeader
               back={<Link to="/register" />}
@@ -193,44 +228,6 @@ function PoamRecord() {
             )}
           </Section>
         </ShowPage>
-        <DsShell.Panel label="Details">
-          <DsShell.Panel.Splitter label="Resize details" />
-          <Panel flush>
-            <Inspector.Group title="Commitment">
-              <KeyValue label="POA&M">
-                <Id>{item.id}</Id>
-              </KeyValue>
-              <KeyValue label="Status">
-                <Badge tone={statusTone(item.status)}>{item.status}</Badge>
-              </KeyValue>
-              <KeyValue label="Owner">{item.owner}</KeyValue>
-              <KeyValue label="Resources">{item.resources}</KeyValue>
-              <KeyValue label="Scheduled">{item.scheduledCompletion}</KeyValue>
-              <KeyValue label="Original">{item.originalCompletion}</KeyValue>
-            </Inspector.Group>
-            <Inspector.Group title="Joins">
-              <KeyValue label="Program">
-                <TextLink>
-                  <Link to="/programs/$programId" params={{ programId: item.program }}>
-                    <Id>{item.program}</Id>
-                  </Link>
-                </TextLink>
-              </KeyValue>
-              <KeyValue label="Risk">
-                {risk ? (
-                  <TextLink>
-                    <Link to="/register/risks/$riskId" params={{ riskId: risk.id }}>
-                      <Id>{risk.id}</Id>
-                    </Link>
-                  </TextLink>
-                ) : (
-                  "Not aggregated"
-                )}
-              </KeyValue>
-              <KeyValue label="Open findings">{fs.filter(isOpen).length}</KeyValue>
-            </Inspector.Group>
-          </Panel>
-        </DsShell.Panel>
       </>
     </Shell>
   );
