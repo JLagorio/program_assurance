@@ -8,8 +8,14 @@
     "*.css"
   ],
   "exports": {
-    ".": "./src/index.ts",
-    "./cn": "./src/lib/cn.ts",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./cn": {
+      "types": "./dist/lib/cn.d.ts",
+      "default": "./src/lib/cn.ts"
+    },
     "./ledger.css": "./src/styles/ledger.css",
     "./base.css": "./src/styles/base.css",
     "./reset.css": "./src/styles/reset.css",
@@ -18,6 +24,7 @@
     "./eslint": "./eslint-plugin/index.js"
   },
   "scripts": {
+    "build": "node build/kit.mjs",
     "build:tokens": "node build/tokens.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "storybook": "storybook dev -p 6007",
@@ -34,6 +41,7 @@
     "src",
     "!src/stories",
     "!src/generated/docs.json",
+    "dist",
     "tokens",
     "build",
     "eslint-plugin",
