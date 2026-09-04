@@ -18,14 +18,16 @@ import {
   Absent,
   Badge,
   Button,
+  Box,
   Combobox,
   DataTable,
-  Dialog,
+  Editable,
   Field,
-  Grid,
   Indicator,
   Inline,
   Input,
+  NativeSelect,
+  PickerSheet,
   Progress,
   Select,
   Sheet,
@@ -62,12 +64,16 @@ import { NodePreviewSheet } from "./node-preview";
 import {
   addAllocation,
   allocationsOn,
+  coverageTone,
   coverages,
   derivedControlTrace,
+  requirementStateTone,
   requirementsForProgram,
   responsibilities,
+  responsibilityTone,
   useRequirementsVersion,
   type Coverage,
+  type Requirement,
   type Responsibility,
 } from "@/lib/requirements";
 import {
@@ -564,12 +570,30 @@ export function AddNodeSheet({
   );
 }
 
-/* ------------------------------------------------- Allocate a requirement */
+/* ------------------------------------------------ Allocate requirements */
+
+/** What every allocation carries (`§8`): the bounded claim is required. */
+type AllocationFields = { responsibility: Responsibility; coverage: Coverage; scope: string };
+type ChosenRow = Requirement & AllocationFields;
+
+const defaultFields: AllocationFields = {
+  responsibility: "Primary",
+  coverage: "Partial",
+  scope: "",
+};
+
+const candidateColumns = defineColumns<Requirement>((c) => [
+  c.id("id", { header: "Requirement", width: 110 }),
+  c.text("text", { header: "Shall statement", sortable: false }),
+  c.text("type", { header: "Type", width: 130 }),
+  c.status("state", { header: "State", width: 110, tone: (r) => requirementStateTone[r.state] }),
+]);
 
 /**
- * Put one of the program's requirements on this node. The bounded claim is
- * required (`§8`): an allocation without a scope is a wish, not a
- * responsibility.
+ * Put the program's requirements on this node, many at a time. Frame one
+ * chooses from the table; frame two fills in responsibility, coverage and the
+ * bounded claim for each, because an allocation without a scope is a wish,
+ * not a responsibility (`§8`).
  */
 export function AllocateToNodeDialog({
   programId,
@@ -580,108 +604,236 @@ export function AllocateToNodeDialog({
   node: CompositionNode;
   onClose: () => void;
 }) {
-  useRequirementsVersion();
-  const already = new Set(allocationsOn(node.id).map((a) => a.requirement));
-  const options = requirementsForProgram(programId)
-    .filter((r) => !already.has(r.id) && r.state !== "Rejected" && r.state !== "Retired")
-    .map((r) => ({ value: r.id, label: `${r.id} · ${r.text}` }));
-  const [requirement, setRequirement] = useState("");
-  const [responsibility, setResponsibility] = useState<Responsibility>("Primary");
-  const [coverage, setCoverage] = useState<Coverage>("Partial");
-  const [scope, setScope] = useState("");
-  const [rationale, setRationale] = useState("");
+  const version = useRequirementsVersion();
+  const [frame, setFrame] = useState<"choose" | "details">("choose");
+  const [fields, setFields] = useState<Record<string, AllocationFields>>({});
+  const [claim, setClaim] = useState("");
 
-  const chosen = requirementsForProgram(programId).find((r) => r.id === requirement) ?? null;
-  const ready = !!chosen && scope.trim().length > 0;
+  const allocated = allocationsOn(node.id).length;
+  const candidates = useMemo(() => {
+    const already = new Set(allocationsOn(node.id).map((a) => a.requirement));
+    return requirementsForProgram(programId).filter(
+      (r) => !already.has(r.id) && r.state !== "Rejected" && r.state !== "Retired",
+    );
+    // the store is subscribed through its version
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [programId, node.id, version]);
+
+  // The selection is kept by row id, so it survives the search and the facets.
+  const choose = useDataTable({
+    columns: candidateColumns,
+    data: candidates,
+    getRowId: (r) => r.id,
+    selectable: true,
+    label: "Requirements",
+    initialState: { sorting: [{ id: "id", desc: false }] },
+  });
+  const chosenIds = Object.keys(choose.state.rowSelection);
+  const chosen = new Set(chosenIds);
+  const fieldOf = (id: string): AllocationFields => fields[id] ?? defaultFields;
+  const setField = (id: string, patch: Partial<AllocationFields>) =>
+    setFields((f) => ({ ...f, [id]: { ...(f[id] ?? defaultFields), ...patch } }));
+  const applyAll = (patch: Partial<AllocationFields>) =>
+    setFields((f) =>
+      Object.fromEntries(chosenIds.map((id) => [id, { ...(f[id] ?? defaultFields), ...patch }])),
+    );
+  const rows: ChosenRow[] = candidates
+    .filter((r) => chosen.has(r.id))
+    .map((r) => ({ ...r, ...fieldOf(r.id) }));
+  const withoutClaim = rows.filter((r) => !r.scope.trim()).length;
+
+  const detailColumns = useMemo(
+    () =>
+      defineColumns<ChosenRow>((c) => [
+        c.id("id", { header: "Requirement", width: 110, sortable: false }),
+        c.text("text", { header: "Shall statement", sortable: false }),
+        c.status("responsibility", {
+          header: "Responsibility",
+          width: 140,
+          sortable: false,
+          tone: (r) => responsibilityTone[r.responsibility],
+          editable: {
+            options: responsibilities,
+            onChange: (row, next) => setField(row.id, { responsibility: next as Responsibility }),
+            save: async () => undefined,
+          },
+        }),
+        c.status("coverage", {
+          header: "Coverage",
+          width: 120,
+          sortable: false,
+          tone: (r) => coverageTone[r.coverage],
+          editable: {
+            options: coverages,
+            onChange: (row, next) => setField(row.id, { coverage: next as Coverage }),
+            save: async () => undefined,
+          },
+        }),
+        c.text("scope", {
+          header: "What this element answers",
+          sortable: false,
+          editable: {
+            onChange: (row, next) => setField(row.id, { scope: next }),
+            save: async () => undefined,
+          },
+          // drawn by hand for the placeholder; `editable` above keeps the grid semantics
+          cell: (r) => (
+            <Editable.Text
+              value={r.scope}
+              placeholder="The bounded claim"
+              onChange={(next) => setField(r.id, { scope: next })}
+              save={async () => undefined}
+            />
+          ),
+        }),
+        c.custom("apply", {
+          header: "",
+          width: 120,
+          align: "end",
+          cell: (r) => (
+            <Button
+              variant="link"
+              size="small"
+              onClick={() => choose.getRow(r.id).toggleSelected(false)}
+            >
+              Does not apply
+            </Button>
+          ),
+        }),
+      ]),
+    [choose],
+  );
+  const details = useDataTable({
+    columns: detailColumns,
+    data: rows,
+    getRowId: (r) => r.id,
+    label: "Chosen requirements",
+  });
 
   const submit = () => {
-    if (!chosen) return;
-    addAllocation({
-      requirement: chosen.id,
-      target: node.id,
-      targetKind: "node",
-      responsibility,
-      coverage,
-      scope: scope.trim(),
-      owner: chosen.owner,
-      rationale: rationale.trim(),
+    for (const r of rows) {
+      addAllocation({
+        requirement: r.id,
+        target: node.id,
+        targetKind: "node",
+        responsibility: r.responsibility,
+        coverage: r.coverage,
+        scope: r.scope.trim(),
+        owner: r.owner,
+        rationale: "",
+      });
+    }
+    toast.success(`${rows.length} allocated to ${node.name}`, {
+      description: rows.map((r) => r.id).join(", "),
     });
-    toast.success(`${chosen.id} allocated`, { description: `${node.name} · ${responsibility}` });
     onClose();
   };
 
+  if (frame === "choose") {
+    return (
+      <PickerSheet
+        open
+        onClose={onClose}
+        width={900}
+        title={`Allocate requirements to ${node.name}`}
+        subtitle={`${node.name} · ${allocated} allocated · coverage is the union across every element that carries a requirement`}
+        search={{
+          value: String(choose.state.globalFilter ?? ""),
+          onChange: (v) => choose.setGlobalFilter(v),
+          placeholder: "Search by id or text",
+        }}
+        filters={
+          <>
+            <DataTable.Filter table={choose} column="type" />
+            <DataTable.Filter table={choose} column="state" />
+          </>
+        }
+        selected={chosen.size}
+        total={choose.getRowCount()}
+        onClear={() => choose.resetRowSelection()}
+        action={{ label: `Continue with ${chosen.size}`, onClick: () => setFrame("details") }}
+      >
+        <DataTable
+          table={choose}
+          onRowClick={(r) => choose.getRow(r.id).toggleSelected()}
+          className="rounded-none border-0"
+          empty={{
+            title: "No requirements match",
+            description: "Clear the search or a filter, or every requirement is already here.",
+          }}
+        />
+      </PickerSheet>
+    );
+  }
+
   return (
-    <Dialog
+    <PickerSheet
       open
       onClose={onClose}
-      title={`Allocate a requirement to ${node.name}`}
-      description="The requirement keeps its other allocations; coverage is the union across every element that carries it."
-      footer={
-        <>
-          <Button variant="subtle" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={submit} disabled={!ready}>
-            Allocate
-          </Button>
-        </>
-      }
-    >
-      <Stack space="space.150">
-        <Field label="Requirement">
-          <Combobox
-            aria-label="Requirement"
-            value={requirement}
-            onChange={setRequirement}
-            options={options}
-            placeholder="Choose a requirement…"
-            searchPlaceholder="Search by id or text…"
-            className="w-full"
-          />
-        </Field>
-        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-          <Field label="Responsibility">
-            <Select
-              value={responsibility}
-              onValueChange={(v) => setResponsibility(v as Responsibility)}
-              aria-label="Responsibility"
+      onBack={() => setFrame("choose")}
+      width={900}
+      title={`Allocate requirements to ${node.name}`}
+      subtitle={`${node.name} · responsibility, coverage and the bounded claim for each`}
+      toolbar={
+        <Inline space="space.150" alignBlock="center" shouldWrap>
+          <Text size="small" color="color.text.subtle">
+            Apply to all
+          </Text>
+          <Box style={{ width: 140 }}>
+            <NativeSelect
+              aria-label="Responsibility for all"
+              className="[&>select]:h-control-small"
+              defaultValue=""
+              onChange={(e) =>
+                e.target.value && applyAll({ responsibility: e.target.value as Responsibility })
+              }
             >
+              <option value="">Responsibility</option>
               {responsibilities.map((r) => (
-                <Select.Item key={r} value={r}>
-                  {r}
-                </Select.Item>
+                <option key={r}>{r}</option>
               ))}
-            </Select>
-          </Field>
-          <Field label="Coverage">
-            <Select
-              value={coverage}
-              onValueChange={(v) => setCoverage(v as Coverage)}
-              aria-label="Coverage"
+            </NativeSelect>
+          </Box>
+          <Box style={{ width: 120 }}>
+            <NativeSelect
+              aria-label="Coverage for all"
+              className="[&>select]:h-control-small"
+              defaultValue=""
+              onChange={(e) => e.target.value && applyAll({ coverage: e.target.value as Coverage })}
             >
+              <option value="">Coverage</option>
               {coverages.map((c) => (
-                <Select.Item key={c} value={c}>
-                  {c}
-                </Select.Item>
+                <option key={c}>{c}</option>
               ))}
-            </Select>
-          </Field>
-        </Grid>
-        <Field label="What this element answers" hint="The bounded claim. Required.">
-          <Textarea
-            value={scope}
-            onChange={(e) => setScope(e.target.value)}
-            placeholder="Zeroizes its own key store on the accident signal; does not cover the recorder."
-          />
-        </Field>
-        <Field label="Why here">
-          <Textarea
-            value={rationale}
-            onChange={(e) => setRationale(e.target.value)}
-            placeholder="Holds the only non-volatile store on the bus segment."
-          />
-        </Field>
-      </Stack>
-    </Dialog>
+            </NativeSelect>
+          </Box>
+          <Box style={{ width: 260 }}>
+            <Input
+              aria-label="Claim for all"
+              className="h-control-small"
+              value={claim}
+              onChange={(e) => setClaim(e.target.value)}
+              placeholder="One claim for every row"
+            />
+          </Box>
+          <Button size="small" disabled={!claim.trim()} onClick={() => applyAll({ scope: claim })}>
+            Apply claim
+          </Button>
+          {withoutClaim ? (
+            <Text size="small" color="color.text.subtle">
+              {withoutClaim} still need a claim
+            </Text>
+          ) : null}
+        </Inline>
+      }
+      selected={chosen.size}
+      action={{
+        label: `Allocate ${chosen.size} to ${node.name}`,
+        onClick: submit,
+        disabled: withoutClaim > 0,
+      }}
+    >
+      <DataTable table={details} className="rounded-none border-0" />
+    </PickerSheet>
   );
 }

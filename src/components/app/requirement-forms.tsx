@@ -1,28 +1,35 @@
 /**
  * Write paths for the requirements layer: author a requirement, allocate one,
- * and answer "does this apply to this component?" one obligation at a time.
+ * and answer "does this apply to this component?" for many obligations at once.
  *
- * The applicability dialog is the shape the work actually takes. An engineer
- * holding one LRU walks the obligations that have not been answered for it and
- * says apply or skip — and a skip is recorded with a reason rather than left as
- * an absence, because "nobody considered it" and "considered and excluded" are
- * different states and only the second survives an assessment.
+ * The applicability picker is the shape the work actually takes. An engineer
+ * holding one LRU gathers the obligations that have not been answered for it,
+ * then says apply or skip for each — and a skip is recorded with a reason
+ * rather than left as an absence, because "nobody considered it" and
+ * "considered and excluded" are different states and only the second survives
+ * an assessment.
  */
 
 import { useMemo, useState } from "react";
 
 import {
+  Absent,
   Badge,
   Box,
   Button,
+  DataTable,
   Dialog,
+  Editable,
   Field,
   Grid,
-  Id,
   Inline,
   Input,
   NativeSelect,
+  PickerSheet,
+  Text,
   Textarea,
+  defineColumns,
+  useDataTable,
 } from "@ledger/design-system";
 import { nodesForProgram } from "@/lib/composition";
 import { systemComponents } from "@/lib/reusable-components";
@@ -30,10 +37,12 @@ import {
   addAllocation,
   addRequirement,
   coverages,
+  coverageTone,
   decideApplicability,
-  derivationSourceTone,
+  requirementStateTone,
   requirementsForProgram,
   responsibilities,
+  responsibilityTone,
   securityProcesses,
   undecidedFor,
   verificationMethods,
@@ -371,10 +380,32 @@ export function AllocateModal({
 /* -------------------------------------------------- Applicability walk */
 
 /**
- * "Does this apply to this component?" — one obligation at a time, with a
- * skip recorded rather than dropped.
+ * One answer per chosen obligation. `note` is the bounded claim when it
+ * applies and the reason when it does not; the model requires the second.
  */
-export function ApplicabilityModal({
+type Answer = {
+  applies: boolean;
+  responsibility: Responsibility;
+  coverage: Coverage;
+  note: string;
+};
+type AnswerRow = Requirement & Answer;
+
+const defaultAnswer: Answer = {
+  applies: true,
+  responsibility: "Primary",
+  coverage: "Partial",
+  note: "",
+};
+
+const obligationColumns = defineColumns<Requirement>((c) => [
+  c.id("id", { header: "Requirement", width: 110 }),
+  c.text("text", { header: "Shall statement", sortable: false }),
+  c.text("type", { header: "Type", width: 130 }),
+  c.status("state", { header: "State", width: 110, tone: (r) => requirementStateTone[r.state] }),
+]);
+
+export function ApplicabilitySheet({
   open,
   onClose,
   programId,
@@ -393,153 +424,252 @@ export function ApplicabilityModal({
 }) {
   const queue = useMemo(
     () => (open ? undecidedFor(targetId, programId) : []),
-    // Recomputed only when the dialog opens: answering an item removes it from
+    // Recomputed only when the sheet opens: answering an item removes it from
     // `undecidedFor`, and a queue that reshuffles under the cursor mid-walk is
     // how you skip an obligation without meaning to.
-
     [open, targetId, programId],
   );
-  const [index, setIndex] = useState(0);
-  const [rationale, setRationale] = useState("");
-  const [responsibility, setResponsibility] = useState<Responsibility>("Primary");
-  const [coverage, setCoverage] = useState<Coverage>("Partial");
-  const [scope, setScope] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [frame, setFrame] = useState<"choose" | "details">("choose");
+  const [answers, setAnswers] = useState<Record<string, Answer>>({});
 
-  const current = queue[index];
+  // Frame one gathers; the selection is kept by row id, so it survives the search and the facets.
+  const choose = useDataTable({
+    columns: obligationColumns,
+    data: queue,
+    getRowId: (r) => r.id,
+    selectable: true,
+    label: "Obligations",
+    initialState: { sorting: [{ id: "id", desc: false }] },
+  });
+  const chosenIds = Object.keys(choose.state.rowSelection);
+  const chosen = new Set(chosenIds);
+  const answerOf = (id: string): Answer => answers[id] ?? defaultAnswer;
+  const setAnswer = (id: string, patch: Partial<Answer>) =>
+    setAnswers((a) => ({ ...a, [id]: { ...(a[id] ?? defaultAnswer), ...patch } }));
+  const applyAll = (patch: Partial<Answer>) =>
+    setAnswers((a) =>
+      Object.fromEntries(chosenIds.map((id) => [id, { ...(a[id] ?? defaultAnswer), ...patch }])),
+    );
+  const rows: AnswerRow[] = queue
+    .filter((r) => chosen.has(r.id))
+    .map((r) => ({ ...r, ...answerOf(r.id) }));
+  const unanswered = rows.filter((r) => !r.note.trim()).length;
 
-  const advance = () => {
-    setRationale("");
-    setScope("");
-    setError(null);
-    if (index + 1 >= queue.length) {
-      setIndex(0);
-      onClose();
-    } else {
-      setIndex(index + 1);
+  const reset = () => {
+    choose.resetRowSelection();
+    choose.setGlobalFilter("");
+    setAnswers({});
+    setFrame("choose");
+    onClose();
+  };
+
+  // Frame two answers in place. "Does not apply" is a row action that turns the claim into the
+  // reason; responsibility and coverage fall away because there is nothing to allocate.
+  const answerColumns = useMemo(
+    () =>
+      defineColumns<AnswerRow>((c) => [
+        c.id("id", { header: "Requirement", width: 110, sortable: false }),
+        c.text("text", { header: "Shall statement", sortable: false }),
+        c.custom("responsibility", {
+          header: "Responsibility",
+          width: 140,
+          cell: (r) =>
+            r.applies ? (
+              <Editable.Select
+                label="Responsibility"
+                options={responsibilities}
+                value={r.responsibility}
+                onChange={(next) => setAnswer(r.id, { responsibility: next })}
+                save={async () => undefined}
+                render={(o) => <Badge tone={responsibilityTone[o]}>{o}</Badge>}
+              />
+            ) : (
+              <Badge tone="neutral">Does not apply</Badge>
+            ),
+        }),
+        c.custom("coverage", {
+          header: "Coverage",
+          width: 120,
+          cell: (r) =>
+            r.applies ? (
+              <Editable.Select
+                label="Coverage"
+                options={coverages}
+                value={r.coverage}
+                onChange={(next) => setAnswer(r.id, { coverage: next })}
+                save={async () => undefined}
+                render={(o) => <Badge tone={coverageTone[o]}>{o}</Badge>}
+              />
+            ) : (
+              <Absent />
+            ),
+        }),
+        c.text("note", {
+          header: "What it answers, or why not",
+          sortable: false,
+          editable: {
+            onChange: (row, next) => setAnswer(row.id, { note: next }),
+            save: async () => undefined,
+          },
+          // drawn by hand for the placeholder; `editable` above keeps the grid semantics
+          cell: (r) => (
+            <Editable.Text
+              value={r.note}
+              placeholder={
+                r.applies ? "The part of it this component answers" : "Why it does not reach here"
+              }
+              onChange={(next) => setAnswer(r.id, { note: next })}
+              save={async () => undefined}
+            />
+          ),
+        }),
+        c.custom("apply", {
+          header: "",
+          width: 130,
+          align: "end",
+          cell: (r) => (
+            <Button
+              variant="link"
+              size="small"
+              onClick={() => setAnswer(r.id, { applies: !r.applies })}
+            >
+              {r.applies ? "Does not apply" : "Applies here"}
+            </Button>
+          ),
+        }),
+      ]),
+    [],
+  );
+  const details = useDataTable({
+    columns: answerColumns,
+    data: rows,
+    getRowId: (r) => r.id,
+    label: "Chosen obligations",
+  });
+
+  const record = () => {
+    for (const r of rows) {
+      const note = r.note.trim();
+      decideApplicability({
+        requirement: r.id,
+        target: targetId,
+        targetKind,
+        applies: r.applies,
+        rationale: r.applies ? "Applies to this component." : note,
+        decidedBy,
+        ...(r.applies
+          ? {
+              allocation: {
+                responsibility: r.responsibility,
+                coverage: r.coverage,
+                scope: note,
+                owner: decidedBy,
+              },
+            }
+          : {}),
+      });
     }
+    reset();
   };
 
-  const apply = () => {
-    if (!current) return;
-    if (!scope.trim())
-      return setError("State what part of the requirement this component answers.");
-    decideApplicability({
-      requirement: current.id,
-      target: targetId,
-      targetKind,
-      applies: true,
-      rationale: rationale.trim() || "Applies to this component.",
-      decidedBy,
-      allocation: {
-        responsibility,
-        coverage,
-        scope: scope.trim(),
-        owner: decidedBy,
-      },
-    });
-    advance();
-  };
-
-  const skip = () => {
-    if (!current) return;
-    if (!rationale.trim())
-      return setError("A skip has to say why. That is the whole point of logging it.");
-    decideApplicability({
-      requirement: current.id,
-      target: targetId,
-      targetKind,
-      applies: false,
-      rationale: rationale.trim(),
-      decidedBy,
-    });
-    advance();
-  };
+  const title = `Applicability — ${targetName}`;
+  if (frame === "choose") {
+    return (
+      <PickerSheet
+        open={open}
+        onClose={reset}
+        width={900}
+        title={title}
+        subtitle={
+          queue.length
+            ? `${queue.length} obligation${queue.length === 1 ? "" : "s"} not yet answered for this component.`
+            : "Every requirement in this program has been answered for this component."
+        }
+        search={{
+          value: String(choose.state.globalFilter ?? ""),
+          onChange: (v) => choose.setGlobalFilter(v),
+          placeholder: "Search by id or text",
+        }}
+        filters={
+          <>
+            <DataTable.Filter table={choose} column="type" />
+            <DataTable.Filter table={choose} column="state" />
+          </>
+        }
+        selected={chosen.size}
+        total={choose.getRowCount()}
+        onClear={() => choose.resetRowSelection()}
+        action={{ label: `Continue with ${chosen.size}`, onClick: () => setFrame("details") }}
+      >
+        <DataTable
+          table={choose}
+          onRowClick={(r) => choose.getRow(r.id).toggleSelected()}
+          className="rounded-none border-0"
+          empty={{
+            title: "Nothing left to answer",
+            description: `Every obligation has been answered for ${targetName}.`,
+          }}
+        />
+      </PickerSheet>
+    );
+  }
 
   return (
-    <Dialog
+    <PickerSheet
       open={open}
-      onClose={onClose}
-      title={`Applicability — ${targetName}`}
-      description={
-        queue.length
-          ? `${queue.length - index} of ${queue.length} obligations not yet answered for this component.`
-          : "Every requirement in this program has been answered for this component."
-      }
-      width="large"
-      footer={
-        current ? (
-          <>
-            {error ? <span className="mr-auto font-body-small text-danger">{error}</span> : null}
-            <Button onClick={onClose}>Stop</Button>
-            <Button onClick={skip}>Does not apply — log it</Button>
-            <Button variant="primary" onClick={apply}>
-              Applies here
-            </Button>
-          </>
-        ) : (
-          <Button variant="primary" onClick={onClose}>
-            Done
-          </Button>
-        )
-      }
-    >
-      {current ? (
-        <Grid gap="space.150">
-          <Box
-            className="rounded-large border border-default bg-surface-sunken"
-            paddingInline="space.200"
-            paddingBlock="space.150"
-          >
-            <Inline space="space.100" alignBlock="center" shouldWrap>
-              <Id>{current.id}</Id>
-              <Badge size="xsmall">{current.type}</Badge>
-              {current.derivations.map((d) => (
-                <Badge key={d.sourceId} size="xsmall" tone={derivationSourceTone[d.sourceType]}>
-                  {d.sourceId}
-                </Badge>
+      onClose={reset}
+      onBack={() => setFrame("choose")}
+      width={900}
+      title={title}
+      subtitle={`Recorded against ${decidedBy}. A claim where it applies, a reason where it does not.`}
+      toolbar={
+        <Inline space="space.150" alignBlock="center" shouldWrap>
+          <Text size="small" color="color.text.subtle">
+            Apply to all
+          </Text>
+          <Box style={{ width: 140 }}>
+            <NativeSelect
+              aria-label="Responsibility for all"
+              className="[&>select]:h-control-small"
+              defaultValue=""
+              onChange={(e) =>
+                e.target.value && applyAll({ responsibility: e.target.value as Responsibility })
+              }
+            >
+              <option value="">Responsibility</option>
+              {responsibilities.map((r) => (
+                <option key={r}>{r}</option>
               ))}
-            </Inline>
-            <p className="pt-075 font-body">{current.text}</p>
+            </NativeSelect>
           </Box>
-
-          <Field label="Rationale" hint="Required to skip. Recorded either way, against your name.">
-            <Textarea
-              value={rationale}
-              onChange={(e) => setRationale(e.target.value)}
-              placeholder={`Why this ${current.type.toLowerCase()} requirement does or does not reach ${targetName}`}
-            />
-          </Field>
-
-          <Grid gap="space.150" templateColumns={{ sm: "140px 140px minmax(0,1fr)" }}>
-            <Field label="Responsibility">
-              <NativeSelect
-                value={responsibility}
-                onChange={(e) => setResponsibility(e.target.value as Responsibility)}
-              >
-                {responsibilities.map((r) => (
-                  <option key={r}>{r}</option>
-                ))}
-              </NativeSelect>
-            </Field>
-            <Field label="Coverage">
-              <NativeSelect
-                value={coverage}
-                onChange={(e) => setCoverage(e.target.value as Coverage)}
-              >
-                {coverages.map((c) => (
-                  <option key={c}>{c}</option>
-                ))}
-              </NativeSelect>
-            </Field>
-            <Field label="Scope of the claim" hint="Needed only when it applies.">
-              <Input value={scope} onChange={(e) => setScope(e.target.value)} />
-            </Field>
-          </Grid>
-        </Grid>
-      ) : (
-        <p className="font-body text-subtle">Nothing left to answer for {targetName}.</p>
-      )}
-    </Dialog>
+          <Box style={{ width: 120 }}>
+            <NativeSelect
+              aria-label="Coverage for all"
+              className="[&>select]:h-control-small"
+              defaultValue=""
+              onChange={(e) => e.target.value && applyAll({ coverage: e.target.value as Coverage })}
+            >
+              <option value="">Coverage</option>
+              {coverages.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </NativeSelect>
+          </Box>
+          {unanswered ? (
+            <Text size="small" color="color.text.subtle">
+              {unanswered} still need a claim or a reason
+            </Text>
+          ) : null}
+        </Inline>
+      }
+      selected={chosen.size}
+      action={{
+        label: `Record ${chosen.size} decision${chosen.size === 1 ? "" : "s"}`,
+        onClick: record,
+        disabled: unanswered > 0,
+      }}
+    >
+      <DataTable table={details} className="rounded-none border-0" />
+    </PickerSheet>
   );
 }

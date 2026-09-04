@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import { NodeRail } from "@/components/app/composition";
 import { DerivedControlTrace, ElementAllocationTable } from "@/components/app/requirements";
-import { ApplicabilityModal } from "@/components/app/requirement-forms";
+import { ApplicabilitySheet } from "@/components/app/requirement-forms";
 import { RevisionStrip } from "@/components/app/control-set-revisions";
 import {
   ScopeControlSetTab,
@@ -518,7 +518,7 @@ function ComponentRecord() {
               </Section>
             ) : null}
 
-            <ApplicabilityModal
+            <ApplicabilitySheet
               open={deciding}
               onClose={() => setDeciding(false)}
               programId={program.id}

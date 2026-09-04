@@ -17,18 +17,22 @@ import {
   Button,
   Checkbox,
   Collapsible,
-  Combobox,
+  DataTable,
   Field,
   Grid,
   Id,
   Indicator,
   Inline,
+  PickerSheet,
   Select,
   Stack,
   Switch,
   Table,
+  Text,
   Textarea,
   ToggleGroup,
+  defineColumns,
+  useDataTable,
 } from "@ledger/design-system";
 import {
   contestedOverlays,
@@ -105,40 +109,25 @@ export function ScopeTailoringPane({
 
   const inSet = useMemo(() => new Set(set.controls.map((c) => c.control.id)), [set]);
   const decided = useMemo(() => new Set(draft.tailoring.map((t) => t.control)), [draft.tailoring]);
-  const excludable = useMemo(
-    () =>
-      set.controls
-        .filter((c) => !decided.has(c.control.id))
-        .map((c) => ({
-          value: c.control.id,
-          label: c.control.id,
-          keywords: c.control.title,
-          meta: c.control.family,
-        })),
-    [set, decided],
-  );
-  const includable = useMemo(
-    () =>
-      nistControls
-        .filter((c) => !inSet.has(c.id) && !decided.has(c.id))
-        .map((c) => ({ value: c.id, label: c.id, keywords: c.title, meta: c.family })),
-    [inSet, decided],
-  );
+  const [tailoring, setTailoring] = useState(false);
 
-  const addDecision = (control: string, decision: TailoringDecision["decision"]) => {
-    if (!control || decided.has(control)) return;
+  // One decision per control chosen in the picker: a control in the set is tailored out, one the
+  // categorization did not select is tailored in.
+  const addDecisions = (controls: string[]) => {
+    const fresh = controls.filter((c) => !decided.has(c));
+    if (!fresh.length) return;
     const s = currentSession();
     onChange({
       tailoring: [
         ...draft.tailoring,
-        {
+        ...fresh.map((control): TailoringDecision => ({
           control,
-          decision,
+          decision: inSet.has(control) ? "excluded" : "included",
           source: "system-tailoring",
           rationale: "",
           authority: `${s.name} · ${s.role}`,
           at: datasetToday,
-        },
+        })),
       ],
     });
   };
@@ -455,27 +444,21 @@ export function ScopeTailoringPane({
           defaultOpen={draft.tailoring.length > 0}
         >
           {readOnly ? null : (
-            <Inline className="pb-150" space="space.150" alignBlock="end" shouldWrap>
-              <Field label="Tailor out" hint="A control in the set this scope does not owe.">
-                <Combobox
-                  options={excludable}
-                  onChange={(v) => addDecision(v, "excluded")}
-                  placeholder="Choose a control…"
-                  searchPlaceholder="Search the set…"
-                  width={260}
-                  aria-label="Tailor out a control"
-                />
-              </Field>
-              <Field label="Tailor in" hint="A control the categorization did not select.">
-                <Combobox
-                  options={includable}
-                  onChange={(v) => addDecision(v, "included")}
-                  placeholder="Choose a control…"
-                  searchPlaceholder="Search the catalog…"
-                  width={260}
-                  aria-label="Tailor in a control"
-                />
-              </Field>
+            <Inline className="pb-150" space="space.150" alignBlock="center" shouldWrap>
+              <Button variant="secondary" size="small" onClick={() => setTailoring(true)}>
+                Tailor controls
+              </Button>
+              <Text size="small" color="color.text.subtle">
+                Out of the set a control this scope does not owe; in from the catalog one the
+                categorization did not select.
+              </Text>
+              <TailorControlsSheet
+                open={tailoring}
+                onClose={() => setTailoring(false)}
+                inSet={inSet}
+                decided={decided}
+                onTailor={addDecisions}
+              />
             </Inline>
           )}
           {draft.tailoring.length ? (
@@ -576,6 +559,108 @@ export function ScopeTailoringPane({
         </Collapsible>
       ) : null}
     </Stack>
+  );
+}
+
+/* ------------------------------------------------------- Tailor controls */
+
+type CatalogueRow = { id: string; title: string; family: string; set: "In set" | "Not in set" };
+
+const catalogueColumns = defineColumns<CatalogueRow>((c) => [
+  c.id("id", { header: "Control", width: 110 }),
+  c.text("title", { header: "Title", sortable: false }),
+  c.text("family", { header: "Family", width: 84 }),
+  c.status("set", {
+    header: "Set",
+    width: 120,
+    tone: (r) => (r.set === "In set" ? "information" : "neutral"),
+  }),
+]);
+
+/**
+ * The catalogue as a picker: search, the family and set facets, and a selection
+ * that survives both. The decision is implied by the set column, so one sheet
+ * replaces the tailor-out and tailor-in pickers.
+ */
+function TailorControlsSheet({
+  open,
+  onClose,
+  inSet,
+  decided,
+  onTailor,
+}: {
+  open: boolean;
+  onClose: () => void;
+  inSet: Set<string>;
+  decided: Set<string>;
+  onTailor: (controls: string[]) => void;
+}) {
+  const rows = useMemo(
+    () =>
+      nistControls
+        .filter((c) => !decided.has(c.id))
+        .map((c): CatalogueRow => ({
+          id: c.id,
+          title: c.title,
+          family: c.family,
+          set: inSet.has(c.id) ? "In set" : "Not in set",
+        })),
+    [inSet, decided],
+  );
+  const table = useDataTable({
+    columns: catalogueColumns,
+    data: rows,
+    getRowId: (r) => r.id,
+    selectable: true,
+    label: "Controls",
+    initialState: { sorting: [{ id: "id", desc: false }] },
+  });
+  const chosen = Object.keys(table.state.rowSelection);
+  const out = chosen.filter((id) => inSet.has(id)).length;
+  const into = chosen.length - out;
+  const label =
+    out && into ? `Tailor out ${out}, in ${into}` : out ? `Tailor out ${out}` : `Tailor in ${into}`;
+  const close = () => {
+    table.resetRowSelection();
+    table.setGlobalFilter("");
+    onClose();
+  };
+
+  return (
+    <PickerSheet
+      open={open}
+      onClose={close}
+      title="Tailor controls"
+      subtitle="In the set: tailored out. Not in the set: tailored in. Each needs a reason before submit."
+      search={{
+        value: String(table.state.globalFilter ?? ""),
+        onChange: (v) => table.setGlobalFilter(v),
+        placeholder: "Search the catalog",
+      }}
+      filters={
+        <>
+          <DataTable.Filter table={table} column="family" />
+          <DataTable.Filter table={table} column="set" />
+        </>
+      }
+      selected={chosen.length}
+      total={table.getRowCount()}
+      onClear={() => table.resetRowSelection()}
+      action={{
+        label,
+        onClick: () => {
+          onTailor(chosen);
+          close();
+        },
+      }}
+    >
+      <DataTable
+        table={table}
+        onRowClick={(r) => table.getRow(r.id).toggleSelected()}
+        className="rounded-none border-0"
+        empty={{ title: "No controls match", description: "Clear the search or a filter." }}
+      />
+    </PickerSheet>
   );
 }
 
