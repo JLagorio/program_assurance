@@ -6,39 +6,85 @@ import * as Stories from "./Forms.stories";
 
 # Forms
 
-The form controls. **[Field](?path=/docs/components-field--docs)** wraps one control with its label, hint and error. **[Input](?path=/docs/components-input--docs)**, **[NativeSelect](?path=/docs/components-nativeselect--docs)** and **[Textarea](?path=/docs/components-textarea--docs)** share the hairline control on the input surface. **[Checkbox](?path=/docs/components-checkbox--docs)**, **[Switch](?path=/docs/components-switch--docs)** and **[RadioGroup](?path=/docs/components-radiogroup--docs)** are Radix underneath, with the tokens on top.
+How the form controls go together: which control answers which question, how a form is laid out, how required fields and errors work, and where the buttons go. Each control has its own page; this one is the choice between them and the rules they share.
 
 <Canvas of={Stories.Fields} />
 
-Three ways to choose from a list, and one for a date. All four triggers are the hairline control from Controls, so a picker and a field are the same shape in a form.
+## Which control
 
-<Canvas of={Stories.FieldsStory} />
+| The answer                                                  | The control                                                                                                                          |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| One line of free text: a name, an email, a number           | [Input](?path=/docs/components-input--docs), with `type` for the value's kind.                                                       |
+| Several lines: a note, a description, a narrative           | [Textarea](?path=/docs/components-textarea--docs), with `rows` for the expected length.                                              |
+| A search box, a number with a unit                          | [InputGroup](?path=/docs/components-inputgroup--docs) around the Input.                                                              |
+| One of two or three answers, all worth seeing               | [RadioGroup](?path=/docs/components-radiogroup--docs).                                                                               |
+| One of four to a dozen plain words                          | [NativeSelect](?path=/docs/components-nativeselect--docs).                                                                           |
+| One of a short list whose options carry a Dot or a Badge    | [Select](?path=/docs/components-select--docs).                                                                                       |
+| One of many, or names the reader would type                 | [Combobox](?path=/docs/components-combobox--docs).                                                                                   |
+| Several things that can each be true                        | [Checkbox](?path=/docs/components-checkbox--docs)es in a Field with `isGroup`.                                                       |
+| On or off, applied the moment it is flipped                 | [Switch](?path=/docs/components-switch--docs), outside the form's Save.                                                              |
+| A day to schedule                                           | [DatePicker](?path=/docs/components-datepicker--docs). A remembered date is an Input with the format in the hint.                    |
+| A record: a person, a control, a requirement                | Combobox, or a [RecordPicker](?path=/docs/patterns-recordpicker--docs) when the choice needs more than a row.                        |
 
-| List                                                     | Use                                                                                                                             |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| A plain list of words                                    | **[NativeSelect](?path=/docs/components-nativeselect--docs)** (in Controls): the browser's own, lightest                        |
-| A short, fixed list whose options carry a Dot or a Badge | **[Select](?path=/docs/components-select--docs)**                                                                               |
-| A list worth searching                                   | **[Combobox](?path=/docs/components-combobox--docs)**: a Command in a Popover                                                   |
-| A day                                                    | **[DatePicker](?path=/docs/components-datepicker--docs)**: a Calendar in a Popover, holding an ISO day like `input type="date"` |
+<Canvas of={Stories.Pickers} />
 
-Give a Checkbox, Switch or RadioGroup.Item children and the children become a label that toggles the control. Without children, pass `aria-label`.
+## Anatomy of a form
 
-<Canvas of={Stories.ChoiceControls} />
+Every control sits in a [Field](?path=/docs/components-field--docs), which gives it its label above, its hint or error below, and its wiring. A group of choice controls sits in a Field with `isGroup`, whose label becomes the group's legend. The Fields stack `space.200` apart, or sit in a Grid when the answers are short. The buttons come last.
 
-<Canvas of={Stories.Bare} />
+| Part     | What it is                                                                                                                  |
+| -------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Field    | Label, control, message. The label is a noun in sentence case; the hint a sentence; the error what fixes it.                |
+| Group    | A Field with `isGroup`: a legend over Checkboxes or a RadioGroup, with the hint and the error for the group.                 |
+| Section  | When a form has parts, a [Block](?path=/docs/shapes-block--docs) per part, its title the part's noun, `space.300` between.   |
+| Buttons  | An Inline at the end of the form, aligned to the end: Cancel as a subtle Button, then the primary. The primary says the act. |
 
-## Required on submit
+<Canvas of={Stories.Choices} />
 
-- `isRequired` adds the asterisk. It does not set `required` on the control; do that on the control.
+## Layout
 
-`useRequired`: required fields, checked on submit. Name the values; the Fields they belong to carry `isRequired` and `error={req.errorFor(key)}`; the primary button stays enabled and calls `req.check()` first. The first empty field turns red with the message under it. A value of `false` is a field that is not required right now (`{ note: needsReason && note }`).
+- **Labels above**, never beside: one left edge, room for any label length, and the eye moves down.
+- **Each field as wide as its answer.** In a six-column Grid, an acronym takes two columns, a name four, an owner three, a description the row. A field wider than its answer lies about the answer.
+- **One column on a narrow screen.** The Grid collapses; the order stays.
+- **`space.200`** (16px) between fields, **`space.300`** (24px) between sections, **`space.100`** (8px) between the choices of a group.
+- **The first field takes focus** in a dialog or a sheet that exists to fill the form (`autoFocus`). On a page, nothing does.
+
+<Canvas of={Stories.Layout} />
+
+## Required and optional
+
+- **Required is marked, optional is not.** `isRequired` on the Field paints the asterisk and sets `aria-required`; the form checks on submit.
+- **When most of a form is required, mark nothing**, and say "Optional." in the hint of the few that are. The rule is per product, not per form: the products' record forms mark required.
+- **The browser's `required` is never set.** Its bubble competes with the form's own message; `useRequired` says what is missing in the kit's words.
+
+## Errors
+
+- **On submit, not while typing.** The primary Button stays enabled; pressing it runs `req.check()`, and the first empty required field turns red with "Required." under it. A typed-in mistake is corrected on the next submit, not on every keystroke.
+- **`useRequired`** takes the named values; each Field carries `isRequired` and `error={req.errorFor(key)}`. A value of `false` is a field that is not required right now.
+- **A rule of the store** supplies its own sentence in the same slot: "Choose a person who is on the program." The error says what fixes it.
+- **The error is announced** (`role="alert"`) and the control carries `aria-invalid`, so a screen reader hears what went wrong when it appears and again with the field's name.
 
 <Canvas of={Stories.RequiredOnSubmit} />
 
+## Buttons
+
+- **Cancel, then the primary**, at the end of the row, aligned to the end. The primary's label is the act: Create program, Save statement, Assign. Never OK or Submit.
+- **A form that saves as it goes has no buttons**: an [Editable](?path=/docs/components-editable--docs) value on a record, a Switch in a settings list.
+- **A destructive act is not a form's primary**; it is a danger Button with an [AlertDialog](?path=/docs/components-alertdialog--docs).
+
+## Where a form lives
+
+| Form                                          | Where                                                                                       |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Creating a record with several parts          | A page, in Blocks, or the wizard in [Stepper](?path=/docs/components-stepper--docs) steps.  |
+| Editing a few fields of a record              | A [Sheet](?path=/docs/components-sheet--docs) from the record, the first field focused.     |
+| One or two fields                             | A [Dialog](?path=/docs/components-dialog--docs) or a [Popover](?path=/docs/components-popover--docs). |
+| One value on a record                         | An [Editable](?path=/docs/components-editable--docs), read in place and edited on click.     |
+
 ## Related
 
-- [Field](?path=/docs/components-field--docs): the label, hint and error around one control.
-- [Input](?path=/docs/components-input--docs), [Textarea](?path=/docs/components-textarea--docs), [NativeSelect](?path=/docs/components-nativeselect--docs): the hairline controls.
-- [InputGroup](?path=/docs/components-inputgroup--docs): an Input with something at either end.
+- [Field](?path=/docs/components-field--docs): the label, hint and error around one control or one group.
+- [Input](?path=/docs/components-input--docs), [Textarea](?path=/docs/components-textarea--docs), [NativeSelect](?path=/docs/components-nativeselect--docs), [InputGroup](?path=/docs/components-inputgroup--docs): the fields.
 - [Checkbox](?path=/docs/components-checkbox--docs), [Switch](?path=/docs/components-switch--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): the choice controls.
 - [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs), [DatePicker](?path=/docs/components-datepicker--docs), [Calendar](?path=/docs/components-calendar--docs): the pickers.
+- [Button](?path=/docs/components-button--docs): the primary and its Cancel.

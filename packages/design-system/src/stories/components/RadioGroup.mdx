@@ -1,24 +1,102 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { RadioGroup } from "../../components";
 import * as Stories from "./RadioGroup.stories";
-import * as FormsStories from "./Forms.stories";
 
 <Meta of={Stories} />
 
 # RadioGroup
 
-**Checkbox**, **Switch** and **RadioGroup** are Radix underneath, with the tokens on top. Give a Checkbox, Switch or RadioGroup.Item children and the children become a label that toggles the control. Without children, pass `aria-label`.
+One answer from two to five options, every one in view. Choosing one clears the others, so the reader compares the answers at a glance and sees what they did not choose. It lives inside a [Field](?path=/docs/components-field--docs) with `isGroup`, which gives the group its name, its hint and its error.
+
+It is one of three choice controls. Several things that can each be true are [Checkbox](?path=/docs/components-checkbox--docs)es; a setting that applies at once is a [Switch](?path=/docs/components-switch--docs). More than five options are a [NativeSelect](?path=/docs/components-nativeselect--docs), and options with a mark on them a [Select](?path=/docs/components-select--docs).
 
 <Canvas of={Stories.RadioGroupMatrix} />
 
-<Canvas of={FormsStories.ChoiceControls} />
+## Anatomy
+
+| Part        | What it is                                                                                                                                           |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Legend      | The Field's label, above the group: the question the options answer. It is the group's name.                                                         |
+| Dot         | 16px circle, `color.border.input` on `color.background.input`. Chosen, its border turns `color.border.brand` and an 8px dot of `color.background.brand.bold` sits inside. |
+| Label       | After the dot, `space.100` away, `font.body` in `color.text`: the option. A click on it chooses.                                                      |
+| Description | Under the label, `font.body.small` in `color.text.subtle`: what the option means. Read as the option's description.                                  |
+| Message     | The Field's hint or error, under the group.                                                                                                          |
+
+## Variants
+
+RadioGroup has one appearance. What varies is which control the choice wants:
+
+| The choice                                      | Use                                                                         |
+| ----------------------------------------------- | --------------------------------------------------------------------------- |
+| One answer from two to five, all worth seeing   | `RadioGroup`.                                                               |
+| Two short answers in a row                      | `RadioGroup` with `orientation="horizontal"`.                               |
+| More than five, or plain words the reader knows | `NativeSelect`.                                                             |
+| Options with a Dot or a Badge                   | `Select`.                                                                   |
+| Several answers                                 | Checkboxes.                                                                 |
+| On or off, applied at once                      | `Switch`.                                                                   |
+
+There is no radio with a description panel or a price card: an option that needs more than a line is a choice made elsewhere, on a page of its own. There is no read-only group: a value the reader cannot change is text.
+
+## Sizes
+
+One size. The dot is 16px, its label `font.body`. The group is as tall as its options, `space.100` apart, and as wide as the longest label. There is no small RadioGroup.
+
+<Canvas of={Stories.Orientation} />
 
 ## States
 
-A checked state is the blue budget's "selection" use. Disabled is its own set of tokens, not an opacity.
+| State        | What changes                                                                                                                   |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| None chosen  | Every dot empty. Only when the choice must be the reader's own; otherwise the common answer starts chosen.                     |
+| Chosen       | One dot with `color.border.brand` and the inner dot in `color.background.brand.bold`.                                          |
+| Focus        | The focus outline around the focused dot. The group is one Tab stop.                                                           |
+| Invalid      | `aria-invalid` from the Field's `error`, announced under the group. The dots do not turn: the message says what is missing.    |
+| Disabled     | The whole group, or one option: `color.background.disabled`, `color.border.disabled`, the label in `color.text.disabled`; a chosen option's inner dot dims to `opacity.disabled`. |
 
-<Canvas of={FormsStories.Bare} />
+There is no hover on the dot: the pointer changes, the dot does not.
+
+## Modifiers
+
+- **`value` with `onValueChange`**, or `defaultValue`. Preselect the common answer.
+- **`orientation`** `vertical` (the rule) or `horizontal` for two or three short options in a row. The arrow keys follow.
+- **`description`** on an item for a second line: what the option means. One sentence.
+- **A disabled item** for an option the reader cannot choose yet, kept in view so they know it exists.
+- **`aria-label`** on the group when there is no Field around it: a group inside a Block whose title already names it.
+- **`name`** when a form submits natively.
+
+<Canvas of={Stories.InField} />
+
+## Content
+
+- **The legend is the question as a noun**: Frequency, Scope, Framework edition. Not "Choose a frequency".
+- **Options are parallel and short**, sentence case, no full stops: Monthly, Quarterly, Annually. Under three words when they can be; a long label wraps and is never cut.
+- **A description says what the option means**, in one sentence: "Twelve reviews a year; for a system in change."
+- **Give the nothing answer its own option** when the reader may want none: "Not scheduled", "None". A radio cannot be unchosen.
+- **Order** the way the reader thinks: a scale in its order, a sequence in its sequence, the common answer first otherwise.
+
+## Style
+
+| Element     | Token                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------ |
+| Dot         | 16px · round · `color.border.input` on `color.background.input`                                  |
+| Chosen      | `color.border.brand` · an 8px inner dot of `color.background.brand.bold`                          |
+| Focus       | The focus outline                                                                                |
+| Disabled    | `color.background.disabled` · `color.border.disabled` · label `color.text.disabled`               |
+| Label       | `font.body` in `color.text`, `space.100` 8px after the dot                                       |
+| Description | `font.body.small` in `color.text.subtle`                                                         |
+| Group       | `space.100` 8px between options; `space.200` 16px between them in a row                          |
+| Legend      | `font.body.small` at `font.weight.medium` in `color.text.subtle`, `space.050` above the group    |
+| Motion      | `motion.duration.fast` on the colours                                                            |
+
+## Accessibility
+
+- **It is a radio group** (Radix): a `radiogroup` of `radio` buttons, the chosen one `aria-checked`.
+- **Keyboard:** the group is one Tab stop, landing on the chosen option or the first. Up and Down, or Left and Right in a row, move the choice; Space chooses when none is chosen. Tab leaves the group.
+- **The legend is the name.** Inside a Field with `isGroup`, the fieldset's legend names the group and the hint or the error describes it; the group takes `aria-invalid` and `aria-required` from the Field. Without a Field, `aria-label` names it.
+- **Each option is named by its label** through the `<label>` that wraps the dot and the text; a description is wired with `aria-describedby`.
+- **The state is not colour alone**: the inner dot is drawn, and the state is spoken.
+- **Disabled is the last resort.** Prefer the value shown as text, or an enabled option with the reason in its description.
 
 ## Props
 
@@ -28,7 +106,19 @@ A checked state is the blue budget's "selection" use. Disabled is its own set of
 
 <ArgTypes of={RadioGroup.Item} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Checkbox](?path=/docs/components-checkbox--docs), [Switch](?path=/docs/components-switch--docs): the other choice controls.
-- [Forms](?path=/docs/components-forms--docs): the controls together.
+- [Checkbox](?path=/docs/components-checkbox--docs), [Switch](?path=/docs/components-switch--docs): the other choice controls; see Variants for which.
+- [NativeSelect](?path=/docs/components-nativeselect--docs), [Select](?path=/docs/components-select--docs): one answer from more options than fit in view.
+- [Field](?path=/docs/components-field--docs): `isGroup` for the legend, the hint and the error.
+- [Forms](?path=/docs/components-forms--docs): which control for which answer, and `useRequired`.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

@@ -35,6 +35,7 @@ export {
   type CheckboxProps,
   type FieldProps,
   type RadioGroupItemProps,
+  type RadioGroupProps,
   type SwitchProps,
 } from "./controls";
 export { DatePicker, type DatePickerProps } from "./date-picker";

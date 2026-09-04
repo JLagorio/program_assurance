@@ -1,30 +1,119 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Checkbox } from "../../components";
 import * as Stories from "./Checkbox.stories";
-import * as FormsStories from "./Forms.stories";
 
 <Meta of={Stories} />
 
 # Checkbox
 
-**Checkbox**, **Switch** and **RadioGroup** are Radix underneath, with the tokens on top. Give a Checkbox, Switch or RadioGroup.Item children and the children become a label that toggles the control. Without children, pass `aria-label`.
+One independent yes or no: a parameter of the system, an attestation, one of several options that can all be on. Each Checkbox stands on its own; ticking one changes nothing else, and a group of them is a list of things that are true. The choice waits for the form's Save.
+
+It is one of three choice controls. One answer from a few is a [RadioGroup](?path=/docs/components-radiogroup--docs); a setting that applies the moment it is flipped is a [Switch](?path=/docs/components-switch--docs). A row's checkbox in a table is [Table.Selection](?path=/docs/components-table--docs), which is a Checkbox with the row's name.
 
 <Canvas of={Stories.CheckboxMatrix} />
 
-<Canvas of={FormsStories.ChoiceControls} />
+## Anatomy
+
+| Part        | What it is                                                                                                                                                       |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Box         | 16px square, `radius.small`, `color.border.input` on `color.background.input`. Checked, it fills `color.background.brand.bold` and shows the check in `color.icon.inverse`; mixed, a dash. |
+| Label       | After the box, `space.100` away, `font.body` in `color.text`: the thing that is true when the box is on. A click on it toggles the box. Without one, `aria-label` names the box. |
+| Description | Under the label, `font.body.small` in `color.text.subtle`: what turning it on does. Read as the box's description.                                               |
+| Group       | Several Checkboxes in a Stack inside a [Field](?path=/docs/components-field--docs) with `isGroup`: the Field's label is the group's legend, its hint and error describe the group. |
+
+## Variants
+
+Checkbox has one appearance. What varies is what it stands for:
+
+| The choice                                          | Use                                                                                          |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| A thing that is true or not, saved with the form    | `Checkbox`.                                                                                  |
+| Several things that can each be true                | Checkboxes in a Stack, inside a Field with `isGroup`.                                        |
+| A parent over its children                          | A Checkbox whose `checked` is `"indeterminate"` while some children are on.                  |
+| One answer from a few                               | `RadioGroup`.                                                                                |
+| A setting that applies at once                      | `Switch`.                                                                                    |
+| A row in a table                                    | `Table.Selection`.                                                                           |
+
+There is no read-only checkbox: a value the reader can see but not change is text. There is no error on a single box; a required attestation goes in a Field with `isGroup` so the error has somewhere to sit.
+
+## Sizes
+
+One size. The box is 16px, its label `font.body`, and the pair sits in an 18px line, so a Checkbox in a table row or a rail is the same as one in a form. There is no small Checkbox.
+
+<Canvas of={Stories.Parent} />
 
 ## States
 
-A checked state is the blue budget's "selection" use. Disabled is its own set of tokens, not an opacity.
+| State    | What changes                                                                                                                  |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Off      | The empty box, `color.border.input` on `color.background.input`.                                                              |
+| On       | `color.background.brand.bold` with `color.border.brand`, the check in `color.icon.inverse`.                                    |
+| Mixed    | The same fill, a dash instead of the check. A parent whose children are partly on. The first click on it turns everything on. |
+| Focus    | The focus outline around the box, on keyboard focus.                                                                          |
+| Disabled | `color.background.disabled`, `color.border.disabled`, the label in `color.text.disabled`, the not-allowed cursor. See Accessibility for when. |
 
-<Canvas of={FormsStories.Bare} />
+There is no hover on the box: the pointer changes, the box does not, the way Carbon's does.
+
+## Modifiers
+
+- **`checked` with `onCheckedChange`**, or `defaultChecked`. A form with `useRequired` is controlled. `"indeterminate"` for a parent.
+- **`description`** for a second line: what turning it on does. One sentence.
+- **`aria-label`** for a box with no label: a row in a table, a cell in a matrix.
+- **A Field with `isGroup`** around several, for the group's name, its hint and its error.
+- **`name`** when a form submits natively.
+
+<Canvas of={Stories.InField} />
+
+## Content
+
+- **The label names the thing that is true**, in sentence case, as a noun phrase or a short statement: Handles PII, Safety-critical, Submit for approval now. Not a question, not an instruction, not a sentence ending in a full stop.
+- **The description says what turning it on does**, in one sentence: "Names, identifiers or records about a person pass through the system."
+- **Under three words** when it can be. A label that wraps to two lines is fine; a label truncated is not.
+- **A group's legend is a noun**: Parameters, Overlays, Notifications.
+- **An attestation says what is being attested**: "I have reviewed every piece of evidence in this package."
+
+## Style
+
+| Element     | Token                                                                                               |
+| ----------- | --------------------------------------------------------------------------------------------------- |
+| Box         | 16px · `radius.small` · `color.border.input` on `color.background.input`                             |
+| On, mixed   | `color.background.brand.bold` · `color.border.brand` · the check or dash in `color.icon.inverse`, 12px |
+| Focus       | The focus outline                                                                                   |
+| Disabled    | `color.background.disabled` · `color.border.disabled` · label `color.text.disabled`                  |
+| Label       | `font.body` in `color.text`, `space.100` 8px after the box                                          |
+| Description | `font.body.small` in `color.text.subtle`                                                            |
+| Group       | `space.100` 8px between boxes in a Stack; the Field's legend and message around them                |
+| Motion      | `motion.duration.fast` on the colours                                                               |
+
+The box and its label top-align, so a label that wraps runs beneath its own first line and the box stays with the first line.
+
+## Accessibility
+
+- **It is a checkbox** (Radix): a button with the checkbox role, its state in `aria-checked`, `"mixed"` when indeterminate.
+- **Keyboard:** Tab reaches each box; Space toggles it. Each box is its own stop.
+- **The label is the name.** The `<label>` wraps the box and the text, so the text names the box and a click on it toggles the box. A box without a label takes `aria-label`. The description is wired with `aria-describedby`.
+- **A group is a fieldset** when it sits in a Field with `isGroup`: the legend names the group, the hint or the error describes it, and the error is announced.
+- **The state is not colour alone**: the check and the dash are drawn, and the state is spoken.
+- **Disabled is the last resort.** A disabled box cannot say why. Prefer the value shown as text, or an enabled box with the reason in its description.
 
 ## Props
 
 <ArgTypes of={Checkbox} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Switch](?path=/docs/components-switch--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): the other choice controls.
-- [Forms](?path=/docs/components-forms--docs): the controls together.
+- [RadioGroup](?path=/docs/components-radiogroup--docs), [Switch](?path=/docs/components-switch--docs): the other choice controls; see Variants for which.
+- [Field](?path=/docs/components-field--docs): `isGroup` for the group's name, hint and error.
+- [Table](?path=/docs/components-table--docs): `Table.Selection`, the row's checkbox.
+- [Forms](?path=/docs/components-forms--docs): which control for which answer, and `useRequired`.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

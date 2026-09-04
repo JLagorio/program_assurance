@@ -16,6 +16,7 @@ import * as InputStories from "./Input.stories";
 - `label` is required. It is a real `label` wrapping the control, so clicking it focuses the control and the control is named by it.
 - `hint` sits under the control as its description. `error` replaces the hint, turns it danger, marks the control invalid and is announced.
 - `isRequired` adds the asterisk and sets `aria-required` on the control. It does not set the browser's `required`: the form checks on submit with `useRequired` ([Forms](?path=/docs/components-forms--docs)).
+- `isGroup` makes the Field a fieldset: the label is the legend over a [RadioGroup](?path=/docs/components-radiogroup--docs) or several [Checkbox](?path=/docs/components-checkbox--docs)es, and the hint or the error describes the group.
 
 <Canvas of={FormsStories.Fields} />
 
@@ -27,6 +28,7 @@ import * as InputStories from "./Input.stories";
 | Required mark | `isRequired`: a red asterisk after the label, hidden from screen readers, which hear `aria-required` on the control instead.            |
 | Control       | The one child. The label wraps it, so a click on the label focuses it.                                                                  |
 | Message       | Under the control: the `hint` in `color.text.subtlest`, or the `error` in `color.text.danger`, which replaces it. Wired to the control as its description. |
+| Legend        | With `isGroup`: the label as a fieldset's legend over a group of choice controls, `space.050` above them; the message describes the group. |
 
 ## Variants
 
@@ -50,6 +52,7 @@ Not applicable: a Field is as wide as its container and as tall as its control p
 - **`hint`** for the format, the reason or the consequence: one full sentence with a full stop.
 - **`error`** for what is wrong and what fixes it. `useRequired` supplies "Required." for an empty required field; a rule of the store supplies its own sentence.
 - **`isRequired`** paints the mark and sets `aria-required`. It does not set the browser's `required`.
+- **`isGroup`** for a RadioGroup or several Checkboxes: a fieldset with the label as its legend. A RadioGroup inside takes `aria-invalid` and `aria-required`; a stack of Checkboxes takes neither, and the fieldset carries the description.
 - **`className`** for layout only: a column span in a form's Grid.
 
 ## Content
@@ -72,7 +75,8 @@ The label is a noun in sentence case with no colon; the placeholder is the forma
 - The hint or the error is the control's description through `aria-describedby`, so a screen reader reads the name, then the value, then the message, and the message never becomes part of the name.
 - The error has `role="alert"` and the control `aria-invalid`, so the failure is announced when it appears and spoken with the name after.
 - `isRequired` sets `aria-required` on the control. The browser's `required` is not set on purpose: the form's own check on submit says what is missing in the kit's words, and no native bubble competes with it.
-- A control that does not take `aria-describedby` (a Select's trigger, today) is still named by the label; its hint is visible but not spoken. That is a gap on the control, listed on its page when it is walked.
+- Every field and picker takes `aria-describedby`, `aria-invalid` and `aria-required` from the Field; the DatePicker's trigger is a plain button and accepts `aria-required` without rendering it, since a button may not carry it.
+- With `isGroup`, the fieldset's legend names the group and the fieldset carries the description, so a screen reader hears the legend and the hint on entering the group; a RadioGroup inside also takes `aria-invalid` and `aria-required`.
 
 ## Props
 
@@ -82,7 +86,7 @@ The label is a noun in sentence case with no colon; the placeholder is the forma
 
 - [Input](?path=/docs/components-input--docs), [Textarea](?path=/docs/components-textarea--docs), [NativeSelect](?path=/docs/components-nativeselect--docs), [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs), [DatePicker](?path=/docs/components-datepicker--docs): what a Field holds.
 - [Forms](?path=/docs/components-forms--docs): the layout, which control for which answer, and `useRequired` for the required fields checked on submit.
-- [Checkbox](?path=/docs/components-checkbox--docs), [Switch](?path=/docs/components-switch--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): the choice controls carry their own label and do not go in a Field.
+- [Checkbox](?path=/docs/components-checkbox--docs), [Switch](?path=/docs/components-switch--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): one choice control carries its own label and does not go in a Field; a group of them goes in a Field with `isGroup`.
 
 ## Don't
 

@@ -27,7 +27,7 @@ The maturity walk, one part per sitting, each page onto the template (`docs/supe
 - [x] Input, Field (2026-09-04)
 - [x] Textarea, NativeSelect, InputGroup (2026-09-04). Input and NativeSelect took `size`; Select, Combobox and DatePicker take it in the next sitting.
 - [x] Select, Combobox, DatePicker, Calendar (2026-09-04)
-- [ ] Checkbox, RadioGroup, Switch; the Forms overview
+- [x] Checkbox, RadioGroup, Switch; the Forms overview (2026-09-04)
 - [ ] Table, Pagination, Toolbar, FilterChip; DataTable
 - [ ] Tooltip, HoverCard, Popover, DropdownMenu
 - [ ] Dialog, Sheet, Drawer, AlertDialog; the Overlays overview

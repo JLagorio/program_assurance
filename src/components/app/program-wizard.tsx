@@ -523,6 +523,7 @@ function FrameworkStep({
   return (
     <Block title="Framework edition">
       <RadioGroup
+        aria-label="Framework edition"
         value={draft.framework}
         onValueChange={(v) =>
           dispatch({ type: "field", patch: { framework: v as ProgramDraft["framework"] } })
@@ -537,13 +538,12 @@ function FrameworkStep({
             alignBlock="start"
             spread="space-between"
           >
-            <RadioGroup.Item value={f.id} disabled={!f.available}>
-              <span className="block">
-                <span className="block font-body">{f.name}</span>
-                <span className="block font-body-small text-subtle">
-                  {f.version} · selects under {f.policy}
-                </span>
-              </span>
+            <RadioGroup.Item
+              value={f.id}
+              disabled={!f.available}
+              description={`${f.version} · selects under ${f.policy}`}
+            >
+              {f.name}
             </RadioGroup.Item>
             <span className="shrink-0 text-right font-body-small text-subtle">
               {f.available ? (
@@ -1008,16 +1008,12 @@ function ReviewStep({
       <Block title="On create">
         <Checkbox
           checked={draft.submitOnCreate}
+          description="Off leaves every revision 1 as a draft the engineer submits later."
           onCheckedChange={(v) =>
             dispatch({ type: "field", patch: { submitOnCreate: v === true } })
           }
         >
-          <span>
-            <span className="block font-body">Submit control sets for approval now</span>
-            <span className="block font-body-small text-subtle">
-              Off leaves every revision 1 as a draft the engineer submits later.
-            </span>
-          </span>
+          Submit control sets for approval now
         </Checkbox>
       </Block>
     </Stack>

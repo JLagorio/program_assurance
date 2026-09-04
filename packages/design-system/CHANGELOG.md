@@ -19,6 +19,12 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Changed
 
+- The choice controls and the Forms overview are on the template, walked against Carbon's Checkbox,
+  Radio button, Toggle and Forms pattern and Base Web's Checkbox, Radio and FormControl. `Checkbox`,
+  `Switch` and `RadioGroup` have typed, described props, so their tables generate; a choice's
+  control and label top-align, so a label that wraps runs under its own first line. Said on the
+  pages and not built: no state text beside a Switch, no small choice controls, no read-only choice.
+  Components/Checkbox, Components/RadioGroup, Components/Switch, Components/Forms.
 - `Select`, `Combobox` and `DatePicker` take `size`, and take `aria-invalid`, `aria-required` and
   `aria-describedby` from the Field, so a picker inside a Field is described by its hint and turns on
   its error the way an Input does; `DatePicker` accepts `aria-required` and does not render it, since a
@@ -64,6 +70,12 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Added
 
+- `Field` takes `isGroup`: a fieldset with the label as its legend over a RadioGroup or several
+  Checkboxes, the hint or the error describing the group, and a RadioGroup inside taking
+  `aria-invalid` and `aria-required`. `Checkbox`, `Switch` and `RadioGroup.Item` take
+  `description`, a second line under the label read as the control's description; the wizard's
+  hand-built two-line labels moved onto it. `RadioGroup` takes `orientation`. Components/Field,
+  Components/Checkbox, Components/RadioGroup.
 - `DatePicker` has Today and Clear under the month, so an optional date can be emptied; before, the
   only way was a second click on the chosen day. `Combobox` and `DatePicker` take `defaultOpen`.
   `Popover` takes `matchTriggerWidth`, and a Combobox's list is as wide as its field instead of 280px.

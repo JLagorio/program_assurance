@@ -1,30 +1,114 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Switch } from "../../components";
 import * as Stories from "./Switch.stories";
-import * as FormsStories from "./Forms.stories";
 
 <Meta of={Stories} />
 
 # Switch
 
-**Checkbox**, **Switch** and **RadioGroup** are Radix underneath, with the tokens on top. Give a Checkbox, Switch or RadioGroup.Item children and the children become a label that toggles the control. Without children, pass `aria-label`.
+A setting that is on or off and applies the moment it is flipped: a notification, an inheritance, whether an overlay is applied. There is no Save after a Switch; flipping it is the act. That is the whole difference from a [Checkbox](?path=/docs/components-checkbox--docs), which is a choice the form submits.
+
+It is one of three choice controls. A choice saved with a form is a Checkbox; one answer from a few is a [RadioGroup](?path=/docs/components-radiogroup--docs). A switch that would need a confirmation, deleting something, turning off access, is a [Button](?path=/docs/components-button--docs) with an [AlertDialog](?path=/docs/components-alertdialog--docs).
 
 <Canvas of={Stories.SwitchMatrix} />
 
-<Canvas of={FormsStories.ChoiceControls} />
+## Anatomy
+
+| Part        | What it is                                                                                                                                                       |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Track       | 40px by 20px, round, the light `color.background.neutral` off and `color.background.brand.bold` on.                                                                |
+| Thumb       | 16px, `elevation.surface` with `elevation.shadow.raised`, at the start when off and the end when on. It moves in `motion.duration.medium`.                        |
+| Label       | After the track, `space.100` away, `font.body` in `color.text`: the setting's name, the same on and off. A click on it flips the switch. Without one, `aria-label`. |
+| Description | Under the label, `font.body.small` in `color.text.subtle`: what on means. Read as the switch's description.                                                       |
+
+## Variants
+
+Switch has one appearance. What varies is which control the choice wants:
+
+| The choice                                            | Use                                                                                  |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| On or off, applied at once                            | `Switch`.                                                                            |
+| On or off, saved with the form                        | `Checkbox`.                                                                          |
+| On or off, but dangerous or not reversible            | A Button that opens an AlertDialog.                                                  |
+| One of three or more                                  | `RadioGroup`.                                                                        |
+| A row's setting in a table                            | `Switch` with `aria-label`, bare in the cell.                                        |
+
+There is no state text ("On", "Off") beside the switch, which Carbon adds: the thumb's position carries the state without colour, and the state is spoken. There is no small switch, and no icon in the thumb.
+
+## Sizes
+
+One size: the track 40px by 20px, the thumb 16px, the label `font.body`. It sits in a form's row, a rail, a Block's action slot and a table cell at that size.
+
+<Canvas of={Stories.Settings} />
 
 ## States
 
-A checked state is the blue budget's "selection" use. Disabled is its own set of tokens, not an opacity.
+| State    | What changes                                                                                                                       |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Off      | The track in the light `color.background.neutral`, the thumb at the start, its shadow lifting it off the track.                    |
+| On       | The track in `color.background.brand.bold`, the thumb at the end.                                                                  |
+| Focus    | The focus outline around the track, on keyboard focus.                                                                             |
+| Disabled | The track in `color.background.disabled`, the thumb faded to `opacity.disabled`, the label in `color.text.disabled`, the not-allowed cursor. See Accessibility for when. |
 
-<Canvas of={FormsStories.Bare} />
+There is no hover on the track, no pressed state and no invalid state: a switch cannot be wrong, only on or off.
+
+## Modifiers
+
+- **`checked` with `onCheckedChange`**, or `defaultChecked`. The handler does the work at once: the store updates, the row re-renders. It never waits for a button.
+- **`description`** for a second line: what on means, or what off leaves. One sentence.
+- **`aria-label`** for a switch with no label: a row's setting in a table.
+- **`name`** when a form submits natively, which a switch rarely does.
+
+<Canvas of={Stories.InRows} />
+
+## Content
+
+- **The label names the setting**, in sentence case, and does not change with the state: Notifications, Inherits program categorization. Never "Notifications on".
+- **The description says what on does**, in one sentence: "An email when a finding on this system changes status."
+- **An adjective or a noun, not a verb.** The switch is not an action; "Apply the privacy overlay" as a label reads as a button. "Privacy overlay" with "Applied" as the column header does not.
+- **Under three words** when it can be.
+
+## Style
+
+| Element     | Token                                                                                         |
+| ----------- | --------------------------------------------------------------------------------------------- |
+| Track       | 40 × 20px · round · `color.background.neutral` off · `color.background.brand.bold` on         |
+| Thumb       | 16px · round · `elevation.surface` · `elevation.shadow.raised` · `space.025` inset            |
+| Focus       | The focus outline                                                                             |
+| Disabled    | Track `color.background.disabled` · thumb at `opacity.disabled` · label `color.text.disabled`  |
+| Label       | `font.body` in `color.text`, `space.100` 8px after the track                                   |
+| Description | `font.body.small` in `color.text.subtle`                                                      |
+| Motion      | The thumb slides in `motion.duration.medium`, `motion.easing.standard`; the colours in `fast` |
+
+The on fill passes 3:1 against the surface in both modes and the contrast test covers it. The off track is the light neutral fill on purpose, the way iOS draws it: the white thumb with its shadow, and its place at the start, are what say off.
+
+## Accessibility
+
+- **It is a switch** (Radix): a button with the `switch` role, its state in `aria-checked`.
+- **Keyboard:** Tab reaches it; Space or Enter flips it.
+- **The label is the name.** The `<label>` wraps the track and the text, so the text names the switch and a click on it flips it. A bare switch takes `aria-label`, in a table the row's name with the setting: "Apply Privacy overlay". The description is wired with `aria-describedby`.
+- **The state is not colour alone**: the thumb's position changes, and a screen reader hears on or off.
+- **Flipping it is the act**, so a switch never guards something that needs a confirmation; that is a Button and an AlertDialog.
+- **Disabled is the last resort.** A disabled switch cannot say why; its description can: "Set by the program; ask the ISSM."
 
 ## Props
 
 <ArgTypes of={Switch} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Checkbox](?path=/docs/components-checkbox--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): the other choice controls.
-- [Forms](?path=/docs/components-forms--docs): the controls together.
+- [Checkbox](?path=/docs/components-checkbox--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): the other choice controls; see Variants for which.
+- [Toggle](?path=/docs/components-toggle--docs): a pressed button that shows a view or a mode, not a setting.
+- [AlertDialog](?path=/docs/components-alertdialog--docs): what an on-or-off that needs confirming opens instead.
+- [Forms](?path=/docs/components-forms--docs): which control for which answer.
+
+## Don't
+
+<Canvas of={Stories.Dont} />
