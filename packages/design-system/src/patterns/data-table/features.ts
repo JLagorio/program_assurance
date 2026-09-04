@@ -71,6 +71,8 @@ export type DataTableColumnMeta = {
   actions?: ((row: never) => RowAction[]) | undefined;
   /** What the column exports, when its value is not the cell's text. */
   export?: ((row: never) => string) | undefined;
+  /** The column edits in place. */
+  editable?: boolean | undefined;
 };
 
 /** What the hook stores on the table for the renderer: the kit options that are not TanStack's. */
@@ -93,6 +95,8 @@ export type DataTableMeta = {
   layout?: "auto" | "fixed" | undefined;
   /** The name under which the reader's layout persists. */
   view?: string | undefined;
+  /** A column edits in place, so the table is a grid and Enter moves down the column. */
+  editable?: boolean | undefined;
   /** Nested rows: the name column carries the tree cell. */
   tree?:
     | {

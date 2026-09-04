@@ -547,6 +547,59 @@ function Ranked() {
 
 export const ReorderingRows: Story = { name: "Reordering rows", render: () => <Ranked /> };
 
+/** Cells that edit in place: the name is an Editable.Text, the status an Editable.Select. Enter commits and moves down the column; the table is a grid. */
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+function Editing() {
+  const [data, setData] = useState(() => findings.slice(0, 6));
+  const [saves, setSaves] = useState(0);
+  const patch = (id: string, change: Partial<Finding>) =>
+    setData((rows) => rows.map((r) => (r.id === id ? { ...r, ...change } : r)));
+  const editingColumns = useMemo(
+    () =>
+      defineColumns<Finding>((c) => [
+        c.id("id"),
+        c.text("name", {
+          header: "Finding",
+          editable: {
+            onChange: (row, next) => patch(row.id, { name: next }),
+            save: () => wait(500).then(() => setSaves((n) => n + 1)),
+            validate: (next) => (next.trim() ? null : "A name is required."),
+          },
+        }),
+        c.status("status", {
+          header: "Status",
+          width: 140,
+          tone: (r) => statusTone[r.status],
+          editable: {
+            options: statuses,
+            onChange: (row, next) => patch(row.id, { status: next as Finding["status"] }),
+            save: () => wait(500).then(() => setSaves((n) => n + 1)),
+          },
+        }),
+        c.person("owner", { header: "Owner", width: 180 }),
+        c.number("open", { header: "Open items", width: 110 }),
+      ]),
+    [],
+  );
+  const table = useDataTable({
+    columns: editingColumns,
+    data,
+    getRowId: (r) => r.id,
+    label: "Findings",
+  });
+  return (
+    <Stack space="space.150">
+      <DataTable table={table} />
+      <Text size="small" color="color.text.subtle">
+        {saves} saved · role {table.options.meta?.editable ? "grid" : "table"}
+      </Text>
+    </Stack>
+  );
+}
+
+export const EditingStory: Story = { name: "Editing", render: () => <Editing /> };
+
 /** The Table parts on their own: a pinned header and cell with an offset, the edge, and a resize handle. */
 function TableParts() {
   return (
@@ -770,6 +823,7 @@ export const DataTableMatrix: Story = {
       <PinnedRows />
       <Ranked />
       <Virtualized />
+      <Editing />
       <TableParts />
     </Stack>
   ),

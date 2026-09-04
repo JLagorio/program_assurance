@@ -14,13 +14,14 @@ Updated 2026-09-03.
 
 ## Kit
 
-- [ ] **Data table**, step 6 of `docs/superpowers/specs/2026-09-03-data-table.md`: editing in place with the column keyboard model, and PickerSheet on it. Eight calls for Josef to overturn in the spec.
+- [ ] **Data table, the calls.** Eight calls made without asking in `docs/superpowers/specs/2026-09-03-data-table.md`, plus one more from step 6: Tab moves across an editable table, Enter moves down. Overturn any in one reading.
+- [ ] **Registers still on `Table`.** The coverage view, the control board and the rest move onto `DataTable` when touched; the rule for which is in the Data table docs page.
 - [ ] **Step 9 · Publishable build** with type declarations, when the second project appears.
 - [ ] **`docs/guides/component-library.md`** still describes `src/ds`. Rewrite onto the package or retire it in favour of the Storybook docs.
 
 ## Prototype
 
-- [ ] **Picker adoption.** "Allocate a requirement" (system-tree.tsx) and the tailoring pane's two Comboboxes move onto `PickerSheet`; `ApplicabilityModal` becomes the row action in its second frame. Spec: `docs/superpowers/specs/2026-09-02-picker-sheet.md`, with three calls for Josef to overturn.
+- [ ] **Picker adoption.** (The kit side is done: PickerSheet's story runs both frames on DataTable.) "Allocate a requirement" (system-tree.tsx) and the tailoring pane's two Comboboxes move onto `PickerSheet`; `ApplicabilityModal` becomes the row action in its second frame. Spec: `docs/superpowers/specs/2026-09-02-picker-sheet.md`, with three calls for Josef to overturn.
 - [ ] **The peek stack in the URL.** `NodePreviewSheet` drills into a child with no way back; `PreviewSheet` has `onBack` now. Keep the stack in a `?peek=` search param so the chevron and the browser's back are the same thing.
 - [ ] **One preview body per record type**, at two densities (glance for HoverCard, peek for PreviewSheet). `ProgramPeek`, `RiskPeek` and `NodePreviewSheet` are three unrelated bodies today.
 - [ ] **Forms.** No form marks a required field and none validates on submit. The kit side landed 2026-09-02 (Field `isRequired` draws the asterisk, `error` turns the control's border red and shows the message). The app side is per form: name the required fields, pass `error` on submit. 146 Fields, 11 pass either today.
@@ -29,6 +30,7 @@ Updated 2026-09-03.
 
 ## Done
 
+- 2026-09-03 · **Data table, step 6**: editable text and status cells with the grid role and Enter moving down the column; both PickerSheet frames on DataTable.
 - 2026-09-03 · **Data table, step 5**: virtual scroll, server mode, `toRows`/`toCsv`, and the URL adapter in `src/lib/table-state.ts`; the risks route keeps sort, page, search and filters in the URL and exports its CSV.
 - 2026-09-03 · **Data table, step 4**: tree mode with the treegrid keyboard, detail rows, groups, pinned rows, totals in the footer, row reordering by handle; the system tree on tree mode.
 - 2026-09-03 · **Data table, step 3**: pinned columns with offsets and the scrolled edge, resizing, drag and keyboard reordering, hiding from the Columns menu or the header's own, column groups; the reader's order, widths, visibility and pins persist per table in localStorage with Reset view. Risks and programs on it.

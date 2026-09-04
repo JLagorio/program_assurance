@@ -270,10 +270,27 @@ function BodyCell<TData extends RowData>({
       pinned={pin.pinned}
       offset={pin.offset}
       edge={pin.edge}
+      {...(meta?.editable ? { onKeyDown: enterMovesDown } : {})}
     >
       {content}
     </Table.Cell>
   );
+}
+
+/**
+ * The column keyboard model of an editable table: Enter commits (the Editable does that) and then
+ * moves to the same column in the next row, so a reader fills a column the way they would in a
+ * sheet. Tab keeps its meaning and moves across.
+ */
+function enterMovesDown(event: KeyboardEvent<HTMLTableCellElement>) {
+  if (event.key !== "Enter" || !(event.target instanceof HTMLInputElement)) return;
+  const cell = event.currentTarget;
+  const row = cell.parentElement;
+  if (!row) return;
+  const index = [...row.children].indexOf(cell);
+  const next = row.nextElementSibling;
+  const target = next?.children[index]?.querySelector<HTMLElement>("button, input");
+  if (target) requestAnimationFrame(() => target.focus());
 }
 
 type BodyRowProps<TData extends RowData> = {
@@ -601,7 +618,7 @@ function DataTableRoot<TData extends RowData>({
           frameRef={frame}
           {...(label ? { "aria-label": label } : {})}
           {...(maxHeight === undefined ? {} : { maxHeight })}
-          {...(tree ? { role: "treegrid" } : {})}
+          {...(tree ? { role: "treegrid" } : options?.editable ? { role: "grid" } : {})}
           className={fixed ? "table-fixed" : undefined}
           style={minWidth === undefined ? undefined : { minWidth }}
         >

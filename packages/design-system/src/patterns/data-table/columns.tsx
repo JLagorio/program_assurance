@@ -3,6 +3,7 @@ import { format, isValid, parseISO } from "date-fns";
 import type { ReactNode } from "react";
 
 import { Badge, type Tone } from "../../components/badge";
+import { Editable } from "../../components/editable";
 import { Person } from "../../components/avatar";
 import { Absent } from "../../components/typography";
 import type { RowAction } from "./features";
@@ -29,6 +30,13 @@ export const minWidths = {
   actions: 40,
   custom: 96,
 } as const;
+
+/** A cell that edits in place: commits optimistically through `onChange`, `save` settles it, `validate` blocks it. */
+export type EditableOptions<TData> = {
+  onChange: (row: TData, next: string) => void;
+  save: (row: TData, next: string) => Promise<unknown>;
+  validate?: ((next: string) => string | null) | undefined;
+};
 
 type Shared<TData> = {
   header?: string | undefined;
@@ -122,7 +130,12 @@ export function columnKinds<TData extends RowData>() {
       resizable,
       cell,
       wrap = false,
-    }: Shared<TData> & { wrap?: boolean | undefined } = {},
+      editable,
+    }: Shared<TData> & {
+      wrap?: boolean | undefined;
+      /** The cell is an Editable.Text; the row is the record. */
+      editable?: EditableOptions<TData> | undefined;
+    } = {},
   ) =>
     helper.accessor(read<TData>(key), {
       id: key,
@@ -133,10 +146,19 @@ export function columnKinds<TData extends RowData>() {
       sortFn: sortOf("alphanumeric", sortBy),
       filterFn: "matches",
       ...shared({ pin, hideable, resizable }),
-      meta: { pin, kind: "text", align: "start", wrap },
+      meta: { pin, kind: "text", align: "start", wrap, editable: Boolean(editable) },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
         const v = getValue();
+        if (editable)
+          return (
+            <Editable.Text
+              value={isAbsent(v) ? "" : String(v)}
+              onChange={(next) => editable.onChange(row.original, next)}
+              save={(next) => editable.save(row.original, next)}
+              validate={editable.validate}
+            />
+          );
         return isAbsent(v) ? <Absent /> : String(v);
       },
     });
@@ -274,7 +296,12 @@ export function columnKinds<TData extends RowData>() {
       resizable,
       cell,
       tone,
-    }: Shared<TData> & { tone: (row: TData) => Tone },
+      editable,
+    }: Shared<TData> & {
+      tone: (row: TData) => Tone;
+      /** The cell is an Editable.Select over `options`; the row is the record. */
+      editable?: (EditableOptions<TData> & { options: readonly string[] }) | undefined;
+    },
   ) =>
     helper.accessor(read<TData>(key), {
       id: key,
@@ -285,10 +312,24 @@ export function columnKinds<TData extends RowData>() {
       sortFn: sortOf("alphanumeric", sortBy),
       filterFn: "matches",
       ...shared({ pin, hideable, resizable }),
-      meta: { pin, kind: "status", align: "start" },
+      meta: { pin, kind: "status", align: "start", editable: Boolean(editable) },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
         const v = getValue();
+        if (editable)
+          return (
+            <Editable.Select
+              label={header ?? key}
+              options={editable.options}
+              value={isAbsent(v) ? "" : String(v)}
+              onChange={(next) => editable.onChange(row.original, next)}
+              save={(next) => editable.save(row.original, next)}
+              validate={editable.validate}
+              render={(o) =>
+                o ? <Badge tone={tone({ ...row.original, [key]: o })}>{o}</Badge> : <Absent />
+              }
+            />
+          );
         return isAbsent(v) ? <Absent /> : <Badge tone={tone(row.original)}>{String(v)}</Badge>;
       },
     });

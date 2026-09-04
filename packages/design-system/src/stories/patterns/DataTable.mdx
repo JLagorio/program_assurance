@@ -68,6 +68,12 @@ Every kind takes `header`, `width` (pixels; also the minimum), `minWidth`, `sort
 
 <Canvas of={Stories.ServerStory} />
 
+## Editing
+
+A `text` or `status` column takes `editable`: `onChange` commits the value into your data at once, `save` settles it (the cell shows saving, saved or the error and rolls back on failure), `validate` blocks a bad value, and a status column's `options` are its menu. The cell is `Editable.Text` or `Editable.Select`; the table is a `grid`; Enter commits and moves to the same column in the next row, Tab keeps its meaning and moves across. PickerSheet's second frame is this: the chosen rows with their fields in place, a defaults row above, "Does not apply" per row.
+
+<Canvas of={Stories.EditingStory} />
+
 ## Rules
 
 - Text starts; numbers end with tabular numerals and their header with them; a status or a person starts. A number never centres. The kinds carry this.
@@ -75,7 +81,7 @@ Every kind takes `header`, `width` (pixels; also the minimum), `minWidth`, `sort
 - Hairline between rows, no zebra. The row is the link; the id lights up on hover; actions are in the last column.
 - Selection is the checkbox column, never a click on the row. The header checkbox chooses the page; the bar above names the count and the verbs.
 - Loading never removes the header or changes the height of what is already there. Empty and error sit inside the frame.
-- A `DataTable` is a `table`: Tab moves through the interactive elements in reading order. A tree is a `treegrid`; only an editable table is a `grid`.
+- A `DataTable` is a `table`: Tab moves through the interactive elements in reading order. A tree is a `treegrid`; an editable table is a `grid`, and Enter moves down its columns.
 - A thousand rows may be chosen one at a time: a row is memoized on what it shows, so one checkbox redraws one row.
 
 <Canvas of={Stories.StatesStory} />

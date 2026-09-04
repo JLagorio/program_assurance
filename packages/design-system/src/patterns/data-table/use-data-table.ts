@@ -125,6 +125,7 @@ export function useDataTable<TData extends RowData>({
   ...rest
 }: DataTableOptions<TData>) {
   const pins = pinsOf(columns);
+  const editable = columns.some((c) => c.meta?.editable);
   const expanded =
     tree?.initialExpanded === true || groupBy
       ? true
@@ -180,6 +181,7 @@ export function useDataTable<TData extends RowData>({
       detail: detail as ((row: never) => ReactNode) | undefined,
       groupBy,
       pinRows,
+      editable,
       ...(virtualize ? { virtualize: virtualize === true ? {} : virtualize } : {}),
       reorderRows: reorderRows as
         ((moved: never, target: never, position: "before" | "after") => void) | undefined,
