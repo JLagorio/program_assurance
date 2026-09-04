@@ -21,21 +21,34 @@
  *    weight that was never applied, never a silent omission that quietly moves
  *    the denominator.
  *
- * A row whose finding sentence is worth reading gets a second row to hold it.
- * On the schedule and freshness tables that is deliberately restricted to rows
- * in a state somebody has to act on: printing the sentence under all 36 current
- * controls would bury the eight overdue ones, and the sentence for a healthy
- * row says nothing the columns have not already said. Nothing is hidden by that
- * choice — the healthy row's sentence is still on its `title`.
+ * A row whose finding sentence is worth reading opens into it: the sentence is
+ * the row's detail. On the schedule and freshness tables it starts open only
+ * for rows in a state somebody has to act on: printing the sentence under all
+ * 36 current controls would bury the eight overdue ones, and the sentence for a
+ * healthy row says nothing the columns have not already said. Nothing is hidden
+ * by that choice — the healthy row's sentence is one chevron away.
  *
  * Presentation only. Every value arrives as a prop from `@/lib/conmon`; nothing
  * here computes a date, a status, a band or an order, and routes own every
  * link. No clock is read anywhere in this file.
  */
 
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 
-import { Absent, Badge, Box, Empty, Grid, Id, Inline, Stack, Table } from "@ledger/design-system";
+import {
+  Absent,
+  Badge,
+  Box,
+  DataTable,
+  Empty,
+  Grid,
+  Id,
+  Inline,
+  Stack,
+  Table,
+  defineColumns,
+  useDataTable,
+} from "@ledger/design-system";
 import {
   alertSeverityTone,
   assessmentStatusTone,
@@ -77,6 +90,16 @@ function Days({ value, suffix = "d" }: { value: number | null; suffix?: string }
     </span>
   );
 }
+
+/** The module writes "—" for a value it does not have; the cell says so as an absence. */
+const orAbsent = (value: string): ReactNode => (value === "—" ? <Absent /> : value);
+
+/** The module's dates are formatted for reading; a header sorts them as instants. */
+const when = (value: string) => Date.parse(value) || 0;
+
+/** Rows whose detail starts open, by id. The first render decides; the table keeps the reader's changes after that. */
+const openFor = <T,>(rows: T[], id: (row: T) => string, open: (row: T) => boolean) =>
+  Object.fromEntries(rows.filter(open).map((row) => [id(row), true]));
 
 /** The ids a statement rests on. Never a link — routes own navigation. */
 function EvidenceIds({ ids, empty }: { ids: string[]; empty: string }) {
@@ -578,12 +601,61 @@ export function AlertList({
 
 /* ── Assessment schedule ─────────────────────────────────────────────────── */
 
+const scheduleColumns = defineColumns<ScheduleRow>((c) => [
+  c.id("control", { header: "Control", width: 104, hideable: false, tone: "subtle" }),
+  c.text("controlTitle", {
+    header: "Title",
+    minWidth: 200,
+    hideable: false,
+    cell: (r) => orAbsent(r.controlTitle),
+  }),
+  c.text("frequency", { header: "Frequency", width: 116 }),
+  c.status("method", { header: "Method", width: 124, tone: (r) => slcmMethodTone[r.method] }),
+  c.text("responsible", { header: "Responsible", width: 188 }),
+  c.text("lastAssessed", {
+    header: "Last assessed",
+    width: 124,
+    sortBy: (r) => when(r.lastAssessed),
+    cell: (r) => orAbsent(r.lastAssessed),
+  }),
+  c.text("nextDue", {
+    header: "Next due",
+    width: 124,
+    sortBy: (r) => when(r.nextDue),
+    cell: (r) => orAbsent(r.nextDue),
+  }),
+  c.number("daysOut", {
+    header: "Days out",
+    width: 96,
+    cell: (r) => (
+      <span className={cn(r.daysOut !== null && r.daysOut < 0 ? "text-danger" : "")}>
+        <Days value={r.daysOut} />
+      </span>
+    ),
+  }),
+  c.status("status", { header: "Status", width: 120, tone: (r) => assessmentStatusTone[r.status] }),
+]);
+
 /**
  * The SLCM schedule. `daysOut` is signed against the next due date, so a
  * negative number is days LATE and reads that way in the column rather than
  * being flipped into a positive "overdue by" that loses the sign.
  */
 export function ScheduleTable({ rows }: { rows: ScheduleRow[] }) {
+  const table = useDataTable({
+    columns: scheduleColumns,
+    data: rows,
+    getRowId: (r) => r.control,
+    label: "Assessment schedule",
+    detail: (r) => r.finding,
+    initialState: {
+      expanded: openFor(
+        rows,
+        (r) => r.control,
+        (r) => r.status !== "Current",
+      ),
+    },
+  });
   if (rows.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
@@ -594,79 +666,7 @@ export function ScheduleTable({ rows }: { rows: ScheduleRow[] }) {
       </Box>
     );
   }
-  return (
-    <Table className="table-fixed">
-      <thead>
-        <tr>
-          <Table.Header width={104}>Control</Table.Header>
-          <Table.Header>Title</Table.Header>
-          <Table.Header width={116}>Frequency</Table.Header>
-          <Table.Header width={124}>Method</Table.Header>
-          <Table.Header width={188}>Responsible</Table.Header>
-          <Table.Header width={108}>Last assessed</Table.Header>
-          <Table.Header width={108}>Next due</Table.Header>
-          <Table.Header width={76} className="text-right">
-            Days out
-          </Table.Header>
-          <Table.Header width={112}>Status</Table.Header>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => (
-          <ScheduleRows key={row.control} row={row} explain={row.status !== "Current"} />
-        ))}
-      </tbody>
-    </Table>
-  );
-}
-
-function ScheduleRows({ row, explain }: { row: ScheduleRow; explain: boolean }) {
-  return (
-    <>
-      <Table.Row
-        className={cn("align-top", explain ? "border-0 hover:bg-transparent" : null)}
-        title={explain ? undefined : row.finding}
-      >
-        <Table.Cell className="py-100 align-top">
-          <Id>{row.control}</Id>
-        </Table.Cell>
-        <Table.Cell className="py-100 align-top" title={row.controlTitle}>
-          {row.controlTitle === "—" ? <Absent /> : row.controlTitle}
-        </Table.Cell>
-        <Table.Cell className="py-100 align-top">{row.frequency}</Table.Cell>
-        <Table.Cell className="py-100 align-top">
-          <MethodChip method={row.method} />
-        </Table.Cell>
-        <Table.Cell className="py-100 align-top" title={row.responsible}>
-          {row.responsible}
-        </Table.Cell>
-        <Table.Cell className="tabular-nums py-100 align-top">
-          {row.lastAssessed === "—" ? <Absent /> : row.lastAssessed}
-        </Table.Cell>
-        <Table.Cell className="tabular-nums py-100 align-top">
-          {row.nextDue === "—" ? <Absent /> : row.nextDue}
-        </Table.Cell>
-        <Table.Cell
-          className={cn(
-            "py-100 align-top text-right",
-            row.daysOut !== null && row.daysOut < 0 ? "text-danger" : "",
-          )}
-        >
-          <Days value={row.daysOut} />
-        </Table.Cell>
-        <Table.Cell className="py-100 align-top">
-          <AssessmentStatusChip status={row.status} />
-        </Table.Cell>
-      </Table.Row>
-      {explain ? (
-        <Table.Row className="align-top" isStatic>
-          <Table.Cell className="max-w-none whitespace-normal pb-150 pt-0 align-top" colSpan={9}>
-            {row.finding}
-          </Table.Cell>
-        </Table.Row>
-      ) : null}
-    </>
-  );
+  return <DataTable table={table} />;
 }
 
 /* ── Evidence freshness ──────────────────────────────────────────────────── */
@@ -677,7 +677,80 @@ function requirementParts(key: string): { unit: string; requirement: string } {
   return { unit: parts[1] ?? "Control", requirement: parts[2] ?? key };
 }
 
+/** A monitored requirement with its key split and its newest artifact named. */
+type FreshnessRowView = EvidenceSlaRow & { unit: string; name: string; newest: string };
+
+const freshnessColumns = defineColumns<FreshnessRowView>((c) => [
+  c.id("control", { header: "Control", width: 96, hideable: false, tone: "subtle" }),
+  c.text("name", {
+    header: "Requirement",
+    width: 158,
+    hideable: false,
+    cell: (r) => (
+      <Inline title={r.requirement} as="span" space="space.075" alignBlock="center">
+        <Badge size="xsmall" tone="neutral">
+          {r.unit}
+        </Badge>
+        <span className="min-w-0 truncate">{r.name}</span>
+      </Inline>
+    ),
+  }),
+  c.text("newest", {
+    header: "Newest evidence",
+    minWidth: 160,
+    cell: (r) =>
+      r.evidence.length === 0 ? <Absent /> : <span title={r.evidence.join(", ")}>{r.newest}</span>,
+  }),
+  c.text("collected", {
+    header: "Collected",
+    width: 120,
+    sortBy: (r) => when(r.collected),
+    cell: (r) => orAbsent(r.collected),
+  }),
+  c.number("ageDays", {
+    header: "Age",
+    width: 96,
+    cell: (r) => (
+      <span className={cn(r.ageDays !== null && r.ageDays > r.slaDays ? "text-danger" : "")}>
+        <Days value={r.ageDays} />
+      </span>
+    ),
+  }),
+  c.number("slaDays", { header: "SLA", width: 96, cell: (r) => <Days value={r.slaDays} /> }),
+  c.status("freshness", {
+    header: "Freshness",
+    width: 124,
+    tone: (r) => freshnessTone[r.freshness],
+  }),
+]);
+
 export function FreshnessTable({ rows }: { rows: EvidenceSlaRow[] }) {
+  const data = useMemo<FreshnessRowView[]>(
+    () =>
+      rows.map((row) => ({
+        ...row,
+        unit: requirementParts(row.requirement).unit,
+        name: requirementParts(row.requirement).requirement,
+        newest: row.evidence.length
+          ? `${row.evidence[0]}${row.evidence.length > 1 ? ` +${row.evidence.length - 1} more` : ""}`
+          : "",
+      })),
+    [rows],
+  );
+  const table = useDataTable({
+    columns: freshnessColumns,
+    data,
+    getRowId: (r) => r.requirement,
+    label: "Evidence freshness",
+    detail: (r) => r.finding,
+    initialState: {
+      expanded: openFor(
+        rows,
+        (r) => r.requirement,
+        (r) => r.freshness !== "Fresh",
+      ),
+    },
+  });
   if (rows.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
@@ -688,79 +761,7 @@ export function FreshnessTable({ rows }: { rows: EvidenceSlaRow[] }) {
       </Box>
     );
   }
-  return (
-    <Table className="table-fixed">
-      <thead>
-        <tr>
-          <Table.Header width={96}>Control</Table.Header>
-          <Table.Header width={158}>Requirement</Table.Header>
-          <Table.Header>Newest evidence</Table.Header>
-          <Table.Header width={108}>Collected</Table.Header>
-          <Table.Header width={68} className="text-right">
-            Age
-          </Table.Header>
-          <Table.Header width={68} className="text-right">
-            SLA
-          </Table.Header>
-          <Table.Header width={124}>Freshness</Table.Header>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => (
-          <FreshnessRows key={row.requirement} row={row} explain={row.freshness !== "Fresh"} />
-        ))}
-      </tbody>
-    </Table>
-  );
-}
-
-function FreshnessRows({ row, explain }: { row: EvidenceSlaRow; explain: boolean }) {
-  const { unit, requirement } = requirementParts(row.requirement);
-  const overdue = row.ageDays !== null && row.ageDays > row.slaDays;
-  return (
-    <>
-      <Table.Row
-        className={cn("align-top", explain ? "border-0 hover:bg-transparent" : null)}
-        title={explain ? undefined : row.finding}
-      >
-        <Table.Cell className="py-100 align-top">
-          <Id>{row.control}</Id>
-        </Table.Cell>
-        <Table.Cell className="py-100 align-top" title={row.requirement}>
-          <Inline as="span" space="space.075" alignBlock="center">
-            <Badge size="xsmall" tone="neutral">
-              {unit}
-            </Badge>
-            <span className="min-w-0 truncate">{requirement}</span>
-          </Inline>
-        </Table.Cell>
-        <Table.Cell className="py-100 align-top" title={row.evidence.join(", ")}>
-          {row.evidence.length === 0 ? (
-            <Absent />
-          ) : (
-            `${row.evidence[0]}${row.evidence.length > 1 ? ` +${row.evidence.length - 1} more` : ""}`
-          )}
-        </Table.Cell>
-        <Table.Cell className="tabular-nums py-100 align-top">
-          {row.collected === "—" ? <Absent /> : row.collected}
-        </Table.Cell>
-        <Table.Cell className={cn("py-100 align-top text-right", overdue ? "text-danger" : "")}>
-          <Days value={row.ageDays} />
-        </Table.Cell>
-        <Table.Cell className="tabular-nums py-100 align-top text-right">{row.slaDays}d</Table.Cell>
-        <Table.Cell className="py-100 align-top">
-          <FreshnessChip freshness={row.freshness} />
-        </Table.Cell>
-      </Table.Row>
-      {explain ? (
-        <Table.Row className="align-top" isStatic>
-          <Table.Cell className="max-w-none whitespace-normal pb-150 pt-0 align-top" colSpan={7}>
-            {row.finding}
-          </Table.Cell>
-        </Table.Row>
-      ) : null}
-    </>
-  );
+  return <DataTable table={table} />;
 }
 
 /* ── Scan cadence ────────────────────────────────────────────────────────── */
@@ -786,7 +787,63 @@ function cadenceLabel(row: CadenceRow): { text: string; tone: "success" | "dange
   return { text: `${windows} late`, tone: "danger" };
 }
 
+/** A cadence row with its state named, so the column sorts and filters on it. */
+type CadenceRowView = CadenceRow & { state: string };
+
+const cadenceColumns = defineColumns<CadenceRowView>((c) => [
+  c.id("target", { header: "Target", width: 96, hideable: false, tone: "subtle" }),
+  c.text("targetName", { header: "Name", width: 180, hideable: false }),
+  c.text("format", {
+    header: "Format",
+    width: 160,
+    cell: (r) => orAbsent(r.format),
+  }),
+  c.number("expectedDays", {
+    header: "Window",
+    width: 96,
+    cell: (r) => (r.expectedDays > 0 ? <Days value={r.expectedDays} /> : <Absent />),
+  }),
+  c.text("lastScan", {
+    header: "Last scan",
+    width: 150,
+    sortBy: (r) => when(r.lastScan),
+    cell: (r) => orAbsent(r.lastScan),
+  }),
+  c.number("actualDays", {
+    header: "Actual",
+    width: 96,
+    cell: (r) => (
+      <span
+        className={cn(
+          r.actualDays !== null && r.expectedDays > 0 && r.actualDays > r.expectedDays
+            ? "text-danger"
+            : "",
+        )}
+      >
+        <Days value={r.actualDays} />
+      </span>
+    ),
+  }),
+  c.status("state", { header: "State", width: 168, tone: (r) => cadenceLabel(r).tone }),
+  c.text("finding", {
+    header: "What the window says",
+    minWidth: 240,
+    wrap: true,
+    sortable: false,
+  }),
+]);
+
 export function CadenceTable({ rows }: { rows: CadenceRow[] }) {
+  const data = useMemo<CadenceRowView[]>(
+    () => rows.map((row) => ({ ...row, state: cadenceLabel(row).text })),
+    [rows],
+  );
+  const table = useDataTable({
+    columns: cadenceColumns,
+    data,
+    getRowId: (r) => `${r.target}|${r.format}`,
+    label: "Scan cadence",
+  });
   if (rows.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
@@ -797,77 +854,38 @@ export function CadenceTable({ rows }: { rows: CadenceRow[] }) {
       </Box>
     );
   }
-  return (
-    <Table className="table-fixed">
-      <thead>
-        <tr>
-          <Table.Header width={96}>Target</Table.Header>
-          <Table.Header width={180}>Name</Table.Header>
-          <Table.Header width={160}>Format</Table.Header>
-          <Table.Header width={84} className="text-right">
-            Window
-          </Table.Header>
-          <Table.Header width={150}>Last scan</Table.Header>
-          <Table.Header width={84} className="text-right">
-            Actual
-          </Table.Header>
-          <Table.Header width={168}>State</Table.Header>
-          <Table.Header>What the window says</Table.Header>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => {
-          const label = cadenceLabel(row);
-          return (
-            <Table.Row key={`${row.target}|${row.format}`} className="align-top">
-              <Table.Cell className="py-100 align-top">
-                <Id>{row.target}</Id>
-              </Table.Cell>
-              <Table.Cell className="py-100 align-top" title={row.targetName}>
-                {row.targetName}
-              </Table.Cell>
-              <Table.Cell className="py-100 align-top">
-                {row.format === "—" ? <Absent /> : row.format}
-              </Table.Cell>
-              <Table.Cell className="py-100 align-top text-right">
-                {row.expectedDays > 0 ? (
-                  <span className="tabular-nums">{row.expectedDays}d</span>
-                ) : (
-                  <Absent />
-                )}
-              </Table.Cell>
-              <Table.Cell className="tabular-nums py-100 align-top">
-                {row.lastScan === "—" ? <Absent /> : row.lastScan}
-              </Table.Cell>
-              <Table.Cell
-                className={cn(
-                  "py-100 align-top text-right",
-                  row.actualDays !== null &&
-                    row.expectedDays > 0 &&
-                    row.actualDays > row.expectedDays
-                    ? "text-danger"
-                    : "",
-                )}
-              >
-                <Days value={row.actualDays} />
-              </Table.Cell>
-              <Table.Cell className="py-100 align-top">
-                <Badge size="xsmall" tone={label.tone}>
-                  {label.text}
-                </Badge>
-              </Table.Cell>
-              <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
-                {row.finding}
-              </Table.Cell>
-            </Table.Row>
-          );
-        })}
-      </tbody>
-    </Table>
-  );
+  return <DataTable table={table} />;
 }
 
 /* ── POA&M slippage ──────────────────────────────────────────────────────── */
+
+const slippageColumns = defineColumns<SlippageRow>((c) => [
+  c.id("poam", { header: "POA&M", width: 112, hideable: false, tone: "subtle" }),
+  c.text("title", { header: "Title", minWidth: 200, hideable: false }),
+  c.text("original", {
+    header: "Original",
+    width: 112,
+    sortBy: (r) => when(r.original),
+    cell: (r) => orAbsent(r.original),
+  }),
+  c.text("scheduled", {
+    header: "Scheduled",
+    width: 112,
+    sortBy: (r) => when(r.scheduled),
+    cell: (r) => orAbsent(r.scheduled),
+  }),
+  c.number("slipDays", {
+    header: "Slip",
+    width: 96,
+    cell: (r) => (
+      <span className={cn("tabular-nums", r.slipDays > 0 ? "text-warning" : "")}>
+        {r.slipDays > 0 ? `+${r.slipDays}d` : `${zeroSafe(r.slipDays)}d`}
+      </span>
+    ),
+  }),
+  c.number("revisions", { header: "Revisions", width: 96 }),
+  c.status("status", { header: "Status", width: 120, tone: (r) => statusTone(r.status) }),
+]);
 
 /**
  * The commitment against the date it has moved to. A slip of 0 is printed as 0,
@@ -876,6 +894,15 @@ export function CadenceTable({ rows }: { rows: CadenceRow[] }) {
  * a revision, not a better one, and the sentence underneath says so.
  */
 export function SlippageTable({ rows }: { rows: SlippageRow[] }) {
+  // Every slip has a story, so every detail starts open.
+  const table = useDataTable({
+    columns: slippageColumns,
+    data: rows,
+    getRowId: (r) => r.poam,
+    label: "POA&M slippage",
+    detail: (r) => r.finding,
+    initialState: { expanded: true },
+  });
   if (rows.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
@@ -886,70 +913,5 @@ export function SlippageTable({ rows }: { rows: SlippageRow[] }) {
       </Box>
     );
   }
-  return (
-    <Table className="table-fixed">
-      <thead>
-        <tr>
-          <Table.Header width={112}>POA&amp;M</Table.Header>
-          <Table.Header>Title</Table.Header>
-          <Table.Header width={112}>Original</Table.Header>
-          <Table.Header width={112}>Scheduled</Table.Header>
-          <Table.Header width={72} className="text-right">
-            Slip
-          </Table.Header>
-          <Table.Header width={88} className="text-right">
-            Revisions
-          </Table.Header>
-          <Table.Header width={116}>Status</Table.Header>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => (
-          <SlippageRows key={row.poam} row={row} />
-        ))}
-      </tbody>
-    </Table>
-  );
-}
-
-function SlippageRows({ row }: { row: SlippageRow }) {
-  return (
-    <>
-      <Table.Row className="border-0 align-top" isStatic>
-        <Table.Cell className="py-100 align-top">
-          <Id>{row.poam}</Id>
-        </Table.Cell>
-        <Table.Cell className="py-100 align-top" title={row.title}>
-          {row.title}
-        </Table.Cell>
-        <Table.Cell className="tabular-nums py-100 align-top">
-          {row.original === "—" ? <Absent /> : row.original}
-        </Table.Cell>
-        <Table.Cell className="tabular-nums py-100 align-top">
-          {row.scheduled === "—" ? <Absent /> : row.scheduled}
-        </Table.Cell>
-        <Table.Cell
-          className={cn(
-            "tabular-nums py-100 align-top text-right",
-            row.slipDays > 0 ? "text-warning" : "",
-          )}
-        >
-          {row.slipDays > 0 ? `+${row.slipDays}d` : `${zeroSafe(row.slipDays)}d`}
-        </Table.Cell>
-        <Table.Cell className="tabular-nums py-100 align-top text-right">
-          {row.revisions}
-        </Table.Cell>
-        <Table.Cell className="py-100 align-top">
-          <Badge size="xsmall" tone={statusTone(row.status)}>
-            {row.status}
-          </Badge>
-        </Table.Cell>
-      </Table.Row>
-      <Table.Row className="align-top" isStatic>
-        <Table.Cell className="max-w-none whitespace-normal pb-150 pt-0 align-top" colSpan={7}>
-          {row.finding}
-        </Table.Cell>
-      </Table.Row>
-    </>
-  );
+  return <DataTable table={table} />;
 }

@@ -33,12 +33,13 @@
  * nothing here scores, weights, bands or sorts anything, and routes own links.
  */
 
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 
 import {
   Absent,
   Badge,
   Box,
+  DataTable,
   Empty,
   Grid,
   Id,
@@ -46,6 +47,8 @@ import {
   Progress,
   Stack,
   Table,
+  defineColumns,
+  useDataTable,
 } from "@ledger/design-system";
 import {
   bandTone,
@@ -483,10 +486,22 @@ export type ScoredSubject = {
   authored?: number | null;
 };
 
+/** A subject flattened onto the columns the table sorts by, with the flags the row shows. */
+type ScoredRow = ScoredSubject & {
+  subject: string;
+  inherent: number;
+  credit: number;
+  residual: number;
+  band: RiskBand;
+  driver: ScoreFactor | null;
+  isSelected: boolean;
+};
+
 /**
  * The scored population, worst first. Inherent, credit and residual are three
  * separate columns because the credit is the number an AO argues about, and a
- * table that prints only the residual hides it.
+ * table that prints only the residual hides it. A DataTable: the headers sort,
+ * the row selects, and the id reads active for the subject whose trail is open.
  */
 export function TopRisksTable({
   rows,
@@ -500,6 +515,98 @@ export function TopRisksTable({
   /** Adds the authored register residual beside the computed one. */
   showAuthored?: boolean;
 }) {
+  const data = useMemo<ScoredRow[]>(
+    () =>
+      rows.map((row) => ({
+        ...row,
+        subject: row.score.subject,
+        inherent: row.score.inherent,
+        credit: zeroSafe(row.score.factors.find((f) => f.key === "mitigation")?.contribution ?? 0),
+        residual: row.score.score,
+        band: row.score.band,
+        driver: topDriver(row.score),
+        isSelected: selected === row.score.subject,
+      })),
+    [rows, selected],
+  );
+
+  const columns = useMemo(
+    () =>
+      defineColumns<ScoredRow>((c) => [
+        c.id("subject", {
+          header: "Subject",
+          width: 104,
+          hideable: false,
+          active: (r) => r.isSelected,
+          cell: (r) => (
+            <Inline as="span" space="space.075" alignBlock="center">
+              <span>{r.subject}</span>
+              {r.score.caveats.length > 0 ? (
+                <Badge size="xsmall" tone="warning">
+                  {r.score.caveats.length}
+                </Badge>
+              ) : null}
+            </Inline>
+          ),
+        }),
+        c.text("title", {
+          header: "Title",
+          minWidth: 200,
+          hideable: false,
+          cell: (r) => (
+            <span title={r.excluded ? `${r.title} — not carried in the aggregate` : r.title}>
+              {r.title}
+            </span>
+          ),
+        }),
+        c.text("context", { header: "Where", width: 212 }),
+        c.custom("driver", {
+          header: "Largest term",
+          width: 196,
+          cell: (r) =>
+            r.driver ? (
+              <span title={r.driver.rationale}>
+                {r.driver.label} {signed(r.driver.contribution)}
+              </span>
+            ) : (
+              <Absent />
+            ),
+          sort: (r) => r.driver?.contribution ?? -1,
+          text: (r) => (r.driver ? `${r.driver.label} ${signed(r.driver.contribution)}` : ""),
+        }),
+        c.number("inherent", { header: "Inherent", width: 96 }),
+        // A zero credit is a RESULT — nobody claimed a compensating control — so it prints as 0
+        // rather than as an em dash, which would read as "not computed".
+        c.number("credit", {
+          header: "Credit",
+          width: 96,
+          cell: (r) => (
+            <span className={cn(r.credit !== 0 ? "text-success" : "")}>{signed(r.credit)}</span>
+          ),
+        }),
+        ...(showAuthored
+          ? [
+              c.number("authored", {
+                header: "Authored",
+                width: 96,
+                cell: (r) => (typeof r.authored === "number" ? r.authored : <Absent />),
+              }),
+            ]
+          : []),
+        c.number("residual", { header: "Residual", width: 96 }),
+        c.status("band", { header: "Band", width: 120, tone: (r) => bandTone[r.band] }),
+      ]),
+    [showAuthored],
+  );
+
+  const table = useDataTable({
+    columns,
+    data,
+    getRowId: (r) => r.subject,
+    label: "Scored findings",
+    initialState: { sorting: [{ id: "residual", desc: true }] },
+  });
+
   if (rows.length === 0) {
     return (
       <Box paddingBlockStart="space.200">
@@ -510,86 +617,7 @@ export function TopRisksTable({
       </Box>
     );
   }
-  return (
-    <Table className="table-fixed">
-      <thead>
-        <tr>
-          <Table.Header width={104}>Subject</Table.Header>
-          <Table.Header>Title</Table.Header>
-          <Table.Header width={212}>Where</Table.Header>
-          <Table.Header width={196}>Largest term</Table.Header>
-          <Table.Header className="text-right" width={78}>
-            Inherent
-          </Table.Header>
-          <Table.Header className="text-right" width={70}>
-            Credit
-          </Table.Header>
-          {showAuthored ? (
-            <Table.Header className="text-right" width={82}>
-              Authored
-            </Table.Header>
-          ) : null}
-          <Table.Header className="text-right" width={82}>
-            Residual
-          </Table.Header>
-          <Table.Header width={98}>Band</Table.Header>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => {
-          const driver = topDriver(row.score);
-          const credit = zeroSafe(
-            row.score.factors.find((f) => f.key === "mitigation")?.contribution ?? 0,
-          );
-          return (
-            <Table.Row
-              key={row.score.subject}
-              className={cn(
-                onSelect && "cursor-pointer",
-                selected === row.score.subject && "bg-selected",
-              )}
-              onClick={onSelect ? () => onSelect(row.score.subject) : undefined}
-              title={row.excluded ? `${row.title} — not carried in the aggregate` : row.title}
-            >
-              <Table.Cell className="max-w-none">
-                <Inline as="span" space="space.075" alignBlock="center">
-                  <Id>{row.score.subject}</Id>
-                  {row.score.caveats.length > 0 ? (
-                    <Badge size="xsmall" tone="warning">
-                      {row.score.caveats.length}
-                    </Badge>
-                  ) : null}
-                </Inline>
-              </Table.Cell>
-              <Table.Cell className={cn(row.excluded && "")}>{row.title}</Table.Cell>
-              <Table.Cell title={row.context}>{row.context}</Table.Cell>
-              <Table.Cell title={driver ? driver.rationale : undefined}>
-                {driver ? `${driver.label} ${signed(driver.contribution)}` : <Absent />}
-              </Table.Cell>
-              <Table.Cell className="tabular-nums text-right">{row.score.inherent}</Table.Cell>
-              {/* A zero credit is a RESULT — nobody claimed a compensating
-                  control — so it prints as 0 rather than as an em dash, which
-                  would read as "not computed". */}
-              <Table.Cell
-                className={cn("tabular-nums text-right", credit !== 0 ? "text-success" : "")}
-              >
-                {signed(credit)}
-              </Table.Cell>
-              {showAuthored ? (
-                <Table.Cell className="tabular-nums text-right">
-                  {typeof row.authored === "number" ? row.authored : <Absent />}
-                </Table.Cell>
-              ) : null}
-              <Table.Cell className="tabular-nums text-right">{row.score.score}</Table.Cell>
-              <Table.Cell>
-                <BandChip band={row.score.band} size="xsmall" />
-              </Table.Cell>
-            </Table.Row>
-          );
-        })}
-      </tbody>
-    </Table>
-  );
+  return <DataTable table={table} onRowClick={onSelect ? (r) => onSelect(r.subject) : undefined} />;
 }
 
 /* ── Movers ──────────────────────────────────────────────────────────────── */

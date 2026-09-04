@@ -3,6 +3,10 @@
  * which elements carry it (the union across allocations), which controls it
  * traces to, and how far its verification has run. The filters are the
  * questions a reader asks of the list; the bar is the one status per row.
+ *
+ * A DataTable: the saved questions are presets over projected columns, the
+ * headers sort, search covers the id and the statement, and the one bar per
+ * row reads how far the tests that name the requirement have run.
  */
 
 import { Link } from "@tanstack/react-router";
@@ -12,17 +16,17 @@ import { ControlHover, RequirementHover } from "@/components/app/glances";
 import { AllocateElementsSheet } from "@/components/app/allocate-picker";
 import { TargetLink } from "@/components/app/requirements";
 import {
-  Badge,
-  Button,
+  DataTable,
   Id,
   Indicator,
   Inline,
   Progress,
   Stack,
-  Table,
   Text,
   TextLink,
-  ToggleGroup,
+  defineColumns,
+  useDataTable,
+  type Preset,
   type StackedSegment,
 } from "@ledger/design-system";
 import { suspectLinksFor, useLinkCurrencyVersion } from "@/lib/link-currency";
@@ -39,20 +43,40 @@ import {
   requirementStateTone,
   requirementsForProgram,
   unallocatedRequirements,
-  unmappedRequirements,
   useRequirementsVersion,
+  type Allocation,
+  type Derivation,
   type Requirement,
+  type RequirementState,
 } from "@/lib/requirements";
 
-type Filter = "all" | "unallocated" | "no-control" | "from-control" | "not-covered" | "suspect";
+/** Who carries a requirement, as one value a preset can ask for. */
+type CarriedBy = "Allocated" | "Nobody responsible" | "Not yet allocatable";
 
-const filterLabels: Record<Filter, string> = {
-  all: "All",
-  unallocated: "Unallocated",
-  "no-control": "No control",
-  "from-control": "From a control",
-  "not-covered": "Not covered",
-  suspect: "Suspect",
+/** Where a requirement came from: the catalog, or the program's own engineering. */
+type Origin = "From a control" | "No control";
+
+/** Whether any test objective names the requirement (or one of its children). */
+type Verification = "Covered" | "Not covered";
+
+/** Whether every link under the requirement is current, or one has gone Suspect. */
+type Currency = "Current" | "Suspect";
+
+/** One requirement projected onto the columns the table sorts and filters by. */
+type CoverageRow = {
+  id: string;
+  text: string;
+  state: RequirementState;
+  carriedBy: CarriedBy;
+  origin: Origin;
+  verification: Verification;
+  currency: Currency;
+  suspect: number;
+  coverage: RequirementCoverage;
+  requirement: Requirement;
+  allocations: Allocation[];
+  controls: Derivation[];
+  overlays: Derivation[];
 };
 
 function fromControl(r: Requirement): boolean {
@@ -60,6 +84,28 @@ function fromControl(r: Requirement): boolean {
     (d) => d.sourceType === "Control statement" || d.sourceType === "Overlay",
   );
 }
+
+// The saved questions, as the column filters each one applies. Counts come from the table.
+const presets: Preset[] = [
+  { id: "all", label: "All" },
+  {
+    id: "unallocated",
+    label: "Unallocated",
+    filters: [{ id: "carriedBy", value: "Nobody responsible" }],
+  },
+  { id: "no-control", label: "No control", filters: [{ id: "origin", value: "No control" }] },
+  {
+    id: "from-control",
+    label: "From a control",
+    filters: [{ id: "origin", value: "From a control" }],
+  },
+  {
+    id: "not-covered",
+    label: "Not covered",
+    filters: [{ id: "verification", value: "Not covered" }],
+  },
+  { id: "suspect", label: "Suspect", filters: [{ id: "currency", value: "Suspect" }] },
+];
 
 /** The bar's segments: one per result, and a hatched hole for what no test names. */
 export function coverageSegments(c: RequirementCoverage): StackedSegment[] {
@@ -91,181 +137,180 @@ export function CoverageBar({ coverage }: { coverage: RequirementCoverage }) {
   );
 }
 
+/** The share of a requirement's objectives that are met: what the Verification column sorts by. */
+function metShare(c: RequirementCoverage): number {
+  const total = c.met + c.partial + c.notMet + c.notRun + c.notCovered;
+  return total ? c.met / total : -1;
+}
+
 export function RequirementCoverage({ programId }: { programId: string }) {
   const version = useRequirementsVersion();
   const verificationVersion = useVerificationVersion();
   const currencyVersion = useLinkCurrencyVersion();
-  const [filter, setFilter] = useState<Filter>("all");
   const [allocating, setAllocating] = useState<Requirement | null>(null);
 
   const all = useMemo(() => requirementsForProgram(programId), [programId, version]);
-  const sets = useMemo(
-    () => ({
-      unallocated: new Set(unallocatedRequirements(programId).map((r) => r.id)),
-      noControl: new Set(unmappedRequirements(programId).map((r) => r.id)),
-      notCovered: new Set(notCoveredRequirements(programId).map((r) => r.id)),
-      suspect: new Map(
-        requirementsForProgram(programId).map((r) => [r.id, suspectLinksFor(r).length]),
-      ),
-    }),
-    [programId, version, verificationVersion, currencyVersion],
-  );
   const summary = useMemo(() => requirementSummary(programId), [programId, version]);
 
-  const rows = all.filter((r) => {
-    switch (filter) {
-      case "unallocated":
-        return sets.unallocated.has(r.id);
-      case "no-control":
-        return sets.noControl.has(r.id);
-      case "from-control":
-        return fromControl(r);
-      case "not-covered":
-        return sets.notCovered.has(r.id);
-      case "suspect":
-        return (sets.suspect.get(r.id) ?? 0) > 0;
-      default:
-        return true;
-    }
-  });
+  // The projection. Every store it reads is subscribed through a version above.
+  const rows = useMemo<CoverageRow[]>(() => {
+    const unallocated = new Set(unallocatedRequirements(programId).map((r) => r.id));
+    const notCovered = new Set(notCoveredRequirements(programId).map((r) => r.id));
+    return all.map((r) => {
+      const allocations = allocationsFor(r.id);
+      const suspect = suspectLinksFor(r).length;
+      return {
+        id: r.id,
+        text: r.text,
+        state: r.state,
+        carriedBy: allocations.length
+          ? "Allocated"
+          : unallocated.has(r.id)
+            ? "Nobody responsible"
+            : "Not yet allocatable",
+        origin: fromControl(r) ? "From a control" : "No control",
+        verification: notCovered.has(r.id) ? "Not covered" : "Covered",
+        currency: suspect ? "Suspect" : "Current",
+        suspect,
+        coverage: coverageOf(r),
+        requirement: r,
+        allocations,
+        controls: r.derivations.filter((d) => d.sourceType === "Control statement"),
+        overlays: r.derivations.filter((d) => d.sourceType === "Overlay"),
+      };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [all, programId, version, verificationVersion, currencyVersion]);
 
-  const counts: Record<Filter, number> = {
-    all: all.length,
-    unallocated: sets.unallocated.size,
-    "no-control": sets.noControl.size,
-    "from-control": all.filter(fromControl).length,
-    "not-covered": sets.notCovered.size,
-    suspect: [...sets.suspect.values()].filter((n) => n > 0).length,
-  };
+  // The cells link into the program, so the columns close over its id.
+  const columns = useMemo(
+    () =>
+      defineColumns<CoverageRow>((c) => [
+        c.id("id", {
+          header: "Requirement",
+          width: 104,
+          hideable: false,
+          cell: (r) => (
+            <RequirementHover requirementId={r.id}>
+              <TextLink>
+                <Link
+                  to="/programs/$programId/requirements/$requirementId"
+                  params={{ programId, requirementId: r.id }}
+                >
+                  <Id>{r.id}</Id>
+                </Link>
+              </TextLink>
+            </RequirementHover>
+          ),
+        }),
+        c.text("text", { header: "Shall statement", minWidth: 240, hideable: false }),
+        c.text("carriedBy", {
+          header: "Carried by",
+          width: 240,
+          cell: (r) =>
+            r.allocations.length ? (
+              <Inline
+                className="font-body-small"
+                as="span"
+                space="space.100"
+                rowSpace="space.025"
+                shouldWrap
+              >
+                {r.allocations.slice(0, 3).map((a) => (
+                  <TargetLink key={a.id} allocation={a} programId={programId} />
+                ))}
+                {r.allocations.length > 3 ? (
+                  <Text color="color.text.subtle">+{r.allocations.length - 3}</Text>
+                ) : null}
+                {r.suspect ? <Indicator tone="warning">{r.suspect} suspect</Indicator> : null}
+              </Inline>
+            ) : (
+              <Indicator tone={r.carriedBy === "Nobody responsible" ? "warning" : "neutral"}>
+                {r.carriedBy}
+              </Indicator>
+            ),
+        }),
+        c.text("origin", {
+          header: "Controls",
+          width: 170,
+          cell: (r) =>
+            r.controls.length || r.overlays.length ? (
+              <Inline as="span" space="space.100" rowSpace="space.025" shouldWrap>
+                {r.controls.map((d) => (
+                  <ControlHover key={d.sourceId} controlId={d.sourceId} programId={programId}>
+                    <TextLink>
+                      <Link
+                        to="/programs/$programId/controls/$controlId"
+                        params={{ programId, controlId: d.sourceId }}
+                        search={{ tab: undefined }}
+                      >
+                        <Id>{d.sourceId}</Id>
+                      </Link>
+                    </TextLink>
+                  </ControlHover>
+                ))}
+                {r.overlays.map((d) => (
+                  <Text key={d.sourceId} size="small" color="color.text.subtle">
+                    {d.sourceLabel || d.sourceId}
+                  </Text>
+                ))}
+              </Inline>
+            ) : (
+              <Indicator tone="information">
+                {r.requirement.derivations[0]?.sourceType ?? "No source"}
+              </Indicator>
+            ),
+        }),
+        c.text("verification", {
+          header: "Verification",
+          width: 168,
+          cell: (r) => <CoverageBar coverage={r.coverage} />,
+          // the met share; a requirement no test names sorts below everything
+          sortBy: (r) => metShare(r.coverage),
+        }),
+        // Hidden until asked for: the Suspect question reads it, the Carried by cell shows the count.
+        c.text("currency", { header: "Currency", width: 104 }),
+        c.status("state", {
+          header: "State",
+          width: 104,
+          tone: (r) => requirementStateTone[r.state],
+        }),
+        c.actions((r) => [{ label: "Allocate", onSelect: () => setAllocating(r.requirement) }]),
+      ]),
+    [programId],
+  );
+
+  const table = useDataTable({
+    columns,
+    data: rows,
+    getRowId: (r) => r.id,
+    label: "Requirement coverage",
+    view: "requirement-coverage",
+    initialState: { columnVisibility: { currency: false } },
+  });
 
   return (
     <Stack space="space.150">
       <Inline space="space.150" alignBlock="center" spread="space-between" shouldWrap>
-        <ToggleGroup<Filter>
-          aria-label="Requirement filter"
-          value={filter}
-          onChange={setFilter}
-          items={(Object.keys(filterLabels) as Filter[]).map((k) => ({
-            value: k,
-            label: filterLabels[k],
-            count: counts[k],
-          }))}
-        />
+        <DataTable.Presets table={table} presets={presets} aria-label="Requirement filter" />
         <Text size="small" color="color.text.subtle">
           {summary.allocations} allocations across {summary.elements} elements
         </Text>
       </Inline>
 
-      <Table>
-        <thead>
-          <Table.Row>
-            <Table.Header width={104}>Requirement</Table.Header>
-            <Table.Header>Shall statement</Table.Header>
-            <Table.Header width={240}>Carried by</Table.Header>
-            <Table.Header width={170}>Controls</Table.Header>
-            <Table.Header width={168}>Verification</Table.Header>
-            <Table.Header width={104}>State</Table.Header>
-            <Table.Header width={84} className="text-right">
-              {" "}
-            </Table.Header>
-          </Table.Row>
-        </thead>
-        <tbody>
-          {rows.map((r) => {
-            const allocs = allocationsFor(r.id);
-            const controls = r.derivations.filter((d) => d.sourceType === "Control statement");
-            const overlays = r.derivations.filter((d) => d.sourceType === "Overlay");
-            return (
-              <Table.Row key={r.id} title={r.text}>
-                <Table.Cell className="max-w-none">
-                  <RequirementHover requirementId={r.id}>
-                    <TextLink>
-                      <Link
-                        to="/programs/$programId/requirements/$requirementId"
-                        params={{ programId, requirementId: r.id }}
-                      >
-                        <Id>{r.id}</Id>
-                      </Link>
-                    </TextLink>
-                  </RequirementHover>
-                </Table.Cell>
-                <Table.Cell className="truncate">{r.text}</Table.Cell>
-                <Table.Cell className="max-w-none">
-                  {allocs.length ? (
-                    <Inline
-                      className="font-body-small"
-                      as="span"
-                      space="space.100"
-                      rowSpace="space.025"
-                      shouldWrap
-                    >
-                      {allocs.slice(0, 3).map((a) => (
-                        <TargetLink key={a.id} allocation={a} programId={programId} />
-                      ))}
-                      {allocs.length > 3 ? (
-                        <Text color="color.text.subtle">+{allocs.length - 3}</Text>
-                      ) : null}
-                      {sets.suspect.get(r.id) ? (
-                        <Indicator tone="warning">{sets.suspect.get(r.id)} suspect</Indicator>
-                      ) : null}
-                    </Inline>
-                  ) : (
-                    <Indicator tone={sets.unallocated.has(r.id) ? "warning" : "neutral"}>
-                      {sets.unallocated.has(r.id) ? "Nobody responsible" : "Not yet allocatable"}
-                    </Indicator>
-                  )}
-                </Table.Cell>
-                <Table.Cell className="max-w-none">
-                  {controls.length || overlays.length ? (
-                    <Inline as="span" space="space.100" rowSpace="space.025" shouldWrap>
-                      {controls.map((d) => (
-                        <ControlHover key={d.sourceId} controlId={d.sourceId} programId={programId}>
-                          <TextLink>
-                            <Link
-                              to="/programs/$programId/controls/$controlId"
-                              params={{ programId, controlId: d.sourceId }}
-                              search={{ tab: undefined }}
-                            >
-                              <Id>{d.sourceId}</Id>
-                            </Link>
-                          </TextLink>
-                        </ControlHover>
-                      ))}
-                      {overlays.map((d) => (
-                        <Text key={d.sourceId} size="small" color="color.text.subtle">
-                          {d.sourceLabel || d.sourceId}
-                        </Text>
-                      ))}
-                    </Inline>
-                  ) : (
-                    <Indicator tone="information">
-                      {r.derivations[0]?.sourceType ?? "No source"}
-                    </Indicator>
-                  )}
-                </Table.Cell>
-                <Table.Cell className="max-w-none">
-                  <CoverageBar coverage={coverageOf(r)} />
-                </Table.Cell>
-                <Table.Cell>
-                  <Badge size="xsmall" tone={requirementStateTone[r.state]}>
-                    {r.state}
-                  </Badge>
-                </Table.Cell>
-                <Table.Cell className="max-w-none text-right">
-                  <Button size="small" variant="subtle" onClick={() => setAllocating(r)}>
-                    Allocate
-                  </Button>
-                </Table.Cell>
-              </Table.Row>
-            );
-          })}
-        </tbody>
-      </Table>
-      {rows.length === 0 ? (
-        <Text as="p" size="small" color="color.text.subtle">
-          Nothing matches this filter.
-        </Text>
-      ) : null}
+      <DataTable
+        table={table}
+        toolbar={
+          <Inline space="space.100" alignBlock="center" spread="space-between" shouldWrap>
+            <DataTable.Search table={table} placeholder="Requirement or statement" />
+            <DataTable.Columns table={table} />
+          </Inline>
+        }
+        empty={{
+          title: "Nothing matches",
+          description: "Choose another question or clear the search.",
+        }}
+      />
 
       {allocating ? (
         <AllocateElementsSheet

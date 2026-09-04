@@ -10,11 +10,24 @@
 
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
+import { useMemo } from "react";
 
-import { Badge, Box, Editable, Id, Inline, Stack, Table, TextLink } from "@ledger/design-system";
+import {
+  Absent,
+  Badge,
+  Box,
+  DataTable,
+  Id,
+  Inline,
+  Stack,
+  Table,
+  Text,
+  TextLink,
+  defineColumns,
+  useDataTable,
+} from "@ledger/design-system";
 import { ControlHover, ElementHover, RequirementHover } from "@/components/app/glances";
 import { SuspectFlag } from "@/components/app/link-currency";
-import { cn } from "@ledger/design-system/cn";
 import {
   allocationStateTone,
   allocationStates,
@@ -28,6 +41,7 @@ import {
   resolveTarget,
   responsibilityTone,
   type Allocation,
+  type AllocationPatch,
   type ControlTraceHop,
   type Derivation,
   type NodeControlTrace,
@@ -118,9 +132,17 @@ function SourceCell({ derivations }: { derivations: Derivation[] }) {
   );
 }
 
+/** A requirement with its decomposition under it, and what the table shows beside it. */
+type RequirementNode = Requirement & {
+  parts: RequirementNode[];
+  allocations: number;
+  isSelected: boolean;
+};
+
 /**
- * The top-level view. Children are indented under their parent because the
- * decomposition is structure the reader needs, not decoration.
+ * The top-level view, in tree mode: the decomposition is structure the reader
+ * needs, so a parent opens into its children rather than the list flattening
+ * them with an indent. The id stays the link; the statement carries the chevron.
  */
 export function RequirementTable({
   requirements,
@@ -133,80 +155,101 @@ export function RequirementTable({
   allocationCount: (requirementId: string) => number;
   selected?: string;
 }) {
-  const rows: { requirement: Requirement; depth: number }[] = [];
-  const seen = new Set<string>();
-  const walk = (requirement: Requirement, depth: number) => {
-    if (seen.has(requirement.id)) return;
-    seen.add(requirement.id);
-    rows.push({ requirement, depth });
-    for (const child of requirements.filter((r) => r.parent === requirement.id)) {
-      walk(child, depth + 1);
+  // The list is flat with `parent` ids. A parent outside the list makes a root; a row
+  // reached twice (a cycle) is drawn once, and anything unreached still gets a row.
+  const rows = useMemo(() => {
+    const byParent = new Map<string, Requirement[]>();
+    for (const r of requirements) {
+      if (r.parent && requirements.some((p) => p.id === r.parent))
+        byParent.set(r.parent, [...(byParent.get(r.parent) ?? []), r]);
     }
-  };
-  for (const r of requirements) {
-    if (!r.parent || !requirements.some((p) => p.id === r.parent)) walk(r, 0);
-  }
-  for (const r of requirements) walk(r, 0);
+    const seen = new Set<string>();
+    const build = (r: Requirement): RequirementNode[] => {
+      if (seen.has(r.id)) return [];
+      seen.add(r.id);
+      return [
+        {
+          ...r,
+          parts: (byParent.get(r.id) ?? []).flatMap(build),
+          allocations: allocationCount(r.id),
+          isSelected: selected === r.id,
+        },
+      ];
+    };
+    const roots = requirements.filter(
+      (r) => !r.parent || !requirements.some((p) => p.id === r.parent),
+    );
+    return [...roots.flatMap(build), ...requirements.flatMap(build)];
+  }, [requirements, allocationCount, selected]);
+
+  const columns = useMemo(
+    () =>
+      defineColumns<RequirementNode>((c) => [
+        c.id("id", {
+          header: "Requirement",
+          width: 112,
+          hideable: false,
+          active: (r) => r.isSelected,
+          cell: (r) => (
+            <RequirementHover requirementId={r.id}>
+              <TextLink>
+                <Link
+                  to="/programs/$programId/requirements/$requirementId"
+                  params={{ programId, requirementId: r.id }}
+                >
+                  <Id>{r.id}</Id>
+                </Link>
+              </TextLink>
+            </RequirementHover>
+          ),
+        }),
+        c.text("text", { header: "Shall statement", minWidth: 240, hideable: false }),
+        c.text("type", { header: "Type", width: 104 }),
+        c.custom("derives", {
+          header: "Derives from",
+          width: 104,
+          cell: (r) => <SourceCell derivations={r.derivations} />,
+          sort: (r) => r.derivations[0]?.sourceId ?? "",
+          text: (r) => r.derivations.map((d) => d.sourceId).join(", "),
+        }),
+        c.number("allocations", {
+          header: "Alloc",
+          width: 72,
+          cell: (r) => (r.allocations === 0 ? <Absent /> : r.allocations),
+        }),
+        c.text("method", { header: "Method", width: 104 }),
+        c.text("owner", { header: "Owner", width: 116 }),
+        c.status("state", {
+          header: "State",
+          width: 120,
+          tone: (r) => requirementStateTone[r.state],
+        }),
+      ]),
+    [programId],
+  );
+
+  const table = useDataTable({
+    columns,
+    data: rows,
+    getRowId: (r) => r.id,
+    label: "Requirements",
+    tree: {
+      children: (r) => r.parts,
+      label: (r) => r.id,
+      column: "text",
+      hint: (_, n) => (
+        <Text size="xsmall" color="color.text.subtle">
+          {n} part{n === 1 ? "" : "s"}
+        </Text>
+      ),
+      initialExpanded: true,
+    },
+  });
 
   return (
-    <Table className="pt-050">
-      <thead>
-        <Table.Row>
-          <Table.Header width={112}>Requirement</Table.Header>
-          <Table.Header width={104}>Type</Table.Header>
-          <Table.Header>Shall statement</Table.Header>
-          <Table.Header width={104}>Derives from</Table.Header>
-          <Table.Header width={72} className="text-right">
-            Alloc
-          </Table.Header>
-          <Table.Header width={104}>Method</Table.Header>
-          <Table.Header width={116}>Owner</Table.Header>
-          <Table.Header width={150}>State</Table.Header>
-        </Table.Row>
-      </thead>
-      <tbody>
-        {rows.map(({ requirement, depth }) => {
-          const count = allocationCount(requirement.id);
-          return (
-            <Table.Row
-              key={requirement.id}
-              className={cn(selected === requirement.id && "bg-selected")}
-              title={requirement.text}
-            >
-              <Table.Cell className="max-w-none">
-                <span style={{ paddingLeft: `${depth * 12}px` }}>
-                  <RequirementHover requirementId={requirement.id}>
-                    <TextLink>
-                      <Link
-                        to="/programs/$programId/requirements/$requirementId"
-                        params={{ programId, requirementId: requirement.id }}
-                      >
-                        <Id>{requirement.id}</Id>
-                      </Link>
-                    </TextLink>
-                  </RequirementHover>
-                </span>
-              </Table.Cell>
-              <Table.Cell className="truncate">{requirement.type}</Table.Cell>
-              <Table.Cell className="truncate">{requirement.text}</Table.Cell>
-              <Table.Cell className="truncate">
-                <SourceCell derivations={requirement.derivations} />
-              </Table.Cell>
-              <Table.Cell className="tabular-nums text-right">
-                {count === 0 ? <span className="text-subtle">—</span> : count}
-              </Table.Cell>
-              <Table.Cell className="truncate">{requirement.method}</Table.Cell>
-              <Table.Cell className="truncate">{requirement.owner}</Table.Cell>
-              <Table.Cell>
-                <Badge size="xsmall" tone={requirementStateTone[requirement.state]}>
-                  {requirement.state}
-                </Badge>
-              </Table.Cell>
-            </Table.Row>
-          );
-        })}
-      </tbody>
-    </Table>
+    <Box paddingBlockStart="space.050">
+      <DataTable table={table} />
+    </Box>
   );
 }
 
@@ -323,9 +366,9 @@ function SourceLink({ derivation, programId }: { derivation: Derivation; program
 /* -------------------------------------------------------------- Allocation */
 
 /**
- * `editable` turns the three judgement columns into inline editors. Target and
- * kind are never editable here: moving an allocation to a different element is
- * a different act from revising the claim about this one, and conflating them
+ * `editable` turns the judgement columns into inline editors. Target and kind
+ * are never editable here: moving an allocation to a different element is a
+ * different act from revising the claim about this one, and conflating them
  * behind a dropdown would let a misclick silently reassign responsibility.
  */
 export function AllocationTable({
@@ -337,122 +380,71 @@ export function AllocationTable({
   programId: string;
   editable?: boolean;
 }) {
+  const columns = useMemo(() => {
+    // One editor contract per field: commit into the store at once, then settle the save.
+    const edit = (key: keyof AllocationPatch) =>
+      editable
+        ? {
+            onChange: (a: Allocation, next: string) =>
+              setAllocationField(a.id, { [key]: next } as AllocationPatch),
+            save: (a: Allocation, next: string) => saveRequirementField(`${a.id} ${key}`, next),
+          }
+        : undefined;
+    const select = (key: keyof AllocationPatch, options: readonly string[]) => {
+      const e = edit(key);
+      return e ? { ...e, options } : undefined;
+    };
+    return defineColumns<Allocation>((c) => [
+      c.custom("target", {
+        header: "Allocated to",
+        width: 230,
+        cell: (a) => (
+          <span title={a.rationale}>
+            <TargetLink allocation={a} programId={programId} />
+          </span>
+        ),
+        sort: (a) => resolveTarget(a).name,
+        text: (a) => resolveTarget(a).name,
+      }),
+      c.text("targetKind", { header: "Kind", width: 88, cell: (a) => targetKindLabel(a) }),
+      c.status("responsibility", {
+        header: "Responsibility",
+        width: 124,
+        tone: (a) => responsibilityTone[a.responsibility],
+        editable: select("responsibility", responsibilities),
+      }),
+      c.status("coverage", {
+        header: "Coverage",
+        width: 120,
+        tone: (a) => coverageTone[a.coverage],
+        editable: select("coverage", coverages),
+      }),
+      c.text("scope", { header: "Scope of the claim", editable: edit("scope") }),
+      c.text("owner", { header: "Owner", width: 124, editable: edit("owner") }),
+      c.status("state", {
+        header: "State",
+        width: 120,
+        tone: (a) => allocationStateTone[a.state],
+        editable: select("state", allocationStates),
+      }),
+    ]);
+  }, [programId, editable]);
+
+  const table = useDataTable({
+    columns,
+    data: allocations,
+    getRowId: (a) => a.id,
+    label: "Allocations",
+  });
+
   if (allocations.length === 0) {
     return <p className="pt-150 font-body text-subtle">Not allocated.</p>;
   }
 
   return (
-    <Table className="pt-050">
-      <thead>
-        <Table.Row>
-          <Table.Header width={230}>Allocated to</Table.Header>
-          <Table.Header width={88}>Kind</Table.Header>
-          <Table.Header width={112}>Responsibility</Table.Header>
-          <Table.Header width={92}>Coverage</Table.Header>
-          <Table.Header>Scope of the claim</Table.Header>
-          <Table.Header width={124}>Owner</Table.Header>
-          <Table.Header width={150}>State</Table.Header>
-        </Table.Row>
-      </thead>
-      <tbody>
-        {allocations.map((a) => (
-          <Table.Row key={a.id} title={a.rationale}>
-            <Table.Cell className="truncate">
-              <TargetLink allocation={a} programId={programId} />
-            </Table.Cell>
-            <Table.Cell>{targetKindLabel(a)}</Table.Cell>
-            <Table.Cell>
-              {editable ? (
-                <Editable.Select
-                  label="Responsibility"
-                  options={responsibilities}
-                  value={a.responsibility}
-                  onChange={(next) => setAllocationField(a.id, { responsibility: next })}
-                  save={(next) => saveRequirementField(`${a.id} responsibility`, next)}
-                  render={(v) => (
-                    <Badge size="xsmall" tone={responsibilityTone[v]}>
-                      {v}
-                    </Badge>
-                  )}
-                />
-              ) : (
-                <Badge size="xsmall" tone={responsibilityTone[a.responsibility]}>
-                  {a.responsibility}
-                </Badge>
-              )}
-            </Table.Cell>
-            <Table.Cell>
-              {editable ? (
-                <Editable.Select
-                  label="Coverage"
-                  options={coverages}
-                  value={a.coverage}
-                  onChange={(next) => setAllocationField(a.id, { coverage: next })}
-                  save={(next) => saveRequirementField(`${a.id} coverage`, next)}
-                  render={(v) => (
-                    <Badge size="xsmall" tone={coverageTone[v]}>
-                      {v}
-                    </Badge>
-                  )}
-                />
-              ) : (
-                <Badge size="xsmall" tone={coverageTone[a.coverage]}>
-                  {a.coverage}
-                </Badge>
-              )}
-            </Table.Cell>
-            <Table.Cell className="truncate" title={a.scope}>
-              {editable ? (
-                <Editable.Text
-                  value={a.scope}
-                  onChange={(next) => setAllocationField(a.id, { scope: next })}
-                  save={(next) => saveRequirementField(`${a.id} scope`, next)}
-                />
-              ) : (
-                a.scope
-              )}
-            </Table.Cell>
-            <Table.Cell className="truncate">
-              {editable ? (
-                <Editable.Text
-                  value={a.owner}
-                  onChange={(next) => setAllocationField(a.id, { owner: next })}
-                  save={(next) => saveRequirementField(`${a.id} owner`, next)}
-                />
-              ) : (
-                a.owner
-              )}
-            </Table.Cell>
-            <Table.Cell>
-              <Stack as="span" space="space.025">
-                {editable ? (
-                  <Editable.Select
-                    label="State"
-                    options={allocationStates}
-                    value={a.state}
-                    onChange={(next) => setAllocationField(a.id, { state: next })}
-                    save={(next) => saveRequirementField(`${a.id} state`, next)}
-                    render={(v) => (
-                      <Badge size="xsmall" tone={allocationStateTone[v]}>
-                        {v}
-                      </Badge>
-                    )}
-                  />
-                ) : (
-                  <Badge size="xsmall" tone={allocationStateTone[a.state]}>
-                    {a.state}
-                  </Badge>
-                )}
-                <SuspectFlag
-                  link={{ kind: "allocation", id: a.id }}
-                  name={`${a.requirement} on ${resolveTarget(a).name}`}
-                />
-              </Stack>
-            </Table.Cell>
-          </Table.Row>
-        ))}
-      </tbody>
-    </Table>
+    <Box paddingBlockStart="space.050">
+      <DataTable table={table} />
+    </Box>
   );
 }
 
