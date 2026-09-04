@@ -60,6 +60,14 @@ Every kind takes `header`, `width` (pixels; also the minimum), `minWidth`, `sort
 
 <Canvas of={Stories.ReorderingRows} />
 
+## Scale
+
+`virtualize` draws only the rows in view and lets the frame scroll the rest; give the renderer a `maxHeight` and leave `pageSize` off. Rows are `dimension.row` tall, so nothing measures. `manual: { sorting, filtering, pagination }` with `rowCount` hands the work to a server: the table shows the rows it is given and counts what the server says; own the four state slices and fetch on change. `toRows(table)` and `toCsv(table)` export the rows the filters leave, in the sort chosen, every page, with the columns the reader shows; a custom column exports what its `text` says. The kit has no router, so the app binds sort, page, search and filters to the URL itself (`useTableSearch` in `src/lib/table-state.ts`), and the reader's layout stays in this browser under the table's view name.
+
+<Canvas of={Stories.ThousandRows} />
+
+<Canvas of={Stories.ServerStory} />
+
 ## Rules
 
 - Text starts; numbers end with tabular numerals and their header with them; a status or a person starts. A number never centres. The kinds carry this.

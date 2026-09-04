@@ -76,6 +76,9 @@ export type DataTableOptions<TData extends RowData> = Partial<TanStackOptions<TD
   groupBy?: string | undefined;
   /** Rows can be pinned above and below through `row.pin`. */
   pinRows?: boolean | undefined;
+  /** Only the rows in view are drawn; the frame scrolls the rest. Give the renderer a `maxHeight`; leave `pageSize` off. */
+  virtualize?:
+    boolean | { estimate?: number | undefined; overscan?: number | undefined } | undefined;
   /** Rows can be dragged into a new order. Sorting is off while it is on. */
   reorderRows?: ((moved: TData, target: TData, position: "before" | "after") => void) | undefined;
 };
@@ -117,6 +120,7 @@ export function useDataTable<TData extends RowData>({
   groupBy,
   pinRows = false,
   reorderRows,
+  virtualize,
   initialState,
   ...rest
 }: DataTableOptions<TData>) {
@@ -176,6 +180,7 @@ export function useDataTable<TData extends RowData>({
       detail: detail as ((row: never) => ReactNode) | undefined,
       groupBy,
       pinRows,
+      ...(virtualize ? { virtualize: virtualize === true ? {} : virtualize } : {}),
       reorderRows: reorderRows as
         ((moved: never, target: never, position: "before" | "after") => void) | undefined,
     },

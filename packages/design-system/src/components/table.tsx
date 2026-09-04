@@ -31,8 +31,13 @@ import { Tooltip } from "./tooltip";
 function TableRoot({
   className,
   maxHeight,
+  frameRef,
   ...props
-}: ComponentPropsWithoutRef<"table"> & { maxHeight?: number | undefined }) {
+}: ComponentPropsWithoutRef<"table"> & {
+  maxHeight?: number | undefined;
+  /** The scroll frame, for a virtualizer that needs the element that scrolls. */
+  frameRef?: Ref<HTMLDivElement> | undefined;
+}) {
   const frame = useRef<HTMLDivElement>(null);
   const track = useCallback(() => {
     const el = frame.current;
@@ -48,6 +53,8 @@ function TableRoot({
     <div
       ref={(el) => {
         frame.current = el;
+        if (typeof frameRef === "function") frameRef(el);
+        else if (frameRef) frameRef.current = el;
         if (el) track();
       }}
       onScroll={track}

@@ -14,7 +14,7 @@ Updated 2026-09-03.
 
 ## Kit
 
-- [ ] **Data table**, steps 5 and 6 of `docs/superpowers/specs/2026-09-03-data-table.md`: virtual scroll, server mode, the URL adapter, export; editing and PickerSheet on it. Eight calls for Josef to overturn in the spec.
+- [ ] **Data table**, step 6 of `docs/superpowers/specs/2026-09-03-data-table.md`: editing in place with the column keyboard model, and PickerSheet on it. Eight calls for Josef to overturn in the spec.
 - [ ] **Step 9 · Publishable build** with type declarations, when the second project appears.
 - [ ] **`docs/guides/component-library.md`** still describes `src/ds`. Rewrite onto the package or retire it in favour of the Storybook docs.
 
@@ -29,6 +29,7 @@ Updated 2026-09-03.
 
 ## Done
 
+- 2026-09-03 · **Data table, step 5**: virtual scroll, server mode, `toRows`/`toCsv`, and the URL adapter in `src/lib/table-state.ts`; the risks route keeps sort, page, search and filters in the URL and exports its CSV.
 - 2026-09-03 · **Data table, step 4**: tree mode with the treegrid keyboard, detail rows, groups, pinned rows, totals in the footer, row reordering by handle; the system tree on tree mode.
 - 2026-09-03 · **Data table, step 3**: pinned columns with offsets and the scrolled edge, resizing, drag and keyboard reordering, hiding from the Columns menu or the header's own, column groups; the reader's order, widths, visibility and pins persist per table in localStorage with Reset view. Risks and programs on it.
 - 2026-09-03 · **Data table, step 2**: `DataTable.SelectionBar` with select-all-pages, `.Filter` chips built from each column's facet or range, `.Search`, `.Presets` with counts; the routes' tabs and chips are one filter state.

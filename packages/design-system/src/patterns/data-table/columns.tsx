@@ -347,6 +347,7 @@ export function columnKinds<TData extends RowData>() {
       align = "start",
       cell,
       sort,
+      text,
     }: {
       header?: ReactNode | undefined;
       width?: number | undefined;
@@ -354,6 +355,8 @@ export function columnKinds<TData extends RowData>() {
       align?: "start" | "end" | undefined;
       cell: (row: TData) => ReactNode;
       sort?: ((row: TData) => string | number) | undefined;
+      /** What the column exports; without it a custom column exports nothing. */
+      text?: ((row: TData) => string) | undefined;
     },
   ): DataTableColumn<TData> =>
     sort
@@ -365,7 +368,7 @@ export function columnKinds<TData extends RowData>() {
           enableSorting: true,
           sortFn: "alphanumeric",
           enableGlobalFilter: false,
-          meta: { kind: "custom", align },
+          meta: { kind: "custom", align, export: text as ((row: never) => string) | undefined },
           cell: ({ row }) => cell(row.original),
         })
       : helper.display({
@@ -374,7 +377,7 @@ export function columnKinds<TData extends RowData>() {
           ...(width === undefined ? {} : { size: width }),
           minSize: minOf(width, minWidth ?? minWidths.custom),
           enableSorting: false,
-          meta: { kind: "custom", align },
+          meta: { kind: "custom", align, export: text as ((row: never) => string) | undefined },
           cell: ({ row }) => cell(row.original),
         });
 

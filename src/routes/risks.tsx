@@ -25,14 +25,17 @@ import {
   Textarea,
   defineColumns,
   toast,
+  toCsv,
   useDataTable,
-  type ColumnFiltersState,
   type Tone,
 } from "@ledger/design-system";
+import { useTableSearch, validateTableSearch } from "@/lib/table-state";
 import { Shell } from "@/components/app/shell";
 import { riskStatusTone, risks, type Risk } from "@/lib/grc-data";
 
 export const Route = createFileRoute("/risks")({
+  // The URL owns the table's question: sort, page, search and filters.
+  validateSearch: validateTableSearch,
   head: () => ({
     meta: [
       { title: "Risk register — Equinox GRC" },
@@ -144,11 +147,18 @@ const riskColumns = defineColumns<Risk>((c) => [
 function RiskList() {
   const [creating, setCreating] = useState(false);
   const [exporting, setExporting] = useState(false);
-  // The route owns the filters: the tabs set the status filter, the chips set theirs, the table filters.
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const tab = String(columnFilters.find((f) => f.id === "status")?.value ?? "All");
+  // The URL owns the question: the tabs write the status filter, the chips write theirs, the
+  // headers write the sort, Pagination writes the page. A link carries all of it.
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const url = useTableSearch(
+    search,
+    (patch) => void navigate({ search: (prev) => ({ ...prev, ...patch }), replace: true }),
+    { sort: "id", dir: "desc", pageSize: 5 },
+  );
+  const tab = String(url.state.columnFilters.find((f) => f.id === "status")?.value ?? "All");
   const setTab = (next: string) =>
-    setColumnFilters((f) => [
+    url.onColumnFiltersChange((f) => [
       ...f.filter((x) => x.id !== "status"),
       ...(next === "All" ? [] : [{ id: "status", value: next }]),
     ]);
@@ -162,9 +172,11 @@ function RiskList() {
     view: "risks",
     resizable: true,
     reorderable: true,
-    state: { columnFilters },
-    onColumnFiltersChange: setColumnFilters,
-    initialState: { sorting: [{ id: "id", desc: true }] },
+    state: url.state,
+    onSortingChange: url.onSortingChange,
+    onPaginationChange: url.onPaginationChange,
+    onColumnFiltersChange: url.onColumnFiltersChange,
+    onGlobalFilterChange: url.onGlobalFilterChange,
   });
   const shown = table.getRowCount();
 
@@ -183,10 +195,17 @@ function RiskList() {
                   setExporting(true);
                   window.setTimeout(() => {
                     setExporting(false);
+                    const csv = toCsv(table);
+                    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "risk-register.csv";
+                    a.click();
+                    URL.revokeObjectURL(url);
                     toast.success("Risk register exported", {
-                      description: `${shown} risks · CSV with inherent and residual scores`,
+                      description: `${shown} risks · the columns shown, in the sort chosen`,
                     });
-                  }, 900);
+                  }, 300);
                 }}
               >
                 {exporting ? <Spinner /> : <Download className="size-icon-small" />} Export

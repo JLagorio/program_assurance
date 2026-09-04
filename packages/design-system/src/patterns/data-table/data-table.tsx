@@ -7,7 +7,8 @@ import {
   type RowData,
 } from "@tanstack/react-table";
 import { ChevronRight, MoreHorizontal } from "lucide-react";
-import { memo, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { memo, useRef, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 
 import { Alert } from "../../components/alert";
 import { IconButton } from "../../components/button";
@@ -504,6 +505,26 @@ function DataTableRoot<TData extends RowData>({
   const topRows = pinRows ? table.getTopRows() : [];
   const bottomRows = pinRows ? table.getBottomRows() : [];
   const rows = pinRows ? table.getCenterRows() : allRows;
+
+  // Only the rows in view are drawn; a spacer row above and below keeps the scroll height honest.
+  // Rows are dimension.row tall, so the estimate is the density's row height and nothing measures.
+  const virtual = options?.virtualize && !groupBy ? options.virtualize : undefined;
+  const frame = useRef<HTMLDivElement>(null);
+  const virtualizer = useVirtualizer({
+    count: virtual ? rows.length : 0,
+    getScrollElement: () => frame.current,
+    estimateSize: () =>
+      virtual?.estimate ??
+      (typeof document !== "undefined" && document.documentElement.dataset["density"] === "compact"
+        ? 36
+        : 40),
+    overscan: virtual?.overscan ?? 8,
+    initialRect: { width: 0, height: maxHeight ?? 480 },
+  });
+  const items = virtual ? virtualizer.getVirtualItems() : [];
+  const paddingTop = virtual && items.length ? (items[0]?.start ?? 0) : 0;
+  const paddingBottom =
+    virtual && items.length ? virtualizer.getTotalSize() - (items[items.length - 1]?.end ?? 0) : 0;
   const groups = groupBy ? allRows.filter((r) => r.getIsGrouped() && r.depth === 0) : [];
   const showRows = state === "ready" && allRows.length > 0;
   const isEmpty = state === "empty" || (state === "ready" && allRows.length === 0);
@@ -577,6 +598,7 @@ function DataTableRoot<TData extends RowData>({
       {toolbar ? <div className="border-b border-default px-150 py-100">{toolbar}</div> : null}
       <DragContext table={table}>
         <Table
+          frameRef={frame}
           {...(label ? { "aria-label": label } : {})}
           {...(maxHeight === undefined ? {} : { maxHeight })}
           {...(tree ? { role: "treegrid" } : {})}
@@ -638,7 +660,26 @@ function DataTableRoot<TData extends RowData>({
               {showRows ? (
                 <RowSortable table={table}>
                   {topRows.map((row) => drawRow(row, true))}
-                  {rows.map((row) => drawRow(row))}
+                  {virtual ? (
+                    <>
+                      {paddingTop > 0 ? (
+                        <tr aria-hidden style={{ height: paddingTop }}>
+                          <td colSpan={columnCount} />
+                        </tr>
+                      ) : null}
+                      {items.map((item) => {
+                        const row = rows[item.index];
+                        return row ? drawRow(row) : null;
+                      })}
+                      {paddingBottom > 0 ? (
+                        <tr aria-hidden style={{ height: paddingBottom }}>
+                          <td colSpan={columnCount} />
+                        </tr>
+                      ) : null}
+                    </>
+                  ) : (
+                    rows.map((row) => drawRow(row))
+                  )}
                   {bottomRows.map((row) => drawRow(row, true))}
                 </RowSortable>
               ) : null}

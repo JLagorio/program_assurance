@@ -69,6 +69,8 @@ export type DataTableColumnMeta = {
   tone?: "brand" | "subtle" | undefined;
   /** `actions` kind: the row's menu. */
   actions?: ((row: never) => RowAction[]) | undefined;
+  /** What the column exports, when its value is not the cell's text. */
+  export?: ((row: never) => string) | undefined;
 };
 
 /** What the hook stores on the table for the renderer: the kit options that are not TanStack's. */
@@ -108,6 +110,8 @@ export type DataTableMeta = {
   groupBy?: string | undefined;
   /** Rows can be pinned above and below. */
   pinRows?: boolean | undefined;
+  /** Only the rows in view are drawn; the frame scrolls the rest. Needs `maxHeight` on the renderer. */
+  virtualize?: { estimate?: number | undefined; overscan?: number | undefined } | undefined;
   /** Rows can be dragged into a new order; the handler receives the moved row and its new neighbour. */
   reorderRows?: ((moved: never, target: never, position: "before" | "after") => void) | undefined;
 };

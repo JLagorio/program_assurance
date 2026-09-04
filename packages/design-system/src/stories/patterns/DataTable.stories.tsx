@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button, Toolbar, type Tone } from "../../components";
 import {
@@ -11,8 +11,11 @@ import {
   defineColumns,
   useColumnDrag,
   useDataTable,
+  type ColumnFiltersState,
   type DataTableInstance,
   type DataTableState,
+  type PaginationState,
+  type SortingState,
 } from "../../patterns";
 import { Table } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
@@ -610,20 +613,111 @@ function States() {
 
 export const StatesStory: Story = { name: "States", render: () => <States /> };
 
-/** A thousand rows without pagination, scrolling inside the frame. Choosing one row must not redraw the others. */
-function Thousand() {
-  const data = useMemo(() => makeFindings(1000), []);
+/** Ten thousand rows without pagination: only the rows in view are drawn, the frame scrolls the rest, sorting and choosing still work. */
+function Virtualized() {
+  const data = useMemo(() => makeFindings(10000), []);
   const table = useDataTable({
     columns,
     data,
     getRowId: (r) => r.id,
     selectable: true,
     label: "Findings",
+    virtualize: true,
   });
-  return <DataTable table={table} maxHeight={480} />;
+  return (
+    <Stack space="space.150">
+      <DataTable table={table} maxHeight={480} />
+      <Text size="small" color="color.text.subtle">
+        {table.getRowCount().toLocaleString()} rows · {table.getSelectedRowModel().rows.length}{" "}
+        chosen
+      </Text>
+    </Stack>
+  );
 }
 
-export const ThousandRows: Story = { name: "A thousand rows", render: () => <Thousand /> };
+export const ThousandRows: Story = { name: "Virtualized", render: () => <Virtualized /> };
+
+/** The server sorts, filters and pages: the table hands its state over, shows the rows it is given, and counts what the server says. */
+const serverRows = makeFindings(240);
+function fakeServer(q: {
+  sorting: SortingState;
+  columnFilters: ColumnFiltersState;
+  globalFilter: string;
+  pagination: PaginationState;
+}): Promise<{ rows: Finding[]; total: number }> {
+  let rows = serverRows.filter((r) =>
+    q.globalFilter
+      ? `${r.id} ${r.name}`.toLowerCase().includes(q.globalFilter.toLowerCase())
+      : true,
+  );
+  for (const f of q.columnFilters) {
+    const values = Array.isArray(f.value) ? f.value.map(String) : [String(f.value)];
+    rows = rows.filter((r) => values.includes(String(r[f.id as keyof Finding])));
+  }
+  const sort = q.sorting[0];
+  if (sort) {
+    const key = sort.id as keyof Finding;
+    rows = [...rows].sort((a, b) => {
+      const x = a[key];
+      const y = b[key];
+      const c =
+        typeof x === "number" && typeof y === "number" ? x - y : String(x).localeCompare(String(y));
+      return sort.desc ? -c : c;
+    });
+  }
+  const from = q.pagination.pageIndex * q.pagination.pageSize;
+  const page = rows.slice(from, from + q.pagination.pageSize);
+  return new Promise((r) => setTimeout(() => r({ rows: page, total: rows.length }), 500));
+}
+
+function Server() {
+  const [sorting, setSorting] = useState<SortingState>([{ id: "due", desc: false }]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 8 });
+  const [result, setResult] = useState<{ rows: Finding[]; total: number } | null>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let live = true;
+    setLoading(true);
+    void fakeServer({ sorting, columnFilters, globalFilter, pagination }).then((r) => {
+      if (!live) return;
+      setResult(r);
+      setLoading(false);
+    });
+    return () => {
+      live = false;
+    };
+  }, [sorting, columnFilters, globalFilter, pagination]);
+  const table = useDataTable({
+    columns,
+    data: result?.rows ?? [],
+    getRowId: (r) => r.id,
+    pageSize: 8,
+    manual: { sorting: true, filtering: true, pagination: true },
+    rowCount: result?.total ?? 0,
+    state: { sorting, columnFilters, globalFilter, pagination },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
+  });
+  return (
+    <DataTable
+      table={table}
+      state={loading && !result ? "loading" : "ready"}
+      toolbar={
+        <Toolbar>
+          <DataTable.Search table={table} placeholder="Search on the server" />
+          <DataTable.Filter table={table} column="status" />
+        </Toolbar>
+      }
+      className={loading ? "opacity-loading" : undefined}
+    />
+  );
+}
+
+export const ServerStory: Story = { name: "Server", render: () => <Server /> };
 
 const { SelectionBar, Filter, Search, Presets } = DataTable;
 
@@ -675,6 +769,7 @@ export const DataTableMatrix: Story = {
       <Grouped />
       <PinnedRows />
       <Ranked />
+      <Virtualized />
       <TableParts />
     </Stack>
   ),

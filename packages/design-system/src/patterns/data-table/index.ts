@@ -3,6 +3,7 @@ export { DataTable, type DataTableProps, type DataTableState } from "./data-tabl
 export { countRows, type Preset } from "./filter";
 export { HeaderMenu } from "./columns-menu";
 export { ColumnSortable, DragContext, RowSortable, useColumnDrag, useRowDrag } from "./reorder";
+export { toCsv, toRows, type ExportedRows } from "./to-rows";
 export { clearView, readView, resetView, viewKey, writeView } from "./view-store";
 export {
   dataTableFeatures,
