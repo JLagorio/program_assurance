@@ -337,21 +337,21 @@ function CampaignsPage() {
                       selected.findings.map((id) => {
                         const f = findingById.get(id);
                         return (
-                          <Link
+                          <TextLink
                             key={id}
-                            to="/findings"
                             className="flex items-baseline justify-between gap-100"
                           >
-                            <span className="min-w-0 truncate">
-                              <Id className="text-brand">{id}</Id>{" "}
-                              <span className="text-subtle">{f?.title}</span>
-                            </span>
-                            {f ? (
-                              <Indicator tone={severityTone(f.mitigatedSeverity)}>
-                                {f.mitigatedSeverity}
-                              </Indicator>
-                            ) : null}
-                          </Link>
+                            <Link to="/findings">
+                              <span className="min-w-0 truncate">
+                                <Id>{id}</Id> <span className="text-subtle">{f?.title}</span>
+                              </span>
+                              {f ? (
+                                <Indicator tone={severityTone(f.mitigatedSeverity)}>
+                                  {f.mitigatedSeverity}
+                                </Indicator>
+                              ) : null}
+                            </Link>
+                          </TextLink>
                         );
                       })
                     ) : (
@@ -365,17 +365,17 @@ function CampaignsPage() {
                     {eventsByCampaign(selected.campaign)
                       .filter((e) => e.id !== selected.id)
                       .map((e) => (
-                        <button
+                        <Button
                           key={e.id}
+                          variant="link"
                           onClick={() => setSelected(e)}
-                          className="flex w-full items-baseline justify-between gap-100 text-left"
+                          className="flex w-full items-baseline justify-between gap-100 text-left font-regular"
                         >
                           <span className="min-w-0 truncate">
-                            <Id className="text-brand">{e.id}</Id>{" "}
-                            <span className="text-subtle">{e.name}</span>
+                            <Id>{e.id}</Id> <span className="text-subtle">{e.name}</span>
                           </span>
                           <span className="shrink-0 text-subtle">{e.state}</span>
-                        </button>
+                        </Button>
                       ))}
                   </Stack>
                 </Inspector.Group>

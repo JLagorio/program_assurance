@@ -161,15 +161,16 @@ export function PostureLine({
       shouldWrap
     >
       {items.map((i) => (
-        <button
+        <Button
           key={i.label}
+          variant="link"
           onClick={() => onJump(i.tab)}
-          className="group flex items-baseline gap-075"
+          className="items-baseline"
         >
           <span className="text-subtle">{i.label}</span>
           <span
             className={cn(
-              "tabular-nums font-medium group-hover:underline",
+              "tabular-nums",
               i.tone === "danger"
                 ? "text-danger"
                 : i.tone === "warning"
@@ -179,7 +180,7 @@ export function PostureLine({
           >
             {i.value}
           </span>
-        </button>
+        </Button>
       ))}
     </Inline>
   );

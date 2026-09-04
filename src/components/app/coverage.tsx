@@ -97,12 +97,10 @@ export function CoverageBand({
                 key={f.id}
                 type="button"
                 onClick={() => onSelectFamily(f.id)}
-                className="group flex items-center gap-150 border-b border-default py-075 text-left last:border-0"
+                className="flex items-center gap-150 border-b border-default py-075 text-left transition-colors duration-fast ease-standard last:border-0 hover:bg-neutral-subtle-hovered focus-visible:outline-focused"
               >
                 <Id className="shrink-0 text-subtle w-400">{f.id}</Id>
-                <span className="min-w-0 flex-1 truncate font-body-small group-hover:underline">
-                  {f.name}
-                </span>
+                <span className="min-w-0 flex-1 truncate font-body-small">{f.name}</span>
                 <span className="shrink-0 w-1000">
                   <Progress.Stacked
                     height={4}

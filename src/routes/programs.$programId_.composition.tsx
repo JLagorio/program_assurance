@@ -276,7 +276,7 @@ function ProgramComposition() {
                       onClick={() => select(selectedPosture.worstNode ?? selected.id)}
                       variant="link"
                     >
-                      <Id className="text-brand">{nameOf(selectedPosture.worstNode)}</Id>
+                      <Id>{nameOf(selectedPosture.worstNode)}</Id>
                     </Button>
                   ) : (
                     "—"
@@ -345,25 +345,21 @@ function ProgramComposition() {
                   {edges.map((e) => (
                     <Table.Row key={`${e.from}-${e.kind}-${e.to}`}>
                       <Table.Cell className="truncate">
-                        <button
-                          type="button"
+                        <Button
+                          variant="link"
                           onClick={() => select(e.from)}
-                          className="truncate text-left hover:underline"
+                          className="max-w-full"
                         >
-                          {nameOf(e.from)}
-                        </button>
+                          <span className="min-w-0 truncate">{nameOf(e.from)}</span>
+                        </Button>
                       </Table.Cell>
                       <Table.Cell>
                         <Badge size="xsmall">{e.kind}</Badge>
                       </Table.Cell>
                       <Table.Cell className="truncate">
-                        <button
-                          type="button"
-                          onClick={() => select(e.to)}
-                          className="truncate text-left hover:underline"
-                        >
-                          {nameOf(e.to)}
-                        </button>
+                        <Button variant="link" onClick={() => select(e.to)} className="max-w-full">
+                          <span className="min-w-0 truncate">{nameOf(e.to)}</span>
+                        </Button>
                       </Table.Cell>
                       <Table.Cell className="truncate" title={e.via}>
                         {e.via}
@@ -473,14 +469,14 @@ function ProgramComposition() {
                         </Table.Cell>
                         <Table.Cell className="tabular-nums text-right">{d.components}</Table.Cell>
                         <Table.Cell className="truncate">
-                          <button
-                            type="button"
+                          <Button
+                            variant="link"
                             onClick={() => openInTree(d.subject)}
-                            className="truncate text-left hover:underline"
+                            className="max-w-full"
                             title={nameOf(d.subject)}
                           >
-                            {nameOf(d.subject)}
-                          </button>
+                            <span className="min-w-0 truncate">{nameOf(d.subject)}</span>
+                          </Button>
                         </Table.Cell>
                         <Table.Cell>
                           <Inline as="span" space="space.075" alignBlock="center">
