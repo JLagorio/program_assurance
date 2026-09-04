@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { InputGroup } from "../../components";
 import * as Stories from "./InputGroup.stories";
@@ -7,15 +7,94 @@ import * as Stories from "./InputGroup.stories";
 
 # InputGroup
 
-An Input with something at either end: a search icon, a unit, a shortcut hint, a clear button. The child is any Input or NativeSelect.
+An [Input](?path=/docs/components-input--docs) or a [NativeSelect](?path=/docs/components-nativeselect--docs) with something at either end, inside the field's padding: an icon at the start, a unit or a shortcut hint at the end. It is how the search box gets its glass and its ⌘K, and how a number gets its unit. The group draws nothing of its own; the field inside keeps every state it has.
+
+The ends are static. Nothing in them is a label, a button or a second field. An action belongs beside the field as a [Button](?path=/docs/components-button--docs); a search box is cleared with Escape; two values are two Fields.
 
 <Canvas of={Stories.InputGroupMatrix} />
+
+## Anatomy
+
+| Part     | What it is                                                                                                                                                              |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Leading  | At the start, `space.100` in: an icon in `color.icon.subtle` at `dimension.icon.small`, or a short text such as a currency sign. The field's start padding grows to `space.400`. |
+| Control  | The one child: an Input or a NativeSelect, with every state of its own.                                                                                                 |
+| Trailing | At the end, `space.100` in: a unit or a shortcut hint in `font.body.xsmall`, `color.text.subtle`, or an icon. The field's end padding grows to `space.500`. For an Input only: a NativeSelect keeps its chevron there. |
+| Label    | Not the group's. The Field's label, or `aria-label` on the control, names the field; the ends are hidden from screen readers.                                            |
+
+## Variants
+
+InputGroup has one appearance. What varies is what sits at the ends:
+
+| Need                                     | Ends                                                                                                   |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| A search box                             | The search glass leading; the shortcut hint trailing when a shortcut opens it (the top navigation's ⌘K). |
+| A number with a unit                     | The unit trailing: "days", "kg", "%".                                                                  |
+| An amount                                | The currency sign leading.                                                                             |
+| A select with a kind                     | An icon leading; nothing trailing, the chevron is there.                                               |
+
+There is no clear button: a search box is cleared with Escape, and the browser's own clear control is hidden so the two do not compete. There is no button in a field: an action is a Button beside it. There is no attached segment (a "https://" box before the field): the hint says the format.
+
+## Sizes
+
+None of its own. The Input's `size` sets the height, and the ends stay centred at either: `small` for the top navigation and a toolbar, `medium` in a form. The width is `width` for a group that stands alone, a search box, and the form's column otherwise.
+
+<Canvas of={Stories.SearchBox} />
+
+## States
+
+The states are the field's: hover, focus, filled, invalid, disabled and read-only look exactly as they do on the [Input](?path=/docs/components-input--docs#states) or the [NativeSelect](?path=/docs/components-nativeselect--docs#states) inside. The ends do not change with them; a disabled field says so with its fill and its text, and the icon stays `color.icon.subtle`.
+
+## Modifiers
+
+- **`leading`** for what the field is: the search glass, a calendar, a currency sign.
+- **`trailing`** for what the value counts, or the key that opens the field: "days", "⌘K". Static text or an icon; it is never clickable.
+- **`width`** in pixels, for a group that stands alone. In a form's Grid the column sets the width and `width` is not set.
+- **`className`** for layout only.
+- The Input's **`type="search"`** for a search box: the role is announced, Escape clears it.
+
+<Canvas of={Stories.Units} />
+
+## Content
+
+- **A unit is its symbol or its short word**, lower case, after the value: "days", "kg", "%". The label or the hint says it in words for the screen reader: "Retention", "Days before the scan is purged."
+- **A shortcut hint is the key glyphs** and nothing else: ⌘K. It appears only where the shortcut works.
+- **The leading icon means the field's kind**: a glass for search, a calendar for a date. An icon with nothing to say is left out.
+- **Nothing in the ends is the label.** The label is the Field's or the control's `aria-label`.
+
+## Style
+
+| Element  | Token                                                                                     |
+| -------- | ----------------------------------------------------------------------------------------- |
+| Leading  | `color.icon.subtle` · `dimension.icon.small` 14px · `space.100` 8px from the start        |
+| Trailing | `font.body.xsmall` in `color.text.subtle` · `space.100` 8px from the end · `space.050` between an icon and text |
+| Field    | The Input's or the NativeSelect's; start padding `space.400` 32px with a leading end, end padding `space.500` 40px with a trailing end |
+
+## Accessibility
+
+- **The ends are hidden** (`aria-hidden`) and take no pointer events. A screen reader hears the field's name, its value and its description, and nothing about the glass or the "days"; so the label or the hint carries the unit in words.
+- **The field is the only stop.** Tab reaches the Input or the NativeSelect; there is nothing else to reach. That is why an action cannot live in an end: it would be neither clickable nor focusable.
+- **A search box is `type="search"`**: the reader hears "search field", and Escape clears it. The browser's own clear control is hidden so the group has one way to clear.
+- **The name comes from a Field or an `aria-label`**, never from the icon.
 
 ## Props
 
 <ArgTypes of={InputGroup} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
 - [Input](?path=/docs/components-input--docs), [NativeSelect](?path=/docs/components-nativeselect--docs): what goes inside.
-- [Forms](?path=/docs/components-forms--docs): the controls together.
+- [Field](?path=/docs/components-field--docs): the label, the hint and the error, around the group.
+- [CommandPalette](?path=/docs/patterns-commandpalette--docs): what the top navigation's ⌘K opens.
+- [Kbd](?path=/docs/components-kbd--docs): a keycap in prose. The hint in a field is plain text.
+- [FilterChip](?path=/docs/components-filterchip--docs): a toolbar's filters, beside its search box.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

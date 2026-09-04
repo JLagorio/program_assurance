@@ -159,7 +159,7 @@ export function SctmMatrixSection({
         <NativeSelect
           value={family}
           onChange={(e) => onFamily(e.target.value)}
-          className="h-control-small"
+          size="small"
           style={{ width: 188 }}
         >
           <option value="All">All families</option>
@@ -172,7 +172,7 @@ export function SctmMatrixSection({
         <NativeSelect
           value={status}
           onChange={(e) => onStatus(e.target.value as ControlStatus | "All")}
-          className="h-control-small"
+          size="small"
           style={{ width: 176 }}
         >
           <option value="All">All determinations</option>

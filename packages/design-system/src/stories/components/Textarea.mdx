@@ -1,24 +1,144 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Textarea } from "../../components";
 import * as Stories from "./Textarea.stories";
 
 <Meta of={Stories} />
 
 # Textarea
 
-**Input**, **NativeSelect** and **Textarea** share the hairline control on the input surface. All three are the browser's own element with the kit's look. Every attribute passes through.
+Several lines of free text: a note, a description, an implementation statement. Use it when the answer runs past one line and cannot be predicted. A one-line answer is an [Input](?path=/docs/components-input--docs); an answer from a list is a [NativeSelect](?path=/docs/components-nativeselect--docs), a [Select](?path=/docs/components-select--docs) or a [Combobox](?path=/docs/components-combobox--docs). A value that is code is a [CodeBlock](?path=/docs/components-codeblock--docs), not a monospaced field.
+
+A Textarea lives inside a [Field](?path=/docs/components-field--docs) for its label, its hint and its error, the same way an Input does. It is the browser's `<textarea>` with the kit's field on it: it takes every attribute a textarea takes, and `rows` says how long an answer is expected.
 
 <Canvas of={Stories.TextareaMatrix} />
 
-A `controlBase` string is exported for the button triggers of Select, Combobox and DatePicker, so a trigger and a field are the same shape.
+## Anatomy
+
+| Part          | What it is                                                                                                                                     |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Label         | From the Field, above the control: `font.body.small` at `font.weight.medium`, `color.text.subtle`. It is the control's name.                   |
+| Required mark | The Field's `isRequired`: a red asterisk after the label, hidden from screen readers, which hear `aria-required` instead.                       |
+| Control       | The field: `rows` lines tall, `radius.medium`, `color.border.input` on `color.background.input`, `space.100` at the sides and `space.075` above and below. |
+| Value         | The text, `font.body`, `color.text`, wrapping at the field's width. Empty, the placeholder shows in `color.text.subtlest`.                       |
+| Resize handle | The browser's, in the end corner. It changes the height only; the width is the layout's.                                                       |
+| Message       | From the Field, under the control: the hint in `color.text.subtlest`, or the error in `color.text.danger`. It is the control's description.    |
+
+## Variants
+
+Textarea has one appearance. What varies is how long an answer is expected, and `rows` says it:
+
+| Answer                                                  | `rows`  | Where                                                                  |
+| ------------------------------------------------------- | ------- | ---------------------------------------------------------------------- |
+| A note: one or two lines for the next reader            | `2`     | A row's note, a rail, a dialog's optional comment.                     |
+| A description: what a thing is or does                  | `3`–`4` | A record's form. The common case.                                      |
+| A narrative: an implementation statement, an assessment | `6`–`8` | A page of its own or a sheet, with the limit in the hint.              |
+
+There is no borderless or "subtle" appearance, no fixed-height field with the handle removed, and no character counter: the hint says the limit and `maxLength` holds it. There is no monospaced textarea.
+
+## Sizes
+
+The height is `rows`, never a size prop: three rows of `font.body` are 54px of text plus `space.075` above and below. The reader can drag the handle to make it taller or shorter, down to `space.800` (64px); the value scrolls inside whatever height they choose. There is no small Textarea; a note in a toolbar is a dialog with a Textarea in it.
+
+The width is the layout's. A Textarea fills its container, and in a form's Grid a note or a description takes the row, the way Carbon and Atlassian lay them out, so the lines are long enough to read as prose.
+
+<Canvas of={Stories.Rows} />
+
+## States
+
+| State     | What changes                                                                                                                  |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Rest      | `color.border.input` on `color.background.input`; the placeholder in `color.text.subtlest`.                                    |
+| Hover     | The background steps to `color.background.input.hovered`.                                                                      |
+| Focus     | The border turns `color.border.focused` and the focus outline shows. The caret lands where the reader clicked, or at the start. |
+| Filled    | The value in `color.text`, wrapped. Past `rows`, it scrolls.                                                                   |
+| Invalid   | The border turns `color.border.danger` and the Field's error replaces the hint, in `color.text.danger`, announced as an alert. |
+| Disabled  | `color.background.disabled`, `color.border.disabled`, `color.text.disabled`, the not-allowed cursor. See Accessibility for when. |
+| Read-only | The field sits on `elevation.surface.sunken` with no hover; it can be focused, scrolled, selected and copied, and still resized. |
+
+<Canvas of={Stories.InField} />
+
+## Modifiers
+
+- **`rows`** for the expected length. Two for a note, four for a description, eight for a narrative. It is the starting height, not a limit.
+- **`maxLength`** where the store has a limit. The hint says the limit in words ("Up to 2,000 characters."); there is no counter, and the browser stops the typing at the limit without a sound, which is why the hint must say it.
+- **`readOnly`** for a statement the reader can read here but edits elsewhere. It stays in the tab order and can be copied. It is not `disabled`.
+- **`autoFocus`** on the one Textarea a dialog or a sheet exists to fill.
+- **`placeholder`** for one example of a good answer, not the instructions: those are the hint.
+
+## Content
+
+- **The label is a noun**, sentence case, no colon: Function, Note, Implementation statement. Not an instruction, not a question.
+- **The hint says what a good answer is** and, when there is one, the limit: "How this system satisfies the control, in terms an assessor can verify." One sentence, or two when the second is the limit.
+- **The placeholder is one example**, short, and gone on the first keystroke: "Terrain-following radar and collision avoidance." Never the instructions, never a rule.
+- **The error says what fixes it**: "Required." from `useRequired` for an empty required field; "Keep it under 2,000 characters." from the form's own rule.
+- **The value is prose** the next reader will read as written. The hint sets the register: an assessor's, an engineer's, a colleague's.
+
+## Style
+
+| Element   | Token                                                                                                       |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+| Field     | `color.background.input` · `color.border.input` · `radius.medium` 5px                                       |
+| Hover     | `color.background.input.hovered`                                                                            |
+| Focus     | `color.border.focused` as the border, plus the focus outline                                                |
+| Invalid   | `color.border.danger`; the message in `color.text.danger`                                                   |
+| Disabled  | `color.background.disabled` · `color.border.disabled` · `color.text.disabled`                               |
+| Read-only | `elevation.surface.sunken`                                                                                  |
+| Value     | `font.body` in `color.text`; placeholder in `color.text.subtlest`                                           |
+| Label     | `font.body.small` at `font.weight.medium` in `color.text.subtle`; the required mark in `color.text.danger`  |
+| Hint      | `font.body.small` in `color.text.subtlest`                                                                  |
+| Error     | `font.body.small` in `color.text.danger`                                                                    |
+
+| Measure    | Value                                                                              |
+| ---------- | ---------------------------------------------------------------------------------- |
+| Height     | `rows` × the `font.body` line (18px) + `space.075` 6px above and below              |
+| Minimum    | `space.800` 64px, however far the handle is dragged                                |
+| Padding    | `space.100` 8px at the sides · `space.075` 6px above and below                     |
+| Gaps       | `space.050` 4px from label to control and from control to message                  |
+| Radius     | `radius.medium` 5px                                                                |
+| Resize     | Vertical only; the browser's handle                                                |
+| Motion     | `motion.duration.fast` on the colours, `motion.easing.standard`                    |
+
+The placeholder passes 4.5:1 and the focus and danger borders 3:1 against the input surface in both modes; the rest border is lighter than 3:1 by decision, and `packages/design-system/test/contrast.test.mjs` holds it above a floor.
+
+## Accessibility
+
+- **The label is the name.** The Field wraps the control in a `<label>`, so it is named by the label text and focused by a click on it. Without a Field, a Textarea needs `aria-label`, and a form has no such Textarea.
+- **The message is the description.** The hint or the error is wired with `aria-describedby`, so a screen reader reads the name, then the value, then the hint.
+- **The error is announced** with `role="alert"`, and the control carries `aria-invalid`.
+- **Required is spoken, not enforced.** `aria-required` from the Field; the form's own check on submit says what is missing.
+- **Keyboard:** Tab reaches it and Tab leaves it; Enter inserts a line and never submits; the arrow keys move within the text. The resize handle is a pointer affordance only, and nothing depends on it: the value scrolls at any height.
+- **The limit is said, not shown.** `maxLength` stops the typing silently, so the hint states the limit before the reader reaches it.
+- **Disabled is the last resort.** Prefer read-only for a statement the reader can read here, and an enabled field with a hint for one that is not editable yet.
 
 ## Props
 
-<ArgTypes of={Textarea} />
+Textarea takes every attribute of `<textarea>`; the ones this page is about:
+
+| Prop                    | Use                                                                             |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| `rows`                  | The expected length: `2` a note, `4` a description, `8` a narrative.            |
+| `value`, `defaultValue` | Controlled or not. A form with `useRequired` is controlled.                     |
+| `placeholder`           | One example, never the instructions.                                            |
+| `maxLength`             | The store's limit, said in the hint.                                            |
+| `readOnly`, `disabled`  | Read here, edited elsewhere; not available. See States.                         |
+| `autoFocus`             | The one field a dialog exists to fill.                                          |
+| `aria-invalid`          | Set by the Field from `error`; set it by hand only outside a Field.             |
+| `className`             | Layout only. The look is the kit's.                                             |
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
 
 ## Related
 
-- [Field](?path=/docs/components-field--docs): the label, hint and error around it.
-- [Input](?path=/docs/components-input--docs), [NativeSelect](?path=/docs/components-nativeselect--docs): the same hairline control.
-- [Forms](?path=/docs/components-forms--docs): the controls together.
+- [Field](?path=/docs/components-field--docs): the label, the hint and the error around it.
+- [Input](?path=/docs/components-input--docs): one line.
+- [Forms](?path=/docs/components-forms--docs): the layout, and `useRequired` for the required fields checked on submit.
+- [Editable](?path=/docs/components-editable--docs): a value read in place and edited on click, for a record's rail.
+- [CodeBlock](?path=/docs/components-codeblock--docs): a value that is code.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

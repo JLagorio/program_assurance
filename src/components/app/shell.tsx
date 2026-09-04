@@ -115,7 +115,7 @@ export function Shell({ children }: { children: ReactNode }) {
               type="search"
               placeholder="Search risks, controls, evidence…"
               aria-label="Search"
-              className="h-control-small"
+              size="small"
             />
           </InputGroup>
         </DsShell.TopNav.Middle>

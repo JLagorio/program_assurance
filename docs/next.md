@@ -13,6 +13,7 @@ Updated 2026-09-04.
 - [ ] **A non-modal Sheet**, only if the peek panel should stay open while the table behind it is clicked (audit item 7).
 - [ ] **Shell defaults.** The side nav at 228px (min 200, max half the viewport), the panel at 320px (min 240), the banner at 48px: sign-off values in `tokens/dimension.json`.
 - [ ] **Four drifts the token pages found** (2026-09-04): `radius.xlarge` is described as "Dialogs, sheets" but Dialog and Command use `xxlarge`; Palette and the grammar page say six ramps and there are eight (teal and purple for the chart); `poam.tsx` and `conmon.tsx` paint severity as a Badge pill against the Indicator rule; `animate-slide-in-bottom/top` are defined and unused.
+- [ ] **The choice controls on the lighter border** (2026-09-04). `color.border.input` went to `neutral.400` for every field at Josef's ask, so the Checkbox box and the RadioGroup dot are lighter too (1.9:1 on white). Keep, or give the choice controls `color.border.bold`?
 - [ ] **Data table, the calls.** Eight calls made without asking in `docs/superpowers/specs/2026-09-03-data-table.md`, plus one more from step 6: Tab moves across an editable table, Enter moves down. Overturn any in one reading.
 - [ ] **Baseline and ConMon hydration, which fix stays.** This line renders both routes client-only (`ssr: false`, 8bb9e3b). The parallel line kept SSR and had the loader build the control-text index on both sides (769a412, 81911c1); that version was not merged. Taking it would restore SSR on the two routes.
 
@@ -22,7 +23,7 @@ The maturity walk, one part per sitting, each page onto the template (`docs/supe
 
 - [x] Button, IconButton, TextLink (2026-09-04)
 - [x] Input, Field (2026-09-04)
-- [ ] Textarea, NativeSelect, InputGroup
+- [x] Textarea, NativeSelect, InputGroup (2026-09-04). Input and NativeSelect took `size`; Select, Combobox and DatePicker take it in the next sitting.
 - [ ] Select, Combobox, DatePicker, Calendar
 - [ ] Checkbox, RadioGroup, Switch; the Forms overview
 - [ ] Table, Pagination, Toolbar, FilterChip; DataTable

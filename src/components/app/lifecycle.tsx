@@ -92,7 +92,7 @@ export function LifecycleSection({
             <NativeSelect
               value={kind}
               onChange={(e) => setKind(e.target.value as (typeof kindFilters)[number])}
-              className="h-control-small"
+              size="small"
               style={{ width: 172 }}
             >
               {kindFilters.map((k) => (
@@ -104,7 +104,7 @@ export function LifecycleSection({
             <NativeSelect
               value={status}
               onChange={(e) => setStatus(e.target.value as (typeof statusFilters)[number])}
-              className="h-control-small"
+              size="small"
               style={{ width: 136 }}
             >
               {statusFilters.map((s) => (

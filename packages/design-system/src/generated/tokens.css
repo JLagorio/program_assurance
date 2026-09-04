@@ -103,7 +103,7 @@
   --ds-color-border-bold: var(--ds-color-neutral-600);
   --ds-color-border-disabled: var(--ds-color-neutral-200a);
   --ds-color-border-focused: var(--ds-color-blue-500);
-  --ds-color-border-input: var(--ds-color-neutral-500);
+  --ds-color-border-input: var(--ds-color-neutral-400);
   --ds-color-border-inverse: var(--ds-color-neutral-0);
   --ds-color-border-selected: var(--ds-color-blue-700);
   --ds-color-border-brand: var(--ds-color-blue-700);
@@ -459,7 +459,7 @@
   --ds-color-border-bold: var(--ds-color-neutral-600);
   --ds-color-border-disabled: var(--ds-color-neutral-200a);
   --ds-color-border-focused: var(--ds-color-blue-500);
-  --ds-color-border-input: var(--ds-color-neutral-500);
+  --ds-color-border-input: var(--ds-color-neutral-400);
   --ds-color-border-inverse: var(--ds-color-neutral-0);
   --ds-color-border-selected: var(--ds-color-blue-700);
   --ds-color-border-brand: var(--ds-color-blue-700);
@@ -609,7 +609,7 @@
   --ds-color-border-bold: var(--ds-color-dark-neutral-600);
   --ds-color-border-disabled: var(--ds-color-dark-neutral-200a);
   --ds-color-border-focused: var(--ds-color-blue-300);
-  --ds-color-border-input: var(--ds-color-dark-neutral-600);
+  --ds-color-border-input: var(--ds-color-dark-neutral-500);
   --ds-color-border-inverse: var(--ds-color-dark-neutral-0);
   --ds-color-border-selected: var(--ds-color-blue-400);
   --ds-color-border-brand: var(--ds-color-blue-400);
@@ -760,7 +760,7 @@
     --ds-color-border-bold: var(--ds-color-dark-neutral-600);
     --ds-color-border-disabled: var(--ds-color-dark-neutral-200a);
     --ds-color-border-focused: var(--ds-color-blue-300);
-    --ds-color-border-input: var(--ds-color-dark-neutral-600);
+    --ds-color-border-input: var(--ds-color-dark-neutral-500);
     --ds-color-border-inverse: var(--ds-color-dark-neutral-0);
     --ds-color-border-selected: var(--ds-color-blue-400);
     --ds-color-border-brand: var(--ds-color-blue-400);

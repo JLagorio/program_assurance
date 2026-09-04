@@ -85,19 +85,51 @@ export function Field({ label, hint, error, isRequired, children, className }: F
 }
 
 /** The hairline control: Input, NativeSelect, Textarea, and the button triggers of Select, Combobox and DatePicker. */
+/** The field every control shares: the border on the input surface and its hover, focus, invalid, disabled and read-only looks. The height comes from `controlHeight`. */
 export const controlBase =
-  "h-control-medium w-full rounded-medium border border-input bg-input px-100 font-body text-default outline-none transition-colors duration-fast ease-standard placeholder:text-subtlest hover:bg-input-hovered [&[readonly]]:bg-surface-sunken [&[readonly]]:hover:bg-surface-sunken aria-[invalid=true]:border-danger focus-visible:border-focused focus-visible:outline-focused disabled:cursor-not-allowed disabled:border-disabled disabled:bg-disabled disabled:text-disabled";
+  "w-full rounded-medium border border-input bg-input px-100 font-body text-default outline-none transition-colors duration-fast ease-standard placeholder:text-subtlest hover:bg-input-hovered [&[readonly]]:bg-surface-sunken [&[readonly]]:hover:bg-surface-sunken aria-[invalid=true]:border-danger focus-visible:border-focused focus-visible:outline-focused disabled:cursor-not-allowed disabled:border-disabled disabled:bg-disabled disabled:text-disabled";
 
-/** One line of free text. Inside a Field for its label, hint and error; inside an InputGroup for an icon, a unit or a shortcut at either end. */
-export function Input({ className, ...props }: ComponentProps<"input">) {
-  return <input className={cn(controlBase, className)} {...props} />;
+export type ControlSize = "small" | "medium";
+
+/** `medium` (32px) in a form, beside a medium Button; `small` (28px) in a toolbar, a row or a rail, beside a small Button. */
+export const controlHeight: Record<ControlSize, string> = {
+  small: "h-control-small",
+  medium: "h-control-medium",
+};
+
+export type InputProps = {
+  /** `medium` (32px) in a form; `small` (28px) in a toolbar or the top navigation, beside small Buttons. */
+  size?: ControlSize;
+} & Omit<ComponentProps<"input">, "size">;
+
+/** One line of free text. Inside a Field for its label, hint and error; inside an InputGroup for an icon, a unit or a shortcut at either end. `type="search"` for a search box: the browser's own clear control is hidden, Escape clears it. */
+export function Input({ size = "medium", className, ...props }: InputProps) {
+  return (
+    <input
+      className={cn(
+        controlBase,
+        controlHeight[size],
+        "[&::-webkit-search-cancel-button]:appearance-none",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
-/** The browser's own select with the kit's look. The chevron is a real icon, so it follows the colour mode. */
-export function NativeSelect({ className, ...props }: ComponentProps<"select">) {
+export type NativeSelectProps = {
+  /** `medium` (32px) in a form; `small` (28px) as a toolbar's filter or a row's cell, beside small Buttons. */
+  size?: ControlSize;
+} & Omit<ComponentProps<"select">, "size">;
+
+/** The browser's own select with the kit's look: a short, plain list the reader picks one of. The chevron is a real icon, so it follows the colour mode. `className` goes to the wrapper. */
+export function NativeSelect({ size = "medium", className, ...props }: NativeSelectProps) {
   return (
     <span className={cn("relative block w-full", className)}>
-      <select className={cn(controlBase, "appearance-none pe-400")} {...props} />
+      <select
+        className={cn(controlBase, controlHeight[size], "appearance-none pe-400")}
+        {...props}
+      />
       <ChevronDown
         aria-hidden
         className="pointer-events-none absolute end-100 top-1/2 size-icon-small -translate-y-1/2 icon-subtle"
@@ -106,13 +138,10 @@ export function NativeSelect({ className, ...props }: ComponentProps<"select">) 
   );
 }
 
-/** Several lines of free text, resizable downwards. Inside a Field like an Input. */
+/** Several lines of free text: a note, a description, a narrative. `rows` says how long an answer is expected; the reader can drag it taller. Inside a Field like an Input. */
 export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
   return (
-    <textarea
-      className={cn(controlBase, "h-auto min-h-800 resize-y py-075", className)}
-      {...props}
-    />
+    <textarea className={cn(controlBase, "min-h-800 resize-y py-075", className)} {...props} />
   );
 }
 

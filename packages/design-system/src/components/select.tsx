@@ -3,7 +3,7 @@ import { Check, ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "../lib/cn";
-import { controlBase } from "./controls";
+import { controlBase, controlHeight } from "./controls";
 import { menuItem, menuItemDisabled, menuItemHighlighted, menuLabel, menuMotion, menuSeparator, menuSurface } from "./menu";
 
 export type SelectProps = {
@@ -29,7 +29,7 @@ function SelectRoot({ value, defaultValue, onValueChange, placeholder, disabled,
       {...(disabled ? { disabled } : {})}
       {...(name ? { name } : {})}
     >
-      <SelectPrimitive.Trigger aria-label={ariaLabel} className={cn(controlBase, "flex items-center justify-between gap-100 text-left data-[placeholder]:text-subtlest", className)} style={width === undefined ? undefined : { width }}>
+      <SelectPrimitive.Trigger aria-label={ariaLabel} className={cn(controlBase, controlHeight.medium, "flex items-center justify-between gap-100 text-left data-[placeholder]:text-subtlest", className)} style={width === undefined ? undefined : { width }}>
         <span className="min-w-0 flex-1 truncate">
           <SelectPrimitive.Value placeholder={placeholder} />
         </span>

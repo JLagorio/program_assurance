@@ -1097,11 +1097,11 @@
         }
       },
       "input": {
-        "$value": "{color.neutral.500}",
+        "$value": "{color.neutral.400}",
         "$description": "Use for borders of form UI elements, such as text fields, checkboxes, and radio buttons.",
         "$extensions": {
           "ledger": {
-            "dark": "{color.darkNeutral.600}",
+            "dark": "{color.darkNeutral.500}",
             "introduced": "0.1.0"
           }
         }

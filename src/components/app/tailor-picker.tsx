@@ -221,7 +221,7 @@ export function TailorControlsSheet({
           <Box style={{ width: 200 }}>
             <NativeSelect
               aria-label="Source for all"
-              className="[&>select]:h-control-small"
+              size="small"
               defaultValue=""
               onChange={(e) => {
                 const source = e.target.value as TailoringSource;

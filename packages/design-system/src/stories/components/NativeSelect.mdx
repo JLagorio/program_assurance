@@ -1,26 +1,144 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { NativeSelect } from "../../components";
 import * as Stories from "./NativeSelect.stories";
 
 <Meta of={Stories} />
 
 # NativeSelect
 
-**Input**, **NativeSelect** and **Textarea** share the hairline control on the input surface. All three are the browser's own element with the kit's look. Every attribute passes through. NativeSelect draws its chevron with a real icon so it follows the colour mode; `className` goes to its wrapper.
+One answer from a short, plain list: an owner from a team, a responsibility, a status. It is the browser's own `<select>` with the kit's field around it, so the list is the operating system's and needs no code, no positioning and no focus management. Use it when the options are few, are plain words, and are known before the page loads.
+
+It is the lightest of four ways to choose. Two or three options are a [RadioGroup](?path=/docs/components-radiogroup--docs), every one in view. More than a dozen, or names the reader would rather type, are a [Combobox](?path=/docs/components-combobox--docs). Options that need a description, an icon or a status beside them are a [Select](?path=/docs/components-select--docs). A list of actions is a [DropdownMenu](?path=/docs/components-dropdownmenu--docs), not a select at all.
 
 <Canvas of={Stories.NativeSelectMatrix} />
 
-A plain list of words: **NativeSelect**, the browser's own, lightest.
+## Anatomy
 
-A `controlBase` string is exported for the button triggers of Select, Combobox and DatePicker, so a trigger and a field are the same shape.
+| Part    | What it is                                                                                                                                                        |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Label   | From the [Field](?path=/docs/components-field--docs) above the control, or `aria-label` on a select that stands in a toolbar. It is the control's name.            |
+| Control | The field: `dimension.control.medium` (32px) or `small` (28px), `radius.medium`, `color.border.input` on `color.background.input`, `space.100` of padding at the start. |
+| Value   | The chosen option's text in `font.body`, `color.text`. A prompt option ("Choose an owner") reads in the same colour: the browser gives it no other.                |
+| Chevron | `color.icon.subtle`, `dimension.icon.small`, `space.100` from the end. The value keeps `space.400` clear of it. It is a real icon, so it follows the colour mode.   |
+| List    | The browser's. It takes the operating system's font, contrast and size, and a wheel on a phone. The kit does not style it.                                        |
+| Message | From the Field, under the control: the hint, or the error that replaces it.                                                                                       |
+
+## Variants
+
+NativeSelect has one appearance. What varies is which control the list wants:
+
+| The list                                                    | Use                                                                         |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Two or three answers                                        | `RadioGroup`: every option in view, nothing to open.                        |
+| Four to a dozen plain words                                 | `NativeSelect`.                                                             |
+| Options with a description, an icon or a status beside them | `Select`: the kit draws the list.                                           |
+| More than a dozen, or names the reader would type           | `Combobox`: the reader searches.                                            |
+| Actions                                                     | `DropdownMenu`. Choosing does something; it does not set a value.           |
+
+There is no borderless or "inline" select. In a toolbar the select keeps its border, so its state reads like the fields beside it. There is no multiple-choice select: several answers are a group of [Checkbox](?path=/docs/components-checkbox--docs)es.
+
+## Sizes
+
+| Size     | Height                          | Use                                                                                       |
+| -------- | ------------------------------- | ----------------------------------------------------------------------------------------- |
+| `medium` | `dimension.control.medium` 32px | In a form, inside a Field, beside medium Buttons. The default.                            |
+| `small`  | `dimension.control.small` 28px  | A toolbar's filter, a row's cell, a rail, beside small Buttons and a small search box.    |
+
+The width is the layout's. In a form's Grid the column sets it; in a toolbar the wrapper takes a width (`className` or `style` on the NativeSelect goes to its wrapper). Make it as wide as the longest option, so nothing is cut.
+
+<Canvas of={Stories.Sizes} />
+
+## States
+
+| State    | What changes                                                                                                                          |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Rest     | `color.border.input` on `color.background.input`; the value, or the prompt.                                                            |
+| Hover    | The background steps to `color.background.input.hovered`.                                                                              |
+| Focus    | The border turns `color.border.focused` and the focus outline shows.                                                                   |
+| Open     | The browser's list is open. The field keeps its focus look; the list is drawn by the operating system.                                 |
+| Filled   | An option is chosen. A prompt option is not "filled": the form's check treats it as empty.                                              |
+| Invalid  | `aria-invalid`, from the Field's `error`: the border turns `color.border.danger` and the error replaces the hint.                       |
+| Disabled | `color.background.disabled`, `color.border.disabled`, `color.text.disabled`, the chevron unchanged. See Accessibility for when.         |
+
+A select has no read-only state: the browser ignores `readOnly` on it. A value the reader can see but not change here is shown as text, in a [KeyValue](?path=/docs/components-keyvalue--docs) or a [Fact](?path=/docs/components-fact--docs), not as a select that does not open.
+
+## Modifiers
+
+- **The first option** is either a prompt or a default. A prompt has `value=""` and says what to choose ("Choose an owner"); the form's check then asks for a choice. A default is the common answer, already chosen, and needs no prompt at all. A filter always has a default, and its first option says what it includes ("All statuses").
+- **`<optgroup>`** groups options under a heading the browser draws. Use it when the list has natural sections; do not use it to make a long list feel shorter.
+- **A disabled `<option>`** for a choice the reader cannot make yet, when it helps to know it exists.
+- **`size`** for the height: `small` in a toolbar.
+- **`className`** goes to the wrapper, for layout only.
+
+<Canvas of={Stories.Options} />
+
+## Content
+
+- **The label is a noun**, one to three words, sentence case: Owner, Responsibility, Status. The options answer it.
+- **Options are short and parallel**: a word or two each, sentence case, no full stops. An option that needs a sentence belongs in a `Select` with a description.
+- **Order the list** the way the reader thinks of it: a scale in its order (Low, Moderate, High), a lifecycle in its sequence, otherwise alphabetically. Order by frequency only when one or two options are chosen nearly always.
+- **A prompt says what to choose**: "Choose an owner". Never "Select...", "Please select" or "--".
+- **A filter's first option says what it includes**: "All statuses", "Any owner".
+
+## Style
+
+| Element  | Token                                                                                            |
+| -------- | ------------------------------------------------------------------------------------------------ |
+| Field    | `color.background.input` · `color.border.input` · `radius.medium` 5px                            |
+| Hover    | `color.background.input.hovered`                                                                 |
+| Focus    | `color.border.focused` as the border, plus the focus outline                                     |
+| Invalid  | `color.border.danger`; the message in `color.text.danger`                                        |
+| Disabled | `color.background.disabled` · `color.border.disabled` · `color.text.disabled`                    |
+| Value    | `font.body` in `color.text`                                                                      |
+| Chevron  | `color.icon.subtle` · `dimension.icon.small` 14px                                                |
+| List     | The browser's; not styled                                                                        |
+
+| Measure | Value                                                                       |
+| ------- | --------------------------------------------------------------------------- |
+| Height  | `dimension.control.medium` 32px · `dimension.control.small` 28px            |
+| Padding | `space.100` 8px at the start; `space.400` 32px at the end, clear of the chevron |
+| Chevron | `space.100` 8px from the end, centred                                       |
+| Radius  | `radius.medium` 5px                                                         |
+| Motion  | `motion.duration.fast` on the colours, `motion.easing.standard`             |
+
+## Accessibility
+
+- **It is the native select.** A screen reader announces the label, the chosen value and the control's role; the list, when open, is the operating system's, with its own contrast, text size and, on a phone, a wheel. Nothing the kit does can break that, and nothing the kit does improves it.
+- **Keyboard:** Tab reaches it. Space, Enter or Alt+Down opens the list; Up and Down move through it, and on Windows and Linux change the value without opening; typing a letter jumps to the first option that starts with it; Enter chooses; Escape closes without changing.
+- **The label is the name.** Inside a Field, the `<label>` wraps the control. In a toolbar, `aria-label` names it, and the first option's text ("All statuses") is what the reader hears as the value, so it must make sense on its own.
+- **The chevron is hidden** from screen readers; the role already says the control opens.
+- **Invalid and required** come from the Field: `aria-invalid` with the error announced, `aria-required` without the browser's own bubble.
+- **Disabled is the last resort.** A disabled select cannot say why. Prefer a default the reader cannot change shown as text, or an enabled select with the reason in the hint.
 
 ## Props
 
-<ArgTypes of={NativeSelect} />
+NativeSelect takes every attribute of `<select>` but `size`, which is the kit's height. The ones this page is about:
+
+| Prop                    | Use                                                                          |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| `size`                  | `medium` (32px) in a form; `small` (28px) in a toolbar.                      |
+| `children`              | `<option>` and `<optgroup>` elements. The first is a prompt or a default.    |
+| `value`, `defaultValue` | Controlled or not. A form with `useRequired` is controlled.                  |
+| `disabled`              | Not available. See States.                                                   |
+| `aria-label`            | The name, when there is no Field.                                            |
+| `aria-invalid`          | Set by the Field from `error`; set it by hand only outside a Field.          |
+| `className`, `style`    | Layout only, on the wrapper: a width in a toolbar.                           |
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
 
 ## Related
 
-- [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs): the other ways to choose from a list.
-- [Field](?path=/docs/components-field--docs): the label, hint and error around it.
-- [Forms](?path=/docs/components-forms--docs): which list wants which control.
+- [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): the other ways to choose one; see Variants for which.
+- [Field](?path=/docs/components-field--docs): the label, the hint and the error around it.
+- [InputGroup](?path=/docs/components-inputgroup--docs): an icon at the start of a select.
+- [Forms](?path=/docs/components-forms--docs): which control for which answer, and `useRequired`.
+- [FilterChip](?path=/docs/components-filterchip--docs): a toolbar filter that shows its value as a chip, for several values at once.
+- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): a list of actions.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

@@ -1,7 +1,8 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Field, Input } from "../../components";
+import { Field } from "../../components";
 import * as Stories from "./Input.stories";
+import * as InputGroupStories from "./InputGroup.stories";
 
 <Meta of={Stories} />
 
@@ -19,7 +20,7 @@ An Input is almost never alone. Inside a [Field](?path=/docs/components-field--d
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | Label         | From the Field, above the control: `font.body.small` at `font.weight.medium`, `color.text.subtle`. It is the control's name.          |
 | Required mark | The Field's `isRequired`: a red asterisk after the label, hidden from screen readers, which hear `aria-required` instead.              |
-| Control       | The field: `dimension.control.medium` (32px), `radius.medium`, `color.border.input` on `color.background.input`, 8px of padding.       |
+| Control       | The field: `dimension.control.medium` (32px) or `small` (28px), `radius.medium`, `color.border.input` on `color.background.input`, 8px of padding. |
 | Value         | The text, `font.body`, `color.text`. Empty, the placeholder shows in `color.text.subtlest`.                                            |
 | Message       | From the Field, under the control: the hint in `color.text.subtlest`, or the error in `color.text.danger`. It is the control's description. |
 | Ends          | From an InputGroup: an icon at the start, a unit or a shortcut at the end, inside the field's padding.                                |
@@ -40,7 +41,14 @@ There is no password input, no masked input and no clear button. The products si
 
 ## Sizes
 
-One height: `dimension.control.medium`, 32px, the same as a medium Button and a Select, so a row of controls lines up. There is no small Input. A filter in a toolbar is a [FilterChip](?path=/docs/components-filterchip--docs) or a Combobox, not a smaller field.
+| Size     | Height                          | Use                                                                                                  |
+| -------- | ------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `medium` | `dimension.control.medium` 32px | In a form, inside a Field, beside medium Buttons and Selects. The default.                           |
+| `small`  | `dimension.control.small` 28px  | The top navigation's search box and a toolbar's, beside small Buttons. Never inside a form's Field.  |
+
+The sizes are Button's, so a row of controls lines up. A filter with a fixed set of values is a [FilterChip](?path=/docs/components-filterchip--docs) or a small NativeSelect, not a small Input.
+
+<Canvas of={InputGroupStories.SearchBox} />
 
 The width is the layout's. An Input fills its container; the container says how long the answer is. In a form's Grid a five-letter acronym takes one column, a name two, a sentence the row. `InputGroup` takes a `width` for the search box that stands alone.
 
@@ -62,7 +70,7 @@ The width is the layout's. An Input fills its container; the container says how 
 
 ## Modifiers
 
-- **`type` and `inputMode`** for the value: `email`, `number` with `inputMode="numeric"`, `url`. The browser brings the right keyboard on a touch device and its own format check. `type="search"` is not used; a search box is an InputGroup with the icon.
+- **`type` and `inputMode`** for the value: `email`, `number` with `inputMode="numeric"`, `url`. The browser brings the right keyboard on a touch device and its own format check. `type="search"` for a search box, inside an InputGroup with the glass: the reader hears "search field" and Escape clears it. The browser's own clear control is hidden, so the box has one way to clear.
 - **`readOnly`** for a value the form shows but does not edit here: an id, a derived value. It stays in the tab order and can be copied. It is not `disabled`.
 - **`autoFocus`** on the first field of a dialog or a sheet that exists to fill it.
 - **`maxLength`** where the store has a limit; the hint says the limit.
@@ -95,13 +103,13 @@ The width is the layout's. An Input fills its container; the container says how 
 
 | Measure   | Value                                                               |
 | --------- | ------------------------------------------------------------------- |
-| Height    | `dimension.control.medium` 32px                                     |
+| Height    | `dimension.control.medium` 32px · `dimension.control.small` 28px    |
 | Padding   | `space.100` 8px at each end; an InputGroup's end adds its own room  |
 | Gaps      | `space.050` 4px from label to control and from control to message   |
 | Radius    | `radius.medium` 5px                                                 |
 | Motion    | `motion.duration.fast` on the colours, `motion.easing.standard`     |
 
-The border and the placeholder pass 3:1 and 4.5:1 against the input surface in both modes; `packages/design-system/test/contrast.test.mjs` checks them on every build.
+The placeholder passes 4.5:1 and the focus and danger borders 3:1 against the input surface in both modes. The rest border is lighter than 3:1 by decision (2026-09-04): the label, the placeholder and the focus and danger borders identify the field, and `packages/design-system/test/contrast.test.mjs` holds the rest border above a floor so it cannot fade away.
 
 ## Accessibility
 
@@ -111,14 +119,15 @@ The border and the placeholder pass 3:1 and 4.5:1 against the input surface in b
 - **Required is spoken, not enforced.** `isRequired` sets `aria-required` and paints the asterisk; it does not set the browser's `required`, so no native bubble fights the form's own check on submit ([Forms](?path=/docs/components-forms--docs), `useRequired`).
 - **Keyboard:** Tab reaches it, typing edits it, the arrow keys move within it, Escape does nothing. Read-only stays in the tab order; disabled leaves it.
 - **Disabled is the last resort.** A disabled field cannot be read by every screen reader and cannot say why. Prefer read-only for a value that is shown, and an enabled field with a hint for a value that is not editable yet.
-- The border and the placeholder are contrast-tested against the input surface in both modes.
+- The placeholder and the focus and danger borders are contrast-tested against the input surface in both modes. The rest border sits below 3:1 by decision; a field is found by its label and its fill, and shows its state with the borders that pass.
 
 ## Props
 
-Input takes every attribute of `<input>`; the ones this page is about:
+Input takes every attribute of `<input>` but `size`, which is the kit's height; the ones this page is about:
 
 | Prop                         | Use                                                                                  |
 | ---------------------------- | ------------------------------------------------------------------------------------ |
+| `size`                       | `medium` (32px) in a form; `small` (28px) in the top navigation or a toolbar.        |
 | `value`, `defaultValue`      | Controlled or not. A form with `useRequired` is controlled.                          |
 | `type`, `inputMode`          | The value's kind: `email`, `number` with `numeric`, `url`.                           |
 | `placeholder`                | The format, never the label.                                                         |

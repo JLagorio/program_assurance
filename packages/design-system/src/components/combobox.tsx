@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 import { Command } from "./command";
-import { controlBase } from "./controls";
+import { controlBase, controlHeight } from "./controls";
 import { Popover } from "./popover";
 
 export type ComboboxOption = {
@@ -41,7 +41,7 @@ export function Combobox({ options, value, onChange, placeholder = "Choose…", 
       width={width}
       className="p-0"
       trigger={
-        <button type="button" role="combobox" aria-expanded={open} aria-label={ariaLabel} disabled={disabled} className={cn(controlBase, "flex items-center justify-between gap-100 text-left", className)}>
+        <button type="button" role="combobox" aria-expanded={open} aria-label={ariaLabel} disabled={disabled} className={cn(controlBase, controlHeight.medium, "flex items-center justify-between gap-100 text-left", className)}>
           <span className={cn("min-w-0 flex-1 truncate", !selected && "text-subtlest")}>{selected?.label ?? placeholder}</span>
           <ChevronsUpDown className="size-icon-small shrink-0 icon-subtle" />
         </button>

@@ -319,7 +319,8 @@ function ControlRecord() {
                       label: "Scope",
                       value: (
                         <NativeSelect
-                          className="h-control-small font-body-small"
+                          size="small"
+                          className="font-body-small"
                           value={scopeId}
                           onChange={(e) => setScopeId(e.target.value)}
                           aria-label="Assessment scope"
@@ -336,7 +337,8 @@ function ControlRecord() {
                       label: "Role",
                       value: (
                         <NativeSelect
-                          className="h-control-small font-body-small"
+                          size="small"
+                          className="font-body-small"
                           value={session.role}
                           onChange={(e) => {
                             setSession({ role: e.target.value as (typeof roles)[number] });

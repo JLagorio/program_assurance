@@ -8,6 +8,10 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Breaking
 
+- `size` on `Input` and `NativeSelect` is the kit's height, `small` (28px) or `medium` (32px),
+  in place of the HTML attribute. A toolbar's select that took `h-control-small` by class, which on
+  NativeSelect landed on the wrapper and never sized the select, passes `size="small"`.
+  Components/Input, Components/NativeSelect.
 - `Field` renders a `div` holding a `label` (the label text and the control) and, outside the
   label, the hint or the error. The hint or error is the control's description (`aria-describedby`),
   not part of its name; `isRequired` sets `aria-required` on the control. Styling that reached into
@@ -15,6 +19,14 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Changed
 
+- `color.border.input` is lighter: `neutral.400` in light, `darkNeutral.500` in dark, below 3:1 by
+  decision. The label, the fill and the focus and danger borders identify a field; the contrast test
+  holds the rest border above a floor. Every field control, the Checkbox box and the RadioGroup dot
+  take it. Components/Input.
+- `Textarea`, `NativeSelect` and `InputGroup` are on the template, walked against Carbon's Text input
+  and Select, Base Web's Textarea, Select and Input, and Atlassian's Textarea and Select. Said on the
+  pages and not built: no character counter, no borderless or multiple select, no read-only select,
+  no clear button, no button inside a field, no attached segment.
 - The record's rail is the ShowPage's again. `rail` on `ShowPage` renders it beside the body, under
   the tab strip, on the overview tab; every other tab runs full width. The shell's Panel area holds
   the detail of a selected row and the panels a reader opens, never the rail. Patterns/Pages "Show",
@@ -27,6 +39,10 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Fixed
 
+- An InputGroup's leading icon was painted over by a NativeSelect inside it; the ends render after
+  the control. Components/InputGroup.
+- `controlBase` no longer carries a height; `controlHeight[size]` does, so the Select, Combobox and
+  DatePicker triggers say `medium` and a Textarea no longer overrides a height it never wanted.
 - `KeyValue` had lost its label column to a codemod (`px minmax(0, 1fr)`), so every rail row stacked
   its label over its value. The label column is `labelWidth` again. Shapes/Inspector "Inspector
   groups".
@@ -39,6 +55,9 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Added
 
+- `InputGroup` has typed props with descriptions. Its ends are hidden from screen readers, so the
+  label or the hint carries the unit in words. `Input` hides the browser's clear control on
+  `type="search"`; Escape clears. Components/InputGroup.
 - One page per part. Every part a product imports by name has its own story file and page, the way
   Atlassian, Carbon and Base Web document; compound parts stay with their parent; Forms, Overlays,
   Pages, Shapes and Primitives keep an overview that says which part to reach for. The sidebar

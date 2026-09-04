@@ -84,7 +84,7 @@ function DefaultsRow({ applyAll }: { applyAll: (patch: Partial<Fields>) => void 
       <Box style={{ width: 150 }}>
         <NativeSelect
           aria-label="Responsibility for all"
-          className="[&>select]:h-control-small"
+          size="small"
           defaultValue=""
           onChange={(e) =>
             e.target.value && applyAll({ responsibility: e.target.value as Responsibility })
@@ -99,7 +99,7 @@ function DefaultsRow({ applyAll }: { applyAll: (patch: Partial<Fields>) => void 
       <Box style={{ width: 120 }}>
         <NativeSelect
           aria-label="Coverage for all"
-          className="[&>select]:h-control-small"
+          size="small"
           defaultValue=""
           onChange={(e) => e.target.value && applyAll({ coverage: e.target.value as Coverage })}
         >

@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { cn } from "../lib/cn";
 import { Calendar } from "./calendar";
-import { controlBase } from "./controls";
+import { controlBase, controlHeight } from "./controls";
 import { Popover } from "./popover";
 
 export type DatePickerProps = {
@@ -39,7 +39,7 @@ export function DatePicker({ value, defaultValue, onChange, placeholder = "Pick 
       onOpenChange={setOpen}
       className="p-0"
       trigger={
-        <button type="button" disabled={disabled} aria-label={ariaLabel} className={cn(controlBase, "flex items-center gap-100 text-left", className)}>
+        <button type="button" disabled={disabled} aria-label={ariaLabel} className={cn(controlBase, controlHeight.medium, "flex items-center gap-100 text-left", className)}>
           <CalendarIcon className="size-icon-small shrink-0 icon-subtle" />
           <span className={cn("min-w-0 flex-1 truncate tabular-nums", !date && "text-subtlest")}>{date ? format(date, "MMM d, yyyy") : placeholder}</span>
         </button>

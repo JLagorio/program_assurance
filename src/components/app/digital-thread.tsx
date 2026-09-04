@@ -281,7 +281,7 @@ export function DigitalThreadSection({
             <NativeSelect
               value={status}
               onChange={(e) => setStatus(e.target.value as (typeof statusFilters)[number])}
-              className="h-control-small"
+              size="small"
               style={{ width: 152 }}
             >
               {statusFilters.map((s) => (

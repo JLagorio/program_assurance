@@ -31,6 +31,7 @@ export {
   Switch,
   Textarea,
   controlBase,
+  controlHeight,
   type CheckboxProps,
   type FieldProps,
   type RadioGroupItemProps,
@@ -74,3 +75,5 @@ export { Tree, type TreeItemProps } from "./tree";
 export { Absent, Eyebrow, Fact, Prose } from "./typography";
 export { useRequired } from "./form";
 export { usePage, useSort, type SortDir } from "./table-state";
+export type { ControlSize, InputProps, NativeSelectProps } from "./controls";
+export type { InputGroupProps } from "./input-group";

@@ -92,9 +92,13 @@ for (const s of status) {
 }
 for (const t of ["color.text.brand", "color.text.selected"]) add(t, "elevation.surface", 4.5);
 for (const t of ["color.icon", "color.icon.subtle", "color.icon.subtlest", "color.icon.brand", "color.icon.selected"]) add(t, "elevation.surface", 3);
-for (const b of ["color.border.bold", "color.border.focused", "color.border.input", "color.border.selected", "color.border.brand"]) add(b, "elevation.surface", 3);
-// the field's own border and its danger border, against the input surface it sits on
-for (const b of ["color.border.input", "color.border.danger", "color.border.focused"]) add(b, "color.background.input", 3);
+for (const b of ["color.border.bold", "color.border.focused", "color.border.selected", "color.border.brand"]) add(b, "elevation.surface", 3);
+// the field's danger and focus borders against the input surface it sits on
+for (const b of ["color.border.danger", "color.border.focused"]) add(b, "color.background.input", 3);
+// The rest border is lighter than 3:1 by decision (2026-09-04): the label, the placeholder, the focus
+// border and the danger border identify the field. The floor keeps it from fading to nothing.
+add("color.border.input", "color.background.input", 1.5, "rest border, below 3:1 by decision");
+add("color.border.input", "elevation.surface", 1.5, "rest border, below 3:1 by decision");
 for (const b of ["color.background.neutral.bold", "color.background.brand.bold", "color.background.selected.bold"]) add(b, "elevation.surface", 3, "bold fill as a non-text element");
 
 const results = [];
