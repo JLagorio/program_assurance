@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { FilterChip } from "../../components";
 import * as Stories from "./FilterChip.stories";
@@ -7,13 +7,104 @@ import * as Stories from "./FilterChip.stories";
 
 # FilterChip
 
+A filter the reader adds to a [Toolbar](?path=/docs/components-toolbar--docs): dashed with a plus until it is on, then solid and selected, with the chosen value after its label. A chip is one question of the register, Owner or Status or Gaps; the chips together are the question the table answers.
+
+A chip asks; a [Badge](?path=/docs/components-badge--docs) tells. A set of choices where one is always on is a [ToggleGroup](?path=/docs/components-togglegroup--docs); a thing to do is a [Button](?path=/docs/components-button--docs).
+
 <Canvas of={Stories.FilterChipMatrix} />
+
+## Anatomy
+
+| Part   | What it is                                                                                                          |
+| ------ | ------------------------------------------------------------------------------------------------------------------- |
+| Plus   | "+" before the label while the chip is off: add this filter. Hidden from a screen reader; gone once the chip is on. |
+| Label  | The column or the question, `font.body`, `color.text.subtle` at rest and `color.text.selected` on.                  |
+| Value  | After the label, `font.weight.medium` in `color.text`: the value chosen, or "3 chosen".                             |
+| Border | Dashed `color.border.bold` at rest; solid `color.border.selected` on `color.background.selected` once on.           |
+
+## Variants
+
+FilterChip has one appearance. What varies is what a click does:
+
+| The question                                   | Use                                                                                                                                                                                            |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Yes or no about the rows: Gaps, Hide closed    | A toggle: `isActive` flips, no value.                                                                                                                                                          |
+| A column with a value: Owner, Status, Due      | The trigger of a [Popover](?path=/docs/components-popover--docs); the DataTable's `Filter` builds one from the column (checkboxes, a range, a contains field) and the value reads on the chip. |
+| Three values the reader steps through          | A toggle that cycles, the value showing which. Past three, a popover.                                                                                                                          |
+| One of a few, always one on: All, High, Medium | A ToggleGroup, not chips.                                                                                                                                                                      |
+| A saved question with its count                | The DataTable's `Presets`, a ToggleGroup with counts.                                                                                                                                          |
+
+There is no remove cross on the chip: a click on an active toggle turns it off, and a popover chip has Clear. There is no chip with an icon, and no chip with a count: the rows a question would leave belong to a preset's Count.
+
+## Sizes
+
+One: `dimension.control.small` 28px, the Toolbar's height, `space.100` each side.
+
+<Canvas of={Stories.InToolbar} />
+
+## States
+
+| State        | What changes                                                                                                  |
+| ------------ | ------------------------------------------------------------------------------------------------------------- |
+| Rest         | Dashed `color.border.bold`, the plus, `color.text.subtle`.                                                    |
+| Hover        | The border to `color.border`, the text to `color.text`.                                                       |
+| Active       | Solid `color.border.selected` on `color.background.selected`, `color.text.selected`; no plus; pressed.        |
+| With a value | The value after the label in `color.text` at `font.weight.medium`.                                            |
+| Open         | As a Popover's trigger, `aria-expanded`; the chip is active only while it holds a value.                      |
+| Focus        | The focus outline.                                                                                            |
+| Disabled     | `color.border.disabled`, `color.text.disabled`, no pointer: a filter with nothing to choose. Better left out. |
+
+## Modifiers
+
+- **`label`** and **`value`**.
+- **`isActive`** paints the chip on and says pressed.
+- **`disabled`**.
+- **`onClick`** and the rest of a button's props. A Popover passes `aria-expanded` to its trigger, and the chip stops saying pressed.
+
+## Content
+
+- **The label is the column or the question as a noun**, sentence case: Owner, Status, Gaps, Hide closed. Not "Filter by owner".
+- **The value is what was chosen, as the cell shows it**: "Dana Whitfield", "Overdue", "≥ 10", "3 chosen". Never a count of rows.
+- **A toggle reads as what it turns on**: Gaps shows the gaps, Hide closed hides them; both are true while the chip is on.
+- **Four or five chips** in a toolbar. Past that the table has too many questions, and the answers are presets.
+
+## Style
+
+| Element  | Token                                                                                           |
+| -------- | ----------------------------------------------------------------------------------------------- |
+| Chip     | `dimension.control.small` · `radius.medium` · `space.100` sides · gap `space.075` · `font.body` |
+| Rest     | border dashed `color.border.bold` · `color.text.subtle` · hover `color.border`, `color.text`    |
+| Active   | border `color.border.selected` · `color.background.selected` · `color.text.selected`            |
+| Value    | `font.weight.medium` `color.text`                                                               |
+| Disabled | `color.border.disabled` · `color.text.disabled`                                                 |
+| Focus    | The focus outline                                                                               |
+| Motion   | `motion.duration.fast` on the colours                                                           |
+
+## Accessibility
+
+- **A button.** On its own it is a toggle: `aria-pressed` follows `isActive`, so a screen reader hears "Gaps, toggle button, pressed". As a Popover's trigger it takes the popover's `aria-expanded` and does not say pressed; the value in its text says what is applied.
+- **Named by its text**, label and value together: "Owner Dana Whitfield".
+- **Keyboard.** Tab reaches it; Space or Enter flips it or opens the popover; Escape closes the popover and returns focus to the chip.
+- **Not colour alone.** The plus and the dashed border say off; the solid border and the pressed state say on.
+- **Disabled is the last resort.** A filter with nothing to choose is left out of the row.
 
 ## Props
 
 <ArgTypes of={FilterChip} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Toolbar](?path=/docs/components-toolbar--docs)
-- [Table](?path=/docs/components-table--docs)
+- [Toolbar](?path=/docs/components-toolbar--docs): where chips live.
+- [DataTable](?path=/docs/patterns-data-table--docs): `Filter` builds a chip and its popover from a column; `Presets` are saved questions.
+- [ToggleGroup](?path=/docs/components-togglegroup--docs): one of a few, always one on. [Popover](?path=/docs/components-popover--docs): what a value chip opens.
+- [Badge](?path=/docs/components-badge--docs): a status told, not asked.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect, useMemo, useState } from "react";
 
-import { Button, Toolbar, type Tone } from "../../components";
+import { Button, Input, Spinner, Toolbar, type Tone } from "../../components";
 import {
   ColumnSortable,
   DataTable,
@@ -19,6 +19,7 @@ import {
 } from "../../patterns";
 import { Table } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
+import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Patterns/Data table",
@@ -834,6 +835,84 @@ export const DataTableMatrix: Story = {
       <Virtualized />
       <Editing />
       <TableParts />
+    </Stack>
+  ),
+};
+
+/** Three rows on the register's columns, for the Don't pairs. */
+function Small({ state }: { state?: DataTableState | undefined }) {
+  const table = useDataTable({
+    label: "Findings",
+    columns,
+    data: findings.slice(0, 3),
+    getRowId: (r) => r.id,
+  });
+  return <DataTable table={table} {...(state ? { state } : {})} />;
+}
+
+function Chips() {
+  const table = useDataTable({ label: "Findings", columns, data: findings, getRowId: (r) => r.id });
+  return (
+    <Inline space="space.100" alignBlock="center">
+      <DataTable.Search table={table} placeholder="Search findings" />
+      <DataTable.Filter table={table} column="status" />
+      <DataTable.Filter table={table} column="owner" />
+    </Inline>
+  );
+}
+
+function FilterRow() {
+  return (
+    <Table label="Findings">
+      <thead>
+        <tr>
+          <Table.Header width={110}>Id</Table.Header>
+          <Table.Header>Finding</Table.Header>
+          <Table.Header width={140}>Status</Table.Header>
+        </tr>
+        <tr>
+          <Table.Header className="border-b-0" aria-hidden />
+          <Table.Header>
+            <Input size="small" placeholder="Filter" aria-label="Filter findings" />
+          </Table.Header>
+          <Table.Header>
+            <Input size="small" placeholder="Filter" aria-label="Filter status" />
+          </Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        {findings.slice(0, 3).map((f) => (
+          <Table.Row key={f.id}>
+            <Table.Id id={f.id} />
+            <Table.Cell>{f.name}</Table.Cell>
+            <Table.Cell>{f.status}</Table.Cell>
+          </Table.Row>
+        ))}
+      </tbody>
+    </Table>
+  );
+}
+
+/** The mistakes the page is written to prevent, each beside the right way. */
+export const Dont: Story = {
+  render: () => (
+    <Stack space="space.400">
+      <Pair
+        do={<Chips />}
+        doText="Filters are chips in the toolbar, built from the columns; the applied value reads on the chip."
+        dont={<FilterRow />}
+        dontText="A filter row under the header. It takes a row from every table, it is empty most of the time, and a screen reader meets three fields before the first record."
+      />
+      <Pair
+        do={<Small state="loading" />}
+        doText="Loading keeps the header and draws skeleton rows where the records will be."
+        dont={
+          <div className="flex h-800 items-center justify-center rounded-large border border-default">
+            <Spinner />
+          </div>
+        }
+        dontText="A spinner in place of the table. The columns vanish, the height changes, and the page jumps when the rows arrive."
+      />
     </Stack>
   ),
 };

@@ -19,6 +19,13 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Changed
 
+- `FilterChip` says `aria-pressed` when it stands alone and defers to a Popover's
+  `aria-expanded` as its trigger; the plus shows only while the chip is off; `disabled` has a
+  face (`color.border.disabled`, `color.text.disabled`). Components/FilterChip: InToolbar, Dont.
+- A sortable header's chevron shows on keyboard focus as well as hover, per Carbon's note that
+  nothing else says a table sorts.
+- Pagination's page buttons are named "Page 6" and the gap is hidden from a screen reader.
+  Components/Pagination: Paged, Dont, Playground.
 - The choice controls and the Forms overview are on the template, walked against Carbon's Checkbox,
   Radio button, Toggle and Forms pattern and Base Web's Checkbox, Radio and FormControl. `Checkbox`,
   `Switch` and `RadioGroup` have typed, described props, so their tables generate; a choice's
@@ -70,6 +77,15 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Added
 
+- `Table` takes `label` (its accessible name, which Carbon asks of every table) and a typed
+  `role`; `TableProps` and `TdProps` are exported, so the generated props tables fill. A cell
+  whose child is a plain string carries it as its `title`, so truncated text shows whole on hover,
+  as the data-table spec promised. Components/Table: Frame, Dont and Playground stories.
+- `ToolbarProps`, typed and described; the search field is `type="search"` at `size="small"`
+  and named by its placeholder through `aria-label`. Components/Toolbar: Live, Dont, Playground.
+- Pages on the template: Table, Pagination, Toolbar, FilterChip and Data table (its prose kept
+  under the eleven headings; the Kinds table is Content, the hook's options are Modifiers).
+  Twenty pages on the template; 721 gaps grandfathered.
 - `Field` takes `isGroup`: a fieldset with the label as its legend over a RadioGroup or several
   Checkboxes, the hint or the error describing the group, and a RadioGroup inside taking
   `aria-invalid` and `aria-required`. `Checkbox`, `Switch` and `RadioGroup.Item` take

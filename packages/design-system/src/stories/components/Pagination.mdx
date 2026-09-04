@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Pagination } from "../../components";
 import * as Stories from "./Pagination.stories";
@@ -7,13 +7,98 @@ import * as Stories from "./Pagination.stories";
 
 # Pagination
 
+Which page of a long register the reader is on, and the way to the others. It sits under the table it pages, the range at the start and the pages at the end. A [DataTable](?path=/docs/patterns-data-table--docs) draws it itself when it takes `pageSize`; a plain [Table](?path=/docs/components-table--docs) pairs it with `usePage`. Pages are 1-based.
+
+A register that scrolls inside itself (`virtualize`) does not page, and a list of a dozen never needs to. A sequence of steps is a [Stepper](?path=/docs/components-stepper--docs), not pages.
+
 <Canvas of={Stories.PaginationMatrix} />
+
+## Anatomy
+
+| Part           | What it is                                                                                                                                                                               |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Range          | "26–50 of 289" in `font.body.small` `color.text.subtle`, tabular; "0 rows" when there are none. Drawn with `total` and `pageSize`.                                                       |
+| Previous, Next | Icon buttons, `dimension.control.small` square, the chevrons; disabled at either end.                                                                                                    |
+| Pages          | The first, the last, the current and its neighbours; a gap where pages are skipped. Up to seven show whole. The current page sits on `color.background.neutral` at `font.weight.medium`. |
+| Nav            | A `nav` named by `label`, "Pagination" by default.                                                                                                                                       |
+
+## Variants
+
+Pagination has one appearance: with the range, under a table, or bare, under a section of a page that comes in pages.
+
+Carbon's second variant, a bar with an items-per-page select and a page select, is not built. The author sets the register's page size (25 or 50); the reader's density setting is the lever for seeing more at once; and a register past a few pages is a question for the filters, not a longer page. Base Web's page select and Carbon's page looping (Next wrapping to the first page) are not built either: a page button is one click to any page, and an end is an end.
+
+## Sizes
+
+One: the buttons `dimension.control.small` 28px, the text `font.body.small`. It matches the [Toolbar](?path=/docs/components-toolbar--docs) above the table; the row height (40 or 36 by density) does not change it. Carbon pairs three sizes to its five row heights; one setting covers ours.
+
+<Canvas of={Stories.Paged} />
+
+## States
+
+| State       | What changes                                                                           |
+| ----------- | -------------------------------------------------------------------------------------- |
+| First page  | Previous is disabled and not reachable.                                                |
+| Middle page | Gaps on either side once there are more than seven pages.                              |
+| Last page   | Next is disabled.                                                                      |
+| One page    | Both disabled; the range still says how many rows there are.                           |
+| No rows     | "0 rows", page 1, both disabled.                                                       |
+| Hover       | The page button on `color.background.neutral.subtle.hovered`, its text `color.text`.   |
+| Current     | `color.background.neutral`, `font.weight.medium`, `color.text`; `aria-current="page"`. |
+| Focus       | The focus outline.                                                                     |
+| Disabled    | `color.text.disabled`, no pointer.                                                     |
+
+## Modifiers
+
+- **`page`, `pageCount`, `onPageChange`**: the three that always come. The owner holds the page: a route in its URL, `usePage` for a plain Table, the DataTable's state.
+- **`total` with `pageSize`** draws the range.
+- **`label`** names the nav. Two paginated tables on one page need different names; a DataTable names its "\<label\> pagination".
+- **`className`** for the border and the padding a frame gives it; the DataTable adds a hairline above and `space.150` × `space.100`.
+
+## Content
+
+- **The range is numbers**, an en dash and "of": "26–50 of 289". Never "Showing 26 to 50 of 289 results".
+- **"0 rows" when nothing**: the register's unit is the row. What the rows are is the Empty's to say.
+- **Digits with the locale's grouping**: 1,391.
+- **The label names what is paged** when there are two: "Findings pagination".
+
+## Style
+
+| Element  | Token                                                                                                                                                  |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Nav      | flex, wrapping · gap `space.150` · `font.body.small` `color.text.subtle`                                                                               |
+| Range    | tabular numerals                                                                                                                                       |
+| Buttons  | `dimension.control.small` · `radius.medium` · `space.075` sides · `space.025` between · hover `color.background.neutral.subtle.hovered` + `color.text` |
+| Current  | `color.background.neutral` · `font.weight.medium` · `color.text`                                                                                       |
+| Arrows   | `dimension.icon.small` in a `dimension.control.small` square                                                                                           |
+| Gap      | "…", `space.300` wide, hidden from a screen reader                                                                                                     |
+| Disabled | `color.text.disabled`                                                                                                                                  |
+| Motion   | `motion.duration.fast` on the colours                                                                                                                  |
+
+## Accessibility
+
+- **A `nav` landmark** named by `label`. A page with two has two names.
+- **Every page is a button named "Page 6"**; the current one carries `aria-current="page"`. Previous and Next are named so. The gap is hidden: the numbers around it say enough.
+- **Keyboard.** Tab moves left to right through the buttons; Space or Enter turns the page. A disabled arrow is not reachable, as Carbon's; the page numbers still are.
+- **Focus stays** on the button that was pressed; the table above re-renders and the pressed button becomes the current page.
+- **Not colour alone.** The current page is bold and `aria-current`; the ends are disabled, not faded only.
 
 ## Props
 
 <ArgTypes of={Pagination} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Table](?path=/docs/components-table--docs): Toolbar sits above (search, filters, actions on the right); Pagination sits below (range on the left, pages on the right).
-- [Toolbar](?path=/docs/components-toolbar--docs)
+- [Table](?path=/docs/components-table--docs) with `usePage`; [DataTable](?path=/docs/patterns-data-table--docs) with `pageSize`, which draws its own.
+- [Toolbar](?path=/docs/components-toolbar--docs): the row above the table, the same small height.
+- [Stepper](?path=/docs/components-stepper--docs): a sequence of steps, which is not pages.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

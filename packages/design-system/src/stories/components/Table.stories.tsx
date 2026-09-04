@@ -3,6 +3,7 @@ import { Filter, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import {
+  Absent,
   Badge,
   Button,
   FilterChip,
@@ -16,6 +17,7 @@ import {
   useSort,
 } from "../../components";
 import { Stack, Text } from "../../primitives";
+import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Components/Table",
@@ -529,3 +531,195 @@ function SortedPaged() {
   );
 }
 export const SortedAndPaged: Story = { name: "Sorted and paged", render: () => <SortedPaged /> };
+
+const wideRows = Array.from({ length: 14 }, (_, i) => ({
+  ...(rows[i % rows.length] as Row),
+  id: `CTRL-${String(412 + i * 3).padStart(4, "0")}`,
+}));
+
+/** The frame: `maxHeight` scrolls the rows under the sticky header; the id is pinned and shows its edge once the frame moves sideways. */
+function Frame() {
+  return (
+    <Table label="Controls" maxHeight={240} className="table-fixed">
+      <thead>
+        <tr>
+          <Table.Header pinned="start" edge width={120}>
+            Id
+          </Table.Header>
+          <Table.Header width={260}>Control</Table.Header>
+          <Table.Header width={180}>Owner</Table.Header>
+          <Table.Header width={140}>Status</Table.Header>
+          <Table.Header width={120}>Severity</Table.Header>
+          <Table.Header width={120}>Due</Table.Header>
+          <Table.Header width={160}>Family</Table.Header>
+          <Table.Header width={320}>Notes</Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        {wideRows.map((r) => (
+          <Table.Row key={r.id}>
+            <Table.Id id={r.id} pinned="start" edge />
+            <Table.Cell>{r.name}</Table.Cell>
+            <Table.Cell>
+              <Person name={r.owner} />
+            </Table.Cell>
+            <Table.Cell>
+              <Badge tone={r.status.tone}>{r.status.label}</Badge>
+            </Table.Cell>
+            <Table.Cell>
+              <Indicator tone={r.severity.tone}>{r.severity.label}</Indicator>
+            </Table.Cell>
+            <Table.Cell className="tabular-nums">{r.due}</Table.Cell>
+            <Table.Cell>{r.family}</Table.Cell>
+            <Table.Cell>
+              A note long enough to be cut by its column and shown whole on hover, since a plain
+              string is the cell's title.
+            </Table.Cell>
+          </Table.Row>
+        ))}
+      </tbody>
+    </Table>
+  );
+}
+export const FrameStory: Story = { name: "Frame", render: () => <Frame /> };
+
+function Scores({ align }: { align: "end" | "center" }) {
+  const cls = align === "end" ? "text-right tabular-nums" : "text-center";
+  return (
+    <Table label="Scores">
+      <thead>
+        <tr>
+          <Table.Header width={110}>Risk</Table.Header>
+          <Table.Header>Title</Table.Header>
+          <Table.Header width={90} className={cls}>
+            Score
+          </Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        {risks.slice(0, 3).map((r) => (
+          <Table.Row key={r.id}>
+            <Table.Id id={r.id} />
+            <Table.Cell>{r.title}</Table.Cell>
+            <Table.Cell className={cls}>{r.score}</Table.Cell>
+          </Table.Row>
+        ))}
+      </tbody>
+    </Table>
+  );
+}
+
+function Selected({ withColumn }: { withColumn: boolean }) {
+  return (
+    <Table label="Controls">
+      <thead>
+        <tr>
+          {withColumn ? (
+            <Table.Selection
+              header
+              checked="indeterminate"
+              onCheckedChange={() => {}}
+              label="Select all"
+            />
+          ) : null}
+          <Table.Header width={110}>Id</Table.Header>
+          <Table.Header>Control</Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.slice(0, 3).map((r, i) => (
+          <Table.Row key={r.id} isSelected={i === 1}>
+            {withColumn ? (
+              <Table.Selection
+                checked={i === 1}
+                onCheckedChange={() => {}}
+                label={`Select ${r.id}`}
+              />
+            ) : null}
+            <Table.Id id={r.id} />
+            <Table.Cell>{r.name}</Table.Cell>
+          </Table.Row>
+        ))}
+      </tbody>
+    </Table>
+  );
+}
+
+function Owners({ absent }: { absent: boolean }) {
+  return (
+    <Table label="Owners">
+      <thead>
+        <tr>
+          <Table.Header width={110}>Risk</Table.Header>
+          <Table.Header>Owner</Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        <Table.Row>
+          <Table.Id id="RSK-001" />
+          <Table.Cell>Sarah Chen</Table.Cell>
+        </Table.Row>
+        <Table.Row>
+          <Table.Id id="RSK-002" />
+          <Table.Cell>{absent ? <Absent /> : "—"}</Table.Cell>
+        </Table.Row>
+        <Table.Row>
+          <Table.Id id="RSK-003" />
+          <Table.Cell>{absent ? <Absent /> : "N/A"}</Table.Cell>
+        </Table.Row>
+      </tbody>
+    </Table>
+  );
+}
+
+/** The mistakes the page is written to prevent, each beside the right way. */
+export const Dont: Story = {
+  render: () => (
+    <Stack space="space.400">
+      <Pair
+        do={<Scores align="end" />}
+        doText="Numbers end, in tabular numerals, and so does their header."
+        dont={<Scores align="center" />}
+        dontText="Centred numbers. The digits never line up, so the eye cannot compare down the column."
+      />
+      <Pair
+        do={<Selected withColumn />}
+        doText="Selection is the checkbox column; the header's box chooses the page."
+        dont={<Selected withColumn={false} />}
+        dontText="A row painted selected by its click. The click is how a row opens, and a screen reader hears nothing chosen."
+      />
+      <Pair
+        do={<Owners absent />}
+        doText="An absent value is Absent."
+        dont={<Owners absent={false} />}
+        dontText="A dash typed by hand and an N/A. Two spellings of nothing, neither of which a sort or a filter understands."
+      />
+    </Stack>
+  ),
+};
+
+export const Playground: Story = {
+  args: { label: "Controls" },
+  render: (args) => (
+    <Table {...args}>
+      <thead>
+        <tr>
+          <Table.Header width={110}>Id</Table.Header>
+          <Table.Header>Control</Table.Header>
+          <Table.Header width={140}>Status</Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <Table.Row key={r.id}>
+            <Table.Id id={r.id} />
+            <Table.Cell>{r.name}</Table.Cell>
+            <Table.Cell>
+              <Badge tone={r.status.tone}>{r.status.label}</Badge>
+            </Table.Cell>
+          </Table.Row>
+        ))}
+      </tbody>
+    </Table>
+  ),
+};

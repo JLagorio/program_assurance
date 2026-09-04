@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Toolbar } from "../../components";
 import * as Stories from "./Toolbar.stories";
@@ -7,14 +7,92 @@ import * as Stories from "./Toolbar.stories";
 
 # Toolbar
 
+The row above a table: the search at the start, the filters after it, the actions at the end. Everything in it is the small size, so the row is one height and the table starts right under it. A [DataTable](?path=/docs/patterns-data-table--docs) takes it as `toolbar`, inside its frame; a plain [Table](?path=/docs/components-table--docs) puts it above.
+
+It is a row of controls, not a heading. The [Section](?path=/docs/patterns-section--docs) above names the register; the Toolbar asks its questions.
+
 <Canvas of={Stories.ToolbarMatrix} />
+
+## Anatomy
+
+| Part    | What it is                                                                                                                                                                                |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Search  | An [InputGroup](?path=/docs/components-inputgroup--docs) with the search icon and a small `Input` of type search, 200px, named by its placeholder. Only with `onSearch`.                  |
+| Filters | The children, after the search: [FilterChips](?path=/docs/components-filterchip--docs), a [ToggleGroup](?path=/docs/components-togglegroup--docs) of lenses, a small Select that narrows. |
+| Actions | `actions`, pushed to the end: small Buttons with the primary last, or a count as text, "12 of 340 controls".                                                                              |
+
+## Variants
+
+Toolbar has one appearance. What varies is which parts the register needs:
+
+| The register                       | Use                                                                  |
+| ---------------------------------- | -------------------------------------------------------------------- |
+| Searched, filtered, acted on       | Search, chips, actions.                                              |
+| Seen through lenses                | No search; a ToggleGroup as the children, a count at the end.        |
+| One thing to choose about the view | A small Select or NativeSelect as the children.                      |
+| Only a count or an Export          | `actions` alone.                                                     |
+| Rows chosen for a batch action     | Not a Toolbar: the DataTable's SelectionBar appears above the table. |
+
+There is no title in a Toolbar (the Section's), no tall Toolbar (Carbon pairs a 48px toolbar with its large rows; the kit's rows are one height and so is the row above them), and no collapsed search that opens from an icon: a register that is searched shows its field.
+
+## Sizes
+
+One height: every control in the row is small, `dimension.control.small` 28px, so a Button in it says `size="small"` and a Select `size="small"`. `space.150` above, `space.100` below. When the row is narrow the parts wrap, the actions dropping under the filters; the search keeps its 200px.
+
+<Canvas of={Stories.Live} />
+
+## States
+
+The toolbar has no states of its own; its controls have theirs. The search field is empty (the placeholder names what is searched), typed, or focused, and the table under it narrows on every keystroke. A count at the end says how many rows remain, so the result of typing is read as well as seen.
+
+## Modifiers
+
+- **`search`, `onSearch`, `placeholder`**: the field, its value, and what it searches. Without `onSearch` there is no field.
+- **`children`**: the filters, after the search.
+- **`actions`**: what sits at the end.
+- **`className`** for a frame's own padding; inside a DataTable the frame gives it.
+
+## Content
+
+- **The placeholder names what is searched**: "Search controls", "Control or title". Not "Search…".
+- **Filters are nouns**: Owner, Status, Gaps.
+- **Up to five actions**, Carbon's count; more go under a More menu. The primary last.
+- **A count reads "12 of 340 controls"**, tabular, `font.body.small` in `color.text.subtle`. It is text, not a Badge or a Count.
+
+## Style
+
+| Element | Token                                                                                             |
+| ------- | ------------------------------------------------------------------------------------------------- |
+| Row     | flex, wrapping · gap `space.100` · `space.150` above · `space.100` below                          |
+| Search  | 200px · `dimension.control.small` · the search icon `dimension.icon.small` in `color.icon.subtle` |
+| Actions | at the end · gap `space.100`                                                                      |
+| Count   | `font.body.small` `color.text.subtle` · tabular numerals                                          |
+
+## Accessibility
+
+- **A plain row, not the ARIA `toolbar` role.** That role promises arrow-key movement between its controls; a row of a search field, chips and buttons is better served by Tab in reading order, and Carbon's toolbar is likewise a labelled region and not a `toolbar`.
+- **The search field is named** by its placeholder through `aria-label`; the icon is decorative.
+- **Typing narrows the table** under it. The count at the end is the result, in text a screen reader can read back.
+- **The chips say pressed**; a chip that opens a popover says expanded. See FilterChip.
+- **Order:** search, filters, actions. The reader narrows first and acts last, and Tab follows.
 
 ## Props
 
 <ArgTypes of={Toolbar} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Table](?path=/docs/components-table--docs): Toolbar sits above (search, filters, actions on the right); Pagination sits below (range on the left, pages on the right).
-- [FilterChip](?path=/docs/components-filterchip--docs)
-- [Pagination](?path=/docs/components-pagination--docs)
+- [Table](?path=/docs/components-table--docs) below it; [Pagination](?path=/docs/components-pagination--docs) under the table.
+- [DataTable](?path=/docs/patterns-data-table--docs): `DataTable.Search`, `.Filter`, `.Presets` and `.Columns` are the parts a toolbar holds when the table has state; `.SelectionBar` is the bar that replaces it while rows are chosen.
+- [FilterChip](?path=/docs/components-filterchip--docs), [ToggleGroup](?path=/docs/components-togglegroup--docs): the filters.
+- [Section](?path=/docs/patterns-section--docs): where the register's title and description live.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

@@ -53,13 +53,14 @@ export function Pagination({
         </button>
         {pages.map((p, i) =>
           p === "gap" ? (
-            <span key={`gap-${i}`} className="w-300 text-center">
+            <span key={`gap-${i}`} aria-hidden className="w-300 text-center">
               …
             </span>
           ) : (
             <button
               key={p}
               type="button"
+              aria-label={`Page ${num(p)}`}
               aria-current={p === page ? "page" : undefined}
               onClick={() => onPageChange(p)}
               className={cn(

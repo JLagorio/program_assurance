@@ -16,6 +16,9 @@ Updated 2026-09-04.
 - [ ] **The choice controls on the lighter border** (2026-09-04). `color.border.input` went to `neutral.400` for every field at Josef's ask, so the Checkbox box and the RadioGroup dot are lighter too (1.9:1 on white). Keep, or give the choice controls `color.border.bold`?
 - [ ] **Select where the rule says NativeSelect** (2026-09-04). Eight of the prototype's Selects hold plain words (Authorizing official, Assessor, Environment, Kind, System class, Hosting, Output format, Review gate) and the Select page says plain words are a NativeSelect. Re-point them, or let a form use Select for the kit's own list?
 - [ ] **Typed date entry** (2026-09-04). Carbon and Atlassian let the reader type into the date field as well as pick; the kit's DatePicker is pick-only, and the page sends a remembered date to an Input with the format in the hint. Build a typed field with a mask, or keep the rule?
+- [ ] **Exclusive chip sets in the prototype** (2026-09-04). Rows of FilterChips where one is always on: verification's severities (with the row count as the chip's value), scope-control-set's families, authorization's filters. The FilterChip page says one-of-a-few is a ToggleGroup and a count is a Count; the control board's lenses already are. Re-point the three, or let chips stand there?
+- [ ] **No items-per-page select** (2026-09-04). Carbon and Base Web let the reader change the page size; the Pagination page says the author sets it (25 or 50) and density is the reader's lever. Keep, or build the select?
+- [ ] **Column resizing is pointer-only** (2026-09-04), as it is in Carbon and Base Web; the DataTable page says so and points a keyboard user at Reset view. Leave, or add a keyboard resize to the column menu?
 - [ ] **Data table, the calls.** Eight calls made without asking in `docs/superpowers/specs/2026-09-03-data-table.md`, plus one more from step 6: Tab moves across an editable table, Enter moves down. Overturn any in one reading.
 - [ ] **Baseline and ConMon hydration, which fix stays.** This line renders both routes client-only (`ssr: false`, 8bb9e3b). The parallel line kept SSR and had the loader build the control-text index on both sides (769a412, 81911c1); that version was not merged. Taking it would restore SSR on the two routes.
 
@@ -28,7 +31,7 @@ The maturity walk, one part per sitting, each page onto the template (`docs/supe
 - [x] Textarea, NativeSelect, InputGroup (2026-09-04). Input and NativeSelect took `size`; Select, Combobox and DatePicker take it in the next sitting.
 - [x] Select, Combobox, DatePicker, Calendar (2026-09-04)
 - [x] Checkbox, RadioGroup, Switch; the Forms overview (2026-09-04)
-- [ ] Table, Pagination, Toolbar, FilterChip; DataTable
+- [x] Table, Pagination, Toolbar, FilterChip; DataTable (2026-09-04)
 - [ ] Tooltip, HoverCard, Popover, DropdownMenu
 - [ ] Dialog, Sheet, Drawer, AlertDialog; the Overlays overview
 - [ ] Alert, Banner, Progress, Stat, Gates

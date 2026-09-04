@@ -23,21 +23,25 @@ import { Checkbox } from "./controls";
 import { Id } from "./id";
 import { Tooltip } from "./tooltip";
 
+export type TableProps = {
+  /** The table's accessible name, when no heading above it says what the rows are: "Findings". */
+  label?: string | undefined;
+  /** Pixels. Past it the frame scrolls down inside itself and the header sticks to the frame. */
+  maxHeight?: number | undefined;
+  /** The scroll frame, for a virtualizer that needs the element that scrolls. */
+  frameRef?: Ref<HTMLDivElement> | undefined;
+  /** `treegrid` for a hierarchy with columns; `grid` only when cells are editable. */
+  role?: "table" | "treegrid" | "grid" | undefined;
+  className?: string | undefined;
+  children?: ReactNode;
+} & Omit<ComponentPropsWithoutRef<"table">, "className" | "children" | "role">;
+
 /**
  * The register. The wrapper is the scroll frame: sideways always, and down past `maxHeight`, so the
  * sticky header sticks to it and not to the page. While the frame is scrolled sideways it carries
  * `data-scrolled-start` and `data-scrolled-end`, which the pinned columns read for their edge.
  */
-function TableRoot({
-  className,
-  maxHeight,
-  frameRef,
-  ...props
-}: ComponentPropsWithoutRef<"table"> & {
-  maxHeight?: number | undefined;
-  /** The scroll frame, for a virtualizer that needs the element that scrolls. */
-  frameRef?: Ref<HTMLDivElement> | undefined;
-}) {
+function TableRoot({ label, className, maxHeight, frameRef, role, ...props }: TableProps) {
   const frame = useRef<HTMLDivElement>(null);
   const track = useCallback(() => {
     const el = frame.current;
@@ -64,7 +68,12 @@ function TableRoot({
       )}
       style={maxHeight === undefined ? undefined : { maxHeight }}
     >
-      <table className={cn("w-full border-collapse text-left font-body", className)} {...props} />
+      <table
+        className={cn("w-full border-collapse text-left font-body", className)}
+        {...(label ? { "aria-label": label } : {})}
+        {...(role ? { role } : {})}
+        {...props}
+      />
     </div>
   );
 }
@@ -175,7 +184,7 @@ function Th({
             ) : sort === "desc" ? (
               <ArrowDown className="size-150 shrink-0" />
             ) : (
-              <ChevronsUpDown className="invisible size-150 shrink-0 icon-subtlest group-hover/sort:visible" />
+              <ChevronsUpDown className="invisible size-150 shrink-0 icon-subtlest group-focus-visible/sort:visible group-hover/sort:visible" />
             )}
           </button>
         ) : (
@@ -211,6 +220,15 @@ function Th({
   );
 }
 
+export type TdProps = ComponentPropsWithoutRef<"td"> &
+  PinnedProps & {
+    /** Pins the column to the leading edge. The same as `pinned="start"` with no offset. */
+    sticky?: boolean | undefined;
+    /** The column's width in pixels, for a table with no header row. */
+    width?: number | undefined;
+  };
+
+/** A cell. It truncates to one line; a plain string is also the cell's title, so the whole shows on hover. */
 function Td({
   className,
   sticky,
@@ -219,12 +237,13 @@ function Td({
   edge,
   width,
   style,
+  children,
   ...props
-}: ComponentPropsWithoutRef<"td"> &
-  PinnedProps & { sticky?: boolean | undefined; width?: number | undefined }) {
+}: TdProps) {
   const pinned = pinnedProp ?? (sticky ? "start" : false);
   return (
     <td
+      {...(typeof children === "string" ? { title: children } : {})}
       className={cn(
         "h-row max-w-0 truncate whitespace-nowrap px-150 align-middle",
         pinnedClass(pinned, edge, "z-10"),
@@ -233,7 +252,9 @@ function Td({
       )}
       style={widthStyle(width, { ...pinnedStyle(pinned, offset), ...style })}
       {...props}
-    />
+    >
+      {children}
+    </td>
   );
 }
 
