@@ -180,6 +180,7 @@ const wideColumns = defineColumns<Finding>((c) => [
 
 function Wide({ view }: { view?: string | undefined }) {
   const table = useDataTable({
+    label: "Findings with pinned columns",
     columns: wideColumns,
     data: findings,
     getRowId: (r) => r.id,
@@ -236,6 +237,7 @@ const groupedColumns = defineColumns<Finding>((c) => [
 
 function Groups() {
   const table = useDataTable({
+    label: "Findings in column groups",
     columns: groupedColumns,
     data: findings,
     getRowId: (r) => r.id,
@@ -644,7 +646,12 @@ function TableParts() {
 /** Loading keeps the header and the frame; empty and error sit inside them. */
 function States() {
   const [state, setState] = useState<DataTableState>("loading");
-  const table = useDataTable({ columns, data: state === "ready" ? findings : [], pageSize: 5 });
+  const table = useDataTable({
+    label: "Findings, the states",
+    columns,
+    data: state === "ready" ? findings : [],
+    pageSize: 5,
+  });
   return (
     <Stack space="space.150">
       <Inline space="space.100">
@@ -743,6 +750,7 @@ function Server() {
     };
   }, [sorting, columnFilters, globalFilter, pagination]);
   const table = useDataTable({
+    label: "Findings from the server",
     columns,
     data: result?.rows ?? [],
     getRowId: (r) => r.id,
@@ -777,6 +785,7 @@ const { SelectionBar, Filter, Search, Presets } = DataTable;
 /** The toolbar parts on their own: search, a chip per kind, presets, and the bar with the page chosen and the rest on offer. */
 function Parts() {
   const table = useDataTable({
+    label: "Findings and the parts",
     columns,
     data: findings,
     getRowId: (r) => r.id,

@@ -4,6 +4,33 @@ Semantic versions. A rename or a removed prop is a major step once the package r
 then it is a minor step, and it ships with a deprecation the lint fixes (`ledger/no-deprecated-name`,
 `ledger/no-deprecated-token`) wherever one is possible. Every entry names the story that shows it.
 
+## 0.4.0 · 2026-09-04
+
+### Added
+
+- `DataTable` (Patterns/Data table): TanStack Table 9 through `useDataTable`, columns by kind through
+  `defineColumns` (`id`, `text`, `number`, `date`, `status`, `person`, `custom`, `actions`, `group`),
+  sorting, search, pagination and the empty, loading and error states. `DataTable.SelectionBar`
+  with select-all-pages, `.Filter` chips from a column's facet or range, `.Search`, `.Presets` with
+  counts, `.Columns`. Pinned, resizable, reorderable and hideable columns and column groups; the
+  reader's order, widths, visibility and pins persist per `view` in localStorage with Reset view.
+  Tree mode with the treegrid keyboard, detail rows, groups, pinned rows, footer totals and row
+  reordering by handle; virtual scroll, server mode, `toRows` and `toCsv`; text and status cells
+  that edit in place. The spec and its calls: `docs/superpowers/specs/2026-09-03-data-table.md`.
+- Density (Components/Mode switch): `DensityProvider`, `DensitySwitch`, `useDensity`,
+  `densityScript` and `readDensity`/`writeDensity`. Default and compact row density, stored, applied
+  before the first paint like the colour mode.
+- Dependencies: `@tanstack/react-table`, `@tanstack/react-virtual`, `@dnd-kit/core`, `sortable`,
+  `modifiers` and `utilities`.
+
+### Notes
+
+- The Data table page is not yet on the page template; its eleven sections are grandfathered in
+  `scripts/ds-check.allow` and the family joins the maturity walk.
+- This version rejoins two lines of work made in parallel from 0.1.0: the navigation system, the
+  panel and the Button walk on one, the data table on the other. Where both implemented the same
+  feature, the first line's version stands.
+
 ## 0.3.0 · 2026-09-04
 
 ### Breaking

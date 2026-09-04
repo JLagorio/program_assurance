@@ -140,6 +140,7 @@ function HeaderCell<TData extends RowData>({
       offset={pin.offset}
       edge={pin.edge}
       trailing={trailing}
+      {...(header.isPlaceholder ? { "aria-hidden": true } : {})}
       {...(canSort && leaf ? { sort: sorted || false, onSort: () => column.toggleSorting() } : {})}
       {...(canResize
         ? {
@@ -568,8 +569,10 @@ function DataTableRoot<TData extends RowData>({
     />
   );
 
-  const narrowHeader = (key: string) => (
-    <Table.Header key={key} className="w-400 pe-0" pinned={before > 0 ? "start" : false} />
+  const narrowHeader = (key: "handle" | "detail") => (
+    <Table.Header key={key} className="w-400 pe-0" pinned={before > 0 ? "start" : false}>
+      <span className="sr-only">{key === "detail" ? "Details" : "Reorder"}</span>
+    </Table.Header>
   );
 
   const states = (
@@ -648,7 +651,7 @@ function DataTableRoot<TData extends RowData>({
                     </>
                   ) : (
                     Array.from({ length: leadingCount(leading) }, (_, j) => (
-                      <Table.Header key={j} className="border-b-0" />
+                      <Table.Header key={j} className="border-b-0" aria-hidden />
                     ))
                   )}
                   {group.headers.map((header) => (
@@ -731,6 +734,7 @@ function DataTableRoot<TData extends RowData>({
           onPageChange={(p) => table.setPageIndex(p - 1)}
           total={table.getRowCount()}
           pageSize={pageSize}
+          label={label ? `${label} pagination` : undefined}
           className="border-t border-default px-150 py-100"
         />
       ) : null}

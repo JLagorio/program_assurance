@@ -12,20 +12,43 @@ export type PaginationProps = {
   /** With `pageSize`, renders the row range on the left. */
   total?: number | undefined;
   pageSize?: number | undefined;
+  /** The nav's accessible name. Two paginated tables on one page need different ones. */
+  label?: string | undefined;
   className?: string | undefined;
 };
 
 /** Which page of a long table you are on, and the way to the others. Pages are 1-based. */
-export function Pagination({ page, pageCount, onPageChange, total, pageSize, className }: PaginationProps) {
+export function Pagination({
+  page,
+  pageCount,
+  onPageChange,
+  total,
+  pageSize,
+  label = "Pagination",
+  className,
+}: PaginationProps) {
   const pages = visiblePages(page, pageCount);
   const from = total !== undefined && pageSize ? (page - 1) * pageSize + 1 : null;
   const to = total !== undefined && pageSize ? Math.min(page * pageSize, total) : null;
   const num = (n: number) => n.toLocaleString();
   return (
-    <nav aria-label="Pagination" className={cn("flex flex-wrap items-center gap-150 font-body-small text-subtle", className)}>
-      {from !== null && to !== null && total !== undefined ? <span className="tabular-nums">{total === 0 ? "0 rows" : `${num(from)}–${num(to)} of ${num(total)}`}</span> : null}
+    <nav
+      aria-label={label}
+      className={cn("flex flex-wrap items-center gap-150 font-body-small text-subtle", className)}
+    >
+      {from !== null && to !== null && total !== undefined ? (
+        <span className="tabular-nums">
+          {total === 0 ? "0 rows" : `${num(from)}–${num(to)} of ${num(total)}`}
+        </span>
+      ) : null}
       <span className="ms-auto flex items-center gap-025">
-        <button type="button" aria-label="Previous page" disabled={page <= 1} onClick={() => onPageChange(page - 1)} className={cn(pageButton, "size-control-small")}>
+        <button
+          type="button"
+          aria-label="Previous page"
+          disabled={page <= 1}
+          onClick={() => onPageChange(page - 1)}
+          className={cn(pageButton, "size-control-small")}
+        >
           <ChevronLeft className="size-icon-small" />
         </button>
         {pages.map((p, i) =>
@@ -39,13 +62,23 @@ export function Pagination({ page, pageCount, onPageChange, total, pageSize, cla
               type="button"
               aria-current={p === page ? "page" : undefined}
               onClick={() => onPageChange(p)}
-              className={cn(pageButton, "min-w-control-small px-075 tabular-nums", p === page && "bg-neutral font-medium text-default")}
+              className={cn(
+                pageButton,
+                "min-w-control-small px-075 tabular-nums",
+                p === page && "bg-neutral font-medium text-default",
+              )}
             >
               {num(p)}
             </button>
           ),
         )}
-        <button type="button" aria-label="Next page" disabled={page >= pageCount} onClick={() => onPageChange(page + 1)} className={cn(pageButton, "size-control-small")}>
+        <button
+          type="button"
+          aria-label="Next page"
+          disabled={page >= pageCount}
+          onClick={() => onPageChange(page + 1)}
+          className={cn(pageButton, "size-control-small")}
+        >
           <ChevronRight className="size-icon-small" />
         </button>
       </span>
