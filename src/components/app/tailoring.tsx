@@ -21,6 +21,7 @@ import {
   Textarea,
   Timeline,
   toast,
+  useRequired,
 } from "@ledger/design-system";
 import {
   approvalTone,
@@ -70,8 +71,10 @@ export function TailoringSection({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<SystemParameters>(defaultParameters);
   const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
   const [deciding, setDeciding] = useState<null | "approve" | "changes">(null);
   const [note, setNote] = useState("");
+  const req = useRequired({ message: submitting && message, note: deciding === "changes" && note });
 
   const seed = scopeApprovals.find((a) => a.programId === programId);
   const [state, setState] = useState<ApprovalState>(seed?.state ?? "Draft");
@@ -420,7 +423,10 @@ export function TailoringSection({
       <AlertDialog
         open={submitting}
         onClose={() => setSubmitting(false)}
-        onConfirm={submit}
+        onConfirm={() => {
+          if (!req.check()) return;
+          submit();
+        }}
         title="Submit scope for PM approval"
         description={`${programId} · ${result.total} controls · ${result.overlays.length} overlays. The PM sees the tailored scope on the approvals dashboard and every stage below Categorize locks until they decide.`}
         confirmLabel="Send for approval"
@@ -429,8 +435,17 @@ export function TailoringSection({
           <Field label="Approver">
             <Input defaultValue={`${programOwner} (PM)`} readOnly />
           </Field>
-          <Field label="Message" hint="Shown on the shared scope approvals dashboard.">
-            <Textarea placeholder="Tailored scope reflects the DDIL tactical profile agreed at the SRR working group." />
+          <Field
+            label="Message"
+            hint="Shown on the shared scope approvals dashboard."
+            isRequired
+            error={req.errorFor("message")}
+          >
+            <Textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Tailored scope reflects the DDIL tactical profile agreed at the SRR working group."
+            />
           </Field>
         </Stack>
       </AlertDialog>
@@ -448,7 +463,10 @@ export function TailoringSection({
             </Button>
             <Button
               variant={deciding === "approve" ? "primary" : "danger"}
-              onClick={() => decide(deciding ?? "approve")}
+              onClick={() => {
+                if (!req.check()) return;
+                decide(deciding ?? "approve");
+              }}
             >
               {deciding === "approve" ? "Approve scope" : "Request changes"}
             </Button>
@@ -456,6 +474,8 @@ export function TailoringSection({
         }
       >
         <Field
+          isRequired={deciding === "changes"}
+          error={req.errorFor("note")}
           label={deciding === "approve" ? "Approval note" : "What needs to change?"}
           hint={
             deciding === "approve"

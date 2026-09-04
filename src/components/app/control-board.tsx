@@ -38,6 +38,7 @@ import {
   TextLink,
   ToggleGroup,
   Toolbar,
+  useRequired,
 } from "@ledger/design-system";
 import {
   buildBoard,
@@ -505,7 +506,9 @@ function BoardDetail({
   const [error, setError] = useState<string | null>(null);
   const chosen = offers.find((o) => o.def.key === pending);
 
+  const req = useRequired({ note: chosen?.def.note === "required" && note });
   const fire = () => {
+    if (!req.check()) return;
     if (!work || !pending) return;
     const result = perform(work.id, pending, context, note);
     if (!result.ok) return setError(result.reason);
@@ -667,7 +670,11 @@ function BoardDetail({
                     scope?.name ?? "this scope",
                   )}
                 </p>
-                <Field label={chosen.def.note === "required" ? "Reason (required)" : "Note"}>
+                <Field
+                  isRequired={chosen?.def.note === "required"}
+                  error={req.errorFor("note")}
+                  label={chosen.def.note === "required" ? "Reason (required)" : "Note"}
+                >
                   <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} />
                 </Field>
                 {error ? <div className="font-body-small text-danger">{error}</div> : null}

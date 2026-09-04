@@ -21,6 +21,7 @@ import {
   Badge,
   Bleed,
   Box,
+  Breadcrumb,
   Button,
   Grid,
   Id,
@@ -1148,26 +1149,20 @@ export function ControlWorkspace({ programId }: { programId: string }) {
         alignBlock="center"
         shouldWrap
       >
-        <Inline className="min-w-0 font-body" as="nav" space="space.075" alignBlock="center">
+        <Breadcrumb className="min-w-0">
           {crumbs.map((c, i) => (
-            <Inline key={i} as="span" space="space.075" alignBlock="center">
-              {i ? <span className="text-subtlest">/</span> : null}
-              <button
-                type="button"
-                onClick={() => {
-                  setPath(c.path);
-                  setHov(null);
-                }}
-                className={cn(
-                  "hover:underline",
-                  i === crumbs.length - 1 ? "font-medium text-default" : "text-subtle",
-                )}
-              >
-                {c.l}
-              </button>
-            </Inline>
+            <Breadcrumb.Item
+              key={i}
+              isCurrent={i === crumbs.length - 1}
+              onClick={() => {
+                setPath(c.path);
+                setHov(null);
+              }}
+            >
+              {c.l}
+            </Breadcrumb.Item>
           ))}
-        </Inline>
+        </Breadcrumb>
         <Inline className="ml-auto" space="space.100" alignBlock="center">
           <ToggleGroup
             items={views.map((v) => ({ value: v.value, label: v.label }))}

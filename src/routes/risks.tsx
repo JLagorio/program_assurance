@@ -28,6 +28,7 @@ import {
   Table,
   Tabs,
   Textarea,
+  TextLink,
   toast,
   usePage,
   useRequired,
@@ -312,13 +313,11 @@ function RiskList() {
                   </HoverCard>
                 </Table.Cell>
                 <Table.Cell>
-                  <Link
-                    to="/risks/$riskId"
-                    params={{ riskId: risk.id }}
-                    className="font-medium underline-offset-2 group-hover:text-brand group-hover:underline"
-                  >
-                    {risk.title}
-                  </Link>
+                  <TextLink weight="medium" className="text-default group-hover:text-brand">
+                    <Link to="/risks/$riskId" params={{ riskId: risk.id }}>
+                      {risk.title}
+                    </Link>
+                  </TextLink>
                 </Table.Cell>
                 <Table.Cell>{risk.framework}</Table.Cell>
                 <Table.Cell>

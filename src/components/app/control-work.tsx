@@ -22,6 +22,7 @@ import {
   Stack,
   Table,
   Textarea,
+  useRequired,
 } from "@ledger/design-system";
 import { ActionBarAction, RecordPicker } from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
@@ -72,6 +73,7 @@ export function ControlActionBar({
 
   const chosen = offers.find((o) => o.def.key === pending);
 
+  const req = useRequired({ note: chosen?.def.note === "required" && note });
   const actions: ActionBarAction[] = offers.map((o) => ({
     label: o.def.label,
     primary:
@@ -85,6 +87,7 @@ export function ControlActionBar({
   }));
 
   const fire = () => {
+    if (!req.check()) return;
     if (!pending) return;
     const result = perform(work.id, pending, context, note);
     if (!result.ok) return setError(result.reason);
@@ -141,7 +144,11 @@ export function ControlActionBar({
           >
             {session.name} · {session.role}
           </Box>
-          <Field label={chosen?.def.note === "required" ? "Reason (required)" : "Note"}>
+          <Field
+            isRequired={chosen?.def.note === "required"}
+            error={req.errorFor("note")}
+            label={chosen?.def.note === "required" ? "Reason (required)" : "Note"}
+          >
             <Textarea value={note} onChange={(e) => setNote(e.target.value)} />
           </Field>
         </Grid>

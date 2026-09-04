@@ -285,25 +285,21 @@ function ProgramComposition() {
                     {edges.map((e) => (
                       <Table.Row key={`${e.from}-${e.kind}-${e.to}`}>
                         <Table.Cell className="truncate">
-                          <button
-                            type="button"
-                            onClick={() => select(e.from)}
-                            className="truncate text-left hover:underline"
-                          >
-                            {nameOf(e.from)}
-                          </button>
+                          <TextLink asChild className="truncate text-left">
+                            <button type="button" onClick={() => select(e.from)}>
+                              {nameOf(e.from)}
+                            </button>
+                          </TextLink>
                         </Table.Cell>
                         <Table.Cell>
                           <Badge size="xsmall">{e.kind}</Badge>
                         </Table.Cell>
                         <Table.Cell className="truncate">
-                          <button
-                            type="button"
-                            onClick={() => select(e.to)}
-                            className="truncate text-left hover:underline"
-                          >
-                            {nameOf(e.to)}
-                          </button>
+                          <TextLink asChild className="truncate text-left">
+                            <button type="button" onClick={() => select(e.to)}>
+                              {nameOf(e.to)}
+                            </button>
+                          </TextLink>
                         </Table.Cell>
                         <Table.Cell className="truncate" title={e.via}>
                           {e.via}
@@ -415,14 +411,15 @@ function ProgramComposition() {
                             {d.components}
                           </Table.Cell>
                           <Table.Cell className="truncate">
-                            <button
-                              type="button"
-                              onClick={() => openInTree(d.subject)}
-                              className="truncate text-left hover:underline"
-                              title={nameOf(d.subject)}
-                            >
-                              {nameOf(d.subject)}
-                            </button>
+                            <TextLink asChild className="truncate text-left">
+                              <button
+                                type="button"
+                                onClick={() => openInTree(d.subject)}
+                                title={nameOf(d.subject)}
+                              >
+                                {nameOf(d.subject)}
+                              </button>
+                            </TextLink>
                           </Table.Cell>
                           <Table.Cell>
                             <Inline as="span" space="space.075" alignBlock="center">

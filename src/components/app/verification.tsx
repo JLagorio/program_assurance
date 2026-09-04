@@ -410,6 +410,7 @@ function FindingModal({
   const [due, setDue] = useState("");
   const [mitigation, setMitigation] = useState("");
   const [key, setKey] = useState<string | null>(null);
+  const req = useRequired({ owner, due });
 
   if (finding && key !== finding.id) {
     setKey(finding.id);
@@ -469,7 +470,10 @@ function FindingModal({
           </Button>
           <Button
             variant="primary"
-            onClick={() => onSave({ ...finding, status, owner, due, mitigation })}
+            onClick={() => {
+              if (!req.check()) return;
+              onSave({ ...finding, status, owner, due, mitigation });
+            }}
           >
             <Check className="size-icon-small" /> Save finding
           </Button>
@@ -489,10 +493,10 @@ function FindingModal({
               ))}
             </NativeSelect>
           </Field>
-          <Field label="Owner">
+          <Field isRequired error={req.errorFor("owner")} label="Owner">
             <Input value={owner} onChange={(e) => setOwner(e.target.value)} />
           </Field>
-          <Field label="Mitigation due">
+          <Field isRequired error={req.errorFor("due")} label="Mitigation due">
             <Input value={due} onChange={(e) => setDue(e.target.value)} />
           </Field>
         </Grid>

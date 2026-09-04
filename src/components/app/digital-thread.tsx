@@ -526,6 +526,7 @@ function EvidenceModal({
   onStatus: (id: string, next: EvidenceStatus) => void;
 }) {
   const [statement, setStatement] = useState(evidence?.statement ?? "");
+  const req = useRequired({ statement: statement || evidence?.statement });
   if (evidence && statement !== undefined && evidence.statement && statement === "") {
     setStatement(evidence.statement);
   }
@@ -566,7 +567,13 @@ function EvidenceModal({
           <Button variant="secondary" onClick={() => onStatus(evidence.id, "Rejected")}>
             <X className="size-icon-small" /> Reject
           </Button>
-          <Button variant="primary" onClick={() => onStatus(evidence.id, "Accepted")}>
+          <Button
+            variant="primary"
+            onClick={() => {
+              if (!req.check()) return;
+              onStatus(evidence.id, "Accepted");
+            }}
+          >
             <Check className="size-icon-small" /> Accept into SSP
           </Button>
         </>
@@ -574,6 +581,8 @@ function EvidenceModal({
     >
       <Stack space="space.150">
         <Field
+          isRequired
+          error={req.errorFor("statement")}
           label="Generated implementation statement"
           hint="Drafted from the artifact and edited by the product security engineer before it enters the SSP."
         >

@@ -2,7 +2,7 @@
 
 A living list for the design system and the prototype. Josef owns the decisions; whoever is working owns the work. Tick a box when it lands and move it to Done with the date. Keep it short: one line per item, the reasoning lives in the spec or the audit it points at.
 
-Updated 2026-09-03.
+Updated 2026-09-04.
 
 ## Decisions waiting on Josef
 
@@ -18,11 +18,11 @@ Updated 2026-09-03.
 ## Prototype
 
 - [ ] **The `ia` driver scenario** (scratchpad `drive.mjs`) fails at the persona switch: `select[aria-label="Role"]` is not found after the top-bar work. Unowned; the other four scenarios pass.
-- [ ] **Forms, the rest.** Seventeen forms now name their required fields (see Done). Left alone on purpose: the edit dialogs of existing records (POA&M edit keeps only its title, gate, finding, remediation, evidence), `ApplicabilityModal` (its two guards are conditional and the picker's second frame replaces it), the treatment and scope-approval forms (uncontrolled inputs the hook cannot read), and the wizard (it blocks progress with its own message; its name fields carry the asterisk only). Whether the required sets are the right ones is Josef's read: the list is in `useRequired({ … })` at the top of each form.
-- [ ] **Link-looking buttons** that are not blue (`<button className="hover:underline">`, rmf-timeline and a few others). Neither `Button variant="link"` nor TextLink; decide whether they are links, actions, or plain text.
 
 ## Done
 
+- 2026-09-04 · **Forms, the rest.** `useRequired` takes `false` for a field that is not required right now. The action dialogs of the control board and the control work bar require the reason when the action says so; a gate requires its owner and planned date; a remediation its assignee, due date and response; accepting evidence into the SSP requires the statement; a finding its owner and due date; a treatment its plan and due date (its inputs are controlled now); the tailoring submission its message to the PM, and a request for changes its reason. The wizard keeps its own blocking message, and the POA&M edit keeps title only.
+- 2026-09-04 · **Link-looking buttons decided.** Names and titles that take the reader somewhere are TextLinks (composition nodes, RMF workstream controls, risk titles in tables, blue on row hover); rows and jumps that act in place are actions with a hover surface and no underline (coverage families, program-state jumps); the control workspace crumbs are a Breadcrumb.
 - 2026-09-03 · **The second-consumer sweep.** `useRequired`, `useSort` and `usePage`, `PreviewSplit`, `CommandPalette` with `useCommandPalette`, and `RecordPicker` moved into the package with stories and matrices; the prototype's copies and its own `cn` are gone (107 files re-pointed). The three assembly rules (`cell-plain`, `id-not-blue`, `no-kit-shadow`) moved into the plugin's `recommended` preset; the root config adds nothing about the kit.
 - 2026-09-03 · **Package hygiene.** CI on every push (`.github/workflows/ci.yml`): tokens current, ratchet, package and prototype typecheck and lint, tests, build, Storybook build, `npm pack` as the artifact. `CHANGELOG.md` seeded at 0.2.0 with the version policy; the guide says how a second product installs it.
 - 2026-09-03 · **The rest of the rails.** The risk record and the control detail put their Inspector in the panel; the package record's split is a preview beside a table and stays.

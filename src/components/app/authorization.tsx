@@ -439,6 +439,7 @@ function RemediationModal({
   const [assignee, setAssignee] = useState(jiraAssignees[0]!);
   const [due, setDue] = useState("");
   const [response, setResponse] = useState("");
+  const req = useRequired({ assignee, due, response });
 
   if (observation && key !== observation.id) {
     setKey(observation.id);
@@ -493,7 +494,8 @@ links:
           </Button>
           <Button
             variant="primary"
-            onClick={() =>
+            onClick={() => {
+              if (!req.check()) return;
               onSave({
                 ...observation,
                 status,
@@ -501,8 +503,8 @@ links:
                 assignee,
                 due,
                 response,
-              })
-            }
+              });
+            }}
           >
             <Check className="size-icon-small" /> Save & sync
           </Button>
@@ -529,18 +531,18 @@ links:
               ))}
             </NativeSelect>
           </Field>
-          <Field label="Assignee">
+          <Field isRequired error={req.errorFor("assignee")} label="Assignee">
             <NativeSelect value={assignee} onChange={(e) => setAssignee(e.target.value)}>
               {jiraAssignees.map((a) => (
                 <option key={a}>{a}</option>
               ))}
             </NativeSelect>
           </Field>
-          <Field label="Due">
+          <Field isRequired error={req.errorFor("due")} label="Due">
             <Input value={due} onChange={(e) => setDue(e.target.value)} />
           </Field>
         </Grid>
-        <Field label="Program response to the assessor">
+        <Field isRequired error={req.errorFor("response")} label="Program response to the assessor">
           <Textarea rows={4} value={response} onChange={(e) => setResponse(e.target.value)} />
         </Field>
       </Stack>

@@ -24,6 +24,7 @@ import {
   Textarea,
   TextLink,
   Timeline,
+  useRequired,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { riskStatusTone, risks } from "@/lib/grc-data";
@@ -92,6 +93,9 @@ const linkedEvidence = [
 function RiskDetail() {
   const risk = Route.useLoaderData();
   const [treating, setTreating] = useState(false);
+  const [plan, setPlan] = useState("");
+  const [due, setDue] = useState("2026-03-31");
+  const req = useRequired({ plan, due });
 
   return (
     <Shell>
@@ -229,7 +233,13 @@ function RiskDetail() {
             <Button variant="subtle" onClick={() => setTreating(false)}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={() => setTreating(false)}>
+            <Button
+              variant="primary"
+              onClick={() => {
+                if (!req.check()) return;
+                setTreating(false);
+              }}
+            >
               Add treatment
             </Button>
           </>
@@ -243,8 +253,17 @@ function RiskDetail() {
               ))}
             </NativeSelect>
           </Field>
-          <Field label="Plan" hint="Include the control change and how it will be verified.">
-            <Textarea placeholder="Enforce tenant scoping in the export resolver and add a regression test." />
+          <Field
+            label="Plan"
+            hint="Include the control change and how it will be verified."
+            isRequired
+            error={req.errorFor("plan")}
+          >
+            <Textarea
+              value={plan}
+              onChange={(e) => setPlan(e.target.value)}
+              placeholder="Enforce tenant scoping in the export resolver and add a regression test."
+            />
           </Field>
           <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
             <Field label="Assignee">
@@ -254,8 +273,8 @@ function RiskDetail() {
                 ))}
               </NativeSelect>
             </Field>
-            <Field label="Due date">
-              <DatePicker defaultValue="2026-03-31" />
+            <Field label="Due date" isRequired error={req.errorFor("due")}>
+              <DatePicker value={due} onChange={setDue} />
             </Field>
           </Grid>
         </Stack>

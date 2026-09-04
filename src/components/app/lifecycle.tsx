@@ -17,6 +17,7 @@ import {
   Stack,
   Table,
   Textarea,
+  useRequired,
 } from "@ledger/design-system";
 import {
   gateKindTone,
@@ -204,6 +205,7 @@ function GateModal({
 }) {
   const [draft, setDraft] = useState<ProgramGate | null>(gate);
   const [note, setNote] = useState("");
+  const req = useRequired({ owner: draft?.owner, planned: draft?.planned });
 
   // reset when a different gate is opened
   if (gate && draft?.id !== gate.id) {
@@ -238,7 +240,13 @@ function GateModal({
           <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={() => onSave(draft)}>
+          <Button
+            variant="primary"
+            onClick={() => {
+              if (!req.check()) return;
+              onSave(draft);
+            }}
+          >
             Save gate
           </Button>
         </>
@@ -260,13 +268,13 @@ function GateModal({
               )}
             </NativeSelect>
           </Field>
-          <Field label="Owner">
+          <Field isRequired error={req.errorFor("owner")} label="Owner">
             <Input
               value={draft.owner}
               onChange={(e) => setDraft({ ...draft, owner: e.target.value })}
             />
           </Field>
-          <Field label="Planned date">
+          <Field isRequired error={req.errorFor("planned")} label="Planned date">
             <Input
               value={draft.planned}
               onChange={(e) => setDraft({ ...draft, planned: e.target.value })}

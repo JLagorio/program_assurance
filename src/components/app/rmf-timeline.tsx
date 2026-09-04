@@ -183,16 +183,17 @@ export function RmfTimeline({
                                   <Table.Cell width={120}>{w.status}</Table.Cell>
                                   <Table.Cell width={140}>
                                     {w.controls.length ? (
-                                      <button
-                                        type="button"
-                                        className="hover:underline"
-                                        onClick={() =>
-                                          onOpenControls?.(w.controls[0]!.split("-")[0]!)
-                                        }
-                                      >
-                                        {w.controls.length} controls
-                                        {wOpen ? ` · ${wOpen} open` : ""}
-                                      </button>
+                                      <TextLink asChild>
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            onOpenControls?.(w.controls[0]!.split("-")[0]!)
+                                          }
+                                        >
+                                          {w.controls.length} controls
+                                          {wOpen ? ` · ${wOpen} open` : ""}
+                                        </button>
+                                      </TextLink>
                                     ) : (
                                       "—"
                                     )}
