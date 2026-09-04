@@ -6,7 +6,7 @@ import * as Stories from "./Typography.stories";
 
 # Typography
 
-A type token is one font shorthand: family, weight, size, leading and its letter-spacing. Its utility sets `font` and `letter-spacing` together, so `font-body` is the whole style. No half pixels exist. Labels are `font.body.small` plus `font.weight.medium`, not a size of their own.
+A type token is one font shorthand: family, weight, size, leading and its letter-spacing. Its utility sets `font` and `letter-spacing` together, so `font-body` is the whole style, and restates the weight as a longhand under the shorthand, so `font-medium` or `font-semibold` beside it wins whichever order the two land in the stylesheet. No half pixels exist. Labels are `font.body.small` plus `font.weight.medium`, not a size of their own.
 
 ## One face
 
