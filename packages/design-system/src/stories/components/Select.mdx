@@ -1,18 +1,118 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Select } from "../../components";
 import * as Stories from "./Select.stories";
-import * as FormsStories from "./Forms.stories";
 
 <Meta of={Stories} />
 
 # Select
 
-Three ways to choose from a list, and one for a date. All four triggers are the hairline control from Controls, so a picker and a field are the same shape in a form. A short, fixed list whose options carry a Dot or a Badge: **Select**.
+One answer from a short, fixed list whose options mean more than their words: a status with its Dot, a severity, a kind with its Badge. The kit draws the list, so an option can carry the same mark the record shows in its table row and its header, and the reader picks the colour they already know.
+
+It is the second of four ways to choose. Plain words are a [NativeSelect](?path=/docs/components-nativeselect--docs), the browser's own list. Two or three answers are a [RadioGroup](?path=/docs/components-radiogroup--docs). More than a dozen, or names the reader would rather type, are a [Combobox](?path=/docs/components-combobox--docs). Actions are a [DropdownMenu](?path=/docs/components-dropdownmenu--docs), which looks like this list and is not a field.
 
 <Canvas of={Stories.SelectMatrix} />
 
-<Canvas of={FormsStories.FieldsStory} />
+## Anatomy
+
+| Part        | What it is                                                                                                                                                       |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Label       | From the [Field](?path=/docs/components-field--docs), or `aria-label` on a select in a toolbar. It is the control's name.                                        |
+| Control     | The field: `dimension.control.medium` (32px) or `small` (28px), `radius.medium`, `color.border.input` on `color.background.input`. The value, or the placeholder in `color.text.subtlest`; the chevron in `color.icon.subtle` at the end. |
+| List        | The kit's floating surface: `elevation.surface.overlay`, `color.border.default`, `radius.large`, `elevation.shadow.overlay`, `space.050` inside. At least as wide as the field, as tall as the room below it, flipping above when there is none. |
+| Option      | One row, `dimension.row.menu` tall, `radius.medium`: the Dot or Badge, the text, and on the chosen one a check at the end in `color.text.selected`.              |
+| Group label | A section heading in the list, `font.heading.xxsmall` uppercase in `color.text.subtlest`, with a hairline `Select.Separator` between sections.                   |
+| Message     | From the Field, under the control: the hint, or the error that replaces it.                                                                                     |
+
+## Variants
+
+Select has one appearance. What varies is what an option carries, and which control the list wants:
+
+| The list                                              | Use                                                                          |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Plain words                                           | `NativeSelect`.                                                              |
+| A status, a severity: a word with its colour          | `Select`, each option with its `Dot`, the same tone the Badge and the row use. |
+| A kind, a source: a word with its mark                | `Select`, each option with its `Badge`.                                      |
+| More than a dozen, or names                           | `Combobox`.                                                                  |
+| Two or three answers                                  | `RadioGroup`.                                                                |
+
+There is no multi-select: several values in a toolbar are a [FilterChip](?path=/docs/components-filterchip--docs), and in a form a group of [Checkbox](?path=/docs/components-checkbox--docs)es. There is no borderless select. There is no typed entry: a list the reader types into is a Combobox.
+
+## Sizes
+
+| Size     | Height                          | Use                                                                                   |
+| -------- | ------------------------------- | ------------------------------------------------------------------------------------- |
+| `medium` | `dimension.control.medium` 32px | In a form, inside a Field, beside medium Buttons. The default.                        |
+| `small`  | `dimension.control.small` 28px  | A toolbar's filter, beside small Buttons and a small NativeSelect or Combobox.        |
+
+The width is the layout's. In a form's Grid the column sets it; in a toolbar `width` does. The list is never narrower than the field, and it is as tall as the space below the field allows, scrolling past that.
+
+<Canvas of={Stories.Sizes} />
+
+## States
+
+| State    | What changes                                                                                                                             |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Rest     | `color.border.input` on `color.background.input`; the value, or the placeholder in `color.text.subtlest`.                                 |
+| Hover    | The background steps to `color.background.input.hovered`.                                                                                 |
+| Focus    | The border turns `color.border.focused` and the focus outline shows.                                                                      |
+| Open     | The list is open below the field, or above it when there is no room. The field keeps its focus look; the row under the pointer or the keyboard is `color.background.neutral.subtle.hovered`; the chosen row shows its check. |
+| Filled   | An option is chosen, its Dot or Badge with it.                                                                                            |
+| Invalid  | `aria-invalid`, from the Field's `error`: the border turns `color.border.danger` and the error replaces the hint.                          |
+| Disabled | `color.background.disabled`, `color.border.disabled`, `color.text.disabled`. See Accessibility for when.                                  |
+
+A Select has no read-only state. A value the reader can see but not change here is shown as text, in a [KeyValue](?path=/docs/components-keyvalue--docs) or a [Fact](?path=/docs/components-fact--docs).
+
+## Modifiers
+
+- **`placeholder`** for what to choose when nothing is chosen: "Choose a status". A filter has no placeholder; its first option is its default and says what it includes ("All statuses").
+- **`value` with `onValueChange`**, or `defaultValue`. A form with `useRequired` is controlled.
+- **`Select.Group`** with a `label` and **`Select.Separator`** when the list has natural sections. Not to make a long list feel shorter.
+- **A disabled `Select.Item`** for a choice the reader cannot make yet, when it helps to know it exists.
+- **`name`** when a form submits natively; a hidden input carries the value.
+- **`width`** in pixels, for a toolbar; **`size`** for its height.
+
+<Canvas of={Stories.Options} />
+
+## Content
+
+- **The label is a noun**, one to three words, sentence case: Status, Severity, Review gate.
+- **Options are short and parallel**: a word or two, sentence case, no full stops. An option that needs a sentence is not a select at all.
+- **The Dot or the Badge before the text is the record's own mark**, in the tone the Badge, the Indicator and the table row use for the same value. Never a decoration: an icon that means nothing on every row makes the reader look for a difference that is not there.
+- **Order the list** the way the reader thinks of it: a scale in its order, a lifecycle in its sequence, otherwise alphabetically.
+- **The placeholder says what to choose**: "Choose a status". Never "Select...", "Please select" or "--".
+
+## Style
+
+| Element      | Token                                                                                           |
+| ------------ | ----------------------------------------------------------------------------------------------- |
+| Field        | `color.background.input` · `color.border.input` · `radius.medium` 5px                           |
+| Hover        | `color.background.input.hovered`                                                                |
+| Focus        | `color.border.focused` as the border, plus the focus outline                                    |
+| Invalid      | `color.border.danger`; the message in `color.text.danger`                                       |
+| Disabled     | `color.background.disabled` · `color.border.disabled` · `color.text.disabled`                   |
+| Value        | `font.body` in `color.text`; placeholder in `color.text.subtlest`                               |
+| Chevron      | `color.icon.subtle` · `dimension.icon.small` 14px                                               |
+| List         | `elevation.surface.overlay` · `color.border.default` · `radius.large` · `elevation.shadow.overlay` |
+| Row          | `font.body` in `color.text`; highlighted `color.background.neutral.subtle.hovered`; chosen text and check in `color.text.selected`; disabled `color.text.disabled` |
+| Group label  | `font.heading.xxsmall` uppercase in `color.text.subtlest`                                       |
+| Separator    | `color.border.default`                                                                          |
+
+| Measure  | Value                                                                                  |
+| -------- | -------------------------------------------------------------------------------------- |
+| Height   | `dimension.control.medium` 32px · `dimension.control.small` 28px                       |
+| Row      | `dimension.row.menu`, `radius.medium`, `space.100` at the sides, `space.500` before the check |
+| List     | `space.050` 4px below the field · `space.050` inside · never narrower than the field   |
+| Motion   | `motion.duration.fast` on the colours; the list enters and leaves with the menu motion |
+
+## Accessibility
+
+- **It is a listbox behind a button** (Radix Select): the field announces the label, the chosen value and that it opens a list; the list is a listbox whose rows are options, the chosen one selected.
+- **Keyboard:** Tab reaches the field. Space, Enter, Up or Down opens the list with the chosen row focused; Up and Down move; typing a letter jumps to the row that starts with it; Enter or Space chooses and closes; Escape closes without changing; focus returns to the field.
+- **The label is the name.** Inside a Field, the label wraps the field and a click on it opens the list. In a toolbar, `aria-label` names it, and a filter's first option ("All statuses") is what the reader hears as the value.
+- **Invalid, required and the message** come from the Field: `aria-invalid` with the error announced, `aria-required` without the browser's bubble, the hint or the error as the field's description.
+- **The Dot and the Badge carry no name.** The option's words are what the reader hears; the mark is the colour the sighted reader already knows.
+- **Disabled is the last resort.** A disabled select cannot say why. Prefer a value shown as text, or an enabled select with the reason in the hint.
 
 ## Props
 
@@ -26,7 +126,21 @@ Three ways to choose from a list, and one for a date. All four triggers are the 
 
 <ArgTypes of={Select.Group} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [NativeSelect](?path=/docs/components-nativeselect--docs), [Combobox](?path=/docs/components-combobox--docs): the other ways to choose from a list.
-- [Forms](?path=/docs/components-forms--docs): which list wants which control.
+- [NativeSelect](?path=/docs/components-nativeselect--docs), [Combobox](?path=/docs/components-combobox--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): the other ways to choose one; see Variants for which.
+- [Badge](?path=/docs/components-badge--docs): the Dot and the Badge an option carries, in the tone the record uses.
+- [Field](?path=/docs/components-field--docs): the label, the hint and the error around it.
+- [Forms](?path=/docs/components-forms--docs): which control for which answer, and `useRequired`.
+- [FilterChip](?path=/docs/components-filterchip--docs): several values at once in a toolbar.
+- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): the same list, for actions.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

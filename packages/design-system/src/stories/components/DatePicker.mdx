@@ -1,25 +1,132 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { DatePicker } from "../../components";
 import * as Stories from "./DatePicker.stories";
-import * as FormsStories from "./Forms.stories";
 
 <Meta of={Stories} />
 
 # DatePicker
 
-Three ways to choose from a list, and one for a date. All four triggers are the hairline control from Controls, so a picker and a field are the same shape in a form. A day: **DatePicker**, a Calendar in a Popover, holding an ISO day like `input type="date"`.
+One day the reader schedules: a scheduled completion, a target date, a due date. The field opens a month, the reader picks a day, and the field shows it in words ("Sep 14, 2026") while holding and reporting an ISO day ("2026-09-14"), the same contract as `input type="date"`. Use it when the day is near, when its weekday and its distance from today matter, and when the reader is choosing rather than recalling.
+
+A date the reader already knows, a date of birth or the month on an authorization letter, is typed into an [Input](?path=/docs/components-input--docs) with the format in the hint. A range that filters a table is a [Calendar](?path=/docs/components-calendar--docs) in a [Popover](?path=/docs/components-popover--docs) of its own. A date that is shown and not edited is text.
 
 <Canvas of={Stories.DatePickerMatrix} />
 
-<Canvas of={FormsStories.FieldsStory} />
+## Anatomy
+
+| Part    | What it is                                                                                                                                                             |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Label   | From the [Field](?path=/docs/components-field--docs), or `aria-label` on a picker in a toolbar. It is the control's name.                                              |
+| Control | The field: `dimension.control.medium` (32px) or `small` (28px), the calendar icon in `color.icon.subtle` at the start, then the day in words in tabular figures, or the placeholder in `color.text.subtlest`. |
+| Month   | The [Calendar](?path=/docs/components-calendar--docs) in a Popover under the field, aligned to its start edge: the month's name, previous and next, the weekdays, the days. Today is semibold; the chosen day is filled. |
+| Footer  | Under the month, two subtle small Buttons: **Today** picks today, **Clear** empties the field. Clear is disabled while the field is empty.                              |
+| Message | From the Field, under the control: the hint, or the error that replaces it.                                                                                            |
+
+<Canvas of={Stories.Open} />
+
+## Variants
+
+DatePicker has one appearance. What varies is which control the date wants:
+
+| The date                                            | Use                                                                                       |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| A day to schedule, near today                       | `DatePicker`.                                                                             |
+| A day the reader remembers, or an approximate date  | `Input`, with the format in the hint: "Month and year, as on the ATO letter."             |
+| A range that filters a table                        | `Calendar` in `mode="range"` inside a Popover, with the range shown on its trigger.       |
+| A date shown, not edited                            | Text: a [KeyValue](?path=/docs/components-keyvalue--docs) row, a [Fact](?path=/docs/components-fact--docs). |
+
+Not built, by decision: no typed entry in the field (Carbon and Atlassian let the reader type as well as pick; here a typed date is an Input, and the picker stays a picker), no time, no range in one field, and no month or year menus in the caption: the picker is for near days, reached by paging.
+
+## Sizes
+
+| Size     | Height                          | Use                                                                          |
+| -------- | ------------------------------- | ---------------------------------------------------------------------------- |
+| `medium` | `dimension.control.medium` 32px | In a form, inside a Field, beside medium Buttons. The default.               |
+| `small`  | `dimension.control.small` 28px  | A toolbar, beside small Buttons.                                             |
+
+The field's width is the layout's: in a form's Grid the column sets it, and "Sep 14, 2026" fits in a narrow one. The month is a fixed size, seven 32px cells wide, and does not follow the field.
+
+## States
+
+| State    | What changes                                                                                                                                      |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rest     | `color.border.input` on `color.background.input`; the day, or the placeholder in `color.text.subtlest`.                                            |
+| Hover    | The background steps to `color.background.input.hovered`.                                                                                          |
+| Focus    | The border turns `color.border.focused` and the focus outline shows.                                                                               |
+| Open     | The month is open under the field with focus on the chosen day, or on today. The field keeps its focus look.                                       |
+| Filled   | A day is chosen and shown in words; its cell is filled in the month.                                                                               |
+| Invalid  | `aria-invalid`, from the Field's `error`: the border turns `color.border.danger` and the error replaces the hint.                                   |
+| Disabled | `color.background.disabled`, `color.border.disabled`, `color.text.disabled`. See Accessibility for when.                                           |
+
+A DatePicker has no read-only state. A date the reader can see but not change here is text.
+
+<Canvas of={Stories.InField} />
+
+## Modifiers
+
+- **`value` with `onChange`**, or `defaultValue`, both ISO days. `onChange` reports `""` when the reader clears the field. A form with `useRequired` is controlled.
+- **`placeholder`** for what to do: "Choose a date". Never a format; the reader cannot type here.
+- **`name`** when a form submits natively; a hidden input carries the ISO day.
+- **`defaultOpen`** for a sheet that exists to pick this day.
+- **`size`** for a toolbar.
+
+## Content
+
+- **The label is the noun of the date**: Scheduled completion, Target date, Due. Not "Date".
+- **The hint says what the date means**, when the label alone does not: "When the milestone is due." "The day the finding was observed."
+- **The field shows the day in words**, "Sep 14, 2026": short month, day, year. Never digits with slashes, which read differently across the products' users, and never the ISO day, which is the store's.
+- **The footer's words are Today and Clear**, and nothing else goes there.
+
+## Style
+
+| Element   | Token                                                                                              |
+| --------- | -------------------------------------------------------------------------------------------------- |
+| Field     | `color.background.input` · `color.border.input` · `radius.medium` 5px                              |
+| Hover     | `color.background.input.hovered`                                                                   |
+| Focus     | `color.border.focused` as the border, plus the focus outline                                       |
+| Invalid   | `color.border.danger`; the message in `color.text.danger`                                          |
+| Disabled  | `color.background.disabled` · `color.border.disabled` · `color.text.disabled`                      |
+| Icon      | `color.icon.subtle` · `dimension.icon.small` 14px, at the start                                    |
+| Value     | `font.body` in `color.text`, tabular figures; placeholder in `color.text.subtlest`                 |
+| Month     | The Calendar's tokens, on `elevation.surface.overlay` with `color.border.default`, `radius.large`, `elevation.shadow.overlay` |
+| Footer    | A `color.border.default` rule above; `space.150` at the sides, `space.100` above and below; subtle small Buttons |
+
+| Measure | Value                                                                        |
+| ------- | ---------------------------------------------------------------------------- |
+| Height  | `dimension.control.medium` 32px · `dimension.control.small` 28px             |
+| Gap     | `space.100` 8px between the icon and the day                                 |
+| Month   | `space.050` 4px below the field, aligned to its start edge; 32px cells       |
+| Motion  | `motion.duration.fast` on the colours; the month enters and leaves with the menu motion |
+
+## Accessibility
+
+- **The field is a button** named by the Field's label or `aria-label`, announcing the chosen day in words. It opens a dialog named "Choose a date".
+- **Keyboard:** Tab reaches the field; Enter or Space opens the month with focus on the chosen day, or on today. In the grid, Left and Right move a day, Up and Down a week, PageUp and PageDown a month, Home and End to the week's ends; Enter or Space picks and closes. Tab reaches previous, next, Today and Clear. Escape closes without changing and returns focus to the field.
+- **Every day is a button named with its full date**, today marked, the chosen day selected, days outside the rules disabled. The month grid is labelled with the month's name.
+- **The label is the name.** Inside a Field, a click on the label opens the month. In a toolbar, `aria-label` names it.
+- **Invalid and the message** come from the Field: `aria-invalid` with the error announced, the hint or the error as the field's description. Required is not spoken on the field: a button may not carry `aria-required`, so the asterisk and the form's check on submit say it, and the Field's hint can say it in words when it matters.
+- **There is no typed entry**, so a reader who cannot use a grid pages with the keyboard; a date they already know is an Input, which is why the rule in Variants matters.
+- **Disabled is the last resort.** Prefer a date shown as text, or an enabled field with the reason in the hint.
 
 ## Props
 
 <ArgTypes of={DatePicker} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Calendar](?path=/docs/components-calendar--docs): the surface inside the Popover.
-- [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs), [NativeSelect](?path=/docs/components-nativeselect--docs): the three ways to choose from a list.
-- [Forms](?path=/docs/components-forms--docs): which list wants which control.
+- [Calendar](?path=/docs/components-calendar--docs): the month inside, and on its own for a range.
+- [Input](?path=/docs/components-input--docs): a date the reader types.
+- [Field](?path=/docs/components-field--docs) and [Forms](?path=/docs/components-forms--docs): the label, the hint, the error, and `useRequired`.
+- [Popover](?path=/docs/components-popover--docs): the surface the month opens in.
+- [Timeline](?path=/docs/components-timeline--docs): dates shown in order, not chosen.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

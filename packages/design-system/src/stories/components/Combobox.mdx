@@ -1,25 +1,147 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Combobox } from "../../components";
 import * as Stories from "./Combobox.stories";
-import * as FormsStories from "./Forms.stories";
 
 <Meta of={Stories} />
 
 # Combobox
 
-Three ways to choose from a list, and one for a date. All four triggers are the hairline control from Controls, so a picker and a field are the same shape in a form. A list worth searching: **Combobox**, a Command in a Popover.
+One answer from a list worth searching: a person from the program, a control from the baseline, a requirement, a test objective. The field is the control; opening it shows a search box over the list, and the rows narrow as the reader types, matching the label and its keywords. Use it when the list runs past a dozen, or when the reader knows what they want and would rather type it than find it.
+
+It is the third of four ways to choose. Plain words are a [NativeSelect](?path=/docs/components-nativeselect--docs); a short list whose options carry a mark is a [Select](?path=/docs/components-select--docs); two or three answers are a [RadioGroup](?path=/docs/components-radiogroup--docs). An answer that may not be in the list at all is an [Input](?path=/docs/components-input--docs).
 
 <Canvas of={Stories.ComboboxMatrix} />
 
-<Canvas of={FormsStories.FieldsStory} />
+## Anatomy
+
+| Part       | What it is                                                                                                                                                                       |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Label      | From the [Field](?path=/docs/components-field--docs), or `aria-label` on a combobox in a toolbar. It is the control's name.                                                      |
+| Control    | The field: `dimension.control.medium` (32px) or `small` (28px), `radius.medium`, `color.border.input` on `color.background.input`. The chosen label, or the placeholder in `color.text.subtlest`; the up-and-down chevrons in `color.icon.subtle` at the end say it opens and searches. |
+| Search box | The first row of the open surface, `dimension.control.large` tall: the search glass and the `searchPlaceholder`. It takes focus when the list opens.                             |
+| List       | The kit's floating surface, as wide as the field, up to 260px tall, scrolling past that. Each row `dimension.control.medium`: the label, the `meta` at the end, and on the chosen one a check. |
+| Empty      | What the list says when nothing matches: "Nothing matches." or the `empty` given.                                                                                                |
+| Message    | From the Field, under the control: the hint, or the error that replaces it.                                                                                                       |
+
+<Canvas of={Stories.Open} />
+
+## Variants
+
+Combobox has one appearance. What varies is which control the list wants, and what a row carries:
+
+| The list                                                 | Use                                                                                     |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Plain words, few                                         | `NativeSelect`.                                                                         |
+| A short list with a mark on each option                  | `Select`.                                                                               |
+| People, records, anything past a dozen                   | `Combobox`, with `keywords` so an id or an alias finds the row and `meta` to tell rows apart. |
+| An answer that may not be in the list                    | `Input`. The Combobox does not take a value it was not given.                           |
+| Several answers                                          | A [FilterChip](?path=/docs/components-filterchip--docs) in a toolbar; Checkboxes in a form. |
+
+Not built, by decision: no creatable option (Carbon's combo box accepts a custom value; here an open answer is an Input, so the store never holds a name that is almost a person's), no multiple choice, and no list loaded while it is open. The options are known before the field is drawn.
+
+## Sizes
+
+| Size     | Height                          | Use                                                                                 |
+| -------- | ------------------------------- | ----------------------------------------------------------------------------------- |
+| `medium` | `dimension.control.medium` 32px | In a form, inside a Field, beside medium Buttons. The default.                      |
+| `small`  | `dimension.control.small` 28px  | A toolbar's filter, beside small Buttons and a small NativeSelect.                  |
+
+The width is the layout's: in a form's Grid the column sets the field and the list matches it; in a toolbar `width` sets both. The list is up to 260px tall and scrolls past that, so the reader types rather than scrolls.
+
+<Canvas of={Stories.Sizes} />
+
+## States
+
+| State    | What changes                                                                                                                                          |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rest     | `color.border.input` on `color.background.input`; the chosen label, or the placeholder in `color.text.subtlest`.                                       |
+| Hover    | The background steps to `color.background.input.hovered`.                                                                                              |
+| Focus    | The border turns `color.border.focused` and the focus outline shows.                                                                                   |
+| Open     | The surface is open below the field, the search box focused, the list filtered by what is typed. The highlighted row is `color.background.selected` with `color.text.selected`. |
+| Filled   | A row is chosen; its label is the value and its row shows the check.                                                                                   |
+| Invalid  | `aria-invalid`, from the Field's `error`: the border turns `color.border.danger` and the error replaces the hint.                                       |
+| Disabled | `color.background.disabled`, `color.border.disabled`, `color.text.disabled`. See Accessibility for when.                                               |
+
+A Combobox has no read-only state. A value the reader can see but not change here is shown as text.
+
+## Modifiers
+
+- **`placeholder`** for what to choose: "Choose an owner". **`searchPlaceholder`** for what to type: "Search people…", "Search by id or name…".
+- **`keywords`** on an option for what the filter should match beyond the label: an id, an alias, a role. **`meta`** for a word or an id at the end of the row that tells rows apart: a role, a control id.
+- **`empty`** for the sentence the list says when nothing matches, when "Nothing matches." is not enough: "No one on the program by that name."
+- **A disabled option** for a choice the reader cannot make yet, kept in the list so they know it exists.
+- **`defaultOpen`** for a sheet that exists to make this choice.
+- **`width`** in pixels, for a toolbar; **`size`** for its height.
+
+<Canvas of={Stories.InField} />
+
+## Content
+
+- **The label is a noun**: Owner, Control, Test objective.
+- **The placeholder says what to choose** ("Choose an owner") and **the search placeholder says what to type** ("Search people…"). Never "Select..." or "Type here".
+- **An option's label is the name** the reader knows: a person's name, a control's title. Its **meta is a word or an id**: "ISSO", "AC-2". A sentence of facts belongs on the record, not in the row.
+- **Keywords are what else the reader might type**: the id when the label is a title, the initials, an alias. They are matched, never shown.
+- **The empty sentence** says what was searched: "No one on the program by that name."
+
+## Style
+
+| Element     | Token                                                                                           |
+| ----------- | ----------------------------------------------------------------------------------------------- |
+| Field       | `color.background.input` · `color.border.input` · `radius.medium` 5px                           |
+| Hover       | `color.background.input.hovered`                                                                |
+| Focus       | `color.border.focused` as the border, plus the focus outline                                    |
+| Invalid     | `color.border.danger`; the message in `color.text.danger`                                       |
+| Disabled    | `color.background.disabled` · `color.border.disabled` · `color.text.disabled`                   |
+| Value       | `font.body` in `color.text`; placeholder in `color.text.subtlest`                               |
+| Chevrons    | `color.icon.subtle` · `dimension.icon.small` 14px                                               |
+| Surface     | `elevation.surface.overlay` · `color.border.default` · `radius.large` · `elevation.shadow.overlay` |
+| Search box  | `dimension.control.large` 40px · the glass in `color.icon.subtle` at `dimension.icon.medium` · a `color.border.default` rule below |
+| Row         | `dimension.control.medium` 32px · `font.body`; highlighted `color.background.selected` and `color.text.selected`; disabled `color.text.disabled` |
+| Meta        | `font.body.xsmall` in `color.text.subtle`                                                       |
+
+| Measure | Value                                                                                    |
+| ------- | ---------------------------------------------------------------------------------------- |
+| Height  | `dimension.control.medium` 32px · `dimension.control.small` 28px                         |
+| List    | As wide as the field · up to 260px tall · `space.050` 4px below the field               |
+| Motion  | `motion.duration.fast` on the colours; the surface enters and leaves with the menu motion |
+
+## Accessibility
+
+- **The field is a button with the combobox role**, `aria-haspopup="listbox"` and `aria-expanded`, named by the Field's label or `aria-label`, announcing the chosen value.
+- **Keyboard:** Tab reaches the field. Enter or Space opens the surface and moves focus into the search box; typing filters; Up and Down move the highlight; Enter chooses, closes and returns focus to the field; Escape closes without changing. Disabled rows are skipped.
+- **The rows are options in a listbox** (cmdk underneath), the highlighted one announced as the reader moves, the chosen one selected.
+- **The label is the name.** Inside a Field, a click on the label opens the list. In a toolbar, `aria-label` names it, and the placeholder ("Any owner") is what the reader hears as the value.
+- **Invalid, required and the message** come from the Field: `aria-invalid` with the error announced, `aria-required`, the hint or the error as the field's description.
+- **Disabled is the last resort.** Prefer a value shown as text, or an enabled field with the reason in the hint.
 
 ## Props
 
 <ArgTypes of={Combobox} />
 
+Each option is a `ComboboxOption`:
+
+| Field      | Use                                                                                 |
+| ---------- | ----------------------------------------------------------------------------------- |
+| `value`    | What the Combobox reports.                                                          |
+| `label`    | The row's text and the field's value once chosen.                                   |
+| `keywords` | What else the filter matches: an id, an alias, a role. Never shown.                 |
+| `meta`     | A word or an id at the end of the row.                                              |
+| `disabled` | A choice the reader cannot make yet.                                                |
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Select](?path=/docs/components-select--docs), [NativeSelect](?path=/docs/components-nativeselect--docs): the other ways to choose from a list.
-- [Command](?path=/docs/components-command--docs): the surface inside the Popover.
-- [Forms](?path=/docs/components-forms--docs): which list wants which control.
+- [NativeSelect](?path=/docs/components-nativeselect--docs), [Select](?path=/docs/components-select--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): the other ways to choose one; see Variants for which.
+- [Command](?path=/docs/components-command--docs) and [Popover](?path=/docs/components-popover--docs): the surface and its anchor.
+- [RecordPicker](?path=/docs/patterns-recordpicker--docs): choosing a record with more to show than a row; [PickerSheet](?path=/docs/patterns-pickersheet--docs): choosing several.
+- [Field](?path=/docs/components-field--docs) and [Forms](?path=/docs/components-forms--docs): the label, the hint, the error, and `useRequired`.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

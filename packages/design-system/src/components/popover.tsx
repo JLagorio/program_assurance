@@ -13,7 +13,10 @@ export type PopoverProps = {
   label?: string | undefined;
   side?: Side | undefined;
   align?: Align | undefined;
+  /** The surface's width in pixels. */
   width?: number | undefined;
+  /** The surface as wide as its trigger: a list under a field. */
+  matchTriggerWidth?: boolean | undefined;
   defaultOpen?: boolean | undefined;
   open?: boolean | undefined;
   onOpenChange?: ((open: boolean) => void) | undefined;
@@ -28,6 +31,7 @@ function PopoverRoot({
   side = "bottom",
   align = "start",
   width,
+  matchTriggerWidth = false,
   defaultOpen = false,
   open,
   onOpenChange,
@@ -47,7 +51,13 @@ function PopoverRoot({
           sideOffset={4}
           collisionPadding={8}
           aria-label={label}
-          style={width ? { width } : undefined}
+          style={
+            width
+              ? { width }
+              : matchTriggerWidth
+                ? { width: "var(--radix-popover-trigger-width)" }
+                : undefined
+          }
           className={cn(
             "z-50 rounded-large border border-default bg-surface-overlay p-150 font-body text-default shadow-overlay outline-none",
             menuMotion,

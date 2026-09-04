@@ -56,7 +56,7 @@ export { Popover, type PopoverProps } from "./popover";
 export { Progress, type StackedSegment } from "./progress";
 export { Resizable } from "./resizable";
 export { ScrollArea } from "./scroll-area";
-export { Select, type SelectProps } from "./select";
+export { Select, type SelectGroupProps, type SelectItemProps, type SelectProps } from "./select";
 export { Separator } from "./separator";
 export { Sheet, type SheetProps } from "./sheet";
 export { Skeleton } from "./skeleton";

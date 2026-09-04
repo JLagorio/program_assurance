@@ -1,23 +1,118 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Calendar } from "../../components";
 import * as Stories from "./Calendar.stories";
 
 <Meta of={Stories} />
 
 # Calendar
 
-The Calendar is react-day-picker with the tokens: 32px cells, the selection is the blue budget, today is weight 600 with no dot. Ranges paint `color.background.selected` between the ends.
+A month, or two, the reader picks a day or a range from. It is react-day-picker with the tokens on it: 32px cells, today semibold, the chosen day in the brand fill, a range painted in the selection colour between its ends. On its own it is a surface, not a field: it lives inside a [DatePicker](?path=/docs/components-datepicker--docs), inside a [Popover](?path=/docs/components-popover--docs) as a range filter, or inside a [Dialog](?path=/docs/components-dialog--docs) that exists to pick a day. It never sits inline in a form.
 
 <Canvas of={Stories.CalendarMatrix} />
 
+## Anatomy
+
+| Part          | What it is                                                                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Caption       | The month and the year, `font.body` at `font.weight.medium`, centred. It is a label, not a menu.                                            |
+| Previous, next| Two `dimension.control.small` buttons at the corners, chevrons in `color.icon.subtle`, paging one month.                                    |
+| Weekdays      | The seven names, `font.body.xsmall` at `font.weight.medium` in `color.text.subtle`, 32px wide each.                                          |
+| Days          | 32px cells, `radius.medium`, `font.body`. Today is `font.weight.semibold` with no dot. Days of the neighbouring months show in `color.text.subtlest`. |
+| Selection     | One day: `color.background.brand.bold` with `color.text.inverse`. A range: the ends in the brand fill, the days between on `color.background.selected`. |
+
+## Variants
+
+| Mode     | Use                                                                                                          |
+| -------- | ------------------------------------------------------------------------------------------------------------ |
+| `single` | One day. What a DatePicker holds, and what a Dialog asks for when the day is the whole task.                 |
+| `range`  | A start and an end. A filter over a table's dates, in a Popover whose trigger shows the range in words.       |
+
+One month is the rule; `numberOfMonths={2}` for a range that may cross a month. There is no `multiple` mode, no month or year menu in the caption, and no week numbers. The picker is for near days, reached by paging; a far date is typed into an [Input](?path=/docs/components-input--docs).
+
 <Canvas of={Stories.CalendarRange} />
+
+## Sizes
+
+One size. A cell is 32px, a month is seven cells and `space.150` of padding wide, about 248px, and as tall as its weeks. Two months sit side by side and stack on a narrow screen. The Calendar does not scale with a field; a DatePicker's month is this size whatever the field's width.
+
+## States
+
+| State        | What changes                                                                                                   |
+| ------------ | -------------------------------------------------------------------------------------------------------------- |
+| Rest         | The day's number in `color.text`.                                                                              |
+| Hover        | The cell takes `color.background.neutral.subtle.hovered`.                                                      |
+| Focus        | The focus outline on the cell, on keyboard focus.                                                              |
+| Today        | `font.weight.semibold`. Nothing else: no ring, no dot.                                                         |
+| Selected     | `color.background.brand.bold`, the number in `color.text.inverse`.                                             |
+| In a range   | `color.background.selected` behind the number, the ends in the brand fill with the outer corners rounded.      |
+| Outside      | A day of the month before or after, in `color.text.subtlest`; it can be picked.                                |
+| Disabled     | `color.text.disabled`, not clickable, skipped by the keyboard.                                                 |
+
+## Modifiers
+
+- **`mode`** `single` or `range`, with **`selected`** and **`onSelect`** for the value. Controlled in a form; uncontrolled in a Dialog that returns the day on its primary Button.
+- **`defaultMonth`** for the month shown first: the chosen day's, else today's.
+- **`disabled`** with a matcher for the days the reader cannot pick: `{ before: today }` for a completion date, `{ after: today }` for an observed date.
+- **`numberOfMonths`** `2` for a range.
+- **`required`** in single mode, so a second click on the chosen day does not clear it. The DatePicker clears with its own button instead.
+- **`showOutsideDays`** is on; turn it off only when the grid must be exactly the month.
+
+## Content
+
+The Calendar has no words of its own beyond the month's name, the weekday names and the numbers, all in the reader's locale through date-fns. The task's words belong to what holds it: the Popover's label ("Choose a date"), the Dialog's title, the DatePicker's Today and Clear.
+
+## Style
+
+| Element         | Token                                                                                                   |
+| --------------- | ------------------------------------------------------------------------------------------------------- |
+| Caption         | `font.body` at `font.weight.medium` in `color.text`                                                     |
+| Nav buttons     | `dimension.control.small` · `radius.medium` · `color.icon.subtle`, `color.icon` on hover, `color.background.neutral.subtle.hovered` |
+| Weekdays        | `font.body.xsmall` at `font.weight.medium` in `color.text.subtle`                                       |
+| Day             | 32px cell · `radius.medium` · `font.body` in `color.text`; hover `color.background.neutral.subtle.hovered` |
+| Today           | `font.weight.semibold`                                                                                  |
+| Selected        | `color.background.brand.bold` · `color.text.inverse`; hover `color.background.brand.bold.hovered`      |
+| Range middle    | `color.background.selected`; hover `color.background.selected.hovered`                                  |
+| Outside         | `color.text.subtlest`                                                                                   |
+| Disabled        | `color.text.disabled`                                                                                   |
+| Padding         | `space.150` 12px around the month · `space.200` 16px between two months · `space.050` 4px between weeks |
+| Motion          | `motion.duration.fast` on the colours                                                                   |
+
+## Accessibility
+
+- **It is a grid.** react-day-picker renders the month as a grid labelled with the month's name, the weekdays as column headers, and every day as a button named with its full date. Today is marked, the chosen day is selected, disabled days are disabled.
+- **Keyboard:** with a day focused, Left and Right move a day, Up and Down a week, PageUp and PageDown a month, Shift with them a year, Home and End to the week's ends; Enter or Space picks. Tab moves between the previous button, the next button and the grid.
+- **Previous and next are named** "Previous month" and "Next month".
+- **The selection colours pass**: the brand fill carries inverse text at 4.5:1, and the range's selection background carries the default text; the contrast test covers both in both modes.
+- **Three months on one page** each carry their own navigation region, which the accessibility gate reports as duplicate landmarks; the matrix story turns that rule off and says so.
 
 ## Props
 
-<ArgTypes of={Calendar} />
+Every react-day-picker prop passes through. The ones the kit uses:
+
+| Prop                    | Use                                                                          |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| `mode`                  | `single` or `range`.                                                         |
+| `selected`, `onSelect`  | The value: a `Date`, or `{ from, to }`.                                      |
+| `defaultMonth`          | The month shown first.                                                       |
+| `disabled`              | The days that cannot be picked: `{ before }`, `{ after }`, a list, a function. |
+| `numberOfMonths`        | `1`, or `2` for a range.                                                     |
+| `required`              | Single mode: a second click does not clear.                                  |
+| `showOutsideDays`       | On by default.                                                               |
+| `className`, `classNames` | Layout only; the look is the kit's.                                        |
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
 
 ## Related
 
-- [DatePicker](?path=/docs/components-datepicker--docs): a Calendar in a Popover, holding an ISO day.
-- [Forms](?path=/docs/components-forms--docs): the pickers beside the other controls.
+- [DatePicker](?path=/docs/components-datepicker--docs): a Calendar in a Popover, as a field.
+- [Popover](?path=/docs/components-popover--docs) and [Dialog](?path=/docs/components-dialog--docs): what holds a Calendar that stands alone.
+- [Input](?path=/docs/components-input--docs): a date the reader types.
+- [Timeline](?path=/docs/components-timeline--docs): dates shown in order.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

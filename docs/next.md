@@ -14,6 +14,8 @@ Updated 2026-09-04.
 - [ ] **Shell defaults.** The side nav at 228px (min 200, max half the viewport), the panel at 320px (min 240), the banner at 48px: sign-off values in `tokens/dimension.json`.
 - [ ] **Four drifts the token pages found** (2026-09-04): `radius.xlarge` is described as "Dialogs, sheets" but Dialog and Command use `xxlarge`; Palette and the grammar page say six ramps and there are eight (teal and purple for the chart); `poam.tsx` and `conmon.tsx` paint severity as a Badge pill against the Indicator rule; `animate-slide-in-bottom/top` are defined and unused.
 - [ ] **The choice controls on the lighter border** (2026-09-04). `color.border.input` went to `neutral.400` for every field at Josef's ask, so the Checkbox box and the RadioGroup dot are lighter too (1.9:1 on white). Keep, or give the choice controls `color.border.bold`?
+- [ ] **Select where the rule says NativeSelect** (2026-09-04). Eight of the prototype's Selects hold plain words (Authorizing official, Assessor, Environment, Kind, System class, Hosting, Output format, Review gate) and the Select page says plain words are a NativeSelect. Re-point them, or let a form use Select for the kit's own list?
+- [ ] **Typed date entry** (2026-09-04). Carbon and Atlassian let the reader type into the date field as well as pick; the kit's DatePicker is pick-only, and the page sends a remembered date to an Input with the format in the hint. Build a typed field with a mask, or keep the rule?
 - [ ] **Data table, the calls.** Eight calls made without asking in `docs/superpowers/specs/2026-09-03-data-table.md`, plus one more from step 6: Tab moves across an editable table, Enter moves down. Overturn any in one reading.
 - [ ] **Baseline and ConMon hydration, which fix stays.** This line renders both routes client-only (`ssr: false`, 8bb9e3b). The parallel line kept SSR and had the loader build the control-text index on both sides (769a412, 81911c1); that version was not merged. Taking it would restore SSR on the two routes.
 
@@ -24,7 +26,7 @@ The maturity walk, one part per sitting, each page onto the template (`docs/supe
 - [x] Button, IconButton, TextLink (2026-09-04)
 - [x] Input, Field (2026-09-04)
 - [x] Textarea, NativeSelect, InputGroup (2026-09-04). Input and NativeSelect took `size`; Select, Combobox and DatePicker take it in the next sitting.
-- [ ] Select, Combobox, DatePicker, Calendar
+- [x] Select, Combobox, DatePicker, Calendar (2026-09-04)
 - [ ] Checkbox, RadioGroup, Switch; the Forms overview
 - [ ] Table, Pagination, Toolbar, FilterChip; DataTable
 - [ ] Tooltip, HoverCard, Popover, DropdownMenu

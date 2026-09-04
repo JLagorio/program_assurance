@@ -19,6 +19,15 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Changed
 
+- `Select`, `Combobox` and `DatePicker` take `size`, and take `aria-invalid`, `aria-required` and
+  `aria-describedby` from the Field, so a picker inside a Field is described by its hint and turns on
+  its error the way an Input does; `DatePicker` accepts `aria-required` and does not render it, since a
+  button may not carry it. `DatePicker`'s placeholder is "Choose a date". Components/Select,
+  Components/Combobox, Components/DatePicker.
+- The four pickers are on the template, walked against Carbon's Dropdown and Date picker, Base Web's
+  Select and Datepicker, and what Atlassian publishes of Select and DateTime picker. Said on the pages
+  and not built: no multi-select, no creatable option, no typed entry in the date field, no time, no
+  month or year menus in the caption. Components/Calendar.
 - `color.border.input` is lighter: `neutral.400` in light, `darkNeutral.500` in dark, below 3:1 by
   decision. The label, the fill and the focus and danger borders identify a field; the contrast test
   holds the rest border above a floor. Every field control, the Checkbox box and the RadioGroup dot
@@ -55,6 +64,11 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Added
 
+- `DatePicker` has Today and Clear under the month, so an optional date can be emptied; before, the
+  only way was a second click on the chosen day. `Combobox` and `DatePicker` take `defaultOpen`.
+  `Popover` takes `matchTriggerWidth`, and a Combobox's list is as wide as its field instead of 280px.
+  `Select.Item` and `Select.Group` have typed, described props. Components/DatePicker,
+  Components/Combobox, Components/Popover.
 - `InputGroup` has typed props with descriptions. Its ends are hidden from screen readers, so the
   label or the hint carries the unit in words. `Input` hides the browser's clear control on
   `type="search"`; Escape clears. Components/InputGroup.
