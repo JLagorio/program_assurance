@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
-import { Download, ListFilter, Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 
 import {
   Badge,
@@ -105,9 +105,10 @@ const residualTone = (residual: number): Tone =>
   residual > 60 ? "danger" : residual > 30 ? "warning" : "success";
 
 const riskColumns = defineColumns<Risk>((c) => [
-  c.id("id", { glance: (r) => <RiskPeek risk={r} /> }),
+  c.id("id", { pin: "start", hideable: false, glance: (r) => <RiskPeek risk={r} /> }),
   c.text("title", {
     header: "Risk",
+    hideable: false,
     cell: (r) => (
       <TextLink weight="medium">
         <Link to="/risks/$riskId" params={{ riskId: r.id }}>
@@ -116,7 +117,7 @@ const riskColumns = defineColumns<Risk>((c) => [
       </TextLink>
     ),
   }),
-  c.text("framework", { header: "Framework", width: 88 }),
+  c.text("framework", { header: "Framework", width: 104 }),
   c.id("control", { header: "Control", width: 76, tone: "subtle", sortable: false }),
   c.person("owner", { header: "Owner", width: 130 }),
   c.text("treatment", { header: "Treatment", width: 88 }),
@@ -158,6 +159,9 @@ function RiskList() {
     selectable: true,
     pageSize: 5,
     label: "Risk register",
+    view: "risks",
+    resizable: true,
+    reorderable: true,
     state: { columnFilters },
     onColumnFiltersChange: setColumnFilters,
     initialState: { sorting: [{ id: "id", desc: true }] },
@@ -214,9 +218,7 @@ function RiskList() {
         <DataTable.Filter table={table} column="treatment" />
         <DataTable.Filter table={table} column="updated" />
         <Inline className="ml-auto" space="space.100" alignBlock="center">
-          <Button variant="secondary" size="small">
-            <ListFilter className="size-icon-small" /> Columns
-          </Button>
+          <DataTable.Columns table={table} />
         </Inline>
       </Inline>
 

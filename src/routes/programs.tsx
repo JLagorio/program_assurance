@@ -1,19 +1,17 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Download, ListFilter, Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 
 import {
   Badge,
   Box,
   Button,
   Calendar,
-  Checkbox,
   DataTable,
   Dialog,
   IndexPage,
   Inline,
   PageHeader,
-  Popover,
   Progress,
   Spinner,
   Stack,
@@ -62,16 +60,6 @@ function ProgramsLayout() {
 
 const tabLabels = ["All", "In assessment", "Authorized", "POA&M open", "Draft"] as const;
 
-/** The columns the reader can hide, with their labels; the id and the system stay. */
-const hideable = [
-  { id: "impact", label: "Impact" },
-  { id: "baseline", label: "Baseline" },
-  { id: "assessment", label: "Assessment" },
-  { id: "status", label: "Status" },
-  { id: "owner", label: "Owner" },
-  { id: "expires", label: "Expires" },
-] as const;
-
 function ProgramPeek({ program: p }: { program: Program }) {
   return (
     <Stack space="space.100">
@@ -105,9 +93,15 @@ function ProgramPeek({ program: p }: { program: Program }) {
 const impactRank = { Low: 0, Moderate: 1, High: 2 } as const;
 
 const programColumns = defineColumns<Program>((c) => [
-  c.id("id", { header: "Program", glance: (p) => <ProgramPeek program={p} /> }),
+  c.id("id", {
+    header: "Program",
+    pin: "start",
+    hideable: false,
+    glance: (p) => <ProgramPeek program={p} />,
+  }),
   c.text("name", {
     header: "System",
+    hideable: false,
     cell: (p) => (
       <>
         <TextLink weight="medium">
@@ -189,12 +183,14 @@ function ProgramList() {
     selectable: true,
     pageSize: 25,
     label: "Programs",
+    view: "programs",
+    resizable: true,
+    reorderable: true,
     state: { columnFilters },
     onColumnFiltersChange: setColumnFilters,
     initialState: { sorting: [{ id: "id", desc: false }] },
   });
   const selected = table.getSelectedRowModel().rows.map((r) => r.original.id);
-  const hiddenCount = hideable.filter((c) => !table.getColumn(c.id)?.getIsVisible()).length;
 
   return (
     <IndexPage
@@ -245,37 +241,7 @@ function ProgramList() {
         <DataTable.Filter table={table} column="owner" />
         <DataTable.Filter table={table} column="expires" />
         <Inline className="ml-auto" space="space.100" alignBlock="center">
-          <Popover
-            width={200}
-            align="end"
-            trigger={
-              <Button variant="secondary" size="small">
-                <ListFilter className="size-icon-small" /> Columns
-                {hiddenCount ? (
-                  <Box
-                    className="tabular-nums rounded-small bg-neutral font-body-xsmall font-medium text-subtle"
-                    as="span"
-                    paddingInline="space.050"
-                  >
-                    {hideable.length - hiddenCount}/{hideable.length}
-                  </Box>
-                ) : null}
-              </Button>
-            }
-          >
-            <Stack space="space.100">
-              {hideable.map((c) => (
-                <div key={c.id}>
-                  <Checkbox
-                    checked={table.getColumn(c.id)?.getIsVisible() ?? true}
-                    onCheckedChange={(v) => table.getColumn(c.id)?.toggleVisibility(v === true)}
-                  >
-                    {c.label}
-                  </Checkbox>
-                </div>
-              ))}
-            </Stack>
-          </Popover>
+          <DataTable.Columns table={table} />
         </Inline>
       </Inline>
 

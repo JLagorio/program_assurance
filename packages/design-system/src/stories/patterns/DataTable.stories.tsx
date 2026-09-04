@@ -2,7 +2,17 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useMemo, useState } from "react";
 
 import { Button, Toolbar, type Tone } from "../../components";
-import { DataTable, defineColumns, useDataTable, type DataTableState } from "../../patterns";
+import {
+  ColumnReorder,
+  DataTable,
+  HeaderMenu,
+  defineColumns,
+  useColumnDrag,
+  useDataTable,
+  type DataTableInstance,
+  type DataTableState,
+} from "../../patterns";
+import { Table } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
 
 const meta = {
@@ -142,6 +152,202 @@ function Register() {
 
 export const RegisterStory: Story = { name: "Register", render: () => <Register /> };
 
+/** Wide enough to scroll: the id and the name pinned at the start, actions at the end, and every column resizable, reorderable by its grip, hideable from the Columns menu or its own. The layout is the reader's and is kept under a view name. */
+const wideColumns = defineColumns<Finding>((c) => [
+  c.id("id", { pin: "start", hideable: false }),
+  c.text("name", { header: "Finding", width: 240, pin: "start", hideable: false }),
+  c.status("status", { header: "Status", width: 120, tone: (r) => statusTone[r.status] }),
+  c.person("owner", { header: "Owner", width: 180 }),
+  c.text("family", { header: "Family", width: 160 }),
+  c.number("open", { header: "Open items", width: 120 }),
+  c.date("due", { header: "Due", width: 130 }),
+  c.custom("programme", { header: "Programme", width: 160, cell: (r) => r.family }),
+  c.custom("closed", {
+    header: "Closed items",
+    width: 130,
+    align: "end",
+    sort: (r) => 120 - r.open,
+    cell: (r) => String(120 - r.open),
+  }),
+  c.custom("opened", { header: "Opened", width: 150, cell: (r) => r.due }),
+  c.actions((r) => [{ label: "Open", onSelect: () => console.log("open", r.id) }]),
+]);
+
+function Wide({ view }: { view?: string | undefined }) {
+  const table = useDataTable({
+    columns: wideColumns,
+    data: findings,
+    getRowId: (r) => r.id,
+    selectable: true,
+    pageSize: 8,
+    resizable: true,
+    reorderable: true,
+    view,
+  });
+  return (
+    <Stack space="space.150">
+      <Inline space="space.100" alignBlock="center">
+        <DataTable.Search table={table} />
+        <Inline className="ml-auto" space="space.100">
+          <DataTable.Columns table={table} />
+        </Inline>
+      </Inline>
+      <DataTable table={table} maxHeight={420} />
+      <Text size="small" color="color.text.subtle">
+        pinned: {table.state.columnPinning.start.join(", ") || "none"} ·{" "}
+        {table.state.columnPinning.end.join(", ") || "none"} · order:{" "}
+        {table.state.columnOrder.length ? "the reader's" : "the author's"}
+        {view ? ` · kept as ${view}` : ""}
+      </Text>
+    </Stack>
+  );
+}
+
+export const PinnedColumns: Story = {
+  name: "Pinned, resizable, reorderable",
+  render: () => <Wide />,
+};
+
+/** The same table under a view name: reorder, resize, hide or pin something, reload the story, and it is still so. Reset view in the Columns menu forgets it. */
+export const SavedView: Story = {
+  name: "Saved view",
+  render: () => <Wide view="storybook-findings" />,
+};
+
+/** Two header rows: a heading over the columns it groups. Pinning splits a group at the band's edge. */
+const groupedColumns = defineColumns<Finding>((c) => [
+  c.id("id"),
+  c.text("name", { header: "Finding" }),
+  c.group("Ownership", [
+    c.person("owner", { header: "Owner", width: 180 }),
+    c.text("family", { header: "Family", width: 140 }),
+  ]),
+  c.group("Progress", [
+    c.status("status", { header: "Status", width: 120, tone: (r) => statusTone[r.status] }),
+    c.number("open", { header: "Open items", width: 110 }),
+    c.date("due", { header: "Due", width: 120 }),
+  ]),
+]);
+
+function Groups() {
+  const table = useDataTable({
+    columns: groupedColumns,
+    data: findings,
+    getRowId: (r) => r.id,
+    pageSize: 6,
+  });
+  return <DataTable table={table} />;
+}
+
+export const ColumnGroups: Story = { name: "Column groups", render: () => <Groups /> };
+
+/** A header drawn by hand inside ColumnReorder, with the column menu: the escape hatch, for a layout the renderer cannot draw. */
+function DraggableHeader({
+  table,
+  column,
+}: {
+  table: DataTableInstance<Finding>;
+  column: ReturnType<DataTableInstance<Finding>["getVisibleLeafColumns"]>[number];
+}) {
+  const drag = useColumnDrag(column.id, true);
+  return (
+    <Table.Header
+      ref={drag.setNodeRef}
+      style={drag.style}
+      trailing={
+        <>
+          {drag.grip}
+          <HeaderMenu table={table} column={column} />
+        </>
+      }
+      width={150}
+    >
+      {typeof column.columnDef.header === "string" ? column.columnDef.header : column.id}
+    </Table.Header>
+  );
+}
+
+function ByHand({ table }: { table: DataTableInstance<Finding> }) {
+  return (
+    <Table>
+      <thead>
+        <ColumnReorder table={table}>
+          <tr>
+            {table.getVisibleLeafColumns().map((c) => (
+              <DraggableHeader key={c.id} table={table} column={c} />
+            ))}
+          </tr>
+        </ColumnReorder>
+      </thead>
+      <tbody>
+        {table.getRowModel().rows.map((row) => (
+          <Table.Row key={row.id}>
+            {row.getVisibleCells().map((cell) => (
+              <Table.Cell key={cell.id}>{String(cell.getValue() ?? "")}</Table.Cell>
+            ))}
+          </Table.Row>
+        ))}
+      </tbody>
+    </Table>
+  );
+}
+
+function Reordering() {
+  const table = useDataTable({
+    columns,
+    data: findings.slice(0, 4),
+    getRowId: (r) => r.id,
+    reorderable: true,
+  });
+  return <ByHand table={table} />;
+}
+
+export const ReorderingByHand: Story = {
+  name: "Reordering, by hand",
+  render: () => <Reordering />,
+};
+
+/** The Table parts on their own: a pinned header and cell with an offset, the edge, and a resize handle. */
+function TableParts() {
+  return (
+    <Table>
+      <thead>
+        <tr>
+          <Table.Header pinned="start" width={92}>
+            Pinned
+          </Table.Header>
+          <Table.Header pinned="start" offset={92} edge width={140}>
+            Pinned, edge
+          </Table.Header>
+          <Table.Header width={160} resize={{ onResizeStart: () => {}, isResizing: false }}>
+            Resizable
+          </Table.Header>
+          <Table.Header
+            width={160}
+            resize={{ onResizeStart: () => {}, isResizing: true, resizeDelta: 24 }}
+          >
+            Resizing
+          </Table.Header>
+          <Table.Header pinned="end" edge width={60}>
+            End
+          </Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        <Table.Row>
+          <Table.Id id="FND-2200" pinned="start" />
+          <Table.Cell pinned="start" offset={92} edge>
+            Segregation of duties
+          </Table.Cell>
+          <Table.Cell>Dana Whitfield</Table.Cell>
+          <Table.Cell>Access control</Table.Cell>
+          <Table.Cell pinned="end" edge />
+        </Table.Row>
+      </tbody>
+    </Table>
+  );
+}
+
 /** Loading keeps the header and the frame; empty and error sit inside them. */
 function States() {
   const [state, setState] = useState<DataTableState>("loading");
@@ -217,13 +423,17 @@ function Parts() {
   );
 }
 
-/** Every state the renderer draws: sorted, filtered, selected, with a glance, with actions, then loading, empty and error; then the toolbar parts alone. */
+/** Every state the renderer draws: sorted, filtered, selected, with a glance, with actions; loading, empty and error; the toolbar parts alone; pinned, resizable and reorderable columns; column groups; a header by hand; the Table parts alone. */
 export const DataTableMatrix: Story = {
   render: () => (
     <Stack space="space.300">
       <Register />
       <States />
       <Parts />
+      <Wide />
+      <Groups />
+      <Reordering />
+      <TableParts />
     </Stack>
   ),
 };

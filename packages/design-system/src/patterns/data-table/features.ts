@@ -57,6 +57,8 @@ export type DataTableColumnMeta = {
   align: "start" | "end";
   /** Wrap instead of truncating; the row grows. */
   wrap?: boolean | undefined;
+  /** The author's default pin; the reader's view can move it. */
+  pin?: "start" | "end" | undefined;
   /** `id` kind: the eye on hover opens the preview surface. */
   preview?: ((row: never) => void) | undefined;
   /** `id` kind: the row whose preview is open reads active. */
@@ -75,6 +77,20 @@ export type DataTableMeta = {
   pageSize?: number | undefined;
   /** The accessible name of the table. */
   label?: string | undefined;
+  /** The reader can pin and unpin columns from the column menu. */
+  pinnable?: boolean | undefined;
+  /** The reader can hide columns from the Columns menu and the column menu. */
+  hideable?: boolean | undefined;
+  /** A handle on every header's trailing edge. */
+  resizable?: boolean | undefined;
+  /** A grip on every header; drag or arrow keys reorder. */
+  reorderable?: boolean | undefined;
+  /** The per-column menu on header hover: sort, pin, hide. */
+  columnMenu?: boolean | undefined;
+  /** `fixed` makes every width authoritative and leaves the slack to the unsized columns; `auto` lets the browser fit content. */
+  layout?: "auto" | "fixed" | undefined;
+  /** The name under which the reader's layout persists. */
+  view?: string | undefined;
 };
 
 const lower = (v: unknown) => (v == null ? "" : String(v).toLowerCase());

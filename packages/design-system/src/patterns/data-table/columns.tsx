@@ -38,6 +38,11 @@ type Shared<TData> = {
   sortable?: boolean | undefined;
   /** Sort by something other than the value: a rank for a status, a number behind a bar. */
   sortBy?: ((row: TData) => string | number) | undefined;
+  /** The author's default pin. A pinned column needs a `width`. */
+  pin?: "start" | "end" | undefined;
+  /** `false` keeps the column on screen whatever the reader chooses. */
+  hideable?: boolean | undefined;
+  resizable?: boolean | undefined;
   /** Draw the cell yourself; the kind still sets alignment, sort and filter. An absent value is `Absent`. */
   cell?: ((row: TData) => ReactNode) | undefined;
 };
@@ -56,6 +61,14 @@ const compare = (a: string | number, b: string | number) =>
   typeof a === "number" && typeof b === "number"
     ? a - b
     : String(a).localeCompare(String(b), undefined, { numeric: true });
+
+/** The shared options every kind passes through. */
+const shared = <TData extends RowData>(
+  o: Pick<Shared<TData>, "pin" | "hideable" | "resizable">,
+) => ({
+  ...(o.hideable === undefined ? {} : { enableHiding: o.hideable }),
+  ...(o.resizable === undefined ? {} : { enableResizing: o.resizable }),
+});
 
 /** The kind's sort, or the row's `sortBy` value when the column gives one. */
 const sortOf = <TData extends RowData>(
@@ -93,6 +106,9 @@ export function columnKinds<TData extends RowData>() {
       minWidth,
       sortable = true,
       sortBy,
+      pin,
+      hideable,
+      resizable,
       cell,
       wrap = false,
     }: Shared<TData> & { wrap?: boolean | undefined } = {},
@@ -105,7 +121,8 @@ export function columnKinds<TData extends RowData>() {
       enableSorting: sortable,
       sortFn: sortOf("alphanumeric", sortBy),
       filterFn: "matches",
-      meta: { kind: "text", align: "start", wrap },
+      ...shared({ pin, hideable, resizable }),
+      meta: { pin, kind: "text", align: "start", wrap },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
         const v = getValue();
@@ -121,6 +138,9 @@ export function columnKinds<TData extends RowData>() {
       minWidth,
       sortable = true,
       sortBy,
+      pin,
+      hideable,
+      resizable,
       cell,
       preview,
       active,
@@ -144,7 +164,8 @@ export function columnKinds<TData extends RowData>() {
       enableSorting: sortable,
       sortFn: sortOf("alphanumeric", sortBy),
       filterFn: "matches",
-      meta: { kind: "id", align: "start", tone, preview, active, glance },
+      ...shared({ pin, hideable, resizable }),
+      meta: { pin, kind: "id", align: "start", tone, preview, active, glance },
       cell: ({ row, getValue }) => (cell ? cell(row.original) : String(getValue())),
     });
 
@@ -156,6 +177,9 @@ export function columnKinds<TData extends RowData>() {
       minWidth,
       sortable = true,
       sortBy,
+      pin,
+      hideable,
+      resizable,
       cell,
       format: fmt = "integer",
     }: Shared<TData> & {
@@ -171,7 +195,8 @@ export function columnKinds<TData extends RowData>() {
       sortFn: sortOf("basic", sortBy),
       filterFn: "inNumberRange",
       enableGlobalFilter: false,
-      meta: { kind: "number", align: "end" },
+      ...shared({ pin, hideable, resizable }),
+      meta: { pin, kind: "number", align: "end" },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
         const v = getValue();
@@ -188,6 +213,9 @@ export function columnKinds<TData extends RowData>() {
       minWidth,
       sortable = true,
       sortBy,
+      pin,
+      hideable,
+      resizable,
       cell,
       format: fmt = "short",
     }: Shared<TData> & { format?: keyof typeof dateFormats | undefined } = {},
@@ -201,7 +229,8 @@ export function columnKinds<TData extends RowData>() {
       sortFn: sortOf("datetime", sortBy),
       filterFn: "dateRange",
       enableGlobalFilter: false,
-      meta: { kind: "date", align: "start" },
+      ...shared({ pin, hideable, resizable }),
+      meta: { pin, kind: "date", align: "start" },
       cell: ({ row, getValue }) => (cell ? cell(row.original) : formatDate(getValue(), fmt)),
     });
 
@@ -213,6 +242,9 @@ export function columnKinds<TData extends RowData>() {
       minWidth,
       sortable = true,
       sortBy,
+      pin,
+      hideable,
+      resizable,
       cell,
       tone,
     }: Shared<TData> & { tone: (row: TData) => Tone },
@@ -225,7 +257,8 @@ export function columnKinds<TData extends RowData>() {
       enableSorting: sortable,
       sortFn: sortOf("alphanumeric", sortBy),
       filterFn: "matches",
-      meta: { kind: "status", align: "start" },
+      ...shared({ pin, hideable, resizable }),
+      meta: { pin, kind: "status", align: "start" },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
         const v = getValue();
@@ -235,7 +268,17 @@ export function columnKinds<TData extends RowData>() {
 
   const person = (
     key: Key<TData>,
-    { header, width, minWidth, sortable = true, sortBy, cell }: Shared<TData> = {},
+    {
+      header,
+      width,
+      minWidth,
+      sortable = true,
+      sortBy,
+      pin,
+      hideable,
+      resizable,
+      cell,
+    }: Shared<TData> = {},
   ) =>
     helper.accessor(read<TData>(key), {
       id: key,
@@ -245,7 +288,8 @@ export function columnKinds<TData extends RowData>() {
       enableSorting: sortable,
       sortFn: sortOf("text", sortBy),
       filterFn: "matches",
-      meta: { kind: "person", align: "start" },
+      ...shared({ pin, hideable, resizable }),
+      meta: { pin, kind: "person", align: "start" },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
         const v = getValue();
@@ -288,7 +332,7 @@ export function columnKinds<TData extends RowData>() {
     sort
       ? helper.accessor(sort, {
           id: columnId,
-          header: () => header ?? columnId,
+          header: typeof header === "string" ? header : () => header ?? columnId,
           ...(width === undefined ? {} : { size: width }),
           minSize: minOf(width, minWidth ?? minWidths.custom),
           enableSorting: true,
@@ -299,7 +343,7 @@ export function columnKinds<TData extends RowData>() {
         })
       : helper.display({
           id: columnId,
-          header: () => header ?? columnId,
+          header: typeof header === "string" ? header : () => header ?? columnId,
           ...(width === undefined ? {} : { size: width }),
           minSize: minOf(width, minWidth ?? minWidths.custom),
           enableSorting: false,

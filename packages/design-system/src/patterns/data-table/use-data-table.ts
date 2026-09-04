@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-table";
 
 import { dataTableFeatures, type DataTableFeatures } from "./features";
+import { useViewStore } from "./view-store";
 
 /*
  * One hook for every data table. `createTableHook` binds the feature set once, so a route sees the
@@ -42,6 +43,38 @@ export type DataTableOptions<TData extends RowData> = Partial<TanStackOptions<TD
   label?: string | undefined;
   /** The server sorts, filters or pages: the table stops doing it and `rowCount` says how many there are. */
   manual?: { sorting?: boolean; filtering?: boolean; pagination?: boolean } | undefined;
+  /** The reader can pin and unpin columns from the column menu. On by default. */
+  pinnable?: boolean | undefined;
+  /** The reader can hide columns. On by default; `hideable: false` on a column keeps that one. */
+  hideable?: boolean | undefined;
+  /** A handle on every header's trailing edge. */
+  resizable?: boolean | undefined;
+  /** A grip on every header; drag or arrow keys reorder. Pinned columns keep their band. */
+  reorderable?: boolean | undefined;
+  /** The per-column menu on header hover: sort, pin, hide. On when anything above is. */
+  columnMenu?: boolean | undefined;
+  /** `fixed` makes every width authoritative and leaves the slack to the unsized columns; on by itself when the table resizes or reorders. `auto` lets the browser fit content. */
+  layout?: "auto" | "fixed" | undefined;
+  /** Names the table so the reader's layout (order, widths, visibility, pins) persists in this browser. */
+  view?: string | undefined;
+};
+
+/** The author's pins, from the kinds' `pin`, as the initial pinning state. */
+const pinsOf = <TData extends RowData>(columns: ReadonlyArray<DataTableColumn<TData>>) => {
+  const start: string[] = [];
+  const end: string[] = [];
+  const walk = (list: ReadonlyArray<DataTableColumn<TData>>) => {
+    for (const c of list) {
+      const id =
+        c.id ??
+        ("accessorKey" in c && typeof c.accessorKey === "string" ? c.accessorKey : undefined);
+      if (id && c.meta?.pin === "start") start.push(id);
+      if (id && c.meta?.pin === "end") end.push(id);
+      if ("columns" in c && c.columns) walk(c.columns as ReadonlyArray<DataTableColumn<TData>>);
+    }
+  };
+  walk(columns);
+  return { start, end };
 };
 
 export function useDataTable<TData extends RowData>({
@@ -51,24 +84,48 @@ export function useDataTable<TData extends RowData>({
   pageSize,
   label,
   manual,
+  pinnable = true,
+  hideable = true,
+  resizable = false,
+  reorderable = false,
+  columnMenu,
+  layout,
+  view,
   initialState,
   ...rest
 }: DataTableOptions<TData>) {
-  return hook.useAppTable<TData>({
+  const pins = pinsOf(columns);
+  const table = hook.useAppTable<TData>({
     ...rest,
     columns,
     data,
     enableRowSelection:
       typeof selectable === "function" ? (row) => selectable(row.original) : selectable,
+    enableColumnPinning: pinnable || pins.start.length + pins.end.length > 0,
+    enableHiding: hideable,
+    enableColumnResizing: resizable,
     manualSorting: manual?.sorting ?? false,
     manualFiltering: manual?.filtering ?? false,
     manualPagination: manual?.pagination ?? pageSize === undefined,
     initialState: {
       ...(pageSize === undefined ? {} : { pagination: { pageIndex: 0, pageSize } }),
+      columnPinning: pins,
       ...initialState,
     },
-    meta: { pageSize, label },
+    meta: {
+      pageSize,
+      label,
+      pinnable,
+      hideable,
+      resizable,
+      reorderable,
+      columnMenu: columnMenu ?? (pinnable || hideable),
+      layout: layout ?? (resizable || reorderable ? "fixed" : "auto"),
+      view,
+    },
   });
+  useViewStore(table, view);
+  return table;
 }
 
 export type DataTableInstance<TData extends RowData> = ReturnType<typeof useDataTable<TData>>;

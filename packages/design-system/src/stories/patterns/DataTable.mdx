@@ -38,6 +38,14 @@ A table sorts, filters, pages, chooses, pins, nests or scrolls inside itself: `D
 
 Every kind takes `header`, `width` (pixels; also the minimum), `minWidth`, `sortable: false` and `cell(row)` to draw the value its own way while keeping the kind's behaviour. An absent value is `Absent`.
 
+## Columns the reader owns
+
+`resizable` puts a handle on every header's trailing edge (double-click resets); `reorderable` puts a grip on hover that drags, or takes Space and the arrow keys; both switch the layout to `fixed`, so a change to one column leaves the others alone. The column menu on a header's hover sorts, pins and hides; `DataTable.Columns` in the toolbar shows and hides and ends with Reset view. A column's `pin` is the author's default and `hideable: false` keeps it on screen. `view: "risks"` names the table, and the reader's order, widths, visibility and pins persist in this browser under `ledger.table.risks.view`; the URL keeps sort, filters and page. Pinned columns sit on the frame's edge and show it while the frame is scrolled.
+
+<Canvas of={Stories.PinnedColumns} />
+
+<Canvas of={Stories.ColumnGroups} />
+
 ## Rules
 
 - Text starts; numbers end with tabular numerals and their header with them; a status or a person starts. A number never centres. The kinds carry this.

@@ -14,7 +14,7 @@ Updated 2026-09-03.
 
 ## Kit
 
-- [ ] **Data table**, steps 3–6 of `docs/superpowers/specs/2026-09-03-data-table.md`: pinned, resizable, reorderable columns and the reader's view in localStorage; tree, detail rows, groups, totals, row reordering; virtual scroll, server mode, the URL adapter, export; editing and PickerSheet on it. Eight calls for Josef to overturn in the spec.
+- [ ] **Data table**, steps 4–6 of `docs/superpowers/specs/2026-09-03-data-table.md`: tree, detail rows, groups, totals, row reordering; virtual scroll, server mode, the URL adapter, export; editing and PickerSheet on it. Eight calls for Josef to overturn in the spec.
 - [ ] **Step 9 · Publishable build** with type declarations, when the second project appears.
 - [ ] **`docs/guides/component-library.md`** still describes `src/ds`. Rewrite onto the package or retire it in favour of the Storybook docs.
 
@@ -29,6 +29,7 @@ Updated 2026-09-03.
 
 ## Done
 
+- 2026-09-03 · **Data table, step 3**: pinned columns with offsets and the scrolled edge, resizing, drag and keyboard reordering, hiding from the Columns menu or the header's own, column groups; the reader's order, widths, visibility and pins persist per table in localStorage with Reset view. Risks and programs on it.
 - 2026-09-03 · **Data table, step 2**: `DataTable.SelectionBar` with select-all-pages, `.Filter` chips built from each column's facet or range, `.Search`, `.Presets` with counts; the routes' tabs and chips are one filter state.
 - 2026-09-03 · **Data table, steps 0 and 1**: TanStack Table 9 through `useDataTable`, `defineColumns` by kind, `DataTable` with sorting, search, pagination and the states; risks and programs on it, `useSort`/`usePage` deleted; density a setting beside the mode switch, before-paint script and all.
 - 2026-09-02 · **Step 7, the mode switch**: provider, three-state control, storage, before-paint script; the light pin is off the prototype root and the switch sits in the top bar.
