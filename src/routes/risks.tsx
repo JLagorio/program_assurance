@@ -1,43 +1,43 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Download, ListFilter, Plus } from "lucide-react";
+import { useState } from "react";
+import { Download, Plus } from "lucide-react";
 
 import {
   Badge,
   Box,
   Button,
   Combobox,
+  DataTable,
   Dialog,
   Field,
-  FilterChip,
   Glance,
   Grid,
-  HoverCard,
   Id,
   IndexPage,
   Inline,
   Input,
   NativeSelect,
   PageHeader,
-  Pagination,
-  Popover,
   Progress,
-  RadioGroup,
   Spinner,
   Stack,
-  Table,
   Tabs,
-  Textarea,
   TextLink,
+  Textarea,
+  defineColumns,
   toast,
-  usePage,
+  toCsv,
+  useDataTable,
   useRequired,
-  useSort,
+  type Tone,
 } from "@ledger/design-system";
+import { useTableSearch, validateTableSearch } from "@/lib/table-state";
 import { Shell } from "@/components/app/shell";
 import { riskStatusTone, risks, type Risk } from "@/lib/grc-data";
 
 export const Route = createFileRoute("/risks")({
+  // The URL owns the table's question: sort, page, search and filters.
+  validateSearch: validateTableSearch,
   head: () => ({
     meta: [
       { title: "Risk register — Equinox GRC" },
@@ -76,18 +76,6 @@ function RisksLayout() {
   );
 }
 
-const riskSort = {
-  id: (r: Risk) => r.id,
-  title: (r: Risk) => r.title,
-  framework: (r: Risk) => r.framework,
-  owner: (r: Risk) => r.owner,
-  treatment: (r: Risk) => r.treatment,
-  residual: (r: Risk) => r.residual,
-  status: (r: Risk) => r.status,
-};
-
-const treatments = ["All", "Mitigate", "Transfer", "Accept"] as const;
-
 function RiskPeek({ risk: r }: { risk: Risk }) {
   return (
     <Glance
@@ -109,28 +97,81 @@ function RiskPeek({ risk: r }: { risk: Risk }) {
   );
 }
 
+const residualTone = (residual: number): Tone =>
+  residual > 60 ? "danger" : residual > 30 ? "warning" : "success";
+
+const riskColumns = defineColumns<Risk>((c) => [
+  c.id("id", { pin: "start", hideable: false, glance: (r) => <RiskPeek risk={r} /> }),
+  c.text("title", {
+    header: "Risk",
+    hideable: false,
+    cell: (r) => (
+      <TextLink weight="medium">
+        <Link to="/risks/$riskId" params={{ riskId: r.id }}>
+          {r.title}
+        </Link>
+      </TextLink>
+    ),
+  }),
+  c.text("framework", { header: "Framework", width: 104 }),
+  c.id("control", { header: "Control", width: 76, tone: "subtle", sortable: false }),
+  c.person("owner", { header: "Owner", width: 130 }),
+  c.text("treatment", { header: "Treatment", width: 88 }),
+  c.custom("residual", {
+    header: "Residual",
+    width: 120,
+    sort: (r) => r.residual,
+    cell: (r) => (
+      <Inline space="space.100" alignBlock="center">
+        <span className="tabular-nums text-right font-body-small text-subtlest line-through w-250">
+          {r.inherent}
+        </span>
+        <Progress value={r.residual} tone={residualTone(r.residual)} />
+        <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-250">
+          {r.residual}
+        </span>
+      </Inline>
+    ),
+  }),
+  c.date("updated", { header: "Updated", width: 104, sortable: false }),
+  c.status("status", { header: "Status", width: 108, tone: (r) => riskStatusTone[r.status] }),
+]);
+
 function RiskList() {
-  const [tab, setTab] = useState("All");
-  const [selected, setSelected] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
   const [exporting, setExporting] = useState(false);
-
-  const [treatment, setTreatment] = useState<(typeof treatments)[number]>("All");
-
-  const filtered = useMemo(
-    () =>
-      risks.filter(
-        (r) =>
-          (tab === "All" || r.status === tab) && (treatment === "All" || r.treatment === treatment),
-      ),
-    [tab, treatment],
+  // The URL owns the question: the tabs write the status filter, the chips write theirs, the
+  // headers write the sort, Pagination writes the page. A link carries all of it.
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const url = useTableSearch(
+    search,
+    (patch) => void navigate({ search: (prev) => ({ ...prev, ...patch }), replace: true }),
+    { sort: "id", dir: "desc", pageSize: 5 },
   );
-  const sort = useSort(filtered, riskSort, { key: "id", dir: "desc" });
-  const paged = usePage(sort.rows, 5);
-  const rows = paged.rows;
-
-  const toggle = (id: string) =>
-    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+  const tab = String(url.state.columnFilters.find((f) => f.id === "status")?.value ?? "All");
+  const setTab = (next: string) =>
+    url.onColumnFiltersChange((f) => [
+      ...f.filter((x) => x.id !== "status"),
+      ...(next === "All" ? [] : [{ id: "status", value: next }]),
+    ]);
+  const table = useDataTable({
+    columns: riskColumns,
+    data: risks,
+    getRowId: (r) => r.id,
+    selectable: true,
+    pageSize: 5,
+    label: "Risk register",
+    view: "risks",
+    resizable: true,
+    reorderable: true,
+    state: url.state,
+    onSortingChange: url.onSortingChange,
+    onPaginationChange: url.onPaginationChange,
+    onColumnFiltersChange: url.onColumnFiltersChange,
+    onGlobalFilterChange: url.onGlobalFilterChange,
+  });
+  const shown = table.getRowCount();
 
   return (
     <IndexPage
@@ -147,10 +188,17 @@ function RiskList() {
                   setExporting(true);
                   window.setTimeout(() => {
                     setExporting(false);
+                    const csv = toCsv(table);
+                    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "risk-register.csv";
+                    a.click();
+                    URL.revokeObjectURL(url);
                     toast.success("Risk register exported", {
-                      description: `${filtered.length} risks · CSV with inherent and residual scores`,
+                      description: `${shown} risks · the columns shown, in the sort chosen`,
                     });
-                  }, 900);
+                  }, 300);
                 }}
               >
                 {exporting ? <Spinner /> : <Download className="size-icon-small" />} Export
@@ -177,188 +225,33 @@ function RiskList() {
       </Tabs>
 
       <Inline space="space.100" alignBlock="center" shouldWrap>
-        <FilterChip label="Framework" value="SOC 2" isActive />
-        <FilterChip label="Owner" />
-        <Popover
-          label="Filter by treatment"
-          width={180}
-          trigger={
-            <FilterChip
-              label="Treatment"
-              {...(treatment === "All" ? {} : { value: treatment, active: true })}
-            />
-          }
-        >
-          <RadioGroup
-            value={treatment}
-            onValueChange={(v) => setTreatment(v as (typeof treatments)[number])}
-            aria-label="Treatment"
-            className="space-y-100"
-          >
-            {treatments.map((t) => (
-              <RadioGroup.Item key={t} value={t}>
-                {t === "All" ? "Any treatment" : t}
-              </RadioGroup.Item>
-            ))}
-          </RadioGroup>
-        </Popover>
-        <FilterChip label="Updated" />
+        <DataTable.Filter table={table} column="framework" />
+        <DataTable.Filter table={table} column="owner" />
+        <DataTable.Filter table={table} column="treatment" />
+        <DataTable.Filter table={table} column="updated" />
         <Inline className="ml-auto" space="space.100" alignBlock="center">
-          <Button variant="secondary" size="small" iconBefore={<ListFilter />}>
-            Columns
-          </Button>
+          <DataTable.Columns table={table} />
         </Inline>
       </Inline>
 
-      {selected.length > 0 ? (
-        <Inline
-          className="rounded-medium border border-brand bg-selected px-150 py-075 font-body text-brand"
-          space="space.100"
-          alignBlock="center"
-        >
-          <span className="tabular-nums font-medium">{selected.length} selected</span>
-          <Inline className="ml-auto" as="span" space="space.100" alignBlock="center">
+      <DataTable.SelectionBar
+        table={table}
+        actions={
+          <>
             <Button variant="secondary" size="small">
               Reassign
             </Button>
             <Button variant="secondary" size="small">
               Change treatment
             </Button>
-            <Button variant="subtle" size="small" onClick={() => setSelected([])}>
-              Clear
-            </Button>
-          </Inline>
-        </Inline>
-      ) : null}
+          </>
+        }
+      />
 
-      <div className="overflow-hidden rounded-large border border-default">
-        <Table>
-          <thead>
-            <tr>
-              <Table.Selection
-                header
-                checked={
-                  selected.length > 0 && selected.length === rows.length
-                    ? true
-                    : selected.length > 0
-                      ? "indeterminate"
-                      : false
-                }
-                onCheckedChange={(next) => setSelected(next ? rows.map((r) => r.id) : [])}
-                label="Select all risks"
-              />
-              <Table.Header sort={sort.dir("id")} onSort={() => sort.toggle("id")} width={92}>
-                ID
-              </Table.Header>
-              <Table.Header sort={sort.dir("title")} onSort={() => sort.toggle("title")}>
-                Risk
-              </Table.Header>
-              <Table.Header
-                sort={sort.dir("framework")}
-                onSort={() => sort.toggle("framework")}
-                width={88}
-              >
-                Framework
-              </Table.Header>
-              <Table.Header width={76}>Control</Table.Header>
-              <Table.Header
-                sort={sort.dir("owner")}
-                onSort={() => sort.toggle("owner")}
-                width={118}
-              >
-                Owner
-              </Table.Header>
-              <Table.Header
-                sort={sort.dir("treatment")}
-                onSort={() => sort.toggle("treatment")}
-                width={88}
-              >
-                Treatment
-              </Table.Header>
-              <Table.Header
-                sort={sort.dir("residual")}
-                onSort={() => sort.toggle("residual")}
-                width={130}
-              >
-                Residual
-              </Table.Header>
-              <Table.Header width={128}>Updated</Table.Header>
-              <Table.Header
-                className="text-right"
-                sort={sort.dir("status")}
-                onSort={() => sort.toggle("status")}
-                width={96}
-              >
-                Status
-              </Table.Header>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((risk) => (
-              <Table.Row key={risk.id} className="group" isSelected={selected.includes(risk.id)}>
-                <Table.Selection
-                  checked={selected.includes(risk.id)}
-                  onCheckedChange={() => toggle(risk.id)}
-                  label={`Select ${risk.id}`}
-                />
-                <Table.Cell>
-                  <HoverCard content={<RiskPeek risk={risk} />} width={300}>
-                    <Inline
-                      tabIndex={0}
-                      className="rounded-xsmall outline-none focus-visible:outline-focused"
-                      as="span"
-                      display="inline-flex"
-                    >
-                      <Id>{risk.id}</Id>
-                    </Inline>
-                  </HoverCard>
-                </Table.Cell>
-                <Table.Cell>
-                  <TextLink weight="medium" className="text-default group-hover:text-brand">
-                    <Link to="/risks/$riskId" params={{ riskId: risk.id }}>
-                      {risk.title}
-                    </Link>
-                  </TextLink>
-                </Table.Cell>
-                <Table.Cell>{risk.framework}</Table.Cell>
-                <Table.Cell>
-                  <Id>{risk.control}</Id>
-                </Table.Cell>
-                <Table.Cell>{risk.owner}</Table.Cell>
-                <Table.Cell>{risk.treatment}</Table.Cell>
-                <Table.Cell>
-                  <Inline space="space.100" alignBlock="center">
-                    <span className="tabular-nums text-right font-body-small text-subtlest line-through w-250">
-                      {risk.inherent}
-                    </span>
-                    <Progress
-                      value={risk.residual}
-                      tone={
-                        risk.residual > 60 ? "danger" : risk.residual > 30 ? "warning" : "success"
-                      }
-                    />
-                    <span className="tabular-nums shrink-0 text-right font-body-small font-medium w-250">
-                      {risk.residual}
-                    </span>
-                  </Inline>
-                </Table.Cell>
-                <Table.Cell>{risk.updated}</Table.Cell>
-                <Table.Cell className="text-right">
-                  <Badge tone={riskStatusTone[risk.status]}>{risk.status}</Badge>
-                </Table.Cell>
-              </Table.Row>
-            ))}
-          </tbody>
-        </Table>
-        <Pagination
-          page={paged.page}
-          pageCount={paged.pageCount}
-          onPageChange={paged.setPage}
-          total={paged.total}
-          pageSize={paged.pageSize}
-          className="border-t border-default px-150 py-100"
-        />
-      </div>
+      <DataTable
+        table={table}
+        empty={{ title: "No risks match", description: "Change the tab or the treatment filter." }}
+      />
 
       <CreateRiskModal open={creating} onClose={() => setCreating(false)} />
     </IndexPage>

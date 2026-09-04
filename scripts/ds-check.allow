@@ -202,3 +202,15 @@ page:Tabs#States
 page:Tabs#Style
 page:Tabs#Variants
 page:Text
+# DataTable landed 2026-09-04 from the parallel DataTable branch; its page joins the maturity walk in docs/next.md.
+page:DataTable#Accessibility
+page:DataTable#Anatomy
+page:DataTable#Content
+page:DataTable#Don't
+page:DataTable#Modifiers
+page:DataTable#Props
+page:DataTable#Related
+page:DataTable#Sizes
+page:DataTable#States
+page:DataTable#Style
+page:DataTable#Variants

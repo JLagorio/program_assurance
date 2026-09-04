@@ -1,32 +1,27 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Download, ListFilter, Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 
 import {
   Badge,
   Box,
   Button,
   Calendar,
-  Checkbox,
+  DataTable,
   Dialog,
-  FilterChip,
   Glance,
-  HoverCard,
-  Id,
   IndexPage,
   Inline,
   PageHeader,
-  Pagination,
-  Popover,
   Progress,
-  RadioGroup,
   Spinner,
   Stack,
-  Table,
   Tabs,
+  TextLink,
+  defineColumns,
   toast,
-  usePage,
-  useSort,
+  useDataTable,
+  type ColumnFiltersState,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { programStatusTone, programs, type Program } from "@/lib/grc-data";
@@ -66,28 +61,6 @@ function ProgramsLayout() {
 
 const tabLabels = ["All", "In assessment", "Authorized", "POA&M open", "Draft"] as const;
 
-const programSort = {
-  id: (p: Program) => p.id,
-  system: (p: Program) => p.name,
-  impact: (p: Program) => ({ Low: 0, Moderate: 1, High: 2 })[p.impact] ?? 0,
-  assessed: (p: Program) => p.controlsAssessed / Math.max(p.controlsTotal, 1),
-  status: (p: Program) => p.status,
-  owner: (p: Program) => p.owner,
-  expires: (p: Program) => p.expires,
-};
-
-const impactLevels = ["All", "High", "Moderate", "Low"] as const;
-
-const columns = [
-  { key: "impact", label: "Impact" },
-  { key: "baseline", label: "Baseline" },
-  { key: "assessment", label: "Assessment" },
-  { key: "status", label: "Status" },
-  { key: "owner", label: "Owner" },
-  { key: "expires", label: "Expires" },
-] as const;
-type ColumnKey = (typeof columns)[number]["key"];
-
 function ProgramPeek({ program: p }: { program: Program }) {
   return (
     <Glance
@@ -112,18 +85,67 @@ function ProgramPeek({ program: p }: { program: Program }) {
   );
 }
 
+const impactRank = { Low: 0, Moderate: 1, High: 2 } as const;
+
+const programColumns = defineColumns<Program>((c) => [
+  c.id("id", {
+    header: "Program",
+    pin: "start",
+    hideable: false,
+    glance: (p) => <ProgramPeek program={p} />,
+  }),
+  c.text("name", {
+    header: "System",
+    hideable: false,
+    cell: (p) => (
+      <>
+        <TextLink weight="medium">
+          <Link to="/programs/$programId" params={{ programId: p.id }}>
+            {p.name}
+          </Link>
+        </TextLink>
+        <Box className="text-subtle" as="span" paddingInlineStart="space.100">
+          {p.system}
+        </Box>
+      </>
+    ),
+  }),
+  c.status("impact", {
+    header: "Impact",
+    width: 90,
+    sortBy: (p) => impactRank[p.impact] ?? 0,
+    tone: (p) => (p.impact === "High" ? "danger" : p.impact === "Moderate" ? "warning" : "neutral"),
+  }),
+  c.custom("baseline", { header: "Baseline", width: 120, cell: (p) => <>Rev. 5 · {p.impact}</> }),
+  c.custom("assessment", {
+    header: "Assessment",
+    width: 150,
+    sort: (p) => p.controlsAssessed / Math.max(p.controlsTotal, 1),
+    cell: (p) => {
+      const pct = Math.round((p.controlsAssessed / p.controlsTotal) * 100);
+      return (
+        <Inline as="span" space="space.100" alignBlock="center">
+          <span className="w-800">
+            <Progress value={pct} tone={pct === 100 ? "success" : "information"} />
+          </span>
+          <span className="tabular-nums text-subtle">
+            {p.controlsAssessed}/{p.controlsTotal}
+          </span>
+        </Inline>
+      );
+    },
+  }),
+  c.status("status", { header: "Status", width: 124, tone: (p) => programStatusTone[p.status] }),
+  c.person("owner", { header: "Owner", width: 140 }),
+  c.date("expires", { header: "Expires", width: 112 }),
+]);
+
 function ProgramList() {
   const navigate = useNavigate();
   const programsVersion = useProgramsVersion();
-  const [tab, setTab] = useState("All");
-  const [selected, setSelected] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
   const [scheduling, setScheduling] = useState(false);
   const [scheduleDate, setScheduleDate] = useState<Date | undefined>(undefined);
-  const [hidden, setHidden] = useState<ColumnKey[]>([]);
-  const show = (key: ColumnKey) => !hidden.includes(key);
-
-  const [impact, setImpact] = useState<(typeof impactLevels)[number]>("All");
 
   const tabs = useMemo(
     () =>
@@ -137,20 +159,33 @@ function ProgramList() {
     [programsVersion],
   );
 
-  const filtered = useMemo(
-    () =>
-      programs.filter(
-        (p) => (tab === "All" || p.status === tab) && (impact === "All" || p.impact === impact),
-      ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [tab, impact, programsVersion],
-  );
-  const sort = useSort(filtered, programSort, { key: "id", dir: "asc" });
-  const paged = usePage(sort.rows, 25);
-  const rows = paged.rows;
+  // The route owns the filters: the tabs set the status filter, the chips set theirs, the table filters.
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const tab = String(columnFilters.find((f) => f.id === "status")?.value ?? "All");
+  const setTab = (next: string) =>
+    setColumnFilters((f) => [
+      ...f.filter((x) => x.id !== "status"),
+      ...(next === "All" ? [] : [{ id: "status", value: next }]),
+    ]);
 
-  const toggle = (id: string) =>
-    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+  // The seed array is mutated in place when a program is created, so the table gets a fresh copy per version.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const data = useMemo(() => [...programs], [programsVersion]);
+  const table = useDataTable({
+    columns: programColumns,
+    data,
+    getRowId: (p) => p.id,
+    selectable: true,
+    pageSize: 25,
+    label: "Programs",
+    view: "programs",
+    resizable: true,
+    reorderable: true,
+    state: { columnFilters },
+    onColumnFiltersChange: setColumnFilters,
+    initialState: { sorting: [{ id: "id", desc: false }] },
+  });
+  const selected = table.getSelectedRowModel().rows.map((r) => r.original.id);
 
   return (
     <IndexPage
@@ -168,7 +203,7 @@ function ProgramList() {
                   window.setTimeout(() => {
                     setExporting(false);
                     toast.success("SSP export ready", {
-                      description: `${filtered.length} programs · OSCAL 1.1.2 JSON`,
+                      description: `${table.getRowCount()} programs · OSCAL 1.1.2 JSON`,
                     });
                   }, 900);
                 }}
@@ -201,247 +236,31 @@ function ProgramList() {
       </Tabs>
 
       <Inline space="space.100" alignBlock="center" shouldWrap>
-        <FilterChip label="Baseline" value="Rev. 5" isActive />
-        <Popover
-          label="Filter by impact"
-          width={180}
-          trigger={
-            <FilterChip
-              label="Impact"
-              {...(impact === "All" ? {} : { value: impact, active: true })}
-            />
-          }
-        >
-          <RadioGroup
-            value={impact}
-            onValueChange={(v) => setImpact(v as (typeof impactLevels)[number])}
-            aria-label="Impact"
-            className="space-y-100"
-          >
-            {impactLevels.map((l) => (
-              <RadioGroup.Item key={l} value={l}>
-                {l === "All" ? "Any impact" : l}
-              </RadioGroup.Item>
-            ))}
-          </RadioGroup>
-        </Popover>
-        <FilterChip label="Owner" />
-        <FilterChip label="Assessor" />
+        <DataTable.Filter table={table} column="impact" />
+        <DataTable.Filter table={table} column="owner" />
+        <DataTable.Filter table={table} column="expires" />
         <Inline className="ml-auto" space="space.100" alignBlock="center">
-          <Popover
-            label="Columns"
-            width={200}
-            align="end"
-            trigger={
-              <Button variant="secondary" size="small" iconBefore={<ListFilter />}>
-                Columns
-                {hidden.length ? (
-                  <Box
-                    className="tabular-nums rounded-small bg-neutral font-body-xsmall font-medium text-subtle"
-                    as="span"
-                    paddingInline="space.050"
-                  >
-                    {columns.length - hidden.length}/{columns.length}
-                  </Box>
-                ) : null}
-              </Button>
-            }
-          >
-            <Stack space="space.100">
-              {columns.map((c) => (
-                <div key={c.key}>
-                  <Checkbox
-                    checked={show(c.key)}
-                    onCheckedChange={(v) =>
-                      setHidden((h) => (v === true ? h.filter((x) => x !== c.key) : [...h, c.key]))
-                    }
-                  >
-                    {c.label}
-                  </Checkbox>
-                </div>
-              ))}
-            </Stack>
-          </Popover>
+          <DataTable.Columns table={table} />
         </Inline>
       </Inline>
 
-      {selected.length > 0 ? (
-        <Inline
-          className="rounded-medium border border-brand bg-selected px-150 py-075 font-body text-brand"
-          space="space.100"
-          alignBlock="center"
-        >
-          <span className="tabular-nums font-medium">{selected.length} selected</span>
-          <Inline className="ml-auto" as="span" space="space.100" alignBlock="center">
+      <DataTable.SelectionBar
+        table={table}
+        actions={
+          <>
             <Button variant="secondary" size="small">
               Reassign assessor
             </Button>
             <Button variant="secondary" size="small" onClick={() => setScheduling(true)}>
               Schedule assessment
             </Button>
-            <Button variant="subtle" size="small" onClick={() => setSelected([])}>
-              Clear
-            </Button>
-          </Inline>
-        </Inline>
-      ) : null}
+          </>
+        }
+      />
 
-      <Table>
-        <thead>
-          <tr>
-            <Table.Selection
-              header
-              checked={
-                selected.length > 0 && selected.length === rows.length
-                  ? true
-                  : selected.length > 0
-                    ? "indeterminate"
-                    : false
-              }
-              onCheckedChange={(next) => setSelected(next ? rows.map((r) => r.id) : [])}
-              label="Select all programs"
-            />
-            <Table.Header sort={sort.dir("id")} onSort={() => sort.toggle("id")} width={92}>
-              Program
-            </Table.Header>
-            <Table.Header sort={sort.dir("system")} onSort={() => sort.toggle("system")}>
-              System
-            </Table.Header>
-            {show("impact") ? (
-              <Table.Header
-                sort={sort.dir("impact")}
-                onSort={() => sort.toggle("impact")}
-                width={104}
-              >
-                Impact
-              </Table.Header>
-            ) : null}
-            {show("baseline") ? <Table.Header width={132}>Baseline</Table.Header> : null}
-            {show("assessment") ? (
-              <Table.Header
-                sort={sort.dir("assessed")}
-                onSort={() => sort.toggle("assessed")}
-                width={168}
-              >
-                Assessment
-              </Table.Header>
-            ) : null}
-            {show("status") ? (
-              <Table.Header
-                sort={sort.dir("status")}
-                onSort={() => sort.toggle("status")}
-                width={124}
-              >
-                Status
-              </Table.Header>
-            ) : null}
-            {show("owner") ? (
-              <Table.Header
-                sort={sort.dir("owner")}
-                onSort={() => sort.toggle("owner")}
-                width={120}
-              >
-                Owner
-              </Table.Header>
-            ) : null}
-            {show("expires") ? (
-              <Table.Header
-                className="text-right"
-                sort={sort.dir("expires")}
-                onSort={() => sort.toggle("expires")}
-                width={112}
-              >
-                Expires
-              </Table.Header>
-            ) : null}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((p) => {
-            const pct = Math.round((p.controlsAssessed / p.controlsTotal) * 100);
-            return (
-              <Table.Row key={p.id} className="group" isSelected={selected.includes(p.id)}>
-                <Table.Selection
-                  checked={selected.includes(p.id)}
-                  onCheckedChange={() => toggle(p.id)}
-                  label={`Select ${p.id}`}
-                />
-                <Table.Cell width={92}>
-                  <HoverCard content={<ProgramPeek program={p} />}>
-                    <Inline
-                      tabIndex={0}
-                      className="rounded-xsmall outline-none focus-visible:outline-focused"
-                      as="span"
-                      display="inline-flex"
-                    >
-                      <Id>{p.id}</Id>
-                    </Inline>
-                  </HoverCard>
-                </Table.Cell>
-                <Table.Cell>
-                  <Link
-                    to="/programs/$programId"
-                    params={{ programId: p.id }}
-                    className="font-medium text-default group-hover:text-brand"
-                  >
-                    {p.name}
-                  </Link>
-                  <Box className="text-subtle" as="span" paddingInlineStart="space.100">
-                    {p.system}
-                  </Box>
-                </Table.Cell>
-                {show("impact") ? (
-                  <Table.Cell width={104}>
-                    <Badge
-                      tone={
-                        p.impact === "High"
-                          ? "danger"
-                          : p.impact === "Moderate"
-                            ? "warning"
-                            : "neutral"
-                      }
-                    >
-                      {p.impact}
-                    </Badge>
-                  </Table.Cell>
-                ) : null}
-                {show("baseline") ? <Table.Cell width={132}>Rev. 5 · {p.impact}</Table.Cell> : null}
-                {show("assessment") ? (
-                  <Table.Cell width={168}>
-                    <Inline as="span" space="space.100" alignBlock="center">
-                      <span className="w-800">
-                        <Progress value={pct} tone={pct === 100 ? "success" : "information"} />
-                      </span>
-                      <span className="tabular-nums text-subtle">
-                        {p.controlsAssessed}/{p.controlsTotal}
-                      </span>
-                    </Inline>
-                  </Table.Cell>
-                ) : null}
-                {show("status") ? (
-                  <Table.Cell width={124}>
-                    <Badge tone={programStatusTone[p.status]}>{p.status}</Badge>
-                  </Table.Cell>
-                ) : null}
-                {show("owner") ? <Table.Cell width={120}>{p.owner}</Table.Cell> : null}
-                {show("expires") ? (
-                  <Table.Cell className="tabular-nums text-right" width={112}>
-                    {p.expires}
-                  </Table.Cell>
-                ) : null}
-              </Table.Row>
-            );
-          })}
-        </tbody>
-      </Table>
-
-      <Pagination
-        page={paged.page}
-        pageCount={paged.pageCount}
-        onPageChange={paged.setPage}
-        total={paged.total}
-        pageSize={paged.pageSize}
-        className="border-t border-default pt-150"
+      <DataTable
+        table={table}
+        empty={{ title: "No programs match", description: "Change the tab or the impact filter." }}
       />
 
       <Dialog

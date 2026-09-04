@@ -1,5 +1,20 @@
-import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, ChevronsUpDown, Eye } from "lucide-react";
-import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  ChevronRight,
+  ChevronsUpDown,
+  Eye,
+  GripVertical,
+} from "lucide-react";
+import {
+  useCallback,
+  useRef,
+  type ComponentPropsWithoutRef,
+  type CSSProperties,
+  type ReactNode,
+  type Ref,
+} from "react";
 
 import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
@@ -8,63 +23,190 @@ import { Checkbox } from "./controls";
 import { Id } from "./id";
 import { Tooltip } from "./tooltip";
 
-function TableRoot({ className, ...props }: ComponentPropsWithoutRef<"table">) {
+/**
+ * The register. The wrapper is the scroll frame: sideways always, and down past `maxHeight`, so the
+ * sticky header sticks to it and not to the page. While the frame is scrolled sideways it carries
+ * `data-scrolled-start` and `data-scrolled-end`, which the pinned columns read for their edge.
+ */
+function TableRoot({
+  className,
+  maxHeight,
+  frameRef,
+  ...props
+}: ComponentPropsWithoutRef<"table"> & {
+  maxHeight?: number | undefined;
+  /** The scroll frame, for a virtualizer that needs the element that scrolls. */
+  frameRef?: Ref<HTMLDivElement> | undefined;
+}) {
+  const frame = useRef<HTMLDivElement>(null);
+  const track = useCallback(() => {
+    const el = frame.current;
+    if (!el) return;
+    const start = el.scrollLeft > 0;
+    const end = Math.ceil(el.scrollLeft + el.clientWidth) < el.scrollWidth;
+    if (start) el.dataset["scrolledStart"] = "";
+    else delete el.dataset["scrolledStart"];
+    if (end) el.dataset["scrolledEnd"] = "";
+    else delete el.dataset["scrolledEnd"];
+  }, []);
   return (
-    <div className="w-full overflow-x-auto">
+    <div
+      ref={(el) => {
+        frame.current = el;
+        if (typeof frameRef === "function") frameRef(el);
+        else if (frameRef) frameRef.current = el;
+        if (el) track();
+      }}
+      onScroll={track}
+      className={cn(
+        "group/scroll w-full",
+        maxHeight === undefined ? "overflow-x-auto" : "overflow-auto",
+      )}
+      style={maxHeight === undefined ? undefined : { maxHeight }}
+    >
       <table className={cn("w-full border-collapse text-left font-body", className)} {...props} />
     </div>
   );
 }
 
-export type ThProps = ComponentPropsWithoutRef<"th"> & {
-  /** Makes the heading a button that reports its direction (aria-sort) and shows the arrow. */
-  sort?: "asc" | "desc" | false | undefined;
-  onSort?: (() => void) | undefined;
-  /** Pins the column to the leading edge of a table that scrolls sideways. */
-  sticky?: boolean | undefined;
-  /** The column's width in pixels. Column widths are content decisions, so they are a prop, not a class. */
-  width?: number | undefined;
+/** Where a column is pinned, and how far from that edge. `edge` marks the pinned column that touches the scrolling middle. */
+export type PinnedProps = {
+  pinned?: "start" | "end" | false | undefined;
+  /** Pixels from the pinned edge: the widths of the pinned columns before it. */
+  offset?: number | undefined;
+  edge?: boolean | undefined;
 };
+
+const pinnedClass = (pinned: PinnedProps["pinned"], edge: boolean | undefined, z: string) =>
+  pinned
+    ? cn(
+        "sticky bg-surface-current",
+        z,
+        edge &&
+          pinned === "start" &&
+          "border-e border-default group-data-[scrolled-start]/scroll:border-bold",
+        edge &&
+          pinned === "end" &&
+          "border-s border-default group-data-[scrolled-end]/scroll:border-bold",
+      )
+    : undefined;
+
+const pinnedStyle = (
+  pinned: PinnedProps["pinned"],
+  offset: number | undefined,
+): CSSProperties | undefined =>
+  pinned === "start"
+    ? { insetInlineStart: offset ?? 0 }
+    : pinned === "end"
+      ? { insetInlineEnd: offset ?? 0 }
+      : undefined;
+
+export type ThProps = ComponentPropsWithoutRef<"th"> &
+  PinnedProps & {
+    ref?: Ref<HTMLTableCellElement> | undefined;
+    /** Makes the heading a button that reports its direction (aria-sort) and shows the arrow. */
+    sort?: "asc" | "desc" | false | undefined;
+    onSort?: (() => void) | undefined;
+    /** Pins the column to the leading edge. The same as `pinned="start"` with no offset. */
+    sticky?: boolean | undefined;
+    /** The column's width in pixels. Column widths are content decisions, so they are a prop, not a class. */
+    width?: number | undefined;
+    /** A handle on the trailing edge. `onResizeStart` takes the pointer down; `resizeDelta` moves the guide while it drags; double-click resets. */
+    resize?:
+      | {
+          onResizeStart: (event: unknown) => void;
+          onResizeReset?: (() => void) | undefined;
+          isResizing?: boolean | undefined;
+          resizeDelta?: number | null | undefined;
+        }
+      | undefined;
+    /** A control that appears on hover after the heading: the column menu, a drag grip. */
+    trailing?: ReactNode;
+  };
 
 const widthStyle = (
   width: number | undefined,
   style: CSSProperties | undefined,
 ): CSSProperties | undefined => (width === undefined ? style : { width, ...style });
 
-function Th({ className, sort, onSort, sticky, width, style, children, ...props }: ThProps) {
+function Th({
+  ref,
+  className,
+  sort,
+  onSort,
+  sticky,
+  pinned: pinnedProp,
+  offset,
+  edge,
+  width,
+  resize,
+  trailing,
+  style,
+  children,
+  ...props
+}: ThProps) {
   const sortable = sort !== undefined || onSort !== undefined;
+  const pinned = pinnedProp ?? (sticky ? "start" : false);
   return (
     <th
+      ref={ref}
       aria-sort={sort === "asc" ? "ascending" : sort === "desc" ? "descending" : undefined}
       className={cn(
-        "sticky top-0 z-10 h-row-header whitespace-nowrap border-b border-default bg-surface-current px-150 font-body-small font-medium text-subtle",
-        sticky && "start-0 z-20",
+        "group/th sticky top-0 z-10 h-row-header whitespace-nowrap border-b border-default bg-surface-current px-150 font-body-small font-medium text-subtle",
+        pinnedClass(pinned, edge, "z-20"),
         className,
       )}
-      style={widthStyle(width, style)}
+      style={widthStyle(width, { ...pinnedStyle(pinned, offset), ...style })}
       {...props}
     >
-      {sortable ? (
-        <button
-          type="button"
-          onClick={onSort}
+      <span className="flex items-center gap-050">
+        {sortable ? (
+          <button
+            type="button"
+            onClick={onSort}
+            className={cn(
+              "group/sort inline-flex h-control-xsmall min-w-0 items-center gap-050 rounded-small px-050 outline-none transition-colors duration-fast ease-standard hover:text-default focus-visible:outline-focused",
+              sort && "text-default",
+            )}
+          >
+            <span className="truncate">{children}</span>
+            {sort === "asc" ? (
+              <ArrowUp className="size-150 shrink-0" />
+            ) : sort === "desc" ? (
+              <ArrowDown className="size-150 shrink-0" />
+            ) : (
+              <ChevronsUpDown className="invisible size-150 shrink-0 icon-subtlest group-hover/sort:visible" />
+            )}
+          </button>
+        ) : (
+          <span className="truncate">{children}</span>
+        )}
+        {trailing ? (
+          <span className="absolute inset-y-0 end-100 flex items-center gap-025 bg-surface-current ps-050 opacity-0 transition-opacity duration-fast ease-standard focus-within:opacity-100 group-hover/th:opacity-100 has-[[data-state=open]]:opacity-100">
+            {trailing}
+          </span>
+        ) : null}
+      </span>
+      {resize ? (
+        <span
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize column"
+          onMouseDown={resize.onResizeStart}
+          onTouchStart={resize.onResizeStart}
+          onDoubleClick={resize.onResizeReset}
           className={cn(
-            "group/sort inline-flex h-control-xsmall items-center gap-050 rounded-small px-050 outline-none transition-colors duration-fast ease-standard hover:text-default focus-visible:outline-focused",
-            sort && "text-default",
+            "absolute inset-y-0 end-0 z-10 w-100 cursor-col-resize touch-none select-none",
+            "after:absolute after:inset-y-0 after:end-0 after:w-025 after:bg-brand-bold after:opacity-0 after:transition-opacity after:duration-fast after:ease-standard hover:after:opacity-100",
+            resize.isResizing && "after:opacity-100",
           )}
-        >
-          {children}
-          {sort === "asc" ? (
-            <ArrowUp className="size-150" />
-          ) : sort === "desc" ? (
-            <ArrowDown className="size-150" />
-          ) : (
-            <ChevronsUpDown className="invisible size-150 icon-subtlest group-hover/sort:visible" />
-          )}
-        </button>
-      ) : (
-        children
-      )}
+          style={
+            resize.isResizing && resize.resizeDelta != null
+              ? { transform: `translateX(${resize.resizeDelta}px)` }
+              : undefined
+          }
+        />
+      ) : null}
     </th>
   );
 }
@@ -72,18 +214,24 @@ function Th({ className, sort, onSort, sticky, width, style, children, ...props 
 function Td({
   className,
   sticky,
+  pinned: pinnedProp,
+  offset,
+  edge,
   width,
   style,
   ...props
-}: ComponentPropsWithoutRef<"td"> & { sticky?: boolean | undefined; width?: number | undefined }) {
+}: ComponentPropsWithoutRef<"td"> &
+  PinnedProps & { sticky?: boolean | undefined; width?: number | undefined }) {
+  const pinned = pinnedProp ?? (sticky ? "start" : false);
   return (
     <td
       className={cn(
         "h-row max-w-0 truncate whitespace-nowrap px-150 align-middle",
-        sticky && "sticky start-0 z-10 bg-surface-current group-hover/row:bg-surface-hovered",
+        pinnedClass(pinned, edge, "z-10"),
+        pinned && "group-hover/row:bg-surface-hovered group-data-[selected]/row:bg-selected",
         className,
       )}
-      style={widthStyle(width, style)}
+      style={widthStyle(width, { ...pinnedStyle(pinned, offset), ...style })}
       {...props}
     />
   );
@@ -91,16 +239,19 @@ function Td({
 
 /** A row. `isStatic` is for rows that are not records: a form laid out as a table, a totals row. They do not light up on hover. */
 function Tr({
+  ref,
   className,
   isSelected,
   isStatic,
   ...props
 }: ComponentPropsWithoutRef<"tr"> & {
+  ref?: Ref<HTMLTableRowElement> | undefined;
   isSelected?: boolean | undefined;
   isStatic?: boolean | undefined;
 }) {
   return (
     <tr
+      ref={ref}
       data-selected={isSelected ? "" : undefined}
       className={cn(
         "group/row border-b border-default transition-colors duration-fast ease-standard last:border-b-0",
@@ -120,7 +271,10 @@ function IdCell({
   isActive,
   tone = "brand",
   width,
-}: {
+  pinned,
+  offset,
+  edge,
+}: PinnedProps & {
   id: ReactNode;
   onPreview?: (() => void) | undefined;
   isActive?: boolean | undefined;
@@ -129,7 +283,7 @@ function IdCell({
   width?: number | undefined;
 }) {
   return (
-    <Td className="max-w-none" width={width}>
+    <Td className="max-w-none" width={width} pinned={pinned} offset={offset} edge={edge}>
       <span className="flex items-center gap-075">
         <Id
           className={cn(
@@ -172,7 +326,8 @@ function SelectionCell({
   onCheckedChange,
   label,
   disabled,
-}: {
+  pinned,
+}: PinnedProps & {
   header?: boolean | undefined;
   checked: boolean | "indeterminate";
   onCheckedChange: (checked: boolean) => void;
@@ -189,11 +344,11 @@ function SelectionCell({
     />
   );
   return header ? (
-    <Th className="w-400 pe-0">
+    <Th className="w-400 pe-0" pinned={pinned}>
       <span className="flex items-center">{box}</span>
     </Th>
   ) : (
-    <Td className="w-400 max-w-none pe-0">
+    <Td className="w-400 max-w-none pe-0" pinned={pinned}>
       <span className="flex items-center">{box}</span>
     </Td>
   );
@@ -316,6 +471,65 @@ function TreeCell({
   );
 }
 
+/**
+ * The row a record opens into: one cell spanning every column, holding whatever the record has to
+ * show at length, a child table included. The chevron that opens it carries `aria-controls` with
+ * this row's `id`.
+ */
+function DetailRow({
+  id,
+  colSpan,
+  className,
+  children,
+}: {
+  id?: string | undefined;
+  colSpan: number;
+  className?: string | undefined;
+  children: ReactNode;
+}) {
+  return (
+    <tr id={id} className="border-b border-default bg-surface-sunken last:border-b-0">
+      <td colSpan={colSpan} className={cn("px-200 py-150 align-top", className)}>
+        {children}
+      </td>
+    </tr>
+  );
+}
+
+/**
+ * The grip cell for a row that can be dragged into a new order. `ref`, `attributes` and `listeners`
+ * come from the drag context; the cell is the handle, so the row's own controls keep their clicks.
+ */
+function HandleCell({
+  ref,
+  label = "Reorder row",
+  isDragging,
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"span"> & {
+  ref?: Ref<HTMLSpanElement> | undefined;
+  label?: string | undefined;
+  isDragging?: boolean | undefined;
+}) {
+  return (
+    <Td className="w-400 max-w-none pe-0">
+      <span
+        ref={ref}
+        role="button"
+        aria-label={label}
+        className={cn(
+          "inline-flex size-250 shrink-0 items-center justify-center rounded-small icon-subtlest outline-none touch-none cursor-grab hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused",
+          isDragging && "cursor-grabbing",
+          className,
+        )}
+        {...props}
+      >
+        <GripVertical className="size-icon-small" />
+      </span>
+    </Td>
+  );
+}
+
 export const Table = Object.assign(TableRoot, {
   Row: Tr,
   Cell: Td,
@@ -324,4 +538,6 @@ export const Table = Object.assign(TableRoot, {
   Selection: SelectionCell,
   Group: TableGroup,
   Tree: TreeCell,
+  Detail: DetailRow,
+  Handle: HandleCell,
 });

@@ -9,18 +9,23 @@ import "../src/styles/storybook.css";
  * prefers-color-scheme block in tokens.css decides). Design has one entry until a second
  * design exists; it is here so the toolbar shape does not change later.
  */
-function ModeSync({ mode }: { mode: string }) {
+function ModeSync({ mode, density }: { mode: string; density: string }) {
   useEffect(() => {
     const root = document.documentElement;
     if (mode === "system") delete root.dataset["colorMode"];
     else root.dataset["colorMode"] = mode;
-  }, [mode]);
+    if (density === "compact") root.dataset["density"] = "compact";
+    else delete root.dataset["density"];
+  }, [mode, density]);
   return null;
 }
 
 const withMode: Decorator = (Story, ctx) => (
   <>
-    <ModeSync mode={String(ctx.globals["mode"] ?? "light")} />
+    <ModeSync
+      mode={String(ctx.globals["mode"] ?? "light")}
+      density={String(ctx.globals["density"] ?? "default")}
+    />
     <Story />
   </>
 );
@@ -68,8 +73,20 @@ const preview: Preview = {
         ],
       },
     },
+    density: {
+      description: "Row density",
+      toolbar: {
+        title: "Density",
+        icon: "menu",
+        dynamicTitle: true,
+        items: [
+          { value: "default", title: "Comfortable" },
+          { value: "compact", title: "Compact" },
+        ],
+      },
+    },
   },
-  initialGlobals: { design: "ledger", mode: "light" },
+  initialGlobals: { design: "ledger", mode: "light", density: "default" },
   decorators: [withMode],
 };
 

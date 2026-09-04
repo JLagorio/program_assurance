@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ExternalLink, Info, Maximize2, Plus } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
   Avatar,
@@ -24,6 +24,7 @@ import {
 import {
   Card,
   CommandPalette,
+  DataTable,
   Empty,
   Glance,
   IndexPage,
@@ -41,7 +42,9 @@ import {
   Related,
   Section,
   ShowPage,
+  defineColumns,
   useCommandPalette,
+  useDataTable,
 } from "../../patterns";
 import { Stack, Text, Box, Inline } from "../../primitives";
 import { Inspector } from "../../shapes";
@@ -347,44 +350,101 @@ type Fields = {
   coverage: (typeof coverages)[number];
 };
 
+type Catalogue = (typeof catalogue)[number];
+type ChosenRow = Catalogue & Fields;
+
+const catalogueColumns = defineColumns<Catalogue>((c) => [
+  c.id("id", { header: "Requirement", width: 110 }),
+  c.text("text", { header: "Shall statement", sortable: false }),
+  c.text("family", { header: "Family", width: 72 }),
+  c.status("state", { header: "State", width: 96, tone: (r) => stateTone[r.state] }),
+]);
+
 function PickerStates() {
   const [open, setOpen] = useState(false);
   const [frame, setFrame] = useState<"choose" | "details">("choose");
-  const [query, setQuery] = useState("");
-  const [family, setFamily] = useState<(typeof families)[number] | null>(null);
-  const [sort, setSort] = useState<"asc" | "desc">("asc");
-  const [chosen, setChosen] = useState<Set<string>>(() => new Set());
   const [fields, setFields] = useState<Record<string, Fields>>({});
-  const q = query.trim().toLowerCase();
-  const rows = catalogue
-    .filter(
-      (r) =>
-        (!q || r.text.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)) &&
-        (!family || r.family === family),
-    )
-    .sort((a, b) => (sort === "asc" ? a.id.localeCompare(b.id) : b.id.localeCompare(a.id)));
-  const toggle = (id: string) =>
-    setChosen((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  const allShown = rows.length > 0 && rows.every((r) => chosen.has(r.id));
-  const someShown = rows.some((r) => chosen.has(r.id));
+
+  // Frame one chooses: the table holds the search, the family facet, the sort and the selection,
+  // and the selection survives the search because it is kept by row id.
+  const choose = useDataTable({
+    columns: catalogueColumns,
+    data: catalogue,
+    getRowId: (r) => r.id,
+    selectable: true,
+    label: "Requirements",
+    initialState: { sorting: [{ id: "id", desc: false }] },
+  });
+  const chosenIds = Object.keys(choose.state.rowSelection);
+  const chosen = new Set(chosenIds);
   const fieldOf = (id: string): Fields =>
     fields[id] ?? { responsibility: "Primary", coverage: "Full" };
   const setField = (id: string, patch: Partial<Fields>) =>
     setFields((f) => ({ ...f, [id]: { ...fieldOf(id), ...patch } }));
   const applyAll = (patch: Partial<Fields>) =>
-    setFields(Object.fromEntries([...chosen].map((id) => [id, { ...fieldOf(id), ...patch }])));
+    setFields(Object.fromEntries(chosenIds.map((id) => [id, { ...fieldOf(id), ...patch }])));
   const reset = () => {
     setOpen(false);
     setFrame("choose");
   };
-  const nextFamily = () =>
-    setFamily((f) => (f === null ? families[0] : (families[families.indexOf(f) + 1] ?? null)));
-  const chosenRows = catalogue.filter((r) => chosen.has(r.id));
+  const chosenRows: ChosenRow[] = catalogue
+    .filter((r) => chosen.has(r.id))
+    .map((r) => ({ ...r, ...fieldOf(r.id) }));
+
+  // Frame two fills in the fields the model requires, in place; "Does not apply" is a row action.
+  const detailColumns = useMemo(
+    () =>
+      defineColumns<ChosenRow>((c) => [
+        c.id("id", { header: "Requirement", width: 110, sortable: false }),
+        c.text("text", { header: "Shall statement", sortable: false }),
+        c.status("responsibility", {
+          header: "Responsibility",
+          width: 150,
+          sortable: false,
+          tone: () => "neutral",
+          editable: {
+            options: responsibilities,
+            onChange: (row, next) =>
+              setField(row.id, { responsibility: next as Fields["responsibility"] }),
+            save: async () => undefined,
+          },
+        }),
+        c.status("coverage", {
+          header: "Coverage",
+          width: 120,
+          sortable: false,
+          tone: (r) => (r.coverage === "Full" ? "success" : "warning"),
+          editable: {
+            options: coverages,
+            onChange: (row, next) => setField(row.id, { coverage: next as Fields["coverage"] }),
+            save: async () => undefined,
+          },
+        }),
+        c.custom("apply", {
+          header: "",
+          width: 130,
+          align: "end",
+          cell: (r) => (
+            <Button
+              variant="link"
+              size="small"
+              onClick={() => choose.getRow(r.id).toggleSelected(false)}
+            >
+              Does not apply
+            </Button>
+          ),
+        }),
+      ]),
+    // the chooser table is stable for the life of the story
+    [],
+  );
+  const details = useDataTable({
+    columns: detailColumns,
+    data: chosenRows,
+    getRowId: (r) => r.id,
+    label: "Chosen requirements",
+  });
+
   return (
     <Stack space="space.200">
       <Specimens title="PickerSheet">
@@ -401,81 +461,28 @@ function PickerStates() {
           onClose={reset}
           title="Allocate requirements"
           subtitle="Flight computer · 14 allocated today"
-          search={{ value: query, onChange: setQuery, placeholder: "Search requirements" }}
+          search={{
+            value: String(choose.state.globalFilter ?? ""),
+            onChange: (v) => choose.setGlobalFilter(v),
+            placeholder: "Search requirements",
+          }}
           filters={
             <>
-              <FilterChip
-                label="Family"
-                value={family ?? undefined}
-                isActive={family !== null}
-                onClick={nextFamily}
-              />
-              <FilterChip label="State" />
+              <DataTable.Filter table={choose} column="family" />
+              <DataTable.Filter table={choose} column="state" />
             </>
           }
           selected={chosen.size}
-          total={rows.length}
-          onClear={() => setChosen(new Set())}
+          total={choose.getRowCount()}
+          onClear={() => choose.resetRowSelection()}
           action={{ label: `Continue with ${chosen.size}`, onClick: () => setFrame("details") }}
         >
-          <Table>
-            <thead>
-              <tr>
-                <Table.Selection
-                  header
-                  checked={allShown ? true : someShown ? "indeterminate" : false}
-                  onCheckedChange={(checked) =>
-                    setChosen((prev) => {
-                      const next = new Set(prev);
-                      for (const r of rows)
-                        if (checked) next.add(r.id);
-                        else next.delete(r.id);
-                      return next;
-                    })
-                  }
-                  label="Select every row shown"
-                />
-                <Table.Header
-                  width={110}
-                  sort={sort}
-                  onSort={() => setSort((s) => (s === "asc" ? "desc" : "asc"))}
-                >
-                  Requirement
-                </Table.Header>
-                <Table.Header>Shall statement</Table.Header>
-                <Table.Header width={72}>Family</Table.Header>
-                <Table.Header width={96}>State</Table.Header>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <Table.Row
-                  key={r.id}
-                  isSelected={chosen.has(r.id)}
-                  onClick={() => toggle(r.id)}
-                  className="cursor-pointer"
-                >
-                  <Table.Selection
-                    checked={chosen.has(r.id)}
-                    onCheckedChange={() => toggle(r.id)}
-                    label={`Select ${r.id}`}
-                  />
-                  <Table.Cell>
-                    <Id>{r.id}</Id>
-                  </Table.Cell>
-                  <Table.Cell className="truncate" title={r.text}>
-                    {r.text}
-                  </Table.Cell>
-                  <Table.Cell>{r.family}</Table.Cell>
-                  <Table.Cell>
-                    <Badge size="xsmall" tone={stateTone[r.state]}>
-                      {r.state}
-                    </Badge>
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </tbody>
-          </Table>
+          <DataTable
+            table={choose}
+            onRowClick={(r) => choose.getRow(r.id).toggleSelected()}
+            className="rounded-none border-0"
+            empty={{ title: "No requirements match", description: "Clear the search or a filter." }}
+          />
         </PickerSheet>
       ) : (
         <PickerSheet
@@ -525,61 +532,13 @@ function PickerStates() {
           selected={chosen.size}
           action={{ label: `Allocate ${chosen.size} to Flight computer`, onClick: reset }}
         >
-          <Table>
-            <thead>
-              <tr>
-                <Table.Header width={110}>Requirement</Table.Header>
-                <Table.Header>Shall statement</Table.Header>
-                <Table.Header width={130}>Responsibility</Table.Header>
-                <Table.Header width={96}>Coverage</Table.Header>
-                <Table.Header width={120} />
-              </tr>
-            </thead>
-            <tbody>
-              {chosenRows.map((r) => {
-                const f = fieldOf(r.id);
-                return (
-                  <Table.Row key={r.id} isStatic>
-                    <Table.Cell>
-                      <Id>{r.id}</Id>
-                    </Table.Cell>
-                    <Table.Cell className="truncate" title={r.text}>
-                      {r.text}
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Editable.Select
-                        label="Responsibility"
-                        options={responsibilities}
-                        value={f.responsibility}
-                        onChange={(next) => setField(r.id, { responsibility: next })}
-                        save={async () => undefined}
-                      />
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Editable.Select
-                        label="Coverage"
-                        options={coverages}
-                        value={f.coverage}
-                        onChange={(next) => setField(r.id, { coverage: next })}
-                        save={async () => undefined}
-                      />
-                    </Table.Cell>
-                    <Table.Cell className="text-right">
-                      <Button variant="link" size="small" onClick={() => toggle(r.id)}>
-                        Does not apply
-                      </Button>
-                    </Table.Cell>
-                  </Table.Row>
-                );
-              })}
-            </tbody>
-          </Table>
+          <DataTable table={details} className="rounded-none border-0" />
         </PickerSheet>
       )}
     </Stack>
   );
 }
-/** Frame one chooses from a catalogue of 28 with search, a family filter, a sortable id column and selection that survives the search; frame two sets responsibility and coverage per row with a defaults row. Open it. */
+/** Frame one is a DataTable in the sheet: search, the family and state facets, a sortable id column and a selection that survives the search; frame two is a second DataTable whose responsibility and coverage cells edit in place, with a defaults row and "Does not apply" per row. Open it. */
 export const PickerSheetStory: Story = { name: "Picker sheet", render: () => <PickerStates /> };
 export const PickerSheetMatrix: Story = { render: () => <PickerStates /> };
 
