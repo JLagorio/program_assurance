@@ -23,6 +23,8 @@ jobs:
         run: node scripts/ds-check.mjs
       - name: The package typechecks, lints and passes its tests
         run: npm run typecheck -w packages/design-system && npm run lint -w packages/design-system && npm test -w packages/design-system
+      - name: Every family matrix passes axe
+        run: npx playwright install --with-deps chromium && npm run test:a11y -w packages/design-system
       - name: The prototype typechecks and lints
         run: npx tsc --noEmit -p tsconfig.json && npx eslint .
       - name: Everything builds

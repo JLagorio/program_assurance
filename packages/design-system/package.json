@@ -1,6 +1,6 @@
 {
   "name": "@ledger/design-system",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Ledger: tokens, primitives and components. DTCG source in tokens/, generated outputs in src/generated/.",
   "type": "module",
@@ -34,6 +34,7 @@
     "build-storybook": "storybook build",
     "test": "node --test \"test/**/*.test.mjs\"",
     "test:report": "CONTRAST_REPORT=1 node --test \"test/**/*.test.mjs\"",
+    "test:a11y": "vitest run --project storybook",
     "lint": "eslint ."
   },
   "devDependencies": {

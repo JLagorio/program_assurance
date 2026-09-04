@@ -278,9 +278,8 @@ export function SystemTree({ programId }: { programId: string }) {
                           size="small"
                           variant="subtle"
                           label={`Actions for ${r.node.name}`}
-                        >
-                          <MoreHorizontal className="size-icon-small" />
-                        </IconButton>
+                          icon={<MoreHorizontal />}
+                        />
                       }
                     >
                       {(close) => (

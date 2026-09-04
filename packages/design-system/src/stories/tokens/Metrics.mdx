@@ -1,0 +1,50 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Metrics.stories";
+
+<Meta of={Stories} />
+
+# Metrics
+
+Dimension is this system's extension of Atlassian's grammar. Atlassian leaves control heights to components; this system needs them as a themed axis, so a control, a row, an icon and a layout region each have a token. The motion tokens share this sheet and have their own page (Tokens/Motion).
+
+## Controls
+
+| Token | Value | Utility | Use |
+| --- | --- | --- | --- |
+| `dimension.control.xsmall` | 24px | `h-control-xsmall`, `size-control-xsmall` | Button xsmall, the densest chrome. |
+| `dimension.control.small` | 28px | `h-control-small`, `size-control-small` | Button small, chips, menu items, side nav items. |
+| `dimension.control.medium` | 32px | `h-control-medium`, `size-control-medium` | The default: Button, Input, Select, Combobox triggers. |
+| `dimension.control.large` | 36px | `h-control-large`, `size-control-large` | Reserved for hero forms. |
+
+## Rows
+
+| Token | Value | Utility | Use |
+| --- | --- | --- | --- |
+| `dimension.row` | 40px | `h-row` | The default table row. |
+| `dimension.row.compact` | 36px | `h-row-compact` | A compact table row. |
+| `dimension.row.header` | 32px | `h-row-header` | The table header row. |
+| `dimension.row.menu` | 28px | `h-row-menu` | Menu, command and tree rows. |
+
+## Icons
+
+| Token | Value | Utility | Use |
+| --- | --- | --- | --- |
+| `dimension.icon.small` | 14px | `size-icon-small` | An icon inside a small or medium control. |
+| `dimension.icon.medium` | 16px | `size-icon-medium` | A standalone icon, an icon button's glyph. |
+
+## Layout
+
+| Token | Value | Utility | Use |
+| --- | --- | --- | --- |
+| `dimension.layout.banner` | 48px | `h-layout-banner` | The banner area above the top nav, when one is shown. |
+| `dimension.layout.topnav` | 48px | `h-layout-topnav` | The top nav. |
+| `dimension.layout.sidenav` | 228px | `w-layout-sidenav` | The side nav, expanded. The reader may resize it. |
+| `dimension.layout.panel` | 320px | `w-layout-panel` | The panel beside the main area, before the reader resizes it. |
+| `dimension.layout.list` | 340px | `w-layout-list` | The list column of a WorkPane. |
+| `dimension.layout.rail` | 272px | `w-layout-rail` | The rail beside a record: PreviewRail, the Inspector, the ShowPage rail. |
+| `dimension.layout.measure` | 720px | `max-w-layout-measure` | The widest a run of prose grows. |
+
+`src/styles/layout.css` adds the few templates a class string cannot say, each reading these tokens: `grid-cols-main-rail`, `grid-cols-list-detail`, `sticky-rail`, `min-h-work` and `shell-root`, the navigation grid. The shell sets `--shell-top` (banner plus top nav) so a sticky rail knows where to stop.
+
+<Canvas of={Stories.Dimension} />

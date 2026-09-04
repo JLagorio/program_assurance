@@ -576,8 +576,8 @@ function ProgramDetail() {
                     align="end"
                     width={240}
                     trigger={
-                      <Button variant="secondary" size="small">
-                        Views <ChevronDown className="size-icon-small" />
+                      <Button variant="secondary" size="small" iconAfter={<ChevronDown />}>
+                        Views
                       </Button>
                     }
                   >
@@ -620,9 +620,8 @@ function ProgramDetail() {
                           size="small"
                           className="px-0 w-300"
                           aria-label="More actions"
-                        >
-                          <ChevronDown className="size-icon-small" />
-                        </Button>
+                          iconBefore={<ChevronDown />}
+                        ></Button>
                       }
                     >
                       {(close) => (

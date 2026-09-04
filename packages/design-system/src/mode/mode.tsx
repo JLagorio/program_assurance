@@ -11,7 +11,7 @@ import {
 
 import { ToggleGroup } from "../components/toggle";
 
-/*
+/**
  * The colour mode. tokens.css and base.css read `data-color-mode` on the root: "light" and "dark" pin a
  * mode; no attribute lets prefers-color-scheme decide. Three parts: the storage functions, a script that
  * applies the stored choice before first paint, and a provider with the three-state control. The mode

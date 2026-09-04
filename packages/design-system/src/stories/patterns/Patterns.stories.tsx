@@ -63,8 +63,7 @@ export const Index: Story = {
           title="Controls"
           description="Every control in scope for the FY26 programme, with its owner and status."
           actions={
-            <Button variant="primary">
-              <Plus className="size-icon-small" />
+            <Button variant="primary" iconBefore={<Plus />}>
               New control
             </Button>
           }
@@ -155,14 +154,14 @@ export const Preview: Story = {
           </TextLink>
         }
       >
-        <dl>
+        <div>
           <KeyValue label="Owner">
             <Avatar name="Priya Natarajan" size="xsmall" /> Priya Natarajan
           </KeyValue>
           <KeyValue label="Status">
             <Badge tone="danger">Overdue</Badge>
           </KeyValue>
-        </dl>
+        </div>
       </PreviewRail>
     </div>
   ),
@@ -672,6 +671,10 @@ export const PageSkeletonMatrix: Story = {
 
 /** With a title and an open-record link, and with the id alone. */
 export const PreviewRailMatrix: Story = {
+  parameters: {
+    // Two rails, two unnamed asides; a page has one. A false positive of the layout, not a defect.
+    a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } },
+  },
   render: () => (
     <Inline space="space.300" alignBlock="start" shouldWrap>
       <Box className="w-layout-rail">
@@ -1044,12 +1047,8 @@ export const PanelMatrix: Story = {
               icon={<Info className="size-icon-small icon-subtle" />}
               actions={
                 <>
-                  <IconButton label="Expand" variant="subtle">
-                    <Maximize2 className="size-icon-medium" />
-                  </IconButton>
-                  <IconButton label="Open in a new tab" variant="subtle">
-                    <ExternalLink className="size-icon-medium" />
-                  </IconButton>
+                  <IconButton label="Expand" variant="subtle" icon={<Maximize2 />} />
+                  <IconButton label="Open in a new tab" variant="subtle" icon={<ExternalLink />} />
                 </>
               }
               onClose={() => undefined}

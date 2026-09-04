@@ -147,16 +147,20 @@ export function TailoringSection({
           </span>
           {state === "Pending PM approval" ? (
             <Inline as="span" space="space.100" alignBlock="center">
-              <Button variant="secondary" onClick={() => setDeciding("changes")}>
-                <X className="size-icon-small" /> Request changes
+              <Button variant="secondary" onClick={() => setDeciding("changes")} iconBefore={<X />}>
+                Request changes
               </Button>
-              <Button variant="primary" onClick={() => setDeciding("approve")}>
-                <Check className="size-icon-small" /> Approve scope
+              <Button
+                variant="primary"
+                onClick={() => setDeciding("approve")}
+                iconBefore={<Check />}
+              >
+                Approve scope
               </Button>
             </Inline>
           ) : (
-            <Button variant="primary" onClick={() => setSubmitting(true)}>
-              <Send className="size-icon-small" /> Submit for approval
+            <Button variant="primary" onClick={() => setSubmitting(true)} iconBefore={<Send />}>
+              Submit for approval
             </Button>
           )}
         </Inline>
@@ -172,8 +176,9 @@ export function TailoringSection({
                 setDraft(params);
                 setEditing(true);
               }}
+              iconBefore={<Pencil />}
             >
-              <Pencil className="size-icon-small" /> Edit parameters
+              Edit parameters
             </Button>
           }
         >

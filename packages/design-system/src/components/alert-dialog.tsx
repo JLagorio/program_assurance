@@ -2,7 +2,6 @@ import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
 import type { ReactNode } from "react";
 
 import { Button } from "./button";
-import { Spinner } from "./spinner";
 
 export type AlertDialogProps = {
   open: boolean;
@@ -19,7 +18,18 @@ export type AlertDialogProps = {
 };
 
 /** A decision that needs a word before it happens. No close button, no outside click: the two buttons are the only way out. */
-export function AlertDialog({ open, onClose, onConfirm, title, description, confirmLabel = "Confirm", cancelLabel = "Cancel", tone = "primary", pending = false, children }: AlertDialogProps) {
+export function AlertDialog({
+  open,
+  onClose,
+  onConfirm,
+  title,
+  description,
+  confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
+  tone = "primary",
+  pending = false,
+  children,
+}: AlertDialogProps) {
   return (
     <AlertDialogPrimitive.Root
       open={open}
@@ -36,8 +46,14 @@ export function AlertDialog({ open, onClose, onConfirm, title, description, conf
             className="relative w-full overflow-hidden rounded-xxlarge bg-surface-overlay shadow-overlay outline-none data-[state=open]:animate-enter data-[state=closed]:animate-exit"
           >
             <div className="flex flex-col gap-100 px-250 py-200">
-              <AlertDialogPrimitive.Title className="font-heading-xsmall text-default">{title}</AlertDialogPrimitive.Title>
-              {description ? <AlertDialogPrimitive.Description className="font-body text-subtle">{description}</AlertDialogPrimitive.Description> : null}
+              <AlertDialogPrimitive.Title className="font-heading-xsmall text-default">
+                {title}
+              </AlertDialogPrimitive.Title>
+              {description ? (
+                <AlertDialogPrimitive.Description className="font-body text-subtle">
+                  {description}
+                </AlertDialogPrimitive.Description>
+              ) : null}
               {children ? <div className="font-body text-default">{children}</div> : null}
             </div>
             <div className="flex items-center justify-end gap-100 border-t border-default bg-surface-sunken px-250 py-150">
@@ -49,13 +65,12 @@ export function AlertDialog({ open, onClose, onConfirm, title, description, conf
               <AlertDialogPrimitive.Action asChild>
                 <Button
                   variant={tone === "danger" ? "danger" : "primary"}
-                  disabled={pending}
+                  isLoading={pending}
                   onClick={(e) => {
                     e.preventDefault();
                     if (!pending) onConfirm();
                   }}
                 >
-                  {pending ? <Spinner className="icon-inverse" /> : null}
                   {confirmLabel}
                 </Button>
               </AlertDialogPrimitive.Action>

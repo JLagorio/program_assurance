@@ -10,11 +10,20 @@ const navButton =
   "inline-flex size-control-small items-center justify-center rounded-medium icon-subtle outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused disabled:pointer-events-none disabled:icon-disabled";
 
 function Chevron({ orientation }: { orientation?: "up" | "down" | "left" | "right" | undefined }) {
-  return orientation === "left" ? <ChevronLeft className="size-icon-small" /> : <ChevronRight className="size-icon-small" />;
+  return orientation === "left" ? (
+    <ChevronLeft className="size-icon-small" />
+  ) : (
+    <ChevronRight className="size-icon-small" />
+  );
 }
 
 /** A month you pick a day (or a range) from. react-day-picker underneath; 32px cells, the selection is the blue budget, today is weight 600 with no dot. */
-export function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
+export function Calendar({
+  className,
+  classNames,
+  showOutsideDays = true,
+  ...props
+}: CalendarProps) {
   const base = getDefaultClassNames();
   return (
     <DayPicker
@@ -34,14 +43,17 @@ export function Calendar({ className, classNames, showOutsideDays = true, ...pro
         weekday: "w-400 text-center font-body-xsmall font-medium text-subtle",
         week: "flex pt-050",
         day: "relative size-400 p-0 text-center",
-        day_button: "size-400 rounded-medium font-body outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered focus-visible:outline-focused",
-        selected: "[&>button]:bg-brand-bold [&>button]:text-inverse [&>button]:hover:bg-brand-bold-hovered",
+        day_button:
+          "size-400 rounded-medium font-body outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered focus-visible:outline-focused",
+        selected:
+          "[&>button]:bg-brand-bold [&>button]:text-inverse [&>button]:hover:bg-brand-bold-hovered",
         today: "[&>button]:font-semibold",
         outside: "text-subtlest",
         disabled: "text-disabled [&>button]:pointer-events-none",
         hidden: "invisible",
         range_start: "rounded-s-medium bg-selected",
-        range_middle: "bg-selected [&>button]:bg-selected [&>button]:text-default [&>button]:hover:bg-selected-hovered",
+        range_middle:
+          "bg-selected [&[data-selected]>button]:bg-selected [&[data-selected]>button]:text-default [&[data-selected]>button]:hover:bg-selected-hovered",
         range_end: "rounded-e-medium bg-selected",
         ...classNames,
       }}

@@ -135,8 +135,9 @@ export function DownloadButton({
       size={size}
       title={bytes === undefined ? filename : `${filename} · ${num(bytes)} bytes`}
       onClick={() => downloadText(filename, text, mime)}
+      iconBefore={<Download />}
     >
-      <Download className="size-icon-small" /> {label}
+      {label}
     </Button>
   );
 }

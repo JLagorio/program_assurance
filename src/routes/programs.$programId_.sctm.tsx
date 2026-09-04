@@ -278,8 +278,9 @@ function ProgramSctm() {
                   <Button
                     variant="primary"
                     onClick={() => downloadCsv(`${program.id}-sctm.csv`, sctmCsv(sctm))}
+                    iconBefore={<FileDown />}
                   >
-                    <FileDown className="size-icon-small" /> Export CSV
+                    Export CSV
                   </Button>
                 </>
               }

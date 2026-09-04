@@ -43,13 +43,13 @@ export function Glance({
         ) : null}
       </div>
       {facts.length ? (
-        <dl className="flex flex-col">
+        <div className="flex flex-col">
           {facts.slice(0, 4).map((f) => (
             <KeyValue key={f.label} label={f.label} labelWidth={88}>
               {f.value}
             </KeyValue>
           ))}
-        </dl>
+        </div>
       ) : null}
     </div>
   );

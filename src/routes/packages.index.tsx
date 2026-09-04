@@ -51,11 +51,7 @@ function PackagesIndex() {
           <PageHeader
             title="Authorization packages"
             description="A package is a snapshot of the spine, not a folder of documents. The SSP, SAR and POA&M are generated views of the same in-scope CCIs — if a CCI has no objective, no result, or an open finding it did not declare, the package is not shippable."
-            actions={
-              <Button>
-                <RefreshCw className="size-icon-small" /> Regenerate stale
-              </Button>
-            }
+            actions={<Button iconBefore={<RefreshCw />}>Regenerate stale</Button>}
           />
         }
       >

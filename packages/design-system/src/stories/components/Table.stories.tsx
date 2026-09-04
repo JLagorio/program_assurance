@@ -110,16 +110,14 @@ function Register() {
         onSearch={setSearch}
         placeholder="Search controls"
         actions={
-          <Button variant="primary" size="small">
-            <Plus className="size-icon-small" />
+          <Button variant="primary" size="small" iconBefore={<Plus />}>
             New control
           </Button>
         }
       >
         <FilterChip label="Owner" value="Dana Whitfield" isActive />
         <FilterChip label="Status" />
-        <Button variant="subtle" size="small">
-          <Filter className="size-icon-small" />
+        <Button variant="subtle" size="small" iconBefore={<Filter />}>
           More filters
         </Button>
       </Toolbar>
@@ -484,6 +482,10 @@ export const ChipMatrix: Story = {
 
 /** First page, a middle page with the range, the last page, and a single page. */
 export const PaginationMatrix: Story = {
+  parameters: {
+    // The matrix stacks four pagination navs; a page has one. A false positive of the layout, not a defect.
+    a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } },
+  },
   render: () => (
     <Stack space="space.200" className="max-w-layout-measure">
       <Pagination page={1} pageCount={12} onPageChange={() => {}} total={289} pageSize={25} />

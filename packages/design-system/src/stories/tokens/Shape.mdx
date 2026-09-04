@@ -1,0 +1,33 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Shape.stories";
+
+<Meta of={Stories} />
+
+# Shape
+
+Radius is a set of named absolute steps on a 5px base. Bare `rounded` is banned: it is a static 4px no reset can remove. Border width is 1px by default and 2px for focus and selection.
+
+## Radius
+
+| Token | Value | Utility | Use |
+| --- | --- | --- | --- |
+| `radius.xsmall` | 2px | `rounded-xsmall` | Kbd, tiny chips. |
+| `radius.small` | 3px | `rounded-small` | Badge, Count, checkbox, Skeleton, inline hit targets. |
+| `radius.medium` | 5px | `rounded-medium` | Button, Input, Chip, Tooltip, menu items. |
+| `radius.large` | 7px | `rounded-large` | Card, Popover, HoverCard. |
+| `radius.xlarge` | 9px | `rounded-xlarge` | Sheets. |
+| `radius.xxlarge` | 12px | `rounded-xxlarge` | Dialog, CommandPalette, spotlight cards. |
+| `radius.full` | pill | `rounded-full` | Dot, Avatar, Switch, meters. |
+
+The rule of thumb: the bigger the surface, the larger the radius. A badge is small, a control is medium, a card is large, a dialog is xxlarge.
+
+## Border width
+
+| Token | Value | Utility | Use |
+| --- | --- | --- | --- |
+| `border.width` | 1px | `border-w-default` | Every standard border and divider. |
+| `border.width.focused` | 2px | `border-w-focused` | The focus ring, in `color.border.focused`. |
+| `border.width.selected` | 2px | `border-w-selected` | An active tab, a chosen item, in `color.border.selected`. |
+
+<Canvas of={Stories.Radius} />

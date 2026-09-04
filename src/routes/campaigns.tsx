@@ -98,8 +98,8 @@ function CampaignsPage() {
             title="Test campaigns"
             description="A campaign is scoped work opened against a trigger. Its events prove objectives, and every objective names the CCIs it covers — that is the only place T&E and RMF meet."
             actions={
-              <Button variant="primary">
-                <Plus className="size-icon-small" /> Open campaign
+              <Button variant="primary" iconBefore={<Plus />}>
+                Open campaign
               </Button>
             }
           />

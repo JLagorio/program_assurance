@@ -98,6 +98,10 @@ const owners = [
 
 /** Single and range selections, days before today disabled. */
 export const CalendarMatrix: Story = {
+  parameters: {
+    // Three calendars, three "Navigation bar" navs from react-day-picker; a page has one. A false positive of the layout.
+    a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } },
+  },
   render: () => (
     <Inline space="space.300" alignBlock="start" shouldWrap>
       <Calendar

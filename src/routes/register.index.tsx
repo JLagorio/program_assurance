@@ -111,8 +111,8 @@ function RegisterPage() {
             title="POA&M & risk register"
             description="A POA&M item is a dated commitment to close findings. A risk is what the AO signs. Both reach the spine only through findings — never straight to a control."
             actions={
-              <Button variant="secondary">
-                <Download className="size-icon-small" /> Export eMASS POA&M
+              <Button variant="secondary" iconBefore={<Download />}>
+                Export eMASS POA&M
               </Button>
             }
           />

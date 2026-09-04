@@ -62,9 +62,13 @@ export function Sheet({
         >
           <div className="flex shrink-0 items-start gap-100 border-b border-default py-150 pe-600 ps-200">
             {onBack ? (
-              <IconButton label="Back" variant="subtle" size="small" onClick={onBack}>
-                <ChevronLeft className="size-icon-small" />
-              </IconButton>
+              <IconButton
+                label="Back"
+                variant="subtle"
+                size="small"
+                onClick={onBack}
+                icon={<ChevronLeft />}
+              />
             ) : null}
             <div className="flex min-w-0 flex-1 flex-col gap-025">
               {eyebrow ? <div className="flex items-center gap-100 pb-025">{eyebrow}</div> : null}

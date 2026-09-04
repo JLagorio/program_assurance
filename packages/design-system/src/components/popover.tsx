@@ -9,6 +9,8 @@ type Align = NonNullable<ComponentPropsWithoutRef<typeof PopoverPrimitive.Conten
 
 export type PopoverProps = {
   trigger: ReactNode;
+  /** The dialog's accessible name: what the task is ("Filters", "Choose a date"). */
+  label?: string | undefined;
   side?: Side | undefined;
   align?: Align | undefined;
   width?: number | undefined;
@@ -20,9 +22,23 @@ export type PopoverProps = {
 };
 
 /** An anchored surface for a small task: a filter form, a picker, a confirmation. Closes on Escape, an outside click, or Popover.Close. */
-function PopoverRoot({ trigger, side = "bottom", align = "start", width, defaultOpen = false, open, onOpenChange, className, children }: PopoverProps) {
+function PopoverRoot({
+  trigger,
+  label,
+  side = "bottom",
+  align = "start",
+  width,
+  defaultOpen = false,
+  open,
+  onOpenChange,
+  className,
+  children,
+}: PopoverProps) {
   return (
-    <PopoverPrimitive.Root {...(open === undefined ? { defaultOpen } : { open })} {...(onOpenChange ? { onOpenChange } : {})}>
+    <PopoverPrimitive.Root
+      {...(open === undefined ? { defaultOpen } : { open })}
+      {...(onOpenChange ? { onOpenChange } : {})}
+    >
       <PopoverPrimitive.Trigger asChild>{trigger}</PopoverPrimitive.Trigger>
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Content
@@ -30,8 +46,13 @@ function PopoverRoot({ trigger, side = "bottom", align = "start", width, default
           align={align}
           sideOffset={4}
           collisionPadding={8}
+          aria-label={label}
           style={width ? { width } : undefined}
-          className={cn("z-50 rounded-large border border-default bg-surface-overlay p-150 font-body text-default shadow-overlay outline-none", menuMotion, className)}
+          className={cn(
+            "z-50 rounded-large border border-default bg-surface-overlay p-150 font-body text-default shadow-overlay outline-none",
+            menuMotion,
+            className,
+          )}
         >
           {children}
         </PopoverPrimitive.Content>

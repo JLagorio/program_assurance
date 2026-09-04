@@ -119,6 +119,17 @@ const stateProps = (s: TextState) => ({
 
 /** Every text control by every state; every choice control off, on and disabled; Field with a hint, an error and a requirement. */
 export const ControlsMatrix: Story = {
+  parameters: {
+    a11y: {
+      config: {
+        rules: [
+          // Disabled labels are exempt from contrast (WCAG 1.4.3, inactive components); axe cannot tell the
+          // Radix control beside them is disabled, so it measures color.text.disabled anyway.
+          { id: "color-contrast", selector: "*:not(.text-disabled *)" },
+        ],
+      },
+    },
+  },
   render: () => (
     <Stack space="space.300">
       <Matrix
@@ -133,6 +144,7 @@ export const ControlsMatrix: Story = {
             return <Textarea placeholder="Placeholder" {...p} style={{ width: 180 }} rows={2} />;
           return (
             <NativeSelect
+              aria-label="Owner"
               disabled={p.disabled}
               aria-invalid={p["aria-invalid"]}
               defaultValue={p.defaultValue ? "b" : ""}

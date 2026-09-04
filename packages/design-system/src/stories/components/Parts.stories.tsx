@@ -62,15 +62,9 @@ function Toggles() {
           <Button size="small">Month</Button>
         </ButtonGroup>
         <ButtonGroup>
-          <IconButton label="Align left">
-            <AlignLeft className="size-icon-small" />
-          </IconButton>
-          <IconButton label="Bold">
-            <Bold className="size-icon-small" />
-          </IconButton>
-          <IconButton label="Italic">
-            <Italic className="size-icon-small" />
-          </IconButton>
+          <IconButton label="Align left" icon={<AlignLeft />} />
+          <IconButton label="Bold" icon={<Bold />} />
+          <IconButton label="Italic" icon={<Italic />} />
         </ButtonGroup>
       </Inline>
     </Stack>
@@ -114,9 +108,7 @@ export const ButtonGroupMatrix: Story = {
           <Button variant={variant} size={size} disabled={size === "medium"}>
             Reject
           </Button>
-          <IconButton label="More" variant={variant} size={size}>
-            <ChevronDown className="size-icon-small" />
-          </IconButton>
+          <IconButton label="More" variant={variant} size={size} icon={<ChevronDown />} />
         </ButtonGroup>
       )}
     />
@@ -227,8 +219,24 @@ export const ToggleMatrix: Story = {
         <ToggleGroup
           aria-label="Format"
           items={[
-            { value: "b", label: <Bold className="size-icon-small" /> },
-            { value: "i", label: <Italic className="size-icon-small" /> },
+            {
+              value: "b",
+              label: (
+                <>
+                  <Bold className="size-icon-small" />
+                  <span className="sr-only">Bold</span>
+                </>
+              ),
+            },
+            {
+              value: "i",
+              label: (
+                <>
+                  <Italic className="size-icon-small" />
+                  <span className="sr-only">Italic</span>
+                </>
+              ),
+            },
           ]}
           value="b"
           onChange={() => {}}

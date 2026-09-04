@@ -78,8 +78,8 @@ function Overview() {
           description="Continuous posture across four frameworks. Last full evaluation completed 12 minutes ago."
           actions={
             <>
-              <Button variant="secondary">
-                <Download className="size-icon-small" /> Export
+              <Button variant="secondary" iconBefore={<Download />}>
+                Export
               </Button>
               <Button variant="primary">Request evidence</Button>
             </>
@@ -129,8 +129,8 @@ function Overview() {
               title="Highest residual risk"
               action={
                 <Link to="/risks">
-                  <Button variant="link">
-                    Risk register <ArrowRight className="size-icon-small" />
+                  <Button variant="link" iconAfter={<ArrowRight />}>
+                    Risk register
                   </Button>
                 </Link>
               }

@@ -3,7 +3,7 @@ import { Skeleton } from "../components/skeleton";
 /** What a screen looks like before its data arrives: a title and a line, a tab strip, then a table's worth of rows. */
 export function PageSkeleton({ rows = 8 }: { rows?: number | undefined }) {
   return (
-    <div aria-busy="true" aria-label="Loading" className="flex flex-col gap-300">
+    <div role="status" aria-busy="true" aria-label="Loading" className="flex flex-col gap-300">
       <div className="flex flex-col gap-150">
         <Skeleton className="h-250" style={{ width: 240 }} />
         <Skeleton style={{ width: 440 }} />

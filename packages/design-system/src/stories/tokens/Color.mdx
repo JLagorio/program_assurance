@@ -1,0 +1,100 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Color.stories";
+
+<Meta of={Stories} />
+
+# Colour and elevation
+
+Semantic colour is tier 1. Every token references a palette step and carries a light value and a dark value, so a component never knows which mode it is in. Utilities are generated per property: a text token is only reachable as `text-*`, a background as `bg-*`, an icon as `icon-*`, a border as `border-*`. A `default` segment drops out of the name: `color.text.default` in the source is `color.text` on the sheet and `text-default` in a class.
+
+The ramps are on the Palette sheet (Tokens/Palette). No ramp step has a utility. A component reads a semantic token or nothing.
+
+## One accent
+
+The canvas is white: `elevation.surface` is `color.neutral.0` in light. Blue is the only accent. Brand, selected, information and focus all draw on the blue ramp, so blue is spent on action, selection, focus and links and on nothing else.
+
+| Job | Token | Utility |
+| --- | --- | --- |
+| The primary button | `color.background.brand.bold` | `bg-brand-bold` |
+| An active row, a checked menu item, an open dropdown trigger | `color.background.selected` | `bg-selected` |
+| A selected tab's text and underline | `color.text.selected`, `color.border.selected` | `text-selected`, `border-selected` |
+| The focus ring | `color.border.focused` at `border.width.focused` | `border-focused`, `border-w-focused` |
+| A link | `color.text.brand` | `text-brand`, or TextLink |
+
+Ids, avatars and counts stay neutral. An Id is blue only inside a link or a button (`ledger/id-not-blue`). Teal and purple exist in the palette for `color.chart.categorical.*` only; nothing outside a chart reaches them.
+
+## Text and icons
+
+| Job | Text | Icon |
+| --- | --- | --- |
+| Content, sentence-case headings, buttons | `color.text` | `color.icon` |
+| Secondary: navigation, field labels, subtle links | `color.text.subtle` | `color.icon.subtle` |
+| Tertiary: metadata, breadcrumbs, placeholders, helper text | `color.text.subtlest` | `color.icon.subtlest` |
+| Off | `color.text.disabled` | `color.icon.disabled` |
+| On a bold fill | `color.text.inverse` | `color.icon.inverse` |
+
+An icon mirrors its text, one step bolder where a thin glyph needs it. Text and Heading take these as `color="color.text.subtle"`; a class says `text-subtle`.
+
+## Status
+
+A tone is one decision. The subtle fill takes the tone's text. The bold fill takes inverse text; warning's bold fill is light, so it takes `color.text.warning.inverse`. A dot takes the tone's icon colour.
+
+| Tone | Subtle fill | Text | Bold fill | Icon |
+| --- | --- | --- | --- | --- |
+| `neutral` | `color.background.neutral` | `color.text.subtle` | `color.background.neutral.bold` | `color.icon.subtlest` |
+| `information` | `color.background.information` | `color.text.information` | `color.background.information.bold` | `color.icon.information` |
+| `success` | `color.background.success` | `color.text.success` | `color.background.success.bold` | `color.icon.success` |
+| `warning` | `color.background.warning` | `color.text.warning` | `color.background.warning.bold` | `color.icon.warning` |
+| `danger` | `color.background.danger` | `color.text.danger` | `color.background.danger.bold` | `color.icon.danger` |
+
+Reach these through the `tone` prop on Badge, Dot, Indicator, Alert, Progress and Stat, never by hand. The `subtler` and `subtle` emphases are for lozenges and non-interactive chips. `hovered` and `pressed` are their own tokens, never alpha on the default (`ledger/no-alpha-token`). What each tone means in the product is in `docs/guides/status-vocabulary.md`.
+
+## Borders
+
+Every border is a 1px hairline: `border.width` is 1px and `color.border` is the default colour. Prefer a rule to a box.
+
+| Job | Token | Utility |
+| --- | --- | --- |
+| Hairlines, dividers, flat cards | `color.border` | `border-default` |
+| Emphasis that must pass 3:1 | `color.border.bold` | `border-bold` |
+| Text fields, checkboxes, radios | `color.border.input` | `border-input` |
+| Focus ring, 2px | `color.border.focused` | `border-focused border-w-focused` |
+| Selected tab or item, 2px | `color.border.selected` | `border-selected border-w-selected` |
+| Off | `color.border.disabled` | `border-disabled` |
+
+A status border comes in `default` (3:1) and `subtle` (decorative): `color.border.danger`, `color.border.danger.subtle`, and the same for warning, success and information.
+
+## Blanket and skeleton
+
+`color.blanket` (`bg-blanket`) is the scrim under a dialog, a drawer and the open side nav on a small screen. `color.skeleton` (`bg-skeleton`) is the loading fill; `color.skeleton.subtle` is its shimmer.
+
+## Sheets
+
+<Canvas of={Stories.Background} />
+
+<Canvas of={Stories.Text} />
+
+<Canvas of={Stories.Icon} />
+
+<Canvas of={Stories.Border} />
+
+## Elevation
+
+Hairline plus soft lift, never heavy. A surface pairs with a shadow; nothing else casts one.
+
+| Sits | Surface | Utility | Shadow |
+| --- | --- | --- | --- |
+| The page | `elevation.surface` | `bg-surface` | none |
+| A well: the side nav, a grouped list | `elevation.surface.sunken` | `bg-surface-sunken` | none |
+| A card | `elevation.surface.raised` | `bg-surface-raised` | `elevation.shadow.raised` (`shadow-raised`) |
+| A menu, popover or dialog | `elevation.surface.overlay` | `bg-surface-overlay` | `elevation.shadow.overlay` (`shadow-overlay`) |
+| Content scrolling under a sticky header | | | `elevation.shadow.overflow` (`shadow-overflow`) |
+
+Each surface has `hovered` and `pressed` states. In dark, surfaces climb in lightness instead of casting more shadow. These three shadows are the only ones; `ledger/no-kit-shadow` reports any other.
+
+`utility.elevation.surface.current` (`bg-surface-current`) is the surface an element sits on. Box sets it when it paints a surface; a sticky header or a masking fade reads it so it matches its parent.
+
+`opacity.disabled` (0.4) is for a disabled element when no disabled token exists. `opacity.loading` (0.2) is for content that is loading. Motion is on its own page (Tokens/Motion).
+
+<Canvas of={Stories.Elevation} />

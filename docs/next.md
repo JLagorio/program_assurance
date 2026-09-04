@@ -12,8 +12,27 @@ Updated 2026-09-04.
 - [ ] **Chart's first screen.** Candidates: the program dashboard's coverage by family, the home page's framework coverage. Risk scoring stays without a sparkline or gauge on purpose.
 - [ ] **A non-modal Sheet**, only if the peek panel should stay open while the table behind it is clicked (audit item 7).
 - [ ] **Shell defaults.** The side nav at 228px (min 200, max half the viewport), the panel at 320px (min 240), the banner at 48px: sign-off values in `tokens/dimension.json`.
+- [ ] **Four drifts the token pages found** (2026-09-04): `radius.xlarge` is described as "Dialogs, sheets" but Dialog and Command use `xxlarge`; Palette and the grammar page say six ramps and there are eight (teal and purple for the chart); `poam.tsx` and `conmon.tsx` paint severity as a Badge pill against the Indicator rule; `animate-slide-in-bottom/top` are defined and unused.
 
 ## Kit
+
+The maturity walk, one family per sitting, each page onto the template (`docs/superpowers/specs/2026-09-04-maturity-check.md`; `Components/Button` is the page to copy; the ratchet lists what each is missing):
+
+- [x] Button (2026-09-04)
+- [ ] Controls
+- [ ] Table
+- [ ] Overlays
+- [ ] Status
+- [ ] Badge and Lists
+- [ ] Tabs, Disclosure, Parts
+- [ ] Pickers
+- [ ] Chart
+- [ ] Editable, Command, Surfaces
+- [ ] Patterns
+- [ ] Shapes
+- [ ] Shell
+- [ ] Primitives
+- [ ] Tokens (the sheets have pages now; the template does not apply)
 
 ## Prototype
 
@@ -21,6 +40,7 @@ Updated 2026-09-04.
 
 ## Done
 
+- 2026-09-04 · **Button walked to the template, and the bar for every family after it.** The page template (Anatomy · Variants · Sizes · States · Modifiers · Content · Style · Accessibility · Props · Related · Don't) with `Components/Button` on it and the ratchet listing what every other family is missing (202 grandfathered gaps); generated props tables; `iconBefore`/`iconAfter`/`isLoading`/`isFullWidth`, IconButton `icon` with the kit's Tooltip, no `warning`, `ledger/button-icon-slot` and the codemod over 81 call sites; the a11y gate (`npm run test:a11y`, axe over every Matrix in CI) and the nine kit defects its first run found, fixed; the Lint page, README and status vocabulary true again; the four token guides folded into six Tokens pages; 0.3.0. Spec: `docs/superpowers/specs/2026-09-04-maturity-check.md` §6.
 - 2026-09-04 · **Forms, the rest.** `useRequired` takes `false` for a field that is not required right now. The action dialogs of the control board and the control work bar require the reason when the action says so; a gate requires its owner and planned date; a remediation its assignee, due date and response; accepting evidence into the SSP requires the statement; a finding its owner and due date; a treatment its plan and due date (its inputs are controlled now); the tailoring submission its message to the PM, and a request for changes its reason. The wizard keeps its own blocking message, and the POA&M edit keeps title only.
 - 2026-09-04 · **Link-looking buttons decided.** Names and titles that take the reader somewhere are TextLinks (composition nodes, RMF workstream controls, risk titles in tables, blue on row hover); rows and jumps that act in place are actions with a hover surface and no underline (coverage families, program-state jumps); the control workspace crumbs are a Breadcrumb.
 - 2026-09-03 · **The second-consumer sweep.** `useRequired`, `useSort` and `usePage`, `PreviewSplit`, `CommandPalette` with `useCommandPalette`, and `RecordPicker` moved into the package with stories and matrices; the prototype's copies and its own `cn` are gone (107 files re-pointed). The three assembly rules (`cell-plain`, `id-not-blue`, `no-kit-shadow`) moved into the plugin's `recommended` preset; the root config adds nothing about the kit.

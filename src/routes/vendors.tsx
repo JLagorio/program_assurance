@@ -120,8 +120,8 @@ function Vendors() {
             actions={
               <>
                 <Button variant="secondary">Send questionnaire</Button>
-                <Button variant="primary">
-                  <Plus className="size-icon-small" /> Add vendor
+                <Button variant="primary" iconBefore={<Plus />}>
+                  Add vendor
                 </Button>
               </>
             }

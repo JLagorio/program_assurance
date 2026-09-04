@@ -62,9 +62,7 @@ export const Items: Story = {
           onSelect={() => undefined}
           isActive
           actions={
-            <IconButton label="Open" variant="subtle" size="small">
-              <ExternalLink className="size-icon-small" />
-            </IconButton>
+            <IconButton label="Open" variant="subtle" size="small" icon={<ExternalLink />} />
           }
         />
         <Item
@@ -91,7 +89,7 @@ export const Facts: Story = {
           <Absent />
         </Fact>
       </Fact.Group>
-      <dl>
+      <div>
         <KeyValue label="Control">CTRL-0412</KeyValue>
         <KeyValue label="Status">
           <Badge tone="success">Verified</Badge>
@@ -101,7 +99,7 @@ export const Facts: Story = {
           a vendor invoice.
         </KeyValue>
         <KeyValue label="Last verified">12 Aug 2026</KeyValue>
-      </dl>
+      </div>
       <Prose label="Rationale" tone="warning">
         The July run had one exception where the approver also released the payment. Compensating
         review in place.
@@ -320,6 +318,10 @@ export const AvatarMatrix: Story = {
 
 /** Short, long enough to wrap, a lone current page, and a link child. */
 export const BreadcrumbMatrix: Story = {
+  parameters: {
+    // The matrix stacks four breadcrumb navs; a page has one. A false positive of the layout, not a defect.
+    a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } },
+  },
   render: () => (
     <Stack space="space.200">
       <Breadcrumb>
@@ -394,9 +396,7 @@ export const ItemMatrix: Story = {
         <Item
           title="With actions"
           actions={
-            <IconButton label="More" variant="subtle" size="small">
-              <MoreHorizontal className="size-icon-small" />
-            </IconButton>
+            <IconButton label="More" variant="subtle" size="small" icon={<MoreHorizontal />} />
           }
         />
         <Item

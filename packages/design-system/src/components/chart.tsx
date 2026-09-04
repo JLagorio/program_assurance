@@ -20,7 +20,7 @@ import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
 import type { Tone } from "./badge";
 
-/*
+/**
  * Charts on the chart tokens. Every series is a `color.chart.*` token: a status tone when the series
  * carries a status (satisfied, overdue), `brand` for the one series the reader is asked to look at,
  * `neutral` for context, and the categorical set when categories carry no status. Recharts draws;

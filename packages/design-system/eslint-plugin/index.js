@@ -349,6 +349,30 @@ function stringLiterals(node, out = []) {
 }
 
 const rules = {
+  "button-icon-slot": rule(
+    "An icon in a Button goes in iconBefore or iconAfter, and an IconButton takes icon; the button sizes it.",
+    (context) => ({
+      JSXElement(node) {
+        const name = jsxTag(node.openingElement.name);
+        if (name !== "Button" && name !== "IconButton") return;
+        for (const child of node.children) {
+          if (child.type !== "JSXElement") continue;
+          const attr = jsxAttr(child.openingElement, "className");
+          if (!attr) continue;
+          const out = [];
+          collect(attr.value, out);
+          if (/(^|\s)size-icon-\w+(\s|$)/.test(out.map((o) => o.text).join(" ")))
+            context.report({
+              node: child,
+              message:
+                name === "Button"
+                  ? "An icon inside a Button goes in iconBefore or iconAfter, passed bare; the button sizes it."
+                  : "An IconButton takes its icon as the icon prop, passed bare; the button sizes it.",
+            });
+        }
+      },
+    }),
+  ),
   "prefer-text-link": rule(
     "Navigation that reads as text is TextLink; the classes that fake it are not written by hand.",
     (context) => ({
@@ -693,6 +717,7 @@ plugin.configs.package = [
       "ledger/no-deprecated-name": "error",
       "ledger/prefer-text-link": "error",
       "ledger/no-colgroup": "error",
+      "ledger/button-icon-slot": "error",
       ...portability,
     },
   },
@@ -726,6 +751,7 @@ plugin.configs.recommended = [
       "ledger/no-kit-shadow": "error",
       "ledger/prefer-text-link": "error",
       "ledger/no-colgroup": "error",
+      "ledger/button-icon-slot": "error",
       "ledger/use-primitives": "warn",
     },
   },

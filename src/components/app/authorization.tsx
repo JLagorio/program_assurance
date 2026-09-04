@@ -98,11 +98,11 @@ export function AuthorizationSection({
           description={`SSP, SAR and POA&M assembled for ${programName} and served read-only to the government assessor.`}
           action={
             <>
-              <Button variant="secondary">
-                <Lock className="size-icon-small" /> Lock version
+              <Button variant="secondary" iconBefore={<Lock />}>
+                Lock version
               </Button>
-              <Button variant="primary">
-                <FileSignature className="size-icon-small" /> Submit to SCA
+              <Button variant="primary" iconBefore={<FileSignature />}>
+                Submit to SCA
               </Button>
             </>
           }
@@ -181,8 +181,8 @@ export function AuthorizationSection({
           title="Assessor enclave access"
           description={`Read-only viewing enclave — ${authorization.enclave}. No documents leave the platform.`}
           action={
-            <Button variant="secondary" onClick={() => setInviting(true)}>
-              <UserPlus className="size-icon-small" /> Grant access
+            <Button variant="secondary" onClick={() => setInviting(true)} iconBefore={<UserPlus />}>
+              Grant access
             </Button>
           }
         >
@@ -227,8 +227,8 @@ export function AuthorizationSection({
               <span className="font-body-small text-subtle">
                 {open} open · {catI} CAT I
               </span>
-              <Button variant="secondary" onClick={() => setLogging(true)}>
-                <Plus className="size-icon-small" /> Log observation
+              <Button variant="secondary" onClick={() => setLogging(true)} iconBefore={<Plus />}>
+                Log observation
               </Button>
             </>
           }
@@ -373,8 +373,9 @@ next: triage -> jira issue`}
                 response: "",
               });
             }}
+            iconBefore={<Check />}
           >
-            <Check className="size-icon-small" /> Log observation
+            Log observation
           </Button>
         </>
       }
@@ -505,8 +506,9 @@ links:
                 response,
               });
             }}
+            iconBefore={<Check />}
           >
-            <Check className="size-icon-small" /> Save & sync
+            Save & sync
           </Button>
         </>
       }
@@ -576,8 +578,9 @@ function GrantModal({ open, onClose }: { open: boolean; onClose: () => void }) {
               if (!req.check()) return;
               onClose();
             }}
+            iconBefore={<Check />}
           >
-            <Check className="size-icon-small" /> Send invite
+            Send invite
           </Button>
         </>
       }
@@ -637,8 +640,13 @@ export function BriefingRoom() {
           title="Risk posture"
           description="Everything the Authorizing Official needs to make the authorization decision, on one page."
           action={
-            <Button variant="primary" disabled={pending.length > 0} onClick={() => setMemo(true)}>
-              <FileSignature className="size-icon-small" /> Issue authorization memo
+            <Button
+              variant="primary"
+              disabled={pending.length > 0}
+              onClick={() => setMemo(true)}
+              iconBefore={<FileSignature />}
+            >
+              Issue authorization memo
             </Button>
           }
         >
@@ -859,8 +867,9 @@ function RiskDecisionModal({
               if (!req.check()) return;
               onSave({ ...risk, decision, rationale });
             }}
+            iconBefore={<ShieldCheck />}
           >
-            <ShieldCheck className="size-icon-small" /> Record decision
+            Record decision
           </Button>
         </>
       }
@@ -937,8 +946,9 @@ conditions: |
               if (!req.check()) return;
               onClose();
             }}
+            iconBefore={<FileSignature />}
           >
-            <FileSignature className="size-icon-small" /> Sign & issue
+            Sign & issue
           </Button>
         </>
       }

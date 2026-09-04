@@ -102,8 +102,8 @@ function PackageRecord() {
           actions={
             <>
               <Badge tone={packageStateTone[pkg.state]}>{pkg.state}</Badge>
-              <Button variant="primary" disabled={!ready.shippable}>
-                <FileDown className="size-icon-small" /> Submit snapshot
+              <Button variant="primary" disabled={!ready.shippable} iconBefore={<FileDown />}>
+                Submit snapshot
               </Button>
             </>
           }

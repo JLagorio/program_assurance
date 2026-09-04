@@ -19,6 +19,7 @@ export function PersonaSwitch() {
   return (
     <div className="fixed left-200 z-40" style={{ bottom: 76 }}>
       <Popover
+        label="Switch user"
         side="top"
         align="start"
         width={300}

@@ -29,9 +29,19 @@ const preview: Preview = {
   parameters: {
     layout: "padded",
     backgrounds: { disable: true },
+    // The Matrix stories are the family contracts; `npm run test:a11y` runs axe on each and fails on violations.
+    a11y: { test: "error" },
     options: {
       storySort: {
-        order: ["Introduction", "Guidance", ["Getting started", "Token grammar", "Lint rules"], "Tokens", "Primitives", ["Overview"], "Components"],
+        order: [
+          "Introduction",
+          "Guidance",
+          ["Getting started", "Token grammar", "Lint rules"],
+          "Tokens",
+          "Primitives",
+          ["Overview"],
+          "Components",
+        ],
       },
     },
   },

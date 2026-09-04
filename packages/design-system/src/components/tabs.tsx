@@ -4,7 +4,7 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { Count } from "./badge";
 import { cn } from "../lib/cn";
 
-/*
+/**
  * An underline tab strip. Tabs is the rail (role tablist, rule underneath); Tabs.Tab is one tab.
  * A tab is a button unless `asChild`, in which case the child (a router's Link) takes the tab's
  * classes and aria. Which tab is selected is the caller's state, because in this product tabs are
@@ -20,7 +20,12 @@ export type TabsProps = {
 
 function TabsRoot({ label, className, children, ...rest }: TabsProps) {
   return (
-    <div role="tablist" aria-label={label} className={cn("flex items-center gap-300 overflow-x-auto border-b border-default", className)} {...rest}>
+    <div
+      role="tablist"
+      aria-label={label}
+      className={cn("flex items-center gap-300 overflow-x-auto border-b border-default", className)}
+      {...rest}
+    >
       {children}
     </div>
   );
@@ -38,7 +43,17 @@ export type TabProps = {
   className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"button">, "children" | "className" | "disabled">;
 
-function Tab({ isSelected, asChild, disabled, count, trailing, className, children, type, ...rest }: TabProps) {
+function Tab({
+  isSelected,
+  asChild,
+  disabled,
+  count,
+  trailing,
+  className,
+  children,
+  type,
+  ...rest
+}: TabProps) {
   const Comp = asChild ? Slot : "button";
   return (
     <Comp

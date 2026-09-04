@@ -109,8 +109,8 @@ export function VerificationSection({ programName }: { programName: string }) {
           title="SCA simulation"
           description={`How the government Security Control Assessor sees ${programName} today, ahead of the official audit.`}
           action={
-            <Button variant="secondary">
-              <RefreshCw className="size-icon-small" /> Re-run simulation
+            <Button variant="secondary" iconBefore={<RefreshCw />}>
+              Re-run simulation
             </Button>
           }
         >
@@ -191,8 +191,8 @@ export function VerificationSection({ programName }: { programName: string }) {
           title="IATT window & test schedule"
           description="Test events matched against the interim authority to test validity period."
           action={
-            <Button variant="secondary">
-              <Plus className="size-icon-small" /> Add test event
+            <Button variant="secondary" iconBefore={<Plus />}>
+              Add test event
             </Button>
           }
         >
@@ -265,8 +265,8 @@ export function VerificationSection({ programName }: { programName: string }) {
           title="Ingested assessment data"
           description="STIG CKL, ACAS / Nessus, SonarQube and manual implementation statements."
           action={
-            <Button variant="secondary" onClick={() => setIngesting(true)}>
-              <Upload className="size-icon-small" /> Ingest scan
+            <Button variant="secondary" onClick={() => setIngesting(true)} iconBefore={<Upload />}>
+              Ingest scan
             </Button>
           }
         >
@@ -474,8 +474,9 @@ function FindingModal({
               if (!req.check()) return;
               onSave({ ...finding, status, owner, due, mitigation });
             }}
+            iconBefore={<Check />}
           >
-            <Check className="size-icon-small" /> Save finding
+            Save finding
           </Button>
         </>
       }
@@ -582,8 +583,9 @@ pipeline:
                 coverage: 0,
               });
             }}
+            iconBefore={<Upload />}
           >
-            <Upload className="size-icon-small" /> Ingest
+            Ingest
           </Button>
         </>
       }

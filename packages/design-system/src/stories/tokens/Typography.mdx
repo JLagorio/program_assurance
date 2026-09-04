@@ -1,0 +1,65 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Typography.stories";
+
+<Meta of={Stories} />
+
+# Typography
+
+A type token is one font shorthand: family, weight, size, leading and its letter-spacing. Its utility sets `font` and `letter-spacing` together, so `font-body` is the whole style. No half pixels exist. Labels are `font.body.small` plus `font.weight.medium`, not a size of their own.
+
+## One face
+
+| Token | Value | Use |
+| --- | --- | --- |
+| `font.family.body` | Geist, Inter, system sans | Everything. Identifiers, dates and numbers use it too. |
+| `font.family.heading` | Same as body | A token so a theme may split them. |
+| `font.family.code` | Geist Mono, JetBrains Mono, monospace | Code blocks and data previews only. Never UI text. |
+
+## Scale
+
+`font.body` is the UI size. Weight 600 belongs to page and record titles and nothing else.
+
+| Token | Utility | Size | Weight | Use |
+| --- | --- | --- | --- | --- |
+| `font.heading.large` | `font-heading-large` | 28/34 | semibold | Display: a stat value, a dashboard number. Not a page title. |
+| `font.heading.medium` | `font-heading-medium` | 22/28 | semibold | Page and record titles. The only semibold. |
+| `font.heading.small` | `font-heading-small` | 20/26 | medium | Section headings. |
+| `font.heading.xsmall` | `font-heading-xsmall` | 15/22 | medium | Dialog and card titles. |
+| `font.heading.xxsmall` | `font-heading-xxsmall` | 11/14 | medium | Eyebrows, group headings, menu section labels. The component adds the uppercase. |
+| `font.body.large` | `font-body-large` | 15/22 | regular | Reading text and dialog body. |
+| `font.body` | `font-body` | 13/18 | regular | Controls, cells, tabs, inputs, menu items. |
+| `font.body.small` | `font-body-small` | 12/16 | regular | Table headers, field labels, badges, KeyValue. Labels add `font-medium`. |
+| `font.body.xsmall` | `font-body-xsmall` | 11/14 | regular | Eyebrow, counts, metadata. |
+| `font.code` | `font-code` | 12/18 | regular | Code blocks only. |
+
+Text takes the body ramp as `size` (`large`, `medium`, `small`, `xsmall`). Heading takes the heading ramp the same way (`large`, `medium`, `small`, `xsmall`). Eyebrow is `font.heading.xxsmall`, uppercased.
+
+## Weight
+
+| Token | Utility | Use |
+| --- | --- | --- |
+| `font.weight.regular` | `font-regular` | Body, cells, controls. |
+| `font.weight.medium` | `font-medium` | Labels, UI headings, emphasis inside body text. |
+| `font.weight.semibold` | `font-semibold` | Page and record titles only. |
+
+## Letter-spacing
+
+Tracking tightens as size grows. Each composite carries its own step; there is no utility.
+
+| Token | Value | Carried by |
+| --- | --- | --- |
+| `font.letterSpacing.100` | -0.004em | `font.body.small`, `font.body.xsmall` |
+| `font.letterSpacing.200` | -0.008em | `font.body`, `font.body.large` |
+| `font.letterSpacing.300` | -0.015em | `font.heading.small`, `font.heading.xsmall` |
+| `font.letterSpacing.400` | -0.02em | `font.heading.medium`, `font.heading.large` |
+| `font.letterSpacing.500` | 0.06em | `font.heading.xxsmall`: uppercase micro labels |
+| `font.letterSpacing.0` | 0 | `font.code` |
+
+## Identifiers and numerals
+
+Control numbers, finding ids, package ids, hashes and STIG rule ids are wrapped in `Id`. It inherits the font, size and colour around it and adds tabular numerals; it exists for semantics and grep-ability. A table cell is one style, `font.body` regular in `color.text`; only Badge, Dot, Indicator or a status colour may differ (`ledger/cell-plain`). An Id is blue only inside a link or a button (`ledger/id-not-blue`).
+
+`base.css` sets `font-variant-numeric: tabular-nums` on every table. Add `tabular-nums` yourself for aligned numbers anywhere else: percentages, counts, dates in a column.
+
+<Canvas of={Stories.Specimen} />

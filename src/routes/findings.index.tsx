@@ -135,8 +135,8 @@ function FindingsPage() {
             title="Findings & assets"
             description="One technical fact per row, joined to a CCI and an asset. Open a row for the record; hover the first column to preview it in place."
             actions={
-              <Button variant="secondary">
-                <Download className="size-icon-small" /> Export SAR extract
+              <Button variant="secondary" iconBefore={<Download />}>
+                Export SAR extract
               </Button>
             }
           />

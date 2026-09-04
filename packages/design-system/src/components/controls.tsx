@@ -12,7 +12,7 @@ import {
 
 import { cn } from "../lib/cn";
 
-/*
+/**
  * The form controls. Field wraps one control with its label, hint and error. Input, NativeSelect
  * and Textarea share `controlBase`, the hairline field on the input surface. Checkbox, Switch and
  * RadioGroup are Radix underneath (keyboard, aria, form value) with the tokens on top; give them

@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { cn } from "../lib/cn";
 import { Dot, type Tone } from "./badge";
 
-/*
+/**
  * The conditions an action waits on, what a record still needs, the entry and exit criteria of a
  * phase. A list, not a score: a met gate is a check and its label, muted; an unmet gate is a Dot in
  * its tone, the label, the reason under it and the action that meets it. The reason belongs to the

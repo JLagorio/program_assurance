@@ -85,9 +85,7 @@ function Components() {
             <Button variant="subtle">Cancel</Button>
             <Button variant="danger">Delete</Button>
             <Button variant="link">View report</Button>
-            <IconButton label="More">
-              <MoreHorizontal className="size-icon-medium" />
-            </IconButton>
+            <IconButton label="More" icon={<MoreHorizontal />} />
           </CardSection>
 
           <CardSection title="Status" description="Tone carries meaning; shape stays constant.">

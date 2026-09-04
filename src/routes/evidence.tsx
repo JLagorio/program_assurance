@@ -126,11 +126,11 @@ function Evidence() {
             description="1,402 artifacts mapped to controls. Auditors sample directly from this library — nothing is re-uploaded by hand."
             actions={
               <>
-                <Button variant="secondary">
-                  <Filter className="size-icon-small" /> Saved views
+                <Button variant="secondary" iconBefore={<Filter />}>
+                  Saved views
                 </Button>
-                <Button variant="primary">
-                  <Upload className="size-icon-small" /> Upload artifact
+                <Button variant="primary" iconBefore={<Upload />}>
+                  Upload artifact
                 </Button>
               </>
             }

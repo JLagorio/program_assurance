@@ -127,9 +127,11 @@ function RiskDetail() {
             <Button variant="primary" onClick={() => setTreating(true)}>
               Add treatment
             </Button>
-            <Button variant="secondary" className="px-0 w-400">
-              <MoreHorizontal className="size-icon-medium" />
-            </Button>
+            <Button
+              variant="secondary"
+              className="px-0 w-400"
+              iconBefore={<MoreHorizontal />}
+            ></Button>
           </Inline>
         </Inline>
 
@@ -142,8 +144,8 @@ function RiskDetail() {
             <Section
               title="Linked evidence"
               action={
-                <Button variant="secondary" size="small">
-                  <Paperclip className="size-icon-small" /> Attach
+                <Button variant="secondary" size="small" iconBefore={<Paperclip />}>
+                  Attach
                 </Button>
               }
             >

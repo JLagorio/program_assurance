@@ -11,7 +11,18 @@ const config: StorybookConfig = {
     // GFM tables in MDX are opt-in since Storybook 8.
     { name: "@storybook/addon-docs", options: { mdxPluginOptions: { mdxCompileOptions: { remarkPlugins: [remarkGfm] } } } },
     "@storybook/addon-a11y",
+    "@storybook/addon-vitest",
   ],
+  typescript: {
+    // The props tables come from the types: unions become selects, JSDoc becomes the description,
+    // defaults come from the destructuring. The DOM's own props are left out.
+    reactDocgen: "react-docgen-typescript",
+    reactDocgenTypescriptOptions: {
+      shouldExtractLiteralValuesFromEnum: true,
+      shouldRemoveUndefinedFromOptional: true,
+      propFilter: (prop) => (prop.parent ? !/node_modules/.test(prop.parent.fileName) : true),
+    },
+  },
 };
 
 export default config;

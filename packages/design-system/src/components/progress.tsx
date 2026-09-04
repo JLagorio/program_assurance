@@ -3,20 +3,29 @@ import * as ProgressPrimitive from "@radix-ui/react-progress";
 import { cn } from "../lib/cn";
 import { toneClasses, type Tone } from "./badge";
 
-/** One value out of 100 as a thin bar. Radix underneath for role and aria-valuenow. */
+/**
+ * One value out of 100 as a thin bar. Radix underneath for role and aria-valuenow. With `label` it is
+ * a named progressbar; without one it is decorative, hidden from assistive technology, and the
+ * number beside it carries the value.
+ */
 function ProgressRoot({
   value,
   tone = "information",
+  label,
   className,
 }: {
   value: number;
   tone?: Tone | undefined;
+  /** The accessible name: what is being measured ("Assessment progress"). */
+  label?: string | undefined;
   className?: string | undefined;
 }) {
   const clamped = Math.max(0, Math.min(100, value));
   return (
     <ProgressPrimitive.Root
       value={clamped}
+      aria-label={label}
+      aria-hidden={label ? undefined : true}
       className={cn("h-075 w-full overflow-hidden rounded-full bg-neutral", className)}
     >
       <ProgressPrimitive.Indicator

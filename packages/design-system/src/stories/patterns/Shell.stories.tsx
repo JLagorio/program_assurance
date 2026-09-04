@@ -125,9 +125,7 @@ function EndItems() {
         ] as const
       ).map(([Icon, label]) => (
         <Tooltip key={label} content={label}>
-          <IconButton label={label} variant="subtle">
-            <Icon className="size-icon-medium" />
-          </IconButton>
+          <IconButton label={label} variant="subtle" icon={<Icon />} />
         </Tooltip>
       ))}
     </>
@@ -181,8 +179,7 @@ function Demo({
               className="h-control-small"
             />
           </InputGroup>
-          <Button variant="primary">
-            <Plus className="size-icon-small" />
+          <Button variant="primary" iconBefore={<Plus />}>
             Create
           </Button>
         </Shell.TopNav.Middle>
@@ -250,9 +247,12 @@ function Demo({
             className="border-b border-default px-200 py-100"
           >
             <Text weight="medium">PRG-014 · Payload integration</Text>
-            <IconButton label="Close preview" variant="subtle" onClick={() => setShowPanel(false)}>
-              <X className="size-icon-medium" />
-            </IconButton>
+            <IconButton
+              label="Close preview"
+              variant="subtle"
+              onClick={() => setShowPanel(false)}
+              icon={<X />}
+            />
           </Inline>
           <Box padding="space.200">
             <Stack space="space.150">

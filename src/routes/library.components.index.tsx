@@ -59,8 +59,8 @@ function ComponentLibrary() {
             actions={
               <>
                 <Button variant="secondary">Export inheritance matrix</Button>
-                <Button variant="primary">
-                  <Plus className="size-icon-small" /> New component
+                <Button variant="primary" iconBefore={<Plus />}>
+                  New component
                 </Button>
               </>
             }

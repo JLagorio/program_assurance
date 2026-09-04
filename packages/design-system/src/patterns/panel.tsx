@@ -2,7 +2,6 @@ import { ChevronLeft, PanelRight, X } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { IconButton } from "../components/button";
-import { Tooltip } from "../components/tooltip";
 import { cn } from "../lib/cn";
 import { PanelContext } from "../lib/panel-context";
 
@@ -59,17 +58,13 @@ function PanelRoot({
             )}
           >
             {onBack ? (
-              <IconButton label="Back" variant="subtle" onClick={onBack}>
-                <ChevronLeft className="size-icon-medium" />
-              </IconButton>
+              <IconButton label="Back" variant="subtle" onClick={onBack} icon={<ChevronLeft />} />
             ) : null}
             {icon ? <span className="flex shrink-0 items-center">{icon}</span> : null}
             <h2 className="min-w-0 flex-1 truncate font-body font-medium text-default">{title}</h2>
             {actions ? <div className="flex shrink-0 items-center gap-025">{actions}</div> : null}
             {onClose ? (
-              <IconButton label="Close" variant="subtle" onClick={onClose}>
-                <X className="size-icon-medium" />
-              </IconButton>
+              <IconButton label="Close" variant="subtle" onClick={onClose} icon={<X />} />
             ) : null}
           </div>
           {subheader ? (
@@ -102,17 +97,14 @@ function PanelTrigger({
   label?: string | undefined;
 }) {
   return (
-    <Tooltip content={label}>
-      <IconButton
-        label={label}
-        variant="subtle"
-        isSelected={isOpen}
-        aria-expanded={isOpen}
-        onClick={onClick}
-      >
-        <PanelRight className="size-icon-medium" />
-      </IconButton>
-    </Tooltip>
+    <IconButton
+      label={label}
+      variant="subtle"
+      isSelected={isOpen}
+      aria-expanded={isOpen}
+      onClick={onClick}
+      icon={<PanelRight />}
+    />
   );
 }
 

@@ -9,12 +9,12 @@ export type InspectorGroupData = { title: string; rows: { label: string; value: 
 
 function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="flex items-baseline gap-100">
+    <dl className="flex items-baseline gap-100">
       <dt className="shrink-0 font-body-small text-subtle" style={{ width: 104 }}>
         {label}
       </dt>
       <dd className="min-w-0 flex-1 font-body text-default">{value}</dd>
-    </div>
+    </dl>
   );
 }
 
@@ -43,11 +43,11 @@ function InspectorRoot({
             inset={flush}
             className={flush && index === 0 ? "border-t-0" : undefined}
           >
-            <dl className="flex flex-col gap-025">
+            <div className="flex flex-col gap-025">
               {g.rows.map((r) => (
                 <Row key={r.label} label={r.label} value={r.value} />
               ))}
-            </dl>
+            </div>
           </Accordion.Item>
         ))}
       </Accordion>
@@ -81,7 +81,7 @@ function InspectorGroup({
       className="first:border-t-0"
     >
       {action ? <div className="flex justify-end pb-050">{action}</div> : null}
-      <dl className="flex flex-col gap-025">{children}</dl>
+      <div className="flex flex-col gap-025">{children}</div>
     </Collapsible>
   );
 }

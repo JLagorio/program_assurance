@@ -128,11 +128,11 @@ export function DigitalThreadSection({
           description={`Live links from ${programName} engineering tooling into the RMF record.`}
           action={
             <>
-              <Button variant="secondary">
-                <RefreshCw className="size-icon-small" /> Sync now
+              <Button variant="secondary" iconBefore={<RefreshCw />}>
+                Sync now
               </Button>
-              <Button variant="secondary">
-                <Plus className="size-icon-small" /> Add connector
+              <Button variant="secondary" iconBefore={<Plus />}>
+                Add connector
               </Button>
             </>
           }
@@ -210,8 +210,9 @@ export function DigitalThreadSection({
                   owner: "Sarah Chen (SSE)",
                 });
               }}
+              iconBefore={<Plus />}
             >
-              <Plus className="size-icon-small" /> New rule
+              New rule
             </Button>
           }
         >
@@ -564,8 +565,12 @@ function EvidenceModal({
           <Button variant="subtle" onClick={onClose}>
             Close
           </Button>
-          <Button variant="secondary" onClick={() => onStatus(evidence.id, "Rejected")}>
-            <X className="size-icon-small" /> Reject
+          <Button
+            variant="secondary"
+            onClick={() => onStatus(evidence.id, "Rejected")}
+            iconBefore={<X />}
+          >
+            Reject
           </Button>
           <Button
             variant="primary"
@@ -573,8 +578,9 @@ function EvidenceModal({
               if (!req.check()) return;
               onStatus(evidence.id, "Accepted");
             }}
+            iconBefore={<Check />}
           >
-            <Check className="size-icon-small" /> Accept into SSP
+            Accept into SSP
           </Button>
         </>
       }
@@ -701,8 +707,9 @@ export function CdrPackageModal({
                   toast.info("Download started", { description: `${programId}-CDR-SSP.zip` });
                 else setConfirming(true);
               }}
+              iconBefore={<Download />}
             >
-              <Download className="size-icon-small" />{" "}
+              {" "}
               {generated ? "Download package" : "Generate package"}
             </Button>
           </>

@@ -37,7 +37,7 @@ export const Anchored: Story = {
       <Tooltip content="Schedule the next assessment">
         <Button>Tooltip</Button>
       </Tooltip>
-      <Popover width={280} trigger={<Button>Popover</Button>}>
+      <Popover label="A small task" width={280} trigger={<Button>Popover</Button>}>
         <Stack space="space.200">
           <Field label="Reason">
             <Input placeholder="Why this control is deferred" />
@@ -71,14 +71,7 @@ export const Anchored: Story = {
       >
         <Button variant="link">HoverCard on an id</Button>
       </HoverCard>
-      <DropdownMenu
-        trigger={
-          <Button>
-            Actions
-            <ChevronDown className="size-icon-small" />
-          </Button>
-        }
-      >
+      <DropdownMenu trigger={<Button iconAfter={<ChevronDown />}>Actions</Button>}>
         <DropdownMenu.Label>Control</DropdownMenu.Label>
         <DropdownMenu.Item trailing="⌘E">Edit</DropdownMenu.Item>
         <DropdownMenu.Item isSelected>Pin to rail</DropdownMenu.Item>
@@ -88,11 +81,7 @@ export const Anchored: Story = {
       </DropdownMenu>
       <DropdownMenu
         align="end"
-        trigger={
-          <IconButton label="More" variant="subtle">
-            <MoreHorizontal className="size-icon-small" />
-          </IconButton>
-        }
+        trigger={<IconButton label="More" variant="subtle" icon={<MoreHorizontal />} />}
       >
         <DropdownMenu.Item>Open in new tab</DropdownMenu.Item>
         <DropdownMenu.Item>Copy link</DropdownMenu.Item>
@@ -226,9 +215,7 @@ export const TooltipOpen: Story = {
   render: () => (
     <Inline space="space.300">
       <Tooltip content="Verified 12 Aug 2026" defaultOpen>
-        <IconButton label="Info" variant="subtle">
-          <Info className="size-icon-small" />
-        </IconButton>
+        <IconButton label="Info" variant="subtle" icon={<Info />} />
       </Tooltip>
     </Inline>
   ),
@@ -259,6 +246,7 @@ export const PopoverMatrix: Story = {
         rowLabel="side"
         render={(side, align) => (
           <Popover
+            label="Placement"
             trigger={
               <Button variant="secondary" size="small">
                 {side} · {align}
@@ -279,6 +267,7 @@ export const PopoverMatrix: Story = {
       />
       <Box style={{ height: 160 }}>
         <Popover
+          label="Open by default"
           trigger={
             <Button variant="secondary" size="small">
               Open by default
@@ -354,6 +343,10 @@ export const HoverCardMatrix: Story = {
 
 /** One menu, open, holding every item state. */
 export const DropdownMenuMatrix: Story = {
+  parameters: {
+    // Radix hides the rest of the page (aria-hidden) while the modal menu is open and traps focus inside it; axe cannot see the trap.
+    a11y: { config: { rules: [{ id: "aria-hidden-focus", enabled: false }] } },
+  },
   render: () => (
     <Box style={{ height: 320 }} className="p-400">
       <DropdownMenu trigger={<Button variant="secondary">Actions</Button>} defaultOpen width={240}>
@@ -510,8 +503,7 @@ function AlertDialogStates() {
         <Button variant="secondary" onClick={() => setOpen("primary")}>
           Primary
         </Button>
-        <Button variant="danger" onClick={() => setOpen("danger")}>
-          <Trash2 className="size-icon-small" />
+        <Button variant="danger" onClick={() => setOpen("danger")} iconBefore={<Trash2 />}>
           Danger
         </Button>
         <Button variant="secondary" onClick={() => setOpen("pending")}>

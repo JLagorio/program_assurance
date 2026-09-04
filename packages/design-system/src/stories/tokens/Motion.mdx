@@ -1,0 +1,37 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Tokens/Motion" />
+
+# Motion
+
+Fast and quiet. Motion is one duration pair and one curve; nothing in a component names a number. The tokens render at the bottom of the Metrics sheet (Tokens/Metrics).
+
+## Tokens
+
+| Token | Value | Utility | Use |
+| --- | --- | --- | --- |
+| `motion.duration.fast` | 120ms | `duration-fast` | Hover and press colour changes. |
+| `motion.duration.medium` | 180ms | `duration-medium` | Overlays entering and leaving. |
+| `motion.easing.standard` | cubic-bezier(0.2, 0, 0.2, 1) | `ease-standard` | The one curve. |
+
+## Transitions
+
+- A button, a row, a chip or a tab transitions colour only: `transition-colors duration-fast ease-standard`. No press-down movement, no scale.
+- A hover or a press is a token (`bg-brand-bold-hovered`, `bg-neutral-subtle-pressed`), never a brightness filter and never alpha on the resting fill.
+- A chevron (Disclosure, Tree, a Table group row) rotates with `transition-transform duration-fast ease-standard`. A Switch thumb slides with `transition-transform duration-medium ease-standard`.
+
+## Animations
+
+`src/styles/motion.css` defines the keyframes and one utility per entrance and exit, all on the tokens. Radix and vaul set `data-state` on what they open, so a component pairs `data-[state=open]:animate-enter` with `data-[state=closed]:animate-exit`.
+
+| Utility | Does | Duration | Use |
+| --- | --- | --- | --- |
+| `animate-enter`, `animate-exit` | Fade with a 0.98 scale | medium in, fast out | Dialog, Popover, menus, Tooltip. |
+| `animate-fade-in`, `animate-fade-out` | Fade | medium in, fast out | The blanket under an AlertDialog. |
+| `animate-slide-in-end`, `animate-slide-out-end` | Slide from the trailing edge | medium | Sheet, `side="end"`. |
+| `animate-slide-in-start`, `animate-slide-out-start` | Slide from the leading edge | medium | Sheet, `side="start"`. |
+| `animate-slide-in-bottom`, `animate-slide-out-bottom` | Slide from the bottom | medium | Defined for a bottom drawer. Nothing uses them yet. |
+| `animate-slide-in-top`, `animate-slide-out-top` | Slide from the top | medium | Defined for a top banner. Nothing uses them yet. |
+| `animate-rise` | A `space.075` rise with a fade | medium | A page arriving: IndexPage and ShowPage. Use it for page-level content only. |
+
+Under `prefers-reduced-motion: reduce` every one of these collapses to 0.01ms.

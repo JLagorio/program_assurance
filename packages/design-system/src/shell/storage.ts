@@ -1,4 +1,4 @@
-/*
+/**
  * What the shell remembers per browser: whether the side nav is collapsed and the widths the
  * reader dragged. The Shell root reads it on mount and writes it on change when `persist` is on.
  * The script applies it before the first paint, the way the mode script does, so a collapsed side

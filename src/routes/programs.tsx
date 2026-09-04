@@ -175,8 +175,12 @@ function ProgramList() {
               >
                 {exporting ? <Spinner /> : <Download className="size-icon-small" />} Export SSP
               </Button>
-              <Button variant="primary" onClick={() => void navigate({ to: "/programs/new" })}>
-                <Plus className="size-icon-small" /> New program
+              <Button
+                variant="primary"
+                onClick={() => void navigate({ to: "/programs/new" })}
+                iconBefore={<Plus />}
+              >
+                New program
               </Button>
             </>
           }
@@ -199,6 +203,7 @@ function ProgramList() {
       <Inline space="space.100" alignBlock="center" shouldWrap>
         <FilterChip label="Baseline" value="Rev. 5" isActive />
         <Popover
+          label="Filter by impact"
           width={180}
           trigger={
             <FilterChip
@@ -224,11 +229,12 @@ function ProgramList() {
         <FilterChip label="Assessor" />
         <Inline className="ml-auto" space="space.100" alignBlock="center">
           <Popover
+            label="Columns"
             width={200}
             align="end"
             trigger={
-              <Button variant="secondary" size="small">
-                <ListFilter className="size-icon-small" /> Columns
+              <Button variant="secondary" size="small" iconBefore={<ListFilter />}>
+                Columns
                 {hidden.length ? (
                   <Box
                     className="tabular-nums rounded-small bg-neutral font-body-xsmall font-medium text-subtle"

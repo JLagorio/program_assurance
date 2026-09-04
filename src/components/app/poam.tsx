@@ -172,8 +172,8 @@ export function PoamSection({
         title="Plan of action and milestones"
         description="OSCAL poam-item entries scoped to this program, ordered by severity then scheduled completion."
         action={
-          <Button variant="primary" onClick={() => setCreating(true)}>
-            <Plus className="size-icon-small" /> New POA&amp;M item
+          <Button variant="primary" onClick={() => setCreating(true)} iconBefore={<Plus />}>
+            New POA&amp;M item
           </Button>
         }
       >
@@ -453,22 +453,27 @@ function PoamDetailModal({
       description={`${item.poamId} · ${item.controls.join(", ")} · ${item.origin}`}
       footer={
         <>
-          <Button variant="subtle" className="text-danger hover:bg-danger" onClick={onDelete}>
-            <Trash2 className="size-icon-small" /> Delete
+          <Button
+            variant="subtle"
+            className="text-danger hover:bg-danger"
+            onClick={onDelete}
+            iconBefore={<Trash2 />}
+          >
+            Delete
           </Button>
           <span className="flex-1" />
           <Button variant="subtle" onClick={onClose}>
             Close
           </Button>
-          <Button variant="primary" onClick={onEdit}>
-            <Pencil className="size-icon-small" /> Edit item
+          <Button variant="primary" onClick={onEdit} iconBefore={<Pencil />}>
+            Edit item
           </Button>
         </>
       }
       aside={
         <div>
           <div className="font-heading-xxsmall uppercase text-subtle">OSCAL identifiers</div>
-          <dl className="pt-050">
+          <Box paddingBlockStart="space.050">
             <KeyValue label="uuid">
               <Id className="break-all">{item.uuid}</Id>
             </KeyValue>
@@ -477,7 +482,7 @@ function PoamDetailModal({
             <KeyValue label="scheduled">{formatOscalDate(item.scheduledCompletion, true)}</KeyValue>
             <KeyValue label="point of contact">{item.pointOfContact}</KeyValue>
             <KeyValue label="detection source">{item.detectionSource}</KeyValue>
-          </dl>
+          </Box>
 
           <Box className="font-heading-xxsmall uppercase text-subtle" paddingBlockStart="space.250">
             props
@@ -754,8 +759,13 @@ function PoamEditModal({
       description={`${item.poamId} · OSCAL poam-item · uuid preserved`}
       footer={
         <>
-          <Button variant="subtle" className="text-danger hover:bg-danger" onClick={onDelete}>
-            <Trash2 className="size-icon-small" /> Delete
+          <Button
+            variant="subtle"
+            className="text-danger hover:bg-danger"
+            onClick={onDelete}
+            iconBefore={<Trash2 />}
+          >
+            Delete
           </Button>
           <span className="flex-1" />
           <Button variant="subtle" onClick={onClose}>
@@ -769,7 +779,7 @@ function PoamEditModal({
       aside={
         <div>
           <div className="font-heading-xxsmall uppercase text-subtle">Preserved OSCAL fields</div>
-          <dl className="pt-050">
+          <Box paddingBlockStart="space.050">
             <KeyValue label="uuid">
               <Id className="break-all">{item.uuid}</Id>
             </KeyValue>
@@ -783,7 +793,7 @@ function PoamEditModal({
             <KeyValue label="related-observations">{item.relatedObservations.length}</KeyValue>
             <KeyValue label="associated-risk">{item.associatedRisks.length}</KeyValue>
             <KeyValue label="links">{item.links.length}</KeyValue>
-          </dl>
+          </Box>
           <p className="pt-200 font-body-small text-subtle">
             Editing changes the mutable assembly only. Identifiers, publication timestamp and
             structural links stay bound so the item keeps its identity across OSCAL exports.
@@ -889,8 +899,8 @@ function PoamEditModal({
             spread="space-between"
           >
             <span className="font-body font-semibold">Milestones</span>
-            <Button variant="link" onClick={addMilestone}>
-              <Plus className="size-icon-small" /> Add milestone
+            <Button variant="link" onClick={addMilestone} iconBefore={<Plus />}>
+              Add milestone
             </Button>
           </Inline>
           <Box paddingBlockStart="space.050">
@@ -954,8 +964,8 @@ function PoamEditModal({
             spread="space-between"
           >
             <span className="font-body font-semibold">Props</span>
-            <Button variant="link" onClick={addProp}>
-              <Plus className="size-icon-small" /> Add prop
+            <Button variant="link" onClick={addProp} iconBefore={<Plus />}>
+              Add prop
             </Button>
           </Inline>
           <Box paddingBlockStart="space.050">
@@ -1037,13 +1047,13 @@ function PoamDeleteModal({
           POA&amp;M. Related observations and the risk exposure entries stay in place — only the
           links from this item are dropped.
         </p>
-        <dl className="border-t border-default pt-050">
+        <Box paddingBlockStart="space.050" className="border-t border-default">
           <KeyValue label="uuid">
             <Id className="break-all">{item.uuid}</Id>
           </KeyValue>
           <KeyValue label="status">{item.status}</KeyValue>
           <KeyValue label="scheduled">{formatOscalDate(item.scheduledCompletion, true)}</KeyValue>
-        </dl>
+        </Box>
       </Stack>
     </Dialog>
   );
@@ -1148,7 +1158,7 @@ function PoamCreateModal({
       aside={
         <div>
           <div className="font-heading-xxsmall uppercase text-subtle">OSCAL preview</div>
-          <dl className="pt-050">
+          <Box paddingBlockStart="space.050">
             <KeyValue label="uuid">
               <Id>generated on save</Id>
             </KeyValue>
@@ -1162,7 +1172,7 @@ function PoamCreateModal({
             <KeyValue label="scheduled">{formatOscalDate(toOscalDateTime(scheduled))}</KeyValue>
             <KeyValue label="milestones">{milestone ? "1 planned" : "0"}</KeyValue>
             <KeyValue label="associated-risk">{riskId ? <Id>{riskId}</Id> : "none"}</KeyValue>
-          </dl>
+          </Box>
           <Box className="font-heading-xxsmall uppercase text-subtle" paddingBlockStart="space.200">
             props
           </Box>

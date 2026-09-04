@@ -615,8 +615,8 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
       title="Systems and subsystems"
       count={`${draft.scopes.length} scope${draft.scopes.length === 1 ? "" : "s"}`}
       action={
-        <Button size="small" onClick={() => dispatch({ type: "system.add" })}>
-          <Plus className="size-icon-small" /> Add system
+        <Button size="small" onClick={() => dispatch({ type: "system.add" })} iconBefore={<Plus />}>
+          Add system
         </Button>
       }
     >
@@ -912,7 +912,11 @@ function ReviewStep({
   return (
     <Stack space="space.050">
       <Block title="Program">
-        <dl className="grid grid-cols-2 gap-x-300 gap-y-025 lg:grid-cols-3">
+        <Grid
+          templateColumns={{ base: "repeat(2, minmax(0, 1fr))", lg: "repeat(3, minmax(0, 1fr))" }}
+          columnGap="space.300"
+          rowGap="space.025"
+        >
           <KeyValue label="Name">{draft.name.trim()}</KeyValue>
           <KeyValue label="Owner">{draft.owner}</KeyValue>
           <KeyValue label="AO">{draft.authorizingOfficial}</KeyValue>
@@ -921,7 +925,7 @@ function ReviewStep({
           <KeyValue label="Framework" wrap>
             {framework?.name} · {framework?.version}
           </KeyValue>
-        </dl>
+        </Grid>
       </Block>
 
       <Block title="Scopes" count={`${draft.scopes.length} · ${union} controls in the union`}>

@@ -34,7 +34,7 @@ import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
 import { applyShell, readShell, SHELL_STORAGE_KEY, writeShell } from "./storage";
 
-/*
+/**
  * The navigation system. Shell is the root; its areas are its immediate children in a fixed
  * order, which is also the keyboard and landmark order: Banner, TopNav, SideNav, Main, Panel.
  * The package owns the areas and their behaviour: the side nav collapses, resizes, flies out on
@@ -492,11 +492,7 @@ function TopNavEnd({
       <div className="md:hidden">
         <Popover
           align="end"
-          trigger={
-            <IconButton label={moreLabel} variant="subtle">
-              <MoreHorizontal className="size-icon-medium" />
-            </IconButton>
-          }
+          trigger={<IconButton label={moreLabel} variant="subtle" icon={<MoreHorizontal />} />}
         >
           <ul aria-label={label} className="flex flex-col gap-050">
             {items.map((child, i) => (
@@ -599,13 +595,7 @@ function AppSwitcher({
   label?: string | undefined;
   onClick?: (() => void) | undefined;
 }) {
-  return (
-    <Tooltip content={label}>
-      <IconButton label={label} variant="subtle" onClick={onClick}>
-        <LayoutGrid className="size-icon-medium" />
-      </IconButton>
-    </Tooltip>
-  );
+  return <IconButton label={label} variant="subtle" onClick={onClick} icon={<LayoutGrid />} />;
 }
 
 /** The person: avatar, name, role. In the side nav's footer, or in the top nav's end slot as an avatar alone. */
@@ -911,9 +901,9 @@ function SideNavToggleButton({
         onClick={() => shell.toggleSideNav("toggle-button")}
         onPointerEnter={shell.peekSideNav}
         onPointerLeave={() => shell.endPeek()}
-      >
-        <Icon className="size-icon-medium" />
-      </IconButton>
+        icon={<Icon />}
+        isTooltipDisabled
+      />
     </Tooltip>
   );
 }

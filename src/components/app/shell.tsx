@@ -121,9 +121,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <ModeSwitch />
           {topNavEnd.map(([Icon, label]) => (
             <Tooltip key={label} content={label}>
-              <IconButton label={label} variant="subtle">
-                <Icon className="size-icon-medium" />
-              </IconButton>
+              <IconButton label={label} variant="subtle" icon={<Icon />} />
             </Tooltip>
           ))}
         </DsShell.TopNav.End>

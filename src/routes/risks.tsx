@@ -155,8 +155,8 @@ function RiskList() {
               >
                 {exporting ? <Spinner /> : <Download className="size-icon-small" />} Export
               </Button>
-              <Button variant="primary" onClick={() => setCreating(true)}>
-                <Plus className="size-icon-small" /> New risk
+              <Button variant="primary" onClick={() => setCreating(true)} iconBefore={<Plus />}>
+                New risk
               </Button>
             </>
           }
@@ -180,6 +180,7 @@ function RiskList() {
         <FilterChip label="Framework" value="SOC 2" isActive />
         <FilterChip label="Owner" />
         <Popover
+          label="Filter by treatment"
           width={180}
           trigger={
             <FilterChip
@@ -203,8 +204,8 @@ function RiskList() {
         </Popover>
         <FilterChip label="Updated" />
         <Inline className="ml-auto" space="space.100" alignBlock="center">
-          <Button variant="secondary" size="small">
-            <ListFilter className="size-icon-small" /> Columns
+          <Button variant="secondary" size="small" iconBefore={<ListFilter />}>
+            Columns
           </Button>
         </Inline>
       </Inline>

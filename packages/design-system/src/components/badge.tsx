@@ -2,7 +2,7 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 
-/*
+/**
  * Status colour, said once. Every component that paints a status (Badge, Dot, Indicator, Count,
  * later Meter and the bars) reads this table, so a tone is one decision: the subtlest fill with
  * the tone's text on it, the bold fill with inverse text, the icon colour for a 6px dot, and the
@@ -14,12 +14,45 @@ export type Tone = "neutral" | "information" | "success" | "warning" | "danger";
 
 export const tones = ["neutral", "information", "success", "warning", "danger"] as const;
 
-export const toneClasses: Record<Tone, { subtle: string; bold: string; text: string; icon: string; fill: string }> = {
-  neutral: { subtle: "bg-neutral text-subtle", bold: "bg-neutral-bold text-inverse", text: "text-subtle", icon: "icon-subtlest", fill: "bg-neutral-bold" },
-  information: { subtle: "bg-information text-information", bold: "bg-information-bold text-inverse", text: "text-information", icon: "icon-information", fill: "bg-information-bold" },
-  success: { subtle: "bg-success text-success", bold: "bg-success-bold text-inverse", text: "text-success", icon: "icon-success", fill: "bg-success-bold" },
-  warning: { subtle: "bg-warning text-warning", bold: "bg-warning-bold text-warning-inverse", text: "text-warning", icon: "icon-warning", fill: "bg-warning-bold" },
-  danger: { subtle: "bg-danger text-danger", bold: "bg-danger-bold text-inverse", text: "text-danger", icon: "icon-danger", fill: "bg-danger-bold" },
+export const toneClasses: Record<
+  Tone,
+  { subtle: string; bold: string; text: string; icon: string; fill: string }
+> = {
+  neutral: {
+    subtle: "bg-neutral text-subtle",
+    bold: "bg-neutral-bold text-inverse",
+    text: "text-subtle",
+    icon: "icon-subtlest",
+    fill: "bg-neutral-bold",
+  },
+  information: {
+    subtle: "bg-information text-information",
+    bold: "bg-information-bold text-inverse",
+    text: "text-information",
+    icon: "icon-information",
+    fill: "bg-information-bold",
+  },
+  success: {
+    subtle: "bg-success text-success",
+    bold: "bg-success-bold text-inverse",
+    text: "text-success",
+    icon: "icon-success",
+    fill: "bg-success-bold",
+  },
+  warning: {
+    subtle: "bg-warning text-warning",
+    bold: "bg-warning-bold text-warning-inverse",
+    text: "text-warning",
+    icon: "icon-warning",
+    fill: "bg-warning-bold",
+  },
+  danger: {
+    subtle: "bg-danger text-danger",
+    bold: "bg-danger-bold text-inverse",
+    text: "text-danger",
+    icon: "icon-danger",
+    fill: "bg-danger-bold",
+  },
 };
 
 const badgeSizes = {
@@ -38,10 +71,23 @@ export type BadgeProps = {
 } & Omit<ComponentPropsWithoutRef<"span">, "children" | "className">;
 
 /** A short status word in a soft fill. Atlassian calls this a Lozenge. */
-export function Badge({ tone = "neutral", appearance = "subtle", size = "small", icon, className, children, ...rest }: BadgeProps) {
+export function Badge({
+  tone = "neutral",
+  appearance = "subtle",
+  size = "small",
+  icon,
+  className,
+  children,
+  ...rest
+}: BadgeProps) {
   return (
     <span
-      className={cn("inline-flex shrink-0 items-center whitespace-nowrap rounded-small font-medium", badgeSizes[size], toneClasses[tone][appearance], className)}
+      className={cn(
+        "inline-flex shrink-0 items-center whitespace-nowrap rounded-small font-medium",
+        badgeSizes[size],
+        toneClasses[tone][appearance],
+        className,
+      )}
       {...rest}
     >
       {icon}
@@ -84,9 +130,23 @@ export function Count({ value, max = 99, appearance = "default", className, ...r
 }
 
 /** A 6px status dot. It is an icon, so it takes the tone's icon colour, which is tuned to read at small sizes. */
-export function Dot({ tone = "neutral", className }: { tone?: Tone | undefined; className?: string }) {
+export function Dot({
+  tone = "neutral",
+  className,
+}: {
+  tone?: Tone | undefined;
+  className?: string;
+}) {
   return (
-    <svg aria-hidden viewBox="0 0 8 8" className={cn("inline-block size-075 shrink-0 align-middle", toneClasses[tone].icon, className)}>
+    <svg
+      aria-hidden
+      viewBox="0 0 8 8"
+      className={cn(
+        "inline-block size-075 shrink-0 align-middle",
+        toneClasses[tone].icon,
+        className,
+      )}
+    >
       <circle cx="4" cy="4" r="4" fill="currentColor" />
     </svg>
   );
@@ -102,7 +162,11 @@ export type IndicatorProps = {
 export function Indicator({ tone = "neutral", className, children, ...rest }: IndicatorProps) {
   return (
     <span
-      className={cn("inline-flex items-center gap-075 whitespace-nowrap font-body", tone === "neutral" ? "text-subtle" : "text-default", className)}
+      className={cn(
+        "inline-flex items-center gap-075 whitespace-nowrap font-body",
+        tone === "neutral" ? "text-subtle" : "text-default",
+        className,
+      )}
       {...rest}
     >
       <Dot tone={tone} />

@@ -1,0 +1,58 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Space.stories";
+
+<Meta of={Stories} />
+
+# Space and layout
+
+Space is tier 3 and mode independent. A name is the value in quarter-rems: `space.100` is 8px, `space.200` is 16px. Product code reaches it through primitive props (`<Stack space="space.200">`); the package reaches it through the regenerated spacing utilities (`gap-100`, `p-150`, `px-200`). Tailwind's numeric scale is reset: `p-4` does not exist and `ledger/no-non-token-class` reports it.
+
+## Scale
+
+| Token | Value | Use |
+| --- | --- | --- |
+| `space.0` | 0 | No space. |
+| `space.025` | 2px | Hairline. |
+| `space.050` | 4px | Tight: icon to text, dot to text. |
+| `space.075` | 6px | Compact: control gap. |
+| `space.100` | 8px | Standard small: control clusters, chip rows. |
+| `space.150` | 12px | Standard medium: cell padding, card header inset. |
+| `space.200` | 16px | Standard large: card padding, form grids. |
+| `space.250` | 20px | Comfortable. |
+| `space.300` | 24px | Relaxed: between header and actions. |
+| `space.400` | 32px | Spacious: page gutters. |
+| `space.500` | 40px | |
+| `space.600` | 48px | Section spacing. |
+| `space.800` | 64px | Page section. |
+| `space.1000` | 80px | Hero. |
+
+The negative steps (`space.negative.025` to `space.negative.400`) have no utility. Bleed is the one place a negative value is written.
+
+## Margins do not exist
+
+A component decides its inside; its parent decides the space around it. Box takes padding and a surface and has no margin props. Stack and Inline own the gap between siblings. `ledger/no-margin` reports a margin class in product code.
+
+## Density
+
+Heights come from the dimension tokens (Tokens/Metrics); insets come from space.
+
+| Where | Value |
+| --- | --- |
+| Controls | `dimension.control.medium` 32px; `small` 28px for toolbars, rows and rails; `xsmall` 24px for the densest chrome |
+| Table rows | `dimension.row` 40px; `compact` 36px; `header` 32px; menu, command and tree rows 28px |
+| Cell padding | `space.150` |
+| Card and form inset | `space.200` |
+| KeyValue | a 104px label column, `space.150` between label and value, `space.050` block padding |
+
+Compact and data-dense, never cramped.
+
+## Page structure
+
+The shell is a grid of named areas: Banner, TopNav, SideNav, Main, Panel. Their widths are `dimension.layout.*` tokens, and Main takes the rest; there is no fixed content column. Inside Main a page is PageHeader, then Section, Block or Card. IndexPage and ShowPage stack their regions on `space.200`; a ShowPage body runs `space.400` between sections. Prose never grows wider than `dimension.layout.measure` (720px).
+
+## Separation
+
+Prefer a hairline rule to a box. Section is a heading with a rule under it (`border-b border-default`) and no enclosure. Card is the enclosure, for when a region must read as one object.
+
+<Canvas of={Stories.Scale} />
