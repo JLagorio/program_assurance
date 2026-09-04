@@ -1,8 +1,8 @@
-export { columnKinds, defineColumns, minWidths, type ColumnKinds } from "./columns";
+export { columnKinds, defineColumns, minWidths, type ColumnKinds, type Footer } from "./columns";
 export { DataTable, type DataTableProps, type DataTableState } from "./data-table";
 export { countRows, type Preset } from "./filter";
 export { HeaderMenu } from "./columns-menu";
-export { ColumnReorder, useColumnDrag } from "./reorder";
+export { ColumnSortable, DragContext, RowSortable, useColumnDrag, useRowDrag } from "./reorder";
 export { clearView, readView, resetView, viewKey, writeView } from "./view-store";
 export {
   dataTableFeatures,

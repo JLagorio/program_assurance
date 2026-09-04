@@ -6,8 +6,8 @@ import {
   type Row,
   type RowData,
 } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
-import { memo, type CSSProperties, type ReactNode } from "react";
+import { ChevronRight, MoreHorizontal } from "lucide-react";
+import { memo, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 
 import { Alert } from "../../components/alert";
 import { IconButton } from "../../components/button";
@@ -22,7 +22,7 @@ import { Empty } from "../empty";
 import type { DataTableFeatures } from "./features";
 import { Columns, HeaderMenu } from "./columns-menu";
 import { Filter, Presets, Search } from "./filter";
-import { ColumnReorder, useColumnDrag } from "./reorder";
+import { ColumnSortable, DragContext, RowSortable, useColumnDrag, useRowDrag } from "./reorder";
 import { SelectionBar } from "./selection-bar";
 import type { DataTableInstance } from "./use-data-table";
 
@@ -53,8 +53,8 @@ export type DataTableProps<TData extends RowData> = {
 
 type F = DataTableFeatures;
 
-/** `Table.Selection` is `w-400`. */
-const SELECTION_WIDTH = 32;
+/** `Table.Selection` and `Table.Handle` are `w-400`. */
+const NARROW = 32;
 
 const alignClass = (align: "start" | "end" | undefined) =>
   align === "end" ? "text-right" : undefined;
@@ -81,14 +81,21 @@ const pinning = <TData extends RowData>(column: Column<F, TData, unknown>, befor
   };
 };
 
+/** The leading columns the renderer adds: selection, the drag handle, the detail chevron. */
+type Leading = { selectable: boolean; handle: boolean; detail: boolean };
+
+const leadingCount = (l: Leading) => [l.selectable, l.handle, l.detail].filter(Boolean).length;
+const leadingWidth = (l: Leading) => leadingCount(l) * NARROW;
+
 function HeaderCell<TData extends RowData>({
   header,
   table,
-  selectionWidth,
+  before,
 }: {
   header: Header<F, TData, unknown>;
   table: DataTableInstance<TData>;
-  selectionWidth: number;
+  /** The width of the pinned leading columns, added to every start offset. */
+  before: number;
 }) {
   const column = header.column;
   const meta = column.columnDef.meta;
@@ -102,7 +109,7 @@ function HeaderCell<TData extends RowData>({
     Boolean(options?.reorderable) && leaf && !column.getIsPinned() && !header.isPlaceholder,
   );
   const pin = leaf
-    ? pinning(column, selectionWidth)
+    ? pinning(column, before)
     : { pinned: false as const, offset: undefined, edge: false };
   const canResize = Boolean(options?.resizable) && leaf && column.getCanResize();
   const resizing = table.state.columnResizing;
@@ -152,17 +159,36 @@ function HeaderCell<TData extends RowData>({
 function BodyCell<TData extends RowData>({
   cell,
   row,
-  selectionWidth,
+  before,
+  treeColumn,
 }: {
   cell: Cell<F, TData, unknown>;
   row: Row<F, TData>;
-  /** The pinned selection column's width, added to every start offset. */
-  selectionWidth: number;
+  before: number;
+  /** The column that carries the tree cell, in tree mode. */
+  treeColumn: string | undefined;
 }) {
   const meta = cell.column.columnDef.meta;
+  const options = cell.column.table.options.meta;
   const content = flexRender(cell.column.columnDef.cell, cell.getContext());
   const record = row.original as never;
-  const pin = pinning(cell.column, selectionWidth);
+  const pin = pinning(cell.column, before);
+
+  if (options?.tree && cell.column.id === treeColumn) {
+    const folded = row.getCanExpand() && !row.getIsExpanded();
+    return (
+      <Table.Tree
+        depth={row.depth}
+        hasChildren={row.getCanExpand()}
+        expanded={row.getIsExpanded()}
+        onToggle={() => row.toggleExpanded()}
+        label={options.tree.label(record)}
+        hint={folded ? options.tree.hint?.(record, row.subRows.length) : null}
+      >
+        {content}
+      </Table.Tree>
+    );
+  }
 
   if (meta?.kind === "id") {
     const glance = meta.glance?.(record);
@@ -251,52 +277,174 @@ function BodyCell<TData extends RowData>({
 
 type BodyRowProps<TData extends RowData> = {
   row: Row<F, TData>;
-  selectable: boolean;
+  leading: Leading;
   isSelected: boolean;
   canSelect: boolean;
   /** The id column's active flag, read by the parent so the memo sees it change. */
   isActive: boolean;
+  /** Expanded, in tree mode or with a detail; the parent reads it so the memo sees it change. */
+  isExpanded: boolean;
   /** The visible columns in order; a change re-renders every row. */
   columnsKey: string;
-  selectionWidth: number;
+  /** The width of the pinned leading columns. */
+  before: number;
+  treeColumn: string | undefined;
+  columnCount: number;
+  isPinnedRow: boolean;
   onRowClick?: ((row: TData) => void) | undefined;
+  onKeyDown?: ((event: KeyboardEvent<HTMLTableRowElement>) => void) | undefined;
 };
 
 /**
  * One row, memoized on what it shows. A thousand rows must not redraw because one checkbox changed:
  * the parent re-renders and hands each row its flags, and only the rows whose flags changed draw.
+ * In tree mode the row carries the treegrid aria and takes the arrow keys; with a detail it carries
+ * the chevron and the detail row after it.
  */
 const BodyRow = memo(function BodyRow<TData extends RowData>({
   row,
-  selectable,
+  leading,
   isSelected,
   canSelect,
+  isExpanded,
   columnsKey: _columnsKey,
   isActive: _isActive,
-  selectionWidth,
+  before,
+  treeColumn,
+  columnCount,
+  isPinnedRow,
   onRowClick,
+  onKeyDown,
 }: BodyRowProps<TData>) {
+  const options = row.table.options.meta;
+  const tree = Boolean(options?.tree);
+  const detail = options?.detail;
+  const drag = useRowDrag(row.id, leading.handle);
+  const detailId = `${options?.view ?? "table"}-${row.id}-detail`;
+  const pinnedLeading = before > 0;
   return (
-    <Table.Row
-      isSelected={isSelected}
-      className={onRowClick ? "cursor-pointer" : undefined}
-      {...(onRowClick ? { onClick: () => onRowClick(row.original) } : {})}
-    >
-      {selectable ? (
-        <Table.Selection
-          checked={isSelected}
-          onCheckedChange={(next) => row.toggleSelected(next)}
-          label={`Select row ${row.id}`}
-          disabled={!canSelect}
-          pinned={selectionWidth > 0 ? "start" : false}
-        />
+    <>
+      <Table.Row
+        ref={drag.setNodeRef}
+        style={drag.style}
+        data-row-id={row.id}
+        isSelected={isSelected}
+        className={cn(
+          onRowClick && "cursor-pointer",
+          isPinnedRow && "bg-surface-sunken",
+          drag.isDragging && "bg-surface-hovered",
+        )}
+        {...(tree
+          ? {
+              "aria-level": row.depth + 1,
+              ...(row.getCanExpand() ? { "aria-expanded": isExpanded } : {}),
+              tabIndex: -1,
+              onKeyDown,
+            }
+          : {})}
+        {...(onRowClick ? { onClick: () => onRowClick(row.original) } : {})}
+      >
+        {leading.selectable ? (
+          <Table.Selection
+            checked={isSelected}
+            onCheckedChange={(next) => row.toggleSelected(next)}
+            label={`Select row ${row.id}`}
+            disabled={!canSelect}
+            pinned={pinnedLeading ? "start" : false}
+          />
+        ) : null}
+        {leading.handle ? (
+          <Table.Handle
+            {...(drag.handle ?? {})}
+            isDragging={drag.isDragging}
+            label={`Reorder row ${row.id}`}
+          />
+        ) : null}
+        {leading.detail ? (
+          <Table.Cell className="w-400 max-w-none pe-0" onClick={(e) => e.stopPropagation()}>
+            <IconButton
+              label={isExpanded ? "Close" : "Open"}
+              variant="subtle"
+              className="size-250"
+              aria-expanded={isExpanded}
+              aria-controls={detailId}
+              onClick={() => row.toggleExpanded()}
+            >
+              <ChevronRight
+                className={cn(
+                  "size-icon-small transition-transform duration-fast ease-standard",
+                  isExpanded && "rotate-90",
+                )}
+              />
+            </IconButton>
+          </Table.Cell>
+        ) : null}
+        {row.getVisibleCells().map((cell) => (
+          <BodyCell key={cell.id} cell={cell} row={row} before={before} treeColumn={treeColumn} />
+        ))}
+      </Table.Row>
+      {detail && isExpanded ? (
+        <Table.Detail id={detailId} colSpan={columnCount}>
+          {detail(row.original as never)}
+        </Table.Detail>
       ) : null}
-      {row.getVisibleCells().map((cell) => (
-        <BodyCell key={cell.id} cell={cell} row={row} selectionWidth={selectionWidth} />
-      ))}
-    </Table.Row>
+    </>
   );
 }) as <TData extends RowData>(props: BodyRowProps<TData>) => ReactNode;
+
+/** The arrow keys on a treegrid: up and down move between rows, right opens or steps in, left closes or steps out. */
+function treeKeys<TData extends RowData>(table: DataTableInstance<TData>) {
+  return (event: KeyboardEvent<HTMLTableRowElement>) => {
+    const tr = event.currentTarget;
+    const id = tr.dataset["rowId"];
+    if (!id || event.target !== tr) return;
+    const row = table.getRow(id);
+    const siblings = [
+      ...(tr.parentElement?.querySelectorAll<HTMLTableRowElement>("tr[data-row-id]") ?? []),
+    ];
+    const focusAt = (el: HTMLTableRowElement | undefined) => {
+      if (!el) return;
+      el.tabIndex = 0;
+      tr.tabIndex = -1;
+      el.focus();
+    };
+    const at = siblings.indexOf(tr);
+    switch (event.key) {
+      case "ArrowDown":
+        focusAt(siblings[at + 1]);
+        break;
+      case "ArrowUp":
+        focusAt(siblings[at - 1]);
+        break;
+      case "ArrowRight":
+        if (row.getCanExpand() && !row.getIsExpanded()) row.toggleExpanded(true);
+        else focusAt(siblings[at + 1]);
+        break;
+      case "ArrowLeft":
+        if (row.getIsExpanded()) row.toggleExpanded(false);
+        else {
+          const parent = row.getParentRow();
+          if (parent) focusAt(siblings.find((el) => el.dataset["rowId"] === parent.id));
+        }
+        break;
+      case "Home":
+        focusAt(siblings[0]);
+        break;
+      case "End":
+        focusAt(siblings[siblings.length - 1]);
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+  };
+}
+
+/** The first row is the treegrid's tab stop; whichever row is focused holds it after that. */
+const claimTabStop = (event: { target: EventTarget }) => {
+  const el = event.target as HTMLElement;
+  if (el.tagName === "TR") el.tabIndex = 0;
+};
 
 function DataTableRoot<TData extends RowData>({
   table,
@@ -308,140 +456,217 @@ function DataTableRoot<TData extends RowData>({
   maxHeight,
   className,
 }: DataTableProps<TData>) {
+  const options = table.options.meta;
   const selectable = Boolean(table.options.enableRowSelection);
-  const pageSize = table.options.meta?.pageSize;
-  const label = table.options.meta?.label;
+  const leading: Leading = {
+    selectable,
+    handle: Boolean(options?.reorderRows),
+    detail: Boolean(options?.detail),
+  };
+  const pageSize = options?.pageSize;
+  const label = options?.label;
+  const tree = options?.tree;
+  const groupBy = options?.groupBy;
   const headerGroups = table.getHeaderGroups();
-  const rows = table.getRowModel().rows;
   const visibleColumns = table.getVisibleLeafColumns();
-  const columnCount = visibleColumns.length + (selectable ? 1 : 0);
+  const columnCount = visibleColumns.length + leadingCount(leading);
   const columnsKey = [
     ...visibleColumns.map((c) => c.id),
     ...table.state.columnPinning.start,
     "|",
     ...table.state.columnPinning.end,
     JSON.stringify(table.state.columnSizing),
-  ].join("\u0000");
-  const options = table.options.meta;
-  const fixed = options?.layout === "fixed";
-  // The selection column pins with the start-pinned columns, so their offsets begin after it.
-  const selectionWidth =
-    selectable && table.state.columnPinning.start.length > 0 ? SELECTION_WIDTH : 0;
-  // In the fixed layout a sized column is exactly its width and the unsized ones share the slack; the
-  // table is at least as wide as its sized columns plus a minimum for each unsized one, and scrolls past the frame.
-  const minWidth = fixed
-    ? visibleColumns.reduce(
-        (sum, c) => {
-          const sized =
-            c.columnDef.size !== undefined ||
-            table.state.columnSizing[c.id] !== undefined ||
-            c.getIsPinned();
-          return sum + (sized ? c.getSize() : (c.columnDef.minSize ?? 120));
-        },
-        selectable ? 32 : 0,
-      )
-    : undefined;
+  ].join(" ");
   const active = visibleColumns.find((c) => c.columnDef.meta?.kind === "id")?.columnDef.meta
     ?.active;
-  const showRows = state === "ready" && rows.length > 0;
-  const isEmpty = state === "empty" || (state === "ready" && rows.length === 0);
+  const fixed = options?.layout === "fixed";
+  // The leading columns pin with the start-pinned columns, so their offsets begin after them.
+  const before = table.state.columnPinning.start.length > 0 ? leadingWidth(leading) : 0;
+  const minWidth = fixed
+    ? visibleColumns.reduce((sum, c) => {
+        const sized =
+          c.columnDef.size !== undefined ||
+          table.state.columnSizing[c.id] !== undefined ||
+          c.getIsPinned();
+        return sum + (sized ? c.getSize() : (c.columnDef.minSize ?? 120));
+      }, leadingWidth(leading))
+    : undefined;
+  const treeColumn = tree
+    ? (tree.column ??
+      visibleColumns.find(
+        (c) => c.columnDef.meta?.kind !== "id" && c.columnDef.meta?.kind !== "actions",
+      )?.id)
+    : undefined;
+  const onKeyDown = tree ? treeKeys(table) : undefined;
+
+  const allRows = table.getRowModel().rows;
+  const pinRows = Boolean(options?.pinRows);
+  const topRows = pinRows ? table.getTopRows() : [];
+  const bottomRows = pinRows ? table.getBottomRows() : [];
+  const rows = pinRows ? table.getCenterRows() : allRows;
+  const groups = groupBy ? allRows.filter((r) => r.getIsGrouped() && r.depth === 0) : [];
+  const showRows = state === "ready" && allRows.length > 0;
+  const isEmpty = state === "empty" || (state === "ready" && allRows.length === 0);
+  const footerGroup = visibleColumns.some((c) => c.columnDef.footer !== undefined)
+    ? table.getFooterGroups().find((g) => g.headers.every((h) => h.subHeaders.length === 0))
+    : undefined;
+
+  const drawRow = (row: Row<F, TData>, isPinnedRow = false) => (
+    <BodyRow
+      key={row.id}
+      row={row}
+      leading={leading}
+      isSelected={row.getIsSelected()}
+      canSelect={row.getCanSelect()}
+      isActive={active ? active(row.original as never) : false}
+      isExpanded={row.getIsExpanded()}
+      columnsKey={columnsKey}
+      before={before}
+      treeColumn={treeColumn}
+      columnCount={columnCount}
+      isPinnedRow={isPinnedRow}
+      onRowClick={onRowClick}
+      onKeyDown={onKeyDown}
+    />
+  );
+
+  const narrowHeader = (key: string) => (
+    <Table.Header key={key} className="w-400 pe-0" pinned={before > 0 ? "start" : false} />
+  );
+
+  const states = (
+    <>
+      {state === "loading"
+        ? Array.from({ length: pageSize ?? 5 }, (_, i) => (
+            <Table.Row key={i} isStatic>
+              <Table.Cell colSpan={columnCount} className="max-w-none">
+                <Skeleton lines={1} />
+              </Table.Cell>
+            </Table.Row>
+          ))
+        : null}
+      {state === "error" ? (
+        <Table.Row isStatic>
+          <Table.Cell
+            colSpan={columnCount}
+            className="h-auto max-w-none whitespace-normal px-150 py-150"
+          >
+            <Alert tone="danger">{error ?? "The rows could not be loaded."}</Alert>
+          </Table.Cell>
+        </Table.Row>
+      ) : null}
+      {isEmpty ? (
+        <Table.Row isStatic>
+          <Table.Cell
+            colSpan={columnCount}
+            className="h-auto max-w-none whitespace-normal px-150 py-150"
+          >
+            <Empty
+              title={empty?.title ?? "Nothing here"}
+              description={empty?.description}
+              action={empty?.action}
+            />
+          </Table.Cell>
+        </Table.Row>
+      ) : null}
+    </>
+  );
 
   return (
     <div className={cn("overflow-hidden rounded-large border border-default", className)}>
       {toolbar ? <div className="border-b border-default px-150 py-100">{toolbar}</div> : null}
-      <ColumnReorder table={table}>
+      <DragContext table={table}>
         <Table
           {...(label ? { "aria-label": label } : {})}
           {...(maxHeight === undefined ? {} : { maxHeight })}
+          {...(tree ? { role: "treegrid" } : {})}
           className={fixed ? "table-fixed" : undefined}
           style={minWidth === undefined ? undefined : { minWidth }}
         >
           <thead>
-            {headerGroups.map((group, i) => (
-              <tr key={group.id}>
-                {selectable ? (
-                  i === headerGroups.length - 1 ? (
-                    <Table.Selection
-                      header
-                      checked={
-                        table.getIsAllPageRowsSelected()
-                          ? true
-                          : table.getIsSomePageRowsSelected()
-                            ? "indeterminate"
-                            : false
-                      }
-                      onCheckedChange={(next) => table.toggleAllPageRowsSelected(next)}
-                      label="Select all rows on this page"
-                      pinned={selectionWidth > 0 ? "start" : false}
-                    />
+            <ColumnSortable table={table}>
+              {headerGroups.map((group, i) => (
+                <tr key={group.id}>
+                  {i === headerGroups.length - 1 ? (
+                    <>
+                      {leading.selectable ? (
+                        <Table.Selection
+                          header
+                          checked={
+                            table.getIsAllPageRowsSelected()
+                              ? true
+                              : table.getIsSomePageRowsSelected()
+                                ? "indeterminate"
+                                : false
+                          }
+                          onCheckedChange={(next) => table.toggleAllPageRowsSelected(next)}
+                          label="Select all rows on this page"
+                          pinned={before > 0 ? "start" : false}
+                        />
+                      ) : null}
+                      {leading.handle ? narrowHeader("handle") : null}
+                      {leading.detail ? narrowHeader("detail") : null}
+                    </>
                   ) : (
-                    <Table.Header className="border-b-0" />
-                  )
-                ) : null}
-                {group.headers.map((header) => (
-                  <HeaderCell
-                    key={header.id}
-                    header={header}
-                    table={table}
-                    selectionWidth={selectionWidth}
-                  />
-                ))}
-              </tr>
-            ))}
+                    Array.from({ length: leadingCount(leading) }, (_, j) => (
+                      <Table.Header key={j} className="border-b-0" />
+                    ))
+                  )}
+                  {group.headers.map((header) => (
+                    <HeaderCell key={header.id} header={header} table={table} before={before} />
+                  ))}
+                </tr>
+              ))}
+            </ColumnSortable>
           </thead>
-          <tbody>
-            {state === "loading"
-              ? Array.from({ length: pageSize ?? 5 }, (_, i) => (
-                  <Table.Row key={i} isStatic>
-                    <Table.Cell colSpan={columnCount} className="max-w-none">
-                      <Skeleton lines={1} />
-                    </Table.Cell>
-                  </Table.Row>
-                ))
-              : null}
-            {state === "error" ? (
-              <Table.Row isStatic>
-                <Table.Cell
-                  colSpan={columnCount}
-                  className="h-auto max-w-none whitespace-normal px-150 py-150"
-                >
-                  <Alert tone="danger">{error ?? "The rows could not be loaded."}</Alert>
-                </Table.Cell>
+          {groupBy && showRows ? (
+            groups.map((group) => (
+              <Table.Group
+                key={group.id}
+                colSpan={columnCount}
+                open={group.getIsExpanded()}
+                onToggle={() => group.toggleExpanded()}
+                title={String(group.groupingValue ?? "")}
+                count={group.getLeafRows().length}
+              >
+                {group.subRows.map((row) => drawRow(row))}
+              </Table.Group>
+            ))
+          ) : (
+            <tbody {...(tree ? { onFocus: claimTabStop } : {})}>
+              {states}
+              {showRows ? (
+                <RowSortable table={table}>
+                  {topRows.map((row) => drawRow(row, true))}
+                  {rows.map((row) => drawRow(row))}
+                  {bottomRows.map((row) => drawRow(row, true))}
+                </RowSortable>
+              ) : null}
+            </tbody>
+          )}
+          {footerGroup && showRows ? (
+            <tfoot>
+              <Table.Row isStatic className="border-t border-default">
+                {Array.from({ length: leadingCount(leading) }, (_, j) => (
+                  <Table.Cell key={j} className="w-400 max-w-none pe-0" />
+                ))}
+                {footerGroup.headers.map((header) => (
+                  <Table.Cell
+                    key={header.id}
+                    className={alignClass(header.column.columnDef.meta?.align)}
+                    colSpan={header.colSpan}
+                  >
+                    {header.isPlaceholder || header.column.columnDef.footer === undefined
+                      ? null
+                      : flexRender(header.column.columnDef.footer, header.getContext())}
+                  </Table.Cell>
+                ))}
               </Table.Row>
-            ) : null}
-            {isEmpty ? (
-              <Table.Row isStatic>
-                <Table.Cell
-                  colSpan={columnCount}
-                  className="h-auto max-w-none whitespace-normal px-150 py-150"
-                >
-                  <Empty
-                    title={empty?.title ?? "Nothing here"}
-                    description={empty?.description}
-                    action={empty?.action}
-                  />
-                </Table.Cell>
-              </Table.Row>
-            ) : null}
-            {showRows
-              ? rows.map((row) => (
-                  <BodyRow
-                    key={row.id}
-                    row={row}
-                    selectable={selectable}
-                    isSelected={row.getIsSelected()}
-                    canSelect={row.getCanSelect()}
-                    isActive={active ? active(row.original as never) : false}
-                    columnsKey={columnsKey}
-                    selectionWidth={selectionWidth}
-                    onRowClick={onRowClick}
-                  />
-                ))
-              : null}
-          </tbody>
+            </tfoot>
+          ) : null}
         </Table>
-      </ColumnReorder>
-      {pageSize !== undefined && state !== "loading" ? (
+      </DragContext>
+      {pageSize !== undefined && !groupBy && state !== "loading" ? (
         <Pagination
           page={table.state.pagination.pageIndex + 1}
           pageCount={Math.max(1, table.getPageCount())}

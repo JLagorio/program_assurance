@@ -12,19 +12,17 @@
  */
 
 import { useNavigate } from "@tanstack/react-router";
-import { MoreHorizontal } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
   Absent,
   Badge,
   Button,
   Combobox,
+  DataTable,
   Dialog,
-  DropdownMenu,
   Field,
   Grid,
-  IconButton,
   Indicator,
   Inline,
   Input,
@@ -35,7 +33,9 @@ import {
   Table,
   Text,
   Textarea,
+  defineColumns,
   toast,
+  useDataTable,
 } from "@ledger/design-system";
 import {
   addCompositionNodes,
@@ -119,215 +119,158 @@ type Row = {
 
 /* ------------------------------------------------------------------ Tree */
 
+/** A node's row, with its parts under it: the projection the tree draws. */
+type TreeRow = Row & { parts: TreeRow[] };
+
 export function SystemTree({ programId }: { programId: string }) {
   const nodes = useCompositionGraph(programId);
-  useScopesVersion();
-  useControlSetVersion();
-  useRequirementsVersion();
-  useWorkVersion();
+  const scopesVersion = useScopesVersion();
+  const controlSetVersion = useControlSetVersion();
+  const requirementsVersion = useRequirementsVersion();
+  const workVersion = useWorkVersion();
 
-  // Ids whose default fold state the reader has flipped.
-  const [toggled, setToggled] = useState<Set<string>>(() => new Set());
   const [adding, setAdding] = useState<CompositionNode | null>(null);
   const [allocating, setAllocating] = useState<CompositionNode | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const scopes = scopesForProgram(programId);
-  const scopeByElement = new Map(scopes.map((s) => [s.element, s]));
-  // Every store this reads is subscribed above, so the projection is rebuilt
-  // per render; the tree is tens of rows, not thousands.
-  const index = workIndex(programId);
+
+  // The projection: every node with what it owes, its parts under it. Rebuilt when a store changes,
+  // and the tree's open rows survive that because the table keeps them by node id.
+  const rows = useMemo(() => {
+    const scopeByElement = new Map(scopes.map((s) => [s.element, s]));
+    const index = workIndex(programId);
+    const build = (node: CompositionNode, depth: number): TreeRow => {
+      const scope = scopeByElement.get(node.id) ?? null;
+      const kids = childrenOf(node.id);
+      // What a node owes is the union over its subtree: a requirement allocated
+      // to a board inside a subsystem is that subsystem's obligation too, and a
+      // folded row must not read as empty.
+      const subtree = [node, ...descendantsOf(node.id)];
+      const requirements = new Set<string>();
+      const withoutControl = new Set<string>();
+      const reached = new Set<string>();
+      for (const n of subtree) {
+        for (const a of allocationsOn(n.id)) requirements.add(a.requirement);
+        const trace = derivedControlTrace(n.id);
+        for (const r of trace.withoutControl) withoutControl.add(r.id);
+        for (const c of trace.controls) reached.add(c);
+      }
+      return {
+        node,
+        depth,
+        scope,
+        requirements: requirements.size,
+        withoutControl: withoutControl.size,
+        controls: scope ? (controlSetFor(scope.id)?.total ?? 0) : reached.size,
+        work: scope ? scopeWork(scope) : traceWork([...reached], index),
+        children: kids.length,
+        parts: kids.map((k) => build(k, depth + 1)),
+      };
+    };
+    return nodes.filter((n) => n.parent === null).map((n) => build(n, 0));
+    // the stores this reads are subscribed through their versions
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodes, programId, scopesVersion, controlSetVersion, requirementsVersion, workVersion]);
 
   // A subsystem's parts start folded: the map reads at the level the
   // categorization happens, and a chevron opens the parts.
-  const isOpen = (node: CompositionNode, depth: number, scope: AssessmentScope | null) => {
-    const byDefault = depth === 0 || scope !== null || expandedByDefault(node);
-    return toggled.has(node.id) ? !byDefault : byDefault;
-  };
+  const initialExpanded = useMemo(() => {
+    const open: string[] = [];
+    const walk = (r: TreeRow) => {
+      if (r.depth === 0 || r.scope !== null || expandedByDefault(r.node)) open.push(r.node.id);
+      r.parts.forEach(walk);
+    };
+    rows.forEach(walk);
+    return open;
+    // the first render decides; the table keeps the reader's changes after that
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const rows: (Row & { open: boolean })[] = [];
-  const walk = (node: CompositionNode, depth: number) => {
-    const scope = scopeByElement.get(node.id) ?? null;
-    const kids = childrenOf(node.id);
-    const open = isOpen(node, depth, scope);
-    // What a node owes is the union over its subtree: a requirement allocated
-    // to a board inside a subsystem is that subsystem's obligation too, and a
-    // folded row must not read as empty.
-    const subtree = [node, ...descendantsOf(node.id)];
-    const requirements = new Set<string>();
-    const withoutControl = new Set<string>();
-    const reached = new Set<string>();
-    for (const n of subtree) {
-      for (const a of allocationsOn(n.id)) requirements.add(a.requirement);
-      const trace = derivedControlTrace(n.id);
-      for (const r of trace.withoutControl) withoutControl.add(r.id);
-      for (const c of trace.controls) reached.add(c);
-    }
-    rows.push({
-      node,
-      depth,
-      scope,
-      requirements: requirements.size,
-      withoutControl: withoutControl.size,
-      controls: scope ? (controlSetFor(scope.id)?.total ?? 0) : reached.size,
-      work: scope ? scopeWork(scope) : traceWork([...reached], index),
-      children: kids.length,
-      open,
-    });
-    if (!open) return;
-    for (const child of kids) walk(child, depth + 1);
-  };
-  for (const root of nodes.filter((n) => n.parent === null)) walk(root, 0);
+  const columns = useMemo(
+    () =>
+      defineColumns<TreeRow>((c) => [
+        c.custom("element", { header: "Element", cell: (r) => r.node.name }),
+        c.custom("kind", { header: "Kind", width: 100, cell: (r) => r.node.kind }),
+        ...objectives.map((o) =>
+          c.custom(o, {
+            header: o.slice(0, 1),
+            width: 48,
+            cell: (r) => {
+              const triad = r.scope ? triadOf(r.scope) : null;
+              return triad ? (
+                <Badge size="xsmall" tone={impactTone[triad[o]]}>
+                  {triad[o].slice(0, 1)}
+                </Badge>
+              ) : null;
+            },
+          }),
+        ),
+        c.custom("requirements", {
+          header: "Requirements",
+          width: 110,
+          align: "end",
+          cell: (r) =>
+            r.requirements ? (
+              <span title={r.withoutControl ? `${r.withoutControl} name no control` : undefined}>
+                {r.requirements}
+                {r.withoutControl ? (
+                  <Text color="color.text.subtle"> · {r.withoutControl} own</Text>
+                ) : null}
+              </span>
+            ) : (
+              <Absent />
+            ),
+        }),
+        c.custom("controls", {
+          header: "Controls",
+          width: 80,
+          align: "end",
+          cell: (r) => r.controls || <Absent />,
+        }),
+        c.custom("work", { header: "Work", width: 210, cell: (r) => <WorkBar work={r.work} /> }),
+        c.custom("controlSet", {
+          header: "Control set",
+          width: 180,
+          cell: (r) => (r.scope ? <ControlSetCell scope={r.scope} /> : null),
+        }),
+        c.actions((r) => [
+          { label: "Allocate a requirement", onSelect: () => setAllocating(r.node) },
+          { label: "Add a part", onSelect: () => setAdding(r.node) },
+          {
+            label: "Open the full record",
+            onSelect: () =>
+              void navigate({
+                to: "/programs/$programId/components/$componentId",
+                params: { programId, componentId: r.node.id },
+              }),
+          },
+        ]),
+      ]),
+    [navigate, programId],
+  );
 
-  const toggle = (id: string) =>
-    setToggled((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const table = useDataTable({
+    columns,
+    data: rows,
+    getRowId: (r) => r.node.id,
+    label: "System",
+    tree: {
+      children: (r) => r.parts,
+      label: (r) => r.node.name,
+      hint: (_, n) => (
+        <Text size="xsmall" color="color.text.subtle">
+          {n} part{n === 1 ? "" : "s"}
+        </Text>
+      ),
+      initialExpanded,
+    },
+  });
 
   return (
     <Stack space="space.150">
-      <Table role="treegrid">
-        <thead>
-          <Table.Row>
-            <Table.Header>Element</Table.Header>
-            <Table.Header width={100}>Kind</Table.Header>
-            {objectives.map((o) => (
-              <Table.Header key={o} title={o} width={48}>
-                {o.slice(0, 1)}
-              </Table.Header>
-            ))}
-            <Table.Header width={96} className="text-right">
-              Requirements
-            </Table.Header>
-            <Table.Header width={72} className="text-right">
-              Controls
-            </Table.Header>
-            <Table.Header width={210}>Work</Table.Header>
-            <Table.Header width={180}>Control set</Table.Header>
-            <Table.Header width={48} className="text-right">
-              {" "}
-            </Table.Header>
-          </Table.Row>
-        </thead>
-        <tbody>
-          {rows.map((r) => {
-            const triad = r.scope ? triadOf(r.scope) : null;
-            const folded = r.children > 0 && !r.open;
-            return (
-              <Table.Row
-                key={r.node.id}
-                className="cursor-pointer"
-                aria-level={r.depth + 1}
-                aria-expanded={r.children > 0 ? r.open : undefined}
-                onClick={() => setPreview(r.node.id)}
-              >
-                <Table.Tree
-                  depth={r.depth}
-                  hasChildren={r.children > 0}
-                  expanded={!folded}
-                  onToggle={() => toggle(r.node.id)}
-                  label={r.node.name}
-                  hint={
-                    folded ? (
-                      <Text size="xsmall" color="color.text.subtle">
-                        {r.children} part{r.children === 1 ? "" : "s"}
-                      </Text>
-                    ) : null
-                  }
-                >
-                  {r.node.name}
-                </Table.Tree>
-                <Table.Cell className="truncate">{r.node.kind}</Table.Cell>
-                {objectives.map((o) => (
-                  <Table.Cell key={o}>
-                    {triad ? (
-                      <Badge size="xsmall" tone={impactTone[triad[o]]}>
-                        {triad[o].slice(0, 1)}
-                      </Badge>
-                    ) : null}
-                  </Table.Cell>
-                ))}
-                <Table.Cell className="tabular-nums text-right">
-                  {r.requirements ? (
-                    <span
-                      title={r.withoutControl ? `${r.withoutControl} name no control` : undefined}
-                    >
-                      {r.requirements}
-                      {r.withoutControl ? (
-                        <Text color="color.text.subtle"> · {r.withoutControl} own</Text>
-                      ) : null}
-                    </span>
-                  ) : (
-                    <Absent />
-                  )}
-                </Table.Cell>
-                <Table.Cell className="tabular-nums text-right">
-                  {r.controls || <Absent />}
-                </Table.Cell>
-                <Table.Cell className="max-w-none">
-                  <WorkBar work={r.work} />
-                </Table.Cell>
-                <Table.Cell className="max-w-none">
-                  {r.scope ? <ControlSetCell scope={r.scope} /> : null}
-                </Table.Cell>
-                <Table.Cell className="max-w-none text-right">
-                  <span onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu
-                      align="end"
-                      width={220}
-                      trigger={
-                        <IconButton
-                          size="small"
-                          variant="subtle"
-                          label={`Actions for ${r.node.name}`}
-                        >
-                          <MoreHorizontal className="size-icon-small" />
-                        </IconButton>
-                      }
-                    >
-                      {(close) => (
-                        <>
-                          <DropdownMenu.Item
-                            onSelect={() => {
-                              close();
-                              setAllocating(r.node);
-                            }}
-                          >
-                            Allocate a requirement
-                          </DropdownMenu.Item>
-                          <DropdownMenu.Item
-                            onSelect={() => {
-                              close();
-                              setAdding(r.node);
-                            }}
-                          >
-                            Add a part
-                          </DropdownMenu.Item>
-                          <DropdownMenu.Item
-                            onSelect={() => {
-                              close();
-                              navigate({
-                                to: "/programs/$programId/components/$componentId",
-                                params: { programId, componentId: r.node.id },
-                              });
-                            }}
-                          >
-                            Open the full record
-                          </DropdownMenu.Item>
-                        </>
-                      )}
-                    </DropdownMenu>
-                  </span>
-                </Table.Cell>
-              </Table.Row>
-            );
-          })}
-        </tbody>
-      </Table>
+      <DataTable table={table} onRowClick={(r) => setPreview(r.node.id)} />
 
       <AddNodeSheet
         open={adding !== null}

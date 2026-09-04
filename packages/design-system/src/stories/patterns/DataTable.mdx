@@ -46,6 +46,20 @@ Every kind takes `header`, `width` (pixels; also the minimum), `minWidth`, `sort
 
 <Canvas of={Stories.ColumnGroups} />
 
+## Rows
+
+`tree` makes the table a treegrid: `children` reads a row's parts, the name column carries the chevron and the indent, `label` names the row for the chevron, `hint` is the muted count after a folded row, `initialExpanded` says which open first. Arrow keys move, open and close; Home and End jump. `detail` opens a row into what it returns, a child table included, under a chevron column. `groupBy` puts the rows under a band per value of that column, each opened and closed as one, with the column itself leaving the row; pagination is off while it is on. `pinRows` lets `row.pin("top")` and `"bottom"` hold rows under the header or above the footer on the sunken surface. A number column's `footer` totals the rows the filters leave: sum, mean, min, max, count, or your own. `reorderRows` puts a handle on every row that drags, or takes Space and the arrow keys, and tells you which row moved next to which; sorting is off while it is on.
+
+<Canvas of={Stories.TreeStory} />
+
+<Canvas of={Stories.DetailRows} />
+
+<Canvas of={Stories.GroupsStory} />
+
+<Canvas of={Stories.PinnedRowsStory} />
+
+<Canvas of={Stories.ReorderingRows} />
+
 ## Rules
 
 - Text starts; numbers end with tabular numerals and their header with them; a status or a person starts. A number never centres. The kinds carry this.

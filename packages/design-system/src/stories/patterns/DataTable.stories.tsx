@@ -3,9 +3,11 @@ import { useMemo, useState } from "react";
 
 import { Button, Toolbar, type Tone } from "../../components";
 import {
-  ColumnReorder,
+  ColumnSortable,
   DataTable,
+  DragContext,
   HeaderMenu,
+  RowSortable,
   defineColumns,
   useColumnDrag,
   useDataTable,
@@ -60,7 +62,7 @@ function makeFindings(count: number): Finding[] {
     name: names[i % names.length] ?? "",
     owner: owners[(i * 7) % owners.length] ?? "",
     status: statuses[(i * 3) % statuses.length] ?? "Draft",
-    family: families[(i * 5) % families.length] ?? "",
+    family: families[(i * 3) % families.length] ?? "",
     open: (i * 37) % 120,
     due: `2026-${String(1 + (i % 12)).padStart(2, "0")}-${String(1 + ((i * 11) % 28)).padStart(2, "0")}`,
   }));
@@ -241,7 +243,7 @@ function Groups() {
 
 export const ColumnGroups: Story = { name: "Column groups", render: () => <Groups /> };
 
-/** A header drawn by hand inside ColumnReorder, with the column menu: the escape hatch, for a layout the renderer cannot draw. */
+/** A header drawn by hand inside DragContext and ColumnSortable, with the column menu: the escape hatch, for a layout the renderer cannot draw. */
 function DraggableHeader({
   table,
   column,
@@ -269,26 +271,30 @@ function DraggableHeader({
 
 function ByHand({ table }: { table: DataTableInstance<Finding> }) {
   return (
-    <Table>
-      <thead>
-        <ColumnReorder table={table}>
-          <tr>
-            {table.getVisibleLeafColumns().map((c) => (
-              <DraggableHeader key={c.id} table={table} column={c} />
+    <DragContext table={table}>
+      <Table>
+        <thead>
+          <ColumnSortable table={table}>
+            <tr>
+              {table.getVisibleLeafColumns().map((c) => (
+                <DraggableHeader key={c.id} table={table} column={c} />
+              ))}
+            </tr>
+          </ColumnSortable>
+        </thead>
+        <tbody>
+          <RowSortable table={table}>
+            {table.getRowModel().rows.map((row) => (
+              <Table.Row key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <Table.Cell key={cell.id}>{String(cell.getValue() ?? "")}</Table.Cell>
+                ))}
+              </Table.Row>
             ))}
-          </tr>
-        </ColumnReorder>
-      </thead>
-      <tbody>
-        {table.getRowModel().rows.map((row) => (
-          <Table.Row key={row.id}>
-            {row.getVisibleCells().map((cell) => (
-              <Table.Cell key={cell.id}>{String(cell.getValue() ?? "")}</Table.Cell>
-            ))}
-          </Table.Row>
-        ))}
-      </tbody>
-    </Table>
+          </RowSortable>
+        </tbody>
+      </Table>
+    </DragContext>
   );
 }
 
@@ -306,6 +312,237 @@ export const ReorderingByHand: Story = {
   name: "Reordering, by hand",
   render: () => <Reordering />,
 };
+
+/** A system as built: subsystems, boards, chips. The name column carries the chevron and the indent; the table is a treegrid and takes the arrow keys. Controls total in the footer. */
+type Part = {
+  id: string;
+  name: string;
+  kind: string;
+  owner: string;
+  controls: number;
+  parts?: Part[];
+};
+const system: Part[] = [
+  {
+    id: "fc",
+    name: "Flight computer",
+    kind: "Subsystem",
+    owner: "Dana Whitfield",
+    controls: 42,
+    parts: [
+      {
+        id: "fc-main",
+        name: "Main board",
+        kind: "Board",
+        owner: "Grace Hoppel",
+        controls: 18,
+        parts: [
+          { id: "fc-main-soc", name: "SoC", kind: "Chip", owner: "Grace Hoppel", controls: 6 },
+          { id: "fc-main-tpm", name: "TPM", kind: "Chip", owner: "Marcus Ryde", controls: 9 },
+        ],
+      },
+      { id: "fc-io", name: "I/O board", kind: "Board", owner: "Priya Raghavan", controls: 7 },
+      {
+        id: "fc-fw",
+        name: "Firmware image",
+        kind: "Firmware",
+        owner: "Linus Aarto",
+        controls: 11,
+        parts: [
+          {
+            id: "fc-fw-boot",
+            name: "Bootloader",
+            kind: "Bootloader",
+            owner: "Linus Aarto",
+            controls: 4,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "gs",
+    name: "Ground station",
+    kind: "Subsystem",
+    owner: "Marcus Ryde",
+    controls: 27,
+    parts: [
+      {
+        id: "gs-app",
+        name: "Operator console",
+        kind: "Application",
+        owner: "Priya Raghavan",
+        controls: 15,
+      },
+      {
+        id: "gs-svc",
+        name: "Telemetry service",
+        kind: "Service",
+        owner: "Dana Whitfield",
+        controls: 12,
+      },
+    ],
+  },
+];
+
+const partColumns = defineColumns<Part>((c) => [
+  c.text("name", { header: "Element", sortable: false }),
+  c.text("kind", { header: "Kind", width: 130, sortable: false }),
+  c.person("owner", { header: "Owner", width: 180, sortable: false }),
+  c.number("controls", { header: "Controls", width: 110, sortable: false, footer: "sum" }),
+]);
+
+function Tree() {
+  const [opened, setOpened] = useState<string | null>(null);
+  const table = useDataTable({
+    columns: partColumns,
+    data: system,
+    getRowId: (r) => r.id,
+    label: "System",
+    tree: {
+      children: (r) => r.parts,
+      label: (r) => r.name,
+      hint: (_, n) => (
+        <Text size="xsmall" color="color.text.subtle">
+          {n} part{n === 1 ? "" : "s"}
+        </Text>
+      ),
+      initialExpanded: ["fc"],
+    },
+  });
+  return (
+    <Stack space="space.150">
+      <DataTable table={table} onRowClick={(r) => setOpened(r.name)} />
+      <Text size="small" color="color.text.subtle">
+        {opened ? `opened ${opened}` : "click a row to open it; arrow keys move, open and close"}
+      </Text>
+    </Stack>
+  );
+}
+
+export const TreeStory: Story = { name: "Tree", render: () => <Tree /> };
+
+/** A row opens into its detail: here a child table of the finding's items, drawn by the same renderer. */
+type Item = { id: string; step: string; state: "Done" | "Open" };
+const itemsOf = (f: Finding): Item[] =>
+  Array.from({ length: 1 + (f.open % 3) }, (_, i) => ({
+    id: `${f.id}-${i + 1}`,
+    step: ["Collect evidence", "Review with owner", "Close finding"][i] ?? "Follow up",
+    state: i === 0 ? "Done" : "Open",
+  }));
+const itemColumns = defineColumns<Item>((c) => [
+  c.id("id", { header: "Item", width: 130 }),
+  c.text("step", { header: "Step" }),
+  c.status("state", {
+    header: "State",
+    width: 110,
+    tone: (r) => (r.state === "Done" ? "success" : "neutral"),
+  }),
+]);
+
+function Items({ finding }: { finding: Finding }) {
+  const table = useDataTable({
+    columns: itemColumns,
+    data: itemsOf(finding),
+    getRowId: (r) => r.id,
+    label: `${finding.id} items`,
+  });
+  return <DataTable table={table} />;
+}
+
+function Details() {
+  const table = useDataTable({
+    columns,
+    data: findings.slice(0, 6),
+    getRowId: (r) => r.id,
+    detail: (r) => <Items finding={r} />,
+    initialState: { expanded: { "FND-2201": true } },
+  });
+  return <DataTable table={table} />;
+}
+
+export const DetailRows: Story = { name: "Detail rows", render: () => <Details /> };
+
+/** Rows under a band per family, each opened and closed as one; the family column leaves the row. */
+function Grouped() {
+  const table = useDataTable({ columns, data: findings, getRowId: (r) => r.id, groupBy: "family" });
+  return <DataTable table={table} />;
+}
+
+export const GroupsStory: Story = { name: "Groups", render: () => <Grouped /> };
+
+/** Pinned rows sit under the header or above the footer, on the sunken surface, whatever the sort. Pin and unpin from the row's actions. */
+function PinnedRows() {
+  const table = useDataTable({
+    columns: useMemo(
+      () =>
+        defineColumns<Finding>((c) => [
+          c.id("id"),
+          c.text("name", { header: "Finding" }),
+          c.status("status", { header: "Status", width: 120, tone: (r) => statusTone[r.status] }),
+          c.number("open", { header: "Open items", width: 110, footer: "sum" }),
+          c.actions((r) => {
+            const row = tableRef.current?.getRow(r.id);
+            const pinned = row?.getIsPinned();
+            return pinned
+              ? [{ label: "Unpin", onSelect: () => row?.pin(false) }]
+              : [
+                  { label: "Pin to top", onSelect: () => row?.pin("top") },
+                  { label: "Pin to bottom", onSelect: () => row?.pin("bottom") },
+                ];
+          }),
+        ]),
+      [],
+    ),
+    data: findings.slice(0, 8),
+    getRowId: (r) => r.id,
+    pinRows: true,
+    initialState: {
+      rowPinning: { top: ["FND-2203"], bottom: [] },
+      sorting: [{ id: "open", desc: true }],
+    },
+  });
+  tableRef.current = table;
+  return <DataTable table={table} />;
+}
+const tableRef: { current: DataTableInstance<Finding> | null } = { current: null };
+
+export const PinnedRowsStory: Story = {
+  name: "Pinned rows and totals",
+  render: () => <PinnedRows />,
+};
+
+/** Rows dragged into a new order by their handle; sorting is off while it is on. The story keeps the order. */
+const rankColumns = defineColumns<Finding>((c) => [
+  c.id("id"),
+  c.text("name", { header: "Finding" }),
+  c.person("owner", { header: "Owner", width: 180 }),
+]);
+
+function Ranked() {
+  const [data, setData] = useState(() => findings.slice(0, 6));
+  const table = useDataTable({
+    columns: rankColumns,
+    data,
+    getRowId: (r) => r.id,
+    reorderRows: (moved, target, position) =>
+      setData((rows) => {
+        const rest = rows.filter((r) => r.id !== moved.id);
+        const at = rest.findIndex((r) => r.id === target.id) + (position === "after" ? 1 : 0);
+        return [...rest.slice(0, at), moved, ...rest.slice(at)];
+      }),
+  });
+  return (
+    <Stack space="space.150">
+      <DataTable table={table} />
+      <Text size="small" color="color.text.subtle">
+        order: {data.map((r) => r.id.slice(-2)).join(" › ")}
+      </Text>
+    </Stack>
+  );
+}
+
+export const ReorderingRows: Story = { name: "Reordering rows", render: () => <Ranked /> };
 
 /** The Table parts on their own: a pinned header and cell with an offset, the edge, and a resize handle. */
 function TableParts() {
@@ -423,7 +660,7 @@ function Parts() {
   );
 }
 
-/** Every state the renderer draws: sorted, filtered, selected, with a glance, with actions; loading, empty and error; the toolbar parts alone; pinned, resizable and reorderable columns; column groups; a header by hand; the Table parts alone. */
+/** Every state the renderer draws: sorted, filtered, selected, with a glance, with actions; loading, empty and error; the toolbar parts alone; pinned, resizable and reorderable columns; column groups; a header by hand; a tree, detail rows, groups, pinned rows with totals, rows in the reader's order; the Table parts alone. */
 export const DataTableMatrix: Story = {
   render: () => (
     <Stack space="space.300">
@@ -433,6 +670,11 @@ export const DataTableMatrix: Story = {
       <Wide />
       <Groups />
       <Reordering />
+      <Tree />
+      <Details />
+      <Grouped />
+      <PinnedRows />
+      <Ranked />
       <TableParts />
     </Stack>
   ),

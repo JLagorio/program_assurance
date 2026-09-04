@@ -62,6 +62,17 @@ const compare = (a: string | number, b: string | number) =>
     ? a - b
     : String(a).localeCompare(String(b), undefined, { numeric: true });
 
+/** A total under a number column: over the rows the filters leave, before pagination. */
+export type Footer = "sum" | "mean" | "min" | "max" | "count";
+
+const totals: Record<Footer, (values: number[]) => number> = {
+  sum: (v) => v.reduce((a, b) => a + b, 0),
+  mean: (v) => (v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0),
+  min: (v) => (v.length ? Math.min(...v) : 0),
+  max: (v) => (v.length ? Math.max(...v) : 0),
+  count: (v) => v.length,
+};
+
 /** The shared options every kind passes through. */
 const shared = <TData extends RowData>(
   o: Pick<Shared<TData>, "pin" | "hideable" | "resizable">,
@@ -182,11 +193,27 @@ export function columnKinds<TData extends RowData>() {
       resizable,
       cell,
       format: fmt = "integer",
+      footer,
     }: Shared<TData> & {
       format?: keyof typeof numberFormats | ((value: number) => string) | undefined;
+      /** A total in the footer: sum, mean, min, max, count, or your own over the rows shown. */
+      footer?: Footer | ((rows: TData[]) => ReactNode) | undefined;
     } = {},
   ) =>
     helper.accessor(read<TData>(key), {
+      ...(footer
+        ? {
+            footer: ({ table }) => {
+              const rows = table.getPrePaginatedRowModel().rows.map((r) => r.original);
+              if (typeof footer === "function") return footer(rows);
+              const values = rows
+                .map((r): unknown => r[key])
+                .filter((v): v is number => typeof v === "number");
+              const total = totals[footer](values);
+              return typeof fmt === "function" ? fmt(total) : numberFormats[fmt].format(total);
+            },
+          }
+        : {}),
       id: key,
       header: header ?? key,
       ...(width === undefined ? {} : { size: width }),

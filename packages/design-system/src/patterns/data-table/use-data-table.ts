@@ -5,6 +5,8 @@ import {
   type TableOptions,
 } from "@tanstack/react-table";
 
+import type { ReactNode } from "react";
+
 import { dataTableFeatures, type DataTableFeatures } from "./features";
 import { useViewStore } from "./view-store";
 
@@ -57,6 +59,25 @@ export type DataTableOptions<TData extends RowData> = Partial<TanStackOptions<TD
   layout?: "auto" | "fixed" | undefined;
   /** Names the table so the reader's layout (order, widths, visibility, pins) persists in this browser. */
   view?: string | undefined;
+  /** Nested rows: `children` reads a row's parts; the table is a treegrid and the name column carries the chevron. */
+  tree?:
+    | {
+        children: (row: TData) => ReadonlyArray<TData> | undefined;
+        label: (row: TData) => string;
+        hint?: ((row: TData, childCount: number) => ReactNode) | undefined;
+        column?: string | undefined;
+        /** Row ids open at first, or `true` for every row. */
+        initialExpanded?: true | string[] | undefined;
+      }
+    | undefined;
+  /** A row opens into this: a child table, the record's detail. */
+  detail?: ((row: TData) => ReactNode) | undefined;
+  /** A band per value of this column, each opened and closed as one. Pagination is off while it is on. */
+  groupBy?: string | undefined;
+  /** Rows can be pinned above and below through `row.pin`. */
+  pinRows?: boolean | undefined;
+  /** Rows can be dragged into a new order. Sorting is off while it is on. */
+  reorderRows?: ((moved: TData, target: TData, position: "before" | "after") => void) | undefined;
 };
 
 /** The author's pins, from the kinds' `pin`, as the initial pinning state. */
@@ -91,10 +112,21 @@ export function useDataTable<TData extends RowData>({
   columnMenu,
   layout,
   view,
+  tree,
+  detail,
+  groupBy,
+  pinRows = false,
+  reorderRows,
   initialState,
   ...rest
 }: DataTableOptions<TData>) {
   const pins = pinsOf(columns);
+  const expanded =
+    tree?.initialExpanded === true || groupBy
+      ? true
+      : tree?.initialExpanded
+        ? Object.fromEntries(tree.initialExpanded.map((id) => [id, true]))
+        : {};
   const table = hook.useAppTable<TData>({
     ...rest,
     columns,
@@ -106,10 +138,20 @@ export function useDataTable<TData extends RowData>({
     enableColumnResizing: resizable,
     manualSorting: manual?.sorting ?? false,
     manualFiltering: manual?.filtering ?? false,
-    manualPagination: manual?.pagination ?? pageSize === undefined,
+    manualPagination: (manual?.pagination ?? pageSize === undefined) || Boolean(groupBy),
+    enableSorting: !reorderRows,
+    // the reader's open rows survive a data refresh; the projection behind a tree is often rebuilt per render
+    autoResetExpanded: false,
+    enableRowPinning: pinRows,
+    enableGrouping: Boolean(groupBy),
+    groupedColumnMode: "remove",
+    ...(tree ? { getSubRows: (row: TData) => tree.children(row) } : {}),
+    ...(detail ? { getRowCanExpand: () => true } : {}),
     initialState: {
       ...(pageSize === undefined ? {} : { pagination: { pageIndex: 0, pageSize } }),
       columnPinning: pins,
+      expanded,
+      ...(groupBy ? { grouping: [groupBy] } : {}),
       ...initialState,
     },
     meta: {
@@ -122,6 +164,20 @@ export function useDataTable<TData extends RowData>({
       columnMenu: columnMenu ?? (pinnable || hideable),
       layout: layout ?? (resizable || reorderable ? "fixed" : "auto"),
       view,
+      ...(tree
+        ? {
+            tree: {
+              column: tree.column,
+              label: tree.label as (row: never) => string,
+              hint: tree.hint as ((row: never, childCount: number) => ReactNode) | undefined,
+            },
+          }
+        : {}),
+      detail: detail as ((row: never) => ReactNode) | undefined,
+      groupBy,
+      pinRows,
+      reorderRows: reorderRows as
+        ((moved: never, target: never, position: "before" | "after") => void) | undefined,
     },
   });
   useViewStore(table, view);

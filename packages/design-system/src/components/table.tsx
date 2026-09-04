@@ -1,4 +1,12 @@
-import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, ChevronsUpDown, Eye } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  ChevronRight,
+  ChevronsUpDown,
+  Eye,
+  GripVertical,
+} from "lucide-react";
 import {
   useCallback,
   useRef,
@@ -224,16 +232,19 @@ function Td({
 
 /** A row. `isStatic` is for rows that are not records: a form laid out as a table, a totals row. They do not light up on hover. */
 function Tr({
+  ref,
   className,
   isSelected,
   isStatic,
   ...props
 }: ComponentPropsWithoutRef<"tr"> & {
+  ref?: Ref<HTMLTableRowElement> | undefined;
   isSelected?: boolean | undefined;
   isStatic?: boolean | undefined;
 }) {
   return (
     <tr
+      ref={ref}
       data-selected={isSelected ? "" : undefined}
       className={cn(
         "group/row border-b border-default transition-colors duration-fast ease-standard last:border-b-0",
@@ -453,6 +464,65 @@ function TreeCell({
   );
 }
 
+/**
+ * The row a record opens into: one cell spanning every column, holding whatever the record has to
+ * show at length, a child table included. The chevron that opens it carries `aria-controls` with
+ * this row's `id`.
+ */
+function DetailRow({
+  id,
+  colSpan,
+  className,
+  children,
+}: {
+  id?: string | undefined;
+  colSpan: number;
+  className?: string | undefined;
+  children: ReactNode;
+}) {
+  return (
+    <tr id={id} className="border-b border-default bg-surface-sunken last:border-b-0">
+      <td colSpan={colSpan} className={cn("px-200 py-150 align-top", className)}>
+        {children}
+      </td>
+    </tr>
+  );
+}
+
+/**
+ * The grip cell for a row that can be dragged into a new order. `ref`, `attributes` and `listeners`
+ * come from the drag context; the cell is the handle, so the row's own controls keep their clicks.
+ */
+function HandleCell({
+  ref,
+  label = "Reorder row",
+  isDragging,
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"span"> & {
+  ref?: Ref<HTMLSpanElement> | undefined;
+  label?: string | undefined;
+  isDragging?: boolean | undefined;
+}) {
+  return (
+    <Td className="w-400 max-w-none pe-0">
+      <span
+        ref={ref}
+        role="button"
+        aria-label={label}
+        className={cn(
+          "inline-flex size-250 shrink-0 items-center justify-center rounded-small icon-subtlest outline-none touch-none cursor-grab hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused",
+          isDragging && "cursor-grabbing",
+          className,
+        )}
+        {...props}
+      >
+        <GripVertical className="size-icon-small" />
+      </span>
+    </Td>
+  );
+}
+
 export const Table = Object.assign(TableRoot, {
   Row: Tr,
   Cell: Td,
@@ -461,4 +531,6 @@ export const Table = Object.assign(TableRoot, {
   Selection: SelectionCell,
   Group: TableGroup,
   Tree: TreeCell,
+  Detail: DetailRow,
+  Handle: HandleCell,
 });

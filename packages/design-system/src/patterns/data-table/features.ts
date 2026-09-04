@@ -91,6 +91,25 @@ export type DataTableMeta = {
   layout?: "auto" | "fixed" | undefined;
   /** The name under which the reader's layout persists. */
   view?: string | undefined;
+  /** Nested rows: the name column carries the tree cell. */
+  tree?:
+    | {
+        /** The column that carries the chevron and the indent; the first data column when unset. */
+        column?: string | undefined;
+        /** The row's plain name, for the chevron's label. */
+        label: (row: never) => string;
+        /** Muted text after a folded row's name: a count of parts. */
+        hint?: ((row: never, childCount: number) => ReactNode) | undefined;
+      }
+    | undefined;
+  /** A row opens into this. */
+  detail?: ((row: never) => ReactNode) | undefined;
+  /** Rows under a band per value of this column. */
+  groupBy?: string | undefined;
+  /** Rows can be pinned above and below. */
+  pinRows?: boolean | undefined;
+  /** Rows can be dragged into a new order; the handler receives the moved row and its new neighbour. */
+  reorderRows?: ((moved: never, target: never, position: "before" | "after") => void) | undefined;
 };
 
 const lower = (v: unknown) => (v == null ? "" : String(v).toLowerCase());
