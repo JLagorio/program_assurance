@@ -56,7 +56,7 @@ import { objectivesForCci } from "@/lib/campaigns";
 import { graphVersion } from "@/lib/composition";
 import { controlMatrix } from "@/lib/control-matrix";
 import { findings } from "@/lib/findings";
-import { buildSctm, type ControlTextIndex, type SctmRow } from "@/lib/sctm";
+import { buildControlTextIndex, buildSctm, type ControlTextIndex, type SctmRow } from "@/lib/sctm";
 import type { VerificationMethod } from "@/lib/spine";
 import { proceduresForObjective } from "@/lib/test-execution";
 
@@ -79,6 +79,34 @@ export function setControlTextIndex(next: ControlTextIndex): void {
   if (controlTextIndex === next) return;
   controlTextIndex = next;
   textVersion += 1;
+}
+
+let loading: Promise<void> | null = null;
+
+/**
+ * Import the catalog and install the index, once per runtime.
+ *
+ * Returns `null` when the index is already in place and the pending import
+ * otherwise, so a caller can tell "ready" from "not yet" without awaiting. The
+ * distinction matters because there are TWO runtimes and the loader only runs
+ * in one of them: a server-rendered match hydrates from its dehydrated loader
+ * data and never re-runs the loader on the client, so a loader-side
+ * `setControlTextIndex` leaves the browser's copy of this module with no index
+ * at all. Its first render is then control-grained where the server's was
+ * objective-grained — different row keys, different re-test counts — and the
+ * whole tree hydrates with a text mismatch. A route that renders from this
+ * index therefore awaits this in its loader (so the server and every
+ * client-side navigation render with the index in place) AND `use()`s the
+ * returned promise in its component (so hydration suspends on the same import
+ * instead of rendering without it). The dynamic import keeps the 1.25 MB
+ * catalog out of this module's chunk.
+ */
+export function loadControlTextIndex(): Promise<void> | null {
+  if (controlTextIndex) return null;
+  loading ??= import("@/lib/nist-control-text").then(({ controlText }) => {
+    setControlTextIndex(buildControlTextIndex(controlText));
+  });
+  return loading;
 }
 
 const impactCache = new Map<string, ChangeImpact>();

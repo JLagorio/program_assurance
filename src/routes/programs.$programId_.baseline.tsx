@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { use, useMemo } from "react";
 
 import {
   BuildRail,
@@ -39,10 +39,9 @@ import {
   useBaselines,
   type ChangeImpact,
 } from "@/lib/baselines";
-import { impactOf, retestQueue, setControlTextIndex } from "@/lib/change-impact";
+import { impactOf, loadControlTextIndex, retestQueue } from "@/lib/change-impact";
 import { useCompositionGraph } from "@/lib/composition";
 import { programs } from "@/lib/grc-data";
-import { buildControlTextIndex } from "@/lib/sctm";
 
 const baselineTabs = ["Builds", "Changes", "Impact", "Retest queue"] as const;
 type BaselineTab = (typeof baselineTabs)[number];
@@ -77,14 +76,17 @@ export const Route = createFileRoute("/programs/$programId_/baseline")({
   // key is only useful if it resolves against the matrix the assessor reads —
   // which rows per leaf 800-53A objective, not per control. That granularity
   // only exists once the 1.25 MB catalog has been dynamic-imported, so the
-  // loader does the importing and hands `change-impact.ts` the narrowed index.
+  // loader does the importing and `change-impact.ts` holds the narrowed index.
   // The index is NOT returned: loader data is serialised into the SSR document
-  // on every request, and this page renders none of the text.
+  // on every request, and this page renders none of the text. Because it is
+  // module state rather than loader data, the client does not receive it by
+  // hydrating — a server-rendered match never re-runs its loader in the
+  // browser — so the component below suspends on the same import until the
+  // browser's copy of the module holds the index too.
   loader: async ({ params }) => {
     const program = programs.find((p) => p.id.toLowerCase() === params.programId.toLowerCase());
     if (!program) throw notFound();
-    const { controlText } = await import("@/lib/nist-control-text");
-    setControlTextIndex(buildControlTextIndex(controlText));
+    await loadControlTextIndex();
     return program;
   },
   head: ({ loaderData }) => ({
@@ -108,6 +110,15 @@ export const Route = createFileRoute("/programs/$programId_/baseline")({
 });
 
 function ProgramBaseline() {
+  // Null on the server and after any client-side navigation, because the
+  // loader has already awaited it. Pending exactly once: on hydration of a
+  // server-rendered document, where suspending here is what makes the first
+  // client render count re-tests from the same objective-grained rows the
+  // server counted. The router's Suspense boundary holds the server HTML in
+  // place while the catalog chunk loads, so nothing flashes.
+  const pendingIndex = loadControlTextIndex();
+  if (pendingIndex) use(pendingIndex);
+
   const program = Route.useLoaderData();
   const search = Route.useSearch();
   const tab = search.tab ?? "Builds";
