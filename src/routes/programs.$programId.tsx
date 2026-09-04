@@ -77,10 +77,14 @@ import { staleThresholdDays } from "@/lib/reusable-components";
 export const Route = createFileRoute("/programs/$programId")({
   // Read-only entry point: a record page links back to the tab the reader came
   // from. Tab clicks deliberately do NOT write here — the tab stays local
-  // state, so the eight existing `setTab` call sites are unaffected.
-  validateSearch: (search: Record<string, unknown>): { tab?: Tab | undefined } => {
+  // state, so the eight existing `setTab` call sites are unaffected. `peek` is
+  // the preview stack (comma-joined ids), written by usePeekStack.
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { tab?: Tab | undefined; peek?: string | undefined } => {
     const raw = String(search["tab"] ?? "");
-    return { tab: tabOrder.find((t) => t.toLowerCase() === raw.toLowerCase()) };
+    const peek = typeof search["peek"] === "string" && search["peek"] ? search["peek"] : undefined;
+    return { tab: tabOrder.find((t) => t.toLowerCase() === raw.toLowerCase()), peek };
   },
   loader: ({ params }) => {
     const program = programs.find((p) => p.id.toLowerCase() === params.programId.toLowerCase());

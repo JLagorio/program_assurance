@@ -16,18 +16,19 @@ The two page archetypes and the parts they are assembled from.
 
 <Canvas of={Stories.ShowStory} />
 
-| Part | Does |
-| --- | --- |
-| **PageHeader** | Eyebrow, title on `font.heading.medium`, one line, actions on the right. |
-| **RecordHeader** | Back chevron (`back` takes a link element), id and meta, title, actions, `facts` for the strip of Facts under the title (at most six; the rest go in the rail), and `below` for a persistent state strip. |
-| **Section** | A titled region with a rule under its heading. Prefer Block for work and Collapsible for reference. |
-| **Card** | A framed block on the raised surface, with an optional header row. It records its surface so a sticky table header inside it stays opaque. |
-| **Related** | A small card of linked records with a count and rows that may be buttons. |
-| **Empty** | A dashed frame with a title, one line of why, and the action that fills it. |
-| **PreviewRail** | The right rail as a preview of a row, never the record itself. |
+| Part             | Does                                                                                                                                                                                                                                                                                                                                            |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **PageHeader**   | Eyebrow, title on `font.heading.medium`, one line, actions on the right.                                                                                                                                                                                                                                                                        |
+| **RecordHeader** | Back chevron (`back` takes a link element), id and meta, title, actions, `facts` for the strip of Facts under the title (at most six; the rest go in the rail), and `below` for a persistent state strip.                                                                                                                                       |
+| **Section**      | A titled region with a rule under its heading. Prefer Block for work and Collapsible for reference.                                                                                                                                                                                                                                             |
+| **Card**         | A framed block on the raised surface, with an optional header row. It records its surface so a sticky table header inside it stays opaque.                                                                                                                                                                                                      |
+| **Related**      | A small card of linked records with a count and rows that may be buttons.                                                                                                                                                                                                                                                                       |
+| **Empty**        | A dashed frame with a title, one line of why, and the action that fills it.                                                                                                                                                                                                                                                                     |
+| **PreviewRail**  | The right rail as a preview of a row, never the record itself.                                                                                                                                                                                                                                                                                  |
 | **PreviewSheet** | The peek panel: a Sheet that previews a row over the page. Its header is the compact RecordHeader: the Preview eyebrow with the id and one `status`, the title, the meta line, at most three `facts`. The footer's first item opens the full record, more `links` follow, `actions` sit on the right. `onBack` when it is one frame of a stack. |
-| **PickerSheet** | Choosing many from hundreds: search and filters in a toolbar that does not scroll, a Table with Table.Selection in the body, a footer that counts the chosen rows and names the one action. A second frame of the same sheet fills in per-row fields. |
-| **PageSkeleton** | The page before its data: a title, a tab strip, rows. |
+| **Glance**       | One record type's preview body: the id and one `status` on the eyebrow line, the `title`, the `meta` line, at most four KeyValue rows. At `density="peek"` the rows only, in two columns, under a PreviewSheet's own header.                                                                                                                    |
+| **PickerSheet**  | Choosing many from hundreds: search and filters in a toolbar that does not scroll, a Table with Table.Selection in the body, a footer that counts the chosen rows and names the one action. A second frame of the same sheet fills in per-row fields.                                                                                           |
+| **PageSkeleton** | The page before its data: a title, a tab strip, rows.                                                                                                                                                                                                                                                                                           |
 
 ## Rail or sheet
 
@@ -46,6 +47,10 @@ Three rungs, each one deeper than the last, and a record reads the same on every
 3. **The footer link is the record.** The page, where the work is done. The preview never grows into it.
 
 One preview body per record type, at two densities (glance, peek), rendered by the kit's three shells (HoverCard, PreviewSheet, PreviewRail). Which body a record type gets is the app's.
+
+The body is a Glance: the record's facts as KeyValue rows under a header that matches the sheet's. The app writes one per record type and hands it to a HoverCard at `glance` density and to a PreviewSheet at `peek` density, where only the rows are drawn because the sheet's header is the same line.
+
+<Canvas of={Stories.GlanceStory} />
 
 ## Choosing many
 

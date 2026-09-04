@@ -9,8 +9,10 @@ import {
   Calendar,
   DataTable,
   Dialog,
+  Glance,
   IndexPage,
   Inline,
+  KeyValue,
   PageHeader,
   Progress,
   Spinner,
@@ -62,31 +64,27 @@ const tabLabels = ["All", "In assessment", "Authorized", "POA&M open", "Draft"] 
 
 function ProgramPeek({ program: p }: { program: Program }) {
   return (
-    <Stack space="space.100">
-      <Inline space="space.150" alignBlock="start" spread="space-between">
-        <div className="min-w-0">
-          <div className="truncate font-medium">{p.name}</div>
-          <div className="font-body-small text-subtle">
-            {p.system} · {p.environment}
-          </div>
-        </div>
+    <Glance
+      id={p.id}
+      status={
         <Badge tone={programStatusTone[p.status]} size="xsmall">
           {p.status}
         </Badge>
-      </Inline>
-      <dl className="grid gap-y-050 font-body-small" style={{ gridTemplateColumns: "88px 1fr" }}>
-        <dt className="text-subtle">Owner</dt>
-        <dd>{p.owner}</dd>
-        <dt className="text-subtle">Assessor</dt>
-        <dd>{p.assessor}</dd>
-        <dt className="text-subtle">Assessed</dt>
-        <dd className="tabular-nums">
+      }
+      title={p.name}
+      meta={`${p.system} · ${p.environment}`}
+    >
+      <KeyValue label="Owner">{p.owner}</KeyValue>
+      <KeyValue label="Assessor">{p.assessor}</KeyValue>
+      <KeyValue label="Assessed">
+        <span className="tabular-nums">
           {p.controlsAssessed}/{p.controlsTotal} · {p.controlsFailing} failing
-        </dd>
-        <dt className="text-subtle">Expires</dt>
-        <dd className="tabular-nums">{p.expires}</dd>
-      </dl>
-    </Stack>
+        </span>
+      </KeyValue>
+      <KeyValue label="Expires">
+        <span className="tabular-nums">{p.expires}</span>
+      </KeyValue>
+    </Glance>
   );
 }
 

@@ -3,18 +3,21 @@
  * they click a row of the tree. Everything related, in one panel, with the
  * full record one click away. The peek-panel pattern (Jira issue peek, Linear
  * side peek, Salesforce record preview): the list keeps its place, the panel
- * carries the actions that make sense without leaving.
+ * carries the actions that make sense without leaving. The stack of frames lives
+ * in the route's `?peek=` search param (usePeekStack): a row clicked in the tree
+ * opens a stack of one, a part clicked inside pushes a frame, the chevron and the
+ * browser's back pop it, close drops it all.
  */
 
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   Absent,
   Badge,
   Block,
   Button,
-  Grid,
+  Glance,
   Id,
   Indicator,
   Inline,
@@ -37,6 +40,7 @@ import {
   useControlSetVersion,
 } from "@/lib/control-set";
 import { positionOf, useWorkVersion } from "@/lib/control-work";
+import { usePeekStack } from "@/lib/peek";
 import {
   allocationStateTone,
   allocationsOn,
@@ -58,21 +62,40 @@ export function NodePreviewSheet({
   programId,
   nodeId,
   onClose,
-  onSelect,
 }: {
   programId: string;
+  /** The row the tree clicked; it becomes the stack's first frame. */
   nodeId: string | null;
   onClose: () => void;
-  /** Drill into a child without leaving the sheet. */
-  onSelect: (nodeId: string) => void;
+  /** Unused: the sheet keeps its own stack in the URL. Kept so callers that pass it still compile. */
+  onSelect?: ((nodeId: string) => void) | undefined;
 }) {
   useScopesVersion();
   useControlSetVersion();
   useRequirementsVersion();
   useWorkVersion();
   const [allocating, setAllocating] = useState(false);
+  const peek = usePeekStack();
 
-  const node = nodeId ? (nodeById.get(nodeId) ?? null) : null;
+  // The tree owns the first frame in its state; the URL owns the stack. A new row from the tree starts a
+  // fresh stack; the stack emptying under a still-set row means the browser's back closed the sheet.
+  const prevNode = useRef(nodeId);
+  const prevDepth = useRef(peek.stack.length);
+  useEffect(() => {
+    const changed = nodeId !== prevNode.current;
+    const emptied = prevDepth.current > 0 && peek.stack.length === 0;
+    prevNode.current = nodeId;
+    prevDepth.current = peek.stack.length;
+    if (changed && nodeId && nodeId !== peek.current) peek.open(nodeId);
+    else if (emptied && nodeId && !changed) onClose();
+  }, [nodeId, peek, onClose]);
+  const close = () => {
+    peek.close();
+    onClose();
+  };
+
+  const current = peek.current ?? nodeId;
+  const node = current ? (nodeById.get(current) ?? null) : null;
   const scope = node
     ? (scopesForProgram(programId).find((s) => s.element === node.id) ?? null)
     : null;
@@ -93,7 +116,8 @@ export function NodePreviewSheet({
   return (
     <PreviewSheet
       open={node !== null}
-      onClose={onClose}
+      onClose={close}
+      onBack={peek.stack.length > 1 ? peek.back : undefined}
       width={760}
       id={node?.id ?? ""}
       title={node?.name ?? ""}
@@ -122,10 +146,7 @@ export function NodePreviewSheet({
       {node ? (
         <Stack space="space.050">
           <Block title="Element">
-            <Grid as="dl" columnGap="space.300" templateColumns="repeat(3, minmax(0, 1fr))">
-              <KeyValue label="Id">
-                <Id>{node.id}</Id>
-              </KeyValue>
+            <Glance density="peek">
               <KeyValue label="Class">{node.class}</KeyValue>
               <KeyValue label="Zone">{node.zone}</KeyValue>
               <KeyValue label="Criticality">{node.criticality}</KeyValue>
@@ -134,7 +155,7 @@ export function NodePreviewSheet({
                 {node.version !== "—" ? ` · ${node.version}` : ""}
               </KeyValue>
               <KeyValue label="Attested">{node.attested ? "Yes" : "No"}</KeyValue>
-            </Grid>
+            </Glance>
             {node.note ? (
               <Text as="p" size="small" color="color.text.subtle" className="pt-100">
                 {node.note}
@@ -222,7 +243,7 @@ export function NodePreviewSheet({
                             <Button
                               variant="link"
                               className="truncate"
-                              onClick={() => onSelect(a.target)}
+                              onClick={() => peek.push(a.target)}
                             >
                               {on?.name ?? a.target}
                             </Button>
@@ -342,7 +363,7 @@ export function NodePreviewSheet({
                           <Button
                             variant="link"
                             className="truncate"
-                            onClick={() => onSelect(child.id)}
+                            onClick={() => peek.push(child.id)}
                           >
                             {child.name}
                           </Button>

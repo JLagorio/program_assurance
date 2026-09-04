@@ -10,11 +10,13 @@ import {
   DataTable,
   Dialog,
   Field,
+  Glance,
   Grid,
   Id,
   IndexPage,
   Inline,
   Input,
+  KeyValue,
   NativeSelect,
   PageHeader,
   Progress,
@@ -76,31 +78,27 @@ function RisksLayout() {
 
 function RiskPeek({ risk: r }: { risk: Risk }) {
   return (
-    <Stack space="space.100">
-      <Inline space="space.150" alignBlock="start" spread="space-between">
-        <div className="min-w-0">
-          <div className="font-medium">{r.title}</div>
-          <div className="font-body-small text-subtle">
-            {r.framework} · {r.control} · {r.team}
-          </div>
-        </div>
+    <Glance
+      id={r.id}
+      status={
         <Badge tone={riskStatusTone[r.status]} size="xsmall">
           {r.status}
         </Badge>
-      </Inline>
-      <dl className="grid gap-y-050 font-body-small" style={{ gridTemplateColumns: "88px 1fr" }}>
-        <dt className="text-subtle">Owner</dt>
-        <dd>{r.owner}</dd>
-        <dt className="text-subtle">Treatment</dt>
-        <dd>{r.treatment}</dd>
-        <dt className="text-subtle">Residual</dt>
-        <dd className="tabular-nums">
+      }
+      title={r.title}
+      meta={`${r.framework} · ${r.control} · ${r.team}`}
+    >
+      <KeyValue label="Owner">{r.owner}</KeyValue>
+      <KeyValue label="Treatment">{r.treatment}</KeyValue>
+      <KeyValue label="Residual">
+        <span className="tabular-nums">
           {r.residual} of {r.inherent} inherent
-        </dd>
-        <dt className="text-subtle">Due</dt>
-        <dd className="tabular-nums">{r.due}</dd>
-      </dl>
-    </Stack>
+        </span>
+      </KeyValue>
+      <KeyValue label="Due">
+        <span className="tabular-nums">{r.due}</span>
+      </KeyValue>
+    </Glance>
   );
 }
 

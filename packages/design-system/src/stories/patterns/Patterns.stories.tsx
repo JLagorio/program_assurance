@@ -9,6 +9,7 @@ import {
   Editable,
   Fact,
   FilterChip,
+  HoverCard,
   Id,
   KeyValue,
   NativeSelect,
@@ -22,6 +23,7 @@ import {
   Card,
   DataTable,
   Empty,
+  Glance,
   IndexPage,
   PageHeader,
   PageSkeleton,
@@ -340,6 +342,61 @@ export const PreviewSheetStory: Story = {
   render: () => <PreviewSheetStates />,
 };
 export const PreviewSheetMatrix: Story = { render: () => <PreviewSheetStates /> };
+
+const programGlance = (
+  <Glance
+    id="PRG-1041"
+    status={
+      <Badge size="xsmall" tone="success">
+        Authorized
+      </Badge>
+    }
+    title="Ground segment modernization"
+    meta="GSM-2 · Production"
+  >
+    <KeyValue label="Owner">Dan Whitlock</KeyValue>
+    <KeyValue label="Assessor">Priya Natarajan</KeyValue>
+    <KeyValue label="Assessed">
+      <span className="tabular-nums">312/340 · 6 failing</span>
+    </KeyValue>
+    <KeyValue label="Expires">
+      <span className="tabular-nums">2027-03-14</span>
+    </KeyValue>
+  </Glance>
+);
+
+/** The same record at both densities: the hover card's body, and the top of a PreviewSheet's body under the sheet's own header. */
+function GlanceStates() {
+  return (
+    <Stack space="space.300">
+      <Specimens title="Glance, in a HoverCard (hover or focus the id)">
+        <HoverCard content={programGlance} width={300}>
+          <span tabIndex={0} className="rounded-xsmall outline-none focus-visible:outline-focused">
+            <Id>PRG-1041</Id>
+          </span>
+        </HoverCard>
+      </Specimens>
+      <Specimens title="Glance">
+        <Box className="w-[300px] rounded-large border border-default" padding="space.150">
+          {programGlance}
+        </Box>
+      </Specimens>
+      <Specimens title="Peek: rows only, two columns">
+        <Box className="w-[640px] rounded-large border border-default" padding="space.150">
+          <Glance density="peek">
+            <KeyValue label="Class">Boundary</KeyValue>
+            <KeyValue label="Zone">Enclave</KeyValue>
+            <KeyValue label="Criticality">High</KeyValue>
+            <KeyValue label="Supplier">Raytheon · 4.2</KeyValue>
+            <KeyValue label="Attested">Yes</KeyValue>
+          </Glance>
+        </Box>
+      </Specimens>
+    </Stack>
+  );
+}
+export const GlanceStory: Story = { name: "Glance", render: () => <GlanceStates /> };
+export const GlanceMatrix: Story = { render: () => <GlanceStates /> };
 
 const families = ["AC", "AU", "CM", "IA", "SC", "SI"] as const;
 const statements = [
