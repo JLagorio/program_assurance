@@ -90,7 +90,13 @@ import { resolveInheritance, type ResolvedInheritance } from "@/lib/inheritance"
 import { controlTitle, nistControlById } from "@/lib/nist-catalog";
 import { parseGateDate } from "@/lib/program-stage";
 import { findingsForPoam, poamItems, type PoamItem } from "@/lib/register";
-import { buildSctm, type ControlTextIndex, type Sctm, type SctmRow } from "@/lib/sctm";
+import {
+  buildControlTextIndex,
+  buildSctm,
+  type ControlTextIndex,
+  type Sctm,
+  type SctmRow,
+} from "@/lib/sctm";
 import {
   vocabularies,
   type AssessmentStatus,
@@ -753,6 +759,31 @@ export function setControlTextIndex(next: ControlTextIndex): void {
   if (controlTextIndex === next) return;
   controlTextIndex = next;
   textVersion += 1;
+}
+
+let loading: Promise<void> | null = null;
+
+/**
+ * Import the catalog and install the index, once per runtime.
+ *
+ * Returns `null` when the index is already in place and the pending import
+ * otherwise. There are TWO runtimes and the route loader only runs in one: a
+ * server-rendered match hydrates from its dehydrated loader data and never
+ * re-runs the loader in the browser, so a loader-side `setControlTextIndex`
+ * leaves the browser's copy of this module with no index. Its first render is
+ * then control-grained where the server's was objective-grained — a different
+ * row set, a different drift score — and the tree hydrates with a text
+ * mismatch. The ConMon route therefore awaits this in its loader (server and
+ * client-side navigations render with the index in place) AND `use()`s the
+ * returned promise in its component (hydration suspends on the same import
+ * instead of rendering without it). Same mechanism as `change-impact.ts`.
+ */
+export function loadControlTextIndex(): Promise<void> | null {
+  if (controlTextIndex) return null;
+  loading ??= import("@/lib/nist-control-text").then(({ controlText }) => {
+    setControlTextIndex(buildControlTextIndex(controlText));
+  });
+  return loading;
 }
 
 type SctmCacheEntry = {

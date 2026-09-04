@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { use, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import {
@@ -36,11 +36,10 @@ import {
   evidenceFreshness,
   poamSlippage,
   scanCadence,
-  setControlTextIndex,
+  loadControlTextIndex,
   type ConMonAlert,
 } from "@/lib/conmon";
 import { programs } from "@/lib/grc-data";
-import { buildControlTextIndex } from "@/lib/sctm";
 import { cn } from "@/lib/utils";
 
 const conmonTabs = [
@@ -72,15 +71,18 @@ export const Route = createFileRoute("/programs/$programId_/conmon")({
   // only reconcilable if it is the SAME row set the SCTM tab and the retest
   // queue publish — one row per leaf 800-53A assessment objective. That
   // granularity only exists once the 1.25 MB catalog has been dynamic-imported,
-  // so the loader does the importing and hands `conmon.ts` the narrowed index,
+  // so the loader does the importing and `conmon.ts` holds the narrowed index,
   // exactly as the baseline route does for `change-impact.ts`. The index is NOT
   // returned: loader data is serialised into the SSR document on every request,
-  // and this page renders none of the control text.
+  // and this page renders none of the control text. Because it is module state
+  // rather than loader data, the client does not receive it by hydrating — a
+  // server-rendered match never re-runs its loader in the browser — so the
+  // component below suspends on the same import until the browser's copy of
+  // the module holds the index too.
   loader: async ({ params }) => {
     const program = programs.find((p) => p.id.toLowerCase() === params.programId.toLowerCase());
     if (!program) throw notFound();
-    const { controlText } = await import("@/lib/nist-control-text");
-    setControlTextIndex(buildControlTextIndex(controlText));
+    await loadControlTextIndex();
     return program;
   },
   head: ({ loaderData }) => ({
@@ -107,6 +109,15 @@ export const Route = createFileRoute("/programs/$programId_/conmon")({
 });
 
 function ProgramConMon() {
+  // Null on the server and after any client-side navigation, because the
+  // loader has already awaited it. Pending exactly once: on hydration of a
+  // server-rendered document, where suspending here is what makes the first
+  // client render score drift over the same objective-grained rows the server
+  // scored. The router's Suspense boundary holds the server HTML in place
+  // while the catalog chunk loads, so nothing flashes.
+  const pendingIndex = loadControlTextIndex();
+  if (pendingIndex) use(pendingIndex);
+
   const program = Route.useLoaderData();
   const search = Route.useSearch();
   const tab = search.tab ?? "Drift";
