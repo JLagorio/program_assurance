@@ -1,0 +1,23 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Breadcrumb } from "../../components";
+import * as Stories from "./Breadcrumb.stories";
+import * as ItemStories from "./Item.stories";
+
+<Meta of={Stories} />
+
+# Breadcrumb
+
+Every breadcrumb but the last is a link back up the record tree; pass `asChild` and the child (a router's Link) takes the item's classes.
+
+<Canvas of={Stories.BreadcrumbMatrix} />
+
+<Canvas of={ItemStories.Items} />
+
+## Props
+
+<ArgTypes of={Breadcrumb} />
+
+## Related
+
+- [Item](?path=/docs/components-item--docs): one row of a list.

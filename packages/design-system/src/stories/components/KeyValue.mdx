@@ -1,0 +1,24 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { KeyValue } from "../../components";
+import * as Stories from "./KeyValue.stories";
+import * as FactStories from "./Fact.stories";
+
+<Meta of={Stories} />
+
+# KeyValue
+
+`KeyValue` is one rail row with a label column.
+
+<Canvas of={Stories.KeyValueMatrix} />
+
+<Canvas of={FactStories.Facts} />
+
+## Props
+
+<ArgTypes of={KeyValue} />
+
+## Related
+
+- [Fact](?path=/docs/components-fact--docs): an inline label and value; a row of them is the facts strip.
+- [Typography](?path=/docs/components-typography--docs): `Prose`, `Eyebrow`, `Absent`.

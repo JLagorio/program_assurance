@@ -1,0 +1,22 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Alert } from "../../components";
+import * as Stories from "./Alert.stories";
+
+<Meta of={Stories} />
+
+# Alert
+
+A tinted callout in a rail or above a table: a Dot, a title in the tone colour, an optional body. Danger announces itself (`role="alert"`); the others are polite.
+
+<Canvas of={Stories.Alerts} />
+
+<Canvas of={Stories.AlertMatrix} />
+
+## Props
+
+<ArgTypes of={Alert} />
+
+## Related
+
+Alert, [Banner](?path=/docs/components-banner--docs), [Progress](?path=/docs/components-progress--docs) and [Stat](?path=/docs/components-stat--docs) read the same tone table as [Badge](?path=/docs/components-badge--docs), so a tone means one thing everywhere.

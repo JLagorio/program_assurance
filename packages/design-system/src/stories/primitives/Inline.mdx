@@ -1,0 +1,20 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Inline } from "../../primitives";
+import * as Stories from "./Inline.stories";
+
+<Meta of={Stories} />
+
+# Inline
+
+For a row with one gap, optionally wrapping. `display="inline-flex"` keeps it inline-level for a chip or a count beside a label. The key props are `space`, `rowSpace`, `alignBlock`, `alignInline`, `spread`, `shouldWrap`, `separator`, `grow` and `display`.
+
+<Canvas of={Stories.Space} />
+
+<Canvas of={Stories.InText} />
+
+<Canvas of={Stories.SeparatorAndSpread} />
+
+## Props
+
+<ArgTypes of={Inline} />

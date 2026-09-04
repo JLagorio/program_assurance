@@ -1,0 +1,103 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { IndexPage, ShowPage } from "../../patterns";
+import * as GlanceStories from "./Glance.stories";
+import * as Stories from "./Pages.stories";
+import * as PanelStories from "./Panel.stories";
+import * as PickerSheetStories from "./PickerSheet.stories";
+import * as PreviewSheetStories from "./PreviewSheet.stories";
+
+<Meta of={Stories} />
+
+# Pages
+
+The two page archetypes and the parts they are assembled from.
+
+**IndexPage** is a header, one filter row, one dense table. The inline detail surface is the [PreviewRail](?path=/docs/patterns-previewrail--docs), opened from the eye in a Table.Id cell; the record itself is never inline.
+
+<Canvas of={Stories.Index} />
+
+**ShowPage** is a [RecordHeader](?path=/docs/patterns-recordheader--docs), one tab strip running full width, then the tab body. The rail is `rail`, passed on the overview tab and nothing on the others: it renders beside the body, under the tab strip, and every other tab is full width and self-contained. The rail column is `dimension.layout.rail` plus its rule. The rail wraps in an `<aside aria-label="Details">`; the Inspector inside it is a plain `div`, not an aside, so a rail is exactly one landmark.
+
+<Canvas of={Stories.ShowStory} />
+
+<Canvas of={Stories.ArchetypesMatrix} />
+
+## Anatomy
+
+| Part                                                        | Does                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **[PageHeader](?path=/docs/patterns-pageheader--docs)**     | Eyebrow, title on `font.heading.medium`, one line, actions on the right.                                                                                                                                                                                                                                                                                                                                                                         |
+| **[RecordHeader](?path=/docs/patterns-recordheader--docs)** | Back chevron (`back` takes a link element), id and meta, title, actions, `facts` for the strip of Facts under the title (at most six; the rest go in the rail), and `below` for a persistent state strip.                                                                                                                                                                                                                                        |
+| **[Section](?path=/docs/patterns-section--docs)**           | A titled region with a rule under its heading. Prefer Block for work and Collapsible for reference.                                                                                                                                                                                                                                                                                                                                              |
+| **[Card](?path=/docs/patterns-card--docs)**                 | A framed block on the raised surface, with an optional header row. It records its surface so a sticky table header inside it stays opaque.                                                                                                                                                                                                                                                                                                       |
+| **[Related](?path=/docs/patterns-related--docs)**           | A small card of linked records with a count and rows that may be buttons.                                                                                                                                                                                                                                                                                                                                                                        |
+| **[Empty](?path=/docs/patterns-empty--docs)**               | A dashed frame with a title, one line of why, and the action that fills it.                                                                                                                                                                                                                                                                                                                                                                      |
+| **[PreviewRail](?path=/docs/patterns-previewrail--docs)**   | The right rail as a preview of a row, never the record itself.                                                                                                                                                                                                                                                                                                                                                                                   |
+| **[Glance](?path=/docs/patterns-glance--docs)**             | The hover rung's body: id and one status, the title, a meta line, at most four facts. Facts only; the click is the peek.                                                                                                                                                                                                                                                                                                                         |
+| **[PreviewSheet](?path=/docs/patterns-previewsheet--docs)** | The peek panel: a Sheet that previews a row over the page. Its header is the compact RecordHeader: the Preview eyebrow with the id and one `status`, the title, the meta line, at most three `facts`. The footer's first item opens the full record, more `links` follow, `actions` sit on the right. `onBack` when it is one frame of a stack.                                                                                                  |
+| **[PickerSheet](?path=/docs/patterns-pickersheet--docs)**   | Choosing many from hundreds: search and filters in a toolbar that does not scroll, a Table with Table.Selection in the body, a footer that counts the chosen rows and names the one action. A second frame of the same sheet fills in per-row fields.                                                                                                                                                                                            |
+| **[PageSkeleton](?path=/docs/patterns-pageskeleton--docs)** | The page before its data: a title, a tab strip, rows.                                                                                                                                                                                                                                                                                                                                                                                            |
+| **[Panel](?path=/docs/patterns-panel--docs)**               | The surface in the shell's Panel area. Flush, with no header, for the detail of a selected row beside its table, gone when the selection clears. With a header (a back chevron, an icon, up to two actions and the close), an optional subheader and footer, and `Panel.Trigger` to open it, for a panel the reader opens: a thread, a form. The area scrolls; the header and footer stay put. Never the record's rail, which is the ShowPage's. |
+
+<Canvas of={Stories.Loading} />
+
+## Rail, sheet, panel
+
+The rail and the sheet preview a row and leave the list in place; neither is the record. The **[rail](?path=/docs/patterns-previewrail--docs)** goes beside an IndexPage table that leaves room for it, opened from the eye on the id. The **[sheet](?path=/docs/patterns-previewsheet--docs)** is the peek: it slides over the page and the nav to about half the screen, goes over a full-width table (a tree, a board) and wherever the preview carries actions, opened from the row. A page uses one or the other, never both.
+
+The **[panel](?path=/docs/patterns-panel--docs)** is neither. It is the shell's area beside the page, under the top nav, rendered when there is something to show: the detail of a selected row beside its table, flush and without a header, gone when the selection clears; or a panel the reader opens, a thread or a form, with a close and a trigger. The record's rail does not go in it. The page keeps its six facts and the rest, every Inspector group, is the ShowPage's `rail` beside the overview tab, under the tab strip, so the strip runs the full width and every other tab is full width. The peek never goes in it either.
+
+<Canvas of={PanelStories.PanelStory} />
+
+<Canvas of={Stories.Preview} />
+
+<Canvas of={PreviewSheetStories.PreviewSheetStory} />
+
+## The hover ladder
+
+Three rungs, each one deeper than the last, and a record reads the same on every rung because the same parts draw it.
+
+1. **Hover on an id or a name is a glance.** A HoverCard: facts only, no actions. It opens on focus too. Program and risk ids do this today.
+2. **Click is the peek.** The [PreviewSheet](?path=/docs/patterns-previewsheet--docs): the compact header, the facts, and the actions that make sense without leaving. A record opened from inside a peek is the next frame of the same sheet; the back chevron and the browser's back are the same thing when the stack lives in the URL.
+3. **The footer link is the record.** The page, where the work is done. The preview never grows into it.
+
+One preview body per record type, at two densities (glance, peek), rendered by the kit's three shells (HoverCard, [PreviewSheet](?path=/docs/patterns-previewsheet--docs), [PreviewRail](?path=/docs/patterns-previewrail--docs)). The glance is a [`Glance`](?path=/docs/patterns-glance--docs); which facts a record type shows is the app's.
+
+<Canvas of={GlanceStories.GlanceStory} />
+
+## Choosing many
+
+When the question is "which of these many belong on this one" and the many are found by attribute rather than by name, the picker is a [PickerSheet](?path=/docs/patterns-pickersheet--docs), not a Combobox. Frame one chooses: search and filters that stay put, a sortable Table with Table.Selection, a selection that survives search, a footer that counts. Frame two, when the chosen rows need fields of their own, shows them as a compact table with Editable cells and a defaults row applied to all; the back chevron keeps the selection. The kit owns the frame; the caller owns the columns, rows and selection. The spec is `docs/superpowers/specs/2026-09-02-picker-sheet.md`.
+
+<Canvas of={PickerSheetStories.PickerSheetStory} />
+
+## Props
+
+### IndexPage
+
+<ArgTypes of={IndexPage} />
+
+### ShowPage
+
+<ArgTypes of={ShowPage} />
+
+## Related
+
+- [Card](?path=/docs/patterns-card--docs)
+- [CommandPalette](?path=/docs/patterns-commandpalette--docs)
+- [Data table](?path=/docs/patterns-data-table--docs)
+- [Empty](?path=/docs/patterns-empty--docs)
+- [Glance](?path=/docs/patterns-glance--docs)
+- [PageHeader](?path=/docs/patterns-pageheader--docs)
+- [PageSkeleton](?path=/docs/patterns-pageskeleton--docs)
+- [Panel](?path=/docs/patterns-panel--docs)
+- [PickerSheet](?path=/docs/patterns-pickersheet--docs)
+- [PreviewRail](?path=/docs/patterns-previewrail--docs)
+- [PreviewSheet](?path=/docs/patterns-previewsheet--docs)
+- [PreviewSplit](?path=/docs/patterns-previewsplit--docs)
+- [RecordHeader](?path=/docs/patterns-recordheader--docs)
+- [RecordPicker](?path=/docs/patterns-recordpicker--docs)
+- [Related](?path=/docs/patterns-related--docs)
+- [Section](?path=/docs/patterns-section--docs)
+- [Shapes](?path=/docs/shapes-overview--docs), the layer between the parts and a screen, and [Shell](?path=/docs/shell--docs), the navigation system.

@@ -4,6 +4,43 @@ Semantic versions. A rename or a removed prop is a major step once the package r
 then it is a minor step, and it ships with a deprecation the lint fixes (`ledger/no-deprecated-name`,
 `ledger/no-deprecated-token`) wherever one is possible. Every entry names the story that shows it.
 
+## 0.5.0 · 2026-09-04
+
+### Breaking
+
+- `Field` renders a `div` holding a `label` (the label text and the control) and, outside the
+  label, the hint or the error. The hint or error is the control's description (`aria-describedby`),
+  not part of its name; `isRequired` sets `aria-required` on the control. Styling that reached into
+  the old single `label` changes. Components/Field, Components/Input.
+
+### Changed
+
+- The record's rail is the ShowPage's again. `rail` on `ShowPage` renders it beside the body, under
+  the tab strip, on the overview tab; every other tab runs full width. The shell's Panel area holds
+  the detail of a selected row and the panels a reader opens, never the rail. Patterns/Pages "Show",
+  Shell "Record rail".
+- Disclosure's trigger row: the title sits flush with the body under it, semibold so it reads as a
+  section, the count after it, the chevron at the end, down while closed and up while open. In a
+  rail the title lines up with the labels beneath it. Components/Collapsible, Components/Accordion.
+- `grid-cols-main-rail` gives the rail column `dimension.layout.rail` plus the inset its rule takes,
+  so the rail's content is the token wide, the width the panel gave it.
+
+### Fixed
+
+- `KeyValue` had lost its label column to a codemod (`px minmax(0, 1fr)`), so every rail row stacked
+  its label over its value. The label column is `labelWidth` again. Shapes/Inspector "Inspector
+  groups".
+
+### Added
+
+- One page per part. Every part a product imports by name has its own story file and page, the way
+  Atlassian, Carbon and Base Web document; compound parts stay with their parent; Forms, Overlays,
+  Pages, Shapes and Primitives keep an overview that says which part to reach for. The sidebar
+  gains Patterns, Shapes and Shell sections. Input and Field are on the template after Button,
+  IconButton and TextLink; the rest carry their prose and a generated props table until walked.
+- `Input` has a read-only look (`readOnly`: the sunken surface, no hover), and the contrast test
+  covers the field's borders against the input surface.
+
 ## 0.4.0 · 2026-09-04
 
 ### Added
@@ -42,7 +79,7 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   the icon goes in `iconBefore`, `iconAfter` or `icon`, passed bare, and the button sizes it.
 - IconButton carries the kit's Tooltip itself. A Tooltip wrapped around one shows twice;
   `isTooltipDisabled` turns the built-in one off where the label is visible beside it.
-  Components/Button "Icon buttons".
+  Components/IconButton.
 
 ### Added
 

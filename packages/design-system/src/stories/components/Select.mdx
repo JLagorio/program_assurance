@@ -1,0 +1,32 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Select } from "../../components";
+import * as Stories from "./Select.stories";
+import * as FormsStories from "./Forms.stories";
+
+<Meta of={Stories} />
+
+# Select
+
+Three ways to choose from a list, and one for a date. All four triggers are the hairline control from Controls, so a picker and a field are the same shape in a form. A short, fixed list whose options carry a Dot or a Badge: **Select**.
+
+<Canvas of={Stories.SelectMatrix} />
+
+<Canvas of={FormsStories.FieldsStory} />
+
+## Props
+
+<ArgTypes of={Select} />
+
+### Select.Item
+
+<ArgTypes of={Select.Item} />
+
+### Select.Group
+
+<ArgTypes of={Select.Group} />
+
+## Related
+
+- [NativeSelect](?path=/docs/components-nativeselect--docs), [Combobox](?path=/docs/components-combobox--docs): the other ways to choose from a list.
+- [Forms](?path=/docs/components-forms--docs): which list wants which control.

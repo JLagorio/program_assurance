@@ -1,0 +1,20 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { PageSkeleton } from "../../patterns";
+import * as Stories from "./PageSkeleton.stories";
+
+<Meta of={Stories} />
+
+# PageSkeleton
+
+The page before its data: a title, a tab strip, rows.
+
+<Canvas of={Stories.PageSkeletonMatrix} />
+
+## Props
+
+<ArgTypes of={PageSkeleton} />
+
+## Related
+
+- [Pages](?path=/docs/patterns-pages--docs): the two page archetypes and the parts they are assembled from.

@@ -1,0 +1,27 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Inspector } from "../../shapes";
+import * as Stories from "./Inspector.stories";
+
+<Meta of={Stories} />
+
+# Inspector
+
+The facts stay put while the content scrolls: in a ShowPage's rail or a WorkPane's detail, sticky under the top nav, every group open until the reader folds it. Inside a Panel, the detail of a selected row, it scrolls with the panel. Sticky, it wraps in a plain `<div className="lg:sticky-rail">`, not an aside: the rail it sits in, a ShowPage's or a WorkPane's detail, is the landmark, so a rail is exactly one landmark.
+
+<Canvas of={Stories.InspectorMatrix} />
+
+`Inspector.Group` is one group of facts on its own, for a rail that stacks several.
+
+<Canvas of={Stories.InspectorGroups} />
+
+## Props
+
+<ArgTypes of={Inspector} />
+
+## Related
+
+- [Shapes](?path=/docs/shapes-overview--docs): the four shapes and the job each answers.
+- [Pages](?path=/docs/patterns-pages--docs): the ShowPage's `rail` beside the overview tab.
+- [Panel](?path=/docs/patterns-panel--docs): flush, the detail of a selected row beside its table.
+- [WorkPane](?path=/docs/shapes-workpane--docs): the detail beside the list.

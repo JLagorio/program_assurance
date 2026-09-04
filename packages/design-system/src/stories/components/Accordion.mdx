@@ -1,0 +1,24 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Accordion } from "../../components";
+import * as Stories from "./Accordion.stories";
+
+<Meta of={Stories} />
+
+# Accordion
+
+Reference material: present, addressable, closed. The catalog statement, the assessment objectives and the discussion are things a reader occasionally needs and never needs first; rendering them expanded is most of why a control page reads as a novel.
+
+A **Collapsible** is one section. An **Accordion** is several that know about each other: `single` opens one at a time, `multiple` is independent sections with one keyboard model. They share the trigger row, so a page can mix them. The row is the title, flush with the body under it and semibold so it reads as a section, a count after it, and the chevron at the end: down while closed, up while open.
+
+<Canvas of={Stories.AccordionStory} />
+
+<Canvas of={Stories.AccordionMatrix} />
+
+## Props
+
+<ArgTypes of={Accordion} />
+
+## Related
+
+- [Collapsible](?path=/docs/components-collapsible--docs)

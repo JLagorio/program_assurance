@@ -1,0 +1,18 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Grid } from "../../primitives";
+import * as Stories from "./Grid.stories";
+
+<Meta of={Stories} />
+
+# Grid
+
+For columns or rows on a template. `templateColumns` takes a string, or one per breakpoint (`{ base, sm, md, lg, xl }`). The key props are `templateColumns`, `templateRows`, `gap`, `alignItems` and `justifyContent`.
+
+<Canvas of={Stories.GridTemplate} />
+
+<Canvas of={Stories.ResponsiveGrid} />
+
+## Props
+
+<ArgTypes of={Grid} />

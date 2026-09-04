@@ -18,24 +18,30 @@ Updated 2026-09-04.
 
 ## Kit
 
-The maturity walk, one family per sitting, each page onto the template (`docs/superpowers/specs/2026-09-04-maturity-check.md`; `Components/Button` is the page to copy; the ratchet lists what each is missing):
+The maturity walk, one part per sitting, each page onto the template (`docs/superpowers/specs/2026-09-04-maturity-check.md`; `Components/Button` and `Components/Input` are the pages to copy; `node scripts/ds-check.mjs` lists what each page is missing). One page per part a product imports by name; Forms, Overlays, Pages, Shapes and Primitives keep an overview.
 
-- [x] Button (2026-09-04)
-- [ ] Controls
-- [ ] Table
-- [ ] Overlays
-- [ ] Status
-- [ ] Badge and Lists
-- [ ] Tabs, Disclosure, Parts
-- [ ] Pickers
+- [x] Button, IconButton, TextLink (2026-09-04)
+- [x] Input, Field (2026-09-04)
+- [ ] Textarea, NativeSelect, InputGroup
+- [ ] Select, Combobox, DatePicker, Calendar
+- [ ] Checkbox, RadioGroup, Switch; the Forms overview
+- [ ] Table, Pagination, Toolbar, FilterChip; DataTable
+- [ ] Tooltip, HoverCard, Popover, DropdownMenu
+- [ ] Dialog, Sheet, Drawer, AlertDialog; the Overlays overview
+- [ ] Alert, Banner, Progress, Stat, Gates
+- [ ] Badge, Count, Indicator
+- [ ] Breadcrumb, Item, Avatar, Id, KeyValue, Fact, Typography
+- [ ] Stepper, Timeline, Tree
+- [ ] Toggle, ToggleGroup, ButtonGroup, Kbd, Separator, Skeleton, Spinner
+- [ ] Tabs, Collapsible, Accordion
 - [ ] Chart
-- [ ] Editable, Command, Surfaces
-- [ ] Patterns
-- [ ] Shapes
+- [ ] Editable, Command, CodeBlock, Resizable, ScrollArea, Toaster
+- [ ] Mode, Density
+- [ ] The patterns: Pages overview, PageHeader, RecordHeader, Section, Card, Empty, PageSkeleton, Related, Glance, Panel, PreviewRail, PreviewSheet, PreviewSplit, PickerSheet, RecordPicker, CommandPalette
+- [ ] The shapes: ActionBar, Block, Inspector, WorkPane
 - [ ] Shell
-- [ ] Primitives
-- [ ] Tokens (the sheets have pages now; the template does not apply)
-- [ ] Data table (landed 2026-09-04 from the parallel branch; its page is not on the template, eleven sections grandfathered in `scripts/ds-check.allow`)
+- [ ] The primitives: Box, Stack, Inline, Flex, Grid, Bleed, Text, Heading
+- [ ] Tokens (the sheets have pages; the template does not apply)
 
 ## Prototype
 
@@ -44,6 +50,7 @@ The maturity walk, one family per sitting, each page onto the template (`docs/su
 
 ## Done
 
+- 2026-09-04 · **The rail back in the tab.** Josef, on the program and requirement records: the rail beside the whole page was over-stretched; it belongs within a tab. `ShowPage` takes `rail` again and renders it beside the body under the tab strip; the four tabbed records pass it on their overview tab, the six without tabs always, the risk record and the control detail put their Inspector back beside the work; the seven selection panels stay in `Shell.Panel`. Disclosure's trigger row is the title flush left in semibold with the chevron at the end, so a rail's headers line up with the labels beneath them. `KeyValue` gets its label column back (a codemod had left `px minmax(0, 1fr)`). And the reason "bolder" did nothing at first: `font-body` and the heading utilities set the `font` shorthand after the weight utilities, so every `font-medium`/`font-semibold` beside them rendered regular; the generated type utilities now carry the weight through `--tw-font-weight`, so Section titles, tabs and headers show the weight they were written with. 0.5.0.
 - 2026-09-04 · **Two lines rejoined.** A parallel session branched from the last push (0c49b1c) and built the data table while this line built the navigation system, the panel, the sweep and the Button walk; neither saw the other. The nine DataTable commits were merged (f4cda2c) and the four registers cherry-picked (18a6b85); the parallel line's other eight commits re-did queue items this line had already landed (forms, step 9, the peek stack, Glance, picker adoption, link-looking buttons, the component guide, the hydration fix) and were recorded as merged without their content, this line's versions standing. The system tree was rebuilt on tree mode keeping its glances, the `?peek=` stack and the suspect flag; the coverage view on presets keeping the hatched bar and the Not covered and Suspect questions. 0.4.0.
 - 2026-09-04 · **Four registers on DataTable**: the coverage view (presets for the six questions, search over id and statement, a hidden Currency column the Suspect question reads), the requirement table in tree mode with the statement carrying the chevron, the allocation table with editable status and text cells, the top risks and the four ConMon tables.
 - 2026-09-03 · **Data table, step 6**: editable text and status cells with the grid role and Enter moving down the column; both PickerSheet frames on DataTable.

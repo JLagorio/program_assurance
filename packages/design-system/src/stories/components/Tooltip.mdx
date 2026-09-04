@@ -1,0 +1,19 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Tooltip } from "../../components";
+import * as Overview from "./Overlays.stories";
+import * as Stories from "./Tooltip.stories";
+
+<Meta of={Stories} />
+
+# Tooltip
+
+<Canvas of={Stories.TooltipMatrix} />
+
+<Canvas of={Stories.TooltipOpen} />
+
+<Canvas of={Overview.Anchored} />
+
+## Props
+
+<ArgTypes of={Tooltip} />

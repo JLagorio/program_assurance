@@ -1,0 +1,24 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { ToggleGroup } from "../../components";
+import * as Stories from "./ToggleGroup.stories";
+import * as ToggleStories from "./Toggle.stories";
+
+<Meta of={Stories} />
+
+# ToggleGroup
+
+A ToggleGroup is one of several views, always exactly one on: the recessed segmented control; an item's `count` sits after its label as a Count, the way a Tabs.Tab carries one.
+
+<Canvas of={Stories.ToggleGroupMatrix} />
+
+<Canvas of={ToggleStories.TogglesStory} />
+
+## Props
+
+<ArgTypes of={ToggleGroup} />
+
+## Related
+
+- [Toggle](?path=/docs/components-toggle--docs): one thing on or off.
+- [ButtonGroup](?path=/docs/components-buttongroup--docs): joins Buttons that belong together with a hairline between.

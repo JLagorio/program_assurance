@@ -1,0 +1,30 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Checkbox } from "../../components";
+import * as Stories from "./Checkbox.stories";
+import * as FormsStories from "./Forms.stories";
+
+<Meta of={Stories} />
+
+# Checkbox
+
+**Checkbox**, **Switch** and **RadioGroup** are Radix underneath, with the tokens on top. Give a Checkbox, Switch or RadioGroup.Item children and the children become a label that toggles the control. Without children, pass `aria-label`.
+
+<Canvas of={Stories.CheckboxMatrix} />
+
+<Canvas of={FormsStories.ChoiceControls} />
+
+## States
+
+A checked state is the blue budget's "selection" use. Disabled is its own set of tokens, not an opacity.
+
+<Canvas of={FormsStories.Bare} />
+
+## Props
+
+<ArgTypes of={Checkbox} />
+
+## Related
+
+- [Switch](?path=/docs/components-switch--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): the other choice controls.
+- [Forms](?path=/docs/components-forms--docs): the controls together.

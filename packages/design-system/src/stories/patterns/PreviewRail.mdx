@@ -1,0 +1,23 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { PreviewRail } from "../../patterns";
+import * as Stories from "./PreviewRail.stories";
+
+<Meta of={Stories} />
+
+# PreviewRail
+
+The right rail as a preview of a row, never the record itself.
+
+<Canvas of={Stories.PreviewRailMatrix} />
+
+## Props
+
+<ArgTypes of={PreviewRail} />
+
+## Related
+
+- [Pages](?path=/docs/patterns-pages--docs): the IndexPage whose inline detail surface it is, opened from the eye in a Table.Id cell.
+- [Pages · Rail, sheet, panel](?path=/docs/patterns-pages--docs#rail-sheet-panel): the rail beside a table that leaves room for it; the sheet or the panel otherwise.
+- [Pages · The hover ladder](?path=/docs/patterns-pages--docs#the-hover-ladder): one of the kit's three shells for a preview body.
+- [PreviewSplit](?path=/docs/patterns-previewsplit--docs): the list, and beside it the rail of the chosen row, sized by the reader.

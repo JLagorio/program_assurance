@@ -1,0 +1,21 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { InputGroup } from "../../components";
+import * as Stories from "./InputGroup.stories";
+
+<Meta of={Stories} />
+
+# InputGroup
+
+An Input with something at either end: a search icon, a unit, a shortcut hint, a clear button. The child is any Input or NativeSelect.
+
+<Canvas of={Stories.InputGroupMatrix} />
+
+## Props
+
+<ArgTypes of={InputGroup} />
+
+## Related
+
+- [Input](?path=/docs/components-input--docs), [NativeSelect](?path=/docs/components-nativeselect--docs): what goes inside.
+- [Forms](?path=/docs/components-forms--docs): the controls together.

@@ -1,0 +1,16 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Bleed } from "../../primitives";
+import * as Stories from "./Bleed.stories";
+
+<Meta of={Stories} />
+
+# Bleed
+
+The one place a negative margin is written: pulling a child out to the edge of its parent's padding. The key props are `all`, `inline` and `block`.
+
+<Canvas of={Stories.BleedInsideCard} />
+
+## Props
+
+<ArgTypes of={Bleed} />

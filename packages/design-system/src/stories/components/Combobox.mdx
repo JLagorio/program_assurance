@@ -1,0 +1,25 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Combobox } from "../../components";
+import * as Stories from "./Combobox.stories";
+import * as FormsStories from "./Forms.stories";
+
+<Meta of={Stories} />
+
+# Combobox
+
+Three ways to choose from a list, and one for a date. All four triggers are the hairline control from Controls, so a picker and a field are the same shape in a form. A list worth searching: **Combobox**, a Command in a Popover.
+
+<Canvas of={Stories.ComboboxMatrix} />
+
+<Canvas of={FormsStories.FieldsStory} />
+
+## Props
+
+<ArgTypes of={Combobox} />
+
+## Related
+
+- [Select](?path=/docs/components-select--docs), [NativeSelect](?path=/docs/components-nativeselect--docs): the other ways to choose from a list.
+- [Command](?path=/docs/components-command--docs): the surface inside the Popover.
+- [Forms](?path=/docs/components-forms--docs): which list wants which control.

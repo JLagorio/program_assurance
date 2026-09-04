@@ -1,0 +1,18 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Resizable } from "../../components";
+import * as Stories from "./Resizable.stories";
+
+<Meta of={Stories} />
+
+# Resizable
+
+Panes a person sizes for themselves. The handle is a hairline that lights up on hover and takes the arrow keys.
+
+<Canvas of={Stories.ResizableMatrix} />
+
+<Canvas of={Stories.Panes} />
+
+## Props
+
+<ArgTypes of={Resizable} />

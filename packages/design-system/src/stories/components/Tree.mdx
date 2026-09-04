@@ -1,0 +1,18 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Tree } from "../../components";
+import * as Stories from "./Tree.stories";
+
+<Meta of={Stories} />
+
+# Tree
+
+A hierarchy the caller flattens. Rows carry indent guides, a chevron where there are children, and the tree aria.
+
+<Canvas of={Stories.TreeMatrix} />
+
+<Canvas of={Stories.TreeStory} />
+
+## Props
+
+<ArgTypes of={Tree} />

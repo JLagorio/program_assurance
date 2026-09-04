@@ -1,0 +1,111 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { IconButton } from "../../components";
+import * as Stories from "./IconButton.stories";
+
+<Meta of={Stories} />
+
+# IconButton
+
+A square button holding one icon and nothing else. `label` is required: it is the accessible name and the tooltip. Use one only where the icon is understood on sight (search, settings, close, more) or where the space is a toolbar's or a row's. Everywhere else the action gets its word: a [Button](?path=/docs/components-button--docs) with `iconBefore`.
+
+<Canvas of={Stories.IconButtonMatrix} />
+
+## Anatomy
+
+| Part      | What it is                                                                                                |
+| --------- | --------------------------------------------------------------------------------------------------------- |
+| Container | A square: `dimension.control.small` (28px) or `medium` (32px), `radius.medium`, the variant's fill.        |
+| Icon      | The one element, passed bare as `icon`; the button sizes it: `dimension.icon.small` (14px) in a small button, `dimension.icon.medium` (16px) in a medium one. |
+| Tooltip   | The label, on hover and on focus, from the kit's [Tooltip](?path=/docs/components-tooltip--docs).          |
+| Spinner   | Takes the icon's place while `isLoading`.                                                                 |
+
+## Variants
+
+| Variant     | Use                                                                                          |
+| ----------- | -------------------------------------------------------------------------------------------- |
+| `secondary` | The default: the raised button, for an icon action that stands on its own.                   |
+| `subtle`    | Toolbars, table rows, headers, the shell's chrome, where a raised square would be noise.      |
+
+There is no primary or danger IconButton. The one action a screen is for has a label, and so does anything that destroys.
+
+## Sizes
+
+| Size     | Square | Icon | Where                                                          |
+| -------- | ------ | ---- | -------------------------------------------------------------- |
+| `small`  | 28px   | 14px | The default: toolbars, rows, rails, beside small controls.     |
+| `medium` | 32px   | 16px | Beside medium controls: a header's close, the shell's top nav. |
+
+<Canvas of={Stories.InPlace} />
+
+## States
+
+| State    | What changes                                                                                         |
+| -------- | ---------------------------------------------------------------------------------------------------- |
+| Hover    | The fill steps to its `hovered` token and the tooltip opens after a short delay.                     |
+| Pressed  | The fill steps to its `pressed` token.                                                               |
+| Focus    | `color.border.focused` as an outline, on keyboard focus only; the tooltip opens.                     |
+| Disabled | `color.background.disabled` with `color.text.disabled`; the tooltip still opens on hover.            |
+| Selected | `isSelected`: `color.background.selected` with `color.text.selected`, `aria-pressed`. A filter on, a panel open. |
+| Loading  | `isLoading`: the spinner takes the icon's place, `aria-busy`, clicks are ignored, focus is kept.     |
+
+## Modifiers
+
+- **`isTooltipDisabled`** turns the tooltip off where the label is already visible beside the button, or where a parent supplies a richer one (the shell's toggle shows the shortcut). The accessible name stays.
+- **`asChild`** puts the router's Link inside; the icon goes inside it. This is how an icon navigates without the package depending on a router.
+- In a [ButtonGroup](?path=/docs/components-buttongroup--docs), a small IconButton with a chevron sits beside a small Button as the options of that action.
+
+## Content
+
+- `label` names the action, not the picture: Search, not Magnifier; Close, not X; More actions, not Dots.
+- A verb where the action is one: Edit, Download, Refresh. A noun where the button opens a thing: Settings, Filters, Notifications.
+- Sentence case, no punctuation, two words at most. The label is read aloud and shown as the tooltip; it is not a sentence.
+- Never for a destructive action. Delete needs its word, in a Button.
+
+## Style
+
+| Variant     | Rest                                                      | Hover                                     | Pressed                                   | Icon                                       |
+| ----------- | --------------------------------------------------------- | ----------------------------------------- | ----------------------------------------- | ------------------------------------------ |
+| `secondary` | `elevation.surface.raised` with `elevation.shadow.raised` | `elevation.surface.raised.hovered`        | `elevation.surface.raised.pressed`        | `color.text`                               |
+| `subtle`    | `color.background.neutral.subtle` (transparent)           | `color.background.neutral.subtle.hovered` | `color.background.neutral.subtle.pressed` | `color.text.subtle`, `color.text` on hover |
+| Selected    | `color.background.selected`                               | `color.background.selected.hovered`       | `color.background.selected.pressed`       | `color.text.selected`                      |
+| Disabled    | `color.background.disabled`                               |                                           |                                           | `color.text.disabled`                      |
+| Focus       | `color.border.focused`, as an outline                     |                                           |                                           |                                            |
+
+| Measure | Value                                                              |
+| ------- | ------------------------------------------------------------------ |
+| Square  | `dimension.control.small` 28px · `medium` 32px                     |
+| Icon    | `dimension.icon.small` 14px · `dimension.icon.medium` 16px         |
+| Radius  | `radius.medium` 5px                                                |
+| Tooltip | `color.background.neutral.bold` with `color.text.inverse`, `font.body.small`, 300ms delay |
+
+## Accessibility
+
+- `label` is the `aria-label`, so the name is spoken; the Tooltip shows the same text on hover and on focus, so a pointer user and a keyboard user both see it.
+- Keyboard: Tab reaches it, Enter and Space press it, the focus outline shows on keyboard focus only, Escape closes the tooltip.
+- `isSelected` sets `aria-pressed`; a toggle announces its state.
+- `isLoading` sets `aria-busy` and `aria-disabled`, ignores clicks and keeps focus.
+- A disabled IconButton is skipped by Tab and cannot say why. Prefer leaving it enabled and letting the action explain; see [Button](?path=/docs/components-button--docs) on disabled buttons.
+- The 28px square is under the 44px touch target; it is for pointer-first chrome (toolbars, rows). In a form or on a touch surface, use a Button with a label.
+
+## Props
+
+<ArgTypes of={IconButton} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Button](?path=/docs/components-button--docs): the button with a label, and its icons.
+- [ButtonGroup](?path=/docs/components-buttongroup--docs): an IconButton joined to a Button as its options.
+- [Tooltip](?path=/docs/components-tooltip--docs): the label's surface.
+- [Toggle](?path=/docs/components-toggle--docs): an icon that is on or off, in a toolbar.
+- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): the More actions menu an IconButton opens.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

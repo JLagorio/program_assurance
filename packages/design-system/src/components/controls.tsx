@@ -8,6 +8,7 @@ import {
   type ComponentProps,
   type ComponentPropsWithoutRef,
   type ReactNode,
+  useId,
 } from "react";
 
 import { cn } from "../lib/cn";
@@ -19,49 +20,75 @@ import { cn } from "../lib/cn";
  * children and the children become a label that toggles the control.
  */
 
+type AriaProps = {
+  "aria-invalid"?: boolean | undefined;
+  "aria-required"?: boolean | undefined;
+  "aria-describedby"?: string | undefined;
+};
+
 export type FieldProps = {
+  /** The control's name, read by the label and by assistive technology. Sentence case, no colon. */
   label: ReactNode;
-  /** Shown under the control. */
+  /** Shown under the control and read as its description: the format, the reason, the consequence. A full sentence. */
   hint?: ReactNode;
-  /** Replaces the hint and marks the field invalid. */
+  /** Replaces the hint, marks the control invalid (its border turns) and is announced as an alert. */
   error?: ReactNode;
+  /** Paints the asterisk and sets aria-required. Not the browser's `required`: the form checks on submit with `useRequired`. */
   isRequired?: boolean | undefined;
   children: ReactNode;
   className?: string | undefined;
 };
 
 export function Field({ label, hint, error, isRequired, children, className }: FieldProps) {
-  // The one control inside takes aria-invalid, so its border turns; the message under it is the alert.
-  const control =
-    error && isValidElement<{ "aria-invalid"?: boolean }>(children)
-      ? cloneElement(children, { "aria-invalid": true })
-      : children;
+  // The label wraps the control, so any control is named by it. The hint or the error sits outside
+  // the label as the control's description (aria-describedby), never as part of its name; the one
+  // control inside also takes aria-invalid, so its border turns, and aria-required.
+  const id = useId();
+  const messageId = error ? `${id}-error` : hint ? `${id}-hint` : undefined;
+  const control = isValidElement<AriaProps>(children)
+    ? cloneElement(children, {
+        ...(error ? { "aria-invalid": true } : {}),
+        ...(isRequired ? { "aria-required": true } : {}),
+        ...(messageId
+          ? {
+              "aria-describedby": [children.props["aria-describedby"], messageId]
+                .filter(Boolean)
+                .join(" "),
+            }
+          : {}),
+      })
+    : children;
   return (
-    <label className={cn("flex flex-col gap-050", className)}>
-      <span className="font-body-small font-medium text-subtle">
-        {label}
-        {isRequired ? (
-          <span aria-hidden className="text-danger">
-            {" *"}
-          </span>
-        ) : null}
-      </span>
-      {control}
+    <div className={cn("flex flex-col gap-050", className)}>
+      <label className="flex flex-col gap-050">
+        <span className="font-body-small font-medium text-subtle">
+          {label}
+          {isRequired ? (
+            <span aria-hidden className="text-danger">
+              {" *"}
+            </span>
+          ) : null}
+        </span>
+        {control}
+      </label>
       {error ? (
-        <span role="alert" className="font-body-small text-danger">
+        <span id={`${id}-error`} role="alert" className="font-body-small text-danger">
           {error}
         </span>
       ) : hint ? (
-        <span className="font-body-small text-subtlest">{hint}</span>
+        <span id={`${id}-hint`} className="font-body-small text-subtlest">
+          {hint}
+        </span>
       ) : null}
-    </label>
+    </div>
   );
 }
 
 /** The hairline control: Input, NativeSelect, Textarea, and the button triggers of Select, Combobox and DatePicker. */
 export const controlBase =
-  "h-control-medium w-full rounded-medium border border-input bg-input px-100 font-body text-default outline-none transition-colors duration-fast ease-standard placeholder:text-subtlest hover:bg-input-hovered aria-[invalid=true]:border-danger focus-visible:border-focused focus-visible:outline-focused disabled:cursor-not-allowed disabled:border-disabled disabled:bg-disabled disabled:text-disabled";
+  "h-control-medium w-full rounded-medium border border-input bg-input px-100 font-body text-default outline-none transition-colors duration-fast ease-standard placeholder:text-subtlest hover:bg-input-hovered [&[readonly]]:bg-surface-sunken [&[readonly]]:hover:bg-surface-sunken aria-[invalid=true]:border-danger focus-visible:border-focused focus-visible:outline-focused disabled:cursor-not-allowed disabled:border-disabled disabled:bg-disabled disabled:text-disabled";
 
+/** One line of free text. Inside a Field for its label, hint and error; inside an InputGroup for an icon, a unit or a shortcut at either end. */
 export function Input({ className, ...props }: ComponentProps<"input">) {
   return <input className={cn(controlBase, className)} {...props} />;
 }
@@ -79,6 +106,7 @@ export function NativeSelect({ className, ...props }: ComponentProps<"select">) 
   );
 }
 
+/** Several lines of free text, resizable downwards. Inside a Field like an Input. */
 export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
   return (
     <textarea

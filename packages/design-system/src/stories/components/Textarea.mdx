@@ -1,0 +1,24 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Textarea } from "../../components";
+import * as Stories from "./Textarea.stories";
+
+<Meta of={Stories} />
+
+# Textarea
+
+**Input**, **NativeSelect** and **Textarea** share the hairline control on the input surface. All three are the browser's own element with the kit's look. Every attribute passes through.
+
+<Canvas of={Stories.TextareaMatrix} />
+
+A `controlBase` string is exported for the button triggers of Select, Combobox and DatePicker, so a trigger and a field are the same shape.
+
+## Props
+
+<ArgTypes of={Textarea} />
+
+## Related
+
+- [Field](?path=/docs/components-field--docs): the label, hint and error around it.
+- [Input](?path=/docs/components-input--docs), [NativeSelect](?path=/docs/components-nativeselect--docs): the same hairline control.
+- [Forms](?path=/docs/components-forms--docs): the controls together.

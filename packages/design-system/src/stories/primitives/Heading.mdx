@@ -1,0 +1,16 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Heading } from "../../primitives";
+import * as Stories from "./Heading.stories";
+
+<Meta of={Stories} />
+
+# Heading
+
+For section and page titles. The key props are `size` (medium, small, xsmall) and `as`.
+
+<Canvas of={Stories.Headings} />
+
+## Props
+
+<ArgTypes of={Heading} />

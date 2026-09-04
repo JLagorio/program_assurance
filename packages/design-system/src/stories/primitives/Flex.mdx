@@ -1,0 +1,16 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Flex } from "../../primitives";
+import * as Stories from "./Flex.stories";
+
+<Meta of={Stories} />
+
+# Flex
+
+The escape hatch when Stack and Inline are not enough. The key props are `direction`, `gap`, `alignItems`, `justifyContent` and `wrap`.
+
+<Canvas of={Stories.FlexRow} />
+
+## Props
+
+<ArgTypes of={Flex} />

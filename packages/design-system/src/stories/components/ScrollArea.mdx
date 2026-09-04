@@ -1,0 +1,19 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { ScrollArea } from "../../components";
+import * as ResizableStories from "./Resizable.stories";
+import * as Stories from "./ScrollArea.stories";
+
+<Meta of={Stories} />
+
+# ScrollArea
+
+ScrollArea scrolls with the kit's thin bar instead of the platform's, so a rail looks the same on every OS.
+
+<Canvas of={Stories.ScrollAreaMatrix} />
+
+<Canvas of={ResizableStories.Panes} />
+
+## Props
+
+<ArgTypes of={ScrollArea} />

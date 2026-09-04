@@ -1,0 +1,22 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { RecordHeader } from "../../patterns";
+import * as Stories from "./RecordHeader.stories";
+
+<Meta of={Stories} />
+
+# RecordHeader
+
+Back chevron (`back` takes a link element), id and meta, title, actions, `facts` for the strip of Facts under the title (at most six; the rest go in the rail), and `below` for a persistent state strip.
+
+<Canvas of={Stories.RecordHeaderMatrix} />
+
+## Props
+
+<ArgTypes of={RecordHeader} />
+
+## Related
+
+- [Pages](?path=/docs/patterns-pages--docs): the ShowPage it heads.
+- [PageHeader](?path=/docs/patterns-pageheader--docs): the header of an index.
+- [PreviewSheet](?path=/docs/patterns-previewsheet--docs): its header is the compact RecordHeader.

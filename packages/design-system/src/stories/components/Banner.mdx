@@ -1,0 +1,22 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Banner } from "../../components";
+import * as Stories from "./Banner.stories";
+
+<Meta of={Stories} />
+
+# Banner
+
+A message about the whole site, in the shell's Banner area: the loss of data or a function, or something site-wide that changes what the reader can do. One at a time, never dismissible, gone when no longer true. It is one line and truncates rather than wraps; the `action` is one link or button drawn in the banner's own colour. Alert is inline in a rail or above a table; Banner is the screen's.
+
+<Canvas of={Stories.Banners} />
+
+<Canvas of={Stories.BannerMatrix} />
+
+## Props
+
+<ArgTypes of={Banner} />
+
+## Related
+
+[Alert](?path=/docs/components-alert--docs), Banner, [Progress](?path=/docs/components-progress--docs) and [Stat](?path=/docs/components-stat--docs) read the same tone table as [Badge](?path=/docs/components-badge--docs), so a tone means one thing everywhere.

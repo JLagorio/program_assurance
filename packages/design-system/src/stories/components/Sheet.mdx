@@ -1,0 +1,19 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Sheet } from "../../components";
+import * as Overview from "./Overlays.stories";
+import * as Stories from "./Sheet.stories";
+
+<Meta of={Stories} />
+
+# Sheet
+
+- A Sheet defaults to the end edge at 420px. Use it for a record's detail when the list behind should stay in view. Its header takes `eyebrow` above the title and `facts` under the subtitle, `toolbar` is a row between header and body that does not scroll, and `onBack` puts a chevron before the title for a sheet that is one frame of a stack.
+
+<Canvas of={Stories.SheetMatrix} />
+
+<Canvas of={Overview.Modal} />
+
+## Props
+
+<ArgTypes of={Sheet} />

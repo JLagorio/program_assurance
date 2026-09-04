@@ -1,13 +1,14 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Button, ButtonGroup, IconButton, TextLink } from "../../components";
+import { Button } from "../../components";
 import * as Stories from "./Button.stories";
+import * as IconButtonStories from "./IconButton.stories";
 
 <Meta of={Stories} />
 
 # Button
 
-A button starts an action: it saves, submits, opens, deletes, filters. It is not navigation. Something that takes the reader to another place is a link: [TextLink](#textlink) when it reads as text, `Button asChild` around the router's Link when it must look like a button. Something that is on or off is a [Toggle](?path=/docs/components-parts--docs); one of several views is a ToggleGroup; a list of actions behind one button is a [DropdownMenu](?path=/docs/components-overlays--docs).
+A button starts an action: it saves, submits, opens, deletes, filters. It is not navigation. Something that takes the reader to another place is a link: [TextLink](?path=/docs/components-textlink--docs) when it reads as text, `Button asChild` around the router's Link when it must look like a button. Something that is on or off is a [Toggle](?path=/docs/components-toggle--docs); one of several views is a [ToggleGroup](?path=/docs/components-togglegroup--docs); a list of actions behind one button is a [DropdownMenu](?path=/docs/components-dropdownmenu--docs). A button with an icon and no label is an [IconButton](?path=/docs/components-iconbutton--docs).
 
 The recipe is Atlassian's: one fill per variant, hovered and pressed as their own tokens, disabled as tokens rather than an opacity, one focus outline. The look is Ledger's: a flat brand fill for primary and a raised surface with the raised shadow for secondary.
 
@@ -21,8 +22,6 @@ The recipe is Atlassian's: one fill per variant, hovered and pressed as their ow
 | Label     | The text, `font.body` at `font.weight.medium`, centred, never wrapped. `xsmall` drops to `font.body.small`.      |
 | Icon      | Optional, before or after the label, `dimension.icon.small` (14px), 6px from the label. The button sizes it.     |
 | Spinner   | Takes the icon's place while `isLoading`; the label stays.                                                       |
-
-An IconButton is the container and one icon, square, with the label as its accessible name and its tooltip.
 
 ## Variants
 
@@ -50,7 +49,7 @@ There is no `warning` variant. An action that needs attention but is recoverable
 | `small`  | 28px   | 12px    | `font.body`       | Toolbars, table rows, rails, anything beside a small control.     |
 | `xsmall` | 24px   | 8px     | `font.body.small` | The densest chrome: a row's inline action, a chip's action.       |
 
-Buttons in one row share one size. `link` has no size; it takes the surrounding text. An IconButton is `small` (28px) by default and `medium` (32px) beside medium controls.
+Buttons in one row share one size. `link` has no size; it takes the surrounding text.
 
 ## States
 
@@ -71,9 +70,9 @@ Buttons in one row share one size. `link` has no size; it takes the surrounding 
 
 <Canvas of={Stories.Icons} />
 
-**Icon only.** `IconButton` with `label` (required) and `icon`. The label is the accessible name and the tooltip; `isTooltipDisabled` when the label is already visible beside it. Use one only where the icon is understood on sight (search, settings, close, more) or the space is a toolbar's. Never for a destructive action: Delete needs its word.
+**Icon only.** [IconButton](?path=/docs/components-iconbutton--docs), with `label` (required) and `icon`. The label is the accessible name and the tooltip. Use one only where the icon is understood on sight or the space is a toolbar's; never for a destructive action.
 
-<Canvas of={Stories.IconButtons} />
+<Canvas of={IconButtonStories.IconButtons} />
 
 **As a link.** `asChild` puts the router's Link inside and it takes the button's classes and its icons. This is how a button navigates without the package depending on a router.
 
@@ -83,7 +82,7 @@ Buttons in one row share one size. `link` has no size; it takes the surrounding 
 
 <Canvas of={Stories.FullWidth} />
 
-**Groups.** Actions that belong together sit in an `Inline` with `space.100`, the primary on the right in a footer and on the left in a header. A `ButtonGroup` is the other thing: two controls that act as one, joined with a hairline, an Export beside its options chevron. There is no split button; that pairing is the split button.
+**Groups.** Actions that belong together sit in an `Inline` with `space.100`, the primary on the right in a footer and on the left in a header. A [ButtonGroup](?path=/docs/components-buttongroup--docs) is the other thing: two controls that act as one, joined with a hairline, an Export beside its options chevron. There is no split button; that pairing is the split button.
 
 ## Content
 
@@ -92,7 +91,6 @@ Buttons in one row share one size. `link` has no size; it takes the surrounding 
 - Three words where possible, never a sentence. A label that needs more is a hint under the field or a line in the dialog.
 - Say what happens, not what to do: Export report, never Click here. Never OK or Yes: the label names the action the reader confirms.
 - The label does not change while the action runs; `isLoading` says it is running.
-- An IconButton's `label` follows the same rules and names the action, not the icon: Search, not Magnifier.
 
 ## Style
 
@@ -109,16 +107,15 @@ The token for each variant in each state. `hovered` and `pressed` are the state'
 | Disabled    | `color.background.disabled`, no shadow                                  |                                                  |                                                  | `color.text.disabled`                       |
 | Focus       | `color.border.focused`, as an outline                                   |                                                  |                                                  |                                             |
 
-| Measure          | Value                                                                       |
-| ---------------- | --------------------------------------------------------------------------- |
-| Height           | `dimension.control.xsmall` 24px · `small` 28px · `medium` 32px              |
-| Padding          | `space.100` 8px on `xsmall` · `space.150` 12px on `small` and `medium`      |
-| Icon             | `dimension.icon.small` 14px; `dimension.icon.medium` 16px in a medium IconButton |
-| Gap              | `space.075` 6px between icon and label                                      |
-| Radius           | `radius.medium` 5px                                                         |
-| Type             | `font.body` at `font.weight.medium`; `font.body.small` on `xsmall`          |
-| Motion           | `motion.duration.fast` on the fill, `motion.easing.standard`                |
-| IconButton       | `small` 28px square · `medium` 32px square                                  |
+| Measure  | Value                                                                       |
+| -------- | --------------------------------------------------------------------------- |
+| Height   | `dimension.control.xsmall` 24px · `small` 28px · `medium` 32px              |
+| Padding  | `space.100` 8px on `xsmall` · `space.150` 12px on `small` and `medium`      |
+| Icon     | `dimension.icon.small` 14px                                                 |
+| Gap      | `space.075` 6px between icon and label                                      |
+| Radius   | `radius.medium` 5px                                                         |
+| Type     | `font.body` at `font.weight.medium`; `font.body.small` on `xsmall`          |
+| Motion   | `motion.duration.fast` on the fill, `motion.easing.standard`                |
 
 Every pairing above passes 4.5:1 for text and 3:1 for icons in both modes; `packages/design-system/test/contrast.test.mjs` checks it on every build.
 
@@ -126,31 +123,14 @@ Every pairing above passes 4.5:1 for text and 3:1 for icons in both modes; `pack
 
 - A Button renders a `<button type="button">`, so it never submits a form by accident; pass `type="submit"` on the one that does. With `asChild` the child is the element and keeps its own semantics.
 - Keyboard: Tab reaches it, Enter and Space press it, the focus outline shows on keyboard focus only.
-- An IconButton's `label` is its `aria-label` and its tooltip, so the name is spoken and shown. The tooltip opens on focus as well as hover.
 - `isSelected` sets `aria-pressed`; a toggle announces its state.
 - `isLoading` sets `aria-busy` and `aria-disabled`, ignores clicks and keeps focus, so a screen reader hears that the action is running and the reader is not thrown back to the top of the page.
-- **Disabled buttons are the last resort.** A disabled button is skipped by Tab, cannot be read, and does not say why. Keep the primary enabled and let the form say what is missing: `useRequired` marks the first empty field on press (see [Controls](?path=/docs/components-controls--docs)). Disable only when the action truly cannot run and the reason is visible beside the button.
+- **Disabled buttons are the last resort.** A disabled button is skipped by Tab, cannot be read, and does not say why. Keep the primary enabled and let the form say what is missing: `useRequired` marks the first empty field on press (see [Forms](?path=/docs/components-forms--docs)). Disable only when the action truly cannot run and the reason is visible beside the button.
 - Contrast is tested, not assumed: every fill against its text in both modes.
 
 ## Props
 
 <ArgTypes of={Button} />
-
-### IconButton
-
-<ArgTypes of={IconButton} />
-
-### TextLink
-
-Navigation that reads as text: brand colour, an underline on hover, the focus outline. `asChild` is on by default, so the router's Link goes inside and takes the classes; `asChild={false}` renders an anchor from `href`. Left unset, `size` inherits the surrounding text; `weight="medium"` is for a link that stands alone. The lint reports a Link carrying `text-brand` or `hover:underline` by hand, and a `Button variant="link"` wrapping a link.
-
-<Canvas of={Stories.TextLinks} />
-
-<ArgTypes of={TextLink} />
-
-### ButtonGroup
-
-<ArgTypes of={ButtonGroup} />
 
 ### Playground
 
@@ -160,9 +140,12 @@ Navigation that reads as text: brand colour, an underline on hover, the focus ou
 
 ## Related
 
-- [Parts](?path=/docs/components-parts--docs): Toggle for on or off, ToggleGroup for one of several views, ButtonGroup.
-- [Overlays](?path=/docs/components-overlays--docs): DropdownMenu for a list of actions behind one button; AlertDialog, which carries the `danger` button; Tooltip.
-- [Controls](?path=/docs/components-controls--docs): the form the primary button submits, and `useRequired`.
+- [IconButton](?path=/docs/components-iconbutton--docs): the button that is one icon, with a required label.
+- [TextLink](?path=/docs/components-textlink--docs): navigation that reads as text.
+- [ButtonGroup](?path=/docs/components-buttongroup--docs): two controls joined as one.
+- [Toggle](?path=/docs/components-toggle--docs) and [ToggleGroup](?path=/docs/components-togglegroup--docs): on or off, one of several views.
+- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): a list of actions behind one button. [AlertDialog](?path=/docs/components-alertdialog--docs) carries the `danger` button. [Tooltip](?path=/docs/components-tooltip--docs).
+- [Forms](?path=/docs/components-forms--docs): the form the primary button submits, and `useRequired`.
 - [Pages](?path=/docs/patterns-pages--docs): where the primary sits on an index, a record, a dialog.
 
 ## Don't

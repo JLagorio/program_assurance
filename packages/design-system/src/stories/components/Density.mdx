@@ -1,0 +1,24 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { DensitySwitch } from "../../mode";
+import * as Stories from "./Density.stories";
+
+<Meta of={Stories} />
+
+# Density
+
+Row density is the same shape: `data-density="compact"` on the root resolves `dimension.row` to its compact value (36px instead of 40px), so every table follows and no table takes a density prop. `densityScript` goes in the head beside `modeScript`; `DensityProvider` owns the choice under `ledger.density`; `DensitySwitch` is the two-state control, beside the mode switch in chrome. A table that is compact by design sets `data-density` on its own frame instead.
+
+<Canvas of={Stories.DensityLive} />
+
+<Canvas of={Stories.DensityControlledStory} />
+
+<Canvas of={Stories.DensityMatrix} />
+
+## Props
+
+<ArgTypes of={DensitySwitch} />
+
+## Related
+
+- [Mode](?path=/docs/components-mode--docs)

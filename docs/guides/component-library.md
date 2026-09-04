@@ -117,14 +117,16 @@ every product. A product's own config adds nothing about the kit.
 
 1. Put the part in its layer with relative imports and the package `cn`. Class strings are token
    utilities; the package lints itself with the strict preset (`npm run lint` there).
-2. Give it a story under `src/stories` and a `*Matrix` story that lays out its variants and states,
-   rendered once. The toolbar switches the mode. `node scripts/ds-check.mjs` from the repo root says
+2. Give it a story file of its own under `src/stories` (`<Part>.stories.tsx`, one per part a product
+   imports by name; compound parts stay with their parent) and a `*Matrix` story that lays out its
+   variants and states, rendered once. The toolbar switches the mode. `node scripts/ds-check.mjs` from the repo root says
    what is missing; `npm run build` runs it first.
-3. Write the family's page on the template: Anatomy, Variants, Sizes, States, Modifiers, Content, Style,
+3. Write the part's page (`<Part>.mdx`) on the template: Anatomy, Variants, Sizes, States, Modifiers, Content, Style,
    Accessibility, Props (`<ArgTypes of={Part} />`, generated from the types, so every prop carries a JSDoc
    line), Related, Don't (a `Pair` per mistake). A heading that does not apply says so under itself. The
    ratchet lists the headings a page is missing; the families not yet walked are grandfathered in
-   `scripts/ds-check.allow`, which only shrinks. `Components/Button` is the page to copy.
+   `scripts/ds-check.allow`, which only shrinks. `Components/Button` and `Components/Input` are the pages to copy; a family that is a choice keeps an
+   overview page (Forms, Overlays, Pages, Shapes, Primitives) that says which part to reach for.
 4. Check it in both modes in Storybook. Then, and only on a go, move the prototype onto it.
 
 ## Versioning and publishing

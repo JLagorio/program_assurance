@@ -1,0 +1,18 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Toaster } from "../../components";
+import * as Stories from "./Toaster.stories";
+
+<Meta of={Stories} />
+
+# Toaster
+
+Confirmation of an action: bottom right, gone in a few seconds. Render one Toaster near the root, then call `toast.success`, `toast.error`, `toast.warning` or `toast.info` from anywhere.
+
+<Canvas of={Stories.ToasterMatrix} />
+
+<Canvas of={Stories.Toasts} />
+
+## Props
+
+<ArgTypes of={Toaster} />

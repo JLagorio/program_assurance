@@ -1,0 +1,26 @@
+import { ArgTypes, Canvas, Description, Meta } from "@storybook/addon-docs/blocks";
+
+import { CommandPalette } from "../../patterns";
+import * as Stories from "./CommandPalette.stories";
+
+<Meta of={Stories} />
+
+# CommandPalette
+
+<Description of={CommandPalette} />
+
+<Canvas of={Stories.CommandPaletteStory} />
+
+<Canvas of={Stories.CommandPaletteMatrix} story={{ inline: false, height: "420px" }} />
+
+## Props
+
+<ArgTypes of={CommandPalette} />
+
+### useCommandPalette
+
+The palette's open state, toggled by ⌘K or Ctrl+K anywhere on the page.
+
+## Related
+
+- [RecordPicker](?path=/docs/patterns-recordpicker--docs): the same Command.Dialog, picking one record instead of running a command.

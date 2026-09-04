@@ -1,0 +1,20 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Box } from "../../primitives";
+import * as Stories from "./Box.stories";
+
+<Meta of={Stories} />
+
+# Box
+
+For padding and a surface. No margins, ever. The key props are `padding`, `paddingInline` and `paddingBlock` (space tokens), and `backgroundColor` (a background or surface token).
+
+<Canvas of={Stories.Padding} />
+
+<Canvas of={Stories.Surfaces} />
+
+<Canvas of={Stories.Backgrounds} />
+
+## Props
+
+<ArgTypes of={Box} />

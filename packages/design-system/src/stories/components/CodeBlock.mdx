@@ -1,0 +1,18 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { CodeBlock } from "../../components";
+import * as Stories from "./CodeBlock.stories";
+
+<Meta of={Stories} />
+
+# CodeBlock
+
+Source shown as source: a line-number gutter that stays put when the block scrolls sideways, one row per line, the code face. The caller owns highlighting and passes rendered lines.
+
+<Canvas of={Stories.CodeBlockMatrix} />
+
+<Canvas of={Stories.Code} />
+
+## Props
+
+<ArgTypes of={CodeBlock} />

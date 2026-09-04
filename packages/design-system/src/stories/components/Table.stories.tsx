@@ -15,15 +15,15 @@ import {
   usePage,
   useSort,
 } from "../../components";
-import { Box, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
+import { Stack, Text } from "../../primitives";
 
 const meta = {
   title: "Components/Table",
+  component: Table,
   parameters: { layout: "padded" },
-} satisfies Meta;
+} satisfies Meta<typeof Table>;
 export default meta;
-type Story = StoryObj;
+type Story = StoryObj<typeof meta>;
 
 type Row = {
   id: string;
@@ -464,61 +464,6 @@ export const TableMatrix: Story = {
       </Table>
       <GroupStates />
       <TreeGrid />
-    </Stack>
-  ),
-};
-
-/** Inactive, active, with a value, and disabled. */
-export const ChipMatrix: Story = {
-  render: () => (
-    <Specimens title="FilterChip">
-      <FilterChip label="Impact" />
-      <FilterChip label="Impact" isActive />
-      <FilterChip label="Baseline" value="Rev. 5" isActive />
-      <FilterChip label="Owner" disabled />
-    </Specimens>
-  ),
-};
-
-/** First page, a middle page with the range, the last page, and a single page. */
-export const PaginationMatrix: Story = {
-  parameters: {
-    // The matrix stacks four pagination navs; a page has one. A false positive of the layout, not a defect.
-    a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } },
-  },
-  render: () => (
-    <Stack space="space.200" className="max-w-layout-measure">
-      <Pagination page={1} pageCount={12} onPageChange={() => {}} total={289} pageSize={25} />
-      <Pagination page={6} pageCount={12} onPageChange={() => {}} total={289} pageSize={25} />
-      <Pagination page={12} pageCount={12} onPageChange={() => {}} total={289} pageSize={25} />
-      <Pagination page={1} pageCount={1} onPageChange={() => {}} total={5} pageSize={25} />
-    </Stack>
-  ),
-};
-
-/** Search only, with filters, with actions, and dense. */
-export const ToolbarMatrix: Story = {
-  render: () => (
-    <Stack space="space.200" className="max-w-layout-measure">
-      <Toolbar search="" onSearch={() => {}} placeholder="Search controls" />
-      <Toolbar search="AC-2" onSearch={() => {}}>
-        <FilterChip label="Baseline" value="Rev. 5" isActive />
-        <FilterChip label="Impact" />
-      </Toolbar>
-      <Toolbar search="" onSearch={() => {}} actions={<Button size="small">Export</Button>}>
-        <FilterChip label="Owner" />
-      </Toolbar>
-      <Toolbar
-        actions={
-          <Button size="small" variant="primary">
-            New
-          </Button>
-        }
-      >
-        <Text size="small" color="color.text.subtle">
-          No search: the children carry the row.
-        </Text>
-      </Toolbar>
     </Stack>
   ),
 };

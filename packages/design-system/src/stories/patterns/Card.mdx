@@ -1,0 +1,21 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Card } from "../../patterns";
+import * as Stories from "./Card.stories";
+
+<Meta of={Stories} />
+
+# Card
+
+A framed block on the raised surface, with an optional header row. It records its surface so a sticky table header inside it stays opaque.
+
+<Canvas of={Stories.CardMatrix} />
+
+## Props
+
+<ArgTypes of={Card} />
+
+## Related
+
+- [Pages](?path=/docs/patterns-pages--docs): the two page archetypes and the parts they are assembled from.
+- [Section](?path=/docs/patterns-section--docs): a titled region with a rule under its heading, no frame.

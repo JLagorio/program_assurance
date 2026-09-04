@@ -1,0 +1,22 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Progress } from "../../components";
+import * as Stories from "./Progress.stories";
+
+<Meta of={Stories} />
+
+# Progress
+
+One value out of 100 as a thin bar, or a Stacked bar of segments for a coverage read-out. The track is `color.background.neutral`; a segment is the tone's bold fill, as Atlassian's ProgressBar. A `hatched` segment is what is not known or not covered: a hole in the record, never a flat fill.
+
+<Canvas of={Stories.Bars} />
+
+<Canvas of={Stories.ProgressMatrix} />
+
+## Props
+
+<ArgTypes of={Progress} />
+
+## Related
+
+[Alert](?path=/docs/components-alert--docs), [Banner](?path=/docs/components-banner--docs), Progress and [Stat](?path=/docs/components-stat--docs) read the same tone table as [Badge](?path=/docs/components-badge--docs), so a tone means one thing everywhere.

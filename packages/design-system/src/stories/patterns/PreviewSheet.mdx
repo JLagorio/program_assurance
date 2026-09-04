@@ -1,0 +1,23 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { PreviewSheet } from "../../patterns";
+import * as Stories from "./PreviewSheet.stories";
+
+<Meta of={Stories} />
+
+# PreviewSheet
+
+The peek panel: a Sheet that previews a row over the page. Its header is the compact RecordHeader: the Preview eyebrow with the id and one `status`, the title, the meta line, at most three `facts`. The footer's first item opens the full record, more `links` follow, `actions` sit on the right. `onBack` when it is one frame of a stack.
+
+<Canvas of={Stories.PreviewSheetMatrix} />
+
+## Props
+
+<ArgTypes of={PreviewSheet} />
+
+## Related
+
+- [Pages · Rail, sheet, panel](?path=/docs/patterns-pages--docs#rail-sheet-panel): the sheet is the peek; a page uses the rail or the sheet, never both.
+- [Pages · The hover ladder](?path=/docs/patterns-pages--docs#the-hover-ladder): click is the peek; a record opened from inside a peek is the next frame of the same sheet.
+- [Glance](?path=/docs/patterns-glance--docs): the hover rung's body.
+- [RecordHeader](?path=/docs/patterns-recordheader--docs): the header the sheet compacts.

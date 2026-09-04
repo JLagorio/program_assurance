@@ -1,0 +1,22 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Kbd } from "../../components";
+import * as Stories from "./Kbd.stories";
+
+<Meta of={Stories} />
+
+# Kbd
+
+<Canvas of={Stories.KbdMatrix} />
+
+<Canvas of={Stories.Small} />
+
+## Props
+
+<ArgTypes of={Kbd} />
+
+## Related
+
+- [Separator](?path=/docs/components-separator--docs)
+- [Spinner](?path=/docs/components-spinner--docs)
+- [Skeleton](?path=/docs/components-skeleton--docs)

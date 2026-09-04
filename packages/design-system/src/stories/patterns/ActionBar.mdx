@@ -1,0 +1,21 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { ActionBar } from "../../shapes";
+import * as Stories from "./ActionBar.stories";
+
+<Meta of={Stories} />
+
+# ActionBar
+
+Identity, current state, and the actions that change it, pinned above the work. A blocked action carries its reason instead of hiding it. The first state is the headline and the bar's only pill; the rest read as dot and text.
+
+<Canvas of={Stories.ActionBarMatrix} />
+
+## Props
+
+<ArgTypes of={ActionBar} />
+
+## Related
+
+- [Shapes](?path=/docs/shapes-overview--docs): the four shapes and the job each answers.
+- [WorkPane](?path=/docs/shapes-workpane--docs): the detail it is pinned above.

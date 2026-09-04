@@ -1,0 +1,17 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { DropdownMenu } from "../../components";
+import * as Stories from "./DropdownMenu.stories";
+import * as Overview from "./Overlays.stories";
+
+<Meta of={Stories} />
+
+# DropdownMenu
+
+<Canvas of={Stories.DropdownMenuMatrix} />
+
+<Canvas of={Overview.Anchored} />
+
+## Props
+
+<ArgTypes of={DropdownMenu} />

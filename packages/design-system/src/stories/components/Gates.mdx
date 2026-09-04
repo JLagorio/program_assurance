@@ -1,0 +1,18 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Gates } from "../../components";
+import * as Stories from "./Gates.stories";
+
+<Meta of={Stories} />
+
+# Gates
+
+The conditions an action waits on, what a record still needs, a phase's entry and exit criteria. A met gate is a check and its label, muted. An unmet gate is a Dot in its tone, the label, the reason under it and the action that meets it. A list, never a score.
+
+<Canvas of={Stories.GatesStory} />
+
+<Canvas of={Stories.GatesMatrix} />
+
+## Props
+
+<ArgTypes of={Gates} />

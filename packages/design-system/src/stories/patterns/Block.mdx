@@ -1,0 +1,21 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Block } from "../../shapes";
+import * as Stories from "./Block.stories";
+
+<Meta of={Stories} />
+
+# Block
+
+A block of work, always open. Collapsible is its closed twin.
+
+<Canvas of={Stories.BlockMatrix} />
+
+## Props
+
+<ArgTypes of={Block} />
+
+## Related
+
+- [Shapes](?path=/docs/shapes-overview--docs): the four shapes and the job each answers.
+- [Section](?path=/docs/patterns-section--docs): a titled region with a rule under its heading; prefer Block for work.

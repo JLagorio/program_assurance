@@ -80,11 +80,16 @@ const matrixOf = (file) =>
 const pageOf = (storyFile) => {
   const stem = path.basename(storyFile).replace(/\.stories\.tsx?$/, "");
   const dir = path.dirname(storyFile);
-  return pageFiles.find(
-    (p) =>
-      path.dirname(p) === dir &&
-      new RegExp(`from "\\./${stem}\\.stories"`).test(fs.readFileSync(p, "utf8")),
-  );
+  // The page named like the story file, else the one whose <Meta of={…}> is that file's namespace
+  // (a part page may import an overview's stories to embed one; that does not make it the overview's page).
+  const named = pageFiles.find((p) => path.dirname(p) === dir && path.basename(p, ".mdx") === stem);
+  if (named) return named;
+  return pageFiles.find((p) => {
+    if (path.dirname(p) !== dir) return false;
+    const text = fs.readFileSync(p, "utf8");
+    const ns = text.match(new RegExp(`import \\* as (\\w+) from "\\./${stem}\\.stories"`));
+    return ns ? new RegExp(`<Meta of=\\{${ns[1]}\\}`).test(text) : false;
+  });
 };
 const pageGaps = [];
 for (const sf of storyFiles) {

@@ -1,0 +1,25 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { ButtonGroup } from "../../components";
+import * as Stories from "./ButtonGroup.stories";
+import * as ToggleStories from "./Toggle.stories";
+
+<Meta of={Stories} />
+
+# ButtonGroup
+
+A ButtonGroup joins Buttons that belong together with a hairline between.
+
+<Canvas of={Stories.ButtonGroupMatrix} />
+
+<Canvas of={ToggleStories.TogglesStory} />
+
+## Props
+
+<ArgTypes of={ButtonGroup} />
+
+## Related
+
+- [Button](?path=/docs/components-button--docs)
+- [Toggle](?path=/docs/components-toggle--docs): one thing on or off.
+- [ToggleGroup](?path=/docs/components-togglegroup--docs): one of several views, always exactly one on.

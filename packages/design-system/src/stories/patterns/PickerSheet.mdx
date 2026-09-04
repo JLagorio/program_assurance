@@ -1,0 +1,22 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { PickerSheet } from "../../patterns";
+import * as Stories from "./PickerSheet.stories";
+
+<Meta of={Stories} />
+
+# PickerSheet
+
+Choosing many from hundreds: search and filters in a toolbar that does not scroll, a Table with Table.Selection in the body, a footer that counts the chosen rows and names the one action. A second frame of the same sheet fills in per-row fields.
+
+<Canvas of={Stories.PickerSheetMatrix} />
+
+## Props
+
+<ArgTypes of={PickerSheet} />
+
+## Related
+
+- [Pages · Choosing many](?path=/docs/patterns-pages--docs#choosing-many): the two frames, what the kit owns and what the caller owns, and the spec.
+- [Data table](?path=/docs/patterns-data-table--docs): frame one is a DataTable in the sheet.
+- [RecordPicker](?path=/docs/patterns-recordpicker--docs): picking one record from a list.

@@ -1,0 +1,25 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Skeleton } from "../../components";
+import * as Stories from "./Skeleton.stories";
+import * as KbdStories from "./Kbd.stories";
+
+<Meta of={Stories} />
+
+# Skeleton
+
+A Skeleton holds the layout still while content loads; size it with className.
+
+<Canvas of={Stories.SkeletonMatrix} />
+
+<Canvas of={KbdStories.Small} />
+
+## Props
+
+<ArgTypes of={Skeleton} />
+
+## Related
+
+- [Kbd](?path=/docs/components-kbd--docs)
+- [Separator](?path=/docs/components-separator--docs)
+- [Spinner](?path=/docs/components-spinner--docs)

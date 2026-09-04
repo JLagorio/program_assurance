@@ -1,0 +1,20 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Count } from "../../components";
+import * as Stories from "./Count.stories";
+
+<Meta of={Stories} />
+
+# Count
+
+A number in a pill: unread items, rows in a group, results behind a filter. Anything above `max` (99 by default) renders as `99+`. Atlassian calls this a Badge.
+
+<Canvas of={Stories.Counts} />
+
+## Props
+
+<ArgTypes of={Count} />
+
+## Related
+
+- [Badge](?path=/docs/components-badge--docs): the tone table, and which of Badge, Count, Indicator and Dot to use.

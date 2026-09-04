@@ -1,0 +1,23 @@
+import { ArgTypes, Canvas, Description, Meta } from "@storybook/addon-docs/blocks";
+
+import { RecordPicker } from "../../patterns";
+import * as Stories from "./RecordPicker.stories";
+
+<Meta of={Stories} />
+
+# RecordPicker
+
+<Description of={RecordPicker} />
+
+<Canvas of={Stories.RecordPickerStory} />
+
+<Canvas of={Stories.RecordPickerMatrix} story={{ inline: false, height: "480px" }} />
+
+## Props
+
+<ArgTypes of={RecordPicker} />
+
+## Related
+
+- [PickerSheet](?path=/docs/patterns-pickersheet--docs): choosing many by attribute.
+- [CommandPalette](?path=/docs/patterns-commandpalette--docs): the same Command.Dialog, running a command instead of picking a record.

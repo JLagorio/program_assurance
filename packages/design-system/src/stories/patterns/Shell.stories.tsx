@@ -34,14 +34,14 @@ import {
   Tooltip,
 } from "../../components";
 import { ModeSwitch } from "../../mode";
-import { PageHeader, Panel, RecordHeader } from "../../patterns";
+import { PageHeader, RecordHeader, ShowPage } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Block, Inspector } from "../../shapes";
 import { SHELL_STORAGE_KEY, Shell, shellScript, shellScriptFor, useSideNav } from "../../shell";
 import { Specimens } from "../_lib/matrix";
 
 const meta = {
-  title: "Patterns/Shell",
+  title: "Shell",
   parameters: { layout: "fullscreen" },
 } satisfies Meta;
 export default meta;
@@ -431,7 +431,7 @@ const railGroups = [
 ];
 const tabs = ["Overview", "Controls", "Evidence", "Findings"] as const;
 
-/** A record page: the header keeps its facts, the rail is the panel, always there, and it stays while the tabs change. */
+/** A record page: the header keeps its facts; the rail, every Inspector group, is the ShowPage's, beside the body of the overview tab under the tab strip; every other tab runs full width. */
 function RecordDemo() {
   const [tab, setTab] = useState<(typeof tabs)[number]>("Overview");
   return (
@@ -462,37 +462,45 @@ function RecordDemo() {
         </Shell.SideNav.Body>
       </Shell.SideNav>
       <Shell.Main>
-        <Stack space="space.200">
-          <RecordHeader
-            back={<a href="#programs" aria-label="Back to programs" />}
-            id="PRG-014"
-            title="Payload integration"
-            meta="Authorise · Sarah Chen"
-            actions={
-              <>
-                <Button>Export</Button>
-                <Button variant="primary">Submit for assessment</Button>
-              </>
-            }
-            facts={
-              <>
-                <Fact label="Phase">Authorise</Fact>
-                <Fact label="Owner">Sarah Chen</Fact>
-                <Fact label="Next gate">12 Sep</Fact>
-              </>
-            }
-          />
-          <Tabs label="Record">
-            {tabs.map((t) => (
-              <Tabs.Tab key={t} isSelected={tab === t} onClick={() => setTab(t)}>
-                {t}
-              </Tabs.Tab>
-            ))}
-          </Tabs>
+        <ShowPage
+          header={
+            <RecordHeader
+              back={<a href="#programs" aria-label="Back to programs" />}
+              id="PRG-014"
+              title="Payload integration"
+              meta="Authorise · Sarah Chen"
+              actions={
+                <>
+                  <Button>Export</Button>
+                  <Button variant="primary">Submit for assessment</Button>
+                </>
+              }
+              facts={
+                <>
+                  <Fact label="Phase">Authorise</Fact>
+                  <Fact label="Owner">Sarah Chen</Fact>
+                  <Fact label="Next gate">12 Sep</Fact>
+                </>
+              }
+            />
+          }
+          tabs={
+            <Tabs label="Record">
+              {tabs.map((t) => (
+                <Tabs.Tab key={t} isSelected={tab === t} onClick={() => setTab(t)}>
+                  {t}
+                </Tabs.Tab>
+              ))}
+            </Tabs>
+          }
+          rail={tab === "Overview" ? <Inspector groups={railGroups} /> : null}
+        >
           <Block title={tab} count={tab === "Overview" ? undefined : 12}>
             <Stack space="space.100">
               <Text color="color.text.subtle">
-                The {tab} tab's work. The rail stays while the tab changes.
+                {tab === "Overview"
+                  ? "The overview's work, beside the rail."
+                  : `The ${tab} tab's work, the full width.`}
               </Text>
               {programs.slice(0, 8).map((p) => (
                 <Inline
@@ -512,17 +520,11 @@ function RecordDemo() {
           <Block title="Gates" count={3}>
             <Text color="color.text.subtle">What this record still needs before it moves.</Text>
           </Block>
-        </Stack>
+        </ShowPage>
       </Shell.Main>
-      <Shell.Panel label="Details">
-        <Shell.Panel.Splitter label="Resize details" />
-        <Panel flush>
-          <Inspector groups={railGroups} />
-        </Panel>
-      </Shell.Panel>
     </Shell>
   );
 }
 
-/** The record's rail: details and related information in the shell's panel, always there on a record, never dismissed, staying while the tabs change. The peek is a Sheet, not this. */
+/** The record's rail: details and related information, every Inspector group, in the ShowPage's rail beside the overview tab, under the tab strip; the other tabs run full width. The shell's panel holds the detail of a selected row or a panel the reader opens, never the rail; the peek is a Sheet. */
 export const RecordRail: Story = { name: "Record rail", render: () => <RecordDemo /> };

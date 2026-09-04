@@ -1,0 +1,150 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Field, Input } from "../../components";
+import * as Stories from "./Input.stories";
+
+<Meta of={Stories} />
+
+# Input
+
+One line of free text: a name, an acronym, an email address, a number. Use it when the answer cannot be predicted; when it can, the control is a [NativeSelect](?path=/docs/components-nativeselect--docs), a [Select](?path=/docs/components-select--docs), a [Combobox](?path=/docs/components-combobox--docs) or a [RadioGroup](?path=/docs/components-radiogroup--docs). Several lines are a [Textarea](?path=/docs/components-textarea--docs); a date is a [DatePicker](?path=/docs/components-datepicker--docs).
+
+An Input is almost never alone. Inside a [Field](?path=/docs/components-field--docs) it has its label, its hint and its error, and that is how a form uses it. Inside an [InputGroup](?path=/docs/components-inputgroup--docs) it has an icon, a unit or a shortcut at either end, and that is how a search box uses it. The Input itself is the browser's `<input>` with the kit's field on it: it takes every attribute an input takes.
+
+<Canvas of={Stories.InputMatrix} />
+
+## Anatomy
+
+| Part          | What it is                                                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Label         | From the Field, above the control: `font.body.small` at `font.weight.medium`, `color.text.subtle`. It is the control's name.          |
+| Required mark | The Field's `isRequired`: a red asterisk after the label, hidden from screen readers, which hear `aria-required` instead.              |
+| Control       | The field: `dimension.control.medium` (32px), `radius.medium`, `color.border.input` on `color.background.input`, 8px of padding.       |
+| Value         | The text, `font.body`, `color.text`. Empty, the placeholder shows in `color.text.subtlest`.                                            |
+| Message       | From the Field, under the control: the hint in `color.text.subtlest`, or the error in `color.text.danger`. It is the control's description. |
+| Ends          | From an InputGroup: an icon at the start, a unit or a shortcut at the end, inside the field's padding.                                |
+
+## Variants
+
+Input has one appearance. What varies is what wraps it and what it holds:
+
+| Need                                        | Use                                                                                        |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| A labelled answer in a form                 | `Field` around the Input, with `hint` or `error`, `isRequired` where the form will check it. |
+| A search box, a filter, a value with a unit | `InputGroup` around the Input, with `leading` or `trailing`.                                |
+| An email, a number, a URL                   | `type` and `inputMode` on the Input, so the keyboard and the browser's checks fit the value. |
+| A value shown but not edited here           | `readOnly`: the field sits on the sunken surface and can be focused and copied.            |
+| Several lines                               | `Textarea`.                                                                                |
+
+There is no password input, no masked input and no clear button. The products sign in through the organisation, and a value with a format is corrected on submit, not while typing.
+
+## Sizes
+
+One height: `dimension.control.medium`, 32px, the same as a medium Button and a Select, so a row of controls lines up. There is no small Input. A filter in a toolbar is a [FilterChip](?path=/docs/components-filterchip--docs) or a Combobox, not a smaller field.
+
+The width is the layout's. An Input fills its container; the container says how long the answer is. In a form's Grid a five-letter acronym takes one column, a name two, a sentence the row. `InputGroup` takes a `width` for the search box that stands alone.
+
+<Canvas of={Stories.Widths} />
+
+## States
+
+| State     | What changes                                                                                                                  |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Rest      | `color.border.input` on `color.background.input`; the placeholder in `color.text.subtlest`.                                    |
+| Hover     | The background steps to `color.background.input.hovered`.                                                                      |
+| Focus     | The border turns `color.border.focused` and the focus outline shows, on keyboard focus and on click alike.                     |
+| Filled    | The value in `color.text`.                                                                                                     |
+| Invalid   | The border turns `color.border.danger` and the Field's error replaces the hint, in `color.text.danger`, announced as an alert. |
+| Disabled  | `color.background.disabled`, `color.border.disabled`, `color.text.disabled`, the not-allowed cursor. See Accessibility for when. |
+| Read-only | The field sits on `elevation.surface.sunken` with no hover; it can be focused, selected and copied.                            |
+
+<Canvas of={Stories.InField} />
+
+## Modifiers
+
+- **`type` and `inputMode`** for the value: `email`, `number` with `inputMode="numeric"`, `url`. The browser brings the right keyboard on a touch device and its own format check. `type="search"` is not used; a search box is an InputGroup with the icon.
+- **`readOnly`** for a value the form shows but does not edit here: an id, a derived value. It stays in the tab order and can be copied. It is not `disabled`.
+- **`autoFocus`** on the first field of a dialog or a sheet that exists to fill it.
+- **`maxLength`** where the store has a limit; the hint says the limit.
+- **An InputGroup** for an icon, a unit or a shortcut at either end. The Input keeps its padding clear of them.
+
+<Canvas of={Stories.Kinds} />
+
+## Content
+
+- **The label is a noun**, sentence case, no colon, no article: Program name, Owner, Scheduled completion. Not an instruction ("Enter the name"), not a question.
+- **The placeholder shows the format** and nothing the reader must keep: `first.last@example.mil`, `RHEL9_V2R1_mission-compute.ckl`. It disappears on the first keystroke, so it is never the label and never carries a rule.
+- **The hint is a full sentence** with a full stop, under the control, and says what a good answer is or what the value is used for: "As it appears on the authorization package." "Auditors read this verbatim during sampling." One sentence; a second one is a paragraph on the page.
+- **The error says what is wrong and what fixes it**, in a sentence: "Choose a person who is on the program." The default from `useRequired` is "Required." and that is the whole message for an empty required field.
+- **Required is marked, optional is not.** When most of a form is optional, mark nothing and say "Optional" in the hint of the few that are.
+
+## Style
+
+| Element     | Token                                                                                                       |
+| ----------- | ----------------------------------------------------------------------------------------------------------- |
+| Field       | `color.background.input` · `color.border.input` · `radius.medium` 5px                                       |
+| Hover       | `color.background.input.hovered`                                                                            |
+| Focus       | `color.border.focused` as the border, plus the focus outline                                                |
+| Invalid     | `color.border.danger`; the message in `color.text.danger`                                                   |
+| Disabled    | `color.background.disabled` · `color.border.disabled` · `color.text.disabled`                               |
+| Read-only   | `elevation.surface.sunken`                                                                                  |
+| Value       | `font.body` in `color.text`; placeholder in `color.text.subtlest`                                           |
+| Label       | `font.body.small` at `font.weight.medium` in `color.text.subtle`; the required mark in `color.text.danger`  |
+| Hint        | `font.body.small` in `color.text.subtlest`                                                                  |
+| Error       | `font.body.small` in `color.text.danger`                                                                    |
+
+| Measure   | Value                                                               |
+| --------- | ------------------------------------------------------------------- |
+| Height    | `dimension.control.medium` 32px                                     |
+| Padding   | `space.100` 8px at each end; an InputGroup's end adds its own room  |
+| Gaps      | `space.050` 4px from label to control and from control to message   |
+| Radius    | `radius.medium` 5px                                                 |
+| Motion    | `motion.duration.fast` on the colours, `motion.easing.standard`     |
+
+The border and the placeholder pass 3:1 and 4.5:1 against the input surface in both modes; `packages/design-system/test/contrast.test.mjs` checks them on every build.
+
+## Accessibility
+
+- **The label is the name.** The Field wraps the control in a `<label>`, so every control it holds is named by the label text, and a click on the label focuses the control. Without a Field, an Input needs `aria-label`, and a form has no such Input.
+- **The message is the description.** The Field's hint or error sits outside the label and is wired to the control with `aria-describedby`, so a screen reader reads the name, then the value, then the hint; the message never becomes part of the name.
+- **The error is announced.** It has `role="alert"`, so it is read when it appears, and the control carries `aria-invalid`, so the state is spoken with the name.
+- **Required is spoken, not enforced.** `isRequired` sets `aria-required` and paints the asterisk; it does not set the browser's `required`, so no native bubble fights the form's own check on submit ([Forms](?path=/docs/components-forms--docs), `useRequired`).
+- **Keyboard:** Tab reaches it, typing edits it, the arrow keys move within it, Escape does nothing. Read-only stays in the tab order; disabled leaves it.
+- **Disabled is the last resort.** A disabled field cannot be read by every screen reader and cannot say why. Prefer read-only for a value that is shown, and an enabled field with a hint for a value that is not editable yet.
+- The border and the placeholder are contrast-tested against the input surface in both modes.
+
+## Props
+
+Input takes every attribute of `<input>`; the ones this page is about:
+
+| Prop                         | Use                                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------------ |
+| `value`, `defaultValue`      | Controlled or not. A form with `useRequired` is controlled.                          |
+| `type`, `inputMode`          | The value's kind: `email`, `number` with `numeric`, `url`.                           |
+| `placeholder`                | The format, never the label.                                                         |
+| `readOnly`, `disabled`       | Shown but not edited here; not available. See States.                                |
+| `autoFocus`, `maxLength`     | The first field of a dialog; a store's limit, said in the hint.                      |
+| `aria-invalid`               | Set by the Field from `error`; set it by hand only outside a Field.                  |
+| `className`                  | Layout only. The look is the kit's.                                                  |
+
+### Field
+
+<ArgTypes of={Field} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Field](?path=/docs/components-field--docs): the label, the hint and the error around any control.
+- [InputGroup](?path=/docs/components-inputgroup--docs): an icon, a unit or a shortcut at either end.
+- [Textarea](?path=/docs/components-textarea--docs), [NativeSelect](?path=/docs/components-nativeselect--docs), [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs), [DatePicker](?path=/docs/components-datepicker--docs): the other answers.
+- [Forms](?path=/docs/components-forms--docs): which control for which answer, the layout, and `useRequired`.
+- [Editable](?path=/docs/components-editable--docs): a value read in place and edited on click, for a record's rail.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

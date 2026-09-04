@@ -1,0 +1,95 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { TextLink } from "../../components";
+import * as Stories from "./TextLink.stories";
+
+<Meta of={Stories} />
+
+# TextLink
+
+Navigation that reads as text: brand colour, an underline on hover, the focus outline. A TextLink takes the reader somewhere. An action that only looks like a link (show more, add a row) is `Button variant="link"`, and an action that must look like a button is a [Button](?path=/docs/components-button--docs).
+
+`asChild` is on by default, so the router's Link goes inside and takes the classes; the package never imports a router. `asChild={false}` renders an anchor from `href`. The lint (`ledger/prefer-text-link`) reports a Link carrying `text-brand` or `hover:underline` by hand, and a `Button variant="link"` wrapping a link.
+
+<Canvas of={Stories.TextLinkMatrix} />
+
+## Anatomy
+
+| Part      | What it is                                                                                                  |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+| Text      | The link's words, in `color.text.brand`. There is no container, no icon, no padding: it sits in the line.    |
+| Underline | On hover, `underline-offset-2`; not at rest, so a paragraph of ids does not read as a stripe.               |
+| Focus     | `color.border.focused` as an outline, with `radius.xsmall` so the outline hugs the text.                    |
+
+## Variants
+
+TextLink has no variants. Its two axes are size and weight:
+
+| Prop     | Values                            | Use                                                                                                   |
+| -------- | --------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `size`   | unset · `small` · `medium`        | Unset inherits the surrounding text, which is the rule inside prose and cells. Set it only for a link that stands alone. |
+| `weight` | `regular` · `medium`              | `medium` for a link that stands alone: a footer's "Open the full record", a card's one link.           |
+
+## Sizes
+
+Inside prose, a table cell or a fact, a TextLink has no size: it takes the text it sits in. Standing alone it is `small` (`font.body.small`) in a rail or a footer and `medium` (`font.body`) on a page.
+
+<Canvas of={Stories.InProse} />
+
+## States
+
+| State   | What changes                                                              |
+| ------- | ------------------------------------------------------------------------- |
+| Hover   | The underline appears. The colour stays `color.text.brand`.               |
+| Focus   | `color.border.focused` as an outline, on keyboard focus only.             |
+| Visited | Unchanged. A product's records are revisited all day; a visited colour would paint the screen. |
+| Disabled | Not a state. A link that cannot be followed is not rendered as a link; the text stays plain. |
+
+## Modifiers
+
+- **`asChild`** (default): the child is the router's Link and takes the classes. `asChild={false}` renders an anchor from `href` and the other anchor props (`target`, `rel`).
+- A TextLink inside a row that highlights on hover is painted by the row, not by itself: the Id and the name turn brand on row hover, the way the register's tables do.
+
+## Content
+
+- The link text says where it goes: the record's name, its id, "Full timeline". Never "here", "click here", "link" or a bare URL.
+- Inside a sentence the link is the noun, not the whole sentence: "traces to REQ-0118", not "traces to REQ-0118 which you can open".
+- Standing alone, a verb phrase at medium weight: "Open the full record", "See all findings".
+- Sentence case. No trailing punctuation inside the link.
+
+## Style
+
+| Element   | Token                                                             |
+| --------- | ----------------------------------------------------------------- |
+| Text      | `color.text.brand`                                                |
+| Hover     | `text-decoration: underline`, offset 2px                          |
+| Focus     | `color.border.focused` outline, `radius.xsmall`                   |
+| Type      | Inherited; `font.body.small` or `font.body` when `size` is set; `font.weight.regular` or `font.weight.medium` |
+| Motion    | `motion.duration.fast` on colour, `motion.easing.standard`        |
+
+## Accessibility
+
+- It is a real link: an `<a>` with `href`, or the router's Link, so it has a visited history, opens in a new tab on request, and is listed by screen readers among the page's links. That list is why the text must say where it goes.
+- Keyboard: Tab reaches it, Enter follows it, the focus outline shows on keyboard focus only.
+- The underline on hover only is a deliberate trade: brand colour at 4.5:1 carries the affordance at rest inside a product, where nearly every id is a link. In long prose for reading, keep links sparse so the colour alone is enough.
+- Never a Button styled as a link for navigation: a button has no href, so middle-click, copy link and the screen reader's link list all fail.
+
+## Props
+
+<ArgTypes of={TextLink} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Button](?path=/docs/components-button--docs): `variant="link"` for an action that reads as text; `asChild` for a link that looks like a button.
+- [Id](?path=/docs/components-id--docs): the identifier a TextLink usually wraps; it is blue only inside a link (`ledger/id-not-blue`).
+- [Breadcrumb](?path=/docs/components-breadcrumb--docs) and [Item](?path=/docs/components-item--docs): navigation with a shape of its own.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

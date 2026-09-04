@@ -6,16 +6,25 @@ import { Meta } from "@storybook/addon-docs/blocks";
 
 Layout and text, modelled on `@atlaskit/primitives`. Every prop that carries a design value is typed to a token, so an invalid value is a type error and a valid one is a literal class the scanner sees.
 
-| Primitive | For | Key props |
-| --- | --- | --- |
-| **Box** | Padding and a surface. No margins, ever. | `padding`, `paddingInline`, `paddingBlock` (space tokens), `backgroundColor` (a background or surface token) |
-| **Stack** | A column with one gap. | `space`, `alignInline`, `alignBlock`, `spread`, `grow` |
-| **Inline** | A row with one gap, optionally wrapping. `display="inline-flex"` keeps it inline-level for a chip or a count beside a label. | `space`, `rowSpace`, `alignBlock`, `alignInline`, `spread`, `shouldWrap`, `separator`, `grow`, `display` |
-| **Flex** | The escape hatch when Stack and Inline are not enough. | `direction`, `gap`, `alignItems`, `justifyContent`, `wrap` |
-| **Grid** | Columns or rows on a template. `templateColumns` takes a string, or one per breakpoint (`{ base, sm, md, lg, xl }`). | `templateColumns`, `templateRows`, `gap`, `alignItems`, `justifyContent` |
-| **Bleed** | The one place a negative margin is written: pulling a child out to the edge of its parent's padding. | `all`, `inline`, `block` |
-| **Text** | Interface text on the body ramp. | `size` (large, medium, small, xsmall), `weight`, `color` (a text token), `align`, `maxLines`, `as` |
-| **Heading** | Section and page titles. | `size` (medium, small, xsmall), `as` |
+- [Box](?path=/docs/primitives-box--docs)
+- [Stack](?path=/docs/primitives-stack--docs)
+- [Inline](?path=/docs/primitives-inline--docs)
+- [Flex](?path=/docs/primitives-flex--docs)
+- [Grid](?path=/docs/primitives-grid--docs)
+- [Bleed](?path=/docs/primitives-bleed--docs)
+- [Text](?path=/docs/primitives-text--docs)
+- [Heading](?path=/docs/primitives-heading--docs)
+
+| Primitive   | For                                                                                                                          | Key props                                                                                                    |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Box**     | Padding and a surface. No margins, ever.                                                                                     | `padding`, `paddingInline`, `paddingBlock` (space tokens), `backgroundColor` (a background or surface token) |
+| **Stack**   | A column with one gap.                                                                                                       | `space`, `alignInline`, `alignBlock`, `spread`, `grow`                                                       |
+| **Inline**  | A row with one gap, optionally wrapping. `display="inline-flex"` keeps it inline-level for a chip or a count beside a label. | `space`, `rowSpace`, `alignBlock`, `alignInline`, `spread`, `shouldWrap`, `separator`, `grow`, `display`     |
+| **Flex**    | The escape hatch when Stack and Inline are not enough.                                                                       | `direction`, `gap`, `alignItems`, `justifyContent`, `wrap`                                                   |
+| **Grid**    | Columns or rows on a template. `templateColumns` takes a string, or one per breakpoint (`{ base, sm, md, lg, xl }`).         | `templateColumns`, `templateRows`, `gap`, `alignItems`, `justifyContent`                                     |
+| **Bleed**   | The one place a negative margin is written: pulling a child out to the edge of its parent's padding.                         | `all`, `inline`, `block`                                                                                     |
+| **Text**    | Interface text on the body ramp.                                                                                             | `size` (large, medium, small, xsmall), `weight`, `color` (a text token), `align`, `maxLines`, `as`           |
+| **Heading** | Section and page titles.                                                                                                     | `size` (medium, small, xsmall), `as`                                                                         |
 
 ## Rules of thumb
 

@@ -1,0 +1,20 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Empty } from "../../patterns";
+import * as Stories from "./Empty.stories";
+
+<Meta of={Stories} />
+
+# Empty
+
+A dashed frame with a title, one line of why, and the action that fills it.
+
+<Canvas of={Stories.EmptyMatrix} />
+
+## Props
+
+<ArgTypes of={Empty} />
+
+## Related
+
+- [Pages](?path=/docs/patterns-pages--docs): the two page archetypes and the parts they are assembled from; the Index story shows the frame in place of a table with no rows.

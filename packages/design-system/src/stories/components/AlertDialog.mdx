@@ -1,0 +1,19 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { AlertDialog } from "../../components";
+import * as Stories from "./AlertDialog.stories";
+import * as Overview from "./Overlays.stories";
+
+<Meta of={Stories} />
+
+# AlertDialog
+
+- An AlertDialog has no close button and does not close on an outside click. `pending` holds it open with the confirm button busy while the caller saves. Use `tone="danger"` when the action destroys.
+
+<Canvas of={Stories.AlertDialogMatrix} />
+
+<Canvas of={Overview.Modal} />
+
+## Props
+
+<ArgTypes of={AlertDialog} />

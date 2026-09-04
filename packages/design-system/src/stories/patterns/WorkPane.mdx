@@ -1,0 +1,23 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { WorkPane } from "../../shapes";
+import * as Stories from "./WorkPane.stories";
+
+<Meta of={Stories} />
+
+# WorkPane
+
+You are working through a list. The list stays; only the detail changes. The list column is `dimension.layout.list`.
+
+<Canvas of={Stories.WorkPaneStory} />
+
+<Canvas of={Stories.WorkPaneMatrix} />
+
+## Props
+
+<ArgTypes of={WorkPane} />
+
+## Related
+
+- [Shapes](?path=/docs/shapes-overview--docs): the four shapes and the job each answers.
+- [ActionBar](?path=/docs/shapes-actionbar--docs), [Block](?path=/docs/shapes-block--docs) and [Inspector](?path=/docs/shapes-inspector--docs): what the detail is built from.

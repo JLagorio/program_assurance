@@ -1,0 +1,26 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { NativeSelect } from "../../components";
+import * as Stories from "./NativeSelect.stories";
+
+<Meta of={Stories} />
+
+# NativeSelect
+
+**Input**, **NativeSelect** and **Textarea** share the hairline control on the input surface. All three are the browser's own element with the kit's look. Every attribute passes through. NativeSelect draws its chevron with a real icon so it follows the colour mode; `className` goes to its wrapper.
+
+<Canvas of={Stories.NativeSelectMatrix} />
+
+A plain list of words: **NativeSelect**, the browser's own, lightest.
+
+A `controlBase` string is exported for the button triggers of Select, Combobox and DatePicker, so a trigger and a field are the same shape.
+
+## Props
+
+<ArgTypes of={NativeSelect} />
+
+## Related
+
+- [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs): the other ways to choose from a list.
+- [Field](?path=/docs/components-field--docs): the label, hint and error around it.
+- [Forms](?path=/docs/components-forms--docs): which list wants which control.

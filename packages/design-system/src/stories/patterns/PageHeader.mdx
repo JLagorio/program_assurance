@@ -1,0 +1,21 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { PageHeader } from "../../patterns";
+import * as Stories from "./PageHeader.stories";
+
+<Meta of={Stories} />
+
+# PageHeader
+
+Eyebrow, title on `font.heading.medium`, one line, actions on the right.
+
+<Canvas of={Stories.PageHeaderMatrix} />
+
+## Props
+
+<ArgTypes of={PageHeader} />
+
+## Related
+
+- [Pages](?path=/docs/patterns-pages--docs): the IndexPage it heads.
+- [RecordHeader](?path=/docs/patterns-recordheader--docs): the header of a record, with its id, facts and back chevron.

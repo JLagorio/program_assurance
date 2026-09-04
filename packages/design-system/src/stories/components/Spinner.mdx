@@ -1,0 +1,27 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Spinner } from "../../components";
+import * as Stories from "./Spinner.stories";
+import * as KbdStories from "./Kbd.stories";
+
+<Meta of={Stories} />
+
+# Spinner
+
+<Canvas of={Stories.SpinnerMatrix} />
+
+<Canvas of={KbdStories.Small} />
+
+## Sizes
+
+A Spinner is `small` beside text and `medium` on its own.
+
+## Props
+
+<ArgTypes of={Spinner} />
+
+## Related
+
+- [Kbd](?path=/docs/components-kbd--docs)
+- [Separator](?path=/docs/components-separator--docs)
+- [Skeleton](?path=/docs/components-skeleton--docs)

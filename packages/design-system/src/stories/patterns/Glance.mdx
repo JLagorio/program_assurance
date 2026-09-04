@@ -1,0 +1,23 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Glance } from "../../patterns";
+import * as Stories from "./Glance.stories";
+
+<Meta of={Stories} />
+
+# Glance
+
+The hover rung's body: id and one status, the title, a meta line, at most four facts. Facts only; the click is the peek.
+
+<Canvas of={Stories.GlanceStory} />
+
+<Canvas of={Stories.GlanceMatrix} />
+
+## Props
+
+<ArgTypes of={Glance} />
+
+## Related
+
+- [Pages · The hover ladder](?path=/docs/patterns-pages--docs#the-hover-ladder): glance, peek, record; which facts a record type shows is the app's.
+- [PreviewSheet](?path=/docs/patterns-previewsheet--docs): the peek.

@@ -1,0 +1,18 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Stepper } from "../../components";
+import * as Stories from "./Stepper.stories";
+
+<Meta of={Stories} />
+
+# Stepper
+
+Progress through an ordered path. One step is `current`; `blocked` is the step that failed. Horizontal puts labels under markers; vertical stacks them down the left.
+
+<Canvas of={Stories.StepperMatrix} />
+
+<Canvas of={Stories.Steppers} />
+
+## Props
+
+<ArgTypes of={Stepper} />

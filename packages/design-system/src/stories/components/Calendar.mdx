@@ -1,0 +1,23 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Calendar } from "../../components";
+import * as Stories from "./Calendar.stories";
+
+<Meta of={Stories} />
+
+# Calendar
+
+The Calendar is react-day-picker with the tokens: 32px cells, the selection is the blue budget, today is weight 600 with no dot. Ranges paint `color.background.selected` between the ends.
+
+<Canvas of={Stories.CalendarMatrix} />
+
+<Canvas of={Stories.CalendarRange} />
+
+## Props
+
+<ArgTypes of={Calendar} />
+
+## Related
+
+- [DatePicker](?path=/docs/components-datepicker--docs): a Calendar in a Popover, holding an ISO day.
+- [Forms](?path=/docs/components-forms--docs): the pickers beside the other controls.

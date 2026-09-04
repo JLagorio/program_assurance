@@ -1,0 +1,19 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Pagination } from "../../components";
+import * as Stories from "./Pagination.stories";
+
+<Meta of={Stories} />
+
+# Pagination
+
+<Canvas of={Stories.PaginationMatrix} />
+
+## Props
+
+<ArgTypes of={Pagination} />
+
+## Related
+
+- [Table](?path=/docs/components-table--docs): Toolbar sits above (search, filters, actions on the right); Pagination sits below (range on the left, pages on the right).
+- [Toolbar](?path=/docs/components-toolbar--docs)

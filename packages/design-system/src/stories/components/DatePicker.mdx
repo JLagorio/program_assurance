@@ -1,0 +1,25 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { DatePicker } from "../../components";
+import * as Stories from "./DatePicker.stories";
+import * as FormsStories from "./Forms.stories";
+
+<Meta of={Stories} />
+
+# DatePicker
+
+Three ways to choose from a list, and one for a date. All four triggers are the hairline control from Controls, so a picker and a field are the same shape in a form. A day: **DatePicker**, a Calendar in a Popover, holding an ISO day like `input type="date"`.
+
+<Canvas of={Stories.DatePickerMatrix} />
+
+<Canvas of={FormsStories.FieldsStory} />
+
+## Props
+
+<ArgTypes of={DatePicker} />
+
+## Related
+
+- [Calendar](?path=/docs/components-calendar--docs): the surface inside the Popover.
+- [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs), [NativeSelect](?path=/docs/components-nativeselect--docs): the three ways to choose from a list.
+- [Forms](?path=/docs/components-forms--docs): which list wants which control.

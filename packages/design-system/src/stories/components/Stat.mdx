@@ -1,0 +1,26 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Stat, Tiles } from "../../components";
+import * as Stories from "./Stat.stories";
+
+<Meta of={Stories} />
+
+# Stat
+
+A Tile is label, big tabular number, one-line note; zero reads muted. Tiles is a row of them separated by hairlines, framed as a card or run edge to edge as a band. A bare Stat is the number over its label for an unframed summary row.
+
+<Canvas of={Stories.Stats} />
+
+<Canvas of={Stories.StatMatrix} />
+
+## Props
+
+<ArgTypes of={Stat} />
+
+### Tiles
+
+<ArgTypes of={Tiles} />
+
+## Related
+
+[Alert](?path=/docs/components-alert--docs), [Banner](?path=/docs/components-banner--docs), [Progress](?path=/docs/components-progress--docs) and Stat read the same tone table as [Badge](?path=/docs/components-badge--docs), so a tone means one thing everywhere.

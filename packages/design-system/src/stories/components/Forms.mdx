@@ -1,0 +1,44 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Forms.stories";
+
+<Meta of={Stories} />
+
+# Forms
+
+The form controls. **[Field](?path=/docs/components-field--docs)** wraps one control with its label, hint and error. **[Input](?path=/docs/components-input--docs)**, **[NativeSelect](?path=/docs/components-nativeselect--docs)** and **[Textarea](?path=/docs/components-textarea--docs)** share the hairline control on the input surface. **[Checkbox](?path=/docs/components-checkbox--docs)**, **[Switch](?path=/docs/components-switch--docs)** and **[RadioGroup](?path=/docs/components-radiogroup--docs)** are Radix underneath, with the tokens on top.
+
+<Canvas of={Stories.Fields} />
+
+Three ways to choose from a list, and one for a date. All four triggers are the hairline control from Controls, so a picker and a field are the same shape in a form.
+
+<Canvas of={Stories.FieldsStory} />
+
+| List                                                     | Use                                                                                                                             |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| A plain list of words                                    | **[NativeSelect](?path=/docs/components-nativeselect--docs)** (in Controls): the browser's own, lightest                        |
+| A short, fixed list whose options carry a Dot or a Badge | **[Select](?path=/docs/components-select--docs)**                                                                               |
+| A list worth searching                                   | **[Combobox](?path=/docs/components-combobox--docs)**: a Command in a Popover                                                   |
+| A day                                                    | **[DatePicker](?path=/docs/components-datepicker--docs)**: a Calendar in a Popover, holding an ISO day like `input type="date"` |
+
+Give a Checkbox, Switch or RadioGroup.Item children and the children become a label that toggles the control. Without children, pass `aria-label`.
+
+<Canvas of={Stories.ChoiceControls} />
+
+<Canvas of={Stories.Bare} />
+
+## Required on submit
+
+- `isRequired` adds the asterisk. It does not set `required` on the control; do that on the control.
+
+`useRequired`: required fields, checked on submit. Name the values; the Fields they belong to carry `isRequired` and `error={req.errorFor(key)}`; the primary button stays enabled and calls `req.check()` first. The first empty field turns red with the message under it. A value of `false` is a field that is not required right now (`{ note: needsReason && note }`).
+
+<Canvas of={Stories.RequiredOnSubmit} />
+
+## Related
+
+- [Field](?path=/docs/components-field--docs): the label, hint and error around one control.
+- [Input](?path=/docs/components-input--docs), [Textarea](?path=/docs/components-textarea--docs), [NativeSelect](?path=/docs/components-nativeselect--docs): the hairline controls.
+- [InputGroup](?path=/docs/components-inputgroup--docs): an Input with something at either end.
+- [Checkbox](?path=/docs/components-checkbox--docs), [Switch](?path=/docs/components-switch--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): the choice controls.
+- [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs), [DatePicker](?path=/docs/components-datepicker--docs), [Calendar](?path=/docs/components-calendar--docs): the pickers.

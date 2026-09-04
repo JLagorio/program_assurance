@@ -1,0 +1,22 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Section } from "../../patterns";
+import * as Stories from "./Section.stories";
+
+<Meta of={Stories} />
+
+# Section
+
+A titled region with a rule under its heading. Prefer [Block](?path=/docs/shapes-block--docs) for work and Collapsible for reference.
+
+<Canvas of={Stories.SectionMatrix} />
+
+## Props
+
+<ArgTypes of={Section} />
+
+## Related
+
+- [Pages](?path=/docs/patterns-pages--docs): the two page archetypes and the parts they are assembled from.
+- [Block](?path=/docs/shapes-block--docs): a block of work, always open.
+- [Card](?path=/docs/patterns-card--docs): a framed block on the raised surface.

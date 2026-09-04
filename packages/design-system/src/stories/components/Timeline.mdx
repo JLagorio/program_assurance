@@ -1,0 +1,18 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Timeline } from "../../components";
+import * as Stories from "./Timeline.stories";
+
+<Meta of={Stories} />
+
+# Timeline
+
+Events along one rail. Groups carry sticky labels on the current surface. A marker is a ring-and-dot in the tone, or anything 20px you pass.
+
+<Canvas of={Stories.TimelineMatrix} />
+
+<Canvas of={Stories.TimelineStory} />
+
+## Props
+
+<ArgTypes of={Timeline} />

@@ -1,0 +1,24 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Panel } from "../../patterns";
+import * as Stories from "./Panel.stories";
+
+<Meta of={Stories} />
+
+# Panel
+
+The surface in the shell's Panel area. Flush, with no header, for the detail of a selected row beside its table, gone when the selection clears. With a header (a back chevron, an icon, up to two actions and the close), an optional subheader and footer, and `Panel.Trigger` to open it, for a panel the reader opens: a thread, a form. The area scrolls; the header and footer stay put. Never the record's rail, which is the ShowPage's.
+
+<Canvas of={Stories.PanelStory} />
+
+<Canvas of={Stories.PanelMatrix} />
+
+## Props
+
+<ArgTypes of={Panel} />
+
+## Related
+
+- [Pages · Rail, sheet, panel](?path=/docs/patterns-pages--docs#rail-sheet-panel): the panel is neither the rail nor the sheet; what goes in it and what never does.
+- [Shell](?path=/docs/shell--docs): the Panel area the surface fills.
+- [Inspector](?path=/docs/shapes-inspector--docs): inside a Panel, the detail of a selected row, it scrolls with the panel.

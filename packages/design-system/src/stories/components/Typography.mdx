@@ -1,0 +1,36 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Absent, Eyebrow, Prose } from "../../components";
+import * as Stories from "./Typography.stories";
+import * as FactStories from "./Fact.stories";
+
+<Meta of={Stories} />
+
+# Typography
+
+The small text parts a record page is made of.
+
+`Prose` is a labelled paragraph. `Eyebrow` is the uppercase micro-label on `font.heading.xxsmall`. `Absent` is the muted dash.
+
+<Canvas of={Stories.TypographyMatrix} />
+
+<Canvas of={FactStories.Facts} />
+
+## Props
+
+### Eyebrow
+
+<ArgTypes of={Eyebrow} />
+
+### Absent
+
+<ArgTypes of={Absent} />
+
+### Prose
+
+<ArgTypes of={Prose} />
+
+## Related
+
+- [Fact](?path=/docs/components-fact--docs): an inline label and value; a row of them is the facts strip.
+- [KeyValue](?path=/docs/components-keyvalue--docs): one rail row with a label column.

@@ -1,5 +1,6 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
 
+import { Table } from "../../components";
 import * as Stories from "./Table.stories";
 
 <Meta of={Stories} />
@@ -10,7 +11,13 @@ The register, by hand. For a table with state (sort, filters, pages, selection) 
 
 <Canvas of={Stories.RegisterStory} />
 
-## Parts
+<Canvas of={Stories.Groups} />
+
+<Canvas of={Stories.TreeStory} />
+
+<Canvas of={Stories.TableMatrix} />
+
+## Props
 
 | Part              | Does                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -25,8 +32,12 @@ The register, by hand. For a table with state (sort, filters, pages, selection) 
 | `Table.Handle`    | The grip cell of a row that can be dragged into a new order; the cell is the handle, so the row's own controls keep their clicks. `ref` and the drag props come from the drag context.                                                                                                                                                                                                                                                                                                                                                                                     |
 | `Table.Tree`      | The name cell of a row in a hierarchy that also has columns (the ARIA treegrid): one indent per `depth`, the chevron on rows with children, the name truncated, a `hint` after it. The Table takes `role="treegrid"`, each Row `aria-level` and, with children, `aria-expanded`. The caller flattens and folds. Tree (in Lists) is the same recipe without columns.                                                                                                                                                                                                        |
 
-Toolbar sits above (search, filters, actions on the right); Pagination sits below (range on the left, pages on the right).
+<ArgTypes of={Table} />
 
-<Canvas of={Stories.Groups} />
+### useSort and usePage
 
-<Canvas of={Stories.TreeStory} />
+<Canvas of={Stories.SortedAndPaged} />
+
+## Related
+
+[Toolbar](?path=/docs/components-toolbar--docs) sits above (search, filters, actions on the right); [Pagination](?path=/docs/components-pagination--docs) sits below (range on the left, pages on the right).

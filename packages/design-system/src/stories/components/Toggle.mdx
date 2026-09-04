@@ -1,0 +1,23 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Toggle } from "../../components";
+import * as Stories from "./Toggle.stories";
+
+<Meta of={Stories} />
+
+# Toggle
+
+A Toggle is one thing on or off: the subtle button with a recessed on state.
+
+<Canvas of={Stories.ToggleMatrix} />
+
+<Canvas of={Stories.TogglesStory} />
+
+## Props
+
+<ArgTypes of={Toggle} />
+
+## Related
+
+- [ToggleGroup](?path=/docs/components-togglegroup--docs): one of several views, always exactly one on.
+- [ButtonGroup](?path=/docs/components-buttongroup--docs): joins Buttons that belong together with a hairline between.

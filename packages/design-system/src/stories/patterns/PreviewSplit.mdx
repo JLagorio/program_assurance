@@ -1,0 +1,23 @@
+import { ArgTypes, Canvas, Description, Meta } from "@storybook/addon-docs/blocks";
+
+import { PreviewSplit } from "../../patterns";
+import * as Stories from "./PreviewSplit.stories";
+
+<Meta of={Stories} />
+
+# PreviewSplit
+
+<Description of={PreviewSplit} />
+
+<Canvas of={Stories.PreviewSplitStory} />
+
+<Canvas of={Stories.PreviewSplitMatrix} />
+
+## Props
+
+<ArgTypes of={PreviewSplit} />
+
+## Related
+
+- [PreviewRail](?path=/docs/patterns-previewrail--docs): the rail of the chosen row, beside the list.
+- [Pages · Rail, sheet, panel](?path=/docs/patterns-pages--docs#rail-sheet-panel): the rail beside a table that leaves room for it.

@@ -1,0 +1,26 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Dot, Indicator } from "../../components";
+import * as Stories from "./Indicator.stories";
+
+<Meta of={Stories} />
+
+# Indicator
+
+A Dot is a 6px circle in the tone's icon colour, which is tuned to read at small sizes. An Indicator is a Dot with text: severity or priority in a row, never a pill, so the status column stays the only pill in the row.
+
+<Canvas of={Stories.InContext} />
+
+<Canvas of={Stories.IndicatorMatrix} />
+
+## Props
+
+<ArgTypes of={Indicator} />
+
+### Dot
+
+<ArgTypes of={Dot} />
+
+## Related
+
+- [Badge](?path=/docs/components-badge--docs): the tone table, and which of Badge, Count, Indicator and Dot to use.

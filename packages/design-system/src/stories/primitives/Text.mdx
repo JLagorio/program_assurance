@@ -1,0 +1,18 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Text } from "../../primitives";
+import * as Stories from "./Text.stories";
+
+<Meta of={Stories} />
+
+# Text
+
+For interface text on the body ramp. The key props are `size` (large, medium, small, xsmall), `weight`, `color` (a text token), `align`, `maxLines` and `as`.
+
+<Canvas of={Stories.Sizes} />
+
+<Canvas of={Stories.WeightsAndColors} />
+
+## Props
+
+<ArgTypes of={Text} />

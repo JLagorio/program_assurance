@@ -1,20 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import {
-  ArrowRight,
-  ChevronDown,
-  Download,
-  Filter,
-  Pencil,
-  Plus,
-  Search,
-  Settings,
-  Trash2,
-} from "lucide-react";
+import { ArrowRight, ChevronDown, Download, Filter, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { Button, ButtonGroup, IconButton, TextLink } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
-import { Matrix as Grid, Specimens } from "../_lib/matrix";
+import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
 const meta = {
@@ -59,20 +49,6 @@ export const Matrix: Story = {
         </Inline>
       ))}
     </Stack>
-  ),
-};
-
-/** `icon` is the element, passed bare; `label` is the accessible name and the tooltip. */
-export const IconButtons: Story = {
-  render: () => (
-    <Inline space="space.300" alignBlock="center">
-      <IconButton label="Search" icon={<Search />} />
-      <IconButton label="Settings" variant="subtle" icon={<Settings />} />
-      <IconButton label="Download" size="medium" icon={<Download />} />
-      <IconButton label="Filters" isSelected icon={<Filter />} />
-      <IconButton label="Refreshing" isLoading icon={<Search />} />
-      <IconButton label="Disabled" disabled icon={<Search />} />
-    </Inline>
   ),
 };
 
@@ -171,6 +147,7 @@ export const Emphasis: Story = {
   ),
 };
 
+/** `asChild` puts the router's Link inside; it takes the button's classes and its icons. */
 export const AsLink: Story = {
   render: () => (
     <Inline space="space.200" alignBlock="center">
@@ -184,69 +161,6 @@ export const AsLink: Story = {
         Open
       </Button>
     </Inline>
-  ),
-};
-
-/** Navigation that reads as text. The child (a router's Link; an anchor here) takes the classes; `asChild={false}` renders an anchor from `href`. */
-export const TextLinks: Story = {
-  render: () => (
-    <Stack space="space.200">
-      <Text>
-        The finding was raised against{" "}
-        <TextLink>
-          <a href="#ctrl">AC-2(4)</a>
-        </TextLink>{" "}
-        and traces to{" "}
-        <TextLink>
-          <a href="#req">REQ-0118</a>
-        </TextLink>
-        .
-      </Text>
-      <Inline space="space.300" alignBlock="baseline">
-        <TextLink size="small">
-          <a href="#a">Small</a>
-        </TextLink>
-        <TextLink size="medium">
-          <a href="#b">Medium</a>
-        </TextLink>
-        <TextLink weight="medium">
-          <a href="#c">Medium weight</a>
-        </TextLink>
-        <TextLink asChild={false} href="#d">
-          An anchor from href
-        </TextLink>
-      </Inline>
-    </Stack>
-  ),
-};
-
-/** Inherited, small and medium sizes by weight; a TextLink beside a Button link, which is an action and not navigation. */
-export const TextLinkMatrix: Story = {
-  tags: ["matrix"],
-  render: () => (
-    <Stack space="space.300">
-      <Grid
-        rows={["inherit", "small", "medium"] as const}
-        cols={["regular", "medium"] as const}
-        rowLabel="size"
-        render={(size, weight) => (
-          <TextLink
-            asChild={false}
-            href="#x"
-            size={size === "inherit" ? undefined : size}
-            weight={weight}
-          >
-            Open the full record
-          </TextLink>
-        )}
-      />
-      <Specimens title="TextLink beside Button link">
-        <TextLink asChild={false} href="#x">
-          Navigation: TextLink
-        </TextLink>
-        <Button variant="link">Action: Button link</Button>
-      </Specimens>
-    </Stack>
   ),
 };
 

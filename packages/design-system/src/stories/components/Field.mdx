@@ -1,0 +1,91 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { Field } from "../../components";
+import * as Stories from "./Field.stories";
+import * as FormsStories from "./Forms.stories";
+import * as InputStories from "./Input.stories";
+
+<Meta of={Stories} />
+
+# Field
+
+**Field** wraps one control with its label, hint and error. It is how every control in a form gets its name, its description and its failure, whatever the control is: an [Input](?path=/docs/components-input--docs), a [Textarea](?path=/docs/components-textarea--docs), a [NativeSelect](?path=/docs/components-nativeselect--docs), a [Select](?path=/docs/components-select--docs), a [Combobox](?path=/docs/components-combobox--docs), a [DatePicker](?path=/docs/components-datepicker--docs).
+
+<Canvas of={Stories.FieldMatrix} />
+
+- `label` is required. It is a real `label` wrapping the control, so clicking it focuses the control and the control is named by it.
+- `hint` sits under the control as its description. `error` replaces the hint, turns it danger, marks the control invalid and is announced.
+- `isRequired` adds the asterisk and sets `aria-required` on the control. It does not set the browser's `required`: the form checks on submit with `useRequired` ([Forms](?path=/docs/components-forms--docs)).
+
+<Canvas of={FormsStories.Fields} />
+
+## Anatomy
+
+| Part          | What it is                                                                                                                              |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Label         | Above the control, `font.body.small` at `font.weight.medium` in `color.text.subtle`. It is the control's accessible name.               |
+| Required mark | `isRequired`: a red asterisk after the label, hidden from screen readers, which hear `aria-required` on the control instead.            |
+| Control       | The one child. The label wraps it, so a click on the label focuses it.                                                                  |
+| Message       | Under the control: the `hint` in `color.text.subtlest`, or the `error` in `color.text.danger`, which replaces it. Wired to the control as its description. |
+
+## Variants
+
+Field has one appearance. The control inside is what varies; see [Forms](?path=/docs/components-forms--docs) for which control answers which question.
+
+## Sizes
+
+Not applicable: a Field is as wide as its container and as tall as its control plus the label and the message. The control's height is the control's (`dimension.control.medium`, 32px, for every field control).
+
+## States
+
+| State    | What changes                                                                                                                 |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Rest     | The label, the control, the hint if there is one.                                                                            |
+| Required | The asterisk after the label; `aria-required` on the control. The form checks on submit, the browser does not.                |
+| Invalid  | `error` set: the message turns `color.text.danger` and replaces the hint, the control takes `aria-invalid` and its border turns, the message is announced. |
+| Disabled | The Field has no disabled state of its own; the control is disabled, and the label stays readable so the reader knows what is missing. |
+
+## Modifiers
+
+- **`hint`** for the format, the reason or the consequence: one full sentence with a full stop.
+- **`error`** for what is wrong and what fixes it. `useRequired` supplies "Required." for an empty required field; a rule of the store supplies its own sentence.
+- **`isRequired`** paints the mark and sets `aria-required`. It does not set the browser's `required`.
+- **`className`** for layout only: a column span in a form's Grid.
+
+## Content
+
+The label is a noun in sentence case with no colon; the placeholder is the format; the hint is a sentence; the error says what fixes it; required is marked and optional is not. The rules are written once, on [Input](?path=/docs/components-input--docs#content).
+
+## Style
+
+| Element       | Token                                                                    |
+| ------------- | ------------------------------------------------------------------------ |
+| Label         | `font.body.small` at `font.weight.medium` in `color.text.subtle`         |
+| Required mark | `color.text.danger`                                                      |
+| Hint          | `font.body.small` in `color.text.subtlest`                               |
+| Error         | `font.body.small` in `color.text.danger`                                 |
+| Gaps          | `space.050` 4px from label to control and from control to message        |
+
+## Accessibility
+
+- The `<label>` wraps the control, so whatever control it holds is named by the label text and focused by a click on it. Nothing else goes inside the label: the message sits outside it.
+- The hint or the error is the control's description through `aria-describedby`, so a screen reader reads the name, then the value, then the message, and the message never becomes part of the name.
+- The error has `role="alert"` and the control `aria-invalid`, so the failure is announced when it appears and spoken with the name after.
+- `isRequired` sets `aria-required` on the control. The browser's `required` is not set on purpose: the form's own check on submit says what is missing in the kit's words, and no native bubble competes with it.
+- A control that does not take `aria-describedby` (a Select's trigger, today) is still named by the label; its hint is visible but not spoken. That is a gap on the control, listed on its page when it is walked.
+
+## Props
+
+<ArgTypes of={Field} />
+
+## Related
+
+- [Input](?path=/docs/components-input--docs), [Textarea](?path=/docs/components-textarea--docs), [NativeSelect](?path=/docs/components-nativeselect--docs), [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs), [DatePicker](?path=/docs/components-datepicker--docs): what a Field holds.
+- [Forms](?path=/docs/components-forms--docs): the layout, which control for which answer, and `useRequired` for the required fields checked on submit.
+- [Checkbox](?path=/docs/components-checkbox--docs), [Switch](?path=/docs/components-switch--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): the choice controls carry their own label and do not go in a Field.
+
+## Don't
+
+The pairs are on [Input](?path=/docs/components-input--docs#dont): a placeholder standing in for the label, an instruction as the label, an error that says only "invalid", a field wider than its answer.
+
+<Canvas of={InputStories.Dont} />
