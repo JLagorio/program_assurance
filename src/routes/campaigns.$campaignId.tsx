@@ -15,6 +15,7 @@ import {
   Stack,
   Tabs,
   TextLink,
+  Eyebrow,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import {
@@ -458,7 +459,7 @@ function CampaignRecord() {
               {showRail ? (
                 <div>
                   <Inline className="pb-150" space="space.100" alignBlock="center">
-                    <span className="font-heading-xxsmall uppercase text-subtle">{railTitle}</span>
+                    <Eyebrow as="span">{railTitle}</Eyebrow>
                     <Id>{railId}</Id>
                     <button
                       onClick={closeRail}

@@ -92,6 +92,31 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   per category (a tone is a status, so a category is neutral), a large Badge, an outline or
   high-contrast appearance, a corner-placed Count, an icon per Indicator tone. Components/Badge,
   Components/Count, Components/Indicator.
+- `Breadcrumb` is one line: a trail wider than its header truncates every crumb instead of
+  wrapping to a second line, which Carbon rules out. Components/Breadcrumb: Matrix.
+- `Eyebrow`'s neutral colour is `color.text.subtle`, from `color.text.subtlest`: Carbon's label is
+  its secondary text, and the prototype had written forty-five eyebrows of its own in subtle against
+  eight in subtlest. The Shell's section headings and the Preview eyebrow take the step.
+  Components/Typography: Matrix.
+- `KeyValue` gives a truncated string value its full text as the title, as a plain-string cell
+  has. Components/KeyValue: Matrix.
+- `Item` is rebuilt on one grid. A group is a six-column CSS grid and every row a subgrid of it, so
+  the marks, the ids and the dates make columns whatever each row carries, and what a row shows
+  under itself starts under its title instead of at the row's edge. The row's link or button is
+  the title, stretched over the row by a pseudo-element; the actions and the toggle sit beside it,
+  so no button is nested in a link or a button. The leading slot is a 20px mark centred on the
+  title's line; the trailing value, the actions and the mark share that line. The `meta` truncates
+  instead of pushing the trailing value off the row. Components/Item: Matrix, Lists.
+- Breadcrumb, Item, Avatar, Id, KeyValue, Fact and Typography are on the template, walked against
+  Carbon's Breadcrumb (usage, style, accessibility), Contained list and Structured list, Base Web's
+  Breadcrumbs, Avatar, List, Typography and Heading, and Atlassian's Breadcrumbs, Avatar and
+  AvatarGroup as known. Every prop of the seven and their parts is described, so eleven generated
+  tables fill. Said on the pages and not built: an overflow menu and a medium size on the
+  breadcrumb, a slash separator; a list header with a search, row heights, a disclosed list, nesting;
+  photos, presence marks, a square avatar, a menu behind the +n, sizes past 20px; a monospace face
+  and a copy button on an Id; a KeyValue group and a label-over-value grid; a stacked Fact; an
+  eyebrow with an icon or a count. Components/Breadcrumb, Components/Item, Components/Avatar,
+  Components/Id, Components/KeyValue, Components/Fact, Components/Typography.
 
 - An InputGroup's leading icon was painted over by a NativeSelect inside it; the ends render after
   the control. Components/InputGroup.
@@ -176,6 +201,30 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   status column of dots is no longer silent to a screen reader. Without one it stays hidden and the
   text beside it carries the status. Two lone Dots in the prototype say their names; twelve rows
   that drew a Dot and a word by hand are `Indicator`. Components/Indicator: Matrix, Dont.
+- `Avatar` takes Atlassian's scale: `xsmall` 16px with one initial, `small` 24px (from 20) as the
+  default, `medium` 32px, `large` 40px and `xlarge` 64px; at 16 and 20 two initials ran into each
+  other and the border. It takes `src` for a photo, with the initials back if it fails to load;
+  `variant` `tinted`, `bold` or `gradient`, a hue drawn from the name and stable per person, or
+  pinned with `hue`; and `shape` `square` for a thing. Alone it is an image named by the full name;
+  in a `Person` it is hidden and the name is read once (`isDecorative`); an `Avatar.Stack` is a
+  group named by every name, takes `size` and `variant`, accepts a photo per person and rings each
+  circle 2px in the surface colour. The prototype's timeline avatars take `xsmall`; the shell and
+  the persona switch step to 24px. Components/Avatar: Matrix, People.
+- The accent colours: `color.background.accent.{blue,teal,green,orange,red,purple}.subtler` and
+  `.bolder`, and `color.text.accent.{hue}`. Colour that carries no meaning, for an avatar's tint,
+  fill or gradient and, later, a tag. `subtler` is the 200 step under the hue's 900 text; `bolder`
+  the 800 step under `color.text.inverse`; dark mode mirrors to 900 and 400. Every pair passes
+  4.5:1 for 11px initials in both modes. Teal and purple now reach the accent family as well as the
+  chart. Tokens/Color: Background, Text.
+- `Item.Group` takes a `title`, a `count` and a `trailing` read-out or button: the list's own
+  heading, semibold with a rule under it, which names the list to a screen reader. Carbon's
+  contained list has the same header. `size="compact"` tightens every row for a rail. A row takes
+  `isCollapsible` with `defaultOpen`, `open` and `onOpenChange`: its children fold behind a chevron,
+  and a nested `Item.Group` in them is a milestone and its tasks. The POA&M's three hand-drawn list
+  headers are group titles. Components/Item: Matrix, Nested, Dont.
+- `Eyebrow` takes `as`: `h3` or `h4` when it heads a section, so the page's outline has it,
+  `dt` when it labels a value. Fifty-four eyebrows the prototype drew by hand are `Eyebrow`,
+  the section headings among them as headings. Components/Typography: Matrix, InRail.
 
 ### Chart
 

@@ -23,6 +23,7 @@ import {
   toast,
   useRequired,
   Indicator,
+  Eyebrow,
 } from "@ledger/design-system";
 import {
   artifactShort,
@@ -397,7 +398,7 @@ function RuleModal({
       description="Signals from engineering tools become NIST SP 800-53 evidence automatically."
       aside={
         <div>
-          <p className="font-heading-xxsmall uppercase text-subtle">Rule as code</p>
+          <Eyebrow as="p">Rule as code</Eyebrow>
           <pre className="pt-100 whitespace-pre-wrap font-code font-body-xsmall text-subtle">
             {ruleAsCode({ ...draft, controls: parsed })}
           </pre>
@@ -536,7 +537,7 @@ function EvidenceModal({
       description={`${evidence.ref} · ${programId} · rule ${evidence.rule}`}
       aside={
         <div>
-          <p className="font-heading-xxsmall uppercase text-subtle">Thread detail</p>
+          <Eyebrow as="p">Thread detail</Eyebrow>
           <Box paddingBlockStart="space.100">
             <KeyValue label="Evidence">
               <Id>{evidence.id}</Id>
@@ -655,7 +656,7 @@ export function CdrPackageModal({
         description={`${programName} · ${programId} · Critical Design Review submission`}
         aside={
           <div>
-            <p className="font-heading-xxsmall uppercase text-subtle">Package summary</p>
+            <Eyebrow as="p">Package summary</Eyebrow>
             <Box paddingBlockStart="space.100">
               <KeyValue label="Sections">
                 {selected.length} of {sspSections.length}

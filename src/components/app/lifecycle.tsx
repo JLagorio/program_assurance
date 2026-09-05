@@ -18,6 +18,7 @@ import {
   Textarea,
   useRequired,
   Indicator,
+  Eyebrow,
 } from "@ledger/design-system";
 import {
   gateKindTone,
@@ -218,7 +219,7 @@ function GateModal({
       description={`${programId} · ${gate.phase}`}
       aside={
         <div>
-          <p className="font-heading-xxsmall uppercase text-subtle">Gate detail</p>
+          <Eyebrow as="p">Gate detail</Eyebrow>
           <Box paddingBlockStart="space.100">
             <KeyValue label="Type">{gate.kind}</KeyValue>
             <KeyValue label="Phase">{gate.phase}</KeyValue>

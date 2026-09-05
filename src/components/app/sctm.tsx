@@ -40,6 +40,7 @@ import {
   Stat,
   Table,
   TextLink,
+  Eyebrow,
 } from "@ledger/design-system";
 import type { Tone } from "@ledger/design-system";
 import { inheritanceStateTone } from "@/lib/inheritance";
@@ -368,7 +369,7 @@ export function SctmFamilyTable({
 function ProseBlock({ label, children }: { label: string; children: string }) {
   return (
     <Box paddingBlockStart="space.075">
-      <div className="font-heading-xxsmall uppercase text-subtle">{label}</div>
+      <Eyebrow>{label}</Eyebrow>
       <p className="pt-050 font-body-small text-default">{children}</p>
     </Box>
   );

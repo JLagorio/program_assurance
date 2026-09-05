@@ -34,6 +34,7 @@ import {
   Stack,
   Stat,
   Table,
+  Eyebrow,
 } from "@ledger/design-system";
 import type { Tone } from "@ledger/design-system";
 import { objectiveTone, type ObjectiveResult } from "@/lib/campaigns";
@@ -95,7 +96,7 @@ export function ResultChip({ result }: { result: ObjectiveResult }) {
 function ProseBlock({ label, children }: { label: string; children: ReactNode }) {
   return (
     <Box paddingBlockStart="space.075">
-      <div className="font-heading-xxsmall uppercase text-subtle">{label}</div>
+      <Eyebrow>{label}</Eyebrow>
       <p className="pt-050 font-body-small text-default">{children}</p>
     </Box>
   );
@@ -926,7 +927,7 @@ export function RunRecordView({
                     <p className="pt-050 font-body-small text-subtle">Expected: {step.expected}</p>
                   </div>
                   <div className="min-w-0">
-                    <div className="font-heading-xxsmall uppercase text-subtle">Observed</div>
+                    <Eyebrow>Observed</Eyebrow>
                     <p className="pt-050 font-body-small text-default">{record?.observed ?? "—"}</p>
                     <Inline
                       className="pt-075 font-body-small"

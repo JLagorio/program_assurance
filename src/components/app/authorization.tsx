@@ -22,6 +22,7 @@ import {
   Table,
   Textarea,
   useRequired,
+  Eyebrow,
 } from "@ledger/design-system";
 import {
   authorization,
@@ -339,7 +340,7 @@ function ObservationModal({
       description="Logged directly by the SCA in the enclave — no spreadsheets, no email."
       aside={
         <Stack space="space.100">
-          <p className="font-heading-xxsmall uppercase text-subtle">Downstream effect</p>
+          <Eyebrow as="p">Downstream effect</Eyebrow>
           <pre className="whitespace-pre-wrap break-words font-code font-body-xsmall text-subtle">
             {`program: ${programId}
 severity: ${severity}
@@ -468,7 +469,7 @@ function RemediationModal({
       description={`${observation.id} · ${observation.control} · logged ${observation.logged} by ${observation.loggedBy}`}
       aside={
         <Stack space="space.150">
-          <p className="font-heading-xxsmall uppercase text-subtle">Jira issue</p>
+          <Eyebrow as="p">Jira issue</Eyebrow>
           <pre className="whitespace-pre-wrap break-words font-code font-body-xsmall text-subtle">
             {`key: ${jira}
 type: Security remediation
@@ -845,7 +846,7 @@ function RiskDecisionModal({
       description={`${risk.id} · ${risk.control} · ${risk.poam}`}
       aside={
         <Stack space="space.150">
-          <p className="font-heading-xxsmall uppercase text-subtle">Risk profile</p>
+          <Eyebrow as="p">Risk profile</Eyebrow>
           <Stack space="space.075">
             <KeyValue label="Likelihood">{risk.likelihood}</KeyValue>
             <KeyValue label="Impact">{risk.impact}</KeyValue>
@@ -924,7 +925,7 @@ function MemoModal({ open, onClose }: { open: boolean; onClose: () => void }) {
       description="Signed by the Authorizing Official and distributed to the program and the SCA."
       aside={
         <Stack space="space.100">
-          <p className="font-heading-xxsmall uppercase text-subtle">Memo preview</p>
+          <Eyebrow as="p">Memo preview</Eyebrow>
           <pre className="whitespace-pre-wrap break-words font-code font-body-xsmall text-subtle">
             {`AUTHORIZATION DECISION
 system: Trident UUV C2

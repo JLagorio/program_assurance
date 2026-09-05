@@ -17,6 +17,7 @@ import {
   ShowPage,
   Table,
   TextLink,
+  Eyebrow,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { ControlMatrixSection, FamilyCoverageTable } from "@/components/app/control-matrix";
@@ -79,7 +80,7 @@ function DashboardStat({
       className="min-w-0 border-l border-default first:border-0 first:ps-0"
       paddingInlineStart="space.150"
     >
-      <div className="font-heading-xxsmall uppercase text-subtle">{label}</div>
+      <Eyebrow>{label}</Eyebrow>
       <Box
         className={cn(
           "tabular-nums font-heading-medium font-semibold",

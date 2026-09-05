@@ -51,6 +51,7 @@ import {
   Toolbar,
   Alert,
   Indicator,
+  Eyebrow,
 } from "@ledger/design-system";
 import type { Tone } from "@ledger/design-system";
 import {
@@ -1048,9 +1049,7 @@ export function ImpactView({
         paddingBlock="space.150"
       >
         <Inline space="space.100" alignBlock="center" shouldWrap>
-          <span className="font-heading-xxsmall uppercase text-subtle">
-            CM-3(2) security impact analysis
-          </span>
+          <Eyebrow as="span">CM-3(2) security impact analysis</Eyebrow>
           <ImpactChip impact={change.impact} />
           <Badge tone={contained ? "success" : "danger"}>
             {contained ? "Contained" : "Cascaded"}
@@ -1074,9 +1073,7 @@ export function ImpactView({
         </p>
 
         <Box className="border-t border-default" paddingBlockStart="space.150">
-          <div className="font-heading-xxsmall uppercase text-subtle">
-            The ISSE&rsquo;s written analysis
-          </div>
+          <Eyebrow>The ISSE&rsquo;s written analysis</Eyebrow>
           <p className="pt-050 font-body-small text-default">{change.analysis}</p>
         </Box>
 

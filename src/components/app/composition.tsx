@@ -33,6 +33,7 @@ import {
   Table,
   Toolbar,
   Tree,
+  Eyebrow,
 } from "@ledger/design-system";
 import type { Tone } from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
@@ -744,7 +745,9 @@ export function BomSummary({ stats }: { stats: BomStats }) {
         templateColumns={{ base: "repeat(1, minmax(0, 1fr))", lg: "repeat(3, minmax(0, 1fr))" }}
       >
         <div>
-          <h3 className="pb-050 font-heading-xxsmall uppercase text-subtle">By class</h3>
+          <Eyebrow as="h3" className="pb-050">
+            By class
+          </Eyebrow>
           {stats.byClass.map((c) => (
             <MeterRow
               key={c.class}
@@ -756,7 +759,9 @@ export function BomSummary({ stats }: { stats: BomStats }) {
           ))}
         </div>
         <div>
-          <h3 className="pb-050 font-heading-xxsmall uppercase text-subtle">By BOM source</h3>
+          <Eyebrow as="h3" className="pb-050">
+            By BOM source
+          </Eyebrow>
           {stats.bySource.map((s) => (
             <MeterRow
               key={s.source}
@@ -768,7 +773,9 @@ export function BomSummary({ stats }: { stats: BomStats }) {
           ))}
         </div>
         <div>
-          <h3 className="pb-050 font-heading-xxsmall uppercase text-subtle">By supplier origin</h3>
+          <Eyebrow as="h3" className="pb-050">
+            By supplier origin
+          </Eyebrow>
           {stats.byOrigin.map((o) => (
             <MeterRow
               key={o.origin}

@@ -1,23 +1,108 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Breadcrumb } from "../../components";
 import * as Stories from "./Breadcrumb.stories";
-import * as ItemStories from "./Item.stories";
 
 <Meta of={Stories} />
 
 # Breadcrumb
 
-Every breadcrumb but the last is a link back up the record tree; pass `asChild` and the child (a router's Link) takes the item's classes.
+Where you are in the record tree, above the page's title: Programs, the program, the record. Every crumb but the last is a link back up; the last is the page itself and is not a link. One line, never a second. Carbon's Breadcrumb and Atlassian's Breadcrumbs are the models; Base Web's is the same shape.
+
+It is secondary navigation. The side navigation is how the reader moves between areas; the breadcrumb is how they climb out of a record. A multi-step flow is a [Stepper](?path=/docs/components-stepper--docs), not a breadcrumb.
 
 <Canvas of={Stories.BreadcrumbMatrix} />
 
-<Canvas of={ItemStories.Items} />
+## Anatomy
+
+| Part      | What it is                                                                                                           |
+| --------- | -------------------------------------------------------------------------------------------------------------------- |
+| Nav       | A `nav` named "Breadcrumb" holding an ordered list, one line.                                                        |
+| Crumb     | A level's name in `font.body.small` and `color.text.subtle`; a link (the router's Link, with `asChild`) or a button. |
+| Separator | A chevron in `color.icon.subtlest` before every crumb but the first. Decorative.                                     |
+| Page      | The last crumb: `color.text` medium, `aria-current="page"`, not a link.                                              |
+
+## Variants
+
+Breadcrumb has one appearance. What varies is what a crumb does:
+
+| The crumb              | Use                                                                         |
+| ---------------------- | --------------------------------------------------------------------------- |
+| Goes to a page         | `asChild` with the router's Link inside, so it is a real link.              |
+| Changes state in place | A button (`onClick`), for a tree the reader walks without leaving the page. |
+| Is the page            | `isCurrent`.                                                                |
+
+Carbon's trail is location-based (the tree) or path-based (the way the reader came); this kit's is always the tree. Carbon leaves the current page off by default and this kit always shows it, because a record's crumb is its id and name, which the title repeats only in part.
+
+Not built, and why: an overflow menu for a long trail (Carbon keeps the first and the last two and folds the rest; Atlassian folds past eight), because the record tree is four levels deep and a crumb truncates instead; Carbon's medium size, because the crumb sits above a heading in a header and takes the small size; a slash separator (Carbon, Atlassian), because the chevron is the kit's "inside" mark, the one the tree and the disclosure use.
+
+## Sizes
+
+One size: `font.body.small` on one line. The trail is as wide as its header; when the header is narrower than the trail, every crumb truncates, the page's included. Carbon: a breadcrumb never wraps to a second line.
+
+<Canvas of={Stories.AboveTitle} />
+
+## States
+
+| State   | What changes                                               |
+| ------- | ---------------------------------------------------------- |
+| Link    | `color.text.subtle`; `color.text` on hover.                |
+| Focus   | The focus outline around the crumb.                        |
+| Current | `color.text` medium; no hover, no focus, nothing to press. |
+
+No underline: Carbon underlines on hover and Atlassian does; the kit's crumbs darken, as its side navigation items do.
+
+## Modifiers
+
+- **`asChild`** on a crumb that navigates: the router's Link takes the crumb's classes and the `li` stays outside it.
+- **`isCurrent`** on the last crumb.
+- **`onClick`** without `asChild` for a crumb that changes state in place.
+- **`className`** on the root for its place in a header, never for colour.
+
+## Content
+
+- **A crumb is the level's name as its title reads:** "Programs", "Atlas payments platform", "SCTM". Not "Home", not "All programs", not a verb.
+- **The tree, top down:** the area, the record, the page. Two to four crumbs; a fifth means the tree is too deep.
+- **The page's crumb is its id and name** when it has both: "CTRL-0412 Segregation of duties".
+- **No tabs in the trail.** A tab is a view of the page, not a level of the tree.
+
+## Style
+
+| Element   | Token                                                                                       |
+| --------- | ------------------------------------------------------------------------------------------- |
+| Crumb     | `font.body.small` · `color.text.subtle` · `color.text` on hover · `radius.xsmall` for focus |
+| Page      | `font.body.small` medium · `color.text`                                                     |
+| Separator | `dimension.icon.small` 12px · `color.icon.subtlest`                                         |
+| Gaps      | `space.050` between crumb and chevron                                                       |
+
+## Accessibility
+
+- **A navigation landmark named "Breadcrumb"** holding an ordered list, so a screen reader announces "breadcrumb navigation, list, 3 items" and can skip it. Carbon and ARIA say the same.
+- **Every crumb but the page is a link**, reached by Tab and opened by Enter; the page carries `aria-current="page"` and is not in the tab order.
+- **A crumb that navigates is a link, not a button.** A button cannot be opened in a new tab and is announced as a button; `asChild` with the router's Link is how.
+- **The chevrons are hidden.** Carbon: separators are not text and are not navigable.
+- **One breadcrumb per page.** Two navigation landmarks with the same name fail the landmark check; the matrix turns that rule off because it stacks five.
 
 ## Props
 
 <ArgTypes of={Breadcrumb} />
 
+### Breadcrumb.Item
+
+<ArgTypes of={Breadcrumb.Item} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Item](?path=/docs/components-item--docs): one row of a list.
+- [PageHeader](?path=/docs/patterns-pageheader--docs), [RecordHeader](?path=/docs/patterns-recordheader--docs): where the breadcrumb sits.
+- [Stepper](?path=/docs/components-stepper--docs): steps in a flow, which are not a trail.
+- [Tree](?path=/docs/components-tree--docs): the record tree the breadcrumb climbs.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

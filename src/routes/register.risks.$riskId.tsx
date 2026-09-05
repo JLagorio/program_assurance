@@ -19,6 +19,7 @@ import {
   Stack,
   Table,
   TextLink,
+  Eyebrow,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { TextBlock } from "@/components/app/control-text";
@@ -202,9 +203,7 @@ function RiskRecord() {
                   templateColumns={{ md: "repeat(2, minmax(0, 1fr))" }}
                 >
                   <Box className="rounded-medium border border-default" padding="space.150">
-                    <p className="font-heading-xxsmall uppercase text-subtle">
-                      Authored — risk register
-                    </p>
+                    <Eyebrow as="p">Authored — risk register</Eyebrow>
                     <Inline className="pt-100" space="space.100" alignBlock="baseline">
                       <span className="tabular-nums font-heading-large font-semibold">
                         {comparison.authored.residual}
@@ -245,9 +244,7 @@ function RiskRecord() {
                   </Box>
 
                   <Box className="rounded-medium border border-default" padding="space.150">
-                    <p className="font-heading-xxsmall uppercase text-subtle">
-                      Computed — evidence trail
-                    </p>
+                    <Eyebrow as="p">Computed — evidence trail</Eyebrow>
                     <Inline className="pt-100" space="space.100" alignBlock="baseline">
                       <span className="tabular-nums font-heading-large font-semibold">
                         {computed.score}

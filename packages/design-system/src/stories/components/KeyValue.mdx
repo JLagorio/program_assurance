@@ -1,24 +1,95 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { KeyValue } from "../../components";
 import * as Stories from "./KeyValue.stories";
-import * as FactStories from "./Fact.stories";
 
 <Meta of={Stories} />
 
 # KeyValue
 
-`KeyValue` is one rail row with a label column.
+One rail row: a label column and a value. Owner, Frequency, Last verified, each on its own line with the label in a fixed column so the values make a column too. It is a definition list of one pair, valid wherever it sits. Carbon's Structured list is the nearest model; Atlassian's rails write the same shape by hand.
+
+It is one of two ways to write a fact. A [Fact](?path=/docs/components-fact--docs) is inline, label then value on one baseline, for the strip under a record's title; a KeyValue is a row, for the rail and the inspector.
 
 <Canvas of={Stories.KeyValueMatrix} />
 
-<Canvas of={FactStories.Facts} />
+## Anatomy
+
+| Part  | What it is                                                                                                                             |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Label | `dt` in the label column, `labelWidth` wide (104 by default), `font.body` in `color.text.subtle`, truncating.                          |
+| Value | `dd` in the rest, `font.body` in `color.text`: text, a Badge, a Person, a TextLink, an Absent. Truncates with its title unless `wrap`. |
+| Row   | `space.050` above and below, `space.150` between label and value, baselines aligned.                                                   |
+
+## Variants
+
+KeyValue has one appearance. What varies is the value:
+
+| The value              | Use               |
+| ---------------------- | ----------------- |
+| A word, a name, a date | Text.             |
+| A state                | A Badge.          |
+| A person               | A Person.         |
+| A record               | A TextLink.       |
+| A statement            | Text with `wrap`. |
+| Nothing                | An Absent.        |
+
+Not built, and why: a group component (Carbon's structured list is one list with a header row), because each KeyValue is its own definition list so it is valid inside any pattern, and the rail's group is the Inspector's; a label-over-value layout, because that shape is a decision still open; an editable value, because that is an [Editable](?path=/docs/components-editable--docs) inside the value.
+
+## Sizes
+
+One size, `font.body`. The row is as wide as its rail; the label column is `labelWidth`, the same for every row in one rail, and the value takes the rest. The Glance uses 88, a rail 104; a rail with long labels ("Authorizing official") sets 160 on every row.
+
+<Canvas of={Stories.InRail} />
+
+## States
+
+A KeyValue has one state. Its value may: a Badge is a state, a TextLink hovers. The row does not.
+
+## Modifiers
+
+- **`labelWidth`**: the label column, the same down one rail.
+- **`wrap`** for a value that is a sentence.
+- **The value** as in Variants.
+
+## Content
+
+- **The label is a noun**, one or two words, no colon: "Owner", "Last verified", "Next due". The column is the colon.
+- **The value is one thing.** Two facts are two rows.
+- **Nothing there is an Absent**, not an empty row and not "N/A", which is a different fact.
+- **The order is the order the reader asks:** who, how often, when last, when next, then the rest.
+
+## Style
+
+| Element | Token                                                               |
+| ------- | ------------------------------------------------------------------- |
+| Label   | `font.body` · `color.text.subtle` · `labelWidth` column             |
+| Value   | `font.body` · `color.text`                                          |
+| Row     | `space.050` block · `space.150` between columns · baselines aligned |
+
+## Accessibility
+
+- **It is a definition list**: `dl`, `dt`, `dd`, so a screen reader hears "Owner, Dana Whitfield" as a pair, and a rail of them as a series of pairs.
+- **A truncated string value carries its full text as the title**, so a hover reads it; a value that matters whole takes `wrap` so no one has to hover.
+- **The label is text, not a heading.** A rail's sections are headed by an Eyebrow or a Collapsible; the label names one fact.
+- **Contrast:** the label in `color.text.subtle` passes 4.5:1; the gate runs the matrix.
 
 ## Props
 
 <ArgTypes of={KeyValue} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Fact](?path=/docs/components-fact--docs): an inline label and value; a row of them is the facts strip.
-- [Typography](?path=/docs/components-typography--docs): `Prose`, `Eyebrow`, `Absent`.
+- [Fact](?path=/docs/components-fact--docs): the inline pair, and the strip under a title.
+- [Typography](?path=/docs/components-typography--docs): `Eyebrow` to head a group of rows, `Prose` for a paragraph, `Absent` for nothing.
+- [Glance](?path=/docs/patterns-glance--docs), [Panel](?path=/docs/patterns-panel--docs): where rails of KeyValues live.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

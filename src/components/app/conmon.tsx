@@ -48,6 +48,7 @@ import {
   Table,
   defineColumns,
   useDataTable,
+  Eyebrow,
 } from "@ledger/design-system";
 import {
   alertSeverityTone,
@@ -226,7 +227,7 @@ export function DriftCard({
     <div className="overflow-hidden rounded-large border border-default">
       <Grid templateColumns={{ sm: "minmax(0,260px) minmax(0,1fr)" }}>
         <Box paddingInline="space.200" paddingBlock="space.150">
-          <div className="font-heading-xxsmall uppercase text-subtle">Authorization drift</div>
+          <Eyebrow>Authorization drift</Eyebrow>
           <Inline className="pt-050" space="space.100" alignBlock="baseline">
             <span className="tabular-nums font-heading-large font-semibold">{score.score}</span>
             <span className="font-body-small text-subtle">/ 100</span>
@@ -263,10 +264,10 @@ export function DriftCard({
           <ProseBlock label="What this says">{score.headline}</ProseBlock>
           {score.caveats.length > 0 ? (
             <div>
-              <div className="font-heading-xxsmall uppercase text-warning">
+              <Eyebrow tone="warning">
                 {score.caveats.length} caveat{score.caveats.length === 1 ? "" : "s"} — the score is
                 a floor, not a verdict
-              </div>
+              </Eyebrow>
               <Stack className="pt-050" as="ul" space="space.050">
                 {score.caveats.map((c) => (
                   <li key={c} className="font-body-small text-default">
@@ -584,7 +585,7 @@ export function AlertList({
             paddingBlockStart="space.100"
             paddingInlineStart="space.100"
           >
-            <div className="font-heading-xxsmall uppercase text-subtle">Do this</div>
+            <Eyebrow>Do this</Eyebrow>
             <p className="pt-025 font-body-small text-default">{alert.action}</p>
           </Box>
           <Box paddingBlockStart="space.100">

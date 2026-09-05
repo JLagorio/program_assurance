@@ -1,6 +1,16 @@
 export { Alert, type AlertProps } from "./alert";
 export { Banner, type BannerProps, type BannerTone } from "./banner";
-export { Avatar, Person } from "./avatar";
+export {
+  Avatar,
+  Person,
+  type AvatarHue,
+  type AvatarProps,
+  type AvatarSize,
+  type AvatarStackPerson,
+  type AvatarStackProps,
+  type AvatarVariant,
+  type PersonProps,
+} from "./avatar";
 export {
   Badge,
   Count,
@@ -14,7 +24,7 @@ export {
   type IndicatorProps,
   type Tone,
 } from "./badge";
-export { Breadcrumb, type BreadcrumbItemProps } from "./breadcrumb";
+export { Breadcrumb, type BreadcrumbItemProps, type BreadcrumbProps } from "./breadcrumb";
 export { Button, IconButton, type ButtonProps, type IconButtonProps } from "./button";
 export { ButtonGroup } from "./button-group";
 export { Calendar, type CalendarProps } from "./calendar";
@@ -74,11 +84,11 @@ export { DropdownMenu, type DropdownMenuItemProps, type DropdownMenuProps } from
 export { Editable, type EditableProps } from "./editable";
 export { Gates, type GateItemProps, type GatesProps } from "./gates";
 export { HoverCard, type HoverCardProps } from "./hover-card";
-export { Id } from "./id";
+export { Id, type IdListProps, type IdProps } from "./id";
 export { InputGroup } from "./input-group";
-export { Item, type ItemProps } from "./item";
+export { Item, type ItemGroupProps, type ItemProps, type ItemSize } from "./item";
 export { Kbd } from "./kbd";
-export { KeyValue } from "./key-value";
+export { KeyValue, type KeyValueProps } from "./key-value";
 export { Pagination, type PaginationProps } from "./pagination";
 export { Popover, type PopoverProps } from "./popover";
 export {
@@ -106,7 +116,16 @@ export { Toggle, ToggleGroup, type ToggleGroupProps, type ToggleProps } from "./
 export { Toolbar, type ToolbarProps } from "./toolbar";
 export { Tooltip, TooltipProvider, type TooltipProps } from "./tooltip";
 export { Tree, type TreeItemProps } from "./tree";
-export { Absent, Eyebrow, Fact, Prose } from "./typography";
+export {
+  Absent,
+  Eyebrow,
+  Fact,
+  Prose,
+  type EyebrowProps,
+  type FactGroupProps,
+  type FactProps,
+  type ProseProps,
+} from "./typography";
 export { useRequired } from "./form";
 export { usePage, useSort, type SortDir } from "./table-state";
 export type { ControlSize, InputProps, NativeSelectProps } from "./controls";

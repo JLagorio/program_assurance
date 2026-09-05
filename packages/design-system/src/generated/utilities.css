@@ -212,6 +212,42 @@
 @utility bg-inverse-subtle-pressed {
   background-color: var(--ds-color-background-inverse-subtle-pressed);
 }
+@utility bg-accent-blue-subtler {
+  background-color: var(--ds-color-background-accent-blue-subtler);
+}
+@utility bg-accent-blue-bolder {
+  background-color: var(--ds-color-background-accent-blue-bolder);
+}
+@utility bg-accent-teal-subtler {
+  background-color: var(--ds-color-background-accent-teal-subtler);
+}
+@utility bg-accent-teal-bolder {
+  background-color: var(--ds-color-background-accent-teal-bolder);
+}
+@utility bg-accent-green-subtler {
+  background-color: var(--ds-color-background-accent-green-subtler);
+}
+@utility bg-accent-green-bolder {
+  background-color: var(--ds-color-background-accent-green-bolder);
+}
+@utility bg-accent-orange-subtler {
+  background-color: var(--ds-color-background-accent-orange-subtler);
+}
+@utility bg-accent-orange-bolder {
+  background-color: var(--ds-color-background-accent-orange-bolder);
+}
+@utility bg-accent-red-subtler {
+  background-color: var(--ds-color-background-accent-red-subtler);
+}
+@utility bg-accent-red-bolder {
+  background-color: var(--ds-color-background-accent-red-bolder);
+}
+@utility bg-accent-purple-subtler {
+  background-color: var(--ds-color-background-accent-purple-subtler);
+}
+@utility bg-accent-purple-bolder {
+  background-color: var(--ds-color-background-accent-purple-bolder);
+}
 @utility text-default {
   color: var(--ds-color-text);
 }
@@ -259,6 +295,24 @@
 }
 @utility text-information-bolder {
   color: var(--ds-color-text-information-bolder);
+}
+@utility text-accent-blue {
+  color: var(--ds-color-text-accent-blue);
+}
+@utility text-accent-teal {
+  color: var(--ds-color-text-accent-teal);
+}
+@utility text-accent-green {
+  color: var(--ds-color-text-accent-green);
+}
+@utility text-accent-orange {
+  color: var(--ds-color-text-accent-orange);
+}
+@utility text-accent-red {
+  color: var(--ds-color-text-accent-red);
+}
+@utility text-accent-purple {
+  color: var(--ds-color-text-accent-purple);
 }
 @utility icon-default {
   color: var(--ds-color-icon);

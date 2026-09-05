@@ -759,6 +759,140 @@
             }
           }
         }
+      },
+      "accent": {
+        "blue": {
+          "subtler": {
+            "$value": "{color.blue.200}",
+            "$description": "A blue tint that carries no meaning: an avatar, a tag. Pairs with color.text.accent.blue.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.900}",
+                "introduced": "0.5.0"
+              }
+            }
+          },
+          "bolder": {
+            "$value": "{color.blue.800}",
+            "$description": "A blue fill that carries no meaning, for color.text.inverse on it: a bold avatar, one end of a gradient.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.400}",
+                "introduced": "0.5.0"
+              }
+            }
+          }
+        },
+        "teal": {
+          "subtler": {
+            "$value": "{color.teal.200}",
+            "$description": "A teal tint that carries no meaning: an avatar, a tag. Pairs with color.text.accent.teal.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.teal.900}",
+                "introduced": "0.5.0"
+              }
+            }
+          },
+          "bolder": {
+            "$value": "{color.teal.800}",
+            "$description": "A teal fill that carries no meaning, for color.text.inverse on it: a bold avatar, one end of a gradient.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.teal.400}",
+                "introduced": "0.5.0"
+              }
+            }
+          }
+        },
+        "green": {
+          "subtler": {
+            "$value": "{color.green.200}",
+            "$description": "A green tint that carries no meaning: an avatar, a tag. Pairs with color.text.accent.green.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.green.900}",
+                "introduced": "0.5.0"
+              }
+            }
+          },
+          "bolder": {
+            "$value": "{color.green.800}",
+            "$description": "A green fill that carries no meaning, for color.text.inverse on it: a bold avatar, one end of a gradient.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.green.400}",
+                "introduced": "0.5.0"
+              }
+            }
+          }
+        },
+        "orange": {
+          "subtler": {
+            "$value": "{color.orange.200}",
+            "$description": "A orange tint that carries no meaning: an avatar, a tag. Pairs with color.text.accent.orange.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.orange.900}",
+                "introduced": "0.5.0"
+              }
+            }
+          },
+          "bolder": {
+            "$value": "{color.orange.800}",
+            "$description": "A orange fill that carries no meaning, for color.text.inverse on it: a bold avatar, one end of a gradient.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.orange.400}",
+                "introduced": "0.5.0"
+              }
+            }
+          }
+        },
+        "red": {
+          "subtler": {
+            "$value": "{color.red.200}",
+            "$description": "A red tint that carries no meaning: an avatar, a tag. Pairs with color.text.accent.red.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.red.900}",
+                "introduced": "0.5.0"
+              }
+            }
+          },
+          "bolder": {
+            "$value": "{color.red.800}",
+            "$description": "A red fill that carries no meaning, for color.text.inverse on it: a bold avatar, one end of a gradient.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.red.400}",
+                "introduced": "0.5.0"
+              }
+            }
+          }
+        },
+        "purple": {
+          "subtler": {
+            "$value": "{color.purple.200}",
+            "$description": "A purple tint that carries no meaning: an avatar, a tag. Pairs with color.text.accent.purple.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.purple.900}",
+                "introduced": "0.5.0"
+              }
+            }
+          },
+          "bolder": {
+            "$value": "{color.purple.800}",
+            "$description": "A purple fill that carries no meaning, for color.text.inverse on it: a bold avatar, one end of a gradient.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.purple.400}",
+                "introduced": "0.5.0"
+              }
+            }
+          }
+        }
       }
     },
     "text": {
@@ -926,6 +1060,68 @@
             "ledger": {
               "dark": "{color.blue.200}",
               "introduced": "0.1.0"
+            }
+          }
+        }
+      },
+      "accent": {
+        "blue": {
+          "$value": "{color.blue.900}",
+          "$description": "Text on color.background.accent.blue.subtler.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.200}",
+              "introduced": "0.5.0"
+            }
+          }
+        },
+        "teal": {
+          "$value": "{color.teal.900}",
+          "$description": "Text on color.background.accent.teal.subtler.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.teal.200}",
+              "introduced": "0.5.0"
+            }
+          }
+        },
+        "green": {
+          "$value": "{color.green.900}",
+          "$description": "Text on color.background.accent.green.subtler.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.200}",
+              "introduced": "0.5.0"
+            }
+          }
+        },
+        "orange": {
+          "$value": "{color.orange.900}",
+          "$description": "Text on color.background.accent.orange.subtler.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.200}",
+              "introduced": "0.5.0"
+            }
+          }
+        },
+        "red": {
+          "$value": "{color.red.900}",
+          "$description": "Text on color.background.accent.red.subtler.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.200}",
+              "introduced": "0.5.0"
+            }
+          }
+        },
+        "purple": {
+          "$value": "{color.purple.900}",
+          "$description": "Text on color.background.accent.purple.subtler.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.purple.200}",
+              "introduced": "0.5.0"
             }
           }
         }

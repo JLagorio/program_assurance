@@ -21,6 +21,7 @@ import {
   Table,
   Textarea,
   useRequired,
+  Eyebrow,
 } from "@ledger/design-system";
 import {
   findings as seedFindings,
@@ -425,7 +426,7 @@ function FindingModal({
       description={`${finding.ref} · ${finding.source} · ${finding.asset}`}
       aside={
         <Stack space="space.150">
-          <p className="font-heading-xxsmall uppercase text-subtle">Assessor view</p>
+          <Eyebrow as="p">Assessor view</Eyebrow>
           <Box
             className={
               blocksIatt
@@ -539,7 +540,7 @@ function IngestModal({
       description="Parsed, deduplicated against existing findings and mapped to NIST 800-53."
       aside={
         <Stack space="space.100">
-          <p className="font-heading-xxsmall uppercase text-subtle">Ingest preview</p>
+          <Eyebrow as="p">Ingest preview</Eyebrow>
           <pre className="whitespace-pre-wrap break-words font-code font-body-xsmall text-subtle">
             {`parser: ${parser}
 artifact: ${artifact || "<no file selected>"}

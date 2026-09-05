@@ -22,6 +22,7 @@ import {
   Timeline,
   toast,
   useRequired,
+  Eyebrow,
 } from "@ledger/design-system";
 import {
   approvalTone,
@@ -499,7 +500,7 @@ function ScopePreview({ params }: { params: SystemParameters }) {
   const r = computeTailoring(params);
   return (
     <div>
-      <div className="font-heading-xxsmall uppercase text-subtle">Derived scope</div>
+      <Eyebrow>Derived scope</Eyebrow>
       <dl className="pt-100">
         {[
           ["Baseline", r.baselineLabel.replace("NIST SP 800-53 Rev. 5 — ", "Rev. 5 ")],

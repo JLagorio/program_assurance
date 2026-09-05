@@ -1,20 +1,72 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Absent, Eyebrow, Prose } from "../../components";
 import * as Stories from "./Typography.stories";
-import * as FactStories from "./Fact.stories";
 
 <Meta of={Stories} />
 
 # Typography
 
-The small text parts a record page is made of.
-
-`Prose` is a labelled paragraph. `Eyebrow` is the uppercase micro-label on `font.heading.xxsmall`. `Absent` is the muted dash.
+The small text parts a record page is made of, beyond body copy and titles. `Eyebrow` is the uppercase micro-label on `font.heading.xxsmall`: a section's name in a rail, a record's kind above its title, a callout's label. `Absent` is the muted dash where a value would be. `Prose` is a labelled paragraph: an Eyebrow over body text. For body copy and titles, the [Text](?path=/docs/primitives-text--docs) and [Heading](?path=/docs/primitives-heading--docs) primitives; this page is the three parts between them. Carbon's label-01 and Atlassian's heading xxsmall are the eyebrow's models.
 
 <Canvas of={Stories.TypographyMatrix} />
 
-<Canvas of={FactStories.Facts} />
+## Anatomy
+
+| Part    | What it is                                                                                                     |
+| ------- | -------------------------------------------------------------------------------------------------------------- |
+| Eyebrow | `font.heading.xxsmall`, uppercase, `color.text.subtle`; a tone colours it. A `div`, or the element `as` names. |
+| Absent  | An em dash in `color.text.subtlest`, the size of its line.                                                     |
+| Prose   | An Eyebrow, then a paragraph in `font.body` and `color.text`, `space.050` between them, `space.075` above.     |
+
+## Variants
+
+| Part    | Use                                                                                                                                                                   |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Eyebrow | The name of a group of rows in a rail (`as="h3"`), the kind above a record's title, the label of a callout (with a tone), the label of a value in a grid (`as="dt"`). |
+| Absent  | Any value that is not there: in a KeyValue, a Fact, a cell.                                                                                                           |
+| Prose   | A paragraph with a name: Rationale, Objective, Condition. In a rail or a detail body.                                                                                 |
+
+Not built, and why: a description-list primitive, because KeyValue and Fact are the two shapes of a pair; a "no data" word in place of the dash, because the dash is the product's one absent mark and reads in a column; an Eyebrow with an icon or a count, because it is a label and a count is a Count beside it.
+
+## Sizes
+
+One size each. The Eyebrow is `font.heading.xxsmall` whatever it heads; the Absent is its line's size; the Prose paragraph is `font.body`. A rail's Prose is as wide as the rail, a detail body's is the reading measure.
+
+<Canvas of={Stories.InRail} />
+
+## States
+
+None. The three are text. The tone on an Eyebrow or a Prose is a colour for a callout, not a state.
+
+## Modifiers
+
+- **Eyebrow `tone`** for a callout's label: `warning` over a condition, `danger` over a finding. `neutral`, the default, is `color.text.subtle`.
+- **Eyebrow `as`**: `h3` or `h4` when it heads a section, so the page's outline has it; `dt` when it labels a value; `span` inline.
+- **Prose `label`** and **`tone`**: the paragraph's name, and its colour when it is a callout.
+
+## Content
+
+- **An eyebrow is one to three words**, a noun: "Schedule", "By supplier origin", "Rationale". Uppercase is set by the component; write it in sentence case.
+- **Prose is one paragraph** under its name. Two paragraphs are two Prose, or a section.
+- **The dash means nothing here.** "N/A" means not applicable, "Unknown" means unknown; those are values and are written as words.
+
+## Style
+
+| Element | Token                                                                                     |
+| ------- | ----------------------------------------------------------------------------------------- |
+| Eyebrow | `font.heading.xxsmall` · uppercase · `color.text.subtle` · `color.text.<tone>` when toned |
+| Absent  | `color.text.subtlest` · the line's font                                                   |
+| Prose   | `font.body` · `color.text` · `space.050` under the eyebrow · `space.075` above            |
+
+The eyebrow moved from `color.text.subtlest` to `color.text.subtle` in this walk: Carbon's label is its secondary text, and the prototype had written forty-five of its own eyebrows in subtle against eight in subtlest. The Shell's section headings and the Preview eyebrow took the step with it.
+
+## Accessibility
+
+- **An eyebrow that heads a section is a heading**, with `as="h3"` or `h4`, so the page's outline lists it and a screen reader can jump to it. As a `div` it is a label and is read in place.
+- **Uppercase is styling**, so a screen reader reads the words, not the letters; write the text in sentence case.
+- **The dash is read as a dash**, which is enough for "nothing"; it is not hidden, because an empty cell would be read as nothing at all and the reader could not tell a gap from a skip.
+- **Contrast:** `color.text.subtle` at 11px uppercase passes 4.5:1, and `color.text.subtlest` does for the dash; the gate runs every tone.
 
 ## Props
 
@@ -30,7 +82,18 @@ The small text parts a record page is made of.
 
 <ArgTypes of={Prose} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Fact](?path=/docs/components-fact--docs): an inline label and value; a row of them is the facts strip.
-- [KeyValue](?path=/docs/components-keyvalue--docs): one rail row with a label column.
+- [Text](?path=/docs/primitives-text--docs), [Heading](?path=/docs/primitives-heading--docs): body copy and titles.
+- [KeyValue](?path=/docs/components-keyvalue--docs), [Fact](?path=/docs/components-fact--docs): the two shapes of a labelled value.
+- [Alert](?path=/docs/components-alert--docs): the callout an eyebrow with a tone often heads.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

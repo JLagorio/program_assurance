@@ -27,6 +27,7 @@ import {
   Timeline,
   useRequired,
   Indicator,
+  Eyebrow,
 } from "@ledger/design-system";
 import {
   formatOscalDate,
@@ -470,7 +471,7 @@ function PoamDetailModal({
       }
       aside={
         <div>
-          <div className="font-heading-xxsmall uppercase text-subtle">OSCAL identifiers</div>
+          <Eyebrow>OSCAL identifiers</Eyebrow>
           <Box paddingBlockStart="space.050">
             <KeyValue label="uuid">
               <Id className="break-all">{item.uuid}</Id>
@@ -544,18 +545,11 @@ function PoamDetailModal({
         </div>
 
         <div>
-          <Inline
-            className="border-b border-default pb-100"
-            alignBlock="center"
-            spread="space-between"
+          <Item.Group
+            title="Milestones"
+            trailing={`${item.milestones.filter((m) => m.status === "Completed").length} of ${item.milestones.length} complete`}
+            empty="No milestones recorded."
           >
-            <span className="font-body font-semibold">Milestones</span>
-            <span className="tabular-nums font-body-small text-subtle">
-              {item.milestones.filter((m) => m.status === "Completed").length} of{" "}
-              {item.milestones.length} complete
-            </span>
-          </Inline>
-          <Item.Group empty="No milestones recorded.">
             {item.milestones.map((m) => (
               <Item
                 key={m.uuid}
@@ -571,13 +565,7 @@ function PoamDetailModal({
         </div>
 
         <div>
-          <Box
-            className="border-b border-default font-body font-semibold"
-            paddingBlockEnd="space.100"
-          >
-            Related observations
-          </Box>
-          <Item.Group empty="No related observations.">
+          <Item.Group title="Related observations" empty="No related observations.">
             {item.relatedObservations.map((o) => (
               <Item
                 key={o.observationUuid}
@@ -592,13 +580,7 @@ function PoamDetailModal({
         </div>
 
         <div>
-          <Box
-            className="border-b border-default font-body font-semibold"
-            paddingBlockEnd="space.100"
-          >
-            Associated risks
-          </Box>
-          <Item.Group empty="No risk exposure entry linked.">
+          <Item.Group title="Associated risks" empty="No risk exposure entry linked.">
             {item.associatedRisks.map((r) => (
               <Item
                 key={r.riskUuid}
@@ -776,7 +758,7 @@ function PoamEditModal({
       }
       aside={
         <div>
-          <div className="font-heading-xxsmall uppercase text-subtle">Preserved OSCAL fields</div>
+          <Eyebrow>Preserved OSCAL fields</Eyebrow>
           <Box paddingBlockStart="space.050">
             <KeyValue label="uuid">
               <Id className="break-all">{item.uuid}</Id>
@@ -1155,7 +1137,7 @@ function PoamCreateModal({
       }
       aside={
         <div>
-          <div className="font-heading-xxsmall uppercase text-subtle">OSCAL preview</div>
+          <Eyebrow>OSCAL preview</Eyebrow>
           <Box paddingBlockStart="space.050">
             <KeyValue label="uuid">
               <Id>generated on save</Id>

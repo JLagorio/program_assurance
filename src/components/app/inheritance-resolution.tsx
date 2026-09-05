@@ -36,6 +36,7 @@ import {
   Stat,
   Table,
   Indicator,
+  Eyebrow,
 } from "@ledger/design-system";
 import type { Tone } from "@ledger/design-system";
 import {
@@ -281,7 +282,7 @@ function ProviderCard({
     >
       <Inline space="space.075" alignBlock="center">
         <Dot tone={tone} />
-        <span className="font-heading-xxsmall uppercase text-subtle">{caption}</span>
+        <Eyebrow as="span">{caption}</Eyebrow>
       </Inline>
       <Box className="truncate font-body font-medium" title={name} paddingBlockStart="space.050">
         {name}
@@ -406,9 +407,7 @@ export function ObligationList({ rows }: { rows: ResolvedInheritance[] }) {
               templateColumns={{ md: "repeat(2, minmax(0, 1fr))" }}
             >
               <div>
-                <h4 className="font-heading-xxsmall uppercase text-subtle">
-                  {row.component.name} provides
-                </h4>
+                <Eyebrow as="h4">{row.component.name} provides</Eyebrow>
                 <p className="pt-050 font-body-small text-subtle">
                   {isBlank(row.provided.assertion)
                     ? "The provider has published no implementation statement for this control."
@@ -416,9 +415,7 @@ export function ObligationList({ rows }: { rows: ResolvedInheritance[] }) {
                 </p>
               </div>
               <div>
-                <h4 className="font-heading-xxsmall uppercase text-subtle">
-                  This system still owes
-                </h4>
+                <Eyebrow as="h4">This system still owes</Eyebrow>
                 {unstated ? (
                   <Box paddingBlockStart="space.050">
                     <Inline
@@ -631,7 +628,9 @@ export function InheritanceSummaryStats({
         templateColumns={{ base: "repeat(1, minmax(0, 1fr))", lg: "repeat(2, minmax(0, 1fr))" }}
       >
         <div>
-          <h3 className="pb-050 font-heading-xxsmall uppercase text-subtle">By designation</h3>
+          <Eyebrow as="h3" className="pb-050">
+            By designation
+          </Eyebrow>
           <BreakdownRow
             label="Common"
             count={summary.common}
@@ -652,7 +651,9 @@ export function InheritanceSummaryStats({
           />
         </div>
         <div>
-          <h3 className="pb-050 font-heading-xxsmall uppercase text-subtle">By resolution state</h3>
+          <Eyebrow as="h3" className="pb-050">
+            By resolution state
+          </Eyebrow>
           <BreakdownRow
             label="Current"
             count={summary.current}
@@ -703,7 +704,7 @@ function WrapValue({ label, children }: { label: string; children: ReactNode }) 
 function ProseBlock({ label, children }: { label: string; children: string }) {
   return (
     <Box paddingBlockStart="space.075">
-      <div className="font-heading-xxsmall uppercase text-subtle">{label}</div>
+      <Eyebrow>{label}</Eyebrow>
       <p className="pt-050 font-body-small text-default">{children}</p>
     </Box>
   );

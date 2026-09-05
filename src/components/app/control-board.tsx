@@ -39,6 +39,7 @@ import {
   ToggleGroup,
   Toolbar,
   useRequired,
+  Eyebrow,
 } from "@ledger/design-system";
 import {
   buildBoard,
@@ -1128,7 +1129,7 @@ export function ControlBoard({ programId }: { programId: string }) {
               {groups.map((g) => (
                 <section key={g.key}>
                   <Inline className="px-100 pb-050 pt-200" space="space.100" alignBlock="baseline">
-                    <span className="font-heading-xxsmall uppercase text-subtlest">{g.label}</span>
+                    <Eyebrow as="span">{g.label}</Eyebrow>
                     <span className="tabular-nums font-body-xsmall text-subtle">{g.meta}</span>
                   </Inline>
                   {g.controls.map((c) => (

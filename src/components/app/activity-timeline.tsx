@@ -143,7 +143,7 @@ export function ActivityTimeline({
                     key={e.id}
                     marker={
                       <span className="relative">
-                        <Avatar name={e.actor} size="small" />
+                        <Avatar name={e.actor} size="xsmall" />
                         <span
                           className={cn(
                             "absolute -bottom-025 -right-025 rounded-full outline-focused",

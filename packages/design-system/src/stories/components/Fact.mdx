@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Fact } from "../../components";
 import * as Stories from "./Fact.stories";
@@ -7,17 +7,87 @@ import * as Stories from "./Fact.stories";
 
 # Fact
 
-`Fact` is an inline label and value; a row of them is a `Fact.Group`, the facts strip. Under a record header it goes in the `facts` slot and holds at most six, the ones the reader acts on; the rest belong in the rail.
+An inline label and value on one baseline: Owner Dana Whitfield, Frequency Quarterly. A row of them is a `Fact.Group`, the facts strip under a record's title: the four to six facts the reader acts on, above the fold, so that needing to open a panel to find out who owns a thing is never the problem. The rest belong in the rail as [KeyValue](?path=/docs/components-keyvalue--docs) rows. None of the three references has it; Atlassian's page headers write the same strip by hand.
 
 <Canvas of={Stories.FactMatrix} />
 
-<Canvas of={Stories.Facts} />
+## Anatomy
+
+| Part  | What it is                                                                                                                   |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Label | `dt` in `font.body.small` and `color.text.subtle`, one or two words.                                                         |
+| Value | `dd` after it, `space.075` away, `font.body` medium in `color.text`: a word, a number, a date, a Person, a Badge, an Absent. |
+| Group | A `dl` that wraps: `space.300` between facts, `space.075` between lines, every fact whole on its line.                       |
+
+## Variants
+
+Fact has one appearance. What varies is where the strip is:
+
+| Where                  | What it holds                                                         |
+| ---------------------- | --------------------------------------------------------------------- |
+| Under a record's title | The facts the reader acts on: owner, due, method, count. At most six. |
+| In a Sheet's header    | The same, for the record the sheet shows.                             |
+| In a Glance            | Three or four, for the record previewed.                              |
+
+Not built, and why: a stacked label-over-value grid (the prototype draws one by hand on several pages), because that shape is a decision still open; a Fact that edits in place, because the value is an [Editable](?path=/docs/components-editable--docs) and the Fact only frames it.
+
+## Sizes
+
+One size: the label `font.body.small`, the value `font.body`. The strip is as wide as its header and wraps when narrower; a fact never breaks across lines.
+
+<Canvas of={Stories.UnderHeader} />
+
+## States
+
+A Fact has one state. Its value may: a Badge is a state, a Person is a person, an Editable value opens. The Fact does not.
+
+## Modifiers
+
+- **The value** is the modifier: text, a Person, a Badge at `xsmall`, an Id, an Absent, an Editable.
+- **Group `className`** for the rule above the strip under a header.
+
+## Content
+
+- **The label is one or two words, a noun:** "Owner", "Next due", "Open findings".
+- **The value is one thing that fits on a line:** a name, a number, a date, a state. A sentence is Prose or a wrapping KeyValue.
+- **Four to six facts, the ones acted on.** Reference joins (created by, framework, family) go in the rail.
+- **A missing value stays, as an Absent**, so the strip says what is missing.
+
+## Style
+
+| Element | Token                                                                     |
+| ------- | ------------------------------------------------------------------------- |
+| Label   | `font.body.small` · `color.text.subtle`                                   |
+| Value   | `font.body` medium · `color.text` · `space.075` after the label           |
+| Group   | `space.300` between facts · `space.075` between wrapped lines · baselines |
+
+## Accessibility
+
+- **A group is a definition list** and each Fact a `dt` and `dd`, so a screen reader hears "Owner, Dana Whitfield" as a pair. A Fact belongs inside a Fact.Group; the headers and sheets that take a `facts` slot wrap it.
+- **The strip is read in order**, so the order is the order of importance.
+- **An Absent is read as a dash**, which says "nothing here" in one character.
+- **Contrast:** the label in `color.text.subtle` passes 4.5:1; the gate runs the matrix.
 
 ## Props
 
 <ArgTypes of={Fact} />
 
+### Fact.Group
+
+<ArgTypes of={Fact.Group} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [KeyValue](?path=/docs/components-keyvalue--docs): one rail row with a label column.
-- [Typography](?path=/docs/components-typography--docs): `Prose`, `Eyebrow`, `Absent`.
+- [KeyValue](?path=/docs/components-keyvalue--docs): the row, for the rail.
+- [RecordHeader](?path=/docs/patterns-recordheader--docs), [Sheet](?path=/docs/components-sheet--docs), [Glance](?path=/docs/patterns-glance--docs): the `facts` slots.
+- [Typography](?path=/docs/components-typography--docs): `Absent`, and `Prose` for the sentence that is not a fact.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

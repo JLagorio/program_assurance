@@ -22,6 +22,7 @@ import {
   Stack,
   Table,
   TextLink,
+  Eyebrow,
 } from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
 import { gatesForProgram, gateKindTone, lifecyclePhases, type ProgramGate } from "@/lib/grc-data";
@@ -96,7 +97,7 @@ export function RmfTimeline({
             paddingBlock="space.150"
           >
             <Inline className="pb-075" space="space.100" alignBlock="baseline">
-              <h3 className="font-heading-xxsmall uppercase text-subtle">{phase}</h3>
+              <Eyebrow as="h3">{phase}</Eyebrow>
               <span className="tabular-nums font-body-xsmall text-subtle">
                 {phaseGates.filter((g) => g.status === "Complete").length}/{phaseGates.length} gates
                 closed

@@ -50,6 +50,7 @@ import {
   Inline,
   Stack,
   Table,
+  Eyebrow,
 } from "@ledger/design-system";
 import {
   digestAlgorithm,
@@ -82,7 +83,7 @@ function FactStrip({ items }: { items: { label: string; value: ReactNode }[] }) 
     <Inline space="space.400" rowSpace="space.100" shouldWrap>
       {items.map((item) => (
         <div key={item.label} className="min-w-0">
-          <div className="font-heading-xxsmall uppercase text-subtle">{item.label}</div>
+          <Eyebrow>{item.label}</Eyebrow>
           <Box className="font-body-small" paddingBlockStart="space.025">
             {item.value}
           </Box>
@@ -517,7 +518,7 @@ export function BundleManifest({
         </Box>
         <Stack className="px-200 py-150" space="space.150">
           <div>
-            <div className="font-heading-xxsmall uppercase text-subtle">Manifest digest</div>
+            <Eyebrow>Manifest digest</Eyebrow>
             <Hash value={bundle.manifestHash} />
           </div>
 

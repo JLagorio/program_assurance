@@ -23,6 +23,7 @@ export const Background: Story = {
         "disabled",
         "input",
         "inverse",
+        "accent",
       ].map((role) => (
         <Group key={role} title={role}>
           <TokenTable rows={under(`color.background.${role}`)} />

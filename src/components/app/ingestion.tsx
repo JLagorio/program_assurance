@@ -32,6 +32,7 @@ import {
   Stack,
   Stat,
   Table,
+  Eyebrow,
 } from "@ledger/design-system";
 import type { Tone } from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
@@ -215,10 +216,10 @@ export function IngestSummary({ batch, scan }: { batch: IngestBatch; scan?: Scan
 
       {contested.length > 0 ? (
         <div>
-          <div className="font-heading-xxsmall uppercase text-warning">
+          <Eyebrow tone="warning">
             Held open rather than closed — {contested.length}{" "}
             {contested.length === 1 ? "finding" : "findings"}
-          </div>
+          </Eyebrow>
           <Stack className="pt-050" as="ul" space="space.075">
             {contested.map((c) => (
               <Inline key={c.finding} as="li" space="space.100" alignBlock="start">

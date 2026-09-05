@@ -29,6 +29,7 @@ import {
   Stack,
   ToggleGroup,
   token,
+  Eyebrow,
 } from "@ledger/design-system";
 import {
   blasts,
@@ -1031,7 +1032,7 @@ function ChainList({ hops }: { hops: Hop[] }) {
             {i < hops.length - 1 ? <span className="w-px flex-1 bg-neutral" /> : null}
           </Stack>
           <Box className="min-w-0 flex-1" paddingBlockEnd="space.150">
-            <div className="font-heading-xxsmall uppercase text-subtlest">{h.t}</div>
+            <Eyebrow>{h.t}</Eyebrow>
             <div
               className={cn(
                 "font-body font-medium",
@@ -1401,13 +1402,13 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                       )}
                       style={{ width: 200 }}
                     >
-                      <div className="font-heading-xxsmall uppercase text-subtlest">
+                      <Eyebrow>
                         {cur.kind === "root"
                           ? "baseline"
                           : cur.kind === "family"
                             ? `family ${cur.id}`
                             : cur.kind}
-                      </div>
+                      </Eyebrow>
                       <div
                         className={cn(
                           "tabular-nums font-heading-large font-semibold",
@@ -1458,9 +1459,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
           {view === "closure" && sel ? (
             <Stack space="space.150">
               <div>
-                <div className="font-heading-xxsmall uppercase text-subtlest">
-                  Requirement chain
-                </div>
+                <Eyebrow>Requirement chain</Eyebrow>
                 <div className="font-body text-subtle">
                   {sel.kind === "control" ? `requirement ${sel.id}` : sel.id}
                 </div>
@@ -1486,7 +1485,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
             </Stack>
           ) : view === "closure" ? (
             <Stack space="space.100">
-              <div className="font-heading-xxsmall uppercase text-subtlest">Requirement chain</div>
+              <Eyebrow>Requirement chain</Eyebrow>
               <p className="font-body">Select a bead to trace its chain</p>
               <p className="font-body-small text-subtle">
                 Baseline → family → control → requirement row → determination → allocation → finding
@@ -1496,7 +1495,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
           ) : view === "blast" && blast ? (
             <Stack space="space.200">
               <div>
-                <div className="font-heading-xxsmall uppercase text-subtlest">Consequence</div>
+                <Eyebrow>Consequence</Eyebrow>
                 <Inline space="space.100" alignBlock="baseline">
                   <span className="tabular-nums font-heading-large font-semibold">
                     {blast.rows.length}
@@ -1569,9 +1568,9 @@ export function ControlWorkspace({ programId }: { programId: string }) {
           ) : view === "threads" && threads ? (
             <Stack space="space.150">
               <div>
-                <div className="font-heading-xxsmall uppercase text-subtlest">
+                <Eyebrow>
                   {axis ? `${threadAxes[axis.a]!.label} · ${axis.k}` : "All requirements"}
-                </div>
+                </Eyebrow>
                 <Inline space="space.100" alignBlock="baseline">
                   <span className="tabular-nums font-heading-large font-semibold">
                     {threads.sel.length}
@@ -1628,7 +1627,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
           ) : (
             <Stack space="space.200">
               <div>
-                <div className="font-heading-xxsmall uppercase text-subtlest">
+                <Eyebrow>
                   {cur.kind === "root"
                     ? "Baseline"
                     : cur.kind === "family"
@@ -1638,7 +1637,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                         : cur.kind === "row"
                           ? "Requirement row"
                           : "Control"}
-                </div>
+                </Eyebrow>
                 <Inline space="space.100" alignBlock="center">
                   <Id className="text-default">{cur.kind === "root" ? crumbRoot : cur.label}</Id>
                 </Inline>

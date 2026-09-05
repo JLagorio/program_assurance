@@ -23,6 +23,7 @@ import {
   Stack,
   Table,
   TextLink,
+  Eyebrow,
 } from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
 import { planDay, spanDays, taskStatusTone, type RemediationPlan } from "@/lib/remediation";
@@ -322,7 +323,7 @@ export function RemediationPlanSection({
 function StackedFact({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
-      <div className="font-heading-xxsmall uppercase text-subtle">{label}</div>
+      <Eyebrow>{label}</Eyebrow>
       <Box className="truncate font-body-small" paddingBlockStart="space.025">
         {children}
       </Box>

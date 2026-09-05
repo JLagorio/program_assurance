@@ -20,6 +20,7 @@ import {
   Tabs,
   TextLink,
   Toolbar,
+  Eyebrow,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { SctmRail, SctmSummary, SctmTable } from "@/components/app/sctm";
@@ -557,7 +558,7 @@ function ProgramSctm() {
               {selectedRow ? (
                 <div>
                   <Inline className="pb-150" space="space.100" alignBlock="center">
-                    <span className="font-heading-xxsmall uppercase text-subtle">Requirement</span>
+                    <Eyebrow as="span">Requirement</Eyebrow>
                     <Id>{selectedRow.requirement}</Id>
                     <button
                       onClick={() => setSelected(null)}

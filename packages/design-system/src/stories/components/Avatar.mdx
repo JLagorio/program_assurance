@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Avatar, Person } from "../../components";
 import * as Stories from "./Avatar.stories";
@@ -7,9 +7,92 @@ import * as Stories from "./Avatar.stories";
 
 # Avatar
 
+A mark that a person is meant: initials in a circle, or a photo when there is one, named by the full name. Five sizes, from a 16px mark beside a name to a 64px portrait on a profile. Neutral by default, so a person never reads as a status; tinted, bold or a gradient when a surface wants people told apart at a glance, in a hue drawn from the name and stable for that person everywhere. `Person` is the avatar with the name written beside it, which is how a person appears in a row, a fact or a rail. `Avatar.Stack` is up to four overlapping and a +n. Atlassian's Avatar and AvatarGroup and Base Web's Avatar are the models.
+
 <Canvas of={Stories.AvatarMatrix} />
 
-<Canvas of={Stories.Inlines} />
+## Anatomy
+
+| Part     | What it is                                                                                                                                                                |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Circle   | Round for a person, a square for a thing. Neutral: `color.background.neutral` with a `color.border` hairline. Tinted, bold and gradient: the accent colours, no hairline. |
+| Initials | The first letter of the first and last word of the name, medium weight; one letter at `xsmall`, where two do not fit.                                                     |
+| Photo    | `src`, filling the circle. If it fails to load the initials return.                                                                                                       |
+| Name     | In a Person: after the circle, `space.075` away, in the surrounding text style, truncating.                                                                               |
+| +n       | In a Stack: a neutral circle holding the count past `max`. Every stacked circle wears a 2px ring in `elevation.surface`, so they overlap and stay circles.                |
+
+## Variants
+
+| Variant        | Use                                                                                                                                                        |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `neutral`      | The default. The grey mark, the same for everyone: an owner column, a fact, a rail. Colour stays for state.                                                |
+| `tinted`       | A tint from the name with the hue's dark text: a comment thread, a list of reviewers, anywhere people are told apart at a glance.                          |
+| `bold`         | The hue's fill with inverse text: a profile, a header, one person given weight.                                                                            |
+| `gradient`     | Two neighbouring hues blended, inverse text: the same weight as bold with more life, for a profile or a persona.                                           |
+| `Person`       | The circle and the name. The owner column, the assessor fact, the rail row.                                                                                |
+| `Avatar.Stack` | The people on a thing: reviewers, a team. Four and a +n.                                                                                                   |
+| `square`       | A thing, not a person: a system, a program, a team, pinned to one `hue` or given its photo. Atlassian draws teams and projects square for the same reason. |
+
+The hue is drawn from the name, one of six, so Dana is the same blue on every page; `hue` pins it for a thing that has a colour. The accent colours carry no meaning, and the six are not the status tones: a green avatar is not "done".
+
+Not built, and why: presence and status marks on the circle (Atlassian), because a person's state is a fact about the record, not about them; a menu behind the +n (Atlassian's AvatarGroup), because the group is named by every name and the record lists them; a grid of avatars (Atlassian), because a list of people is a list of Persons; sizes past 64px (Atlassian's 96 and 128), because there is no page that is one person.
+
+## Sizes
+
+| Size     | Circle | Initials                   | Where                                                                          |
+| -------- | ------ | -------------------------- | ------------------------------------------------------------------------------ |
+| `xsmall` | 16px   | One, `font.body.xsmall`    | Beside a name in a row, a fact or a rail. The Person's size, and a row's mark. |
+| `small`  | 24px   | Two, `font.body.xsmall`    | The default: alone in a header, a comment's author line, a stack.              |
+| `medium` | 32px   | Two, `font.body`           | A card, a persona switch, a medium stack.                                      |
+| `large`  | 40px   | Two, `font.body.large`     | A profile row: the avatar with the name and the role beside it.                |
+| `xlarge` | 64px   | Two, `font.heading.medium` | The top of a profile.                                                          |
+
+Atlassian's scale, 16, 24, 32, 40, at the four steps this product uses. Two initials never go below 24px: at 16px they ran into each other, so `xsmall` draws one.
+
+<Canvas of={Stories.People} />
+
+## States
+
+An avatar has one state. It does not hover, focus or press; if the name is a link, the link is the TextLink around the Person. A photo that fails to load is the initials, not a broken image.
+
+## Modifiers
+
+- **`name`**: the full name, always. The initials, the hue and the accessible name come from it.
+- **`src`** for a photo. A Person and a stack entry take it too.
+- **`size`**, **`variant`**, **`shape`** as in Sizes and Variants; **`hue`** to pin the colour of a thing.
+- **`isDecorative`** when the name is written beside it: the circle is hidden from a screen reader so the name is read once. Person and Stack set it.
+- **Stack `max`**: how many circles before the +n, 4 by default; **`size`** `small` or `medium`; **`variant`** for every circle.
+
+## Content
+
+- **A full name, as the person writes it:** "Dana Whitfield", not "Whitfield, D." and not "dwhitfield".
+- **One treatment per surface.** Everywhere a person is written on a page they are the same variant; a bold circle beside a grey one reads as a rank.
+- **A stack is people, not a count.** Past four the +n says how many more; the record says who.
+- **A thing is square.** A person is never square and a system is never round.
+
+## Style
+
+| Element  | Token                                                                                                                       |
+| -------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Circle   | `radius.full`; square `radius.xsmall` at 16, `radius.small` at 24, `radius.medium` at 32 and 40, `radius.large` at 64       |
+| Neutral  | `color.background.neutral` · `color.border` · initials `color.text.subtle`                                                  |
+| Tinted   | `color.background.accent.{hue}.subtler` · initials `color.text.accent.{hue}`                                                |
+| Bold     | `color.background.accent.{hue}.bolder` · initials `color.text.inverse`                                                      |
+| Gradient | 135° from `color.background.accent.{hue}.bolder` to the next hue's · initials `color.text.inverse`                          |
+| Photo    | `color.border` hairline, object-fit cover                                                                                   |
+| Person   | `space.075` between circle and name                                                                                         |
+| Stack    | `small` circles overlapping by `space.050`, `medium` by `space.100`, each ringed 2px in `elevation.surface`; the +n neutral |
+
+The accent family is new with this component: six hues at two steps, `subtler` for a tint under the hue's own text and `bolder` for a fill under inverse text, each chosen so 11px initials pass 4.5:1 in both modes. The neutral circle is the fill of a Badge, so a person and a category read at the same weight and neither is a status.
+
+## Accessibility
+
+- **An avatar alone is an image named by the full name**, so a screen reader hears "Dana Whitfield" where sighted readers see "DW" or a photo. Base Web names its fallback the same way. The photo itself is presentational inside it.
+- **In a Person the circle is hidden** and the name is text, read once.
+- **A stack is a group named by every name**, so the +n hides no one; the circles inside are hidden.
+- **Initials are never the name.** Pass the full name and let the component abbreviate; two people can share initials and the title and the label must tell them apart.
+- **Colour is never the only signal.** The hue is stable but decorative; nothing is said by it, so nothing is lost without it.
+- **Contrast:** the initials pass 4.5:1 on the neutral fill, on every tint and on every bold fill, in both modes; the gate runs every size and treatment.
 
 ## Props
 
@@ -18,3 +101,24 @@ import * as Stories from "./Avatar.stories";
 ### Person
 
 <ArgTypes of={Person} />
+
+### Avatar.Stack
+
+<ArgTypes of={Avatar.Stack} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [KeyValue](?path=/docs/components-keyvalue--docs), [Fact](?path=/docs/components-fact--docs): where a Person is a value.
+- [Item](?path=/docs/components-item--docs): an Avatar as a row's leading mark.
+- [Badge](?path=/docs/components-badge--docs): the neutral fill the circle shares.
+- [Color](?path=/docs/tokens-color--docs): the accent family the tints and fills come from.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

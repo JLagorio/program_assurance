@@ -30,6 +30,7 @@ import {
   useDataTable,
   useRequired,
   type Tone,
+  Eyebrow,
 } from "@ledger/design-system";
 import { useTableSearch, validateTableSearch } from "@/lib/table-state";
 import { Shell } from "@/components/app/shell";
@@ -280,7 +281,7 @@ function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void
       description="Risks inherit scoring from likelihood × impact and recalculate when the linked control changes state."
       aside={
         <div>
-          <div className="font-heading-xxsmall uppercase text-subtle">Preview</div>
+          <Eyebrow>Preview</Eyebrow>
           <Box paddingBlockStart="space.150">
             <Box className="rounded-medium border border-default bg-surface" padding="space.150">
               <Id className="text-subtle">RSK-2431</Id>

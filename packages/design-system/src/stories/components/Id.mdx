@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Id } from "../../components";
 import * as Stories from "./Id.stories";
@@ -7,8 +7,83 @@ import * as Stories from "./Id.stories";
 
 # Id
 
+An identifier: CTRL-0412, AC-2(3), FND-2231, a hash. One typeface app-wide, so an Id inherits the font, the size and the colour of wherever it sits and adds only tabular numerals, which is what makes a column of ids line up. It is kept as a component for the semantics, and so every id in the product can be found. None of the three references has one; Carbon's Code snippet and Atlassian's Code are for code, which an id is not.
+
 <Canvas of={Stories.IdMatrix} />
+
+## Anatomy
+
+| Part | What it is                                                                                                             |
+| ---- | ---------------------------------------------------------------------------------------------------------------------- |
+| Id   | A span with tabular numerals. Nothing else: no fill, no face, no colour of its own.                                    |
+| List | `Id.List`: a wrapping run of ids at `font.body.xsmall` in `color.text.subtle`, `space.050` apart; or the `empty` word. |
+
+## Variants
+
+| Variant   | Use                                                                           |
+| --------- | ----------------------------------------------------------------------------- |
+| `Id`      | One id, in text, in a title, in a link, in a cell.                            |
+| `Id.List` | Several ids: the controls a requirement traces to, the CCIs a package covers. |
+
+Not built, and why: a monospace face (the old habit; the kit has one typeface and tabular numerals do the aligning); a copy button (Carbon's code snippet), because an id is selected like any word; a link inside the Id, because the link is outside it, a TextLink whose text is an Id.
+
+## Sizes
+
+None of its own. An Id is the size of its line: `font.body` in a sentence, `font.body.small` in a row, `font.heading` in a title. `Id.List` is `font.body.xsmall`, the size of a list of references.
+
+<Canvas of={Stories.InRows} />
+
+## States
+
+None. An Id is text. The link around it hovers; the cell around it is selected; the Id does neither.
+
+## Modifiers
+
+- **`className`** for the colour or the size it takes from its place: `text-subtle` in a row's id column, `font-body-small` in a rail, `break-all` for a hash that must break anywhere.
+- **List `empty`** for the word that stands where there are no ids; a muted dash by default.
+
+## Content
+
+- **The id as the record writes it:** "CTRL-0412", "AC-2(3)". Never a prose rendering ("Control 412", "AC 2.3").
+- **One id per Id.** Several are an `Id.List`, never a comma-joined string.
+- **A hash is an Id** too, with `break-all` so it wraps inside its column.
+- **Subtle beside a name, default alone.** In a row the id column is `color.text.subtle` and the name is `color.text`; in a sentence the Id takes the sentence's colour.
+
+## Style
+
+| Element | Token                                                              |
+| ------- | ------------------------------------------------------------------ |
+| Id      | Tabular numerals; the surrounding font, size and colour            |
+| List    | `font.body.xsmall` · `color.text.subtle` · `space.050` between ids |
+| Empty   | `font.body.small` · `color.text.subtlest`                          |
+
+## Accessibility
+
+- **An Id is text**, read as its characters. Nothing to focus, nothing to operate.
+- **A screen reader spells an id as it reads it.** Punctuation inside it, the parentheses in AC-2(3), is read or skipped by the reader's own rules; the kit does not rewrite an id to help.
+- **The colour is not the meaning.** An Id in `color.text.subtle` is an id; an Id in the link colour is a link, because a TextLink is around it.
+- **`break-all` is for a hash**, so a long id never widens its column past the viewport.
 
 ## Props
 
 <ArgTypes of={Id} />
+
+### Id.List
+
+<ArgTypes of={Id.List} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [TextLink](?path=/docs/components-textlink--docs): the link an Id sits inside.
+- [Item](?path=/docs/components-item--docs), [Table](?path=/docs/components-table--docs): the id column.
+- [RecordHeader](?path=/docs/patterns-recordheader--docs): the id above a title.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

@@ -799,9 +799,9 @@ function TechniqueStep({ step, n }: { step: ThreatScenario["chain"][number]; n: 
         >
           {n}
         </Inline>
-        <span className="min-w-0 truncate font-heading-xxsmall uppercase text-subtle">
+        <Eyebrow as="span" className="min-w-0 truncate">
           {step.tactic}
-        </span>
+        </Eyebrow>
         {step.matrix === "ICS" ? (
           <Badge size="xsmall" tone="information" className="ml-auto">
             ICS

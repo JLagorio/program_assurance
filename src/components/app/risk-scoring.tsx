@@ -49,6 +49,7 @@ import {
   Table,
   defineColumns,
   useDataTable,
+  Eyebrow,
 } from "@ledger/design-system";
 import {
   bandTone,
@@ -344,7 +345,7 @@ export function ScoreCard({
     <div className="overflow-hidden rounded-large border border-default">
       <Grid className={cn(comparison ? "sm:grid-cols-2" : "")}>
         <Box paddingInline="space.200" paddingBlock="space.150">
-          <div className="font-heading-xxsmall uppercase text-subtle">Computed residual</div>
+          <Eyebrow>Computed residual</Eyebrow>
           <Inline className="pt-050" space="space.100" alignBlock="baseline">
             <span className="tabular-nums font-heading-large font-semibold">{score.score}</span>
             <BandChip band={score.band} />
@@ -376,9 +377,7 @@ export function ScoreCard({
             paddingInline="space.200"
             paddingBlock="space.150"
           >
-            <div className="font-heading-xxsmall uppercase text-subtle">
-              Authored in the register
-            </div>
+            <Eyebrow>Authored in the register</Eyebrow>
             <Inline className="pt-050" space="space.100" alignBlock="baseline">
               <span className="tabular-nums font-heading-large font-semibold text-subtle">
                 {comparison.authored.residual}
@@ -406,10 +405,10 @@ export function ScoreCard({
         <ProseBlock label="Leverage">{score.leverage}</ProseBlock>
         {score.caveats.length > 0 ? (
           <div>
-            <div className="font-heading-xxsmall uppercase text-warning">
+            <Eyebrow tone="warning">
               {score.caveats.length} caveat{score.caveats.length === 1 ? "" : "s"} — the score is
               provisional
-            </div>
+            </Eyebrow>
             <Stack className="pt-050" as="ul" space="space.050">
               {score.caveats.map((c) => (
                 <li key={c} className="font-body-small text-default">

@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Item } from "../../components";
 import * as Stories from "./Item.stories";
@@ -7,18 +7,133 @@ import * as Stories from "./Item.stories";
 
 # Item
 
-Rows that are not a table.
+One row of a list that is not a table: a milestone, a decision, an event, a piece of evidence, a linked record. A mark, an id, a title with its meta, a description, a value at the end, actions, and what the row discloses under it. Rows stack in `Item.Group`, which is one grid the rows share: whatever each row carries, the marks make a column, the ids make a column and the dates make a column. Carbon's Contained list and Base Web's ListItem are the models.
 
-An Item is one row of a list: leading mark, id column, title with meta, right-aligned value, actions. `link` takes a link element that becomes the row; `onSelect` makes it a button.
+A list is for rows the reader scans and opens; a [Table](?path=/docs/components-table--docs) is for rows the reader compares and sorts. If the rows need column headers, it is a table.
 
 <Canvas of={Stories.ItemMatrix} />
 
-<Canvas of={Stories.Items} />
+## Anatomy
+
+| Part        | What it is                                                                                                                                                                       |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Toggle      | First, on a collapsible row: a chevron, right while closed and down while open. A button on a row that links or selects; a mark on a plain row, which opens on a click anywhere. |
+| Leading     | A 20px slot centred on the title's line: a Dot, an Avatar, an icon. Every row's mark lands at the same x.                                                                        |
+| Id          | The record's id in its own column (`idWidth`, 72 by default), `color.text.subtle`, so a list of ids lines up.                                                                    |
+| Title       | `font.body` in `color.text`, one line, truncating. On a row that links, selects or opens, this is the link or button, stretched over the row.                                    |
+| Meta        | After the title on the same line, `font.body.small` in `color.text.subtle`: the kind, the size, the state.                                                                       |
+| Description | Under the title, `font.body.small` in `color.text.subtle`: one sentence.                                                                                                         |
+| Trailing    | At the end, `font.body.small` tabular in `color.text.subtle`: a date, a value. A column across the group.                                                                        |
+| Actions     | Buttons at the very end, beside the title's link or button, never inside it.                                                                                                     |
+| Below       | What the row discloses, from the title's column to the end: a sentence, a Badge, a nested `Item.Group`.                                                                          |
+| Group       | The grid the rows share, hairlines between them, `empty` text when there are none, and a heading of its own when the list needs one: semibold, a Count, a read-out at the end.   |
+
+## Variants
+
+Item has one appearance. What varies is what the row does:
+
+| The row          | Use                                                                                                                                                     |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Opens a record   | `link` with the router's Link: the title is the link, stretched over the row, and the hover says so.                                                    |
+| Selects in place | `onSelect`: the title is a button over the row; `isActive` marks the one open beside the list.                                                          |
+| Only reads       | Neither: a plain row, nothing to focus.                                                                                                                 |
+| Shows more       | `children`: content under the row, always visible.                                                                                                      |
+| Folds more       | `isCollapsible` with `children`: the content behind a chevron. A plain row opens on a click anywhere; a row that links or selects opens on the chevron. |
+| Nests            | An `Item.Group` as the children of a collapsible row: a milestone and its tasks. One level; deeper is a [Tree](?path=/docs/components-tree--docs).      |
+
+A group takes a `title` when the list is its own section: "Milestones", "Evidence". Carbon's contained list has the same header. It is the list's accessible name, so a screen reader hears "Milestones, list, 3 items". Under a [Section](?path=/docs/patterns-section--docs) or a [Collapsible](?path=/docs/components-collapsible--docs) that already names it, leave it off.
+
+Not built, and why: Carbon's search in the header (a list long enough to search is a table with a filter); a checkbox on every row (bulk work on rows is `Table.Selection`); a disclosed-list appearance for a popover (a list in a popover is a [Command](?path=/docs/components-command--docs) or a menu); drag handles (nothing here is reordered by hand).
+
+## Sizes
+
+| Size      | Row                                                                   | Where                                 |
+| --------- | --------------------------------------------------------------------- | ------------------------------------- |
+| `default` | `space.100` above and below the title's 20px line; 36px for one line. | A record page, a Section.             |
+| `compact` | `space.050` above and below; 28px for one line.                       | A rail, a nested group, a dense card. |
+
+The size is the group's, not the row's: every row in a list is the same height. A list is as wide as its container; Carbon says a contained list spans it, and so does this.
+
+<Canvas of={Stories.Lists} />
+
+## States
+
+| State          | What changes                                                                                                                        |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Plain          | No hover. Text on the surface.                                                                                                      |
+| Link or button | `color.background.neutral.subtle.hovered` on hover across the row; the focus outline around the row on keyboard focus of the title. |
+| Active         | `color.background.selected`, and its hovered step on hover: the row that is open beside the list.                                   |
+| Closed, open   | On a collapsible row: the chevron right, the content unmounted; the chevron down, the content under the title.                      |
+| Empty          | The group is its `empty` sentence in `color.text.subtle`, under its heading if it has one.                                          |
+
+<Canvas of={Stories.Nested} />
+
+## Modifiers
+
+- **`id`** and **`idWidth`**: the ids make a column as wide as the widest; give every row in one list the same width so the column is one width on every page.
+- **`meta`** for what fits after the title in a few words; **`description`** for the sentence under it.
+- **`trailing`** for the date or the value; it is tabular so a column of dates aligns.
+- **`actions`** for one icon button, the rest behind a menu.
+- **`link`**, **`onSelect`**, **`isActive`**, **`children`**, **`isCollapsible`** with **`defaultOpen`** or **`open`** and **`onOpenChange`**, as in Variants.
+- **Group `title`**, **`count`** and **`trailing`** for a list that heads itself; **`size`** for the row height; **`empty`** for the sentence when there are no rows.
+
+## Content
+
+- **The title is the record's name**, as it reads on its own page.
+- **The meta is a few words**, not a sentence: "PDF · 2.1 MB", "At risk", the method.
+- **The description is one sentence**: who, when, or why.
+- **The trailing value is a date or a number**, in the product's date format.
+- **The group's title is a noun**: "Milestones", "Evidence", "Related observations". Its read-out is a fraction or a count: "1 of 3 complete".
+- **`empty` says what would be here**: "No milestones recorded.", "No linked evidence yet." Not "Empty".
+
+## Style
+
+| Element                     | Token                                                                                                                                                |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Row                         | `space.100` block (`space.050` compact) · `space.050` inline · `radius.medium` when it clicks                                                        |
+| Columns                     | toggle `space.100` after · mark 20px, `space.150` after · id `idWidth`, `space.150` after · trailing `space.150` before · actions `space.100` before |
+| Title                       | `font.body` · `color.text`                                                                                                                           |
+| Meta, description, trailing | `font.body.small` · `color.text.subtle`                                                                                                              |
+| Id                          | `color.text.subtle` · tabular                                                                                                                        |
+| Toggle                      | 20px · `color.icon.subtle` · `radius.small` · rotates in `motion.duration.fast`                                                                      |
+| Group heading               | `font.body` semibold · `color.text` · `color.border` under, `space.100` above the rule                                                               |
+| Hover                       | `color.background.neutral.subtle.hovered`                                                                                                            |
+| Active                      | `color.background.selected` · `color.background.selected.hovered`                                                                                    |
+| Hairline                    | `color.border` between rows                                                                                                                          |
+
+The grid is CSS subgrid: the group sets six columns and each row lays its cells into them, so an id column is as wide as its widest id in that list and no wider, and the content a row discloses starts under its title.
+
+## Accessibility
+
+- **A group is an ordered list** and every row an `li`, so a screen reader announces the count and moves row by row. A group with a `title` is labelled by it. Carbon: a contained list is a list.
+- **The title is the control.** A row that opens a record is a link and a row that selects is a button, each named by the title alone and stretched over the row so the click area is the row. The meta, description and trailing value are read as the text beside it, not folded into the link's name.
+- **The toggle and the actions are separate stops** after the title, never inside it: no button inside a link, no link inside a button. The toggle is labelled by the title and carries `aria-expanded`; a plain collapsible row's title is the toggle itself.
+- **Keyboard:** Tab moves title to toggle to actions and on to the next row; Enter or Space opens what is focused.
+- **A plain row is not focusable.** Nothing to operate, nothing to focus.
+- **The active row is a colour and a place**: it is the one open beside the list, which says so in its own header.
 
 ## Props
 
 <ArgTypes of={Item} />
 
+### Item.Group
+
+<ArgTypes of={Item.Group} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Breadcrumb](?path=/docs/components-breadcrumb--docs): a link back up the record tree.
+- [Table](?path=/docs/components-table--docs): rows the reader compares.
+- [Tree](?path=/docs/components-tree--docs): rows that nest past one level.
+- [Timeline](?path=/docs/components-timeline--docs): rows in time.
+- [Collapsible](?path=/docs/components-collapsible--docs): a section that folds, where a whole list folds rather than a row.
+- [Related](?path=/docs/patterns-related--docs): a card of linked records built on Item.
+
+## Don't
+
+<Canvas of={Stories.Dont} />
