@@ -23,7 +23,7 @@ const columns = "auto auto auto minmax(0, 1fr) auto auto";
 
 export type ItemSize = "default" | "compact";
 
-const GroupContext = createContext<{ size: ItemSize } | null>(null);
+const GroupContext = createContext<{ size: ItemSize; flush: boolean } | null>(null);
 
 export type ItemProps = {
   /** Before the id, centred on the title's line: a Dot, an Avatar, an icon. A 20px slot, so the marks of a list line up. */
@@ -88,6 +88,7 @@ function ItemRoot({
 }: ItemProps) {
   const group = useContext(GroupContext);
   const size = group?.size ?? "default";
+  const flush = group?.flush ?? false;
   const titleId = useId();
   const interactive = Boolean(link || onSelect);
   const collapsible = Boolean(isCollapsible && children);
@@ -97,7 +98,8 @@ function ItemRoot({
   const titleClass = cn(
     "block min-w-0 outline-none",
     clickable &&
-      "after:absolute after:inset-0 after:rounded-medium focus-visible:after:outline-focused",
+      "after:absolute after:inset-0 focus-visible:after:outline-focused",
+    clickable && (flush ? "after:rounded-none" : "after:rounded-medium"),
   );
   const titleEl = link ? (
     cloneElement(link, {
@@ -149,7 +151,8 @@ function ItemRoot({
   const row = (
     <div
       className={cn(
-        "relative col-span-full grid grid-cols-subgrid items-start rounded-medium px-050",
+        "relative col-span-full grid grid-cols-subgrid items-start",
+        flush ? "px-200" : "rounded-medium px-050",
         size === "compact" ? "py-050" : "py-100",
         clickable &&
           "transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered",
@@ -239,6 +242,10 @@ export type ItemGroupProps = {
   trailing?: ReactNode;
   /** `compact` tightens every row from `space.100` to `space.050` above and below, for a rail. */
   size?: ItemSize | undefined;
+  /** The id of a heading outside the group that names it, when the card the list sits in draws the heading. */
+  labelledBy?: string | undefined;
+  /** Rows run edge to edge of the card they sit in: the hairlines and the hover fill span it, the text at `space.200`. For an Item.Group inside a Card or a Related. */
+  flush?: boolean | undefined;
   className?: string | undefined;
 };
 
@@ -250,28 +257,41 @@ export function ItemGroup({
   count,
   trailing,
   size = "default",
+  labelledBy,
+  flush = false,
   className,
 }: ItemGroupProps) {
   const headingId = useId();
   const has = Array.isArray(children) ? children.some(Boolean) : Boolean(children);
   const body =
     !has && empty ? (
-      <p className={cn("px-050 font-body text-subtle", size === "compact" ? "py-050" : "py-100")}>
+      <p
+        className={cn(
+          "font-body text-subtle",
+          flush ? "px-200" : "px-050",
+          size === "compact" ? "py-050" : "py-100",
+        )}
+      >
         {empty}
       </p>
     ) : (
       <ol
-        aria-labelledby={title ? headingId : undefined}
+        aria-labelledby={title ? headingId : labelledBy}
         className="grid [&>li+li]:border-t [&>li+li]:border-default"
         style={{ gridTemplateColumns: columns }}
       >
-        <GroupContext.Provider value={{ size }}>{children}</GroupContext.Provider>
+        <GroupContext.Provider value={{ size, flush }}>{children}</GroupContext.Provider>
       </ol>
     );
   if (!title && !trailing) return <div className={className}>{body}</div>;
   return (
     <div className={className}>
-      <div className="flex items-center gap-100 border-b border-default px-050 pb-100">
+      <div
+        className={cn(
+          "flex items-center gap-100 border-b border-default pb-100",
+          flush ? "px-200" : "px-050",
+        )}
+      >
         {title ? (
           <h3 id={headingId} className="min-w-0 truncate font-body font-semibold text-default">
             {title}

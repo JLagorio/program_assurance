@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Description, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
 
 import { RecordPicker } from "../../patterns";
 import * as Stories from "./RecordPicker.stories";
@@ -7,11 +7,71 @@ import * as Stories from "./RecordPicker.stories";
 
 # RecordPicker
 
-<Description of={RecordPicker} />
+Pick one record from a list: evidence to link, a requirement to derive from, a person to assign. A [Command](?path=/docs/components-command--docs) dialog whose rows are the id, the name with its meta under it and one badge at the end, with the count of matches in the field and the keys in the footer. Presentational: the caller supplies the records and gets the chosen one back, and the picker closes itself. Jira's issue picker and Atlassian's user picker are the models. For choosing many by attribute, the [PickerSheet](?path=/docs/patterns-pickersheet--docs); for choosing by name inside a form, a [Combobox](?path=/docs/components-combobox--docs).
 
 <Canvas of={Stories.RecordPickerStory} />
 
+## Anatomy
+
+| Part   | What it is                                                                     |
+| ------ | ------------------------------------------------------------------------------ |
+| Field  | The search, focused on open, with the count of matches at its end.             |
+| Row    | The id in `color.text.subtle`; the name, the meta line under it; one badge.    |
+| Empty  | "Nothing matches." when the query finds none.                                  |
+| Footer | The keys: the arrows to move, Enter to choose, Escape to close.                |
+
 <Canvas of={Stories.RecordPickerMatrix} story={{ inline: false, height: "480px" }} />
+
+## Variants
+
+RecordPicker has one appearance. What varies is the record: with a badge for its state or freshness, without; with a meta line, without; with keywords that match the query and are never shown.
+
+Not built, and why: picking several with checkboxes, because many are chosen by attribute in a PickerSheet; a "create new" row, because a record is created on its own page; groups by kind, because the records offered are one kind and the caller narrows them; a preview of the chosen record, because the row says enough to choose and the link on the record after says the rest.
+
+## Sizes
+
+One: the Command dialog at its large width, 640px, the list at most 46% of the viewport's height so the field and the footer stay in view.
+
+## States
+
+| State    | What changes                                                              |
+| -------- | ------------------------------------------------------------------------- |
+| Closed   | Not rendered.                                                             |
+| Open     | Over the page at the top, the field focused, every record listed.         |
+| Filtered | The rows that match, the count in the field.                              |
+| None     | The empty sentence.                                                       |
+| Chosen   | The picker closes and the caller has the record.                          |
+
+## Modifiers
+
+- **`records`**: id, title, meta, badge, keywords.
+- **`title`**, **`placeholder`**, **`emptyHint`** as in Content.
+
+## Content
+
+- **The title is the task**: "Link evidence", "Assign to", "Derive from".
+- **The placeholder says what to type**: "Search evidence…", "Search people…". Not "Search…".
+- **The meta is kind, source, date** in a few words: "Evidence · 12 Aug 2026".
+- **One badge**, the state or the freshness the choice turns on: Fresh, Stale, Draft.
+- **Keywords are for matching**, never shown: "dr disaster recovery" under "Backup restore drill".
+
+## Style
+
+| Element | Token                                                                                                     |
+| ------- | --------------------------------------------------------------------------------------------------------- |
+| Dialog  | Command.Dialog: `radius.xxlarge` · `elevation.surface.overlay` · `elevation.shadow.overlay` · `color.blanket` |
+| Row     | Command.Item, as tall as two lines · `space.100` block · `color.background.selected` when selected         |
+| Id      | Id · `color.text.subtle`                                                                                  |
+| Meta    | `font.body.xsmall` · `color.text.subtle`                                                                  |
+| Badge   | Badge, xsmall                                                                                             |
+| Footer  | Command.Footer: `elevation.surface.sunken` · `font.body.xsmall` · Kbd for each key                        |
+
+## Accessibility
+
+- **A dialog named by the title**; focus moves to the field on open and returns to the opener on close.
+- **The list is a listbox** and each row an option named by its text: the id, the name, the meta and the badge, so "EV-0412 Firewall ruleset export Evidence 12 Aug 2026 Fresh".
+- **The arrows move, Enter chooses, Escape closes**, and the footer says so with Kbd, each key named in full for a screen reader.
+- **The count of matches is text** in the field's hint, read with the field.
 
 ## Props
 
@@ -19,5 +79,11 @@ import * as Stories from "./RecordPicker.stories";
 
 ## Related
 
+- [Command](?path=/docs/components-command--docs): the dialog and the list.
 - [PickerSheet](?path=/docs/patterns-pickersheet--docs): choosing many by attribute.
 - [CommandPalette](?path=/docs/patterns-commandpalette--docs): the same Command.Dialog, running a command instead of picking a record.
+- [Combobox](?path=/docs/components-combobox--docs): one by name, inside a form.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

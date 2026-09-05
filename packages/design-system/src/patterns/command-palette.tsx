@@ -1,15 +1,31 @@
 import { useEffect, useState } from "react";
 
 import { Command } from "../components/command";
+import { CommandKeys } from "../lib/command-keys";
+
+/* Reference material. The ⌘K palette as Linear, Slack and Atlassian's command palette draw it:
+   a field at the top, commands under headings, a shortcut at the end of the ones that have one,
+   the chosen command run and the palette gone. The commands are plain objects the caller
+   supplies, so the palette stays presentational and every page can reuse it. */
 
 export type PaletteCommand = {
   id: string;
   /** Commands with the same group, in sequence, share a heading. */
   group: string;
+  /** A verb and its object: "Record an assessment", "Export the SSP". */
   label: string;
   /** Right-aligned: a shortcut, a count, a hint. */
   hint?: string | undefined;
   run: () => void;
+};
+
+export type CommandPaletteProps = {
+  open: boolean;
+  onClose: () => void;
+  /** In the order they show, grouped by `group`. The page's verbs first, the places after. */
+  commands: PaletteCommand[];
+  /** The field's placeholder. "Type a command…" by default. */
+  placeholder?: string | undefined;
 };
 
 /** The palette's open state, toggled by ⌘K or Ctrl+K anywhere on the page. */
@@ -38,12 +54,7 @@ export function CommandPalette({
   onClose,
   commands,
   placeholder = "Type a command…",
-}: {
-  open: boolean;
-  onClose: () => void;
-  commands: PaletteCommand[];
-  placeholder?: string | undefined;
-}) {
+}: CommandPaletteProps) {
   const groups: [string, PaletteCommand[]][] = [];
   for (const c of commands) {
     const last = groups[groups.length - 1];
@@ -52,7 +63,7 @@ export function CommandPalette({
   }
   return (
     <Command.Dialog open={open} onClose={onClose} label="Command palette">
-      <Command.Input placeholder={placeholder} />
+      <Command.Input placeholder={placeholder} hint={null} />
       <Command.List>
         <Command.Empty>No commands match.</Command.Empty>
         {groups.map(([group, items]) => (
@@ -73,6 +84,9 @@ export function CommandPalette({
           </Command.Group>
         ))}
       </Command.List>
+      <Command.Footer>
+        <CommandKeys choose="to run" />
+      </Command.Footer>
     </Command.Dialog>
   );
 }

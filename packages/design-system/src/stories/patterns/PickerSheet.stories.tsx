@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 import { Button, NativeSelect } from "../../components";
 import { DataTable, PickerSheet, defineColumns, useDataTable } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
+import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Patterns/PickerSheet",
@@ -229,3 +230,71 @@ function PickerStates() {
 /** Frame one is a DataTable in the sheet: search, the family and state facets, a sortable id column and a selection that survives the search; frame two is a second DataTable whose responsibility and coverage cells edit in place, with a defaults row and "Does not apply" per row. Open it. */
 export const PickerSheetStory: Story = { name: "Picker sheet", render: () => <PickerStates /> };
 export const PickerSheetMatrix: Story = { render: () => <PickerStates /> };
+
+/** The sheet's footer, drawn on its own for a pair. */
+function Footer({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex w-full items-center justify-between gap-150 rounded-medium border border-default bg-surface-sunken px-200 py-100">
+      {children}
+    </div>
+  );
+}
+
+/** The mistakes the page is written to prevent, each beside the right way. */
+export const Dont: Story = {
+  render: () => (
+    <Stack space="space.400">
+      <Pair
+        do={
+          <Footer>
+            <span className="flex items-center gap-100 font-body-small text-subtle">
+              <span className="tabular-nums">12 chosen of 28</span>
+              <Button variant="link" size="small">
+                Clear
+              </Button>
+            </span>
+            <Inline space="space.100">
+              <Button>Cancel</Button>
+              <Button variant="primary">Allocate 12 to Flight computer</Button>
+            </Inline>
+          </Footer>
+        }
+        doText="The footer counts what is chosen and names the one thing to do with it, in full."
+        dont={
+          <Footer>
+            <span />
+            <Inline space="space.100">
+              <Button>Cancel</Button>
+              <Button variant="primary">OK</Button>
+            </Inline>
+          </Footer>
+        }
+        dontText="OK and no count. The reader cannot tell what is about to happen, or to how many."
+      />
+      <Pair
+        do={
+          <Footer>
+            <span className="font-body-small text-subtle tabular-nums">28 to choose from</span>
+            <Inline space="space.100">
+              <Button>Cancel</Button>
+              <Button variant="primary" disabled>
+                Allocate to Flight computer
+              </Button>
+            </Inline>
+          </Footer>
+        }
+        doText="Nothing chosen: the action waits, disabled, and the footer says what there is to choose from."
+        dont={
+          <Footer>
+            <span className="font-body-small text-subtle tabular-nums">0 chosen</span>
+            <Inline space="space.100">
+              <Button>Cancel</Button>
+              <Button variant="primary">Allocate to Flight computer</Button>
+            </Inline>
+          </Footer>
+        }
+        dontText="An enabled action with nothing chosen. It does nothing, or something the reader did not ask for."
+      />
+    </Stack>
+  ),
+};

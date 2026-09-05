@@ -1,10 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
+import type { ReactNode } from "react";
+
 import { Badge, Button, Fact, Id, Table, TextLink } from "../../components";
 import { PreviewSheet, Section } from "../../patterns";
-import { Stack, Text } from "../../primitives";
+import { Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
+import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Patterns/PreviewSheet",
@@ -167,3 +170,70 @@ export const PreviewSheetStory: Story = {
   render: () => <PreviewSheetStates />,
 };
 export const PreviewSheetMatrix: Story = { render: () => <PreviewSheetStates /> };
+
+/** The sheet's footer, drawn on its own for a pair. */
+function Footer({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex w-full items-center justify-between gap-150 rounded-medium border border-default bg-surface-sunken px-200 py-100">
+      {children}
+    </div>
+  );
+}
+
+/** The mistakes the page is written to prevent, each beside the right way. */
+export const Dont: Story = {
+  render: () => (
+    <Stack space="space.400">
+      <Pair
+        do={
+          <Footer>
+            <TextLink weight="medium" asChild={false} href="#record">
+              Open the full record
+            </TextLink>
+            <Inline space="space.100">
+              <Button>Propose change</Button>
+              <Button variant="primary">Allocate</Button>
+            </Inline>
+          </Footer>
+        }
+        doText="The first thing in the footer is the way to the record, a link. The actions that make sense without leaving sit at the end."
+        dont={
+          <Footer>
+            <span />
+            <Inline space="space.100" shouldWrap>
+              <Button>Propose change</Button>
+              <Button>Allocate</Button>
+              <Button>Export</Button>
+              <Button>Archive</Button>
+              <Button variant="primary">Open</Button>
+            </Inline>
+          </Footer>
+        }
+        dontText="Five buttons and Open as the primary. The way to a page is a link, and a preview that does everything is the record."
+      />
+      <Pair
+        do={
+          <Fact.Group>
+            <Fact label="Method">Test</Fact>
+            <Fact label="Owner">Dan Whitlock</Fact>
+            <Fact label="Allocated to">2 elements</Fact>
+          </Fact.Group>
+        }
+        doText="At most three facts under the sheet's title: the ones the reader acts on. The body has the rest."
+        dont={
+          <Fact.Group>
+            <Fact label="Method">Test</Fact>
+            <Fact label="Owner">Dan Whitlock</Fact>
+            <Fact label="Allocated to">2 elements</Fact>
+            <Fact label="Source">SRD 4.2.1</Fact>
+            <Fact label="Priority">High</Fact>
+            <Fact label="Revision">3</Fact>
+            <Fact label="Created">3 Aug 2026</Fact>
+            <Fact label="Updated">2h ago</Fact>
+          </Fact.Group>
+        }
+        dontText="Eight facts in the header. It wraps to three lines and the body starts below the fold."
+      />
+    </Stack>
+  ),
+};

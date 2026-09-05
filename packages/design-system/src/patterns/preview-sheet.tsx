@@ -14,6 +14,33 @@ import { Eyebrow } from "../components/typography";
  * thing). The rail (PreviewRail) previews a row beside an IndexPage table that leaves room; the sheet
  * previews a row over a full-width table (a tree, a board) and whenever the preview carries actions.
  */
+export type PreviewSheetProps = {
+  open: boolean;
+  onClose: () => void;
+  /** Back to the previous frame of the stack. */
+  onBack?: (() => void) | undefined;
+  /** The record's id, beside the Preview eyebrow. */
+  id: ReactNode;
+  /** The record's name, the sheet's title. */
+  title: ReactNode;
+  /** The record's meta line: kind, path, owner. */
+  subtitle?: ReactNode;
+  /** One status, beside the id. A Badge or an Indicator. */
+  status?: ReactNode;
+  /** At most three Facts under the meta line: the ones the reader acts on. */
+  facts?: ReactNode;
+  /** The link element to the full record. Given no children it reads "Open the full record". */
+  openTo: ReactElement<{ children?: ReactNode }>;
+  /** More TextLinks after the first: a tab of the record, a related record. */
+  links?: ReactNode;
+  /** Actions that make sense without leaving, on the right of the footer. */
+  actions?: ReactNode;
+  /** Pixels, 720 by default: about half the screen. */
+  width?: number | undefined;
+  /** The body: sections of facts and small tables, the record's detail at the peek's depth. */
+  children: ReactNode;
+};
+
 export function PreviewSheet({
   open,
   onClose,
@@ -28,28 +55,7 @@ export function PreviewSheet({
   actions,
   width = 720,
   children,
-}: {
-  open: boolean;
-  onClose: () => void;
-  /** Back to the previous frame of the stack. */
-  onBack?: (() => void) | undefined;
-  id: ReactNode;
-  title: ReactNode;
-  /** The record's meta line: kind, path, owner. */
-  subtitle?: ReactNode;
-  /** One status, beside the id. A Badge or an Indicator. */
-  status?: ReactNode;
-  /** At most three Facts under the meta line: the ones the reader acts on. */
-  facts?: ReactNode;
-  /** The link element to the full record. Given no children it reads "Open the full record". */
-  openTo: ReactElement<{ children?: ReactNode }>;
-  /** More TextLinks after the first: a tab of the record, a related record. */
-  links?: ReactNode;
-  /** Actions that make sense without leaving, on the right of the footer. */
-  actions?: ReactNode;
-  width?: number | undefined;
-  children: ReactNode;
-}) {
+}: PreviewSheetProps) {
   const open_ = openTo.props.children
     ? openTo
     : cloneElement(openTo, { children: "Open the full record" });

@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Related } from "../../patterns";
 import * as Stories from "./Related.stories";
@@ -7,14 +7,130 @@ import * as Stories from "./Related.stories";
 
 # Related
 
-A small card of linked records with a count and rows that may be buttons.
+A card of linked records, in a rail or in the body of a page. Its header is the kind of record, a Count and the way to add one. Its body is a row per record in a rail, or a card per record on a page: the name as the link, a mark, one status, the properties the reader decides by, and the actions that show on hover. Its footer is "See all" when it shows a handful of many. When nothing is linked it is a proper [Empty](?path=/docs/patterns-empty--docs), the mark, a statement and the way to fill it, never a line of grey text.
+
+HubSpot's association card is the model for the body of a page: a header with the kind and "+ Add", a card per associated record with its name as the link and up to six properties, the actions in a menu that shows on hover, "view all" at the bottom. Jira's linked-issues block and Carbon's contained list are the model for the rail, one row per record. Atlassian's Smart Link card gives the shape of a card that is metadata with actions on hover; Base Web's card is "a self-contained unit of information" whose whole face may be the click target, which Carbon forbids once a tile carries actions of its own. So the title is the link and the actions are stops of their own, in both layouts.
 
 <Canvas of={Stories.RelatedMatrix} />
+
+## Anatomy
+
+The header and the footer are the card's; the rows are [Item](?path=/docs/components-item--docs)s; the cards are `Related.Card`.
+
+| Part                   | What it is                                                                                                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Title                  | The kind of record, a noun, an h3 in `font.body` semibold: "Linked findings", "Systems", "Team".                                                                  |
+| Count                  | After the title: how many are linked.                                                                                                                            |
+| Action                 | At the end of the header's line: one small button, "Add" or "Link" with a plus, or a TextLink. The way to add one; it stays when the card is empty.               |
+| Row (`list`)           | An Item, flush: a mark or an id, the name as the link, and the state or the date at the end. The hairlines and the hover fill span the card; the text sits at its inset. |
+| Card (`cards`)         | A `Related.Card` in a grid: the mark, the name as the link, the status and the meta under it, the properties, the actions at the top end, a line of its own under. |
+| Card · Leading         | The mark before the name, 32px, spanning the name and the meta line: a medium Avatar, square for a thing, round for a person.                                      |
+| Card · Title           | The record's name, `font.body` medium, one line. With `link`, the link, underlined on hover.                                                                       |
+| Card · Meta            | Under the name, `font.body.small` subtle: kind, path, owner.                                                                                                       |
+| Card · Status          | One Badge or Indicator at the start of the meta line.                                                                                                              |
+| Card · Properties      | Label and value pairs under the head, KeyValue rows with a 96px label: four fit, six is the most.                                                                  |
+| Card · Actions         | Icon buttons at the top end, their space kept so nothing shifts: open in a new tab, a menu with the rest. Hidden until hover or focus, always shown on a touch screen, kept shown while a menu is open. |
+| Card · Children        | A line of its own under the properties: a row of Badges, a sentence.                                                                                              |
+| Footer                 | Under the rows or the cards, after a rule: "See all 14" as a TextLink.                                                                                             |
+| Empty                  | Where the rows would be: a compact Empty with a link icon, the title, a line and an action, from `empty`.                                                          |
+
+## Variants
+
+| Layout          | Use                                                                                                                                                   |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `list`          | A rail beside a record: one Item row per record, compact. What a row can carry at 270px is an id, a name and one thing at the end.                    |
+| `cards`         | The body of a page: a grid of cards, as many across as fit at 240px each, sharing the row's width. A card carries the mark, the name, the status and the meta, four properties and the actions. |
+| A related table | When the records need columns to compare: a Table in a [Card](?path=/docs/patterns-card--docs), headed by Card.Header. Not a Related; it is a section of the page. |
+
+<Canvas of={Stories.RelatedTable} />
+
+Not built, and why: the whole card as the link (Base Web), because a tile that carries its own actions cannot be one click target (Carbon) and the actions are here; a card that scrolls (HubSpot's association card scrolls past a few), because a rail shows a handful and the footer says See all; search, sort and filters in the header (HubSpot's), because a card long enough to need them is the record's tab, where the Table has them; a card that folds, because a handful of rows has nothing to fold; drag to reorder, because links have no order of their own; `Related.Row`, because a row is an Item, and the old part is deprecated in its favour.
+
+## Sizes
+
+| Size      | Row                             | Where                                             |
+| --------- | ------------------------------- | ------------------------------------------------- |
+| `compact` | 28px for one line, the default. | The rail beside a record's overview.              |
+| `default` | 36px for one line.              | A list beside a page's body, in a wider column.   |
+
+The size is the list's; every row in one card is the same height. A card in the grid is at least 240px wide and as many share a row as fit; it is as tall as its properties, and four properties keep a row of cards one height. The inset is `space.150` in a card, `space.200` in the header.
+
+## States
+
+| State           | What changes                                                                                                                         |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Hover on a card | `elevation.shadow.raised` under it; the actions appear; the name underlines under the pointer.                                       |
+| Focus in a card | The actions appear while anything in the card has focus, so a keyboard reaches them; the focus ring is on the name or the button.    |
+| Touch           | The actions are always shown; there is no hover to reveal them.                                                                      |
+| A menu open     | The actions stay shown while the card's menu is open.                                                                                |
+| Hover on a row  | The Item's: `color.background.neutral.subtle.hovered` across the row.                                                                |
+| Empty           | The compact Empty where the rows would be; the header and its action stay.                                                           |
+
+## Modifiers
+
+- **`title`**, **`count`**, **`action`**, **`footer`**, **`layout`**, **`size`**, **`empty`** as in Anatomy. `empty` is a string, the Empty's title, or the Empty's title, description, action and icon.
+- **The rows** take the Item's props: `id`, `leading`, `title`, `meta`, `trailing`, `link` or `onSelect`.
+- **The cards** take **`leading`**, **`title`**, **`link`**, **`meta`**, **`status`**, **`properties`**, **`actions`** and children.
+
+## Content
+
+- **The title is a noun**, the kind of record: "Linked findings", "Systems", "Team". Never a sentence.
+- **A row is an id and a name**, and one thing at the end: the state as a word, or the date. A rail is too narrow for meta beside the name; a role beside a person's name is as much as fits.
+- **A card is the name, the meta, one status and four properties**: the ones the reader decides by. Six is the most, HubSpot's limit; past that the record has them.
+- **The actions are what is done to the link**, not to the record: open in a new tab, edit the link, unlink. Never "Open"; the name is that. Unlink is the menu's last item, in danger.
+- **A handful, then See all.** Five rows in a rail, a row of cards on a page; the footer says how many there are, and the record's tab lists them.
+- **The empty state says what would be here and how to fill it**: "Nothing linked yet", "Not in a package yet", with the line and a link button. The header's action stays, so the way to add one is there twice at most, never nowhere.
+- **People are neutral.** A round Avatar and the name; colour is for state.
+
+## Style
+
+| Element    | Token                                                                                                                                             |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Card frame | Card: `radius.large` · `color.border` · `elevation.surface.raised`                                                                                |
+| Header     | `font.body` semibold · `color.text` · Count · `space.200` inline · `space.100` block · `color.border` rule under                                  |
+| Rows       | Item, `compact`, flush: `space.050` block · `space.200` inline · `color.border` hairlines across the card · `space.050` above and below the list |
+| Grid       | `space.200` inset · `space.150` between cards · columns of at least 240px, as many as fit, sharing the width                                       |
+| Card       | `radius.large` · `color.border` · `elevation.surface.raised` · `space.150` inset · `space.100` between the head and the properties · hover `elevation.shadow.raised` |
+| Card name  | `font.body` medium · `color.text` · underline on hover                                                                                            |
+| Card meta  | `font.body.small` · `color.text.subtle`                                                                                                           |
+| Properties | KeyValue, label 96px · `space.025` between                                                                                                         |
+| Actions    | IconButton, subtle, small · opacity 0 to 1 in `motion.duration.fast` · `space.025` between                                                         |
+| Footer     | `font.body.small` · `color.border` rule above · `space.200` inline · `space.100` block                                                             |
+| Empty      | Empty, compact · `space.200` inline · `space.150` block                                                                                             |
+
+## Accessibility
+
+- **The heading is an `h3`** under the rail's or the section's h2, and the rows or the cards are a list named by it: a screen reader hears "Systems, list, 3 items".
+- **The name is the link**, in a row and in a card, named by the record's name alone; the id, the status, the meta and the properties are read as the text beside it. A row's link is stretched over the row; a card's is the name, because the card has actions of its own.
+- **The actions are always in the tab order.** They are hidden by opacity, not removed, and they show while any of them has focus; a keyboard reader reaches "Open Ground segment in a new tab" and "More for Ground segment" after the name. On a touch screen they are always shown.
+- **Each action is a labelled icon button** that names the record: "Unlink" alone would be six identical buttons on a page of cards.
+- **The count is text**, read after the title; the footer's link says how many.
+- **The empty state is text, then the action**: the icon is hidden, the title and the line are read first, the button is a stop after them.
+- **The hover shadow is decoration.** Nothing is said by it.
 
 ## Props
 
 <ArgTypes of={Related} />
 
+### Related.Card
+
+<ArgTypes of={Related.Card} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Pages](?path=/docs/patterns-pages--docs): the two page archetypes and the parts they are assembled from.
+- [Item](?path=/docs/components-item--docs): the rows.
+- [Card](?path=/docs/patterns-card--docs): the frame, and the related table.
+- [Empty](?path=/docs/patterns-empty--docs): the compact empty state inside the card.
+- [KeyValue](?path=/docs/components-keyvalue--docs): the properties.
+- [Inspector](?path=/docs/shapes-inspector--docs): the facts beside it in a rail.
+- [Pages](?path=/docs/patterns-pages--docs): the ShowPage's rail and body it sits in.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

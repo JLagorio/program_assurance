@@ -1,9 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
-import { Button } from "../../components";
+import { Badge, Button, Command, Id } from "../../components";
 import { type PickerRecord, RecordPicker } from "../../patterns";
 import { Inline, Stack, Text } from "../../primitives";
+import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Patterns/RecordPicker",
@@ -51,7 +52,8 @@ function PickerDemo() {
   );
 }
 export const RecordPickerStory: Story = { name: "Record picker", render: () => <PickerDemo /> };
-/** Open, with a badge, without one, with a meta line, without one. */
+
+/** Open, with a badge, without one, with a meta line, without one; the count in the field and the keys in the footer. */
 export const RecordPickerMatrix: Story = {
   render: () => (
     <RecordPicker
@@ -62,5 +64,87 @@ export const RecordPickerMatrix: Story = {
       title="Link evidence"
       placeholder="Search evidence…"
     />
+  ),
+};
+
+/** The picker's list, inline, for a pair. */
+function Rows({ placeholder, children }: { placeholder: string; children: ReactNode }) {
+  return (
+    <div className="rounded-large border border-default bg-surface-overlay shadow-raised">
+      <Command label="Evidence">
+        <Command.Input placeholder={placeholder} />
+        <Command.List>{children}</Command.List>
+      </Command>
+    </div>
+  );
+}
+
+/** The mistakes the page is written to prevent, each beside the right way. */
+export const Dont: Story = {
+  render: () => (
+    <Stack space="space.400">
+      <Pair
+        do={
+          <Rows placeholder="Search evidence…">
+            {pickerRecords.slice(0, 2).map((r) => (
+              <Command.Item key={r.id} value={r.id} className="h-auto py-100">
+                <Id className="text-subtle">{r.id}</Id>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate">{r.title}</span>
+                  <span className="block truncate font-body-xsmall text-subtle">{r.meta}</span>
+                </span>
+                {r.badge ? (
+                  <Badge size="xsmall" tone={r.badge.tone ?? "neutral"}>
+                    {r.badge.label}
+                  </Badge>
+                ) : null}
+              </Command.Item>
+            ))}
+          </Rows>
+        }
+        doText="The id first, the name, a line of meta under it, one badge at the end. A row the reader scans."
+        dont={
+          <Rows placeholder="Search…">
+            <Command.Item value="a" className="h-auto py-100">
+              <span className="min-w-0 flex-1">
+                <span className="block">Firewall ruleset export</span>
+                <span className="block font-body-xsmall text-subtle">
+                  Exported from the management console by Dana Whitfield on 12 August 2026 for the
+                  Q3 review and attached to the change record the same day.
+                </span>
+              </span>
+              <Inline space="space.050">
+                <Badge size="xsmall" tone="success">
+                  Fresh
+                </Badge>
+                <Badge size="xsmall">PDF</Badge>
+                <Badge size="xsmall" tone="information">
+                  Reviewed
+                </Badge>
+              </Inline>
+            </Command.Item>
+            <Command.Item value="b" className="h-auto py-100">
+              <span className="min-w-0 flex-1">
+                <span className="block">Access review, Q2</span>
+                <span className="block font-body-xsmall text-subtle">
+                  The quarterly review of privileged accounts across the enclave, signed off by the
+                  ISSO and the system owner at the end of June.
+                </span>
+              </span>
+              <Inline space="space.050">
+                <Badge size="xsmall" tone="warning">
+                  Stale
+                </Badge>
+                <Badge size="xsmall">XLSX</Badge>
+                <Badge size="xsmall" tone="information">
+                  Reviewed
+                </Badge>
+              </Inline>
+            </Command.Item>
+          </Rows>
+        }
+        dontText="No id, a paragraph and three badges per row, and Search… as the placeholder. The id is how a record is known, and the paragraph is the record's."
+      />
+    </Stack>
   ),
 };

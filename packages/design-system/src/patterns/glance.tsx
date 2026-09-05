@@ -10,22 +10,20 @@ import { Text } from "../primitives/text";
  * (PreviewSheet) and the footer link there is the record. A record reads the same on every rung
  * because the same parts draw it; this is the smallest of them.
  */
-export function Glance({
-  id,
-  title,
-  meta,
-  status,
-  facts = [],
-}: {
+export type GlanceProps = {
+  /** The record's id, first on the first line. */
   id: ReactNode;
+  /** The record's name, at most two lines. */
   title: ReactNode;
-  /** The record's meta line: kind, path, owner. */
+  /** The record's meta line: kind, path, owner. One line. */
   meta?: ReactNode;
-  /** One status, right of the id. A Badge or an Indicator. */
+  /** One status, at the end of the id's line. A Badge or an Indicator. */
   status?: ReactNode;
-  /** At most four; the rest belong to the peek. */
-  facts?: { label: string; value: ReactNode }[];
-}) {
+  /** At most four, label and value; the rest belong to the peek. */
+  facts?: { label: string; value: ReactNode }[] | undefined;
+};
+
+export function Glance({ id, title, meta, status, facts = [] }: GlanceProps) {
   return (
     <div className="flex flex-col gap-100">
       <div className="flex flex-col gap-025">

@@ -7,9 +7,9 @@ import * as Stories from "./HoverCard.stories";
 
 # HoverCard
 
-A peek at a record from its id or its name: a few facts, no actions. It opens when the pointer rests on the link for a moment, or when the link takes focus, and it closes when the pointer leaves. The click is the record. It is the first rung of the hover ladder: the card, then the peek in a [PreviewSheet](?path=/docs/patterns-pages-previewsheet--docs), then the record itself.
+A peek at a record from its id or its name: a few facts, no actions. It opens when the pointer rests on the link for a moment, or when the link takes focus, and it closes when the pointer leaves. The click is the record. It is the first rung of the hover ladder: the card, then the peek in a [PreviewSheet](?path=/docs/patterns-previewsheet--docs), then the record itself.
 
-Its body is a [Glance](?path=/docs/patterns-pages-glance--docs): the id and one status, the title, a meta line, at most four facts. A label is a [Tooltip](?path=/docs/components-tooltip--docs); something to act on is a [Popover](?path=/docs/components-popover--docs).
+Its body is a [Glance](?path=/docs/patterns-glance--docs): the id and one status, the title, a meta line, at most four facts. A label is a [Tooltip](?path=/docs/components-tooltip--docs); something to act on is a [Popover](?path=/docs/components-popover--docs).
 
 <Canvas of={Stories.HoverCardMatrix} />
 
@@ -99,7 +99,7 @@ There is no hover state on the card itself, and no pressed state: a click on the
 
 ## Related
 
-- [Glance](?path=/docs/patterns-pages-glance--docs): the card's body. [PreviewSheet](?path=/docs/patterns-pages-previewsheet--docs): the next rung.
+- [Glance](?path=/docs/patterns-glance--docs): the card's body. [PreviewSheet](?path=/docs/patterns-previewsheet--docs): the next rung.
 - [Tooltip](?path=/docs/components-tooltip--docs): a label. [Popover](?path=/docs/components-popover--docs): something to act on.
 - [Table](?path=/docs/components-table--docs), [DataTable](?path=/docs/patterns-data-table--docs): where the ids are.
 - [Overlays](?path=/docs/components-overlays--docs): every surface that floats, and which one.

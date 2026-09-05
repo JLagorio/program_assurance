@@ -9,7 +9,14 @@ import { Grid } from "../primitives/grid";
  * list at full width. This is the rail beside a table, not the record's rail, which is the
  * shell's panel.
  */
-export function PreviewSplit({ open, children }: { open: boolean; children: ReactNode }) {
+export type PreviewSplitProps = {
+  /** Whether a row is chosen: open, the rail shows beside the list; closed, the list has the width. */
+  open: boolean;
+  /** The list first; then the PreviewRail of the chosen row, or nothing. */
+  children: ReactNode;
+};
+
+export function PreviewSplit({ open, children }: PreviewSplitProps) {
   const [list, ...rail] = Children.toArray(children);
   if (!open) return <Grid>{list}</Grid>;
   return (

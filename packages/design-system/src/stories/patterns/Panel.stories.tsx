@@ -1,23 +1,32 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ExternalLink, Info, Maximize2 } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { Button, IconButton } from "../../components";
 import { Panel } from "../../patterns";
 import { Inline, Stack, Text } from "../../primitives";
 import { Inspector } from "../../shapes";
 import { Specimens } from "../_lib/matrix";
+import { Pair } from "../_lib/pair";
 import { panelGroups } from "../_lib/patterns-fixtures";
+
+const filler = Array.from({ length: 6 }, (_, i) => (
+  <Text key={i} color="color.text.subtle">
+    Line {i + 1} of the panel's body. The area scrolls; the header and the footer stay put.
+  </Text>
+));
 
 const meta = {
   title: "Patterns/Panel",
   component: Panel,
   parameters: { layout: "padded" },
+  args: { title: "Comments", children: <Stack space="space.100">{filler}</Stack> },
 } satisfies Meta<typeof Panel>;
 export default meta;
-type Story = StoryObj;
+type Story = StoryObj<typeof meta>;
 
 /** A panel surface in a box the size of the shell's Panel area. */
-function PanelBox({ height = 300, children }: { height?: number; children: React.ReactNode }) {
+function PanelBox({ height = 300, children }: { height?: number; children: ReactNode }) {
   return (
     <div
       style={{ width: 320, height }}
@@ -27,12 +36,6 @@ function PanelBox({ height = 300, children }: { height?: number; children: React
     </div>
   );
 }
-
-const filler = Array.from({ length: 6 }, (_, i) => (
-  <Text key={i} color="color.text.subtle">
-    Line {i + 1} of the panel's body. The area scrolls; the header and the footer stay put.
-  </Text>
-));
 
 /** Flush, with no header: the detail of a selected row beside its table, gone when the selection clears. */
 export const PanelStory: Story = {
@@ -51,7 +54,7 @@ export const PanelMatrix: Story = {
   render: () => (
     <Stack space="space.300">
       <Specimens title="Plain · with an icon and two actions · with a back button and a subheader">
-        <Inline space="space.300" alignBlock="start">
+        <Inline space="space.300" alignBlock="start" shouldWrap>
           <PanelBox>
             <Panel title="Details" onClose={() => undefined}>
               <Stack space="space.100">{filler}</Stack>
@@ -85,7 +88,7 @@ export const PanelMatrix: Story = {
         </Inline>
       </Specimens>
       <Specimens title="With a footer · flush, the detail of a selected row · the trigger of a dismissible panel, closed and open">
-        <Inline space="space.300" alignBlock="start">
+        <Inline space="space.300" alignBlock="start" shouldWrap>
           <PanelBox>
             <Panel
               title="Edit settings"
@@ -112,5 +115,57 @@ export const PanelMatrix: Story = {
         </Inline>
       </Specimens>
     </Stack>
+  ),
+};
+
+/** The mistakes the page is written to prevent, each beside the right way. */
+export const Dont: Story = {
+  render: () => (
+    <Stack space="space.400">
+      <Pair
+        do={
+          <PanelBox height={360}>
+            <Panel flush>
+              <Inspector groups={panelGroups} />
+            </Panel>
+          </PanelBox>
+        }
+        doText="The detail of a selected row: flush, no title, no close. The row names it, and clearing the selection closes it."
+        dont={
+          <PanelBox height={360}>
+            <Panel title="Details" onClose={() => undefined}>
+              <Inspector groups={panelGroups} />
+            </Panel>
+          </PanelBox>
+        }
+        dontText="A title and a close on the row's detail. Details says nothing the row did not, and the close leaves the row selected with nothing beside it."
+      />
+      <Pair
+        do={
+          <PanelBox>
+            <Panel title="Comments" onClose={() => undefined}>
+              <Stack space="space.100">{filler.slice(0, 3)}</Stack>
+            </Panel>
+          </PanelBox>
+        }
+        doText="Named by what it shows: the object, or the action it completes."
+        dont={
+          <PanelBox>
+            <Panel title="Panel" onClose={() => undefined}>
+              <Stack space="space.100">{filler.slice(0, 3)}</Stack>
+            </Panel>
+          </PanelBox>
+        }
+        dontText="Panel as the title. The heading and the landmark both say where the reader is, not what is there."
+      />
+    </Stack>
+  ),
+};
+
+export const Playground: Story = {
+  render: (args) => (
+    <PanelBox>
+      <Panel {...args} onClose={() => undefined} />
+    </PanelBox>
   ),
 };

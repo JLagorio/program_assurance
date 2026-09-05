@@ -61,7 +61,11 @@ function PanelRoot({
               <IconButton label="Back" variant="subtle" onClick={onBack} icon={<ChevronLeft />} />
             ) : null}
             {icon ? <span className="flex shrink-0 items-center">{icon}</span> : null}
-            <h2 className="min-w-0 flex-1 truncate font-body font-medium text-default">{title}</h2>
+            {title ? (
+              <h2 className="min-w-0 flex-1 truncate font-body font-medium text-default">{title}</h2>
+            ) : (
+              <span className="flex-1" />
+            )}
             {actions ? <div className="flex shrink-0 items-center gap-025">{actions}</div> : null}
             {onClose ? (
               <IconButton label="Close" variant="subtle" onClick={onClose} icon={<X />} />
@@ -86,16 +90,16 @@ function PanelRoot({
   );
 }
 
-/** The button that opens a dismissible panel, in a toolbar or a header: the same place on every page, selected while the panel is open. The detail of a selected row has no trigger; the row is. */
-function PanelTrigger({
-  isOpen,
-  onClick,
-  label = "Details",
-}: {
+export type PanelTriggerProps = {
+  /** Whether the panel is open; the button is selected and says so while it is. */
   isOpen: boolean;
   onClick: () => void;
+  /** The button's name, "Details" by default: what the panel shows, "Comments", "History". */
   label?: string | undefined;
-}) {
+};
+
+/** The button that opens a dismissible panel, in a toolbar or a header: the same place on every page, selected while the panel is open. The detail of a selected row has no trigger; the row is. */
+function PanelTrigger({ isOpen, onClick, label = "Details" }: PanelTriggerProps) {
   return (
     <IconButton
       label={label}

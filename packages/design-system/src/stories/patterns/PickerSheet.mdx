@@ -7,9 +7,75 @@ import * as Stories from "./PickerSheet.stories";
 
 # PickerSheet
 
-Choosing many from hundreds: search and filters in a toolbar that does not scroll, a Table with Table.Selection in the body, a footer that counts the chosen rows and names the one action. A second frame of the same sheet fills in per-row fields.
+Choosing many from hundreds: the association panel. A [Sheet](?path=/docs/components-sheet--docs) whose toolbar is a search field and the filters, whose body is a [DataTable](?path=/docs/patterns-data-table--docs) with sortable headers and a selection, and whose footer names how many are chosen and the one thing to do with them. The selection survives search and filters. When the chosen rows need fields of their own, a second frame of the same sheet shows them as a compact table with editable cells and a defaults row applied to all; `onBack` returns to the first frame with the selection kept. The kit owns the frame; the caller owns the columns, the rows and the selection. Jira's "add issues to sprint" and Atlassian's drawer are the models; when the many are found by name rather than by attribute, a [Combobox](?path=/docs/components-combobox--docs) is the picker, and when there is one to pick, the [RecordPicker](?path=/docs/patterns-recordpicker--docs).
 
 <Canvas of={Stories.PickerSheetMatrix} />
+
+## Anatomy
+
+| Part     | What it is                                                                                                  |
+| -------- | ----------------------------------------------------------------------------------------------------------- |
+| Back     | A chevron before the title on the second frame.                                                             |
+| Title    | The task: "Allocate requirements".                                                                          |
+| Subtitle | What the chosen rows will be attached to: "Flight computer · 14 allocated today".                           |
+| Toolbar  | The search field and the FilterChips; on the second frame, the defaults row. It does not scroll.            |
+| Body     | Frame one: the DataTable with Table.Selection. Frame two: the chosen rows with editable cells.               |
+| Count    | At the start of the footer: "12 chosen of 28", "28 to choose from", with Clear beside it.                   |
+| Actions  | At the end of the footer: a lesser button, Cancel, then the primary named in full.                          |
+
+## Variants
+
+| Frame     | Use                                                                                                          |
+| --------- | ------------------------------------------------------------------------------------------------------------ |
+| Choosing  | Search, filters, the sortable table, the selection, the count. The primary continues or attaches.            |
+| Details   | The chosen rows as a compact table with editable cells and a defaults row; "Does not apply" per row; back keeps the selection. |
+
+Not built, and why: a Combobox with hundreds of options, because the many are found by attribute and a table sorts and filters; the selection lost on search, because the reader searches several times before attaching; a wizard of three frames, because choosing and describing are the two steps there are; a picker that attaches one at a time, because the footer attaches all at once and says how many.
+
+## Sizes
+
+One: 760px, room for a table of four columns; `width` for more. On a narrow screen the sheet takes the full width and the table scrolls inside it.
+
+## States
+
+| State          | What changes                                                                   |
+| -------------- | ------------------------------------------------------------------------------ |
+| Nothing chosen | The footer says what there is to choose from; the primary waits, disabled.     |
+| Some chosen    | The count and Clear; the primary is live and names the number.                 |
+| Filtered       | The count says "of" the rows on offer; the selection is kept.                  |
+| Frame two      | The back chevron; the toolbar is the defaults row.                             |
+
+## Modifiers
+
+- **`search`**, **`filters`**, **`toolbar`** for the row that stays put.
+- **`selected`**, **`total`**, **`onClear`** for the footer's count.
+- **`action`**, **`secondary`** for the footer's buttons; **`onBack`** for the second frame; **`width`**.
+
+## Content
+
+- **The title is the task**, a verb and its object: "Allocate requirements", "Tailor the baseline".
+- **The subtitle is what the rows attach to**, and a read-out: "Flight computer · 14 allocated today".
+- **The primary is named in full**: "Allocate 12 to Flight computer", "Continue with 12". Never "OK", "Submit", "Done".
+- **The count is a sentence of numbers**: "12 chosen of 28", "Nothing chosen yet", "28 to choose from".
+- **The secondary is the lesser way through**: "Continue without details".
+
+## Style
+
+| Element | Token                                                                                              |
+| ------- | -------------------------------------------------------------------------------------------------- |
+| Sheet   | Sheet's: `elevation.surface.overlay` · `elevation.shadow.overlay` · `color.blanket` behind         |
+| Toolbar | `space.200` inline · `space.100` block · `color.border` under · `space.100` between its rows       |
+| Search  | InputGroup 240px · Input small                                                                     |
+| Body    | The DataTable without its own frame, edge to edge                                                  |
+| Footer  | `elevation.surface.sunken` · `color.border` above · `font.body.small` `color.text.subtle` count, tabular · `space.100` between buttons |
+
+## Accessibility
+
+- **A dialog named by the task** and described by the subtitle; focus moves to the search field on open and returns to the opener on close.
+- **The table is the DataTable's**: a grid with the selection column's checkboxes named by the row, sortable headers that say their order.
+- **The count is live text**: it changes as rows are chosen and a screen reader reads it on request, not on every change.
+- **The primary is disabled until something is chosen** and named with the number, so the reader hears what will happen to how many.
+- **Escape closes the sheet** on either frame; the back chevron goes to the first frame with the selection kept.
 
 ## Props
 
@@ -18,5 +84,11 @@ Choosing many from hundreds: search and filters in a toolbar that does not scrol
 ## Related
 
 - [Pages · Choosing many](?path=/docs/patterns-pages--docs#choosing-many): the two frames, what the kit owns and what the caller owns, and the spec.
-- [Data table](?path=/docs/patterns-data-table--docs): frame one is a DataTable in the sheet.
+- [DataTable](?path=/docs/patterns-data-table--docs): frame one is a DataTable in the sheet.
+- [Sheet](?path=/docs/components-sheet--docs): the frame.
 - [RecordPicker](?path=/docs/patterns-recordpicker--docs): picking one record from a list.
+- [Combobox](?path=/docs/components-combobox--docs): choosing by name.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

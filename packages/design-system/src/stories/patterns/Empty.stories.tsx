@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { FileSearch, Link2, Search } from "lucide-react";
 
 import { Button, Table, TextLink } from "../../components";
 import { Card, Empty } from "../../patterns";
@@ -14,11 +15,21 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Title; with a line; with the action; with a second way; in a narrow card; a search with no results. */
+/** Title; with a line; with the action; with a second way; a search with no results, with its icon; compact in a rail card, in a panel and beside a page's body. */
 export const EmptyMatrix: Story = {
   render: () => (
     <Stack space="space.300" className="max-w-layout-measure">
       <Empty title="No findings" />
+      <Empty
+        icon={<Search />}
+        title="No controls match"
+        description="Clear a filter or widen the date range."
+        action={
+          <Button size="small" variant="link">
+            Clear filters
+          </Button>
+        }
+      />
       <Empty title="No findings" description="Nothing on this control has been observed yet." />
       <Empty
         title="Start by linking evidence"
@@ -39,19 +50,55 @@ export const EmptyMatrix: Story = {
         title="No controls match"
         description="Clear a filter or widen the date range."
         action={
-          <Button size="small" variant="subtle">
+          <Button size="small" variant="link">
             Clear filters
           </Button>
         }
       />
-      <Box style={{ width: 320 }}>
-        <Card>
-          <Card.Header title="Related findings" />
-          <Card.Body>
-            <Empty title="No related findings" description="None link to this control yet." />
-          </Card.Body>
-        </Card>
-      </Box>
+      <Inline space="space.300" alignBlock="start" shouldWrap>
+        <Box style={{ width: 320 }}>
+          <Card>
+            <Card.Header title="Related findings" />
+            <Card.Body>
+              <Empty
+                size="compact"
+                icon={<Link2 />}
+                title="Nothing linked yet"
+                description="Link the findings this control answers."
+                action={
+                  <Button size="small" variant="link">
+                    Link a finding
+                  </Button>
+                }
+              />
+            </Card.Body>
+          </Card>
+        </Box>
+        <Box style={{ width: 320 }}>
+          <Card>
+            <Card.Header title="Evidence" />
+            <Card.Body>
+              <Empty size="compact" icon={<FileSearch />} title="No evidence yet" />
+            </Card.Body>
+          </Card>
+        </Box>
+      </Inline>
+      <Card>
+        <Card.Header title="Linked findings" />
+        <Card.Body>
+          <Empty
+            size="compact"
+            icon={<Link2 />}
+            title="Nothing linked yet"
+            description="Link the findings this control answers, and they show here with their severity."
+            action={
+              <Button size="small" variant="link">
+                Link a finding
+              </Button>
+            }
+          />
+        </Card.Body>
+      </Card>
     </Stack>
   ),
 };
@@ -104,12 +151,47 @@ export const Dont: Story = {
       />
       <Pair
         do={
+          <Box style={{ width: 320 }}>
+            <Card>
+              <Card.Header title="Risks" />
+              <Card.Body>
+                <Empty
+                  size="compact"
+                  icon={<Link2 />}
+                  title="Nothing linked yet"
+                  action={
+                    <Button size="small" variant="link">
+                      Link a risk
+                    </Button>
+                  }
+                />
+              </Card.Body>
+            </Card>
+          </Box>
+        }
+        doText="Inside a card, the compact size: the mark beside a statement and the way to fill it. The card's border is the frame."
+        dont={
+          <Box style={{ width: 320 }}>
+            <Card>
+              <Card.Header title="Risks" />
+              <Card.Body>
+                <Text size="small" color="color.text.subtle">
+                  Nothing linked yet.
+                </Text>
+              </Card.Body>
+            </Card>
+          </Box>
+        }
+        dontText="A line of grey text where the rows would be. It reads as a row that failed to load, and there is no way out."
+      />
+      <Pair
+        do={
           <Inline space="space.200">
             <Box style={{ width: 240 }}>
               <Empty
                 title="No findings"
                 action={
-                  <Button size="small" variant="subtle">
+                  <Button size="small" variant="link">
                     Record one
                   </Button>
                 }
@@ -119,7 +201,7 @@ export const Dont: Story = {
               <Empty
                 title="No evidence"
                 action={
-                  <Button size="small" variant="subtle">
+                  <Button size="small" variant="link">
                     Link some
                   </Button>
                 }
@@ -127,7 +209,7 @@ export const Dont: Story = {
             </Box>
           </Inline>
         }
-        doText="Several empties in view take subtle buttons: one primary per page."
+        doText="Several empties in view take link buttons, on the text's edge: one primary per page."
         dont={
           <Inline space="space.200">
             <Box style={{ width: 240 }}>

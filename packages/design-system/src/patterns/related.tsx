@@ -1,41 +1,200 @@
-import { Children } from "react";
-import type { ReactNode } from "react";
+import { Link2 } from "lucide-react";
+import { Children, cloneElement, useId, type ReactElement, type ReactNode } from "react";
 
 import { Count } from "../components/badge";
-import { raisedSurface } from "./card";
+import { Item, type ItemSize } from "../components/item";
+import { KeyValue } from "../components/key-value";
+import { cn } from "../lib/cn";
+import { Card } from "./card";
+import { Empty, type EmptyProps } from "./empty";
 
-/** A small card of linked records: a titled list with a count, rows that may be buttons. People are named in one neutral style; colour is reserved for state. */
-function RelatedRoot({ title, count, action, children, empty = "Nothing linked yet" }: { title: ReactNode; count?: number | undefined; action?: ReactNode; children?: ReactNode; empty?: string | undefined }) {
-  const has = Children.count(children) > 0;
+/* Reference material. HubSpot's association card is the model for the body of a page: a header
+   with the kind, the count and the way to add one; a card per associated record with its name as
+   the link, up to six properties under it, and the actions in a menu that shows on hover; "view
+   all" at the bottom. Jira's linked-issues block and Carbon's contained list are the model for a
+   rail: one row per record. Atlassian's Smart Link card shows a title, a description and
+   metadata, with the actions on hover; Base Web's card is "a self-contained unit of information"
+   whose whole face may be the click target, which Carbon forbids once the tile carries actions of
+   its own. So: the title is the link and the actions are separate stops, in both layouts. */
+
+export type RelatedLayout = "list" | "cards";
+
+/** What a Related card says when nothing is linked: a title alone, or an Empty's title, line, action and icon. */
+export type RelatedEmpty = string | Omit<EmptyProps, "size" | "className">;
+
+export type RelatedProps = {
+  /** The kind of record linked, a noun: "Linked findings", "Systems", "Team". */
+  title: ReactNode;
+  /** A Count after the title: how many are linked. */
+  count?: number | undefined;
+  /** At the end of the heading's line: one small button ("Link", "Add") or a TextLink. */
+  action?: ReactNode;
+  /** Under the rows, after a rule: "See all 14" as a TextLink when the card shows a handful of many. */
+  footer?: ReactNode;
+  /** `list`: an Item row per record, for a rail. `cards`: a grid of Related.Card, for the body of a page. */
+  layout?: RelatedLayout | undefined;
+  /** The list's row height, `compact` by default; `default` beside a page's body. */
+  size?: ItemSize | undefined;
+  /** What to show when nothing is linked, drawn as a compact Empty with a link icon: "Nothing linked yet" by default. */
+  empty?: RelatedEmpty | undefined;
+  className?: string | undefined;
+  /** Item rows in the list layout; Related.Card in the cards layout. */
+  children?: ReactNode;
+};
+
+/** A card of linked records: a header with the kind, the count and the way to add one; rows in a rail, cards in the body of a page; a proper empty state when there are none. */
+function RelatedRoot({
+  title,
+  count,
+  action,
+  footer,
+  layout = "list",
+  size = "compact",
+  empty = "Nothing linked yet",
+  className,
+  children,
+}: RelatedProps) {
+  const headingId = useId();
+  const has = Children.toArray(children).some(Boolean);
+  const emptyProps: Omit<EmptyProps, "size" | "className"> =
+    typeof empty === "string" ? { title: empty } : empty;
   return (
-    <div className="flex flex-col overflow-hidden rounded-large border border-default bg-surface-raised" style={raisedSurface}>
-      <div className="flex h-row-compact items-center gap-100 border-b border-default px-150">
-        <span className="truncate font-body font-medium text-default">{title}</span>
-        {typeof count === "number" ? <Count value={count} /> : null}
-        {action ? <span className="ms-auto flex items-center">{action}</span> : null}
+    <Card className={cn("flex flex-col", className)}>
+      <div className="flex items-center gap-100 border-b border-default px-200 py-100">
+        <h3 id={headingId} className="min-w-0 truncate font-body font-semibold text-default">
+          {title}
+        </h3>
+        {count !== undefined ? <Count value={count} /> : null}
+        {action ? <span className="ms-auto flex shrink-0 items-center gap-100">{action}</span> : null}
       </div>
-      {has ? <div className="[&>*+*]:border-t [&>*+*]:border-default">{children}</div> : <div className="px-150 py-150 font-body text-subtle">{empty}</div>}
-    </div>
+      {!has ? (
+        <div className="px-200 py-150">
+          <Empty size="compact" icon={<Link2 />} {...emptyProps} />
+        </div>
+      ) : layout === "cards" ? (
+        <ul
+          aria-labelledby={headingId}
+          className="grid gap-150 p-200"
+          style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}
+        >
+          {children}
+        </ul>
+      ) : (
+        <div className="py-050">
+          <Item.Group labelledBy={headingId} size={size} flush>
+            {children}
+          </Item.Group>
+        </div>
+      )}
+      {footer ? (
+        <div className="flex items-center border-t border-default px-200 py-100 font-body-small">
+          {footer}
+        </div>
+      ) : null}
+    </Card>
   );
 }
 
-/** One line inside a Related card: label, optional meta, optional trailing value. */
-function RelatedRow({ lead, label, meta, trailing, onClick }: { lead?: ReactNode; label: ReactNode; meta?: ReactNode; trailing?: ReactNode; onClick?: (() => void) | undefined }) {
-  const inner = (
-    <>
-      {lead ? <span className="flex shrink-0 items-center">{lead}</span> : null}
-      <span className="min-w-0 flex-1 truncate font-body text-default">{label}</span>
-      {meta ? <span className="shrink-0 truncate font-body-small text-subtle">{meta}</span> : null}
-      {trailing ? <span className="shrink-0 font-body-small text-subtle tabular-nums">{trailing}</span> : null}
-    </>
-  );
-  if (onClick)
-    return (
-      <button type="button" onClick={onClick} className="flex h-control-medium w-full items-center gap-100 px-150 text-left outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered focus-visible:outline-focused">
-        {inner}
-      </button>
+export type RelatedCardProps = {
+  /** The mark before the title, 32px: a medium Avatar, square for a thing and round for a person. It spans the title and the meta line. */
+  leading?: ReactNode;
+  /** The record's name. With `link`, it is the link. */
+  title: ReactNode;
+  /** A link element (a router's Link) that becomes the title. The title is the link; the card is not. */
+  link?:
+    | ReactElement<{
+        className?: string | undefined;
+        children?: ReactNode;
+      }>
+    | undefined;
+  /** Under the title, subtle: kind, path, owner. */
+  meta?: ReactNode;
+  /** One status at the start of the meta line: a Badge or an Indicator. */
+  status?: ReactNode;
+  /** Label and value pairs under the head: the properties the reader decides by. Four fit; six is the most, HubSpot's limit. */
+  properties?: { label: string; value: ReactNode }[] | undefined;
+  /** Icon buttons at the top end, shown on hover, on focus and always on a touch screen, their space kept so nothing shifts: open in a new tab, unlink, more. Never the way to the record; the title is. */
+  actions?: ReactNode;
+  className?: string | undefined;
+  /** A line under the properties: a row of Badges, a sentence. */
+  children?: ReactNode;
+};
+
+/** One linked record as a card, in a Related with `layout="cards"`: the mark, the name as the link, the meta, one status, a few properties, and the actions that show on hover. */
+function RelatedCard({
+  leading,
+  title,
+  link,
+  meta,
+  status,
+  properties,
+  actions,
+  className,
+  children,
+}: RelatedCardProps) {
+  const text = <span className="block truncate">{title}</span>;
+  const titleClass = "block min-w-0 font-body font-medium text-default";
+  const titleEl = link
+    ? cloneElement(link, {
+        className: cn(
+          titleClass,
+          "rounded-xsmall outline-none hover:underline focus-visible:outline-focused",
+          link.props.className,
+        ),
+        children: text,
+      })
+    : (
+      <span className={titleClass}>{text}</span>
     );
-  return <div className="flex h-control-medium items-center gap-100 px-150">{inner}</div>;
+  return (
+    <li
+      className={cn(
+        "group/card flex list-none flex-col gap-100 rounded-large border border-default bg-surface-raised p-150 transition-shadow duration-fast ease-standard hover:shadow-raised",
+        className,
+      )}
+    >
+      <div className="flex items-center gap-100">
+        {leading ? <span className="flex shrink-0 items-center">{leading}</span> : null}
+        <div className="flex min-w-0 flex-1 flex-col gap-025">
+          {titleEl}
+          {status || meta ? (
+            <span className="flex min-w-0 items-center gap-100">
+              {status ? <span className="flex shrink-0 items-center">{status}</span> : null}
+              {meta ? <span className="min-w-0 truncate font-body-small text-subtle">{meta}</span> : null}
+            </span>
+          ) : null}
+        </div>
+        {actions ? (
+          <span className="flex h-250 shrink-0 items-center gap-025 opacity-0 transition-opacity duration-fast ease-standard focus-within:opacity-100 group-hover/card:opacity-100 has-[[data-state=open]]:opacity-100 pointer-coarse:opacity-100">
+            {actions}
+          </span>
+        ) : null}
+      </div>
+      {properties?.length ? (
+        <div className="flex flex-col gap-025">
+          {properties.slice(0, 6).map((p) => (
+            <KeyValue key={p.label} label={p.label} labelWidth={96}>
+              {p.value}
+            </KeyValue>
+          ))}
+        </div>
+      ) : null}
+      {children}
+    </li>
+  );
 }
 
-export const Related = Object.assign(RelatedRoot, { Row: RelatedRow });
+export type RelatedRowProps = {
+  lead?: ReactNode;
+  label: ReactNode;
+  meta?: ReactNode;
+  trailing?: ReactNode;
+  onClick?: (() => void) | undefined;
+};
+
+/** @deprecated A Related row is an Item: `leading` for `lead`, `title` for `label`, `onSelect` or `link` for `onClick`. */
+function RelatedRow({ lead, label, meta, trailing, onClick }: RelatedRowProps) {
+  return <Item leading={lead} title={label} meta={meta} trailing={trailing} onSelect={onClick} />;
+}
+
+export const Related = Object.assign(RelatedRoot, { Card: RelatedCard, Row: RelatedRow });

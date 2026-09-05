@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Glance } from "../../patterns";
 import * as Stories from "./Glance.stories";
@@ -7,17 +7,82 @@ import * as Stories from "./Glance.stories";
 
 # Glance
 
-The hover rung's body: id and one status, the title, a meta line, at most four facts. Facts only; the click is the peek.
+The body of a hover card: what the reader sees when the pointer rests on a record's id or name. The id and one status on the first line, the name on at most two, the meta line, at most four facts. Facts only, no actions: it is the first rung of the hover ladder, the click is the peek in a [PreviewSheet](?path=/docs/patterns-previewsheet--docs) and the footer link there is the record. A record reads the same on every rung because the same parts draw it, and this is the smallest of them. Jira's issue hover and GitHub's hovercard are the models; Atlassian's profile card is the same thing for a person.
 
 <Canvas of={Stories.GlanceStory} />
 
+## Anatomy
+
+| Part   | What it is                                                                  |
+| ------ | --------------------------------------------------------------------------- |
+| Id     | First, `font.body.small` in `color.text.subtle`.                            |
+| Status | At the end of the id's line: a Badge or an Indicator, one.                  |
+| Title  | The record's name, `font.body` medium, at most two lines.                   |
+| Meta   | Under it, `font.body.small` subtle, one line: kind, path, owner.            |
+| Facts  | At most four KeyValue rows, the labels 88px wide.                           |
+
+## Variants
+
+Glance has one appearance. What varies is the record type, which is the product's: an element, a requirement, a control, each with the four facts that say whether to open it. The three the prototype draws:
+
 <Canvas of={Stories.GlanceMatrix} />
+
+Not built, and why: an action row (GitHub's Follow, Jira's Assign), because a hover card has no controls and a keyboard never reaches them; an avatar or an image, because a record is its id and its name; a fifth fact, because the part draws four and the rest belong to the peek; a link in the card, because the trigger is the link.
+
+## Sizes
+
+One size: the [HoverCard](?path=/docs/components-hovercard--docs) is 300px wide for a Glance (280 for a few lines of text). The card is as tall as its content, at most a two-line title and four facts.
+
+## States
+
+A glance has none. It appears when the card opens and goes when it closes; nothing in it hovers, focuses or presses.
+
+## Modifiers
+
+- **`id`**, **`title`**, **`meta`**, **`status`**, **`facts`** as in Anatomy. Facts past the fourth are dropped.
+
+## Content
+
+- **The title is the record's name** as it reads on its page; a shall statement in full, two lines at most.
+- **The meta is kind, path, owner** in a few words with middle dots: "Subsystem · Atlas payments platform", "Derived · revision 1".
+- **One status**, the one the reader decides by. A second is a fact.
+- **Four facts**, the ones that decide whether to open the record; the label a word or two, the value a word, a number or a name.
+
+## Style
+
+| Element | Token                                                              |
+| ------- | ------------------------------------------------------------------ |
+| Id      | `font.body.small` · `color.text.subtle`                            |
+| Status  | At the end of the id's line, `space.100` from it                   |
+| Title   | `font.body` medium · `color.text` · two lines, then an ellipsis    |
+| Meta    | `font.body.small` · `color.text.subtle` · one line                 |
+| Facts   | KeyValue, label 88px · `space.100` above the group                 |
+| Layout  | `space.025` between the lines of the head                          |
+
+## Accessibility
+
+- **The card's behaviour is the HoverCard's**: it opens on hover after a rest and on focus of the trigger, and closes on Escape and when the pointer leaves. The trigger is the link, so a keyboard reader reaches the record without the card.
+- **The glance is text**, read in order: id, status, title, meta, then the facts as terms and values.
+- **The status carries its word**: a Badge or an Indicator with text, never a bare Dot.
+- **Nothing in it is interactive**, so nothing in it is unreachable.
 
 ## Props
 
 <ArgTypes of={Glance} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
+- [HoverCard](?path=/docs/components-hovercard--docs): the shell.
+- [PreviewSheet](?path=/docs/patterns-previewsheet--docs): the next rung.
+- [KeyValue](?path=/docs/components-keyvalue--docs): the facts.
 - [Pages · The hover ladder](?path=/docs/patterns-pages--docs#the-hover-ladder): glance, peek, record; which facts a record type shows is the app's.
-- [PreviewSheet](?path=/docs/patterns-previewsheet--docs): the peek.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

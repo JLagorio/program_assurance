@@ -278,3 +278,55 @@ page skeleton. The prototype scan behind the Section and PageHeader pages: 164 o
 and 15 of 16 index headers carry a sentence, which is the decision parked in docs/next.md.
 Ratchet: 69 pages on the template, 338 grandfathered. The a11y gate fails at HEAD on the Chart
 session's Table scroll region (landmark-unique), reported to them; the seven matrices here pass.
+
+### 20. The record patterns: Related, Glance, Panel, PreviewRail, PreviewSheet, PreviewSplit, PickerSheet, RecordPicker, CommandPalette (2026-09-05)
+
+Fifteenth walk, the second half of the patterns. References: Jira's linked-issues block, issue
+hover, side panel, list-and-detail and issue picker; Atlassian's drawer, navigation system and
+command palette; Carbon's contained list; Linear's peek and palette. Neither Carbon nor
+Atlassian publishes a rail beside a table, so the PreviewRail page says so and leans on Jira.
+
+Kit: every pattern has typed, described props (five props tables were empty). `Related` is
+rebuilt as a Card around an Item.Group, closing the promise the Item page made ("a card of
+linked records built on Item"): the rows are Items that link to their records, `size` is the
+group's, `Related.Row` is a deprecated shim. `PreviewRail` draws the compact record header the
+PreviewSheet draws (`status`, `subtitle`), closes with an IconButton like the Sheet, and is an
+aside named by its eyebrow and id, so two rails on a screen are two landmarks and the story's
+landmark-unique scoping is gone. `Panel` no longer renders an empty h2 when it has no title.
+`RecordPicker` and `CommandPalette` share a footer of Kbd keys, kept in lib beside `cn` so it
+is not a part. Not built and said on each page: a folding or searchable Related; an action row,
+an avatar or a fifth fact in a Glance; the record's rail or the peek in the Panel; actions or
+tabs in a rail; a non-modal peek (parked); a Combobox for choosing many; picking several in the
+RecordPicker; record search or nested pages in the palette. The prototype needed no re-pointing:
+Related has no call site, PreviewRail's new props are optional, the rest are unchanged.
+Ratchet: 78 pages on the template, 258 grandfathered. The a11y gate passes at 94 matrices.
+Parked in docs/next.md: Related versus a titled Item.Group (the prototype uses the latter), the
+arrow after the rail's link, and the Item meta that shrinks before the title in a narrow list.
+
+#### 20a. Related, Empty and the Command dialog, on review (2026-09-05)
+
+Josef: the Related rows are fine in a rail or a preview, wrong in the body of a page; push the
+visual range of the cards the way HubSpot's association cards do (a real card with properties,
+hover actions, personality) and document every slot; a proper empty state, not a grey string,
+for related objects and everywhere; go back to IBM, HubSpot, Atlassian and Uber; and the
+command menu opens as a full-width white box.
+
+Sources read: Carbon's empty-states pattern (image optional, positive title, body, one primary,
+a secondary link, left-aligned as a block; in tiles and side panels the image above the text and
+gone when tight, tertiary buttons when several are in view; "replace the element that would
+ordinarily show") and tile page ("Cards can be very complex", a clickable tile cannot contain
+its own CTAs, match variants in a group); Atlassian's Empty state props (`width` wide/narrow,
+`headingSize` xsmall "for smaller contexts such as popups", three actions, `isLoading`) and
+Smart Link views (card view shows metadata and its actions on hover, "Open preview"); HubSpot's
+EmptyState (`layout` horizontal by default, image beside text; "make empty states actionable",
+"don't make empty states too long") and association cards (a name link and up to six
+properties per record, the actions in a menu on hover, search, sort and filters in the header);
+Base Web's Card ("a self-contained unit of information", title, thumbnail, body, action, "the
+entire card can become an active click-target"). Uber's Base empty-state page did not render.
+
+Built: `Related` with `layout` list/cards, `Related.Card` (leading, title as the link, meta,
+status, properties to six, hover actions on the Table's reveal pattern plus `pointer-coarse`),
+`footer`, and `empty` as a compact Empty; `Item.Group.labelledBy`; `Empty` `size` and `icon`;
+`Command.Dialog` rebuilt on Radix with the width on the content. The prototype sweep (empties,
+the POA&M list, the record rails) is parked in docs/next.md pending the go.
+

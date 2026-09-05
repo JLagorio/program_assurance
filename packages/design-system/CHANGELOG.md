@@ -303,6 +303,36 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   `space.200` under them (were `space.200` and `space.300`). Prototype: the 22 record routes
   pass their parents as crumbs instead of a back link (a program's sub-pages: Programs, then the
   program). Patterns/RecordHeader, Pages: Matrix, Show.
+- Related, Glance, Panel, PreviewRail, PreviewSheet, PreviewSplit, PickerSheet, RecordPicker and
+  CommandPalette on the template, walked against Jira's linked issues, issue hover, side panel,
+  list-and-detail and issue picker, Atlassian's drawer, navigation system and command palette,
+  Carbon's contained list, and Linear's peek and palette. Every pattern has typed, described
+  props. `Related` is a Card around an `Item.Group`: the rows are Items and link to their records,
+  `size` is the group's (`compact` by default), and `Related.Row` is deprecated in Item's favour.
+  `PreviewRail` draws the compact record header the PreviewSheet draws (`status` after the id,
+  `subtitle` under the title), its close is an IconButton like the Sheet's, and it is an aside
+  named "Preview" and the id, so two rails are two landmarks. `Panel` renders no heading when it
+  has no title (an empty h2 before). `RecordPicker` and `CommandPalette` share a footer of Kbd
+  keys. Patterns/Related, Glance, Panel, PreviewRail, PreviewSheet, PreviewSplit, PickerSheet,
+  RecordPicker, CommandPalette: Matrix, Dont.
+- `Related` on Josef's review is the card of linked records for a rail and for the body of a page,
+  on HubSpot's association card: a header with the kind, the Count and the way to add one
+  (`action`); `layout="list"` for a rail (Item rows) and `layout="cards"` for a page, a grid of
+  `Related.Card` (a mark, the name as the link, the meta, one status, up to six properties, and
+  the actions as icon buttons that show on hover and focus and always on a touch screen);
+  `footer` for "See all"; and `empty` drawn as a compact Empty with a link icon, a title, a line
+  and an action, never a line of grey text. `Item.Group` takes `labelledBy` for a heading drawn
+  outside it and `flush` for rows inside a card: the hairlines and the hover fill span the card
+  and the text sits at `space.200`. Patterns/Related: Matrix, A related table, Dont.
+- `Empty` takes `size` (`default`, the framed block that replaces a table; `compact`, inside a
+  card, a rail or a panel: the icon beside the text, no frame) and `icon`, a mark for what would
+  be here in a neutral circle. Carbon's small-container rule, Atlassian's narrow width and
+  HubSpot's horizontal layout. Patterns/Empty: Matrix, Dont.
+- `Command.Dialog` is a Radix Dialog of the kit's own, centred over the page near the top and at
+  most `width` wide. Before, the width landed on the inner Command while the dialog's content
+  spanned the viewport, so the palette and the record picker opened as a full-width white box
+  with the list on the left. Components/Command: Dialog; Patterns/CommandPalette, RecordPicker:
+  Matrix.
 - `Breadcrumb` takes `label`, "Breadcrumb" by default, so a second trail on a page, a chart's
   drill-down path, is a navigation landmark with a name of its own. Components/Breadcrumb.
 - `Eyebrow` takes `as`: `h3` or `h4` when it heads a section, so the page's outline has it,

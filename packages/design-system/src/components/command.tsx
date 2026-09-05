@@ -1,3 +1,4 @@
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Command as CommandPrimitive, useCommandState } from "cmdk";
 import { Search } from "lucide-react";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
@@ -139,7 +140,16 @@ function CommandCount({
 
 const dialogWidths = { medium: 560, large: 640 } as const;
 
-/** The Command as an overlay: opens over the page at the top, closes on Escape and the blanket. */
+export type CommandDialogProps = Omit<ComponentPropsWithoutRef<typeof CommandPrimitive>, "label"> & {
+  open: boolean;
+  onClose: () => void;
+  /** The dialog's name: the task, "Command palette", "Link evidence". */
+  label: string;
+  /** `medium` (560px) for a palette, `large` (640px) for a picker whose rows carry a meta line. */
+  width?: keyof typeof dialogWidths | undefined;
+};
+
+/** The Command as an overlay: a Radix Dialog centred over the page near the top, at most `width` wide, closing on Escape and the blanket. */
 function CommandDialog({
   open,
   onClose,
@@ -148,32 +158,28 @@ function CommandDialog({
   className,
   children,
   ...props
-}: Omit<
-  ComponentPropsWithoutRef<typeof CommandPrimitive.Dialog>,
-  "open" | "onOpenChange" | "label"
-> & {
-  open: boolean;
-  onClose: () => void;
-  label: string;
-  width?: keyof typeof dialogWidths | undefined;
-}) {
+}: CommandDialogProps) {
   return (
-    <CommandPrimitive.Dialog
+    <DialogPrimitive.Root
       open={open}
       onOpenChange={(next) => {
         if (!next) onClose();
       }}
-      label={label}
-      overlayClassName="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out"
-      contentClassName={cn(
-        "fixed inset-x-200 top-1000 z-50 mx-auto overflow-hidden rounded-xxlarge border border-default bg-surface-overlay shadow-overlay outline-none data-[state=open]:animate-enter data-[state=closed]:animate-exit",
-      )}
-      style={{ maxWidth: dialogWidths[width] }}
-      className={cn("rounded-xxlarge", className)}
-      {...props}
     >
-      {children}
-    </CommandPrimitive.Dialog>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out" />
+        <DialogPrimitive.Content
+          aria-describedby={undefined}
+          style={{ maxWidth: dialogWidths[width] }}
+          className="fixed inset-x-200 top-1000 z-50 mx-auto overflow-hidden rounded-xxlarge border border-default bg-surface-overlay shadow-overlay outline-none data-[state=open]:animate-enter data-[state=closed]:animate-exit"
+        >
+          <DialogPrimitive.Title className="sr-only">{label}</DialogPrimitive.Title>
+          <CommandRoot label={label} className={className} {...props}>
+            {children}
+          </CommandRoot>
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   );
 }
 

@@ -1,6 +1,13 @@
 import { Badge, type Tone } from "../components/badge";
 import { Command } from "../components/command";
 import { Id } from "../components/id";
+import { CommandKeys } from "../lib/command-keys";
+
+/* Reference material. Atlassian's issue picker and Carbon's combo box find one record by name
+   and show the key beside it; Jira's "link issue" dialog adds a status. This is that as a
+   Command.Dialog: the id, the title with its meta under it, one badge at the end, the count of
+   matches in the field and a footer of keys. It picks one and closes; choosing many by attribute
+   is the PickerSheet. */
 
 export type PickerRecord = {
   id: string;
@@ -12,6 +19,21 @@ export type PickerRecord = {
   badge?: { label: string; tone?: Tone | undefined } | undefined;
   /** Matched against the query, never shown. */
   keywords?: string | undefined;
+};
+
+export type RecordPickerProps = {
+  open: boolean;
+  onClose: () => void;
+  /** The chosen record. The picker closes itself after. */
+  onPick: (record: PickerRecord) => void;
+  /** The records on offer, already narrowed by the caller to the ones that may be picked. */
+  records: PickerRecord[];
+  /** The dialog's name, the task: "Link evidence", "Assign to". */
+  title: string;
+  /** The field's placeholder, what the reader types: "Search evidence…". */
+  placeholder: string;
+  /** What to say when nothing matches. "Nothing matches." by default. */
+  emptyHint?: string | undefined;
 };
 
 /**
@@ -27,15 +49,7 @@ export function RecordPicker({
   title,
   placeholder,
   emptyHint,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onPick: (record: PickerRecord) => void;
-  records: PickerRecord[];
-  title: string;
-  placeholder: string;
-  emptyHint?: string | undefined;
-}) {
+}: RecordPickerProps) {
   return (
     <Command.Dialog open={open} onClose={onClose} label={title} width="large">
       <Command.Input placeholder={placeholder} hint={<Command.Count />} autoFocus />
@@ -67,9 +81,7 @@ export function RecordPicker({
         ))}
       </Command.List>
       <Command.Footer>
-        <span>↑↓ navigate</span>
-        <span>↵ choose</span>
-        <span>esc close</span>
+        <CommandKeys />
       </Command.Footer>
     </Command.Dialog>
   );

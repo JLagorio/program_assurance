@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { PreviewRail } from "../../patterns";
 import * as Stories from "./PreviewRail.stories";
@@ -7,17 +7,85 @@ import * as Stories from "./PreviewRail.stories";
 
 # PreviewRail
 
-The right rail as a preview of a row, never the record itself.
+The rail beside an index table: a preview of the chosen row, opened from the eye on its id, never the record itself. Its head is the compact record header the [PreviewSheet](?path=/docs/patterns-previewsheet--docs) also draws, the Preview eyebrow with the id and one status, the name, the meta line, and the way to the record as a link; under it, the facts in groups. It goes beside a table that leaves room for it, in a [PreviewSplit](?path=/docs/patterns-previewsplit--docs) the reader sizes; over a full-width table the preview is the sheet. Jira's issue detail beside its list is the model; Carbon and Atlassian publish no rail of their own.
 
 <Canvas of={Stories.PreviewRailMatrix} />
+
+## Anatomy
+
+| Part     | What it is                                                                                     |
+| -------- | ---------------------------------------------------------------------------------------------- |
+| Eyebrow  | "Preview", so the rail is never mistaken for the record.                                       |
+| Id       | Beside the eyebrow, `font.body.small` subtle. With the eyebrow it names the landmark.          |
+| Status   | One, after the id: a Badge or an Indicator.                                                    |
+| Close    | An icon button at the end of the eyebrow's line.                                               |
+| Title    | The record's name, an h2 in `font.body` medium.                                                |
+| Subtitle | The meta line under it, `font.body.small` subtle: kind, path, owner.                           |
+| Open to  | A TextLink to the record: "Open finding".                                                      |
+| Body     | Inspector groups, KeyValue rows, a short list. No actions.                                     |
+
+## Variants
+
+PreviewRail has one appearance. The head carries what the row has: the id alone for a row the list already describes, the full compact header for a record with a name and a state.
+
+Not built, and why: actions in the rail, because a preview that acts is the sheet, which has a footer for them; tabs in the rail, because the record has them; a rail that stays open with nothing chosen, because it is mounted with the selection; a resizable edge of its own, because the PreviewSplit's handle is that.
+
+## Sizes
+
+One: as wide as the PreviewSplit's second pane, 26% of the split at first and from 18 to 45 at the reader's hand. Below the large breakpoint it stacks under the table with a rule above.
+
+## States
+
+Open, or not rendered. Nothing in the head hovers or presses but the close and the link.
+
+## Modifiers
+
+- **`id`**, **`title`**, **`subtitle`**, **`status`**, **`onClose`**, **`openTo`** as in Anatomy.
+
+## Content
+
+- **The title is the record's name** as it reads in the row.
+- **The subtitle is kind, path, owner** in a few words with middle dots: "Finding · edge-sw-a1 · ACAS".
+- **The link names the record's kind**: "Open finding", "Open asset". Not "Open", not "View", no arrow.
+- **The body is facts in groups**, the ones the row does not show. Not the record's whole rail.
+
+## Style
+
+| Element     | Token                                                                                                 |
+| ----------- | ----------------------------------------------------------------------------------------------------- |
+| Rail        | `color.border` at the start · `space.300` before it; on a narrow screen a rule above and `space.200`  |
+| Head        | `space.075` between its rows · the eyebrow row 28px, the close's height                               |
+| Eyebrow, id | Eyebrow · `font.body.small` `color.text.subtle` · `space.100` between                                 |
+| Title       | `font.body` medium · `color.text`                                                                     |
+| Subtitle    | `font.body.small` · `color.text.subtle`                                                               |
+| Close       | IconButton, subtle, small                                                                             |
+| Body        | `space.150` under the head                                                                            |
+
+## Accessibility
+
+- **The rail is an `aside` named "Preview" and the id**, so two rails on one screen are two landmarks with two names, and a screen reader hears "Preview FND-2231, complementary".
+- **The title is an `h2`** after the table's; the groups under it are h3s.
+- **The close is a labelled icon button**; the link is named by its text, and the kind of record is in it.
+- **Focus stays in the table** when the rail opens. The eye that opened it is the way back; Escape is not, because the rail is not a modal.
 
 ## Props
 
 <ArgTypes of={PreviewRail} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Pages](?path=/docs/patterns-pages--docs): the IndexPage whose inline detail surface it is, opened from the eye in a Table.Id cell.
+- [PreviewSplit](?path=/docs/patterns-previewsplit--docs): the list, and beside it the rail of the chosen row, sized by the reader.
+- [PreviewSheet](?path=/docs/patterns-previewsheet--docs): the peek over a full-width table, with the same head.
+- [Inspector](?path=/docs/shapes-inspector--docs): the groups in the body.
 - [Pages · Rail, sheet, panel](?path=/docs/patterns-pages--docs#rail-sheet-panel): the rail beside a table that leaves room for it; the sheet or the panel otherwise.
 - [Pages · The hover ladder](?path=/docs/patterns-pages--docs#the-hover-ladder): one of the kit's three shells for a preview body.
-- [PreviewSplit](?path=/docs/patterns-previewsplit--docs): the list, and beside it the rail of the chosen row, sized by the reader.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

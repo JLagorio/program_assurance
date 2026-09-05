@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Description, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
 
 import { CommandPalette } from "../../patterns";
 import * as Stories from "./CommandPalette.stories";
@@ -7,11 +7,72 @@ import * as Stories from "./CommandPalette.stories";
 
 # CommandPalette
 
-<Description of={CommandPalette} />
+A ⌘K palette over a page or a record: a field at the top, the commands under headings, a shortcut at the end of the ones that have one, the keys in the footer. Choosing a command closes the palette and runs it. The commands are plain objects the caller supplies, so the palette stays presentational and every page can reuse it; `useCommandPalette` holds the open state and toggles it on ⌘K or Ctrl+K anywhere on the page. Linear's and Slack's palettes and Atlassian's command palette are the models. It runs a command; it does not find a record, which is the [RecordPicker](?path=/docs/patterns-recordpicker--docs), and it does not search the product, which is the top nav's search.
 
 <Canvas of={Stories.CommandPaletteStory} />
 
+## Anatomy
+
+| Part    | What it is                                                                        |
+| ------- | --------------------------------------------------------------------------------- |
+| Field   | "Type a command…", focused on open.                                               |
+| Heading | The group's name, over its commands: Record, Go to, Preferences.                  |
+| Command | A verb and its object; the shortcut or hint at the end in `font.body.xsmall`.     |
+| Empty   | "No commands match."                                                              |
+| Footer  | The keys: the arrows to move, Enter to run, Escape to close.                      |
+
 <Canvas of={Stories.CommandPaletteMatrix} story={{ inline: false, height: "420px" }} />
+
+## Variants
+
+CommandPalette has one appearance. What varies is the commands, which are the page's: a record's verbs first, the places to go after, the preferences last.
+
+Not built, and why: search across records in the palette (Linear's), because a record is found by the top nav's search and picked by the RecordPicker; nested pages of commands, because a command with choices is a Dialog of its own; recent commands at the top, because the order is the page's and it should read the same every time; icons before the commands, because the heading says the kind.
+
+## Sizes
+
+One: the Command dialog at its medium width, 560px, over the page at the top.
+
+## States
+
+| State    | What changes                                                     |
+| -------- | ---------------------------------------------------------------- |
+| Closed   | Not rendered. ⌘K opens it.                                       |
+| Open     | Over the page at the top, the field focused, every group shown.  |
+| Filtered | The commands that match, under their headings; empty groups go.  |
+| None     | The empty sentence.                                              |
+| Run      | The palette closes, then the command runs.                       |
+
+## Modifiers
+
+- **`commands`**: id, group, label, hint, run. Commands with the same group in sequence share a heading.
+- **`placeholder`** for the field.
+- **`useCommandPalette`** returns `open` and `setOpen`, and binds ⌘K and Ctrl+K while mounted.
+
+## Content
+
+- **A command is a verb and its object**: "Record an assessment", "Export the SSP", "Switch the colour mode". Never a noun alone.
+- **The headings are kinds of command**: "Record" for what the record does, "Go to" for places, "Preferences" for the reader's own.
+- **The hint is the shortcut** when there is one, in the platform's glyphs; otherwise nothing.
+- **The page's verbs first**, the places after, the preferences last.
+
+## Style
+
+| Element | Token                                                                                                       |
+| ------- | ----------------------------------------------------------------------------------------------------------- |
+| Dialog  | Command.Dialog: `radius.xxlarge` · `elevation.surface.overlay` · `elevation.shadow.overlay` · `color.blanket` |
+| Heading | Command.Group's: `font.body.xsmall` · `color.text.subtle`                                                   |
+| Command | Command.Item: `dimension.control.medium` · `color.background.selected` when selected                        |
+| Hint    | `font.body.xsmall` · `color.text.subtle` · at the end                                                       |
+| Footer  | Command.Footer: `elevation.surface.sunken` · `font.body.xsmall` · Kbd for each key                          |
+
+## Accessibility
+
+- **A dialog named "Command palette"**; focus moves to the field on open and returns to where it was on close.
+- **The list is a listbox** with the headings as group labels, so a screen reader hears "Record, group, Record an assessment, A".
+- **The arrows move, Enter runs, Escape closes**, and the footer says so with Kbd, each key named in full.
+- **⌘K and Ctrl+K both open it**, so the shortcut works on every platform; which glyph the page shows is the product's call, parked in docs/next.md.
+- **Running closes first**, so a command that opens a dialog does not stack one over the other.
 
 ## Props
 
@@ -19,8 +80,14 @@ import * as Stories from "./CommandPalette.stories";
 
 ### useCommandPalette
 
-The palette's open state, toggled by ⌘K or Ctrl+K anywhere on the page.
+The palette's open state, toggled by ⌘K or Ctrl+K anywhere on the page. Returns `{ open, setOpen }`.
 
 ## Related
 
+- [Command](?path=/docs/components-command--docs): the dialog and the list.
 - [RecordPicker](?path=/docs/patterns-recordpicker--docs): the same Command.Dialog, picking one record instead of running a command.
+- [Kbd](?path=/docs/components-kbd--docs): the keys in the footer and the hints.
+
+## Don't
+
+<Canvas of={Stories.Dont} />
