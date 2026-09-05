@@ -1,6 +1,7 @@
 import type { Decorator, Preview } from "@storybook/react-vite";
 import { useEffect } from "react";
 
+import { TooltipProvider } from "../src/components/tooltip";
 import "../src/styles/storybook.css";
 
 /**
@@ -28,6 +29,13 @@ const withMode: Decorator = (Story, ctx) => (
     />
     <Story />
   </>
+);
+
+/** One tooltip provider per page, as the Shell mounts for a product: the second tooltip shows at once. */
+const withTooltips: Decorator = (Story) => (
+  <TooltipProvider>
+    <Story />
+  </TooltipProvider>
 );
 
 const preview: Preview = {
@@ -93,7 +101,7 @@ const preview: Preview = {
     },
   },
   initialGlobals: { design: "ledger", mode: "light", density: "default" },
-  decorators: [withMode],
+  decorators: [withMode, withTooltips],
 };
 
 export default preview;

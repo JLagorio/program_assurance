@@ -1,17 +1,131 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { DropdownMenu } from "../../components";
 import * as Stories from "./DropdownMenu.stories";
-import * as Overview from "./Overlays.stories";
 
 <Meta of={Stories} />
 
 # DropdownMenu
 
+A list of actions anchored to the button that opened it: the verbs on a record, a row's kebab, the columns a table shows. It opens on a click, Enter, Space or the down arrow, the first item takes focus, the arrow keys move, a letter jumps, and choosing an item closes it. A value in a form is a [Select](?path=/docs/components-select--docs) or a [NativeSelect](?path=/docs/components-nativeselect--docs), not a menu.
+
+A small task is a [Popover](?path=/docs/components-popover--docs); a label is a [Tooltip](?path=/docs/components-tooltip--docs). Carbon's overflow menu and menu button, Atlassian's dropdown menu and Base Web's menu are the same part.
+
 <Canvas of={Stories.DropdownMenuMatrix} />
 
-<Canvas of={Overview.Anchored} />
+## Anatomy
+
+| Part      | What it is                                                                                                                                                            |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Trigger   | A Button with a chevron after its verb, or an IconButton kebab. It carries `aria-haspopup` and `aria-expanded`.                                                       |
+| Surface   | The menu surface every floating list shares: `elevation.surface.overlay`, `color.border`, `radius.large`, `space.050` inside, `elevation.shadow.overlay`. 200px wide. |
+| Item      | `DropdownMenu.Item`: `dimension.row.menu` 28px, `radius.medium`, `font.body`, `space.100` sides. A verb, or an option.                                                |
+| Trailing  | After the label: a Kbd for the shortcut, a count, a muted word.                                                                                                       |
+| Check     | On an item with `isSelected`, at the end when it is on, as Select draws its choice.                                                                                   |
+| Label     | `DropdownMenu.Label`: a section's heading, `font.heading.xxsmall` uppercase in `color.text.subtlest`.                                                                 |
+| Separator | A hairline between sections, and before the danger item.                                                                                                              |
+
+## Variants
+
+DropdownMenu has one appearance. What varies is what the list holds:
+
+| The list                        | Use                                                                                                                          |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| The verbs on a record           | A Button "Actions" with the chevron; under five items.                                                                       |
+| A row's actions                 | A kebab IconButton at the end of the row, `align="end"`, visible on hover and on focus; DataTable's `actions` kind draws it. |
+| Toggles: which columns to show  | Items with `isSelected` and `closeOnSelect={false}`, so the menu stays open; Reset view under a separator.                   |
+| A value edited in place         | Editable.Select in a table cell: items with `isSelected`, one on. The only place a menu holds a value.                       |
+| The rest of a toolbar's actions | A "More" button past five actions.                                                                                           |
+| A value in a form               | Not a menu: Select or NativeSelect.                                                                                          |
+| A filter                        | Not a menu: FilterChip and its Popover.                                                                                      |
+| Navigation                      | Not a menu: the SideNav, Tabs, a TextLink.                                                                                   |
+
+Not built, on purpose: submenus (Carbon allows one level and warns against more; a list that needs one is two menus or a Sheet), icons before items (the verb carries the meaning, and icons make a menu a toolbar), a description under an item, a menubar, a context menu on right-click, and item sizes (Carbon has four; the menu row is one height).
+
+## Sizes
+
+One row height, `dimension.row.menu` 28px, and one width, 200px by default, or `width` for longer labels; Carbon keeps a menu between 160 and 288. Under five items behind a menu button, up to a dozen behind a kebab; past that the verbs belong elsewhere. Items truncate rather than wrap.
+
+<Canvas of={Stories.Kebab} />
+
+## States
+
+| State       | What changes                                                                                                          |
+| ----------- | --------------------------------------------------------------------------------------------------------------------- |
+| Closed      | The trigger is itself. A kebab is hidden until its row is hovered or it takes focus.                                  |
+| Open        | The trigger carries `aria-expanded` and `data-state="open"`; the first item is highlighted; the page behind is inert. |
+| Highlighted | The item under the pointer or the arrow keys, on `color.background.neutral.subtle.hovered`.                           |
+| Selected    | An item with `isSelected` on: `color.text.selected` and the check at the end.                                         |
+| Disabled    | `color.text.disabled`, skipped by the arrow keys. A verb the reader can never use is left out instead.                |
+| Danger      | `tone="danger"`: `color.text.danger`, highlighted on `color.background.danger`. Last, under a separator.              |
+| Closing     | An item chosen, Escape, or an outside click. Focus returns to the trigger.                                            |
+
+<Canvas of={Stories.Toggles} />
+
+## Modifiers
+
+- **`align`**: `start` by default; `end` for a kebab at the end of a row.
+- **`width`**: 200 by default.
+- **`children` as a function of `close`** for an item that opens something else and should close the menu first.
+- **`defaultOpen`** for a story.
+- **On an item: `onSelect`**, the verb's work; **`isSelected`**, a checkbox item with the check; **`closeOnSelect={false}`** for a list of toggles; **`disabled`**; **`trailing`** for a Kbd or a count; **`tone="danger"`** for the one that removes or closes something.
+
+## Content
+
+- **Items are verbs** in sentence case, no full stop: Edit, Reassign, Copy link, Close finding. An option is a noun: Owner, Status.
+- **The object is omitted** when the trigger names it: "Edit", not "Edit control", under a control's Actions.
+- **The danger item last**, under a separator, in red: Archive, Delete, Close finding.
+- **A section gets a Label** when the list has two kinds of thing; three or four items need none.
+- **A shortcut as a Kbd** in `trailing`.
+- **No Cancel item.** Escape and the outside click are the cancel.
+
+## Style
+
+| Element   | Token                                                                                                             |
+| --------- | ----------------------------------------------------------------------------------------------------------------- |
+| Surface   | `elevation.surface.overlay` · `color.border` · `radius.large` · `space.050` inside · `elevation.shadow.overlay`   |
+| Item      | `dimension.row.menu` 28px · `radius.medium` · `space.100` sides · `font.body` `color.text`                        |
+| Highlight | `color.background.neutral.subtle.hovered`                                                                         |
+| Selected  | `color.text.selected` · the check `dimension.icon.small` at `space.100` from the end                              |
+| Disabled  | `color.text.disabled`                                                                                             |
+| Danger    | `color.text.danger` · highlighted on `color.background.danger`                                                    |
+| Trailing  | `font.body.xsmall` `color.text.subtle`                                                                            |
+| Label     | `font.heading.xxsmall` uppercase `color.text.subtlest` · `space.100` sides · `space.075` above, `space.050` below |
+| Separator | `color.border` · `space.050` above and below                                                                      |
+| Offset    | 4px from the trigger · 8px from the viewport's edge, flipping when there is no room                               |
+| Motion    | enters and exits in `motion.duration.fast`, `motion.easing.standard`                                              |
+
+## Accessibility
+
+- **It is a menu** (Radix): the trigger has `aria-haspopup="menu"` and `aria-expanded`; the surface is `role="menu"`; each item is a `menuitem`, or a `menuitemcheckbox` with `aria-checked` when it takes `isSelected`, so a screen reader hears whether a toggle is on.
+- **Keyboard.** Enter, Space or the down arrow opens it with the first item focused; the arrows move, Home and End jump, a typed letter jumps to the item that starts with it; Enter or Space chooses; Escape closes and returns focus to the trigger.
+- **It is modal** while open: the rest of the page is hidden from assistive technology and does not take the pointer, so an outside click closes the menu and does nothing else. The matrix story turns off axe's `aria-hidden-focus` rule for that reason.
+- **A kebab is always in the tab order.** It is hidden until the row is hovered, and shows when it takes focus, so a keyboard reader finds it by tabbing through the row.
+- **A disabled item is announced** and skipped by the arrows. A verb the reader can never use is left out.
+- **Danger is not colour alone**: the item is last, under a separator, and its verb says what it does.
 
 ## Props
 
 <ArgTypes of={DropdownMenu} />
+
+### DropdownMenu.Item
+
+<ArgTypes of={DropdownMenu.Item} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Popover](?path=/docs/components-popover--docs): a small task. [Tooltip](?path=/docs/components-tooltip--docs), [HoverCard](?path=/docs/components-hovercard--docs): the other anchored surfaces.
+- [Select](?path=/docs/components-select--docs), [NativeSelect](?path=/docs/components-nativeselect--docs): a value in a form. [Editable](?path=/docs/components-editable--docs): the value a cell edits in place through a menu.
+- [IconButton](?path=/docs/components-iconbutton--docs): the kebab. [Kbd](?path=/docs/components-kbd--docs): the shortcut.
+- [DataTable](?path=/docs/patterns-data-table--docs): row actions and the Columns menu.
+- [Overlays](?path=/docs/components-overlays--docs): every surface that floats, and which one.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

@@ -1,19 +1,117 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Tooltip } from "../../components";
-import * as Overview from "./Overlays.stories";
 import * as Stories from "./Tooltip.stories";
 
 <Meta of={Stories} />
 
 # Tooltip
 
+A short label on hover or focus: the name of an icon-only control, the date behind a relative time, the shortcut beside a verb. It never holds anything the reader must read to finish the task, and never a control. A peek at a record is a [HoverCard](?path=/docs/components-hovercard--docs); something to act on is a [Popover](?path=/docs/components-popover--docs); a list of actions is a [DropdownMenu](?path=/docs/components-dropdownmenu--docs).
+
+Most tooltips are not written by hand: an [IconButton](?path=/docs/components-iconbutton--docs) draws one from its `label`, and that is where nearly every tooltip in a product comes from. Carbon says the same: tooltips are embedded in the controls that need them.
+
 <Canvas of={Stories.TooltipMatrix} />
 
-<Canvas of={Stories.TooltipOpen} />
+## Anatomy
 
-<Canvas of={Overview.Anchored} />
+| Part    | What it is                                                                                                                                                                          |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Trigger | One focusable element that takes a ref and props: a Button, an IconButton, a TextLink. The tooltip describes it.                                                                    |
+| Surface | `color.background.neutral.bold` with `color.text.inverse`, `font.body.small`, `radius.medium`, `space.100` by `space.050`, up to 260px wide, `space.075` off the trigger. No caret. |
+| Content | Text, or text with a Kbd for the shortcut.                                                                                                                                          |
+
+## Variants
+
+Tooltip has one appearance. What varies is what needs one:
+
+| The need                       | Use                                                                                                                             |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| An icon-only control's name    | `IconButton` with `label`; it draws the tooltip. `isTooltipDisabled` when a Tooltip is written by hand around it, to add a Kbd. |
+| A shortcut beside a verb       | `Tooltip` with the label and a Kbd, as the side nav's toggle does.                                                              |
+| The date behind "3 days ago"   | `Tooltip` with the date on the time.                                                                                            |
+| The whole of a truncated value | Not a Tooltip: the cell's `title`, which Table sets from a plain string.                                                        |
+| Why a control is disabled      | Not a Tooltip: text beside the control. A disabled trigger has no hover and no focus, so its tooltip never shows.               |
+| A term's definition            | Not a Tooltip: the term is defined in the text or the field's hint. Carbon's definition tooltip is not built.                   |
+| Anything the reader acts on    | A Popover, which Carbon calls a toggletip.                                                                                      |
+
+There is no caret (Base Web draws none either), no rich tooltip with a heading and a body, and no tooltip on touch: there is no hover there, so the control's name lives in its `aria-label` and the tooltip is a courtesy for the pointer.
+
+## Sizes
+
+One: `font.body.small` on a surface up to 260px wide, which wraps past that. Carbon draws 208px for one line and 288px for several; one width covers both here. A tooltip that needs more than two lines is saying too much.
+
+<Canvas of={Stories.IconButtons} />
+
+## States
+
+| State    | What changes                                                                                                                                        |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Closed   | Nothing shows; the trigger is itself.                                                                                                               |
+| Opening  | After `delay`, 300ms by default: a rest, not a pass. Under one `TooltipProvider`, a second tooltip within 300ms of the first closing opens at once. |
+| Open     | On hover, and on keyboard focus.                                                                                                                    |
+| Closing  | The pointer leaves, focus leaves, or Escape. The surface fades in `motion.duration.fast`.                                                           |
+| Disabled | A disabled trigger shows no tooltip. The reason it is disabled is text beside it.                                                                   |
+
+<Canvas of={Stories.Open} />
+
+## Modifiers
+
+- **`content`**: the label, or the label with a Kbd.
+- **`side`** and **`align`**: `top` and `center` by default; it flips when there is no room.
+- **`delay`**: 300ms by default. Rarely changed; `0` only for a control whose name is nothing but the tooltip and sits alone.
+- **`defaultOpen`** for a story or a walkthrough.
+- **`TooltipProvider`** once at the root: the Shell mounts it, and a product without the Shell mounts it itself. It makes the second tooltip immediate. A Tooltip with no provider above makes its own and waits the full delay each time.
+- **IconButton `label`** is the tooltip most of the time; `isTooltipDisabled` hands the drawing back to a Tooltip written around it.
+
+## Content
+
+- **A control's name in one to three words**, sentence case, no full stop: Edit, Copy link, Pin to rail. The verb, as the button would say it.
+- **A sentence with a full stop** when it explains: "Verified 12 Aug 2026 by Dana Whitfield."
+- **Never essential.** A rule the reader must follow, a required mark, a format: beside the field, in its hint, where it stays.
+- **Never a repeat** of the visible label.
+- **A shortcut as Kbd** after the label, not in the text.
+- **No links, no buttons.** A tooltip cannot be focused.
+
+## Style
+
+| Element | Token                                                                                                 |
+| ------- | ----------------------------------------------------------------------------------------------------- |
+| Surface | `color.background.neutral.bold` · `color.text.inverse` · `radius.medium` · `elevation.shadow.overlay` |
+| Text    | `font.body.small`                                                                                     |
+| Padding | `space.100` sides · `space.050` top and bottom                                                        |
+| Width   | up to 260px, wrapping                                                                                 |
+| Offset  | 6px from the trigger · 8px from the viewport's edge, flipping when there is no room                   |
+| Motion  | enters and exits in `motion.duration.fast`, `motion.easing.standard`                                  |
+
+The inverse text on the bold neutral passes 4.5:1 in both modes; the contrast test covers the pair.
+
+## Accessibility
+
+- **It is a tooltip** (Radix): the surface has `role="tooltip"` and the trigger takes `aria-describedby`, so the text is the trigger's description. An IconButton's name is its `aria-label`; the tooltip is the same words made visible.
+- **Keyboard.** Tab to the trigger opens it; Tab away or Escape closes it. The tooltip is not focusable and holds no controls, so there is nothing else to operate.
+- **Touch** does not open it. The trigger must be understandable without it: an IconButton by its `aria-label`, a time by its text.
+- **Timing.** 300ms is long enough that a pointer crossing the toolbar does not light every button, and short enough to feel like an answer. The shared provider makes the second one instant, the way Carbon's and Atlassian's behave.
+- **A disabled trigger has no tooltip.** Carbon says the same. The reason belongs beside the control, in text.
+- **Not colour alone.** The tooltip is words.
 
 ## Props
 
 <ArgTypes of={Tooltip} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [IconButton](?path=/docs/components-iconbutton--docs): where most tooltips come from.
+- [HoverCard](?path=/docs/components-hovercard--docs): a peek at a record. [Popover](?path=/docs/components-popover--docs): something to act on. [DropdownMenu](?path=/docs/components-dropdownmenu--docs): a list of actions.
+- [Kbd](?path=/docs/components-kbd--docs): the shortcut inside a tooltip.
+- [Overlays](?path=/docs/components-overlays--docs): every surface that floats, and which one.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

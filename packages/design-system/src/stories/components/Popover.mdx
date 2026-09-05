@@ -1,17 +1,115 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Popover } from "../../components";
-import * as Overview from "./Overlays.stories";
 import * as Stories from "./Popover.stories";
 
 <Meta of={Stories} />
 
 # Popover
 
+An anchored surface for a small task: a filter's checkboxes, a reason before an action, a picker's calendar. It opens on a click, takes focus, and closes on Escape, an outside click or its own Done. What is in it is the reader's to finish where they stand; anything larger is a [Sheet](?path=/docs/components-sheet--docs).
+
+A label is a [Tooltip](?path=/docs/components-tooltip--docs); a peek is a [HoverCard](?path=/docs/components-hovercard--docs); a list of actions is a [DropdownMenu](?path=/docs/components-dropdownmenu--docs). Carbon calls this a toggletip and builds its menus and tooltips on the same layer; here each is its own part with its own rules.
+
 <Canvas of={Stories.PopoverMatrix} />
 
-<Canvas of={Overview.Anchored} />
+## Anatomy
+
+| Part    | What it is                                                                                                                                      |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Trigger | One focusable element that takes a ref: a Button, an IconButton, a FilterChip. It carries `aria-expanded` and shows its open face.              |
+| Surface | `elevation.surface.overlay` with `color.border`, `radius.large`, `space.150` inside, `elevation.shadow.overlay`, 4px off the trigger. No caret. |
+| Body    | The task: a title as medium text when the trigger does not say it, one or two fields or a list of checkboxes, the buttons at the end.           |
+| Close   | `Popover.Close` around a Button: Done, Cancel. Escape and an outside click do the same.                                                         |
+
+## Variants
+
+Popover has one appearance. What varies is the task:
+
+| The task                                 | Use                                                                                            |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| A reason before an action                | `Popover` with one field, Cancel and the verb; owned with `open` so the verb closes it.        |
+| A filter's values                        | DataTable's `Filter`: a FilterChip opens a Popover of checkboxes, a range or a contains field. |
+| Which columns to show                    | A list of checkboxes with Done, or DataTable's `Columns` menu.                                 |
+| A date, an option from a searchable list | DatePicker and Combobox open a Popover; `matchTriggerWidth` for the list under a field.        |
+| The top nav's items that did not fit     | The Shell's More, a Popover of the folded items.                                               |
+| A list of actions                        | Not a Popover: a DropdownMenu, which has the menu role and the arrow keys.                     |
+| A form, a record, a comparison           | Not a Popover: a Sheet or a Dialog.                                                            |
+| A decision that needs a word             | Not a Popover: an AlertDialog.                                                                 |
+
+There is no caret and no tab tip (Carbon's three variants): the surface sits flush with its trigger and the trigger's open face says where it came from. There is no popover inside a popover: Carbon says never, and a task that needs one is a Sheet. There is no popover on hover: that is a HoverCard, with a HoverCard's rules.
+
+## Sizes
+
+As wide as its content, or `width` in pixels; `matchTriggerWidth` for a list under a field. A popover is under about 320px wide and shorter than the viewport; Carbon's limit is four grid columns. Past that the task is a Sheet.
+
+<Canvas of={Stories.Task} />
+
+## States
+
+| State   | What changes                                                                                                                  |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Closed  | The trigger is itself.                                                                                                        |
+| Open    | The trigger carries `aria-expanded` and `data-state="open"`, so a chip or an IconButton shows its open face; focus is inside. |
+| Closing | Escape, an outside click, `Popover.Close`, or the owner setting `open` false. Focus returns to the trigger.                   |
+
+The popover has no hover, pressed or disabled state of its own; its trigger and its controls have theirs.
+
+<Canvas of={Stories.Options} />
+
+## Modifiers
+
+- **`label`**: the task, as the dialog's accessible name: "Filters", "Defer control", "Choose a date".
+- **`side`** and **`align`**: `bottom` and `start` by default, so the surface's edge is flush with the trigger's; it flips when there is no room.
+- **`width`**, or **`matchTriggerWidth`** for a list that should be as wide as its field.
+- **`open`** with **`onOpenChange`** when the task's owner closes it: after Defer, after Save. Otherwise `defaultOpen` and the popover keeps its own state.
+- **`Popover.Close`** around the button that ends the task.
+
+## Content
+
+- **The label is the task**, as a verb or a noun the reader would say: Filters, Defer control, Columns.
+- **A title inside only when the trigger does not say it**: a kebab's popover gets one, a "Filters" chip's does not.
+- **One job.** One or two fields, or one list. A second job is a second popover or a Sheet.
+- **The buttons**: Cancel then the verb, small, at the end; or Done alone for a list of options.
+- **A required field says so** in its Field, and the verb waits for it.
+
+## Style
+
+| Element | Token                                                                                      |
+| ------- | ------------------------------------------------------------------------------------------ |
+| Surface | `elevation.surface.overlay` · `color.border` · `radius.large` · `elevation.shadow.overlay` |
+| Padding | `space.150`                                                                                |
+| Text    | `font.body` in `color.text`; a title at `font.weight.medium`                               |
+| Offset  | 4px from the trigger · 8px from the viewport's edge                                        |
+| Motion  | enters and exits in `motion.duration.fast`, `motion.easing.standard`                       |
+| Buttons | small · `space.100` apart · at the end                                                     |
+
+## Accessibility
+
+- **It is a dialog** (Radix): `role="dialog"`, named by `label`, non-modal, so the page behind stays reachable.
+- **Focus moves in** to the first control when it opens (Base Web does the same; Carbon leaves focus on the trigger and Tab moves in), and **returns to the trigger** when it closes, whatever closed it.
+- **Keyboard.** Enter or Space on the trigger opens it; Tab moves through its controls; Escape closes it. Tab past the last control leaves the popover and closes it.
+- **The trigger says its state** through `aria-expanded` and `aria-controls`.
+- **It never holds a task that must finish.** An outside click closes it and the task is lost; a task the reader must complete or cancel by name is a Dialog.
+- **Contrast.** The overlay surface with the default text; every control inside keeps its own.
 
 ## Props
 
 <ArgTypes of={Popover} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Tooltip](?path=/docs/components-tooltip--docs), [HoverCard](?path=/docs/components-hovercard--docs), [DropdownMenu](?path=/docs/components-dropdownmenu--docs): the other anchored surfaces, and which one.
+- [Sheet](?path=/docs/components-sheet--docs), [Dialog](?path=/docs/components-dialog--docs), [AlertDialog](?path=/docs/components-alertdialog--docs): what a task too large or too final for a popover opens.
+- [FilterChip](?path=/docs/components-filterchip--docs), [DatePicker](?path=/docs/components-datepicker--docs), [Combobox](?path=/docs/components-combobox--docs): parts built on it.
+- [Overlays](?path=/docs/components-overlays--docs): every surface that floats, and which one.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

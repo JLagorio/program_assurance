@@ -28,7 +28,7 @@ import {
 import { IconButton } from "../components/button";
 import { Kbd } from "../components/kbd";
 import { Popover } from "../components/popover";
-import { Tooltip } from "../components/tooltip";
+import { Tooltip, TooltipProvider } from "../components/tooltip";
 import { Eyebrow } from "../components/typography";
 import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
@@ -344,10 +344,12 @@ function ShellRoot({
 
   return (
     <ShellContext.Provider value={api}>
-      <div className={cn("shell-root bg-surface text-default", className)} style={vars}>
-        <SkipLinks />
-        {children}
-      </div>
+      <TooltipProvider>
+        <div className={cn("shell-root bg-surface text-default", className)} style={vars}>
+          <SkipLinks />
+          {children}
+        </div>
+      </TooltipProvider>
     </ShellContext.Provider>
   );
 }

@@ -19,6 +19,10 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Changed
 
+- A `DropdownMenu.Item` with `isSelected` is a menuitemcheckbox (Radix CheckboxItem) with
+  `aria-checked`, drawn as Select draws its choice: selected text and a check at the end, no
+  fill. Before it was a plain menuitem with a fill, so a screen reader heard nothing about the
+  state of a toggle. Editable's status menu and the DataTable's Columns menu take the new face.
 - `FilterChip` says `aria-pressed` when it stands alone and defers to a Popover's
   `aria-expanded` as its trigger; the plus shows only while the chip is off; `disabled` has a
   face (`color.border.disabled`, `color.text.disabled`). Components/FilterChip: InToolbar, Dont.
@@ -77,6 +81,16 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Added
 
+- `TooltipProvider`: one provider for a product, so moving from one tooltipped control to the
+  next shows the next tooltip at once (Carbon's and Atlassian's behaviour). The Shell mounts it
+  and the Storybook preview wraps every story in it; a Tooltip with no provider above makes its
+  own, as before. Tooltip, HoverCard and Popover props are described, so their tables fill.
+- `DropdownMenu.Item` takes `tone="danger"` (red, red-tinted highlight) for the verb that
+  removes or closes something; the DataTable's row actions use it in place of a coloured span.
+  `DropdownMenuItemProps` exported. Components/DropdownMenu: Kebab, Toggles, Dont, Playground.
+- Pages on the template: Tooltip (IconButtons, Open, Dont, Playground), HoverCard (On an id,
+  Dont, Playground), Popover (Task, Options, Dont, Playground), DropdownMenu. Twenty-four pages on
+  the template; 681 gaps grandfathered.
 - `Table` takes `label` (its accessible name, which Carbon asks of every table) and a typed
   `role`; `TableProps` and `TdProps` are exported, so the generated props tables fill. A cell
   whose child is a plain string carries it as its `title`, so truncated text shows whole on hover,

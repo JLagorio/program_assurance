@@ -8,19 +8,25 @@ type Side = NonNullable<ComponentPropsWithoutRef<typeof PopoverPrimitive.Content
 type Align = NonNullable<ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>["align"]>;
 
 export type PopoverProps = {
+  /** One focusable element that takes a ref and props, usually a Button or an IconButton. It carries the aria. */
   trigger: ReactNode;
   /** The dialog's accessible name: what the task is ("Filters", "Choose a date"). */
   label?: string | undefined;
+  /** Which side of the trigger; it flips when there is no room. `bottom` by default. */
   side?: Side | undefined;
+  /** `start` by default: the surface's edge flush with the trigger's. */
   align?: Align | undefined;
-  /** The surface's width in pixels. */
+  /** The surface's width in pixels. Unset, it is as wide as its content. */
   width?: number | undefined;
   /** The surface as wide as its trigger: a list under a field. */
   matchTriggerWidth?: boolean | undefined;
+  /** Starts open. For a story. */
   defaultOpen?: boolean | undefined;
+  /** Owned from outside, with `onOpenChange`: a popover that closes when its task is done. */
   open?: boolean | undefined;
   onOpenChange?: ((open: boolean) => void) | undefined;
   className?: string | undefined;
+  /** The task: a small form, a list of checkboxes, a picker. Anything larger is a Sheet. */
   children: ReactNode;
 };
 

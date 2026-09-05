@@ -255,8 +255,9 @@ function BodyCell<TData extends RowData>({
               key={a.label}
               onSelect={a.onSelect}
               {...(a.disabled ? { disabled: true } : {})}
+              {...(a.tone === "danger" ? { tone: "danger" } : {})}
             >
-              <span className={a.tone === "danger" ? "text-danger" : undefined}>{a.label}</span>
+              {a.label}
             </DropdownMenu.Item>
           ))}
         </DropdownMenu>
