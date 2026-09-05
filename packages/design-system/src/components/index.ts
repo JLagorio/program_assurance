@@ -36,6 +36,7 @@ export {
   type ChartAreaProps,
   type ChartBand,
   type ChartBarProps,
+  type ChartCrumb,
   type ChartDatum,
   type ChartDonutProps,
   type ChartFrameProps,
@@ -46,14 +47,19 @@ export {
   type ChartScaleProps,
   type ChartScatterGroup,
   type ChartScatterProps,
+  type ChartSelection,
   type ChartSeries,
   type ChartSize,
   type ChartSparklineProps,
   type ChartTone,
   type ChartTreemapProps,
+  type DonutSelection,
   type DonutSlice,
   type HeatmapScale,
+  type HeatmapSelection,
+  type ScatterSelection,
   type TreemapNodeInput,
+  type TreemapSelection,
 } from "./chart";
 export { FilterChip, type FilterChipProps } from "./chip";
 export { CodeBlock } from "./code-block";
@@ -106,16 +112,27 @@ export { Sheet, type SheetProps } from "./sheet";
 export { Skeleton } from "./skeleton";
 export { Spinner } from "./spinner";
 export { Stat, Tiles, type StatGridProps, type StatProps, type StatTileProps } from "./stat";
-export { Stepper, type StepState, type StepperItemProps } from "./stepper";
+export {
+  Stepper,
+  type StepState,
+  type StepperItemProps,
+  type StepperOrientation,
+  type StepperProps,
+} from "./stepper";
 export { Table, type TableProps, type TdProps, type ThProps } from "./table";
 export { TextLink, type TextLinkProps } from "./text-link";
 export { Tabs, type TabProps, type TabsProps } from "./tabs";
-export { Timeline, type TimelineItemProps } from "./timeline";
+export {
+  Timeline,
+  type TimelineGroupProps,
+  type TimelineItemProps,
+  type TimelineProps,
+} from "./timeline";
 export { Toaster, toast } from "./toaster";
 export { Toggle, ToggleGroup, type ToggleGroupProps, type ToggleProps } from "./toggle";
 export { Toolbar, type ToolbarProps } from "./toolbar";
 export { Tooltip, TooltipProvider, type TooltipProps } from "./tooltip";
-export { Tree, type TreeItemProps } from "./tree";
+export { Tree, type TreeItemProps, type TreeProps, type TreeSize } from "./tree";
 export {
   Absent,
   Eyebrow,

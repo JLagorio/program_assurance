@@ -1,0 +1,96 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Chart } from "../../components";
+import * as Stories from "./ChartArea.stories";
+
+<Meta of={Stories} />
+
+# Area
+
+A [Line](?path=/docs/components-chart-line--docs) with a wash under it: the hue at 12%, so the plot says "how much" where a line alone says "which way". Stacked, the washes are parts of a whole over time, and the top edge is the total. Everything a Line takes, an Area takes; the difference is the fill and `stacked`. It lives in a [Chart](?path=/docs/components-chart-overview--docs) Frame.
+
+<Canvas of={Stories.AreaMatrix} />
+
+## Anatomy
+
+| Part    | What it is                                                                                                    |
+| ------- | ------------------------------------------------------------------------------------------------------------- |
+| Line    | 2px in the series' tone, round joins, as on a Line.                                                           |
+| Wash    | The series' tone at 12% from the line to the baseline; in a stack, from the line to the series below.         |
+| Marker  | 8px ringed, on hover, or on every point with `dots`.                                                          |
+| The rest | End labels, bands, references, gaps and axes as on a Line.                                                   |
+
+## Variants
+
+| Variant     | Use                                                                                                          |
+| ----------- | ------------------------------------------------------------------------------------------------------------ |
+| One series  | A count whose size matters: open findings, month by month. The wash gives it weight.                         |
+| `stacked`   | Parts of a whole over time: open and closed as parts of the month's total. The tooltip totals the stack.      |
+| `curve="smooth"`, `labels="end"`, `baseline="auto"`, `bands`, `reference` | As on a Line.                                          |
+
+<Canvas of={Stories.Single} />
+<Canvas of={Stories.Stacked} />
+
+## Sizes
+
+`size` is the plot's height: `small` 120px, `medium` 200px (the default), `large` 320px, or `height` in pixels.
+
+## States
+
+| State    | What changes                                                                                                                            |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Hover    | A hairline across the plot at the category, a marker on every line there, the tooltip.                                                  |
+| Isolated | A series hidden from the Frame's legend leaves the plot; a stack closes up.                                                              |
+| Chosen   | With `onSelect` or `details`: a click in a category's column, or Enter on the focused plot, chooses it; the card opens on the point. On an unstacked area every series is ringed there. |
+| Loading  | A skeleton line with a `color.skeleton.subtle` wash, pulsing, at the plot's height.                                                     |
+| Entering | The areas draw in over `motion.duration.slow`.                                                                                          |
+
+<Canvas of={Stories.Details} />
+
+## Modifiers
+
+- **`stacked`** for parts of a whole.
+- **`curve`**, **`dots`**, **`labels`**, **`baseline`**, **`bands`**, **`reference`**, **`connectNulls`**, **`xLabel`**, **`yLabel`**, **`format`**, **`formatX`**, **`onSelect`**, **`details`**, **`loading`**, **`label`** as on a Line.
+
+## Content
+
+- **Stack only parts of one whole.** Series that are not parts (three assessors' counts) are lines.
+- **Two series that cross are lines**, not two washes: where washes overlap they mix into a colour on nobody's legend.
+- **One series or a stack**; never several unstacked areas.
+- The rest as on a Line: label the end, declare a cropped axis, keep a gap.
+
+## Style
+
+| Element  | Token                                                                            |
+| -------- | -------------------------------------------------------------------------------- |
+| Line     | `color.chart.<tone>` · 2px · round joins                                         |
+| Wash     | `color.chart.<tone>` at 12%                                                      |
+| Marker   | 8px · 2px `elevation.surface` ring                                               |
+| Skeleton | `color.skeleton` path over a `color.skeleton.subtle` wash                        |
+| The rest | As on a Line                                                                     |
+
+## Accessibility
+
+- **As a Line**: named by the Frame or `label`, focusable, arrow keys and Enter, the table one toggle away, a legend for two or more series, `aria-busy` while loading.
+- **A stack's total is a column in the table**, since the top edge is the only place the plot shows it.
+- **The wash is decoration**: the line carries the value, so a wash at 12% that fails 3:1 against the surface costs nothing.
+
+## Props
+
+<ArgTypes of={Chart.Area} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Chart](?path=/docs/components-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
+- [Line](?path=/docs/components-chart-line--docs): the same without the wash.
+- [Bar](?path=/docs/components-chart-bar--docs) stacked: parts of a whole per category, when the categories are not ordered.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

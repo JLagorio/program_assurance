@@ -46,6 +46,9 @@ for (const layer of LAYERS) {
   if (!fs.existsSync(dir)) continue;
   for (const f of walk(dir)) {
     if (!/\.tsx?$/.test(f) || f.endsWith("index.ts") || f.endsWith("tokens.ts")) continue;
+    // A file named `_x.tsx` is internal to its folder: the furniture a compound's parts share
+    // (chart/_shared.tsx), exported for them and for nothing else.
+    if (path.basename(f).startsWith("_")) continue;
     const src = fs.readFileSync(f, "utf8");
     for (const m of src.matchAll(/^export (?:function|const) ([A-Z]\w*)/gm)) {
       const doc = src.slice(0, m.index).match(/\/\*\*(?:(?!\*\/)[\s\S])*\*\/\s*$/);
@@ -75,7 +78,8 @@ const inStories = (name) =>
 const covered = (name) => inStories(name) || (partOf.has(name) && inStories(partOf.get(name)));
 
 // every component family (a file under components/, patterns/, shapes/, shell/) has a Matrix story:
-// a story file that imports from it and exports a name ending in Matrix
+// a story file that imports from it and exports a name ending in Matrix; a part counts under its
+// compound name (chart/frame.tsx's ChartFrame as Chart.Frame)
 const families = new Map(); // file -> first export
 for (const [name, f] of exports_)
   if (!/\/primitives\//.test(f) && !families.has(f)) families.set(f, name);
@@ -85,7 +89,12 @@ const matrixOf = (file) =>
     const text = fs.readFileSync(sf, "utf8").replace(/^import[^\n]*\n/gm, "");
     return (
       /^export const \w*Matrix\b/m.test(text) &&
-      namesOf(file).some((n) => new RegExp(`(?<![\\w.$])${n}(?![\\w$])`).test(text))
+      namesOf(file).some(
+        (n) =>
+          new RegExp(`(?<![\\w.$])${n}(?![\\w$])`).test(text) ||
+          (partOf.has(n) &&
+            new RegExp(`(?<![\\w.$])${partOf.get(n).replace(".", "\\.")}(?![\\w$])`).test(text)),
+      )
     );
   });
 

@@ -802,6 +802,9 @@
 @utility duration-medium {
   transition-duration: var(--ds-motion-duration-medium);
 }
+@utility duration-slow {
+  transition-duration: var(--ds-motion-duration-slow);
+}
 @utility opacity-disabled {
   opacity: var(--ds-opacity-disabled);
 }

@@ -345,6 +345,7 @@
   --ds-font-code-weight: var(--ds-font-weight-regular);
   --ds-motion-duration-fast: 120ms;
   --ds-motion-duration-medium: 180ms;
+  --ds-motion-duration-slow: 400ms;
   --ds-motion-easing-standard: cubic-bezier(0.2, 0, 0.2, 1);
   --ds-opacity-disabled: 0.4;
   --ds-opacity-loading: 0.2;
@@ -455,7 +456,6 @@
   --ds-color-background-inverse-subtle: oklch(0 0 0 / 0.16);
   --ds-color-background-inverse-subtle-hovered: oklch(0 0 0 / 0.24);
   --ds-color-background-inverse-subtle-pressed: oklch(0 0 0 / 0.32);
-  --ds-color-text: var(--ds-color-neutral-1000);
   --ds-color-background-accent-blue-subtler: var(--ds-color-blue-200);
   --ds-color-background-accent-blue-bolder: var(--ds-color-blue-800);
   --ds-color-background-accent-teal-subtler: var(--ds-color-teal-200);
@@ -468,6 +468,7 @@
   --ds-color-background-accent-red-bolder: var(--ds-color-red-800);
   --ds-color-background-accent-purple-subtler: var(--ds-color-purple-200);
   --ds-color-background-accent-purple-bolder: var(--ds-color-purple-800);
+  --ds-color-text: var(--ds-color-neutral-1000);
   --ds-color-text-subtle: var(--ds-color-neutral-800);
   --ds-color-text-subtlest: var(--ds-color-neutral-700);
   --ds-color-text-disabled: var(--ds-color-neutral-400a);
@@ -483,13 +484,13 @@
   --ds-color-text-success-bolder: var(--ds-color-green-900);
   --ds-color-text-information: var(--ds-color-blue-800);
   --ds-color-text-information-bolder: var(--ds-color-blue-900);
-  --ds-color-icon: var(--ds-color-neutral-1000);
   --ds-color-text-accent-blue: var(--ds-color-blue-900);
   --ds-color-text-accent-teal: var(--ds-color-teal-900);
   --ds-color-text-accent-green: var(--ds-color-green-900);
   --ds-color-text-accent-orange: var(--ds-color-orange-900);
   --ds-color-text-accent-red: var(--ds-color-red-900);
   --ds-color-text-accent-purple: var(--ds-color-purple-900);
+  --ds-color-icon: var(--ds-color-neutral-1000);
   --ds-color-icon-subtle: var(--ds-color-neutral-800);
   --ds-color-icon-subtlest: var(--ds-color-neutral-700);
   --ds-color-icon-disabled: var(--ds-color-neutral-400a);
@@ -633,7 +634,6 @@
   --ds-color-background-inverse-subtle: oklch(1 0 0 / 0.16);
   --ds-color-background-inverse-subtle-hovered: oklch(1 0 0 / 0.24);
   --ds-color-background-inverse-subtle-pressed: oklch(1 0 0 / 0.32);
-  --ds-color-text: var(--ds-color-dark-neutral-1000);
   --ds-color-background-accent-blue-subtler: var(--ds-color-blue-900);
   --ds-color-background-accent-blue-bolder: var(--ds-color-blue-400);
   --ds-color-background-accent-teal-subtler: var(--ds-color-teal-900);
@@ -646,6 +646,7 @@
   --ds-color-background-accent-red-bolder: var(--ds-color-red-400);
   --ds-color-background-accent-purple-subtler: var(--ds-color-purple-900);
   --ds-color-background-accent-purple-bolder: var(--ds-color-purple-400);
+  --ds-color-text: var(--ds-color-dark-neutral-1000);
   --ds-color-text-subtle: var(--ds-color-dark-neutral-800);
   --ds-color-text-subtlest: var(--ds-color-dark-neutral-700);
   --ds-color-text-disabled: var(--ds-color-dark-neutral-400a);
@@ -661,13 +662,13 @@
   --ds-color-text-success-bolder: var(--ds-color-green-200);
   --ds-color-text-information: var(--ds-color-blue-300);
   --ds-color-text-information-bolder: var(--ds-color-blue-200);
-  --ds-color-icon: var(--ds-color-dark-neutral-1000);
   --ds-color-text-accent-blue: var(--ds-color-blue-200);
   --ds-color-text-accent-teal: var(--ds-color-teal-200);
   --ds-color-text-accent-green: var(--ds-color-green-200);
   --ds-color-text-accent-orange: var(--ds-color-orange-200);
   --ds-color-text-accent-red: var(--ds-color-red-200);
   --ds-color-text-accent-purple: var(--ds-color-purple-200);
+  --ds-color-icon: var(--ds-color-dark-neutral-1000);
   --ds-color-icon-subtle: var(--ds-color-dark-neutral-800);
   --ds-color-icon-subtlest: var(--ds-color-dark-neutral-700);
   --ds-color-icon-disabled: var(--ds-color-dark-neutral-400a);
@@ -812,7 +813,6 @@
     --ds-color-background-inverse-subtle: oklch(1 0 0 / 0.16);
     --ds-color-background-inverse-subtle-hovered: oklch(1 0 0 / 0.24);
     --ds-color-background-inverse-subtle-pressed: oklch(1 0 0 / 0.32);
-    --ds-color-text: var(--ds-color-dark-neutral-1000);
     --ds-color-background-accent-blue-subtler: var(--ds-color-blue-900);
     --ds-color-background-accent-blue-bolder: var(--ds-color-blue-400);
     --ds-color-background-accent-teal-subtler: var(--ds-color-teal-900);
@@ -825,6 +825,7 @@
     --ds-color-background-accent-red-bolder: var(--ds-color-red-400);
     --ds-color-background-accent-purple-subtler: var(--ds-color-purple-900);
     --ds-color-background-accent-purple-bolder: var(--ds-color-purple-400);
+    --ds-color-text: var(--ds-color-dark-neutral-1000);
     --ds-color-text-subtle: var(--ds-color-dark-neutral-800);
     --ds-color-text-subtlest: var(--ds-color-dark-neutral-700);
     --ds-color-text-disabled: var(--ds-color-dark-neutral-400a);
@@ -840,13 +841,13 @@
     --ds-color-text-success-bolder: var(--ds-color-green-200);
     --ds-color-text-information: var(--ds-color-blue-300);
     --ds-color-text-information-bolder: var(--ds-color-blue-200);
-    --ds-color-icon: var(--ds-color-dark-neutral-1000);
     --ds-color-text-accent-blue: var(--ds-color-blue-200);
     --ds-color-text-accent-teal: var(--ds-color-teal-200);
     --ds-color-text-accent-green: var(--ds-color-green-200);
     --ds-color-text-accent-orange: var(--ds-color-orange-200);
     --ds-color-text-accent-red: var(--ds-color-red-200);
     --ds-color-text-accent-purple: var(--ds-color-purple-200);
+    --ds-color-icon: var(--ds-color-dark-neutral-1000);
     --ds-color-icon-subtle: var(--ds-color-dark-neutral-800);
     --ds-color-icon-subtlest: var(--ds-color-dark-neutral-700);
     --ds-color-icon-disabled: var(--ds-color-dark-neutral-400a);

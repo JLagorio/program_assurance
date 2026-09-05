@@ -13,5 +13,6 @@
 @import "../generated/tokens.css";
 @import "../generated/utilities.css";
 @import "./motion.css";
+@import "./chart.css";
 @import "./density.css";
 @import "./layout.css";

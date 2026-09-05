@@ -1,0 +1,121 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Chart } from "../../components";
+import * as Stories from "./ChartBar.stories";
+
+<Meta of={Stories} />
+
+# Bar
+
+Bars per category: the size of each thing, compared. Several series sit side by side or stack into parts of a whole; a bar runs down the side when its name is long; a value that is a `[from, to]` pair floats, which is how a phase window is drawn. Carbon's simple, grouped, stacked, horizontal and bullet bar charts are all this one part; a histogram is a bar chart of bins the data layer makes. It lives in a [Chart](?path=/docs/components-chart-overview--docs) Frame, which names it, keys it and lays it out as a table.
+
+<Canvas of={Stories.BarMatrix} />
+
+## Anatomy
+
+| Part         | What it is                                                                                                                                                  |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bar          | 24px thick at most, the data end rounded 2px and the baseline end square; `barCategoryGap` a quarter of the slot. Grouped bars sit 2px apart.               |
+| Segment      | In a stack, a part of the bar in its series' tone, with a 2px `elevation.surface` gap from the next, so the parts count.                                    |
+| Floating bar | A `[from, to]` value: the bar starts at `from`. For windows in time.                                                                                         |
+| End label    | The value at the bar's end in `font.body.xsmall` and `color.text.subtle`, outside the bar. `labels="end"`, for a few bars and no stack.                      |
+| Target       | A 2px mark in `color.text` across the bar at the datum's `target` value: actual reads against planned.                                                      |
+| Line         | A series drawn as a 2px line over the bars on the same axis: a cumulative, a rate, a plan.                                                                  |
+| Axes         | The category axis with a hairline; the value axis from zero, no line, ticks in `color.text.subtlest`. Titles in `color.text.subtle` when the keys do not say enough. |
+| Tooltip      | The category, every series at it keyed by a square, and the total when stacked. A hovered bar lightens to 80%.                                              |
+
+## Variants
+
+| Variant                | Use                                                                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| One series             | Findings by source. `brand` when the reader is asked to look, `neutral` when it is context. No legend; the title names it. |
+| Grouped                | Two or three series side by side, in the categorical set. Past three the groups blur: stack, or emphasise one as a Line.  |
+| `stacked`              | Parts of each whole, in the status tones or the categorical set. The tooltip totals them.                                 |
+| `horizontal`           | Long names, or many categories: the names read whole down the side.                                                       |
+| `target`               | A mark across each bar at its target: Carbon's bullet chart, without the qualitative bands.                               |
+| `[from, to]` values    | Floating bars: phase windows, with `horizontal` and a `reference` for today.                                              |
+| `line`                 | One series as a line over the bars, on the same axis: closed against the plan.                                            |
+
+<Canvas of={Stories.Single} />
+<Canvas of={Stories.Grouped} />
+<Canvas of={Stories.Stacked} />
+<Canvas of={Stories.Horizontal} />
+<Canvas of={Stories.Targets} />
+<Canvas of={Stories.Windows} />
+<Canvas of={Stories.Combo} />
+
+## Sizes
+
+`size` is the plot's height: `small` 120px, `medium` 200px (the default), `large` 320px, or `height` in pixels. A bar never grows past 24px however wide the plot; the slots grow instead, so a wide chart of four bars still reads as four bars and not four slabs. A horizontal chart gives its category axis the width its longest name needs, to 160px, and cuts the rest with the whole name in a title.
+
+## States
+
+| State    | What changes                                                                                                                                   |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hover    | The tooltip for the category; a `color.background.neutral.subtle.hovered` band behind the slot; the bar under the pointer at 80%.               |
+| Isolated | A series hidden from the Frame's legend leaves the plot; the others keep their places.                                                          |
+| Chosen   | With `onSelect` or `details`: the bars take the pointer, a click on one chooses it and the other categories dim; Enter on the focused plot chooses the category under the tooltip. The card opens on the bar. |
+| Loading  | Eight skeleton columns on a hairline, pulsing, at the plot's height; five skeleton bars when `horizontal`.                                     |
+| Entering | The bars grow from the baseline over `motion.duration.slow`; a change of data moves them.                                                      |
+
+<Canvas of={Stories.Details} />
+
+## Modifiers
+
+- **`stacked`**, **`horizontal`**, **`labels="end"`**, **`target`**, **`line`** as in Variants.
+- **`xLabel`**, **`yLabel`** print axis titles: the unit on the value axis when the title does not say it.
+- **`reference`** draws dashed lines: a target across every bar, a milestone on the category axis, labelled at the end. A `y` reference on a horizontal chart is a vertical line, labelled above the plot.
+- **`format`**, **`formatX`** for the numbers and the categories, inherited from the Frame.
+- **`onSelect`** and **`details`** as in States; the selection is `{ datum, series?, index }`, and `series` is absent when Enter chose the whole category.
+- **`loading`** draws the skeleton; the Frame sets it from `status="loading"`.
+- **`label`** names the plot outside a Frame.
+
+## Content
+
+- **Categories are short**: a code, a name, a month. A long name goes down the side with `horizontal`.
+- **Print a value only at the end** of a few unstacked bars. A stack's parts are the tooltip's and the table's.
+- **A target is a fact about the datum**, in its own key, not a series: the mark is ink.
+- **The value axis starts at zero.** A bar's length is its meaning; there is no `baseline="auto"` here on purpose.
+
+## Style
+
+| Element   | Token                                                                                                  |
+| --------- | ------------------------------------------------------------------------------------------------------ |
+| Bar       | `color.chart.<tone>` · 24px at most · `radius` 2px at the data end · hover at 80%                      |
+| Stack gap | 2px `elevation.surface`                                                                                |
+| Group gap | 2px                                                                                                    |
+| End label | `font.body.xsmall` · `color.text.subtle` · tabular · 4px off the end                                   |
+| Target    | `color.text` · 2px · 24px across                                                                       |
+| Line      | `color.chart.<tone>` · 2px · round joins · a ringed 8px marker on hover                                |
+| Cursor    | `color.background.neutral.subtle.hovered` behind the slot                                              |
+| Dimmed    | `opacity.disabled`, over `motion.duration.fast`                                                        |
+| Skeleton  | `color.skeleton` columns on a `color.border` hairline                                                  |
+
+## Accessibility
+
+- **Named by the Frame**, or by `label`: the plot is a group, focusable, and the arrow keys move the tooltip across the categories. Enter chooses the category when the plot has `onSelect` or `details`; the card that opens is a dialog, and focus returns to the plot after.
+- **The table is the other copy** of the same numbers, one toggle away in the Frame; a stack's parts and its total are columns there.
+- **A status series says its status** in the legend, the tooltip and the table; the tone reinforces.
+- **The target is a mark in ink**, not a colour, so it reads under every vision.
+- **Loading is `aria-busy`** and named "[the plot's name], loading".
+
+## Props
+
+<ArgTypes of={Chart.Bar} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Chart](?path=/docs/components-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
+- [Line](?path=/docs/components-chart-line--docs): the same categories over time, when the change matters more than the size.
+- [Progress](?path=/docs/components-progress--docs): one stacked bar of a register's parts, without axes.
+- [Treemap](?path=/docs/components-chart-treemap--docs): parts of a whole with a hierarchy.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

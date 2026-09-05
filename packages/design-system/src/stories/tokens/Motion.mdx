@@ -12,6 +12,7 @@ Fast and quiet. Motion is one duration pair and one curve; nothing in a componen
 | --- | --- | --- | --- |
 | `motion.duration.fast` | 120ms | `duration-fast` | Hover and press colour changes. |
 | `motion.duration.medium` | 180ms | `duration-medium` | Overlays entering and leaving. |
+| `motion.duration.slow` | 400ms | `duration-slow` | Marks arriving on a chart, and a drill-down redrawing it. Nothing else is this slow. |
 | `motion.easing.standard` | cubic-bezier(0.2, 0, 0.2, 1) | `ease-standard` | The one curve. |
 
 ## Transitions
@@ -34,4 +35,4 @@ Fast and quiet. Motion is one duration pair and one curve; nothing in a componen
 | `animate-slide-in-top`, `animate-slide-out-top` | Slide from the top | medium | Defined for a top banner. Nothing uses them yet. |
 | `animate-rise` | A `space.075` rise with a fade | medium | A page arriving: IndexPage and ShowPage. Use it for page-level content only. |
 
-Under `prefers-reduced-motion: reduce` every one of these collapses to 0.01ms.
+Under `prefers-reduced-motion: reduce` every one of these collapses to 0.01ms, and a chart draws its marks in place (`src/styles/chart.css` and the Chart's motion hook read the same query).

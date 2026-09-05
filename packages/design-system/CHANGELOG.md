@@ -107,6 +107,26 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   so no button is nested in a link or a button. The leading slot is a 20px mark centred on the
   title's line; the trailing value, the actions and the mark share that line. The `meta` truncates
   instead of pushing the trailing value off the row. Components/Item: Matrix, Lists.
+- `Stepper` is one button per step, marker and text together, where it had been up to four
+  elements a step with two hidden per orientation. The list now knows each step's place and its
+  neighbour's state, so the rail is bold (`color.border.selected`) behind every completed step and a
+  hairline ahead, and the first and last steps stop it themselves: `first` and `last` on
+  `Stepper.Item` are deprecated no-ops. The state is spoken before the label and the current step
+  carries `aria-current="step"`. Components/Stepper: Matrix.
+- `Timeline` takes Item's anatomy: a row that opens is its title stretched over the row, the
+  trailing slot beside it, so nothing interactive sits inside a button. The group label is an
+  Eyebrow (so `color.text.subtle`, from subtlest) that labels the group's list.
+  Components/Timeline: Matrix, Activity.
+- `Tree` follows the ARIA tree pattern: the row is the tree item and the tab stop, the selected
+  row (or the first) is tabbable and the rest are reached with the arrows, which move, open and
+  close; Enter or Space selects; the chevron is for the mouse and hidden from the keyboard. It had
+  been two buttons inside a tree item. Components/Tree: Matrix, Families.
+- Stepper, Timeline and Tree are on the template, walked against Carbon's Progress indicator and
+  Tree view, Base Web's ProgressSteps and TreeView, and Atlassian's Progress tracker and Tree as
+  known; no reference has a timeline, so its page says whose conventions it follows. Said on the
+  pages and not built: a disabled step, a step skeleton, a step with a body; alternating or
+  horizontal timelines, a folded "show more"; a checkbox tree, drag to reorder, a tree that owns
+  its data. Components/Stepper, Components/Timeline, Components/Tree.
 - Breadcrumb, Item, Avatar, Id, KeyValue, Fact and Typography are on the template, walked against
   Carbon's Breadcrumb (usage, style, accessibility), Contained list and Structured list, Base Web's
   Breadcrumbs, Avatar, List, Typography and Heading, and Atlassian's Breadcrumbs, Avatar and
@@ -222,6 +242,13 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   `isCollapsible` with `defaultOpen`, `open` and `onOpenChange`: its children fold behind a chevron,
   and a nested `Item.Group` in them is a milestone and its tasks. The POA&M's three hand-drawn list
   headers are group titles. Components/Item: Matrix, Nested, Dont.
+- `Stepper` takes `numbered`, the step's number in its marker (Carbon, Base Web), and `label`
+  for the list's name. `Timeline` takes `link` for a row that is a router Link, `dateTime` for a
+  machine-readable stamp that makes the time a `<time>`, and `label`. `Tree` takes
+  `size="xsmall"` (24px rows, Carbon's extra small) beside the 32px default, and the keyboard.
+  `Eyebrow` takes `id`, so a list can be labelled by it. The wizard and the coverage header drop
+  their `first`/`last` flags. Components/Stepper: Matrix, Paths; Components/Timeline: Matrix;
+  Components/Tree: Matrix.
 - `Eyebrow` takes `as`: `h3` or `h4` when it heads a section, so the page's outline has it,
   `dt` when it labels a value. Fifty-four eyebrows the prototype drew by hand are `Eyebrow`,
   the section headings among them as headings. Components/Typography: Matrix, InRail.
@@ -280,6 +307,41 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   with the parts hung off it (`Chart.Frame` is the same function); `ChartTone` no longer has
   `categorical.8`; `Chart.Donut`'s accessible name is `name`, since `label` is the number in the
   middle; a Sparkline with no `label` is hidden from a screen reader.
+- The family is nine parts in `src/components/chart/`, one file each, and nine pages: Overview
+  (the Frame), Bar, Line, Area, Donut, Sparkline, Scatter, Treemap and Heatmap, each on the template
+  with its own Matrix in the axe gate. The `Chart.*` spelling is unchanged. Components/Chart.
+- Choosing a mark. Every part takes `onSelect` (a click on a bar, a slice, a point, a tile, a cell;
+  a click in a point's column on a Line or an Area) and `details`, which opens a card on the chosen
+  mark: a Popover anchored to it with the kit's head (the swatch, the name, the category, the value,
+  or every series at a category) and the caller's facts and link under it. The other marks dim while
+  it is open; Escape or a click outside closes it and focus returns to the plot. `onSelect` now
+  receives one selection object per part (`{ datum, series?, index }` on the cartesian parts,
+  `{ slice, share, index }`, `{ datum, group, index }`, `{ name, value, group }`, `{ row, column,
+  value }`) in place of positional arguments. Components/Chart/Overview: Details, Filtering; each
+  part's Details.
+- The keyboard chooses too. A named plot's tab stop is recharts' svg; the arrow keys move the
+  tooltip across the categories and Enter chooses the one under it, opening its card. The focus
+  ring is the kit's, on the keyboard only: a click focuses the plot without one, whatever the
+  browser's heuristic (`src/styles/chart.css`, `data-focus` on the plot).
+- Drill-down. The Frame takes `path`, the levels so far as a Breadcrumb under the description,
+  every crumb but the last a way back; a click on a bar or a tile redraws the same plot one level
+  down, and the marks move to their new places. Components/Chart/Overview: Drilldown;
+  Components/Chart/Treemap: Drilldown.
+- Motion. Marks arrive over the new `motion.duration.slow` (400ms) on the standard curve, a change
+  of data moves them, the tooltip follows over `motion.duration.fast`, and a legend hover fades the
+  other series over the same; under `prefers-reduced-motion` the marks draw in place. Tokens/Motion;
+  Components/Chart/Overview: Motion.
+- Loading. `status="loading"` on the Frame, or `loading` on a part, draws the plot's own silhouette
+  in `color.skeleton` at its height: columns, bars, a line, a wash, dots, tiles, a ring, a grid of
+  cells. `status="refreshing"` keeps the last plot at `opacity.loading` with a Spinner beside the
+  title. Components/Chart/Overview: States.
+- Bars and lines take `xLabel` and `yLabel` (axis titles); a reference's label on a vertical line
+  sits above the plot rather than inside it; a stacked tooltip prints its total; a hovered slice
+  grows 2px; a chosen point is ringed on every line; a Heatmap's `showValues` on a colour scale
+  prints the number on a surface chip, so text never sits on a chart colour. Components/Chart/Bar:
+  Windows, Combo; Components/Chart/Heatmap.
+- `scripts/ds-check.mjs`: a file named `_x.tsx` under a layer is the folder's shared furniture and
+  not an export; a family's Matrix may mention a part by its compound name (`Chart.Bar`).
 
 ## 0.4.0 · 2026-09-04
 

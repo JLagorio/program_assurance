@@ -1,0 +1,40 @@
+/* Recharts under the kit. The chart parts set the paint and the marks inline from the tokens; these
+   rules reach what a prop cannot: the layers' opacity transition when a legend dims them, the
+   tooltip's portal, and the wrapper's cursor. Nothing here names a number. */
+.recharts-wrapper .recharts-layer,
+.recharts-wrapper .recharts-rectangle,
+.recharts-wrapper .recharts-sector,
+.recharts-wrapper .recharts-symbols,
+.recharts-wrapper .recharts-treemap-depth-1 > g {
+  transition:
+    opacity var(--ds-motion-duration-fast) var(--ds-motion-easing-standard),
+    fill-opacity var(--ds-motion-duration-fast) var(--ds-motion-easing-standard);
+}
+.recharts-wrapper .recharts-tooltip-wrapper {
+  outline: none;
+}
+/* The tab stop is the svg. The kit's focus ring on the keyboard; nothing on a click, whatever the
+   browser's own heuristic says (the plot's wrapper says which through data-focus). */
+.recharts-wrapper .recharts-surface:focus {
+  outline: none;
+}
+.recharts-wrapper .recharts-surface:focus-visible {
+  outline: var(--ds-border-width-focused) solid var(--ds-color-border-focused);
+  outline-offset: var(--ds-space-025);
+  border-radius: var(--ds-radius-small);
+}
+[data-focus="pointer"] .recharts-wrapper .recharts-surface:focus-visible {
+  outline: none;
+}
+/* A plot with marks that open something takes the pointer over them, not over the whole plot. */
+.recharts-wrapper .recharts-tooltip-cursor {
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .recharts-wrapper .recharts-layer,
+  .recharts-wrapper .recharts-rectangle,
+  .recharts-wrapper .recharts-sector,
+  .recharts-wrapper .recharts-symbols {
+    transition: none;
+  }
+}

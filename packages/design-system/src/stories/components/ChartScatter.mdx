@@ -1,0 +1,109 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Chart } from "../../components";
+import * as Stories from "./ChartScatter.stories";
+
+<Meta of={Stories} />
+
+# Scatter
+
+A point per record on two value axes: where each thing sits on two measures at once. Risks by likelihood and impact; findings by age and severity. Points fall into groups of a tone, three at most; a bubble's area follows a third value; two references make quadrants. Each point is a record, so a click opens its card. It lives in a [Chart](?path=/docs/components-chart-overview--docs) Frame.
+
+<Canvas of={Stories.ScatterMatrix} />
+
+## Anatomy
+
+| Part      | What it is                                                                                                                                 |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Point     | 8px across in its group's tone, ringed 2px in the surface so overlapping points stay apart, with a hit area 24px across.                   |
+| Bubble    | With `z`, a point whose area follows the value (twice the value, twice the ink), at 70% so what is under it shows.                          |
+| Axes      | Both value axes, a hairline on the category side, ticks in `color.text.subtlest`, titles in `color.text.subtle` when the keys do not say enough. |
+| Grid      | Hairlines both ways, since both axes are values.                                                                                          |
+| Reference | A dashed hairline at a value on either axis; one on each makes quadrants.                                                                  |
+| Tooltip   | The point's name and group, then each axis as name and value. Per point, not per column.                                                   |
+| Card      | On a chosen point: its name, group and axes, then the caller's facts and a way to the record.                                              |
+
+## Variants
+
+| Variant   | Use                                                                                                                       |
+| --------- | ------------------------------------------------------------------------------------------------------------------------- |
+| One tone  | Every point in `brand`: the shape of the cloud is the point.                                                              |
+| `groups`  | Up to three groups by a key, each a tone: status groups in the status tones, kinds in the first three categorical hues.    |
+| `z`       | A bubble: exposure, cost, count.                                                                                           |
+| Quadrants | A `reference` on each axis: the four corners the reader names ("treat", "accept").                                        |
+
+<Canvas of={Stories.Groups} />
+<Canvas of={Stories.Bubbles} />
+
+## Sizes
+
+`size` is the plot's height: `small` 120px, `medium` 200px, `large` 320px (the right one for a scatter that is a page's point), or `height` in pixels. Bubbles range from 64 to 900 square pixels whatever the plot's size.
+
+## States
+
+| State    | What changes                                                                                                                       |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Hover    | The tooltip at the point. No cursor band, since there is no category.                                                              |
+| Isolated | A group hidden from the Frame's legend leaves the plot.                                                                            |
+| Chosen   | With `onSelect` or `details`: the points take the pointer, a click chooses one, the others dim and the chosen one gains a halo; the card opens on it. |
+| Loading  | Eight skeleton dots on two hairlines, pulsing, at the plot's height.                                                               |
+| Entering | The points arrive over `motion.duration.slow`.                                                                                     |
+
+<Canvas of={Stories.Details} />
+
+## Modifiers
+
+- **`z`** for a bubble; **`name`** for the key that names a point.
+- **`groupBy`** and **`groups`** for the groups and their tones; **`tone`** for every point when there are none.
+- **`reference`**, **`xLabel`**, **`yLabel`**, **`format`**, **`formatX`** as on the other parts.
+- **`onSelect`** and **`details`** as in States; the selection is `{ datum, group, index }`.
+- **`loading`** draws the skeleton; the Frame sets it from `status="loading"`.
+- **`label`** names the plot outside a Frame.
+
+## Content
+
+- **Both axes are measures.** A category on one axis is a Bar or a strip; two categories are a Heatmap.
+- **Three groups at most.** The first three hues validate against each other in every pairing; a fourth does not. Finer distinctions are the tooltip's or a filter's.
+- **Name the points** with `name`, so the tooltip and the card say which record.
+- **Title the axes** when the keys are not words the reader would say: "Likelihood", "Impact".
+- **A quadrant's meaning is in the description**, not drawn: "the lines split the register into quadrants".
+
+## Style
+
+| Element   | Token                                                                                     |
+| --------- | ----------------------------------------------------------------------------------------- |
+| Point     | `color.chart.<tone>` · 8px · 2px `elevation.surface` ring · 24px hit area                 |
+| Bubble    | The same at 70% · area from 64 to 900 square pixels                                       |
+| Grid      | `color.border` · 1px both ways                                                            |
+| Reference | `color.chart.neutral` · 1px dashed 4 3                                                    |
+| Chosen    | The point's tone: a halo 8px wider at 20%                                                 |
+| Dimmed    | `opacity.disabled`, over `motion.duration.fast`                                           |
+| Skeleton  | `color.skeleton` dots on `color.border` hairlines                                         |
+
+## Accessibility
+
+- **Named by the Frame**, or by `label`: the plot is a group and focusable. The arrow keys do not walk points (there is no category axis to walk), so the table is the keyboard's way in: one row per point, a column per axis.
+- **A chosen point's card is a dialog**, and focus returns to the plot when it closes.
+- **Three groups keep every pair apart** under deutan and protan vision; the legend carries their names, and the tooltip and the card say the group in words.
+- **A point's hit area is 24px** whatever its size, so a small point still takes a click.
+- **Loading is `aria-busy`** and named "[the plot's name], loading".
+
+## Props
+
+<ArgTypes of={Chart.Scatter} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Chart](?path=/docs/components-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
+- [Heatmap](?path=/docs/components-chart-heatmap--docs): the same two dimensions when both are ordinal scales, with a count per cell: the risk matrix.
+- [Bar](?path=/docs/components-chart-bar--docs): one measure per category.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

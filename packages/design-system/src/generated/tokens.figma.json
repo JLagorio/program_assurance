@@ -2606,6 +2606,15 @@
       "medium": {
         "$value": "180ms",
         "$description": "Overlays entering and leaving."
+      },
+      "slow": {
+        "$value": "400ms",
+        "$description": "Marks arriving on a chart, and a drill-down redrawing it.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.5.0"
+          }
+        }
       }
     },
     "easing": {

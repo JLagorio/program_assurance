@@ -1,0 +1,120 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Chart } from "../../components";
+import * as Stories from "./ChartHeatmap.stories";
+
+<Meta of={Stories} />
+
+# Heatmap
+
+A grid of rows by columns with a value painted in each cell: how much, across two dimensions. One hue from light to dark for a magnitude; two hues around grey for above and below; or the status tones by place, which is the risk matrix. It is a table, in the markup as on the page, so a screen reader reads it as one and the keyboard walks it. `Chart.Scale` is its key. It lives in a [Chart](?path=/docs/components-chart-overview--docs) Frame.
+
+<Canvas of={Stories.HeatmapMatrix} />
+
+## Anatomy
+
+| Part      | What it is                                                                                                                                  |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cell      | `radius.xsmall`, 2px from its neighbours, its fill the value's step on the scale; `color.background.neutral.subtle` when there is no value.  |
+| Value     | Printed in the cell on a status scale (the tone's text on its fill); on a colour scale a screen-reader-only text, or with `showValues` the number on an `elevation.surface` chip. |
+| Headers   | Column names across the top, row names down the side, in `font.body.xsmall` and `font.body.small`; the corner names the rows.               |
+| Scale     | `Chart.Scale`: the five steps in a row with the ends named, and the midpoint's word on a diverging one. Under the grid, `space.150` away.    |
+| Tooltip   | The cell's title: row, column, value.                                                                                                       |
+| Card      | On a chosen cell: the row and column, the value, then the caller's facts.                                                                   |
+
+## Variants
+
+| Variant                | Use                                                                                                                         |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `scale="sequential"`   | How much: findings by family and month, in `color.chart.sequential.1` to `5`. The default.                                  |
+| `scale="diverging"`    | Above and below a `midpoint`: schedule variance in days, red below and blue above around grey.                              |
+| A tone function        | Status by place: the risk matrix, each cell the tone its position earns, the count printed.                                 |
+| `showValues`           | The value printed on a colour scale too, when the reader must read every cell: on a surface chip in `color.text`, since text never sits on a chart colour. Off by default. |
+
+<Canvas of={Stories.Sequential} />
+<Canvas of={Stories.Diverging} />
+<Canvas of={Stories.Status} />
+
+## Sizes
+
+| `size`   | Cell height | Where                                                       |
+| -------- | ----------- | ----------------------------------------------------------- |
+| `small`  | 24px        | Many rows: families by month in a rail.                     |
+| `medium` | 32px        | A Section. The default.                                     |
+| `large`  | 40px        | A five-by-five matrix that is a page's point, values printed. |
+
+A cell is at least 40px wide; the grid scrolls sideways inside its own box past the width it has.
+
+## States
+
+| State    | What changes                                                                                                                       |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Hover    | The cell's title as a tooltip.                                                                                                     |
+| Chosen   | With `onSelect` or `details` the cells are buttons: a click or Enter chooses one, it takes the focus ring, the others dim, and the card opens on it. |
+| Loading  | Every cell in `color.skeleton`, pulsing, at the grid's size.                                                                       |
+| Isolated | Not applicable: a heatmap has no series to hide.                                                                                   |
+
+<Canvas of={Stories.Details} />
+
+## Modifiers
+
+- **`scale`**, **`domain`**, **`midpoint`**, **`showValues`** as in Variants.
+- **`rowLabel`**, **`columnLabel`** name the dimensions: the corner cell, and what a screen reader hears.
+- **`format`** for the values, the tooltip and the card.
+- **`onSelect`** and **`details`** as in States; the selection is `{ row, column, value }`.
+- **`loading`** draws the skeleton. The Frame does not set it: a grid's shape is its own.
+- **`label`** is required: the grid is a table and needs a name.
+
+## Content
+
+- **A magnitude is one hue.** Never a status tone for a count: nine findings is not "danger".
+- **Diverging needs a true midpoint**: zero variance, the plan, last year. Without one the data is sequential.
+- **Status by place prints its count**: the tone's text on the tone's fill is the Badge's, already in the contrast test.
+- **Name the dimensions**: "Likelihood" by "Impact", "Family" by "Month".
+- **The scale's ends are words**: "0" and "12 findings"; "−12 days", "On plan", "+12 days".
+
+## Style
+
+| Element   | Token                                                                                                                      |
+| --------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Cell      | `color.chart.sequential.<step>` · `color.chart.diverging.<step>` · or `color.background.<tone>` with `color.text.<tone>` · `radius.xsmall` · 2px apart |
+| Empty     | `color.background.neutral.subtle`                                                                                          |
+| Headers   | `font.body.xsmall` medium `color.text.subtlest` across · `font.body.small` `color.text.subtle` down                        |
+| Scale     | Five steps 24 by 8 · `radius.xsmall` · ends in `font.body.xsmall` `color.text.subtlest`                                    |
+| Chosen    | `color.border.focused` outline                                                                                             |
+| Dimmed    | `opacity.disabled`                                                                                                         |
+| Skeleton  | `color.skeleton`                                                                                                           |
+
+## Accessibility
+
+- **It is a table**: a `table` named by `label`, column headers across and row headers down, the corner naming the rows and, for a screen reader, the columns ("Likelihood by Impact"). A screen reader reads each cell as "row, column, value".
+- **Every cell has its value in text**: printed on a status scale, screen-reader-only on a colour scale, so the colour is never the only channel.
+- **Cells that choose are buttons**, focusable in reading order, with the kit's focus ring; a chosen one says `aria-pressed`. The card is a dialog and focus returns to the cell when it closes.
+- **The scale is `aria-hidden`**: its ends are text, and the values are in the cells.
+- **Loading is `aria-busy`** and named "[the grid's name], loading".
+
+## Props
+
+<ArgTypes of={Chart.Heatmap} />
+
+### Chart.Scale
+
+<ArgTypes of={Chart.Scale} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Chart](?path=/docs/components-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
+- [Scatter](?path=/docs/components-chart-scatter--docs): the same two dimensions as points, when both are measures.
+- [Table](?path=/docs/components-table--docs): what a heatmap is, with the values shown and the colour gone.
+- [Badge](?path=/docs/components-badge--docs): the tone table a status cell reads.
+- [Tokens/Color](?path=/docs/tokens-color--docs): the sequential and diverging steps, both modes.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

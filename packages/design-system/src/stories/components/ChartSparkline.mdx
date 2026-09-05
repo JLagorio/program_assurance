@@ -1,0 +1,110 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Chart } from "../../components";
+import * as Stories from "./ChartSparkline.stories";
+
+<Meta of={Stories} />
+
+# Sparkline
+
+A trend with no axes, no grid and no legend, beside the number it belongs to: in a Stat tile, in a table's trend column, after a count. The number carries the value; the sparkline carries the shape. A line by default, a wash or bars when asked, with an end dot for the last point and a hairline for a reference. Ninety-six by twenty-four pixels. Unnamed it is decoration; named, it is a plot with a tooltip.
+
+<Canvas of={Stories.SparklineMatrix} />
+
+## Anatomy
+
+| Part      | What it is                                                                                     |
+| --------- | ---------------------------------------------------------------------------------------------- |
+| Line      | 1.5px in its tone, round joins; `area` adds the tone at 12% under it; `bars` is a column per point, 1px apart. |
+| End dot   | A 6px marker ringed in the surface on the last point: where the series is now.                 |
+| Reference | A dashed hairline at a value in `color.chart.neutral`: last period, the limit.                 |
+| Tooltip   | Only when named: the point's value and category.                                               |
+
+## Variants
+
+| Variant              | Use                                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------------ |
+| `appearance="line"`  | The default: a count over time.                                                                  |
+| `appearance="area"`  | A count whose size matters, with a reference for the limit.                                      |
+| `appearance="bars"`  | A count per period, where each period is discrete: closed per month.                             |
+| In a tile            | Beside the value of a Stat.Tile, `space.150` from the number.                                    |
+| In a row             | The trend column of a Table, 80 by 20, unnamed, so a screen reader hears the number once.        |
+
+<Canvas of={Stories.InTiles} />
+<Canvas of={Stories.InRows} />
+
+## Sizes
+
+| `width` × `height` | Where                                                             |
+| ------------------ | ----------------------------------------------------------------- |
+| 80 × 20            | A table row.                                                      |
+| 96 × 24            | Beside a Stat's value. The default.                               |
+| 120 × 28           | Bars, which need the width.                                       |
+| 160 × 40           | A card's corner, when the trend is the card's second fact.        |
+
+Anything larger is a [Line](?path=/docs/components-chart-line--docs) in a Frame, with axes.
+
+## States
+
+| State    | What changes                                                                                        |
+| -------- | --------------------------------------------------------------------------------------------------- |
+| Hover    | Nothing, unless named: then a marker and the tooltip at the point.                                  |
+| Loading  | A skeleton bar at the size, pulsing.                                                                |
+| Entering | The line draws in over `motion.duration.slow`.                                                      |
+
+A sparkline does not choose: nothing to click, nothing to open. The number beside it is the way to the record.
+
+## Modifiers
+
+- **`appearance`**, **`tone`**, **`endDot`**, **`reference`** as in Anatomy.
+- **`x`** names the category key, for the tooltip of a named sparkline.
+- **`width`**, **`height`** in pixels.
+- **`format`** for the tooltip.
+- **`label`** names it: "Open findings, nine months". Unsaid, it is decoration.
+- **`loading`** draws the skeleton; the Frame sets it from `status="loading"`.
+
+## Content
+
+- **Always beside a number.** A sparkline alone says only "up" or "down".
+- **One tone, the number's status** when it has one: `danger` beside open findings, `success` beside closed; `brand` or `neutral` otherwise. Never a categorical hue.
+- **Six to twelve points.** Fewer is a number; more is a Line.
+- **A reference is one value**: last period, the limit. Not a band, not a target series.
+
+## Style
+
+| Element   | Token                                                                 |
+| --------- | --------------------------------------------------------------------- |
+| Line      | `color.chart.<tone>` · 1.5px · round joins                            |
+| Wash      | `color.chart.<tone>` at 12%                                           |
+| Bars      | `color.chart.<tone>` · `radius` 1px at the top · 1px apart            |
+| End dot   | 6px · 2px `elevation.surface` ring                                    |
+| Reference | `color.chart.neutral` · 1px dashed 3 2                                |
+| Skeleton  | `color.skeleton` · `radius.xsmall`                                    |
+
+## Accessibility
+
+- **Unnamed, it is `aria-hidden`** and not focusable: the number beside it is the fact, and a screen reader hears it once.
+- **Named, it is a group**, focusable, with the arrow keys moving the tooltip across the points, and it should sit where no number says the same thing.
+- **Never the only carrier of a value.** If the shape matters enough to say, say it in the tile's note: "Down from 14 in January".
+- **The tone is not the meaning**: the number's word or Badge is.
+
+## Props
+
+<ArgTypes of={Chart.Sparkline} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Chart](?path=/docs/components-chart-overview--docs): the Frame, the tones, the motion.
+- [Stat](?path=/docs/components-stat--docs): the number it sits beside.
+- [Line](?path=/docs/components-chart-line--docs): the same series with axes, when it needs to say more.
+- [Table](?path=/docs/components-table--docs): the trend column.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

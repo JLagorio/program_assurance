@@ -1,0 +1,101 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Chart } from "../../components";
+import * as Stories from "./ChartTreemap.stories";
+
+<Meta of={Stories} />
+
+# Treemap
+
+Part-to-whole with a hierarchy: a tile per leaf, sized by value, in the tone of its top-level branch. Findings by system and component; controls by family and enhancement. Where the total goes, and where inside that. A name shows on a tile when it fits; the rest is the tooltip's. A click on a tile drills into its branch, or opens its card. It lives in a [Chart](?path=/docs/components-chart-overview--docs) Frame, whose legend names the branches.
+
+<Canvas of={Stories.TreemapMatrix} />
+
+## Anatomy
+
+| Part    | What it is                                                                                                                          |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Tile    | A leaf, `radius` 2px, in its branch's tone, with a 2px `elevation.surface` gap from its neighbours. Sized by value, 4:3 as far as the layout allows. |
+| Name    | The tile's name on an `elevation.surface` chip at 92% in `color.text`, when the tile is at least 64 by 28; cut with the whole in a title. |
+| Tooltip | The tile's name and value, keyed by a square.                                                                                       |
+| Card    | On a chosen tile: its name, its branch and its value, then the caller's facts.                                                      |
+
+## Variants
+
+| Variant     | Use                                                                                                                              |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Branches    | Two levels: systems in the categorical set, their components inside each in the same hue.                                        |
+| One branch  | One system alone, its components in its one hue: the level under a drill-down.                                                   |
+| Drill-down  | A click on a tile redraws the treemap with its branch, the way back in the Frame's `path`; a click on a component opens its card. |
+
+<Canvas of={Stories.Systems} />
+<Canvas of={Stories.Drilldown} />
+
+## Sizes
+
+`size` is the plot's height: `small` 120px, `medium` 200px, `large` 320px (the right one: tiles need room for their names), or `height` in pixels. A treemap should be at least 420px wide; narrower, most names fall to the tooltip.
+
+## States
+
+| State    | What changes                                                                                                            |
+| -------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Hover    | The tooltip.                                                                                                            |
+| Isolated | A branch hidden from the Frame's legend leaves the treemap; the rest re-tile. A hovered legend item dims the other branches. |
+| Chosen   | With `onSelect` or `details`: the tiles take the pointer, a click chooses one, the others dim; the card opens on the tile. |
+| Loading  | Four skeleton tiles, pulsing, at the plot's height.                                                                     |
+| Entering | The tiles arrive over `motion.duration.slow`; a drill-down re-tiles the same way.                                       |
+
+<Canvas of={Stories.Details} />
+
+## Modifiers
+
+- **`data`** as nodes: a name, a value on a leaf, children on a branch, a `tone` on a top-level node when the categorical order is not wanted.
+- **`format`** for the tooltip and the card.
+- **`onSelect`** and **`details`** as in States; the selection is `{ name, value, group }`, `group` being the top-level branch.
+- **`loading`** draws the skeleton; the Frame sets it from `status="loading"`.
+- **`label`** names the plot outside a Frame.
+
+## Content
+
+- **A hierarchy, or nothing.** A flat list of five is a Bar; a treemap earns its place when the reader asks "where, and where inside that".
+- **Six branches at most**, in the categorical set; more folds into Other.
+- **Names are short**: a component, a family. What does not fit is the tooltip's, and the table's.
+- **Values are one thing**: a count, a cost. Not a score.
+
+## Style
+
+| Element  | Token                                                                                     |
+| -------- | ----------------------------------------------------------------------------------------- |
+| Tile     | `color.chart.<tone>` · `radius` 2px · 2px `elevation.surface` gap                         |
+| Name     | `font.body.xsmall` · `color.text` on an `elevation.surface` chip at 92% · `radius` 2px    |
+| Dimmed   | `opacity.disabled`, over `motion.duration.fast`                                           |
+| Skeleton | `color.skeleton` tiles                                                                    |
+
+## Accessibility
+
+- **Named by the Frame**, or by `label`: the plot is a group and focusable. The tiles are not walked by the keyboard; the Frame's legend and table are the way in, one row per leaf.
+- **Text never sits on a tile's colour**: the name is on a surface chip, in the text colour.
+- **Every tile has a title** with its whole name and value, whether or not the name fits.
+- **A chosen tile's card is a dialog**, and focus returns to the plot when it closes.
+- **Loading is `aria-busy`** and named "[the plot's name], loading".
+
+## Props
+
+<ArgTypes of={Chart.Treemap} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Chart](?path=/docs/components-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
+- [Bar](?path=/docs/components-chart-bar--docs): parts compared without a hierarchy.
+- [Donut](?path=/docs/components-chart-donut--docs): parts of one whole with the whole in the middle.
+- [Tree](?path=/docs/components-tree--docs): the same hierarchy as an outline, when the reader wants to walk it.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

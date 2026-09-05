@@ -1,0 +1,115 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Chart } from "../../components";
+import * as Stories from "./ChartDonut.stories";
+
+<Meta of={Stories} />
+
+# Donut
+
+A ring of slices on a `color.chart.track`, with a number in the middle: one number against its whole, the parts around it. Half a ring is a gauge, a score against a scale with the number at its base. It sits inline, sized in pixels, beside a Stat or in a tile; in a [Chart](?path=/docs/components-chart-overview--docs) Frame it inherits the name and the legend's interaction. There is no pie: the number in the middle is what a pie could not say, and a ring of two slices for one number is a Stat.
+
+<Canvas of={Stories.DonutMatrix} />
+
+## Anatomy
+
+| Part    | What it is                                                                                                                    |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Track   | The full ring in `color.chart.track`, under the slices, so a single slice reads against its whole.                            |
+| Slice   | An arc in its tone, clockwise from the top, with a 2px `elevation.surface` gap from the next. A hovered slice grows 2px.       |
+| Label   | The number in the middle, `font.heading.xsmall` in `color.text`: the total, the share, the one that matters.                  |
+| Caption | One word under the number in `font.body.xsmall` and `color.text.subtle`: what it counts.                                      |
+| Tooltip | The slice's name and value, keyed by a square.                                                                                |
+| Card    | On a chosen slice: the slice, its value and its share of the whole, then the caller's facts.                                  |
+
+## Variants
+
+| Variant       | Use                                                                                                                |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Ring          | Parts of a whole with the whole in the middle: coverage, with the satisfied share printed.                         |
+| One slice     | One value against its whole: 62% assessed, the rest the track. The slice's tone is the value's status, or `brand`. |
+| `arc="half"`  | A gauge: a score from 0 to 100, the number at the base, the slice in the tone the score earns.                     |
+| Beside a Stat | The ring at 120 with its legend as a `Chart.Legend`, the Stat carrying the words.                                  |
+
+<Canvas of={Stories.BesideStat} />
+<Canvas of={Stories.Gauge} />
+
+## Sizes
+
+| `size` | `thickness` | Where                                                             |
+| ------ | ----------- | ----------------------------------------------------------------- |
+| 64     | 8           | A cell, a list row, a card's corner: done against left.           |
+| 120    | 12          | Beside a Stat. The default.                                       |
+| 160    | 16          | A tile of its own, with a number and a caption inside.            |
+| 200    | 20          | A gauge that is a section's point.                                |
+
+A gauge is half as tall as it is wide, plus 4px for the base. The label fits inside a ring of 120 or more; at 64 the number sits beside it.
+
+## States
+
+| State    | What changes                                                                                                                                                  |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hover    | The slice grows 2px outward; the tooltip.                                                                                                                     |
+| Isolated | A slice hidden from the Frame's legend leaves the ring; the others keep their angles and the track shows through.                                             |
+| Chosen   | With `onSelect` or `details`: the slices take the pointer, a click chooses one and the others dim; the card opens at the slice's middle.                       |
+| Loading  | A skeleton ring at the size and thickness, pulsing.                                                                                                           |
+| Entering | The slices sweep round from the top over `motion.duration.slow`.                                                                                              |
+
+<Canvas of={Stories.Details} />
+
+## Modifiers
+
+- **`arc="half"`** for the gauge; **`size`** and **`thickness`** in pixels.
+- **`label`** and **`caption`** for the middle.
+- **`format`** for the tooltip and the card.
+- **`onSelect`** and **`details`** as in States; the selection is `{ slice, share, index }`.
+- **`loading`** draws the skeleton; the Frame sets it from `status="loading"`.
+- **`name`** names the ring outside a Frame.
+
+## Content
+
+- **Four slices at most, five with Other.** Past that the angles stop reading; the data is a Bar.
+- **The number in the middle is the point**: the share, the total, the score. The slices explain it.
+- **A caption is one word**: "satisfied", "open", "posture".
+- **Slices in status tones when they are statuses**, the categorical set when they are kinds, and the remainder always `neutral`.
+- **A gauge's slice wears the tone its score earns**: `success` past the target, `warning` near it, `danger` below.
+
+## Style
+
+| Element | Token                                                                         |
+| ------- | ----------------------------------------------------------------------------- |
+| Track   | `color.chart.track`                                                           |
+| Slice   | `color.chart.<tone>` · 2px `elevation.surface` gap · hover +2px               |
+| Label   | `font.heading.xsmall` · `color.text`                                          |
+| Caption | `font.body.xsmall` · `color.text.subtle`                                      |
+| Dimmed  | `opacity.disabled`, over `motion.duration.fast`                               |
+| Skeleton | `color.skeleton` ring                                                        |
+
+## Accessibility
+
+- **Named by `name` or the Frame**, the ring is a group and focusable; unnamed it is decoration beside its Stat, hidden from a screen reader so the number reads once.
+- **The number is text**, in the middle, not drawn: a screen reader reads it, and it never wears a chart colour.
+- **The legend carries the names**; a slice's tone reinforces its word. Beside a Stat, the legend is a `Chart.Legend`.
+- **A chosen slice's card is a dialog**, and focus returns to the ring when it closes. The slices themselves are not buttons, so a filter the ring drives is also a control on the page.
+- **Loading is `aria-busy`** and named "[the ring's name], loading".
+
+## Props
+
+<ArgTypes of={Chart.Donut} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Chart](?path=/docs/components-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
+- [Stat](?path=/docs/components-stat--docs): the number a two-slice ring wants to be.
+- [Progress](?path=/docs/components-progress--docs): one value against a whole as a bar, and a stacked bar of a register's parts.
+- [Bar](?path=/docs/components-chart-bar--docs): five or more parts compared.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

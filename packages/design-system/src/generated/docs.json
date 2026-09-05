@@ -4550,6 +4550,20 @@
     "utility": "duration-medium"
   },
   {
+    "name": "motion.duration.slow",
+    "cssVar": "--ds-motion-duration-slow",
+    "type": "duration",
+    "group": "motion",
+    "description": "Marks arriving on a chart, and a drill-down redrawing it.",
+    "light": "400ms",
+    "dark": null,
+    "lightResolved": "400ms",
+    "darkResolved": null,
+    "introduced": "0.5.0",
+    "deprecated": null,
+    "utility": "duration-slow"
+  },
+  {
     "name": "motion.easing.standard",
     "cssVar": "--ds-motion-easing-standard",
     "type": "cubicBezier",

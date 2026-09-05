@@ -208,6 +208,7 @@ export const classByToken = {
   "font.code": "font-code",
   "motion.duration.fast": "duration-fast",
   "motion.duration.medium": "duration-medium",
+  "motion.duration.slow": "duration-slow",
   "motion.easing.standard": "ease-standard",
   "opacity.disabled": "opacity-disabled",
   "opacity.loading": "opacity-loading",

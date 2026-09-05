@@ -1,0 +1,120 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Chart } from "../../components";
+import * as Stories from "./ChartLine.stories";
+
+<Meta of={Stories} />
+
+# Line
+
+A line per series over an ordered axis: a trend, a burndown, one measure against its plan. Two pixels wide with round joins, a ringed marker on hover, the last value printed after the line when asked. Straight segments by default, because the points are what was counted; a smooth curve never overshoots them. It lives in a [Chart](?path=/docs/components-chart-overview--docs) Frame, which names it, keys it and lays it out as a table.
+
+<Canvas of={Stories.LineMatrix} />
+
+## Anatomy
+
+| Part      | What it is                                                                                                                                   |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Line      | 2px in the series' tone, round caps and joins. `curve="smooth"` is a monotone curve through the same points.                                 |
+| Marker    | 8px across, ringed 2px in the surface so it reads over the line. On hover always; on every point with `dots`.                                |
+| End label | The series' last value after its line, `font.body.xsmall` in `color.text.subtle`; labels that would collide are pushed apart by a line's height. |
+| Gap       | A missing value breaks the line. `connectNulls` joins across it, for a gap that is not data.                                                 |
+| Band      | A 10% wash between two values: the tolerable range, the plan's tolerance, labelled at its top edge.                                          |
+| Reference | A dashed hairline at a value (a target, a limit) or at a category (a milestone), labelled at the end or above the plot.                       |
+| Axes      | The category axis with a hairline; the value axis from zero, or cropped to the data with `baseline="auto"`.                                  |
+| Tooltip   | The category, every series at it keyed by a stroke. The cursor is a `color.border.bold` hairline across the plot.                            |
+| Chosen    | The chosen category ringed on every line, in each series' tone.                                                                              |
+
+## Variants
+
+| Variant           | Use                                                                                                                     |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Plain             | Two or three series, each a tone. Findings open and closed.                                                             |
+| `curve="smooth"`  | A few points that are readings of one continuous thing. Never for counts that jump.                                     |
+| `dots`            | A marker on every point, when each point is an event and there are few of them.                                         |
+| `labels="end"`    | The last value after each line: the number the reader takes away. The default for a trend in a Frame.                   |
+| `baseline="auto"` | The value axis cropped to the data: a cumulative in the hundreds where the slope is the story. The description says so. |
+| `bands`, `reference` | A burndown: the tolerable range as a band, the limit in `danger`, a milestone on the category axis.                  |
+| Emphasis          | One series in `brand`, the rest in `neutral`: the honest answer to "make this clearer".                                 |
+
+<Canvas of={Stories.Lines} />
+<Canvas of={Stories.Smooth} />
+<Canvas of={Stories.Burndown} />
+<Canvas of={Stories.Cropped} />
+<Canvas of={Stories.Gaps} />
+
+## Sizes
+
+`size` is the plot's height: `small` 120px, `medium` 200px (the default), `large` 320px, or `height` in pixels. Category ticks thin themselves to what fits, keeping the first; the right margin grows by 44px for end labels.
+
+## States
+
+| State    | What changes                                                                                                                                                             |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Hover    | A hairline across the plot at the category, a marker on every line there, the tooltip.                                                                                   |
+| Isolated | A series hidden from the Frame's legend leaves the plot; the axis keeps its domain.                                                                                      |
+| Chosen   | With `onSelect` or `details`: a click anywhere in a category's column, or Enter on the focused plot, chooses it. Every series is ringed there and the card opens on the point. The selection carries no series: a point is the category. |
+| Loading  | A skeleton line on a hairline, pulsing, at the plot's height.                                                                                                             |
+| Entering | The lines draw in over `motion.duration.slow`; a change of data moves them.                                                                                              |
+
+<Canvas of={Stories.Details} />
+
+## Modifiers
+
+- **`curve`**, **`dots`**, **`labels`**, **`baseline`**, **`bands`**, **`reference`**, **`connectNulls`** as in Variants and Anatomy.
+- **`xLabel`**, **`yLabel`** print axis titles.
+- **`format`**, **`formatX`** for the numbers and the categories, inherited from the Frame.
+- **`onSelect`** and **`details`** as in States; the selection is `{ datum, index }`.
+- **`loading`** draws the skeleton; the Frame sets it from `status="loading"`.
+- **`label`** names the plot outside a Frame.
+
+## Content
+
+- **The category axis is ordered**: months, weeks, versions. Unordered categories are a Bar.
+- **Label the end**, never every point. The tooltip carries the rest.
+- **A cropped axis is declared** in the description: "the axis starts at the first month's count".
+- **A gap is a gap.** Say why in the description; do not join across it unless the gap is a sampling artefact.
+- **A limit is `danger`**, a target is `neutral`, a milestone is `neutral` on the category axis, each labelled with its name.
+
+## Style
+
+| Element   | Token                                                                                  |
+| --------- | -------------------------------------------------------------------------------------- |
+| Line      | `color.chart.<tone>` · 2px · round caps and joins                                      |
+| Marker    | 8px · 2px `elevation.surface` ring                                                     |
+| End label | `font.body.xsmall` · `color.text.subtle` · tabular · 8px after the line               |
+| Band      | `color.chart.<tone>` at 10% · label `font.body.xsmall` in `color.text.subtlest`        |
+| Reference | `color.chart.<tone>` · 1px dashed 4 3                                                  |
+| Cursor    | `color.border.bold` · 1px across the plot                                              |
+| Chosen    | The series' tone: an 8px marker in a 16px halo at 20%                                  |
+| Dimmed    | `opacity.disabled`, over `motion.duration.fast`                                        |
+| Skeleton  | `color.skeleton` · 2px path on a `color.border` hairline                              |
+
+## Accessibility
+
+- **Named by the Frame**, or by `label`: the plot is a group, focusable, the arrow keys move the tooltip across the categories, and Enter chooses one when the plot has `onSelect` or `details`. The card that opens is a dialog, and focus returns to the plot after.
+- **The table is the other copy** of the same numbers, one toggle away in the Frame.
+- **Two or more series have a legend**, and each end label is a number in the text colour, not the series colour.
+- **A gap is visible under every vision**: it is an absence, not a colour.
+- **Loading is `aria-busy`** and named "[the plot's name], loading".
+
+## Props
+
+<ArgTypes of={Chart.Line} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Chart](?path=/docs/components-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
+- [Area](?path=/docs/components-chart-area--docs): the same line with a wash, and stacked parts of a whole over time.
+- [Sparkline](?path=/docs/components-chart-sparkline--docs): a line with no axes beside its number.
+- [Bar](?path=/docs/components-chart-bar--docs): the same categories, when the size matters more than the change.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

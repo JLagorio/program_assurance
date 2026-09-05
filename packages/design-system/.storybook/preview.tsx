@@ -54,7 +54,7 @@ const preview: Preview = {
           "Primitives",
           ["Overview"],
           "Components",
-          ["Forms", "Overlays"],
+          ["Forms", "Overlays", "Chart", ["Overview", "*"], "*"],
           "Patterns",
           ["Pages"],
           "Shapes",
