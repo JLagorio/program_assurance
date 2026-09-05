@@ -3,11 +3,14 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Button, Chart, KeyValue } from "../../components";
 import { Box, Stack } from "../../primitives";
 import {
+  assessmentWindow,
   assessors,
   assessorsEmphasised,
+  authorizationDate,
   byAssessor,
   byMonth,
   byMonthGaps,
+  byWeek,
   findingSeries,
 } from "../_lib/chart-data";
 import { Specimens } from "../_lib/matrix";
@@ -63,6 +66,26 @@ export const LineMatrix: Story = {
         </Box>
         <Box style={{ width: 300 }}>
           <Chart.Line data={byMonthGaps} x="month" series={findingSeries} dots size="small" label="Findings, with gaps" />
+        </Box>
+      </Specimens>
+      <Specimens title="A time axis with a date band and a milestone · a shared domain · deltas in the tooltip">
+        <Box style={{ width: 300 }}>
+          <Chart.Line
+            data={byWeek}
+            x="date"
+            scale="time"
+            series={findingSeries}
+            bands={[{ fromX: assessmentWindow.from, toX: assessmentWindow.to, label: "Assessment" }]}
+            reference={[{ x: authorizationDate, label: "ATO" }]}
+            size="small"
+            label="Findings by week"
+          />
+        </Box>
+        <Box style={{ width: 300 }}>
+          <Chart.Line data={byMonth} x="month" series={open} domain={[0, 40]} size="small" label="Open findings, to 40" />
+        </Box>
+        <Box style={{ width: 300 }}>
+          <Chart.Line data={byMonth} x="month" series={findingSeries} delta size="small" label="Findings over time, with deltas" />
         </Box>
       </Specimens>
       <Specimens title="Emphasis (brand and neutral) · axis titles · loading">
@@ -148,6 +171,45 @@ export const Gaps: Story = {
     <Box style={{ width: 640 }}>
       <Chart title="Findings over time" description="The register was down in April and July" series={findingSeries} swatch="line" data={byMonthGaps} x="month" xLabel="Month">
         <Chart.Line data={byMonthGaps} x="month" series={findingSeries} dots />
+      </Chart>
+    </Box>
+  ),
+};
+
+/** Real dates: `scale="time"` spaces the weeks by time and picks the ticks by the span (months here, days or years elsewhere); a band between two dates is the assessment window and a reference on a date is the milestone. */
+export const Dates: Story = {
+  render: () => (
+    <Box style={{ width: 720 }}>
+      <Chart
+        title="Findings by week"
+        description="Open and closed at the end of each week, March to August"
+        series={findingSeries}
+        swatch="line"
+        data={byWeek}
+        x="date"
+        xLabel="Week"
+        download={["csv"]}
+      >
+        <Chart.Line
+          data={byWeek}
+          x="date"
+          scale="time"
+          series={findingSeries}
+          labels="end"
+          bands={[{ fromX: assessmentWindow.from, toX: assessmentWindow.to, label: "Assessment window" }]}
+          reference={[{ x: authorizationDate, label: "ATO" }]}
+        />
+      </Chart>
+    </Box>
+  ),
+};
+
+/** `delta`: the tooltip and the card print each series' change from the point before, signed, beside the value. */
+export const Deltas: Story = {
+  render: () => (
+    <Box style={{ width: 640 }}>
+      <Chart title="Findings over time" description="Hover a month for the change since the one before" series={findingSeries} swatch="line" data={byMonth} x="month" xLabel="Month">
+        <Chart.Line data={byMonth} x="month" series={findingSeries} delta details={() => null} />
       </Chart>
     </Box>
   ),

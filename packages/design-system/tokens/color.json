@@ -1456,62 +1456,134 @@
     "chart": {
       "$type": "color",
       "brand": {
-        "$value": "{color.blue.600}",
-        "$description": "The brand series: the one the reader is asked to look at. The same step in both modes, so a chart weighs the same on either surface.",
-        "$extensions": {
-          "ledger": {
-            "dark": "{color.blue.600}",
-            "introduced": "0.2.0"
+        "default": {
+          "$value": "{color.blue.600}",
+          "$description": "The brand series: the one the reader is asked to look at. The same step in both modes, so a chart weighs the same on either surface.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.600}",
+              "introduced": "0.2.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.blue.700}",
+          "$description": "The brand series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.500}",
+              "introduced": "0.5.0"
+            }
           }
         }
       },
       "neutral": {
-        "$value": "{color.neutral.500}",
-        "$description": "A series that is context, not the point: totals, the remainder, last period, the tail folded into Other. Also the threshold line.",
-        "$extensions": {
-          "ledger": {
-            "dark": "{color.darkNeutral.600}",
-            "introduced": "0.2.0"
+        "default": {
+          "$value": "{color.neutral.500}",
+          "$description": "A series that is context, not the point: totals, the remainder, last period, the tail folded into Other. Also the threshold line.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.600}",
+              "introduced": "0.2.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.neutral.600}",
+          "$description": "The neutral series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.darkNeutral.700}",
+              "introduced": "0.5.0"
+            }
           }
         }
       },
       "information": {
-        "$value": "{color.blue.500}",
-        "$description": "A series carrying an informational status: in progress, planned.",
-        "$extensions": {
-          "ledger": {
-            "dark": "{color.blue.500}",
-            "introduced": "0.2.0"
+        "default": {
+          "$value": "{color.blue.500}",
+          "$description": "A series carrying an informational status: in progress, planned.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.500}",
+              "introduced": "0.2.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.blue.600}",
+          "$description": "The information series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.blue.400}",
+              "introduced": "0.5.0"
+            }
           }
         }
       },
       "success": {
-        "$value": "{color.green.600}",
-        "$description": "A series carrying a success status: satisfied, closed, on time.",
-        "$extensions": {
-          "ledger": {
-            "dark": "{color.green.600}",
-            "introduced": "0.2.0"
+        "default": {
+          "$value": "{color.green.600}",
+          "$description": "A series carrying a success status: satisfied, closed, on time.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.600}",
+              "introduced": "0.2.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.green.700}",
+          "$description": "The success series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.green.500}",
+              "introduced": "0.5.0"
+            }
           }
         }
       },
       "warning": {
-        "$value": "{color.orange.600}",
-        "$description": "A series carrying a warning status: partial, at risk, due soon.",
-        "$extensions": {
-          "ledger": {
-            "dark": "{color.orange.600}",
-            "introduced": "0.2.0"
+        "default": {
+          "$value": "{color.orange.600}",
+          "$description": "A series carrying a warning status: partial, at risk, due soon.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.600}",
+              "introduced": "0.2.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.orange.700}",
+          "$description": "The warning series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.500}",
+              "introduced": "0.5.0"
+            }
           }
         }
       },
       "danger": {
-        "$value": "{color.red.600}",
-        "$description": "A series carrying a danger status: other than satisfied, overdue, open.",
-        "$extensions": {
-          "ledger": {
-            "dark": "{color.red.600}",
-            "introduced": "0.2.0"
+        "default": {
+          "$value": "{color.red.600}",
+          "$description": "A series carrying a danger status: other than satisfied, overdue, open.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.600}",
+              "introduced": "0.2.0"
+            }
+          }
+        },
+        "hovered": {
+          "$value": "{color.red.700}",
+          "$description": "The danger series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.red.500}",
+              "introduced": "0.5.0"
+            }
           }
         }
       },
@@ -1526,73 +1598,158 @@
         }
       },
       "categorical": {
+        "$type": "color",
         "1": {
-          "$value": "{color.blue.600}",
-          "$description": "Categorical series 1, blue. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
-          "$extensions": {
-            "ledger": {
-              "dark": "{color.blue.600}",
-              "introduced": "0.2.0"
+          "default": {
+            "$value": "{color.blue.600}",
+            "$description": "Categorical series 1, blue. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.600}",
+                "introduced": "0.2.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.blue.700}",
+            "$description": "The categorical series 1 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.blue.500}",
+                "introduced": "0.5.0"
+              }
             }
           }
         },
         "2": {
-          "$value": "{color.orange.600}",
-          "$description": "Categorical series 2, orange. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
-          "$extensions": {
-            "ledger": {
-              "dark": "{color.orange.600}",
-              "introduced": "0.2.0"
+          "default": {
+            "$value": "{color.orange.600}",
+            "$description": "Categorical series 2, orange. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.orange.600}",
+                "introduced": "0.2.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.orange.700}",
+            "$description": "The categorical series 2 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.orange.500}",
+                "introduced": "0.5.0"
+              }
             }
           }
         },
         "3": {
-          "$value": "{color.teal.600}",
-          "$description": "Categorical series 3, teal. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
-          "$extensions": {
-            "ledger": {
-              "dark": "{color.teal.600}",
-              "introduced": "0.2.0"
+          "default": {
+            "$value": "{color.teal.600}",
+            "$description": "Categorical series 3, teal. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.teal.600}",
+                "introduced": "0.2.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.teal.700}",
+            "$description": "The categorical series 3 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.teal.500}",
+                "introduced": "0.5.0"
+              }
             }
           }
         },
         "4": {
-          "$value": "{color.red.600}",
-          "$description": "Categorical series 4, red. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
-          "$extensions": {
-            "ledger": {
-              "dark": "{color.red.600}",
-              "introduced": "0.2.0"
+          "default": {
+            "$value": "{color.red.600}",
+            "$description": "Categorical series 4, red. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.red.600}",
+                "introduced": "0.2.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.red.700}",
+            "$description": "The categorical series 4 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.red.500}",
+                "introduced": "0.5.0"
+              }
             }
           }
         },
         "5": {
-          "$value": "{color.purple.600}",
-          "$description": "Categorical series 5, purple. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
-          "$extensions": {
-            "ledger": {
-              "dark": "{color.purple.600}",
-              "introduced": "0.2.0"
+          "default": {
+            "$value": "{color.purple.600}",
+            "$description": "Categorical series 5, purple. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.purple.600}",
+                "introduced": "0.2.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.purple.700}",
+            "$description": "The categorical series 5 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.purple.500}",
+                "introduced": "0.5.0"
+              }
             }
           }
         },
         "6": {
-          "$value": "{color.green.600}",
-          "$description": "Categorical series 6, green. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
-          "$extensions": {
-            "ledger": {
-              "dark": "{color.green.600}",
-              "introduced": "0.2.0"
+          "default": {
+            "$value": "{color.green.600}",
+            "$description": "Categorical series 6, green. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.green.600}",
+                "introduced": "0.2.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.green.700}",
+            "$description": "The categorical series 6 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.green.500}",
+                "introduced": "0.5.0"
+              }
             }
           }
         },
         "7": {
-          "$value": "{color.neutral.500}",
-          "$description": "Categorical series 7: Other, the fold for every category past the sixth. Grey on purpose, the same as color.chart.neutral.",
-          "$extensions": {
-            "ledger": {
-              "dark": "{color.darkNeutral.600}",
-              "introduced": "0.2.0"
+          "default": {
+            "$value": "{color.neutral.500}",
+            "$description": "Categorical series 7: Other, the fold for every category past the sixth. Grey on purpose, the same as color.chart.neutral.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.darkNeutral.600}",
+                "introduced": "0.2.0"
+              }
+            }
+          },
+          "hovered": {
+            "$value": "{color.neutral.600}",
+            "$description": "The categorical series 7 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+            "$extensions": {
+              "ledger": {
+                "dark": "{color.darkNeutral.700}",
+                "introduced": "0.5.0"
+              }
             }
           }
         },
@@ -1606,8 +1763,7 @@
               "deprecated": "color.chart.categorical.7"
             }
           }
-        },
-        "$type": "color"
+        }
       },
       "sequential": {
         "1": {

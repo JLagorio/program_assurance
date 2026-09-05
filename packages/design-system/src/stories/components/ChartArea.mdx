@@ -16,7 +16,7 @@ A [Line](?path=/docs/components-chart-line--docs) with a wash under it: the hue 
 | Part    | What it is                                                                                                    |
 | ------- | ------------------------------------------------------------------------------------------------------------- |
 | Line    | 2px in the series' tone, round joins, as on a Line.                                                           |
-| Wash    | The series' tone at 12% from the line to the baseline; in a stack, from the line to the series below.         |
+| Wash    | The series' tone at 12% from the line to the baseline; in a stack, from the line to the series below. With `texture`, the series' pattern in its colour instead. |
 | Marker  | 8px ringed, on hover, or on every point with `dots`.                                                          |
 | The rest | End labels, bands, references, gaps and axes as on a Line.                                                   |
 
@@ -26,10 +26,12 @@ A [Line](?path=/docs/components-chart-line--docs) with a wash under it: the hue 
 | ----------- | ------------------------------------------------------------------------------------------------------------ |
 | One series  | A count whose size matters: open findings, month by month. The wash gives it weight.                         |
 | `stacked`   | Parts of a whole over time: open and closed as parts of the month's total. The tooltip totals the stack.      |
-| `curve="smooth"`, `labels="end"`, `baseline="auto"`, `bands`, `reference` | As on a Line.                                          |
+| `texture`   | Each wash its pattern: four assessors stacked read apart in print.                                           |
+| `curve="smooth"`, `labels="end"`, `baseline="auto"`, `domain`, `scale="time"`, `delta`, `bands`, `reference` | As on a Line.       |
 
 <Canvas of={Stories.Single} />
 <Canvas of={Stories.Stacked} />
+<Canvas of={Stories.Textured} />
 
 ## Sizes
 
@@ -49,7 +51,7 @@ A [Line](?path=/docs/components-chart-line--docs) with a wash under it: the hue 
 
 ## Modifiers
 
-- **`stacked`** for parts of a whole.
+- **`stacked`** for parts of a whole; **`texture`** for the patterns.
 - **`curve`**, **`dots`**, **`labels`**, **`baseline`**, **`bands`**, **`reference`**, **`connectNulls`**, **`xLabel`**, **`yLabel`**, **`format`**, **`formatX`**, **`onSelect`**, **`details`**, **`loading`**, **`label`** as on a Line.
 
 ## Content
@@ -64,7 +66,7 @@ A [Line](?path=/docs/components-chart-line--docs) with a wash under it: the hue 
 | Element  | Token                                                                            |
 | -------- | -------------------------------------------------------------------------------- |
 | Line     | `color.chart.<tone>` · 2px · round joins                                         |
-| Wash     | `color.chart.<tone>` at 12%                                                      |
+| Wash     | `color.chart.<tone>` at 12% · or its pattern: the colour at 30% under 1.5px marks |
 | Marker   | 8px · 2px `elevation.surface` ring                                               |
 | Skeleton | `color.skeleton` path over a `color.skeleton.subtle` wash                        |
 | The rest | As on a Line                                                                     |

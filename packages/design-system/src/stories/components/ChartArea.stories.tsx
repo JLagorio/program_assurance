@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Button, Chart, KeyValue } from "../../components";
 import { Box, Stack } from "../../primitives";
-import { assessors, byAssessor, byMonth, findingSeries } from "../_lib/chart-data";
+import { assessors, byAssessor, byMonth, byWeek, findingSeries } from "../_lib/chart-data";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
@@ -30,6 +30,17 @@ export const AreaMatrix: Story = {
         </Box>
         <Box style={{ width: 300 }}>
           <Chart.Area data={byMonth} x="month" series={findingSeries} curve="smooth" labels="end" size="small" label="Findings over time" />
+        </Box>
+      </Specimens>
+      <Specimens title="Textured · a time axis · a shared domain">
+        <Box style={{ width: 300 }}>
+          <Chart.Area data={byAssessor} x="week" series={assessors.slice(0, 4)} stacked texture size="small" label="Reviews by assessor, textured" />
+        </Box>
+        <Box style={{ width: 300 }}>
+          <Chart.Area data={byWeek} x="date" scale="time" series={open} size="small" label="Open findings by week" />
+        </Box>
+        <Box style={{ width: 300 }}>
+          <Chart.Area data={byMonth} x="month" series={open} domain={[0, 40]} size="small" label="Open findings, to 40" />
         </Box>
       </Specimens>
       <Specimens title="Baseline auto · a band and a limit · loading">
@@ -72,6 +83,17 @@ export const Stacked: Story = {
     <Box style={{ width: 640 }}>
       <Chart title="Findings, open and closed" description="Parts of the month's total" series={findingSeries} data={byMonth} x="month" xLabel="Month">
         <Chart.Area data={byMonth} x="month" series={findingSeries} stacked />
+      </Chart>
+    </Box>
+  ),
+};
+
+/** `texture` on a stack: each wash wears its pattern in its colour, so four assessors read apart in print and under colour-vision loss. */
+export const Textured: Story = {
+  render: () => (
+    <Box style={{ width: 640 }}>
+      <Chart title="Reviews by assessor" description="Per week, stacked and textured" series={assessors.slice(0, 4)} texture data={byAssessor} x="week" xLabel="Week">
+        <Chart.Area data={byAssessor} x="week" series={assessors.slice(0, 4)} stacked />
       </Chart>
     </Box>
   ),

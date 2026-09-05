@@ -19,10 +19,10 @@ A line per series over an ordered axis: a trend, a burndown, one measure against
 | Marker    | 8px across, ringed 2px in the surface so it reads over the line. On hover always; on every point with `dots`.                                |
 | End label | The series' last value after its line, `font.body.xsmall` in `color.text.subtle`; labels that would collide are pushed apart by a line's height. |
 | Gap       | A missing value breaks the line. `connectNulls` joins across it, for a gap that is not data.                                                 |
-| Band      | A 10% wash between two values: the tolerable range, the plan's tolerance, labelled at its top edge.                                          |
+| Band      | A 10% wash between two values (the tolerable range, labelled at its top edge) or between two categories or dates (an assessment window, labelled above its middle). |
 | Reference | A dashed hairline at a value (a target, a limit) or at a category (a milestone), labelled at the end or above the plot.                       |
-| Axes      | The category axis with a hairline; the value axis from zero, or cropped to the data with `baseline="auto"`.                                  |
-| Tooltip   | The category, every series at it keyed by a stroke. The cursor is a `color.border.bold` hairline across the plot.                            |
+| Axes      | The category axis with a hairline, or a time axis whose ticks are hours, days, months or years by the span; the value axis from zero, cropped to the data with `baseline="auto"`, or pinned with `domain`. A value below zero draws the zero line. |
+| Tooltip   | The category, every series at it keyed by a stroke, and with `delta` each change from the point before. The cursor is a `color.border.bold` hairline across the plot. |
 | Chosen    | The chosen category ringed on every line, in each series' tone.                                                                              |
 
 ## Variants
@@ -36,16 +36,21 @@ A line per series over an ordered axis: a trend, a burndown, one measure against
 | `baseline="auto"` | The value axis cropped to the data: a cumulative in the hundreds where the slope is the story. The description says so. |
 | `bands`, `reference` | A burndown: the tolerable range as a band, the limit in `danger`, a milestone on the category axis.                  |
 | Emphasis          | One series in `brand`, the rest in `neutral`: the honest answer to "make this clearer".                                 |
+| `scale="time"`    | `x` holds dates: the points are spaced by time, the ticks pick their unit, and a band or a reference takes a date.       |
+| `domain`          | The value axis pinned, so charts side by side share a scale: small multiples, with `syncId` for one hover.              |
+| `delta`           | Each series' change from the point before, in the tooltip and the card.                                                 |
 
 <Canvas of={Stories.Lines} />
 <Canvas of={Stories.Smooth} />
 <Canvas of={Stories.Burndown} />
 <Canvas of={Stories.Cropped} />
 <Canvas of={Stories.Gaps} />
+<Canvas of={Stories.Dates} />
+<Canvas of={Stories.Deltas} />
 
 ## Sizes
 
-`size` is the plot's height: `small` 120px, `medium` 200px (the default), `large` 320px, or `height` in pixels. Category ticks thin themselves to what fits, keeping the first; the right margin grows by 44px for end labels.
+`size` is the plot's height: `small` 120px, `medium` 200px (the default), `large` 320px, or `height` in pixels. Category ticks thin themselves to what fits, keeping the first; a time axis draws at most eight ticks, each at a unit's start; the right margin grows by 44px for end labels.
 
 ## States
 
@@ -62,6 +67,7 @@ A line per series over an ordered axis: a trend, a burndown, one measure against
 ## Modifiers
 
 - **`curve`**, **`dots`**, **`labels`**, **`baseline`**, **`bands`**, **`reference`**, **`connectNulls`** as in Variants and Anatomy.
+- **`scale="time"`**, **`domain`**, **`delta`** as in Variants; **`syncId`** and **`texture`** as on the Frame (a line's stroke stays solid); a series' own **`format`**.
 - **`xLabel`**, **`yLabel`** print axis titles.
 - **`format`**, **`formatX`** for the numbers and the categories, inherited from the Frame.
 - **`onSelect`** and **`details`** as in States; the selection is `{ datum, index }`.
@@ -70,7 +76,7 @@ A line per series over an ordered axis: a trend, a burndown, one measure against
 
 ## Content
 
-- **The category axis is ordered**: months, weeks, versions. Unordered categories are a Bar.
+- **The category axis is ordered**: months, weeks, versions. Unordered categories are a Bar. Real dates go on a time axis, so a gap in the sampling is a gap in the plot.
 - **Label the end**, never every point. The tooltip carries the rest.
 - **A cropped axis is declared** in the description: "the axis starts at the first month's count".
 - **A gap is a gap.** Say why in the description; do not join across it unless the gap is a sampling artefact.
@@ -86,6 +92,8 @@ A line per series over an ordered axis: a trend, a burndown, one measure against
 | Band      | `color.chart.<tone>` at 10% · label `font.body.xsmall` in `color.text.subtlest`        |
 | Reference | `color.chart.<tone>` · 1px dashed 4 3                                                  |
 | Cursor    | `color.border.bold` · 1px across the plot                                              |
+| Zero line | `color.border.bold` · 1px                                                              |
+| Delta     | `font.body.small` · `color.text.subtlest` · tabular · signed                           |
 | Chosen    | The series' tone: an 8px marker in a 16px halo at 20%                                  |
 | Dimmed    | `opacity.disabled`, over `motion.duration.fast`                                        |
 | Skeleton  | `color.skeleton` · 2px path on a `color.border` hairline                              |

@@ -416,6 +416,15 @@
 @utility bg-chart-brand {
   background-color: var(--ds-color-chart-brand);
 }
+@utility fill-chart-brand-hovered {
+  fill: var(--ds-color-chart-brand-hovered);
+}
+@utility stroke-chart-brand-hovered {
+  stroke: var(--ds-color-chart-brand-hovered);
+}
+@utility bg-chart-brand-hovered {
+  background-color: var(--ds-color-chart-brand-hovered);
+}
 @utility fill-chart-neutral {
   fill: var(--ds-color-chart-neutral);
 }
@@ -424,6 +433,15 @@
 }
 @utility bg-chart-neutral {
   background-color: var(--ds-color-chart-neutral);
+}
+@utility fill-chart-neutral-hovered {
+  fill: var(--ds-color-chart-neutral-hovered);
+}
+@utility stroke-chart-neutral-hovered {
+  stroke: var(--ds-color-chart-neutral-hovered);
+}
+@utility bg-chart-neutral-hovered {
+  background-color: var(--ds-color-chart-neutral-hovered);
 }
 @utility fill-chart-information {
   fill: var(--ds-color-chart-information);
@@ -434,6 +452,15 @@
 @utility bg-chart-information {
   background-color: var(--ds-color-chart-information);
 }
+@utility fill-chart-information-hovered {
+  fill: var(--ds-color-chart-information-hovered);
+}
+@utility stroke-chart-information-hovered {
+  stroke: var(--ds-color-chart-information-hovered);
+}
+@utility bg-chart-information-hovered {
+  background-color: var(--ds-color-chart-information-hovered);
+}
 @utility fill-chart-success {
   fill: var(--ds-color-chart-success);
 }
@@ -442,6 +469,15 @@
 }
 @utility bg-chart-success {
   background-color: var(--ds-color-chart-success);
+}
+@utility fill-chart-success-hovered {
+  fill: var(--ds-color-chart-success-hovered);
+}
+@utility stroke-chart-success-hovered {
+  stroke: var(--ds-color-chart-success-hovered);
+}
+@utility bg-chart-success-hovered {
+  background-color: var(--ds-color-chart-success-hovered);
 }
 @utility fill-chart-warning {
   fill: var(--ds-color-chart-warning);
@@ -452,6 +488,15 @@
 @utility bg-chart-warning {
   background-color: var(--ds-color-chart-warning);
 }
+@utility fill-chart-warning-hovered {
+  fill: var(--ds-color-chart-warning-hovered);
+}
+@utility stroke-chart-warning-hovered {
+  stroke: var(--ds-color-chart-warning-hovered);
+}
+@utility bg-chart-warning-hovered {
+  background-color: var(--ds-color-chart-warning-hovered);
+}
 @utility fill-chart-danger {
   fill: var(--ds-color-chart-danger);
 }
@@ -460,6 +505,15 @@
 }
 @utility bg-chart-danger {
   background-color: var(--ds-color-chart-danger);
+}
+@utility fill-chart-danger-hovered {
+  fill: var(--ds-color-chart-danger-hovered);
+}
+@utility stroke-chart-danger-hovered {
+  stroke: var(--ds-color-chart-danger-hovered);
+}
+@utility bg-chart-danger-hovered {
+  background-color: var(--ds-color-chart-danger-hovered);
 }
 @utility fill-chart-track {
   fill: var(--ds-color-chart-track);
@@ -479,6 +533,15 @@
 @utility bg-chart-categorical-1 {
   background-color: var(--ds-color-chart-categorical-1);
 }
+@utility fill-chart-categorical-1-hovered {
+  fill: var(--ds-color-chart-categorical-1-hovered);
+}
+@utility stroke-chart-categorical-1-hovered {
+  stroke: var(--ds-color-chart-categorical-1-hovered);
+}
+@utility bg-chart-categorical-1-hovered {
+  background-color: var(--ds-color-chart-categorical-1-hovered);
+}
 @utility fill-chart-categorical-2 {
   fill: var(--ds-color-chart-categorical-2);
 }
@@ -487,6 +550,15 @@
 }
 @utility bg-chart-categorical-2 {
   background-color: var(--ds-color-chart-categorical-2);
+}
+@utility fill-chart-categorical-2-hovered {
+  fill: var(--ds-color-chart-categorical-2-hovered);
+}
+@utility stroke-chart-categorical-2-hovered {
+  stroke: var(--ds-color-chart-categorical-2-hovered);
+}
+@utility bg-chart-categorical-2-hovered {
+  background-color: var(--ds-color-chart-categorical-2-hovered);
 }
 @utility fill-chart-categorical-3 {
   fill: var(--ds-color-chart-categorical-3);
@@ -497,6 +569,15 @@
 @utility bg-chart-categorical-3 {
   background-color: var(--ds-color-chart-categorical-3);
 }
+@utility fill-chart-categorical-3-hovered {
+  fill: var(--ds-color-chart-categorical-3-hovered);
+}
+@utility stroke-chart-categorical-3-hovered {
+  stroke: var(--ds-color-chart-categorical-3-hovered);
+}
+@utility bg-chart-categorical-3-hovered {
+  background-color: var(--ds-color-chart-categorical-3-hovered);
+}
 @utility fill-chart-categorical-4 {
   fill: var(--ds-color-chart-categorical-4);
 }
@@ -505,6 +586,15 @@
 }
 @utility bg-chart-categorical-4 {
   background-color: var(--ds-color-chart-categorical-4);
+}
+@utility fill-chart-categorical-4-hovered {
+  fill: var(--ds-color-chart-categorical-4-hovered);
+}
+@utility stroke-chart-categorical-4-hovered {
+  stroke: var(--ds-color-chart-categorical-4-hovered);
+}
+@utility bg-chart-categorical-4-hovered {
+  background-color: var(--ds-color-chart-categorical-4-hovered);
 }
 @utility fill-chart-categorical-5 {
   fill: var(--ds-color-chart-categorical-5);
@@ -515,6 +605,15 @@
 @utility bg-chart-categorical-5 {
   background-color: var(--ds-color-chart-categorical-5);
 }
+@utility fill-chart-categorical-5-hovered {
+  fill: var(--ds-color-chart-categorical-5-hovered);
+}
+@utility stroke-chart-categorical-5-hovered {
+  stroke: var(--ds-color-chart-categorical-5-hovered);
+}
+@utility bg-chart-categorical-5-hovered {
+  background-color: var(--ds-color-chart-categorical-5-hovered);
+}
 @utility fill-chart-categorical-6 {
   fill: var(--ds-color-chart-categorical-6);
 }
@@ -524,6 +623,15 @@
 @utility bg-chart-categorical-6 {
   background-color: var(--ds-color-chart-categorical-6);
 }
+@utility fill-chart-categorical-6-hovered {
+  fill: var(--ds-color-chart-categorical-6-hovered);
+}
+@utility stroke-chart-categorical-6-hovered {
+  stroke: var(--ds-color-chart-categorical-6-hovered);
+}
+@utility bg-chart-categorical-6-hovered {
+  background-color: var(--ds-color-chart-categorical-6-hovered);
+}
 @utility fill-chart-categorical-7 {
   fill: var(--ds-color-chart-categorical-7);
 }
@@ -532,6 +640,15 @@
 }
 @utility bg-chart-categorical-7 {
   background-color: var(--ds-color-chart-categorical-7);
+}
+@utility fill-chart-categorical-7-hovered {
+  fill: var(--ds-color-chart-categorical-7-hovered);
+}
+@utility stroke-chart-categorical-7-hovered {
+  stroke: var(--ds-color-chart-categorical-7-hovered);
+}
+@utility bg-chart-categorical-7-hovered {
+  background-color: var(--ds-color-chart-categorical-7-hovered);
 }
 @utility fill-chart-categorical-8 {
   fill: var(--ds-color-chart-categorical-8);

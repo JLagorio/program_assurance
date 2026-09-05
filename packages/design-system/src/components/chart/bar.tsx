@@ -1,4 +1,4 @@
-import { useMemo, useRef, type ReactNode } from "react";
+import { useId, useMemo, useRef, type ReactNode } from "react";
 import {
   Bar,
   BarChart,
@@ -20,16 +20,21 @@ import {
   PlotSkeleton,
   References,
   Swatch,
+  TextureDefs,
   Tick,
   TooltipContent,
+  ZeroLine,
   axisLine,
   axisTitle,
+  axisWidth,
   categoricalTone,
   chartColor,
   cursorFill,
   formatValue,
   grid,
+  hasNegative,
   hasRefLabels,
+  hoveredColor,
   isRange,
   marginFor,
   marker,
@@ -38,19 +43,26 @@ import {
   rectAnchor,
   seriesClass,
   surface,
+  syncProp,
+  textureFill,
+  textureOf,
+  tickValue,
   truncate,
   useFrame,
   useMotion,
   usePicked,
   useTooltipMotion,
+  valueDomain,
   type Active,
   type CategoryFormatter,
   type ChartDatum,
+  type ChartDomain,
   type ChartReference,
   type ChartSelection,
   type ChartSeries,
   type ChartSize,
   type Formatter,
+  type Texture,
 } from "./_shared";
 
 export type ChartBarProps = {
@@ -58,7 +70,7 @@ export type ChartBarProps = {
   data: ChartDatum[];
   /** The key that names each datum along the category axis. */
   x: string;
-  /** One entry per value key. */
+  /** One entry per value key. A series' own `format` wins over the plot's. */
   series: ChartSeries[];
   /** Stack the series in one bar per category, parts of a whole. */
   stacked?: boolean | undefined;
@@ -70,9 +82,15 @@ export type ChartBarProps = {
   target?: string | undefined;
   /** A series drawn as a line over the bars on the same axis: a cumulative, a rate, a plan. */
   line?: ChartSeries | undefined;
+  /** The value axis' ends, to share a scale across charts. `[0, "auto"]` when unsaid; a value below zero extends the axis below it and draws the zero line. */
+  domain?: ChartDomain | undefined;
   /** Titles for the axes, when the keys and the Frame's title do not say enough: the unit on the value axis. */
   xLabel?: string | undefined;
   yLabel?: string | undefined;
+  /** Every series wears a pattern as well as its colour, so a stack reads in print and under colour-vision loss. The Frame's `texture` sets it for the legend too. */
+  texture?: boolean | undefined;
+  /** Charts with the same id share their hover. The Frame's `syncId` sets it. */
+  syncId?: string | undefined;
   /** The plot's height. `medium` (200px) when unsaid. */
   size?: ChartSize | undefined;
   /** A height in pixels when a layout must, in place of `size`. */
@@ -96,7 +114,7 @@ export type ChartBarProps = {
 
 type Clicked = { payload: ChartDatum; x?: number; y?: number; width?: number; height?: number };
 
-/** The value at a bar's end, in `color.text.subtle`, outside the bar. */
+/** The value at a bar's end, in `color.text.subtle`, outside the bar; under a bar that goes below zero. */
 function EndLabel({
   x,
   y,
@@ -119,13 +137,19 @@ function EndLabel({
   const ny = Number(y ?? 0);
   const w = Number(width ?? 0);
   const h = Number(height ?? 0);
+  const negative = typeof value === "number" ? value < 0 : value[1] < 0;
   const text = formatValue(value, format);
+  // Recharts hands a bar below zero a negative height (or width); the label sits past the data end either way.
+  const top = Math.min(ny, ny + h);
+  const bottom = Math.max(ny, ny + h);
+  const left = Math.min(nx, nx + w);
+  const right = Math.max(nx, nx + w);
   return horizontal ? (
     <text
-      x={nx + w + 4}
-      y={ny + h / 2}
+      x={negative ? left - 4 : right + 4}
+      y={(top + bottom) / 2}
       dy={4}
-      textAnchor="start"
+      textAnchor={negative ? "end" : "start"}
       className="font-body-xsmall tabular-nums"
       fill={token("color.text.subtle")}
     >
@@ -133,8 +157,8 @@ function EndLabel({
     </text>
   ) : (
     <text
-      x={nx + w / 2}
-      y={ny - 4}
+      x={(left + right) / 2}
+      y={negative ? bottom + 12 : top - 4}
       textAnchor="middle"
       className="font-body-xsmall tabular-nums"
       fill={token("color.text.subtle")}
@@ -162,10 +186,20 @@ function TargetMark({
   );
 }
 
+type Radius = [number, number, number, number];
+
+/** The rounded end is the data end: the top of a positive bar, the bottom of a negative one, the far end of a horizontal one. */
+const radiusFor = (value: unknown, stacked: boolean, horizontal: boolean): Radius => {
+  if (stacked) return [0, 0, 0, 0];
+  const negative = typeof value === "number" ? value < 0 : isRange(value) ? value[1] < value[0] : false;
+  if (horizontal) return negative ? [2, 0, 0, 2] : [0, 2, 2, 0];
+  return negative ? [0, 0, 2, 2] : [2, 2, 0, 0];
+};
+
 /**
  * Bars per category; several series sit side by side, or stack. A value that is a `[from, to]`
- * pair floats. A click on a bar, or Enter on the focused category, chooses it: `onSelect` hears,
- * and `details` opens a card on it.
+ * pair floats, and a value below zero hangs from the zero line. A click on a bar, or Enter on the
+ * focused category, chooses it: `onSelect` hears, and `details` opens a card on it.
  */
 export function ChartBar({
   data,
@@ -176,8 +210,11 @@ export function ChartBar({
   labels = "none",
   target,
   line,
+  domain,
   xLabel,
   yLabel,
+  texture: textureProp,
+  syncId,
   size,
   height,
   format: formatProp,
@@ -189,12 +226,15 @@ export function ChartBar({
   details,
   className,
 }: ChartBarProps) {
-  const { name, hidden, highlighted, format, formatX, loading } = useFrame(
+  const { name, hidden, highlighted, format, formatX, loading, sync, texture } = useFrame(
     label,
     formatProp,
     formatXProp,
     loadingProp,
+    syncId,
+    textureProp,
   );
+  const id = useId();
   const motion = useMotion();
   const tooltipMotion = useTooltipMotion();
   const { picked, pick, clear } = usePicked<ChartSelection>();
@@ -206,6 +246,11 @@ export function ChartBar({
     );
     return Math.min(160, Math.max(56, 8 + 6.5 * longest));
   }, [data, x, formatX]);
+  const negative = useMemo(() => hasNegative(data, series.map((s) => s.key)), [data, series]);
+  const valueWidth = useMemo(
+    () => axisWidth(data, series.map((s) => s.key), format, domain, Boolean(yLabel)),
+    [data, series, format, domain, yLabel],
+  );
   if (loading)
     return (
       <PlotSkeleton
@@ -218,6 +263,13 @@ export function ChartBar({
     );
   const all = line ? [...series, line] : series;
   const lineTone = line ? (line.tone ?? categoricalTone(series.length)) : "brand";
+  const colorOf = (s: ChartSeries, i: number) => chartColor(s.tone ?? categoricalTone(i));
+  const hoveredOf = (s: ChartSeries, i: number) => hoveredColor(s.tone ?? categoricalTone(i));
+  const textures: Record<string, Texture> = {};
+  if (texture) series.forEach((s, i) => (textures[s.key] = textureOf(i)));
+  const fillOf = (s: ChartSeries, i: number) =>
+    texture ? textureFill(id, s.key, textureOf(i), colorOf(s, i)) : colorOf(s, i);
+  const fmtOf = (s: ChartSeries) => s.format ?? format;
   const chooses = Boolean(onSelect || details);
   const choose = (selection: ChartSelection, anchor: Parameters<typeof pick>[1]) => {
     onSelect?.(selection);
@@ -240,15 +292,14 @@ export function ChartBar({
           ? {
               swatch: (
                 <Swatch
-                  color={chartColor(
-                    picked.item.series.tone ?? categoricalTone(series.indexOf(picked.item.series)),
-                  )}
+                  color={colorOf(picked.item.series, series.indexOf(picked.item.series))}
                   shape="square"
+                  texture={textures[picked.item.series.key]}
                 />
               ),
               title: picked.item.series.label ?? picked.item.series.key,
               subtitle: formatX((picked.item.datum[x] as string | number | undefined) ?? ""),
-              value: formatValue(picked.item.datum[picked.item.series.key], format),
+              value: formatValue(picked.item.datum[picked.item.series.key], fmtOf(picked.item.series)),
             }
           : {
               title: formatX((picked.item.datum[x] as string | number | undefined) ?? ""),
@@ -259,10 +310,11 @@ export function ChartBar({
                     <Swatch
                       color={chartColor(s.tone ?? categoricalTone(i))}
                       shape={s === line ? "line" : "square"}
+                      texture={textures[s.key]}
                     />
                   ),
                   label: s.label ?? s.key,
-                  value: formatValue(picked.item.datum[s.key], format),
+                  value: formatValue(picked.item.datum[s.key], fmtOf(s)),
                 })),
             })}
       />
@@ -270,6 +322,11 @@ export function ChartBar({
     </>
   ) : null;
   const dimmed = (i: number) => (picked ? picked.item.index === i : null);
+  // A bar below zero with an end label needs room under it, so the axis reaches a little further down.
+  const yDomain: ReturnType<typeof valueDomain> =
+    negative && labels === "end" && !domain
+      ? [(min: number) => Math.min(0, Math.floor(min * 1.4)), (max: number) => Math.max(0, max)]
+      : valueDomain(domain, "zero", negative);
   return (
     <Plot
       name={name}
@@ -287,20 +344,28 @@ export function ChartBar({
         layout={horizontal ? "vertical" : "horizontal"}
         margin={{
           ...marginFor({ endLabels: labels === "end", refLabels: hasRefLabels(reference), horizontal }),
-          bottom: xLabel ? 12 : 0,
-          left: yLabel ? 8 : 0,
+          bottom: xLabel || (negative && labels === "end" && !horizontal) ? 12 : 0,
+          left: yLabel || (negative && labels === "end" && horizontal) ? 8 : 0,
+          ...(negative && labels === "end" && horizontal ? { left: 40 } : {}),
         }}
         barGap={2}
         barCategoryGap={stacked ? "35%" : "25%"}
         accessibilityLayer={Boolean(name)}
+        {...syncProp(sync)}
       >
+        {texture ? (
+          <TextureDefs
+            id={id}
+            entries={series.map((s, i) => ({ key: s.key, color: colorOf(s, i), texture: textureOf(i) }))}
+          />
+        ) : null}
         <CartesianGrid {...grid} vertical={Boolean(horizontal)} horizontal={!horizontal} />
         {horizontal ? (
           <>
             <XAxis
               type="number"
-              domain={[0, "auto"]}
-              tick={<Tick format={(v) => format(Number(v))} />}
+              domain={yDomain}
+              tick={<Tick format={(v) => format(tickValue(v))} />}
               axisLine={axisLine}
               tickLine={false}
               height={yLabel ? 36 : 24}
@@ -328,11 +393,11 @@ export function ChartBar({
               {...(xLabel ? { label: axisTitle(xLabel, false) } : {})}
             />
             <YAxis
-              domain={[0, "auto"]}
-              tick={<Tick vertical format={(v) => format(Number(v))} />}
+              domain={yDomain}
+              tick={<Tick vertical format={(v) => format(tickValue(v))} />}
               axisLine={false}
               tickLine={false}
-              width={yLabel ? 52 : 40}
+              width={valueWidth}
               {...(yLabel ? { label: axisTitle(yLabel, true) } : {})}
             />
           </>
@@ -348,52 +413,49 @@ export function ChartBar({
               formatX={formatX}
               targetKey={target}
               total={Boolean(stacked)}
+              textures={textures}
             />
           }
         />
-        {series.map((s, i) => {
-          const color = chartColor(s.tone ?? categoricalTone(i));
-          const radius: [number, number, number, number] = stacked
-            ? [0, 0, 0, 0]
-            : horizontal
-              ? [0, 2, 2, 0]
-              : [2, 2, 0, 0];
-          return (
-            <Bar
-              key={s.key}
-              dataKey={s.key}
-              name={s.label ?? s.key}
-              fill={color}
-              stroke={stacked ? surface() : "none"}
-              strokeWidth={stacked ? 2 : 0}
-              radius={radius}
-              maxBarSize={24}
-              hide={hidden.has(s.key)}
-              {...seriesClass(s.key, highlighted, chooses)}
-              activeBar={{ fillOpacity: 0.8 }}
-              {...motion}
-              {...(stacked ? { stackId: "stack" } : {})}
-              {...(chooses
-                ? {
-                    onClick: (item: unknown, index: number) => {
-                      const c = item as Clicked;
-                      choose({ datum: c.payload, series: s, index }, rectAnchor(c));
-                    },
-                  }
-                : {})}
-            >
-              {data.map((_, j) => (
-                <Cell key={j} {...markClass(dimmed(j))} />
-              ))}
-              {labels === "end" && !stacked ? (
-                <LabelList
-                  dataKey={s.key}
-                  content={<EndLabel horizontal={horizontal} format={format} />}
-                />
-              ) : null}
-            </Bar>
-          );
-        })}
+        {negative ? <ZeroLine horizontal={horizontal} /> : null}
+        {series.map((s, i) => (
+          <Bar
+            key={s.key}
+            dataKey={s.key}
+            name={s.label ?? s.key}
+            fill={fillOf(s, i)}
+            stroke={stacked ? surface() : "none"}
+            strokeWidth={stacked ? 2 : 0}
+            maxBarSize={24}
+            hide={hidden.has(s.key)}
+            {...seriesClass(s.key, highlighted, chooses)}
+            activeBar={{ fill: texture ? fillOf(s, i) : hoveredOf(s, i), fillOpacity: texture ? 0.85 : 1 }}
+            {...motion}
+            {...(stacked ? { stackId: "stack" } : {})}
+            {...(chooses
+              ? {
+                  onClick: (item: unknown, index: number) => {
+                    const c = item as Clicked;
+                    choose({ datum: c.payload, series: s, index }, rectAnchor(c));
+                  },
+                }
+              : {})}
+          >
+            {data.map((d, j) => (
+              <Cell
+                key={j}
+                radius={radiusFor(d[s.key], Boolean(stacked), Boolean(horizontal)) as never}
+                {...markClass(dimmed(j))}
+              />
+            ))}
+            {labels === "end" && !stacked ? (
+              <LabelList
+                dataKey={s.key}
+                content={<EndLabel horizontal={horizontal} format={fmtOf(s)} />}
+              />
+            ) : null}
+          </Bar>
+        ))}
         {target ? (
           <Scatter
             dataKey={target}

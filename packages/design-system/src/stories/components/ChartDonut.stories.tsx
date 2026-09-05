@@ -50,6 +50,12 @@ export const DonutMatrix: Story = {
         />
         <Chart.Donut arc="half" size={160} thickness={16} label="72" caption="posture" name="Risk posture" slices={posture} />
       </Specimens>
+      <Specimens title="Textured · beside its textured legend">
+        <Inline space="space.200" alignBlock="center">
+          <Chart.Donut label="80%" caption="satisfied" name="Coverage, textured" slices={coverage} texture />
+          <Chart.Legend series={statusSeries} texture />
+        </Inline>
+      </Specimens>
       <Specimens title="One slice on the track · loading · a gauge loading">
         <Chart.Donut label="62%" caption="assessed" name="Assessed" slices={[{ key: "a", label: "Assessed", value: 62, tone: "brand" }, { key: "r", label: "Left", value: 38, tone: "neutral" }]} />
         <Chart.Donut name="Coverage" slices={coverage} loading />

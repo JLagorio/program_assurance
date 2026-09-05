@@ -42,7 +42,7 @@ Not built, and why: no pie (a ring with the number in the middle says more, and 
 | Description | `font.body.small` in `color.text.subtle`, one line under the title: the period, the unit, the source.                                                                   |
 | Path        | A [Breadcrumb](?path=/docs/components-breadcrumb--docs) under the description while a drill-down is open: every level so far, every crumb but the last a way back.      |
 | Legend      | Swatch and label per series, `font.body.small` in `color.text.subtle`, at the end of the header. A square for a fill, a stroke for a line, a dot for a point. Present for two or more series; a single series needs none, the title names it. |
-| Actions     | Controls at the end of the header: a range, a filter, a Retry. Then the Table toggle.                                                                                   |
+| Actions     | Controls at the end of the header: a range, a filter, a Retry. Then the tools: the Table toggle, the Download menu (the table twin as CSV, the plot as PNG), the Expand button. |
 | Plot        | The part's marks on a hairline grid. Ticks are `font.body.xsmall` in `color.text.subtlest`; grid lines and the axis line are `color.border`, solid, 1px. Focusable when named, with the kit's focus ring on the keyboard only. |
 | Tooltip     | The overlay surface. The category first, then every series at that point: the name, then the value in `font.body.small` medium, keyed by the mark's swatch. A stack adds its total. |
 | Card        | The details on a chosen mark: a Popover anchored to it, the kit's head (swatch, name, category, value; or every series at a category), then whatever the caller adds.   |
@@ -55,12 +55,18 @@ Not built, and why: no pie (a ring with the number in the middle says more, and 
 | `Chart` (the Frame)         | Every chart on a page. Title, description, legend, actions, the states, the path, the table twin, the legend's interaction. |
 | `legend="top"`, `"bottom"`, `"none"` | The legend at the end of the header (the default for two or more series), under the plot when the header is busy, or nowhere for one series. |
 | `path`                      | The Frame of a drill-down: the levels so far as crumbs, the last being the current one.                                |
+| `download`, `expandable`    | The tools: a Download menu with the table twin as CSV and the plot as a PNG at twice the pixel density; an Expand button that opens the same chart in a large Dialog. |
+| `syncId`                    | Charts that share their hover: small multiples, one hover across them, on one `domain`.                               |
+| `texture`                   | Every series wears a pattern as well as its colour, in the plot, the legend, the tooltip and the card.                 |
 | `Chart.Legend`              | The key on its own, outside a Frame: beside a Donut, under a stacked bar. Inside a Frame it is the interactive one.     |
 | The parts                   | One per kind, each on its own page. A part inside the Frame inherits its name, its formats, its loading state and its legend's state. |
 
 <Canvas of={Stories.Drilldown} />
 <Canvas of={Stories.Details} />
 <Canvas of={Stories.Filtering} />
+<Canvas of={Stories.Linked} />
+<Canvas of={Stories.Downloads} />
+<Canvas of={Stories.Textured} />
 <Canvas of={Stories.Legends} />
 
 ## Sizes
@@ -73,11 +79,15 @@ Not built, and why: no pie (a ring with the number in the middle says more, and 
 
 The height is the whole plot, axis band included, so a card never scrolls inside itself. `height` takes pixels when a layout must. The Frame's states stand in at the same height, so nothing moves when the data arrives. A Donut and a Sparkline are sized in pixels, since they sit inline; a Heatmap's `size` is its cell's height.
 
+The width is the container's. Below about 480px the header wraps: the legend and the tools drop under the title, and the plot keeps its height. An expanded chart is the same Frame at `large` in a Dialog.
+
+<Canvas of={Stories.Narrow} />
+
 ## States
 
 | State      | What changes                                                                                                                                                           |
 | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Hover      | The tooltip, for every series at that point; a hovered bar lightens, a slice grows 2px, a line's marker appears. A hovered legend item dims the other series to `opacity.disabled`, faded over `motion.duration.fast`. |
+| Hover      | The tooltip, for every series at that point; a hovered bar and a hovered slice take the tone's `hovered` step, a slice grows 2px, a line's marker appears. Synced charts show their tooltips together. A hovered legend item dims the other series to `opacity.disabled`, faded over `motion.duration.fast`. |
 | Isolated   | A clicked legend item hides its series; the swatch hollows. Clicking the last visible one shows everything again.                                                       |
 | Chosen     | A clicked mark, or the category Enter chose on the focused plot: the other marks dim, the card opens on it. Escape or a click outside closes the card and focus returns to the plot. |
 | Loading    | The plot's own silhouette in `color.skeleton`, pulsing, at the plot's height: columns, a line, a ring, dots, tiles. The header stays.                                   |
@@ -92,6 +102,7 @@ The height is the whole plot, axis band included, so a card never scrolls inside
 
 - **`legend`**, **`swatch`**, **`actions`**, **`status`**, **`statusTitle`**, **`statusText`** on the Frame.
 - **`path`** on the Frame for a drill-down; each crumb's `onSelect` goes back.
+- **`download`** (`["csv", "png"]`) and **`expandable`** for the tools; **`summary`** for the sentence a screen reader hears; **`syncId`** to share the hover; **`texture`** for the patterns.
 - **`data`**, **`x`**, **`xLabel`** on the Frame, so it can lay the table out.
 - **`format`** and **`formatX`** for the numbers and the categories, set once on the Frame and inherited by the part, the tooltip, the card and the table.
 - **`size`** and **`height`** on the Frame, for the states that stand in for the plot; the same on the part.
@@ -106,6 +117,14 @@ A chart that answers "what is this?" and "show me more" is the point of a platfo
 - **A drill-down** is a Frame whose `path` grows: the click redraws the same plot one level down, the marks moving to their new places, and the path holds the way back. Two or three levels is the ceiling; past that the reader wants a table with filters.
 - **The keyboard gets the same.** A named plot is focusable; the arrow keys move across the categories with the tooltip; Enter chooses the one under the tooltip. A Heatmap's cells are buttons and do it themselves.
 - **A pointer over a mark that chooses is a pointer.** A plot with neither `onSelect` nor `details` shows the default cursor and no focus ring on a click, so nothing promises what it cannot do.
+
+## Small multiples
+
+Two measures of different scale, or more than six series, are several small charts, not one big one. The Frame makes them honest: give every chart the same `domain`, so a bar's height means the same thing on each, and the same `syncId`, so a hover on one shows the same category on all. A cumulative that needs its own scale says so in its description and keeps `baseline="auto"`.
+
+## Textures
+
+Colour is never the only channel, and in print, under colour-vision loss and in a forced-colours mode it is not a channel at all. `texture` on the Frame gives every series a pattern in its own colour, in a fixed order the legend and the tooltip repeat: the first series solid, then hatch, back-hatch, dots, cross, lines, columns. The pattern is the colour at 30% under 1.5px marks in the colour, 8px across, so the series still reads as its hue. Bars, areas and rings take it; a line's stroke stays solid, since a 2px line has no room for a pattern and its marker and end label already set it apart. Turn it on for a chart that will be printed or exported, or everywhere in a product that must meet a print or high-contrast requirement.
 
 ## Motion
 
@@ -139,7 +158,8 @@ Two more scales exist for a Heatmap: `color.chart.sequential.1` to `5`, blue fro
 - **A series label is what the legend, the tooltip, the card and the table call it**: "Other than satisfied", not "other". Sentence case, no acronyms the reader would not say.
 - **The numbers are formatted once**, on the Frame: grouped, two decimals at most, compact from ten thousand. A unit goes in `format`, so the axis, the tooltip, the labels, the card and the table agree.
 - **A card's body is facts and one way onward**: two or three KeyValues and a button to the record. Not a form, not a second chart.
-- **A reference says what it is**: "Target", "Limit", "Today", "Milestone C".
+- **A reference says what it is**: "Target", "Limit", "Today", "Milestone C"; a date band says what happened in it: "Assessment window".
+- **A summary is one sentence with the numbers in it**: "Open findings fell from 14 in January to 5 in September." A screen reader hears it after the description; nobody sees it.
 
 ## Style
 
@@ -154,6 +174,8 @@ Two more scales exist for a Heatmap: `color.chart.sequential.1` to `5`, blue fro
 | Card         | `elevation.surface.overlay` · `color.border` · `radius.large` · `elevation.shadow.overlay` · `space.150` · 280px · the value in `font.heading.small` |
 | Hover cursor | `color.background.neutral.subtle.hovered` behind a bar · `color.border.bold` across a line chart                                   |
 | Reference    | `color.chart.<tone>` · 1px dashed 4 3 · label `font.body.xsmall` in `color.text.subtlest`, above the plot for a vertical line       |
+| Hovered mark | `color.chart.<tone>.hovered`: one step darker in light, one lighter in dark                                                        |
+| Texture      | The series colour at 30% under 1.5px marks in the colour · 8px repeat · `radius` 2px on a swatch                                    |
 | Dimmed       | `opacity.disabled`, over `motion.duration.fast`                                                                                    |
 | Refreshing   | `opacity.loading`                                                                                                                  |
 | Skeleton     | `color.skeleton` and `color.skeleton.subtle`, pulsing                                                                              |
@@ -169,6 +191,9 @@ Every chart colour clears 3:1 on `elevation.surface` in both modes. Text never w
 - **The plot is a group named by the title**, or by its own `label` outside a Frame. It is focusable, the arrow keys move the tooltip across the categories, and Enter chooses the one under it, opening its card when the plot has one. The focus ring shows on the keyboard, not on a click. A plot with no name is decoration: hidden from a screen reader and not focusable, so a sparkline beside a number says nothing twice.
 - **The card is a dialog** named "[the plot's name], details"; focus moves into it and back to the plot when it closes; Escape closes it.
 - **Loading says so.** A loading plot is `aria-busy` and named "[the plot's name], loading"; a refreshing one is `aria-busy` over the last plot.
+- **A summary is the chart in a sentence.** With `summary`, the figure is described by it, so a screen reader hears the trend without walking the table.
+- **Textures are the second channel.** With `texture`, a series is its colour and its pattern, in the plot and in the legend, so a stack reads in greyscale print and in a forced-colours mode where fills are flattened. The categorical order is still validated for colour vision; textures are the belt to that brace.
+- **The tools are buttons.** Download is a menu of two items, Expand opens a Dialog that returns focus when it closes, and both are disabled while the plot is loading, empty or failed.
 - **Colour is never the only channel.** Two or more series have a legend; a status series has its word in the legend, the tooltip and the table; a Heatmap's status cells print their value; a target is ink, not a hue; a gap in a line is a gap.
 - **The categorical order is validated** for deutan and protan vision (Machado 2009, severity 1.0) and for normal vision, both modes. A Scatter's groups stop at three for the same reason.
 - **Motion respects the reader.** Under reduced motion the marks draw in place and nothing fades.
@@ -197,7 +222,7 @@ The Frame, `Chart`:
 - [Progress](?path=/docs/components-progress--docs): one value against a whole, and a stacked bar of a register's parts.
 - [Table](?path=/docs/components-table--docs): the twin every chart carries, and the answer past seven classes.
 - [Badge](?path=/docs/components-badge--docs): the tone table a status series reads.
-- [Popover](?path=/docs/components-popover--docs): the surface a card is.
+- [Popover](?path=/docs/components-popover--docs): the surface a card is. [Dialog](?path=/docs/components-dialog--docs): the surface an expanded chart is. [DropdownMenu](?path=/docs/components-dropdownmenu--docs): the Download menu.
 - [Tokens/Color](?path=/docs/tokens-color--docs): the chart tokens, both modes. [Tokens/Motion](?path=/docs/tokens-motion--docs): the durations.
 
 ## Don't

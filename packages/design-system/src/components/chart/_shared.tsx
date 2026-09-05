@@ -4,6 +4,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -29,9 +30,10 @@ import { menuMotion } from "../menu";
 
 /*
  * The furniture every chart part shares, internal to this folder: the tones and the scales, the data
- * types, the Frame's context, the ticks, the swatches, the tooltip, the references and the bands, the
- * plot wrapper with its focus ring and its details card, the motion, and the skeletons. A part is one
- * file beside this one; nothing here is exported from the package except through them.
+ * types, the Frame's context, the ticks, the swatches, the textures, the time axis, the tooltip, the
+ * references and the bands, the plot wrapper with its focus ring and its details card, the motion,
+ * the export helpers and the skeletons. A part is one file beside this one; nothing here is exported
+ * from the package except through them.
  */
 
 /* ---------- tones and scales ---------- */
@@ -46,6 +48,10 @@ export const heights: Record<ChartSize, number> = { small: 120, medium: 200, lar
 
 /** The var() for a chart tone, for anything recharts does not cover. */
 export const chartColor = (tone: ChartTone): string => token(`color.chart.${tone}` as TokenName);
+
+/** The tone's hovered step: one darker in light, one lighter in dark, as Atlassian's chart tokens. */
+export const hoveredColor = (tone: ChartTone): string =>
+  token(`color.chart.${tone}.hovered` as TokenName);
 
 /** The tone of the i-th series (from 0) when none is given: the six hues in order, then Other. */
 export const categoricalTone = (i: number): ChartTone =>
@@ -70,11 +76,14 @@ export function formatNumber(value: number): string {
 
 /* ---------- data ---------- */
 
-/** One record along the category axis. A value may be a `[from, to]` pair for a floating bar. */
+/** One record along the category axis. A value may be a `[from, to]` pair for a floating bar, or a Date on a time axis. */
 export type ChartDatum = Record<
   string,
-  string | number | null | undefined | readonly [number, number]
+  string | number | Date | null | undefined | readonly [number, number]
 >;
+
+export type Formatter = (value: number) => string;
+export type CategoryFormatter = (value: string | number | Date) => string;
 
 export type ChartSeries = {
   /** The key in each datum. */
@@ -83,26 +92,33 @@ export type ChartSeries = {
   label?: string | undefined;
   /** The `color.chart.*` token. Defaults to the categorical set, in order. */
   tone?: ChartTone | undefined;
+  /** This series' own number format, when it differs from the plot's: a rate over counts. */
+  format?: Formatter | undefined;
 };
 
 /** A line across the plot: a target, a limit, a milestone. `y` is on the value axis, `x` on the category axis. */
 export type ChartReference = {
   y?: number | undefined;
-  x?: string | number | undefined;
+  x?: string | number | Date | undefined;
   /** Printed at the line's end. */
   label?: string | undefined;
   /** `neutral` when unsaid: a target is context. `danger` for a limit that must not be crossed. */
   tone?: ChartTone | undefined;
 };
 
-/** A band between two values: the acceptable range, the plan's tolerance. */
+/** A band across the plot: between two values (`from`, `to`), or between two categories or dates (`fromX`, `toX`): the acceptable range, the plan's tolerance, an assessment window. */
 export type ChartBand = {
-  from: number;
-  to: number;
+  from?: number | undefined;
+  to?: number | undefined;
+  fromX?: string | number | Date | undefined;
+  toX?: string | number | Date | undefined;
   label?: string | undefined;
   /** `neutral` when unsaid. */
   tone?: ChartTone | undefined;
 };
+
+/** The value axis: each end a number or `"auto"`. `[0, "auto"]` when unsaid; a plot with negative values reaches below zero. Set it on every chart of a set so they share a scale. */
+export type ChartDomain = readonly [number | "auto", number | "auto"];
 
 /** What was chosen on a cartesian plot: the record, the series when a mark was clicked (none when the whole category was chosen with Enter), and the record's index. */
 export type ChartSelection = {
@@ -111,9 +127,6 @@ export type ChartSelection = {
   index: number;
 };
 
-export type Formatter = (value: number) => string;
-export type CategoryFormatter = (value: string | number) => string;
-
 export const isRange = (v: unknown): v is readonly [number, number] =>
   Array.isArray(v) && v.length === 2 && typeof v[0] === "number" && typeof v[1] === "number";
 
@@ -121,10 +134,149 @@ export const formatValue = (v: unknown, format: Formatter): string => {
   if (typeof v === "number") return format(v);
   if (isRange(v)) return `${format(v[0])} to ${format(v[1])}`;
   if (v === null || v === undefined) return "";
+  if (v instanceof Date) return fullDate(v.getTime());
   return String(v);
 };
 
-export const plainCategory: CategoryFormatter = (v) => String(v);
+const isoDate = /^\d{4}-\d{2}-\d{2}(T|$)/;
+
+/** The default category format: a Date or an ISO date string as "4 Sep 2026", anything else as it is. */
+export const formatCategory: CategoryFormatter = (v) => {
+  if (v instanceof Date) return fullDate(v.getTime());
+  if (typeof v === "string" && isoDate.test(v)) return fullDate(new Date(v).getTime());
+  return String(v);
+};
+
+/** @deprecated the old name of formatCategory, kept for the parts. */
+export const plainCategory = formatCategory;
+
+/** Whether any series in the data goes below zero, so the axis and the baseline must too. */
+export const hasNegative = (data: ChartDatum[], keys: string[]) =>
+  data.some((d) =>
+    keys.some((k) => {
+      const v = d[k];
+      return typeof v === "number" ? v < 0 : isRange(v) ? v[0] < 0 || v[1] < 0 : false;
+    }),
+  );
+
+type AxisEnd = number | "auto" | "dataMin" | "dataMax" | ((n: number) => number);
+
+/** The value axis' domain: the caller's, else cropped to the data, else from zero (and through zero when the data goes below it). */
+export const valueDomain = (
+  domain: ChartDomain | undefined,
+  baseline: "zero" | "auto",
+  negative: boolean,
+): [AxisEnd, AxisEnd] => {
+  if (domain) return [domain[0], domain[1]];
+  if (baseline === "auto") return ["auto", "auto"];
+  if (negative) return [(min: number) => Math.min(0, min), (max: number) => Math.max(0, max)];
+  return [0, "auto"];
+};
+
+/** A tick's value without floating-point noise, so a caller's format sees −0.75 and not −0.7500000000000001. */
+export const tickValue = (v: unknown): number => Number(Number(v).toPrecision(12));
+
+/** The value axis' width from its longest label: the extremes of the data (or the domain) formatted, 6.5px a character, 40px at least. */
+export const axisWidth = (
+  data: ChartDatum[],
+  keys: string[],
+  format: Formatter,
+  domain: ChartDomain | undefined,
+  titled: boolean,
+): number => {
+  const values = data.flatMap((d) =>
+    keys.flatMap((k) => {
+      const v = d[k];
+      return typeof v === "number" ? [v] : isRange(v) ? [v[0], v[1]] : [];
+    }),
+  );
+  const ends = [
+    typeof domain?.[0] === "number" ? domain[0] : Math.min(0, ...values),
+    typeof domain?.[1] === "number" ? domain[1] : Math.max(0, ...values),
+  ];
+  const longest = Math.max(1, ...ends.map((v) => format(v).length));
+  return Math.min(120, Math.max(40, 10 + 6.5 * longest)) + (titled ? 12 : 0);
+};
+
+/* ---------- the time axis ---------- */
+
+export const toMs = (v: unknown): number =>
+  v instanceof Date ? v.getTime() : typeof v === "number" ? v : new Date(String(v)).getTime();
+
+const DAY = 86_400_000;
+const dayFmt = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short" });
+const monthFmt = new Intl.DateTimeFormat(undefined, { month: "short" });
+const monthYearFmt = new Intl.DateTimeFormat(undefined, { month: "short", year: "2-digit" });
+const yearFmt = new Intl.DateTimeFormat(undefined, { year: "numeric" });
+const hourFmt = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
+const fullFmt = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short", year: "numeric" });
+const fullTimeFmt = new Intl.DateTimeFormat(undefined, {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+});
+
+export const fullDate = (ms: number) => fullFmt.format(ms);
+
+/** The ticks of a time axis and their labels: hours, days, months or years, by the span, at most eight, each at a unit's start. */
+export function timeTicks(min: number, max: number): { ticks: number[]; tick: (ms: number) => string; full: (ms: number) => string } {
+  const span = Math.max(1, max - min);
+  const days = span / DAY;
+  const ticks: number[] = [];
+  if (days <= 3) {
+    const stepH = days <= 0.5 ? 1 : days <= 1 ? 3 : days <= 2 ? 6 : 12;
+    const d = new Date(min);
+    d.setMinutes(0, 0, 0);
+    d.setHours(Math.ceil(d.getHours() / stepH) * stepH);
+    for (let t = d.getTime(); t <= max; t += stepH * 3_600_000) ticks.push(t);
+    return { ticks, tick: (ms) => hourFmt.format(ms), full: (ms) => fullTimeFmt.format(ms) };
+  }
+  if (days <= 62) {
+    const step = days <= 8 ? 1 : days <= 16 ? 2 : days <= 40 ? 7 : 14;
+    const d = new Date(min);
+    d.setHours(0, 0, 0, 0);
+    if (d.getTime() < min) d.setDate(d.getDate() + 1);
+    for (let t = d.getTime(); t <= max; t += step * DAY) ticks.push(t);
+    return { ticks, tick: (ms) => dayFmt.format(ms), full: fullDate };
+  }
+  if (days <= 800) {
+    const months = days / 30.4;
+    const step = months <= 8 ? 1 : months <= 16 ? 2 : 3;
+    const d = new Date(min);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(1);
+    if (d.getTime() < min) d.setMonth(d.getMonth() + 1);
+    for (; d.getTime() <= max; d.setMonth(d.getMonth() + step)) ticks.push(d.getTime());
+    const crossesYear = new Date(min).getFullYear() !== new Date(max).getFullYear();
+    return {
+      ticks,
+      tick: (ms) => (crossesYear && new Date(ms).getMonth() === 0 ? monthYearFmt.format(ms) : monthFmt.format(ms)),
+      full: fullDate,
+    };
+  }
+  const years = days / 365;
+  const step = years <= 8 ? 1 : years <= 16 ? 2 : 5;
+  const d = new Date(min);
+  d.setHours(0, 0, 0, 0);
+  d.setMonth(0, 1);
+  if (d.getTime() < min) d.setFullYear(d.getFullYear() + 1);
+  for (; d.getTime() <= max; d.setFullYear(d.getFullYear() + step)) ticks.push(d.getTime());
+  return { ticks, tick: (ms) => yearFmt.format(ms), full: fullDate };
+}
+
+/** The rows of a plot on a time axis: the category as epoch milliseconds, with the ticks and formats the axis needs. */
+export function useTimeAxis(data: ChartDatum[], x: string, time: boolean) {
+  return useMemo(() => {
+    if (!time) return null;
+    const rows = data.map((d) => ({ ...d, [x]: toMs(d[x]) }));
+    const values = rows.map((r) => r[x] as number).filter((n) => Number.isFinite(n));
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    return { rows, min, max, ...timeTicks(min, max) };
+  }, [data, x, time]);
+}
 
 /* ---------- the frame's state ---------- */
 
@@ -137,17 +289,23 @@ export type FrameState = {
   format: Formatter | undefined;
   formatX: CategoryFormatter | undefined;
   loading: boolean;
+  /** Charts with the same id share their hover: the tooltip moves on all of them. */
+  sync: string | undefined;
+  /** Every series wears a pattern as well as its colour. */
+  texture: boolean;
 };
 
 export const FrameContext = createContext<FrameState | null>(null);
 export const none: ReadonlySet<string> = new Set();
 
-/** What a plot inherits from the Frame around it: its name, the legend's state, the formats, whether it is loading. */
+/** What a plot inherits from the Frame around it: its name, the legend's state, the formats, whether it is loading, its sync and its textures. */
 export function useFrame(
   label: string | undefined,
   format: Formatter | undefined,
   formatX: CategoryFormatter | undefined,
   loading?: boolean | undefined,
+  syncId?: string | undefined,
+  texture?: boolean | undefined,
 ) {
   const frame = useContext(FrameContext);
   return {
@@ -155,10 +313,15 @@ export function useFrame(
     hidden: frame?.hidden ?? none,
     highlighted: frame?.highlighted ?? null,
     format: format ?? frame?.format ?? formatNumber,
-    formatX: formatX ?? frame?.formatX ?? plainCategory,
+    formatX: formatX ?? frame?.formatX ?? formatCategory,
     loading: loading ?? frame?.loading ?? false,
+    sync: syncId ?? frame?.sync,
+    texture: texture ?? frame?.texture ?? false,
   };
 }
+
+/** The `syncId` prop for a recharts chart, when the plot is synced. */
+export const syncProp = (sync: string | undefined) => (sync ? { syncId: sync } : {});
 
 export const useInFrame = () => useContext(FrameContext) !== null;
 
@@ -181,6 +344,82 @@ export const markClass = (chosen: boolean | null): { className: string } | Recor
 
 /** A recharts label prop only when there is a label to draw. */
 export const labelProp = (l: ReturnType<typeof referenceLabel>) => (l ? { label: l } : {});
+
+/* ---------- textures ---------- */
+
+/** A pattern a series wears as well as its colour, so a stack reads in print, under colour-vision loss and in a forced-colours mode. `solid` is none. */
+export type Texture = "solid" | "hatch" | "hatch-back" | "dots" | "cross" | "lines" | "columns";
+
+const textureOrder: Texture[] = ["solid", "hatch", "hatch-back", "dots", "cross", "lines", "columns"];
+
+/** The texture of the i-th series: the first solid, then the six patterns in order. */
+export const textureOf = (i: number): Texture => textureOrder[i % textureOrder.length] ?? "solid";
+
+/** The fill of a textured series: its pattern's url, or its colour when solid. */
+export const textureFill = (id: string, key: string, texture: Texture, color: string) =>
+  texture === "solid" ? color : `url(#${id}-${key})`;
+
+function PatternMarks({ texture, color }: { texture: Texture; color: string }) {
+  const stroke = { stroke: color, strokeWidth: 1.5, strokeLinecap: "round" as const };
+  switch (texture) {
+    case "hatch":
+      return <path d="M-2,10 L10,-2 M-2,2 L2,-2 M6,10 L10,6" {...stroke} />;
+    case "hatch-back":
+      return <path d="M-2,-2 L10,10 M6,-2 L10,2 M-2,6 L2,10" {...stroke} />;
+    case "dots":
+      return <circle cx={4} cy={4} r={1.6} fill={color} />;
+    case "cross":
+      return <path d="M-2,10 L10,-2 M-2,-2 L10,10" {...stroke} />;
+    case "lines":
+      return <path d="M0,4 L8,4" {...stroke} />;
+    case "columns":
+      return <path d="M4,0 L4,8" {...stroke} />;
+    default:
+      return null;
+  }
+}
+
+/** The pattern of one textured series: the colour at 30% under the marks in the colour, 8px across. */
+function Pattern({ id, texture, color }: { id: string; texture: Texture; color: string }) {
+  return (
+    <pattern id={id} width={8} height={8} patternUnits="userSpaceOnUse">
+      <rect width={8} height={8} fill={color} fillOpacity={0.3} />
+      <PatternMarks texture={texture} color={color} />
+    </pattern>
+  );
+}
+
+/** The defs a chart needs for its textured series, inside the svg. */
+export function TextureDefs({
+  id,
+  entries,
+}: {
+  id: string;
+  entries: { key: string; color: string; texture: Texture }[];
+}) {
+  return (
+    <defs>
+      {entries.map((e) =>
+        e.texture === "solid" ? null : (
+          <Pattern key={e.key} id={`${id}-${e.key}`} texture={e.texture} color={e.color} />
+        ),
+      )}
+    </defs>
+  );
+}
+
+/** A textured swatch for a legend or a card: the pattern in its own small svg. */
+export function TextureSwatch({ texture, color }: { texture: Texture; color: string }) {
+  const id = useId();
+  return (
+    <svg aria-hidden width={12} height={12} className="shrink-0 rounded-xsmall">
+      <defs>
+        <Pattern id={id} texture={texture} color={color} />
+      </defs>
+      <rect width={12} height={12} rx={2} fill={texture === "solid" ? color : `url(#${id})`} />
+    </svg>
+  );
+}
 
 /* ---------- motion ---------- */
 
@@ -256,7 +495,7 @@ export const marker = (fill: string) => ({ r: 4, strokeWidth: 2, stroke: surface
 export const truncate = (text: string, max: number) =>
   text.length > max ? `${text.slice(0, max - 1)}…` : text;
 
-/** The plot's margin. The top grows for end labels or a labelled reference, the right for end labels. */
+/** The plot's margin. The top grows for end labels or a labelled reference or band, the right for end labels. */
 export const marginFor = ({
   endLabels,
   refLabels,
@@ -272,8 +511,19 @@ export const marginFor = ({
   left: 0,
 });
 
-export const hasRefLabels = (reference: ChartReference[] | undefined) =>
-  Boolean(reference?.some((r) => r.label));
+export const hasRefLabels = (reference: ChartReference[] | undefined, bands?: ChartBand[] | undefined) =>
+  Boolean(reference?.some((r) => r.label)) || Boolean(bands?.some((b) => b.label && b.fromX !== undefined));
+
+/** The zero line, drawn when the data goes below zero, so the baseline still reads. */
+export function ZeroLine({ horizontal }: { horizontal?: boolean | undefined }) {
+  return (
+    <ReferenceLine
+      {...(horizontal ? { x: 0 } : { y: 0 })}
+      stroke={token("color.border.bold")}
+      strokeWidth={1}
+    />
+  );
+}
 
 /** An axis tick in `font.body.xsmall` and `color.text.subtlest`. A long category is cut with its whole in a title. */
 export function Tick({
@@ -323,16 +573,20 @@ export const axisTitle = (value: string, vertical: boolean) => ({
 
 export type SwatchShape = "square" | "line" | "dot";
 
-/** The key beside a name: a square for a fill, a stroke for a line, a dot for a point. */
+/** The key beside a name: a square for a fill, a stroke for a line, a dot for a point; a pattern when the series is textured. */
 export function Swatch({
   color,
   shape,
   hollow,
+  texture,
 }: {
   color: string;
   shape: SwatchShape;
   hollow?: boolean | undefined;
+  texture?: Texture | undefined;
 }) {
+  if (texture && texture !== "solid" && !hollow && shape === "square")
+    return <TextureSwatch texture={texture} color={color} />;
   if (shape === "line")
     return (
       <span
@@ -366,7 +620,15 @@ type TooltipRow = {
 export const overlay =
   "rounded-medium border border-default bg-surface-overlay px-150 py-100 shadow-overlay";
 
-/** The tooltip: the category, then every series at that point, the value leading, keyed by a swatch shaped like the mark. A stack adds its total. */
+/** The change from the previous point, signed, in the series' format: "+3", "−2", "0". */
+export const deltaText = (value: unknown, previous: unknown, format: Formatter): string | null => {
+  if (typeof value !== "number" || typeof previous !== "number") return null;
+  const d = value - previous;
+  if (d === 0) return "±0";
+  return `${d > 0 ? "+" : "−"}${format(Math.abs(d))}`;
+};
+
+/** The tooltip: the category, then every series at that point, the value leading, keyed by a swatch shaped like the mark. A stack adds its total; a trend adds each change from the point before. */
 export function TooltipContent({
   active,
   payload,
@@ -377,6 +639,10 @@ export function TooltipContent({
   formatX,
   targetKey,
   total,
+  data,
+  x,
+  delta,
+  textures,
 }: {
   active?: boolean | undefined;
   payload?: TooltipRow[] | undefined;
@@ -388,13 +654,27 @@ export function TooltipContent({
   targetKey?: string | undefined;
   /** Print the sum of the rows under them: for a stack, parts of a whole. */
   total?: boolean | undefined;
+  /** The rows and the category key, so a change from the previous point can be printed. */
+  data?: ChartDatum[] | undefined;
+  x?: string | undefined;
+  delta?: boolean | undefined;
+  /** The texture per series key, for the swatches. */
+  textures?: Record<string, Texture> | undefined;
 }) {
   if (!active || !payload?.length) return null;
   const rows = payload.filter((p) => p.value !== null && p.value !== undefined);
   if (!rows.length) return null;
+  const fmt = (key: string) => series.find((s) => s.key === key)?.format ?? format;
   const sum = total
-    ? rows.reduce((n, p) => (typeof p.value === "number" && String(p.dataKey) !== targetKey ? n + p.value : n), 0)
+    ? rows.reduce(
+        (n, p) => (typeof p.value === "number" && String(p.dataKey) !== targetKey ? n + p.value : n),
+        0,
+      )
     : null;
+  const previous =
+    delta && data && x && label !== undefined
+      ? data[data.findIndex((d) => d[x] === label || toMs(d[x]) === label) - 1]
+      : undefined;
   return (
     <div className={cn("min-w-0", overlay)}>
       {label !== undefined && label !== "" ? (
@@ -403,18 +683,21 @@ export function TooltipContent({
       <div className={cn("flex flex-col gap-025", sum !== null && rows.length > 1 && "pb-050")}>
         {rows.map((p, i) => {
           const key = String(p.dataKey ?? "");
-          const s = series.find((x) => x.key === key);
+          const s = series.find((r) => r.key === key);
           const isTarget = targetKey !== undefined && key === targetKey;
           const name = isTarget ? "Target" : (s?.label ?? s?.key ?? p.name ?? key);
+          const change = previous ? deltaText(p.value, previous[key], fmt(key)) : null;
           return (
             <div key={i} className="flex items-center gap-100 font-body-small">
               <Swatch
                 color={isTarget ? token("color.text") : (p.color ?? "")}
                 shape={isTarget ? "line" : swatch}
+                texture={textures?.[key]}
               />
               <span className="min-w-0 flex-1 truncate text-subtle">{name}</span>
+              {change ? <span className="tabular-nums text-subtlest">{change}</span> : null}
               <span className="tabular-nums font-medium text-default">
-                {formatValue(p.value, format)}
+                {formatValue(p.value, fmt(key))}
               </span>
             </div>
           );
@@ -433,41 +716,36 @@ export function TooltipContent({
 
 type ViewBox = { x: number; y: number; width: number; height: number };
 
-/** A reference line's label in `color.text.subtlest`: above the plot for a vertical line, at the line's end for a horizontal one. */
-export function referenceLabel(text: string | undefined, vertical: boolean) {
+const labelText = (text: string, x: number, y: number, anchor: "start" | "middle" | "end") => (
+  <text x={x} y={y} textAnchor={anchor} className="font-body-xsmall" fill={token("color.text.subtlest")}>
+    {text}
+  </text>
+);
+
+/** A reference line's label in `color.text.subtlest`: above the plot for a vertical line, at the line's end for a horizontal one; a band's label above its middle. */
+export function referenceLabel(text: string | undefined, vertical: boolean, band = false) {
   if (!text) return undefined;
   return (props: { viewBox?: ViewBox }) => {
     const v = props.viewBox ?? { x: 0, y: 0, width: 0, height: 0 };
-    return vertical ? (
-      <text
-        x={v.x}
-        y={v.y - 5}
-        textAnchor="middle"
-        className="font-body-xsmall"
-        fill={token("color.text.subtlest")}
-      >
-        {text}
-      </text>
-    ) : (
-      <text
-        x={v.x + v.width}
-        y={v.y - 4}
-        textAnchor="end"
-        className="font-body-xsmall"
-        fill={token("color.text.subtlest")}
-      >
-        {text}
-      </text>
-    );
+    if (band) return labelText(text, v.x + v.width / 2, v.y - 5, "middle");
+    return vertical
+      ? labelText(text, v.x, v.y - 5, "middle")
+      : labelText(text, v.x + v.width, v.y - 4, "end");
   };
 }
+
+/** A category value as recharts wants it on the axis: milliseconds on a time axis, itself otherwise. */
+const axisValue = (v: string | number | Date | undefined, time: boolean) =>
+  v === undefined ? undefined : time ? toMs(v) : v instanceof Date ? v.getTime() : v;
 
 export function References({
   reference,
   horizontal,
+  time,
 }: {
   reference: ChartReference[] | undefined;
   horizontal?: boolean | undefined;
+  time?: boolean | undefined;
 }) {
   if (!reference?.length) return null;
   return (
@@ -477,13 +755,14 @@ export function References({
         // On a horizontal chart the value axis is x, so a `y` reference is a vertical line.
         const onValueAxis = r.y !== undefined;
         const vertical = horizontal ? onValueAxis : !onValueAxis;
+        const cat = axisValue(r.x, Boolean(time)) as string | number;
         const pos = horizontal
           ? onValueAxis
             ? { x: r.y as number }
-            : { y: r.x as string | number }
+            : { y: cat }
           : onValueAxis
             ? { y: r.y as number }
-            : { x: r.x as string | number };
+            : { x: cat };
         return (
           <ReferenceLine
             key={i}
@@ -500,22 +779,30 @@ export function References({
   );
 }
 
-export function Bands({ bands }: { bands: ChartBand[] | undefined }) {
+export function Bands({ bands, time }: { bands: ChartBand[] | undefined; time?: boolean | undefined }) {
   if (!bands?.length) return null;
   return (
     <>
-      {bands.map((b, i) => (
-        <ReferenceArea
-          key={i}
-          y1={b.from}
-          y2={b.to}
-          fill={chartColor(b.tone ?? "neutral")}
-          fillOpacity={0.1}
-          stroke="none"
-          ifOverflow="extendDomain"
-          {...labelProp(referenceLabel(b.label, false))}
-        />
-      ))}
+      {bands.map((b, i) => {
+        const across = b.fromX !== undefined || b.toX !== undefined;
+        const pos = across
+          ? {
+              x1: axisValue(b.fromX, Boolean(time)) as string | number,
+              x2: axisValue(b.toX, Boolean(time)) as string | number,
+            }
+          : { y1: b.from ?? 0, y2: b.to ?? 0 };
+        return (
+          <ReferenceArea
+            key={i}
+            {...pos}
+            fill={chartColor(b.tone ?? "neutral")}
+            fillOpacity={0.1}
+            stroke="none"
+            ifOverflow="extendDomain"
+            {...labelProp(referenceLabel(b.label, false, across))}
+          />
+        );
+      })}
     </>
   );
 }
@@ -577,8 +864,8 @@ export function CardHead({
   title: string;
   subtitle?: string | undefined;
   value?: string | undefined;
-  /** One line per series, for a whole category. */
-  rows?: { swatch: ReactNode; label: string; value: string }[] | undefined;
+  /** One line per series, for a whole category; `note` is the change from the point before. */
+  rows?: { swatch: ReactNode; label: string; value: string; note?: string | null | undefined }[] | undefined;
 }) {
   return (
     <div className="flex flex-col gap-025">
@@ -596,6 +883,7 @@ export function CardHead({
             <div key={i} className="flex items-center gap-100 font-body-small">
               {r.swatch}
               <span className="min-w-0 flex-1 truncate text-subtle">{r.label}</span>
+              {r.note ? <span className="tabular-nums text-subtlest">{r.note}</span> : null}
               <span className="tabular-nums font-medium text-default">{r.value}</span>
             </div>
           ))}
@@ -716,6 +1004,7 @@ export function Plot({
       aria-hidden={name ? undefined : true}
       aria-busy={busy || undefined}
       data-focus={focusedBy ?? undefined}
+      data-chart-plot=""
       className={cn("relative", width === undefined && "w-full", busy && "opacity-loading", className)}
       style={{ height: height ?? heights[size ?? "medium"], width }}
       onPointerDownCapture={() => setFocusedBy("pointer")}
@@ -738,6 +1027,103 @@ export function Plot({
       ) : null}
     </div>
   );
+}
+
+/* ---------- export ---------- */
+
+const csvCell = (s: string) => (/[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
+
+/** The table twin as CSV: the category column, then a column per series, the values unformatted and the categories formatted. */
+export function toCsv(
+  data: ChartDatum[],
+  x: string,
+  xLabel: string,
+  series: ChartSeries[],
+  formatX: CategoryFormatter,
+): string {
+  const head = [xLabel, ...series.map((s) => s.label ?? s.key)].map(csvCell).join(",");
+  const rows = data.map((d) =>
+    [
+      formatX((d[x] as string | number | Date | undefined) ?? ""),
+      ...series.map((s) => {
+        const v = d[s.key];
+        return typeof v === "number" ? String(v) : isRange(v) ? `${v[0]}–${v[1]}` : v == null ? "" : String(v);
+      }),
+    ]
+      .map(csvCell)
+      .join(","),
+  );
+  return [head, ...rows].join("\n");
+}
+
+/** A file name from a title: lower case, dashes, the extension. */
+export const fileName = (title: string, ext: string) =>
+  `${title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") || "chart"}.${ext}`;
+
+/** Hands the reader a file. */
+export function download(name: string, blob: Blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+const inlined = ["fill", "stroke", "stroke-width", "stroke-dasharray", "opacity", "fill-opacity", "font-family", "font-size", "font-weight", "letter-spacing", "text-anchor"] as const;
+
+/**
+ * The plot as a PNG at twice the pixel density: the svg copied with every computed colour and font
+ * inlined (the tokens are CSS variables, which an image cannot resolve), on the surface colour.
+ */
+export async function svgToPng(svg: SVGSVGElement, scale = 2): Promise<Blob> {
+  const rect = svg.getBoundingClientRect();
+  const clone = svg.cloneNode(true) as SVGSVGElement;
+  const from = svg.querySelectorAll<SVGElement>("*");
+  const to = clone.querySelectorAll<SVGElement>("*");
+  from.forEach((el, i) => {
+    const target = to[i];
+    if (!target) return;
+    const cs = getComputedStyle(el);
+    for (const p of inlined) {
+      const v = cs.getPropertyValue(p);
+      if (v) target.setAttribute(p, v);
+    }
+    target.removeAttribute("class");
+  });
+  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  clone.setAttribute("width", String(rect.width));
+  clone.setAttribute("height", String(rect.height));
+  const source = new XMLSerializer().serializeToString(clone);
+  const url = URL.createObjectURL(new Blob([source], { type: "image/svg+xml;charset=utf-8" }));
+  try {
+    const img = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("The chart could not be drawn as an image."));
+      img.src = url;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(rect.width * scale);
+    canvas.height = Math.round(rect.height * scale);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("No canvas.");
+    ctx.fillStyle = getComputedStyle(svg).getPropertyValue("--ds-elevation-surface") || "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.scale(scale, scale);
+    ctx.drawImage(img, 0, 0);
+    return await new Promise<Blob>((resolve, reject) =>
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("No image."))), "image/png"),
+    );
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 /* ---------- skeletons ---------- */

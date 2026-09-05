@@ -18,6 +18,8 @@ Bars per category: the size of each thing, compared. Several series sit side by 
 | Bar          | 24px thick at most, the data end rounded 2px and the baseline end square; `barCategoryGap` a quarter of the slot. Grouped bars sit 2px apart.               |
 | Segment      | In a stack, a part of the bar in its series' tone, with a 2px `elevation.surface` gap from the next, so the parts count.                                    |
 | Floating bar | A `[from, to]` value: the bar starts at `from`. For windows in time.                                                                                         |
+| Negative bar | A value below zero hangs from the zero line, which is drawn in `color.border.bold`; its rounded end and its label are at the data end, below.                |
+| Texture      | With `texture`, each series' fill is its pattern in its colour; the first series stays solid.                                                                |
 | End label    | The value at the bar's end in `font.body.xsmall` and `color.text.subtle`, outside the bar. `labels="end"`, for a few bars and no stack.                      |
 | Target       | A 2px mark in `color.text` across the bar at the datum's `target` value: actual reads against planned.                                                      |
 | Line         | A series drawn as a 2px line over the bars on the same axis: a cumulative, a rate, a plan.                                                                  |
@@ -35,6 +37,9 @@ Bars per category: the size of each thing, compared. Several series sit side by 
 | `target`               | A mark across each bar at its target: Carbon's bullet chart, without the qualitative bands.                               |
 | `[from, to]` values    | Floating bars: phase windows, with `horizontal` and a `reference` for today.                                              |
 | `line`                 | One series as a line over the bars, on the same axis: closed against the plan.                                            |
+| Below zero             | Variance, change, balance: the bars hang from the zero line. The axis reaches below zero on its own.                      |
+| `domain`               | The value axis pinned, so charts side by side share a scale: small multiples.                                             |
+| `texture`              | Patterns as well as colours, for print and colour-vision loss.                                                            |
 
 <Canvas of={Stories.Single} />
 <Canvas of={Stories.Grouped} />
@@ -43,6 +48,9 @@ Bars per category: the size of each thing, compared. Several series sit side by 
 <Canvas of={Stories.Targets} />
 <Canvas of={Stories.Windows} />
 <Canvas of={Stories.Combo} />
+<Canvas of={Stories.Negatives} />
+<Canvas of={Stories.Rates} />
+<Canvas of={Stories.Textured} />
 
 ## Sizes
 
@@ -52,7 +60,7 @@ Bars per category: the size of each thing, compared. Several series sit side by 
 
 | State    | What changes                                                                                                                                   |
 | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Hover    | The tooltip for the category; a `color.background.neutral.subtle.hovered` band behind the slot; the bar under the pointer at 80%.               |
+| Hover    | The tooltip for the category; a `color.background.neutral.subtle.hovered` band behind the slot; the bar under the pointer in its tone's `hovered` step (a textured bar at 85%). Synced charts hover together. |
 | Isolated | A series hidden from the Frame's legend leaves the plot; the others keep their places.                                                          |
 | Chosen   | With `onSelect` or `details`: the bars take the pointer, a click on one chooses it and the other categories dim; Enter on the focused plot chooses the category under the tooltip. The card opens on the bar. |
 | Loading  | Eight skeleton columns on a hairline, pulsing, at the plot's height; five skeleton bars when `horizontal`.                                     |
@@ -64,6 +72,7 @@ Bars per category: the size of each thing, compared. Several series sit side by 
 
 - **`stacked`**, **`horizontal`**, **`labels="end"`**, **`target`**, **`line`** as in Variants.
 - **`xLabel`**, **`yLabel`** print axis titles: the unit on the value axis when the title does not say it.
+- **`domain`** pins the value axis, `[0, "auto"]` when unsaid; a value below zero extends it on its own. **`texture`** and **`syncId`** as on the Frame. A series' own **`format`** wins over the plot's in the tooltip, the card and the table: a fraction printed as a percentage.
 - **`reference`** draws dashed lines: a target across every bar, a milestone on the category axis, labelled at the end. A `y` reference on a horizontal chart is a vertical line, labelled above the plot.
 - **`format`**, **`formatX`** for the numbers and the categories, inherited from the Frame.
 - **`onSelect`** and **`details`** as in States; the selection is `{ datum, series?, index }`, and `series` is absent when Enter chose the whole category.
@@ -75,13 +84,15 @@ Bars per category: the size of each thing, compared. Several series sit side by 
 - **Categories are short**: a code, a name, a month. A long name goes down the side with `horizontal`.
 - **Print a value only at the end** of a few unstacked bars. A stack's parts are the tooltip's and the table's.
 - **A target is a fact about the datum**, in its own key, not a series: the mark is ink.
-- **The value axis starts at zero.** A bar's length is its meaning; there is no `baseline="auto"` here on purpose.
+- **The value axis starts at zero.** A bar's length is its meaning; there is no `baseline="auto"` here on purpose. Below zero is allowed, and the zero line is drawn, because a negative bar's length still means something.
 
 ## Style
 
 | Element   | Token                                                                                                  |
 | --------- | ------------------------------------------------------------------------------------------------------ |
-| Bar       | `color.chart.<tone>` · 24px at most · `radius` 2px at the data end · hover at 80%                      |
+| Bar       | `color.chart.<tone>` · 24px at most · `radius` 2px at the data end · hover in `color.chart.<tone>.hovered` |
+| Zero line | `color.border.bold` · 1px                                                                              |
+| Texture   | The colour at 30% under 1.5px marks · 8px repeat                                                       |
 | Stack gap | 2px `elevation.surface`                                                                                |
 | Group gap | 2px                                                                                                    |
 | End label | `font.body.xsmall` · `color.text.subtle` · tabular · 4px off the end                                   |
@@ -98,6 +109,7 @@ Bars per category: the size of each thing, compared. Several series sit side by 
 - **A status series says its status** in the legend, the tooltip and the table; the tone reinforces.
 - **The target is a mark in ink**, not a colour, so it reads under every vision.
 - **Loading is `aria-busy`** and named "[the plot's name], loading".
+- **`texture` gives a stack a second channel**, so its parts read in print and where fills are flattened.
 
 ## Props
 

@@ -38,6 +38,7 @@ export {
   type ChartBarProps,
   type ChartCrumb,
   type ChartDatum,
+  type ChartDomain,
   type ChartDonutProps,
   type ChartFrameProps,
   type ChartHeatmapProps,

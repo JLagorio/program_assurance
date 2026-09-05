@@ -29,6 +29,7 @@ import {
   statusSeries,
   systemTotals,
 } from "../_lib/chart-data";
+import { Grid as GridPrimitive } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
@@ -145,6 +146,42 @@ export const ChartMatrix: Story = {
           ]}
         />
       </Specimens>
+      <Specimens title="Textured · every series wears a pattern, in the plot, the legend and the tooltip">
+        <Box style={{ width: 300 }}>
+          <Chart title="Coverage by control family" series={statusSeries} texture size="small">
+            <Chart.Bar data={byFamily} x="family" series={statusSeries} stacked size="small" />
+          </Chart>
+        </Box>
+        <Box style={{ width: 300 }}>
+          <Chart title="Findings, open and closed" series={findingSeries} texture size="small">
+            <Chart.Area data={byMonth} x="month" series={findingSeries} stacked size="small" />
+          </Chart>
+        </Box>
+        <Chart.Legend
+          texture
+          series={[
+            { key: "1", label: "Solid" },
+            { key: "2", label: "Hatch" },
+            { key: "3", label: "Hatch back" },
+            { key: "4", label: "Dots" },
+            { key: "5", label: "Cross" },
+            { key: "6", label: "Lines" },
+            { key: "7", label: "Columns" },
+          ]}
+        />
+      </Specimens>
+      <Specimens title="Frame · the Download menu and the Expand button · a narrow Frame wraps its header">
+        <Box style={{ width: 420 }}>
+          <Chart title="Findings by source" data={bySource} x="source" xLabel="Source" series={sourceSeries} download={["csv", "png"]} expandable size="small">
+            <Chart.Bar data={bySource} x="source" series={sourceSeries} size="small" />
+          </Chart>
+        </Box>
+        <Box style={{ width: 300 }}>
+          <Chart title="Coverage by control family" description="Determinations across 372 controls" series={statusSeries} data={byFamily} x="family" size="small">
+            <Chart.Bar data={byFamily} x="family" series={statusSeries} stacked size="small" />
+          </Chart>
+        </Box>
+      </Specimens>
       <Specimens title="The colour scales · sequential · diverging">
         <Chart.Scale scale="sequential" min="0" max="12 findings" />
         <Chart.Scale scale="diverging" min="−12 days" mid="On plan" max="+12 days" />
@@ -163,11 +200,14 @@ function FramedChart() {
       <Chart.Frame
         title="Findings over time"
         description="Open and closed at the end of each month, this year"
+        summary="Open findings fell from 14 in January to 5 in September; closed findings peaked at 11 in May."
         series={findingSeries}
         swatch="line"
         data={data}
         x="month"
         xLabel="Month"
+        download={["csv", "png"]}
+        expandable
         actions={
           <ToggleGroup
             aria-label="Range"
@@ -449,6 +489,80 @@ export const Legends: Story = {
         </Chart>
       </Box>
     </Inline>
+  ),
+};
+
+const open = [{ key: "open", label: "Open", tone: "brand" as const }];
+const closed = [{ key: "closed", label: "Closed", tone: "brand" as const }];
+const assessed = [{ key: "assessed", label: "Assessed", tone: "brand" as const }];
+
+/** Small multiples: three charts of one measure each on one scale (`domain`) and one hover (`syncId`). The honest answer to a dual axis and to more than six series. */
+export const Linked: Story = {
+  render: () => (
+    <GridPrimitive templateColumns={{ base: "1fr", md: "1fr 1fr 1fr" }} gap="space.300">
+      <Chart title="Open findings" description="Per month" series={open} syncId="findings" data={byMonth} x="month" size="small">
+        <Chart.Line data={byMonth} x="month" series={open} domain={[0, 20]} labels="end" size="small" />
+      </Chart>
+      <Chart title="Closed findings" description="Per month" series={closed} syncId="findings" data={byMonth} x="month" size="small">
+        <Chart.Line data={byMonth} x="month" series={closed} domain={[0, 20]} labels="end" size="small" />
+      </Chart>
+      <Chart title="Controls assessed" description="Cumulative, its own scale" series={assessed} syncId="findings" data={byMonth} x="month" size="small">
+        <Chart.Line data={byMonth} x="month" series={assessed} baseline="auto" labels="end" size="small" />
+      </Chart>
+    </GridPrimitive>
+  ),
+};
+
+/** The Download menu hands the reader the table twin as a CSV, or the plot as a PNG at twice the pixel density on the surface colour; Expand opens the same chart in a large Dialog. Both sit with the Table toggle. */
+export const Downloads: Story = {
+  render: () => (
+    <Box style={{ width: 640 }}>
+      <Chart
+        title="Coverage by control family"
+        description="Determinations across 372 controls"
+        series={statusSeries}
+        data={byFamily}
+        x="family"
+        xLabel="Family"
+        download={["csv", "png"]}
+        expandable
+      >
+        <Chart.Bar data={byFamily} x="family" series={statusSeries} stacked />
+      </Chart>
+    </Box>
+  ),
+};
+
+/** `texture` on the Frame: every series wears a pattern as well as its colour, in the plot, the legend, the tooltip and the card. For print, colour-vision loss and forced colours; the first series stays solid. */
+export const Textured: Story = {
+  render: () => (
+    <GridPrimitive templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap="space.300">
+      <Chart title="Coverage by control family" description="Textured" series={statusSeries} texture data={byFamily} x="family">
+        <Chart.Bar data={byFamily} x="family" series={statusSeries} stacked />
+      </Chart>
+      <Chart title="Reviews by assessor" description="Textured" series={assessors.slice(0, 4)} texture data={byAssessor} x="week">
+        <Chart.Area data={byAssessor} x="week" series={assessors.slice(0, 4)} stacked />
+      </Chart>
+    </GridPrimitive>
+  ),
+};
+
+/** At a narrow width the header wraps: the legend and the tools drop under the title, and the plot keeps its height. */
+export const Narrow: Story = {
+  render: () => (
+    <Box style={{ width: 320 }}>
+      <Chart
+        title="Coverage by control family"
+        description="Determinations across 372 controls"
+        series={statusSeries}
+        data={byFamily}
+        x="family"
+        download={["csv"]}
+        expandable
+      >
+        <Chart.Bar data={byFamily} x="family" series={statusSeries} stacked />
+      </Chart>
+    </Box>
   ),
 };
 

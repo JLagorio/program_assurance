@@ -342,6 +342,39 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   Windows, Combo; Components/Chart/Heatmap.
 - `scripts/ds-check.mjs`: a file named `_x.tsx` under a layer is the folder's shared furniture and
   not an export; a family's Matrix may mention a part by its compound name (`Chart.Bar`).
+- A value axis that pins and reaches below zero. Bar, Line and Area take `domain` (`[0, "auto"]`
+  when unsaid) so charts side by side share a scale; a value below zero extends the axis through
+  zero, draws the zero line in `color.border.bold`, and hangs the bar from it with its rounded end
+  and its label at the data end. Components/Chart/Bar: Negatives; Components/Chart/Overview: Linked.
+- A time axis. `scale="time"` on Line and Area reads `x` as dates (a Date, an ISO string or epoch
+  milliseconds), spaces the points by time, and picks at most eight ticks by the span: hours, days,
+  months (the year on January when the span crosses one) or years, each at a unit's start, in the
+  reader's locale. A `reference` and a `band` take dates; `bands` also take `fromX` and `toX` on a
+  category axis, an assessment window labelled above its middle. The Frame's table and CSV format a
+  date as "4 Sep 2026". Components/Chart/Line: Dates.
+- Linked charts. `syncId` on the Frame or a part shares the hover across charts, which with a shared
+  `domain` makes small multiples: the method's answer to a dual axis and to more than six series.
+  Components/Chart/Overview: Linked.
+- Download and Expand. The Frame's `download` (`["csv", "png"]`) puts a Download menu beside the
+  Table toggle: the table twin as CSV (categories formatted, values raw), or the plot as a PNG at
+  twice the pixel density with every token resolved and the surface colour behind it. `expandable`
+  adds an Expand button that opens the same Frame at `large` in a Dialog. Both are disabled while
+  the plot is loading, empty or failed. Components/Chart/Overview: Downloads.
+- The header wraps. The title block keeps 200px; below that the legend and the tools drop under it,
+  so a Frame in a 320px rail keeps its plot's height and loses nothing. Components/Chart/Overview:
+  Narrow.
+- Textures. `texture` on the Frame, or on Bar, Area or Donut, gives every series a pattern in its own
+  colour (the colour at 30% under 1.5px marks, 8px across) in a fixed order the legend, the tooltip
+  and the card repeat: solid, hatch, back-hatch, dots, cross, lines, columns. For print, colour-vision
+  loss and forced colours; a line's stroke stays solid. Components/Chart/Overview: Textured;
+  Components/Chart/Bar, Area, Donut: Textured.
+- `color.chart.<tone>.hovered` for every series tone and categorical step: one step darker in light,
+  one lighter in dark, as Atlassian's chart hovered tokens. A hovered bar and a hovered slice take
+  it in place of the 80% opacity. Tokens/Color: Chart.
+- A series' own `format` (a fraction printed as a percentage in the tooltip, the card and the table), `delta` on Line and Area (each change from
+  the point before, signed, in the tooltip and the card), and `summary` on the Frame (one sentence a
+  screen reader hears as the figure's description, Carbon's chart description). Components/Chart/Bar:
+  Rates; Components/Chart/Line: Deltas.
 
 ## 0.4.0 · 2026-09-04
 

@@ -1918,6 +1918,20 @@
     "utility": "fill-chart-brand"
   },
   {
+    "name": "color.chart.brand.hovered",
+    "cssVar": "--ds-color-chart-brand-hovered",
+    "type": "color",
+    "group": "chart",
+    "description": "The brand series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+    "light": "color.blue.700",
+    "dark": "color.blue.500",
+    "lightResolved": "oklch(0.54 0.19 254)",
+    "darkResolved": "oklch(0.635 0.17 254)",
+    "introduced": "0.5.0",
+    "deprecated": null,
+    "utility": "fill-chart-brand-hovered"
+  },
+  {
     "name": "color.chart.neutral",
     "cssVar": "--ds-color-chart-neutral",
     "type": "color",
@@ -1930,6 +1944,20 @@
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-neutral"
+  },
+  {
+    "name": "color.chart.neutral.hovered",
+    "cssVar": "--ds-color-chart-neutral-hovered",
+    "type": "color",
+    "group": "chart",
+    "description": "The neutral series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+    "light": "color.neutral.600",
+    "dark": "color.darkNeutral.700",
+    "lightResolved": "oklch(0.6 0.014 258)",
+    "darkResolved": "oklch(0.66 0.02 285)",
+    "introduced": "0.5.0",
+    "deprecated": null,
+    "utility": "fill-chart-neutral-hovered"
   },
   {
     "name": "color.chart.information",
@@ -1946,6 +1974,20 @@
     "utility": "fill-chart-information"
   },
   {
+    "name": "color.chart.information.hovered",
+    "cssVar": "--ds-color-chart-information-hovered",
+    "type": "color",
+    "group": "chart",
+    "description": "The information series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+    "light": "color.blue.600",
+    "dark": "color.blue.400",
+    "lightResolved": "oklch(0.585 0.185 254)",
+    "darkResolved": "oklch(0.73 0.145 254)",
+    "introduced": "0.5.0",
+    "deprecated": null,
+    "utility": "fill-chart-information-hovered"
+  },
+  {
     "name": "color.chart.success",
     "cssVar": "--ds-color-chart-success",
     "type": "color",
@@ -1958,6 +2000,20 @@
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-success"
+  },
+  {
+    "name": "color.chart.success.hovered",
+    "cssVar": "--ds-color-chart-success-hovered",
+    "type": "color",
+    "group": "chart",
+    "description": "The success series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+    "light": "color.green.700",
+    "dark": "color.green.500",
+    "lightResolved": "oklch(0.52 0.115 162)",
+    "darkResolved": "oklch(0.65 0.13 162)",
+    "introduced": "0.5.0",
+    "deprecated": null,
+    "utility": "fill-chart-success-hovered"
   },
   {
     "name": "color.chart.warning",
@@ -1974,6 +2030,20 @@
     "utility": "fill-chart-warning"
   },
   {
+    "name": "color.chart.warning.hovered",
+    "cssVar": "--ds-color-chart-warning-hovered",
+    "type": "color",
+    "group": "chart",
+    "description": "The warning series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+    "light": "color.orange.700",
+    "dark": "color.orange.500",
+    "lightResolved": "oklch(0.57 0.135 62)",
+    "darkResolved": "oklch(0.71 0.15 66)",
+    "introduced": "0.5.0",
+    "deprecated": null,
+    "utility": "fill-chart-warning-hovered"
+  },
+  {
     "name": "color.chart.danger",
     "cssVar": "--ds-color-chart-danger",
     "type": "color",
@@ -1986,6 +2056,20 @@
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-danger"
+  },
+  {
+    "name": "color.chart.danger.hovered",
+    "cssVar": "--ds-color-chart-danger-hovered",
+    "type": "color",
+    "group": "chart",
+    "description": "The danger series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+    "light": "color.red.700",
+    "dark": "color.red.500",
+    "lightResolved": "oklch(0.53 0.18 26)",
+    "darkResolved": "oklch(0.64 0.18 26)",
+    "introduced": "0.5.0",
+    "deprecated": null,
+    "utility": "fill-chart-danger-hovered"
   },
   {
     "name": "color.chart.track",
@@ -2016,6 +2100,20 @@
     "utility": "fill-chart-categorical-1"
   },
   {
+    "name": "color.chart.categorical.1.hovered",
+    "cssVar": "--ds-color-chart-categorical-1-hovered",
+    "type": "color",
+    "group": "chart",
+    "description": "The categorical series 1 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+    "light": "color.blue.700",
+    "dark": "color.blue.500",
+    "lightResolved": "oklch(0.54 0.19 254)",
+    "darkResolved": "oklch(0.635 0.17 254)",
+    "introduced": "0.5.0",
+    "deprecated": null,
+    "utility": "fill-chart-categorical-1-hovered"
+  },
+  {
     "name": "color.chart.categorical.2",
     "cssVar": "--ds-color-chart-categorical-2",
     "type": "color",
@@ -2028,6 +2126,20 @@
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-2"
+  },
+  {
+    "name": "color.chart.categorical.2.hovered",
+    "cssVar": "--ds-color-chart-categorical-2-hovered",
+    "type": "color",
+    "group": "chart",
+    "description": "The categorical series 2 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+    "light": "color.orange.700",
+    "dark": "color.orange.500",
+    "lightResolved": "oklch(0.57 0.135 62)",
+    "darkResolved": "oklch(0.71 0.15 66)",
+    "introduced": "0.5.0",
+    "deprecated": null,
+    "utility": "fill-chart-categorical-2-hovered"
   },
   {
     "name": "color.chart.categorical.3",
@@ -2044,6 +2156,20 @@
     "utility": "fill-chart-categorical-3"
   },
   {
+    "name": "color.chart.categorical.3.hovered",
+    "cssVar": "--ds-color-chart-categorical-3-hovered",
+    "type": "color",
+    "group": "chart",
+    "description": "The categorical series 3 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+    "light": "color.teal.700",
+    "dark": "color.teal.500",
+    "lightResolved": "oklch(0.54 0.152 192)",
+    "darkResolved": "oklch(0.635 0.136 192)",
+    "introduced": "0.5.0",
+    "deprecated": null,
+    "utility": "fill-chart-categorical-3-hovered"
+  },
+  {
     "name": "color.chart.categorical.4",
     "cssVar": "--ds-color-chart-categorical-4",
     "type": "color",
@@ -2056,6 +2182,20 @@
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-4"
+  },
+  {
+    "name": "color.chart.categorical.4.hovered",
+    "cssVar": "--ds-color-chart-categorical-4-hovered",
+    "type": "color",
+    "group": "chart",
+    "description": "The categorical series 4 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+    "light": "color.red.700",
+    "dark": "color.red.500",
+    "lightResolved": "oklch(0.53 0.18 26)",
+    "darkResolved": "oklch(0.64 0.18 26)",
+    "introduced": "0.5.0",
+    "deprecated": null,
+    "utility": "fill-chart-categorical-4-hovered"
   },
   {
     "name": "color.chart.categorical.5",
@@ -2072,6 +2212,20 @@
     "utility": "fill-chart-categorical-5"
   },
   {
+    "name": "color.chart.categorical.5.hovered",
+    "cssVar": "--ds-color-chart-categorical-5-hovered",
+    "type": "color",
+    "group": "chart",
+    "description": "The categorical series 5 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+    "light": "color.purple.700",
+    "dark": "color.purple.500",
+    "lightResolved": "oklch(0.54 0.171 300)",
+    "darkResolved": "oklch(0.635 0.153 300)",
+    "introduced": "0.5.0",
+    "deprecated": null,
+    "utility": "fill-chart-categorical-5-hovered"
+  },
+  {
     "name": "color.chart.categorical.6",
     "cssVar": "--ds-color-chart-categorical-6",
     "type": "color",
@@ -2086,6 +2240,20 @@
     "utility": "fill-chart-categorical-6"
   },
   {
+    "name": "color.chart.categorical.6.hovered",
+    "cssVar": "--ds-color-chart-categorical-6-hovered",
+    "type": "color",
+    "group": "chart",
+    "description": "The categorical series 6 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+    "light": "color.green.700",
+    "dark": "color.green.500",
+    "lightResolved": "oklch(0.52 0.115 162)",
+    "darkResolved": "oklch(0.65 0.13 162)",
+    "introduced": "0.5.0",
+    "deprecated": null,
+    "utility": "fill-chart-categorical-6-hovered"
+  },
+  {
     "name": "color.chart.categorical.7",
     "cssVar": "--ds-color-chart-categorical-7",
     "type": "color",
@@ -2098,6 +2266,20 @@
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-7"
+  },
+  {
+    "name": "color.chart.categorical.7.hovered",
+    "cssVar": "--ds-color-chart-categorical-7-hovered",
+    "type": "color",
+    "group": "chart",
+    "description": "The categorical series 7 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+    "light": "color.neutral.600",
+    "dark": "color.darkNeutral.700",
+    "lightResolved": "oklch(0.6 0.014 258)",
+    "darkResolved": "oklch(0.66 0.02 285)",
+    "introduced": "0.5.0",
+    "deprecated": null,
+    "utility": "fill-chart-categorical-7-hovered"
   },
   {
     "name": "color.chart.categorical.8",

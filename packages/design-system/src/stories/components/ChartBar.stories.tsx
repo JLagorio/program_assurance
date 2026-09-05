@@ -7,10 +7,14 @@ import {
   byAssessor,
   byFamily,
   byMonth,
+  byMonthRates,
   bySource,
   familyNames,
+  percent,
   sourceSeries,
   statusSeries,
+  varianceRows,
+  varianceSeries,
   windows,
 } from "../_lib/chart-data";
 import { Specimens } from "../_lib/matrix";
@@ -82,6 +86,17 @@ export const BarMatrix: Story = {
         </Box>
         <Box style={{ width: 300 }}>
           <Chart.Bar data={bySource} x="source" series={sourceSeries} size="small" label="Findings by source" loading />
+        </Box>
+      </Specimens>
+      <Specimens title="Below zero, with the zero line · a shared domain · textured">
+        <Box style={{ width: 300 }}>
+          <Chart.Bar data={varianceRows} x="phase" series={varianceSeries} labels="end" format={(v) => `${v > 0 ? "+" : ""}${v}d`} size="small" label="Schedule variance by phase" />
+        </Box>
+        <Box style={{ width: 300 }}>
+          <Chart.Bar data={bySource} x="source" series={sourceSeries} domain={[0, 60]} size="small" label="Findings by source, to 60" />
+        </Box>
+        <Box style={{ width: 300 }}>
+          <Chart.Bar data={byFamily} x="family" series={statusSeries} stacked texture size="small" label="Coverage by family, textured" />
         </Box>
       </Specimens>
       <Specimens title="Sizes · small 120 · medium 200 · large 320">
@@ -178,6 +193,62 @@ export const Combo: Story = {
     <Box style={{ width: 640 }}>
       <Chart title="Closed findings against the plan" description="Per month, this year" series={[...closedBars, planLine]} data={byMonth} x="month" xLabel="Month">
         <Chart.Bar data={byMonth} x="month" series={closedBars} line={planLine} />
+      </Chart>
+    </Box>
+  ),
+};
+
+/** Below zero: schedule variance in days hangs from the zero line, the rounded end at the data end, the label under the bar. The axis reaches below zero on its own; `domain` can pin it. */
+export const Negatives: Story = {
+  render: () => (
+    <Box style={{ width: 560 }}>
+      <Chart
+        title="Schedule variance by phase"
+        description="Days against the plan; below zero is early"
+        data={varianceRows}
+        x="phase"
+        xLabel="Phase"
+        series={varianceSeries}
+        format={(v) => `${v > 0 ? "+" : ""}${v} days`}
+      >
+        <Chart.Bar data={varianceRows} x="phase" series={varianceSeries} labels="end" domain={[-6, 14]} />
+      </Chart>
+    </Box>
+  ),
+};
+
+/** A series' own `format`: the close rate is stored as a fraction and printed as a percentage on the axis, the labels, the tooltip, the card and the table, while the Frame keeps the kit's format for anything else. */
+export const Rates: Story = {
+  render: () => (
+    <Box style={{ width: 640 }}>
+      <Chart
+        title="Close rate by month"
+        description="Closed over all findings in the month; the target is one in two"
+        series={[{ key: "closeRate", label: "Close rate", tone: "brand", format: percent }]}
+        data={byMonthRates}
+        x="month"
+        xLabel="Month"
+      >
+        <Chart.Bar
+          data={byMonthRates}
+          x="month"
+          series={[{ key: "closeRate", label: "Close rate", tone: "brand", format: percent }]}
+          format={percent}
+          labels="end"
+          domain={[0, 1]}
+          reference={[{ y: 0.5, label: "Target" }]}
+        />
+      </Chart>
+    </Box>
+  ),
+};
+
+/** `texture`: every series wears a pattern as well as its colour, so a stack reads in print and under colour-vision loss. The legend and the tooltip wear it too. */
+export const Textured: Story = {
+  render: () => (
+    <Box style={{ width: 640 }}>
+      <Chart title="Coverage by control family" description="Textured" series={statusSeries} texture data={byFamily} x="family" xLabel="Family">
+        <Chart.Bar data={byFamily} x="family" series={statusSeries} stacked />
       </Chart>
     </Box>
   ),

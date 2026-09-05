@@ -4,6 +4,7 @@ export {
   formatNumber,
   type ChartBand,
   type ChartDatum,
+  type ChartDomain,
   type ChartReference,
   type ChartSelection,
   type ChartSeries,

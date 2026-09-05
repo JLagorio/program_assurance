@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, type PieSectorDataItem } from "recharts";
 
 import { token } from "../../generated/tokens";
@@ -7,14 +7,18 @@ import {
   CardHead,
   Plot,
   Swatch,
+  TextureDefs,
   TooltipContent,
   categoricalTone,
   chartColor,
+  hoveredColor,
   markClass,
   plainCategory,
   rectAnchor,
   seriesClass,
   surface,
+  textureFill,
+  textureOf,
   useFrame,
   useMotion,
   usePicked,
@@ -22,6 +26,7 @@ import {
   type ChartSeries,
   type ChartTone,
   type Formatter,
+  type Texture,
 } from "./_shared";
 
 export type DonutSlice = {
@@ -51,6 +56,8 @@ export type ChartDonutProps = {
   format?: Formatter | undefined;
   /** The ring's accessible name. Unneeded inside a Frame. */
   name?: string | undefined;
+  /** Every slice wears a pattern as well as its colour. The Frame's `texture` sets it. */
+  texture?: boolean | undefined;
   /** Draws the ring's skeleton in place of the slices. The Frame sets it from `status="loading"`. */
   loading?: boolean | undefined;
   /** Called when a slice is clicked. */
@@ -86,17 +93,21 @@ export function ChartDonut({
   thickness = 12,
   format: formatProp,
   name: nameProp,
+  texture: textureProp,
   loading: loadingProp,
   onSelect,
   details,
   className,
 }: ChartDonutProps) {
-  const { name, hidden, highlighted, format, loading } = useFrame(
+  const { name, hidden, highlighted, format, loading, texture } = useFrame(
     nameProp,
     formatProp,
     undefined,
     loadingProp,
+    undefined,
+    textureProp,
   );
+  const id = useId();
   const motion = useMotion();
   const tooltipMotion = useTooltipMotion();
   const { picked, pick, clear } = usePicked<DonutSelection>();
@@ -110,6 +121,11 @@ export function ChartDonut({
   const angles = half ? { startAngle: 180, endAngle: 0 } : { startAngle: 90, endAngle: -270 };
   const cy = half ? outer : "50%";
   const chooses = Boolean(onSelect || details);
+  const toneOf = (s: DonutSlice) => s.tone ?? categoricalTone(slices.indexOf(s));
+  const textures: Record<string, Texture> = {};
+  if (texture) slices.forEach((s, i) => (textures[s.key] = textureOf(i)));
+  const fillOf = (s: DonutSlice) =>
+    texture ? textureFill(id, s.key, textureOf(slices.indexOf(s)), chartColor(toneOf(s))) : chartColor(toneOf(s));
   if (loading)
     return (
       <div
@@ -137,8 +153,9 @@ export function ChartDonut({
       <CardHead
         swatch={
           <Swatch
-            color={chartColor(picked.item.slice.tone ?? categoricalTone(slices.indexOf(picked.item.slice)))}
+            color={chartColor(toneOf(picked.item.slice))}
             shape="square"
+            texture={textures[picked.item.slice.key]}
           />
         }
         title={picked.item.slice.label}
@@ -186,22 +203,25 @@ export function ChartDonut({
               outerRadius={outer}
               stroke={surface()}
               strokeWidth={shown.length > 1 ? 2 : 0}
-              activeShape={(p: PieSectorDataItem) => (
-                <Sector
-                  {...defined({
-                    cx: p.cx,
-                    cy: p.cy,
-                    innerRadius: p.innerRadius,
-                    outerRadius: (p.outerRadius ?? outer) + 2,
-                    startAngle: p.startAngle,
-                    endAngle: p.endAngle,
-                    fill: p.fill,
-                    stroke: p.stroke,
-                    strokeWidth: p.strokeWidth,
-                    className: p.className,
-                  })}
-                />
-              )}
+              activeShape={(p: PieSectorDataItem) => {
+                const slice = shown.find((s) => s.label === (p as { name?: string }).name);
+                return (
+                  <Sector
+                    {...defined({
+                      cx: p.cx,
+                      cy: p.cy,
+                      innerRadius: p.innerRadius,
+                      outerRadius: (p.outerRadius ?? outer) + 2,
+                      startAngle: p.startAngle,
+                      endAngle: p.endAngle,
+                      fill: slice && !texture ? hoveredColor(toneOf(slice)) : p.fill,
+                      stroke: p.stroke,
+                      strokeWidth: p.strokeWidth,
+                      className: p.className,
+                    })}
+                  />
+                );
+              }}
               {...motion}
               {...angles}
               {...(chooses
@@ -231,7 +251,7 @@ export function ChartDonut({
               {shown.map((s, i) => (
                 <Cell
                   key={s.key}
-                  fill={chartColor(s.tone ?? categoricalTone(slices.indexOf(s)))}
+                  fill={fillOf(s)}
                   {...seriesClass(s.key, highlighted, chooses)}
                   {...(picked ? markClass(picked.item.index === i) : {})}
                 />
@@ -245,6 +265,7 @@ export function ChartDonut({
                   swatch="square"
                   format={format}
                   formatX={plainCategory}
+                  textures={textures}
                 />
               }
             />

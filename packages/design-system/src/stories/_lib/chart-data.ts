@@ -173,3 +173,34 @@ export const riskTone = (_value: number, row: string, col: string): Tone => {
   const score = (likelihoods.indexOf(row) + 1) * (impacts.indexOf(col) + 1);
   return score >= 15 ? "danger" : score >= 8 ? "warning" : score >= 4 ? "information" : "success";
 };
+
+/** Weekly open findings over six months, with real dates: the time axis picks its own ticks. */
+export const byWeek = Array.from({ length: 26 }, (_, i) => {
+  const date = new Date(2026, 2, 2 + i * 7);
+  return {
+    date,
+    open: [22, 24, 23, 26, 25, 21, 19, 20, 18, 17, 19, 16, 14, 15, 13, 12, 12, 11, 9, 10, 8, 8, 7, 6, 6, 5][i],
+    closed: [1, 2, 3, 2, 4, 5, 4, 3, 6, 5, 4, 7, 6, 5, 8, 6, 7, 9, 8, 7, 9, 10, 8, 9, 11, 10][i],
+  };
+});
+export const assessmentWindow = { from: new Date(2026, 5, 1), to: new Date(2026, 6, 15) };
+export const authorizationDate = new Date(2026, 7, 3);
+
+/** Schedule variance per phase in days: below zero is early, above is late. */
+export const varianceRows = [
+  { phase: "Categorize", days: -2 },
+  { phase: "Select", days: -3 },
+  { phase: "Implement", days: 7 },
+  { phase: "Assess", days: 12 },
+  { phase: "Authorize", days: 4 },
+  { phase: "Monitor", days: -1 },
+];
+export const varianceSeries: ChartSeries[] = [{ key: "days", label: "Days against plan", tone: "brand" }];
+
+/** Monthly rates beside counts: a per-series format. */
+export const byMonthRates = byMonth.map((d) => {
+  const open = d.open ?? 0;
+  const closed = d.closed ?? 0;
+  return { ...d, closeRate: Math.round((closed / (open + closed)) * 100) / 100 };
+});
+export const percent = (v: number) => `${Math.round(v * 100)}%`;

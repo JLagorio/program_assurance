@@ -19,6 +19,7 @@ import {
   rectAnchor,
   seriesClass,
   surface,
+  tickValue,
   useFrame,
   useMotion,
   usePicked,
@@ -225,7 +226,7 @@ export function ChartScatter({
           type="number"
           dataKey={y}
           name={yLabel ?? y}
-          tick={<Tick vertical format={(v) => format(Number(v))} />}
+          tick={<Tick vertical format={(v) => format(tickValue(v))} />}
           axisLine={false}
           tickLine={false}
           width={yLabel ? 52 : 40}

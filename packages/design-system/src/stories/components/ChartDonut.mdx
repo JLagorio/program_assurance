@@ -16,7 +16,7 @@ A ring of slices on a `color.chart.track`, with a number in the middle: one numb
 | Part    | What it is                                                                                                                    |
 | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | Track   | The full ring in `color.chart.track`, under the slices, so a single slice reads against its whole.                            |
-| Slice   | An arc in its tone, clockwise from the top, with a 2px `elevation.surface` gap from the next. A hovered slice grows 2px.       |
+| Slice   | An arc in its tone, clockwise from the top, with a 2px `elevation.surface` gap from the next. A hovered slice grows 2px and takes its tone's `hovered` step; with `texture` it wears its pattern. |
 | Label   | The number in the middle, `font.heading.xsmall` in `color.text`: the total, the share, the one that matters.                  |
 | Caption | One word under the number in `font.body.xsmall` and `color.text.subtle`: what it counts.                                      |
 | Tooltip | The slice's name and value, keyed by a square.                                                                                |
@@ -59,7 +59,7 @@ A gauge is half as tall as it is wide, plus 4px for the base. The label fits ins
 
 ## Modifiers
 
-- **`arc="half"`** for the gauge; **`size`** and **`thickness`** in pixels.
+- **`arc="half"`** for the gauge; **`size`** and **`thickness`** in pixels; **`texture`** for the patterns.
 - **`label`** and **`caption`** for the middle.
 - **`format`** for the tooltip and the card.
 - **`onSelect`** and **`details`** as in States; the selection is `{ slice, share, index }`.
@@ -79,7 +79,7 @@ A gauge is half as tall as it is wide, plus 4px for the base. The label fits ins
 | Element | Token                                                                         |
 | ------- | ----------------------------------------------------------------------------- |
 | Track   | `color.chart.track`                                                           |
-| Slice   | `color.chart.<tone>` · 2px `elevation.surface` gap · hover +2px               |
+| Slice   | `color.chart.<tone>` · 2px `elevation.surface` gap · hover +2px in `color.chart.<tone>.hovered` |
 | Label   | `font.heading.xsmall` · `color.text`                                          |
 | Caption | `font.body.xsmall` · `color.text.subtle`                                      |
 | Dimmed  | `opacity.disabled`, over `motion.duration.fast`                               |
