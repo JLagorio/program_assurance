@@ -8,6 +8,14 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Breaking
 
+- `Accordion` is `Collapsible.Group`: one part for a section that folds, alone or in a set. A
+  Collapsible inside a Group takes the group's keyboard (Up and Down between the titles, Home and
+  End, wrapping) and the group's open state, and is written the way it is written alone:
+  `defaultOpen` says which start open, `value` names it when the title is not a string. A Group
+  is `multiple` unless `type="single"` is said, where an Accordion was single. `Accordion` and
+  `Accordion.Item` stay exported as deprecated aliases for one release; `ledger/no-deprecated-name`
+  names the replacement and rewrites an item. The Inspector's groups are a Group. The Accordion
+  page folds into Components/Collapsible: Grouped, One at a time, Matrix, Dont.
 - `Tabs` is on Radix Tabs and is four parts. `Tabs` holds the selection (`value` and
   `onValueChange`, or `defaultValue`; `activation` automatic or manual), `Tabs.List` is the
   strip, `Tabs.Tab` takes `value` in place of `isSelected` and `onClick`, and `Tabs.Panel` is

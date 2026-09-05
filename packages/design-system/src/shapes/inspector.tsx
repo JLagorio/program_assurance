@@ -1,6 +1,6 @@
 import { useContext, type ReactNode } from "react";
 
-import { Accordion, Collapsible } from "../components/disclosure";
+import { Collapsible } from "../components/disclosure";
 import { KeyValue } from "../components/key-value";
 import { ScrollArea } from "../components/scroll-area";
 import { cn } from "../lib/cn";
@@ -9,7 +9,7 @@ import { PanelContext } from "../lib/panel-context";
 /* Groups of facts beside the work, each group a heading that folds, every group open until the
    reader folds it, a Configure link at the end. An accordion usually opens closed so its titles
    are the overview; a rail of facts is the exception, content the reader will read, so the
-   groups open. The row is a label and a value, no nesting, a small set. Accordion groups of
+   groups open. The row is a label and a value, no nesting, a small set. A Collapsible.Group of
    KeyValue rows, sticky beside a page, scrolling with a panel. */
 
 export type InspectorGroupData = {
@@ -35,13 +35,12 @@ function InspectorRoot({ groups, footer, sticky }: InspectorProps) {
   const flush = panel?.flush ?? false;
   const body = (
     <>
-      <Accordion type="multiple" defaultValue={groups.map((g) => g.title)} className="border-b-0">
+      <Collapsible.Group inset={flush} className="border-b-0">
         {groups.map((g, index) => (
-          <Accordion.Item
+          <Collapsible
             key={g.title}
-            value={g.title}
             title={g.title}
-            inset={flush}
+            defaultOpen
             className={index === 0 ? "border-t-0" : undefined}
           >
             <div className="flex flex-col">
@@ -51,9 +50,9 @@ function InspectorRoot({ groups, footer, sticky }: InspectorProps) {
                 </KeyValue>
               ))}
             </div>
-          </Accordion.Item>
+          </Collapsible>
         ))}
-      </Accordion>
+      </Collapsible.Group>
       {footer ? <div className={cn("pt-150", flush && "px-300 pb-200")}>{footer}</div> : null}
     </>
   );

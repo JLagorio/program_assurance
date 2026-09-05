@@ -251,6 +251,11 @@ const deprecatedNames = {
   "Shell.NavItem": { to: "Shell.SideNav.Item", fix: true },
   "Shell.User": { to: "Shell.Profile", fix: true },
   Tiles: { to: "Stat.Grid", note: "the same row of Stat.Tile cells, under the Stat name" },
+  Accordion: {
+    to: "Collapsible.Group",
+    note: "multiple unless type=\"single\" is said, where Accordion was single; its sections are Collapsibles",
+  },
+  "Accordion.Item": { to: "Collapsible", fix: true },
 };
 
 /* ---------- how a product assembles the kit ---------- */

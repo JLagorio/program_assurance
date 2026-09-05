@@ -92,6 +92,7 @@ export {
   Collapsible,
   type AccordionItemProps,
   type AccordionProps,
+  type CollapsibleGroupProps,
   type CollapsibleProps,
   type DisclosureHeading,
 } from "./disclosure";

@@ -471,3 +471,31 @@ and wraps, Home returns, Tab lands on the panel; the hover tint reaches past the
 Ratchet: 94 pages on the template, 504 stories, 101 grandfathered; a11y 102. Parked in next.md:
 the index strips that are filters, the program record's twelve tabs, route tabs as a tablist,
 Accordion's default, the forms not built.
+
+### 26. Accordion folds into Collapsible.Group (2026-09-05)
+
+Josef, on the Tabs walk's review: "do we need Accordion and Collapsible? Those look awfully
+similar." They shared the row, the body, the animation, inset, count, heading level and disabled;
+an Accordion added only what a set needs. Kit: `Collapsible` is one part. Alone it is Radix
+Collapsible with its own state; inside `Collapsible.Group` it is a Radix Accordion item with the
+group's keyboard and state, chosen by a context the group provides. A section in a group is written
+as it is alone: the group reads each child's `defaultOpen` (React.Children over direct children)
+into its `defaultValue`, and `value` names a section whose title is not a string (a `useId`
+fallback otherwise). `type` is `multiple` by default, `single` said, which resolves the parked
+"Accordion's default" decision: a group of Collapsibles behaves as the Collapsibles did, plus
+arrows. `Accordion` and `Accordion.Item` stay exported as `@deprecated` aliases (the ratchet
+skips `@deprecated` exports; the Object.assign is on a private const so the ratchet does not
+register `Accordion.Item`), `AccordionProps` and `AccordionItemProps` as deprecated types, and
+`ledger/no-deprecated-name` names the replacement, rewriting `Accordion.Item` and only naming
+`Collapsible.Group` for the root because the default type changes. The Inspector's groups are a
+Group of `defaultOpen` Collapsibles. One page, Components/Collapsible, with Grouped, One at a
+time, Headings, Inset, a Matrix that ends in the group specimens, and a Dont with the compare
+pair; the Accordion page and stories are gone, the cross-links re-pointed. Verified with real
+input over CDP: Tab lands on the first title, Down moves and wraps, End and Home, Space opens
+without closing the others under `multiple`. Ratchet: 138 exports, 103 pages, 93 on the
+template, 501 stories, 101 grandfathered; a11y green on Collapsible, Inspector, Shapes and Panel.
+
+Before it, the same day, the reference sweep (f0f5bf9): every sentence in the package that
+named another design system rewritten in the kit's own voice, 353 on the pages and in captions,
+47 source comment blocks, 51 token descriptions (regenerated), 40 changelog entries. Radix stays
+named as what runs underneath; the working notes under docs/ keep their sources.
