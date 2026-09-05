@@ -339,12 +339,7 @@ function ProgramDetail() {
       <Inspector.Group
         title="Properties"
         action={
-          <button
-            className="text-subtle transition-colors hover:text-default"
-            aria-label="Edit properties"
-          >
-            <Pencil className="size-icon-small" />
-          </button>
+          <IconButton label="Edit properties" variant="subtle" size="small" icon={<Pencil />} />
         }
       >
         <KeyValue label="Program ID">

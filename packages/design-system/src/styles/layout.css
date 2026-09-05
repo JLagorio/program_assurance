@@ -119,3 +119,9 @@
     border-inline-end-width: 0;
   }
 }
+
+/* A bar that stays put under the shell's header while the page scrolls: the ActionBar. */
+@utility sticky-bar {
+  position: sticky;
+  top: var(--shell-top, var(--ds-dimension-layout-topnav));
+}

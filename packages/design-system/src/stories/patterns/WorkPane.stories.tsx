@@ -1,9 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { ListChecks } from "lucide-react";
 import { useState } from "react";
 
-import { Button, Indicator, Tabs, type Tone } from "../../components";
+import { Badge, Button, Indicator, Item, Tabs, type Tone } from "../../components";
+import { Empty } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { ActionBar, Block, Inspector, WorkPane } from "../../shapes";
+import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Shapes/WorkPane",
@@ -26,6 +29,17 @@ const items: { id: string; title: string; meta: string; tone: Tone }[] = [
   { id: "CTRL-0472", title: "Backup restore test", meta: "Draft", tone: "neutral" },
 ];
 
+const noop = () => {};
+
+const chooseOne = (
+  <Empty
+    size="compact"
+    icon={<ListChecks />}
+    title="Choose a control"
+    description="Its work opens here; the list stays."
+  />
+);
+
 function Pane() {
   const [active, setActive] = useState("CTRL-0418");
   const current = items.find((i) => i.id === active);
@@ -36,21 +50,17 @@ function Pane() {
           5 controls
         </Text>
       }
-      list={
-        <Stack space="space.025">
-          {items.map((i) => (
-            <WorkPane.Row
-              key={i.id}
-              id={i.id}
-              title={i.title}
-              meta={i.meta}
-              tone={i.tone}
-              isActive={active === i.id}
-              onSelect={() => setActive(i.id)}
-            />
-          ))}
-        </Stack>
-      }
+      list={items.map((i) => (
+        <WorkPane.Row
+          key={i.id}
+          id={i.id}
+          title={i.title}
+          meta={i.meta}
+          tone={i.tone}
+          isActive={active === i.id}
+          onSelect={() => setActive(i.id)}
+        />
+      ))}
       detail={
         current ? (
           <Stack space="space.300">
@@ -63,12 +73,12 @@ function Pane() {
                 { label: "Severity", value: "High", tone: "danger" },
               ]}
               actions={[
-                { label: "Request evidence", onSelect: () => undefined },
+                { label: "Request evidence", onSelect: noop },
                 {
                   label: "Mark verified",
-                  onSelect: () => undefined,
+                  onSelect: noop,
                   primary: true,
-                  blocked: current.tone === "success" ? "Already verified." : null,
+                  blocked: current.tone === "success" ? "already verified" : null,
                 },
               ]}
               tabs={
@@ -91,7 +101,7 @@ function Pane() {
                     <Indicator tone="warning">Vendor bank change without call-back</Indicator>
                   </Stack>
                 </Block>
-                <Block title="Evidence requests">
+                <Block title="Evidence requests" count={0}>
                   <Text color="color.text.subtle">None open.</Text>
                 </Block>
               </Stack>
@@ -113,7 +123,7 @@ function Pane() {
                   },
                 ]}
                 footer={
-                  <Button variant="subtle" size="small">
+                  <Button variant="link" size="small">
                     Edit facts
                   </Button>
                 }
@@ -122,26 +132,25 @@ function Pane() {
           </Stack>
         ) : null
       }
-      empty={<Text color="color.text.subtle">Choose a control.</Text>}
+      empty={chooseOne}
     />
   );
 }
 
+/** The list stays and the detail changes: an ActionBar pinned above Blocks of work, an Inspector beside them. Choose a row. */
 export const WorkPaneStory: Story = {
   name: "WorkPane with ActionBar, Blocks and Inspector",
   render: () => <Pane />,
 };
 
-const noop = () => {};
-
-/** Every row tone, one active, and the empty detail. */
+/** Every row tone, one active, the list's label with its count, and the empty detail. */
 export const WorkPaneMatrix: Story = {
   render: () => (
     <Box style={{ height: 360 }}>
       <WorkPane
         listLabel={
           <Inline spread="space-between" alignBlock="center">
-            <Text size="xsmall" color="color.text.subtlest">
+            <Text size="xsmall" weight="medium" color="color.text.subtlest">
               Access control
             </Text>
             <Text size="xsmall" color="color.text.subtlest">
@@ -150,14 +159,8 @@ export const WorkPaneMatrix: Story = {
           </Inline>
         }
         list={
-          <Stack space="space.0">
-            <WorkPane.Row
-              id="AC-2"
-              title="Neutral"
-              meta="Interview"
-              tone="neutral"
-              onSelect={noop}
-            />
+          <>
+            <WorkPane.Row id="AC-2" title="Neutral" meta="Interview" tone="neutral" onSelect={noop} />
             <WorkPane.Row
               id="AC-3"
               title="Information"
@@ -180,23 +183,105 @@ export const WorkPaneMatrix: Story = {
               isActive
               onSelect={noop}
             />
-            <WorkPane.Row
-              id="AC-11"
-              title="Danger"
-              meta="Test · 51d"
-              tone="danger"
-              onSelect={noop}
-            />
+            <WorkPane.Row id="AC-11" title="Danger" meta="Test · 51d" tone="danger" onSelect={noop} />
             <WorkPane.Row id="AC-17" title="Neutral again" meta="Examine · 8d" onSelect={noop} />
-          </Stack>
+          </>
         }
         detail={null}
-        empty={
-          <Text size="small" color="color.text.subtle">
-            Select a control.
-          </Text>
-        }
+        empty={chooseOne}
       />
     </Box>
+  ),
+};
+
+/** The mistakes the page is written to prevent, each beside the right way. */
+export const Dont: Story = {
+  render: () => (
+    <Stack space="space.400">
+      <Pair
+        do={
+          <Box style={{ height: 240 }}>
+            <WorkPane
+              listWidth={220}
+              listLabel={
+                <Text size="xsmall" weight="medium" color="color.text.subtlest">
+                  3 controls
+                </Text>
+              }
+              list={items.slice(0, 3).map((i) => (
+                <WorkPane.Row key={i.id} id={i.id} title={i.title} meta={i.meta} tone={i.tone} onSelect={noop} />
+              ))}
+              detail={null}
+              empty={chooseOne}
+            />
+          </Box>
+        }
+        doText="Nothing chosen is an empty state: a mark, what to do, and the list beside it to do it with."
+        dont={
+          <Box style={{ height: 240 }}>
+            <WorkPane
+              listWidth={220}
+              list={items.slice(0, 3).map((i) => (
+                <WorkPane.Row key={i.id} id={i.id} title={i.title} meta={i.meta} tone={i.tone} onSelect={noop} />
+              ))}
+              detail={null}
+              empty={
+                <Text size="small" color="color.text.subtle">
+                  Select a control.
+                </Text>
+              }
+            />
+          </Box>
+        }
+        dontText="A grey line where the work would be, and no label on the list. The pane reads as broken, and the list's landmark has no name."
+      />
+      <Pair
+        do={
+          <Box style={{ height: 200 }}>
+            <WorkPane
+              listWidth={220}
+              listLabel={
+                <Text size="xsmall" weight="medium" color="color.text.subtlest">
+                  3 controls
+                </Text>
+              }
+              list={items.slice(1, 4).map((i) => (
+                <WorkPane.Row key={i.id} id={i.id} title={i.title} meta={i.meta} tone={i.tone} isActive={i.id === "CTRL-0418"} onSelect={noop} />
+              ))}
+              detail={<Text color="color.text.subtle">The detail.</Text>}
+            />
+          </Box>
+        }
+        doText="A Dot for the state and the word in the meta. One tint per row, and the active row is the only fill."
+        dont={
+          <Box style={{ height: 200 }}>
+            <WorkPane
+              listWidth={220}
+              listLabel={
+                <Text size="xsmall" weight="medium" color="color.text.subtlest">
+                  3 controls
+                </Text>
+              }
+              list={items.slice(1, 4).map((i) => (
+                <Item
+                  key={i.id}
+                  title={i.title}
+                  meta={
+                    <Badge size="xsmall" tone={i.tone}>
+                      {i.meta}
+                    </Badge>
+                  }
+                  description={i.id}
+                  isActive={i.id === "CTRL-0418"}
+                  onSelect={noop}
+                />
+              ))}
+              detail={<Text color="color.text.subtle">The detail.</Text>}
+            />
+          </Box>
+        }
+        dontText="A Badge in every row. Three pills in a list column, and the active row's fill is one more."
+      />
+    </Stack>
   ),
 };

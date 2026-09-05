@@ -330,3 +330,28 @@ status, properties to six, hover actions on the Table's reveal pattern plus `poi
 `Command.Dialog` rebuilt on Radix with the width on the content. The prototype sweep (empties,
 the POA&M list, the record rails) is parked in docs/next.md pending the go.
 
+### 21. The shapes: Inspector, WorkPane, ActionBar, Block (2026-09-05)
+
+Sixteenth walk. References: Jira's Details panel, issue navigator and issue header; Carbon's
+accordion (opens closed "to provide users with a high-level overview", titles are headings at
+the page's level, do not fold content the reader will read) and structured list (a label and a
+value, no nesting, a small set); Base Web's accordion (one panel open by default,
+`accordion={false}` for several); Atlassian's page header. Neither Carbon nor Atlassian names
+master-detail; Carbon's selectable structured list is the nearest part.
+
+Kit: typed props on all four (three had inline object types). Inspector's rows are KeyValue in
+both forms and the first group has no rule above in either. WorkPane names its list landmark by
+its label, takes `listWidth`, and its rows are Items in one Item.Group; WorkPane.Row is an Item
+with a Dot and the id under the name. ActionBar is the RecordHeader pinned (`sticky-bar`
+utility in layout.css): `crumbs` and the id as the last crumb, the context as meta, the states
+as Facts, the actions with every blocked reason under the row. Block shows a count of zero.
+Not built, said on the pages: one-at-a-time and closed-by-default accordions, nested groups
+and an aside of its own for the Inspector; a list that navigates, a resizable rule and a
+collapsed list for the WorkPane; a menu past two actions, a tooltip for a blocked reason and a
+pill per state for the ActionBar; a description, a fold and a card for the Block. Prototype: the
+wizard's scope list onto WorkPane at 240px, the control page's bar onto `crumbs`, two raw
+pencil buttons onto IconButton. A story with two Inspectors sharing a group name failed the
+gate (Radix accordion panels are region landmarks named by their headings), fixed by naming
+the groups apart. Ratchet: 82 pages on the template, 221 grandfathered. Parked: Block versus
+Section, the control page's changed header, Inspector's unused data form.
+

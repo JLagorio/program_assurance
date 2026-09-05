@@ -53,7 +53,7 @@ export function ControlActionBar({
   context,
   title,
   scopeName,
-  breadcrumb,
+  crumbs,
   tabs,
   onChange,
 }: {
@@ -61,7 +61,7 @@ export function ControlActionBar({
   context: WorkContext;
   title: string;
   scopeName: string;
-  breadcrumb?: React.ReactNode;
+  crumbs?: React.ReactNode;
   tabs?: React.ReactNode;
   onChange: () => void;
 }) {
@@ -99,7 +99,7 @@ export function ControlActionBar({
   return (
     <>
       <ActionBar
-        breadcrumb={breadcrumb}
+        crumbs={crumbs}
         tabs={tabs}
         id={work.control}
         title={title}

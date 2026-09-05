@@ -10,6 +10,7 @@ import {
   Dialog,
   Field,
   Grid,
+  IconButton,
   Id,
   Inline,
   Input,
@@ -186,9 +187,12 @@ function RiskDetail() {
               <Inspector.Group
                 title="Properties"
                 action={
-                  <button className="text-subtle transition-colors hover:text-default">
-                    <Pencil className="size-icon-small" />
-                  </button>
+                  <IconButton
+                    label="Edit properties"
+                    variant="subtle"
+                    size="small"
+                    icon={<Pencil />}
+                  />
                 }
               >
                 <KeyValue label="Risk ID">

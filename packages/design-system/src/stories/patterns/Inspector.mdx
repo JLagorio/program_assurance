@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Inspector } from "../../shapes";
 import * as Stories from "./Inspector.stories";
@@ -7,21 +7,102 @@ import * as Stories from "./Inspector.stories";
 
 # Inspector
 
-The facts stay put while the content scrolls: in a ShowPage's rail or a WorkPane's detail, sticky under the top nav, every group open until the reader folds it. Inside a Panel, the detail of a selected row, it scrolls with the panel. Sticky, it wraps in a plain `<div className="lg:sticky-rail">`, not an aside: the rail it sits in, a ShowPage's or a WorkPane's detail, is the landmark, so a rail is exactly one landmark.
+The facts that stay put while the work scrolls: groups of label-and-value rows beside a record, each group a heading that folds, every group open until the reader folds it, a link at the end to edit them. Beside a page it is sticky under the top nav and scrolls inside itself; inside a Panel, the detail of a selected row, it scrolls with the panel and its rules run edge to edge. Jira's Details panel is the model. Carbon's accordion opens closed "to provide users with a high-level overview" and names the exception: content the reader will read should not be folded, so the groups here open. Carbon's structured list is the row, a label and a value, a small set, no nesting; Base Web's accordion opens one panel at a time unless told otherwise, and these open together because the facts are read together. Atlassian publishes no accordion.
 
 <Canvas of={Stories.InspectorMatrix} />
 
-`Inspector.Group` is one group of facts on its own, for a rail that stacks several.
+## Anatomy
+
+| Part    | What it is                                                                                                                            |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Group   | A heading that folds: the title, `font.body` semibold, the chevron at the end, a rule above. Open by default.                          |
+| Row     | A [KeyValue](?path=/docs/components-keyvalue--docs): the label in a 104px column, `color.text.subtle`; the value beside it.            |
+| Action  | At the top end of a group, before its rows: an IconButton ("Edit exposure") or a link button.                                          |
+| Footer  | Under the groups: a link button, "Edit properties".                                                                                    |
+| Rail    | Beside a page: sticky under the top nav, `dimension.layout.rail` wide, scrolling inside itself past the viewport.                       |
+
+## Variants
+
+| Form                | Use                                                                                                                        |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `Inspector`         | Groups from data: `groups` of title and rows, with a `footer`. The short form for a record whose facts are a list.          |
+| `Inspector.Group`   | One group composed by hand: a title, KeyValue rows or a row of Badges as children, an `action`. Stack several in a rail.    |
+| Beside a page       | The ShowPage's rail on the overview tab, or a WorkPane's detail: sticky.                                                    |
+| Inside a Panel      | The detail of a selected row: it scrolls with the panel; flush, the rules run edge to edge and the first sits on the top.  |
 
 <Canvas of={Stories.InspectorGroups} />
+
+Not built, and why: an accordion that opens one group at a time (Carbon, Base Web's default), because the facts are read together and folding is for the one group the reader is done with; groups closed by default (Carbon's default), because a rail of facts is what the reader came to read; nested groups, because two levels of facts is a Tree; an aside of its own, because the rail it sits in is the landmark, so a rail is exactly one landmark; a search over the facts, because a record has a handful.
+
+## Sizes
+
+One width: `dimension.layout.rail`, 272px, beside a page; the panel's 320px inside a Panel. The label column is 104px, so a value has 156px beside a page. The rail is as tall as its groups and no taller than the viewport under the top nav; past that it scrolls inside itself.
+
+## States
+
+| State    | What changes                                                                                                    |
+| -------- | --------------------------------------------------------------------------------------------------------------- |
+| Open     | The default. The rows under the heading, the chevron up.                                                        |
+| Closed   | The rows gone, the chevron down. The heading stays.                                                             |
+| Sticky   | Beside a page: the rail stays put under the top nav while the body scrolls.                                     |
+| Scrolled | Taller than the viewport: the rail scrolls inside itself, the page does not.                                    |
+| Flush    | In a flush Panel: the heading and the rows inset `space.300`, the rules edge to edge.                           |
+
+## Modifiers
+
+- **`groups`**, **`footer`**, **`sticky`** on `Inspector`.
+- **`title`**, **`action`** and children on `Inspector.Group`.
+
+## Content
+
+- **A group is a kind of fact**: "Ownership", "Schedule", "Exposure", "Adjudication". Never "Details" or "Properties" alone; that is what the rail already is.
+- **A handful of rows per group**, four to six; a record with twenty facts has four groups.
+- **Labels are nouns of a word or two**: "Owner", "Last verified", "Next due".
+- **Values are a word, a number, a name, a date, a Badge**, or a TextLink to the record they name. Never a sentence; a sentence is the body's.
+- **The action is a verb on the group**: "Edit exposure". The footer's is on the whole: "Edit properties".
+
+## Style
+
+| Element | Token                                                                                                                  |
+| ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Heading | `font.body` semibold · `color.text` · `space.100` block · `color.border` rule above · chevron `color.icon.subtle`, turns in `motion.duration.fast` |
+| Rows    | KeyValue: label 104px `color.text.subtle` · value `color.text` · `space.050` block · `space.150` between                 |
+| Action  | IconButton, subtle, small · `space.050` under                                                                          |
+| Footer  | `space.150` above; flush `space.300` inline, `space.200` below                                                         |
+| Flush   | Heading and rows inset `space.300`; the first rule dropped so the group sits on the panel's top                        |
+| Sticky  | Top at the shell's header plus `space.300` · max height the viewport under it less `space.600`                         |
+
+## Accessibility
+
+- **The group's title is the button that folds it**, with `aria-expanded`; Tab moves from group to group, Enter or Space folds. Carbon's keyboard.
+- **The rows are a definition list**, a term and a definition each, so a screen reader hears "Owner, Dana Whitlock".
+- **The rail is not a landmark of its own.** Beside a page, the ShowPage's aside named "Details" is; in a Panel, the Panel is. One rail, one landmark.
+- **The action is a labelled IconButton**, a stop after the heading; a raw button with a pencil has no name.
+- **Folding hides nothing the page needs.** Every group opens by default, and the state is not kept, so a reader arrives at the facts.
 
 ## Props
 
 <ArgTypes of={Inspector} />
 
+### Inspector.Group
+
+<ArgTypes of={Inspector.Group} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Shapes](?path=/docs/shapes-overview--docs): the four shapes and the job each answers.
+- [KeyValue](?path=/docs/components-keyvalue--docs): the row.
+- [Collapsible](?path=/docs/components-collapsible--docs) and [Accordion](?path=/docs/components-accordion--docs): the folding.
 - [Pages](?path=/docs/patterns-pages--docs): the ShowPage's `rail` beside the overview tab.
 - [Panel](?path=/docs/patterns-panel--docs): flush, the detail of a selected row beside its table.
 - [WorkPane](?path=/docs/shapes-workpane--docs): the detail beside the list.
+- [Shapes](?path=/docs/shapes-overview--docs): the four shapes and the job each answers.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

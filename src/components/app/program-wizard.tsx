@@ -786,7 +786,7 @@ function TailorStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: Ac
   const inheriting = draft.scopes.filter((s) => s.override === null).length;
 
   const list = (
-    <Stack space="space.025">
+    <>
       {many ? (
         <WorkPane.Row
           id="Program"
@@ -812,7 +812,7 @@ function TailorStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: Ac
           />
         );
       })}
-    </Stack>
+    </>
   );
 
   const detail =
@@ -862,21 +862,19 @@ function TailorStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: Ac
       </Stack>
     ) : null;
 
-  // The kit WorkPane's 340px list is sized for control lists; a scope list is
-  // short, so the same master–detail shape at 240px leaves the pane its width.
+  // A scope list is short, so the WorkPane's list column is 240px instead of the 340px a
+  // control list takes.
   return (
-    <Grid
-      gap="space.0"
-      templateColumns={{ base: "repeat(1, minmax(0, 1fr))", lg: "240px minmax(0,1fr)" }}
-    >
-      <aside className="lg:sticky-rail lg:overflow-y-auto lg:border-r lg:border-default lg:pe-200">
-        <Box className="font-heading-xxsmall uppercase text-subtle" paddingBlockEnd="space.100">
+    <WorkPane
+      listWidth={240}
+      listLabel={
+        <Box className="font-heading-xxsmall uppercase text-subtle">
           Scopes · {draft.scopes.length}
         </Box>
-        {list}
-      </aside>
-      <div className="min-w-0 lg:ps-300">{detail}</div>
-    </Grid>
+      }
+      list={list}
+      detail={detail}
+    />
   );
 }
 

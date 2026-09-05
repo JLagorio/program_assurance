@@ -173,8 +173,8 @@ function ControlRecord() {
           title={row.fullTitle}
           scopeName={scope?.name ?? "—"}
           onChange={refresh}
-          breadcrumb={
-            <Breadcrumb>
+          crumbs={
+            <>
               <Breadcrumb.Item asChild>
                 <Link to={"/programs"}>{"Programs"}</Link>
               </Breadcrumb.Item>
@@ -187,8 +187,8 @@ function ControlRecord() {
                   {program.name}
                 </Link>
               </Breadcrumb.Item>
-              <Breadcrumb.Item isCurrent>{`${row.family} controls`}</Breadcrumb.Item>
-            </Breadcrumb>
+              <Breadcrumb.Item>{`${row.family} controls`}</Breadcrumb.Item>
+            </>
           }
           tabs={
             <Tabs>

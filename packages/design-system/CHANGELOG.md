@@ -333,6 +333,20 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   spanned the viewport, so the palette and the record picker opened as a full-width white box
   with the list on the left. Components/Command: Dialog; Patterns/CommandPalette, RecordPicker:
   Matrix.
+- The shapes on the template: Inspector, WorkPane, ActionBar and Block, walked against Jira's
+  Details panel, issue navigator and issue header, Carbon's accordion and structured list, Base
+  Web's accordion and Atlassian's page header. Every shape has typed, described props. `Inspector`
+  draws its rows as KeyValue, in both forms; the first group has no rule above in either.
+  `WorkPane` takes `listWidth` for a short list, names its list landmark by `listLabel`, and its
+  rows are Items: `WorkPane.Row` is an Item with a Dot and the id under the name, so the list is
+  one Item.Group and the chosen row is the Item's active fill. `ActionBar` is the RecordHeader
+  pinned: the trail ending in the id (`crumbs`; `breadcrumb` deprecated), the title with the
+  context, the state axes as Facts (the first a Badge, the rest Indicators) and the actions, with
+  every blocked action's reason written under the row instead of a native tooltip on a disabled
+  button. `Block` shows a count of zero. Prototype: the wizard's scope list is a WorkPane at
+  240px instead of its own grid; the control page's bar passes its parents as crumbs; two raw
+  pencil buttons on Inspector groups are IconButtons. Shapes/Inspector, WorkPane, ActionBar,
+  Block: Matrix, Dont.
 - `Breadcrumb` takes `label`, "Breadcrumb" by default, so a second trail on a page, a chart's
   drill-down path, is a navigation landmark with a name of its own. Components/Breadcrumb.
 - `Eyebrow` takes `as`: `h3` or `h4` when it heads a section, so the page's outline has it,
