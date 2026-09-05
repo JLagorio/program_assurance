@@ -18,6 +18,7 @@ import {
   assessorsEmphasised,
   byAssessor,
   byFamily,
+  byFamilyFacts,
   byMonth,
   bySource,
   componentFacts,
@@ -367,6 +368,31 @@ function Filtering_() {
     </Stack>
   );
 }
+
+/** The table twin with columns beyond the series: `columns` names keys in the datum the plot does not draw, a name beside the category (`place: "before"`), a total, a share and an owner after the series, so the twin is the record's table and not only the plot's. The CSV carries them too. Click Table. */
+export const Columns: Story = {
+  render: () => (
+    <Box style={{ width: 760 }}>
+      <Chart
+        title="Coverage by control family"
+        description="Determinations across the six families; the table adds the name, the total, the share and the owner"
+        series={statusSeries}
+        data={byFamilyFacts}
+        x="family"
+        xLabel="Family"
+        columns={[
+          { key: "name", label: "Name", place: "before" },
+          { key: "total", label: "Total" },
+          { key: "share", label: "Share", format: (v) => `${String(v)}%` },
+          { key: "owner", label: "Owner" },
+        ]}
+        download={["csv"]}
+      >
+        <Chart.Bar data={byFamilyFacts} x="family" series={statusSeries} stacked />
+      </Chart>
+    </Box>
+  ),
+};
 
 /** A chart that filters: `onSelect` without `details`, so a click changes what is under the chart and opens nothing. The Clear button is the way back, reachable without the chart. */
 export const Filtering: Story = { render: () => <Filtering_ /> };

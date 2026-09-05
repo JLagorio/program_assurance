@@ -7,14 +7,7 @@ import {
   Eye,
   GripVertical,
 } from "lucide-react";
-import {
-  useCallback,
-  useRef,
-  type ComponentPropsWithoutRef,
-  type CSSProperties,
-  type ReactNode,
-  type Ref,
-} from "react";
+import { useCallback, useEffect, useRef, type ComponentPropsWithoutRef, type CSSProperties, type ReactNode, type Ref } from "react";
 
 import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
@@ -39,7 +32,8 @@ export type TableProps = {
 /**
  * The register. The wrapper is the scroll frame: sideways always, and down past `maxHeight`, so the
  * sticky header sticks to it and not to the page. While the frame is scrolled sideways it carries
- * `data-scrolled-start` and `data-scrolled-end`, which the pinned columns read for their edge.
+ * `data-scrolled-start` and `data-scrolled-end`, which the pinned columns read for their edge. A
+ * frame that overflows is a tab stop and a named region, so the keyboard can scroll it too.
  */
 function TableRoot({ label, className, maxHeight, frameRef, role, ...props }: TableProps) {
   const frame = useRef<HTMLDivElement>(null);
@@ -52,7 +46,24 @@ function TableRoot({ label, className, maxHeight, frameRef, role, ...props }: Ta
     else delete el.dataset["scrolledStart"];
     if (end) el.dataset["scrolledEnd"] = "";
     else delete el.dataset["scrolledEnd"];
-  }, []);
+    const overflows = el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight;
+    if (overflows) {
+      el.tabIndex = 0;
+      el.setAttribute("role", "region");
+      el.setAttribute("aria-label", label ? `${label}, scrolls` : "Table, scrolls");
+    } else {
+      el.removeAttribute("tabindex");
+      el.removeAttribute("role");
+      el.removeAttribute("aria-label");
+    }
+  }, [label]);
+  useEffect(() => {
+    const el = frame.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(track);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [track]);
   return (
     <div
       ref={(el) => {
@@ -63,7 +74,7 @@ function TableRoot({ label, className, maxHeight, frameRef, role, ...props }: Ta
       }}
       onScroll={track}
       className={cn(
-        "group/scroll w-full",
+        "group/scroll w-full rounded-small outline-none focus-visible:outline-focused",
         maxHeight === undefined ? "overflow-x-auto" : "overflow-auto",
       )}
       style={maxHeight === undefined ? undefined : { maxHeight }}

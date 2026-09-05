@@ -2,8 +2,9 @@
  * Coverage by control family as a chart: one stacked column per family, the four determinations
  * in the status tones, least satisfied first. A click on a segment opens the family's card and
  * filters the control matrix under it to that family and status; Enter on a focused column takes
- * the family alone. The Frame lays the same numbers out as a table, hands them over as CSV or
- * PNG, and expands.
+ * the family alone. The Frame lays the same numbers out as a table with the family's name, total,
+ * inherited count, share and owner beside the determinations, hands them over as CSV or PNG, and
+ * expands.
  */
 
 import { useMemo } from "react";
@@ -86,6 +87,13 @@ export function FamilyCoverageChart({
         data={rows}
         x="family"
         xLabel="Family"
+        columns={[
+          { key: "name", label: "Name", place: "before" },
+          { key: "total", label: "Total" },
+          { key: "inherited", label: "Inherited" },
+          { key: "pct", label: "Share", format: (v) => `${String(v)}%` },
+          { key: "owner", label: "Owner" },
+        ]}
         download={["csv", "png"]}
         expandable
         size="large"

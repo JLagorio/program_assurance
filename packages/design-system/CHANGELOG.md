@@ -281,6 +281,12 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Chart
 - `Chart.Frame`: the legend highlights a series on visible focus only, so the Expand dialog does not open with every series but the first legend item's dimmed; the dialog shows the title and the description once, not again in the Frame inside it.
+- `Chart.Frame` takes `columns`: keys in the datum beyond the series, for the table twin and the CSV. A name beside the category (`place: "before"`), a total, a share, an owner after the series, each with its own `format`; numbers sit to the end. `ChartColumn` and `ChartValue` are exported.
+- `Chart.Frame`'s drill-down path names its landmark "Chart path", now that Breadcrumb takes `label`; a page's own Breadcrumb and a drilled chart no longer share a name.
+
+### Table
+
+- `Table`: a frame that overflows, sideways or past `maxHeight`, is a tab stop and a named region ("[the label], scrolls"), with the focus ring on the keyboard, so the keyboard can scroll it; axe's scrollable-region rule passes. Found through the chart's table twin.
 
 - The chart tokens are re-cut and validated. `color.chart.categorical.1` to `.6` are blue, orange,
   teal, red, purple and green, in that order: of every order of the six hues it is one whose

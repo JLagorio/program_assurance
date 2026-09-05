@@ -20,7 +20,7 @@ import {
   Eyebrow,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
-import { ControlMatrixSection, FamilyCoverageTable } from "@/components/app/control-matrix";
+import { ControlMatrixSection } from "@/components/app/control-matrix";
 import { FamilyCoverageChart } from "@/components/app/coverage-chart";
 import { cn } from "@ledger/design-system/cn";
 import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
@@ -303,14 +303,6 @@ function ProgramDashboard() {
           onSelect={(f, status) => {
             setFamily(f);
             setStatusFilter(status);
-          }}
-        />
-
-        <FamilyCoverageTable
-          coverage={coverage}
-          onSelectFamily={(f) => {
-            setFamily(f);
-            setStatusFilter("All");
           }}
         />
 

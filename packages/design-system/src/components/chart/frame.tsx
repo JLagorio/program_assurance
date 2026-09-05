@@ -32,6 +32,9 @@ import {
   type Formatter,
   type FrameState,
   type SwatchShape,
+  columnText,
+  splitColumns,
+  type ChartColumn,
 } from "./_shared";
 
 /* ---------- legend ---------- */
@@ -143,6 +146,8 @@ export type ChartFrameProps = {
   x?: string | undefined;
   /** What the table calls the category column: "Month", "Family". The key when unsaid. */
   xLabel?: string | undefined;
+  /** Columns for the table twin and the CSV beyond the series, each a key in the datum: a name beside the category (`place: "before"`), a total, a share, an owner after the series. Facts the plot does not draw, so the twin is the record's table and not only the plot's. */
+  columns?: ChartColumn[] | undefined;
   /** The number format the plot, the tooltip and the table share. */
   format?: Formatter | undefined;
   formatX?: CategoryFormatter | undefined;
@@ -182,6 +187,7 @@ export function ChartFrame(props: ChartFrameProps) {
     data,
     x,
     xLabel,
+    columns,
     format = formatNumber,
     formatX,
     size = "medium",
@@ -226,6 +232,9 @@ export function ChartFrame(props: ChartFrameProps) {
   );
   const legendAt = legend ?? (series && series.length > 1 ? "top" : "none");
   const twin = Boolean(data && x && series?.length);
+  const { before, after } = splitColumns(columns);
+  // A column of numbers sits to the end, as the series do. Every cell keeps its full width, so the table sizes to its content and scrolls in its own frame past the Frame's width, rather than clipping a word or a value.
+  const numeric = (c: ChartColumn) => Boolean(data?.some((d) => typeof d[c.key] === "number"));
   const plotHeight = height ?? heights[size];
   const fx = formatX ?? formatCategory;
   const showing = status === "ready" || status === "refreshing";
@@ -233,7 +242,7 @@ export function ChartFrame(props: ChartFrameProps) {
   const png = downloads?.includes("png");
   const saveCsv = () => {
     if (!data || !x || !series) return;
-    download(fileName(title, "csv"), new Blob([toCsv(data, x, xLabel ?? x, series, fx)], { type: "text/csv;charset=utf-8" }));
+    download(fileName(title, "csv"), new Blob([toCsv(data, x, xLabel ?? x, series, fx, columns)], { type: "text/csv;charset=utf-8" }));
   };
   const savePng = async () => {
     const svg = figure.current?.querySelector<SVGSVGElement>("svg.recharts-surface");
@@ -266,7 +275,7 @@ export function ChartFrame(props: ChartFrameProps) {
               </span>
             ) : null}
             {path?.length ? (
-              <Breadcrumb className="pt-025">
+              <Breadcrumb label="Chart path" className="pt-025">
                 {path.map((c, i) => (
                   <Breadcrumb.Item
                     key={i}
@@ -368,9 +377,19 @@ export function ChartFrame(props: ChartFrameProps) {
               <thead>
                 <tr>
                   <Table.Header>{xLabel ?? x}</Table.Header>
+                  {before.map((c) => (
+                    <Table.Header key={c.key} className={cn(numeric(c) && "text-end")}>
+                      {c.label ?? c.key}
+                    </Table.Header>
+                  ))}
                   {series.map((s) => (
                     <Table.Header key={s.key} className="text-end">
                       {s.label ?? s.key}
+                    </Table.Header>
+                  ))}
+                  {after.map((c) => (
+                    <Table.Header key={c.key} className={cn(numeric(c) && "text-end")}>
+                      {c.label ?? c.key}
                     </Table.Header>
                   ))}
                 </tr>
@@ -378,10 +397,28 @@ export function ChartFrame(props: ChartFrameProps) {
               <tbody>
                 {data.map((d, i) => (
                   <Table.Row key={i} isStatic>
-                    <Table.Cell>{fx((d[x] as string | number | Date | undefined) ?? "")}</Table.Cell>
+                    <Table.Cell className="max-w-none">
+                      {fx((d[x] as string | number | Date | undefined) ?? "")}
+                    </Table.Cell>
+                    {before.map((c) => (
+                      <Table.Cell
+                        key={c.key}
+                        className={cn("max-w-none", numeric(c) && "text-end tabular-nums")}
+                      >
+                        {columnText(d, c, format, fx)}
+                      </Table.Cell>
+                    ))}
                     {series.map((s) => (
-                      <Table.Cell key={s.key} className="text-end tabular-nums">
+                      <Table.Cell key={s.key} className="max-w-none text-end tabular-nums">
                         {formatValue(d[s.key], s.format ?? format)}
+                      </Table.Cell>
+                    ))}
+                    {after.map((c) => (
+                      <Table.Cell
+                        key={c.key}
+                        className={cn("max-w-none", numeric(c) && "text-end tabular-nums")}
+                      >
+                        {columnText(d, c, format, fx)}
                       </Table.Cell>
                     ))}
                   </Table.Row>

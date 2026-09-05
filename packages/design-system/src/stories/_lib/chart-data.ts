@@ -19,6 +19,27 @@ export const familyNames: Record<string, string> = {
   SC: "System and communications protection",
   SI: "System and information integrity",
 };
+
+const familyOwners: Record<string, string> = {
+  AC: "G. Hoppel",
+  AU: "G. Hoppel",
+  CM: "M. Ryde",
+  IA: "D. Whitlock",
+  SC: "M. Ryde",
+  SI: "L. Aarto",
+};
+
+/** The family rows with the facts the plot does not draw, for the table twin's columns. */
+export const byFamilyFacts = byFamily.map((r) => {
+  const total = r.satisfied + r.partial + r.other + r.notAssessed;
+  return {
+    ...r,
+    name: familyNames[r.family] ?? r.family,
+    total,
+    share: Math.round((r.satisfied / total) * 100),
+    owner: familyOwners[r.family] ?? "",
+  };
+});
 export const statusSeries: ChartSeries[] = [
   { key: "satisfied", label: "Satisfied", tone: "success" },
   { key: "partial", label: "Partial", tone: "warning" },

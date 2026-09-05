@@ -3,6 +3,7 @@ export {
   chartColor,
   formatNumber,
   type ChartBand,
+  type ChartColumn,
   type ChartDatum,
   type ChartDomain,
   type ChartReference,
@@ -10,6 +11,7 @@ export {
   type ChartSeries,
   type ChartSize,
   type ChartTone,
+  type ChartValue,
 } from "./_shared";
 export { ChartBar, type ChartBarProps } from "./bar";
 export { Chart } from "./chart";

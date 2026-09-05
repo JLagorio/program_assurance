@@ -82,6 +82,8 @@ export type ChartDatum = Record<
   string | number | Date | null | undefined | readonly [number, number]
 >;
 
+export type ChartValue = ChartDatum[string];
+
 export type Formatter = (value: number) => string;
 export type CategoryFormatter = (value: string | number | Date) => string;
 
@@ -121,6 +123,39 @@ export type ChartBand = {
 export type ChartDomain = readonly [number | "auto", number | "auto"];
 
 /** What was chosen on a cartesian plot: the record, the series when a mark was clicked (none when the whole category was chosen with Enter), and the record's index. */
+/** A column for the table twin and the CSV beyond the series: a fact the plot does not draw. */
+export type ChartColumn = {
+  /** The key in each datum. */
+  key: string;
+  /** What the table calls it. Defaults to the key. */
+  label?: string | undefined;
+  /** How a value prints in the table. A number takes the plot's format when unsaid; text prints as it is. The CSV keeps numbers raw. */
+  format?: ((value: ChartValue, datum: ChartDatum) => string) | undefined;
+  /** `before` sets the column between the category and the series, for a name that belongs beside the category. After the series when unsaid. */
+  place?: "before" | "after" | undefined;
+};
+
+/** The columns that sit before the series, and after. */
+export const splitColumns = (columns: ChartColumn[] | undefined) => ({
+  before: columns?.filter((c) => c.place === "before") ?? [],
+  after: columns?.filter((c) => c.place !== "before") ?? [],
+});
+
+/** A column's text for one datum: its own format, else the plot's for a number, a range as "a–b", a date as a category. */
+export function columnText(
+  datum: ChartDatum,
+  column: ChartColumn,
+  format: Formatter,
+  formatX: CategoryFormatter,
+): string {
+  const v = datum[column.key];
+  if (column.format) return column.format(v, datum);
+  if (typeof v === "number") return format(v);
+  if (isRange(v)) return `${format(v[0])}–${format(v[1])}`;
+  if (v instanceof Date) return formatX(v);
+  return v == null ? "" : String(v);
+}
+
 export type ChartSelection = {
   datum: ChartDatum;
   series?: ChartSeries | undefined;
@@ -1033,22 +1068,37 @@ export function Plot({
 
 const csvCell = (s: string) => (/[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
 
-/** The table twin as CSV: the category column, then a column per series, the values unformatted and the categories formatted. */
+const raw = (v: ChartValue): string =>
+  typeof v === "number" ? String(v) : isRange(v) ? `${v[0]}–${v[1]}` : v == null ? "" : String(v);
+
+/** The table twin as CSV: the category column, the columns before the series, a column per series, the columns after; the values unformatted and the categories formatted. */
 export function toCsv(
   data: ChartDatum[],
   x: string,
   xLabel: string,
   series: ChartSeries[],
   formatX: CategoryFormatter,
+  columns?: ChartColumn[],
 ): string {
-  const head = [xLabel, ...series.map((s) => s.label ?? s.key)].map(csvCell).join(",");
+  const { before, after } = splitColumns(columns);
+  const cell = (d: ChartDatum, c: ChartColumn) => {
+    const v = d[c.key];
+    return typeof v === "number" || !c.format ? raw(v) : c.format(v, d);
+  };
+  const head = [
+    xLabel,
+    ...before.map((c) => c.label ?? c.key),
+    ...series.map((s) => s.label ?? s.key),
+    ...after.map((c) => c.label ?? c.key),
+  ]
+    .map(csvCell)
+    .join(",");
   const rows = data.map((d) =>
     [
       formatX((d[x] as string | number | Date | undefined) ?? ""),
-      ...series.map((s) => {
-        const v = d[s.key];
-        return typeof v === "number" ? String(v) : isRange(v) ? `${v[0]}–${v[1]}` : v == null ? "" : String(v);
-      }),
+      ...before.map((c) => cell(d, c)),
+      ...series.map((s) => raw(d[s.key])),
+      ...after.map((c) => cell(d, c)),
     ]
       .map(csvCell)
       .join(","),
