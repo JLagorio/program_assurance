@@ -53,6 +53,7 @@ Updated 2026-09-04.
 - [ ] **Block, or Section** (2026-09-05). Block is Section without a description and with the rule above the heading instead of under it; the Block page says the difference is the job (work, always open) and the Section page says the same. Two parts, one region. Fold Block into Section (drop `description`, or keep it for a constraint) and pick one rule position, or keep both and say the rule position is the tell. Josef's call.
 - [ ] **The control page's header changed** (2026-09-05). ActionBar is now the RecordHeader pinned, so on the control page the id moved from beside the title into the trail's last crumb ("Programs › Atlas › AC controls › AC-2(3)") and the implementation and assessment states are Facts under the title with a rule above. Confirm on `/programs/PRG-0994/controls/AC-2` or say if the states should stay on the title's line.
 - [ ] **Inspector's two forms** (2026-09-05). `Inspector` with `groups` from data has no prototype call site; the 115 uses are `Inspector.Group` composed with KeyValue rows. Keep the data form for a rail whose facts are a list, or drop it and let Inspector be the group.
+- [ ] **The panel's default name** (2026-09-05). `Shell.Panel` is named "Panel" unless the product passes `label`, and the Shell page says never "Panel". The prototype's seventeen record routes pass none. Either the default becomes a name that says something ("Details") or the prop becomes required and the routes pass "Details" and "Preview". Small; wants the word.
 - [ ] **A spinner's delay in the prototype** (2026-09-04). Spinner now takes `delay`. The two export buttons finish in 300 and 900ms, so `isLoading` shows a spinner for a blink. Give Button's `isLoading` a delay too, or accept the blink as feedback that the click landed?
 - [x] **PageSkeleton on the shapes** (2026-09-04, done the same day: the head is a heading shape, the tabs and rows are lines). Skeleton now has heading, circle and block. The PageSkeleton pattern still stacks plain lines with widths; it could draw the record head (heading, facts) and the table (a block) it stands in for. In the patterns walk.
 - [ ] **Read-outs left by hand** (2026-09-04). Eight bars still print their number themselves: the allocation bars colour it danger past 100, and the register, components, index and inheritance lists set it medium weight or at a fixed width beside a count. The kit's `showValue` is small, subtle and 40px wide. Adopt the kit's read-out there, or give `showValue` a weight and a tone?
@@ -87,7 +88,7 @@ The maturity walk, one part per sitting, each page onto the template (`docs/supe
 - [x] The page patterns: Pages overview, PageHeader, RecordHeader, Section, Card, Empty, PageSkeleton (2026-09-04)
 - [x] The record patterns: Related, Glance, Panel, PreviewRail, PreviewSheet, PreviewSplit, PickerSheet, RecordPicker, CommandPalette (2026-09-05)
 - [x] The shapes: ActionBar, Block, Inspector, WorkPane (2026-09-05)
-- [ ] Shell
+- [x] Shell (2026-09-05)
 - [ ] The primitives: Box, Stack, Inline, Flex, Grid, Bleed, Text, Heading
 - [ ] Tokens (the sheets have pages; the template does not apply)
 

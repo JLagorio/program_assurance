@@ -347,6 +347,11 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   240px instead of its own grid; the control page's bar passes its parents as crumbs; two raw
   pencil buttons on Inspector groups are IconButtons. Shapes/Inspector, WorkPane, ActionBar,
   Block: Matrix, Dont.
+- The Shell on the template, walked against Atlassian's navigation system (the grammar it is
+  built on), Carbon's UI shell header, left panel and right panel, and Base Web's header and
+  side navigation. Every area, slot and item has a typed, described props type. `Shell.Profile`
+  is a label without `onClick` and a button with it, no dead button. Closing the overlay side
+  nav with Escape or the scrim returns focus to the toggle button. Shell: Matrix, Dont.
 - `Breadcrumb` takes `label`, "Breadcrumb" by default, so a second trail on a page, a chart's
   drill-down path, is a navigation landmark with a name of its own. Components/Breadcrumb.
 - `Eyebrow` takes `as`: `h3` or `h4` when it heads a section, so the page's outline has it,

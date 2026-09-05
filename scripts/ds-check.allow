@@ -169,17 +169,6 @@ page:ScrollArea#Sizes
 page:ScrollArea#States
 page:ScrollArea#Style
 page:ScrollArea#Variants
-page:Shell#Accessibility
-page:Shell#Anatomy
-page:Shell#Content
-page:Shell#Don't
-page:Shell#Modifiers
-page:Shell#Props
-page:Shell#Related
-page:Shell#Sizes
-page:Shell#States
-page:Shell#Style
-page:Shell#Variants
 page:Stack#Accessibility
 page:Stack#Anatomy
 page:Stack#Content

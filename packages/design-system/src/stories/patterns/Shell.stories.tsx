@@ -40,6 +40,7 @@ import { Box, Inline, Stack, Text } from "../../primitives";
 import { Block, Inspector } from "../../shapes";
 import { SHELL_STORAGE_KEY, Shell, shellScript, shellScriptFor, useSideNav } from "../../shell";
 import { Specimens } from "../_lib/matrix";
+import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Shell",
@@ -535,3 +536,116 @@ function RecordDemo() {
 
 /** The record's rail: details and related information, every Inspector group, in the ShowPage's rail beside the overview tab, under the tab strip; the other tabs run full width. The shell's panel holds the detail of a selected row or a panel the reader opens, never the rail; the peek is a Sheet. */
 export const RecordRail: Story = { name: "Record rail", render: () => <RecordDemo /> };
+
+/** A side nav column on its own, for a pair. */
+function NavBox({ children }: { children: React.ReactNode }) {
+  return (
+    <Box
+      className="w-layout-sidenav rounded-medium border border-default p-150"
+      backgroundColor="elevation.surface.sunken"
+    >
+      <Stack space="space.200">{children}</Stack>
+    </Box>
+  );
+}
+
+/** The mistakes the page is written to prevent, each beside the right way. */
+export const Dont: Story = {
+  parameters: { layout: "padded" },
+  render: () => (
+    <Stack space="space.400">
+      <Pair
+        do={
+          <NavBox>
+            <Shell.SideNav.Section heading="Work">
+              <Shell.SideNav.Item icon={ShieldCheck} href="#queue" badge="1">
+                My queue
+              </Shell.SideNav.Item>
+              <Shell.SideNav.Item icon={ClipboardList} href="#programs" isActive>
+                Programs
+              </Shell.SideNav.Item>
+              <Shell.SideNav.Item icon={FlaskConical} href="#campaigns">
+                Test campaigns
+              </Shell.SideNav.Item>
+            </Shell.SideNav.Section>
+          </NavBox>
+        }
+        doText="The side nav holds objects and queues: what the reader opens. A phase is a state of a program, reached by opening it."
+        dont={
+          <NavBox>
+            <Shell.SideNav.Section heading="Programs">
+              <Shell.SideNav.Item icon={ClipboardList} href="#categorize">
+                Categorize
+              </Shell.SideNav.Item>
+              <Shell.SideNav.Item icon={ClipboardList} href="#select" isActive>
+                Select
+              </Shell.SideNav.Item>
+              <Shell.SideNav.Item icon={ClipboardList} href="#implement">
+                Implement
+              </Shell.SideNav.Item>
+              <Shell.SideNav.Item icon={ClipboardList} href="#assess">
+                Assess
+              </Shell.SideNav.Item>
+              <Shell.SideNav.Item icon={ClipboardList} href="#authorize">
+                Authorize
+              </Shell.SideNav.Item>
+            </Shell.SideNav.Section>
+          </NavBox>
+        }
+        dontText="Phases in the side nav. Five destinations that are one program's states, and every other program is nowhere."
+      />
+      <Pair
+        do={
+          <NavBox>
+            <Shell.SideNav.Section heading="Risk">
+              <Shell.SideNav.Expandable icon={Bug} label="Findings and assets" defaultOpen>
+                <Shell.SideNav.Item href="#findings" isActive>
+                  Findings
+                </Shell.SideNav.Item>
+                <Shell.SideNav.Item href="#assets">Assets</Shell.SideNav.Item>
+              </Shell.SideNav.Expandable>
+            </Shell.SideNav.Section>
+          </NavBox>
+        }
+        doText="Two levels at most: a section, an expandable, its items. What a level deeper would hold is the page's tabs."
+        dont={
+          <NavBox>
+            <Shell.SideNav.Section heading="Risk">
+              <Shell.SideNav.Expandable icon={Bug} label="Findings and assets" defaultOpen>
+                <Shell.SideNav.Expandable label="Assets" defaultOpen>
+                  <Shell.SideNav.Expandable label="Servers" defaultOpen>
+                    <Shell.SideNav.Item href="#prod">Production</Shell.SideNav.Item>
+                    <Shell.SideNav.Item href="#stage">Staging</Shell.SideNav.Item>
+                  </Shell.SideNav.Expandable>
+                </Shell.SideNav.Expandable>
+              </Shell.SideNav.Expandable>
+            </Shell.SideNav.Section>
+          </NavBox>
+        }
+        dontText="Four levels deep. Carbon's left panel stops at two for the same reason: past that the tree is the page, and the nav is an outline of it."
+      />
+      <Pair
+        do={
+          <Box className="rounded-medium border border-default" backgroundColor="elevation.surface">
+            <Shell.TopNav.End>
+              <EndItems />
+            </Shell.TopNav.End>
+          </Box>
+        }
+        doText="The end slot is icon buttons, each named, with no gaps between them: mode, help, notifications, settings."
+        dont={
+          <Box className="rounded-medium border border-default" backgroundColor="elevation.surface">
+            <Shell.TopNav.End>
+              <Button variant="primary" size="small">
+                Upgrade
+              </Button>
+              <Button size="small">Help centre</Button>
+              <Button size="small">What's new</Button>
+            </Shell.TopNav.End>
+          </Box>
+        }
+        dontText="Text buttons and a primary in the end slot. The top nav is a place to get around, not a place to sell; the create action is the middle slot's."
+      />
+    </Stack>
+  ),
+};

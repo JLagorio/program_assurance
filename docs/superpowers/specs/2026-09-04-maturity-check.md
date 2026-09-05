@@ -355,3 +355,22 @@ gate (Radix accordion panels are region landmarks named by their headings), fixe
 the groups apart. Ratchet: 82 pages on the template, 221 grandfathered. Parked: Block versus
 Section, the control page's changed header, Inspector's unused data form.
 
+### 22. The Shell (2026-09-05)
+
+Seventeenth walk. References: Atlassian's navigation system (Root, Banner, TopNav with Start,
+Middle and End, SideNav with Header, Content and Footer, Main, Aside, Panel, PanelSplitter,
+useToggleSideNav: the grammar the Shell is built on, read from the package's export list because
+the docs site does not render); Carbon's UI shell header ("Skip to main content" first, icons
+right-aligned with no gaps, no verbs in header links, header links collapse into the left panel),
+left panel (use it past five secondary items, no third tier, use page tabs) and right panel
+(anchored to a header icon, floats over content, one at a time); Base Web's header navigation
+(lists aligned start, centre, end) and side navigation (items with subNav, activeItemId).
+
+Kit: prop types for every area, slot and item (nine had inline object types); Profile is a label
+without onClick; closing the overlay with Escape or the scrim returns focus to the toggle. The
+page folds its own sections (areas, slots, behaviour, wiring, the record's rail, renames) into
+the template's and adds three pairs: phases in the side nav, a four-level tree, text buttons in
+the end slot. Not built, said on the page: an icon rail for the collapsed side nav, the panel as
+a feature anchored to a header icon, header links, a third level. Ratchet: 83 pages on the
+template, 210 grandfathered. Parked: the panel's default name.
+

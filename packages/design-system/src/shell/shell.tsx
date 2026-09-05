@@ -23,6 +23,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  type RefObject,
 } from "react";
 
 import { IconButton } from "../components/button";
@@ -75,6 +76,8 @@ type ShellApi = {
   setBanner: (present: boolean) => void;
   registerSkipLink: (link: SkipLink) => () => void;
   skipLinks: SkipLink[];
+  /** The toggle button's holder, so closing the overlay with Escape or the scrim returns focus to it. */
+  toggleHolder: RefObject<HTMLElement | null>;
   listeners: {
     onCollapse?: ((args: { trigger: Trigger }) => void) | undefined;
     onExpand?: ((args: { trigger: Trigger }) => void) | undefined;
@@ -101,6 +104,7 @@ const detached: ShellApi = {
   setBanner: noop,
   registerSkipLink: () => noop,
   skipLinks: [],
+  toggleHolder: { current: null },
   listeners: {},
 };
 
@@ -134,6 +138,94 @@ function useSkipLink(idProp: string | undefined, label: string) {
 
 /* ---------- root ---------- */
 
+export type ShellBannerProps = {
+  id?: string | undefined;
+  /** The landmark's name, "Banner" by default. */
+  label?: string | undefined;
+  /** A Banner. */
+  children: ReactNode;
+};
+
+export type ShellTopNavProps = {
+  id?: string | undefined;
+  /** The landmark's name, "Top navigation" by default. */
+  label?: string | undefined;
+  className?: string | undefined;
+  /** TopNav.Start, TopNav.Middle, TopNav.End. */
+  children: ReactNode;
+};
+
+export type ShellTopNavStartProps = {
+  /** The SideNav.ToggleButton. */
+  toggle?: ReactNode;
+  /** The AppSwitcher and the AppLogo. */
+  children?: ReactNode;
+};
+
+export type ShellTopNavMiddleProps = {
+  /** The search first, then the create action. */
+  children: ReactNode;
+};
+
+export type ShellTopNavEndProps = {
+  /** The list's name, "Actions" by default. */
+  label?: string | undefined;
+  /** The name of the button the items fold into below the medium breakpoint, "More" by default. */
+  moreLabel?: string | undefined;
+  /** Icon buttons: mode, help, notifications, settings. */
+  children: ReactNode;
+};
+
+export type AppSwitcherProps = {
+  /** The button's name, "Switch product" by default. */
+  label?: string | undefined;
+  onClick?: (() => void) | undefined;
+};
+
+export type ProfileProps = {
+  /** An Avatar, small. */
+  avatar: ReactNode;
+  name: string;
+  /** Under the name, subtle: the role, the team. */
+  role?: string | undefined;
+  /** Opens the account menu; the profile grows a chevron. Without it the profile is a label. */
+  onClick?: (() => void) | undefined;
+};
+
+export type SideNavSlotProps = {
+  children: ReactNode;
+};
+
+export type SideNavSectionProps = {
+  /** An Eyebrow over the items, and the group's name. */
+  heading?: string | undefined;
+  /** Items and expandables. */
+  children: ReactNode;
+};
+
+export type SideNavToggleButtonProps = {
+  /** The button's name while the side nav shows. */
+  collapseLabel?: string | undefined;
+  /** The button's name while it is hidden. */
+  expandLabel?: string | undefined;
+};
+
+export type ShellSplitterProps = {
+  /** The accessible name; the handle is visually blank. */
+  label: string;
+  onResizeStart?: ((args: { initialWidth: number }) => void) | undefined;
+  onResizeEnd?: ((args: { initialWidth: number; finalWidth: number }) => void) | undefined;
+};
+
+export type ShellMainProps = {
+  id?: string | undefined;
+  /** The landmark's name, "Main content" by default. */
+  label?: string | undefined;
+  className?: string | undefined;
+  /** The page. */
+  children: ReactNode;
+};
+
 export type ShellProps = {
   /** The areas, as immediate children, in order: Banner, TopNav, SideNav, Main, Panel. */
   children: ReactNode;
@@ -163,6 +255,7 @@ function ShellRoot({
   const [skipLinks, setSkipLinks] = useState<SkipLink[]>([]);
   const listeners = useRef<ShellApi["listeners"]>({});
   const peekTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toggleHolder = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const mq = window.matchMedia(DESKTOP);
@@ -205,6 +298,9 @@ function ShellRoot({
       setOpen(false);
       setPeeking(false);
       if (!isDesktop) listeners.current.onCollapse?.({ trigger });
+      // Escape and the scrim leave focus nowhere; it goes back to the button that opened it.
+      if (!isDesktop && (trigger === "escape" || trigger === "scrim"))
+        toggleHolder.current?.querySelector("button")?.focus();
     },
     [isDesktop],
   );
@@ -312,6 +408,7 @@ function ShellRoot({
       setBanner,
       registerSkipLink,
       skipLinks,
+      toggleHolder,
       listeners: listeners.current,
     }),
     [
@@ -380,15 +477,7 @@ function SkipLinks() {
 /* ---------- banner ---------- */
 
 /** The banner area, above the top nav. It holds a Banner and pushes everything down while it is rendered. */
-function BannerArea({
-  id,
-  label = "Banner",
-  children,
-}: {
-  id?: string | undefined;
-  label?: string | undefined;
-  children: ReactNode;
-}) {
+function BannerArea({ id, label = "Banner", children }: ShellBannerProps) {
   const { setBanner } = useShell();
   const skipId = useSkipLink(id, label);
   useEffect(() => {
@@ -410,17 +499,7 @@ function BannerArea({
 
 /* ---------- top nav ---------- */
 
-function TopNavRoot({
-  id,
-  label = "Top navigation",
-  className,
-  children,
-}: {
-  id?: string | undefined;
-  label?: string | undefined;
-  className?: string | undefined;
-  children: ReactNode;
-}) {
+function TopNavRoot({ id, label = "Top navigation", className, children }: ShellTopNavProps) {
   const skipId = useSkipLink(id, label);
   return (
     <header
@@ -438,7 +517,7 @@ function TopNavRoot({
 }
 
 /** The start slot: the toggle, then the app switcher and the logo. While the side nav is expanded it takes the side nav's width and surface, so the logo heads that column. */
-function TopNavStart({ toggle, children }: { toggle?: ReactNode; children?: ReactNode }) {
+function TopNavStart({ toggle, children }: ShellTopNavStartProps) {
   const { isDesktop, sideNav } = useShell();
   const inline = isDesktop && sideNav.expanded;
   return (
@@ -457,7 +536,7 @@ function TopNavStart({ toggle, children }: { toggle?: ReactNode; children?: Reac
 }
 
 /** The middle slot: the search first, then the create action. Centred while the side nav is collapsed. */
-function TopNavMiddle({ children }: { children: ReactNode }) {
+function TopNavMiddle({ children }: ShellTopNavMiddleProps) {
   const { isDesktop, sideNav } = useShell();
   return (
     <div
@@ -472,15 +551,7 @@ function TopNavMiddle({ children }: { children: ReactNode }) {
 }
 
 /** The end slot: a list of actions, right-aligned. Below the medium breakpoint they fold into one More button. */
-function TopNavEnd({
-  label = "Actions",
-  moreLabel = "More",
-  children,
-}: {
-  label?: string | undefined;
-  moreLabel?: string | undefined;
-  children: ReactNode;
-}) {
+function TopNavEnd({ label = "Actions", moreLabel = "More", children }: ShellTopNavEndProps) {
   const items = Children.toArray(children);
   return (
     <div className="flex shrink-0 items-center px-150">
@@ -590,40 +661,34 @@ function AppLogo({
 }
 
 /** Opens the switcher between products. */
-function AppSwitcher({
-  label = "Switch product",
-  onClick,
-}: {
-  label?: string | undefined;
-  onClick?: (() => void) | undefined;
-}) {
+function AppSwitcher({ label = "Switch product", onClick }: AppSwitcherProps) {
   return <IconButton label={label} variant="subtle" onClick={onClick} icon={<LayoutGrid />} />;
 }
 
-/** The person: avatar, name, role. In the side nav's footer, or in the top nav's end slot as an avatar alone. */
-function Profile({
-  avatar,
-  name,
-  role,
-  onClick,
-}: {
-  avatar: ReactNode;
-  name: string;
-  role?: string | undefined;
-  onClick?: (() => void) | undefined;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-100 rounded-medium px-100 py-075 text-left outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered focus-visible:outline-focused"
-    >
+/** The person: avatar, name, role. In the side nav's footer. A button that opens the account menu with `onClick`; a label without. */
+function Profile({ avatar, name, role, onClick }: ProfileProps) {
+  const inner = (
+    <>
       {avatar}
       <span className="flex min-w-0 flex-col">
         <span className="block truncate font-body font-medium text-default">{name}</span>
         {role ? <span className="block truncate font-body-small text-subtle">{role}</span> : null}
       </span>
-      <ChevronDown className="ms-auto size-icon-small shrink-0 icon-subtle" />
+      {onClick ? <ChevronDown className="ms-auto size-icon-small shrink-0 icon-subtle" /> : null}
+    </>
+  );
+  const base = "flex w-full items-center gap-100 rounded-medium px-100 py-075 text-left";
+  if (!onClick) return <div className={base}>{inner}</div>;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        base,
+        "outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered focus-visible:outline-focused",
+      )}
+    >
+      {inner}
     </button>
   );
 }
@@ -720,12 +785,12 @@ function SideNavRoot({
 }
 
 /** The top of the side nav, fixed: a container switcher, a search, a title. */
-function SideNavHeader({ children }: { children: ReactNode }) {
+function SideNavHeader({ children }: SideNavSlotProps) {
   return <div className="flex shrink-0 items-center gap-100 px-150 pt-150">{children}</div>;
 }
 
 /** The middle: the sections and items. It scrolls, and it grows to push the footer down. */
-function SideNavBody({ children }: { children: ReactNode }) {
+function SideNavBody({ children }: SideNavSlotProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-200 overflow-y-auto px-150 py-150">
       {children}
@@ -734,18 +799,12 @@ function SideNavBody({ children }: { children: ReactNode }) {
 }
 
 /** The bottom of the side nav, fixed: the person, a settings link. */
-function SideNavFooter({ children }: { children: ReactNode }) {
+function SideNavFooter({ children }: SideNavSlotProps) {
   return <div className="shrink-0 border-t border-default p-150">{children}</div>;
 }
 
 /** A group of items under an eyebrow. */
-function SideNavSection({
-  heading,
-  children,
-}: {
-  heading?: string | undefined;
-  children: ReactNode;
-}) {
+function SideNavSection({ heading, children }: SideNavSectionProps) {
   return (
     <div role="group" aria-label={heading} className="flex flex-col gap-025">
       {heading ? <Eyebrow className="px-150 pb-050 pt-100">{heading}</Eyebrow> : null}
@@ -872,10 +931,7 @@ function SideNavExpandable({
 function SideNavToggleButton({
   collapseLabel = "Collapse side navigation",
   expandLabel = "Expand side navigation",
-}: {
-  collapseLabel?: string | undefined;
-  expandLabel?: string | undefined;
-}) {
+}: SideNavToggleButtonProps) {
   const shell = useShell();
   const showing = shell.isDesktop ? shell.sideNav.expanded : shell.sideNav.open;
   const label = showing ? collapseLabel : expandLabel;
@@ -896,28 +952,23 @@ function SideNavToggleButton({
         )
       }
     >
-      <IconButton
-        label={label}
-        variant="subtle"
-        aria-expanded={showing}
-        onClick={() => shell.toggleSideNav("toggle-button")}
-        onPointerEnter={shell.peekSideNav}
-        onPointerLeave={() => shell.endPeek()}
-        icon={<Icon />}
-        isTooltipDisabled
-      />
+      <span ref={shell.toggleHolder} className="contents">
+        <IconButton
+          label={label}
+          variant="subtle"
+          aria-expanded={showing}
+          onClick={() => shell.toggleSideNav("toggle-button")}
+          onPointerEnter={shell.peekSideNav}
+          onPointerLeave={() => shell.endPeek()}
+          icon={<Icon />}
+          isTooltipDisabled
+        />
+      </span>
     </Tooltip>
   );
 }
 
 /* ---------- splitters ---------- */
-
-type SplitterProps = {
-  /** The accessible name; the handle is visually blank. */
-  label: string;
-  onResizeStart?: ((args: { initialWidth: number }) => void) | undefined;
-  onResizeEnd?: ((args: { initialWidth: number; finalWidth: number }) => void) | undefined;
-};
 
 /** A drag handle on an area's inner edge. `direction` is which way a drag grows the area: 1 for the side nav, -1 for the panel. */
 function Splitter({
@@ -929,7 +980,7 @@ function Splitter({
   onResizeStart,
   onResizeEnd,
   onDoubleClick,
-}: SplitterProps & {
+}: ShellSplitterProps & {
   min: number;
   direction: 1 | -1;
   edge: "start" | "end";
@@ -997,7 +1048,7 @@ function Splitter({
 }
 
 /** Makes the side nav resizable. A double-click collapses it. */
-function SideNavSplitter(props: SplitterProps) {
+function SideNavSplitter(props: ShellSplitterProps) {
   const shell = useShell();
   return (
     <Splitter
@@ -1025,17 +1076,7 @@ const SideNav = Object.assign(SideNavRoot, {
 /* ---------- main ---------- */
 
 /** The page. It fills what the side nav and the panel leave and uses the body scroll. */
-function Main({
-  id,
-  label = "Main content",
-  className,
-  children,
-}: {
-  id?: string | undefined;
-  label?: string | undefined;
-  className?: string | undefined;
-  children: ReactNode;
-}) {
+function Main({ id, label = "Main content", className, children }: ShellMainProps) {
   const skipId = useSkipLink(id, label);
   return (
     <main
@@ -1088,7 +1129,7 @@ function PanelRoot({ id, label = "Panel", defaultWidth, className, children }: S
 }
 
 /** Makes the panel resizable from its start edge. */
-function PanelSplitter(props: SplitterProps) {
+function PanelSplitter(props: ShellSplitterProps) {
   const shell = useShell();
   return (
     <Splitter
