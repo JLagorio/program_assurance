@@ -299,7 +299,7 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Table
 
-- `Table`: a frame that overflows, sideways or past `maxHeight`, is a tab stop and a named region ("[the label], scrolls"), with the focus ring on the keyboard, so the keyboard can scroll it; axe's scrollable-region rule passes. Found through the chart's table twin.
+- `Table`: a frame that overflows, sideways or past `maxHeight`, is a tab stop with the focus ring on the keyboard, so the keyboard can scroll it: a landmark named "[the label], scrolls" when the table has a `label`, else a named group, since two landmarks cannot share a name. Axe's scrollable-region rule passes. Found through the chart's table twin.
 
 - The chart tokens are re-cut and validated. `color.chart.categorical.1` to `.6` are blue, orange,
   teal, red, purple and green, in that order: of every order of the six hues it is one whose

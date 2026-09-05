@@ -33,7 +33,8 @@ export type TableProps = {
  * The register. The wrapper is the scroll frame: sideways always, and down past `maxHeight`, so the
  * sticky header sticks to it and not to the page. While the frame is scrolled sideways it carries
  * `data-scrolled-start` and `data-scrolled-end`, which the pinned columns read for their edge. A
- * frame that overflows is a tab stop and a named region, so the keyboard can scroll it too.
+ * frame that overflows is a tab stop, so the keyboard can scroll it too: a landmark named after the
+ * table's `label` when it has one, else a plain named group, since two landmarks cannot share a name.
  */
 function TableRoot({ label, className, maxHeight, frameRef, role, ...props }: TableProps) {
   const frame = useRef<HTMLDivElement>(null);
@@ -49,7 +50,7 @@ function TableRoot({ label, className, maxHeight, frameRef, role, ...props }: Ta
     const overflows = el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight;
     if (overflows) {
       el.tabIndex = 0;
-      el.setAttribute("role", "region");
+      el.setAttribute("role", label ? "region" : "group");
       el.setAttribute("aria-label", label ? `${label}, scrolls` : "Table, scrolls");
     } else {
       el.removeAttribute("tabindex");
