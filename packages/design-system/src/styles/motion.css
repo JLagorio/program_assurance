@@ -89,3 +89,11 @@
     animation-duration: 0.01ms;
   }
 }
+
+/* A skeleton's pulse stops under reduced motion; a spinner keeps turning, because the turning is
+   the message. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse {
+    animation: none;
+  }
+}

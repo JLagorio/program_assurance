@@ -1,25 +1,86 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { ButtonGroup } from "../../components";
 import * as Stories from "./ButtonGroup.stories";
-import * as ToggleStories from "./Toggle.stories";
 
 <Meta of={Stories} />
 
 # ButtonGroup
 
-A ButtonGroup joins Buttons that belong together with a hairline between.
+Buttons that are one control, joined: the corners meet and a hairline sits between. A split button, a pair of icon actions, undo and redo. Atlassian's ButtonGroup spaces buttons and Carbon's groups them by importance; those are an [Inline](?path=/docs/primitives-inline--docs) here. Base Web's selects among them; that is a [ToggleGroup](?path=/docs/components-togglegroup--docs).
 
 <Canvas of={Stories.ButtonGroupMatrix} />
 
-<Canvas of={ToggleStories.TogglesStory} />
+## Anatomy
+
+| Part    | What it is                                                                                               |
+| ------- | -------------------------------------------------------------------------------------------------------- |
+| Buttons | Two or three Buttons or IconButtons of one size and one variant. The group draws nothing of its own.     |
+| Join    | The inner corners squared, `radius.medium` on the outer two, `color.border` hairline between.            |
+| Name    | `label`, when the buttons do not say it: "Export", "Align". A group is a landmark a screen reader lists. |
+
+## Variants
+
+| Group        | Use                                                                                                        |
+| ------------ | ---------------------------------------------------------------------------------------------------------- |
+| Split        | A Button and an IconButton with a chevron opening a menu of the other ways to do it: Export and Export as. |
+| Icon actions | IconButtons that belong together: align left, centre, right; undo and redo.                                |
+| Actions      | Two or three Buttons of one variant that act on one thing: Export and Print.                               |
+
+Not built, and why: a spaced group (Atlassian), because two actions with space between are an Inline with `space.100`; a selection mode (Base Web), because a choice is a ToggleGroup; a vertical group, because stacked buttons are a menu.
+
+## Sizes
+
+The group has no size: it is as tall as its buttons, and every button in it is one size. `small` in a toolbar or a row, `medium` on a page header. Carbon: never mix sizes in a group.
+
+## States
+
+The group has no state. Each button keeps its own: one may be disabled, one may be loading, one may be selected when it is also a state. The hover and focus of a member rise above the hairline so the outline is whole.
+
+## Modifiers
+
+- **`label`** names the group.
+- **`children`**: the buttons.
+
+## Content
+
+- **Two or three.** Past three the rest go behind the last one's menu.
+- **One size, one variant**, so the group reads as one control.
+- **The first is the main way**, the chevron the other ways: Export, then Export as.
+- **Never two primaries** in one group; Carbon says one high-emphasis button among medium ones.
+
+## Style
+
+| Element | Token                                                             |
+| ------- | ----------------------------------------------------------------- |
+| Corners | `radius.medium` on the outer edges; none inside                   |
+| Join    | `color.border`, 1px, on the start of every button after the first |
+| Members | the Button's and IconButton's own tokens, unchanged               |
+
+## Accessibility
+
+- **A `role="group"`** named by `label`, so a screen reader can list it and enter it as one thing.
+- **Every button is its own stop**, named as it always is: the IconButton's `label`, the Button's text.
+- **The split's chevron is named for what it opens**: "Export as", not "More".
+- **Focus rises above the join**: a member on focus gets a higher stacking order so its outline is not cut by the neighbour.
 
 ## Props
 
 <ArgTypes of={ButtonGroup} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Button](?path=/docs/components-button--docs)
-- [Toggle](?path=/docs/components-toggle--docs): one thing on or off.
-- [ToggleGroup](?path=/docs/components-togglegroup--docs): one of several views, always exactly one on.
+- [Button](?path=/docs/components-button--docs) and [IconButton](?path=/docs/components-iconbutton--docs): the members.
+- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): behind a split's chevron.
+- [ToggleGroup](?path=/docs/components-togglegroup--docs): a choice among views.
+- [Inline](?path=/docs/primitives-inline--docs): actions that stand apart.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

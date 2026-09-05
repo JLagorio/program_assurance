@@ -128,8 +128,8 @@ export type IconButtonProps = {
   label: string;
   /** The icon, passed bare; the button sizes it. */
   icon: ReactElement;
-  /** `secondary` is the raised button; `subtle` sits in toolbars and rows. */
-  variant?: "secondary" | "subtle" | undefined;
+  /** `secondary` is the raised button; `subtle` sits in toolbars and rows; `primary` is the bold fill, for the chevron of a primary split button. */
+  variant?: "primary" | "secondary" | "subtle" | undefined;
   /** `small` (28px) is the default, for toolbars and rows; `medium` (32px) sits beside medium controls. */
   size?: "small" | "medium" | undefined;
   /** Hides the tooltip where the label is already visible beside the button. The accessible name stays. */
@@ -171,7 +171,7 @@ export function IconButton({
     <Comp
       className={cn(
         base,
-        variant === "secondary" ? variants.secondary : variants.subtle,
+        variants[variant],
         "shrink-0 px-0",
         iconButtonSizes[size],
         isSelected && selected,
@@ -194,7 +194,9 @@ export function IconButton({
     >
       <Slottable>{children}</Slottable>
       {isLoading ? (
-        <Spinner className={iconButtonIcons[size]} />
+        <Spinner
+          className={cn(iconButtonIcons[size], onBold(variant, isSelected) && "icon-inverse")}
+        />
       ) : (
         <Slot className={iconButtonIcons[size]} aria-hidden>
           {icon}

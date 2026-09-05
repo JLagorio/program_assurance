@@ -1,24 +1,111 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { ToggleGroup } from "../../components";
 import * as Stories from "./ToggleGroup.stories";
-import * as ToggleStories from "./Toggle.stories";
 
 <Meta of={Stories} />
 
 # ToggleGroup
 
-A ToggleGroup is one of several views, always exactly one on: the recessed segmented control; an item's `count` sits after its label as a Count, the way a Tabs.Tab carries one.
+One of several views or modes of the same thing, always exactly one on: table or board, all or open, week or month. The recessed segmented control, with the chosen item raised. Carbon's content switcher and Base Web's button group in radio mode are the models; Atlassian has none, and uses Tabs or a Toggle instead.
+
+A ToggleGroup sorts or re-lays the same content; distinct content is [Tabs](?path=/docs/components-tabs--docs), and two answers are a [Switch](?path=/docs/components-switch--docs).
 
 <Canvas of={Stories.ToggleGroupMatrix} />
 
-<Canvas of={ToggleStories.TogglesStory} />
+## Anatomy
+
+| Part  | What it is                                                                                                                             |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Track | `color.background.neutral`, `radius.medium`, `space.025` inside. The recess the items sit in.                                          |
+| Item  | A word or two, an icon before it or alone, `font.body.small` medium (`font.body` at `medium`), `color.text.subtle`.                    |
+| On    | The chosen item, raised: `elevation.surface.raised` with `elevation.shadow.raised`, `radius.small`, `color.text`. Exactly one, always. |
+| Count | After the label, a Count, the way a Tabs.Tab carries one: how many rows the view holds.                                                |
+| Name  | `aria-label` on the group: what is being chosen. "View", "Scope", "Period".                                                            |
+
+## Variants
+
+| Items         | Use                                                                                                       |
+| ------------- | --------------------------------------------------------------------------------------------------------- |
+| Words         | The default: "All", "Open", "Settled". Nouns of a word or two.                                            |
+| Icon and word | When the icon helps the eye: a table, a board, a list.                                                    |
+| Icons alone   | `isIconOnly` on every item: the toolbar's view switch. The label becomes the item's name and its tooltip. |
+| With counts   | `count` on each: how many the view holds, so the reader chooses knowing.                                  |
+
+Not built, and why: multiple selection (Base Web's checkbox mode), because several on is a row of Toggles or a set of FilterChips; equal-width items (Carbon), because the words are short and the group sits in a toolbar, not on a grid; a group with nothing on, because the group is a choice, and a choice has an answer.
+
+## Sizes
+
+| Size     | Track | Item | Where                                                    |
+| -------- | ----- | ---- | -------------------------------------------------------- |
+| `small`  | 28px  | 24px | The default: a toolbar, a section head, a card's corner. |
+| `medium` | 32px  | 28px | A page header, beside medium controls.                   |
+
+Carbon offers three heights up to 48px; the two here are the toolbar's and the page's. The track's height is the Button's, so the group sits level with the buttons beside it.
+
+<Canvas of={Stories.ViewsStory} />
+
+## States
+
+| State    | What changes                                                                                      |
+| -------- | ------------------------------------------------------------------------------------------------- |
+| Off      | On the track, `color.text.subtle`; `color.text` on hover.                                         |
+| On       | Raised on `elevation.surface.raised`, `color.text`. Pressing it again does nothing: one stays on. |
+| Focus    | The focus outline on the item, keyboard only.                                                     |
+| Disabled | `color.text.disabled`, no hover. A view that is not available now.                                |
+
+## Modifiers
+
+- **`items`**: `value`, `label`, `icon`, `isIconOnly`, `count`, `disabled` per item.
+- **`value`** and **`onChange`**: the one on. Controlled always, because the page owns the view.
+- **`size`** as in Sizes.
+- **`aria-label`** names the choice.
+
+## Content
+
+- **Nouns, one word or two**: what the reader will see. "Table", "Open", "This week". Carbon: two to three words at most.
+- **Never verbs or sentences.** "Show archived" is a Switch; "Switch to the month view" is what the group does, not what an item says.
+- **Two to five items.** Past five it is a Select.
+- **The name is the question**: "View", "Scope", "Period".
+
+## Style
+
+| Element | Token                                                                                                              |
+| ------- | ------------------------------------------------------------------------------------------------------------------ |
+| Track   | `color.background.neutral` · `radius.medium` · `space.025` padding and gap · `dimension.control.small` or `medium` |
+| Item    | `dimension.control.xsmall` or `small` · `radius.small` · `space.100` or `space.150` inline, `space.075` alone      |
+| Off     | `color.text.subtle` · hover `color.text`                                                                           |
+| On      | `elevation.surface.raised` · `elevation.shadow.raised` · `color.text`                                              |
+| Label   | `font.body.small` medium; `font.body` at `medium`                                                                  |
+| Icon    | 16px · `space.075` before the label                                                                                |
+| Motion  | colours in `motion.duration.fast`                                                                                  |
+
+## Accessibility
+
+- **A radio group in the ARIA sense**: Radix ToggleGroup gives the group `role="group"` and each item `aria-checked` as a radio, named by `aria-label`.
+- **Arrows move among the items**; Tab enters and leaves the group as one stop. Space or Enter chooses.
+- **Exactly one on, always.** The kit ignores the press that would turn the last one off.
+- **Icons alone are named** by their label, which is also the tooltip, so pointer and screen reader hear the same word.
+- **The on item is not colour alone**: it is raised, its text is darker, and `aria-checked` says so.
 
 ## Props
 
 <ArgTypes of={ToggleGroup} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
 - [Toggle](?path=/docs/components-toggle--docs): one thing on or off.
-- [ButtonGroup](?path=/docs/components-buttongroup--docs): joins Buttons that belong together with a hairline between.
+- [Tabs](?path=/docs/components-tabs--docs): distinct content, not the same content another way.
+- [FilterChip](?path=/docs/components-filterchip--docs): several filters that can each be on.
+- [Switch](?path=/docs/components-switch--docs): two answers.
+- [Count](?path=/docs/components-count--docs): the number after a label.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

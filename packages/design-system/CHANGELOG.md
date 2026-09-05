@@ -273,6 +273,19 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 - A vertical `Stepper.Item` takes `children`: what a milestone carries under its label, with the
   rail running past it. The step's control is now its label stretched over the step, so a
   Collapsible or a button under it is a separate stop. Components/Stepper: Milestones.
+- Toggle, ToggleGroup, ButtonGroup, Kbd, Separator, Skeleton and Spinner on the template, walked
+  against Carbon's content switcher and loading, Base Web's button group, skeleton and spinner, and
+  Atlassian's spinner and skeleton. `Toggle` is on the Button's scale (`xsmall` 24, `small` 28
+  the default, `medium` 32; the old `small`/`medium` were 24/28) with an `icon` slot and
+  explicit props. `ToggleGroup` takes `size` (`small` 28, `medium` 32) and items take `icon`
+  and `isIconOnly` (the label becomes the name and the tooltip). `ButtonGroup` takes `label`;
+  `IconButton` takes `variant="primary"` for the chevron of a primary split. `Kbd` takes `label`
+  for a glyph's spoken name and `Kbd.Group` holds a chord. `Separator` takes `isDecorative`.
+  `Skeleton` takes `shape` (line, heading, circle, block), `width` and `height`, and its pulse
+  stops under reduced motion. `Spinner` takes `large` (24px), `appearance` (subtle, inverse,
+  inherit) and `delay`. Prototype: the two export buttons use `isLoading`; the record header's
+  primary split chevron is an IconButton. Components/Toggle, ToggleGroup, ButtonGroup, Kbd,
+  Separator, Skeleton, Spinner: Matrix, Dont.
 - `Breadcrumb` takes `label`, "Breadcrumb" by default, so a second trail on a page, a chart's
   drill-down path, is a navigation landmark with a name of its own. Components/Breadcrumb.
 - `Eyebrow` takes `as`: `h3` or `h4` when it heads a section, so the page's outline has it,

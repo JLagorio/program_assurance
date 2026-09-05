@@ -1,27 +1,94 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Spinner } from "../../components";
 import * as Stories from "./Spinner.stories";
-import * as KbdStories from "./Kbd.stories";
 
 <Meta of={Stories} />
 
 # Spinner
 
+Something is in flight: a save, an export, a refresh, a section that is empty while it loads. A turning arc in three sizes on the icon scale, subtle by default, inverse on a bold fill, and a delay so a fast load never flashes one. Atlassian's Spinner and Carbon's Loading are the models. A page or a section with a shape to hold is a [Skeleton](?path=/docs/components-skeleton--docs); a button that is working shows its own, through `isLoading`.
+
 <Canvas of={Stories.SpinnerMatrix} />
 
-<Canvas of={KbdStories.Small} />
+## Anatomy
+
+| Part | What it is                                                                                            |
+| ---- | ----------------------------------------------------------------------------------------------------- |
+| Arc  | A 12, 16 or 24px arc turning once a second, in `color.icon.subtle`, or inverse, or the text's colour. |
+| Name | `label`: what the wait is, for a screen reader. "Loading" unless the wait has a better word.          |
+
+## Variants
+
+| Appearance | Use                                                                                  |
+| ---------- | ------------------------------------------------------------------------------------ |
+| `subtle`   | The default, on a surface: beside a word, in a row, in a section.                    |
+| `inverse`  | On a bold fill: a primary button, a banner.                                          |
+| `inherit`  | The text colour around it: inside a Button, which passes it; inside a coloured word. |
+
+Not built, and why: an overlay (Carbon's large loading with a blanket), because a section that is loading is a Skeleton, and a wait that must block the page is a Dialog's `pending`; a determinate spinner, because a wait with a known end is a Progress; a spinner larger than 24px (Atlassian's 48 and 96), because nothing here is one spinner on an empty page.
 
 ## Sizes
 
-A Spinner is `small` beside text and `medium` on its own.
+| Size     | Arc  | Where                                                                       |
+| -------- | ---- | --------------------------------------------------------------------------- |
+| `small`  | 12px | The default: beside a word, in a small or medium button, in a table cell.   |
+| `medium` | 16px | On its own in a row or a toolbar, in an icon button, in a Chart's refresh.  |
+| `large`  | 24px | Centred in a section that is empty while it loads and has no shape to hold. |
+
+The icon scale, so a spinner takes an icon's place at the same size: a Button swaps its icon for one.
+
+<Canvas of={Stories.DelayStory} />
+
+## States
+
+A spinner has one state: turning. `delay` holds it back for that many milliseconds; a load that finishes first shows nothing, so the page does not flash. It keeps turning under reduced motion, because the turning is the message.
+
+## Modifiers
+
+- **`size`** and **`appearance`** as above.
+- **`label`**: the wait's word. Beside text that already says it, pass that word so the two agree.
+- **`delay`** in milliseconds; 0 by default, 300 for a load that is usually quick.
+
+## Content
+
+- **One spinner at a time.** The page is either working or it is not; Carbon and Atlassian both say so.
+- **The label is the wait**: "Saving", "Exporting", "Refreshing". "Loading" only when nothing better is known.
+- **Beside a word, the word wins**: "Saving…" in `color.text.subtle` with the spinner before it, and the label the same word.
+- **Not for a page.** A page's first paint is a Skeleton.
+
+## Style
+
+| Element | Token                                                                     |
+| ------- | ------------------------------------------------------------------------- |
+| Arc     | 12, 16, 24px · `color.icon.subtle`, `color.icon.inverse`, or currentColor |
+| Motion  | one turn per second, linear; not reduced under `prefers-reduced-motion`   |
+| Beside  | `space.075` to the word                                                   |
+
+## Accessibility
+
+- **A `role="status"`** named by `label`, so a screen reader announces the wait politely when it appears.
+- **Delayed, it announces once**, when it appears; a load that finishes first says nothing, which is right.
+- **A button that is working** sets `aria-busy` and keeps its label; the spinner inside it is not named twice.
+- **Colour is not the message**; the motion and the label are. `inherit` in a coloured word is still a spinner.
 
 ## Props
 
 <ArgTypes of={Spinner} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Kbd](?path=/docs/components-kbd--docs)
-- [Separator](?path=/docs/components-separator--docs)
-- [Skeleton](?path=/docs/components-skeleton--docs)
+- [Skeleton](?path=/docs/components-skeleton--docs): a wait with a shape to hold.
+- [Button](?path=/docs/components-button--docs): `isLoading`.
+- [Progress](?path=/docs/components-progress--docs): a wait with a known end.
+- [Dialog](?path=/docs/components-dialog--docs): `pending`, a wait that must block.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

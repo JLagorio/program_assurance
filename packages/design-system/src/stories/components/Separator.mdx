@@ -1,23 +1,82 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Separator } from "../../components";
 import * as Stories from "./Separator.stories";
-import * as KbdStories from "./Kbd.stories";
 
 <Meta of={Stories} />
 
 # Separator
 
+A hairline between siblings: two blocks in a stack, two groups in a toolbar. It draws `color.border` and nothing else; the space around it is the parent's. None of Carbon, Base Web or Atlassian has a divider of its own, though their menus and toolbars draw one; Radix Separator is the model for the roles, and it is what rows, menus and tables draw for themselves.
+
 <Canvas of={Stories.SeparatorMatrix} />
 
-<Canvas of={KbdStories.Small} />
+## Anatomy
+
+| Part | What it is                                                                                                                  |
+| ---- | --------------------------------------------------------------------------------------------------------------------------- |
+| Rule | 1px of `color.border`. Horizontal, it spans its container; vertical, it stretches to the height of the flex row it sits in. |
+| Role | `separator` with its orientation, or nothing when it only draws a line.                                                     |
+
+## Variants
+
+| Separator      | Use                                                                                                                            |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `horizontal`   | The default. Between two blocks in a Stack: a section's head and its body, two cards.                                          |
+| `vertical`     | Between groups in a toolbar or a row of controls, inside an Inline.                                                            |
+| `isDecorative` | Either, when the rule only draws: hidden from a screen reader. The default, off, is for a rule that splits groups of controls. |
+
+Not built, and why: a rule with a word in it (Chakra, Mantine), because "or" between two forms is the form's copy; a thick or a dashed rule, because every hairline in the system is one hairline; spacing props (`my`), because the parent's gap is the space, and margins are not allowed.
+
+## Sizes
+
+One size: 1px. Horizontal it is as wide as its container; vertical as tall as the row.
+
+## States
+
+A separator has no state.
+
+## Modifiers
+
+- **`orientation`** as in Variants.
+- **`isDecorative`** to hide it from a screen reader.
+
+## Content
+
+- **Between two things.** With nothing on one side it is a border, and the container draws that.
+- **Not between every row.** A list draws its own hairlines: Item.Group, Table, a menu.
+- **Sparingly.** Two rules in view is many; space says most of what a rule says.
+
+## Style
+
+| Element | Token                                                                          |
+| ------- | ------------------------------------------------------------------------------ |
+| Rule    | `color.border` · 1px · `border-top` horizontal, `border-inline-start` vertical |
+| Space   | none of its own: the parent's Stack or Inline gap                              |
+
+## Accessibility
+
+- **A rule between groups of controls is a `separator`** with `aria-orientation`, so a screen reader hears the toolbar's groups.
+- **A rule that only draws is decorative**: `isDecorative` gives it no role and hides it.
+- **Never focusable.** A separator that can be dragged is a Resizable's handle, not this.
 
 ## Props
 
 <ArgTypes of={Separator} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Kbd](?path=/docs/components-kbd--docs)
-- [Spinner](?path=/docs/components-spinner--docs)
-- [Skeleton](?path=/docs/components-skeleton--docs)
+- [Stack](?path=/docs/primitives-stack--docs) and [Inline](?path=/docs/primitives-inline--docs): the gap around it.
+- [Toolbar](?path=/docs/components-toolbar--docs): where the vertical one lives.
+- [Item](?path=/docs/components-item--docs): rows that draw their own.
+- [Resizable](?path=/docs/components-resizable--docs): a rule that moves.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

@@ -19,7 +19,6 @@ import {
   NativeSelect,
   PageHeader,
   Progress,
-  Spinner,
   Stack,
   Tabs,
   TextLink,
@@ -184,7 +183,8 @@ function RiskList() {
             <>
               <Button
                 variant="secondary"
-                disabled={exporting}
+                isLoading={exporting}
+                iconBefore={<Download />}
                 onClick={() => {
                   setExporting(true);
                   window.setTimeout(() => {
@@ -202,7 +202,7 @@ function RiskList() {
                   }, 300);
                 }}
               >
-                {exporting ? <Spinner /> : <Download className="size-icon-small" />} Export
+                Export
               </Button>
               <Button variant="primary" onClick={() => setCreating(true)} iconBefore={<Plus />}>
                 New risk

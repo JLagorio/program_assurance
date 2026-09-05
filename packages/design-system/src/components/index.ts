@@ -26,7 +26,7 @@ export {
 } from "./badge";
 export { Breadcrumb, type BreadcrumbItemProps, type BreadcrumbProps } from "./breadcrumb";
 export { Button, IconButton, type ButtonProps, type IconButtonProps } from "./button";
-export { ButtonGroup } from "./button-group";
+export { ButtonGroup, type ButtonGroupProps } from "./button-group";
 export { Calendar, type CalendarProps } from "./calendar";
 export {
   Chart,
@@ -96,7 +96,7 @@ export { HoverCard, type HoverCardProps } from "./hover-card";
 export { Id, type IdListProps, type IdProps } from "./id";
 export { InputGroup } from "./input-group";
 export { Item, type ItemGroupProps, type ItemProps, type ItemSize } from "./item";
-export { Kbd } from "./kbd";
+export { Kbd, KbdGroup, type KbdGroupProps, type KbdProps } from "./kbd";
 export { KeyValue, type KeyValueProps } from "./key-value";
 export { Pagination, type PaginationProps } from "./pagination";
 export { Popover, type PopoverProps } from "./popover";
@@ -110,10 +110,10 @@ export {
 export { Resizable } from "./resizable";
 export { ScrollArea } from "./scroll-area";
 export { Select, type SelectGroupProps, type SelectItemProps, type SelectProps } from "./select";
-export { Separator } from "./separator";
+export { Separator, type SeparatorProps } from "./separator";
 export { Sheet, type SheetProps } from "./sheet";
-export { Skeleton } from "./skeleton";
-export { Spinner } from "./spinner";
+export { Skeleton, type SkeletonProps, type SkeletonShape } from "./skeleton";
+export { Spinner, type SpinnerProps, type SpinnerSize } from "./spinner";
 export { Stat, Tiles, type StatGridProps, type StatProps, type StatTileProps } from "./stat";
 export {
   Stepper,
@@ -136,7 +136,15 @@ export {
   type TimelineTimePosition,
 } from "./timeline";
 export { Toaster, toast } from "./toaster";
-export { Toggle, ToggleGroup, type ToggleGroupProps, type ToggleProps } from "./toggle";
+export {
+  Toggle,
+  ToggleGroup,
+  type ToggleGroupItem,
+  type ToggleGroupProps,
+  type ToggleGroupSize,
+  type ToggleProps,
+  type ToggleSize,
+} from "./toggle";
 export { Toolbar, type ToolbarProps } from "./toolbar";
 export { Tooltip, TooltipProvider, type TooltipProps } from "./tooltip";
 export { Tree, type TreeItemProps, type TreeProps, type TreeSize } from "./tree";

@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Kbd } from "../../components";
 import * as Stories from "./Kbd.stories";
@@ -7,16 +7,88 @@ import * as Stories from "./Kbd.stories";
 
 # Kbd
 
+A key as it appears on the keyboard: a cap with a hairline, sunken. One cap per key; a shortcut of several keys is a `Kbd.Group`. It sits in a sentence, in a tooltip after the action's name, and at the end of a menu item. None of Carbon, Base Web or Atlassian has one; GitHub's Primer and shadcn do, and the rule here is theirs: the glyphs are the keyboard's, and a glyph a screen reader would not say is given its name.
+
 <Canvas of={Stories.KbdMatrix} />
 
-<Canvas of={Stories.Small} />
+## Anatomy
+
+| Part  | What it is                                                                                                         |
+| ----- | ------------------------------------------------------------------------------------------------------------------ |
+| Cap   | A `<kbd>`, 16px tall and at least 16px wide, `elevation.surface.sunken`, `color.border` hairline, `radius.xsmall`. |
+| Key   | The key as it reads on the cap: "K", "esc", ⌘, ↵. `font.body.xsmall` medium, `color.text.subtle`.                  |
+| Name  | `label`: what a screen reader says for a glyph. "Command" for ⌘, "Enter" for ↵.                                    |
+| Group | Several caps `space.050` apart, one `<kbd>` around them: one shortcut.                                             |
+
+## Variants
+
+| Kbd           | Use                                                                          |
+| ------------- | ---------------------------------------------------------------------------- |
+| A key         | One cap: `Kbd`.                                                              |
+| A chord       | Caps in a `Kbd.Group`, in the order they are pressed: ⌘ then K.              |
+| In a sentence | "Press ⌘ K to search." The caps sit in the line at the text's baseline.      |
+| In a tooltip  | After the action's name, so the reader learns the shortcut where they hover. |
+| In a menu     | In the item's `trailing`, the way every menu shows one.                      |
+
+Not built, and why: a size, because a cap is read beside 12px text everywhere it goes; a pressed state, because a cap is never a control; platform switching (⌘ on a Mac, Ctrl elsewhere), because that is the caller's to decide from the platform it runs on, and a product does it once.
+
+## Sizes
+
+One size: 16px tall, `font.body.xsmall`. It sits in a line of body or small text without changing the line's height.
+
+## States
+
+A cap has no state. It does not hover, focus or press: it says what to press.
+
+## Modifiers
+
+- **`label`** for a glyph's spoken name.
+- **`Kbd.Group`** around the caps of one shortcut.
+
+## Content
+
+- **One key per cap.** ⌘ and K are two caps, not "⌘K" on one.
+- **The keyboard's glyphs**: ⌘ ⇧ ⌥ ⌃ ↵ ⎋ ↑ ↓, or the word where the key has one: "esc", "Ctrl", "Tab".
+- **Letters in capitals**, as on the keys: "K", not "k".
+- **Name the glyphs**: "Command", "Shift", "Option", "Enter". Letters and words need none.
+- **The sentence says what it does**: "Press ⌘ K to search."
+
+## Style
+
+| Element | Token                                                                                          |
+| ------- | ---------------------------------------------------------------------------------------------- |
+| Cap     | `elevation.surface.sunken` · `color.border` · `radius.xsmall` · 16px tall · `space.050` inline |
+| Key     | `font.body.xsmall` medium · `color.text.subtle`                                                |
+| Group   | `space.050` between caps                                                                       |
+
+## Accessibility
+
+- **A `<kbd>` element**, so assistive technology knows it is keyboard input.
+- **Glyphs are named** by `label`; without it a screen reader reads the Unicode name, which for ⌘ is "place of interest sign".
+- **A group is one `<kbd>`** around the caps, so the shortcut is read as one thing.
+- **Never a control.** A cap is not focusable and does nothing when clicked; what it describes is a Button somewhere.
+- **Contrast**: the key's text passes 4.5:1 on the sunken surface.
 
 ## Props
 
 <ArgTypes of={Kbd} />
 
+### Kbd.Group
+
+<ArgTypes of={Kbd.Group} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Separator](?path=/docs/components-separator--docs)
-- [Spinner](?path=/docs/components-spinner--docs)
-- [Skeleton](?path=/docs/components-skeleton--docs)
+- [Tooltip](?path=/docs/components-tooltip--docs): where a shortcut is learned.
+- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): the item's `trailing`.
+- [Command](?path=/docs/components-command--docs): the palette's hint.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

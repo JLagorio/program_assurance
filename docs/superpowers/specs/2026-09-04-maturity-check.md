@@ -236,3 +236,24 @@ milestone rail of the first reference. Stories map the references one to one; th
 is a ButtonGroup composition and its promotion is a decision in docs/next.md, with the prototype's
 adoption of sizes and a quote pattern. Not built and said on the page: a rating on an event, and
 markers in the six accent hues.
+
+### 18. Toggle, ToggleGroup, ButtonGroup, Kbd, Separator, Skeleton, Spinner (2026-09-04)
+
+Thirteenth walk, the small chrome. References: Carbon's content switcher (three heights, equal
+widths, nouns of two or three words, not for binaries) and loading (small inline, large over a
+section, one at a time, skeletons for progressive loads); Base Web's button group (radio and
+checkbox modes, which here are ToggleGroup and FilterChips), skeleton (rows, any shape) and
+spinner; Atlassian's spinner (five sizes on the icon scale, a delay) and skeleton (any shape,
+shimmer). Carbon's and Atlassian's "Toggle" is a switch, so the Toggle page says which is which.
+
+Kit: Toggle on the Button's size scale with an icon slot and explicit props (Radix-derived types
+gave an empty props table); ToggleGroup sizes, icons and icon-only items with tooltips;
+ButtonGroup `label` and IconButton `primary` (the prototype's primary split was a Button with
+`px-0 w-300` and an aria-label); Kbd `label` and `Kbd.Group`; Separator `isDecorative`;
+Skeleton shapes, width and height, reduced-motion pulse; Spinner `large`, `appearance`,
+`delay`. Not built and said on each page: outline and bold toggles, multiple selection and equal
+widths in a group, spaced and selecting button groups, Kbd sizes and platform switching, labelled
+and thick separators, shimmer and per-component skeletons, overlay and determinate spinners.
+Prototype: two export buttons on `isLoading`, the split chevron on IconButton. Ratchet: 62 pages
+on the template, 400 grandfathered. Decisions parked in docs/next.md: the platform glyph, a delay
+on Button's `isLoading`, PageSkeleton on the shapes.

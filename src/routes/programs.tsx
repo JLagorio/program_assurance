@@ -14,7 +14,6 @@ import {
   Inline,
   PageHeader,
   Progress,
-  Spinner,
   Stack,
   Tabs,
   TextLink,
@@ -197,7 +196,8 @@ function ProgramList() {
             <>
               <Button
                 variant="secondary"
-                disabled={exporting}
+                isLoading={exporting}
+                iconBefore={<Download />}
                 onClick={() => {
                   setExporting(true);
                   window.setTimeout(() => {
@@ -208,7 +208,7 @@ function ProgramList() {
                   }, 900);
                 }}
               >
-                {exporting ? <Spinner /> : <Download className="size-icon-small" />} Export SSP
+                Export SSP
               </Button>
               <Button
                 variant="primary"

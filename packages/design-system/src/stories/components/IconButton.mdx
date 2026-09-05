@@ -13,19 +13,20 @@ A square button holding one icon and nothing else. `label` is required: it is th
 
 ## Anatomy
 
-| Part      | What it is                                                                                                |
-| --------- | --------------------------------------------------------------------------------------------------------- |
-| Container | A square: `dimension.control.small` (28px) or `medium` (32px), `radius.medium`, the variant's fill.        |
+| Part      | What it is                                                                                                                                                    |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Container | A square: `dimension.control.small` (28px) or `medium` (32px), `radius.medium`, the variant's fill.                                                           |
 | Icon      | The one element, passed bare as `icon`; the button sizes it: `dimension.icon.small` (14px) in a small button, `dimension.icon.medium` (16px) in a medium one. |
-| Tooltip   | The label, on hover and on focus, from the kit's [Tooltip](?path=/docs/components-tooltip--docs).          |
-| Spinner   | Takes the icon's place while `isLoading`.                                                                 |
+| Tooltip   | The label, on hover and on focus, from the kit's [Tooltip](?path=/docs/components-tooltip--docs).                                                             |
+| Spinner   | Takes the icon's place while `isLoading`.                                                                                                                     |
 
 ## Variants
 
-| Variant     | Use                                                                                          |
-| ----------- | -------------------------------------------------------------------------------------------- |
-| `secondary` | The default: the raised button, for an icon action that stands on its own.                   |
-| `subtle`    | Toolbars, table rows, headers, the shell's chrome, where a raised square would be noise.      |
+| Variant     | Use                                                                                               |
+| ----------- | ------------------------------------------------------------------------------------------------- |
+| `secondary` | The default: the raised button, for an icon action that stands on its own.                        |
+| `subtle`    | Toolbars, table rows, headers, the shell's chrome, where a raised square would be noise.          |
+| `primary`   | The chevron of a primary split button, beside the primary Button it belongs to. Never on its own. |
 
 There is no primary or danger IconButton. The one action a screen is for has a label, and so does anything that destroys.
 
@@ -40,14 +41,14 @@ There is no primary or danger IconButton. The one action a screen is for has a l
 
 ## States
 
-| State    | What changes                                                                                         |
-| -------- | ---------------------------------------------------------------------------------------------------- |
-| Hover    | The fill steps to its `hovered` token and the tooltip opens after a short delay.                     |
-| Pressed  | The fill steps to its `pressed` token.                                                               |
-| Focus    | `color.border.focused` as an outline, on keyboard focus only; the tooltip opens.                     |
-| Disabled | `color.background.disabled` with `color.text.disabled`; the tooltip still opens on hover.            |
+| State    | What changes                                                                                                     |
+| -------- | ---------------------------------------------------------------------------------------------------------------- |
+| Hover    | The fill steps to its `hovered` token and the tooltip opens after a short delay.                                 |
+| Pressed  | The fill steps to its `pressed` token.                                                                           |
+| Focus    | `color.border.focused` as an outline, on keyboard focus only; the tooltip opens.                                 |
+| Disabled | `color.background.disabled` with `color.text.disabled`; the tooltip still opens on hover.                        |
 | Selected | `isSelected`: `color.background.selected` with `color.text.selected`, `aria-pressed`. A filter on, a panel open. |
-| Loading  | `isLoading`: the spinner takes the icon's place, `aria-busy`, clicks are ignored, focus is kept.     |
+| Loading  | `isLoading`: the spinner takes the icon's place, `aria-busy`, clicks are ignored, focus is kept.                 |
 
 ## Modifiers
 
@@ -68,15 +69,16 @@ There is no primary or danger IconButton. The one action a screen is for has a l
 | ----------- | --------------------------------------------------------- | ----------------------------------------- | ----------------------------------------- | ------------------------------------------ |
 | `secondary` | `elevation.surface.raised` with `elevation.shadow.raised` | `elevation.surface.raised.hovered`        | `elevation.surface.raised.pressed`        | `color.text`                               |
 | `subtle`    | `color.background.neutral.subtle` (transparent)           | `color.background.neutral.subtle.hovered` | `color.background.neutral.subtle.pressed` | `color.text.subtle`, `color.text` on hover |
+| `primary`   | `color.background.brand.bold`                             | `color.background.brand.bold.hovered`     | `color.background.brand.bold.pressed`     | `color.text.inverse`                       |
 | Selected    | `color.background.selected`                               | `color.background.selected.hovered`       | `color.background.selected.pressed`       | `color.text.selected`                      |
 | Disabled    | `color.background.disabled`                               |                                           |                                           | `color.text.disabled`                      |
 | Focus       | `color.border.focused`, as an outline                     |                                           |                                           |                                            |
 
-| Measure | Value                                                              |
-| ------- | ------------------------------------------------------------------ |
-| Square  | `dimension.control.small` 28px · `medium` 32px                     |
-| Icon    | `dimension.icon.small` 14px · `dimension.icon.medium` 16px         |
-| Radius  | `radius.medium` 5px                                                |
+| Measure | Value                                                                                     |
+| ------- | ----------------------------------------------------------------------------------------- |
+| Square  | `dimension.control.small` 28px · `medium` 32px                                            |
+| Icon    | `dimension.icon.small` 14px · `dimension.icon.medium` 16px                                |
+| Radius  | `radius.medium` 5px                                                                       |
 | Tooltip | `color.background.neutral.bold` with `color.text.inverse`, `font.body.small`, 300ms delay |
 
 ## Accessibility

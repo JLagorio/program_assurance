@@ -12,6 +12,7 @@ import {
   Badge,
   Box,
   Button,
+  IconButton,
   ButtonGroup,
   Combobox,
   CommandPalette,
@@ -614,13 +615,12 @@ function ProgramDetail() {
                       width={200}
                       align="end"
                       trigger={
-                        <Button
+                        <IconButton
                           variant="primary"
                           size="small"
-                          className="px-0 w-300"
-                          aria-label="More actions"
-                          iconBefore={<ChevronDown />}
-                        ></Button>
+                          label="More actions"
+                          icon={<ChevronDown />}
+                        />
                       }
                     >
                       {(close) => (
