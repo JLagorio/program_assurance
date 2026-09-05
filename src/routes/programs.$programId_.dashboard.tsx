@@ -251,7 +251,7 @@ function ProgramDashboard() {
               tone={coverage.pct >= 90 ? "success" : coverage.pct >= 75 ? "neutral" : "warning"}
             >
               <Progress.Stacked
-                height={4}
+                size="small"
                 segments={coverage.segments.map((s) => ({
                   key: s.key,
                   value: s.value,
@@ -345,7 +345,7 @@ function ProgramDashboard() {
               >
                 <span className="shrink-0 w-800">
                   <Progress.Stacked
-                    height={4}
+                    size="small"
                     segments={[
                       { key: "d", value: p.done, tone: "success" },
                       { key: "r", value: p.total - p.done, tone: "neutral" },

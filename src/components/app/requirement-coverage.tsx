@@ -128,7 +128,7 @@ export function CoverageBar({ coverage }: { coverage: RequirementCoverage }) {
   return (
     <Inline as="span" space="space.100" alignBlock="center">
       <span className="shrink-0" style={{ width: 56 }}>
-        <Progress.Stacked height={6} segments={coverageSegments(coverage)} />
+        <Progress.Stacked size="medium" segments={coverageSegments(coverage)} />
       </span>
       <Text size="xsmall" color="color.text.subtle" maxLines={1}>
         {coverageWord(coverage)}

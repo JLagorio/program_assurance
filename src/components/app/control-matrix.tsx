@@ -100,7 +100,7 @@ export function FamilyCoverageTable({
                   <Inline as="span" space="space.100" alignBlock="center">
                     <span className="w-1000">
                       <Progress.Stacked
-                        height={4}
+                        size="small"
                         segments={[
                           { key: "s", value: f.satisfied, tone: "success" },
                           { key: "p", value: f.partial, tone: "warning" },
@@ -210,7 +210,7 @@ export function ControlMatrixSection({
         actions={
           <Inline as="span" space="space.100" alignBlock="center" style={{ width: 220 }}>
             <Progress.Stacked
-              height={4}
+              size="small"
               segments={scoped.segments.map((s) => ({ key: s.key, value: s.value, tone: s.tone }))}
             />
             <span className="tabular-nums shrink-0 font-body-small text-subtle">{scoped.pct}%</span>

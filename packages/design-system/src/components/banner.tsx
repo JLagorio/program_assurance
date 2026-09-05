@@ -19,12 +19,14 @@ const icons: Record<BannerTone, ComponentType<{ className?: string | undefined }
 };
 
 export type BannerProps = {
+  /** `information` for something that changed, `warning` for something about to, `danger` for something lost. `warning` is the default; there is no success banner. */
   tone?: BannerTone | undefined;
   /** Replaces the tone's icon. */
   icon?: ComponentType<{ className?: string | undefined }> | undefined;
   /** One link or button, rendered in the banner's own colour: an anchor, a button, or the router's Link. */
   action?: ReactElement<{ className?: string | undefined }> | undefined;
   className?: string | undefined;
+  /** The message, one line. It truncates rather than wraps. */
   children: ReactNode;
 };
 

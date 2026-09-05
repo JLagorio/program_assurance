@@ -29,6 +29,7 @@ import {
   Table,
   Textarea,
   ToggleGroup,
+  Gates,
 } from "@ledger/design-system";
 import {
   contestedOverlays,
@@ -583,20 +584,11 @@ function SummaryRow({ label, children }: { label: string; children: React.ReactN
 /** The submit gates, each with why it is or is not met. */
 export function RevisionGates({ gates }: { gates: RevisionGate[] }) {
   return (
-    <Stack as="ul" space="space.050">
+    <Gates>
       {gates.map((g) => (
-        <Inline
-          key={g.key}
-          className="font-body-small"
-          as="li"
-          space="space.100"
-          alignBlock="baseline"
-        >
-          <Indicator tone={g.met ? "success" : "warning"}>{g.label}</Indicator>
-          <span className="min-w-0 font-body-small text-subtle">{g.detail}</span>
-        </Inline>
+        <Gates.Item key={g.key} met={g.met} label={g.label} reason={g.detail} />
       ))}
-    </Stack>
+    </Gates>
   );
 }
 

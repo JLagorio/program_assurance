@@ -1,26 +1,110 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Stat, Tiles } from "../../components";
+import { Stat } from "../../components";
 import * as Stories from "./Stat.stories";
 
 <Meta of={Stories} />
 
 # Stat
 
-A Tile is label, big tabular number, one-line note; zero reads muted. Tiles is a row of them separated by hairlines, framed as a card or run edge to edge as a band. A bare Stat is the number over its label for an unframed summary row.
-
-<Canvas of={Stories.Stats} />
+A number with its name. `Stat.Tile` is a label, a big tabular number and a one-line note, one cell of a `Stat.Grid`: the headline numbers at the top of a record, framed as a card, or a band between two sections. A bare `Stat` is the number over its label for an unframed row inside a Section. Zero reads muted. Carbon, Base Web and Atlassian have no stat; Atlassian's MetricText is the type only.
 
 <Canvas of={Stories.StatMatrix} />
+
+## Anatomy
+
+| Part  | What it is                                                                                                                                  |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Label | `font.body.small` in `color.text.subtle`: what the number counts. Above the number in a Tile, below it in a bare Stat.                      |
+| Value | `font.heading.small` semibold, tabular. `color.text`, or the tone's text colour when the number is a status; zero in `color.text.subtlest`. |
+| Note  | `font.body.small` in `color.text.subtle`, one line under the value. Tile only.                                                              |
+| Grid  | Two to six cells across, hairline gutters painted with `color.border`. `card` is bordered and rounded; `band` runs between two rules.       |
+
+## Variants
+
+| Variant               | Use                                                                                                    |
+| --------------------- | ------------------------------------------------------------------------------------------------------ |
+| `Stat.Tile` in a Grid | The headline numbers of a record or a screen: at the top as a card, or as a band between two sections. |
+| `Stat`                | A summary row inside a Section, where a framed grid would be a card inside a card.                     |
+
+Not built, and why: no trend arrow, delta or sparkline ("+3 this week"), because a number on a record is a state, not a series, and a series is a [Chart](?path=/docs/components-chart--docs); no icon in the tile; no tinted tile. The prototype has a stat with a bar under it on the dashboard and tinted counts on two pages, and both are parked as decisions rather than added here.
+
+## Sizes
+
+One type size, `font.heading.small`. What varies is the grid: `cols` from two to six, two below the small breakpoint, and six is three on a small screen.
+
+<Canvas of={Stories.SixAcross} />
+
+## States
+
+| State   | What changes                                                                     |
+| ------- | -------------------------------------------------------------------------------- |
+| Neutral | The number in `color.text`. The default, and most numbers.                       |
+| Toned   | The number in the tone's text colour, because the number is a status.            |
+| Zero    | The number in `color.text.subtlest`, whatever the tone: nothing is not a status. |
+
+A Stat does not hover, focus or disable. A tile that takes the reader somewhere is a link around the tile, and the tile does not change.
+
+## Modifiers
+
+- **`tone`** when the number is a status: overdue in `danger`, verified in `success`, held in `warning`. Most numbers stay neutral, so the one that is a status stands out.
+- **`note`** for the one line under the number: what it is out of, the oldest, the next.
+- **`cols`** and **`frame`** on the grid: `card` at the top of a record, `band` between sections.
+
+<Canvas of={Stories.Frames} />
+
+## Content
+
+- **The label is a noun phrase**, under three words when it can be: "Open findings", "Re-tests owed", "Verified".
+- **The value is a number**, or a short string that reads as one: "80%", "41/80". Tabular, so a row of tiles aligns.
+- **The note is one line** that qualifies the number: "298 of 372", "Oldest 12 days", "Nothing waiting on you". A note that decomposes a number belongs on the tile that holds the whole, not on a part.
+- **Zero's note says what the zero means.** "Nothing waiting on you" is worth more than a muted 0.
+
+## Style
+
+| Element | Token                                                                                                             |
+| ------- | ----------------------------------------------------------------------------------------------------------------- |
+| Tile    | `elevation.surface` · `space.200` inline · `space.150` block · `space.025` between lines                          |
+| Value   | `font.heading.small` semibold · tabular · `color.text` / `color.text.<tone>` / `color.text.subtlest` at zero      |
+| Label   | `font.body.small` · `color.text.subtle`                                                                           |
+| Note    | `font.body.small` · `color.text.subtle`                                                                           |
+| Grid    | `gap-px` painted `color.border` · `card`: `color.border`, `radius.large` · `band`: `color.border` above and below |
+| Stat    | `space.100` block · `space.050` between value and label                                                           |
+
+The toned value is Badge's text colour for the tone, so a danger count and a danger Indicator are the same red.
+
+## Accessibility
+
+- **Reading order is label then value in a Tile,** so a screen reader hears "Open findings, 17". A bare Stat reads value then label, "17, Open findings", which is how a summary row is scanned.
+- **Zero is muted, not disabled.** `color.text.subtlest` still passes the contrast test; the a11y gate runs the zero row of the matrix.
+- **The tone is not the only signal.** The label says what the number is, and the note says what it means; the colour ranks it.
+- **A grid is a `div`**, not a table or a list: the tiles are read in order and there is nothing to navigate.
 
 ## Props
 
 <ArgTypes of={Stat} />
 
-### Tiles
+### Stat.Tile
 
-<ArgTypes of={Tiles} />
+<ArgTypes of={Stat.Tile} />
+
+### Stat.Grid
+
+<ArgTypes of={Stat.Grid} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
 
 ## Related
 
-[Alert](?path=/docs/components-alert--docs), [Banner](?path=/docs/components-banner--docs), [Progress](?path=/docs/components-progress--docs) and Stat read the same tone table as [Badge](?path=/docs/components-badge--docs), so a tone means one thing everywhere.
+- [Progress](?path=/docs/components-progress--docs): the bar a number often has beside it.
+- [Chart](?path=/docs/components-chart--docs): a number over time.
+- [KeyValue](?path=/docs/components-keyvalue--docs): a fact that is not a headline.
+- [Badge](?path=/docs/components-badge--docs): the tone table.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

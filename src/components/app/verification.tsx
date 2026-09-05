@@ -147,8 +147,7 @@ export function VerificationSection({ programName }: { programName: string }) {
                 alignBlock="center"
                 style={{ width: 180 }}
               >
-                <Progress value={readiness} tone={blocking > 0 ? "danger" : "success"} />
-                <span className="tabular-nums font-body-small text-subtle">{readiness}%</span>
+                <Progress value={readiness} tone={blocking > 0 ? "danger" : "success"} showValue />
               </Inline>
             </Inline>
           </Box>

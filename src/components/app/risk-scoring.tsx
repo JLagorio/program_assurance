@@ -450,22 +450,14 @@ export function BandDistribution({ byBand }: { byBand: { band: RiskBand; count: 
             tone: bandTone[b.band],
             title: `${b.band}: ${b.count} of ${total}`,
           }))}
-        height={10}
+        size="large"
       />
       <Stack space="space.075">
         {byBand.map((b) => (
-          <Grid
-            key={b.band}
-            gap="space.150"
-            templateColumns="120px 44px 1fr 52px"
-            alignItems="center"
-          >
+          <Grid key={b.band} gap="space.150" templateColumns="120px 44px 1fr" alignItems="center">
             <BandChip band={b.band} size="xsmall" />
             <span className="tabular-nums text-right font-body-small font-medium">{b.count}</span>
-            <Progress value={(b.count / total) * 100} tone={bandTone[b.band]} />
-            <span className="tabular-nums text-right font-body-small text-subtle">
-              {Math.round((b.count / total) * 100)}%
-            </span>
+            <Progress value={(b.count / total) * 100} tone={bandTone[b.band]} showValue />
           </Grid>
         ))}
       </Stack>

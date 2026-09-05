@@ -150,15 +150,7 @@ export function IngestSummary({ batch, scan }: { batch: IngestBatch; scan?: Scan
   const unfiled = Math.max(0, dropped - batch.closable.length - contested.length);
   return (
     <Stack className="pt-200" space="space.150">
-      <Grid
-        className="overflow-hidden rounded-large border border-default bg-neutral"
-        gap="space.025"
-        templateColumns={{
-          base: "repeat(2, minmax(0, 1fr))",
-          sm: "repeat(3, minmax(0, 1fr))",
-          lg: "repeat(6, minmax(0, 1fr))",
-        }}
-      >
+      <Stat.Grid cols={6}>
         <Stat.Tile
           label="Native records"
           value={counts.raw}
@@ -191,7 +183,7 @@ export function IngestSummary({ batch, scan }: { batch: IngestBatch; scan?: Scan
           note="conditions with no finding in the register"
           tone={batch.proposed.length > 0 ? "warning" : "neutral"}
         />
-      </Grid>
+      </Stat.Grid>
 
       {batch.closable.length > 0 ? (
         <p className="font-body-small text-subtle">

@@ -337,7 +337,7 @@ export function SctmFamilyTable({
 
                 <span className="shrink-0" style={{ width: 112 }}>
                   <Progress.Stacked
-                    height={4}
+                    size="small"
                     segments={[
                       { key: "s", value: group.satisfied, tone: "success" },
                       { key: "o", value: group.other, tone: "danger" },

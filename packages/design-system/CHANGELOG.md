@@ -16,8 +16,11 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   label, the hint or the error. The hint or error is the control's description (`aria-describedby`),
   not part of its name; `isRequired` sets `aria-required` on the control. Styling that reached into
   the old single `label` changes. Components/Field, Components/Input.
-
-### Changed
+- `Progress.Stacked` takes `size` (`small` 4px, `medium` 6px, `large` 8px, the default) in place
+  of `height` in pixels; `Progress` takes the same scale with `medium` as its default. The ten
+  prototype bars that passed 4 or 6 pass `small` or `medium`. Components/Progress: Matrix.
+- `Tiles` is `Stat.Grid`; the old name stays exported and `ledger/no-deprecated-name` says so.
+  Components/Stat.
 
 - A `DropdownMenu.Item` with `isSelected` is a menuitemcheckbox (Radix CheckboxItem) with
   `aria-checked`, drawn as Select draws its choice: selected text and a check at the end, no
@@ -62,8 +65,24 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   rail the title lines up with the labels beneath it. Components/Collapsible, Components/Accordion.
 - `grid-cols-main-rail` gives the rail column `dimension.layout.rail` plus the inset its rule takes,
   so the rail's content is the token wide, the width the panel gave it.
-
-### Fixed
+- `Alert` draws its action in its own text colour, underlined, as the Banner does. The first run
+  of the gate on the new matrix found a brand-blue link on the neutral fill at 4.49:1. Components/Alert.
+- `Progress.Stacked` speaks: with `label` it is an image named by its segments' titles, or a group
+  of buttons when the segments click; a clickable segment is named by its title. Without a label it
+  stays hidden and the counts beside it carry the values. Components/Progress: Stacked.
+- `Gates.Item` says "Met" or "Not met" before its label to a screen reader; the check and the Dot
+  are hidden, so nothing is said twice. Components/Gates.
+- Alert, Banner, Progress, Stat and Gates are on the template, walked against Carbon's Notification
+  and Progress bar (usage, style, accessibility), Base Web's Banner, Notification, Toast and
+  ProgressBar, and Atlassian's Banner, SectionMessage and ProgressBar as known. Every prop of the five
+  is typed and described, so five more generated tables fill, and the compound parts (`Stat.Tile`,
+  `Stat.Grid`, `Progress.Stacked`, `Gates.Item`) have their own. Said on the pages and not built:
+  a dismiss on an Alert, an icon per tone, a success or neutral Banner, high and low contrast, an
+  indeterminate bar, a stepped bar, a label above and helper text below a bar, a status icon, a trend
+  on a Stat, a tinted tile. Components/Alert, Components/Banner, Components/Progress, Components/Stat,
+  Components/Gates.
+- A zero Stat reads muted whether it is the number 0 or the string "0"; the prototype's template
+  literals were slipping past. Components/Stat: Matrix.
 
 - An InputGroup's leading icon was painted over by a NativeSelect inside it; the ends render after
   the control. Components/InputGroup.
@@ -131,6 +150,19 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   IconButton and TextLink; the rest carry their prose and a generated props table until walked.
 - `Input` has a read-only look (`readOnly`: the sunken surface, no hover), and the contrast test
   covers the field's borders against the input surface.
+- `Alert` takes `action`: the one TextLink or link Button that resolves it, under the body, as
+  Carbon's actionable notification and Atlassian's section message have. Components/Alert: Matrix,
+  Placement, Dont.
+- `Progress` takes `showValue` and `valueText`: the number after the bar in small subtle text at a
+  fixed minimum width, so a column of bars lines up; `valueText` says "41 of 80" or "64% complete"
+  and is the bar's `aria-valuetext`. Six prototype read-outs drawn by hand moved onto it.
+  Components/Progress: WithValue.
+- The prototype's five Stat grids drawn by hand (a Grid with a two-pixel neutral gutter) are
+  `Stat.Grid` with its hairline gutters; the revision's submit gates are `Gates`; the CM-3 finding
+  box and a package's gap note are `Alert`.
+- `scripts/ds-check.mjs` covers a compound's exported parts by their compound name in a story
+  (`Stat.Grid`) and skips exports marked `@deprecated`, so parts can be exported for their props
+  tables without growing the allow list.
 
 ## 0.4.0 · 2026-09-04
 

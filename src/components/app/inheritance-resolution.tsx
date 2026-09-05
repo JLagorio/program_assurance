@@ -562,10 +562,7 @@ export function InheritanceSummaryStats({
 
   return (
     <Stack className="pt-150" space="space.250">
-      <Grid
-        className="border-y border-default"
-        templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(5, minmax(0, 1fr))" }}
-      >
+      <Stat.Grid cols={5} frame="band">
         <Stat.Tile label="Resolved" value={summary.total} note="controls inherited" />
         <Stat.Tile
           label="Current"
@@ -591,7 +588,7 @@ export function InheritanceSummaryStats({
           note="shared, nothing written down"
           tone={unstated > 0 ? "danger" : "neutral"}
         />
-      </Grid>
+      </Stat.Grid>
 
       <div>
         <Progress.Stacked

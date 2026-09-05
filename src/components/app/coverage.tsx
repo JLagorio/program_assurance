@@ -103,7 +103,7 @@ export function CoverageBand({
                 <span className="min-w-0 flex-1 truncate font-body-small">{f.name}</span>
                 <span className="shrink-0 w-1000">
                   <Progress.Stacked
-                    height={4}
+                    size="small"
                     segments={[
                       { key: "s", value: f.satisfied, tone: "success" },
                       { key: "p", value: f.partial, tone: "warning" },

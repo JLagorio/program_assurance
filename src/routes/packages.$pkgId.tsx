@@ -282,9 +282,7 @@ function PackageRecord() {
             >
               {preview.gap ? (
                 <Box paddingBlockEnd="space.150">
-                  <p className="border-s border-warning bg-warning px-100 py-075 font-body-small">
-                    {preview.gap}
-                  </p>
+                  <Alert tone="warning">{preview.gap}</Alert>
                 </Box>
               ) : null}
               <Inspector.Group title="Join keys">

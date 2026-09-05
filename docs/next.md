@@ -23,6 +23,11 @@ Updated 2026-09-04.
 - [ ] **Staged overlays in the docs** (2026-09-04). An open Dialog or Sheet covers the docs page, so the pages show their states one click away and hold one open in a canvas-only story. Rendering one inside a frame on the page would need `isModal={false}` and a portal `container` on the four blanketed overlays, which is the same prop the non-modal Sheet decision above needs. Add it for both, or leave the states a click away?
 - [ ] **The Drawer has no consumer** (2026-09-04). No prototype screen opens one; it waits for the narrow-screen pass. Keep it in the kit for that, or drop it until then?
 - [ ] **Eyebrows by hand in dialog asides** (2026-09-04). The mapping-rule and evidence dialogs draw their aside's heading as a `<p>` with the eyebrow classes; the kit has `Eyebrow`. Sweep when those screens are touched.
+- [ ] **Two Progress defaults** (2026-09-04). A bar defaults to `medium` (6px) and a stacked bar to `large` (8px), on the reasoning that a stacked bar's segments need the room. Carbon has one scale (8 and 4) for one bar. One default for both, which thins every coverage band by two pixels, or the two?
+- [ ] **Tinted count boxes** (2026-09-04). The T&E effects page and the baseline's cascade summary draw a number, a caption and a paragraph inside a tone-tinted, tone-bordered card: a tinted Stat, which is neither an Alert nor a `Stat.Tile`. The Stat page says no tinted tile. Give `Stat.Tile` a tinted appearance with a body, or keep these two bespoke?
+- [ ] **The dashboard's headline numbers** (2026-09-04). `DashboardStat` is a Stat with an uppercase label, a bigger number, a hint and a bar under it, separated by left rules. `Stat.Tile` with a slot under the note and a `band` frame would carry it. Add the slot, or keep the dashboard's own?
+- [ ] **An indeterminate bar needs a duration** (2026-09-04). Carbon, Base Web and Atlassian all have one; the kit's wait is a Spinner, and a repeating sweep needs a motion duration the tokens do not have (fast 120ms, medium 180ms). Add `motion.duration.slow` and the variant, or leave waits to the Spinner?
+- [ ] **Read-outs left by hand** (2026-09-04). Eight bars still print their number themselves: the allocation bars colour it danger past 100, and the register, components, index and inheritance lists set it medium weight or at a fixed width beside a count. The kit's `showValue` is small, subtle and 40px wide. Adopt the kit's read-out there, or give `showValue` a weight and a tone?
 - [ ] **Data table, the calls.** Eight calls made without asking in `docs/superpowers/specs/2026-09-03-data-table.md`, plus one more from step 6: Tab moves across an editable table, Enter moves down. Overturn any in one reading.
 - [ ] **Baseline and ConMon hydration, which fix stays.** This line renders both routes client-only (`ssr: false`, 8bb9e3b). The parallel line kept SSR and had the loader build the control-text index on both sides (769a412, 81911c1); that version was not merged. Taking it would restore SSR on the two routes.
 
@@ -38,7 +43,7 @@ The maturity walk, one part per sitting, each page onto the template (`docs/supe
 - [x] Table, Pagination, Toolbar, FilterChip; DataTable (2026-09-04)
 - [x] Tooltip, HoverCard, Popover, DropdownMenu (2026-09-04)
 - [x] Dialog, Sheet, Drawer, AlertDialog; the Overlays overview (2026-09-04)
-- [ ] Alert, Banner, Progress, Stat, Gates
+- [x] Alert, Banner, Progress, Stat, Gates (2026-09-04)
 - [ ] Badge, Count, Indicator
 - [ ] Breadcrumb, Item, Avatar, Id, KeyValue, Fact, Typography
 - [ ] Stepper, Timeline, Tree

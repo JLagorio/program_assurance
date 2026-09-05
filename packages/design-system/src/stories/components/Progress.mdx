@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Progress } from "../../components";
 import * as Stories from "./Progress.stories";
@@ -7,16 +7,108 @@ import * as Stories from "./Progress.stories";
 
 # Progress
 
-One value out of 100 as a thin bar, or a Stacked bar of segments for a coverage read-out. The track is `color.background.neutral`; a segment is the tone's bold fill, as Atlassian's ProgressBar. A `hatched` segment is what is not known or not covered: a hole in the record, never a flat fill.
-
-<Canvas of={Stories.Bars} />
+One value out of 100 as a thin bar, or a Stacked bar of segments for a coverage read-out. It measures the record, not the system: how much of the scope is verified, how much of a plan is done, how a register splits by status. A wait is a [Spinner](?path=/docs/components-spinner--docs) or a [Skeleton](?path=/docs/components-skeleton--docs). Carbon's and Base Web's progress bars and Atlassian's ProgressBar are the models for the bar; the stacked bar is the kit's own.
 
 <Canvas of={Stories.ProgressMatrix} />
+
+## Anatomy
+
+| Part               | What it is                                                                                                                                                                 |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Track              | `color.background.neutral`, round, the bar's full width.                                                                                                                   |
+| Fill               | The tone's bold fill from the start to the value. It moves in `motion.duration.fast`.                                                                                      |
+| Segments (Stacked) | Each segment its share of the total in its tone's fill, in order. A `hatched` segment is drawn in the tone's icon colour over the track: what is not known or not covered. |
+| Value              | With `showValue`, after the bar: the percentage or `valueText`, `font.body.small` in `color.text.subtle`, right-aligned at a fixed minimum width so a column lines up.     |
+| Label              | `label` is the accessible name only. The visible name is the row's: the family, the plan, the phase, beside the bar.                                                       |
+
+## Variants
+
+| Variant            | Use                                                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `Progress`         | One value: how far along, how much of the whole. A single fill in one tone.                                        |
+| `Progress.Stacked` | Parts of one whole: satisfied, partial, other, not assessed. Each part its own tone; a hole in the record hatched. |
+
+Not built, and why: no indeterminate bar, which all three references have, because the kit's wait is a Spinner and a repeating sweep needs a duration the motion tokens do not have yet; no steps (Base Web's stepped bar), which is a [Stepper](?path=/docs/components-stepper--docs); no label above and helper text below (Carbon), because a bar in this kit sits in a row that already has its name; no status icon at the end (Carbon's check and error), because the tone and the read-out say it.
+
+## Sizes
+
+| Size     | Height | Where                                                                                      |
+| -------- | ------ | ------------------------------------------------------------------------------------------ |
+| `small`  | 4px    | In a table cell, beside a phase name, under a Stat.                                        |
+| `medium` | 6px    | The default of a bar: a rail, a form, a row of a list.                                     |
+| `large`  | 8px    | The default of a stacked bar: a Section's coverage band, where the segments need the room. |
+
+The two defaults differ on purpose: a single fill reads at 6px and a stacked bar's small segments do not. Width is the column's. Carbon keeps a bar to six grid columns and at least 48px; a band across a Section is the one place a bar spans the page.
+
+## States
+
+| State   | What changes                                                                                  |
+| ------- | --------------------------------------------------------------------------------------------- |
+| 0       | The track alone.                                                                              |
+| Partial | The fill to the value; the read-out says how much.                                            |
+| 100     | The fill the whole track, usually in `success`.                                               |
+| Tone    | The fill's colour. `information` when the number is not a status; a status colour when it is. |
+
+There is no error state as such: a failing measure is a `danger` fill and a read-out that says the number. There is no hover; only a stacked bar's clickable segments have one, the cursor.
+
+<Canvas of={Stories.WithValue} />
+
+## Modifiers
+
+- **`tone`** for the fill: a status colour when the number is a status, `information` when it is not.
+- **`showValue`** for the number after the bar, and **`valueText`** for what it says when not a percentage: "41 of 80", "64% complete".
+- **`label`** for the accessible name when the row has no visible one.
+- **`size`** as in Sizes.
+- **Stacked `segments`**, each with a `title` for its tooltip and its name, `hatched` for a hole in the record, and `onClick` to make the segment a button that filters the rows under the bar.
+
+<Canvas of={Stories.Stacked} />
+
+## Content
+
+- **The read-out is the number and its unit:** "64%", "41 of 80", "64% complete". Tabular, so a column lines up.
+- **A segment's title is the count and the state:** "298 satisfied", "9 not covered". It is the tooltip, the button's name and the bar's description.
+- **The tone is a status.** Complete in `success`, failing in `danger`, due in `warning`, the rest `information`. Never a decoration.
+- **The row names the bar.** "Access control" beside its bar; not "Access control progress bar".
+
+## Style
+
+| Element         | Token                                                                                           |
+| --------------- | ----------------------------------------------------------------------------------------------- |
+| Track           | `color.background.neutral` · round · `small` 4px, `medium` 6px, `large` 8px                     |
+| Fill            | `color.background.<tone>.bold` · round · `motion.duration.fast`, `motion.easing.standard`       |
+| Hatched segment | `color.icon.<tone>` in a 45° hatch over the track                                               |
+| Read-out        | `font.body.small` · `color.text.subtle` · tabular · `space.500` minimum width · `space.100` gap |
+
+The fill is Badge's bold fill and the hatch is Badge's icon colour, so a bar and a Badge in the same tone are the same colour.
+
+## Accessibility
+
+- **A bar with `label` is a progressbar** (Radix): `aria-valuenow`, `aria-valuemin` 0 and `aria-valuemax` 100, and `aria-valuetext` when `valueText` is given. **A bar without one is hidden**, and the number beside it carries the value. One of the two must be there; a bar alone says nothing to anyone.
+- **A stacked bar with `label` is an image** whose name lists its segments: "Control coverage: 298 satisfied, 40 partial, 26 other than satisfied, 8 not assessed". When its segments click, it is a group of buttons named by their titles. Without a label it is hidden, so the counts beside it must be visible.
+- **A hatched segment is a pattern, not only a colour**, so not-covered reads without colour.
+- **Not keyboard-operable**, as Carbon's; only clickable segments take focus.
 
 ## Props
 
 <ArgTypes of={Progress} />
 
+### Progress.Stacked
+
+<ArgTypes of={Progress.Stacked} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-[Alert](?path=/docs/components-alert--docs), [Banner](?path=/docs/components-banner--docs), Progress and [Stat](?path=/docs/components-stat--docs) read the same tone table as [Badge](?path=/docs/components-badge--docs), so a tone means one thing everywhere.
+- [Stat](?path=/docs/components-stat--docs): the number a bar often sits under.
+- [Spinner](?path=/docs/components-spinner--docs), [Skeleton](?path=/docs/components-skeleton--docs): a wait, which is not a measure.
+- [Stepper](?path=/docs/components-stepper--docs): steps, which are not a bar.
+- [Badge](?path=/docs/components-badge--docs): the tone table.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

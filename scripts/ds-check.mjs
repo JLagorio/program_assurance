@@ -3,6 +3,9 @@
 // on the template (the H2 set below), each heading present or marked not applicable. Existing gaps are
 // grandfathered in scripts/ds-check.allow; a new gap fails, and an allowlisted entry that closes must
 // leave the allowlist so the list only shrinks. `npm run build` runs this first.
+// A part of a compound (`Object.assign(Stat, { Grid: StatGrid })`) is exported so its props table
+// generates and is covered by its compound name in a story (Stat.Grid); an export marked
+// `@deprecated` is an alias kept for the lint's rename and needs no story.
 import fs from "node:fs";
 import path from "node:path";
 
@@ -37,13 +40,22 @@ const walk = (dir, out = []) => {
 
 // name -> file, for every component the package exports from its layers
 const exports_ = new Map();
+const partOf = new Map(); // StatGrid -> "Stat.Grid"
 for (const layer of LAYERS) {
   const dir = path.join(PKG, layer);
   if (!fs.existsSync(dir)) continue;
   for (const f of walk(dir)) {
     if (!/\.tsx?$/.test(f) || f.endsWith("index.ts") || f.endsWith("tokens.ts")) continue;
-    for (const m of fs.readFileSync(f, "utf8").matchAll(/^export (?:function|const) ([A-Z]\w*)/gm))
+    const src = fs.readFileSync(f, "utf8");
+    for (const m of src.matchAll(/^export (?:function|const) ([A-Z]\w*)/gm)) {
+      const doc = src.slice(0, m.index).match(/\/\*\*(?:(?!\*\/)[\s\S])*\*\/\s*$/);
+      if (doc && doc[0].includes("@deprecated")) continue;
       exports_.set(m[1], f);
+    }
+    // Stat = Object.assign(StatRoot, { Tile: StatTile, Grid: StatGrid }): the parts read as Stat.Tile, Stat.Grid
+    for (const m of src.matchAll(/^export const ([A-Z]\w*) = Object\.assign\(\w+, \{([^}]*)\}\)/gm))
+      for (const part of m[2].matchAll(/(\w+): ([A-Z]\w*)/g))
+        partOf.set(part[2], `${m[1]}.${part[1]}`);
   }
 }
 
@@ -58,7 +70,9 @@ const storyCount = storyFiles.reduce(
   0,
 );
 
-const covered = (name) => new RegExp(`(?<![\\w.$])${name}(?![\\w$])`).test(stories);
+const inStories = (name) =>
+  new RegExp(`(?<![\\w.$])${name.replace(".", "\\.")}(?![\\w$])`).test(stories);
+const covered = (name) => inStories(name) || (partOf.has(name) && inStories(partOf.get(name)));
 
 // every component family (a file under components/, patterns/, shapes/, shell/) has a Matrix story:
 // a story file that imports from it and exports a name ending in Matrix

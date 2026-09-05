@@ -1,4 +1,4 @@
-export { Alert } from "./alert";
+export { Alert, type AlertProps } from "./alert";
 export { Banner, type BannerProps, type BannerTone } from "./banner";
 export { Avatar, Person } from "./avatar";
 export {
@@ -45,7 +45,7 @@ export { Accordion, Collapsible, type AccordionProps, type CollapsibleProps } fr
 export { Drawer, type DrawerProps } from "./drawer";
 export { DropdownMenu, type DropdownMenuItemProps, type DropdownMenuProps } from "./dropdown-menu";
 export { Editable, type EditableProps } from "./editable";
-export { Gates } from "./gates";
+export { Gates, type GateItemProps, type GatesProps } from "./gates";
 export { HoverCard, type HoverCardProps } from "./hover-card";
 export { Id } from "./id";
 export { InputGroup } from "./input-group";
@@ -54,7 +54,13 @@ export { Kbd } from "./kbd";
 export { KeyValue } from "./key-value";
 export { Pagination, type PaginationProps } from "./pagination";
 export { Popover, type PopoverProps } from "./popover";
-export { Progress, type StackedSegment } from "./progress";
+export {
+  Progress,
+  type ProgressProps,
+  type ProgressSize,
+  type ProgressStackedProps,
+  type StackedSegment,
+} from "./progress";
 export { Resizable } from "./resizable";
 export { ScrollArea } from "./scroll-area";
 export { Select, type SelectGroupProps, type SelectItemProps, type SelectProps } from "./select";
@@ -62,7 +68,7 @@ export { Separator } from "./separator";
 export { Sheet, type SheetProps } from "./sheet";
 export { Skeleton } from "./skeleton";
 export { Spinner } from "./spinner";
-export { Stat, Tiles } from "./stat";
+export { Stat, Tiles, type StatGridProps, type StatProps, type StatTileProps } from "./stat";
 export { Stepper, type StepState, type StepperItemProps } from "./stepper";
 export { Table, type TableProps, type TdProps, type ThProps } from "./table";
 export { TextLink, type TextLinkProps } from "./text-link";

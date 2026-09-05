@@ -445,23 +445,13 @@ function ProgramSctm() {
                           {f.gaps}
                         </Table.Cell>
                         <Table.Cell>
-                          <Inline as="span" space="space.100" alignBlock="center">
-                            <span className="min-w-0 flex-1">
-                              <Progress
-                                value={f.coverage}
-                                tone={
-                                  f.coverage >= 90
-                                    ? "success"
-                                    : f.coverage >= 60
-                                      ? "warning"
-                                      : "danger"
-                                }
-                              />
-                            </span>
-                            <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-400">
-                              {f.coverage}%
-                            </span>
-                          </Inline>
+                          <Progress
+                            value={f.coverage}
+                            tone={
+                              f.coverage >= 90 ? "success" : f.coverage >= 60 ? "warning" : "danger"
+                            }
+                            showValue
+                          />
                         </Table.Cell>
                       </Table.Row>
                     ))}

@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Gates } from "../../components";
 import * as Stories from "./Gates.stories";
@@ -7,12 +7,111 @@ import * as Stories from "./Gates.stories";
 
 # Gates
 
-The conditions an action waits on, what a record still needs, a phase's entry and exit criteria. A met gate is a check and its label, muted. An unmet gate is a Dot in its tone, the label, the reason under it and the action that meets it. A list, never a score.
+The conditions an action waits on, what a record still needs, a phase's entry and exit criteria. A met gate is a check and its label, muted. An unmet gate is a Dot in its tone, the label, the reason under it and the action that meets it. A list, never a score: the reader sees which, and why. None of the three references has it; the nearest are a pull request's merge checks, and Atlassian's progress tracker, which is a sequence where gates are a set.
 
 <Canvas of={Stories.GatesStory} />
 
+## Anatomy
+
+| Part   | What it is                                                                                  |
+| ------ | ------------------------------------------------------------------------------------------- |
+| Mark   | A 16px box: a check in `color.icon.success` when met, the 6px Dot in the tone when not.     |
+| Label  | `font.body.small`: the condition. `color.text.subtle` when met, `color.text` when not.      |
+| Reason | `font.body.xsmall` in `color.text.subtle` under the label: what is missing, or the finding. |
+| Action | At the end of the row: a link Button or a TextLink, the one thing that meets the gate.      |
+| List   | A `ul`, `space.050` between rows, `space.100` between the mark and the label.               |
+
 <Canvas of={Stories.GatesMatrix} />
+
+## Variants
+
+Gates has one appearance. What varies is the unmet tone, and where the list lives.
+
+| Unmet tone | Use                                                                                    |
+| ---------- | -------------------------------------------------------------------------------------- |
+| `warning`  | The default: the gate can be met from this record, and the reason says how.            |
+| `danger`   | Nothing on this record can move it: the source gives no reason, the PM has not signed. |
+
+| Where                         | What                                                                                     |
+| ----------------------------- | ---------------------------------------------------------------------------------------- |
+| A record's rail               | Under a Collapsible titled Gates with the unmet count: what the requirement still needs. |
+| A Needs block on the overview | Unmet gates only, each with its action.                                                  |
+| A revision's submit gates     | Every gate, met and not, under the revision's facts.                                     |
+
+What is not a gate: a workflow's steps, which are a [Stepper](?path=/docs/components-stepper--docs); a checklist the reader ticks, which is a group of [Checkbox](?path=/docs/components-checkbox--docs); a fraction met, which is a score and belongs to nothing here.
+
+## Sizes
+
+One size: the row is one line of `font.body.small`, and a second of `font.body.xsmall` when there is a reason. The list is as wide as its rail or block; a long reason wraps under its label, never beside it.
+
+## States
+
+| State          | What changes                                                                                |
+| -------------- | ------------------------------------------------------------------------------------------- |
+| Met            | The check, the label in `color.text.subtle`, no reason unless the finding is worth reading. |
+| Unmet, warning | The warning Dot, the label in `color.text`, the reason, the action if there is one.         |
+| Unmet, danger  | The danger Dot; otherwise the same.                                                         |
+| All met        | Every row a check: a quiet list, which is the point of a list that is done.                 |
+
+<Canvas of={Stories.AllMet} />
+
+## Modifiers
+
+- **`met`** on each item: what the mark, the label's colour and the spoken state follow.
+- **`tone`** for the unmet colour: `danger` when nothing here can move it.
+- **`reason`** for the sentence under the label. On an unmet gate always; on a met one only when the finding is worth reading, such as who signed and when.
+- **`action`** for the one link that meets it, on the gates the reader can meet from here.
+
+<Canvas of={Stories.InRail} />
+
+## Content
+
+- **The label names the condition as a noun phrase:** "Owner", "Success criterion", "Contested overlays resolved". Not a verb ("Add an owner") and not a question.
+- **The reason is one sentence:** what is missing, or the finding. "Nothing decides that it is met." "SI-7(1) gives no reason."
+- **The action is a verb:** "Add", "Allocate", "Resolve". It goes to where the gate is met.
+- **The order is the order they are checked**, met and unmet together, not sorted by state. The reader learns the list.
+
+## Style
+
+| Element | Token                                                                                            |
+| ------- | ------------------------------------------------------------------------------------------------ |
+| Mark    | 16px box · check `dimension.icon.small` in `color.icon.success` · Dot 6px in `color.icon.<tone>` |
+| Label   | `font.body.small` · `color.text.subtle` met · `color.text` unmet                                 |
+| Reason  | `font.body.xsmall` · `color.text.subtle` · `space.025` under the label                           |
+| Row     | `space.100` between mark, text and action · `space.050` between rows                             |
+| Action  | The link Button's or TextLink's own style                                                        |
+
+The Dot is Badge's, so an unmet gate in `warning` is the same amber as a warning Indicator.
+
+## Accessibility
+
+- **It is a list**: `ul` and `li`, so a screen reader announces the count and moves row by row.
+- **The state is spoken.** "Met:" or "Not met:" is visually hidden before each label; the check and the Dot are hidden from assistive technology, so nothing is said twice.
+- **The unmet tone is not spoken.** A danger gate's reason says that nothing here can move it, in words.
+- **The action is the only focusable part**, named by its own text; the label before it in reading order gives the context.
+- **No live region.** Gates change when the record changes, and the page re-renders; an Alert says what happened if something must be announced.
 
 ## Props
 
 <ArgTypes of={Gates} />
+
+### Gates.Item
+
+<ArgTypes of={Gates.Item} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Stepper](?path=/docs/components-stepper--docs): steps in order, which gates are not.
+- [Checkbox](?path=/docs/components-checkbox--docs): a list the reader ticks.
+- [Alert](?path=/docs/components-alert--docs): what is wrong, when it is one thing and not a list.
+- [Badge](?path=/docs/components-badge--docs): the tone table and the Dot.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

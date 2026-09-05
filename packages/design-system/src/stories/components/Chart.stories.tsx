@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Chart, Stat, Tiles, type ChartSeries } from "../../components";
+import { Chart, Stat, type ChartSeries } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 
@@ -111,7 +111,7 @@ export const SparklineStory: Story = {
   name: "Sparkline",
   render: () => (
     <Box style={{ width: 640 }}>
-      <Tiles cols={3}>
+      <Stat.Grid cols={3}>
         <Stat.Tile
           label="Open findings"
           value={
@@ -132,7 +132,7 @@ export const SparklineStory: Story = {
           }
         />
         <Stat.Tile label="Coverage" value="80%" note="298 of 372" />
-      </Tiles>
+      </Stat.Grid>
     </Box>
   ),
 };

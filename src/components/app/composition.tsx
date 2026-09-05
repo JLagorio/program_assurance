@@ -886,7 +886,7 @@ export function SupplyChainTable({
                 <Inline as="span" space="space.100" alignBlock="center">
                   <span className="w-1000">
                     <Progress.Stacked
-                      height={4}
+                      size="small"
                       segments={[
                         { key: "a", value: r.attested, tone: "success" },
                         { key: "u", value: r.unattested, tone: "warning" },

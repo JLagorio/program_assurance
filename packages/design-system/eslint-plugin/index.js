@@ -250,6 +250,7 @@ const deprecatedNames = {
   },
   "Shell.NavItem": { to: "Shell.SideNav.Item", fix: true },
   "Shell.User": { to: "Shell.Profile", fix: true },
+  Tiles: { to: "Stat.Grid", note: "the same row of Stat.Tile cells, under the Stat name" },
 };
 
 /* ---------- how a product assembles the kit ---------- */

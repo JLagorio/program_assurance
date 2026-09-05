@@ -131,8 +131,11 @@ export function AuthorizationSection({
                 alignBlock="center"
                 style={{ width: 180 }}
               >
-                <Progress value={readiness} tone={readiness >= 80 ? "success" : "information"} />
-                <span className="tabular-nums font-body-small text-subtle">{readiness}%</span>
+                <Progress
+                  value={readiness}
+                  tone={readiness >= 80 ? "success" : "information"}
+                  showValue
+                />
               </Inline>
             </Inline>
           </Box>
@@ -680,8 +683,11 @@ export function BriefingRoom() {
                 alignBlock="center"
                 style={{ width: 180 }}
               >
-                <Progress value={progress} tone={pending.length > 0 ? "warning" : "success"} />
-                <span className="tabular-nums font-body-small text-subtle">{progress}%</span>
+                <Progress
+                  value={progress}
+                  tone={pending.length > 0 ? "warning" : "success"}
+                  showValue
+                />
               </Inline>
             </Inline>
           </Box>

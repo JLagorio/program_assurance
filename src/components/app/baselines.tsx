@@ -31,7 +31,7 @@
 
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { ArrowRight, TriangleAlert } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import {
   Absent,
@@ -50,6 +50,7 @@ import {
   Stat,
   Table,
   Toolbar,
+  Alert,
 } from "@ledger/design-system";
 import type { Tone } from "@ledger/design-system";
 import {
@@ -371,52 +372,41 @@ export function UnrecordedChangeNotice({
 }) {
   if (rows.length === 0) return null;
   return (
-    <Box
-      className="rounded-large border border-danger-subtle bg-danger"
-      paddingInline="space.200"
-      paddingBlock="space.150"
+    <Alert
+      tone="danger"
+      title={
+        <>
+          CM-3 — {rows.length} configuration item{rows.length === 1 ? "" : "s"} moved with no change
+          record
+        </>
+      }
     >
-      <Inline space="space.100" alignBlock="start">
-        <TriangleAlert className="pt-025 size-icon-medium shrink-0 text-danger" />
-        <div className="min-w-0">
-          <p className="font-body font-semibold text-danger">
-            CM-3 — {rows.length} configuration item{rows.length === 1 ? "" : "s"} moved with no
-            change record
-          </p>
-          <p className="pt-050 font-body-small text-default">
-            {rows.length === 1 ? "This pin" : "These pins"} differ{rows.length === 1 ? "s" : ""}{" "}
-            between {from} and {to} and no <Id>CHG-</Id> was ever filed against{" "}
-            {rows.length === 1 ? "it" : "them"}. The movement was not proposed, so it was not
-            analysed under CM-3(2), so it was not approved by the change control board — and no
-            security impact verdict exists to say whether the determinations allocated to{" "}
-            {rows.length === 1 ? "this component" : "these components"} survive it. This is a
-            finding against the configuration management process itself, not a row in the diff.
-          </p>
-          <Stack className="pt-100" as="ul" space="space.075">
-            {rows.map((row) => (
-              <li key={`${row.node}|${row.label}`} className="font-body-small">
-                <Inline
-                  as="span"
-                  space="space.075"
-                  rowSpace="space.050"
-                  alignBlock="center"
-                  shouldWrap
-                >
-                  {row.node === "—" ? null : <Id className="text-danger">{row.node}</Id>}
-                  <span className="font-medium">
-                    {row.node === "—" ? row.label : (nodeName?.(row.node) ?? row.label)}
-                  </span>
-                  <Badge size="xsmall">{row.kind}</Badge>
-                  <span className="text-subtle line-through">{row.from}</span>
-                  <ArrowRight className="text-subtle size-150" />
-                  <span className="font-medium">{row.to}</span>
-                </Inline>
-              </li>
-            ))}
-          </Stack>
-        </div>
-      </Inline>
-    </Box>
+      <p className="font-body-small">
+        {rows.length === 1 ? "This pin" : "These pins"} differ{rows.length === 1 ? "s" : ""} between{" "}
+        {from} and {to} and no <Id>CHG-</Id> was ever filed against{" "}
+        {rows.length === 1 ? "it" : "them"}. The movement was not proposed, so it was not analysed
+        under CM-3(2), so it was not approved by the change control board — and no security impact
+        verdict exists to say whether the determinations allocated to{" "}
+        {rows.length === 1 ? "this component" : "these components"} survive it. This is a finding
+        against the configuration management process itself, not a row in the diff.
+      </p>
+      <Stack className="pt-100" as="ul" space="space.075">
+        {rows.map((row) => (
+          <li key={`${row.node}|${row.label}`} className="font-body-small">
+            <Inline as="span" space="space.075" rowSpace="space.050" alignBlock="center" shouldWrap>
+              {row.node === "—" ? null : <Id className="text-danger">{row.node}</Id>}
+              <span className="font-medium">
+                {row.node === "—" ? row.label : (nodeName?.(row.node) ?? row.label)}
+              </span>
+              <Badge size="xsmall">{row.kind}</Badge>
+              <span className="text-subtle line-through">{row.from}</span>
+              <ArrowRight className="text-subtle size-150" />
+              <span className="font-medium">{row.to}</span>
+            </Inline>
+          </li>
+        ))}
+      </Stack>
+    </Alert>
   );
 }
 
@@ -1122,15 +1112,7 @@ export function ImpactView({
       </Box>
 
       {/* Effect tiles */}
-      <Grid
-        className="overflow-hidden rounded-large border border-default bg-neutral"
-        gap="space.025"
-        templateColumns={{
-          base: "repeat(2, minmax(0, 1fr))",
-          sm: "repeat(3, minmax(0, 1fr))",
-          lg: "repeat(6, minmax(0, 1fr))",
-        }}
-      >
+      <Stat.Grid cols={6}>
         <Stat.Tile
           label="Nodes touched"
           value={impact.touched.length}
@@ -1171,7 +1153,7 @@ export function ImpactView({
           note="distinct requirement, component and method"
           tone="warning"
         />
-      </Grid>
+      </Stat.Grid>
 
       {contained ? (
         <Section
@@ -1496,11 +1478,7 @@ export function RetestSummary({ items }: { items: RetestItem[] }) {
   const components = new Set(items.map((i) => i.node)).size;
 
   return (
-    <Grid
-      className="overflow-hidden rounded-large border border-default bg-neutral"
-      gap="space.025"
-      templateColumns={{ base: "repeat(2, minmax(0, 1fr))", sm: "repeat(4, minmax(0, 1fr))" }}
-    >
+    <Stat.Grid cols={4}>
       {/* A numeric note under a value reads as a decomposition of it, so the
           whole-queue method split belongs on the whole-queue tile and nowhere
           else — beside `automatable` it read "9 with a procedure, of which 377
@@ -1521,6 +1499,6 @@ export function RetestSummary({ items }: { items: RetestItem[] }) {
         value={automatable}
         note={`${items.length - automatable} done by hand`}
       />
-    </Grid>
+    </Stat.Grid>
   );
 }

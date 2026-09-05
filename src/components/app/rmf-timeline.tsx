@@ -76,7 +76,7 @@ export function RmfTimeline({
       action={
         <Inline as="span" space="space.100" alignBlock="center" style={{ width: 240 }}>
           <Progress.Stacked
-            height={4}
+            size="small"
             segments={[
               { key: "d", value: done, tone: "success" },
               { key: "r", value: gates.length - done, tone: "neutral" },

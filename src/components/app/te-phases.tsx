@@ -406,11 +406,7 @@ export function PhaseReadinessSummary({
         </Box>
       </Box>
 
-      <Grid
-        className="border-y border-default bg-neutral"
-        gap="space.025"
-        templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(5, minmax(0, 1fr))" }}
-      >
+      <Stat.Grid cols={5} frame="band">
         <Stat.Tile
           label="Entry"
           value={`${readiness.entryMet}/${readiness.entryTotal}`}
@@ -441,7 +437,7 @@ export function PhaseReadinessSummary({
           note={unsigned.length === 0 ? "every attestation on file" : "attestation missing"}
           tone={unsigned.length === 0 ? "success" : "danger"}
         />
-      </Grid>
+      </Stat.Grid>
     </Stack>
   );
 }
@@ -923,11 +919,14 @@ export function AttackChain({
         </p>
 
         {unwalkable.length > 0 ? (
-          <Alert tone="danger" className="pt-100">
-            {unwalkable.length} {unwalkable.length === 1 ? "step is" : "steps are"} not traversable
-            in the composition graph — {unwalkable.map((h) => `${h.from} → ${h.to}`).join(", ")}.
-            The scenario cannot be executed as written against this system.
-          </Alert>
+          <Box paddingBlockStart="space.100">
+            <Alert tone="danger">
+              {unwalkable.length} {unwalkable.length === 1 ? "step is" : "steps are"} not
+              traversable in the composition graph —{" "}
+              {unwalkable.map((h) => `${h.from} → ${h.to}`).join(", ")}. The scenario cannot be
+              executed as written against this system.
+            </Alert>
+          </Box>
         ) : null}
 
         <Box as="ol" paddingBlockStart="space.100">
@@ -1225,11 +1224,7 @@ export function AttackSurfaceSummary({
 
   return (
     <Stack className="pt-200" space="space.200">
-      <Grid
-        className="border-y border-default bg-neutral"
-        gap="space.025"
-        templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(5, minmax(0, 1fr))" }}
-      >
+      <Stat.Grid cols={5} frame="band">
         <Stat.Tile
           label="Scenarios"
           value={`${scenarios.length}`}
@@ -1257,7 +1252,7 @@ export function AttackSurfaceSummary({
           note="written but not executed"
           tone={coverage.unexercised.length > 0 ? "warning" : "success"}
         />
-      </Grid>
+      </Stat.Grid>
 
       <Grid gap="space.200" templateColumns={{ lg: "repeat(2, minmax(0, 1fr))" }}>
         <div>

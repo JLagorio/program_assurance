@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Alert } from "../../components";
 import * as Stories from "./Alert.stories";
@@ -7,16 +7,114 @@ import * as Stories from "./Alert.stories";
 
 # Alert
 
-A tinted callout in a rail or above a table: a Dot, a title in the tone colour, an optional body. Danger announces itself (`role="alert"`); the others are polite.
+A tinted callout in a rail or above a table: a Dot, a title in the tone's colour, an optional body and one action. It says something about the record or the rows it sits beside, it loads with the page, and it goes when it is no longer true. Carbon calls this a callout, Atlassian a section message, Base Web a banner.
 
-<Canvas of={Stories.Alerts} />
+It is one of three messages. A message about the whole site is a [Banner](?path=/docs/components-banner--docs) in the shell's banner area. Feedback after an act, saved, submitted, failed, is a toast from the [Toaster](?path=/docs/components-toaster--docs) and goes on its own. An Alert is neither: it is a fact about what the reader is looking at.
 
 <Canvas of={Stories.AlertMatrix} />
+
+## Anatomy
+
+| Part   | What it is                                                                                                               |
+| ------ | ------------------------------------------------------------------------------------------------------------------------ |
+| Fill   | The tone's subtle fill, `color.background.warning` for the default, `radius.medium`, `space.150` by `space.100` inside.  |
+| Dot    | The 6px status dot in the tone's icon colour, before the title. It is the kit's status mark; there is no icon.           |
+| Title  | One line in `font.body` medium and the tone's text colour: what is wrong, or what changed.                               |
+| Body   | Under the title in `font.body` and the tone's text colour: what it means and what to do. One or two sentences.           |
+| Action | Under the body: one TextLink or link Button, the thing that resolves it, drawn in the alert's own colour and underlined. |
+
+## Variants
+
+Alert has one appearance; the tone is what varies.
+
+| Tone          | Use                                                                                                       |
+| ------------- | --------------------------------------------------------------------------------------------------------- |
+| `warning`     | The default. Something is due, stale or incomplete, or will block a later step.                           |
+| `danger`      | Something has failed or expired, or the record cannot proceed. Announced at once (`role="alert"`).        |
+| `information` | A fact the reader needs before acting: a rule, a scope, a change in the catalogue.                        |
+| `success`     | A step complete and its result standing on the record: "Assessment complete". Not feedback after a click. |
+| `neutral`     | A note without a status: a draft, a revision not in force.                                                |
+
+Which message:
+
+| The message                         | Use                                                                                     |
+| ----------------------------------- | --------------------------------------------------------------------------------------- |
+| About this record or these rows     | `Alert`.                                                                                |
+| About the whole site                | `Banner`.                                                                               |
+| Feedback after an act               | A toast.                                                                                |
+| The conditions a record still needs | [Gates](?path=/docs/components-gates--docs), one row per condition, not one alert each. |
+| A problem in one field              | The Field's error.                                                                      |
+
+There is no dismiss. Carbon's inline notification has a close and its callout does not, and an Alert is the callout: it is true until the record changes. What can be dismissed is feedback, and that is a toast. There is no icon per tone either, which Carbon, Atlassian and Base Web all draw: the kit's status mark is the Dot, the same one a Badge's Indicator carries, and the Banner is the one exception because a 6px dot vanishes on a 48px bold bar.
+
+## Sizes
+
+One size. An Alert is as wide as what it is about: a rail's width in a rail, the table's width above a table, the form's width at the end of a form. Its height is its content, which should not pass two lines of body.
+
+<Canvas of={Stories.Placement} />
+
+## States
+
+| State          | What changes                                           |
+| -------------- | ------------------------------------------------------ |
+| Note           | No title: the body alone, in the tone's fill and text. |
+| Titled         | The Dot and the title, the body under them.            |
+| With an action | The link under the body.                               |
+
+There is no hover, no focus and no disabled: the Alert is not interactive; only its action is.
+
+## Modifiers
+
+- **`title`** for the line that says what is wrong. Without one the Alert is a note.
+- **`action`** for the one link that resolves it: a `TextLink` around the router's Link, or a link `Button` that opens the dialog.
+- **`tone`** as in Variants; `warning` when unsaid.
+- **`className`** for width in a layout, never for padding: the fill is painted, so padding inside it moves the text off centre. Space around an Alert is the parent's `Box` or `Stack`.
+
+<Canvas of={Stories.Kinds} />
+
+## Content
+
+- **The title says what is wrong**, in the record's terms and with the count: "PKG-0031 is not shippable", "3 controls are due this week", "Evidence expired". Never the tone: "Warning", "Error".
+- **The body says what it means and what to do**, one or two sentences. It does not repeat the title.
+- **The action is a verb phrase** naming its destination: "Show the 14 gaps", "Replace the artifact". One.
+- **Sentence case; no full stop on the title.**
+
+## Style
+
+| Element | Token                                                                                  |
+| ------- | -------------------------------------------------------------------------------------- |
+| Fill    | `color.background.<tone>` · `radius.medium` · `space.150` inline · `space.100` block   |
+| Text    | `color.text.<tone>`; the title `font.body` medium, the body `font.body`                |
+| Dot     | 6px · `color.icon.<tone>` · centred on the title's first line                          |
+| Gaps    | `space.075` between title, body and action · `space.100` between the Dot and the title |
+| Action  | `color.text.<tone>` · underlined, as the Banner draws its action                       |
+
+The tone table is Badge's, so a tone means one thing everywhere: the same warning fill as a warning Badge, the same danger text as a danger Indicator.
+
+## Accessibility
+
+- **A danger Alert is `role="alert"`**, announced at once; the rest are `role="status"`, announced politely. Both are live regions, so an Alert that appears after the page loads is read without focus moving.
+- **Not focusable.** Only the action takes focus, in reading order. Carbon says the same: inline notifications do not receive focus.
+- **Colour is not alone.** The title says what is wrong in words, the Dot marks the tone, the role says its urgency.
+- **One per place.** Two live regions announcing together are noise. One Alert per rail or table; several facts are several sentences in one.
 
 ## Props
 
 <ArgTypes of={Alert} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-Alert, [Banner](?path=/docs/components-banner--docs), [Progress](?path=/docs/components-progress--docs) and [Stat](?path=/docs/components-stat--docs) read the same tone table as [Badge](?path=/docs/components-badge--docs), so a tone means one thing everywhere.
+- [Banner](?path=/docs/components-banner--docs): the message about the whole site.
+- [Toaster](?path=/docs/components-toaster--docs): feedback after an act.
+- [Gates](?path=/docs/components-gates--docs): what a record still needs, one row per condition.
+- [Badge](?path=/docs/components-badge--docs): the tone table.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

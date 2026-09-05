@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Banner } from "../../components";
 import * as Stories from "./Banner.stories";
@@ -7,16 +7,94 @@ import * as Stories from "./Banner.stories";
 
 # Banner
 
-A message about the whole site, in the shell's Banner area: the loss of data or a function, or something site-wide that changes what the reader can do. One at a time, never dismissible, gone when no longer true. It is one line and truncates rather than wraps; the `action` is one link or button drawn in the banner's own colour. Alert is inline in a rail or above a table; Banner is the screen's.
+A message about the whole site, at the top of the screen in the shell's Banner area: the loss of data or a function, or something site-wide that changes what the reader can do. One at a time, never dismissible, gone when no longer true. It is one line and truncates rather than wraps; the action is one link or button drawn in the banner's own colour. Atlassian's Banner is the model. Carbon has none: its notifications are inline or toast, and the kit's inline one is the [Alert](?path=/docs/components-alert--docs).
+
+An Alert is about the record; a Banner is about the site. Feedback after an act is a toast. If the message would be true for one reader and not the next, it is not a banner.
+
+<Canvas of={Stories.BannerMatrix} />
+
+## Anatomy
+
+| Part    | What it is                                                                                                  |
+| ------- | ----------------------------------------------------------------------------------------------------------- |
+| Bar     | 48px, `dimension.layout.banner`, the tone's bold fill, its content centred, `space.200` inside at each end. |
+| Icon    | The tone's icon at `dimension.icon.small`: Info, TriangleAlert, CircleAlert. `icon` replaces it.            |
+| Message | One line in `font.body` medium and the inverse text colour. It truncates.                                   |
+| Action  | One link or button after the message, underlined, in the banner's own text colour.                          |
+
+## Variants
+
+Banner has one appearance; the tone is what varies, and there are three.
+
+| Tone          | Use                                                                                                      |
+| ------------- | -------------------------------------------------------------------------------------------------------- |
+| `information` | Something changed for everyone: the catalogue moved to a new revision, a maintenance window is booked.   |
+| `warning`     | The default. Something is about to change what the reader can do: the audit window closes, uploads lock. |
+| `danger`      | Something is lost: the connection to the evidence store, the session's writes. Announced at once.        |
+
+There is no success banner and no neutral one: a banner is gone when it is no longer true, and good news is feedback, which is a toast. Base Web's Banner has high and low contrast; the kit has the bold fill only, since a banner is by definition the one thing on the screen that outranks the page.
+
+Where it lives: `Shell.Banner` is the area, above the top navigation. It holds the Banner and pushes the page down by the banner's height while one is rendered; see [Shell](?path=/docs/shell-shell--docs).
+
+## Sizes
+
+One: the width of the screen at 48px. On a narrow screen the message truncates and the action stays; the message should be short enough that a phone shows most of it.
+
+## States
+
+Present or absent. A banner is rendered while its condition holds and unmounted when it stops; there is no dismissed state, no hover, and no collapsed form. Its action has the kit's focus outline.
+
+## Modifiers
+
+- **`tone`** as in Variants; `warning` when unsaid.
+- **`action`** for the one link or button: an anchor, a button, or the router's Link. The Banner colours it and underlines it; it keeps its own `onClick` or `to`.
+- **`icon`** to replace the tone's icon with a more specific one, rarely.
+- **`className`** for the shell's layout, not for colour.
 
 <Canvas of={Stories.Banners} />
 
-<Canvas of={Stories.BannerMatrix} />
+## Content
+
+- **One sentence: the fact and what it changes.** "The audit window closes in three days; evidence uploads lock after that."
+- **Present tense, plain.** No "Please note", no "Attention".
+- **The action names where it goes:** "See what changed", "Ask for an extension". One.
+- **Not feedback, not a greeting, not a record.** Those are a toast, nothing, and an Alert.
+
+## Style
+
+| Element | Token                                                                                                  |
+| ------- | ------------------------------------------------------------------------------------------------------ |
+| Bar     | `dimension.layout.banner` 48px · `color.background.<tone>.bold` · `space.200` inline · `space.100` gap |
+| Text    | `font.body` medium · `color.text.inverse`, `color.text.warning.inverse` on warning                     |
+| Icon    | `dimension.icon.small` 14px in the text colour                                                         |
+| Action  | Underlined, `radius.xsmall` for its focus outline                                                      |
+
+The bold fills are Badge's bold appearance, so a danger banner and a danger bold Badge are the same red.
+
+## Accessibility
+
+- **A danger Banner is `role="alert"`**, announced at once; the rest are `role="status"`. The shell's Banner area is a region named "Banner".
+- **Truncation hides words from sighted readers only;** a screen reader hears the whole line. Keep it short so both get the same message.
+- **The action is in the tab order; the banner is not.** It sits first in the page, before the top navigation, so it is the first thing a keyboard reader meets, which is the point.
+- **The bold fills pass 4.5:1** with the inverse text in both modes; the contrast test covers them.
 
 ## Props
 
 <ArgTypes of={Banner} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-[Alert](?path=/docs/components-alert--docs), Banner, [Progress](?path=/docs/components-progress--docs) and [Stat](?path=/docs/components-stat--docs) read the same tone table as [Badge](?path=/docs/components-badge--docs), so a tone means one thing everywhere.
+- [Alert](?path=/docs/components-alert--docs): the message about a record.
+- [Toaster](?path=/docs/components-toaster--docs): feedback after an act.
+- [Shell](?path=/docs/shell-shell--docs): the Banner area.
+- [Badge](?path=/docs/components-badge--docs): the tone table.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

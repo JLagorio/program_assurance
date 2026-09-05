@@ -349,7 +349,7 @@ function WorkBar({ work }: { work: WorkSummary }) {
     >
       <span className="shrink-0" style={{ width: 64 }}>
         <Progress.Stacked
-          height={6}
+          size="medium"
           segments={[
             {
               key: "satisfied",

@@ -133,14 +133,13 @@ export function RemediationPlanSection({
           </Grid>
 
           <Inline className="pt-050" space="space.150" alignBlock="center">
-            <span style={{ width: 160 }}>
+            <span style={{ width: 240 }}>
               <Progress
                 value={plan.progress}
                 tone={plan.status === "Blocked" ? "danger" : "success"}
+                showValue
+                valueText={`${plan.progress}% complete`}
               />
-            </span>
-            <span className="tabular-nums font-body-small text-subtle">
-              {plan.progress}% complete
             </span>
             {plan.slipped && plan.poam ? (
               <span className="tabular-nums font-body-small text-warning">
