@@ -913,14 +913,23 @@
   font-weight: var(--tw-font-weight, var(--ds-font-code-weight));
   letter-spacing: var(--ds-font-code-letter-spacing);
 }
+@utility duration-micro {
+  transition-duration: var(--ds-motion-duration-micro);
+}
 @utility duration-fast {
   transition-duration: var(--ds-motion-duration-fast);
 }
 @utility duration-medium {
   transition-duration: var(--ds-motion-duration-medium);
 }
+@utility duration-moderate {
+  transition-duration: var(--ds-motion-duration-moderate);
+}
 @utility duration-slow {
   transition-duration: var(--ds-motion-duration-slow);
+}
+@utility duration-slower {
+  transition-duration: var(--ds-motion-duration-slower);
 }
 @utility opacity-disabled {
   opacity: var(--ds-opacity-disabled);

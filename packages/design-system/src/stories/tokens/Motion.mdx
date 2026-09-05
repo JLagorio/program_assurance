@@ -1,38 +1,76 @@
-import { Meta } from "@storybook/addon-docs/blocks";
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
 
-<Meta title="Tokens/Motion" />
+import * as Stories from "./Motion.stories";
+
+<Meta of={Stories} />
 
 # Motion
 
-Fast and quiet. Motion is one duration pair and one curve; nothing in a component names a number. The tokens render at the bottom of the Metrics sheet (Tokens/Metrics).
+Fast and quiet, and shaped like Carbon's: six durations by the size of the move, three curves by whether the thing arrives, leaves or stays, and one stagger step for a set arriving together. Nothing in a component names a number; every transition and animation reads a token, and every one collapses under `prefers-reduced-motion`. Carbon's productive set is the model, values and all, because this is a task-focused product and every move is a productive one: there is no expressive set, no bounce, no stretch. Atlassian's three durations and Base Web's timing ramp were read for the shape; the audit of 2026-09-05 asked for Carbon's.
 
-## Tokens
+<Canvas of={Stories.Specimens} />
 
-| Token | Value | Utility | Use |
+## Durations
+
+| Token | Value | Utility | For |
 | --- | --- | --- | --- |
-| `motion.duration.fast` | 120ms | `duration-fast` | Hover and press colour changes. |
-| `motion.duration.medium` | 180ms | `duration-medium` | Overlays entering and leaving. |
-| `motion.duration.slow` | 400ms | `duration-slow` | Marks arriving on a chart, and a drill-down redrawing it. Nothing else is this slow. |
-| `motion.easing.standard` | cubic-bezier(0.2, 0, 0.2, 1) | `ease-standard` | The one curve. |
+| `motion.duration.micro` | 70ms | `duration-micro` | A toggle's thumb, a checkbox's tick, a chevron turning: the smallest moves. |
+| `motion.duration.fast` | 110ms | `duration-fast` | Hover and press colour, a tooltip's fade, a menu or a popover leaving. |
+| `motion.duration.medium` | 150ms | `duration-medium` | A menu or a popover arriving, a section expanding or collapsing, a dialog or a sheet leaving. |
+| `motion.duration.moderate` | 240ms | `duration-moderate` | A dialog or a sheet arriving, the panel sliding in, a toast, a page's content rising. |
+| `motion.duration.slow` | 400ms | `duration-slow` | Marks arriving on a chart, and a drill-down redrawing it. |
+| `motion.duration.slower` | 700ms | `duration-slower` | The blanket dimming the page under a dialog or a sheet. |
+| `motion.stagger` | 20ms | in `stagger-children` | Between one item's entrance and the next when a set arrives together. Six at most. |
+
+The bigger the move, the longer it takes: a colour change is micro or fast, a thing arriving in place is medium, a thing travelling across the screen is moderate, a whole page dimming is slower. Carbon's rule, and its numbers.
+
+## Curves
+
+| Token | Value | Utility | For |
+| --- | --- | --- | --- |
+| `motion.easing.standard` | cubic-bezier(0.2, 0, 0.38, 0.9) | `ease-standard` | What stays on screen throughout: colour, a chevron, a sort, a side panel leaving. |
+| `motion.easing.enter` | cubic-bezier(0, 0, 0.38, 0.9) | `ease-enter` | What arrives: in quickly, slowing to a stop. |
+| `motion.easing.exit` | cubic-bezier(0.2, 0, 1, 0.9) | `ease-exit` | What leaves for good: speeding up out of view. |
+
+A side panel leaves on the standard curve, not the exit curve, because it stays nearby. Carbon's exception, kept.
+
+## What moves, and how
+
+| Part | Arrives | Leaves | Utility |
+| --- | --- | --- | --- |
+| A button, a row, a chip, a tab: colour | fast · standard | | `transition-colors duration-fast ease-standard` |
+| A chevron turning, a sort arrow | fast · standard | | `transition-transform duration-fast ease-standard` |
+| A Switch thumb | micro · standard | | `transition-transform duration-micro ease-standard` |
+| A tooltip | fast · enter | fast · exit | `animate-fade-in`, `animate-fade-out` |
+| A menu, a popover, a hover card, a select list | medium · enter | fast · exit | `animate-enter`, `animate-exit` |
+| A dialog, an alert dialog, the command palette | moderate · enter | medium · exit | `animate-dialog-in`, `animate-dialog-out` |
+| The blanket under them | slower · enter | medium · exit | `animate-dim-in`, `animate-dim-out` |
+| A sheet, the panel below the large breakpoint, the side nav's flyout | moderate · enter | medium · standard | `animate-slide-in-end`, `animate-slide-out-end`, and `-start` |
+| An Accordion or a Collapsible section | medium · enter | medium · exit | `animate-collapse-open`, `animate-collapse-close` |
+| A page's content, the panel at the large breakpoint, a Stat tile, a Related card | moderate · enter | | `animate-rise` |
+| The panel's column opening or closing the page | moderate · standard | | `shell-root`'s grid transition |
+| A set of tiles or cards arriving | one stagger step apart | | `stagger-children` on the parent |
+| A chart's marks | slow | | Components/Chart |
+
+Radix and vaul set `data-state` on what they open, so a part pairs `data-[state=open]:animate-enter` with `data-[state=closed]:animate-exit`; `src/styles/motion.css` defines the keyframes and one utility per entrance and exit, all on the tokens. A collapse reads the height Radix measures (`--radix-accordion-content-height`, `--radix-collapsible-content-height`), so it animates to the content's own height and nothing is clipped.
 
 ## Transitions
 
-- A button, a row, a chip or a tab transitions colour only: `transition-colors duration-fast ease-standard`. No press-down movement, no scale.
+- A button, a row, a chip or a tab transitions colour only: no press-down movement, no scale.
 - A hover or a press is a token (`bg-brand-bold-hovered`, `bg-neutral-subtle-pressed`), never a brightness filter and never alpha on the resting fill.
-- A chevron (Disclosure, Tree, a Table group row) rotates with `transition-transform duration-fast ease-standard`. A Switch thumb slides with `transition-transform duration-medium ease-standard`.
+- A thing that moves transitions `transform`, never `left` or `width`; the shell's grid is the one exception, and it transitions its template.
 
-## Animations
+## Stagger
 
-`src/styles/motion.css` defines the keyframes and one utility per entrance and exit, all on the tokens. Radix and vaul set `data-state` on what they open, so a component pairs `data-[state=open]:animate-enter` with `data-[state=closed]:animate-exit`.
+A set that arrives together arrives one thing at a time: `stagger-children` on the parent delays each child's entrance one step after the last, capped at six, so the last of a long list lands within a moderate duration and nothing waits for the end. Stat tiles and Related cards do this; a table's rows do not, because a register is read from the top and should be there when the eye arrives.
 
-| Utility | Does | Duration | Use |
-| --- | --- | --- | --- |
-| `animate-enter`, `animate-exit` | Fade with a 0.98 scale | medium in, fast out | Dialog, Popover, menus, Tooltip. |
-| `animate-fade-in`, `animate-fade-out` | Fade | medium in, fast out | The blanket under an AlertDialog. |
-| `animate-slide-in-end`, `animate-slide-out-end` | Slide from the trailing edge | medium | Sheet, `side="end"`. |
-| `animate-slide-in-start`, `animate-slide-out-start` | Slide from the leading edge | medium | Sheet, `side="start"`. |
-| `animate-slide-in-bottom`, `animate-slide-out-bottom` | Slide from the bottom | medium | Defined for a bottom drawer. Nothing uses them yet. |
-| `animate-slide-in-top`, `animate-slide-out-top` | Slide from the top | medium | Defined for a top banner. Nothing uses them yet. |
-| `animate-rise` | A `space.075` rise with a fade | medium | A page arriving: IndexPage and ShowPage. Use it for page-level content only. |
+## Reduced motion
 
-Under `prefers-reduced-motion: reduce` every one of these collapses to 0.01ms, and a chart draws its marks in place (`src/styles/chart.css` and the Chart's motion hook read the same query).
+Under `prefers-reduced-motion: reduce` every animation runs in 0.01ms, every stagger is 0, the shell's grid does not transition, and a skeleton's pulse stops. A spinner keeps turning, because the turning is the message. A chart draws its marks in place (`src/styles/chart.css` and the Chart's motion hook read the same query).
+
+## Don't
+
+- **Don't bounce, stretch or stop suddenly.** The three curves are the only curves; Carbon's and Atlassian's easings say the same.
+- **Don't animate what the reader is reading.** A register's rows, a form's fields and a record's facts are there when the page is; only the page itself rises.
+- **Don't move a thing for decoration.** Every move says something: this arrived, this left, this opened, this is the same thing over there.
+- **Don't name a number.** A duration or a curve in a component is a token; `duration-[200ms]` does not pass the lint.

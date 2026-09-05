@@ -413,3 +413,26 @@ so. `as` had four vocabularies; it has three named ones, `LayoutElement`, `TextE
 Bleed on `LayoutElement`. `style` is accepted by Box and Grid only, the audit's rule for the parts
 with a computed dimension; twelve call sites (nine stories, three prototype) moved a fixed width
 onto a Box.
+
+### 24. The tokens pass (2026-09-05)
+
+Nineteenth sitting, on Josef's word: commit the primitives, then the tokens, with the audit's §6
+as the worklist; the unconsumed colour matrix accepted as open unless a consumer is obvious;
+motion brought to Carbon's shape with a counterpart for every panel and accordion; the audit's
+own plan saved for the end. References: Carbon's motion (productive and expressive, standard,
+entrance and exit curves, the six durations and the use each is documented for, "the larger the
+change in distance or size, the longer"), read from the website source and @carbon/motion;
+Atlassian's motion package (durations none, small, medium, large; easeIn, easeOut, easeInOut);
+Base Web's animation theme (timing100 to timing7000, eight curves); Atlassian's elevation pairing
+rule and focus ring; Atlassian's and Carbon's icon sizes.
+
+Done: `motion.json` on six durations, three curves and a stagger step; `motion.css` rewritten on
+them with collapse, dim, dialog and stagger utilities and reduced-motion for all; consumers in
+Disclosure (height), Dialog, AlertDialog, Sheet, Command (dim and dialog tiers), Tooltip (fade),
+Switch (micro), the Shell (panel and flyout entrances, the grid transition), Stat and Related
+(rise and stagger); a Motion specimens story. Colour: `input.pressed` on every field's focus,
+`inverse.subtle.{hovered,pressed}` on the Banner's action; the rest listed on the Colour sheet
+as minted and open, by family and by the part each waits for. Written: the surface and shadow
+pairing, the focus ring's geometry and selection's difference from it, an Icons page.
+Parked in next.md: the chart tokens' typed map (the other session's files), token file roots
+and provenance, private CSS utilities, the prototype's stroke overrides.

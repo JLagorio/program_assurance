@@ -379,6 +379,27 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   Carbon's layer stepping, a horizontal Stack, dividers, reverse, `alignSelf` and `order`, a column
   count per breakpoint, a page grid, a bold weight, italic, underline, truncate with a tooltip,
   hero heading sizes, a subtitle, an icon, a tone. Primitives/*: Matrix, Dont, Playground.
+- Motion has Carbon's shape. Six durations by the size of the move (`micro` 70, `fast` 110,
+  `medium` 150, `moderate` 240, `slow` 400, `slower` 700ms), three curves by whether the thing
+  arrives, leaves or stays (`enter`, `exit`, `standard`, Carbon's productive set), and a
+  `motion.stagger` step of 20ms. `fast` was 120 and `medium` 180; `standard` was Ledger's own
+  curve. Every entrance runs on the enter curve and every exit on the exit curve, a side panel
+  leaving on standard (Carbon's exception); the blanket dims in `slower` (`animate-dim-in`); a
+  dialog arrives in `moderate` (`animate-dialog-in`); an Accordion or a Collapsible section
+  animates its height to the size Radix measures (`animate-collapse-open`, `-close`), where it
+  faded; the Shell's panel slides in below the large breakpoint and rises at it, the side nav's
+  flyout slides in, and the panel's column transitions the page's grid; a Stat tile and a Related
+  card rise, one `motion.stagger` step apart (`stagger-children`); a Switch thumb moves in
+  `micro`; a tooltip fades in `fast`. Reduced motion collapses all of it. Tokens/Motion:
+  Specimens.
+- `color.background.input.pressed` is every field's fill on focus, after Atlassian's textfield;
+  the Banner's action takes `color.background.inverse.subtle.hovered` and `.pressed` under the
+  pointer. The rest of the minted matrix, about forty tokens with no part yet, is accepted as open
+  and listed on the Colour sheet with the part each waits for. Tokens/Color.
+- Written rules: the surface and shadow pairing and the one shadow without a surface (Tokens/Color);
+  the focus ring's geometry and how selection differs from focus (Tokens/Shape); an Icons page,
+  the two sizes, Lucide's stroke, colour by the text beside it, names for icons that stand alone,
+  and the pairing with type (Tokens/Icons).
 - `Breadcrumb` takes `label`, "Breadcrumb" by default, so a second trail on a page, a chart's
   drill-down path, is a navigation landmark with a name of its own. Components/Breadcrumb.
 - `Eyebrow` takes `as`: `h3` or `h4` when it heads a section, so the page's outline has it,

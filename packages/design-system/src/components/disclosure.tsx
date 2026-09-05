@@ -64,8 +64,8 @@ export function Collapsible({
       <CollapsiblePrimitive.Trigger className={cn(trigger, inset && "px-300")}>
         <TriggerRow title={title} count={count} />
       </CollapsiblePrimitive.Trigger>
-      <CollapsiblePrimitive.Content className={cn("pb-200", inset && "px-300")}>
-        {children}
+      <CollapsiblePrimitive.Content className="overflow-hidden data-[state=open]:animate-collapse-open data-[state=closed]:animate-collapse-close">
+        <div className={cn("pb-200", inset && "px-300")}>{children}</div>
       </CollapsiblePrimitive.Content>
     </CollapsiblePrimitive.Root>
   );
@@ -144,7 +144,7 @@ function AccordionItem({
           </AccordionPrimitive.Trigger>
         </div>
       </AccordionPrimitive.Header>
-      <AccordionPrimitive.Content className="overflow-hidden data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out">
+      <AccordionPrimitive.Content className="overflow-hidden data-[state=open]:animate-collapse-open data-[state=closed]:animate-collapse-close">
         <div className={cn("pb-200", inset && "px-300")}>{children}</div>
       </AccordionPrimitive.Content>
     </AccordionPrimitive.Item>

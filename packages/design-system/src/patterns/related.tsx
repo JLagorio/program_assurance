@@ -74,7 +74,7 @@ function RelatedRoot({
       ) : layout === "cards" ? (
         <ul
           aria-labelledby={headingId}
-          className="grid gap-150 p-200"
+          className="grid gap-150 p-200 stagger-children"
           style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}
         >
           {children}
@@ -149,7 +149,7 @@ function RelatedCard({
   return (
     <li
       className={cn(
-        "group/card flex list-none flex-col gap-100 rounded-large border border-default bg-surface-raised p-150 transition-shadow duration-fast ease-standard hover:shadow-raised",
+        "group/card flex list-none flex-col gap-100 rounded-large border border-default bg-surface-raised p-150 transition-shadow duration-fast ease-standard animate-rise hover:shadow-raised",
         className,
       )}
     >

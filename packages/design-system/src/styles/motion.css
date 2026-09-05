@@ -1,6 +1,7 @@
 /* Motion on the motion tokens. Radix and vaul set data-state on what they open, so a component
    pairs data-[state=open]:animate-enter with data-[state=closed]:animate-exit. The durations and
-   the easing are the tokens; nothing here names a number. */
+   the curves are the tokens; nothing here names a number. Carbon's shape: six durations by the
+   size of the move, three curves by whether the thing arrives, leaves or stays. */
 @keyframes ds-enter {
   from { opacity: 0; transform: scale(0.98); }
 }
@@ -31,62 +32,113 @@
 @keyframes ds-slide-out-bottom {
   to { transform: translateY(100%); }
 }
-@keyframes ds-rise {
-  from { opacity: 0; transform: translateY(var(--ds-space-075)); }
-}
 @keyframes ds-slide-in-top {
   from { transform: translateY(-100%); }
 }
 @keyframes ds-slide-out-top {
   to { transform: translateY(-100%); }
 }
+@keyframes ds-rise {
+  from { opacity: 0; transform: translateY(var(--ds-space-075)); }
+}
+/* Radix sets the content's measured height as a variable on the element itself: one name for an
+   Accordion, another for a Collapsible, so the keyframe reads whichever is there. */
+@keyframes ds-collapse-open {
+  from { height: 0; opacity: 0; }
+  to { height: var(--radix-accordion-content-height, var(--radix-collapsible-content-height)); opacity: 1; }
+}
+@keyframes ds-collapse-close {
+  from { height: var(--radix-accordion-content-height, var(--radix-collapsible-content-height)); opacity: 1; }
+  to { height: 0; opacity: 0; }
+}
 
+/* Small overlays: a menu, a popover, a hover card, a command list. Arrive in medium on the enter
+   curve, leave in fast on the exit curve. */
 @utility animate-enter {
-  animation: ds-enter var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+  animation: ds-enter var(--ds-motion-duration-medium) var(--ds-motion-easing-enter) both;
 }
 @utility animate-exit {
-  animation: ds-exit var(--ds-motion-duration-fast) var(--ds-motion-easing-standard) both;
+  animation: ds-exit var(--ds-motion-duration-fast) var(--ds-motion-easing-exit) both;
 }
+/* A dialog: the same move, one tier slower, because it is bigger and further. */
+@utility animate-dialog-in {
+  animation: ds-enter var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) both;
+}
+@utility animate-dialog-out {
+  animation: ds-exit var(--ds-motion-duration-medium) var(--ds-motion-easing-exit) both;
+}
+/* A fade with no movement: a tooltip. */
 @utility animate-fade-in {
-  animation: ds-fade-in var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+  animation: ds-fade-in var(--ds-motion-duration-fast) var(--ds-motion-easing-enter) both;
 }
 @utility animate-fade-out {
-  animation: ds-fade-out var(--ds-motion-duration-fast) var(--ds-motion-easing-standard) both;
+  animation: ds-fade-out var(--ds-motion-duration-fast) var(--ds-motion-easing-exit) both;
 }
+/* The blanket under a dialog, a sheet or the command palette: dims slowly (Carbon's slow-02 is
+   "background dimming"), clears with the content. */
+@utility animate-dim-in {
+  animation: ds-fade-in var(--ds-motion-duration-slower) var(--ds-motion-easing-enter) both;
+}
+@utility animate-dim-out {
+  animation: ds-fade-out var(--ds-motion-duration-medium) var(--ds-motion-easing-exit) both;
+}
+/* A sheet or a panel: arrives in moderate on the enter curve; leaves on the standard curve, because
+   a side panel stays nearby (Carbon's exception to the exit curve). */
 @utility animate-slide-in-end {
-  animation: ds-slide-in-end var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+  animation: ds-slide-in-end var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) both;
 }
 @utility animate-slide-out-end {
   animation: ds-slide-out-end var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
 }
 @utility animate-slide-in-start {
-  animation: ds-slide-in-start var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+  animation: ds-slide-in-start var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) both;
 }
 @utility animate-slide-out-start {
   animation: ds-slide-out-start var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
 }
 @utility animate-slide-in-bottom {
-  animation: ds-slide-in-bottom var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+  animation: ds-slide-in-bottom var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) both;
 }
 @utility animate-slide-out-bottom {
   animation: ds-slide-out-bottom var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
 }
-/* A page arriving. */
-@utility animate-rise {
-  animation: ds-rise var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
-}
 @utility animate-slide-in-top {
-  animation: ds-slide-in-top var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+  animation: ds-slide-in-top var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) both;
 }
 @utility animate-slide-out-top {
   animation: ds-slide-out-top var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
 }
+/* Content arriving in place: a page, a tile, a card. A short rise with a fade. */
+@utility animate-rise {
+  animation: ds-rise var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) both;
+}
+/* A section opening or closing: height and opacity together, medium both ways. */
+@utility animate-collapse-open {
+  animation: ds-collapse-open var(--ds-motion-duration-medium) var(--ds-motion-easing-enter);
+}
+@utility animate-collapse-close {
+  animation: ds-collapse-close var(--ds-motion-duration-medium) var(--ds-motion-easing-exit);
+}
+/* A set arriving together: each child after the first waits one stagger step more than the one
+   before it, up to six, so the last lands within a moderate duration. */
+@utility stagger-children {
+  & > :nth-child(2) { animation-delay: calc(1 * var(--ds-motion-stagger)); }
+  & > :nth-child(3) { animation-delay: calc(2 * var(--ds-motion-stagger)); }
+  & > :nth-child(4) { animation-delay: calc(3 * var(--ds-motion-stagger)); }
+  & > :nth-child(5) { animation-delay: calc(4 * var(--ds-motion-stagger)); }
+  & > :nth-child(n + 6) { animation-delay: calc(5 * var(--ds-motion-stagger)); }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-rise, .animate-enter, .animate-exit, .animate-fade-in, .animate-fade-out,
+  .animate-rise, .animate-enter, .animate-exit, .animate-dialog-in, .animate-dialog-out,
+  .animate-fade-in, .animate-fade-out, .animate-dim-in, .animate-dim-out,
   .animate-slide-in-end, .animate-slide-out-end, .animate-slide-in-start, .animate-slide-out-start,
-  .animate-slide-in-bottom, .animate-slide-out-bottom, .animate-slide-in-top, .animate-slide-out-top {
+  .animate-slide-in-bottom, .animate-slide-out-bottom, .animate-slide-in-top, .animate-slide-out-top,
+  .animate-collapse-open, .animate-collapse-close {
     animation-duration: 0.01ms;
+  }
+  .stagger-children > * {
+    animation-delay: 0ms;
   }
 }
 

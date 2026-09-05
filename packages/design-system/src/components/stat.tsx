@@ -33,7 +33,7 @@ const isZero = (value: ReactNode) => value === 0 || value === "0";
 /** One cell of a Stat.Grid: label, big tabular number, one-line note. Zero reads muted. */
 export function StatTile({ label, value, note, tone = "neutral" }: StatTileProps) {
   return (
-    <div className="flex flex-col gap-025 bg-surface px-200 py-150">
+    <div className="flex flex-col gap-025 bg-surface px-200 py-150 animate-rise">
       <div className="font-body-small text-subtle">{label}</div>
       <div
         className={cn(
@@ -86,7 +86,7 @@ export function StatGrid({ cols = 4, frame = "card", children, className }: Stat
   return (
     <div
       className={cn(
-        "grid grid-cols-2 gap-px",
+        "grid grid-cols-2 gap-px stagger-children",
         frame === "card"
           ? "overflow-hidden rounded-large border border-default"
           : "border-y border-default",

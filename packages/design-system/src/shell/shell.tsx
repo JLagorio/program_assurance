@@ -763,7 +763,7 @@ function SideNavRoot({
         className={cn(
           "flex-col border-e border-default bg-surface-sunken outline-none",
           open
-            ? "shell-sidenav-overlay flex shadow-overlay"
+            ? "shell-sidenav-overlay flex shadow-overlay animate-slide-in-start"
             : cn("hidden", expanded && "lg:shell-sidenav lg:flex"),
           className,
         )}
@@ -1119,7 +1119,7 @@ function PanelRoot({ id, label = "Panel", defaultWidth, className, children }: S
       aria-label={label}
       data-shell-area="panel"
       className={cn(
-        "shell-panel flex flex-col overflow-y-auto border-s border-default bg-surface shadow-overlay outline-none lg:shadow-none",
+        "shell-panel flex flex-col overflow-y-auto border-s border-default bg-surface shadow-overlay outline-none max-lg:animate-slide-in-end lg:animate-rise lg:shadow-none",
         className,
       )}
     >

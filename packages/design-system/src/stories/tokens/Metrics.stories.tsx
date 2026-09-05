@@ -29,7 +29,7 @@ export const Dimension: Story = {
   render: () => (
     <Page
       title="Metrics"
-      lede="Tier 5, our extension: Atlassian leaves control heights to components, this system needs them as a themed axis. Motion is one duration pair and one curve."
+      lede="Tier 5, our extension: Atlassian leaves control heights to components, this system needs them as a themed axis. Motion is six durations, three curves and a stagger step, Carbon's shape."
     >
       <Group title="dimension.control">
         <Bars prefix="dimension.control" />

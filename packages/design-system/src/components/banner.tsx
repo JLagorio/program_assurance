@@ -52,7 +52,7 @@ export function Banner({ tone = "warning", icon, action, className, children }: 
         ? cloneElement(action, {
             className: cn(
               action.props.className,
-              "shrink-0 rounded-xsmall underline underline-offset-2 outline-none focus-visible:outline-focused",
+              "shrink-0 rounded-xsmall px-050 underline underline-offset-2 outline-none transition-colors duration-fast ease-standard hover:bg-inverse-subtle-hovered active:bg-inverse-subtle-pressed focus-visible:outline-focused",
               tone === "warning" ? "text-warning-inverse" : "text-inverse",
             ),
           })

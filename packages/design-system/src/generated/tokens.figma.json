@@ -2755,13 +2755,31 @@
   "motion": {
     "duration": {
       "$type": "duration",
+      "micro": {
+        "$value": "70ms",
+        "$description": "A toggle's thumb, a checkbox's tick, a chevron turning: the smallest moves.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.5.0"
+          }
+        }
+      },
       "fast": {
-        "$value": "120ms",
-        "$description": "Hover and press colour changes."
+        "$value": "110ms",
+        "$description": "Hover and press colour, a tooltip's fade, a menu or a popover leaving."
       },
       "medium": {
-        "$value": "180ms",
-        "$description": "Overlays entering and leaving."
+        "$value": "150ms",
+        "$description": "A menu or a popover arriving, a section expanding or collapsing, a dialog or a sheet leaving."
+      },
+      "moderate": {
+        "$value": "240ms",
+        "$description": "A dialog or a sheet arriving, the panel sliding in, a toast, a page's content rising.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.5.0"
+          }
+        }
       },
       "slow": {
         "$value": "400ms",
@@ -2771,6 +2789,25 @@
             "introduced": "0.5.0"
           }
         }
+      },
+      "slower": {
+        "$value": "700ms",
+        "$description": "The blanket dimming the page under a dialog or a sheet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.5.0"
+          }
+        }
+      }
+    },
+    "stagger": {
+      "$type": "duration",
+      "$value": "20ms",
+      "$description": "Between one item's entrance and the next when a set arrives together: tiles, cards. Six at most, so the last lands within a moderate duration.",
+      "$extensions": {
+        "ledger": {
+          "introduced": "0.5.0"
+        }
       }
     },
     "easing": {
@@ -2779,10 +2816,38 @@
         "$value": [
           0.2,
           0,
-          0.2,
-          1
+          0.38,
+          0.9
         ],
-        "$description": "The one curve."
+        "$description": "For what stays on screen throughout: colour, a chevron, a sort, a side panel leaving."
+      },
+      "enter": {
+        "$value": [
+          0,
+          0,
+          0.38,
+          0.9
+        ],
+        "$description": "For what arrives: in quickly, slowing to a stop.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.5.0"
+          }
+        }
+      },
+      "exit": {
+        "$value": [
+          0.2,
+          0,
+          1,
+          0.9
+        ],
+        "$description": "For what leaves for good: speeding up out of view.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.5.0"
+          }
+        }
       }
     }
   },

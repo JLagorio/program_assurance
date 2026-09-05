@@ -50,6 +50,23 @@ A tone is one decision. The subtle fill takes the tone's text. The bold fill tak
 
 Reach these through the `tone` prop on Badge, Dot, Indicator, Alert, Progress and Stat, never by hand. The `subtler` and `subtle` emphases are for lozenges and non-interactive chips. `hovered` and `pressed` are their own tokens, never alpha on the default (`ledger/no-alpha-token`). What each tone means in the product is in `docs/guides/status-vocabulary.md`.
 
+## Minted, not yet drawn
+
+The matrix is complete on purpose: every fill has `hovered` and `pressed`, every tone has `subtler`, `subtle`, the default and `bold`, the inverse subtle fill exists for a control on a bold fill, and the bolder text colours exist for a word on a tone's label. About forty of them have no part that draws them yet. That is accepted (2026-09-05): a token is minted when its place in the grammar is clear and drawn when the part arrives, so a part never invents a colour. The families still open, and the part each waits for:
+
+| Family | Waits for |
+| --- | --- |
+| `color.background.{danger,warning,success,information}.{hovered,pressed}` and `.subtler.{hovered,pressed}` | A status fill that is pressed: a toned chip that filters, a status pill that opens its record. |
+| `color.background.{warning,success,information}.bold.{hovered,pressed}`, `neutral.bold.{hovered,pressed}` | A bold button in a tone other than brand and danger. |
+| `color.background.brand.boldest` and states, `brand.subtlest.{hovered,pressed}`, `selected.bold` and states | A pressed primary, a hovered brand tint, a bold selected control. |
+| `color.background.danger.subtler`, `warning.subtler`, the three `.subtle` | A lozenge emphasis between the subtle fill and the bold one. |
+| `color.background.inverse.subtle` | The resting fill of a control on a bold surface; its `hovered` and `pressed` are drawn by the Banner's action. |
+| `color.text.{danger,warning,success,information}.bolder`, `color.border.warning`, `color.border.information` | A word on a tone's label; a 3:1 status border in those tones. |
+| `color.icon.warning.inverse`, `color.border.inverse` | An icon and a border on a bold warning fill; the Box paints its text inverse and icons follow it, so the icon token is reached through `currentColor`. |
+| `elevation.surface.pressed`, `elevation.surface.overlay.{hovered,pressed}`, `elevation.shadow.overflow` | A pressed page surface, a hovered overlay, a scroll edge. |
+
+Drawn this pass: `color.background.input.pressed`, every field on focus (Atlassian's textfield does the same); `color.background.inverse.subtle.hovered` and `.pressed`, the Banner's action under the pointer. The chart tokens are reached at runtime through `tone`, which a name scan cannot see; Components/Chart.
+
 ## Borders
 
 Every border is a 1px hairline: `border.width` is 1px and `color.border` is the default colour. Prefer a rule to a box.
@@ -98,6 +115,8 @@ Hairline plus soft lift, never heavy. A surface pairs with a shadow; nothing els
 | Content scrolling under a sticky header | | | `elevation.shadow.overflow` (`shadow-overflow`) |
 
 Each surface has `hovered` and `pressed` states. In dark, surfaces climb in lightness instead of casting more shadow. These three shadows are the only ones; `ledger/no-kit-shadow` reports any other.
+
+The pairing is a rule, Atlassian's: `surface.raised` always with `shadow.raised`, `surface.overlay` always with `shadow.overlay`, and never the other way round; `surface.sunken` casts nothing and never sits on a raised surface; the page casts nothing. A card inside a card is not a deeper elevation, it is a decision to make with a rule or a well instead. `shadow.overflow` is the one shadow without a surface: the edge of content scrolling under a sticky header, which no part draws yet.
 
 `utility.elevation.surface.current` (`bg-surface-current`) is the surface an element sits on. Box sets it when it paints a surface; a sticky header or a masking fade reads it so it matches its parent.
 

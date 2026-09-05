@@ -1,0 +1,64 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Tokens/Icons" />
+
+# Icons
+
+The icons are Lucide's, at two sizes on the dimension tokens, drawn at Lucide's stroke, coloured like the text beside them, and named when they stand alone. Atlassian draws at 16 in most places and 12 sparingly for a closed list; Carbon at 16 inside components and 20, 24 and 32 for larger, with 44px targets; every reference says the same about names: an icon alone needs one, an icon beside a word is decoration.
+
+## Sizes
+
+| Token | Value | Utility | Where |
+| --- | --- | --- | --- |
+| `dimension.icon.small` | 14px | `size-icon-small` | Inside a small or medium control; beside body, small or xsmall text; a chevron, a check, a Dot's glyph, a chip's cross, a validation mark. |
+| `dimension.icon.medium` | 16px | `size-icon-medium` | Standing alone: an IconButton's glyph, a Banner's mark, an Empty's mark, a toast's mark, an icon beside a heading. |
+
+Two sizes, and no third. A larger mark is an Empty's circle around a medium icon or an Avatar; a smaller one does not exist, because 12px strokes fall apart. Lucide's `size` prop is not used; the class sets width and height from the token.
+
+## Stroke
+
+Lucide's default, 2, everywhere, at both sizes. A thinner stroke at 14px breaks up; a heavier one at 16px reads as bold. A check or a chevron that must carry more weight is a size up, not a stroke up. The prototype's few `strokeWidth` overrides (1, 1.5, 2.5, 3) are a sweep item in `docs/next.md`.
+
+## Colour
+
+An icon mirrors its text, one step bolder where a thin glyph needs it: `color.icon` with `color.text`, `color.icon.subtle` with `color.text.subtle`, the tone's icon with the tone's text. On a bold fill the icon takes `currentColor` from the Box, which sets `color.text.inverse`, so an icon on `color.background.brand.bold` needs no class. The classes are `icon-*`; a Dot, a Badge and an Indicator set them through `tone`.
+
+| Job | Class |
+| --- | --- |
+| Beside content text | `icon-default` |
+| Beside subtle text, a chevron, a sort arrow | `icon-subtle` |
+| Beside meta, a placeholder's mark | `icon-subtlest` |
+| A status mark | `icon-success`, `icon-warning`, `icon-danger`, `icon-information` |
+| Off | `icon-disabled` |
+
+## Names
+
+- **An icon beside a word is decoration.** `aria-hidden` is set by the parts that draw one (Button's `iconBefore`, Item's `leading`, a Banner's mark); a raw icon beside text carries `aria-hidden`.
+- **An icon alone is named.** IconButton takes `label`, which is the name and the tooltip; a raw icon standing for a value (a check in a cell) takes `aria-label` or a visually hidden Text. Never a `title` attribute alone.
+- **The name is the verb or the value**, not the glyph: "Edit properties", not "Pencil"; "Met", not "Check".
+- **The target is the control, not the glyph.** An IconButton is `dimension.control.small` or `.medium` square around a 16px icon, so the target is 28 or 32px; a bare icon is never a target.
+
+## Pairing with type
+
+| Text | Icon |
+| --- | --- |
+| `font.body.xsmall`, `font.body.small`, `font.body` | 14px, `space.050` from the word |
+| `font.heading.xsmall` and up | 16px, `space.100` from the words |
+| A Button | 14px inside small and medium, before or after the label |
+| An IconButton | 16px, alone |
+
+The icon sits on the text's centre line (`alignBlock="center"`), not its baseline; Lucide's glyphs are drawn centred in their box.
+
+## Don't
+
+- **Don't mix sizes in one row.** A toolbar's icons are all 16; a row's marks are all 14.
+- **Don't let colour carry the meaning.** A red mark has the word beside it or a name.
+- **Don't invent a glyph.** A concept without a Lucide icon is a word; a word is always allowed.
+- **Don't use an icon as a bullet.** A list is a list.
+
+## Related
+
+- [Metrics](?path=/docs/tokens-metrics--docs): the tokens.
+- [Colour](?path=/docs/tokens-color--docs): the icon colours beside the text colours.
+- [Button](?path=/docs/components-button--docs) and IconButton: where a named icon lives.
+- [Badge](?path=/docs/components-badge--docs): Dot and Indicator, the status marks.

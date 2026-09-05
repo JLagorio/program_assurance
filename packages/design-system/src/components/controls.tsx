@@ -119,7 +119,7 @@ export function Field({
 
 /** The field every control shares: the border on the input surface and its hover, focus, invalid, disabled and read-only looks. The height comes from `controlHeight`. */
 export const controlBase =
-  "w-full rounded-medium border border-input bg-input px-100 font-body text-default outline-none transition-colors duration-fast ease-standard placeholder:text-subtlest hover:bg-input-hovered [&[readonly]]:bg-surface-sunken [&[readonly]]:hover:bg-surface-sunken aria-[invalid=true]:border-danger focus-visible:border-focused focus-visible:outline-focused disabled:cursor-not-allowed disabled:border-disabled disabled:bg-disabled disabled:text-disabled";
+  "w-full rounded-medium border border-input bg-input px-100 font-body text-default outline-none transition-colors duration-fast ease-standard placeholder:text-subtlest hover:bg-input-hovered focus-visible:bg-input-pressed [&[readonly]]:bg-surface-sunken [&[readonly]]:hover:bg-surface-sunken aria-[invalid=true]:border-danger focus-visible:border-focused focus-visible:outline-focused disabled:cursor-not-allowed disabled:border-disabled disabled:bg-disabled disabled:text-disabled";
 
 export type ControlSize = "small" | "medium";
 
@@ -365,7 +365,7 @@ export function Switch({
       {...defined({ checked, defaultChecked, onCheckedChange, disabled, name })}
       aria-describedby={describedBy(rest["aria-describedby"], description, descriptionId)}
     >
-      <SwitchPrimitive.Thumb className="block size-200 rounded-full bg-surface shadow-raised transition-transform duration-medium ease-standard group-disabled:opacity-disabled data-[state=checked]:translate-x-250" />
+      <SwitchPrimitive.Thumb className="block size-200 rounded-full bg-surface shadow-raised transition-transform duration-micro ease-standard group-disabled:opacity-disabled data-[state=checked]:translate-x-250" />
     </SwitchPrimitive.Root>
   );
   return children ? (

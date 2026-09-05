@@ -54,12 +54,12 @@ export function Dialog({
       }}
     >
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out" />
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-dim-in data-[state=closed]:animate-dim-out" />
         <div className="fixed inset-0 z-50 flex items-start justify-center p-200 sm:p-600">
           <DialogPrimitive.Content
             {...(description ? {} : { "aria-describedby": undefined })}
             style={{ maxWidth: widths[width] }}
-            className="relative flex max-h-full w-full flex-col overflow-hidden rounded-xxlarge bg-surface-overlay shadow-overlay outline-none data-[state=open]:animate-enter data-[state=closed]:animate-exit"
+            className="relative flex max-h-full w-full flex-col overflow-hidden rounded-xxlarge bg-surface-overlay shadow-overlay outline-none data-[state=open]:animate-dialog-in data-[state=closed]:animate-dialog-out"
           >
             <div className="flex shrink-0 flex-col gap-025 border-b border-default py-150 pe-600 ps-250">
               {eyebrow ? <div className="flex items-center gap-100 pb-025">{eyebrow}</div> : null}

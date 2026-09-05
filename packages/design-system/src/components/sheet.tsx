@@ -57,7 +57,7 @@ export function Sheet({
       }}
     >
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out" />
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-dim-in data-[state=closed]:animate-dim-out" />
         <DialogPrimitive.Content
           {...(subtitle ? {} : { "aria-describedby": undefined })}
           style={{ maxWidth: width }}

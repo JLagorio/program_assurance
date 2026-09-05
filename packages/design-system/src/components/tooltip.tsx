@@ -61,7 +61,7 @@ export function Tooltip({
           style={{ maxWidth: 260 }}
           className={cn(
             "z-50 rounded-medium bg-neutral-bold px-100 py-050 font-body-small text-inverse shadow-overlay",
-            "data-[state=delayed-open]:animate-enter data-[state=instant-open]:animate-enter data-[state=closed]:animate-exit",
+            "data-[state=delayed-open]:animate-fade-in data-[state=instant-open]:animate-fade-in data-[state=closed]:animate-fade-out",
             className,
           )}
         >

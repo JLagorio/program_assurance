@@ -30,4 +30,10 @@ The rule of thumb: the bigger the surface, the larger the radius. A badge is sma
 | `border.width.focused` | 2px | `border-w-focused` | The focus ring, in `color.border.focused`. |
 | `border.width.selected` | 2px | `border-w-selected` | An active tab, a chosen item, in `color.border.selected`. |
 
+## Focus and selection
+
+One focus ring, drawn one way: `outline-focused` is an outline of `border.width.focused` (2px) in `color.border.focused`, offset `space.025` (2px) outside the element's edge, so it clears a border and a fill and never changes the element's size. It shows on `:focus-visible` only, on every part that takes focus, and nothing else draws it: no glow, no shadow, no inner ring. Atlassian's ring is the same 2px at the element's radius plus 2px; Carbon's is a 2px outline inset. A part with a radius keeps it under the ring; the ring follows.
+
+Selection is not a ring. A selected tab or a chosen item takes `border.width.selected` (2px) in `color.border.selected` on one edge: the underline of a tab, the start edge of an item in a rail. A selected row takes a fill, `color.background.selected`, and no border. The two never appear together on one element: a focused, selected tab shows the ring outside and the underline beneath.
+
 <Canvas of={Stories.Radius} />

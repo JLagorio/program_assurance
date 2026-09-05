@@ -46,12 +46,12 @@ export function AlertDialog({
       }}
     >
       <AlertDialogPrimitive.Portal>
-        <AlertDialogPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out" />
+        <AlertDialogPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-dim-in data-[state=closed]:animate-dim-out" />
         <div className="fixed inset-0 z-50 flex items-start justify-center p-200 sm:pt-1000">
           <AlertDialogPrimitive.Content
             {...(description ? {} : { "aria-describedby": undefined })}
             style={{ maxWidth: 440 }}
-            className="relative w-full overflow-hidden rounded-xxlarge bg-surface-overlay shadow-overlay outline-none data-[state=open]:animate-enter data-[state=closed]:animate-exit"
+            className="relative w-full overflow-hidden rounded-xxlarge bg-surface-overlay shadow-overlay outline-none data-[state=open]:animate-dialog-in data-[state=closed]:animate-dialog-out"
           >
             <div className="flex flex-col gap-100 px-250 py-200">
               <AlertDialogPrimitive.Title className="font-heading-xsmall text-default">

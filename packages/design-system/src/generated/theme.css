@@ -7,6 +7,8 @@
   --font-weight-medium: var(--ds-font-weight-medium);
   --font-weight-semibold: var(--ds-font-weight-semibold);
   --ease-standard: var(--ds-motion-easing-standard);
+  --ease-enter: var(--ds-motion-easing-enter);
+  --ease-exit: var(--ds-motion-easing-exit);
   --radius-xsmall: var(--ds-radius-xsmall);
   --radius-small: var(--ds-radius-small);
   --radius-medium: var(--ds-radius-medium);

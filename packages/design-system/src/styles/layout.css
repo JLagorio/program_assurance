@@ -44,6 +44,11 @@
     "topnav topnav topnav"
     "sidenav main panel";
   min-height: 100dvh;
+  /* The panel's column opening or closing moves the page; it moves on the standard curve. */
+  transition: grid-template-columns var(--ds-motion-duration-moderate) var(--ds-motion-easing-standard);
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 @utility shell-banner {
   grid-area: banner;
