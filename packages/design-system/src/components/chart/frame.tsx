@@ -1,5 +1,5 @@
 import { Download, Maximize2, Table2 } from "lucide-react";
-import { useCallback, useContext, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useId, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "../../lib/cn";
 import { Breadcrumb } from "../breadcrumb";
@@ -82,7 +82,10 @@ export function ChartLegend({ series, swatch = "square", texture, className }: C
               )}
               onMouseEnter={() => frame.highlight(it.key)}
               onMouseLeave={() => frame.highlight(null)}
-              onFocus={() => frame.highlight(it.key)}
+              onFocus={(e) => {
+                // Keyboard focus highlights, as hover does; focus a dialog hands over on opening must not dim the rest.
+                if (e.currentTarget.matches(":focus-visible")) frame.highlight(it.key);
+              }}
               onBlur={() => frame.highlight(null)}
               onClick={() => frame.toggle(it.key)}
             >
@@ -156,6 +159,9 @@ export type ChartFrameProps = {
  * the Download menu, the Expand button, and the same numbers as a Table one toggle away. The legend
  * inside it highlights and isolates series; while it loads, the plot inside draws its own skeleton.
  */
+/** True inside the Expand dialog: the Dialog shows the title and the description, so the inner Frame does not. */
+const ExpandedContext = createContext(false);
+
 export function ChartFrame(props: ChartFrameProps) {
   const {
     title,
@@ -189,6 +195,7 @@ export function ChartFrame(props: ChartFrameProps) {
   const [highlighted, setHighlighted] = useState<string | null>(null);
   const [showTable, setShowTable] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const inDialog = useContext(ExpandedContext);
   const toggle = useCallback(
     (key: string) =>
       setHidden((prev) => {
@@ -244,13 +251,13 @@ export function ChartFrame(props: ChartFrameProps) {
       >
         <div className="flex flex-wrap items-start justify-between gap-x-200 gap-y-100">
           <figcaption className="flex min-w-0 flex-col gap-025" style={{ flex: "1 1 200px" }}>
-            <span className="flex items-center gap-100">
+            <span className={cn("flex items-center gap-100", inDialog && "sr-only")}>
               <span id={id} className="font-body font-medium text-default">
                 {title}
               </span>
               {status === "refreshing" ? <Spinner size="small" label="Refreshing" /> : null}
             </span>
-            {description ? (
+            {description && !inDialog ? (
               <span className="font-body-small text-subtle">{description}</span>
             ) : null}
             {summary ? (
@@ -385,9 +392,23 @@ export function ChartFrame(props: ChartFrameProps) {
         ) : null}
       </figure>
       {expandable ? (
-        <Dialog open={expanded} onClose={() => setExpanded(false)} title={title} width="large">
+        <Dialog
+          open={expanded}
+          onClose={() => setExpanded(false)}
+          title={title}
+          description={description}
+          width="large"
+        >
           {expanded ? (
-            <ChartFrame {...props} expandable={false} size="large" height={undefined} className={undefined} />
+            <ExpandedContext.Provider value>
+              <ChartFrame
+                {...props}
+                expandable={false}
+                size="large"
+                height={undefined}
+                className={undefined}
+              />
+            </ExpandedContext.Provider>
           ) : null}
         </Dialog>
       ) : null}

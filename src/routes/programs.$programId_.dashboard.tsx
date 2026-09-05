@@ -21,7 +21,7 @@ import {
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { ControlMatrixSection, FamilyCoverageTable } from "@/components/app/control-matrix";
-import { CoverageBand } from "@/components/app/coverage";
+import { FamilyCoverageChart } from "@/components/app/coverage-chart";
 import { cn } from "@ledger/design-system/cn";
 import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
 import { gatesForProgram, lifecyclePhases, programs, gateKindTone } from "@/lib/grc-data";
@@ -297,22 +297,12 @@ function ProgramDashboard() {
           </Grid>
         </Section>
 
-        <CoverageBand
+        <FamilyCoverageChart
           coverage={coverage}
           baseline={`${program.baseline} — ${program.impact} impact`}
-          onSelectFamily={(f) => {
+          onSelect={(f, status) => {
             setFamily(f);
-            setStatusFilter("All");
-          }}
-          onSelectSegment={(key) => {
-            const map: Record<string, ControlStatus> = {
-              satisfied: "Satisfied",
-              partial: "Partial",
-              other: "Other than satisfied",
-              notAssessed: "Not assessed",
-            };
-            setStatusFilter(map[key] ?? "All");
-            setFamily("All");
+            setStatusFilter(status);
           }}
         />
 
@@ -449,15 +439,17 @@ function ProgramDashboard() {
           </Table>
         </Section>
 
-        <ControlMatrixSection
-          programId={program.id}
-          rows={matrix}
-          family={family}
-          onFamily={setFamily}
-          status={statusFilter}
-          onStatus={setStatusFilter}
-          families={families}
-        />
+        <div id="control-matrix">
+          <ControlMatrixSection
+            programId={program.id}
+            rows={matrix}
+            family={family}
+            onFamily={setFamily}
+            status={statusFilter}
+            onStatus={setStatusFilter}
+            families={families}
+          />
+        </div>
       </ShowPage>
     </Shell>
   );

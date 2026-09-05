@@ -254,6 +254,7 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   the section headings among them as headings. Components/Typography: Matrix, InRail.
 
 ### Chart
+- `Chart.Frame`: the legend highlights a series on visible focus only, so the Expand dialog does not open with every series but the first legend item's dimmed; the dialog shows the title and the description once, not again in the Frame inside it.
 
 - The chart tokens are re-cut and validated. `color.chart.categorical.1` to `.6` are blue, orange,
   teal, red, purple and green, in that order: of every order of the six hues it is one whose
