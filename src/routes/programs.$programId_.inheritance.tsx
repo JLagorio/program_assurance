@@ -12,6 +12,7 @@ import {
   obligationUnstated,
 } from "@/components/app/inheritance-resolution";
 import {
+  Breadcrumb,
   Badge,
   Box,
   Id,
@@ -142,7 +143,18 @@ function ProgramInheritance() {
         <ShowPage
           header={
             <RecordHeader
-              back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+              crumbs={
+                <>
+                  <Breadcrumb.Item asChild>
+                    <Link to="/programs">Programs</Link>
+                  </Breadcrumb.Item>
+                  <Breadcrumb.Item asChild>
+                    <Link to="/programs/$programId" params={{ programId: program.id }}>
+                      {program.name}
+                    </Link>
+                  </Breadcrumb.Item>
+                </>
+              }
               id={program.id}
               title={`${program.name} — inheritance resolution`}
               meta={`${program.system} · ${program.environment} · impact ${program.impact} · ${plural(rows.length, "inherited control")} from ${plural(providerCount, "provider")}`}

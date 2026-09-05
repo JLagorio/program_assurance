@@ -278,9 +278,8 @@ function ProgramBaseline() {
         <ShowPage
           header={
             <RecordHeader
-              back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
-              breadcrumb={
-                <Breadcrumb>
+              crumbs={
+                <>
                   <Breadcrumb.Item asChild>
                     <Link to={"/programs"}>{"Programs"}</Link>
                   </Breadcrumb.Item>
@@ -289,8 +288,7 @@ function ProgramBaseline() {
                       {program.name}
                     </Link>
                   </Breadcrumb.Item>
-                  <Breadcrumb.Item isCurrent>{"Configuration baseline"}</Breadcrumb.Item>
-                </Breadcrumb>
+                </>
               }
               id={program.id}
               title={`${program.name} — configuration baseline`}

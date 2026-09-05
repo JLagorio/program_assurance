@@ -1,57 +1,72 @@
-import { ChevronLeft } from "lucide-react";
-import { cloneElement, type ReactElement, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
+import { Breadcrumb } from "../components/breadcrumb";
 import { Id } from "../components/id";
-import { Tooltip } from "../components/tooltip";
 import { Fact } from "../components/typography";
 
-const backClass =
-  "inline-flex size-control-xsmall shrink-0 items-center justify-center rounded-medium icon-subtle outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused";
+/* Reference material. Jira's issue header is the model: the trail ends with the issue key and the
+   summary is the title under it. Carbon allows the current page as the last, unlinked crumb. So a
+   record's header is two lines: the trail, its parents then the record's id as the current crumb,
+   which is the way back; and the title's line, the name with a word of meta after it and the
+   actions at the end. Josef, on review: no back chevron, no line of its own for the id, never
+   more than the trail and the title. The facts and a state strip are their own rows under it. */
 
-/** Compact record-page header: back chevron, id, title, meta. `back` is a link element (a router's Link) that becomes the chevron; a `breadcrumb` above the row places a sub-page under its parent record. */
+export type RecordHeaderProps = {
+  /** The trail's parents as Breadcrumb.Items, the list the record came from last: Programs; or Programs, then the program, over its sub-page. The record's `id` follows them as the current crumb. */
+  crumbs?: ReactNode;
+  /** The record's id, the trail's last crumb: "PRG-1041". Unlinked; it says where the reader is. */
+  id?: ReactNode;
+  /** The record's name, the h1. One line; it wraps when it must. */
+  title: ReactNode;
+  /** After the title on its line, subtle: the state as a Badge, the baseline, when it was updated. A few words, never a sentence. */
+  meta?: ReactNode;
+  /** The record's actions at the end of the title's line: one primary, and at most two beside it; the rest in a menu. */
+  actions?: ReactNode;
+  /** Facts under the title, on one line above the fold: the ones the reader acts on. At most six; the rest go in the rail. */
+  facts?: ReactNode;
+  /** A persistent strip under everything: a lifecycle, a Stepper, an ActionBar. */
+  below?: ReactNode;
+  /** @deprecated Pass the parents as `crumbs`; the header builds the trail and ends it with `id`. A Breadcrumb given here renders as is, without the id. */
+  breadcrumb?: ReactNode;
+  /** @deprecated The trail is the way back. Ignored. */
+  back?: ReactNode;
+};
+
+/** The head of a record page: the trail ending in the record's id, then the title with a word of meta and the actions on one line; the facts that matter and a state strip under it. */
 export function RecordHeader({
-  back,
-  breadcrumb,
+  crumbs,
   id,
   title,
   meta,
   actions,
   facts,
   below,
-}: {
-  back?:
-    | ReactElement<{ className?: string | undefined; children?: ReactNode; "aria-label"?: string }>
-    | undefined;
-  breadcrumb?: ReactNode;
-  id: ReactNode;
-  title: ReactNode;
-  meta?: ReactNode;
-  actions?: ReactNode;
-  /** Facts under the title, on one line above the fold: the ones the reader acts on. At most six; the rest go in the rail. */
-  facts?: ReactNode;
-  /** Persistent state strip under the title row (a lifecycle). */
-  below?: ReactNode;
-}) {
+  breadcrumb,
+}: RecordHeaderProps) {
+  const trail = breadcrumb ? (
+    breadcrumb
+  ) : crumbs || id ? (
+    <Breadcrumb>
+      {crumbs}
+      {id ? (
+        <Breadcrumb.Item isCurrent>
+          <Id>{id}</Id>
+        </Breadcrumb.Item>
+      ) : null}
+    </Breadcrumb>
+  ) : null;
   return (
-    <div className="flex flex-col gap-150">
-      {breadcrumb ? <div className="ps-500">{breadcrumb}</div> : null}
+    <div className="flex flex-col gap-100">
+      {trail ? <div className="min-w-0">{trail}</div> : null}
       <div className="flex items-start gap-150">
-        {back ? (
-          <Tooltip content="Back">
-            {cloneElement(back, {
-              className: backClass,
-              "aria-label": "Back",
-              children: <ChevronLeft className="size-icon-medium" />,
-            })}
-          </Tooltip>
-        ) : null}
-        <div className="flex min-w-0 flex-1 flex-col gap-025">
-          <div className="flex items-baseline gap-100">
-            <Id className="font-body text-subtle">{id}</Id>
-            {meta ? <span className="truncate font-body-small text-subtle">{meta}</span> : null}
-          </div>
-          <h1 className="font-heading-small font-semibold text-default">{title}</h1>
-        </div>
+        <h1 className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-100 gap-y-025 font-heading-small font-semibold text-default">
+          <span className="min-w-0">{title}</span>
+          {meta ? (
+            <span className="min-w-0 truncate font-body-small font-regular text-subtle">
+              {meta}
+            </span>
+          ) : null}
+        </h1>
         {actions ? <div className="flex shrink-0 items-center gap-100">{actions}</div> : null}
       </div>
       {facts ? <Fact.Group className="border-t border-default pt-100">{facts}</Fact.Group> : null}

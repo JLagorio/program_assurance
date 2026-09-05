@@ -1,10 +1,10 @@
-export { IndexPage, ShowPage } from "./archetypes";
-export { Card } from "./card";
+export { IndexPage, ShowPage, type IndexPageProps, type ShowPageProps } from "./archetypes";
+export { Card, type CardBodyProps, type CardHeaderProps, type CardProps } from "./card";
 export * from "./data-table";
-export { Empty } from "./empty";
+export { Empty, type EmptyProps } from "./empty";
 export { Glance } from "./glance";
-export { PageHeader } from "./page-header";
-export { PageSkeleton } from "./page-skeleton";
+export { PageHeader, type PageHeaderProps } from "./page-header";
+export { PageSkeleton, type PageSkeletonProps } from "./page-skeleton";
 export { Panel, type PanelProps } from "./panel";
 export { PreviewRail } from "./preview-rail";
 export { PreviewSplit } from "./preview-split";
@@ -12,6 +12,6 @@ export { CommandPalette, useCommandPalette, type PaletteCommand } from "./comman
 export { RecordPicker, type PickerRecord } from "./record-picker";
 export { PickerSheet } from "./picker-sheet";
 export { PreviewSheet } from "./preview-sheet";
-export { RecordHeader } from "./record-header";
+export { RecordHeader, type RecordHeaderProps } from "./record-header";
 export { Related } from "./related";
-export { Section } from "./section";
+export { Section, type SectionProps } from "./section";

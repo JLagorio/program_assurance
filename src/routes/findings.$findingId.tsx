@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Fragment, useMemo } from "react";
 
 import {
+  Breadcrumb,
   Badge,
   Box,
   Button,
@@ -215,7 +216,13 @@ function FindingRecord() {
           }
           header={
             <RecordHeader
-              back={<Link to="/findings" />}
+              crumbs={
+                <>
+                  <Breadcrumb.Item asChild>
+                    <Link to="/findings">Findings & assets</Link>
+                  </Breadcrumb.Item>
+                </>
+              }
               id={finding.id}
               title={finding.title}
               meta={`${finding.control}${catalogTitle ? ` ${catalogTitle}` : ""} · ${finding.source} · ${finding.owner}`}

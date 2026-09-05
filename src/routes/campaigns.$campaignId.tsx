@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useMemo, useState } from "react";
 
 import {
+  Breadcrumb,
   Badge,
   Box,
   Empty,
@@ -250,7 +251,13 @@ function CampaignRecord() {
         <ShowPage
           header={
             <RecordHeader
-              back={<Link to="/campaigns" />}
+              crumbs={
+                <>
+                  <Breadcrumb.Item asChild>
+                    <Link to="/campaigns">Test campaigns</Link>
+                  </Breadcrumb.Item>
+                </>
+              }
               id={campaign.id}
               title={campaign.name}
               meta={`${campaign.program} · ${campaign.trigger} · ${campaign.gate} gate · lead ${campaign.lead} · ${campaign.opened} → ${campaign.target}`}

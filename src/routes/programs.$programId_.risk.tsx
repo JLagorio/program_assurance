@@ -16,6 +16,7 @@ import {
   type ScoredSubject,
 } from "@/components/app/risk-scoring";
 import {
+  Breadcrumb,
   Badge,
   Box,
   Empty,
@@ -190,7 +191,18 @@ function ProgramRisk() {
       <ShowPage
         header={
           <RecordHeader
-            back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+            crumbs={
+              <>
+                <Breadcrumb.Item asChild>
+                  <Link to="/programs">Programs</Link>
+                </Breadcrumb.Item>
+                <Breadcrumb.Item asChild>
+                  <Link to="/programs/$programId" params={{ programId: program.id }}>
+                    {program.name}
+                  </Link>
+                </Breadcrumb.Item>
+              </>
+            }
             id={program.id}
             title={`${program.name} — residual risk`}
             meta={

@@ -188,9 +188,8 @@ function ProgramComposition() {
         <ShowPage
           header={
             <RecordHeader
-              back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
-              breadcrumb={
-                <Breadcrumb>
+              crumbs={
+                <>
                   <Breadcrumb.Item asChild>
                     <Link to={"/programs"}>{"Programs"}</Link>
                   </Breadcrumb.Item>
@@ -199,8 +198,7 @@ function ProgramComposition() {
                       {program.name}
                     </Link>
                   </Breadcrumb.Item>
-                  <Breadcrumb.Item isCurrent>{"System composition"}</Breadcrumb.Item>
-                </Breadcrumb>
+                </>
               }
               id={program.id}
               title={`${program.name} — system composition`}

@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, FileDown } from "lucide-react";
 
 import {
+  Breadcrumb,
   Alert,
   Badge,
   Box,
@@ -95,7 +96,13 @@ function PackageRecord() {
     <Shell>
       <Stack className="animate-rise" space="space.200">
         <RecordHeader
-          back={<Link to="/packages" />}
+          crumbs={
+            <>
+              <Breadcrumb.Item asChild>
+                <Link to="/packages">Packages</Link>
+              </Breadcrumb.Item>
+            </>
+          }
           id={pkg.id}
           title={pkg.name}
           meta={`${pkg.version} · ${pkg.program} · snapshot ${pkg.snapshotAt}`}

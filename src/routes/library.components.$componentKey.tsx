@@ -3,6 +3,7 @@ import { AlertTriangle } from "lucide-react";
 
 import { ConsumerTable, ProvidedControlsTable } from "@/components/app/inheritance";
 import {
+  Breadcrumb,
   Badge,
   Button,
   Id,
@@ -111,7 +112,13 @@ function ComponentRecord() {
           }
           header={
             <RecordHeader
-              back={<Link to="/library/components" />}
+              crumbs={
+                <>
+                  <Breadcrumb.Item asChild>
+                    <Link to="/library/components">Providers</Link>
+                  </Breadcrumb.Item>
+                </>
+              }
               id={component.id}
               title={component.name}
               meta={`${component.type} · ${component.version} · ${component.owner}`}

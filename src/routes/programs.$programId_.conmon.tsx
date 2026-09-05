@@ -14,6 +14,7 @@ import {
   SlippageTable,
 } from "@/components/app/conmon";
 import {
+  Breadcrumb,
   Badge,
   Box,
   Button,
@@ -237,7 +238,18 @@ function ProgramConMon() {
       <ShowPage
         header={
           <RecordHeader
-            back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+            crumbs={
+              <>
+                <Breadcrumb.Item asChild>
+                  <Link to="/programs">Programs</Link>
+                </Breadcrumb.Item>
+                <Breadcrumb.Item asChild>
+                  <Link to="/programs/$programId" params={{ programId: program.id }}>
+                    {program.name}
+                  </Link>
+                </Breadcrumb.Item>
+              </>
+            }
             id={program.id}
             title={`${program.name} — continuous monitoring`}
             meta={`As of ${conmonAsOfLabel} · ${alerts.length} alert${alerts.length === 1 ? "" : "s"}${urgent > 0 ? ` (${urgent} critical or high)` : ""} · drift ${drift.score}/100${appliedWeight < 100 ? ` on ${appliedWeight} of 100 points of weight — read the band as a floor` : ""}`}

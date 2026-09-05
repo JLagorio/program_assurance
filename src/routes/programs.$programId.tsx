@@ -8,6 +8,7 @@ import { CdrPackageModal, DigitalThreadSection } from "@/components/app/digital-
 import { InheritChip } from "@/components/app/inheritance";
 import { LifecycleSection } from "@/components/app/lifecycle";
 import {
+  Breadcrumb,
   AlertDialog,
   Badge,
   Box,
@@ -567,7 +568,13 @@ function ProgramDetail() {
           rail={tab === "Overview" ? rail : null}
           header={
             <RecordHeader
-              back={<Link to="/programs" />}
+              crumbs={
+                <>
+                  <Breadcrumb.Item asChild>
+                    <Link to="/programs">Programs</Link>
+                  </Breadcrumb.Item>
+                </>
+              }
               id={program.id}
               title={program.name}
               actions={

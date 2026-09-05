@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useMemo } from "react";
 
 import {
+  Breadcrumb,
   Badge,
   Box,
   Button,
@@ -383,7 +384,18 @@ function ProgramTePhases() {
         <ShowPage
           header={
             <RecordHeader
-              back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+              crumbs={
+                <>
+                  <Breadcrumb.Item asChild>
+                    <Link to="/programs">Programs</Link>
+                  </Breadcrumb.Item>
+                  <Breadcrumb.Item asChild>
+                    <Link to="/programs/$programId" params={{ programId: program.id }}>
+                      {program.name}
+                    </Link>
+                  </Breadcrumb.Item>
+                </>
+              }
               id={program.id}
               title={`${program.name} — cyber test & evaluation`}
               meta={`${phases.length} phases · ${programCriteria.length} gate criteria · ${scenarios.length} threat scenarios · ${effects.length} mission effects`}

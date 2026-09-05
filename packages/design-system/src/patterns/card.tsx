@@ -2,18 +2,56 @@ import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 
+/* Reference material. Carbon's Tile is the plain container and its cards are patterns built on
+   it; Base Web's Card carries a title, a thumbnail and an action and may be one click target.
+   This is the container: a framed block on the raised surface, with a header row when it needs a
+   name and a body with the standard inset. Nothing in it is clickable as a whole. */
+
 /** The raised surface, recorded for children that read the surface they sit on (sticky table headers). */
-export const raisedSurface = { "--ds-utility-elevation-surface-current": "var(--ds-elevation-surface-raised)" } as CSSProperties;
+export const raisedSurface = {
+  "--ds-utility-elevation-surface-current": "var(--ds-elevation-surface-raised)",
+} as CSSProperties;
+
+export type CardProps = {
+  /** Card.Header, Card.Body, or a Table, a Chart, a list, each drawing its own inset. */
+  children?: ReactNode;
+  className?: string | undefined;
+  style?: CSSProperties | undefined;
+} & Omit<ComponentPropsWithoutRef<"div">, "children" | "className" | "style">;
 
 /** A framed block on the raised surface. */
-function CardRoot({ className, style, ...props }: ComponentPropsWithoutRef<"div">) {
-  return <div className={cn("overflow-hidden rounded-large border border-default bg-surface-raised", className)} style={{ ...raisedSurface, ...style }} {...props} />;
+function CardRoot({ className, style, ...props }: CardProps) {
+  return (
+    <div
+      className={cn(
+        "overflow-hidden rounded-large border border-default bg-surface-raised",
+        className,
+      )}
+      style={{ ...raisedSurface, ...style }}
+      {...props}
+    />
+  );
 }
 
+export type CardHeaderProps = {
+  /** The card's name, an h2 in `font.heading.xsmall`. */
+  title: ReactNode;
+  /** One line under the title, subtle: a count, a source, a constraint. */
+  description?: ReactNode;
+  /** At the end of the header's line: one small button, or a TextLink. */
+  action?: ReactNode;
+  className?: string | undefined;
+};
+
 /** A rule and a label at the top of a Card, the way Stripe separates page regions. */
-function CardHeader({ title, description, action, className }: { title: ReactNode; description?: ReactNode; action?: ReactNode; className?: string | undefined }) {
+function CardHeader({ title, description, action, className }: CardHeaderProps) {
   return (
-    <div className={cn("flex items-center justify-between gap-200 border-b border-default px-200 py-150", className)}>
+    <div
+      className={cn(
+        "flex items-center justify-between gap-200 border-b border-default px-200 py-150",
+        className,
+      )}
+    >
       <div className="flex min-w-0 flex-col gap-025">
         <h2 className="font-heading-xsmall text-default">{title}</h2>
         {description ? <p className="font-body text-subtle">{description}</p> : null}
@@ -23,4 +61,15 @@ function CardHeader({ title, description, action, className }: { title: ReactNod
   );
 }
 
-export const Card = Object.assign(CardRoot, { Header: CardHeader });
+export type CardBodyProps = {
+  /** Text, facts, a form: content that needs the card's inset. A Table or a Chart goes in the Card directly. */
+  children: ReactNode;
+  className?: string | undefined;
+};
+
+/** The card's inset, `space.200` on every side, for content that does not draw its own. */
+function CardBody({ children, className }: CardBodyProps) {
+  return <div className={cn("p-200", className)}>{children}</div>;
+}
+
+export const Card = Object.assign(CardRoot, { Header: CardHeader, Body: CardBody });

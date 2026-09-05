@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { AllocationTable, ProvenanceTable, RequirementTable } from "@/components/app/requirements";
 import { AllocateElementsSheet } from "@/components/app/allocate-picker";
 import {
+  Breadcrumb,
   Badge,
   Block,
   Button,
@@ -244,7 +245,18 @@ function RequirementRecord() {
           }
           header={
             <RecordHeader
-              back={<Link to="/programs/$programId" params={{ programId }} />}
+              crumbs={
+                <>
+                  <Breadcrumb.Item asChild>
+                    <Link to="/programs">Programs</Link>
+                  </Breadcrumb.Item>
+                  <Breadcrumb.Item asChild>
+                    <Link to="/programs/$programId" params={{ programId }}>
+                      {program.name}
+                    </Link>
+                  </Breadcrumb.Item>
+                </>
+              }
               id={requirement.id}
               title={requirement.text}
               meta={`${program.acronym} · ${requirement.type} · revision ${requirement.revision}`}

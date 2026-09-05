@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Empty } from "../../patterns";
 import * as Stories from "./Empty.stories";
@@ -7,14 +7,86 @@ import * as Stories from "./Empty.stories";
 
 # Empty
 
-A dashed frame with a title, one line of why, and the action that fills it.
+Nothing here yet: a dashed frame with a title, one line of why, and the action that fills it. It replaces the table or the list that would have shown, in that space. Carbon's empty state is an optional image, a title as a positive statement, a body that says what to do, a primary action and a secondary link, left-aligned as a block; Atlassian's is the same with three actions. This is that without the image, in a frame, so an empty region is visibly a region and not content the eye skips.
 
 <Canvas of={Stories.EmptyMatrix} />
+
+## Anatomy
+
+| Part        | What it is                                                                                                     |
+| ----------- | -------------------------------------------------------------------------------------------------------------- |
+| Frame       | A dashed `color.border` hairline, `radius.large`, `space.200` inline and `space.300` block. Nothing is filled. |
+| Title       | `font.body` medium in `color.text`: what would be here, or what to start with.                                 |
+| Description | One line, `font.body.small` subtle: why it is empty and what fills it.                                         |
+| Action      | One Button, secondary unless it is the page's one thing to do; subtle when several empties are in view.        |
+| Secondary   | A TextLink beside the action: a second way, or where to read more.                                             |
+
+## Variants
+
+Carbon's three kinds, one component:
+
+| Empty       | Use                                                                                                          |
+| ----------- | ------------------------------------------------------------------------------------------------------------ |
+| No data     | First use: "Start by linking evidence", with the action that starts.                                         |
+| No results  | A search or a filter with nothing: "No controls match", with "Clear filters" as a subtle button.             |
+| Cannot show | A permission or a system fault: "Evidence is not available to the assessor", with the way to get it, if any. |
+
+Not built, and why: an image (Carbon, Atlassian), because the product's empties are in tables and rails, where Carbon says to use text alone; a third action (Atlassian), because two ways are enough and the third is a menu; a centred large layout (Carbon's full-page option), because a page here is never empty as a whole: its header and its filters remain and the frame sits where the rows would.
+
+## Sizes
+
+One size. The frame is as wide as the space it fills: the table's column, a card's body, a rail. Under 320px the action wraps under the line.
+
+## States
+
+An empty state has one state. When rows arrive it is gone; it never sits beside content.
+
+## Modifiers
+
+- **`title`**, **`description`**, **`action`**, **`secondary`** as in Anatomy.
+
+## Content
+
+- **The title as a positive statement** where it can be: "Start by adding a system" over "You don't have any systems". Carbon says the same.
+- **The line says why and what fills it**: "Nothing on this control has been observed yet."
+- **The action is the verb that fills it**: "Link evidence", "Record a finding". For no results, the way back: "Clear filters".
+- **One primary per page.** Several empties in view take subtle buttons.
+- **No exclamation, no apology.** An empty register is a fact.
+
+## Style
+
+| Element     | Token                                                                           |
+| ----------- | ------------------------------------------------------------------------------- |
+| Frame       | `color.border` dashed · `radius.large` · `space.200` inline · `space.300` block |
+| Title       | `font.body` medium · `color.text`                                               |
+| Description | `font.body.small` · `color.text.subtle`                                         |
+| Actions     | `space.075` above · `space.150` between the button and the link                 |
+| Layout      | `space.075` between the lines, left-aligned as a block                          |
+
+## Accessibility
+
+- **The empty state replaces the element**: no table headers over nothing, so a screen reader does not read a table to reach the line that says there is none. Carbon's rule.
+- **Text, then the controls**: the title and the line are read first, the action and the link are stops after them.
+- **Not a live region.** An empty result of a search is announced by the search's own status, not by the frame.
+- **The frame is decoration**: the dashed border says "region" to the eye; the words say it to everyone.
 
 ## Props
 
 <ArgTypes of={Empty} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Pages](?path=/docs/patterns-pages--docs): the two page archetypes and the parts they are assembled from; the Index story shows the frame in place of a table with no rows.
+- [Pages](?path=/docs/patterns-pages--docs): the Index story shows the frame in place of a table with no rows.
+- [Item](?path=/docs/components-item--docs): a group's `empty` line, for a list inside a card or a rail.
+- [Skeleton](?path=/docs/components-skeleton--docs): the space before it is known to be empty.
+- [Alert](?path=/docs/components-alert--docs): a fault that is not about this space.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

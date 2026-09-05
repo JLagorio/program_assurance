@@ -2,16 +2,17 @@ import type { ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 
-/** Header, one filter row, one dense table. The inline detail surface is the preview rail (beside the table) or the preview sheet (over a full-width one); the record is never inline. */
-export function IndexPage({
-  header,
-  filters,
-  children,
-}: {
+export type IndexPageProps = {
+  /** A PageHeader. */
   header: ReactNode;
+  /** One row of FilterChips and a search, between the header and the table. A Toolbar inside the table's Card is the other place. */
   filters?: ReactNode;
+  /** The table, in a Card, or the Empty that replaces it. */
   children: ReactNode;
-}) {
+};
+
+/** Header, one filter row, one dense table. The inline detail surface is the preview rail (beside the table) or the preview sheet (over a full-width one); the record is never inline. */
+export function IndexPage({ header, filters, children }: IndexPageProps) {
   return (
     <div className="flex flex-col gap-200 animate-rise">
       {header}
@@ -22,24 +23,24 @@ export function IndexPage({
 }
 
 /** RecordHeader, one tab strip running the full width, then the tab body. `rail` renders beside the body, under the tab strip: the record's details and related information, every Inspector group, on the overview tab; every other tab runs full width. The rail column is `dimension.layout.rail` plus its rule. */
-export function ShowPage({
-  header,
-  tabs,
-  rail,
-  children,
-}: {
+export type ShowPageProps = {
+  /** A RecordHeader. */
   header: ReactNode;
+  /** The Tabs strip, running the full width under the header. */
   tabs?: ReactNode;
   /** The record's rail, beside the body of the tab that shows it. Pass it on the overview tab and nothing on the others. */
   rail?: ReactNode;
+  /** The tab's body: Sections, Cards, a Table. */
   children: ReactNode;
-}) {
+};
+
+export function ShowPage({ header, tabs, rail, children }: ShowPageProps) {
   const withRail = rail !== undefined && rail !== null && rail !== false;
   return (
-    <div className="flex flex-col gap-200 animate-rise">
+    <div className="flex flex-col gap-150 animate-rise">
       {header}
       {tabs}
-      <div className={cn("grid pt-300", withRail && "gap-400 lg:grid-cols-main-rail lg:gap-0")}>
+      <div className={cn("grid pt-200", withRail && "gap-400 lg:grid-cols-main-rail lg:gap-0")}>
         <div className={cn("flex min-w-0 flex-col gap-400", withRail && "lg:pe-300")}>
           {children}
         </div>

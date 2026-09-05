@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Section } from "../../patterns";
 import * as Stories from "./Section.stories";
@@ -7,16 +7,89 @@ import * as Stories from "./Section.stories";
 
 # Section
 
-A titled region with a rule under its heading. Prefer [Block](?path=/docs/shapes-block--docs) for work and Collapsible for reference.
+A titled region of a page: a heading, a rule under it, and what follows. None of Carbon, Base Web or Atlassian has one, because a region is a heading and its content; this draws the rule the system puts under every region's heading, and holds the rule about what goes beside it. [Block](?path=/docs/shapes-block--docs) is the same region for work, always open with a count or an action; [Collapsible](?path=/docs/components-collapsible--docs) is reference that folds. Section is the plain one, for what the reader reads.
 
 <Canvas of={Stories.SectionMatrix} />
+
+## Anatomy
+
+| Part        | What it is                                                                                                 |
+| ----------- | ---------------------------------------------------------------------------------------------------------- |
+| Title       | The region's name, an h2, `font.body` medium in `color.text`. A noun.                                      |
+| Count       | After the title, a Count: how many rows the region holds.                                                  |
+| Description | One line under the title, `font.body.small` subtle: a constraint or a source, never what the region means. |
+| Action      | At the end of the heading's line: a TextLink to the whole, or one small button.                            |
+| Rule        | `color.border` under the heading, `space.100` below it. The body sets its own space from it.               |
+
+## Variants
+
+Section has one appearance. What it carries:
+
+| Section        | Use                                                                  |
+| -------------- | -------------------------------------------------------------------- |
+| Title          | A region that is its name: "Objective".                              |
+| With a count   | A region of rows: "Findings 3".                                      |
+| With a line    | A constraint the reader needs: "Derived from the live matrix."       |
+| With an action | A region that is a summary of more: "Activity" with "Full timeline". |
+
+Not built, and why: a collapsible section, because that is Collapsible; a framed one, because that is Card; a section with a form, because work is a Block; nested sections, because a page is one level of regions and a region that needs regions is a page.
+
+## Sizes
+
+One size: the heading is `font.body` medium, the same line as a Block's, so a page mixing the two reads as one. A Section is as wide as its column.
+
+## States
+
+A section has no state.
+
+## Modifiers
+
+- **`title`**, **`count`**, **`description`**, **`action`** as in Anatomy.
+- **`className`** for the column it sits in.
+
+## Content
+
+- **The title is a noun**: "Control coverage", "Evidence", "Objective".
+- **A count is the whole label** for a region of rows. The count says how many; the rows say what.
+- **The line is a constraint or a source**, one line: "Derived from the live matrix", "Read-only for the assessor". Not what the region means, and not how to use it: a page of explained headings is a document.
+- **The action is the whole**: "Full timeline", "All 26 controls".
+- **The body sets its space**: `space.150` from the rule for text, none for a table or a list that draws its own rows.
+
+## Style
+
+| Element     | Token                                                                 |
+| ----------- | --------------------------------------------------------------------- |
+| Title       | `font.body` medium · `color.text`                                     |
+| Count       | Count, `space.100` after the title                                    |
+| Description | `font.body.small` · `color.text.subtle` · `space.025` under the title |
+| Action      | `space.200` from the title, at the end                                |
+| Rule        | `color.border` · `space.100` under the heading                        |
+
+## Accessibility
+
+- **A `section` element with an `h2`**, so the page's outline is its regions and a screen reader jumps between them.
+- **The count is read after the title**: "Findings, 3".
+- **The description is text under the heading**, not part of its name.
+- **The action is its own stop**, after the heading in reading order.
+- **One level.** An h2 in an h2 breaks the outline; a region that needs regions is a page.
 
 ## Props
 
 <ArgTypes of={Section} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
 - [Pages](?path=/docs/patterns-pages--docs): the two page archetypes and the parts they are assembled from.
-- [Block](?path=/docs/shapes-block--docs): a block of work, always open.
+- [Block](?path=/docs/shapes-block--docs): the same region for work.
+- [Collapsible](?path=/docs/components-collapsible--docs): reference that folds.
 - [Card](?path=/docs/patterns-card--docs): a framed block on the raised surface.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

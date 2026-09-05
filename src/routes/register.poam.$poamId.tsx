@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import {
+  Breadcrumb,
   Badge,
   Button,
   Empty,
@@ -107,7 +108,13 @@ function PoamRecord() {
           }
           header={
             <RecordHeader
-              back={<Link to="/register" />}
+              crumbs={
+                <>
+                  <Breadcrumb.Item asChild>
+                    <Link to="/register">POA&M & risk</Link>
+                  </Breadcrumb.Item>
+                </>
+              }
               id={item.id}
               title={item.title}
               meta={`${item.owner} · scheduled ${item.scheduledCompletion}`}

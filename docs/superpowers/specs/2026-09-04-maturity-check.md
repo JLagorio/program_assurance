@@ -257,3 +257,24 @@ and thick separators, shimmer and per-component skeletons, overlay and determina
 Prototype: two export buttons on `isLoading`, the split chevron on IconButton. Ratchet: 62 pages
 on the template, 400 grandfathered. Decisions parked in docs/next.md: the platform glyph, a delay
 on Button's `isLoading`, PageSkeleton on the shapes.
+
+### 19. The page patterns: Pages, PageHeader, RecordHeader, Section, Card, Empty, PageSkeleton (2026-09-04)
+
+Fourteenth walk, the first half of the patterns. References: Carbon's page header (breadcrumb
+bar, title with subtitle, actions, tab bar), tile (base, clickable, selectable, expandable; tiles
+versus cards) and empty-states pattern (image, positive title, body that says what to do, primary
+action and secondary link, left-aligned block, replace the element, one primary when several are
+in view); Base Web's card (title, thumbnail, action, whole-card click); Atlassian's page header
+(breadcrumbs, title, actions, bottom bar) and empty state (three actions, image). The Pages
+overview keeps its own sections and gains the template's.
+
+Kit: every pattern has typed, described props (the props tables were empty); Section `count`;
+Card.Body; Empty `secondary`; PageHeader's line carries its full text as a tooltip;
+RecordHeader's breadcrumb aligns to the title column; PageSkeleton on the Skeleton's shapes. Not
+built and said on each page: breadcrumbs, heroes and bottom bars on the index header; tabs and
+avatars in the record header; collapsible, framed and nested sections; clickable, selectable and
+thumbnail cards; images, third actions and centred layouts for empties; a record variant of the
+page skeleton. The prototype scan behind the Section and PageHeader pages: 164 of 197 Sections
+and 15 of 16 index headers carry a sentence, which is the decision parked in docs/next.md.
+Ratchet: 69 pages on the template, 338 grandfathered. The a11y gate fails at HEAD on the Chart
+session's Table scroll region (landmark-unique), reported to them; the seven matrices here pass.

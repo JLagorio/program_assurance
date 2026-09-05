@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { PageSkeleton } from "../../patterns";
 import * as Stories from "./PageSkeleton.stories";
@@ -7,14 +7,71 @@ import * as Stories from "./PageSkeleton.stories";
 
 # PageSkeleton
 
-The page before its data: a title, a tab strip, rows.
+What a screen looks like before its data arrives: a title and a line, a tab strip, then a table's worth of rows, in the [Skeleton](?path=/docs/components-skeleton--docs)'s shapes. The router shows it for every route that is still loading, so it is the shape most pages share, an index. Carbon draws a skeleton per component and says a page loads progressively; a section that loads on its own draws its own Skeleton inside a page that has already landed.
 
 <Canvas of={Stories.PageSkeletonMatrix} />
+
+## Anatomy
+
+| Part | What it is                                                                                     |
+| ---- | ---------------------------------------------------------------------------------------------- |
+| Head | A heading shape 240px wide and a line 440px wide, where a PageHeader's title and line will be. |
+| Tabs | Four short lines over a rule, where a Tabs strip or a filter row will be.                      |
+| Rows | `rows` lines of a table: an id, a title that fills, two values; `space.200` apart.             |
+
+## Variants
+
+One skeleton. Not built, and why: a record variant with a facts strip and a rail, because the router shows one skeleton before it knows the route's shape, and a record's first paint lands within the same 150ms; per-section skeletons (Carbon), because those are the sections' own, drawn from Skeleton where they load.
+
+## Sizes
+
+`rows` sets how many rows to draw, 8 by default, about a screen at the register's row height. The skeleton is as wide as the page.
+
+## States
+
+One state: waiting. The whole is a `status` region marked busy and named "Loading", so a screen reader hears one announcement and not a hundred grey bars.
+
+## Modifiers
+
+- **`rows`** as in Sizes.
+
+## Content
+
+- **The shape of an index.** A page that is not one still lands on the same title line, so the swap is small.
+- **Shown after 150ms**: the router's pending delay, so a fast route never flashes it.
+- **Never beside content.** It replaces the page; a section that loads later draws its own.
+
+## Style
+
+| Element | Token                                                                             |
+| ------- | --------------------------------------------------------------------------------- |
+| Head    | Skeleton heading and line · `space.150` between                                   |
+| Tabs    | four Skeleton lines · `space.250` apart · `color.border` rule · `space.150` under |
+| Rows    | Skeleton lines · `space.200` between rows and cells                               |
+| Layout  | `space.300` between the three parts                                               |
+
+## Accessibility
+
+- **A `role="status"` marked `aria-busy`** and named "Loading", so the wait is announced once.
+- **The bars are hidden**; the region carries the meaning.
+- **Reduced motion stops the pulse**; the shapes stay.
 
 ## Props
 
 <ArgTypes of={PageSkeleton} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Pages](?path=/docs/patterns-pages--docs): the two page archetypes and the parts they are assembled from.
+- [Skeleton](?path=/docs/components-skeleton--docs): the shapes it is drawn from.
+- [Pages](?path=/docs/patterns-pages--docs): the index it stands in for.
+- [Spinner](?path=/docs/components-spinner--docs): a wait on an action, not a page.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

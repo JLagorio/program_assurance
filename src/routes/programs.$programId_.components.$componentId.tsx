@@ -12,6 +12,7 @@ import {
   ScopeRailGroups,
 } from "@/components/app/scope-control-set";
 import {
+  Breadcrumb,
   Badge,
   Box,
   Button,
@@ -203,16 +204,28 @@ function ComponentRecord() {
           }
           header={
             <RecordHeader
-              back={
-                anchored ? (
-                  <Link
-                    to="/programs/$programId"
-                    params={{ programId }}
-                    search={{ tab: "Systems" }}
-                  />
-                ) : (
-                  <Link to="/programs/$programId/composition" params={{ programId }} />
-                )
+              crumbs={
+                <>
+                  <Breadcrumb.Item asChild>
+                    <Link to="/programs">Programs</Link>
+                  </Breadcrumb.Item>
+                  <Breadcrumb.Item asChild>
+                    <Link
+                      to="/programs/$programId"
+                      params={{ programId }}
+                      search={{ tab: "Systems" }}
+                    >
+                      {program.name}
+                    </Link>
+                  </Breadcrumb.Item>
+                  {anchored ? null : (
+                    <Breadcrumb.Item asChild>
+                      <Link to="/programs/$programId/composition" params={{ programId }}>
+                        Composition
+                      </Link>
+                    </Breadcrumb.Item>
+                  )}
+                </>
               }
               id={node.id}
               title={node.name}

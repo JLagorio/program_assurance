@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useMemo, useState } from "react";
 
 import {
+  Breadcrumb,
   Badge,
   Box,
   Empty,
@@ -225,7 +226,18 @@ function ProgramIngestion() {
         <ShowPage
           header={
             <RecordHeader
-              back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+              crumbs={
+                <>
+                  <Breadcrumb.Item asChild>
+                    <Link to="/programs">Programs</Link>
+                  </Breadcrumb.Item>
+                  <Breadcrumb.Item asChild>
+                    <Link to="/programs/$programId" params={{ programId: program.id }}>
+                      {program.name}
+                    </Link>
+                  </Breadcrumb.Item>
+                </>
+              }
               id={program.id}
               title={`${program.name} — automated ingestion`}
               meta={`${scans.length} delivered runs · ${current.length} current · ${new Set(scans.map((s) => s.format)).size} formats`}

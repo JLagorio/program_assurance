@@ -2,7 +2,16 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-import { Avatar, Badge, Button, FilterChip, KeyValue, Tabs, TextLink } from "../../components";
+import {
+  Avatar,
+  Badge,
+  Breadcrumb,
+  Button,
+  FilterChip,
+  KeyValue,
+  Tabs,
+  TextLink,
+} from "../../components";
 import {
   Card,
   Empty,
@@ -16,6 +25,7 @@ import {
 } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Inspector } from "../../shapes";
+import { Pair } from "../_lib/pair";
 import { panelGroups } from "../_lib/patterns-fixtures";
 
 const meta = {
@@ -63,11 +73,15 @@ function Show() {
     <ShowPage
       header={
         <RecordHeader
-          back={<a href="#controls" />}
-          breadcrumb={
-            <Text size="small" color="color.text.subtle">
-              Finance controls / Payables
-            </Text>
+          crumbs={
+            <>
+              <Breadcrumb.Item asChild>
+                <a href="#controls">Controls</a>
+              </Breadcrumb.Item>
+              <Breadcrumb.Item asChild>
+                <a href="#payables">Payables</a>
+              </Breadcrumb.Item>
+            </>
           }
           id="CTRL-0412"
           meta="Updated 2h ago by Priya Natarajan"
@@ -143,6 +157,8 @@ export const Loading: Story = { render: () => <PageSkeleton rows={5} /> };
 
 /** An index with filters, a show page with its rail on the overview tab and one without. */
 export const ArchetypesMatrix: Story = {
+  // Several record headers in one story mean several trails named "Breadcrumb"; a page has one.
+  parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
   render: () => (
     <Stack space="space.600">
       <IndexPage
@@ -189,6 +205,93 @@ export const ArchetypesMatrix: Story = {
           </Text>
         </Section>
       </ShowPage>
+    </Stack>
+  ),
+};
+
+/** The mistakes the overview is written to prevent, each beside the right way. */
+export const Dont: Story = {
+  render: () => (
+    <Stack space="space.400">
+      <Pair
+        do={
+          <ShowPage
+            header={<RecordHeader id="PRG-1041" title="Atlas payments platform" />}
+            tabs={
+              <Tabs label="Sections">
+                <Tabs.Tab>Overview</Tabs.Tab>
+                <Tabs.Tab isSelected count={26}>
+                  Controls
+                </Tabs.Tab>
+              </Tabs>
+            }
+          >
+            <Section title="Controls" count={26}>
+              <Text as="p" size="small" color="color.text.subtle" className="pt-150">
+                The tab runs full width.
+              </Text>
+            </Section>
+          </ShowPage>
+        }
+        doText="The rail is the overview tab's. Every other tab runs the full width."
+        dont={
+          <ShowPage
+            header={<RecordHeader id="PRG-1041" title="Atlas payments platform" />}
+            tabs={
+              <Tabs label="Sections">
+                <Tabs.Tab>Overview</Tabs.Tab>
+                <Tabs.Tab isSelected count={26}>
+                  Controls
+                </Tabs.Tab>
+              </Tabs>
+            }
+            rail={<Inspector groups={panelGroups} />}
+          >
+            <Section title="Controls" count={26}>
+              <Text as="p" size="small" color="color.text.subtle" className="pt-150">
+                A table squeezed beside the rail.
+              </Text>
+            </Section>
+          </ShowPage>
+        }
+        dontText="The rail beside every tab. A register of 26 controls shares its width with facts about the program."
+      />
+      <Pair
+        do={
+          <IndexPage
+            header={<PageHeader title="Programs" description="5 programs · 2 in assessment" />}
+          >
+            <Card>
+              <Card.Body>
+                <Text size="small" color="color.text.subtle">
+                  The register
+                </Text>
+              </Card.Body>
+            </Card>
+          </IndexPage>
+        }
+        doText="An index is a header and one table; the record opens from it."
+        dont={
+          <IndexPage header={<PageHeader title="Programs" />}>
+            <Stack space="space.300">
+              <Card>
+                <Card.Body>
+                  <Text size="small" color="color.text.subtle">
+                    The register
+                  </Text>
+                </Card.Body>
+              </Card>
+              <RecordHeader id="PRG-1041" title="Atlas payments platform" />
+              <Section title="Control coverage">
+                <Text as="p" size="small" color="color.text.subtle" className="pt-150">
+                  The record, inline under the table.
+                </Text>
+              </Section>
+            </Stack>
+          </IndexPage>
+        }
+        dontText="The record inline under the index. Two pages on one, and the reader scrolls past the list to find where they are."
+      />
     </Stack>
   ),
 };

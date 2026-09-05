@@ -232,9 +232,8 @@ function ProgramExport() {
       <ShowPage
         header={
           <RecordHeader
-            back={<Link to="/programs/$programId" params={{ programId }} />}
-            breadcrumb={
-              <Breadcrumb>
+            crumbs={
+              <>
                 <Breadcrumb.Item asChild>
                   <Link to={"/programs"}>{"Programs"}</Link>
                 </Breadcrumb.Item>
@@ -243,8 +242,7 @@ function ProgramExport() {
                     {program.name}
                   </Link>
                 </Breadcrumb.Item>
-                <Breadcrumb.Item isCurrent>{"Export and transfer"}</Breadcrumb.Item>
-              </Breadcrumb>
+              </>
             }
             id={program.id}
             title="Export and cross-domain transfer"

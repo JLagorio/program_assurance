@@ -1041,7 +1041,10 @@ function Main({
     <main
       id={skipId}
       tabIndex={-1}
-      className={cn("shell-main w-full px-200 py-300 outline-none lg:px-300 lg:py-400", className)}
+      className={cn(
+        "shell-main w-full px-200 pb-300 pt-200 outline-none lg:px-300 lg:pb-400",
+        className,
+      )}
     >
       {children}
     </main>

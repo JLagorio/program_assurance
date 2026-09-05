@@ -21,6 +21,7 @@ import {
 import { useState } from "react";
 
 import {
+  Breadcrumb,
   Avatar,
   Badge,
   Banner,
@@ -465,7 +466,13 @@ function RecordDemo() {
         <ShowPage
           header={
             <RecordHeader
-              back={<a href="#programs" aria-label="Back to programs" />}
+              crumbs={
+                <>
+                  <Breadcrumb.Item asChild>
+                    <a href="#programs">Programs</a>
+                  </Breadcrumb.Item>
+                </>
+              }
               id="PRG-014"
               title="Payload integration"
               meta="Authorise · Sarah Chen"

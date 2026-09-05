@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Card } from "../../patterns";
 import * as Stories from "./Card.stories";
@@ -7,15 +7,93 @@ import * as Stories from "./Card.stories";
 
 # Card
 
-A framed block on the raised surface, with an optional header row. It records its surface so a sticky table header inside it stays opaque.
+A framed block on the raised surface: a table, a chart, a set of facts, something the page holds up as a thing. Carbon's Tile is the plain container and its cards are patterns built on it; Base Web's Card carries a title, a thumbnail and an action and may be one click target. This is the container: a frame, a header row when it needs a name, a body with the standard inset. Nothing in it is clickable as a whole, and a paragraph of the page is a [Section](?path=/docs/patterns-section--docs), not a card.
 
 <Canvas of={Stories.CardMatrix} />
+
+## Anatomy
+
+| Part   | What it is                                                                                                                                                                  |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frame  | `elevation.surface.raised` with a `color.border` hairline, `radius.large`, clipping what is inside. It records its surface so a sticky table header inside it stays opaque. |
+| Header | A rule and a name at the top: an h2 in `font.heading.xsmall`, one line under it, an action at the end.                                                                      |
+| Body   | The standard inset, `space.200` all round, for text, facts and forms. A Table, a Chart or a list goes in the Card directly and draws its own edges.                         |
+
+## Variants
+
+Card has one appearance. What it holds:
+
+| Card            | Use                                                                        |
+| --------------- | -------------------------------------------------------------------------- |
+| Body alone      | A block of facts or text held up on the page.                              |
+| With a header   | A named block: "Evidence", "Controls" with its count under the name.       |
+| Holding a table | The register: the Card frames it and the Table draws its rows to the edge. |
+| Holding a chart | A Chart.Frame in a Card, the frame's own header as the card's.             |
+
+Not built, and why: a clickable card (Base Web, Carbon's clickable tile), because a card that opens is a row of an Item list, and a link inside it is a TextLink; a selectable card (Carbon), because choosing among cards is a RadioGroup or a Table.Selection; a thumbnail or a hero (Base Web), because the product's records are text; a footer of actions, because the action sits in the header, and a form's actions are the form's.
+
+## Sizes
+
+One size: the card is as wide as its column and as tall as its content. On a page it sits in the main column or a Grid of equals; in a rail it is the rail's width.
+
+## States
+
+A card has no state. What it holds has its own: a table's loading, an empty body, a chart's status.
+
+## Modifiers
+
+- **`Card.Header`** with **`title`**, **`description`**, **`action`**.
+- **`Card.Body`** for the inset.
+- **`className`** for the column, and **`style`** for what the surface needs.
+
+## Content
+
+- **The header's title is a noun**, and its line a count or a source: "Controls", "3 of 287".
+- **One action in the header**, small and subtle, or a TextLink to the whole.
+- **A card holds one thing.** A table, a chart, a set of facts. Two things are two cards or a Section.
+- **Never a card in a card.** One frame.
+
+## Style
+
+| Element | Token                                                                                                         |
+| ------- | ------------------------------------------------------------------------------------------------------------- |
+| Frame   | `elevation.surface.raised` · `color.border` · `radius.large`                                                  |
+| Header  | `space.200` inline, `space.150` block · `color.border` rule · `font.heading.xsmall` · `font.body` subtle line |
+| Body    | `space.200` all round                                                                                         |
+| Surface | `elevation.surface.current` set to raised, for sticky headers inside                                          |
+
+## Accessibility
+
+- **The header's title is an `h2`**, so a card is a region in the page's outline like a Section.
+- **The frame is not a landmark**: a `div`. What it holds carries its own role, a table or a figure.
+- **The action is its own stop**, after the title.
+- **Contrast**: the raised surface against the page passes with the hairline; the shadow is not relied on.
 
 ## Props
 
 <ArgTypes of={Card} />
 
+### Card.Header
+
+<ArgTypes of={Card.Header} />
+
+### Card.Body
+
+<ArgTypes of={Card.Body} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
 - [Pages](?path=/docs/patterns-pages--docs): the two page archetypes and the parts they are assembled from.
-- [Section](?path=/docs/patterns-section--docs): a titled region with a rule under its heading, no frame.
+- [Section](?path=/docs/patterns-section--docs): a titled region on the page's own surface, no frame.
+- [Table](?path=/docs/components-table--docs): what a card most often frames.
+- [Related](?path=/docs/patterns-related--docs): a small card of linked records.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

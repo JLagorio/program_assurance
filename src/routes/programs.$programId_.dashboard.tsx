@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 
 import {
+  Breadcrumb,
   Badge,
   Box,
   Dot,
@@ -215,7 +216,18 @@ function ProgramDashboard() {
       <ShowPage
         header={
           <RecordHeader
-            back={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+            crumbs={
+              <>
+                <Breadcrumb.Item asChild>
+                  <Link to="/programs">Programs</Link>
+                </Breadcrumb.Item>
+                <Breadcrumb.Item asChild>
+                  <Link to="/programs/$programId" params={{ programId: program.id }}>
+                    {program.name}
+                  </Link>
+                </Breadcrumb.Item>
+              </>
+            }
             id={program.id}
             title={`${program.name} — dashboard`}
             meta={`${program.baseline} · ${catalogVersion} · ${coverage.total} tailored controls`}

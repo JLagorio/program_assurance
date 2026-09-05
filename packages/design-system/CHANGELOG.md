@@ -286,6 +286,23 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   inherit) and `delay`. Prototype: the two export buttons use `isLoading`; the record header's
   primary split chevron is an IconButton. Components/Toggle, ToggleGroup, ButtonGroup, Kbd,
   Separator, Skeleton, Spinner: Matrix, Dont.
+- Pages, PageHeader, RecordHeader, Section, Card, Empty and PageSkeleton on the template, walked
+  against Carbon's page header, tile and empty-states pattern, Base Web's card and Atlassian's
+  page header and empty state. Every pattern has typed, described props. `Section` takes `count`;
+  `Card` gains `Card.Body` for the standard inset; `Empty` takes `secondary` for a second way
+  beside the action; `PageHeader`'s truncating line carries its full text as a tooltip;
+  `RecordHeader`'s breadcrumb starts on the title's column beside the back chevron (it sat 4px
+  off); `PageSkeleton` is drawn in the Skeleton's shapes. Patterns/Pages, PageHeader,
+  RecordHeader, Section, Card, Empty, PageSkeleton: Matrix, Dont.
+- `RecordHeader` on Josef's review is two lines, on Jira's model: the trail, its parents (`crumbs`)
+  and then the record's `id` as the current crumb, which is the way back; and the title's line,
+  the name with the meta after it and the actions at the end. The back chevron is gone and the id
+  has no line of its own; `back` and `breadcrumb` are deprecated. The space around the header
+  tightens: the shell's Main pads `space.200` above at every width (was `space.300` and
+  `space.400`), and the ShowPage puts `space.150` between the header and the tabs and
+  `space.200` under them (were `space.200` and `space.300`). Prototype: the 22 record routes
+  pass their parents as crumbs instead of a back link (a program's sub-pages: Programs, then the
+  program). Patterns/RecordHeader, Pages: Matrix, Show.
 - `Breadcrumb` takes `label`, "Breadcrumb" by default, so a second trail on a page, a chart's
   drill-down path, is a navigation landmark with a name of its own. Components/Breadcrumb.
 - `Eyebrow` takes `as`: `h3` or `h4` when it heads a section, so the page's outline has it,

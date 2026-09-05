@@ -254,9 +254,8 @@ function ProgramSctm() {
         <ShowPage
           header={
             <RecordHeader
-              back={<Link to="/programs/$programId" params={{ programId }} />}
-              breadcrumb={
-                <Breadcrumb>
+              crumbs={
+                <>
                   <Breadcrumb.Item asChild>
                     <Link to={"/programs"}>{"Programs"}</Link>
                   </Breadcrumb.Item>
@@ -265,8 +264,7 @@ function ProgramSctm() {
                       {program.name}
                     </Link>
                   </Breadcrumb.Item>
-                  <Breadcrumb.Item isCurrent>{"SCTM"}</Breadcrumb.Item>
-                </Breadcrumb>
+                </>
               }
               id={program.id}
               title="Security controls traceability matrix"

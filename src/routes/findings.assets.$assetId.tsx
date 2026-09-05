@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { BomTree, type BomTreeNode } from "@/components/app/composition";
 import {
+  Breadcrumb,
   Badge,
   Button,
   Id,
@@ -157,7 +158,13 @@ function AssetRecord() {
           }
           header={
             <RecordHeader
-              back={<Link to="/findings" />}
+              crumbs={
+                <>
+                  <Breadcrumb.Item asChild>
+                    <Link to="/findings">Findings & assets</Link>
+                  </Breadcrumb.Item>
+                </>
+              }
               id={asset.id}
               title={asset.name}
               meta={`${asset.kind} · ${asset.technology} · ${asset.environment}`}

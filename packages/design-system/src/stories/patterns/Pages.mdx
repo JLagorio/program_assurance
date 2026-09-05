@@ -28,7 +28,7 @@ The two page archetypes and the parts they are assembled from.
 | Part                                                        | Does                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **[PageHeader](?path=/docs/patterns-pageheader--docs)**     | Eyebrow, title on `font.heading.medium`, one line, actions on the right.                                                                                                                                                                                                                                                                                                                                                                         |
-| **[RecordHeader](?path=/docs/patterns-recordheader--docs)** | Back chevron (`back` takes a link element), id and meta, title, actions, `facts` for the strip of Facts under the title (at most six; the rest go in the rail), and `below` for a persistent state strip.                                                                                                                                                                                                                                        |
+| **[RecordHeader](?path=/docs/patterns-recordheader--docs)** | The trail, its parents then the record's id as the current crumb, which is the way back; then the title, a word of meta and the actions on one line; `facts` for the strip of Facts under the title (at most six; the rest go in the rail), and `below` for a persistent state strip. No back chevron, no line for the id.                                                                                                                                                                      |
 | **[Section](?path=/docs/patterns-section--docs)**           | A titled region with a rule under its heading. Prefer Block for work and Collapsible for reference.                                                                                                                                                                                                                                                                                                                                              |
 | **[Card](?path=/docs/patterns-card--docs)**                 | A framed block on the raised surface, with an optional header row. It records its surface so a sticky table header inside it stays opaque.                                                                                                                                                                                                                                                                                                       |
 | **[Related](?path=/docs/patterns-related--docs)**           | A small card of linked records with a count and rows that may be buttons.                                                                                                                                                                                                                                                                                                                                                                        |
@@ -72,6 +72,45 @@ When the question is "which of these many belong on this one" and the many are f
 
 <Canvas of={PickerSheetStories.PickerSheetStory} />
 
+## Variants
+
+Two archetypes, and a page is one of them: an **IndexPage** (a header, a filter row, one table) or a **ShowPage** (a record header, a tab strip, the tab's body, the rail on the overview tab). A page that is neither is a [Shape](?path=/docs/shapes-overview--docs): a WorkPane for working through a list, an Inspector beside content, an ActionBar over a record's state.
+
+## Sizes
+
+An index is as wide as the Main area. A record's body is a measure beside the rail on the overview tab (`dimension.layout.rail` plus `space.300`), and the full width on every other tab. Below `lg` the rail drops under the body.
+
+## States
+
+A page has three: loading, which is the [PageSkeleton](?path=/docs/patterns-pageskeleton--docs) after the router's 150ms; empty, which is an [Empty](?path=/docs/patterns-empty--docs) where the table would be; and loaded. A record that does not exist is the router's not-found page, not an empty ShowPage.
+
+## Modifiers
+
+- **IndexPage `filters`** for the row between the header and the table.
+- **ShowPage `tabs`** and **`rail`**, the rail on the overview tab only.
+
+## Content
+
+- **An index is named for its rows**, plural; **a record for itself**, by its id and its name.
+- **Six facts in the record header**; the rest in the rail.
+- **One primary action per page**, in the header.
+- **Headings carry a count or a constraint**, never an explanation of the model. The product is not a document.
+
+## Style
+
+| Element | Token                                                                                          |
+| ------- | ---------------------------------------------------------------------------------------------- |
+| Index   | `space.200` between header, filters and table · rises in `motion.duration.medium`              |
+| Record  | `space.200` between header and tabs · `space.300` under the tabs · `space.400` between regions |
+| Rail    | `dimension.layout.rail` wide · `space.300` from the body · `color.border` rule between         |
+
+## Accessibility
+
+- **One `h1` per page**, the header's; regions are `h2`.
+- **The rail is one landmark**, an `aside` named "Details"; the Inspector inside it is a plain div.
+- **The tab strip is a `tablist`** running the full width, and each tab's body is its panel.
+- **The skeleton is one status**, announced once.
+
 ## Props
 
 ### IndexPage
@@ -101,3 +140,7 @@ When the question is "which of these many belong on this one" and the many are f
 - [Related](?path=/docs/patterns-related--docs)
 - [Section](?path=/docs/patterns-section--docs)
 - [Shapes](?path=/docs/shapes-overview--docs), the layer between the parts and a screen, and [Shell](?path=/docs/shell--docs), the navigation system.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { RecordHeader } from "../../patterns";
 import * as Stories from "./RecordHeader.stories";
@@ -7,16 +7,94 @@ import * as Stories from "./RecordHeader.stories";
 
 # RecordHeader
 
-Back chevron (`back` takes a link element), id and meta, title, actions, `facts` for the strip of Facts under the title (at most six; the rest go in the rail), and `below` for a persistent state strip.
+The head of a record page, two lines: the trail, its parents and then the record's id as the current crumb, which is the way back; and the title's line, the name with a word of meta after it and the actions at the end. Jira's issue header is the model, the key as the last crumb and the summary under it; Carbon allows the current page as the last, unlinked crumb; Atlassian's page header puts breadcrumbs over the title and actions beside it. This one keeps the tabs for the [ShowPage](?path=/docs/patterns-pages--docs), draws no back chevron because the trail is the way back, and shows at most six facts under the title; the rest are the rail's.
 
 <Canvas of={Stories.RecordHeaderMatrix} />
+
+## Anatomy
+
+| Part       | What it is                                                                                                    |
+| ---------- | ------------------------------------------------------------------------------------------------------------- |
+| Breadcrumb | Above the row when the page is a sub-page of a record, starting on the title's column.                        |
+| Id         | The record's id before the title's line, `font.body` in `color.text.subtle`.                                  |
+| Meta       | After the id, `font.body.small` subtle: the state as a Badge, the baseline, when it was updated. A few words. |
+| Title      | The record's name, the h1, `font.heading.small` semibold.                                                     |
+| Actions    | At the end of the row: one primary and at most two beside it, the rest behind a menu.                         |
+| Facts      | Under the title, above a rule: a Fact.Group of at most six, the ones the reader acts on.                      |
+| Below      | A persistent strip under everything: a lifecycle Stepper, an ActionBar, a Tabs strip on a sub-page.           |
+
+## Variants
+
+RecordHeader has one appearance. What varies is what it carries:
+
+| Header            | Use                                                                                                   |
+| ----------------- | ----------------------------------------------------------------------------------------------------- |
+| Id and title      | A record in a preview, a finding under its parent.                                                    |
+| With back         | Every record page: the chevron returns to the list.                                                   |
+| With facts        | A record whose six facts decide what the reader does next: the requirement's owner, method and state. |
+| With a breadcrumb | A sub-page of a record: the program, then its matrix.                                                 |
+| With a strip      | A record with a lifecycle: the program's RMF steps, the finding's ActionBar.                          |
+
+Not built, and why: a back chevron, because the trail is the way back and a second control for it is a second stop; a line for the id, because the trail already ends with it; a hero or an avatar (Carbon), because a record is its id and its name; a subtitle that wraps, because the meta is a word and the facts are the rest; tabs inside the header (Carbon), because the strip is the ShowPage's so it can run the full width; a status in the title line as its own slot, because a Badge in `meta` is that.
+
+## Sizes
+
+One size: the title is `font.heading.small` (18px), a step under the index's, because a record is one of many and its name may be long. The header is as wide as the page; the facts wrap past the measure.
+
+<Canvas of={Stories.RecordHeaderMatrix} />
+
+## States
+
+A header has no state. The record's state is a Badge in `meta`, a Stepper in `below`, or a Fact.
+
+## Modifiers
+
+- **`crumbs`**, **`id`**, **`title`**, **`meta`**, **`actions`**, **`facts`**, **`below`** as in Anatomy. `breadcrumb` and `back` are deprecated: the header builds the trail from the crumbs and the id, and the trail is the way back.
+
+## Content
+
+- **The title is the record's name** as it reads in its list: "Atlas payments platform", "The gateway shall encrypt telemetry in transit".
+- **The meta is a word or a Badge**: the state, the baseline, "Updated 2h ago". Never a sentence.
+- **At most six facts**, the ones that decide the next action; everything else goes in the rail's Inspector.
+- **One primary action**, and past two the rest are a menu. A danger action is never in the row.
+- **The trail ends with the id**, unlinked, after the parents: "Programs, PRG-1041" over a program; "Programs, Atlas payments platform, PRG-1041" over its matrix. The title is the name.
+
+## Style
+
+| Element | Token                                                                                                                       |
+| ------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Back    | `dimension.control.xsmall` square · `radius.medium` · `color.icon.subtle` · hover `color.background.neutral.subtle.hovered` |
+| Id      | `font.body` · `color.text.subtle`                                                                                           |
+| Meta    | `font.body.small` · `color.text.subtle` · `space.100` after the id                                                          |
+| Title   | `font.heading.small` semibold · `color.text`                                                                                |
+| Facts   | Fact.Group · `color.border` rule above · `space.100` under the rule                                                         |
+| Layout  | `space.150` between the rows and before the back chevron · `space.025` between id and title · `space.100` between actions   |
+
+## Accessibility
+
+- **The title's line is the page's `h1`**: the name and the meta are read as one heading, "Atlas payments platform, In assessment".
+- **The trail is a `nav`** named "Breadcrumb", read before the heading; its last crumb is the id, marked as the current page, and the one before it is the way back.
+- **The facts are a list of terms and values**, read in order after the title.
+- **The actions are their own stops** after the title, in reading order; the primary is last among them, as in a form.
 
 ## Props
 
 <ArgTypes of={RecordHeader} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
 - [Pages](?path=/docs/patterns-pages--docs): the ShowPage it heads.
 - [PageHeader](?path=/docs/patterns-pageheader--docs): the header of an index.
+- [Fact](?path=/docs/components-fact--docs): the strip under the title.
+- [Breadcrumb](?path=/docs/components-breadcrumb--docs): the trail above it.
 - [PreviewSheet](?path=/docs/patterns-previewsheet--docs): its header is the compact RecordHeader.
+
+## Don't
+
+<Canvas of={Stories.Dont} />
