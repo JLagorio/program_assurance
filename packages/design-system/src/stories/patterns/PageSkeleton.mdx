@@ -7,7 +7,7 @@ import * as Stories from "./PageSkeleton.stories";
 
 # PageSkeleton
 
-What a screen looks like before its data arrives: a title and a line, a tab strip, then a table's worth of rows, in the [Skeleton](?path=/docs/components-skeleton--docs)'s shapes. The router shows it for every route that is still loading, so it is the shape most pages share, an index. Carbon draws a skeleton per component and says a page loads progressively; a section that loads on its own draws its own Skeleton inside a page that has already landed.
+What a screen looks like before its data arrives: a title and a line, a tab strip, then a table's worth of rows, in the [Skeleton](?path=/docs/components-skeleton--docs)'s shapes. The router shows it for every route that is still loading, so it is the shape most pages share, an index. A page loads progressively; a section that loads on its own draws its own Skeleton inside a page that has already landed.
 
 <Canvas of={Stories.PageSkeletonMatrix} />
 
@@ -21,7 +21,7 @@ What a screen looks like before its data arrives: a title and a line, a tab stri
 
 ## Variants
 
-One skeleton. Not built, and why: a record variant with a facts strip and a rail, because the router shows one skeleton before it knows the route's shape, and a record's first paint lands within the same 150ms; per-section skeletons (Carbon), because those are the sections' own, drawn from Skeleton where they load.
+One skeleton. Not built, and why: a record variant with a facts strip and a rail, because the router shows one skeleton before it knows the route's shape, and a record's first paint lands within the same 150ms; per-section skeletons, because those are the sections' own, drawn from Skeleton where they load.
 
 ## Sizes
 

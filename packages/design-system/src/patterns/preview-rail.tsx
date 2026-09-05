@@ -5,9 +5,8 @@ import { IconButton } from "../components/button";
 import { Id } from "../components/id";
 import { Eyebrow } from "../components/typography";
 
-/* Reference material. Neither Carbon nor Atlassian publishes a rail beside a table; Jira's issue
-   detail beside its list is the nearest thing, a panel with the key, the summary and the way to
-   the full issue. This is that: the rail's head is the compact record header the PreviewSheet
+/* A rail beside a table: a panel with the key, the summary and the way to the full record. The
+   rail's head is the compact record header the PreviewSheet
    also draws (the Preview eyebrow, the id, one status; the title; the meta line) so a record reads
    the same on every rung, and the way to the record is a link, never a button. */
 

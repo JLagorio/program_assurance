@@ -7,7 +7,7 @@ import * as Stories from "./Alert.stories";
 
 # Alert
 
-A tinted callout in a rail or above a table: a Dot, a title in the tone's colour, an optional body and one action. It says something about the record or the rows it sits beside, it loads with the page, and it goes when it is no longer true. Carbon calls this a callout, Atlassian a section message, Base Web a banner.
+A tinted callout in a rail or above a table: a Dot, a title in the tone's colour, an optional body and one action. It says something about the record or the rows it sits beside, it loads with the page, and it goes when it is no longer true. Other names for it: a callout, a section message, an inline notification.
 
 It is one of three messages. A message about the whole site is a [Banner](?path=/docs/components-banner--docs) in the shell's banner area. Feedback after an act, saved, submitted, failed, is a toast from the [Toaster](?path=/docs/components-toaster--docs) and goes on its own. An Alert is neither: it is a fact about what the reader is looking at.
 
@@ -45,7 +45,7 @@ Which message:
 | The conditions a record still needs | [Gates](?path=/docs/components-gates--docs), one row per condition, not one alert each. |
 | A problem in one field              | The Field's error.                                                                      |
 
-There is no dismiss. Carbon's inline notification has a close and its callout does not, and an Alert is the callout: it is true until the record changes. What can be dismissed is feedback, and that is a toast. There is no icon per tone either, which Carbon, Atlassian and Base Web all draw: the kit's status mark is the Dot, the same one a Badge's Indicator carries, and the Banner is the one exception because a 6px dot vanishes on a 48px bold bar.
+There is no dismiss. An Alert has no close: it is true until the record changes. What can be dismissed is feedback, and that is a toast. There is no icon per tone either: the kit's status mark is the Dot, the same one a Badge's Indicator carries, and the Banner is the one exception because a 6px dot vanishes on a 48px bold bar.
 
 ## Sizes
 
@@ -94,7 +94,7 @@ The tone table is Badge's, so a tone means one thing everywhere: the same warnin
 ## Accessibility
 
 - **A danger Alert is `role="alert"`**, announced at once; the rest are `role="status"`, announced politely. Both are live regions, so an Alert that appears after the page loads is read without focus moving.
-- **Not focusable.** Only the action takes focus, in reading order. Carbon says the same: inline notifications do not receive focus.
+- **Not focusable.** Only the action takes focus, in reading order.
 - **Colour is not alone.** The title says what is wrong in words, the Dot marks the tone, the role says its urgency.
 - **One per place.** Two live regions announcing together are noise. One Alert per rail or table; several facts are several sentences in one.
 

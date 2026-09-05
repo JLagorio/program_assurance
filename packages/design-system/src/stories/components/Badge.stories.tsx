@@ -215,7 +215,7 @@ export const Dont: Story = {
             <Badge tone="warning">Analysis</Badge>
           </Inline>
         }
-        dontText="A colour per category, which Carbon allows and this kit does not: here a tone is a status, and a reader would look for what is wrong with Analysis."
+        dontText="A colour per category: here a tone is a status, and a reader would look for what is wrong with Analysis."
       />
       <Pair
         do={
@@ -229,7 +229,7 @@ export const Dont: Story = {
             SVC-PAY-01
           </Badge>
         }
-        dontText="A badge with a click. It is not focusable, says nothing about where it goes, and Carbon says the same: no tags as links."
+        dontText="A badge with a click. It is not focusable, says nothing about where it goes: no tags as links."
       />
     </Stack>
   ),

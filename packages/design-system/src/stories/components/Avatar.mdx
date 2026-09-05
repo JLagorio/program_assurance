@@ -7,7 +7,7 @@ import * as Stories from "./Avatar.stories";
 
 # Avatar
 
-A mark that a person is meant: initials in a circle, or a photo when there is one, named by the full name. Five sizes, from a 16px mark beside a name to a 64px portrait on a profile. Neutral by default, so a person never reads as a status; tinted, bold or a gradient when a surface wants people told apart at a glance, in a hue drawn from the name and stable for that person everywhere. `Person` is the avatar with the name written beside it, which is how a person appears in a row, a fact or a rail. `Avatar.Stack` is up to four overlapping and a +n. Atlassian's Avatar and AvatarGroup and Base Web's Avatar are the models.
+A mark that a person is meant: initials in a circle, or a photo when there is one, named by the full name. Five sizes, from a 16px mark beside a name to a 64px portrait on a profile. Neutral by default, so a person never reads as a status; tinted, bold or a gradient when a surface wants people told apart at a glance, in a hue drawn from the name and stable for that person everywhere. `Person` is the avatar with the name written beside it, which is how a person appears in a row, a fact or a rail. `Avatar.Stack` is up to four overlapping and a +n.
 
 <Canvas of={Stories.AvatarMatrix} />
 
@@ -31,11 +31,11 @@ A mark that a person is meant: initials in a circle, or a photo when there is on
 | `gradient`     | Two neighbouring hues blended, inverse text: the same weight as bold with more life, for a profile or a persona.                                           |
 | `Person`       | The circle and the name. The owner column, the assessor fact, the rail row.                                                                                |
 | `Avatar.Stack` | The people on a thing: reviewers, a team. Four and a +n.                                                                                                   |
-| `square`       | A thing, not a person: a system, a program, a team, pinned to one `hue` or given its photo. Atlassian draws teams and projects square for the same reason. |
+| `square`       | A thing, not a person: a system, a program, a team, pinned to one `hue` or given its photo. |
 
 The hue is drawn from the name, one of six, so Dana is the same blue on every page; `hue` pins it for a thing that has a colour. The accent colours carry no meaning, and the six are not the status tones: a green avatar is not "done".
 
-Not built, and why: presence and status marks on the circle (Atlassian), because a person's state is a fact about the record, not about them; a menu behind the +n (Atlassian's AvatarGroup), because the group is named by every name and the record lists them; a grid of avatars (Atlassian), because a list of people is a list of Persons; sizes past 64px (Atlassian's 96 and 128), because there is no page that is one person.
+Not built, and why: presence and status marks on the circle, because a person's state is a fact about the record, not about them; a menu behind the +n, because the group is named by every name and the record lists them; a grid of avatars, because a list of people is a list of Persons; sizes past 64px, because there is no page that is one person.
 
 ## Sizes
 
@@ -47,7 +47,7 @@ Not built, and why: presence and status marks on the circle (Atlassian), because
 | `large`  | 40px   | Two, `font.body.large`     | A profile row: the avatar with the name and the role beside it.                |
 | `xlarge` | 64px   | Two, `font.heading.medium` | The top of a profile.                                                          |
 
-Atlassian's scale, 16, 24, 32, 40, at the four steps this product uses. Two initials never go below 24px: at 16px they ran into each other, so `xsmall` draws one.
+Four steps, 16, 24, 32, 40, the ones this product uses. Two initials never go below 24px: at 16px they ran into each other, so `xsmall` draws one.
 
 <Canvas of={Stories.People} />
 
@@ -87,7 +87,7 @@ The accent family is new with this component: six hues at two steps, `subtler` f
 
 ## Accessibility
 
-- **An avatar alone is an image named by the full name**, so a screen reader hears "Dana Whitfield" where sighted readers see "DW" or a photo. Base Web names its fallback the same way. The photo itself is presentational inside it.
+- **An avatar alone is an image named by the full name**, so a screen reader hears "Dana Whitfield" where sighted readers see "DW" or a photo. The photo itself is presentational inside it.
 - **In a Person the circle is hidden** and the name is text, read once.
 - **A stack is a group named by every name**, so the +n hides no one; the circles inside are hidden.
 - **Initials are never the name.** Pass the full name and let the component abbreviate; two people can share initials and the title and the label must tell them apart.

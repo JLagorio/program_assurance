@@ -6,11 +6,10 @@ import { Spinner } from "./spinner";
 import { Tooltip } from "./tooltip";
 
 /**
- * A button starts an action. The recipe is Atlassian's: a fill per variant with hovered and
- * pressed tokens, disabled as its own tokens rather than an opacity, one focus outline. The look
- * is Ledger's: primary is the brand bold fill with a flat face; secondary is the raised surface
- * with the raised shadow (the hairline-and-soft-drop button) rather than Atlassian's translucent
- * neutral fill. Navigation that reads as text is TextLink, not a Button.
+ * A button starts an action. The recipe: a fill per variant with hovered and pressed tokens,
+ * disabled as its own tokens rather than an opacity, one focus outline. Primary is the brand bold
+ * fill with a flat face; secondary is the raised surface with the raised shadow (the
+ * hairline-and-soft-drop button). Navigation that reads as text is TextLink, not a Button.
  */
 
 export type ButtonVariant = "primary" | "secondary" | "subtle" | "danger" | "link";

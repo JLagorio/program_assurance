@@ -3,7 +3,7 @@ import { useState, type CSSProperties } from "react";
 import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
 
-/* Reference material. The circle is a mark that a person is meant: initials by default, a photo when
+/* The circle is a mark that a person is meant: initials by default, a photo when
    there is one, in five sizes. Colour is opt-in. Neutral is the default so a person never reads as a
    status; tinted, bold and gradient take a hue from the name, stable per person, from the accent
    colours, which carry no meaning. */

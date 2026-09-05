@@ -2,9 +2,7 @@ import type { ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 
-/* Reference material. Atlassian's ButtonGroup spaces buttons; Carbon groups them by importance;
-   Base Web's selects among them. This one joins them: buttons that are one control read as one,
-   the corners meeting and a hairline between. Spaced actions are an Inline; a choice among views
+/* Buttons that are one control read as one: the corners meeting and a hairline between. Spaced actions are an Inline; a choice among views
    is a ToggleGroup. */
 
 export type ButtonGroupProps = {

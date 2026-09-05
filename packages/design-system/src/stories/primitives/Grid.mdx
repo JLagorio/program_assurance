@@ -7,7 +7,7 @@ import * as Stories from "./Grid.stories";
 
 # Grid
 
-Columns and rows on a template. The template is a string, the CSS value itself, or one string per breakpoint; the gaps are tokens. It is the primitive for a layout with widths: a main column and a rail, a label column and a value column, cards of equal width, a form's fields in two columns that become one on a narrow page. Atlassian's Grid is the model, with one addition, the template per breakpoint, which travels as a CSS variable a static class reads, so a page never writes an arbitrary class. Carbon's 2x Grid is a page grid, 4, 8 and 16 columns by breakpoint with 16px gutters, the job the Shell's areas do here; Base Web's FlexGrid takes a column count per breakpoint as an array.
+Columns and rows on a template. The template is a string, the CSS value itself, or one string per breakpoint; the gaps are tokens. It is the primitive for a layout with widths: a main column and a rail, a label column and a value column, cards of equal width, a form's fields in two columns that become one on a narrow page. The one thing past a plain grid is the template per breakpoint, which travels as a CSS variable a static class reads, so a page never writes an arbitrary class. A page grid with gutters and margins is the Shell's areas' job, not this.
 
 <Canvas of={Stories.GridMatrix} />
 
@@ -31,7 +31,7 @@ Columns and rows on a template. The template is a string, the CSS value itself, 
 | Named areas      | `templateAreas` with `templateRows`: a head over two columns, a form with a full-width row.                                       |
 | Responsive       | One template per breakpoint: one column, two from `md`, main and rail from `lg`.                                                  |
 
-Not built, and why: a column count per breakpoint as a number (Base Web; the template says the widths as well as the count, and `repeat(3, minmax(0, 1fr))` is one string); a page grid with gutters and margins (Carbon's 2x Grid; the Shell's areas and the page's gutter tokens do this, and a page here is a form or a register, not a magazine); `justifyItems` and `alignContent` (Atlassian has them; no layout here has needed them, and a cell that sits differently carries its own class); `templateAreas` as an array of rows (Atlassian; one string is the CSS value, and the reader can paste it).
+Not built, and why: a column count per breakpoint as a number (the template says the widths as well as the count, and `repeat(3, minmax(0, 1fr))` is one string); a page grid with gutters and margins (the Shell's areas and the page's gutter tokens do this, and a page here is a form or a register, not a magazine); `justifyItems` and `alignContent` (no layout here has needed them, and a cell that sits differently carries its own class); `templateAreas` as an array of rows (one string is the CSS value, and the reader can paste it).
 
 ## Sizes
 

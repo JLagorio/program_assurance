@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 
 import { Count } from "../components/badge";
 
-/* Reference material. A region of work: a heading with a count or an action, a rule above it,
-   and the work under it, always open. Carbon's accordion says not to fold content the reader
-   will read; a block is that content. Collapsible is its closed twin for reference; Section is
+/* A region of work: a heading with a count or an action, a rule above it,
+   and the work under it, always open. Content the reader will read is never folded; a block is
+   that content. Collapsible is its closed twin for reference; Section is
    the plain region for what the reader reads. None takes an explanation under the heading. */
 
 export type BlockProps = {

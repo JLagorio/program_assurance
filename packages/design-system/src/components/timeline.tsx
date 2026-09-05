@@ -12,8 +12,8 @@ import { cn } from "../lib/cn";
 import { Dot, toneClasses, type Tone } from "./badge";
 import { Eyebrow } from "./typography";
 
-/* Reference material. Events in order along one rail: activity, history, an audit trail, a run
-   of releases. None of the three references has one; the anatomy follows Item, so a row that opens
+/* Events in order along one rail: activity, history, an audit trail, a run
+   of releases. The anatomy follows Item, so a row that opens
    is its title stretched over the row, with the marker on the rail. Down the page the list is one
    grid the rows share (time · marker · body), and every row draws its own piece of the rail in the
    marker column, so the rail runs through the markers' centre whatever the size and wherever the

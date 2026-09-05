@@ -172,7 +172,7 @@ export const Dont: Story = {
             </Text>
           </Stack>
         }
-        doText="Running text is neutral. Colour says something: the danger line is a fact with a tone. Carbon's rule."
+        doText="Running text is neutral. Colour says something: the danger line is a fact with a tone."
         dont={
           <Stack space="space.050">
             <Text as="p" color="color.text.brand">

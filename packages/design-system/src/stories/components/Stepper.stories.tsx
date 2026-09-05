@@ -195,7 +195,7 @@ export const Dont: Story = {
             <Stepper.Item state="upcoming" label="Approved" />
           </Stepper>
         }
-        dontText="Two steps. Carbon draws the line at three; a thing that is drafted or approved is a Badge, not a path."
+        dontText="Two steps. The line is three; a thing that is drafted or approved is a Badge, not a path."
       />
       <Pair
         do={
@@ -229,7 +229,7 @@ export const Dont: Story = {
             </Stepper>
           </Box>
         }
-        doText="In a rail or a panel, vertical: Carbon's preference wherever it fits."
+        doText="In a rail or a panel, vertical: preferred wherever it fits."
         dont={
           <Box style={{ width: 220 }} className="overflow-hidden">
             <Stepper label="Request" style={{ minWidth: 0 }}>

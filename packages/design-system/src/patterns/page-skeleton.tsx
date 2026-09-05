@@ -1,7 +1,7 @@
 import { Skeleton } from "../components/skeleton";
 
-/* Reference material. Carbon draws a skeleton per component and says a page loads progressively;
-   this is the one page skeleton the router shows before any route's data: the head of an index
+/* A page loads progressively, and a section that loads on its own draws its own Skeleton; this is
+   the one page skeleton the router shows before any route's data: the head of an index
    (a title, a line), its tab strip, and a table's worth of rows, in the Skeleton's shapes so the
    real page lands on the same lines. */
 

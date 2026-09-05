@@ -100,7 +100,7 @@ export const Dont: Story = {
             <Spinner size="large" />
           </Box>
         }
-        dontText="A spinner where content will be. The layout arrives all at once and shifts. Carbon: skeletons for progressive loads, a spinner for an action."
+        dontText="A spinner where content will be. The layout arrives all at once and shifts. Skeletons for progressive loads, a spinner for an action."
       />
       <Pair
         do={

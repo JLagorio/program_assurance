@@ -2,13 +2,10 @@ import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 
 
 import { cn } from "../lib/cn";
 
-/* Reference material. Carbon's empty state is an optional image, a title as a positive statement,
-   a body that says what to do, a primary action and a secondary link, left-aligned as a block,
-   replacing the element that would have shown; in a small container (a tile, a side panel) the
-   image sits above the text and goes when space is tight, and several empties in view take
-   tertiary buttons. Atlassian's is the same with three actions, a `narrow` width and an `xsmall`
-   heading "for empty states in smaller contexts". HubSpot's has an image beside the text
-   (`horizontal`, the default) or above it. This is that in two sizes: the block that replaces a
+/* An empty state is a title as a positive statement, a body that says what to do, a primary
+   action and a secondary link, left-aligned as a block, replacing the element that would have
+   shown; in a small container (a card, a rail, a panel) the icon sits beside the text and goes
+   when space is tight, and several empties in view take tertiary buttons. Two sizes: the block that replaces a
    table, in a dashed frame so an empty region reads as a region; and the compact block inside a
    card, a rail or a panel, the icon beside the text, with no frame because the card is the frame. */
 

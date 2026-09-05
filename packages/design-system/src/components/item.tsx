@@ -13,7 +13,7 @@ import { cn } from "../lib/cn";
 import { Count } from "./badge";
 import { Id } from "./id";
 
-/* Reference material. Every row is six cells on one grid: toggle · leading · id · body · trailing ·
+/* Every row is six cells on one grid: toggle · leading · id · body · trailing ·
    actions. A group is the grid and each row a subgrid of it, so marks, ids and dates make columns
    whatever each row carries, and what a row discloses starts under its title. The interactive element
    is the title, stretched over the row by a pseudo-element; the toggle and the actions sit beside it,

@@ -3,9 +3,7 @@ import { Command } from "../components/command";
 import { Id } from "../components/id";
 import { CommandKeys } from "../lib/command-keys";
 
-/* Reference material. Atlassian's issue picker and Carbon's combo box find one record by name
-   and show the key beside it; Jira's "link issue" dialog adds a status. This is that as a
-   Command.Dialog: the id, the title with its meta under it, one badge at the end, the count of
+/* Finds one record by name and shows the key beside it, with its status, as a Command.Dialog: the id, the title with its meta under it, one badge at the end, the count of
    matches in the field and a footer of keys. It picks one and closes; choosing many by attribute
    is the PickerSheet. */
 

@@ -7,7 +7,7 @@ import * as Stories from "./Panel.stories";
 
 # Panel
 
-The surface inside the shell's Panel area, beside the page under the top nav. Two uses. The detail of a selected row beside its table: it comes with the selection and goes when it clears, has no title and no close because the row names it, and is `flush` so the Inspector inside runs its rules edge to edge. And a panel the reader opens, a thread, a history, a form: a header with the title, up to two actions and the close, a subheader that stays put, a footer for the form's buttons, and `Panel.Trigger` in the toolbar to open it. The area scrolls; the header and the footer do not. Atlassian's navigation system draws the area; Jira's issue side panel and Confluence's comments panel are the two uses. It is neither the record's rail, which is the ShowPage's beside the overview tab, nor the peek, which is a Sheet.
+The surface inside the shell's Panel area, beside the page under the top nav. Two uses. The detail of a selected row beside its table: it comes with the selection and goes when it clears, has no title and no close because the row names it, and is `flush` so the Inspector inside runs its rules edge to edge. And a panel the reader opens, a thread, a history, a form: a header with the title, up to two actions and the close, a subheader that stays put, a footer for the form's buttons, and `Panel.Trigger` in the toolbar to open it. The area scrolls; the header and the footer do not. The shell draws the area; a record's side panel and a comments panel are the two uses. It is neither the record's rail, which is the ShowPage's beside the overview tab, nor the peek, which is a Sheet.
 
 <Canvas of={Stories.PanelStory} />
 

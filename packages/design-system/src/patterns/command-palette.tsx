@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import { Command } from "../components/command";
 import { CommandKeys } from "../lib/command-keys";
 
-/* Reference material. The ⌘K palette as Linear, Slack and Atlassian's command palette draw it:
-   a field at the top, commands under headings, a shortcut at the end of the ones that have one,
+/* The ⌘K palette: a field at the top, commands under headings, a shortcut at the end of the ones that have one,
    the chosen command run and the palette gone. The commands are plain objects the caller
    supplies, so the palette stays presentational and every page can reuse it. */
 

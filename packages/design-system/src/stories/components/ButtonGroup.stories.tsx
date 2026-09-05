@@ -144,7 +144,7 @@ export const Dont: Story = {
             <Button variant="primary">Reject</Button>
           </ButtonGroup>
         }
-        dontText="Two decisions joined as one, both primary. Carbon: one high-emphasis button in a group."
+        dontText="Two decisions joined as one, both primary. One high-emphasis button in a group."
       />
       <Pair
         do={

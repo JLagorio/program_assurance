@@ -7,7 +7,7 @@ import * as Stories from "./RecordHeader.stories";
 
 # RecordHeader
 
-The head of a record page, two lines: the trail, its parents and then the record's id as the current crumb, which is the way back; and the title's line, the name with a word of meta after it and the actions at the end. Jira's issue header is the model, the key as the last crumb and the summary under it; Carbon allows the current page as the last, unlinked crumb; Atlassian's page header puts breadcrumbs over the title and actions beside it. This one keeps the tabs for the [ShowPage](?path=/docs/patterns-pages--docs), draws no back chevron because the trail is the way back, and shows at most six facts under the title; the rest are the rail's.
+The head of a record page, two lines: the trail, its parents and then the record's id as the current crumb, which is the way back; and the title's line, the name with a word of meta after it and the actions at the end. The record's id is the last crumb, unlinked, and the title sits under it with the actions beside. This one keeps the tabs for the [ShowPage](?path=/docs/patterns-pages--docs), draws no back chevron because the trail is the way back, and shows at most six facts under the title; the rest are the rail's.
 
 <Canvas of={Stories.RecordHeaderMatrix} />
 
@@ -35,7 +35,7 @@ RecordHeader has one appearance. What varies is what it carries:
 | With a breadcrumb | A sub-page of a record: the program, then its matrix.                                                 |
 | With a strip      | A record with a lifecycle: the program's RMF steps, the finding's ActionBar.                          |
 
-Not built, and why: a back chevron, because the trail is the way back and a second control for it is a second stop; a line for the id, because the trail already ends with it; a hero or an avatar (Carbon), because a record is its id and its name; a subtitle that wraps, because the meta is a word and the facts are the rest; tabs inside the header (Carbon), because the strip is the ShowPage's so it can run the full width; a status in the title line as its own slot, because a Badge in `meta` is that.
+Not built, and why: a back chevron, because the trail is the way back and a second control for it is a second stop; a line for the id, because the trail already ends with it; a hero or an avatar, because a record is its id and its name; a subtitle that wraps, because the meta is a word and the facts are the rest; tabs inside the header, because the strip is the ShowPage's so it can run the full width; a status in the title line as its own slot, because a Badge in `meta` is that.
 
 ## Sizes
 

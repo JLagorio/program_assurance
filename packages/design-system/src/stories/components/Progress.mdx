@@ -7,7 +7,7 @@ import * as Stories from "./Progress.stories";
 
 # Progress
 
-One value out of 100 as a thin bar, or a Stacked bar of segments for a coverage read-out. It measures the record, not the system: how much of the scope is verified, how much of a plan is done, how a register splits by status. A wait is a [Spinner](?path=/docs/components-spinner--docs) or a [Skeleton](?path=/docs/components-skeleton--docs). Carbon's and Base Web's progress bars and Atlassian's ProgressBar are the models for the bar; the stacked bar is the kit's own.
+One value out of 100 as a thin bar, or a Stacked bar of segments for a coverage read-out. It measures the record, not the system: how much of the scope is verified, how much of a plan is done, how a register splits by status. A wait is a [Spinner](?path=/docs/components-spinner--docs) or a [Skeleton](?path=/docs/components-skeleton--docs).
 
 <Canvas of={Stories.ProgressMatrix} />
 
@@ -28,7 +28,7 @@ One value out of 100 as a thin bar, or a Stacked bar of segments for a coverage 
 | `Progress`         | One value: how far along, how much of the whole. A single fill in one tone.                                        |
 | `Progress.Stacked` | Parts of one whole: satisfied, partial, other, not assessed. Each part its own tone; a hole in the record hatched. |
 
-Not built, and why: no indeterminate bar, which all three references have, because the kit's wait is a Spinner and a repeating sweep needs a duration the motion tokens do not have yet; no steps (Base Web's stepped bar), which is a [Stepper](?path=/docs/components-stepper--docs); no label above and helper text below (Carbon), because a bar in this kit sits in a row that already has its name; no status icon at the end (Carbon's check and error), because the tone and the read-out say it.
+Not built, and why: no indeterminate bar, because the kit's wait is a Spinner and a repeating sweep needs a duration the motion tokens do not have yet; no steps, which is a [Stepper](?path=/docs/components-stepper--docs); no label above and helper text below, because a bar in this kit sits in a row that already has its name; no status icon at the end, because the tone and the read-out say it.
 
 ## Sizes
 
@@ -38,7 +38,7 @@ Not built, and why: no indeterminate bar, which all three references have, becau
 | `medium` | 6px    | The default of a bar: a rail, a form, a row of a list.                                     |
 | `large`  | 8px    | The default of a stacked bar: a Section's coverage band, where the segments need the room. |
 
-The two defaults differ on purpose: a single fill reads at 6px and a stacked bar's small segments do not. Width is the column's. Carbon keeps a bar to six grid columns and at least 48px; a band across a Section is the one place a bar spans the page.
+The two defaults differ on purpose: a single fill reads at 6px and a stacked bar's small segments do not. Width is the column's. A bar is at least 48px; a band across a Section is the one place a bar spans the page.
 
 ## States
 
@@ -86,7 +86,7 @@ The fill is Badge's bold fill and the hatch is Badge's icon colour, so a bar and
 - **A bar with `label` is a progressbar** (Radix): `aria-valuenow`, `aria-valuemin` 0 and `aria-valuemax` 100, and `aria-valuetext` when `valueText` is given. **A bar without one is hidden**, and the number beside it carries the value. One of the two must be there; a bar alone says nothing to anyone.
 - **A stacked bar with `label` is an image** whose name lists its segments: "Control coverage: 298 satisfied, 40 partial, 26 other than satisfied, 8 not assessed". When its segments click, it is a group of buttons named by their titles. Without a label it is hidden, so the counts beside it must be visible.
 - **A hatched segment is a pattern, not only a colour**, so not-covered reads without colour.
-- **Not keyboard-operable**, as Carbon's; only clickable segments take focus.
+- **Not keyboard-operable**; only clickable segments take focus.
 
 ## Props
 

@@ -10,10 +10,10 @@ import {
 import { cn } from "../lib/cn";
 import { spaceClasses, type LayoutElement, type SpaceToken } from "./tokens";
 
-/* Reference material. Atlassian's Inline: `space`, `rowSpace` when wrapping, `alignBlock` with
-   baseline, `alignInline`, `spread`, `grow`, `shouldWrap`, and `separator`, a string rendered
-   between children, with the note to avoid it on a list element. Here the same, plus `display`
-   for a row that sits inside a run of text, and no `style`: a computed dimension is a Box's. */
+/* Inline: `space`, `rowSpace` when wrapping, `alignBlock` with baseline, `alignInline`, `spread`,
+   `grow`, `shouldWrap`, and `separator`, a string rendered between children, never on a list
+   element. Plus `display` for a row that sits inside a run of text, and no `style`: a computed
+   dimension is a Box's. */
 
 const alignBlock = {
   start: "items-start",

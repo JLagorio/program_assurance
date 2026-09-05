@@ -7,7 +7,7 @@ import * as Stories from "./Shell.stories";
 
 # Shell
 
-The navigation system: how a reader gets around a product. `Shell` is the root, and its areas are its immediate children in a fixed order, which is also the keyboard, landmark and skip-link order: **Banner, TopNav, SideNav, Main, Panel**. The package owns the areas and how they behave: the side nav collapses, resizes, flies out on hover and overlays the page on a narrow viewport, the panel resizes and overlays, the banner pushes everything down. The product owns what goes in them: the nav data, the router, the search, the actions, whatever fills the panel. Every product on the system shares one brand and one behaviour, and brings its own name and mark. Atlassian's navigation system is the grammar, area for area and slot for slot; Carbon's UI shell is the header, the left panel and the right panel, and its rules on what goes where are borrowed; Base Web's header and side navigation are the parts.
+The navigation system: how a reader gets around a product. `Shell` is the root, and its areas are its immediate children in a fixed order, which is also the keyboard, landmark and skip-link order: **Banner, TopNav, SideNav, Main, Panel**. The package owns the areas and how they behave: the side nav collapses, resizes, flies out on hover and overlays the page on a narrow viewport, the panel resizes and overlays, the banner pushes everything down. The product owns what goes in them: the nav data, the router, the search, the actions, whatever fills the panel. Every product on the system shares one brand and one behaviour, and brings its own name and mark.
 
 <Canvas of={Stories.Frame} />
 
@@ -66,7 +66,7 @@ The frame has one appearance. What varies is which areas are on and how the side
 
 <Canvas of={Stories.Collapsed} />
 
-Not built, and why: a rail of icons for the collapsed side nav (Carbon's left panel), because a collapsed nav is hidden and the flyout is one hover away; the panel as a feature the shell knows (Carbon's right panel anchored to a header icon), because the panel is an area the product fills, with the record's rail, the peek and the detail of a row all its own; header links in the top nav (Carbon's header navigation), because the side nav is the product's navigation and the top nav is for getting around the system; a third level of side nav items, because Carbon's left panel stops at two and past that the page's tabs are the level.
+Not built, and why: a rail of icons for the collapsed side nav, because a collapsed nav is hidden and the flyout is one hover away; the panel as a feature the shell knows, anchored to a header icon, because the panel is an area the product fills, with the record's rail, the peek and the detail of a row all its own; header links in the top nav, because the side nav is the product's navigation and the top nav is for getting around the system; a third level of side nav items, because the nav stops at two and past that the page's tabs are the level.
 
 ## Sizes
 
@@ -111,7 +111,7 @@ Not built, and why: a rail of icons for the collapsed side nav (Carbon's left pa
 ## Content
 
 - **The side nav holds objects and queues**: Programs, Findings, My queue, Evidence. Never phases; a phase is a state of a program, reached by opening it.
-- **Items are nouns**, the kind of thing behind them; Carbon says the same of header links: no verbs, nothing that reads as an action.
+- **Items are nouns**, the kind of thing behind them: no verbs, nothing that reads as an action.
 - **Section headings are the product's areas**: Work, Risk, Libraries, System. An eyebrow, one or two words.
 - **A badge is a count**: how many wait in the queue. Grey, so the column stays quiet; a tone only when the count is an alarm.
 - **The landmarks say what is in them**: "Preview", "Comments", "Details" on the panel; never "Panel". The side nav is "Side navigation", the top nav "Top navigation", the page "Main content", each a skip link.
@@ -134,7 +134,7 @@ Not built, and why: a rail of icons for the collapsed side nav (Carbon's left pa
 
 ## Accessibility
 
-- **Each area is a landmark with a skip link**: the banner a region, the top nav a `header`, the side nav a `nav`, the page `main`, the panel an `aside`, each named by its `label` and each first in a "Skip to" list of links that show on focus. Carbon's "Skip to main content" as the first focusable element, one per area.
+- **Each area is a landmark with a skip link**: the banner a region, the top nav a `header`, the side nav a `nav`, the page `main`, the panel an `aside`, each named by its `label` and each first in a "Skip to" list of links that show on focus. A "Skip to main content" link as the first focusable element, one per area.
 - **The current page says so**: `aria-current="page"` on the active item; an expandable says `aria-expanded`; the toggle says `aria-expanded` for the side nav and names the shortcut in its tooltip.
 - **Keyboard**: Ctrl+[ toggles the side nav when the shortcut is on, and not while a dialog is open; Escape closes the overlay and focus returns to the toggle; the splitters are separators that take the arrow keys, 16px a step; Tab runs the areas in their order.
 - **The flyout is hover only**, and everything in it is reachable by keyboard through the toggle: expand, use, collapse.

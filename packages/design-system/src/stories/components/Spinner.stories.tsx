@@ -129,7 +129,7 @@ export const Dont: Story = {
             <Spinner size="large" />
           </Inline>
         }
-        dontText="Several spinners at once. Carbon and Atlassian both say one: the page is either working or it is not."
+        dontText="Several spinners at once. One: the page is either working or it is not."
       />
       <Pair
         do={

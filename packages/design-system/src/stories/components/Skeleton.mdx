@@ -7,7 +7,7 @@ import * as Stories from "./Skeleton.stories";
 
 # Skeleton
 
-A placeholder in the shape of what is loading, so the layout holds still and the reader knows what is coming: a line where text will be, a circle where the avatar, a block where the chart. Carbon draws a skeleton per component and Atlassian and Base Web draw one shape in any size; this is the shape, in four kinds, sized to the thing. A page's first paint is a [PageSkeleton](?path=/docs/patterns-pageskeleton--docs) built from these; a wait on an action is a [Spinner](?path=/docs/components-spinner--docs).
+A placeholder in the shape of what is loading, so the layout holds still and the reader knows what is coming: a line where text will be, a circle where the avatar, a block where the chart. One shape in any size rather than a skeleton per component: four kinds, sized to the thing. A page's first paint is a [PageSkeleton](?path=/docs/patterns-pageskeleton--docs) built from these; a wait on an action is a [Spinner](?path=/docs/components-spinner--docs).
 
 <Canvas of={Stories.SkeletonMatrix} />
 
@@ -28,7 +28,7 @@ A placeholder in the shape of what is loading, so the layout holds still and the
 | `circle`  | `width` square, 32px by default                 | An avatar, an icon, a marker.                 |
 | `block`   | `height` tall, 96px by default, `radius.medium` | A card, a chart, an image, a table's body.    |
 
-Not built, and why: a shimmer (Atlassian, Carbon), because a pulse says the same with less motion and stops under reduced motion; per-component skeletons (Carbon's SkeletonText, SkeletonIcon), because the four shapes compose into any of them, and the compositions live where the components do (PageSkeleton, Chart's skeleton per kind); a colour prop, because the skeleton is always `color.skeleton`.
+Not built, and why: a shimmer, because a pulse says the same with less motion and stops under reduced motion; per-component skeletons, because the four shapes compose into any of them, and the compositions live where the components do (PageSkeleton, Chart's skeleton per kind); a colour prop, because the skeleton is always `color.skeleton`.
 
 ## Sizes
 
@@ -48,7 +48,7 @@ A skeleton has one state: waiting. It pulses in `motion.duration.slow` and stops
 
 - **The shape of what is coming**, in its size and its place: as many lines as the text has, a circle where the avatar sits.
 - **No more than arrives.** Six lines for a two-line note means the page shrinks when it loads.
-- **Load in place.** Carbon: a skeleton for content that arrives progressively; a Spinner for an action that has no place to hold.
+- **Load in place.** A skeleton for content that arrives progressively; a Spinner for an action that has no place to hold.
 - **Not for a wait the reader caused** (saving, exporting): that is the button's `isLoading`.
 
 ## Style

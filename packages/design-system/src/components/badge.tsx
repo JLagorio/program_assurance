@@ -6,7 +6,7 @@ import { cn } from "../lib/cn";
  * Status colour, said once. Every component that paints a status (Badge, Dot, Indicator, Count,
  * later Meter and the bars) reads this table, so a tone is one decision: the subtlest fill with
  * the tone's text on it, the bold fill with inverse text, the icon colour for a 6px dot, and the
- * fill for a bar (Progress, Stacked). Neutral's fill is neutral.bold, as Atlassian's ProgressBar.
+ * fill for a bar (Progress, Stacked). Neutral's fill is neutral.bold.
  * The names are the token names (information, not info) so a tone reads straight through to
  * `color.background.<tone>` and `color.text.<tone>`.
  */
@@ -63,7 +63,7 @@ const badgeSizes = {
 export type BadgeProps = {
   /** The status the word carries, from the tone table. `neutral` is the default, and a category or a kind is always neutral. */
   tone?: Tone | undefined;
-  /** `subtle` is the tinted fill with the tone's text (the Stripe badge, the Linear tag); `bold` is the solid fill for the one status that must win. */
+  /** `subtle` is the tinted fill with the tone's text; `bold` is the solid fill for the one status that must win. */
   appearance?: "subtle" | "bold";
   /** `small` is 20px, the default; `xsmall` is 16px, for a table row or a tab. */
   size?: keyof typeof badgeSizes;
@@ -74,7 +74,7 @@ export type BadgeProps = {
   className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"span">, "children" | "className">;
 
-/** A short status word in a soft fill: the state of a record. Atlassian calls this a Lozenge, Carbon a read-only Tag. */
+/** A short status word in a soft fill: the state of a record. Read-only: never dismissed, selected or clicked. */
 export function Badge({
   tone = "neutral",
   appearance = "subtle",
@@ -118,7 +118,7 @@ export type CountProps = {
   className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"span">, "children" | "className">;
 
-/** A number in a pill: unread items, rows in a group, results behind a filter. It is named by the label beside it. Atlassian calls this a Badge. */
+/** A number in a pill: unread items, rows in a group, results behind a filter. It is named by the label beside it. */
 export function Count({ value, max = 99, appearance = "default", className, ...rest }: CountProps) {
   const text = typeof value === "number" && value > max ? `${max}+` : String(value);
   return (

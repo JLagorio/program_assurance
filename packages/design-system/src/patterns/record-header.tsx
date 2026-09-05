@@ -4,11 +4,9 @@ import { Breadcrumb } from "../components/breadcrumb";
 import { Id } from "../components/id";
 import { Fact } from "../components/typography";
 
-/* Reference material. Jira's issue header is the model: the trail ends with the issue key and the
-   summary is the title under it. Carbon allows the current page as the last, unlinked crumb. So a
-   record's header is two lines: the trail, its parents then the record's id as the current crumb,
-   which is the way back; and the title's line, the name with a word of meta after it and the
-   actions at the end. Josef, on review: no back chevron, no line of its own for the id, never
+/* A record's header is two lines: the trail, its parents then the record's id as the current crumb,
+   unlinked, which is the way back; and the title's line, the name with a word of meta after it and
+   the actions at the end. Josef, on review: no back chevron, no line of its own for the id, never
    more than the trail and the title. The facts and a state strip are their own rows under it. */
 
 export type RecordHeaderProps = {

@@ -3,11 +3,9 @@ import type { ComponentPropsWithoutRef, ElementType, ReactNode, Ref } from "reac
 import { cn } from "../lib/cn";
 import { bleedClasses, type BleedToken, type LayoutElement } from "./tokens";
 
-/* Reference material. Atlassian's Bleed is the one primitive that writes a negative margin, on
-   `all`, `inline` or `block`, and its scale stops at space.200: a bleed escapes a padding, so it
-   is never larger than one. Carbon has no bleed; its full-width rows come from the grid's own
-   gutter modes. Here the scale is the tokens that have a negative in the source, up to
-   space.400, the page gutter, and the classes read those negative tokens. */
+/* Bleed is the one primitive that writes a negative margin, on `all`, `inline` or `block`. A bleed
+   escapes a padding, so it is never larger than one: the scale is the tokens that have a negative
+   in the source, up to space.400, the page gutter, and the classes read those negative tokens. */
 
 export type BleedProps = {
   /** The element: a container or a list part. Never a link or a button. */

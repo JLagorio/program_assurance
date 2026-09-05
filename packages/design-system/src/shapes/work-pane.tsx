@@ -4,10 +4,9 @@ import { Dot, type Tone } from "../components/badge";
 import { Id } from "../components/id";
 import { Item } from "../components/item";
 
-/* Reference material. Master-detail as mail clients and Jira's issue navigator draw it: the list
-   on the start side holds still and is the navigation, the detail on the end side changes, and
-   choosing never leaves the page. Neither Carbon nor Atlassian names it as a component; Carbon's
-   structured list with a selectable row is the nearest part. This is that: a list column at
+/* Master-detail as mail clients draw it: the list on the start side holds still and is the
+   navigation, the detail on the end side changes, and choosing never leaves the page. A list
+   column at
    `dimension.layout.list`, its rows Items that select in place, the chosen one marked, and the
    detail beside it. */
 

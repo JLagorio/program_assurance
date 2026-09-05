@@ -1468,7 +1468,7 @@
         },
         "hovered": {
           "$value": "{color.blue.700}",
-          "$description": "The brand series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+          "$description": "The brand series under the pointer: one step darker in light, one lighter in dark.",
           "$extensions": {
             "ledger": {
               "dark": "{color.blue.500}",
@@ -1490,7 +1490,7 @@
         },
         "hovered": {
           "$value": "{color.neutral.600}",
-          "$description": "The neutral series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+          "$description": "The neutral series under the pointer: one step darker in light, one lighter in dark.",
           "$extensions": {
             "ledger": {
               "dark": "{color.darkNeutral.700}",
@@ -1512,7 +1512,7 @@
         },
         "hovered": {
           "$value": "{color.blue.600}",
-          "$description": "The information series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+          "$description": "The information series under the pointer: one step darker in light, one lighter in dark.",
           "$extensions": {
             "ledger": {
               "dark": "{color.blue.400}",
@@ -1534,7 +1534,7 @@
         },
         "hovered": {
           "$value": "{color.green.700}",
-          "$description": "The success series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+          "$description": "The success series under the pointer: one step darker in light, one lighter in dark.",
           "$extensions": {
             "ledger": {
               "dark": "{color.green.500}",
@@ -1556,7 +1556,7 @@
         },
         "hovered": {
           "$value": "{color.orange.700}",
-          "$description": "The warning series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+          "$description": "The warning series under the pointer: one step darker in light, one lighter in dark.",
           "$extensions": {
             "ledger": {
               "dark": "{color.orange.500}",
@@ -1578,7 +1578,7 @@
         },
         "hovered": {
           "$value": "{color.red.700}",
-          "$description": "The danger series under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+          "$description": "The danger series under the pointer: one step darker in light, one lighter in dark.",
           "$extensions": {
             "ledger": {
               "dark": "{color.red.500}",
@@ -1612,7 +1612,7 @@
           },
           "hovered": {
             "$value": "{color.blue.700}",
-            "$description": "The categorical series 1 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+            "$description": "The categorical series 1 under the pointer: one step darker in light, one lighter in dark.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.blue.500}",
@@ -1634,7 +1634,7 @@
           },
           "hovered": {
             "$value": "{color.orange.700}",
-            "$description": "The categorical series 2 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+            "$description": "The categorical series 2 under the pointer: one step darker in light, one lighter in dark.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.orange.500}",
@@ -1656,7 +1656,7 @@
           },
           "hovered": {
             "$value": "{color.teal.700}",
-            "$description": "The categorical series 3 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+            "$description": "The categorical series 3 under the pointer: one step darker in light, one lighter in dark.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.teal.500}",
@@ -1678,7 +1678,7 @@
           },
           "hovered": {
             "$value": "{color.red.700}",
-            "$description": "The categorical series 4 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+            "$description": "The categorical series 4 under the pointer: one step darker in light, one lighter in dark.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.red.500}",
@@ -1700,7 +1700,7 @@
           },
           "hovered": {
             "$value": "{color.purple.700}",
-            "$description": "The categorical series 5 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+            "$description": "The categorical series 5 under the pointer: one step darker in light, one lighter in dark.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.purple.500}",
@@ -1722,7 +1722,7 @@
           },
           "hovered": {
             "$value": "{color.green.700}",
-            "$description": "The categorical series 6 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+            "$description": "The categorical series 6 under the pointer: one step darker in light, one lighter in dark.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.green.500}",
@@ -1744,7 +1744,7 @@
           },
           "hovered": {
             "$value": "{color.neutral.600}",
-            "$description": "The categorical series 7 under the pointer: one step darker in light, one lighter in dark, as Atlassian's chart hovered tokens.",
+            "$description": "The categorical series 7 under the pointer: one step darker in light, one lighter in dark.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.darkNeutral.700}",

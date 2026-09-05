@@ -3,9 +3,8 @@ import { useEffect, useState } from "react";
 
 import { cn } from "../lib/cn";
 
-/* Reference material. Atlassian's Spinner has five sizes on its icon scale and a delay so a fast
-   load never flashes one; Carbon's Loading is small inline or large over a section. This is three
-   sizes on the icon scale, subtle by default, inverse on a bold fill, and a delay. It is a status,
+/* Three sizes on the icon scale, subtle by default, inverse on a bold fill, and a delay so a fast
+   load never flashes one. It is a status,
    named "Loading" unless the wait has a better word. */
 
 export type SpinnerSize = "small" | "medium" | "large";

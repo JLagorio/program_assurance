@@ -7,7 +7,7 @@ import * as Stories from "./Inline.stories";
 
 # Inline
 
-A row with one gap. Children sit start to end with one space token between them, aligned on the block axis as the row says, wrapping when told to with a row space of their own. A separator is drawn between children and hidden from a screen reader. Atlassian's Inline is the model, prop for prop, including its note that a separator does not belong on a list element. Here it also renders inline-level, as a `span` with `display="inline-flex"`, so a chip and a word can sit inside a sentence.
+A row with one gap. Children sit start to end with one space token between them, aligned on the block axis as the row says, wrapping when told to with a row space of their own. A separator is drawn between children and hidden from a screen reader. A separator does not belong on a list element. Here it also renders inline-level, as a `span` with `display="inline-flex"`, so a chip and a word can sit inside a sentence.
 
 <Canvas of={Stories.InlineMatrix} />
 
@@ -34,7 +34,7 @@ A row with one gap. Children sit start to end with one space token between them,
 | In text      | `as="span" display="inline-flex"`: a chip inside a sentence, the sentence's line height kept.          |
 | List         | `as="ul"` with `as="li"` children: a list of chips, a set of links.                                    |
 
-Not built, and why: a reverse order (Atlassian has none; the tab order would run against the eye); a `separator` that is read (the dot is decoration; a list that needs its items separated for a screen reader is a list, `as="ul"`); a per-child alignment (HubSpot's `alignSelf`; a child that sits differently is in its own Inline, or is a Flex); a truncating row (the children truncate themselves with Text's `maxLines`; the row does not know which one should).
+Not built, and why: a reverse order (the tab order would run against the eye); a `separator` that is read (the dot is decoration; a list that needs its items separated for a screen reader is a list, `as="ul"`); a per-child alignment (a child that sits differently is in its own Inline, or is a Flex); a truncating row (the children truncate themselves with Text's `maxLines`; the row does not know which one should).
 
 ## Sizes
 

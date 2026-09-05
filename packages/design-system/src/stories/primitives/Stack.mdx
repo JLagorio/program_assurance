@@ -7,7 +7,7 @@ import * as Stories from "./Stack.stories";
 
 # Stack
 
-A column with one gap. Children sit top to bottom with one space token between them, and the children carry no margin of their own: the parent owns the distance, so the rhythm of a form, a rail or a page body changes in one place. Atlassian's Stack is the model: `space`, `alignBlock`, `alignInline`, `spread` and `grow`, on a `div`, a `span` or a list element. Carbon's Stack takes a gap step and an orientation and says the same thing on its spacing page: the child has no margin, the container has the distance. Here the orientation is the primitive's name; a row is an Inline.
+A column with one gap. Children sit top to bottom with one space token between them, and the children carry no margin of their own: the parent owns the distance, so the rhythm of a form, a rail or a page body changes in one place. `space`, `alignBlock`, `alignInline`, `spread` and `grow`, on a `div`, a `span` or a list element. The child has no margin; the container has the distance. Here the orientation is the primitive's name; a row is an Inline.
 
 <Canvas of={Stories.StackMatrix} />
 
@@ -29,7 +29,7 @@ A column with one gap. Children sit top to bottom with one space token between t
 | Spread column | A panel's content over its footer: `spread` with the Stack filling the panel's height.                             |
 | List         | `as="ul"` or `"ol"` with `li` children, when the rows are a list: steps, linked records, a menu of links.            |
 
-Not built, and why: a horizontal orientation (Carbon's Stack takes one; here a row is an Inline, which has what a row needs: wrapping, a separator, baseline alignment); dividers between children (Carbon has none either; a Separator is a child, and rows that want hairlines are an Item.Group); a responsive space (one token at every width; the layout that changes at a breakpoint is a Grid); a `space` per child (a different distance is a different Stack, or a Section).
+Not built, and why: a horizontal orientation (a row is an Inline, which has what a row needs: wrapping, a separator, baseline alignment); dividers between children (a Separator is a child, and rows that want hairlines are an Item.Group); a responsive space (one token at every width; the layout that changes at a breakpoint is a Grid); a `space` per child (a different distance is a different Stack, or a Section).
 
 ## Sizes
 

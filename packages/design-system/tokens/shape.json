@@ -3,7 +3,7 @@
     "$type": "dimension",
     "xsmall": {
       "$value": "2px",
-      "$description": "Draft, seeded from Linear-refined (base 5px). Checkbox, tiny chips."
+      "$description": "Draft, on a 5px base. Checkbox, tiny chips."
     },
     "small": {
       "$value": "3px",

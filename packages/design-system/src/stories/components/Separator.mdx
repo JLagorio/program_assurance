@@ -7,7 +7,7 @@ import * as Stories from "./Separator.stories";
 
 # Separator
 
-A hairline between siblings: two blocks in a stack, two groups in a toolbar. It draws `color.border` and nothing else; the space around it is the parent's. None of Carbon, Base Web or Atlassian has a divider of its own, though their menus and toolbars draw one; Radix Separator is the model for the roles, and it is what rows, menus and tables draw for themselves.
+A hairline between siblings: two blocks in a stack, two groups in a toolbar. It draws `color.border` and nothing else; the space around it is the parent's. Rows, menus and tables draw their own rules; this is the divider on its own, with Radix Separator underneath for the roles.
 
 <Canvas of={Stories.SeparatorMatrix} />
 

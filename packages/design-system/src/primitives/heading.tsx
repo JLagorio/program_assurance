@@ -3,13 +3,11 @@ import type { ComponentPropsWithoutRef, ElementType, ReactNode, Ref } from "reac
 import { cn } from "../lib/cn";
 import { classFor, type HeadingColorToken, type HeadingElement } from "./tokens";
 
-/* Reference material. Atlassian's Heading takes a required `size` (xxlarge to xxsmall) that picks
-   the text style and a default element from h1 to h6, `as` to override the element, and `color`
-   limited to `color.text`, `color.text.inverse` and `color.text.warning.inverse`, applied
-   automatically inside a Box with a bold background. Carbon's rule: the productive headings are
-   fixed sizes, and the level is semantic, chosen by the page, separate from the style. Base Web's
-   Heading components take `as` and `color`. Here: four sizes on font.heading, the default element
-   by size, the same three colours, and no `style`. */
+/* Heading takes a required `size` that picks the text style and a default element from h1 to h6,
+   `as` to override the element, and `color` limited to `color.text`, `color.text.inverse` and
+   `color.text.warning.inverse`, applied automatically inside a Box with a bold background. The
+   sizes are fixed, and the level is semantic, chosen by the page, separate from the style. Four
+   sizes on font.heading, the default element by size, the three colours, and no `style`. */
 
 const size = { large: "font-heading-large", medium: "font-heading-medium", small: "font-heading-small", xsmall: "font-heading-xsmall" } as const;
 const defaultTag = { large: "div", medium: "h1", small: "h2", xsmall: "h3" } as const;

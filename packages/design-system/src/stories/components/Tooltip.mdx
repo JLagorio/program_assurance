@@ -9,7 +9,7 @@ import * as Stories from "./Tooltip.stories";
 
 A short label on hover or focus: the name of an icon-only control, the date behind a relative time, the shortcut beside a verb. It never holds anything the reader must read to finish the task, and never a control. A peek at a record is a [HoverCard](?path=/docs/components-hovercard--docs); something to act on is a [Popover](?path=/docs/components-popover--docs); a list of actions is a [DropdownMenu](?path=/docs/components-dropdownmenu--docs).
 
-Most tooltips are not written by hand: an [IconButton](?path=/docs/components-iconbutton--docs) draws one from its `label`, and that is where nearly every tooltip in a product comes from. Carbon says the same: tooltips are embedded in the controls that need them.
+Most tooltips are not written by hand: an [IconButton](?path=/docs/components-iconbutton--docs) draws one from its `label`, and that is where nearly every tooltip in a product comes from. Tooltips belong to the controls that need them.
 
 <Canvas of={Stories.TooltipMatrix} />
 
@@ -32,14 +32,14 @@ Tooltip has one appearance. What varies is what needs one:
 | The date behind "3 days ago"   | `Tooltip` with the date on the time.                                                                                            |
 | The whole of a truncated value | Not a Tooltip: the cell's `title`, which Table sets from a plain string.                                                        |
 | Why a control is disabled      | Not a Tooltip: text beside the control. A disabled trigger has no hover and no focus, so its tooltip never shows.               |
-| A term's definition            | Not a Tooltip: the term is defined in the text or the field's hint. Carbon's definition tooltip is not built.                   |
-| Anything the reader acts on    | A Popover, which Carbon calls a toggletip.                                                                                      |
+| A term's definition            | Not a Tooltip: the term is defined in the text or the field's hint. A definition tooltip is not built.                   |
+| Anything the reader acts on    | A Popover.                                                                                      |
 
-There is no caret (Base Web draws none either), no rich tooltip with a heading and a body, and no tooltip on touch: there is no hover there, so the control's name lives in its `aria-label` and the tooltip is a courtesy for the pointer.
+There is no caret, no rich tooltip with a heading and a body, and no tooltip on touch: there is no hover there, so the control's name lives in its `aria-label` and the tooltip is a courtesy for the pointer.
 
 ## Sizes
 
-One: `font.body.small` on a surface up to 260px wide, which wraps past that. Carbon draws 208px for one line and 288px for several; one width covers both here. A tooltip that needs more than two lines is saying too much.
+One: `font.body.small` on a surface up to 260px wide, which wraps past that. One width covers one line and several. A tooltip that needs more than two lines is saying too much.
 
 <Canvas of={Stories.IconButtons} />
 
@@ -91,8 +91,8 @@ The inverse text on the bold neutral passes 4.5:1 in both modes; the contrast te
 - **It is a tooltip** (Radix): the surface has `role="tooltip"` and the trigger takes `aria-describedby`, so the text is the trigger's description. An IconButton's name is its `aria-label`; the tooltip is the same words made visible.
 - **Keyboard.** Tab to the trigger opens it; Tab away or Escape closes it. The tooltip is not focusable and holds no controls, so there is nothing else to operate.
 - **Touch** does not open it. The trigger must be understandable without it: an IconButton by its `aria-label`, a time by its text.
-- **Timing.** 300ms is long enough that a pointer crossing the toolbar does not light every button, and short enough to feel like an answer. The shared provider makes the second one instant, the way Carbon's and Atlassian's behave.
-- **A disabled trigger has no tooltip.** Carbon says the same. The reason belongs beside the control, in text.
+- **Timing.** 300ms is long enough that a pointer crossing the toolbar does not light every button, and short enough to feel like an answer. The shared provider makes the second one instant.
+- **A disabled trigger has no tooltip.** The reason belongs beside the control, in text.
 - **Not colour alone.** The tooltip is words.
 
 ## Props

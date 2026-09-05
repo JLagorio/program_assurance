@@ -9,7 +9,7 @@ import * as Stories from "./AlertDialog.stories";
 
 A decision that needs a word before it happens: archive, delete, submit for authorization, close a finding. The title asks, the description says what follows, and the two buttons are the only way out. No close button, no click on the blanket: the reader answers or cancels, so nothing irreversible happens by a slip.
 
-A task is a [Dialog](?path=/docs/components-dialog--docs); a small task at its button is a [Popover](?path=/docs/components-popover--docs). Carbon calls this the danger and transactional modal, Base Web the alert modal; the kit gives it its own part and its own rules.
+A task is a [Dialog](?path=/docs/components-dialog--docs); a small task at its button is a [Popover](?path=/docs/components-popover--docs). The kit gives it its own part and its own rules.
 
 <Canvas of={Stories.AlertDialogMatrix} />
 
@@ -40,7 +40,7 @@ AlertDialog has one appearance. What varies is the weight of the act:
 | A task with fields                            | Not an AlertDialog: a Dialog.                               |
 | Urgent information with nothing to decide     | Not an AlertDialog: an Alert or a Banner.                   |
 
-Not built, on purpose: a third button (Carbon allows one; a third choice is a Dialog with a form), an acknowledgment with one button (a Dialog does that), and a warning icon in the title: the words are the warning.
+Not built, on purpose: a third button (a third choice is a Dialog with a form), an acknowledgment with one button (a Dialog does that), and a warning icon in the title: the words are the warning.
 
 ## Sizes
 
@@ -91,7 +91,7 @@ An open dialog covers the page, so the states are one click away in the matrix a
 ## Accessibility
 
 - **It is an alert dialog** (Radix): `role="alertdialog"`, `aria-modal`, named by its title and described by its description, so a screen reader hears the question and the consequence together.
-- **Focus lands on Cancel**, whatever the tone, which is Carbon's rule for a destructive dialog and safe for the rest: Enter on arrival cancels.
+- **Focus lands on Cancel**, whatever the tone, the rule for a destructive dialog and safe for the rest: Enter on arrival cancels.
 - **The only ways out are the two buttons and Escape**, which cancels. The blanket does nothing and there is no close button, so an accidental click never decides.
 - **Pending disables Cancel and ignores Escape**, so a save is never abandoned halfway.
 - **The Open story turns off axe's `aria-hidden-focus` rule**, since Radix hides the page and axe cannot see the trap.

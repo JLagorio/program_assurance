@@ -2,8 +2,7 @@ import type { ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 
-/* Reference material. None of Carbon, Base Web or Atlassian has a key cap; GitHub's Primer and
-   shadcn do. A key is a <kbd> drawn as the cap; a chord is several caps in a Group. The glyphs are
+/* A key is a <kbd> drawn as the cap; a chord is several caps in a Group. The glyphs are
    the keyboard's (⌘ ⇧ ⌥ ↵ esc), and a glyph a screen reader would not say is given its name. */
 
 export type KbdProps = {

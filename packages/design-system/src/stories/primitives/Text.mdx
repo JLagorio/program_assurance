@@ -7,7 +7,7 @@ import * as Stories from "./Text.stories";
 
 # Text
 
-Body text on the body ramp. The size is a composite type token, so the family, the size, the leading and the tracking always agree; the weight is one of three; the colour is a text token, or inherited, so a Text inside a bold Box is inverse without being told. Atlassian's Text is the model: `as`, `size`, `weight`, `color`, `align`, `maxLines`, and a colour that inverts inside a bold fill. Carbon's productive type set is the reference for the sizes: `body-01` at 14px is the UI size there, `font.body` at 13px is the UI size here, with `label-01` and `helper-text-01` at 12px the size of `small`. Carbon's rules on colour and weight hold: running text is neutral, colour is functional, semibold is for a heading and not a paragraph. Base Web's Paragraph and Label components are the same two jobs by another name.
+Body text on the body ramp. The size is a composite type token, so the family, the size, the leading and the tracking always agree; the weight is one of three; the colour is a text token, or inherited, so a Text inside a bold Box is inverse without being told. `as`, `size`, `weight`, `color`, `align`, `maxLines`, and a colour that inverts inside a bold fill. `font.body` at 13px is the UI size; `small` at 12px is a label's and a hint's. The rules on colour and weight: running text is neutral, colour is functional, semibold is for a heading and not a paragraph.
 
 <Canvas of={Stories.TextMatrix} />
 
@@ -31,7 +31,7 @@ Body text on the body ramp. The size is a composite type token, so the family, t
 | Meta      | `small` or `xsmall`, `subtle` or `subtlest`: a date, an id, a count.                                         |
 | Emphasis  | `weight="medium"` on a word in a sentence; `as="strong"` when the emphasis is for a screen reader too.       |
 
-Not built, and why: a `bold` weight (Atlassian has one; the ramp's top is `semibold`, the page title's weight, and a paragraph above it shouts); italic (Carbon: for the titles of works and technical terms, and the product has neither in running text); an underline (a link is a TextLink; an underline that is not a link reads as one, HubSpot's own rule); a `truncate` with a tooltip (HubSpot; `maxLines` clamps, and the parent gives the full text a `title` or a Tooltip when it matters); `UNSAFE_small` (Atlassian's escape below the ramp; `xsmall` is the floor, and nothing is set below 11px); a text transform (an Eyebrow sets its own uppercase; nothing else is transformed).
+Not built, and why: a `bold` weight (the ramp's top is `semibold`, the page title's weight, and a paragraph above it shouts); italic (for the titles of works and technical terms, and the product has neither in running text); an underline (a link is a TextLink; an underline that is not a link reads as one); a `truncate` with a tooltip (`maxLines` clamps, and the parent gives the full text a `title` or a Tooltip when it matters); an escape below the ramp (`xsmall` is the floor, and nothing is set below 11px); a text transform (an Eyebrow sets its own uppercase; nothing else is transformed).
 
 ## Sizes
 
@@ -42,7 +42,7 @@ Not built, and why: a `bold` weight (Atlassian has one; the ramp's top is `semib
 | `small`  | `font.body.small`  | 12 / 16        | Table headers, field labels, badges, KeyValue, meta lines.             |
 | `xsmall` | `font.body.xsmall` | 11 / 14        | Counts, dates, ids beside something. Never a sentence.                 |
 
-Carbon's productive set puts body at 14 and labels at 12; Base Web's Paragraph and Label at 14 and 12 for small, 16 and 14 for medium. The ramp here sits a point under Carbon's, the UI size at 13, because a register's rows are the page.
+The UI size is 13, a point under the usual 14, because a register's rows are the page.
 
 ## States
 
@@ -57,7 +57,7 @@ Not applicable: text has no states. A disabled control's label takes `color.text
 
 ## Content
 
-- **Running text is neutral.** `color.text` for a paragraph, `subtle` for a description, `subtlest` for meta. Carbon's rule.
+- **Running text is neutral.** `color.text` for a paragraph, `subtle` for a description, `subtlest` for meta.
 - **Colour says something.** `danger` on an overdue count, `success` on a passed check, `brand` on nothing that is not a link.
 - **Sentence case, one idea per sentence.** A description ends with a full stop; a label and a meta line do not.
 - **Emphasis is a weight, and rare.** One word in `medium`; never a sentence in `semibold`.

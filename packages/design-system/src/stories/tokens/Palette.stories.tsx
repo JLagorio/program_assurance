@@ -40,7 +40,7 @@ export const Ramps: Story = {
   render: () => (
     <Page
       title="Palette"
-      lede="Tier 0. Six ramps with Atlassian's step names, so their semantic-to-step mapping applies line for line. Alpha steps (100A–500A) are the hover, pressed and hairline fills. Every value is a draft seeded from Linear-refined light and Nightwatch dark; tune here, never in a semantic token."
+      lede="Tier 0. Six ramps with numbered step names, so the semantic-to-step mapping reads line for line. Alpha steps (100A–500A) are the hover, pressed and hairline fills. Every value is a draft; tune here, never in a semantic token."
     >
       {ramps.map((r) => (
         <Group key={r.key} title={r.title}>

@@ -7,7 +7,7 @@ import * as Stories from "./Badge.stories";
 
 # Badge
 
-A short status word in a soft fill: the state of a record. Verified, In review, Overdue, Draft. Atlassian calls this a Lozenge, Carbon a read-only Tag, Base Web a Tag; the kit's Badge is the read-only one, never dismissed, selected or clicked.
+A short status word in a soft fill: the state of a record. Verified, In review, Overdue, Draft. A lozenge or a tag by other names; the kit's Badge is read-only, never dismissed, selected or clicked.
 
 It is one of four ways to say a status, and all four read the same tone table, so a tone is one decision everywhere:
 
@@ -45,7 +45,7 @@ The tone is the meaning:
 | `warning`     | Needs attention soon: Due soon, Partial, Suspect.                                           |
 | `danger`      | Wrong or late: Overdue, Other than satisfied, Invalidated.                                  |
 
-Not built, and why: Carbon's dismissible, selectable and operational tags and Base Web's closeable and clickable tags. A filter the reader turns on and off is a [FilterChip](?path=/docs/components-filterchip--docs); something that takes the reader somewhere is a [TextLink](?path=/docs/components-textlink--docs), and Carbon says the same, no tags as links. Carbon's hue palette for categories is not here either: in this kit a colour is a status, so a category is neutral and differs by its word. No outline or high-contrast appearance; `bold` is the one emphasis.
+Not built, and why: dismissible, selectable, closeable and clickable tags. A filter the reader turns on and off is a [FilterChip](?path=/docs/components-filterchip--docs); something that takes the reader somewhere is a [TextLink](?path=/docs/components-textlink--docs): no tags as links. A hue palette for categories is not here either: in this kit a colour is a status, so a category is neutral and differs by its word. No outline or high-contrast appearance; `bold` is the one emphasis.
 
 <Canvas of={Stories.Categories} />
 
@@ -56,7 +56,7 @@ Not built, and why: Carbon's dismissible, selectable and operational tags and Ba
 | `small`  | 20px   | The default: beside a title, in a rail, in a header.                     |
 | `xsmall` | 16px   | A table row, a tab, a list item, anywhere the line is `font.body.small`. |
 
-Carbon has a large tag at 32px for a tag that is the page's task; there is no large Badge because a Badge is never the task. The word sets the width; a Badge does not truncate, so its word is short.
+There is no large Badge, because a Badge is never the page's task. The word sets the width; a Badge does not truncate, so its word is short.
 
 <Canvas of={Stories.InRows} />
 

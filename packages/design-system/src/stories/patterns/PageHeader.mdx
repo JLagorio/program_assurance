@@ -7,7 +7,7 @@ import * as Stories from "./PageHeader.stories";
 
 # PageHeader
 
-The top of an index page: the area it belongs to, the page's name, one line, and the actions. Atlassian's PageHeader puts breadcrumbs over the title and a bar of filters under it; Carbon's adds a subtitle, a hero and a tab bar. This one is the head only: the filters and the table are the [IndexPage](?path=/docs/patterns-pages--docs)'s, and a page has no tabs, a record does.
+The top of an index page: the area it belongs to, the page's name, one line, and the actions. This one is the head only: the filters and the table are the [IndexPage](?path=/docs/patterns-pages--docs)'s, and a page has no tabs, a record does.
 
 <Canvas of={Stories.PageHeaderMatrix} />
 
@@ -15,7 +15,7 @@ The top of an index page: the area it belongs to, the page's name, one line, and
 
 | Part        | What it is                                                                                                                                          |
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Eyebrow     | The area, above the title, `font.body` in `color.text.subtle`: "Libraries", "Risk". Where Atlassian's breadcrumbs sit; a word or two here.          |
+| Eyebrow     | The area, above the title, `font.body` in `color.text.subtle`: "Libraries", "Risk". A word or two.          |
 | Title       | The page's name, the h1, `font.heading.medium`: "Programs".                                                                                         |
 | Description | One line under the title, `font.body` in `color.text.subtle`: what the rows are, a constraint, a count. It truncates; the full text is its tooltip. |
 | Actions     | At the end of the row, `space.100` apart: one primary and at most two beside it.                                                                    |
@@ -31,7 +31,7 @@ PageHeader has one appearance. What varies is what it carries:
 | With a line     | A count or a constraint the reader needs before the rows: "5 programs · 2 in assessment". |
 | With actions    | The page's one thing to do, and an export or a view beside it.                            |
 
-Not built, and why: breadcrumbs (Atlassian, Carbon), because an index page is one level deep and the side nav says where it is; a hero image or an icon (Carbon), because the product's pages are registers; a bottom bar of filters (Atlassian), because the filters are the IndexPage's own row; a subtitle that wraps (Carbon), because a line that needs two is an explanation, and that is the model's page, not this one.
+Not built, and why: breadcrumbs, because an index page is one level deep and the side nav says where it is; a hero image or an icon, because the product's pages are registers; a bottom bar of filters, because the filters are the IndexPage's own row; a subtitle that wraps, because a line that needs two is an explanation.
 
 ## Sizes
 

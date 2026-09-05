@@ -9,7 +9,7 @@ import * as Stories from "./Related.stories";
 
 A card of linked records, in a rail or in the body of a page. Its header is the kind of record, a Count and the way to add one. Its body is a row per record in a rail, or a card per record on a page: the name as the link, a mark, one status, the properties the reader decides by, and the actions that show on hover. Its footer is "See all" when it shows a handful of many. When nothing is linked it is a proper [Empty](?path=/docs/patterns-empty--docs), the mark, a statement and the way to fill it, never a line of grey text.
 
-HubSpot's association card is the model for the body of a page: a header with the kind and "+ Add", a card per associated record with its name as the link and up to six properties, the actions in a menu that shows on hover, "view all" at the bottom. Jira's linked-issues block and Carbon's contained list are the model for the rail, one row per record. Atlassian's Smart Link card gives the shape of a card that is metadata with actions on hover; Base Web's card is "a self-contained unit of information" whose whole face may be the click target, which Carbon forbids once a tile carries actions of its own. So the title is the link and the actions are stops of their own, in both layouts.
+On the body of a page: a header with the kind and "+ Add", a card per related record with its name as the link and up to six properties, the actions in a menu that shows on hover, "view all" at the bottom. In the rail, one row per record. A card is metadata with actions on hover, and a card that carries actions of its own cannot be one click target. So the title is the link and the actions are stops of their own, in both layouts.
 
 <Canvas of={Stories.RelatedMatrix} />
 
@@ -44,7 +44,7 @@ The header and the footer are the card's; the rows are [Item](?path=/docs/compon
 
 <Canvas of={Stories.RelatedTable} />
 
-Not built, and why: the whole card as the link (Base Web), because a tile that carries its own actions cannot be one click target (Carbon) and the actions are here; a card that scrolls (HubSpot's association card scrolls past a few), because a rail shows a handful and the footer says See all; search, sort and filters in the header (HubSpot's), because a card long enough to need them is the record's tab, where the Table has them; a card that folds, because a handful of rows has nothing to fold; drag to reorder, because links have no order of their own; `Related.Row`, because a row is an Item, and the old part is deprecated in its favour.
+Not built, and why: the whole card as the link, because a card that carries its own actions cannot be one click target and the actions are here; a card that scrolls, because a rail shows a handful and the footer says See all; search, sort and filters in the header, because a card long enough to need them is the record's tab, where the Table has them; a card that folds, because a handful of rows has nothing to fold; drag to reorder, because links have no order of their own; `Related.Row`, because a row is an Item, and the old part is deprecated in its favour.
 
 ## Sizes
 
@@ -76,7 +76,7 @@ The size is the list's; every row in one card is the same height. A card in the 
 
 - **The title is a noun**, the kind of record: "Linked findings", "Systems", "Team". Never a sentence.
 - **A row is an id and a name**, and one thing at the end: the state as a word, or the date. A rail is too narrow for meta beside the name; a role beside a person's name is as much as fits.
-- **A card is the name, the meta, one status and four properties**: the ones the reader decides by. Six is the most, HubSpot's limit; past that the record has them.
+- **A card is the name, the meta, one status and four properties**: the ones the reader decides by. Six is the most; past that the record has them.
 - **The actions are what is done to the link**, not to the record: open in a new tab, edit the link, unlink. Never "Open"; the name is that. Unlink is the menu's last item, in danger.
 - **A handful, then See all.** Five rows in a rail, a row of cards on a page; the footer says how many there are, and the record's tab lists them.
 - **The empty state says what would be here and how to fill it**: "Nothing linked yet", "Not in a package yet", with the line and a link button. The header's action stays, so the way to add one is there twice at most, never nowhere.

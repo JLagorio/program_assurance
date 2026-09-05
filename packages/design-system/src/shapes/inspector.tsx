@@ -6,13 +6,11 @@ import { ScrollArea } from "../components/scroll-area";
 import { cn } from "../lib/cn";
 import { PanelContext } from "../lib/panel-context";
 
-/* Reference material. Jira's Details panel is the model: groups of facts beside the work, each
-   group a heading that folds, every group open until the reader folds it, a Configure link at
-   the end. Carbon's accordion says an accordion opens closed "to provide users with a high-level
-   overview" and that each title is a heading at the page's level; a rail of facts is the
-   exception it names, content the reader will read, so the groups open. Carbon's structured
-   list is the row: a label and a value, no nesting, a small set. This is that: Accordion
-   groups of KeyValue rows, sticky beside a page, scrolling with a panel. */
+/* Groups of facts beside the work, each group a heading that folds, every group open until the
+   reader folds it, a Configure link at the end. An accordion usually opens closed so its titles
+   are the overview; a rail of facts is the exception, content the reader will read, so the
+   groups open. The row is a label and a value, no nesting, a small set. Accordion groups of
+   KeyValue rows, sticky beside a page, scrolling with a panel. */
 
 export type InspectorGroupData = {
   /** The group's name, a noun for the kind of fact: "Ownership", "Schedule". */

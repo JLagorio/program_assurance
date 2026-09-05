@@ -7,7 +7,7 @@ import * as Stories from "./ActionBar.stories";
 
 # ActionBar
 
-The record's header pinned above the work: the trail ending in the id, the title with a word of context, the state axes as facts under it, and the actions that change them, with the tab strip below. It is a [RecordHeader](?path=/docs/patterns-recordheader--docs) with two rules of its own. The first state is the headline, a Badge, and the rest read as a dot and a word, so one thing on the bar is coloured. And a blocked action stays in the row, disabled, with its reason written under it, because hiding the action hides the rule. Jira's issue header with its workflow button is the model; Atlassian's page header puts the actions beside the title the same way. It heads a work surface, a control being implemented, a package being submitted, and the detail of a [WorkPane](?path=/docs/shapes-workpane--docs).
+The record's header pinned above the work: the trail ending in the id, the title with a word of context, the state axes as facts under it, and the actions that change them, with the tab strip below. It is a [RecordHeader](?path=/docs/patterns-recordheader--docs) with two rules of its own. The first state is the headline, a Badge, and the rest read as a dot and a word, so one thing on the bar is coloured. And a blocked action stays in the row, disabled, with its reason written under it, because hiding the action hides the rule. The actions sit beside the title, as on every record's header. It heads a work surface, a control being implemented, a package being submitted, and the detail of a [WorkPane](?path=/docs/shapes-workpane--docs).
 
 <Canvas of={Stories.ActionBarMatrix} />
 

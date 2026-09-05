@@ -7,7 +7,7 @@ import * as Stories from "./Id.stories";
 
 # Id
 
-An identifier: CTRL-0412, AC-2(3), FND-2231, a hash. One typeface app-wide, so an Id inherits the font, the size and the colour of wherever it sits and adds only tabular numerals, which is what makes a column of ids line up. It is kept as a component for the semantics, and so every id in the product can be found. None of the three references has one; Carbon's Code snippet and Atlassian's Code are for code, which an id is not.
+An identifier: CTRL-0412, AC-2(3), FND-2231, a hash. One typeface app-wide, so an Id inherits the font, the size and the colour of wherever it sits and adds only tabular numerals, which is what makes a column of ids line up. It is kept as a component for the semantics, and so every id in the product can be found. A code snippet is for code, which an id is not.
 
 <Canvas of={Stories.IdMatrix} />
 
@@ -25,7 +25,7 @@ An identifier: CTRL-0412, AC-2(3), FND-2231, a hash. One typeface app-wide, so a
 | `Id`      | One id, in text, in a title, in a link, in a cell.                            |
 | `Id.List` | Several ids: the controls a requirement traces to, the CCIs a package covers. |
 
-Not built, and why: a monospace face (the old habit; the kit has one typeface and tabular numerals do the aligning); a copy button (Carbon's code snippet), because an id is selected like any word; a link inside the Id, because the link is outside it, a TextLink whose text is an Id.
+Not built, and why: a monospace face (the old habit; the kit has one typeface and tabular numerals do the aligning); a copy button, because an id is selected like any word; a link inside the Id, because the link is outside it, a TextLink whose text is an Id.
 
 ## Sizes
 

@@ -7,7 +7,7 @@ import * as Stories from "./Box.stories";
 
 # Box
 
-The fundamental block: padding on any edge, a fill or a surface, and the element it is. Nothing else. There are no margin props, because a component decides its inside and its parent decides the space around it: the distance between siblings is Stack's and Inline's, and the one negative margin is Bleed's. Every value is a token, so an invalid padding is a type error and a valid one is a literal class the scanner sees. Atlassian's Box is the model, down to the rule that it is never a link or a button; Carbon's Layer is the surface half of it, nested layers stepping the background token; Base Web's Block is the other idea, every style as a prop, which its own docs now advise against.
+The fundamental block: padding on any edge, a fill or a surface, and the element it is. Nothing else. There are no margin props, because a component decides its inside and its parent decides the space around it: the distance between siblings is Stack's and Inline's, and the one negative margin is Bleed's. Every value is a token, so an invalid padding is a type error and a valid one is a literal class the scanner sees. A Box is never a link or a button; a surface is named, not counted, so nesting does not step the background; and a class held to tokens, not a style prop per property, is the escape hatch.
 
 <Canvas of={Stories.BoxMatrix} />
 
@@ -30,7 +30,7 @@ The fundamental block: padding on any edge, a fill or a surface, and the element
 | Fill             | A semantic background: a chip, a callout, a selected row. A bold fill paints its text inverse by itself.                               |
 | Landmark or list | `as="section"` with `aria-labelledby`, `as="article"`, `as="ul"` and `"li"`: the element is the semantics, the Box is the inset.       |
 
-Not built, and why: margin props (Atlassian, and Carbon's Stack, for the same reason: the parent owns the distance); width and height props (a Box is as wide as its parent gives it, and the widths a layout needs are a Grid's template and the layout tokens); `as="a"` or `"button"` (TextLink and Button carry the ring, the pressed face and the name; Atlassian's Box refuses the same two); a style prop for the rest (a class is the escape hatch, and the lint holds it to tokens); Carbon's automatic layer stepping (a surface is named, not counted: a card inside a card is a decision, not a default).
+Not built, and why: margin props (the parent owns the distance); width and height props (a Box is as wide as its parent gives it, and the widths a layout needs are a Grid's template and the layout tokens); `as="a"` or `"button"` (TextLink and Button carry the ring, the pressed face and the name); a style prop for the rest (a class is the escape hatch, and the lint holds it to tokens); automatic layer stepping (a surface is named, not counted: a card inside a card is a decision, not a default).
 
 ## Sizes
 

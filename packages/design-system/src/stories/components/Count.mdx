@@ -7,7 +7,7 @@ import * as Stories from "./Count.stories";
 
 # Count
 
-A number in a pill: unread items, rows in a group, results behind a filter, findings on a control. It sits after the name of what it counts and is named by it. Anything above `max`, 99 by default, renders as `99+`. Atlassian calls this a Badge; Base Web's Badge is the notification circle on a corner, which this is not.
+A number in a pill: unread items, rows in a group, results behind a filter, findings on a control. It sits after the name of what it counts and is named by it. Anything above `max`, 99 by default, renders as `99+`. Not the notification circle on a corner.
 
 <Canvas of={Stories.CountMatrix} />
 
@@ -28,7 +28,7 @@ A number in a pill: unread items, rows in a group, results behind a filter, find
 | `added`     | Rows a change adds. Success fill, subtle.                                                     |
 | `removed`   | Rows a change removes. Danger fill, subtle.                                                   |
 
-Not built, and why: Base Web's corner placement on an avatar or an icon (a notification circle); the shell's navigation has no unread counts yet, and when it does the Count will sit after the item's label, not on its icon. No count in a tone's text colour without a fill; the number alone is a Stat.
+Not built, and why: a corner placement on an avatar or an icon (a notification circle); the shell's navigation has no unread counts yet, and when it does the Count will sit after the item's label, not on its icon. No count in a tone's text colour without a fill; the number alone is a Stat.
 
 ## Sizes
 

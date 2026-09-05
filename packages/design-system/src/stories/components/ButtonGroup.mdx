@@ -7,7 +7,7 @@ import * as Stories from "./ButtonGroup.stories";
 
 # ButtonGroup
 
-Buttons that are one control, joined: the corners meet and a hairline sits between. A split button, a pair of icon actions, undo and redo. Atlassian's ButtonGroup spaces buttons and Carbon's groups them by importance; those are an [Inline](?path=/docs/primitives-inline--docs) here. Base Web's selects among them; that is a [ToggleGroup](?path=/docs/components-togglegroup--docs).
+Buttons that are one control, joined: the corners meet and a hairline sits between. A split button, a pair of icon actions, undo and redo. Buttons spaced apart or grouped by importance are an [Inline](?path=/docs/primitives-inline--docs) here. A group that selects among them is a [ToggleGroup](?path=/docs/components-togglegroup--docs).
 
 <Canvas of={Stories.ButtonGroupMatrix} />
 
@@ -27,11 +27,11 @@ Buttons that are one control, joined: the corners meet and a hairline sits betwe
 | Icon actions | IconButtons that belong together: align left, centre, right; undo and redo.                                |
 | Actions      | Two or three Buttons of one variant that act on one thing: Export and Print.                               |
 
-Not built, and why: a spaced group (Atlassian), because two actions with space between are an Inline with `space.100`; a selection mode (Base Web), because a choice is a ToggleGroup; a vertical group, because stacked buttons are a menu.
+Not built, and why: a spaced group, because two actions with space between are an Inline with `space.100`; a selection mode, because a choice is a ToggleGroup; a vertical group, because stacked buttons are a menu.
 
 ## Sizes
 
-The group has no size: it is as tall as its buttons, and every button in it is one size. `small` in a toolbar or a row, `medium` on a page header. Carbon: never mix sizes in a group.
+The group has no size: it is as tall as its buttons, and every button in it is one size. `small` in a toolbar or a row, `medium` on a page header. Never mix sizes in a group.
 
 ## States
 
@@ -47,7 +47,7 @@ The group has no state. Each button keeps its own: one may be disabled, one may 
 - **Two or three.** Past three the rest go behind the last one's menu.
 - **One size, one variant**, so the group reads as one control.
 - **The first is the main way**, the chevron the other ways: Export, then Export as.
-- **Never two primaries** in one group; Carbon says one high-emphasis button among medium ones.
+- **Never two primaries** in one group: one high-emphasis button among medium ones.
 
 ## Style
 

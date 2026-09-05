@@ -208,7 +208,7 @@ export const Dont: Story = {
             </Tree.Item>
           </Tree>
         }
-        doText="An icon on every row, or on none: Carbon's rule, so labels at one level align."
+        doText="An icon on every row, or on none, so labels at one level align."
         dont={
           <Tree label="Control families">
             <Tree.Item depth={0} hasChildren expanded>
@@ -253,7 +253,7 @@ export const Dont: Story = {
             </Tree.Item>
           </Tree>
         }
-        dontText="A tree one level deep. Carbon: a tree is for several levels; one level is an accordion or a list."
+        dontText="A tree one level deep. A tree is for several levels; one level is an accordion or a list."
       />
       <Pair
         do={

@@ -7,7 +7,7 @@ import * as Stories from "./Banner.stories";
 
 # Banner
 
-A message about the whole site, at the top of the screen in the shell's Banner area: the loss of data or a function, or something site-wide that changes what the reader can do. One at a time, never dismissible, gone when no longer true. It is one line and truncates rather than wraps; the action is one link or button drawn in the banner's own colour. Atlassian's Banner is the model. Carbon has none: its notifications are inline or toast, and the kit's inline one is the [Alert](?path=/docs/components-alert--docs).
+A message about the whole site, at the top of the screen in the shell's Banner area: the loss of data or a function, or something site-wide that changes what the reader can do. One at a time, never dismissible, gone when no longer true. It is one line and truncates rather than wraps; the action is one link or button drawn in the banner's own colour. The kit's inline message is the [Alert](?path=/docs/components-alert--docs).
 
 An Alert is about the record; a Banner is about the site. Feedback after an act is a toast. If the message would be true for one reader and not the next, it is not a banner.
 
@@ -32,7 +32,7 @@ Banner has one appearance; the tone is what varies, and there are three.
 | `warning`     | The default. Something is about to change what the reader can do: the audit window closes, uploads lock. |
 | `danger`      | Something is lost: the connection to the evidence store, the session's writes. Announced at once.        |
 
-There is no success banner and no neutral one: a banner is gone when it is no longer true, and good news is feedback, which is a toast. Base Web's Banner has high and low contrast; the kit has the bold fill only, since a banner is by definition the one thing on the screen that outranks the page.
+There is no success banner and no neutral one: a banner is gone when it is no longer true, and good news is feedback, which is a toast. The kit has the bold fill only, no low-contrast form, since a banner is by definition the one thing on the screen that outranks the page.
 
 Where it lives: `Shell.Banner` is the area, above the top navigation. It holds the Banner and pushes the page down by the banner's height while one is rendered; see [Shell](?path=/docs/shell-shell--docs).
 

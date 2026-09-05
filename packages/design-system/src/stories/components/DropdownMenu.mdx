@@ -9,7 +9,7 @@ import * as Stories from "./DropdownMenu.stories";
 
 A list of actions anchored to the button that opened it: the verbs on a record, a row's kebab, the columns a table shows. It opens on a click, Enter, Space or the down arrow, the first item takes focus, the arrow keys move, a letter jumps, and choosing an item closes it. A value in a form is a [Select](?path=/docs/components-select--docs) or a [NativeSelect](?path=/docs/components-nativeselect--docs), not a menu.
 
-A small task is a [Popover](?path=/docs/components-popover--docs); a label is a [Tooltip](?path=/docs/components-tooltip--docs). Carbon's overflow menu and menu button, Atlassian's dropdown menu and Base Web's menu are the same part.
+A small task is a [Popover](?path=/docs/components-popover--docs); a label is a [Tooltip](?path=/docs/components-tooltip--docs). An overflow menu and a menu button are the same part.
 
 <Canvas of={Stories.DropdownMenuMatrix} />
 
@@ -40,11 +40,11 @@ DropdownMenu has one appearance. What varies is what the list holds:
 | A filter                        | Not a menu: FilterChip and its Popover.                                                                                      |
 | Navigation                      | Not a menu: the SideNav, Tabs, a TextLink.                                                                                   |
 
-Not built, on purpose: submenus (Carbon allows one level and warns against more; a list that needs one is two menus or a Sheet), icons before items (the verb carries the meaning, and icons make a menu a toolbar), a description under an item, a menubar, a context menu on right-click, and item sizes (Carbon has four; the menu row is one height).
+Not built, on purpose: submenus (a list that needs one is two menus or a Sheet), icons before items (the verb carries the meaning, and icons make a menu a toolbar), a description under an item, a menubar, a context menu on right-click, and item sizes (the menu row is one height).
 
 ## Sizes
 
-One row height, `dimension.row.menu` 28px, and one width, 200px by default, or `width` for longer labels; Carbon keeps a menu between 160 and 288. Under five items behind a menu button, up to a dozen behind a kebab; past that the verbs belong elsewhere. Items truncate rather than wrap.
+One row height, `dimension.row.menu` 28px, and one width, 200px by default, or `width` for longer labels. Under five items behind a menu button, up to a dozen behind a kebab; past that the verbs belong elsewhere. Items truncate rather than wrap.
 
 <Canvas of={Stories.Kebab} />
 

@@ -7,7 +7,7 @@ import * as Stories from "./KeyValue.stories";
 
 # KeyValue
 
-One rail row: a label column and a value. Owner, Frequency, Last verified, each on its own line with the label in a fixed column so the values make a column too. It is a definition list of one pair, valid wherever it sits. Carbon's Structured list is the nearest model; Atlassian's rails write the same shape by hand.
+One rail row: a label column and a value. Owner, Frequency, Last verified, each on its own line with the label in a fixed column so the values make a column too. It is a definition list of one pair, valid wherever it sits. The shape every rail writes by hand.
 
 It is one of two ways to write a fact. A [Fact](?path=/docs/components-fact--docs) is inline, label then value on one baseline, for the strip under a record's title; a KeyValue is a row, for the rail and the inspector.
 
@@ -34,7 +34,7 @@ KeyValue has one appearance. What varies is the value:
 | A statement            | Text with `wrap`. |
 | Nothing                | An Absent.        |
 
-Not built, and why: a group component (Carbon's structured list is one list with a header row), because each KeyValue is its own definition list so it is valid inside any pattern, and the rail's group is the Inspector's; a label-over-value layout, because that shape is a decision still open; an editable value, because that is an [Editable](?path=/docs/components-editable--docs) inside the value.
+Not built, and why: a group component, because each KeyValue is its own definition list so it is valid inside any pattern, and the rail's group is the Inspector's; a label-over-value layout, because that shape is a decision still open; an editable value, because that is an [Editable](?path=/docs/components-editable--docs) inside the value.
 
 ## Sizes
 

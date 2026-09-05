@@ -7,7 +7,7 @@ import * as Stories from "./Toggle.stories";
 
 # Toggle
 
-One thing on or off, in place: bold, a pin, a filter. It is the subtle button with a recessed on state, and it acts at once on what is in front of the reader. Carbon's and Atlassian's "Toggle" is a switch, which here is the [Switch](?path=/docs/components-switch--docs); this is Atlassian's selected button and Carbon's icon button with a selected state. Several toggles that share one answer are a [ToggleGroup](?path=/docs/components-togglegroup--docs).
+One thing on or off, in place: bold, a pin, a filter. It is the subtle button with a recessed on state, and it acts at once on what is in front of the reader. A "toggle" that is a switch is the [Switch](?path=/docs/components-switch--docs); this is a button with a selected state. Several toggles that share one answer are a [ToggleGroup](?path=/docs/components-togglegroup--docs).
 
 <Canvas of={Stories.ToggleMatrix} />
 
@@ -30,7 +30,7 @@ Toggle has one appearance. What varies is what it holds:
 | Icon and label | A filter or a mode with a word: "Pinned", "Mine". The label says what is on. |
 | Label alone    | The same, where the word carries it.                                         |
 
-Not built, and why: an outline variant (shadcn), because a bordered toggle reads as a secondary button; a bold on state, because on is a recess, not a fill, so a row of toggles never looks like a row of primary buttons; a toggle with a menu, because a control that opens is a Button.
+Not built, and why: an outline variant, because a bordered toggle reads as a secondary button; a bold on state, because on is a recess, not a fill, so a row of toggles never looks like a row of primary buttons; a toggle with a menu, because a control that opens is a Button.
 
 ## Sizes
 

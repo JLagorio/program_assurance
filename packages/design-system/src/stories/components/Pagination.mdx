@@ -26,11 +26,11 @@ A register that scrolls inside itself (`virtualize`) does not page, and a list o
 
 Pagination has one appearance: with the range, under a table, or bare, under a section of a page that comes in pages.
 
-Carbon's second variant, a bar with an items-per-page select and a page select, is not built. The author sets the register's page size (25 or 50); the reader's density setting is the lever for seeing more at once; and a register past a few pages is a question for the filters, not a longer page. Base Web's page select and Carbon's page looping (Next wrapping to the first page) are not built either: a page button is one click to any page, and an end is an end.
+A bar with an items-per-page select and a page select is not built. The author sets the register's page size (25 or 50); the reader's density setting is the lever for seeing more at once; and a register past a few pages is a question for the filters, not a longer page. Page looping (Next wrapping to the first page) is not built either: a page button is one click to any page, and an end is an end.
 
 ## Sizes
 
-One: the buttons `dimension.control.small` 28px, the text `font.body.small`. It matches the [Toolbar](?path=/docs/components-toolbar--docs) above the table; the row height (40 or 36 by density) does not change it. Carbon pairs three sizes to its five row heights; one setting covers ours.
+One: the buttons `dimension.control.small` 28px, the text `font.body.small`. It matches the [Toolbar](?path=/docs/components-toolbar--docs) above the table; the row height (40 or 36 by density) does not change it. One setting covers the kit's row heights.
 
 <Canvas of={Stories.Paged} />
 
@@ -79,7 +79,7 @@ One: the buttons `dimension.control.small` 28px, the text `font.body.small`. It 
 
 - **A `nav` landmark** named by `label`. A page with two has two names.
 - **Every page is a button named "Page 6"**; the current one carries `aria-current="page"`. Previous and Next are named so. The gap is hidden: the numbers around it say enough.
-- **Keyboard.** Tab moves left to right through the buttons; Space or Enter turns the page. A disabled arrow is not reachable, as Carbon's; the page numbers still are.
+- **Keyboard.** Tab moves left to right through the buttons; Space or Enter turns the page. A disabled arrow is not reachable; the page numbers still are.
 - **Focus stays** on the button that was pressed; the table above re-renders and the pressed button becomes the current page.
 - **Not colour alone.** The current page is bold and `aria-current`; the ends are disabled, not faded only.
 

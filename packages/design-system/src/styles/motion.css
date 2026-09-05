@@ -1,7 +1,7 @@
 /* Motion on the motion tokens. Radix and vaul set data-state on what they open, so a component
    pairs data-[state=open]:animate-enter with data-[state=closed]:animate-exit. The durations and
-   the curves are the tokens; nothing here names a number. Carbon's shape: six durations by the
-   size of the move, three curves by whether the thing arrives, leaves or stays. */
+   the curves are the tokens; nothing here names a number. Six durations by the size of the move,
+   three curves by whether the thing arrives, leaves or stays. */
 @keyframes ds-enter {
   from { opacity: 0; transform: scale(0.98); }
 }
@@ -74,8 +74,8 @@
 @utility animate-fade-out {
   animation: ds-fade-out var(--ds-motion-duration-fast) var(--ds-motion-easing-exit) both;
 }
-/* The blanket under a dialog, a sheet or the command palette: dims slowly (Carbon's slow-02 is
-   "background dimming"), clears with the content. */
+/* The blanket under a dialog, a sheet or the command palette: dims slowly, clears with the
+   content. */
 @utility animate-dim-in {
   animation: ds-fade-in var(--ds-motion-duration-slower) var(--ds-motion-easing-enter) both;
 }
@@ -83,7 +83,7 @@
   animation: ds-fade-out var(--ds-motion-duration-medium) var(--ds-motion-easing-exit) both;
 }
 /* A sheet or a panel: arrives in moderate on the enter curve; leaves on the standard curve, because
-   a side panel stays nearby (Carbon's exception to the exit curve). */
+   a side panel stays nearby. */
 @utility animate-slide-in-end {
   animation: ds-slide-in-end var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) both;
 }

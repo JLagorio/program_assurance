@@ -1,7 +1,7 @@
 import { cn } from "../lib/cn";
 
-/* Reference material. None of Carbon, Base Web or Atlassian has a divider on its own; Atlassian's
-   menus and Carbon's toolbars draw one inside. Radix Separator is the model for the roles: a rule
+/* A divider on its own, for the places that draw one outside a menu or a toolbar. Radix Separator
+   underneath for the roles: a rule
    that splits groups of controls is a separator; a rule that only draws a line is decorative. */
 
 export type SeparatorProps = {

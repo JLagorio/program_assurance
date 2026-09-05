@@ -623,7 +623,7 @@ export const Dont: Story = {
             </Shell.SideNav.Section>
           </NavBox>
         }
-        dontText="Four levels deep. Carbon's left panel stops at two for the same reason: past that the tree is the page, and the nav is an outline of it."
+        dontText="Four levels deep. The nav stops at two: past that the tree is the page, and the nav is an outline of it."
       />
       <Pair
         do={

@@ -9,7 +9,7 @@ import * as Stories from "./Sheet.stories";
 
 A surface that slides in from an edge and leaves the page visible: a record's detail beside the list it came from, a form that belongs to what is behind it, a picker's table. Its header is a compact record header, an eyebrow, a title, a meta line, a few facts, so a record reads the same in the sheet and on its page. The list behind stays where it was; the sheet closes and nothing has moved.
 
-It is the frame under three patterns: the [PreviewSheet](?path=/docs/patterns-previewsheet--docs) (a peek at one row with the way to the record), the [PickerSheet](?path=/docs/patterns-pickersheet--docs) (choosing many from hundreds) and the Shell's peek over a full-width table. A task that needs the reader's whole attention is a [Dialog](?path=/docs/components-dialog--docs); the bottom sheet for a narrow screen is a [Drawer](?path=/docs/components-drawer--docs). Atlassian's drawer and Base Web's are the same part; Carbon's core has none.
+It is the frame under three patterns: the [PreviewSheet](?path=/docs/patterns-previewsheet--docs) (a peek at one row with the way to the record), the [PickerSheet](?path=/docs/patterns-pickersheet--docs) (choosing many from hundreds) and the Shell's peek over a full-width table. A task that needs the reader's whole attention is a [Dialog](?path=/docs/components-dialog--docs); the bottom sheet for a narrow screen is a [Drawer](?path=/docs/components-drawer--docs).
 
 <Canvas of={Stories.SheetMatrix} />
 
@@ -44,7 +44,7 @@ Not built, on purpose: a non-modal sheet that leaves the table behind clickable 
 
 ## Sizes
 
-`width` in pixels, the full height always: 420 for a detail, 640 for a form, 880 for a picker's table; on a narrow screen the sheet is the viewport's width. Atlassian names four widths; the kit's three uses cover the same range. The header truncates its title and subtitle to one line each so the width holds.
+`width` in pixels, the full height always: 420 for a detail, 640 for a form, 880 for a picker's table; on a narrow screen the sheet is the viewport's width. Three widths cover the kit's uses. The header truncates its title and subtitle to one line each so the width holds.
 
 ## States
 

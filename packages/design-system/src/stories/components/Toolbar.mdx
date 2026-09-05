@@ -33,7 +33,7 @@ Toolbar has one appearance. What varies is which parts the register needs:
 | Only a count or an Export          | `actions` alone.                                                     |
 | Rows chosen for a batch action     | Not a Toolbar: the DataTable's SelectionBar appears above the table. |
 
-There is no title in a Toolbar (the Section's), no tall Toolbar (Carbon pairs a 48px toolbar with its large rows; the kit's rows are one height and so is the row above them), and no collapsed search that opens from an icon: a register that is searched shows its field.
+There is no title in a Toolbar (the Section's), no tall Toolbar (the kit's rows are one height and so is the row above them), and no collapsed search that opens from an icon: a register that is searched shows its field.
 
 ## Sizes
 
@@ -56,7 +56,7 @@ The toolbar has no states of its own; its controls have theirs. The search field
 
 - **The placeholder names what is searched**: "Search controls", "Control or title". Not "Search…".
 - **Filters are nouns**: Owner, Status, Gaps.
-- **Up to five actions**, Carbon's count; more go under a More menu. The primary last.
+- **Up to five actions**; more go under a More menu. The primary last.
 - **A count reads "12 of 340 controls"**, tabular, `font.body.small` in `color.text.subtle`. It is text, not a Badge or a Count.
 
 ## Style
@@ -70,7 +70,7 @@ The toolbar has no states of its own; its controls have theirs. The search field
 
 ## Accessibility
 
-- **A plain row, not the ARIA `toolbar` role.** That role promises arrow-key movement between its controls; a row of a search field, chips and buttons is better served by Tab in reading order, and Carbon's toolbar is likewise a labelled region and not a `toolbar`.
+- **A plain row, not the ARIA `toolbar` role.** That role promises arrow-key movement between its controls; a row of a search field, chips and buttons is better served by Tab in reading order, so the Toolbar is a labelled region and not a `toolbar`.
 - **The search field is named** by its placeholder through `aria-label`; the icon is decorative.
 - **Typing narrows the table** under it. The count at the end is the result, in text a screen reader can read back.
 - **The chips say pressed**; a chip that opens a popover says expanded. See FilterChip.

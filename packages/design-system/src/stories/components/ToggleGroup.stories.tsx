@@ -133,7 +133,7 @@ export const Dont: Story = {
             ]}
           />
         }
-        dontText="A binary as two segments. Carbon says the same: a content switcher is views, not a yes or no."
+        dontText="A binary as two segments. A switcher is views, not a yes or no."
       />
       <Pair
         do={

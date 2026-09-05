@@ -36,7 +36,7 @@ Which table first: a table sorts, filters, pages, chooses, pins, nests or scroll
 | The server sorts, filters or pages | `manual` with `rowCount`      | `table`    |
 | Cells the reader edits in place    | `editable` on a column        | `grid`     |
 
-There is no per-column filter row under the header, which Base Web draws: filters are chips in the toolbar, built from the columns. There is no zebra, no radio selection, no expand-all; see Table. There is no third component for a tree: it is a mode of this one.
+There is no per-column filter row under the header: filters are chips in the toolbar, built from the columns. There is no zebra, no radio selection, no expand-all; see Table. There is no third component for a tree: it is a mode of this one.
 
 <Canvas of={Stories.TreeStory} />
 
@@ -126,12 +126,12 @@ Every kind takes `header`, `width` (pixels; also the minimum), `minWidth`, `sort
 
 ## Accessibility
 
-- **The role follows the mode.** A DataTable is a `table`: Tab moves through the interactive elements in reading order and that is enough. A `tree` is a `treegrid`: the arrow keys move, open and close, Home and End jump. An editable table is a `grid` with a roving tabindex: Enter commits and moves down the column, Tab keeps its meaning and moves across. Carbon and Base Web keep the plain table too; the treegrid and grid roles are the ARIA patterns for what those modes add.
+- **The role follows the mode.** A DataTable is a `table`: Tab moves through the interactive elements in reading order and that is enough. A `tree` is a `treegrid`: the arrow keys move, open and close, Home and End jump. An editable table is a `grid` with a roving tabindex: Enter commits and moves down the column, Tab keeps its meaning and moves across. The plain table stays a table; the treegrid and grid roles are the ARIA patterns for what those modes add.
 - **Named.** `label` names the table and, through it, its pagination ("Findings pagination"). The header checkbox is "Select all rows on this page"; each row's is "Select" and the id. The eye is "Preview row"; the tree's chevron names its row; the detail row's chevron carries `aria-controls`; the handle is "Reorder row"; the resize handle is a vertical `separator` named "Resize column".
 - **Sorting** reports `aria-sort`; the chevron shows on hover and on focus. **Filtering** reads on the chips (pressed or expanded, the value in the text) and in the presets' counts. **Selection** is the checkbox, never the row's click; the SelectionBar is a region named "Selection" and Escape clears it.
 - **Loading never removes the header** or changes the height of what is already there, so nothing jumps under a screen reader's cursor. Empty and error sit inside the frame, under the header.
 - **A thousand rows may be chosen one at a time**: a row is memoized on what it shows, so one checkbox redraws one row.
-- **Known gap.** Resizing is pointer-only, as it is in Carbon and Base Web; a keyboard user's widths come from `Reset view`. Reordering columns and rows takes the keyboard (Space, the arrow keys).
+- **Known gap.** Resizing is pointer-only; a keyboard user's widths come from `Reset view`. Reordering columns and rows takes the keyboard (Space, the arrow keys).
 
 ## Props
 

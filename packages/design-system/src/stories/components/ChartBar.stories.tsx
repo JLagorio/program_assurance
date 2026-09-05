@@ -158,7 +158,7 @@ export const Horizontal: Story = {
   ),
 };
 
-/** Actual against planned: a mark in ink across each bar at its target. Carbon calls this a bullet chart. */
+/** Actual against planned: a mark in ink across each bar at its target: a bullet chart. */
 export const Targets: Story = {
   render: () => (
     <Box style={{ width: 560 }}>

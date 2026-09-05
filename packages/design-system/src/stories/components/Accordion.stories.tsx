@@ -85,7 +85,7 @@ export const AccordionMatrix: Story = {
         </Accordion>
         <Accordion type="multiple">
           <Accordion.Item value="a" title="Closed by default">
-            <Text color="color.text.subtle">Carbon's default: the titles are the overview.</Text>
+            <Text color="color.text.subtle">Closed: the titles are the overview.</Text>
           </Accordion.Item>
           <Accordion.Item value="b" title="Closed too">
             <Text color="color.text.subtle">The reader opens what they need.</Text>
@@ -186,7 +186,7 @@ export const Dont: Story = {
             </Accordion.Item>
           </Accordion>
         }
-        dontText="The work in an accordion, closed. Carbon: do not fold content the reader will read in full; it adds a click and hides the page."
+        dontText="The work in an accordion, closed. Content the reader will read in full is never folded; it adds a click and hides the page."
       />
     </Stack>
   ),

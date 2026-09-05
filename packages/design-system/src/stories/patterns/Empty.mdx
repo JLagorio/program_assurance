@@ -7,7 +7,7 @@ import * as Stories from "./Empty.stories";
 
 # Empty
 
-Nothing here yet: a title, one line of why, the action that fills it, and a mark for what would be here. Two sizes. The default replaces the table or the list that would have shown, in that space, in a dashed frame so an empty region is visibly a region and not content the eye skips. The compact size sits inside a card, a rail or a panel, the mark beside the text, with no frame of its own because the card's border is the frame. Carbon's empty state is an optional image, a title as a positive statement, a body that says what to do, a primary action and a secondary link, left-aligned as a block, and in a small container the image goes when space is tight and several empties in view take tertiary buttons; Atlassian's is the same with three actions, a narrow width and an extra-small heading "for empty states in smaller contexts"; HubSpot's puts the image beside the text by default. A line of grey text where rows would be is none of these: it reads as a row that failed to load, and it gives no way out.
+Nothing here yet: a title, one line of why, the action that fills it, and a mark for what would be here. Two sizes. The default replaces the table or the list that would have shown, in that space, in a dashed frame so an empty region is visibly a region and not content the eye skips. The compact size sits inside a card, a rail or a panel, the mark beside the text, with no frame of its own because the card's border is the frame. An empty state is a title as a positive statement, a body that says what to do, a primary action and a secondary link, left-aligned as a block; in a small container the image goes when space is tight, and several empties in view take tertiary buttons. A line of grey text where rows would be is none of these: it reads as a row that failed to load, and it gives no way out.
 
 <Canvas of={Stories.EmptyMatrix} />
 
@@ -24,7 +24,7 @@ Nothing here yet: a title, one line of why, the action that fills it, and a mark
 
 ## Variants
 
-Carbon's three kinds, one component:
+Three kinds, one component:
 
 | Empty       | Use                                                                                                          |
 | ----------- | ------------------------------------------------------------------------------------------------------------ |
@@ -32,7 +32,7 @@ Carbon's three kinds, one component:
 | No results  | A search or a filter with nothing: "No controls match", with a search icon and "Clear filters" as a link button. |
 | Cannot show | A permission or a system fault: "Evidence is not available to the assessor", with the way to get it, if any. |
 
-Not built, and why: an illustration (Carbon, Atlassian, HubSpot's forty), because the product has none drawn yet, and the icon slot is where one goes when it does; a third action (Atlassian), because two ways are enough and the third is a menu; a centred large layout (Carbon's full-page option), because a page here is never empty as a whole: its header and its filters remain and the frame sits where the rows would; a loading state beside the actions (Atlassian's `isLoading`), because the space before it is known to be empty is a Skeleton.
+Not built, and why: an illustration, because the product has none drawn yet, and the icon slot is where one goes when it does; a third action, because two ways are enough and the third is a menu; a centred large layout, because a page here is never empty as a whole: its header and its filters remain and the frame sits where the rows would; a loading state beside the actions, because the space before it is known to be empty is a Skeleton.
 
 ## Sizes
 
@@ -53,7 +53,7 @@ An empty state has one state. When rows arrive it is gone; it never sits beside 
 
 ## Content
 
-- **The title as a positive statement** where it can be: "Start by adding a system" over "You don't have any systems". Carbon says the same.
+- **The title as a positive statement** where it can be: "Start by adding a system" over "You don't have any systems".
 - **The line says why and what fills it**: "Nothing on this control has been observed yet."
 - **The action is the verb that fills it**: "Link evidence", "Record a finding". For no results, the way back: "Clear filters".
 - **The icon is what would be here**, not a warning: a link for linked records, a search for no results, a file for evidence. Never an exclamation mark.
@@ -73,7 +73,7 @@ An empty state has one state. When rows arrive it is gone; it never sits beside 
 
 ## Accessibility
 
-- **The empty state replaces the element**: no table headers over nothing, so a screen reader does not read a table to reach the line that says there is none. Carbon's rule.
+- **The empty state replaces the element**: no table headers over nothing, so a screen reader does not read a table to reach the line that says there is none.
 - **Text, then the controls**: the title and the line are read first, the action and the link are stops after them.
 - **The icon is hidden.** It says to the eye what the title says to everyone.
 - **Not a live region.** An empty result of a search is announced by the search's own status, not by the frame.

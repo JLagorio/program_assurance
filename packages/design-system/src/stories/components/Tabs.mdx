@@ -7,7 +7,7 @@ import * as Stories from "./Tabs.stories";
 
 # Tabs
 
-Views within one page. **Tabs** holds the selection, **Tabs.List** is the strip (a tablist with a rule under it), **Tabs.Tab** is one tab and **Tabs.Panel** is the view a tab shows. One tab is always selected; the strip is one tab stop and the arrows move within it; one indicator slides to the selected tab. Radix Tabs underneath. Carbon's line tabs and Atlassian's Tabs are the models; HubSpot's default variant is the same strip.
+Views within one page. **Tabs** holds the selection, **Tabs.List** is the strip (a tablist with a rule under it), **Tabs.Tab** is one tab and **Tabs.Panel** is the view a tab shows. One tab is always selected; the strip is one tab stop and the arrows move within it; one indicator slides to the selected tab. Radix Tabs underneath.
 
 A tab is a different view of the same record. It is not a filter over the same rows (a ToggleGroup or FilterChips), not a step in a task (a Stepper), and not a way between pages (the shell's SideNav). On a record the selection is the router's search param, so a view has a URL and the back button works.
 
@@ -26,13 +26,13 @@ A tab is a different view of the same record. It is not a filter over the same r
 
 ## Variants
 
-One: the line strip. Carbon's contained tabs (a filled tab attached to its panel) and vertical tabs, HubSpot's enclosed variant and Base Web's fixed fill are not built. The product's tabs sit under a RecordHeader on the page's surface, where a line is enough; a rail's sections are an [Accordion](?path=/docs/components-accordion--docs), and moving between pages is the shell's SideNav.
+One: the line strip. Contained tabs (a filled tab attached to its panel), vertical tabs and a fixed fill that divides the strip equally are not built. The product's tabs sit under a RecordHeader on the page's surface, where a line is enough; a rail's sections are an [Accordion](?path=/docs/components-accordion--docs), and moving between pages is the shell's SideNav.
 
 Where it lives: under the RecordHeader, running the full width. [ShowPage](?path=/docs/patterns-pages--docs) takes `tab` and `onTabChange` and makes the page the Tabs root and the tab's body its panel, so a record page is one ARIA pattern without wiring. Under the [ActionBar](?path=/docs/shapes-actionbar--docs) on a work page, where the page wraps the bar and the work in `Tabs`. On an index page above the register it is usually a filter, which is a ToggleGroup: see Don't.
 
 ## Sizes
 
-One: 32px, so a strip lines up with a row of medium controls beside it. Carbon's are 40px on a page; the kit's pages are denser and the strip sits under a two-line header.
+One: 32px, so a strip lines up with a row of medium controls beside it. The kit's pages are dense and the strip sits under a two-line header, so it takes the control height and not a taller one.
 
 ## States
 
@@ -43,7 +43,7 @@ One: 32px, so a strip lines up with a row of medium controls beside it. Carbon's
 | Focus      | The kit's focus outline on the tab. The strip is one tab stop; the arrows move within it and wrap.      |
 | Disabled   | `color.text.disabled`, no pointer, skipped by the arrows. Rare: see Don't, a tab with nothing opens.    |
 
-Activation is how the arrows behave. `automatic`, the default, selects the tab the arrows land on, for a view that is there at once. `manual` moves focus only and Enter or Space selects, for a view that loads; Carbon's and Base Web's distinction.
+Activation is how the arrows behave. `automatic`, the default, selects the tab the arrows land on, for a view that is there at once. `manual` moves focus only and Enter or Space selects, for a view that loads.
 
 <Canvas of={Stories.Activation} />
 
@@ -53,7 +53,7 @@ Activation is how the arrows behave. `automatic`, the default, selects the tab t
 - **`activation`** as in States.
 - **`count`** and **`trailing`** on a Tab, as in Anatomy.
 - **`asChild`** on a Tab: a router's Link takes the tab's role, state and classes; the count follows its label. The router sets `value` when the URL changes.
-- **`keepMounted`** on a Panel: a table whose scroll and selection should survive a visit to another tab. Off by default, so a view mounts when selected, which is Base Web's default; Atlassian keeps panels mounted.
+- **`keepMounted`** on a Panel: a table whose scroll and selection should survive a visit to another tab. Off by default, so a view mounts when selected.
 - **`label`** on the List, when a page has two strips.
 - **`disabled`** on a Tab. Rare: see Don't.
 
@@ -64,7 +64,7 @@ Activation is how the arrows behave. `automatic`, the default, selects the tab t
 ## Content
 
 - **Labels are one or two words, the view's name as a noun:** "Overview", "Controls", "Evidence". Not verbs, not sentences, no "tab".
-- **Two to six tabs.** Past six the reader hunts: Carbon allows eight on a page, HubSpot folds the rest into a More menu; the kit scrolls. Regroup, or move a section into the rail.
+- **Two to six tabs.** Past six the reader hunts, and the kit scrolls rather than folding the rest into a menu. Regroup, or move a section into the rail.
 - **Counts on tabs that hold a list,** hidden at zero.
 - **Order by the reader's day:** the overview, then what they work on, the record's history last.
 - **One view, no strip.** A page with one view is its sections.

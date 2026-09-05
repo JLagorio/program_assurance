@@ -7,9 +7,9 @@ import * as Stories from "./Collapsible.stories";
 
 # Collapsible
 
-Reference material: present, addressable, closed. The catalog statement, the assessment objectives and the discussion are things a reader occasionally needs and never needs first; rendering them expanded is most of why a control page reads as a novel. A **Collapsible** is one such section: a title row that opens and closes, the body under it. Several that know about each other are an [Accordion](?path=/docs/components-accordion--docs); the two share the row, so a page can mix them. Carbon's accordion (flush alignment, chevron at the end, closed by default) is the model; HubSpot's Accordion is this part under that name.
+Reference material: present, addressable, closed. The catalog statement, the assessment objectives and the discussion are things a reader occasionally needs and never needs first; rendering them expanded is most of why a control page reads as a novel. A **Collapsible** is one such section: a title row that opens and closes, the body under it. Several that know about each other are an [Accordion](?path=/docs/components-accordion--docs); the two share the row, so a page can mix them.
 
-What a Collapsible is not: the record's work. Implementation statements, the assessment, the evidence table are a [Section](?path=/docs/patterns-section--docs) or a [Block](?path=/docs/shapes-block--docs), open, in the outline, read by every reader. Carbon's rule: if a user is likely to read all of the content, do not fold it.
+What a Collapsible is not: the record's work. Implementation statements, the assessment, the evidence table are a [Section](?path=/docs/patterns-section--docs) or a [Block](?path=/docs/shapes-block--docs), open, in the outline, read by every reader. If a reader is likely to read all of the content, do not fold it.
 
 <Canvas of={Stories.Collapsibles} />
 
@@ -25,15 +25,15 @@ What a Collapsible is not: the record's work. Implementation statements, the ass
 
 ## Variants
 
-One row, in two alignments. **Flush**, the default, puts the title on the text column: a rail, a page, a Section's body. The hover tint reaches `space.100` past the title at each end, as Carbon's flush accordion does, so the title stays on the column. **Inset** steps the row and the body in by `space.300`, for a surface whose rules run edge to edge: a Card, a Panel. The first row on a surface drops its rule with `border-t-0`.
+One row, in two alignments. **Flush**, the default, puts the title on the text column: a rail, a page, a Section's body. The hover tint reaches `space.100` past the title at each end, so the title stays on the column. **Inset** steps the row and the body in by `space.300`, for a surface whose rules run edge to edge: a Card, a Panel. The first row on a surface drops its rule with `border-t-0`.
 
 <Canvas of={Stories.Inset} />
 
-Carbon's start-aligned chevron, for a fold that behaves as a tree, is not built: a hierarchy is a [Tree](?path=/docs/components-tree--docs).
+A start-aligned chevron, for a fold that behaves as a tree, is not built: a hierarchy is a [Tree](?path=/docs/components-tree--docs).
 
 ## Sizes
 
-One: the row is 36px, `space.100` around a line of body text, so a rail of rows is one rhythm with the KeyValue rows beside it. Carbon's is 40px; the kit's rails are denser.
+One: the row is 36px, `space.100` around a line of body text, so a rail of rows is one rhythm with the KeyValue rows beside it.
 
 ## States
 
@@ -81,7 +81,7 @@ One: the row is 36px, `space.100` around a line of body text, so a rail of rows 
 
 - **The row is a button with `aria-expanded`** and `aria-controls` to the body; Radix Collapsible sets them, so the chevron needs no text of its own.
 - **Keyboard:** Tab reaches the row; Enter or Space toggles it. Controls inside an open body join the tab order after the row. There is no arrow model between Collapsibles: they do not know about each other, which is what an Accordion adds.
-- **Headings:** with `headingLevel` the title is a heading, and a screen reader's heading list shows the rail's sections. Carbon asks for this on the first accordion in a product; the kit asks for it wherever the rows are in a Section.
+- **Headings:** with `headingLevel` the title is a heading, and a screen reader's heading list shows the rail's sections. The kit asks for it wherever the rows are in a Section.
 - **Reduced motion** shows the body at once.
 - **The a11y gate** checks the roles, the names and the heading order in the matrix; a disabled row is skipped by its contrast check as a disabled control.
 

@@ -7,7 +7,7 @@ import * as Stories from "./Timeline.stories";
 
 # Timeline
 
-Events in order along one rail: a record's activity, a scope's history, an audit trail, a pipeline, a line of releases, a feed of what people did. Each event is a marker on the rail, what happened, who and when, and under it what the event carries: a sentence, a file, a note, two buttons. Vertical reads down, newest first, with sticky group labels over a week or a month; horizontal reads across, oldest first. None of Carbon, Base Web or Atlassian has a timeline, so the anatomy follows [Item](?path=/docs/components-item--docs): a row that opens is its title stretched over the row, and everything beside it is a separate stop.
+Events in order along one rail: a record's activity, a scope's history, an audit trail, a pipeline, a line of releases, a feed of what people did. Each event is a marker on the rail, what happened, who and when, and under it what the event carries: a sentence, a file, a note, two buttons. Vertical reads down, newest first, with sticky group labels over a week or a month; horizontal reads across, oldest first. The anatomy follows [Item](?path=/docs/components-item--docs): a row that opens is its title stretched over the row, and everything beside it is a separate stop.
 
 A timeline is for events; things with a date are an Item list, and a fixed path with a current step is a [Stepper](?path=/docs/components-stepper--docs).
 
@@ -57,7 +57,7 @@ What a row does:
 
 <Canvas of={Stories.Log} />
 
-Not built, and why: alternating sides (Ant Design), because the rail is a list, not a poster; a collapsed "show more" (GitHub), because the group's count says how many and the page scrolls; a rating on an event, because a rating is a record's fact, not an event's; markers in the accent hues, a colour per row to tell rows apart, because the marker's colour is the tone and a colour that says nothing is a colour the reader tries to read.
+Not built, and why: alternating sides, because the rail is a list, not a poster; a collapsed "show more", because the group's count says how many and the page scrolls; a rating on an event, because a rating is a record's fact, not an event's; markers in the accent hues, a colour per row to tell rows apart, because the marker's colour is the tone and a colour that says nothing is a colour the reader tries to read.
 
 ## Sizes
 

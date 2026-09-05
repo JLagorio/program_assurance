@@ -11,10 +11,8 @@ import { cn } from "../lib/cn";
 import { Count } from "./badge";
 import { Tooltip } from "./tooltip";
 
-/* Reference material. Carbon's and Atlassian's "Toggle" is a switch, which here is Switch. This
-   Toggle is Atlassian's selected button and Carbon's icon button with a selected state: one thing
-   on or off, in place. A ToggleGroup is Carbon's content switcher and Base Web's button group in
-   radio mode: one of several views, exactly one on. The sizes are the Button's, so a toggle sits
+/* A "toggle" that is a switch is Switch. This Toggle is a button with a selected state: one thing
+   on or off, in place. A ToggleGroup is one of several views, exactly one on. The sizes are the Button's, so a toggle sits
    level with the buttons beside it. */
 
 export type ToggleSize = "xsmall" | "small" | "medium";

@@ -115,7 +115,7 @@ export const Dont: Story = {
             action={<Button size="small">Add a system</Button>}
           />
         }
-        doText="A positive statement and the action that fills the space. Carbon: “Start by…” over “You don't have any…”."
+        doText="A positive statement and the action that fills the space: “Start by…” over “You don't have any…”."
         dont={
           <Empty
             title="You don't have any systems"

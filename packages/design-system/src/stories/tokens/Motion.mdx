@@ -6,7 +6,7 @@ import * as Stories from "./Motion.stories";
 
 # Motion
 
-Fast and quiet, and shaped like Carbon's: six durations by the size of the move, three curves by whether the thing arrives, leaves or stays, and one stagger step for a set arriving together. Nothing in a component names a number; every transition and animation reads a token, and every one collapses under `prefers-reduced-motion`. Carbon's productive set is the model, values and all, because this is a task-focused product and every move is a productive one: there is no expressive set, no bounce, no stretch. Atlassian's three durations and Base Web's timing ramp were read for the shape; the audit of 2026-09-05 asked for Carbon's.
+Fast and quiet: six durations by the size of the move, three curves by whether the thing arrives, leaves or stays, and one stagger step for a set arriving together. Nothing in a component names a number; every transition and animation reads a token, and every one collapses under `prefers-reduced-motion`. This is a task-focused product and every move is a productive one: there is no expressive set, no bounce, no stretch.
 
 <Canvas of={Stories.Specimens} />
 
@@ -22,7 +22,7 @@ Fast and quiet, and shaped like Carbon's: six durations by the size of the move,
 | `motion.duration.slower` | 700ms | `duration-slower` | The blanket dimming the page under a dialog or a sheet. |
 | `motion.stagger` | 20ms | in `stagger-children` | Between one item's entrance and the next when a set arrives together. Six at most. |
 
-The bigger the move, the longer it takes: a colour change is micro or fast, a thing arriving in place is medium, a thing travelling across the screen is moderate, a whole page dimming is slower. Carbon's rule, and its numbers.
+The bigger the move, the longer it takes: a colour change is micro or fast, a thing arriving in place is medium, a thing travelling across the screen is moderate, a whole page dimming is slower.
 
 ## Curves
 
@@ -32,7 +32,7 @@ The bigger the move, the longer it takes: a colour change is micro or fast, a th
 | `motion.easing.enter` | cubic-bezier(0, 0, 0.38, 0.9) | `ease-enter` | What arrives: in quickly, slowing to a stop. |
 | `motion.easing.exit` | cubic-bezier(0.2, 0, 1, 0.9) | `ease-exit` | What leaves for good: speeding up out of view. |
 
-A side panel leaves on the standard curve, not the exit curve, because it stays nearby. Carbon's exception, kept.
+A side panel leaves on the standard curve, not the exit curve, because it stays nearby.
 
 ## What moves, and how
 
@@ -70,7 +70,7 @@ Under `prefers-reduced-motion: reduce` every animation runs in 0.01ms, every sta
 
 ## Don't
 
-- **Don't bounce, stretch or stop suddenly.** The three curves are the only curves; Carbon's and Atlassian's easings say the same.
+- **Don't bounce, stretch or stop suddenly.** The three curves are the only curves.
 - **Don't animate what the reader is reading.** A register's rows, a form's fields and a record's facts are there when the page is; only the page itself rises.
 - **Don't move a thing for decoration.** Every move says something: this arrived, this left, this opened, this is the same thing over there.
 - **Don't name a number.** A duration or a curve in a component is a token; `duration-[200ms]` does not pass the lint.

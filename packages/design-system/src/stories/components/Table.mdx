@@ -43,11 +43,11 @@ Table has one appearance. What varies is the parts a register takes:
 | Sort, filters, pages, pinned columns, a thousand rows | `DataTable`.                                                                                  |
 | A few facts about one thing                           | `KeyValue`.                                                                                   |
 
-There is no zebra striping, which Carbon offers: the hairline and the row's hover carry the eye across, and stripes fight the selected and the sunken surfaces. There is no radio selection of one row: the row's click opens the record, and one chosen row is that click. There is no expand-all chevron: a detail row loads what it needs when it opens, and opening every row at once gives that up. There is no row size prop; see Sizes.
+There is no zebra striping: the hairline and the row's hover carry the eye across, and stripes fight the selected and the sunken surfaces. There is no radio selection of one row: the row's click opens the record, and one chosen row is that click. There is no expand-all chevron: a detail row loads what it needs when it opens, and opening every row at once gives that up. There is no row size prop; see Sizes.
 
 ## Sizes
 
-One row height, `dimension.row` 40px, and the header `dimension.row.header` 32px. The reader's density setting, beside the mode switch, resolves the row to `dimension.row.compact` 36px on every table at once; a table never takes a density prop, so two tables on a page never disagree. Carbon offers five row heights per table; one setting for the reader is the kit's answer.
+One row height, `dimension.row` 40px, and the header `dimension.row.header` 32px. The reader's density setting, beside the mode switch, resolves the row to `dimension.row.compact` 36px on every table at once; a table never takes a density prop, so two tables on a page never disagree. One density setting for the reader, not a row height per table.
 
 Column widths are content. `width` in pixels on the header fixes a column (on the cells, in a table with no header row); one column takes the slack. The frame scrolls sideways when the columns are wider than the page, and a pinned column keeps its place.
 
@@ -118,8 +118,8 @@ Loading, empty and error belong to the DataTable, which keeps the header and dra
 ## Accessibility
 
 - **It is a table**: `table`, `thead`, `tbody`, `th`, `td`. `role="treegrid"` for a hierarchy with columns; `grid` only when cells are editable, which is the DataTable's editing mode.
-- **The name.** `label` sets `aria-label` when no heading names the table; Carbon asks the same of its tables.
-- **Sorting.** The header's button reports `aria-sort`; Space or Enter sorts; the chevron shows on hover and on focus, so a keyboard user sees which headers sort. Carbon's annotation rule ("there is no persistent sign that a table sorts") is why the chevron follows focus.
+- **The name.** `label` sets `aria-label` when no heading names the table.
+- **Sorting.** The header's button reports `aria-sort`; Space or Enter sorts; the chevron shows on hover and on focus, so a keyboard user sees which headers sort. There is no persistent sign that a table sorts, which is why the chevron follows focus.
 - **Keyboard.** Tab moves through the interactive elements in reading order: sort buttons, checkboxes, the eye, links. That is enough for a table; only a treegrid takes arrow keys, and the DataTable's tree mode wires them. A bare treegrid's caller does.
 - **Selection is a checkbox with a name**: "Select CTRL-0412", and the header's "Select all". The row's click opens the record and does not select.
 - **Every control is named.** The eye is "Preview row" with a Tooltip; the group's chevron says Expand or Collapse; the tree's names its row, "Expand Ground segment"; a detail row's chevron carries `aria-controls`.

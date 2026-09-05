@@ -5,13 +5,13 @@ import { Button } from "../components/button";
 import { Fact } from "../components/typography";
 import { RecordHeader } from "../patterns/record-header";
 
-/* Reference material. The RecordHeader is the header of every record: the trail ending in the
+/* The RecordHeader is the header of every record: the trail ending in the
    id, the title with a word of meta, the actions, the facts, the strip below. A work surface
    needs the same header pinned above the work with two more things: the state axes as facts,
    the first the headline as a Badge and the rest a dot and a word, and the actions that change
    the state, where a blocked action stays in the row, disabled, with its reason written under
-   it, because hiding the action hides the rule. Jira's issue header with its workflow button is
-   the model; Atlassian's page header puts the actions beside the title the same way. */
+   it, because hiding the action hides the rule. The actions sit beside the title, as on every
+   record's header. */
 
 export type ActionBarState = {
   /** The axis: "Implementation", "Assessment", "Evidence". */

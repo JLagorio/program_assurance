@@ -9,7 +9,7 @@ import * as Stories from "./Dialog.stories";
 
 A focused task over the page: a short form, a table to pick from, a comparison, with a verb at the end. The page behind is blanketed and inert until the task is done or given up. It interrupts, so it is for a task that is short and not often repeated; a task the reader does all day belongs on the page.
 
-A decision that needs a word is an [AlertDialog](?path=/docs/components-alertdialog--docs); a record's detail beside its list is a [Sheet](?path=/docs/components-sheet--docs); a small task at a button is a [Popover](?path=/docs/components-popover--docs). Carbon calls all of these modals and Base Web has two; here each is its own part.
+A decision that needs a word is an [AlertDialog](?path=/docs/components-alertdialog--docs); a record's detail beside its list is a [Sheet](?path=/docs/components-sheet--docs); a small task at a button is a [Popover](?path=/docs/components-popover--docs). Every kind of modal is its own part here.
 
 <Canvas of={Stories.DialogMatrix} />
 
@@ -39,13 +39,13 @@ Dialog has one appearance. What varies is the task:
 | A message the reader must acknowledge       | A Dialog with the message as its body and one button. Rare; most messages are an Alert on the page. |
 | A decision: delete, submit, close           | Not a Dialog: an AlertDialog.                                                                       |
 | A record's detail                           | Not a Dialog: a Sheet, or the record's page.                                                        |
-| Many steps                                  | Not a Dialog: a page with a Stepper. Carbon's progress modal is not built.                          |
+| Many steps                                  | Not a Dialog: a page with a Stepper. A progress modal is not built.                          |
 
-Not built, on purpose: Carbon's extra-small and small sizes (the AlertDialog is the small one), full-bleed footer buttons at half the width each, a dialog over a dialog (an AlertDialog over a Sheet is the one stack allowed), and a task repeated all day in a dialog.
+Not built, on purpose: extra-small and small sizes (the AlertDialog is the small one), full-bleed footer buttons at half the width each, a dialog over a dialog (an AlertDialog over a Sheet is the one stack allowed), and a task repeated all day in a dialog.
 
 ## Sizes
 
-Two: `medium` 520px and `large` 860px, each the viewport's width less `space.200` on a narrow screen. The height is the content's, up to the viewport less `space.600` top and bottom; past that the body scrolls under the fixed header and footer. Carbon's sizes are percentages of the viewport on its grid; two fixed widths are the kit's answer, since a form reads at one measure whatever the screen.
+Two: `medium` 520px and `large` 860px, each the viewport's width less `space.200` on a narrow screen. The height is the content's, up to the viewport less `space.600` top and bottom; past that the body scrolls under the fixed header and footer. Two fixed widths, not percentages of the viewport, since a form reads at one measure whatever the screen.
 
 ## States
 
@@ -72,7 +72,7 @@ An open dialog covers the page, so the states are one click away in the matrix a
 
 ## Content
 
-- **The title is the button's label**: Schedule assessment, Link evidence, New mapping rule. Sentence case, no full stop, no question mark. Carbon says the same.
+- **The title is the button's label**: Schedule assessment, Link evidence, New mapping rule. Sentence case, no full stop, no question mark.
 - **The description only when the title is not enough**, one sentence: who is notified, what the task applies to.
 - **The verb says the act**: Schedule, Link 3 items, Create. Never OK, Done, Submit alone, Yes.
 - **Cancel, then the verb**, at the end. Cancel undoes nothing the reader did not save.
@@ -97,7 +97,7 @@ An open dialog covers the page, so the states are one click away in the matrix a
 ## Accessibility
 
 - **It is a modal dialog** (Radix): `role="dialog"`, `aria-modal`, named by its title and described by its description when there is one.
-- **Focus moves in** when it opens: to the first field, or the first button when there are none, or the close when there is nothing else, which is Carbon's order. **It returns** to what opened the dialog when it closes.
+- **Focus moves in** when it opens: to the first field, or the first button when there are none, or the close when there is nothing else. **It returns** to what opened the dialog when it closes.
 - **Focus stays inside.** Tab and Shift-Tab cycle through the dialog's controls; the page behind is hidden from assistive technology and does not scroll.
 - **Escape closes it**, as do the blanket, the close button and Cancel. A pending dialog ignores them all and disables the close and Cancel, so a save is never abandoned halfway.
 - **Errors are announced where they are**: the Field's error, wired to its control; the dialog stays open.

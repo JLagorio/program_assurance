@@ -7,7 +7,7 @@ import * as Stories from "./ToggleGroup.stories";
 
 # ToggleGroup
 
-One of several views or modes of the same thing, always exactly one on: table or board, all or open, week or month. The recessed segmented control, with the chosen item raised. Carbon's content switcher and Base Web's button group in radio mode are the models; Atlassian has none, and uses Tabs or a Toggle instead.
+One of several views or modes of the same thing, always exactly one on: table or board, all or open, week or month. The recessed segmented control, with the chosen item raised. A content switcher by another name: not Tabs, which are views of a record, and not a Toggle, which is one thing on or off.
 
 A ToggleGroup sorts or re-lays the same content; distinct content is [Tabs](?path=/docs/components-tabs--docs), and two answers are a [Switch](?path=/docs/components-switch--docs).
 
@@ -32,7 +32,7 @@ A ToggleGroup sorts or re-lays the same content; distinct content is [Tabs](?pat
 | Icons alone   | `isIconOnly` on every item: the toolbar's view switch. The label becomes the item's name and its tooltip. |
 | With counts   | `count` on each: how many the view holds, so the reader chooses knowing.                                  |
 
-Not built, and why: multiple selection (Base Web's checkbox mode), because several on is a row of Toggles or a set of FilterChips; equal-width items (Carbon), because the words are short and the group sits in a toolbar, not on a grid; a group with nothing on, because the group is a choice, and a choice has an answer.
+Not built, and why: multiple selection, because several on is a row of Toggles or a set of FilterChips; equal-width items, because the words are short and the group sits in a toolbar, not on a grid; a group with nothing on, because the group is a choice, and a choice has an answer.
 
 ## Sizes
 
@@ -41,7 +41,7 @@ Not built, and why: multiple selection (Base Web's checkbox mode), because sever
 | `small`  | 28px  | 24px | The default: a toolbar, a section head, a card's corner. |
 | `medium` | 32px  | 28px | A page header, beside medium controls.                   |
 
-Carbon offers three heights up to 48px; the two here are the toolbar's and the page's. The track's height is the Button's, so the group sits level with the buttons beside it.
+Two heights, the toolbar's and the page's. The track's height is the Button's, so the group sits level with the buttons beside it.
 
 <Canvas of={Stories.ViewsStory} />
 
@@ -63,7 +63,7 @@ Carbon offers three heights up to 48px; the two here are the toolbar's and the p
 
 ## Content
 
-- **Nouns, one word or two**: what the reader will see. "Table", "Open", "This week". Carbon: two to three words at most.
+- **Nouns, one word or two**: what the reader will see. "Table", "Open", "This week". Three words at most.
 - **Never verbs or sentences.** "Show archived" is a Switch; "Switch to the month view" is what the group does, not what an item says.
 - **Two to five items.** Past five it is a Select.
 - **The name is the question**: "View", "Scope", "Period".

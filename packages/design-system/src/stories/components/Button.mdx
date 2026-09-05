@@ -10,7 +10,7 @@ import * as IconButtonStories from "./IconButton.stories";
 
 A button starts an action: it saves, submits, opens, deletes, filters. It is not navigation. Something that takes the reader to another place is a link: [TextLink](?path=/docs/components-textlink--docs) when it reads as text, `Button asChild` around the router's Link when it must look like a button. Something that is on or off is a [Toggle](?path=/docs/components-toggle--docs); one of several views is a [ToggleGroup](?path=/docs/components-togglegroup--docs); a list of actions behind one button is a [DropdownMenu](?path=/docs/components-dropdownmenu--docs). A button with an icon and no label is an [IconButton](?path=/docs/components-iconbutton--docs).
 
-The recipe is Atlassian's: one fill per variant, hovered and pressed as their own tokens, disabled as tokens rather than an opacity, one focus outline. The look is Ledger's: a flat brand fill for primary and a raised surface with the raised shadow for secondary.
+The recipe: one fill per variant, hovered and pressed as their own tokens, disabled as tokens rather than an opacity, one focus outline. The look is Ledger's: a flat brand fill for primary and a raised surface with the raised shadow for secondary.
 
 <Canvas of={Stories.Matrix} />
 

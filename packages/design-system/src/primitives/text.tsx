@@ -3,11 +3,9 @@ import type { ComponentPropsWithoutRef, ElementType, ReactNode, Ref } from "reac
 import { cn } from "../lib/cn";
 import { classFor, type TextColorToken, type TextElement } from "./tokens";
 
-/* Reference material. Atlassian's Text: `as` from span, p, strong, em; `size`, `weight`,
-   `color` (inverse automatically inside a Box with a bold background, inherited when nested),
-   `align`, `maxLines`. Carbon's productive type set is the reference for the ramp, and its rules
-   hold: running text neutral, colour functional, semibold for a heading and not a paragraph. Here
-   the same, with the element from a wider list of text elements and no `style`. */
+/* Text: `as` from the text elements; `size`, `weight`, `color` (inverse automatically inside a
+   Box with a bold background, inherited when nested), `align`, `maxLines`. The rules hold: running
+   text neutral, colour functional, semibold for a heading and not a paragraph. No `style`. */
 
 const size = { large: "font-body-large", medium: "font-body", small: "font-body-small", xsmall: "font-body-xsmall" } as const;
 const weight = { regular: "font-regular", medium: "font-medium", semibold: "font-semibold" } as const;

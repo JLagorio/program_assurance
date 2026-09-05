@@ -3,11 +3,10 @@ import type { ComponentPropsWithoutRef, ElementType, ReactNode, Ref } from "reac
 import { cn } from "../lib/cn";
 import { spaceClasses, type LayoutElement, type SpaceToken } from "./tokens";
 
-/* Reference material. Atlassian's Flex is the general flex container behind Stack and Inline:
-   direction row or column, gap, rowGap, columnGap, alignItems, justifyContent, wrap. No reverse
-   direction and no reverse wrap, and none here either: a reversed row reads in one order and
-   tabs in the other. HubSpot's Flex is the same set with a named gap scale. Carbon has no flex
-   primitive; its Stack takes an orientation. No `style`: a computed dimension is a Box's. */
+/* The general flex container behind Stack and Inline: direction row or column, gap, rowGap,
+   columnGap, alignItems, justifyContent, wrap. No reverse direction and no reverse wrap: a
+   reversed row reads in one order and tabs in the other. No `style`: a computed dimension is a
+   Box's. */
 
 const direction = { row: "flex-row", column: "flex-col" } as const;
 const alignItems = { start: "items-start", center: "items-center", end: "items-end", baseline: "items-baseline", stretch: "items-stretch" } as const;

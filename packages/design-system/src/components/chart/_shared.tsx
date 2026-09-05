@@ -49,7 +49,7 @@ export const heights: Record<ChartSize, number> = { small: 120, medium: 200, lar
 /** The var() for a chart tone, for anything recharts does not cover. */
 export const chartColor = (tone: ChartTone): string => token(`color.chart.${tone}` as TokenName);
 
-/** The tone's hovered step: one darker in light, one lighter in dark, as Atlassian's chart tokens. */
+/** The tone's hovered step: one darker in light, one lighter in dark. */
 export const hoveredColor = (tone: ChartTone): string =>
   token(`color.chart.${tone}.hovered` as TokenName);
 

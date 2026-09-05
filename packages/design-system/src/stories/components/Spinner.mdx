@@ -7,7 +7,7 @@ import * as Stories from "./Spinner.stories";
 
 # Spinner
 
-Something is in flight: a save, an export, a refresh, a section that is empty while it loads. A turning arc in three sizes on the icon scale, subtle by default, inverse on a bold fill, and a delay so a fast load never flashes one. Atlassian's Spinner and Carbon's Loading are the models. A page or a section with a shape to hold is a [Skeleton](?path=/docs/components-skeleton--docs); a button that is working shows its own, through `isLoading`.
+Something is in flight: a save, an export, a refresh, a section that is empty while it loads. A turning arc in three sizes on the icon scale, subtle by default, inverse on a bold fill, and a delay so a fast load never flashes one. A page or a section with a shape to hold is a [Skeleton](?path=/docs/components-skeleton--docs); a button that is working shows its own, through `isLoading`.
 
 <Canvas of={Stories.SpinnerMatrix} />
 
@@ -26,7 +26,7 @@ Something is in flight: a save, an export, a refresh, a section that is empty wh
 | `inverse`  | On a bold fill: a primary button, a banner.                                          |
 | `inherit`  | The text colour around it: inside a Button, which passes it; inside a coloured word. |
 
-Not built, and why: an overlay (Carbon's large loading with a blanket), because a section that is loading is a Skeleton, and a wait that must block the page is a Dialog's `pending`; a determinate spinner, because a wait with a known end is a Progress; a spinner larger than 24px (Atlassian's 48 and 96), because nothing here is one spinner on an empty page.
+Not built, and why: an overlay with a blanket, because a section that is loading is a Skeleton, and a wait that must block the page is a Dialog's `pending`; a determinate spinner, because a wait with a known end is a Progress; a spinner larger than 24px, because nothing here is one spinner on an empty page.
 
 ## Sizes
 
@@ -52,7 +52,7 @@ A spinner has one state: turning. `delay` holds it back for that many millisecon
 
 ## Content
 
-- **One spinner at a time.** The page is either working or it is not; Carbon and Atlassian both say so.
+- **One spinner at a time.** The page is either working or it is not.
 - **The label is the wait**: "Saving", "Exporting", "Refreshing". "Loading" only when nothing better is known.
 - **Beside a word, the word wins**: "Saving…" in `color.text.subtle` with the spinner before it, and the label the same word.
 - **Not for a page.** A page's first paint is a Skeleton.

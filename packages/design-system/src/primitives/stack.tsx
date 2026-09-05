@@ -3,10 +3,8 @@ import type { ComponentPropsWithoutRef, ElementType, ReactNode, Ref } from "reac
 import { cn } from "../lib/cn";
 import { spaceClasses, type LayoutElement, type SpaceToken } from "./tokens";
 
-/* Reference material. Atlassian's Stack: `space` between children, `alignBlock` (no baseline),
-   `alignInline`, `spread`, `grow`, `as` from div, span, ul, ol, dl. Carbon's Stack takes a gap
-   step and an orientation, and its spacing page says the same thing: the child has no margin,
-   the container has the distance. Here the same props, with `as` on the layout elements and no
+/* Stack: `space` between children, `alignBlock` (no baseline), `alignInline`, `spread`, `grow`,
+   `as` on the layout elements. The child has no margin; the container has the distance. No
    `style`: a computed dimension is a Box's. */
 
 const alignBlock = { start: "justify-start", center: "justify-center", end: "justify-end" } as const;

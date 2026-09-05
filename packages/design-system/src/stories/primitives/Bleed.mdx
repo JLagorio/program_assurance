@@ -7,7 +7,7 @@ import * as Stories from "./Bleed.stories";
 
 # Bleed
 
-The one place a negative margin is written: a child that escapes its parent's padding, by the token that padding is. A strip that runs to a card's edges, a table that meets a card body's sides, a list of rows that reaches a panel's top and bottom, a rail row's hover fill to the rail's edge. Atlassian's Bleed is the model: `all`, `inline` or `block`, and a scale that stops short, because a bleed is never larger than the padding it escapes. Here the scale is the tokens with a negative in the source, `space.025` to `space.400`, the page gutter. Carbon has no bleed; its full-width rows come from the grid's own gutter modes.
+The one place a negative margin is written: a child that escapes its parent's padding, by the token that padding is. A strip that runs to a card's edges, a table that meets a card body's sides, a list of rows that reaches a panel's top and bottom, a rail row's hover fill to the rail's edge. `all`, `inline` or `block`, and a scale that stops short, because a bleed is never larger than the padding it escapes. Here the scale is the tokens with a negative in the source, `space.025` to `space.400`, the page gutter.
 
 <Canvas of={Stories.BleedMatrix} />
 
@@ -28,7 +28,7 @@ The one place a negative margin is written: a child that escapes its parent's pa
 | Block  | Rows to a panel's top and bottom, a tab strip to a card header's top.                                     |
 | All    | A cover on a card, a media block under the radius.                                                        |
 
-Not built, and why: a bleed beyond `space.400` (nothing is padded more than a page gutter, so nothing has more to escape); one edge at a time (Atlassian stops at the axes too; a child that escapes one side only is a layout of two columns, not a bleed); a bleed on a Box (the Bleed is its own element, so the child keeps its padding and fill and the negative margin is in one place); a bleed that clips (the child hangs past the parent's radius unless it has its own; the card's `overflow` is the card's decision).
+Not built, and why: a bleed beyond `space.400` (nothing is padded more than a page gutter, so nothing has more to escape); one edge at a time (a child that escapes one side only is a layout of two columns, not a bleed); a bleed on a Box (the Bleed is its own element, so the child keeps its padding and fill and the negative margin is in one place); a bleed that clips (the child hangs past the parent's radius unless it has its own; the card's `overflow` is the card's decision).
 
 ## Sizes
 

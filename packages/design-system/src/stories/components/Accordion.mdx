@@ -7,9 +7,9 @@ import * as Stories from "./Accordion.stories";
 
 # Accordion
 
-Several sections that know about each other. An **Accordion** is a set of [Collapsible](?path=/docs/components-collapsible--docs) rows with one keyboard model: the arrows move between the titles, and in `single` mode opening one closes the rest. It is the rail's shape: the Inspector's groups are an Accordion of KeyValue rows, `multiple`, every group open. Carbon's accordion and Base Web's are the models; Atlassian has none, and HubSpot's Accordion is one row, the kit's Collapsible.
+Several sections that know about each other. An **Accordion** is a set of [Collapsible](?path=/docs/components-collapsible--docs) rows with one keyboard model: the arrows move between the titles, and in `single` mode opening one closes the rest. It is the rail's shape: the Inspector's groups are an Accordion of KeyValue rows, `multiple`, every group open.
 
-Reference material only. The record's work is Sections, open and in the outline; Carbon: do not fold content the reader will read in full, it adds a click and hides the page.
+Reference material only. The record's work is Sections, open and in the outline: content the reader will read in full is never folded, because a fold adds a click and hides the page.
 
 <Canvas of={Stories.AccordionStory} />
 
@@ -24,7 +24,7 @@ Reference material only. The record's work is Sections, open and in the outline;
 
 ## Variants
 
-Two, by `type`. **`single`**, the default, opens one item at a time and lets the open one close: a set the reader takes one by one, where seeing two would be noise. **`multiple`** is independent items with one keyboard model: reference the reader compares, which is the Inspector. Base Web's default is one at a time; Carbon's is independent. The kit keeps `single` as the default and asks for `multiple` wherever two rows are read together.
+Two, by `type`. **`single`**, the default, opens one item at a time and lets the open one close: a set the reader takes one by one, where seeing two would be noise. **`multiple`** is independent items with one keyboard model: reference the reader compares, which is the Inspector. The kit keeps `single` as the default and asks for `multiple` wherever two rows are read together.
 
 Both come flush or **`inset`** per item, as on the Collapsible page; the first item on a surface drops its rule with `border-t-0`, and the set drops its last rule with `border-b-0` when the surface has a border of its own.
 
@@ -36,7 +36,7 @@ One row, 36px, as the Collapsible's; the set is as tall as its rows and its open
 
 ## States
 
-The set's state is which items are open: none (Carbon's default, the titles as the overview), one, or several under `multiple`. Each row has the Collapsible's states: closed, open, hover, focus and disabled.
+The set's state is which items are open: none (the titles as the overview), one, or several under `multiple`. Each row has the Collapsible's states: closed, open, hover, focus and disabled.
 
 <Canvas of={Stories.AccordionMatrix} />
 

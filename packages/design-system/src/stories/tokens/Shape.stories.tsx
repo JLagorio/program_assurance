@@ -10,7 +10,7 @@ export const Radius: Story = {
   render: () => (
     <Page
       title="Shape"
-      lede="Tier 4. Named absolute steps, seeded from Linear-refined's 5px base. Badges small, controls medium, cards large, dialogs xlarge. Bare `rounded` is banned: it is a static 4px no reset can remove."
+      lede="Tier 4. Named absolute steps on a 5px base. Badges small, controls medium, cards large, dialogs xlarge. Bare `rounded` is banned: it is a static 4px no reset can remove."
     >
       <Group title="radius">
         <div className="flex flex-wrap gap-300">

@@ -8,14 +8,11 @@ import { cn } from "../lib/cn";
 import { Card } from "./card";
 import { Empty, type EmptyProps } from "./empty";
 
-/* Reference material. HubSpot's association card is the model for the body of a page: a header
-   with the kind, the count and the way to add one; a card per associated record with its name as
-   the link, up to six properties under it, and the actions in a menu that shows on hover; "view
-   all" at the bottom. Jira's linked-issues block and Carbon's contained list are the model for a
-   rail: one row per record. Atlassian's Smart Link card shows a title, a description and
-   metadata, with the actions on hover; Base Web's card is "a self-contained unit of information"
-   whose whole face may be the click target, which Carbon forbids once the tile carries actions of
-   its own. So: the title is the link and the actions are separate stops, in both layouts. */
+/* On the body of a page, a card per related record: a header with the kind, the count and the
+   way to add one; the record's name as the link, up to six properties under it, and the actions
+   in a menu that shows on hover; "view all" at the bottom. In a rail, one row per record. A card
+   that carries actions of its own cannot be one click target, so the title is the link and the
+   actions are separate stops, in both layouts. */
 
 export type RelatedLayout = "list" | "cards";
 
@@ -111,7 +108,7 @@ export type RelatedCardProps = {
   meta?: ReactNode;
   /** One status at the start of the meta line: a Badge or an Indicator. */
   status?: ReactNode;
-  /** Label and value pairs under the head: the properties the reader decides by. Four fit; six is the most, HubSpot's limit. */
+  /** Label and value pairs under the head: the properties the reader decides by. Four fit; six is the most. */
   properties?: { label: string; value: ReactNode }[] | undefined;
   /** Icon buttons at the top end, shown on hover, on focus and always on a touch screen, their space kept so nothing shifts: open in a new tab, unlink, more. Never the way to the record; the title is. */
   actions?: ReactNode;

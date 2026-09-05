@@ -7,7 +7,7 @@ import * as Stories from "./ChartBar.stories";
 
 # Bar
 
-Bars per category: the size of each thing, compared. Several series sit side by side or stack into parts of a whole; a bar runs down the side when its name is long; a value that is a `[from, to]` pair floats, which is how a phase window is drawn. Carbon's simple, grouped, stacked, horizontal and bullet bar charts are all this one part; a histogram is a bar chart of bins the data layer makes. It lives in a [Chart](?path=/docs/components-chart-overview--docs) Frame, which names it, keys it and lays it out as a table.
+Bars per category: the size of each thing, compared. Several series sit side by side or stack into parts of a whole; a bar runs down the side when its name is long; a value that is a `[from, to]` pair floats, which is how a phase window is drawn. Simple, grouped, stacked, horizontal and bullet bar charts are all this one part; a histogram is a bar chart of bins the data layer makes. It lives in a [Chart](?path=/docs/components-chart-overview--docs) Frame, which names it, keys it and lays it out as a table.
 
 <Canvas of={Stories.BarMatrix} />
 
@@ -34,7 +34,7 @@ Bars per category: the size of each thing, compared. Several series sit side by 
 | Grouped                | Two or three series side by side, in the categorical set. Past three the groups blur: stack, or emphasise one as a Line.  |
 | `stacked`              | Parts of each whole, in the status tones or the categorical set. The tooltip totals them.                                 |
 | `horizontal`           | Long names, or many categories: the names read whole down the side.                                                       |
-| `target`               | A mark across each bar at its target: Carbon's bullet chart, without the qualitative bands.                               |
+| `target`               | A mark across each bar at its target: a bullet chart, without the qualitative bands.                               |
 | `[from, to]` values    | Floating bars: phase windows, with `horizontal` and a `reference` for today.                                              |
 | `line`                 | One series as a line over the bars, on the same axis: closed against the plan.                                            |
 | Below zero             | Variance, change, balance: the bars hang from the zero line. The axis reaches below zero on its own.                      |

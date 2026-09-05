@@ -3,12 +3,9 @@ import type { ComponentPropsWithoutRef, CSSProperties, ElementType, ReactNode, R
 import { cn } from "../lib/cn";
 import { spaceClasses, type LayoutElement, type SpaceToken } from "./tokens";
 
-/* Reference material. Atlassian's Grid: templateColumns, templateRows and templateAreas as
-   strings, gap, rowGap, columnGap as tokens, alignItems, justifyContent, autoFlow, `as` from
-   div, span, ul, ol; no responsive template. Carbon's 2x Grid is a page grid, 4, 8 and 16
-   columns by breakpoint with 16px gutters, which the Shell's areas do here. Base Web's FlexGrid
-   takes a column count per breakpoint as an array. Here Atlassian's Grid, with one template per
-   breakpoint. */
+/* Grid: templateColumns, templateRows and templateAreas as strings, gap, rowGap, columnGap as
+   tokens, alignItems, justifyContent, autoFlow, `as` from the layout elements, and one template
+   per breakpoint. A page grid with gutters and margins is the Shell's areas' job, not this. */
 
 const alignItems = { start: "items-start", center: "items-center", end: "items-end", baseline: "items-baseline", stretch: "items-stretch" } as const;
 const justifyContent = { start: "justify-start", center: "justify-center", end: "justify-end", "space-between": "justify-between", "space-around": "justify-around", "space-evenly": "justify-evenly", stretch: "justify-stretch" } as const;

@@ -7,7 +7,7 @@ import * as Stories from "./Glance.stories";
 
 # Glance
 
-The body of a hover card: what the reader sees when the pointer rests on a record's id or name. The id and one status on the first line, the name on at most two, the meta line, at most four facts. Facts only, no actions: it is the first rung of the hover ladder, the click is the peek in a [PreviewSheet](?path=/docs/patterns-previewsheet--docs) and the footer link there is the record. A record reads the same on every rung because the same parts draw it, and this is the smallest of them. Jira's issue hover and GitHub's hovercard are the models; Atlassian's profile card is the same thing for a person.
+The body of a hover card: what the reader sees when the pointer rests on a record's id or name. The id and one status on the first line, the name on at most two, the meta line, at most four facts. Facts only, no actions: it is the first rung of the hover ladder, the click is the peek in a [PreviewSheet](?path=/docs/patterns-previewsheet--docs) and the footer link there is the record. A record reads the same on every rung because the same parts draw it, and this is the smallest of them. The same card serves a record and a person.
 
 <Canvas of={Stories.GlanceStory} />
 
@@ -27,7 +27,7 @@ Glance has one appearance. What varies is the record type, which is the product'
 
 <Canvas of={Stories.GlanceMatrix} />
 
-Not built, and why: an action row (GitHub's Follow, Jira's Assign), because a hover card has no controls and a keyboard never reaches them; an avatar or an image, because a record is its id and its name; a fifth fact, because the part draws four and the rest belong to the peek; a link in the card, because the trigger is the link.
+Not built, and why: an action row, because a hover card has no controls and a keyboard never reaches them; an avatar or an image, because a record is its id and its name; a fifth fact, because the part draws four and the rest belong to the peek; a link in the card, because the trigger is the link.
 
 ## Sizes
 

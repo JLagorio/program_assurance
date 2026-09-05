@@ -12,13 +12,11 @@ import {
 } from "./tokens";
 import { tokens } from "../generated/tokens";
 
-/* Reference material. Atlassian's Box is the fundamental block: padding on every edge as space
-   tokens, a backgroundColor token, `as` for any non-interactive element (never an `a` or a
-   `button`: those are Anchor and Pressable), `style` as a last resort, and no margin, ever. A Box
-   with a bold background paints its text inverse. Carbon's Layer is the surface half of it: nested
-   layers step the background token. Base Web's Block is the opposite idea, every style as a prop,
-   which its docs no longer recommend. Here: Atlassian's Box, with the surface published as the
-   current surface for sticky and masking children. */
+/* Box is the fundamental block: padding on every edge as space tokens, a backgroundColor token,
+   `as` for any non-interactive element (never an `a` or a `button`: those are TextLink and
+   Button), `style` as a last resort, and no margin, ever. A Box with a bold background paints its
+   text inverse, and publishes its surface as the current surface for sticky and masking
+   children. A surface is named, never counted: nesting does not step the background. */
 
 export type BoxProps = {
   /** The element: a container, a landmark, a list or a list part. Never a link or a button: TextLink and Button carry the ring, the face and the name. */

@@ -7,7 +7,7 @@ import * as Stories from "./Flex.stories";
 
 # Flex
 
-The general flex container, for the layouts Stack and Inline do not express: a row distributed `space-around`, a column whose children stretch, a wrap with its own column and row gaps. Stack and Inline are Flex with the choices made; reach for them first, and for Flex when the choice they made is the wrong one. Atlassian's Flex is the model, and like it there is no reverse direction and no reverse wrap: a reversed row reads in one order and tabs in the other. HubSpot's Flex is the same set with a named gap scale; Carbon has no flex primitive, its Stack takes an orientation instead.
+The general flex container, for the layouts Stack and Inline do not express: a row distributed `space-around`, a column whose children stretch, a wrap with its own column and row gaps. Stack and Inline are Flex with the choices made; reach for them first, and for Flex when the choice they made is the wrong one. There is no reverse direction and no reverse wrap: a reversed row reads in one order and tabs in the other.
 
 <Canvas of={Stories.FlexMatrix} />
 
@@ -30,7 +30,7 @@ The general flex container, for the layouts Stack and Inline do not express: a r
 | Column   | A column that Stack cannot say: a `baseline` alignment, children distributed `space-around`.                  |
 | Wrapping | Cells of their own width with a column gap and a row gap that differ, and a distribution across each row.    |
 
-Not built, and why: `row-reverse` and `column-reverse` (the eye reads one order and the keyboard another; write the children in the order they should read); `wrap-reverse` (the same); `inline-flex` (Inline's `display`, for a row inside text); a per-child `alignSelf` or `order` (HubSpot's Box; here a child that sits differently carries its own class, and order is DOM order); a responsive direction (a layout that changes at a breakpoint is a Grid with one template per breakpoint).
+Not built, and why: `row-reverse` and `column-reverse` (the eye reads one order and the keyboard another; write the children in the order they should read); `wrap-reverse` (the same); `inline-flex` (Inline's `display`, for a row inside text); a per-child `alignSelf` or `order` (a child that sits differently carries its own class, and order is DOM order); a responsive direction (a layout that changes at a breakpoint is a Grid with one template per breakpoint).
 
 ## Sizes
 

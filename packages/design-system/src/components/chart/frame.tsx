@@ -116,7 +116,7 @@ export type ChartFrameProps = {
   title: string;
   /** One line under the title: the period, the unit, the source. */
   description?: ReactNode | undefined;
-  /** One sentence for a screen reader that says what the chart shows: "Open findings fell from 14 in January to 5 in September." Carbon's chart description. Not shown. */
+  /** One sentence for a screen reader that says what the chart shows: "Open findings fell from 14 in January to 5 in September." The figure's description. Not shown. */
   summary?: string | undefined;
   /** The levels drilled into so far, from the top: `[{ label: "All families", onSelect }, { label: "AC" }]`. A Breadcrumb under the title; every crumb but the last goes back. */
   path?: ChartCrumb[] | undefined;

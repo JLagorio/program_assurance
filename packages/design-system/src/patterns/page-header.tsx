@@ -1,12 +1,10 @@
 import type { ReactNode } from "react";
 
-/* Reference material. Atlassian's PageHeader is breadcrumbs, a title, actions and a bottom bar of
-   filters; Carbon's is a breadcrumb bar, a title with a subtitle, actions and a tab bar. This is
-   the head of an index page: the area it belongs to, the name, one line, the actions. The filters
+/* The head of an index page: the area it belongs to, the name, one line, the actions. The filters
    and the table are the IndexPage's. */
 
 export type PageHeaderProps = {
-  /** The area the page belongs to, above the title: "Libraries", "Risk". A word or two, where Atlassian puts breadcrumbs. */
+  /** The area the page belongs to, above the title: "Libraries", "Risk". A word or two, where a breadcrumb would otherwise sit. */
   eyebrow?: ReactNode;
   /** The page's name, the h1: "Programs", "Control catalog". A noun, not a sentence. */
   title: string;

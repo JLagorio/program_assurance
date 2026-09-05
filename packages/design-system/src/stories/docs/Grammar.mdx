@@ -4,7 +4,7 @@ import { Meta } from "@storybook/addon-docs/blocks";
 
 # Token grammar
 
-Tokens are named on Atlassian's grammar: **property . role . emphasis . state**.
+Tokens are named on one grammar: **property . role . emphasis . state**.
 
 | Segment | Examples | What it says |
 | --- | --- | --- |
@@ -31,7 +31,7 @@ Every token has one CSS variable, `--ds-<name with dashes>`, and most have one T
 
 ## Tiers
 
-1. **Palette.** Six ramps (neutral, dark neutral, blue, green, orange, red) with Atlassian's step names, plus alpha steps for translucent fills. Never used directly.
+1. **Palette.** Six ramps (neutral, dark neutral, blue, green, orange, red) with numbered step names, plus alpha steps for translucent fills. Never used directly.
 2. **Semantic.** Colour and elevation tokens that reference the ramps. Each has a light value and a dark value. This is the only tier a component reads for colour.
 3. **Typography, space, shape, dimension, motion.** Mode independent.
 4. **Component.** Where a component needs a value no semantic token gives it, the value is added to the tokens, not written in the component.

@@ -3,7 +3,7 @@ import { Children, createContext, useContext, type CSSProperties, type ReactNode
 
 import { cn } from "../lib/cn";
 
-/* Reference material. Progress along an ordered path. The list knows each step's place and its
+/* Progress along an ordered path. The list knows each step's place and its
    neighbour's state, so a step draws its own rails: bold behind every completed step, hairline
    ahead. One button per step, marker and label together, so a step is one tab stop and one name:
    its state, then its label. */
@@ -22,9 +22,9 @@ type Slot = {
 const StepperContext = createContext<Slot | null>(null);
 
 export type StepperProps = {
-  /** `horizontal` puts labels under markers on one line, for a header; `vertical` stacks them down the left, which Carbon prefers wherever it fits: a wizard's rail, a panel. */
+  /** `horizontal` puts labels under markers on one line, for a header; `vertical` stacks them down the left, preferred wherever it fits: a wizard's rail, a panel. */
   orientation?: StepperOrientation | undefined;
-  /** Markers show the step's number in place of the dot; done and blocked keep their icon. Carbon and Base Web both offer it: numbers make the order plain. */
+  /** Markers show the step's number in place of the dot; done and blocked keep their icon: numbers make the order plain. */
   numbered?: boolean | undefined;
   /** The list's accessible name: "RMF steps", "Program setup". */
   label?: string | undefined;
@@ -94,9 +94,9 @@ const spoken: Record<StepState, string> = {
 export type StepperItemProps = {
   /** `done`, `current`, `upcoming`, or `blocked` for the step that failed. */
   state: StepState;
-  /** One or two words, sentence case: "Categorize", "Select controls". Carbon's limit is sixteen characters. It truncates. */
+  /** One or two words, sentence case: "Categorize", "Select controls". Sixteen characters at most. It truncates. */
   label: ReactNode;
-  /** Helper text under the label: a date, who has it, why it is blocked. Carbon's helper text; it may wrap. */
+  /** Helper text under the label: a date, who has it, why it is blocked. It may wrap. */
   meta?: ReactNode;
   /** The full text as a tooltip when the label truncates. */
   title?: string | undefined;

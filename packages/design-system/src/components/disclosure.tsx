@@ -10,8 +10,7 @@ import { Count } from "./badge";
    several that know about each other. Both share one trigger row so a page can mix them. The row
    is the title, flush with the body under it and semibold so it reads as a section, a count after
    it, and the chevron at the end: down while closed, up while open. Under the pointer the row
-   tints, the tint reaching space.100 past a flush title as Carbon's flush accordion does, so the
-   title stays on the text column. */
+   tints, the tint reaching space.100 past a flush title, so the title stays on the text column. */
 
 /** The heading level a disclosure's title takes, so a rail's sections are in the page's outline. Unsaid, the title is a plain row. */
 export type DisclosureHeading = 2 | 3 | 4 | 5 | 6;

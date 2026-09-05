@@ -2,9 +2,8 @@ import type { CSSProperties } from "react";
 
 import { cn } from "../lib/cn";
 
-/* Reference material. Carbon draws a skeleton per component (text, heading, icon, placeholder)
-   and Atlassian and Base Web draw one shape in any size. This is the shape: a line, a heading, a
-   circle or a block, in the size of what is coming, so the layout holds still. It is hidden from
+/* One shape in any size rather than a skeleton per component: a line, a heading, a circle or a
+   block, in the size of what is coming, so the layout holds still. It is hidden from
    a screen reader; the region that waits says so with aria-busy. */
 
 export type SkeletonShape = "line" | "heading" | "circle" | "block";

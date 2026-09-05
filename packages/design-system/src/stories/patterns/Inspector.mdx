@@ -7,7 +7,7 @@ import * as Stories from "./Inspector.stories";
 
 # Inspector
 
-The facts that stay put while the work scrolls: groups of label-and-value rows beside a record, each group a heading that folds, every group open until the reader folds it, a link at the end to edit them. Beside a page it is sticky under the top nav and scrolls inside itself; inside a Panel, the detail of a selected row, it scrolls with the panel and its rules run edge to edge. Jira's Details panel is the model. Carbon's accordion opens closed "to provide users with a high-level overview" and names the exception: content the reader will read should not be folded, so the groups here open. Carbon's structured list is the row, a label and a value, a small set, no nesting; Base Web's accordion opens one panel at a time unless told otherwise, and these open together because the facts are read together. Atlassian publishes no accordion.
+The facts that stay put while the work scrolls: groups of label-and-value rows beside a record, each group a heading that folds, every group open until the reader folds it, a link at the end to edit them. Beside a page it is sticky under the top nav and scrolls inside itself; inside a Panel, the detail of a selected row, it scrolls with the panel and its rules run edge to edge. An accordion usually opens closed so its titles are the overview; content the reader will read should not be folded, so the groups here open. The row is a label and a value, a small set, no nesting; the groups open together because the facts are read together.
 
 <Canvas of={Stories.InspectorMatrix} />
 
@@ -32,7 +32,7 @@ The facts that stay put while the work scrolls: groups of label-and-value rows b
 
 <Canvas of={Stories.InspectorGroups} />
 
-Not built, and why: an accordion that opens one group at a time (Carbon, Base Web's default), because the facts are read together and folding is for the one group the reader is done with; groups closed by default (Carbon's default), because a rail of facts is what the reader came to read; nested groups, because two levels of facts is a Tree; an aside of its own, because the rail it sits in is the landmark, so a rail is exactly one landmark; a search over the facts, because a record has a handful.
+Not built, and why: an accordion that opens one group at a time, because the facts are read together and folding is for the one group the reader is done with; groups closed by default, because a rail of facts is what the reader came to read; nested groups, because two levels of facts is a Tree; an aside of its own, because the rail it sits in is the landmark, so a rail is exactly one landmark; a search over the facts, because a record has a handful.
 
 ## Sizes
 
@@ -74,7 +74,7 @@ One width: `dimension.layout.rail`, 272px, beside a page; the panel's 320px insi
 
 ## Accessibility
 
-- **The group's title is the button that folds it**, with `aria-expanded`; Tab moves from group to group, Enter or Space folds. Carbon's keyboard.
+- **The group's title is the button that folds it**, with `aria-expanded`; Tab moves from group to group, Enter or Space folds.
 - **The rows are a definition list**, a term and a definition each, so a screen reader hears "Owner, Dana Whitlock".
 - **The rail is not a landmark of its own.** Beside a page, the ShowPage's aside named "Details" is; in a Panel, the Panel is. One rail, one landmark.
 - **The action is a labelled IconButton**, a stop after the heading; a raw button with a pencil has no name.

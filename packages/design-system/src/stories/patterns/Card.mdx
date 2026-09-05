@@ -7,7 +7,7 @@ import * as Stories from "./Card.stories";
 
 # Card
 
-A framed block on the raised surface: a table, a chart, a set of facts, something the page holds up as a thing. Carbon's Tile is the plain container and its cards are patterns built on it; Base Web's Card carries a title, a thumbnail and an action and may be one click target. This is the container: a frame, a header row when it needs a name, a body with the standard inset. Nothing in it is clickable as a whole, and a paragraph of the page is a [Section](?path=/docs/patterns-section--docs), not a card.
+A framed block on the raised surface: a table, a chart, a set of facts, something the page holds up as a thing. This is the container: a frame, a header row when it needs a name, a body with the standard inset. Nothing in it is clickable as a whole, and a paragraph of the page is a [Section](?path=/docs/patterns-section--docs), not a card.
 
 <Canvas of={Stories.CardMatrix} />
 
@@ -30,7 +30,7 @@ Card has one appearance. What it holds:
 | Holding a table | The register: the Card frames it and the Table draws its rows to the edge. |
 | Holding a chart | A Chart.Frame in a Card, the frame's own header as the card's.             |
 
-Not built, and why: a clickable card (Base Web, Carbon's clickable tile), because a card that opens is a row of an Item list, and a link inside it is a TextLink; a selectable card (Carbon), because choosing among cards is a RadioGroup or a Table.Selection; a thumbnail or a hero (Base Web), because the product's records are text; a footer of actions, because the action sits in the header, and a form's actions are the form's.
+Not built, and why: a clickable card, because a card that opens is a row of an Item list, and a link inside it is a TextLink; a selectable card, because choosing among cards is a RadioGroup or a Table.Selection; a thumbnail or a hero, because the product's records are text; a footer of actions, because the action sits in the header, and a form's actions are the form's.
 
 ## Sizes
 

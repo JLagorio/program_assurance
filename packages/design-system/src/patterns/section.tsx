@@ -2,8 +2,7 @@ import type { ReactNode } from "react";
 
 import { Count } from "../components/badge";
 
-/* Reference material. None of Carbon, Base Web or Atlassian has a section of its own; a page
-   region is a heading and what follows it. This is that, with the rule the system draws under a
+/* A page region is a heading and what follows it. This is that, with the rule the system draws under a
    region's heading. The heading may carry a count or a constraint, never an explanation: Block
    is the same region for work, Collapsible for reference that folds. */
 

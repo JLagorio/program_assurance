@@ -7,7 +7,7 @@ import * as Stories from "./Indicator.stories";
 
 # Indicator
 
-A Dot with a word: severity or health beside a label, in a row or a rail. High, Medium, Low; Healthy, Degraded. Never a pill, so the status column stays the only pill in the row and the eye can tell the rank from the state. The Dot alone is a 6px circle in the tone's icon colour, tuned to read at small sizes, for a status in a spot too small for a word. Neither Carbon nor Base Web has one; Carbon for IBM Products' status indicator is the nearest, and it uses icons where this uses the Dot.
+A Dot with a word: severity or health beside a label, in a row or a rail. High, Medium, Low; Healthy, Degraded. Never a pill, so the status column stays the only pill in the row and the eye can tell the rank from the state. The Dot alone is a 6px circle in the tone's icon colour, tuned to read at small sizes, for a status in a spot too small for a word. A status indicator is usually an icon per state; this uses the Dot.
 
 <Canvas of={Stories.IndicatorMatrix} />
 
@@ -27,7 +27,7 @@ A Dot with a word: severity or health beside a label, in a row or a rail. High, 
 
 The tone is a rank, not a state: `danger` High, `warning` Medium, `neutral` Low, `success` Healthy, `information` Informational. Neutral mutes the word as well as the Dot, so a scale reads from loud to quiet. A record's state, Verified or Overdue, is a [Badge](?path=/docs/components-badge--docs).
 
-Not built, and why: an icon per tone (Carbon for IBM Products' failed, warning, in-progress), because the Dot is the kit's one status mark and the word says the rest; a large Dot; an Indicator in a pill.
+Not built, and why: an icon per tone (failed, warning, in progress), because the Dot is the kit's one status mark and the word says the rest; a large Dot; an Indicator in a pill.
 
 ## Sizes
 

@@ -2,10 +2,9 @@ import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 
-/* Reference material. Carbon's Tile is the plain container and its cards are patterns built on
-   it; Base Web's Card carries a title, a thumbnail and an action and may be one click target.
-   This is the container: a framed block on the raised surface, with a header row when it needs a
-   name and a body with the standard inset. Nothing in it is clickable as a whole. */
+/* The container: a framed block on the raised surface, with a header row when it needs a name and
+   a body with the standard inset. Nothing in it is clickable as a whole: a card that opens is a
+   row of an Item list. */
 
 /** The raised surface, recorded for children that read the surface they sit on (sticky table headers). */
 export const raisedSurface = {
@@ -43,7 +42,7 @@ export type CardHeaderProps = {
   className?: string | undefined;
 };
 
-/** A rule and a label at the top of a Card, the way Stripe separates page regions. */
+/** A rule and a label at the top of a Card, separating its regions the way a page's sections are. */
 function CardHeader({ title, description, action, className }: CardHeaderProps) {
   return (
     <div

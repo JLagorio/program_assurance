@@ -29,8 +29,8 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 - `Tiles` is `Stat.Grid`; the old name stays exported and `ledger/no-deprecated-name` says so.
   Components/Stat.
 - The layout primitives take `as` from the layout elements only: a container, a landmark, a list or
-  a list part, never `a` or `button` (Atlassian's Box refuses the same two; TextLink and Button carry
-  the ring, the face and the name). `Flex` drops `row-reverse`, `column-reverse` and `wrap-reverse`:
+  a list part, never `a` or `button` (TextLink and Button carry the ring, the face
+  and the name). `Flex` drops `row-reverse`, `column-reverse` and `wrap-reverse`:
   reading order and tab order stay one order. `Heading` `color` is `color.text`, `.inverse` or
   `.warning.inverse`, never a tone. `Bleed` takes the tokens that have a negative in the source,
   `space.025` to `space.400`, and takes `as`. `Text` takes `as` from `TextElement`, `Heading` from
@@ -48,12 +48,11 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 - `FilterChip` says `aria-pressed` when it stands alone and defers to a Popover's
   `aria-expanded` as its trigger; the plus shows only while the chip is off; `disabled` has a
   face (`color.border.disabled`, `color.text.disabled`). Components/FilterChip: InToolbar, Dont.
-- A sortable header's chevron shows on keyboard focus as well as hover, per Carbon's note that
-  nothing else says a table sorts.
+- A sortable header's chevron shows on keyboard focus as well as hover, because nothing else
+  says a table sorts.
 - Pagination's page buttons are named "Page 6" and the gap is hidden from a screen reader.
   Components/Pagination: Paged, Dont, Playground.
-- The choice controls and the Forms overview are on the template, walked against Carbon's Checkbox,
-  Radio button, Toggle and Forms pattern and Base Web's Checkbox, Radio and FormControl. `Checkbox`,
+- The choice controls and the Forms overview are on the template. `Checkbox`,
   `Switch` and `RadioGroup` have typed, described props, so their tables generate; a choice's
   control and label top-align, so a label that wraps runs under its own first line. Said on the
   pages and not built: no state text beside a Switch, no small choice controls, no read-only choice.
@@ -63,16 +62,14 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   its error the way an Input does; `DatePicker` accepts `aria-required` and does not render it, since a
   button may not carry it. `DatePicker`'s placeholder is "Choose a date". Components/Select,
   Components/Combobox, Components/DatePicker.
-- The four pickers are on the template, walked against Carbon's Dropdown and Date picker, Base Web's
-  Select and Datepicker, and what Atlassian publishes of Select and DateTime picker. Said on the pages
+- The four pickers are on the template. Said on the pages
   and not built: no multi-select, no creatable option, no typed entry in the date field, no time, no
   month or year menus in the caption. Components/Calendar.
 - `color.border.input` is lighter: `neutral.400` in light, `darkNeutral.500` in dark, below 3:1 by
   decision. The label, the fill and the focus and danger borders identify a field; the contrast test
   holds the rest border above a floor. Every field control, the Checkbox box and the RadioGroup dot
   take it. Components/Input.
-- `Textarea`, `NativeSelect` and `InputGroup` are on the template, walked against Carbon's Text input
-  and Select, Base Web's Textarea, Select and Input, and Atlassian's Textarea and Select. Said on the
+- `Textarea`, `NativeSelect` and `InputGroup` are on the template. Said on the
   pages and not built: no character counter, no borderless or multiple select, no read-only select,
   no clear button, no button inside a field, no attached segment.
 - The record's rail is the ShowPage's again. `rail` on `ShowPage` renders it beside the body, under
@@ -91,9 +88,7 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   stays hidden and the counts beside it carry the values. Components/Progress: Stacked.
 - `Gates.Item` says "Met" or "Not met" before its label to a screen reader; the check and the Dot
   are hidden, so nothing is said twice. Components/Gates.
-- Alert, Banner, Progress, Stat and Gates are on the template, walked against Carbon's Notification
-  and Progress bar (usage, style, accessibility), Base Web's Banner, Notification, Toast and
-  ProgressBar, and Atlassian's Banner, SectionMessage and ProgressBar as known. Every prop of the five
+- Alert, Banner, Progress, Stat and Gates are on the template. Every prop of the five
   is typed and described, so five more generated tables fill, and the compound parts (`Stat.Tile`,
   `Stat.Grid`, `Progress.Stacked`, `Gates.Item`) have their own. Said on the pages and not built:
   a dismiss on an Alert, an icon per tone, a success or neutral Banner, high and low contrast, an
@@ -104,17 +99,16 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   literals were slipping past. Components/Stat: Matrix.
 - `Indicator` truncates its word when the column is narrower than it, and never shrinks its Dot;
   the prototype had wrapped it by hand with `truncate` spans. Components/Indicator: Truncation.
-- Badge, Count and Indicator (with Dot) are on the template, walked against Carbon's Tag (usage,
-  style, accessibility), Base Web's Tag and Badge, and Atlassian's Lozenge and Badge as known.
+- Badge, Count and Indicator (with Dot) are on the template.
   Every prop of the four is described, so four generated tables fill. Said on the pages and not
   built: dismissible, selectable and operational tags (a FilterChip and a TextLink are those), a hue
   per category (a tone is a status, so a category is neutral), a large Badge, an outline or
   high-contrast appearance, a corner-placed Count, an icon per Indicator tone. Components/Badge,
   Components/Count, Components/Indicator.
 - `Breadcrumb` is one line: a trail wider than its header truncates every crumb instead of
-  wrapping to a second line, which Carbon rules out. Components/Breadcrumb: Matrix.
-- `Eyebrow`'s neutral colour is `color.text.subtle`, from `color.text.subtlest`: Carbon's label is
-  its secondary text, and the prototype had written forty-five eyebrows of its own in subtle against
+  wrapping to a second line. Components/Breadcrumb: Matrix.
+- `Eyebrow`'s neutral colour is `color.text.subtle`, from `color.text.subtlest`: a label is
+  secondary text, and the prototype had written forty-five eyebrows of its own in subtle against
   eight in subtlest. The Shell's section headings and the Preview eyebrow take the step.
   Components/Typography: Matrix.
 - `KeyValue` gives a truncated string value its full text as the title, as a plain-string cell
@@ -140,16 +134,13 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   row (or the first) is tabbable and the rest are reached with the arrows, which move, open and
   close; Enter or Space selects; the chevron is for the mouse and hidden from the keyboard. It had
   been two buttons inside a tree item. Components/Tree: Matrix, Families.
-- Stepper, Timeline and Tree are on the template, walked against Carbon's Progress indicator and
-  Tree view, Base Web's ProgressSteps and TreeView, and Atlassian's Progress tracker and Tree as
-  known; no reference has a timeline, so its page says whose conventions it follows. Said on the
+- Stepper, Timeline and Tree are on the template; the Timeline follows Item's
+  anatomy. Said on the
   pages and not built: a disabled step, a step skeleton, a step with a body; alternating or
   horizontal timelines, a folded "show more"; a checkbox tree, drag to reorder, a tree that owns
   its data. Components/Stepper, Components/Timeline, Components/Tree.
-- Breadcrumb, Item, Avatar, Id, KeyValue, Fact and Typography are on the template, walked against
-  Carbon's Breadcrumb (usage, style, accessibility), Contained list and Structured list, Base Web's
-  Breadcrumbs, Avatar, List, Typography and Heading, and Atlassian's Breadcrumbs, Avatar and
-  AvatarGroup as known. Every prop of the seven and their parts is described, so eleven generated
+- Breadcrumb, Item, Avatar, Id, KeyValue, Fact and Typography are on the template.
+  Every prop of the seven and their parts is described, so eleven generated
   tables fill. Said on the pages and not built: an overflow menu and a medium size on the
   breadcrumb, a slash separator; a list header with a search, row heights, a disclosed list, nesting;
   photos, presence marks, a square avatar, a menu behind the +n, sizes past 20px; a monospace face
@@ -175,7 +166,7 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 - `Collapsible` and `Accordion` take `headingLevel` (the title as an h2 to h6, so a rail's
   sections are in the page's outline) and `disabled`; the row tints under the pointer, the tint
-  reaching `space.100` past a flush title as Carbon's flush accordion does. `AccordionItemProps`
+  reaching `space.100` past a flush title. `AccordionItemProps`
   and `DisclosureHeading` are exported; a string `count` renders as given. Components/Collapsible,
   Components/Accordion.
 - `Dialog` takes `eyebrow` (the record's id and status above the title, as Sheet has) and
@@ -189,7 +180,7 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   a Stacked story shows the one stack allowed, an AlertDialog over a Sheet. Twenty-eight pages
   on the template; 641 gaps grandfathered.
 - `TooltipProvider`: one provider for a product, so moving from one tooltipped control to the
-  next shows the next tooltip at once (Carbon's and Atlassian's behaviour). The Shell mounts it
+  next shows the next tooltip at once. The Shell mounts it
   and the Storybook preview wraps every story in it; a Tooltip with no provider above makes its
   own, as before. Tooltip, HoverCard and Popover props are described, so their tables fill.
 - `DropdownMenu.Item` takes `tone="danger"` (red, red-tinted highlight) for the verb that
@@ -198,7 +189,7 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 - Pages on the template: Tooltip (IconButtons, Open, Dont, Playground), HoverCard (On an id,
   Dont, Playground), Popover (Task, Options, Dont, Playground), DropdownMenu. Twenty-four pages on
   the template; 681 gaps grandfathered.
-- `Table` takes `label` (its accessible name, which Carbon asks of every table) and a typed
+- `Table` takes `label` (its accessible name) and a typed
   `role`; `TableProps` and `TdProps` are exported, so the generated props tables fill. A cell
   whose child is a plain string carries it as its `title`, so truncated text shows whole on hover,
   as the data-table spec promised. Components/Table: Frame, Dont and Playground stories.
@@ -221,15 +212,15 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 - `InputGroup` has typed props with descriptions. Its ends are hidden from screen readers, so the
   label or the hint carries the unit in words. `Input` hides the browser's clear control on
   `type="search"`; Escape clears. Components/InputGroup.
-- One page per part. Every part a product imports by name has its own story file and page, the way
-  Atlassian, Carbon and Base Web document; compound parts stay with their parent; Forms, Overlays,
+- One page per part. Every part a product imports by name has its own story file and page;
+  compound parts stay with their parent; Forms, Overlays,
   Pages, Shapes and Primitives keep an overview that says which part to reach for. The sidebar
   gains Patterns, Shapes and Shell sections. Input and Field are on the template after Button,
   IconButton and TextLink; the rest carry their prose and a generated props table until walked.
 - `Input` has a read-only look (`readOnly`: the sunken surface, no hover), and the contrast test
   covers the field's borders against the input surface.
-- `Alert` takes `action`: the one TextLink or link Button that resolves it, under the body, as
-  Carbon's actionable notification and Atlassian's section message have. Components/Alert: Matrix,
+- `Alert` takes `action`: the one TextLink or link Button that resolves it, under the body.
+  Components/Alert: Matrix,
   Placement, Dont.
 - `Progress` takes `showValue` and `valueText`: the number after the bar in small subtle text at a
   fixed minimum width, so a column of bars lines up; `valueText` says "41 of 80" or "64% complete"
@@ -245,7 +236,7 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   status column of dots is no longer silent to a screen reader. Without one it stays hidden and the
   text beside it carries the status. Two lone Dots in the prototype say their names; twelve rows
   that drew a Dot and a word by hand are `Indicator`. Components/Indicator: Matrix, Dont.
-- `Avatar` takes Atlassian's scale: `xsmall` 16px with one initial, `small` 24px (from 20) as the
+- `Avatar` takes a four-step scale: `xsmall` 16px with one initial, `small` 24px (from 20) as the
   default, `medium` 32px, `large` 40px and `xlarge` 64px; at 16 and 20 two initials ran into each
   other and the border. It takes `src` for a photo, with the initials back if it fails to load;
   `variant` `tinted`, `bold` or `gradient`, a hue drawn from the name and stable per person, or
@@ -261,15 +252,15 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   4.5:1 for 11px initials in both modes. Teal and purple now reach the accent family as well as the
   chart. Tokens/Color: Background, Text.
 - `Item.Group` takes a `title`, a `count` and a `trailing` read-out or button: the list's own
-  heading, semibold with a rule under it, which names the list to a screen reader. Carbon's
-  contained list has the same header. `size="compact"` tightens every row for a rail. A row takes
+  heading, semibold with a rule under it, which names the list to a screen reader.
+  `size="compact"` tightens every row for a rail. A row takes
   `isCollapsible` with `defaultOpen`, `open` and `onOpenChange`: its children fold behind a chevron,
   and a nested `Item.Group` in them is a milestone and its tasks. The POA&M's three hand-drawn list
   headers are group titles. Components/Item: Matrix, Nested, Dont.
-- `Stepper` takes `numbered`, the step's number in its marker (Carbon, Base Web), and `label`
+- `Stepper` takes `numbered`, the step's number in its marker, and `label`
   for the list's name. `Timeline` takes `link` for a row that is a router Link, `dateTime` for a
   machine-readable stamp that makes the time a `<time>`, and `label`. `Tree` takes
-  `size="xsmall"` (24px rows, Carbon's extra small) beside the 32px default, and the keyboard.
+  `size="xsmall"` (24px rows) beside the 32px default, and the keyboard.
   `Eyebrow` takes `id`, so a list can be labelled by it. The wizard and the coverage header drop
   their `first`/`last` flags. Components/Stepper: Matrix, Paths; Components/Timeline: Matrix;
   Components/Tree: Matrix.
@@ -297,9 +288,8 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 - A vertical `Stepper.Item` takes `children`: what a milestone carries under its label, with the
   rail running past it. The step's control is now its label stretched over the step, so a
   Collapsible or a button under it is a separate stop. Components/Stepper: Milestones.
-- Toggle, ToggleGroup, ButtonGroup, Kbd, Separator, Skeleton and Spinner on the template, walked
-  against Carbon's content switcher and loading, Base Web's button group, skeleton and spinner, and
-  Atlassian's spinner and skeleton. `Toggle` is on the Button's scale (`xsmall` 24, `small` 28
+- Toggle, ToggleGroup, ButtonGroup, Kbd, Separator, Skeleton and Spinner on the template.
+  `Toggle` is on the Button's scale (`xsmall` 24, `small` 28
   the default, `medium` 32; the old `small`/`medium` were 24/28) with an `icon` slot and
   explicit props. `ToggleGroup` takes `size` (`small` 28, `medium` 32) and items take `icon`
   and `isIconOnly` (the label becomes the name and the tooltip). `ButtonGroup` takes `label`;
@@ -310,15 +300,14 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   inherit) and `delay`. Prototype: the two export buttons use `isLoading`; the record header's
   primary split chevron is an IconButton. Components/Toggle, ToggleGroup, ButtonGroup, Kbd,
   Separator, Skeleton, Spinner: Matrix, Dont.
-- Pages, PageHeader, RecordHeader, Section, Card, Empty and PageSkeleton on the template, walked
-  against Carbon's page header, tile and empty-states pattern, Base Web's card and Atlassian's
-  page header and empty state. Every pattern has typed, described props. `Section` takes `count`;
+- Pages, PageHeader, RecordHeader, Section, Card, Empty and PageSkeleton on the template.
+  Every pattern has typed, described props. `Section` takes `count`;
   `Card` gains `Card.Body` for the standard inset; `Empty` takes `secondary` for a second way
   beside the action; `PageHeader`'s truncating line carries its full text as a tooltip;
   `RecordHeader`'s breadcrumb starts on the title's column beside the back chevron (it sat 4px
   off); `PageSkeleton` is drawn in the Skeleton's shapes. Patterns/Pages, PageHeader,
   RecordHeader, Section, Card, Empty, PageSkeleton: Matrix, Dont.
-- `RecordHeader` on Josef's review is two lines, on Jira's model: the trail, its parents (`crumbs`)
+- `RecordHeader` on Josef's review is two lines: the trail, its parents (`crumbs`)
   and then the record's `id` as the current crumb, which is the way back; and the title's line,
   the name with the meta after it and the actions at the end. The back chevron is gone and the id
   has no line of its own; `back` and `breadcrumb` are deprecated. The space around the header
@@ -328,9 +317,7 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   pass their parents as crumbs instead of a back link (a program's sub-pages: Programs, then the
   program). Patterns/RecordHeader, Pages: Matrix, Show.
 - Related, Glance, Panel, PreviewRail, PreviewSheet, PreviewSplit, PickerSheet, RecordPicker and
-  CommandPalette on the template, walked against Jira's linked issues, issue hover, side panel,
-  list-and-detail and issue picker, Atlassian's drawer, navigation system and command palette,
-  Carbon's contained list, and Linear's peek and palette. Every pattern has typed, described
+  CommandPalette on the template. Every pattern has typed, described
   props. `Related` is a Card around an `Item.Group`: the rows are Items and link to their records,
   `size` is the group's (`compact` by default), and `Related.Row` is deprecated in Item's favour.
   `PreviewRail` draws the compact record header the PreviewSheet draws (`status` after the id,
@@ -339,8 +326,8 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   has no title (an empty h2 before). `RecordPicker` and `CommandPalette` share a footer of Kbd
   keys. Patterns/Related, Glance, Panel, PreviewRail, PreviewSheet, PreviewSplit, PickerSheet,
   RecordPicker, CommandPalette: Matrix, Dont.
-- `Related` on Josef's review is the card of linked records for a rail and for the body of a page,
-  on HubSpot's association card: a header with the kind, the Count and the way to add one
+- `Related` on Josef's review is the card of linked records for a rail and for the body of a page:
+  a header with the kind, the Count and the way to add one
   (`action`); `layout="list"` for a rail (Item rows) and `layout="cards"` for a page, a grid of
   `Related.Card` (a mark, the name as the link, the meta, one status, up to six properties, and
   the actions as icon buttons that show on hover and focus and always on a touch screen);
@@ -350,16 +337,13 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   and the text sits at `space.200`. Patterns/Related: Matrix, A related table, Dont.
 - `Empty` takes `size` (`default`, the framed block that replaces a table; `compact`, inside a
   card, a rail or a panel: the icon beside the text, no frame) and `icon`, a mark for what would
-  be here in a neutral circle. Carbon's small-container rule, Atlassian's narrow width and
-  HubSpot's horizontal layout. Patterns/Empty: Matrix, Dont.
+  be here in a neutral circle. Patterns/Empty: Matrix, Dont.
 - `Command.Dialog` is a Radix Dialog of the kit's own, centred over the page near the top and at
   most `width` wide. Before, the width landed on the inner Command while the dialog's content
   spanned the viewport, so the palette and the record picker opened as a full-width white box
   with the list on the left. Components/Command: Dialog; Patterns/CommandPalette, RecordPicker:
   Matrix.
-- The shapes on the template: Inspector, WorkPane, ActionBar and Block, walked against Jira's
-  Details panel, issue navigator and issue header, Carbon's accordion and structured list, Base
-  Web's accordion and Atlassian's page header. Every shape has typed, described props. `Inspector`
+- The shapes on the template: Inspector, WorkPane, ActionBar and Block. Every shape has typed, described props. `Inspector`
   draws its rows as KeyValue, in both forms; the first group has no rule above in either.
   `WorkPane` takes `listWidth` for a short list, names its list landmark by `listLabel`, and its
   rows are Items: `WorkPane.Row` is an Item with a Dot and the id under the name, so the list is
@@ -371,32 +355,28 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   240px instead of its own grid; the control page's bar passes its parents as crumbs; two raw
   pencil buttons on Inspector groups are IconButtons. Shapes/Inspector, WorkPane, ActionBar,
   Block: Matrix, Dont.
-- The Shell on the template, walked against Atlassian's navigation system (the grammar it is
-  built on), Carbon's UI shell header, left panel and right panel, and Base Web's header and
-  side navigation. Every area, slot and item has a typed, described props type. `Shell.Profile`
+- The Shell on the template. Every area, slot and item has a typed, described props type. `Shell.Profile`
   is a label without `onClick` and a button with it, no dead button. Closing the overlay side
   nav with Escape or the scrim returns focus to the toggle button. Shell: Matrix, Dont.
 - The primitives on the template: Box, Stack, Inline, Flex, Grid, Bleed, Text and Heading, and the
-  overview, walked against Atlassian's primitives (the model, prop for prop, read from the type
-  declarations), Carbon's Layer, Stack, 2x Grid, spacing scale and type sets, Base Web's Block,
-  FlexGrid and type scale, and HubSpot's Flex, Box, Text and Heading. A Box with a bold, bolder or
+  overview. A Box with a bold, bolder or
   boldest fill paints its text `color.text.inverse`, the warning bold `color.text.warning.inverse`,
-  so a Text or a Heading inside needs no colour (Atlassian's Box and Text). The build emits
+  so a Text or a Heading inside needs no colour. The build emits
   `bleedTokens` and `BleedToken` from `space.negative.*`, and maps the negative ramp into the
   theme, so Bleed's classes (`m-negative-200`) read the negative token instead of negating the
   positive one; the nine `--ds-space-negative-*` properties were dead CSS in every bundle
   (the 2026-09-05 audit's finding). Every prop is described, so the tables
   say what each is for. A Matrix, a Dont and a Playground per family; the a11y gate runs over the
   eight matrices. Said on the pages and not built: margin, width and height props, a style prop,
-  Carbon's layer stepping, a horizontal Stack, dividers, reverse, `alignSelf` and `order`, a column
+  automatic layer stepping, a horizontal Stack, dividers, reverse, `alignSelf` and `order`, a column
   count per breakpoint, a page grid, a bold weight, italic, underline, truncate with a tooltip,
   hero heading sizes, a subtitle, an icon, a tone. Primitives/*: Matrix, Dont, Playground.
-- Motion has Carbon's shape. Six durations by the size of the move (`micro` 70, `fast` 110,
+- Motion has one shape. Six durations by the size of the move (`micro` 70, `fast` 110,
   `medium` 150, `moderate` 240, `slow` 400, `slower` 700ms), three curves by whether the thing
-  arrives, leaves or stays (`enter`, `exit`, `standard`, Carbon's productive set), and a
+  arrives, leaves or stays (`enter`, `exit`, `standard`), and a
   `motion.stagger` step of 20ms. `fast` was 120 and `medium` 180; `standard` was Ledger's own
   curve. Every entrance runs on the enter curve and every exit on the exit curve, a side panel
-  leaving on standard (Carbon's exception); the blanket dims in `slower` (`animate-dim-in`); a
+  leaving on standard because it stays nearby; the blanket dims in `slower` (`animate-dim-in`); a
   dialog arrives in `moderate` (`animate-dialog-in`); an Accordion or a Collapsible section
   animates its height to the size Radix measures (`animate-collapse-open`, `-close`), where it
   faded; the Shell's panel slides in below the large breakpoint and rises at it, the side nav's
@@ -404,7 +384,7 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   card rise, one `motion.stagger` step apart (`stagger-children`); a Switch thumb moves in
   `micro`; a tooltip fades in `fast`. Reduced motion collapses all of it. Tokens/Motion:
   Specimens.
-- `color.background.input.pressed` is every field's fill on focus, after Atlassian's textfield;
+- `color.background.input.pressed` is every field's fill on focus;
   the Banner's action takes `color.background.inverse.subtle.hovered` and `.pressed` under the
   pointer. The rest of the minted matrix, about forty tokens with no part yet, is accepted as open
   and listed on the Colour sheet with the part each waits for. Tokens/Color.
@@ -446,8 +426,8 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   inside. The legend in a Frame is a row of toggle buttons: hover dims the other series to
   `opacity.disabled`, click isolates one, and a hidden series' swatch hollows. Components/Chart:
   Framed, States.
-- `Chart.Bar` takes `labels="end"`, a `target` key drawn as an ink mark across each bar (Carbon's
-  bullet), a `line` series over the bars, and `[from, to]` values that float. Bars cap at 24px with
+- `Chart.Bar` takes `labels="end"`, a `target` key drawn as an ink mark across each bar (a
+  bullet chart), a `line` series over the bars, and `[from, to]` values that float. Bars cap at 24px with
   a 2px rounded data end and a square baseline; stacked segments part by a 2px surface gap,
   grouped bars by 2px. Components/Chart: Bars, Stacked, Horizontal, Targets, Windows.
 - `Chart.Line` and `Chart.Area` take `curve`, `dots`, `labels="end"` (the last values after the
@@ -469,9 +449,7 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   move the tooltip; an unnamed one is decoration, hidden and not focusable. Ticks thin evenly, a
   long category is cut with its whole as a title, and the tooltip leads with the value and keys
   each series with the mark's swatch. Components/Chart: Selection.
-- Chart is on the template, walked against Carbon's data-visualization guidance and its 26 chart
-  types, Atlassian's data-visualization colour, Base's Charts and HubSpot's chart components, and
-  checked with the data-visualization method's palette validator. Said on the page and not built:
+- Chart is on the template, checked with the data-visualization method's palette validator. Said on the page and not built:
   a pie, a second value axis, a needle gauge, radar, boxplot, histogram, lollipop, alluvial, word
   cloud, circle pack, maps, zoom, brush, an export toolbar, animation. The axe gate runs the matrix
   in both modes; the eleven `page:Chart#*` entries leave the allowlist. Components/Chart.
@@ -541,11 +519,11 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   loss and forced colours; a line's stroke stays solid. Components/Chart/Overview: Textured;
   Components/Chart/Bar, Area, Donut: Textured.
 - `color.chart.<tone>.hovered` for every series tone and categorical step: one step darker in light,
-  one lighter in dark, as Atlassian's chart hovered tokens. A hovered bar and a hovered slice take
+  one lighter in dark. A hovered bar and a hovered slice take
   it in place of the 80% opacity. Tokens/Color: Chart.
 - A series' own `format` (a fraction printed as a percentage in the tooltip, the card and the table), `delta` on Line and Area (each change from
   the point before, signed, in the tooltip and the card), and `summary` on the Frame (one sentence a
-  screen reader hears as the figure's description, Carbon's chart description). Components/Chart/Bar:
+  screen reader hears as the figure's description). Components/Chart/Bar:
   Rates; Components/Chart/Line: Deltas.
 
 ## 0.4.0 · 2026-09-04
@@ -620,7 +598,7 @@ regions take keyboard focus; `PageSkeleton` is a status region.
 
 ### Breaking
 
-- The shell is a navigation system on Atlassian's grammar: `Shell` with `Banner`, `TopNav`
+- The shell is a navigation system: `Shell` with `Banner`, `TopNav`
   (`Start`, `Middle`, `End`), `SideNav` (`Header`, `Body`, `Footer`, `Section`, `Item`,
   `Expandable`, `ToggleButton`, `Splitter`), `Main`, `Panel` (`Splitter`); `AppLogo`,
   `AppSwitcher`, `Profile`; `useSideNav`. `Shell.Sidebar`, `TopBar`, `Brand`, `NavGroup`,

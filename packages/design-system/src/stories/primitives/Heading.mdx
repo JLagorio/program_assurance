@@ -7,7 +7,7 @@ import * as Stories from "./Heading.stories";
 
 # Heading
 
-A title. The size is the design's and the level is the page's: `size` picks the style from the heading ramp and an element to go with it, and `as` overrides the element when the outline needs another level. Four sizes, four jobs: a displayed number, a page title, a section heading, a card or dialog title. The colour is the text colour, or its inverse on a bold fill, which a Box sets for you; a tone is not a heading colour. Atlassian's Heading is the model: a required `size`, a default element per size, `as`, and `color` limited to the same three. Carbon's rule is the page's: the productive headings are fixed sizes, and the level is semantic and separate from the style. Base Web's Heading components take `as` and `color` the same way.
+A title. The size is the design's and the level is the page's: `size` picks the style from the heading ramp and an element to go with it, and `as` overrides the element when the outline needs another level. Four sizes, four jobs: a displayed number, a page title, a section heading, a card or dialog title. The colour is the text colour, or its inverse on a bold fill, which a Box sets for you; a tone is not a heading colour. A required `size`, a default element per size, `as`, and `color` limited to three. The sizes are fixed, and the level is semantic and separate from the style.
 
 <Canvas of={Stories.HeadingMatrix} />
 
@@ -28,7 +28,7 @@ A title. The size is the design's and the level is the page's: `size` picks the 
 | `small`  | A section heading in a page body, a tab's heading. The `h2`.                                            |
 | `xsmall` | A card's title, a dialog's title, a rail section's heading. The `h3`, or `h4` under a section.          |
 
-Not built, and why: `xxlarge` and `xlarge` (Atlassian's hero sizes; the product has no hero, and 22px is the biggest text on a page); `xxsmall` as a Heading (it is the Eyebrow, uppercase and subtle, on the Typography page); a subtitle slot (the line under a title is a Text, and the RecordHeader draws it); an icon before (a Heading is words; the mark beside a record's title is the RecordHeader's); a tone (a red heading says the word is the problem; the count beside it is).
+Not built, and why: `xxlarge` and `xlarge` (the product has no hero, and 22px is the biggest text on a page); `xxsmall` as a Heading (it is the Eyebrow, uppercase and subtle, on the Typography page); a subtitle slot (the line under a title is a Text, and the RecordHeader draws it); an icon before (a Heading is words; the mark beside a record's title is the RecordHeader's); a tone (a red heading says the word is the problem; the count beside it is).
 
 ## Sizes
 
@@ -39,7 +39,7 @@ Not built, and why: `xxlarge` and `xlarge` (Atlassian's hero sizes; the product 
 | `small`  | `font.heading.small`  | 20 / 26 / medium        | `h2`    | A section heading.                           |
 | `xsmall` | `font.heading.xsmall` | 15 / 22 / medium        | `h3`    | A card, a dialog, a rail section.            |
 
-Under it, `font.heading.xxsmall` at 11 / 14, uppercase, is the Eyebrow. Carbon's productive headings run 14 to 32 across seven fixed styles; Base Web's from 20 to 40. Four are enough here because a page is a title, its sections and their cards.
+Under it, `font.heading.xxsmall` at 11 / 14, uppercase, is the Eyebrow. Four are enough here because a page is a title, its sections and their cards.
 
 ## States
 

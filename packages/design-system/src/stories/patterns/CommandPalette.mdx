@@ -7,7 +7,7 @@ import * as Stories from "./CommandPalette.stories";
 
 # CommandPalette
 
-A ⌘K palette over a page or a record: a field at the top, the commands under headings, a shortcut at the end of the ones that have one, the keys in the footer. Choosing a command closes the palette and runs it. The commands are plain objects the caller supplies, so the palette stays presentational and every page can reuse it; `useCommandPalette` holds the open state and toggles it on ⌘K or Ctrl+K anywhere on the page. Linear's and Slack's palettes and Atlassian's command palette are the models. It runs a command; it does not find a record, which is the [RecordPicker](?path=/docs/patterns-recordpicker--docs), and it does not search the product, which is the top nav's search.
+A ⌘K palette over a page or a record: a field at the top, the commands under headings, a shortcut at the end of the ones that have one, the keys in the footer. Choosing a command closes the palette and runs it. The commands are plain objects the caller supplies, so the palette stays presentational and every page can reuse it; `useCommandPalette` holds the open state and toggles it on ⌘K or Ctrl+K anywhere on the page. It runs a command; it does not find a record, which is the [RecordPicker](?path=/docs/patterns-recordpicker--docs), and it does not search the product, which is the top nav's search.
 
 <Canvas of={Stories.CommandPaletteStory} />
 
@@ -27,7 +27,7 @@ A ⌘K palette over a page or a record: a field at the top, the commands under h
 
 CommandPalette has one appearance. What varies is the commands, which are the page's: a record's verbs first, the places to go after, the preferences last.
 
-Not built, and why: search across records in the palette (Linear's), because a record is found by the top nav's search and picked by the RecordPicker; nested pages of commands, because a command with choices is a Dialog of its own; recent commands at the top, because the order is the page's and it should read the same every time; icons before the commands, because the heading says the kind.
+Not built, and why: search across records in the palette, because a record is found by the top nav's search and picked by the RecordPicker; nested pages of commands, because a command with choices is a Dialog of its own; recent commands at the top, because the order is the page's and it should read the same every time; icons before the commands, because the heading says the kind.
 
 ## Sizes
 

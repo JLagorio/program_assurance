@@ -10,9 +10,9 @@ import {
 
 import { cn } from "../lib/cn";
 
-/* Reference material. A hierarchy the caller flattens: it owns the data, the open set and the
+/* A hierarchy the caller flattens: it owns the data, the open set and the
    selection, and renders one row per visible node. The tree owns the keyboard: one tab stop, the
-   arrows move and open, Enter selects. Carbon's tree view and the ARIA tree pattern are the models. */
+   arrows move and open, Enter selects: the ARIA tree pattern. */
 
 export type TreeSize = "small" | "xsmall";
 
@@ -21,7 +21,7 @@ const TreeContext = createContext<{ size: TreeSize } | null>(null);
 export type TreeProps = {
   /** The tree's accessible name: "Control families", "System composition". */
   label: string;
-  /** `small` is Carbon's default, 32px rows; `xsmall` is 24px, for a deep tree that must show more at once. */
+  /** `small` is the default, 32px rows; `xsmall` is 24px, for a deep tree that must show more at once. */
   size?: TreeSize | undefined;
   /** Tree.Item rows, in visible order, one per open node. */
   children: ReactNode;
