@@ -194,6 +194,8 @@ function ComponentRecord() {
     <Shell>
       <>
         <ShowPage
+          tab={anchored ? tab : undefined}
+          onTabChange={(value) => go(value as typeof tab)}
           rail={
             tab === "Overview" ? (
               <>
@@ -284,18 +286,17 @@ function ComponentRecord() {
           }
           tabs={
             anchored ? (
-              <Tabs>
+              <Tabs.List>
                 {nodeTabs.map((key) => (
                   <Tabs.Tab
                     key={key}
-                    isSelected={tab === key}
-                    onClick={() => go(key)}
+                    value={key}
                     count={key === "Control set" ? (anchoredSet?.total ?? null) : null}
                   >
                     {key}
                   </Tabs.Tab>
                 ))}
-              </Tabs>
+              </Tabs.List>
             ) : undefined
           }
         >

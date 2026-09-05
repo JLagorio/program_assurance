@@ -436,3 +436,38 @@ as minted and open, by family and by the part each waits for. Written: the surfa
 pairing, the focus ring's geometry and selection's difference from it, an Icons page.
 Parked in next.md: the chart tokens' typed map (the other session's files), token file roots
 and provenance, private CSS utilities, the prototype's stroke overrides.
+
+### 25. Tabs, Collapsible, Accordion (2026-09-05)
+
+Twentieth walk, after the tokens pass. References: Carbon's tabs (line, contained and vertical;
+automatic and manual activation; the strip scrolls and never wraps; one tab stop, then the panel;
+40px), Carbon's accordion (flush alignment with the hover box reaching 16px past the title, the
+chevron at the end, closed by default, titles as headings, never nest, the page scrolls, not the
+panel), Atlassian's Tabs (TabList and TabPanel, panels kept mounted), Base Web's Tabs (Motion) (the
+animated highlight on a ResizeObserver, `activateOnFocus`, `renderAll`) and accordion (arrows and
+Home/End between headers), HubSpot's Tabs (default and enclosed, `fill`, the More menu on
+overflow) and Accordion (one row: the kit's Collapsible). The audit's §5.1: Tabs announced a
+tablist and implemented none of it.
+
+Kit: Tabs on Radix Tabs in four parts, `Tabs` (value, defaultValue, onValueChange, activation,
+asChild), `Tabs.List` (label), `Tabs.Tab` (`value` for `isSelected` and `onClick`; `asChild` for a
+router's Link keeps the count after the label through Slottable), `Tabs.Panel` (keepMounted,
+asChild). One indicator in the List, measured from the active trigger with a ResizeObserver and a
+MutationObserver on `data-state`, sliding in `motion.duration.medium` on the standard curve.
+ShowPage takes `tab` and `onTabChange` and renders as the Tabs root (asChild) with the body column
+as the panel (asChild). Collapsible and Accordion: `headingLevel` (a context on Accordion for its
+items, the Radix Header's props forwarded), `disabled`, hover and pressed tints on a `before:`
+pseudo-element reaching `-inset-x-100` on the flush form and `inset-x-0` on the inset form, a
+string `count` passed through (it rendered 0). The lint's motion regex widened for the tokens
+pass's utilities: the package lint had only been run from the root, which ignores the package.
+
+Prototype: a codemod over the twenty-six strips. The record routes hand `tab` and `onTabChange`
+to ShowPage and pass a `Tabs.List` in `tabs`; the index routes, the team panel and the control
+page wrap the strip and the rest of their children in the root and a panel on `display: contents`,
+the control page's root being its page div. Stories with a bare strip needed a panel: a Tabs root
+without one fails axe on the selected tab's `aria-controls`. Verified with real pointer and key
+input over CDP: click slides the indicator (88px to 204px through 159px at 60ms), Right selects
+and wraps, Home returns, Tab lands on the panel; the hover tint reaches past the flush title.
+Ratchet: 94 pages on the template, 504 stories, 101 grandfathered; a11y 102. Parked in next.md:
+the index strips that are filters, the program record's twelve tabs, route tabs as a tablist,
+Accordion's default, the forms not built.

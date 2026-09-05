@@ -127,6 +127,8 @@ function FindingRecord() {
     <Shell>
       <>
         <ShowPage
+          tab={tab}
+          onTabChange={(value) => go(value as typeof tab)}
           rail={
             tab === "Finding" ? (
               <>
@@ -248,7 +250,7 @@ function FindingRecord() {
             />
           }
           tabs={
-            <Tabs>
+            <Tabs.List>
               {(
                 [
                   ["Finding", null],
@@ -259,8 +261,7 @@ function FindingRecord() {
               ).map(([key, count]) => (
                 <Tabs.Tab
                   key={key}
-                  isSelected={tab === key}
-                  onClick={() => go(key)}
+                  value={key}
                   trailing={
                     key === "Residual risk" ? (
                       residual ? (
@@ -286,7 +287,7 @@ function FindingRecord() {
                   {key === "Remediation" ? "Remediation plan" : key}
                 </Tabs.Tab>
               ))}
-            </Tabs>
+            </Tabs.List>
           }
         >
           {tab === "Finding" ? (

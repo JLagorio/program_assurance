@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Collapsible } from "../../components";
 import * as Stories from "./Collapsible.stories";
@@ -7,18 +7,103 @@ import * as Stories from "./Collapsible.stories";
 
 # Collapsible
 
-Reference material: present, addressable, closed. The catalog statement, the assessment objectives and the discussion are things a reader occasionally needs and never needs first; rendering them expanded is most of why a control page reads as a novel.
+Reference material: present, addressable, closed. The catalog statement, the assessment objectives and the discussion are things a reader occasionally needs and never needs first; rendering them expanded is most of why a control page reads as a novel. A **Collapsible** is one such section: a title row that opens and closes, the body under it. Several that know about each other are an [Accordion](?path=/docs/components-accordion--docs); the two share the row, so a page can mix them. Carbon's accordion (flush alignment, chevron at the end, closed by default) is the model; HubSpot's Accordion is this part under that name.
 
-A **Collapsible** is one section. An **Accordion** is several that know about each other: `single` opens one at a time, `multiple` is independent sections with one keyboard model. They share the trigger row, so a page can mix them. The row is the title, flush with the body under it and semibold so it reads as a section, a count after it, and the chevron at the end: down while closed, up while open.
+What a Collapsible is not: the record's work. Implementation statements, the assessment, the evidence table are a [Section](?path=/docs/patterns-section--docs) or a [Block](?path=/docs/shapes-block--docs), open, in the outline, read by every reader. Carbon's rule: if a user is likely to read all of the content, do not fold it.
 
 <Canvas of={Stories.Collapsibles} />
 
+## Anatomy
+
+| Part    | What it is                                                                                                                                                    |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Row     | The trigger: a button the full width, `space.100` above and below the title, a 1px rule in `color.border` above it. Under the pointer it tints.               |
+| Title   | Flush left in `font.body` semibold, `color.text`, one line that truncates. A heading of `headingLevel` when the section is in the page's outline.             |
+| Count   | After the title, a Count: how many are inside. Zero shows nothing.                                                                                            |
+| Chevron | At the end of the row, `dimension.icon.small`, `color.icon.subtle`. Down while closed, up while open, turning in `motion.duration.fast`.                       |
+| Body    | Under the row, from the rule to `space.200` below it. It opens to its measured height in `motion.duration.medium` on the enter curve and closes on the exit.   |
+
+## Variants
+
+One row, in two alignments. **Flush**, the default, puts the title on the text column: a rail, a page, a Section's body. The hover tint reaches `space.100` past the title at each end, as Carbon's flush accordion does, so the title stays on the column. **Inset** steps the row and the body in by `space.300`, for a surface whose rules run edge to edge: a Card, a Panel. The first row on a surface drops its rule with `border-t-0`.
+
+<Canvas of={Stories.Inset} />
+
+Carbon's start-aligned chevron, for a fold that behaves as a tree, is not built: a hierarchy is a [Tree](?path=/docs/components-tree--docs).
+
+## Sizes
+
+One: the row is 36px, `space.100` around a line of body text, so a rail of rows is one rhythm with the KeyValue rows beside it. Carbon's is 40px; the kit's rails are denser.
+
+## States
+
+| State    | Look                                                                                                      |
+| -------- | --------------------------------------------------------------------------------------------------------- |
+| Closed   | The default. The chevron points down; the body is absent from the page.                                   |
+| Open     | The chevron points up; the body is present and in the tab order.                                          |
+| Hover    | The row tints `color.background.neutral.subtle.hovered`; pressed, `.pressed`.                             |
+| Focus    | The kit's focus outline on the row.                                                                       |
+| Disabled | Title and chevron in the disabled colours, no pointer. Rare: prefer the row open with an Empty inside.     |
+
 <Canvas of={Stories.CollapsibleMatrix} />
+
+## Modifiers
+
+- **`defaultOpen`**, or **`open`** and **`onOpenChange`** when the caller holds it: a rail whose sections remember their state, a "show all" that opens every row.
+- **`count`**: how many are inside, hidden at zero.
+- **`headingLevel`**: the title as an h2 to h6, so the section is in the page's outline and a screen reader's heading list. Under a Section's h2 the rows are h3s.
+- **`inset`**, as in Variants.
+- **`disabled`**, as in States.
+
+<Canvas of={Stories.Headings} />
+
+## Content
+
+- **The title is what is inside, as a noun:** "Catalog statement", "Assessment objectives", "Discussion". Not "Show more", not a question.
+- **Closed is the default.** The titles are the overview; the reader opens what they came for. Open one row when the reader arrives for it, never all of them.
+- **The body is reference:** Text, KeyValue rows, a short list. Not a table the reader works in, not a form.
+- **Nothing inside is an Empty**, compact, saying what would be here and what fills it. Never a grey word.
+- **Never nested.** A fold inside a fold is two clicks to a paragraph; flatten it, or a Tree for a hierarchy.
+- **The whole page scrolls,** never the body of one row.
+
+## Style
+
+| Element | Token                                                                                                                    |
+| ------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Row     | `space.100` block · `space.100` gap · 1px `color.border` above · `radius.small` for the tint and the focus outline       |
+| Title   | `font.body` semibold · `color.text` · `color.text.disabled` disabled                                                      |
+| Chevron | `dimension.icon.small` 14px · `color.icon.subtle` · `motion.duration.fast` on `motion.easing.standard`                   |
+| Tint    | `color.background.neutral.subtle.hovered`, `.pressed`, reaching `space.100` past a flush title                            |
+| Body    | `space.200` below · opens in `motion.duration.medium` on `motion.easing.enter`, closes on `motion.easing.exit`             |
+| Inset   | `space.300` inline on the row and the body                                                                                |
+
+## Accessibility
+
+- **The row is a button with `aria-expanded`** and `aria-controls` to the body; Radix Collapsible sets them, so the chevron needs no text of its own.
+- **Keyboard:** Tab reaches the row; Enter or Space toggles it. Controls inside an open body join the tab order after the row. There is no arrow model between Collapsibles: they do not know about each other, which is what an Accordion adds.
+- **Headings:** with `headingLevel` the title is a heading, and a screen reader's heading list shows the rail's sections. Carbon asks for this on the first accordion in a product; the kit asks for it wherever the rows are in a Section.
+- **Reduced motion** shows the body at once.
+- **The a11y gate** checks the roles, the names and the heading order in the matrix; a disabled row is skipped by its contrast check as a disabled control.
 
 ## Props
 
 <ArgTypes of={Collapsible} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
-- [Accordion](?path=/docs/components-accordion--docs)
+- [Accordion](?path=/docs/components-accordion--docs): several sections that know about each other.
+- [Section](?path=/docs/patterns-section--docs): the record's work, open.
+- [Block](?path=/docs/shapes-block--docs): a block of work, always open, with a count or an action.
+- [Inspector](?path=/docs/shapes-inspector--docs): a rail's groups, an Accordion of KeyValue rows.
+- [Tree](?path=/docs/components-tree--docs): a hierarchy that folds.
+- [Motion](?path=/docs/tokens-motion--docs): the collapse.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

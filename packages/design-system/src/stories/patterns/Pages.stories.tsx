@@ -71,6 +71,8 @@ function Show() {
   const [tab, setTab] = useState("overview");
   return (
     <ShowPage
+      tab={tab}
+      onTabChange={setTab}
       header={
         <RecordHeader
           crumbs={
@@ -95,13 +97,13 @@ function Show() {
         />
       }
       tabs={
-        <Tabs label="Sections">
+        <Tabs.List label="Sections">
           {["overview", "evidence", "history"].map((t) => (
-            <Tabs.Tab key={t} isSelected={tab === t} onClick={() => setTab(t)}>
+            <Tabs.Tab key={t} value={t}>
               {t[0]?.toUpperCase() + t.slice(1)}
             </Tabs.Tab>
           ))}
-        </Tabs>
+        </Tabs.List>
       }
       rail={tab === "overview" ? <Inspector groups={panelGroups} /> : null}
     >
@@ -179,12 +181,13 @@ export const ArchetypesMatrix: Story = {
         </Card>
       </IndexPage>
       <ShowPage
+        tab="Overview"
         header={<RecordHeader id="PRG-1041" title="Atlas payments platform" />}
         tabs={
-          <Tabs label="Sections">
-            <Tabs.Tab isSelected>Overview</Tabs.Tab>
-            <Tabs.Tab count={26}>Controls</Tabs.Tab>
-          </Tabs>
+          <Tabs.List label="Sections">
+            <Tabs.Tab value="Overview">Overview</Tabs.Tab>
+            <Tabs.Tab value="Controls" count={26}>Controls</Tabs.Tab>
+          </Tabs.List>
         }
         rail={<Inspector groups={panelGroups} />}
       >
@@ -216,14 +219,13 @@ export const Dont: Story = {
       <Pair
         do={
           <ShowPage
+            tab="Controls"
             header={<RecordHeader id="PRG-1041" title="Atlas payments platform" />}
             tabs={
-              <Tabs label="Sections">
-                <Tabs.Tab>Overview</Tabs.Tab>
-                <Tabs.Tab isSelected count={26}>
-                  Controls
-                </Tabs.Tab>
-              </Tabs>
+              <Tabs.List label="Sections">
+                <Tabs.Tab value="Overview">Overview</Tabs.Tab>
+                <Tabs.Tab value="Controls" count={26}>Controls</Tabs.Tab>
+              </Tabs.List>
             }
           >
             <Section title="Controls" count={26}>
@@ -236,14 +238,13 @@ export const Dont: Story = {
         doText="The rail is the overview tab's. Every other tab runs the full width."
         dont={
           <ShowPage
+            tab="Controls"
             header={<RecordHeader id="PRG-1041" title="Atlas payments platform" />}
             tabs={
-              <Tabs label="Sections">
-                <Tabs.Tab>Overview</Tabs.Tab>
-                <Tabs.Tab isSelected count={26}>
-                  Controls
-                </Tabs.Tab>
-              </Tabs>
+              <Tabs.List label="Sections">
+                <Tabs.Tab value="Overview">Overview</Tabs.Tab>
+                <Tabs.Tab value="Controls" count={26}>Controls</Tabs.Tab>
+              </Tabs.List>
             }
             rail={<Inspector groups={panelGroups} />}
           >

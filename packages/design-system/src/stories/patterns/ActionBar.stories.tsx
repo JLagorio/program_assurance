@@ -90,9 +90,12 @@ export const ActionBarMatrix: Story = {
         ]}
         actions={[{ label: "Assess", onSelect: noop, primary: true }]}
         tabs={
-          <Tabs label="Sections">
-            <Tabs.Tab isSelected>Implementation</Tabs.Tab>
-            <Tabs.Tab count={3}>Assessment</Tabs.Tab>
+          <Tabs defaultValue="Implementation" className="contents">
+            <Tabs.List label="Sections">
+              <Tabs.Tab value="Implementation">Implementation</Tabs.Tab>
+              <Tabs.Tab value="Assessment" count={3}>Assessment</Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Panel value="Implementation" />
           </Tabs>
         }
       />

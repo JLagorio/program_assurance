@@ -68,6 +68,12 @@ Updated 2026-09-04.
 - [x] **A chart's drill-down path is a Breadcrumb, and a page has one too** (2026-09-04, done: Breadcrumb takes `label`; the Frame's path can name itself). `Chart.Frame` `path` renders the kit's Breadcrumb (`nav aria-label="Breadcrumb"`); a page with its own Breadcrumb and a drilled chart carries two navigation landmarks with the same name, which axe flags as a best practice. Give Breadcrumb a `label` prop (the Design System session's file), or render the path as a plain list?
 - [ ] **Data table, the calls.** Eight calls made without asking in `docs/superpowers/specs/2026-09-03-data-table.md`, plus one more from step 6: Tab moves across an editable table, Enter moves down. Overturn any in one reading.
 - [ ] **Baseline and ConMon hydration, which fix stays.** This line renders both routes client-only (`ssr: false`, 8bb9e3b). The parallel line kept SSR and had the loader build the control-text index on both sides (769a412, 81911c1); that version was not merged. Taking it would restore SSR on the two routes.
+- [ ] **Index strips that are filters** (2026-09-05). The Tabs page says a tab is a view and a filter over the same rows is a ToggleGroup or FilterChips. Findings/Assets, Campaigns/Events and the like are views and stand; scope's states (All, Proposed, …), the register's presets and the team panel's lenses narrow one table and would be a ToggleGroup. They run on the new Tabs with the table as the panel. Re-point them, or let an index keep a strip?
+- [ ] **The program record's twelve tabs** (2026-09-05). Overview, Controls, Controls v2, Controls v3, Systems, Requirements, Timeline, Findings, Evidence, POA&M, Team, Activity; the page says six at most and the strip scrolls at 1280px. Drop v2 and v3 once one wins, and fold Team and Activity into the rail or the overview?
+- [ ] **Route tabs stay a tablist** (2026-09-05). The audit (§5.1) suggested `role="navigation"` for tabs that are routes. The kit keeps them a tablist: on a record the URL is the selection and the body is the panel, so the ARIA pattern holds, and a move between pages is the SideNav. Agree, or build the navigation form?
+- [ ] **Accordion's default is `single`** (2026-09-05). Carbon's is independent sections, Base Web's one at a time; the page keeps `single` and asks for `multiple` wherever rows are compared, as the Inspector does. Flip the default?
+- [ ] **Tabs forms not built** (2026-09-05): Carbon's contained and vertical tabs, HubSpot's enclosed variant and its More menu on overflow, Base Web's fixed fill. The panel takes focus on Tab after the strip (Radix, Atlassian) rather than only when it has no controls (Carbon). Leave until a screen asks?
+- [ ] **Part props tables render nothing** (2026-09-05). `<ArgTypes of={Table.Row} />`, `Shell.SideNav`, `Inspector.Group`, `WorkPane.Row` and now `Tabs.Tab` produce no table and no message: react-docgen-typescript documents a file's exported components, and the parts hang off `Object.assign`. Tabs, Collapsible and Accordion carry hand tables for their parts meanwhile. Export the part functions by name (the ratchet counts index exports only), or a `parameters.docs` map per family? For the audit's plan.
 
 ## Kit
 
@@ -86,7 +92,7 @@ The maturity walk, one part per sitting, each page onto the template (`docs/supe
 - [x] Breadcrumb, Item, Avatar, Id, KeyValue, Fact, Typography (2026-09-04)
 - [x] Stepper, Timeline, Tree (2026-09-04)
 - [x] Toggle, ToggleGroup, ButtonGroup, Kbd, Separator, Skeleton, Spinner (2026-09-04)
-- [ ] Tabs, Collapsible, Accordion
+- [x] Tabs, Collapsible, Accordion (2026-09-05). Tabs on Radix in four parts with the sliding indicator and automatic or manual activation; ShowPage's `tab` and `onTabChange`; disclosures with a heading level, a hover tint and a disabled state. The twenty-six prototype strips re-pointed by codemod.
 - [x] Chart (2026-09-04)
 - [ ] Editable, Command, CodeBlock, Resizable, ScrollArea, Toaster
 - [ ] Mode, Density

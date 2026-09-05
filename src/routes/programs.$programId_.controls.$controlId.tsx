@@ -166,7 +166,11 @@ function ControlRecord() {
 
   return (
     <Shell>
-      <div className="animate-rise">
+      <Tabs
+        value={tab}
+        onValueChange={(value) => navigate({ search: { tab: value as typeof tab }, replace: true })}
+        className="animate-rise"
+      >
         <ControlActionBar
           work={work}
           context={context}
@@ -191,7 +195,7 @@ function ControlRecord() {
             </>
           }
           tabs={
-            <Tabs>
+            <Tabs.List>
               {(
                 [
                   ["Implementation", work.evidence.length || null],
@@ -200,21 +204,16 @@ function ControlRecord() {
                   ["History", null],
                 ] as [ControlTab, number | null][]
               ).map(([key, count]) => (
-                <Tabs.Tab
-                  key={key}
-                  isSelected={tab === key}
-                  onClick={() => navigate({ search: { tab: key }, replace: true })}
-                  count={count || null}
-                >
+                <Tabs.Tab key={key} value={key} count={count || null}>
                   {key}
                 </Tabs.Tab>
               ))}
-            </Tabs>
+            </Tabs.List>
           }
         />
 
         <div className="grid gap-400 pt-200 lg:grid-cols-main-rail lg:gap-0">
-          <Box className="min-w-0 lg:pe-300">
+          <Tabs.Panel value={tab} className="min-w-0 lg:pe-300">
             {tab === "Implementation" ? (
               <>
                 <Block title="Implementation statement">
@@ -308,7 +307,7 @@ function ControlRecord() {
                 <History work={work} />
               </Block>
             ) : null}
-          </Box>
+          </Tabs.Panel>
           <aside className="border-t border-default pt-300 lg:border-s lg:border-t-0 lg:ps-300 lg:pt-0">
             <Inspector
               groups={[
@@ -409,7 +408,7 @@ function ControlRecord() {
             />
           </aside>
         </div>
-      </div>
+      </Tabs>
     </Shell>
   );
 }

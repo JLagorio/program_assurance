@@ -212,49 +212,50 @@ function RiskList() {
         />
       }
     >
-      <Tabs>
-        {tabs.map((t) => (
-          <Tabs.Tab
-            key={t.label}
-            isSelected={tab === t.label}
-            onClick={() => setTab(t.label)}
-            count={t.count}
-          >
-            {t.label}
-          </Tabs.Tab>
-        ))}
+      <Tabs value={tab} onValueChange={(value) => setTab(value)} className="contents">
+        <Tabs.List>
+          {tabs.map((t) => (
+            <Tabs.Tab key={t.label} value={t.label} count={t.count}>
+              {t.label}
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
+        <Tabs.Panel value={tab} className="contents">
+          <Inline space="space.100" alignBlock="center" shouldWrap>
+            <DataTable.Filter table={table} column="framework" />
+            <DataTable.Filter table={table} column="owner" />
+            <DataTable.Filter table={table} column="treatment" />
+            <DataTable.Filter table={table} column="updated" />
+            <Inline className="ml-auto" space="space.100" alignBlock="center">
+              <DataTable.Columns table={table} />
+            </Inline>
+          </Inline>
+
+          <DataTable.SelectionBar
+            table={table}
+            actions={
+              <>
+                <Button variant="secondary" size="small">
+                  Reassign
+                </Button>
+                <Button variant="secondary" size="small">
+                  Change treatment
+                </Button>
+              </>
+            }
+          />
+
+          <DataTable
+            table={table}
+            empty={{
+              title: "No risks match",
+              description: "Change the tab or the treatment filter.",
+            }}
+          />
+
+          <CreateRiskModal open={creating} onClose={() => setCreating(false)} />
+        </Tabs.Panel>
       </Tabs>
-
-      <Inline space="space.100" alignBlock="center" shouldWrap>
-        <DataTable.Filter table={table} column="framework" />
-        <DataTable.Filter table={table} column="owner" />
-        <DataTable.Filter table={table} column="treatment" />
-        <DataTable.Filter table={table} column="updated" />
-        <Inline className="ml-auto" space="space.100" alignBlock="center">
-          <DataTable.Columns table={table} />
-        </Inline>
-      </Inline>
-
-      <DataTable.SelectionBar
-        table={table}
-        actions={
-          <>
-            <Button variant="secondary" size="small">
-              Reassign
-            </Button>
-            <Button variant="secondary" size="small">
-              Change treatment
-            </Button>
-          </>
-        }
-      />
-
-      <DataTable
-        table={table}
-        empty={{ title: "No risks match", description: "Change the tab or the treatment filter." }}
-      />
-
-      <CreateRiskModal open={creating} onClose={() => setCreating(false)} />
     </IndexPage>
   );
 }

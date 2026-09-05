@@ -465,6 +465,7 @@ function RecordDemo() {
       </Shell.SideNav>
       <Shell.Main>
         <ShowPage
+          tab={tab} onTabChange={(value) => setTab(value as typeof tab)}
           header={
             <RecordHeader
               crumbs={
@@ -493,13 +494,13 @@ function RecordDemo() {
             />
           }
           tabs={
-            <Tabs label="Record">
+            <Tabs.List label="Record">
               {tabs.map((t) => (
-                <Tabs.Tab key={t} isSelected={tab === t} onClick={() => setTab(t)}>
+                <Tabs.Tab key={t} value={t}>
                   {t}
                 </Tabs.Tab>
               ))}
-            </Tabs>
+            </Tabs.List>
           }
           rail={tab === "Overview" ? <Inspector groups={railGroups} /> : null}
         >

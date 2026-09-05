@@ -1,26 +1,144 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
+import { Tabs } from "../../components";
 import * as Stories from "./Tabs.stories";
 
 <Meta of={Stories} />
 
 # Tabs
 
-An underline tab strip. **Tabs** is the rail: a tablist with a rule underneath. **Tabs.Tab** is one tab.
+Views within one page. **Tabs** holds the selection, **Tabs.List** is the strip (a tablist with a rule under it), **Tabs.Tab** is one tab and **Tabs.Panel** is the view a tab shows. One tab is always selected; the strip is one tab stop and the arrows move within it; one indicator slides to the selected tab. Radix Tabs underneath. Carbon's line tabs and Atlassian's Tabs are the models; HubSpot's default variant is the same strip.
 
-Which tab is selected is the caller's state. In this product a tab is a route far more often than an in-page panel, so Tabs does not manage panels; it draws the strip and reports the selection through aria.
+A tab is a different view of the same record. It is not a filter over the same rows (a ToggleGroup or FilterChips), not a step in a task (a Stepper), and not a way between pages (the shell's SideNav). On a record the selection is the router's search param, so a view has a URL and the back button works.
 
-<Canvas of={Stories.Buttons} />
+<Canvas of={Stories.Record} />
 
-## As links
+## Anatomy
 
-Pass `asChild` and the child element takes the tab's classes and aria. This is how a router's Link becomes a tab.
+| Part      | What it is                                                                                                                                                            |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Strip     | `Tabs.List`: the tabs in a row, `space.300` apart, on a 1px rule in `color.border`. It scrolls sideways when the tabs outgrow it; it never wraps.                     |
+| Tab       | `Tabs.Tab`: a button 32px tall on `dimension.control.medium`, the label in `font.body` medium, `space.050` inside at each end. A link when `asChild`.                 |
+| Count     | After the label, a Count; `null` hides it, so `count={open \|\| null}` hides a zero.                                                                                  |
+| Trailing  | After the count: a Badge for the view's state, rarely.                                                                                                                |
+| Indicator | One 2px bar in `color.background.brand.bold` under the selected tab, measured from it. It slides to the next selection in `motion.duration.medium`; one mark moving. |
+| Panel     | `Tabs.Panel`: the view, a tabpanel named by its tab. Mounted while selected unless `keepMounted`.                                                                     |
+
+## Variants
+
+One: the line strip. Carbon's contained tabs (a filled tab attached to its panel) and vertical tabs, HubSpot's enclosed variant and Base Web's fixed fill are not built. The product's tabs sit under a RecordHeader on the page's surface, where a line is enough; a rail's sections are an [Accordion](?path=/docs/components-accordion--docs), and moving between pages is the shell's SideNav.
+
+Where it lives: under the RecordHeader, running the full width. [ShowPage](?path=/docs/patterns-pages--docs) takes `tab` and `onTabChange` and makes the page the Tabs root and the tab's body its panel, so a record page is one ARIA pattern without wiring. Under the [ActionBar](?path=/docs/shapes-actionbar--docs) on a work page, where the page wraps the bar and the work in `Tabs`. On an index page above the register it is usually a filter, which is a ToggleGroup: see Don't.
+
+## Sizes
+
+One: 32px, so a strip lines up with a row of medium controls beside it. Carbon's are 40px on a page; the kit's pages are denser and the strip sits under a two-line header.
+
+## States
+
+| State      | Look                                                                                                    |
+| ---------- | ------------------------------------------------------------------------------------------------------- |
+| Selected   | `color.text` and the indicator under it. Exactly one.                                                   |
+| Unselected | `color.text.subtle`; `color.text` under the pointer, in `motion.duration.fast`.                         |
+| Focus      | The kit's focus outline on the tab. The strip is one tab stop; the arrows move within it and wrap.      |
+| Disabled   | `color.text.disabled`, no pointer, skipped by the arrows. Rare: see Don't, a tab with nothing opens.    |
+
+Activation is how the arrows behave. `automatic`, the default, selects the tab the arrows land on, for a view that is there at once. `manual` moves focus only and Enter or Space selects, for a view that loads; Carbon's and Base Web's distinction.
+
+<Canvas of={Stories.Activation} />
+
+## Modifiers
+
+- **`value` and `onValueChange`**, or **`defaultValue`**. On a record the value is the router's search param, so the strip and the URL agree.
+- **`activation`** as in States.
+- **`count`** and **`trailing`** on a Tab, as in Anatomy.
+- **`asChild`** on a Tab: a router's Link takes the tab's role, state and classes; the count follows its label. The router sets `value` when the URL changes.
+- **`keepMounted`** on a Panel: a table whose scroll and selection should survive a visit to another tab. Off by default, so a view mounts when selected, which is Base Web's default; Atlassian keeps panels mounted.
+- **`label`** on the List, when a page has two strips.
+- **`disabled`** on a Tab. Rare: see Don't.
+
+<Canvas of={Stories.Controlled} />
 
 <Canvas of={Stories.AsLinks} />
 
-## Details
+## Content
 
-- Tabs are 32px tall, on `dimension.control.medium`, so a strip lines up with a row of small controls beside it.
-- `count` puts a Count after the label; null or undefined shows nothing, so `count={open || null}` hides a zero. `trailing` takes anything else, e.g. a Badge.
-- A disabled tab keeps its place and loses its pointer.
-- The underline is `color.background.brand.bold`, two pixels, sitting on the rail's rule.
+- **Labels are one or two words, the view's name as a noun:** "Overview", "Controls", "Evidence". Not verbs, not sentences, no "tab".
+- **Two to six tabs.** Past six the reader hunts: Carbon allows eight on a page, HubSpot folds the rest into a More menu; the kit scrolls. Regroup, or move a section into the rail.
+- **Counts on tabs that hold a list,** hidden at zero.
+- **Order by the reader's day:** the overview, then what they work on, the record's history last.
+- **One view, no strip.** A page with one view is its sections.
+
+## Style
+
+| Element   | Token                                                                                                                     |
+| --------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Strip     | `space.300` gap · 1px `color.border` rule                                                                                 |
+| Tab       | `dimension.control.medium` 32px · `space.050` inline · `font.body` medium · `color.text.subtle`, `color.text` selected    |
+| Indicator | `space.025` 2px · `color.background.brand.bold` · `radius.full` · `motion.duration.medium` on `motion.easing.standard`   |
+| Hover     | `color.text` in `motion.duration.fast`                                                                                    |
+| Focus     | The kit's focus outline, `color.border.focused`                                                                           |
+
+## Accessibility
+
+- **The strip is `role="tablist"`,** each tab `role="tab"` with `aria-selected` and `aria-controls` to its panel; the panel is `role="tabpanel"` named by its tab. Radix sets all of it, which is why a Panel is required for the selected tab.
+- **Keyboard:** Tab reaches the strip once, on the selected tab. Left and Right move between tabs and wrap; Home and End go to the ends. Tab again leaves the strip for the panel, which takes focus so a view without controls can be scrolled, then its first control. Under `manual`, Enter or Space selects.
+- **A link tab keeps the role.** The router changes `value` when the URL changes, so the strip and the URL agree, and a new tab opens the view in a new window as any link does.
+- **Reduced motion** stops the indicator's slide.
+- **The a11y gate checks the roles and names.** It cannot press keys; the keyboard model is Radix's and is checked by hand.
+
+## Props
+
+<ArgTypes of={Tabs} />
+
+The parts, by hand until the generated tables reach a part:
+
+### Tabs.List
+
+| Prop        | Type        | What it is                                                    |
+| ----------- | ----------- | ------------------------------------------------------------- |
+| `label`     | `string`    | The strip's accessible name, when a page has two strips.      |
+| `className` | `string`    | Layout only.                                                  |
+| `children`  | `ReactNode` | The Tabs.Tabs, two to six.                                    |
+
+### Tabs.Tab
+
+| Prop        | Type                               | What it is                                                                                 |
+| ----------- | ---------------------------------- | ------------------------------------------------------------------------------------------ |
+| `value`     | `string`, required                 | What Tabs selects, and what its Panel matches.                                             |
+| `count`     | `number \| string \| null`         | A Count after the label; null or undefined shows nothing.                                  |
+| `trailing`  | `ReactNode`                        | After the count: a Badge for the view's state, rarely.                                     |
+| `disabled`  | `boolean`                          | A tab the reader cannot open. Rare: see Don't.                                             |
+| `asChild`   | `boolean`                          | The child (a router's Link) takes the tab's role, state and classes.                      |
+| `className` | `string`                           | Layout only.                                                                               |
+| `children`  | `ReactNode`                        | The label: one or two words, the view's name.                                              |
+| the rest    | `button` attributes                | `onClick`, `id`, `data-*`; Radix composes its own handlers with them.                     |
+
+### Tabs.Panel
+
+| Prop          | Type               | What it is                                                                                   |
+| ------------- | ------------------ | -------------------------------------------------------------------------------------------- |
+| `value`       | `string`, required | The tab this is the view of.                                                                 |
+| `keepMounted` | `boolean`          | Keep the view mounted while another tab shows, hidden. Off by default.                       |
+| `asChild`     | `boolean`          | Render the child as the panel: a page's body column.                                         |
+| `className`   | `string`           | Layout only.                                                                                 |
+| `children`    | `ReactNode`        | The view: Sections, Cards, a Table.                                                          |
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [ToggleGroup](?path=/docs/components-togglegroup--docs): one of several views of the same rows.
+- [FilterChip](?path=/docs/components-filterchip--docs): narrowing a register.
+- [Stepper](?path=/docs/components-stepper--docs): a path with a current step.
+- [Accordion](?path=/docs/components-accordion--docs): sections in a rail.
+- [Pages](?path=/docs/patterns-pages--docs): ShowPage's `tab` and `onTabChange`.
+- [Shell](?path=/docs/shell-shell--docs): the SideNav, for moving between pages.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

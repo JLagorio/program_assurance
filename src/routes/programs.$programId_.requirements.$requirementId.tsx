@@ -160,6 +160,8 @@ function RequirementRecord() {
     <Shell>
       <>
         <ShowPage
+          tab={tab}
+          onTabChange={(value) => go(value as typeof tab)}
           rail={
             tab === "Overview" ? (
               <>
@@ -321,23 +323,18 @@ function RequirementRecord() {
             />
           }
           tabs={
-            <Tabs>
+            <Tabs.List>
               {(
                 [
                   ["Overview", allocations.length || null],
                   ["Provenance", requirement.derivations.length || null],
                 ] as [RequirementTab, number | null][]
               ).map(([key, count]) => (
-                <Tabs.Tab
-                  key={key}
-                  isSelected={tab === key}
-                  onClick={() => go(key)}
-                  count={count || null}
-                >
+                <Tabs.Tab key={key} value={key} count={count || null}>
                   {key}
                 </Tabs.Tab>
               ))}
-            </Tabs>
+            </Tabs.List>
           }
         >
           {tab === "Overview" ? (

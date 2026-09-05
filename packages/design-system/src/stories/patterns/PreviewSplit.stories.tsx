@@ -95,10 +95,13 @@ function SplitRecord() {
       </Table>
       <PreviewRail id="PRG-003" title="Fleet telemetry" onClose={() => undefined}>
         <Stack space="space.150">
-          <Tabs label="Sections">
-            <Tabs.Tab isSelected>Overview</Tabs.Tab>
-            <Tabs.Tab>Controls</Tabs.Tab>
-            <Tabs.Tab>Findings</Tabs.Tab>
+          <Tabs defaultValue="Overview" className="contents">
+            <Tabs.List label="Sections">
+              <Tabs.Tab value="Overview">Overview</Tabs.Tab>
+              <Tabs.Tab value="Controls">Controls</Tabs.Tab>
+              <Tabs.Tab value="Findings">Findings</Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Panel value="Overview" />
           </Tabs>
           <Inline space="space.100">
             <Button size="small" variant="primary">

@@ -106,10 +106,13 @@ export const Dont: Story = {
               onClose={() => undefined}
             >
               <Stack space="space.150">
-                <Tabs label="Sections">
-                  <Tabs.Tab isSelected>Overview</Tabs.Tab>
-                  <Tabs.Tab>Evidence</Tabs.Tab>
-                  <Tabs.Tab>History</Tabs.Tab>
+                <Tabs defaultValue="Overview" className="contents">
+                  <Tabs.List label="Sections">
+                    <Tabs.Tab value="Overview">Overview</Tabs.Tab>
+                    <Tabs.Tab value="Evidence">Evidence</Tabs.Tab>
+                    <Tabs.Tab value="History">History</Tabs.Tab>
+                  </Tabs.List>
+                  <Tabs.Panel value="Overview" />
                 </Tabs>
                 <Inline space="space.100">
                   <Button size="small" variant="primary">

@@ -8,6 +8,13 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Breaking
 
+- `Tabs` is on Radix Tabs and is four parts. `Tabs` holds the selection (`value` and
+  `onValueChange`, or `defaultValue`; `activation` automatic or manual), `Tabs.List` is the
+  strip, `Tabs.Tab` takes `value` in place of `isSelected` and `onClick`, and `Tabs.Panel` is
+  the view a tab shows, required for the selected tab. The strip is one tab stop with the arrows
+  inside it, and one indicator slides to the selected tab in `motion.duration.medium`. `ShowPage`
+  takes `tab` and `onTabChange` and is the root and the panel for a record page. The prototype's
+  twenty-six strips pass `value` per tab and the handler once. Components/Tabs, Patterns/Pages.
 - `size` on `Input` and `NativeSelect` is the kit's height, `small` (28px) or `medium` (32px),
   in place of the HTML attribute. A toolbar's select that took `h-control-small` by class, which on
   NativeSelect landed on the wrapper and never sized the select, passes `size="small"`.
@@ -166,6 +173,11 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Added
 
+- `Collapsible` and `Accordion` take `headingLevel` (the title as an h2 to h6, so a rail's
+  sections are in the page's outline) and `disabled`; the row tints under the pointer, the tint
+  reaching `space.100` past a flush title as Carbon's flush accordion does. `AccordionItemProps`
+  and `DisclosureHeading` are exported; a string `count` renders as given. Components/Collapsible,
+  Components/Accordion.
 - `Dialog` takes `eyebrow` (the record's id and status above the title, as Sheet has) and
   `pending` (holds the dialog while the caller saves: Escape, the blanket and the close do
   nothing and the close is disabled, as AlertDialog already did). Every prop of Dialog, Sheet,

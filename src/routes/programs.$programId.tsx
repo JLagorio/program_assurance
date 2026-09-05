@@ -560,6 +560,8 @@ function ProgramDetail() {
     <Shell>
       <>
         <ShowPage
+          tab={tab}
+          onTabChange={(value) => setTab(value as typeof tab)}
           rail={tab === "Overview" ? rail : null}
           header={
             <RecordHeader
@@ -670,7 +672,7 @@ function ProgramDetail() {
             />
           }
           tabs={
-            <Tabs>
+            <Tabs.List>
               {(
                 [
                   ["Overview", null],
@@ -687,16 +689,11 @@ function ProgramDetail() {
                   ["Activity", null],
                 ] as [Tab, number | null][]
               ).map(([key, count]) => (
-                <Tabs.Tab
-                  key={key}
-                  isSelected={tab === key}
-                  onClick={() => setTab(key)}
-                  count={count || null}
-                >
+                <Tabs.Tab key={key} value={key} count={count || null}>
                   {key}
                 </Tabs.Tab>
               ))}
-            </Tabs>
+            </Tabs.List>
           }
         >
           {locked ? <LockedNotice stage={stageFilter!} gate={state.currentGate?.id} /> : null}

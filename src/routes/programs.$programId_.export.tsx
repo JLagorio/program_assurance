@@ -230,6 +230,8 @@ function ProgramExport() {
   return (
     <Shell>
       <ShowPage
+        tab={tab}
+        onTabChange={(value) => navigate({ search: { tab: value as typeof tab }, replace: true })}
         header={
           <RecordHeader
             crumbs={
@@ -275,18 +277,13 @@ function ProgramExport() {
           />
         }
         tabs={
-          <Tabs>
+          <Tabs.List>
             {exportTabs.map((t) => (
-              <Tabs.Tab
-                key={t}
-                isSelected={t === tab}
-                onClick={() => navigate({ search: { tab: t }, replace: true })}
-                count={counts[t]}
-              >
+              <Tabs.Tab key={t} value={t} count={counts[t]}>
                 {t}
               </Tabs.Tab>
             ))}
-          </Tabs>
+          </Tabs.List>
         }
       >
         {tab === "OSCAL" && doc ? (

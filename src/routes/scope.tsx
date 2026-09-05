@@ -111,186 +111,196 @@ function ScopeApprovals() {
           />
         }
       >
-        <Tabs>
-          {filters.map((f) => (
-            <Tabs.Tab
-              key={f}
-              isSelected={tab === f}
-              onClick={() => setTab(f)}
-              count={f === "All" ? all.length : all.filter((r) => r.state === f).length}
-            >
-              {f}
-            </Tabs.Tab>
-          ))}
-        </Tabs>
-
-        <Section
-          title="Revisions"
-          description="Review opens the proposal here; decide it without leaving the queue."
+        <Tabs
+          value={tab}
+          onValueChange={(value) => setTab(value as typeof tab)}
+          className="contents"
         >
-          <Table className="table-fixed">
-            <thead>
-              <tr>
-                <Table.Header width={104}>Program</Table.Header>
-                <Table.Header width={200}>Scope</Table.Header>
-                <Table.Header width={52}>Rev</Table.Header>
-                <Table.Header width={150}>State</Table.Header>
-                <Table.Header>Reason</Table.Header>
-                <Table.Header width={130}>Author</Table.Header>
-                <Table.Header width={112}>Submitted</Table.Header>
-                <Table.Header className="text-right" width={72}>
-                  Ctrls
-                </Table.Header>
-                <Table.Header width={168}>Decision</Table.Header>
-                <Table.Header className="text-right" width={88}>
-                  Action
-                </Table.Header>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => {
-                const program = programs.find((p) => p.id === r.program);
-                const scope = scopeById.get(r.scope);
-                return (
-                  <Table.Row key={r.id}>
-                    <Table.Cell width={104}>
-                      {program ? (
+          <Tabs.List>
+            {filters.map((f) => (
+              <Tabs.Tab
+                key={f}
+                value={f}
+                count={f === "All" ? all.length : all.filter((r) => r.state === f).length}
+              >
+                {f}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+          <Tabs.Panel value={tab} className="contents">
+            <Section
+              title="Revisions"
+              description="Review opens the proposal here; decide it without leaving the queue."
+            >
+              <Table className="table-fixed">
+                <thead>
+                  <tr>
+                    <Table.Header width={104}>Program</Table.Header>
+                    <Table.Header width={200}>Scope</Table.Header>
+                    <Table.Header width={52}>Rev</Table.Header>
+                    <Table.Header width={150}>State</Table.Header>
+                    <Table.Header>Reason</Table.Header>
+                    <Table.Header width={130}>Author</Table.Header>
+                    <Table.Header width={112}>Submitted</Table.Header>
+                    <Table.Header className="text-right" width={72}>
+                      Ctrls
+                    </Table.Header>
+                    <Table.Header width={168}>Decision</Table.Header>
+                    <Table.Header className="text-right" width={88}>
+                      Action
+                    </Table.Header>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((r) => {
+                    const program = programs.find((p) => p.id === r.program);
+                    const scope = scopeById.get(r.scope);
+                    return (
+                      <Table.Row key={r.id}>
+                        <Table.Cell width={104}>
+                          {program ? (
+                            <TextLink>
+                              <Link
+                                to="/programs/$programId"
+                                params={{ programId: r.program }}
+                                search={{ tab: "Systems" }}
+                              >
+                                <Id>{r.program}</Id>
+                              </Link>
+                            </TextLink>
+                          ) : (
+                            <Id>{r.program}</Id>
+                          )}
+                        </Table.Cell>
+                        <Table.Cell className="truncate" width={200}>
+                          {program && scope ? (
+                            <TextLink>
+                              <Link
+                                to="/programs/$programId/components/$componentId"
+                                params={{ programId: r.program, componentId: scope.element }}
+                                search={{ tab: "Control set" }}
+                              >
+                                {scope.name}
+                              </Link>
+                            </TextLink>
+                          ) : (
+                            (scope?.name ?? r.scope)
+                          )}
+                        </Table.Cell>
+                        <Table.Cell width={52}>
+                          <Id>v{r.number}</Id>
+                        </Table.Cell>
+                        <Table.Cell width={150}>
+                          <Badge tone={revisionTone[r.state]}>{r.state}</Badge>
+                        </Table.Cell>
+                        <Table.Cell className="truncate" title={r.reason}>
+                          {r.reason}
+                        </Table.Cell>
+                        <Table.Cell className="truncate" width={130}>
+                          {r.author}
+                        </Table.Cell>
+                        <Table.Cell className="tabular-nums" width={112}>
+                          {r.submitted ?? "—"}
+                        </Table.Cell>
+                        <Table.Cell className="tabular-nums text-right" width={72}>
+                          {resolveDraft(r).total}
+                        </Table.Cell>
+                        <Table.Cell className="truncate" width={168}>
+                          {r.decidedBy
+                            ? `${r.decidedBy.replace(/\s*\(.*\)$/, "")} · ${r.decided}`
+                            : "—"}
+                        </Table.Cell>
+                        <Table.Cell className="text-right" width={88}>
+                          <Button
+                            size="small"
+                            variant="secondary"
+                            onClick={() => setReviewing(r.id)}
+                          >
+                            {openStates.includes(r.state) ? "Review" : "Open"}
+                          </Button>
+                        </Table.Cell>
+                      </Table.Row>
+                    );
+                  })}
+                </tbody>
+              </Table>
+            </Section>
+
+            <Block title="Requirements" count={needing.length}>
+              <Table>
+                <thead>
+                  <tr>
+                    <Table.Header width={104}>Program</Table.Header>
+                    <Table.Header width={110}>Requirement</Table.Header>
+                    <Table.Header>Statement</Table.Header>
+                    <Table.Header width={130}>Owner</Table.Header>
+                    <Table.Header width={300}>Needs</Table.Header>
+                  </tr>
+                </thead>
+                <tbody>
+                  {needing.map(({ requirement: r, needs }) => (
+                    <Table.Row key={r.id}>
+                      <Table.Cell width={104}>
                         <TextLink>
                           <Link
                             to="/programs/$programId"
                             params={{ programId: r.program }}
-                            search={{ tab: "Systems" }}
+                            search={{ tab: "Requirements" }}
                           >
                             <Id>{r.program}</Id>
                           </Link>
                         </TextLink>
-                      ) : (
-                        <Id>{r.program}</Id>
-                      )}
-                    </Table.Cell>
-                    <Table.Cell className="truncate" width={200}>
-                      {program && scope ? (
+                      </Table.Cell>
+                      <Table.Cell width={110}>
                         <TextLink>
                           <Link
-                            to="/programs/$programId/components/$componentId"
-                            params={{ programId: r.program, componentId: scope.element }}
-                            search={{ tab: "Control set" }}
+                            to="/programs/$programId/requirements/$requirementId"
+                            params={{ programId: r.program, requirementId: r.id }}
+                            search={{ tab: undefined }}
                           >
-                            {scope.name}
+                            <Id>{r.id}</Id>
                           </Link>
                         </TextLink>
-                      ) : (
-                        (scope?.name ?? r.scope)
-                      )}
-                    </Table.Cell>
-                    <Table.Cell width={52}>
-                      <Id>v{r.number}</Id>
-                    </Table.Cell>
-                    <Table.Cell width={150}>
-                      <Badge tone={revisionTone[r.state]}>{r.state}</Badge>
-                    </Table.Cell>
-                    <Table.Cell className="truncate" title={r.reason}>
-                      {r.reason}
-                    </Table.Cell>
-                    <Table.Cell className="truncate" width={130}>
-                      {r.author}
-                    </Table.Cell>
-                    <Table.Cell className="tabular-nums" width={112}>
-                      {r.submitted ?? "—"}
-                    </Table.Cell>
-                    <Table.Cell className="tabular-nums text-right" width={72}>
-                      {resolveDraft(r).total}
-                    </Table.Cell>
-                    <Table.Cell className="truncate" width={168}>
-                      {r.decidedBy
-                        ? `${r.decidedBy.replace(/\s*\(.*\)$/, "")} · ${r.decided}`
-                        : "—"}
-                    </Table.Cell>
-                    <Table.Cell className="text-right" width={88}>
-                      <Button size="small" variant="secondary" onClick={() => setReviewing(r.id)}>
-                        {openStates.includes(r.state) ? "Review" : "Open"}
-                      </Button>
-                    </Table.Cell>
-                  </Table.Row>
-                );
-              })}
-            </tbody>
-          </Table>
-        </Section>
+                      </Table.Cell>
+                      <Table.Cell className="truncate" title={r.text}>
+                        {r.text}
+                      </Table.Cell>
+                      <Table.Cell className="truncate" width={130}>
+                        {r.owner}
+                      </Table.Cell>
+                      <Table.Cell className="truncate" width={300}>
+                        <Indicator tone="warning">{needs[0]?.label}</Indicator>
+                        {needs.length > 1 ? (
+                          <Text as="span" size="small" color="color.text.subtle">
+                            {" "}
+                            +{needs.length - 1}
+                          </Text>
+                        ) : null}
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </tbody>
+              </Table>
+            </Block>
 
-        <Block title="Requirements" count={needing.length}>
-          <Table>
-            <thead>
-              <tr>
-                <Table.Header width={104}>Program</Table.Header>
-                <Table.Header width={110}>Requirement</Table.Header>
-                <Table.Header>Statement</Table.Header>
-                <Table.Header width={130}>Owner</Table.Header>
-                <Table.Header width={300}>Needs</Table.Header>
-              </tr>
-            </thead>
-            <tbody>
-              {needing.map(({ requirement: r, needs }) => (
-                <Table.Row key={r.id}>
-                  <Table.Cell width={104}>
-                    <TextLink>
-                      <Link
-                        to="/programs/$programId"
-                        params={{ programId: r.program }}
-                        search={{ tab: "Requirements" }}
-                      >
-                        <Id>{r.program}</Id>
-                      </Link>
-                    </TextLink>
-                  </Table.Cell>
-                  <Table.Cell width={110}>
-                    <TextLink>
-                      <Link
-                        to="/programs/$programId/requirements/$requirementId"
-                        params={{ programId: r.program, requirementId: r.id }}
-                        search={{ tab: undefined }}
-                      >
-                        <Id>{r.id}</Id>
-                      </Link>
-                    </TextLink>
-                  </Table.Cell>
-                  <Table.Cell className="truncate" title={r.text}>
-                    {r.text}
-                  </Table.Cell>
-                  <Table.Cell className="truncate" width={130}>
-                    {r.owner}
-                  </Table.Cell>
-                  <Table.Cell className="truncate" width={300}>
-                    <Indicator tone="warning">{needs[0]?.label}</Indicator>
-                    {needs.length > 1 ? (
-                      <Text as="span" size="small" color="color.text.subtle">
-                        {" "}
-                        +{needs.length - 1}
-                      </Text>
-                    ) : null}
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </tbody>
-          </Table>
-        </Block>
-
-        <Section title="Decision notes">
-          <Item.Group empty="No decision has carried a note yet.">
-            {all
-              .filter((r) => r.note)
-              .map((r) => (
-                <Item
-                  key={r.id}
-                  id={`${r.scope} v${r.number}`}
-                  idWidth={120}
-                  title={r.note}
-                  meta={r.decidedBy ?? undefined}
-                  trailing={r.decided ?? undefined}
-                />
-              ))}
-          </Item.Group>
-        </Section>
+            <Section title="Decision notes">
+              <Item.Group empty="No decision has carried a note yet.">
+                {all
+                  .filter((r) => r.note)
+                  .map((r) => (
+                    <Item
+                      key={r.id}
+                      id={`${r.scope} v${r.number}`}
+                      idWidth={120}
+                      title={r.note}
+                      meta={r.decidedBy ?? undefined}
+                      trailing={r.decided ?? undefined}
+                    />
+                  ))}
+              </Item.Group>
+            </Section>
+          </Tabs.Panel>
+        </Tabs>
       </IndexPage>
 
       <Sheet

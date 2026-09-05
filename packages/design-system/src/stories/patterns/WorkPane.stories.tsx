@@ -82,10 +82,13 @@ function Pane() {
                 },
               ]}
               tabs={
-                <Tabs label="Sections">
-                  <Tabs.Tab isSelected>Work</Tabs.Tab>
-                  <Tabs.Tab>Evidence</Tabs.Tab>
-                  <Tabs.Tab>History</Tabs.Tab>
+                <Tabs defaultValue="Work" className="contents">
+                  <Tabs.List label="Sections">
+                    <Tabs.Tab value="Work">Work</Tabs.Tab>
+                    <Tabs.Tab value="Evidence">Evidence</Tabs.Tab>
+                    <Tabs.Tab value="History">History</Tabs.Tab>
+                  </Tabs.List>
+                  <Tabs.Panel value="Work" />
                 </Tabs>
               }
             />

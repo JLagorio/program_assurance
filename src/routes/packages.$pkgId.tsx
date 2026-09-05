@@ -126,199 +126,209 @@ function PackageRecord() {
           </Alert>
         ) : null}
 
-        <Tabs>
-          {tabs.map((t) => (
-            <Tabs.Tab
-              key={t}
-              isSelected={t === tab}
-              onClick={() => {
-                setTab(t);
-                setPreview(null);
-              }}
-              count={counts[t]}
-            >
-              {t}
-            </Tabs.Tab>
-          ))}
-        </Tabs>
-
-        {tab === "Traceability" ? (
-          <Box paddingBlockStart="space.050">
-            <ToggleGroup
-              aria-label="Traceability filter"
-              value={gapsOnly ? "gaps" : "all"}
-              onChange={(v) => setGapsOnly(v === "gaps")}
-              items={[
-                { value: "all", label: "All CCIs" },
-                { value: "gaps", label: `Gaps only (${ready.gaps.length})` },
-              ]}
-            />
-          </Box>
-        ) : null}
-
-        <PreviewSplit open={preview !== null}>
-          <div className="min-w-0 lg:pe-300">
+        <Tabs
+          value={tab}
+          onValueChange={(value) => {
+            setTab(value as typeof tab);
+            setPreview(null);
+          }}
+          className="contents"
+        >
+          <Tabs.List>
+            {tabs.map((t) => (
+              <Tabs.Tab key={t} value={t} count={counts[t]}>
+                {t}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+          <Tabs.Panel value={tab} className="contents">
             {tab === "Traceability" ? (
-              <Table className="table-fixed">
-                <thead>
-                  <tr>
-                    <Table.Header width={124}>CCI</Table.Header>
-                    <Table.Header width={84}>Control</Table.Header>
-                    <Table.Header>Statement</Table.Header>
-                    <Table.Header width={104}>Objectives</Table.Header>
-                    <Table.Header width={112}>Result</Table.Header>
-                    <Table.Header width={64} className="text-right">
-                      Open
-                    </Table.Header>
-                    <Table.Header width={72}>Worst</Table.Header>
-                  </tr>
-                </thead>
-                <tbody>
-                  {traceRows.map((r) => (
-                    <Table.Row key={r.cci}>
-                      <Table.Id
-                        id={r.cci}
-                        isActive={preview?.cci === r.cci}
-                        onPreview={() => setPreview(r)}
-                      />
-                      <Table.Cell>
-                        <Id>{r.control}</Id>
-                      </Table.Cell>
-                      <Table.Cell className="truncate">
-                        {r.gap ? (
-                          <Inline
-                            as="span"
-                            display="inline-flex"
-                            space="space.075"
-                            alignBlock="center"
-                          >
-                            <AlertTriangle className="shrink-0 text-warning size-150" />
-                            <span className="truncate">{r.statement}</span>
-                          </Inline>
-                        ) : (
-                          r.statement
-                        )}
-                      </Table.Cell>
-                      <Table.Cell className="truncate">
-                        {r.objectives.length ? (
-                          <Id>{r.objectives.join(", ")}</Id>
-                        ) : (
-                          <span className="text-subtle">—</span>
-                        )}
-                      </Table.Cell>
-                      <Table.Cell className="truncate">
-                        <Badge tone={resultTone(r.result)}>{r.result}</Badge>
-                      </Table.Cell>
-                      <Table.Cell className="tabular-nums text-right">{r.openFindings}</Table.Cell>
-                      <Table.Cell>{r.worstSeverity}</Table.Cell>
-                    </Table.Row>
-                  ))}
-                </tbody>
-              </Table>
+              <Box paddingBlockStart="space.050">
+                <ToggleGroup
+                  aria-label="Traceability filter"
+                  value={gapsOnly ? "gaps" : "all"}
+                  onChange={(v) => setGapsOnly(v === "gaps")}
+                  items={[
+                    { value: "all", label: "All CCIs" },
+                    { value: "gaps", label: `Gaps only (${ready.gaps.length})` },
+                  ]}
+                />
+              </Box>
             ) : null}
 
-            {tab === "Artifacts" ? (
-              <Table className="table-fixed">
-                <thead>
-                  <tr>
-                    <Table.Header width={72}>Kind</Table.Header>
-                    <Table.Header>Artifact</Table.Header>
-                    <Table.Header width={104}>Format</Table.Header>
-                    <Table.Header width={116}>Generated</Table.Header>
-                    <Table.Header width={60} className="text-right">
-                      Pages
-                    </Table.Header>
-                    <Table.Header width={112}>State</Table.Header>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ready.artifacts.map((a) => (
-                    <Table.Row key={a.id}>
-                      <Table.Cell>{a.kind}</Table.Cell>
-                      <Table.Cell className="truncate">
-                        <span className="truncate">{a.name}</span>
-                        <Box
-                          className="font-body-small text-subtle"
-                          as="span"
-                          paddingInlineStart="space.100"
-                        >
-                          {a.note}
-                        </Box>
-                      </Table.Cell>
-                      <Table.Cell className="truncate">{a.format}</Table.Cell>
-                      <Table.Cell className="truncate">{a.generated}</Table.Cell>
-                      <Table.Cell className="tabular-nums text-right">{a.pages || "—"}</Table.Cell>
-                      <Table.Cell className="truncate">
-                        <Badge tone={statusTone(a.state)}>{a.state}</Badge>
-                      </Table.Cell>
-                    </Table.Row>
-                  ))}
-                </tbody>
-              </Table>
-            ) : null}
+            <PreviewSplit open={preview !== null}>
+              <div className="min-w-0 lg:pe-300">
+                {tab === "Traceability" ? (
+                  <Table className="table-fixed">
+                    <thead>
+                      <tr>
+                        <Table.Header width={124}>CCI</Table.Header>
+                        <Table.Header width={84}>Control</Table.Header>
+                        <Table.Header>Statement</Table.Header>
+                        <Table.Header width={104}>Objectives</Table.Header>
+                        <Table.Header width={112}>Result</Table.Header>
+                        <Table.Header width={64} className="text-right">
+                          Open
+                        </Table.Header>
+                        <Table.Header width={72}>Worst</Table.Header>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {traceRows.map((r) => (
+                        <Table.Row key={r.cci}>
+                          <Table.Id
+                            id={r.cci}
+                            isActive={preview?.cci === r.cci}
+                            onPreview={() => setPreview(r)}
+                          />
+                          <Table.Cell>
+                            <Id>{r.control}</Id>
+                          </Table.Cell>
+                          <Table.Cell className="truncate">
+                            {r.gap ? (
+                              <Inline
+                                as="span"
+                                display="inline-flex"
+                                space="space.075"
+                                alignBlock="center"
+                              >
+                                <AlertTriangle className="shrink-0 text-warning size-150" />
+                                <span className="truncate">{r.statement}</span>
+                              </Inline>
+                            ) : (
+                              r.statement
+                            )}
+                          </Table.Cell>
+                          <Table.Cell className="truncate">
+                            {r.objectives.length ? (
+                              <Id>{r.objectives.join(", ")}</Id>
+                            ) : (
+                              <span className="text-subtle">—</span>
+                            )}
+                          </Table.Cell>
+                          <Table.Cell className="truncate">
+                            <Badge tone={resultTone(r.result)}>{r.result}</Badge>
+                          </Table.Cell>
+                          <Table.Cell className="tabular-nums text-right">
+                            {r.openFindings}
+                          </Table.Cell>
+                          <Table.Cell>{r.worstSeverity}</Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : null}
 
-            {tab === "Submission log" ? (
-              <Table className="table-fixed">
-                <thead>
-                  <tr>
-                    <Table.Header width={116}>When</Table.Header>
-                    <Table.Header width={176}>Actor</Table.Header>
-                    <Table.Header width={168}>Action</Table.Header>
-                    <Table.Header>Detail</Table.Header>
-                  </tr>
-                </thead>
-                <tbody>
-                  {log.map((s) => (
-                    <Table.Row key={s.id}>
-                      <Table.Cell className="truncate">{s.at}</Table.Cell>
-                      <Table.Cell className="truncate">{s.actor}</Table.Cell>
-                      <Table.Cell className="truncate">{s.action}</Table.Cell>
-                      <Table.Cell className="truncate">{s.detail}</Table.Cell>
-                    </Table.Row>
-                  ))}
-                </tbody>
-              </Table>
-            ) : null}
-          </div>
+                {tab === "Artifacts" ? (
+                  <Table className="table-fixed">
+                    <thead>
+                      <tr>
+                        <Table.Header width={72}>Kind</Table.Header>
+                        <Table.Header>Artifact</Table.Header>
+                        <Table.Header width={104}>Format</Table.Header>
+                        <Table.Header width={116}>Generated</Table.Header>
+                        <Table.Header width={60} className="text-right">
+                          Pages
+                        </Table.Header>
+                        <Table.Header width={112}>State</Table.Header>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ready.artifacts.map((a) => (
+                        <Table.Row key={a.id}>
+                          <Table.Cell>{a.kind}</Table.Cell>
+                          <Table.Cell className="truncate">
+                            <span className="truncate">{a.name}</span>
+                            <Box
+                              className="font-body-small text-subtle"
+                              as="span"
+                              paddingInlineStart="space.100"
+                            >
+                              {a.note}
+                            </Box>
+                          </Table.Cell>
+                          <Table.Cell className="truncate">{a.format}</Table.Cell>
+                          <Table.Cell className="truncate">{a.generated}</Table.Cell>
+                          <Table.Cell className="tabular-nums text-right">
+                            {a.pages || "—"}
+                          </Table.Cell>
+                          <Table.Cell className="truncate">
+                            <Badge tone={statusTone(a.state)}>{a.state}</Badge>
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : null}
 
-          {preview ? (
-            <PreviewRail
-              id={preview.cci}
-              title={preview.statement}
-              onClose={() => setPreview(null)}
-            >
-              {preview.gap ? (
-                <Box paddingBlockEnd="space.150">
-                  <Alert tone="warning">{preview.gap}</Alert>
-                </Box>
+                {tab === "Submission log" ? (
+                  <Table className="table-fixed">
+                    <thead>
+                      <tr>
+                        <Table.Header width={116}>When</Table.Header>
+                        <Table.Header width={176}>Actor</Table.Header>
+                        <Table.Header width={168}>Action</Table.Header>
+                        <Table.Header>Detail</Table.Header>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {log.map((s) => (
+                        <Table.Row key={s.id}>
+                          <Table.Cell className="truncate">{s.at}</Table.Cell>
+                          <Table.Cell className="truncate">{s.actor}</Table.Cell>
+                          <Table.Cell className="truncate">{s.action}</Table.Cell>
+                          <Table.Cell className="truncate">{s.detail}</Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : null}
+              </div>
+
+              {preview ? (
+                <PreviewRail
+                  id={preview.cci}
+                  title={preview.statement}
+                  onClose={() => setPreview(null)}
+                >
+                  {preview.gap ? (
+                    <Box paddingBlockEnd="space.150">
+                      <Alert tone="warning">{preview.gap}</Alert>
+                    </Box>
+                  ) : null}
+                  <Inspector.Group title="Join keys">
+                    <KeyValue label="Control">
+                      <Id>{preview.control}</Id>
+                    </KeyValue>
+                    <KeyValue label="Package">
+                      <Id>{pkg.id}</Id>
+                    </KeyValue>
+                    <KeyValue label="System">
+                      <Id>{pkg.system}</Id>
+                    </KeyValue>
+                    <KeyValue label="Rules">
+                      {preview.paths.length ? <Id>{preview.paths.join(", ")}</Id> : "—"}
+                    </KeyValue>
+                  </Inspector.Group>
+                  <Inspector.Group title="Verification">
+                    <KeyValue label="Objectives">
+                      {preview.objectives.length ? (
+                        <Id>{preview.objectives.join(", ")}</Id>
+                      ) : (
+                        "None"
+                      )}
+                    </KeyValue>
+                    <KeyValue label="Result">
+                      <Badge tone={resultTone(preview.result)}>{preview.result}</Badge>
+                    </KeyValue>
+                    <KeyValue label="Open findings">{preview.openFindings}</KeyValue>
+                    <KeyValue label="Worst severity">{preview.worstSeverity}</KeyValue>
+                  </Inspector.Group>
+                </PreviewRail>
               ) : null}
-              <Inspector.Group title="Join keys">
-                <KeyValue label="Control">
-                  <Id>{preview.control}</Id>
-                </KeyValue>
-                <KeyValue label="Package">
-                  <Id>{pkg.id}</Id>
-                </KeyValue>
-                <KeyValue label="System">
-                  <Id>{pkg.system}</Id>
-                </KeyValue>
-                <KeyValue label="Rules">
-                  {preview.paths.length ? <Id>{preview.paths.join(", ")}</Id> : "—"}
-                </KeyValue>
-              </Inspector.Group>
-              <Inspector.Group title="Verification">
-                <KeyValue label="Objectives">
-                  {preview.objectives.length ? <Id>{preview.objectives.join(", ")}</Id> : "None"}
-                </KeyValue>
-                <KeyValue label="Result">
-                  <Badge tone={resultTone(preview.result)}>{preview.result}</Badge>
-                </KeyValue>
-                <KeyValue label="Open findings">{preview.openFindings}</KeyValue>
-                <KeyValue label="Worst severity">{preview.worstSeverity}</KeyValue>
-              </Inspector.Group>
-            </PreviewRail>
-          ) : null}
-        </PreviewSplit>
+            </PreviewSplit>
+          </Tabs.Panel>
+        </Tabs>
       </Stack>
     </Shell>
   );

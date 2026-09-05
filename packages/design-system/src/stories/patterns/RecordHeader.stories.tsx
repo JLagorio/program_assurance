@@ -100,11 +100,12 @@ export const RecordHeaderMatrix: Story = {
         id="PRG-1041"
         title="Security control traceability matrix"
         below={
-          <Tabs label="Sections">
-            <Tabs.Tab isSelected count={340}>
-              Rows
-            </Tabs.Tab>
-            <Tabs.Tab count={12}>Gaps</Tabs.Tab>
+          <Tabs defaultValue="Rows" className="contents">
+            <Tabs.List label="Sections">
+              <Tabs.Tab value="Rows" count={340}>Rows</Tabs.Tab>
+              <Tabs.Tab value="Gaps" count={12}>Gaps</Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Panel value="Rows" />
           </Tabs>
         }
       />

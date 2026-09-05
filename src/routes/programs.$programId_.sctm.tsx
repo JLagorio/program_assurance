@@ -252,6 +252,8 @@ function ProgramSctm() {
     <Shell>
       <>
         <ShowPage
+          tab={tab}
+          onTabChange={(value) => go(value as typeof tab)}
           header={
             <RecordHeader
               crumbs={
@@ -286,13 +288,13 @@ function ProgramSctm() {
             />
           }
           tabs={
-            <Tabs>
+            <Tabs.List>
               {sctmTabs.map((t) => (
-                <Tabs.Tab key={t} isSelected={t === tab} onClick={() => go(t)} count={counts[t]}>
+                <Tabs.Tab key={t} value={t} count={counts[t]}>
                   {t}
                 </Tabs.Tab>
               ))}
-            </Tabs>
+            </Tabs.List>
           }
         >
           {tab === "Matrix" ? (

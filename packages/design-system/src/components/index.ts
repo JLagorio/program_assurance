@@ -87,7 +87,14 @@ export {
 export { DatePicker, type DatePickerProps } from "./date-picker";
 export { Dialog, type DialogProps } from "./dialog";
 export { AlertDialog, type AlertDialogProps } from "./alert-dialog";
-export { Accordion, Collapsible, type AccordionProps, type CollapsibleProps } from "./disclosure";
+export {
+  Accordion,
+  Collapsible,
+  type AccordionItemProps,
+  type AccordionProps,
+  type CollapsibleProps,
+  type DisclosureHeading,
+} from "./disclosure";
 export { Drawer, type DrawerProps } from "./drawer";
 export { DropdownMenu, type DropdownMenuItemProps, type DropdownMenuProps } from "./dropdown-menu";
 export { Editable, type EditableProps } from "./editable";
@@ -124,7 +131,7 @@ export {
 } from "./stepper";
 export { Table, type TableProps, type TdProps, type ThProps } from "./table";
 export { TextLink, type TextLinkProps } from "./text-link";
-export { Tabs, type TabProps, type TabsProps } from "./tabs";
+export { Tabs, type TabListProps, type TabPanelProps, type TabProps, type TabsProps } from "./tabs";
 export {
   Timeline,
   type TimelineAlign,

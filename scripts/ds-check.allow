@@ -1,14 +1,5 @@
 # Package exports without a story, families (matrix:<file>) without a Matrix story, and family pages
 # (page:<family>, page:<family>#<heading>) missing from the template. Shrink this list; never grow it.
-page:Accordion#Accessibility
-page:Accordion#Anatomy
-page:Accordion#Content
-page:Accordion#Don't
-page:Accordion#Modifiers
-page:Accordion#Sizes
-page:Accordion#States
-page:Accordion#Style
-page:Accordion#Variants
 page:CodeBlock#Accessibility
 page:CodeBlock#Anatomy
 page:CodeBlock#Content
@@ -19,15 +10,6 @@ page:CodeBlock#Sizes
 page:CodeBlock#States
 page:CodeBlock#Style
 page:CodeBlock#Variants
-page:Collapsible#Accessibility
-page:Collapsible#Anatomy
-page:Collapsible#Content
-page:Collapsible#Don't
-page:Collapsible#Modifiers
-page:Collapsible#Sizes
-page:Collapsible#States
-page:Collapsible#Style
-page:Collapsible#Variants
 page:Command#Accessibility
 page:Command#Anatomy
 page:Command#Content
@@ -109,17 +91,6 @@ page:ScrollArea#Sizes
 page:ScrollArea#States
 page:ScrollArea#Style
 page:ScrollArea#Variants
-page:Tabs#Accessibility
-page:Tabs#Anatomy
-page:Tabs#Content
-page:Tabs#Don't
-page:Tabs#Modifiers
-page:Tabs#Props
-page:Tabs#Related
-page:Tabs#Sizes
-page:Tabs#States
-page:Tabs#Style
-page:Tabs#Variants
 page:Toaster#Accessibility
 page:Toaster#Anatomy
 page:Toaster#Content

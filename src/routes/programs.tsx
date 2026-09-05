@@ -222,79 +222,80 @@ function ProgramList() {
         />
       }
     >
-      <Tabs>
-        {tabs.map((t) => (
-          <Tabs.Tab
-            key={t.label}
-            isSelected={tab === t.label}
-            onClick={() => setTab(t.label)}
-            count={t.count}
+      <Tabs value={tab} onValueChange={(value) => setTab(value)} className="contents">
+        <Tabs.List>
+          {tabs.map((t) => (
+            <Tabs.Tab key={t.label} value={t.label} count={t.count}>
+              {t.label}
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
+        <Tabs.Panel value={tab} className="contents">
+          <Inline space="space.100" alignBlock="center" shouldWrap>
+            <DataTable.Filter table={table} column="impact" />
+            <DataTable.Filter table={table} column="owner" />
+            <DataTable.Filter table={table} column="expires" />
+            <Inline className="ml-auto" space="space.100" alignBlock="center">
+              <DataTable.Columns table={table} />
+            </Inline>
+          </Inline>
+
+          <DataTable.SelectionBar
+            table={table}
+            actions={
+              <>
+                <Button variant="secondary" size="small">
+                  Reassign assessor
+                </Button>
+                <Button variant="secondary" size="small" onClick={() => setScheduling(true)}>
+                  Schedule assessment
+                </Button>
+              </>
+            }
+          />
+
+          <DataTable
+            table={table}
+            empty={{
+              title: "No programs match",
+              description: "Change the tab or the impact filter.",
+            }}
+          />
+
+          <Dialog
+            open={scheduling}
+            onClose={() => setScheduling(false)}
+            title="Schedule assessment"
+            description={`${selected.length} ${selected.length === 1 ? "program" : "programs"} · the assessor is notified with the date`}
+            footer={
+              <>
+                <Button variant="subtle" onClick={() => setScheduling(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  disabled={!scheduleDate}
+                  onClick={() => {
+                    const d = scheduleDate;
+                    if (!d) return;
+                    setScheduling(false);
+                    toast.success(
+                      `Assessment scheduled for ${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`,
+                      { description: selected.join(", ") },
+                    );
+                  }}
+                >
+                  Schedule
+                </Button>
+              </>
+            }
           >
-            {t.label}
-          </Tabs.Tab>
-        ))}
+            <Inline alignInline="center">
+              <Calendar mode="single" selected={scheduleDate} onSelect={setScheduleDate} />
+            </Inline>
+          </Dialog>
+        </Tabs.Panel>
       </Tabs>
-
-      <Inline space="space.100" alignBlock="center" shouldWrap>
-        <DataTable.Filter table={table} column="impact" />
-        <DataTable.Filter table={table} column="owner" />
-        <DataTable.Filter table={table} column="expires" />
-        <Inline className="ml-auto" space="space.100" alignBlock="center">
-          <DataTable.Columns table={table} />
-        </Inline>
-      </Inline>
-
-      <DataTable.SelectionBar
-        table={table}
-        actions={
-          <>
-            <Button variant="secondary" size="small">
-              Reassign assessor
-            </Button>
-            <Button variant="secondary" size="small" onClick={() => setScheduling(true)}>
-              Schedule assessment
-            </Button>
-          </>
-        }
-      />
-
-      <DataTable
-        table={table}
-        empty={{ title: "No programs match", description: "Change the tab or the impact filter." }}
-      />
-
-      <Dialog
-        open={scheduling}
-        onClose={() => setScheduling(false)}
-        title="Schedule assessment"
-        description={`${selected.length} ${selected.length === 1 ? "program" : "programs"} · the assessor is notified with the date`}
-        footer={
-          <>
-            <Button variant="subtle" onClick={() => setScheduling(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              disabled={!scheduleDate}
-              onClick={() => {
-                const d = scheduleDate;
-                if (!d) return;
-                setScheduling(false);
-                toast.success(
-                  `Assessment scheduled for ${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`,
-                  { description: selected.join(", ") },
-                );
-              }}
-            >
-              Schedule
-            </Button>
-          </>
-        }
-      >
-        <Inline alignInline="center">
-          <Calendar mode="single" selected={scheduleDate} onSelect={setScheduleDate} />
-        </Inline>
-      </Dialog>
     </IndexPage>
   );
 }

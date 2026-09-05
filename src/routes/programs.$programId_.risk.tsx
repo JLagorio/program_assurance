@@ -189,6 +189,8 @@ function ProgramRisk() {
   return (
     <Shell>
       <ShowPage
+        tab={tab}
+        onTabChange={(value) => go(value as typeof tab)}
         header={
           <RecordHeader
             crumbs={
@@ -233,18 +235,13 @@ function ProgramRisk() {
           />
         }
         tabs={
-          <Tabs>
+          <Tabs.List>
             {riskTabs.map((key) => (
-              <Tabs.Tab
-                key={key}
-                isSelected={tab === key}
-                onClick={() => go(key)}
-                count={counts[key] || null}
-              >
+              <Tabs.Tab key={key} value={key} count={counts[key] || null}>
                 {key}
               </Tabs.Tab>
             ))}
-          </Tabs>
+          </Tabs.List>
         }
       >
         {tab === "Posture" ? (
