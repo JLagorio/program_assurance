@@ -126,18 +126,13 @@ export function AuthorizationSection({
                   Milestone C {authorization.milestoneC}
                 </p>
               </div>
-              <Inline
-                className="shrink-0"
-                space="space.100"
-                alignBlock="center"
-                style={{ width: 180 }}
-              >
+              <Box className="shrink-0" style={{ width: 180 }}>
                 <Progress
                   value={readiness}
                   tone={readiness >= 80 ? "success" : "information"}
                   showValue
                 />
-              </Inline>
+              </Box>
             </Inline>
           </Box>
 
@@ -678,18 +673,13 @@ export function BriefingRoom() {
                   {authorization.targetSignature}
                 </p>
               </div>
-              <Inline
-                className="shrink-0"
-                space="space.100"
-                alignBlock="center"
-                style={{ width: 180 }}
-              >
+              <Box className="shrink-0" style={{ width: 180 }}>
                 <Progress
                   value={progress}
                   tone={pending.length > 0 ? "warning" : "success"}
                   showValue
                 />
-              </Inline>
+              </Box>
             </Inline>
           </Box>
 

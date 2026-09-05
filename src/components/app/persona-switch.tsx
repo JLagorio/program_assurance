@@ -9,7 +9,7 @@
  * separation of duty from each side.
  */
 
-import { Avatar, Button, NativeSelect, Popover, Stack, Text } from "@ledger/design-system";
+import { Box, Avatar, Button, NativeSelect, Popover, Stack, Text } from "@ledger/design-system";
 
 import { currentSession, roles, setSession, useWorkVersion, type Role } from "@/lib/control-work";
 
@@ -31,9 +31,11 @@ export function PersonaSwitch() {
             className="rounded-full ps-050 shadow-overlay"
           >
             <Avatar name={session.name} size="small" />
-            <Text size="small" color="color.text.subtle" maxLines={1} style={{ maxWidth: 180 }}>
-              {session.role}
-            </Text>
+            <Box as="span" style={{ maxWidth: 180 }}>
+              <Text size="small" color="color.text.subtle" maxLines={1} className="block">
+                {session.role}
+              </Text>
+            </Box>
           </Button>
         }
       >

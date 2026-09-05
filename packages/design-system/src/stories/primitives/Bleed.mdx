@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Bleed } from "../../primitives";
 import * as Stories from "./Bleed.stories";
@@ -7,10 +7,92 @@ import * as Stories from "./Bleed.stories";
 
 # Bleed
 
-The one place a negative margin is written: pulling a child out to the edge of its parent's padding. The key props are `all`, `inline` and `block`.
+The one place a negative margin is written: a child that escapes its parent's padding, by the token that padding is. A strip that runs to a card's edges, a table that meets a card body's sides, a list of rows that reaches a panel's top and bottom, a rail row's hover fill to the rail's edge. Atlassian's Bleed is the model: `all`, `inline` or `block`, and a scale that stops short, because a bleed is never larger than the padding it escapes. Here the scale is the tokens with a negative in the source, `space.025` to `space.400`, the page gutter. Carbon has no bleed; its full-width rows come from the grid's own gutter modes.
 
-<Canvas of={Stories.BleedInsideCard} />
+<Canvas of={Stories.BleedMatrix} />
+
+## Anatomy
+
+| Part    | What it is                                                                                          |
+| ------- | --------------------------------------------------------------------------------------------------- |
+| Wrapper | A `div`, or the layout element `as` names, with a negative margin on the axis named. The child inside keeps its own padding and fill. |
+| `inline` | Escapes the inline padding: left and right.                                                       |
+| `block` | Escapes the block padding: top and bottom.                                                          |
+| `all`   | Both.                                                                                               |
+
+## Variants
+
+| Bleed  | Use                                                                                                       |
+| ------ | --------------------------------------------------------------------------------------------------------- |
+| Inline | A strip, a table, a row's hover fill: to the card's or the rail's sides.                                  |
+| Block  | Rows to a panel's top and bottom, a tab strip to a card header's top.                                     |
+| All    | A cover on a card, a media block under the radius.                                                        |
+
+Not built, and why: a bleed beyond `space.400` (nothing is padded more than a page gutter, so nothing has more to escape); one edge at a time (Atlassian stops at the axes too; a child that escapes one side only is a layout of two columns, not a bleed); a bleed on a Box (the Bleed is its own element, so the child keeps its padding and fill and the negative margin is in one place); a bleed that clips (the child hangs past the parent's radius unless it has its own; the card's `overflow` is the card's decision).
+
+## Sizes
+
+The tokens with a negative in the source:
+
+| Token       | px  | Escapes                                            |
+| ----------- | --- | -------------------------------------------------- |
+| `space.025` | 2   | A hairline inset.                                  |
+| `space.050` | 4   | A tight inset.                                     |
+| `space.075` | 6   | A small control's inset.                            |
+| `space.100` | 8   | A rail's inset, a compact row's.                    |
+| `space.150` | 12  | A cell's, a card header's.                          |
+| `space.200` | 16  | A card's, a dialog body's.                          |
+| `space.250` | 20  |                                                     |
+| `space.300` | 24  | A dialog's, a page section's.                       |
+| `space.400` | 32  | A page gutter.                                      |
+
+The bleed equals the padding it escapes. A bleed larger than the padding hangs outside the parent; smaller, it stops short of the edge and reads as a mistake in the inset.
+
+## States
+
+Not applicable: a Bleed is a layout. It has no states.
+
+## Modifiers
+
+- **`all`**, **`inline`**, **`block`**: the token, on the axis. One or two; `all` alone.
+- **`as`**: `li` when the bleeding child is a list item, `section` when it is a region; the layout elements.
+- **`className`** for the rare case the child needs a width or a clip the parent does not give it. No `style`: a computed width is a Box's.
+
+## Content
+
+- **The bleed is the padding.** Read the parent's `padding` and write the same token; when the card's inset changes, change both.
+- **The child keeps its inset.** A strip that bleeds `space.200` has its own `paddingInline="space.200"`, so its text lines up with the card's.
+- **Never to move a thing.** A Bleed pulls a child to its parent's edge; it does not pull a sibling closer. The distance between siblings is a Stack's.
+
+## Style
+
+| Element | Token                                                          |
+| ------- | -------------------------------------------------------------- |
+| Margin  | `space.negative.*`, read by `m-negative-*`, `mx-negative-*`, `my-negative-*`: the negative token, not the positive one negated |
+
+## Accessibility
+
+- **Nothing changes for a screen reader.** The child is where it was in the tree; only its box moved.
+- **Order is kept.** A bleed cannot put a child before or after a sibling.
+- **A bleeding table is still a table.** Its caption and headers are its own; the Bleed is a div around it.
 
 ## Props
 
 <ArgTypes of={Bleed} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Box](?path=/docs/primitives-box--docs): the padding a Bleed escapes.
+- [Card](?path=/docs/patterns-card--docs): the card body a table bleeds inside.
+- [Table](?path=/docs/components-table--docs): the thing that most often meets a card's edges.
+- [Space](?path=/docs/tokens-space--docs): the scale and its negatives.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

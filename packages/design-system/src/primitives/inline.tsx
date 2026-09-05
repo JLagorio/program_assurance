@@ -8,7 +8,12 @@ import {
 } from "react";
 
 import { cn } from "../lib/cn";
-import { spaceClasses, type SpaceToken } from "./tokens";
+import { spaceClasses, type LayoutElement, type SpaceToken } from "./tokens";
+
+/* Reference material. Atlassian's Inline: `space`, `rowSpace` when wrapping, `alignBlock` with
+   baseline, `alignInline`, `spread`, `grow`, `shouldWrap`, and `separator`, a string rendered
+   between children, with the note to avoid it on a list element. Here the same, plus `display`
+   for a row that sits inside a run of text, and no `style`: a computed dimension is a Box's. */
 
 const alignBlock = {
   start: "items-start",
@@ -24,7 +29,8 @@ const alignInline = {
 } as const;
 
 export type InlineProps = {
-  as?: ElementType | undefined;
+  /** The element: a container, a list (`ul`, `ol`) or a list part (`li`). Never a link or a button. */
+  as?: LayoutElement | undefined;
   ref?: Ref<HTMLElement> | undefined;
   children?: ReactNode | undefined;
   /** Space between children on the inline axis. */
@@ -35,20 +41,22 @@ export type InlineProps = {
   alignBlock?: keyof typeof alignBlock | undefined;
   /** Position along the inline (horizontal) axis. */
   alignInline?: keyof typeof alignInline | undefined;
+  /** Distribute children with the free inline space between them. */
   spread?: "space-between" | undefined;
+  /** Wrap onto more rows when the children do not fit. Off, they overflow. */
   shouldWrap?: boolean | undefined;
-  /** Rendered between children, e.g. "·" or "/". Decorative; hidden from assistive tech. */
+  /** Rendered between children, "·" or "/". Decorative and hidden from assistive tech. Not on a list element: a span between list items is not a list. */
   separator?: ReactNode | undefined;
   /** `fill` takes the available inline size. */
   grow?: "hug" | "fill" | undefined;
   /** `inline-flex` keeps the row inline-level, so it can sit in a run of text: a chip, a count beside a label. */
   display?: "flex" | "inline-flex" | undefined;
   className?: string | undefined;
-} & Omit<ComponentPropsWithoutRef<"div">, "children" | "className">;
+} & Omit<ComponentPropsWithoutRef<"div">, "children" | "className" | "style">;
 
 /** Horizontal layout. Children sit left to right with one token of space between them. */
 export function Inline({
-  as: Tag = "div",
+  as = "div",
   space,
   rowSpace,
   alignBlock: ab,
@@ -62,6 +70,7 @@ export function Inline({
   children,
   ...rest
 }: InlineProps) {
+  const Tag = as as ElementType;
   const items = Children.toArray(children); // toArray already drops null, undefined and booleans
   return (
     <Tag

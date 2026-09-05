@@ -893,18 +893,14 @@ export function AttackChain({
         <Eyebrow tone="information">ATT&amp;CK chain — in order</Eyebrow>
         <Inline className="pt-100" space="space.075" alignBlock="stretch" shouldWrap>
           {scenario.chain.map((step, i) => (
-            <Inline
-              key={`${step.id}-${i}`}
-              space="space.075"
-              alignBlock="center"
-              grow="fill"
-              style={{ minWidth: 168 }}
-            >
-              <TechniqueStep step={step} n={i + 1} />
-              {i < scenario.chain.length - 1 ? (
-                <ArrowRight className="size-icon-small shrink-0 text-subtle" aria-hidden />
-              ) : null}
-            </Inline>
+            <Box key={`${step.id}-${i}`} className="flex-1" style={{ minWidth: 168 }}>
+              <Inline space="space.075" alignBlock="center">
+                <TechniqueStep step={step} n={i + 1} />
+                {i < scenario.chain.length - 1 ? (
+                  <ArrowRight className="size-icon-small shrink-0 text-subtle" aria-hidden />
+                ) : null}
+              </Inline>
+            </Box>
           ))}
         </Inline>
       </Box>
@@ -976,9 +972,9 @@ export function AttackChain({
                 ) : null}
 
                 <Inline space="space.150" alignBlock="center">
-                  <Inline
+                  <Box
                     className={cn(
-                      "shrink-0 rounded-full font-body-xsmall font-semibold outline-focused",
+                      "inline-flex items-center justify-center shrink-0 rounded-full font-body-xsmall font-semibold outline-focused",
                       i === 0
                         ? "bg-warning text-warning"
                         : i === path.length - 1
@@ -987,12 +983,9 @@ export function AttackChain({
                     )}
                     style={{ width: 22, height: 22 }}
                     as="span"
-                    display="inline-flex"
-                    alignBlock="center"
-                    alignInline="center"
                   >
                     {i + 1}
-                  </Inline>
+                  </Box>
                   <Inline
                     className="min-w-0"
                     as="span"

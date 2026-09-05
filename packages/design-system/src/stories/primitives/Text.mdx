@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Text } from "../../primitives";
 import * as Stories from "./Text.stories";
@@ -7,12 +7,99 @@ import * as Stories from "./Text.stories";
 
 # Text
 
-For interface text on the body ramp. The key props are `size` (large, medium, small, xsmall), `weight`, `color` (a text token), `align`, `maxLines` and `as`.
+Body text on the body ramp. The size is a composite type token, so the family, the size, the leading and the tracking always agree; the weight is one of three; the colour is a text token, or inherited, so a Text inside a bold Box is inverse without being told. Atlassian's Text is the model: `as`, `size`, `weight`, `color`, `align`, `maxLines`, and a colour that inverts inside a bold fill. Carbon's productive type set is the reference for the sizes: `body-01` at 14px is the UI size there, `font.body` at 13px is the UI size here, with `label-01` and `helper-text-01` at 12px the size of `small`. Carbon's rules on colour and weight hold: running text is neutral, colour is functional, semibold is for a heading and not a paragraph. Base Web's Paragraph and Label components are the same two jobs by another name.
 
-<Canvas of={Stories.Sizes} />
+<Canvas of={Stories.TextMatrix} />
 
-<Canvas of={Stories.WeightsAndColors} />
+## Anatomy
+
+| Part    | What it is                                                                                                                      |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Element | A `span` by default, or the `TextElement` `as` names: `p`, `div`, `strong`, `em`, `small`, `label`, `legend`, `figcaption`, `dt`, `dd`, `li`. Never a heading, a link or a button. |
+| Size    | `large`, `medium`, `small`, `xsmall`: the four `font.body` tokens.                                                              |
+| Weight  | `regular`, `medium`, `semibold`. Over the token's own weight.                                                                    |
+| Colour  | A `color.text` token, or inherited: `color.text` from the page, `color.text.inverse` from a bold Box.                            |
+| Clamp   | `maxLines` 1, 2 or 3, with an ellipsis.                                                                                          |
+
+## Variants
+
+| Text      | Use                                                                                                         |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+| Paragraph | `as="p"`: a statement, a description, a note, at `medium` or `large`, at the reading measure.                |
+| Run       | The default `span`: a value in a cell, a word in a row, a count beside a label.                              |
+| Label     | `as="label"` with `htmlFor`, or `as="dt"` in a pair: `small` medium, subtle.                                |
+| Meta      | `small` or `xsmall`, `subtle` or `subtlest`: a date, an id, a count.                                         |
+| Emphasis  | `weight="medium"` on a word in a sentence; `as="strong"` when the emphasis is for a screen reader too.       |
+
+Not built, and why: a `bold` weight (Atlassian has one; the ramp's top is `semibold`, the page title's weight, and a paragraph above it shouts); italic (Carbon: for the titles of works and technical terms, and the product has neither in running text); an underline (a link is a TextLink; an underline that is not a link reads as one, HubSpot's own rule); a `truncate` with a tooltip (HubSpot; `maxLines` clamps, and the parent gives the full text a `title` or a Tooltip when it matters); `UNSAFE_small` (Atlassian's escape below the ramp; `xsmall` is the floor, and nothing is set below 11px); a text transform (an Eyebrow sets its own uppercase; nothing else is transformed).
+
+## Sizes
+
+| Size     | Token              | Size / leading | Where                                                                  |
+| -------- | ------------------ | -------------- | ---------------------------------------------------------------------- |
+| `large`  | `font.body.large`  | 15 / 22        | Reading text: a statement, a dialog's body, a note at the measure.     |
+| `medium` | `font.body`        | 13 / 18        | The UI size: controls, cells, tabs, menu items, descriptions. The default, inherited from the page. |
+| `small`  | `font.body.small`  | 12 / 16        | Table headers, field labels, badges, KeyValue, meta lines.             |
+| `xsmall` | `font.body.xsmall` | 11 / 14        | Counts, dates, ids beside something. Never a sentence.                 |
+
+Carbon's productive set puts body at 14 and labels at 12; Base Web's Paragraph and Label at 14 and 12 for small, 16 and 14 for medium. The ramp here sits a point under Carbon's, the UI size at 13, because a register's rows are the page.
+
+## States
+
+Not applicable: text has no states. A disabled control's label takes `color.text.disabled` from the control; a link's states are the TextLink's.
+
+## Modifiers
+
+- **`size`**, **`weight`**, **`color`**, **`align`**, **`maxLines`**, **`as`** as in Anatomy.
+- **`color`** is left off where the text should follow its surface: inside a bold Box, inside a Button.
+- **`maxLines`** is 1, 2 or 3. A longer clamp is a Section with a "Show more".
+- **No `style`.** A width for a label column is a Box's, or a Grid's template.
+
+## Content
+
+- **Running text is neutral.** `color.text` for a paragraph, `subtle` for a description, `subtlest` for meta. Carbon's rule.
+- **Colour says something.** `danger` on an overdue count, `success` on a passed check, `brand` on nothing that is not a link.
+- **Sentence case, one idea per sentence.** A description ends with a full stop; a label and a meta line do not.
+- **Emphasis is a weight, and rare.** One word in `medium`; never a sentence in `semibold`.
+- **A title is a Heading.** A Text in `large` `semibold` is not in the outline and is not on the heading ramp.
+- **The reading measure.** A paragraph at `large` or `medium` is capped at `dimension.layout.measure`, 720px, by its parent.
+
+## Style
+
+| Element | Token                                                                                              |
+| ------- | -------------------------------------------------------------------------------------------------- |
+| Size    | `font.body.large` · `font.body` · `font.body.small` · `font.body.xsmall`, the family, size, leading and tracking in one |
+| Weight  | `font.weight.regular` · `.medium` · `.semibold`                                                    |
+| Colour  | `color.text` · `.subtle` · `.subtlest` · `.disabled` · `.brand` · `.selected` · `.danger` · `.warning` · `.success` · `.information` · `.inverse` · `.warning.inverse` |
+| Clamp   | `truncate` for one line; `line-clamp-2`, `line-clamp-3`                                             |
+| Measure | `dimension.layout.measure`, set by the parent                                                       |
+
+## Accessibility
+
+- **A clamped text is still all there.** `maxLines` hides with CSS; a screen reader reads the whole. The eye needs the rest too: the parent gives a `title`, or a Tooltip, or the row opens the record.
+- **`as="strong"` for emphasis that must be heard**; `weight="medium"` for emphasis that is only seen.
+- **A label is a `label`** with `htmlFor`, so the control is named. Text as a label without the element names nothing.
+- **Colour is never the only signal.** A red count has the word beside it: "2 past due", not "2".
+- **Contrast is the token's.** Every `color.text.*` on every `color.background.*` it is paired with is measured on the Color sheet; a Text inherits the pair its Box chose.
 
 ## Props
 
 <ArgTypes of={Text} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Heading](?path=/docs/primitives-heading--docs): titles, on the heading ramp.
+- [Typography](?path=/docs/components-typography--docs): Eyebrow, Absent and Prose, the three parts between Text and Heading.
+- [TextLink](?path=/docs/components-textlink--docs): a link in text.
+- [Box](?path=/docs/primitives-box--docs): the fill that sets a Text's colour.
+- [Typography tokens](?path=/docs/tokens-typography--docs): the ramp, with every token's value.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

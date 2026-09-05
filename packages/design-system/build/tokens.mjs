@@ -103,7 +103,15 @@ function utilityFor(token) {
     return { kind: "typography", cls: `font-${rest(p, 1)}` };
   }
   if (a === "space") {
-    if (b === "negative") return null;
+    // The negative ramp is a theme key too, so Bleed reads the token (m-negative-200) instead of
+    // negating the positive one; the caller still names the positive token.
+    if (b === "negative")
+      return {
+        kind: "theme",
+        ns: "spacing",
+        key: `negative-${rest(p, 2)}`,
+        cls: `m-negative-${rest(p, 2)} · mx-negative-${rest(p, 2)} · my-negative-${rest(p, 2)}`,
+      };
     return {
       kind: "theme",
       ns: "spacing",
@@ -226,6 +234,8 @@ const groups = {
 const allClasses = [];
 const classByToken = {};
 const spaceKeys = [];
+// The positive tokens that have a negative in the source: the scale a Bleed may escape by.
+const negativeKeys = [];
 
 const groupOf = (token) => {
   const p = publicPath(token);
@@ -264,9 +274,19 @@ for (const token of all) {
 
   const u = utilityFor(token);
   if (u) {
-    if (u.kind === "theme" && u.ns === "spacing") spaceKeys.push([name, u.key]);
+    if (u.kind === "theme" && u.ns === "spacing")
+      (u.key.startsWith("negative-") ? negativeKeys : spaceKeys).push([
+        u.key.startsWith("negative-") ? name.replace(".negative", "") : name,
+        u.key,
+      ]);
     else classByToken[name] = u.cls;
-    allClasses.push(...(u.kind === "theme" && u.ns === "spacing" ? [] : [u.cls]));
+    allClasses.push(
+      ...(u.kind === "theme" && u.ns === "spacing"
+        ? u.key.startsWith("negative-")
+          ? u.cls.split(" · ") // Bleed's classes are literal in the allowlist; the positive ramp is a regex
+          : []
+        : [u.cls]),
+    );
     if (u.kind === "theme") {
       themeLines.push(`  --${u.ns}-${u.key}: var(${v});`);
       if (u.ns === "shadow") groups.shadow.push(u.key);
@@ -488,10 +508,13 @@ const spaceProps = {
   gapX: "gap-x",
   gapY: "gap-y",
 };
-const bleedProps = { m: "-m", mx: "-mx", my: "-my", mt: "-mt", mb: "-mb", ms: "-ms", me: "-me" };
+const bleedProps = { m: "m", mx: "mx", my: "my" };
 spaceKeys.sort((a, b) => Number(a[1]) - Number(b[1]));
 const mapFor = (prefix) =>
   Object.fromEntries(spaceKeys.map(([name, key]) => [name, `${prefix}-${key}`]));
+negativeKeys.sort((a, b) => Number(a[1].replace(/\D/g, "")) - Number(b[1].replace(/\D/g, "")));
+const bleedFor = (prefix) =>
+  Object.fromEntries(negativeKeys.map(([name, key]) => [name, `${prefix}-${key}`]));
 fs.writeFileSync(
   path.join(outDir, "space.ts"),
   tsHeader +
@@ -506,10 +529,15 @@ ${Object.entries(spaceProps)
   .join("\n")}
 } as const;
 
-/** Negative margins for Bleed, keyed by the positive token the caller names. */
+/** The tokens a Bleed may escape by: those with a negative in the source, space.negative.*. */
+export const bleedTokens = ${JSON.stringify(negativeKeys.map(([n]) => n))} as const;
+
+export type BleedToken = (typeof bleedTokens)[number];
+
+/** Bleed's classes, keyed by the positive token the caller names; each reads the negative token (m-negative-200 is margin: var(--spacing-negative-200)). */
 export const bleedClasses = {
 ${Object.entries(bleedProps)
-  .map(([k, prefix]) => `  ${k}: ${JSON.stringify(mapFor(prefix))},`)
+  .map(([k, prefix]) => `  ${k}: ${JSON.stringify(bleedFor(prefix))},`)
   .join("\n")}
 } as const;
 `,

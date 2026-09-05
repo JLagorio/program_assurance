@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Flex } from "../../primitives";
 import * as Stories from "./Flex.stories";
@@ -7,10 +7,86 @@ import * as Stories from "./Flex.stories";
 
 # Flex
 
-The escape hatch when Stack and Inline are not enough. The key props are `direction`, `gap`, `alignItems`, `justifyContent` and `wrap`.
+The general flex container, for the layouts Stack and Inline do not express: a row distributed `space-around`, a column whose children stretch, a wrap with its own column and row gaps. Stack and Inline are Flex with the choices made; reach for them first, and for Flex when the choice they made is the wrong one. Atlassian's Flex is the model, and like it there is no reverse direction and no reverse wrap: a reversed row reads in one order and tabs in the other. HubSpot's Flex is the same set with a named gap scale; Carbon has no flex primitive, its Stack takes an orientation instead.
 
-<Canvas of={Stories.FlexRow} />
+<Canvas of={Stories.FlexMatrix} />
+
+## Anatomy
+
+| Part      | What it is                                                                                     |
+| --------- | ---------------------------------------------------------------------------------------------- |
+| Container | A flex box: a `div`, or the layout element `as` names.                                         |
+| Direction | `row` or `column`. No reverse.                                                                 |
+| Gap       | `gap` on both axes; `rowGap` and `columnGap` over it.                                          |
+| Main axis | `justifyContent`: `start`, `center`, `end`, `space-between`, `space-around`, `space-evenly`.   |
+| Cross axis | `alignItems`: `start`, `center`, `end`, `baseline`, `stretch`.                                |
+| Wrap      | `wrap` or `nowrap`.                                                                            |
+
+## Variants
+
+| Flex     | Use                                                                                                          |
+| -------- | ------------------------------------------------------------------------------------------------------------ |
+| Row      | A row that Inline cannot say: `space-around`, `space-evenly`, or children stretched to the tallest.          |
+| Column   | A column that Stack cannot say: a `baseline` alignment, children distributed `space-around`.                  |
+| Wrapping | Cells of their own width with a column gap and a row gap that differ, and a distribution across each row.    |
+
+Not built, and why: `row-reverse` and `column-reverse` (the eye reads one order and the keyboard another; write the children in the order they should read); `wrap-reverse` (the same); `inline-flex` (Inline's `display`, for a row inside text); a per-child `alignSelf` or `order` (HubSpot's Box; here a child that sits differently carries its own class, and order is DOM order); a responsive direction (a layout that changes at a breakpoint is a Grid with one template per breakpoint).
+
+## Sizes
+
+`gap`, `rowGap` and `columnGap` take the space scale, the same steps Stack and Inline take: `space.050` for an icon and its word, `space.100` for chips and controls, `space.200` for cards, `space.300` for a header from its actions. The scale is on the [Space](?path=/docs/tokens-space--docs) sheet.
+
+## States
+
+Not applicable: a Flex is a layout. It has no states.
+
+## Modifiers
+
+- **`direction`**: `row` (the default) or `column`.
+- **`gap`**, **`rowGap`**, **`columnGap`**: tokens. The two axes over the one.
+- **`justifyContent`**: the six distributions along the main axis.
+- **`alignItems`**: the five positions on the cross axis. `stretch` for cards of one height in a row.
+- **`wrap`**: `wrap` or `nowrap`.
+- **`as`**: the layout elements.
+- **No `style`.** A computed dimension is a Box's.
+
+## Content
+
+- **Stack and Inline first.** A Flex with `direction="row" alignItems="center"` and a gap is an Inline; with `direction="column"` and a gap, a Stack. Flex is for what those cannot say, and the reader of the code learns something when they see it.
+- **Order is written order.** A child that should come last is written last.
+- **A two-column layout is a Grid.** Widths in a Flex are on the children, in three places; a Grid's template says them once.
+
+## Style
+
+| Element   | Token                                                          |
+| --------- | -------------------------------------------------------------- |
+| Gap       | `space.*`, as `gap-*`, `gap-x-*`, `gap-y-*`                    |
+| Direction | `flex-row`, `flex-col`                                         |
+| Axes      | `justify-*`, `items-*`                                         |
+| Wrap      | `flex-wrap`, `flex-nowrap`                                     |
+
+## Accessibility
+
+- **Visual order is DOM order.** The reverse directions are not offered, so a Flex cannot put the eye and the keyboard out of step.
+- **The element is the semantics.** A Flex is a `div` unless `as` says a list or a region.
+- **`stretch` is not a size.** Cards stretched to the tallest are still their own targets.
 
 ## Props
 
 <ArgTypes of={Flex} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Inline](?path=/docs/primitives-inline--docs) and [Stack](?path=/docs/primitives-stack--docs): the row and the column, first.
+- [Grid](?path=/docs/primitives-grid--docs): columns of a template, for a layout with widths.
+- [Space](?path=/docs/tokens-space--docs): the scale.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

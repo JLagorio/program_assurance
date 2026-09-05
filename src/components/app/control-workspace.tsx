@@ -938,44 +938,41 @@ function ClosurePipeline({
             <Box className="font-body-xsmall text-subtle" paddingBlockStart="space.050">
               {c.note}
             </Box>
-            <Inline
-              className="pt-150 content-start overflow-y-auto pb-150"
-              style={{ maxHeight: 340 }}
-              space="space.050"
-              shouldWrap
-            >
-              {c.beads.map((b) => {
-                const on = !!sel && sel.kind === b.kind && sel.id === b.id;
-                const stale = b.currency === "Suspect" || b.currency === "Invalidated";
-                return (
-                  <button
-                    key={b.key}
-                    type="button"
-                    title={b.tip}
-                    onClick={() => onPick(b)}
-                    className={cn(
-                      "size-icon-small shrink-0 rounded-small border transition-colors",
-                      on
-                        ? cn(toneBg[b.tone], "border-transparent outline-focused")
-                        : toneSoft[b.tone],
-                      stale && !on
-                        ? b.currency === "Invalidated"
-                          ? "border-dashed border-danger-subtle"
-                          : "border-dashed border-warning-subtle"
-                        : null,
-                    )}
-                    style={
-                      b.tone === "nd" && !on
-                        ? { ...hatch, color: token("color.icon.subtle") }
-                        : undefined
-                    }
-                  />
-                );
-              })}
-              {c.beads.length === 0 ? (
-                <span className="font-body-xsmall text-subtle">None</span>
-              ) : null}
-            </Inline>
+            <Box className="overflow-y-auto" paddingBlock="space.150" style={{ maxHeight: 340 }}>
+              <Inline className="content-start" space="space.050" shouldWrap>
+                {c.beads.map((b) => {
+                  const on = !!sel && sel.kind === b.kind && sel.id === b.id;
+                  const stale = b.currency === "Suspect" || b.currency === "Invalidated";
+                  return (
+                    <button
+                      key={b.key}
+                      type="button"
+                      title={b.tip}
+                      onClick={() => onPick(b)}
+                      className={cn(
+                        "size-icon-small shrink-0 rounded-small border transition-colors",
+                        on
+                          ? cn(toneBg[b.tone], "border-transparent outline-focused")
+                          : toneSoft[b.tone],
+                        stale && !on
+                          ? b.currency === "Invalidated"
+                            ? "border-dashed border-danger-subtle"
+                            : "border-dashed border-warning-subtle"
+                          : null,
+                      )}
+                      style={
+                        b.tone === "nd" && !on
+                          ? { ...hatch, color: token("color.icon.subtle") }
+                          : undefined
+                      }
+                    />
+                  );
+                })}
+                {c.beads.length === 0 ? (
+                  <span className="font-body-xsmall text-subtle">None</span>
+                ) : null}
+              </Inline>
+            </Box>
             <Box className="mt-auto border-t border-default" paddingBlock="space.100">
               <Button
                 size="small"

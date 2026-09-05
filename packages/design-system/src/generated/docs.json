@@ -5135,7 +5135,7 @@
     "darkResolved": null,
     "introduced": null,
     "deprecated": null,
-    "utility": null
+    "utility": "m-negative-100 · mx-negative-100 · my-negative-100"
   },
   {
     "name": "space.negative.150",
@@ -5149,7 +5149,7 @@
     "darkResolved": null,
     "introduced": null,
     "deprecated": null,
-    "utility": null
+    "utility": "m-negative-150 · mx-negative-150 · my-negative-150"
   },
   {
     "name": "space.negative.200",
@@ -5163,7 +5163,7 @@
     "darkResolved": null,
     "introduced": null,
     "deprecated": null,
-    "utility": null
+    "utility": "m-negative-200 · mx-negative-200 · my-negative-200"
   },
   {
     "name": "space.negative.250",
@@ -5177,7 +5177,7 @@
     "darkResolved": null,
     "introduced": null,
     "deprecated": null,
-    "utility": null
+    "utility": "m-negative-250 · mx-negative-250 · my-negative-250"
   },
   {
     "name": "space.negative.300",
@@ -5191,7 +5191,7 @@
     "darkResolved": null,
     "introduced": null,
     "deprecated": null,
-    "utility": null
+    "utility": "m-negative-300 · mx-negative-300 · my-negative-300"
   },
   {
     "name": "space.negative.400",
@@ -5205,7 +5205,7 @@
     "darkResolved": null,
     "introduced": null,
     "deprecated": null,
-    "utility": null
+    "utility": "m-negative-400 · mx-negative-400 · my-negative-400"
   },
   {
     "name": "space.negative.025",
@@ -5219,7 +5219,7 @@
     "darkResolved": null,
     "introduced": null,
     "deprecated": null,
-    "utility": null
+    "utility": "m-negative-025 · mx-negative-025 · my-negative-025"
   },
   {
     "name": "space.negative.050",
@@ -5233,7 +5233,7 @@
     "darkResolved": null,
     "introduced": null,
     "deprecated": null,
-    "utility": null
+    "utility": "m-negative-050 · mx-negative-050 · my-negative-050"
   },
   {
     "name": "space.negative.075",
@@ -5247,6 +5247,6 @@
     "darkResolved": null,
     "introduced": null,
     "deprecated": null,
-    "utility": null
+    "utility": "m-negative-075 · mx-negative-075 · my-negative-075"
   }
 ]

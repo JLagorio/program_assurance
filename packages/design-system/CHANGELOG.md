@@ -21,6 +21,18 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   prototype bars that passed 4 or 6 pass `small` or `medium`. Components/Progress: Matrix.
 - `Tiles` is `Stat.Grid`; the old name stays exported and `ledger/no-deprecated-name` says so.
   Components/Stat.
+- The layout primitives take `as` from the layout elements only: a container, a landmark, a list or
+  a list part, never `a` or `button` (Atlassian's Box refuses the same two; TextLink and Button carry
+  the ring, the face and the name). `Flex` drops `row-reverse`, `column-reverse` and `wrap-reverse`:
+  reading order and tab order stay one order. `Heading` `color` is `color.text`, `.inverse` or
+  `.warning.inverse`, never a tone. `Bleed` takes the tokens that have a negative in the source,
+  `space.025` to `space.400`, and takes `as`. `Text` takes `as` from `TextElement`, `Heading` from
+  `HeadingElement`, `Eyebrow` from `TextElement` plus `h2` to `h4`: three named unions, exported.
+  `style` is accepted by Box and Grid, the two layout primitives with a computed dimension, and
+  refused by Stack, Inline, Flex, Bleed, Text and Heading: a fixed width sits in a Box. Twelve
+  call sites moved their width onto a Box, three in the prototype. No prototype call site passed
+  a reverse, a tone on a heading or an element outside the unions.
+  Primitives/Box, Flex, Heading, Bleed, Text.
 
 - A `DropdownMenu.Item` with `isSelected` is a menuitemcheckbox (Radix CheckboxItem) with
   `aria-checked`, drawn as Select draws its choice: selected text and a check at the end, no
@@ -352,6 +364,21 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   side navigation. Every area, slot and item has a typed, described props type. `Shell.Profile`
   is a label without `onClick` and a button with it, no dead button. Closing the overlay side
   nav with Escape or the scrim returns focus to the toggle button. Shell: Matrix, Dont.
+- The primitives on the template: Box, Stack, Inline, Flex, Grid, Bleed, Text and Heading, and the
+  overview, walked against Atlassian's primitives (the model, prop for prop, read from the type
+  declarations), Carbon's Layer, Stack, 2x Grid, spacing scale and type sets, Base Web's Block,
+  FlexGrid and type scale, and HubSpot's Flex, Box, Text and Heading. A Box with a bold, bolder or
+  boldest fill paints its text `color.text.inverse`, the warning bold `color.text.warning.inverse`,
+  so a Text or a Heading inside needs no colour (Atlassian's Box and Text). The build emits
+  `bleedTokens` and `BleedToken` from `space.negative.*`, and maps the negative ramp into the
+  theme, so Bleed's classes (`m-negative-200`) read the negative token instead of negating the
+  positive one; the nine `--ds-space-negative-*` properties were dead CSS in every bundle
+  (the 2026-09-05 audit's finding). Every prop is described, so the tables
+  say what each is for. A Matrix, a Dont and a Playground per family; the a11y gate runs over the
+  eight matrices. Said on the pages and not built: margin, width and height props, a style prop,
+  Carbon's layer stepping, a horizontal Stack, dividers, reverse, `alignSelf` and `order`, a column
+  count per breakpoint, a page grid, a bold weight, italic, underline, truncate with a tooltip,
+  hero heading sizes, a subtitle, an icon, a tone. Primitives/*: Matrix, Dont, Playground.
 - `Breadcrumb` takes `label`, "Breadcrumb" by default, so a second trail on a page, a chart's
   drill-down path, is a navigation landmark with a name of its own. Components/Breadcrumb.
 - `Eyebrow` takes `as`: `h3` or `h4` when it heads a section, so the page's outline has it,

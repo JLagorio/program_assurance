@@ -4,7 +4,7 @@ import { Meta } from "@storybook/addon-docs/blocks";
 
 # Primitives
 
-Layout and text, modelled on `@atlaskit/primitives`. Every prop that carries a design value is typed to a token, so an invalid value is a type error and a valid one is a literal class the scanner sees.
+Layout and text, modelled on `@atlaskit/primitives`. Every prop that carries a design value is typed to a token, so an invalid value is a type error and a valid one is a literal class the scanner sees. Every layout primitive renders a container, a landmark or a list element, never a link or a button.
 
 - [Box](?path=/docs/primitives-box--docs)
 - [Stack](?path=/docs/primitives-stack--docs)
@@ -17,18 +17,21 @@ Layout and text, modelled on `@atlaskit/primitives`. Every prop that carries a d
 
 | Primitive   | For                                                                                                                          | Key props                                                                                                    |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Box**     | Padding and a surface. No margins, ever.                                                                                     | `padding`, `paddingInline`, `paddingBlock` (space tokens), `backgroundColor` (a background or surface token) |
-| **Stack**   | A column with one gap.                                                                                                       | `space`, `alignInline`, `alignBlock`, `spread`, `grow`                                                       |
+| **Box**     | Padding and a fill. No margins, ever. A bold fill paints its text inverse; a surface publishes itself to sticky children.    | `padding`, `paddingInline`, `paddingBlock` (space tokens), `backgroundColor` (a background or surface token), `as` |
+| **Stack**   | A column with one gap.                                                                                                       | `space`, `alignInline`, `alignBlock`, `spread`, `grow`, `as`                                                 |
 | **Inline**  | A row with one gap, optionally wrapping. `display="inline-flex"` keeps it inline-level for a chip or a count beside a label. | `space`, `rowSpace`, `alignBlock`, `alignInline`, `spread`, `shouldWrap`, `separator`, `grow`, `display`     |
-| **Flex**    | The escape hatch when Stack and Inline are not enough.                                                                       | `direction`, `gap`, `alignItems`, `justifyContent`, `wrap`                                                   |
-| **Grid**    | Columns or rows on a template. `templateColumns` takes a string, or one per breakpoint (`{ base, sm, md, lg, xl }`).         | `templateColumns`, `templateRows`, `gap`, `alignItems`, `justifyContent`                                     |
-| **Bleed**   | The one place a negative margin is written: pulling a child out to the edge of its parent's padding.                         | `all`, `inline`, `block`                                                                                     |
+| **Flex**    | The escape hatch when Stack and Inline are not enough. No reverse.                                                           | `direction`, `gap`, `alignItems`, `justifyContent`, `wrap`                                                   |
+| **Grid**    | Columns or rows on a template. `templateColumns` takes a string, or one per breakpoint (`{ base, sm, md, lg, xl }`).         | `templateColumns`, `templateRows`, `templateAreas`, `gap`, `alignItems`, `justifyContent`                    |
+| **Bleed**   | The one place a negative margin is written: pulling a child out to the edge of its parent's padding, by the padding's token. | `all`, `inline`, `block` (`space.025` to `space.400`)                                                        |
 | **Text**    | Interface text on the body ramp.                                                                                             | `size` (large, medium, small, xsmall), `weight`, `color` (a text token), `align`, `maxLines`, `as`           |
-| **Heading** | Section and page titles.                                                                                                     | `size` (medium, small, xsmall), `as`                                                                         |
+| **Heading** | A title: the size from the design, the level from the page.                                                                  | `size` (large, medium, small, xsmall), `as`, `color` (text, inverse, warning inverse)                        |
 
 ## Rules of thumb
 
 - A component decides its inside; its parent decides the space around it. That is why Box has no margin props and Stack and Inline own the gaps.
 - Reach for Stack and Inline first. Flex and Grid are for the layouts those cannot express.
+- Visual order is DOM order. No primitive reverses, reorders or floats its children.
 - Text and Heading take colour tokens, not classes. `color="color.text.subtle"` is checked by the compiler.
-- When a Box paints a surface it records that surface, so a child that needs "the surface I am on" can read `bg-surface-current`.
+- When a Box paints a surface it records that surface, so a child that needs "the surface I am on" can read `bg-surface-current`. When it paints a bold fill, the text inside is inverse.
+- A link is a TextLink and a button is a Button. `as` on a primitive will not render either: the layout primitives take a `LayoutElement`, Text a `TextElement`, Heading a `HeadingElement`.
+- `style` is for runtime values, on Box and Grid only. A Stack, an Inline or a Text of a fixed width sits in a Box with the width.

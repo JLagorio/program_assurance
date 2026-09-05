@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Heading } from "../../primitives";
 import * as Stories from "./Heading.stories";
@@ -7,10 +7,94 @@ import * as Stories from "./Heading.stories";
 
 # Heading
 
-For section and page titles. The key props are `size` (medium, small, xsmall) and `as`.
+A title. The size is the design's and the level is the page's: `size` picks the style from the heading ramp and an element to go with it, and `as` overrides the element when the outline needs another level. Four sizes, four jobs: a displayed number, a page title, a section heading, a card or dialog title. The colour is the text colour, or its inverse on a bold fill, which a Box sets for you; a tone is not a heading colour. Atlassian's Heading is the model: a required `size`, a default element per size, `as`, and `color` limited to the same three. Carbon's rule is the page's: the productive headings are fixed sizes, and the level is semantic and separate from the style. Base Web's Heading components take `as` and `color` the same way.
 
-<Canvas of={Stories.Headings} />
+<Canvas of={Stories.HeadingMatrix} />
+
+## Anatomy
+
+| Part    | What it is                                                                                              |
+| ------- | ------------------------------------------------------------------------------------------------------- |
+| Element | By size: `large` a `div`, `medium` an `h1`, `small` an `h2`, `xsmall` an `h3`. `as` overrides it with a `HeadingElement`: a level, a `div` or a `span`. |
+| Size    | `large`, `medium`, `small`, `xsmall`: the four `font.heading` tokens.                                   |
+| Colour  | `color.text`, inherited; `color.text.inverse` or `color.text.warning.inverse` from a bold Box.          |
+
+## Variants
+
+| Heading  | Use                                                                                                     |
+| -------- | ------------------------------------------------------------------------------------------------------- |
+| `large`  | A displayed number: a Stat's value, a dashboard figure. A `div`, because a number is not a title.       |
+| `medium` | The page's title, the record's name. One per page, the `h1`.                                            |
+| `small`  | A section heading in a page body, a tab's heading. The `h2`.                                            |
+| `xsmall` | A card's title, a dialog's title, a rail section's heading. The `h3`, or `h4` under a section.          |
+
+Not built, and why: `xxlarge` and `xlarge` (Atlassian's hero sizes; the product has no hero, and 22px is the biggest text on a page); `xxsmall` as a Heading (it is the Eyebrow, uppercase and subtle, on the Typography page); a subtitle slot (the line under a title is a Text, and the RecordHeader draws it); an icon before (a Heading is words; the mark beside a record's title is the RecordHeader's); a tone (a red heading says the word is the problem; the count beside it is).
+
+## Sizes
+
+| Size     | Token                 | Size / leading / weight | Element | Where                                        |
+| -------- | --------------------- | ----------------------- | ------- | -------------------------------------------- |
+| `large`  | `font.heading.large`  | 28 / 34 / semibold      | `div`   | A displayed number.                          |
+| `medium` | `font.heading.medium` | 22 / 28 / semibold      | `h1`    | The page title.                              |
+| `small`  | `font.heading.small`  | 20 / 26 / medium        | `h2`    | A section heading.                           |
+| `xsmall` | `font.heading.xsmall` | 15 / 22 / medium        | `h3`    | A card, a dialog, a rail section.            |
+
+Under it, `font.heading.xxsmall` at 11 / 14, uppercase, is the Eyebrow. Carbon's productive headings run 14 to 32 across seven fixed styles; Base Web's from 20 to 40. Four are enough here because a page is a title, its sections and their cards.
+
+## States
+
+Not applicable: a heading has no states. A collapsible section's heading is the Accordion's trigger, and the trigger has the states.
+
+## Modifiers
+
+- **`size`**: required. The design's choice.
+- **`as`**: the page's choice. `h2` for a section at the card size in a rail; `h4` for a subsection at the section size; `div` for a title-sized line where the outline already has its `h1`.
+- **`color`**: `color.text`, `color.text.inverse`, `color.text.warning.inverse`. Left off, it follows the surface.
+- **`id`**, for a section's `aria-labelledby`.
+- **No `style`.** A heading has no computed dimension.
+
+## Content
+
+- **One `h1`.** The page's title; every other title is `as="h2"` or below, whatever its size.
+- **The outline in order.** No `h3` under an `h1` without an `h2` between, and no level chosen for its size.
+- **A title is a noun phrase**, sentence case, no full stop: "Assessment results", "Schedule assessment".
+- **`large` is a number**, not a title. The 28px size is a Stat's.
+- **A tone goes on the fact beside the title**, never on the title.
+
+## Style
+
+| Element | Token                                                                                     |
+| ------- | ----------------------------------------------------------------------------------------- |
+| Size    | `font.heading.large` · `.medium` · `.small` · `.xsmall`, family, size, leading, weight and tracking in one |
+| Colour  | `color.text` · `color.text.inverse` · `color.text.warning.inverse`                        |
+
+## Accessibility
+
+- **The level is the element**, and the element is the page's decision through `as`. The size says nothing to a screen reader.
+- **A section is named by its heading.** `<Box as="section" aria-labelledby>` pointing at the Heading's `id`.
+- **The outline is a map.** A screen reader's user jumps by heading; two `h1`s are two pages, a skipped level is a missing floor.
+- **`large` is a `div`** so a displayed number is not a heading in the outline. A Stat's label is its heading, if it needs one.
+- **Contrast is the token's.** `color.text` on every surface and `color.text.inverse` on every bold fill are measured on the Color sheet.
 
 ## Props
 
 <ArgTypes of={Heading} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Text](?path=/docs/primitives-text--docs): everything that is not a title.
+- [Typography](?path=/docs/components-typography--docs): the Eyebrow, the heading under `xsmall`.
+- [RecordHeader](?path=/docs/patterns-recordheader--docs) and [PageHeader](?path=/docs/patterns-pageheader--docs): where the `h1` is drawn.
+- [Section](?path=/docs/patterns-section--docs) and [Card](?path=/docs/patterns-card--docs): where the `h2` and the `h3` are drawn.
+- [Stat](?path=/docs/components-stat--docs): where `large` is drawn.
+- [Typography tokens](?path=/docs/tokens-typography--docs): the ramp.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

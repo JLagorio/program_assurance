@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { cn } from "../lib/cn";
+import type { TextElement } from "../primitives";
 import { toneClasses, type Tone } from "./badge";
 
 /* Small text parts that recur across rails, headers and cards. For body copy and titles, the
@@ -12,7 +13,7 @@ export type EyebrowProps = {
   /** A colour for a callout's label; `neutral`, the default, is the subtle text colour. */
   tone?: Tone | undefined;
   /** The element: `div` by default; `h3` or `h4` when the eyebrow heads a section, `dt` when it labels a value. */
-  as?: "div" | "span" | "p" | "h2" | "h3" | "h4" | "dt" | undefined;
+  as?: TextElement | "h2" | "h3" | "h4" | undefined;
   /** An id, so a list can be labelled by its eyebrow. */
   id?: string | undefined;
   className?: string | undefined;

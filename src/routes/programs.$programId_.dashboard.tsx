@@ -331,27 +331,23 @@ function ProgramDashboard() {
         >
           <Inline className="py-150" space="space.300" rowSpace="space.100" shouldWrap>
             {byPhase.map((p) => (
-              <Inline
-                key={p.phase}
-                as="span"
-                space="space.100"
-                alignBlock="center"
-                style={{ minWidth: 136 }}
-              >
-                <span className="shrink-0 w-800">
-                  <Progress.Stacked
-                    size="small"
-                    segments={[
-                      { key: "d", value: p.done, tone: "success" },
-                      { key: "r", value: p.total - p.done, tone: "neutral" },
-                    ]}
-                  />
-                </span>
-                <span className="truncate font-body-small text-subtle">{p.phase}</span>
-                <span className="tabular-nums font-body-small">
-                  {p.done}/{p.total}
-                </span>
-              </Inline>
+              <Box key={p.phase} as="span" style={{ minWidth: 136 }}>
+                <Inline as="span" space="space.100" alignBlock="center">
+                  <span className="shrink-0 w-800">
+                    <Progress.Stacked
+                      size="small"
+                      segments={[
+                        { key: "d", value: p.done, tone: "success" },
+                        { key: "r", value: p.total - p.done, tone: "neutral" },
+                      ]}
+                    />
+                  </span>
+                  <span className="truncate font-body-small text-subtle">{p.phase}</span>
+                  <span className="tabular-nums font-body-small">
+                    {p.done}/{p.total}
+                  </span>
+                </Inline>
+              </Box>
             ))}
           </Inline>
 

@@ -141,14 +141,9 @@ export function VerificationSection({ programName }: { programName: string }) {
                   </p>
                 </div>
               </Inline>
-              <Inline
-                className="shrink-0"
-                space="space.100"
-                alignBlock="center"
-                style={{ width: 180 }}
-              >
+              <Box className="shrink-0" style={{ width: 180 }}>
                 <Progress value={readiness} tone={blocking > 0 ? "danger" : "success"} showValue />
-              </Inline>
+              </Box>
             </Inline>
           </Box>
 

@@ -176,7 +176,8 @@ export const Dont: Story = {
         }
         doText="A list: the reader sees which two, and why."
         dont={
-          <Stack space="space.075" style={{ width: 260 }}>
+          <Box style={{ width: 260 }}>
+            <Stack space="space.075">
             <Progress
               value={50}
               tone="warning"
@@ -184,7 +185,8 @@ export const Dont: Story = {
               showValue
               valueText="2 of 4 met"
             />
-          </Stack>
+            </Stack>
+          </Box>
         }
         dontText="A score. Half of the gates met says nothing about which half, or what to do."
       />

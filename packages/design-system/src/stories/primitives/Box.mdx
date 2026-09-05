@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Box } from "../../primitives";
 import * as Stories from "./Box.stories";
@@ -7,14 +7,105 @@ import * as Stories from "./Box.stories";
 
 # Box
 
-For padding and a surface. No margins, ever. The key props are `padding`, `paddingInline` and `paddingBlock` (space tokens), and `backgroundColor` (a background or surface token).
+The fundamental block: padding on any edge, a fill or a surface, and the element it is. Nothing else. There are no margin props, because a component decides its inside and its parent decides the space around it: the distance between siblings is Stack's and Inline's, and the one negative margin is Bleed's. Every value is a token, so an invalid padding is a type error and a valid one is a literal class the scanner sees. Atlassian's Box is the model, down to the rule that it is never a link or a button; Carbon's Layer is the surface half of it, nested layers stepping the background token; Base Web's Block is the other idea, every style as a prop, which its own docs now advise against.
 
-<Canvas of={Stories.Padding} />
+<Canvas of={Stories.BoxMatrix} />
 
-<Canvas of={Stories.Surfaces} />
+## Anatomy
 
-<Canvas of={Stories.Backgrounds} />
+| Part            | What it is                                                                                                                                                  |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Element         | A `div`, or the container, landmark or list part `as` names. Never `a` or `button`.                                                                        |
+| Padding         | `padding` on every side; `paddingInline` and `paddingBlock` per axis; `paddingInlineStart`, `paddingInlineEnd`, `paddingBlockStart`, `paddingBlockEnd` per edge. Space tokens. |
+| Fill            | `backgroundColor`: a semantic background (`color.background.*`) or an elevation surface (`elevation.surface.*`).                                            |
+| Text colour     | Set by the fill: a bold, bolder or boldest fill paints `color.text.inverse`; the warning bold, which is light, paints `color.text.warning.inverse`.         |
+| Current surface | A surface fill is published as `utility.elevation.surface.current`, so a sticky or masking child paints the surface it is on and matches.                  |
+
+## Variants
+
+| Box              | Use                                                                                                                                    |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Plain            | Padding only: the inset of a region, a cell, a rail.                                                                                   |
+| Surface          | `elevation.surface`, `.sunken`, `.raised`, `.overlay`: the page, the well, the card, the popover. The shadow or hairline is a class.    |
+| Fill             | A semantic background: a chip, a callout, a selected row. A bold fill paints its text inverse by itself.                               |
+| Landmark or list | `as="section"` with `aria-labelledby`, `as="article"`, `as="ul"` and `"li"`: the element is the semantics, the Box is the inset.       |
+
+Not built, and why: margin props (Atlassian, and Carbon's Stack, for the same reason: the parent owns the distance); width and height props (a Box is as wide as its parent gives it, and the widths a layout needs are a Grid's template and the layout tokens); `as="a"` or `"button"` (TextLink and Button carry the ring, the pressed face and the name; Atlassian's Box refuses the same two); a style prop for the rest (a class is the escape hatch, and the lint holds it to tokens); Carbon's automatic layer stepping (a surface is named, not counted: a card inside a card is a decision, not a default).
+
+## Sizes
+
+The space scale, on any edge:
+
+| Token       | px  | Where                                                |
+| ----------- | --- | ---------------------------------------------------- |
+| `space.025` | 2   | Hairline: a chip's block inset.                      |
+| `space.050` | 4   | Tight: icon to text.                                 |
+| `space.075` | 6   | Compact: a small control's block inset.              |
+| `space.100` | 8   | A rail's inset, a row's block inset, a chip's inline. |
+| `space.150` | 12  | A cell, a card header.                               |
+| `space.200` | 16  | A card, a form grid, a dialog body.                  |
+| `space.250` | 20  | Comfortable.                                         |
+| `space.300` | 24  | Relaxed: a dialog's inset, a page section.           |
+| `space.400` | 32  | A page gutter.                                       |
+| `space.500` to `space.1000` | 40 to 80 | Sections, a hero. Rare inside a Box.     |
+
+The scale, with every token, is on the [Space](?path=/docs/tokens-space--docs) sheet.
+
+## States
+
+Not applicable: a Box has no states. Hover, pressed and selected belong to a Button, a row or a chip, and each sets its own fill.
+
+## Modifiers
+
+- **`padding`**, **`paddingInline`**, **`paddingBlock`**, and the four edges by name. Per-axis over per-side: one Box, not two.
+- **`backgroundColor`**: a background or a surface token. A surface publishes itself; a bold fill paints inverse text.
+- **`as`**: the element, from the layout elements: `div`, `span`, `section`, `article`, `aside`, `nav`, `header`, `footer`, `main`, `ul`, `ol`, `li`, `dl`, `dt`, `dd`, `fieldset`, `form`, `figure`, `figcaption`.
+- **`className`** for the radius, the border and the shadow, from the token classes.
+- **`style`**, runtime values only: a width measured or computed at render, a story's fixed frame. Box and Grid are the two layout primitives that take it; a Stack, an Inline or a Text of a fixed width sits in a Box.
+
+## Content
+
+- **A Box holds; it does not say.** Text inside it is a Text or a Heading, so the size and the colour are tokens too.
+- **A bold fill needs no colour on its text.** Write `<Text>` inside `color.background.brand.bold` and it is inverse. A colour on the Text overrides it.
+- **Name a section.** `as="section"` with `aria-labelledby` pointing at its Heading; a section without a name is a div to a screen reader.
+- **One Box, not two.** `paddingInline="space.200" paddingBlock="space.100"` on one Box, not a Box for each axis.
+
+## Style
+
+| Element         | Token                                                                                           |
+| --------------- | ----------------------------------------------------------------------------------------------- |
+| Padding         | `space.*`, as `p-*`, `px-*`, `py-*`, `pt-*`, `pb-*`, `ps-*`, `pe-*`                            |
+| Fill            | `color.background.*` · `elevation.surface`, `.sunken`, `.raised`, `.overlay`                    |
+| Inverse text    | `color.text.inverse` on `*.bold`, `*.bolder`, `*.boldest` · `color.text.warning.inverse` on `warning.bold` |
+| Current surface | `utility.elevation.surface.current`, set from the surface the Box paints                        |
+| Radius, border, shadow | By class: `rounded-*` from `radius.*`, `border-default` from `color.border`, `shadow-raised` and `shadow-overlay` from `elevation.shadow.*` |
+
+## Accessibility
+
+- **The element is the semantics.** A `div` says nothing; `as="section"`, `"nav"`, `"aside"`, `"ul"` say what the region is, and `aria-labelledby` names it.
+- **Never interactive.** No `role="button"`, no `onClick`, no `tabIndex` on a Box: it has no focus ring, no pressed face and no keyboard. A Button or a TextLink has all three, and `as` will not render either.
+- **Inverse text is chosen by the token**, so the pairs are the ones the [Color](?path=/docs/tokens-color--docs) sheet measures: `text.inverse` on every bold, `text.warning.inverse` on the warning bold.
+- **Logical edges.** `paddingInlineStart` is the left in a left-to-right page and the right in a right-to-left one.
+- **A surface is not a landmark.** Painting `elevation.surface.raised` says nothing to a screen reader; a card that is a region says so with `as` and a name.
 
 ## Props
 
 <ArgTypes of={Box} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Stack](?path=/docs/primitives-stack--docs) and [Inline](?path=/docs/primitives-inline--docs): the distance between children, which a Box never sets.
+- [Bleed](?path=/docs/primitives-bleed--docs): the child that escapes a Box's padding.
+- [Card](?path=/docs/patterns-card--docs): the raised surface with a header, built on a Box.
+- [Text](?path=/docs/primitives-text--docs) and [Heading](?path=/docs/primitives-heading--docs): what goes inside.
+- [Space](?path=/docs/tokens-space--docs) and [Color](?path=/docs/tokens-color--docs): the scales the props are typed on.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

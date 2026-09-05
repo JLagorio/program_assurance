@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Stack } from "../../primitives";
 import * as Stories from "./Stack.stories";
@@ -7,12 +7,101 @@ import * as Stories from "./Stack.stories";
 
 # Stack
 
-For a column with one gap. The key props are `space`, `alignInline`, `alignBlock`, `spread` and `grow`.
+A column with one gap. Children sit top to bottom with one space token between them, and the children carry no margin of their own: the parent owns the distance, so the rhythm of a form, a rail or a page body changes in one place. Atlassian's Stack is the model: `space`, `alignBlock`, `alignInline`, `spread` and `grow`, on a `div`, a `span` or a list element. Carbon's Stack takes a gap step and an orientation and says the same thing on its spacing page: the child has no margin, the container has the distance. Here the orientation is the primitive's name; a row is an Inline.
 
-<Canvas of={Stories.Space} />
+<Canvas of={Stories.StackMatrix} />
 
-<Canvas of={Stories.Alignment} />
+## Anatomy
+
+| Part      | What it is                                                                                                       |
+| --------- | ---------------------------------------------------------------------------------------------------------------- |
+| Container | A flex column: a `div`, or the container, landmark or list element `as` names.                                   |
+| Space     | `space`, one token between every pair of children. No first or last exception: a Stack has no outer space.       |
+| Alignment | `alignInline`, where the children sit across the column; `alignBlock`, where they sit along it when it is taller than they are. |
+| Spread    | `spread="space-between"`, the free block space divided between the children: a footer pinned to a panel's bottom. |
+| Grow      | `grow="fill"`, the Stack takes the block space its parent offers; `hug`, the default, it is as tall as its children. |
+
+## Variants
+
+| Stack        | Use                                                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------------------------------------- |
+| Column       | Rows of a form, sections of a rail, paragraphs of a body: one token between each.                                   |
+| Spread column | A panel's content over its footer: `spread` with the Stack filling the panel's height.                             |
+| List         | `as="ul"` or `"ol"` with `li` children, when the rows are a list: steps, linked records, a menu of links.            |
+
+Not built, and why: a horizontal orientation (Carbon's Stack takes one; here a row is an Inline, which has what a row needs: wrapping, a separator, baseline alignment); dividers between children (Carbon has none either; a Separator is a child, and rows that want hairlines are an Item.Group); a responsive space (one token at every width; the layout that changes at a breakpoint is a Grid); a `space` per child (a different distance is a different Stack, or a Section).
+
+## Sizes
+
+One space token between every child:
+
+| Token       | px  | Where                                                              |
+| ----------- | --- | ------------------------------------------------------------------ |
+| `space.025` | 2   | A label over its control's helper line.                            |
+| `space.050` | 4   | A title over its description, lines of one thing.                  |
+| `space.075` | 6   | Rows of facts in a rail.                                           |
+| `space.100` | 8   | Rows of a compact list, chips' rows.                               |
+| `space.150` | 12  | Fields of a dense form, cards in a rail.                           |
+| `space.200` | 16  | Fields of a form, cards in a body.                                 |
+| `space.300` | 24  | Sections of a rail, a header over its body.                        |
+| `space.400` | 32  | Sections of a page body.                                           |
+| `space.600` | 48  | Page sections with their own headings.                             |
+
+## States
+
+Not applicable: a Stack is a layout. It has no states.
+
+## Modifiers
+
+- **`space`**: the one token. Leave it off for children that touch: rows with their own hairlines.
+- **`alignInline`**: `start`, `center`, `end`, `stretch`. `stretch` is the browser's default for a flex column, so a Button in a Stack is as wide as the Stack unless the Stack says `start`.
+- **`alignBlock`**: `start`, `center`, `end`, when the Stack is taller than its children.
+- **`spread`**: `space-between`, the free block space between the children.
+- **`grow`**: `fill` to take the parent's block space, the case for `spread` and `alignBlock` to have any effect.
+- **`as`**: `ul` or `ol` for rows that are a list; `section` or `aside` for a region; the layout elements.
+- **No `style`.** A Stack of a fixed width sits in a Box with the width; the Stack has no computed dimension of its own.
+
+## Content
+
+- **Reading order is the order.** A Stack renders its children as written; there is no reverse. What is first is first to the eye and to a screen reader.
+- **Two things, two Stacks.** A card's title over its description is one Stack at `space.050`; the cards themselves are another at `space.200`. Nesting is the way to two distances.
+- **One child needs no Stack.** The primitive is for the distance between children; a Stack around one child spaces nothing.
+- **Steps are a list.** `as="ol"` with `li` children, so a screen reader says how many and where it is.
+
+## Style
+
+| Element   | Token                                              |
+| --------- | -------------------------------------------------- |
+| Space     | `space.*`, as `gap-*`                              |
+| Alignment | `items-*` for `alignInline`, `justify-*` for `alignBlock` and `spread` |
+| Grow      | `flex-1` for `fill`                                |
+
+## Accessibility
+
+- **Visual order is DOM order.** No reverse, no `order`: the tab order and the reading order are the order the children are written in.
+- **A list is `as="ul"` or `"ol"`** with `li` children, so the count and the position are announced. Rows that are not a list stay a `div`.
+- **A region is `as="section"`** with a name, or `"aside"` for a rail. The Stack's element is the semantics; the space is not.
+- **`stretch` is not a size.** A full-width Button from `alignInline="stretch"` is still one target; its label sits at its start.
 
 ## Props
 
 <ArgTypes of={Stack} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Inline](?path=/docs/primitives-inline--docs): the row.
+- [Box](?path=/docs/primitives-box--docs): the inset around a Stack, which the Stack never sets.
+- [Flex](?path=/docs/primitives-flex--docs): the column a Stack cannot say.
+- [Section](?path=/docs/patterns-section--docs): a Stack's child with a heading of its own.
+- [Item](?path=/docs/components-item--docs): rows with hairlines, which are not a Stack.
+- [Space](?path=/docs/tokens-space--docs): the scale.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

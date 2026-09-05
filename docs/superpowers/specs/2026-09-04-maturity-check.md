@@ -374,3 +374,42 @@ the end slot. Not built, said on the page: an icon rail for the collapsed side n
 a feature anchored to a header icon, header links, a third level. Ratchet: 83 pages on the
 template, 210 grandfathered. Parked: the panel's default name.
 
+
+### 23. The primitives (2026-09-05)
+
+Eighteenth walk: Box, Stack, Inline, Flex, Grid, Bleed, Text, Heading, and the overview.
+References: Atlassian's primitives, read from the type declarations since the docs site does not
+render (Box refuses `a` and `button`, "use Anchor, use Pressable"; Stack and Inline stop at div,
+span, ul, ol, li, dl; Inline's separator "avoid on a list element"; Bleed's scale stops at
+space.200; Text inverts inside a Box with a bold background; Heading's colour is text, inverse or
+warning inverse, a required size with a default element per size); Carbon's Layer (levels 0 to
+2, the background stepped by nesting), Stack (a gap step, an orientation, "removes margin from the
+child"), 2x Grid (4, 8 and 16 columns by breakpoint, 16px gutters, the 8px mini unit), spacing (13
+tokens from 2 to 160px, "the parent owns the distance") and type sets (productive headings fixed,
+level semantic and separate from style, running text neutral, colour functional, semibold for
+headers only); Base Web's Block (every style a prop, which its own docs no longer recommend),
+FlexGrid (a column count per breakpoint as an array) and type scale (Label and Paragraph 12 to
+18, Heading 20 to 40); HubSpot's Flex (a named gap scale), Box (`flex`, `alignSelf`), Text
+(`variant`, `format`, `truncate` with a tooltip, "don't underline near links") and Heading (one
+per section).
+
+Kit: `as` on every layout primitive is typed to the layout elements, one union in
+`primitives/_elements.ts`; a Box with a bold fill paints inverse text (`inverseFor` in
+`primitives/tokens.ts`); Bleed takes `BleedToken`, the tokens with a negative in the source, which
+the build now emits; Flex has no reverse; Heading's colour is the three; every prop described.
+Pages: eight on the template plus the overview, with the reference numbers in the Sizes tables
+(the body ramp against Carbon's and Base Web's, the breakpoints, the layout widths). A Matrix, a
+Dont and a Playground per family; the eight matrices join the a11y gate, which caught three
+mistakes in the first run (list items in a div, an h4 under an h2, disabled text on its own).
+Not built, said on each page. Ratchet: 91 pages on the template, 130 grandfathered, 492 stories.
+Parked: nothing; no prototype call site passed a value the narrowed types removed.
+
+Addendum, same day, from the whole-system audit (`2026-09-05-design-system-audit.md`, §3.7 and
+§6): the negative space ramp was emitted into `tokens.css` and read by nothing, since Bleed
+negated the positive ramp through Tailwind. The build now maps `space.negative.*` into the theme
+and Bleed's classes read it (`m-negative-200`), so the tokens are live and the Space sheet says
+so. `as` had four vocabularies; it has three named ones, `LayoutElement`, `TextElement` and
+`HeadingElement`, with Eyebrow on `TextElement` plus the three heading levels it may head, and
+Bleed on `LayoutElement`. `style` is accepted by Box and Grid only, the audit's rule for the parts
+with a computed dimension; twelve call sites (nine stories, three prototype) moved a fixed width
+onto a Box.

@@ -28,4 +28,13 @@
   --spacing-025: var(--ds-space-025);
   --spacing-050: var(--ds-space-050);
   --spacing-075: var(--ds-space-075);
+  --spacing-negative-100: var(--ds-space-negative-100);
+  --spacing-negative-150: var(--ds-space-negative-150);
+  --spacing-negative-200: var(--ds-space-negative-200);
+  --spacing-negative-250: var(--ds-space-negative-250);
+  --spacing-negative-300: var(--ds-space-negative-300);
+  --spacing-negative-400: var(--ds-space-negative-400);
+  --spacing-negative-025: var(--ds-space-negative-025);
+  --spacing-negative-050: var(--ds-space-negative-050);
+  --spacing-negative-075: var(--ds-space-negative-075);
 }

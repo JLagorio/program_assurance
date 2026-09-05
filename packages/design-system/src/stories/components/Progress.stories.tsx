@@ -103,14 +103,11 @@ export const WithValue: Story = {
         ["Incident response", 40, "warning"],
       ].map(([name, value, tone]) => (
         <Inline key={String(name)} space="space.150" alignBlock="center">
-          <Text
-            size="small"
-            color="color.text.subtle"
-            className="shrink-0 truncate"
-            style={{ width: 160 }}
-          >
+          <Box style={{ width: 160 }} className="shrink-0">
+            <Text size="small" color="color.text.subtle" maxLines={1} className="block">
             {name}
-          </Text>
+            </Text>
+          </Box>
           <Progress
             value={Number(value)}
             tone={tone as (typeof tones)[number]}
@@ -120,14 +117,11 @@ export const WithValue: Story = {
         </Inline>
       ))}
       <Inline space="space.150" alignBlock="center">
-        <Text
-          size="small"
-          color="color.text.subtle"
-          className="shrink-0 truncate"
-          style={{ width: 160 }}
-        >
+        <Box style={{ width: 160 }} className="shrink-0">
+          <Text size="small" color="color.text.subtle" maxLines={1} className="block">
           Remediation
-        </Text>
+          </Text>
+        </Box>
         <Progress value={64} tone="success" showValue valueText="64% complete" />
       </Inline>
     </Stack>
@@ -174,19 +168,23 @@ export const Dont: Story = {
       />
       <Pair
         do={
-          <Stack space="space.100" style={{ width: 280 }}>
+          <Box style={{ width: 280 }}>
+            <Stack space="space.100">
             <Progress value={100} tone="success" showValue />
             <Progress value={72} showValue />
             <Progress value={9} tone="danger" showValue />
-          </Stack>
+            </Stack>
+          </Box>
         }
         doText="A tone is a status: complete in success, failing in danger, the rest blue."
         dont={
-          <Stack space="space.100" style={{ width: 280 }}>
+          <Box style={{ width: 280 }}>
+            <Stack space="space.100">
             <Progress value={100} tone="warning" showValue />
             <Progress value={72} tone="success" showValue />
             <Progress value={9} tone="information" showValue />
-          </Stack>
+            </Stack>
+          </Box>
         }
         dontText="Tones as decoration. The reader looks for the meaning of the colours and there is none."
       />
@@ -198,11 +196,13 @@ export const Dont: Story = {
         }
         doText="Parts of one whole are one stacked bar."
         dont={
-          <Stack space="space.100" style={{ width: 280 }}>
+          <Box style={{ width: 280 }}>
+            <Stack space="space.100">
             <Progress value={80} tone="success" showValue valueText="298 satisfied" />
             <Progress value={11} tone="warning" showValue valueText="40 partial" />
             <Progress value={7} tone="danger" showValue valueText="26 other" />
-          </Stack>
+            </Stack>
+          </Box>
         }
         dontText="One bar per part. The reader adds them up; the bar was supposed to."
       />

@@ -17,13 +17,14 @@ export const spaceClasses = {
   gapY: {"space.0":"gap-y-0","space.025":"gap-y-025","space.050":"gap-y-050","space.075":"gap-y-075","space.100":"gap-y-100","space.150":"gap-y-150","space.200":"gap-y-200","space.250":"gap-y-250","space.300":"gap-y-300","space.400":"gap-y-400","space.500":"gap-y-500","space.600":"gap-y-600","space.800":"gap-y-800","space.1000":"gap-y-1000"},
 } as const;
 
-/** Negative margins for Bleed, keyed by the positive token the caller names. */
+/** The tokens a Bleed may escape by: those with a negative in the source, space.negative.*. */
+export const bleedTokens = ["space.025","space.050","space.075","space.100","space.150","space.200","space.250","space.300","space.400"] as const;
+
+export type BleedToken = (typeof bleedTokens)[number];
+
+/** Bleed's classes, keyed by the positive token the caller names; each reads the negative token (m-negative-200 is margin: var(--spacing-negative-200)). */
 export const bleedClasses = {
-  m: {"space.0":"-m-0","space.025":"-m-025","space.050":"-m-050","space.075":"-m-075","space.100":"-m-100","space.150":"-m-150","space.200":"-m-200","space.250":"-m-250","space.300":"-m-300","space.400":"-m-400","space.500":"-m-500","space.600":"-m-600","space.800":"-m-800","space.1000":"-m-1000"},
-  mx: {"space.0":"-mx-0","space.025":"-mx-025","space.050":"-mx-050","space.075":"-mx-075","space.100":"-mx-100","space.150":"-mx-150","space.200":"-mx-200","space.250":"-mx-250","space.300":"-mx-300","space.400":"-mx-400","space.500":"-mx-500","space.600":"-mx-600","space.800":"-mx-800","space.1000":"-mx-1000"},
-  my: {"space.0":"-my-0","space.025":"-my-025","space.050":"-my-050","space.075":"-my-075","space.100":"-my-100","space.150":"-my-150","space.200":"-my-200","space.250":"-my-250","space.300":"-my-300","space.400":"-my-400","space.500":"-my-500","space.600":"-my-600","space.800":"-my-800","space.1000":"-my-1000"},
-  mt: {"space.0":"-mt-0","space.025":"-mt-025","space.050":"-mt-050","space.075":"-mt-075","space.100":"-mt-100","space.150":"-mt-150","space.200":"-mt-200","space.250":"-mt-250","space.300":"-mt-300","space.400":"-mt-400","space.500":"-mt-500","space.600":"-mt-600","space.800":"-mt-800","space.1000":"-mt-1000"},
-  mb: {"space.0":"-mb-0","space.025":"-mb-025","space.050":"-mb-050","space.075":"-mb-075","space.100":"-mb-100","space.150":"-mb-150","space.200":"-mb-200","space.250":"-mb-250","space.300":"-mb-300","space.400":"-mb-400","space.500":"-mb-500","space.600":"-mb-600","space.800":"-mb-800","space.1000":"-mb-1000"},
-  ms: {"space.0":"-ms-0","space.025":"-ms-025","space.050":"-ms-050","space.075":"-ms-075","space.100":"-ms-100","space.150":"-ms-150","space.200":"-ms-200","space.250":"-ms-250","space.300":"-ms-300","space.400":"-ms-400","space.500":"-ms-500","space.600":"-ms-600","space.800":"-ms-800","space.1000":"-ms-1000"},
-  me: {"space.0":"-me-0","space.025":"-me-025","space.050":"-me-050","space.075":"-me-075","space.100":"-me-100","space.150":"-me-150","space.200":"-me-200","space.250":"-me-250","space.300":"-me-300","space.400":"-me-400","space.500":"-me-500","space.600":"-me-600","space.800":"-me-800","space.1000":"-me-1000"},
+  m: {"space.025":"m-negative-025","space.050":"m-negative-050","space.075":"m-negative-075","space.100":"m-negative-100","space.150":"m-negative-150","space.200":"m-negative-200","space.250":"m-negative-250","space.300":"m-negative-300","space.400":"m-negative-400"},
+  mx: {"space.025":"mx-negative-025","space.050":"mx-negative-050","space.075":"mx-negative-075","space.100":"mx-negative-100","space.150":"mx-negative-150","space.200":"mx-negative-200","space.250":"mx-negative-250","space.300":"mx-negative-300","space.400":"mx-negative-400"},
+  my: {"space.025":"my-negative-025","space.050":"my-negative-050","space.075":"my-negative-075","space.100":"my-negative-100","space.150":"my-negative-150","space.200":"my-negative-200","space.250":"my-negative-250","space.300":"my-negative-300","space.400":"my-negative-400"},
 } as const;

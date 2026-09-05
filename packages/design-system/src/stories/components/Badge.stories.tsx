@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CircleCheck, TriangleAlert } from "lucide-react";
 
 import { Badge, Count, Id, Indicator, Table, TextLink, tones } from "../../components";
-import { Inline, Stack, Text } from "../../primitives";
+import { Box, Inline, Stack, Text } from "../../primitives";
 import { Matrix as Grid } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
@@ -125,17 +125,21 @@ export const Categories: Story = {
   render: () => (
     <Stack space="space.200">
       <Inline space="space.100" alignBlock="center">
-        <Text size="small" color="color.text.subtle" style={{ width: 96 }}>
+        <Box style={{ width: 96 }}>
+          <Text size="small" color="color.text.subtle">
           Method
         </Text>
+        </Box>
         {["Inspection", "Test", "Analysis", "Demonstration"].map((m) => (
           <Badge key={m}>{m}</Badge>
         ))}
       </Inline>
       <Inline space="space.100" alignBlock="center">
-        <Text size="small" color="color.text.subtle" style={{ width: 96 }}>
+        <Box style={{ width: 96 }}>
+          <Text size="small" color="color.text.subtle">
           Determination
         </Text>
+        </Box>
         <Badge tone="success">Satisfied</Badge>
         <Badge tone="warning">Partial</Badge>
         <Badge tone="danger">Other than satisfied</Badge>

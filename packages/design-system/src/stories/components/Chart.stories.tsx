@@ -334,7 +334,8 @@ function Filtering_() {
   const [family, setFamily] = useState<string | null>(null);
   const rows = family ? byFamily.filter((f) => f.family === family) : byFamily;
   return (
-    <Stack space="space.200" style={{ width: 640 }}>
+    <Box style={{ width: 640 }}>
+      <Stack space="space.200">
       <Chart
         title="Coverage by control family"
         description="Click a bar to filter the rows under it"
@@ -365,7 +366,8 @@ function Filtering_() {
           <Badge key={r.family}>{`${r.family} · ${r.satisfied + r.partial + r.other + r.notAssessed}`}</Badge>
         ))}
       </Inline>
-    </Stack>
+      </Stack>
+    </Box>
   );
 }
 

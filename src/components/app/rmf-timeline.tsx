@@ -75,18 +75,20 @@ export function RmfTimeline({
       title="RMF timeline"
       description="Acquisition phases, decision gates and the work that has to close under each."
       action={
-        <Inline as="span" space="space.100" alignBlock="center" style={{ width: 240 }}>
-          <Progress.Stacked
-            size="small"
-            segments={[
-              { key: "d", value: done, tone: "success" },
-              { key: "r", value: gates.length - done, tone: "neutral" },
-            ]}
-          />
-          <span className="tabular-nums shrink-0 font-body-small text-subtle">
-            {done}/{gates.length}
-          </span>
-        </Inline>
+        <Box style={{ width: 240 }}>
+          <Inline space="space.100" alignBlock="center">
+            <Progress.Stacked
+              size="small"
+              segments={[
+                { key: "d", value: done, tone: "success" },
+                { key: "r", value: gates.length - done, tone: "neutral" },
+              ]}
+            />
+            <span className="tabular-nums shrink-0 font-body-small text-subtle">
+              {done}/{gates.length}
+            </span>
+          </Inline>
+        </Box>
       }
     >
       <Box paddingBlockStart="space.050">

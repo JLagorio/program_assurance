@@ -123,13 +123,21 @@ export function ControlMatrixSection({
         onSearch={setQuery}
         placeholder="Search controls"
         actions={
-          <Inline as="span" space="space.100" alignBlock="center" style={{ width: 220 }}>
-            <Progress.Stacked
-              size="small"
-              segments={scoped.segments.map((s) => ({ key: s.key, value: s.value, tone: s.tone }))}
-            />
-            <span className="tabular-nums shrink-0 font-body-small text-subtle">{scoped.pct}%</span>
-          </Inline>
+          <Box as="span" style={{ width: 220 }}>
+            <Inline as="span" space="space.100" alignBlock="center">
+              <Progress.Stacked
+                size="small"
+                segments={scoped.segments.map((s) => ({
+                  key: s.key,
+                  value: s.value,
+                  tone: s.tone,
+                }))}
+              />
+              <span className="tabular-nums shrink-0 font-body-small text-subtle">
+                {scoped.pct}%
+              </span>
+            </Inline>
+          </Box>
         }
       >
         <NativeSelect
