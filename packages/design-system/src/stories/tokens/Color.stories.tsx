@@ -82,3 +82,27 @@ export const Elevation: Story = {
     </Page>
   ),
 };
+
+export const Chart: Story = {
+  render: () => (
+    <Page
+      title="Color · chart"
+      lede="Tier 1 for data. Every series on a chart is one of these, and nothing else reaches the teal and purple ramps. The same step in both modes, so a chart weighs the same on either surface. The categorical order is validated for deutan and protan vision in both modes: assign in order, never by rank, and fold a seventh category into Other."
+    >
+      <Group title="series · a status, brand, context, the track">
+        <TokenTable
+          rows={under("color.chart").filter((d) => !/categorical|sequential|diverging/.test(d.name))}
+        />
+      </Group>
+      <Group title="categorical · six hues in order, then Other">
+        <TokenTable rows={under("color.chart.categorical")} />
+      </Group>
+      <Group title="sequential · one hue, near zero to the most">
+        <TokenTable rows={under("color.chart.sequential")} />
+      </Group>
+      <Group title="diverging · negative, midpoint, positive">
+        <TokenTable rows={under("color.chart.diverging")} />
+      </Group>
+    </Page>
+  ),
+};

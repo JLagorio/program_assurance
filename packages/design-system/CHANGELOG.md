@@ -177,6 +177,61 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   text beside it carries the status. Two lone Dots in the prototype say their names; twelve rows
   that drew a Dot and a word by hand are `Indicator`. Components/Indicator: Matrix, Dont.
 
+### Chart
+
+- The chart tokens are re-cut and validated. `color.chart.categorical.1` to `.6` are blue, orange,
+  teal, red, purple and green, in that order: of every order of the six hues it is one whose
+  neighbouring pairs all clear the colour-vision floor (deutan and protan under Machado 2009,
+  worst pair ΔE 12.7 against a floor of 8) and the normal-vision floor (22.8 against 15) in both
+  modes, and whose first three clear every pairing. `.7` is Other, grey, the fold for a seventh
+  category; `.8` is deprecated to `.7` and `ledger/no-deprecated-token` fixes it. Dark mode takes
+  the same 600 steps as light for every series (the 400 steps sat above the lightness band and the
+  red–green pair fell to ΔE 4.8), and `color.chart.neutral` in dark steps up to `darkNeutral.600`
+  so a context series clears 3:1. New: `color.chart.sequential.1` to `.5` (blue, near zero to the
+  most, for how much) and `color.chart.diverging.negative.bold`, `.negative`, `.midpoint`,
+  `.positive`, `.positive.bold` (red against blue around grey, for above and below). Tokens/Color:
+  Chart.
+- `Chart` is the Frame: `title` (the figure's name and the plot's), `description`, `series` for
+  the legend and the table, `legend` position and `swatch`, `actions`, `status` (`loading` holds
+  the plot's height with a Skeleton; `empty` and `error` say so in it), `data` and `x` for the
+  Table toggle that lays the same numbers out, and `format` and `formatX`, inherited by the plot
+  inside. The legend in a Frame is a row of toggle buttons: hover dims the other series to
+  `opacity.disabled`, click isolates one, and a hidden series' swatch hollows. Components/Chart:
+  Framed, States.
+- `Chart.Bar` takes `labels="end"`, a `target` key drawn as an ink mark across each bar (Carbon's
+  bullet), a `line` series over the bars, and `[from, to]` values that float. Bars cap at 24px with
+  a 2px rounded data end and a square baseline; stacked segments part by a 2px surface gap,
+  grouped bars by 2px. Components/Chart: Bars, Stacked, Horizontal, Targets, Windows.
+- `Chart.Line` and `Chart.Area` take `curve`, `dots`, `labels="end"` (the last values after the
+  lines, pushed apart when they would collide), `baseline="auto"`, `bands`, `reference` (a target,
+  a limit, a milestone: dashed and labelled at its end) and `connectNulls`. Lines are 2px with
+  round joins and an 8px marker ringed in the surface on hover; the wash is the hue at 12%.
+  Components/Chart: Lines, Burndown, Areas, Emphasis.
+- `Chart.Donut` takes `caption`, `arc="half"` (a gauge, the number at its base), `name` and
+  `onSelect`; slices part by a 2px surface gap. `Chart.Sparkline` takes `appearance` (`line`,
+  `area`, `bars`), `endDot`, `reference` and `label`. Components/Chart: Donuts, Sparklines.
+- New parts: `Chart.Scatter` (points on two value axes, `groups` of a tone up to three so any two
+  stay apart, `z` for a bubble, a hit area three times the point, quadrants from `reference`),
+  `Chart.Treemap` (tiles by value with a hierarchy, each system a hue, a name on a surface chip when
+  it fits), `Chart.Heatmap` (a table of rows by columns painted on the `sequential`, `diverging` or
+  a status scale; status cells are the Badge's fill and text with the value printed) and
+  `Chart.Scale` (the key for a colour scale). Components/Chart: Scatter, Treemap, Heatmaps.
+- Every plot takes `size` (`small` 120px, `medium` 200px, `large` 320px, the axis band included),
+  `format`, `formatX`, `label` and `onSelect`. A named plot is a focusable group whose arrow keys
+  move the tooltip; an unnamed one is decoration, hidden and not focusable. Ticks thin evenly, a
+  long category is cut with its whole as a title, and the tooltip leads with the value and keys
+  each series with the mark's swatch. Components/Chart: Selection.
+- Chart is on the template, walked against Carbon's data-visualization guidance and its 26 chart
+  types, Atlassian's data-visualization colour, Base's Charts and HubSpot's chart components, and
+  checked with the data-visualization method's palette validator. Said on the page and not built:
+  a pie, a second value axis, a needle gauge, radar, boxplot, histogram, lollipop, alluvial, word
+  cloud, circle pack, maps, zoom, brush, an export toolbar, animation. The axe gate runs the matrix
+  in both modes; the eleven `page:Chart#*` entries leave the allowlist. Components/Chart.
+- Breaking, with no prototype consumer: `Chart` was a plain object of parts and is now the Frame
+  with the parts hung off it (`Chart.Frame` is the same function); `ChartTone` no longer has
+  `categorical.8`; `Chart.Donut`'s accessible name is `name`, since `label` is the number in the
+  middle; a Sparkline with no `label` is hidden from a screen reader.
+
 ## 0.4.0 · 2026-09-04
 
 ### Added

@@ -488,6 +488,96 @@
 @utility bg-chart-categorical-8 {
   background-color: var(--ds-color-chart-categorical-8);
 }
+@utility fill-chart-sequential-1 {
+  fill: var(--ds-color-chart-sequential-1);
+}
+@utility stroke-chart-sequential-1 {
+  stroke: var(--ds-color-chart-sequential-1);
+}
+@utility bg-chart-sequential-1 {
+  background-color: var(--ds-color-chart-sequential-1);
+}
+@utility fill-chart-sequential-2 {
+  fill: var(--ds-color-chart-sequential-2);
+}
+@utility stroke-chart-sequential-2 {
+  stroke: var(--ds-color-chart-sequential-2);
+}
+@utility bg-chart-sequential-2 {
+  background-color: var(--ds-color-chart-sequential-2);
+}
+@utility fill-chart-sequential-3 {
+  fill: var(--ds-color-chart-sequential-3);
+}
+@utility stroke-chart-sequential-3 {
+  stroke: var(--ds-color-chart-sequential-3);
+}
+@utility bg-chart-sequential-3 {
+  background-color: var(--ds-color-chart-sequential-3);
+}
+@utility fill-chart-sequential-4 {
+  fill: var(--ds-color-chart-sequential-4);
+}
+@utility stroke-chart-sequential-4 {
+  stroke: var(--ds-color-chart-sequential-4);
+}
+@utility bg-chart-sequential-4 {
+  background-color: var(--ds-color-chart-sequential-4);
+}
+@utility fill-chart-sequential-5 {
+  fill: var(--ds-color-chart-sequential-5);
+}
+@utility stroke-chart-sequential-5 {
+  stroke: var(--ds-color-chart-sequential-5);
+}
+@utility bg-chart-sequential-5 {
+  background-color: var(--ds-color-chart-sequential-5);
+}
+@utility fill-chart-diverging-negative {
+  fill: var(--ds-color-chart-diverging-negative);
+}
+@utility stroke-chart-diverging-negative {
+  stroke: var(--ds-color-chart-diverging-negative);
+}
+@utility bg-chart-diverging-negative {
+  background-color: var(--ds-color-chart-diverging-negative);
+}
+@utility fill-chart-diverging-negative-bold {
+  fill: var(--ds-color-chart-diverging-negative-bold);
+}
+@utility stroke-chart-diverging-negative-bold {
+  stroke: var(--ds-color-chart-diverging-negative-bold);
+}
+@utility bg-chart-diverging-negative-bold {
+  background-color: var(--ds-color-chart-diverging-negative-bold);
+}
+@utility fill-chart-diverging-midpoint {
+  fill: var(--ds-color-chart-diverging-midpoint);
+}
+@utility stroke-chart-diverging-midpoint {
+  stroke: var(--ds-color-chart-diverging-midpoint);
+}
+@utility bg-chart-diverging-midpoint {
+  background-color: var(--ds-color-chart-diverging-midpoint);
+}
+@utility fill-chart-diverging-positive {
+  fill: var(--ds-color-chart-diverging-positive);
+}
+@utility stroke-chart-diverging-positive {
+  stroke: var(--ds-color-chart-diverging-positive);
+}
+@utility bg-chart-diverging-positive {
+  background-color: var(--ds-color-chart-diverging-positive);
+}
+@utility fill-chart-diverging-positive-bold {
+  fill: var(--ds-color-chart-diverging-positive-bold);
+}
+@utility stroke-chart-diverging-positive-bold {
+  stroke: var(--ds-color-chart-diverging-positive-bold);
+}
+@utility bg-chart-diverging-positive-bold {
+  background-color: var(--ds-color-chart-diverging-positive-bold);
+}
 @utility h-control-xsmall {
   height: var(--ds-dimension-control-xsmall);
 }

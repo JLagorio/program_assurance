@@ -1,47 +1,233 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
+import { Chart } from "../../components";
 import * as Stories from "./Chart.stories";
 
 <Meta of={Stories} />
 
 # Chart
 
-Charts on the chart tokens. Recharts draws; the kit decides the paint, the type, the grid and the tooltip, so a chart reads like the rest of the page in both modes.
+Data drawn on the chart tokens: bars, lines, areas, a ring, a sparkline, points, tiles, a grid, each inside a Frame that names it, keys it and lays the same numbers out as a table. Recharts draws; the kit decides the paint, the marks, the grid, the tooltip and the legend, so a chart reads like the rest of the page in both modes. Walked against Carbon's data visualization guidance and its 26 chart types, Atlassian's data visualization colour, Base's Charts, and HubSpot's chart components. The colour rules follow the data-visualization method: the categorical order is validated, not eyeballed.
 
-<Canvas of={Stories.Stacked} />
-
-## Series and tones
-
-Every series names a `color.chart.*` token through its `tone`:
-
-| Tone | Use |
-| --- | --- |
-| `success`, `warning`, `danger`, `information` | The series carries a status: satisfied, at risk, overdue. |
-| `brand` | The one series the reader is asked to look at. |
-| `neutral` | Context: totals, the remainder, last period. |
-| `categorical.1` … `categorical.8` | Categories with no status. The default when a series has no tone, in order. |
-
-A status tone on a chart is data, the same rule as a Badge or a Stat. The chart hues (`teal`, `purple`) exist for the categorical set only; nothing outside `color.chart` reaches them, and the `fill-chart-*`, `stroke-chart-*` and `bg-chart-*` utilities let a bespoke SVG take the same paint.
+<Canvas of={Stories.Framed} />
 
 ## Kinds
 
-| Part | Does |
-| --- | --- |
-| `Chart.Bar` | Bars per category; `stacked` stacks the series, `horizontal` turns the axes. |
-| `Chart.Line` | A line per series, no dots until hover. |
-| `Chart.Area` | A filled line per series; `stacked` stacks them. |
-| `Chart.Donut` | A ring on a `color.chart.track` with a `label` in the middle. `size` and `thickness` are pixels. |
-| `Chart.Sparkline` | A line with no axes, for a cell or a stat. |
-| `Chart.Legend` | Swatch and label per series. Place it yourself, usually above the chart on the right. |
+The data's job picks the kind, and sometimes the right kind is not a chart: one number is a [Stat](?path=/docs/components-stat--docs), one ratio against a limit is a [Progress](?path=/docs/components-progress--docs) bar, and more than seven classes that all carry meaning is a [Table](?path=/docs/components-table--docs).
 
-`data` is an array of plain records; `x` names the category key; each entry in `series` names a value key. Axes are `font.body.xsmall` in `color.text.subtlest`, grid lines are `color.border`, the tooltip is the overlay surface.
+| The reader must                                 | Part              | Colour job                                         |
+| ----------------------------------------------- | ----------------- | -------------------------------------------------- |
+| Compare sizes across categories                 | `Chart.Bar`       | One hue; `horizontal` for long names               |
+| See parts of each whole                         | `Chart.Bar` stacked | Status tones, or the categorical set             |
+| Read actual against planned                     | `Chart.Bar` with `target` | The series' tone; the target is ink        |
+| See when things happen                          | `Chart.Bar` horizontal with `[from, to]` values | One hue            |
+| Follow a trend                                  | `Chart.Line`      | `brand`, or a tone per series                      |
+| Follow parts of a whole over time               | `Chart.Area` stacked | Status tones, or the categorical set            |
+| See one number against its whole                | `Chart.Donut`     | The parts' tones on the track                      |
+| Read a score against a scale                    | `Chart.Donut` `arc="half"` | The tone the score earns                  |
+| See a trend beside a number                     | `Chart.Sparkline` | One tone                                           |
+| Place things on two measures                    | `Chart.Scatter`   | `brand`, or at most three groups                   |
+| See how a total splits, and splits again        | `Chart.Treemap`   | The categorical set, one hue per branch            |
+| Read how much across two dimensions             | `Chart.Heatmap`   | `sequential`: one hue, light to dark               |
+| Read above and below across two dimensions      | `Chart.Heatmap` `scale="diverging"` | Two hues around grey             |
+| Read status by place                            | `Chart.Heatmap` with a tone function | The Badge's fills, values printed |
 
-<Canvas of={Stories.LinesStory} />
-<Canvas of={Stories.DonutStory} />
-<Canvas of={Stories.SparklineStory} />
+Not built, and why: no pie (a ring with the number in the middle says more, and a two-slice pie is a Stat); no second value axis (two measures of different scale are two charts, or one indexed; a dual axis invents a correlation); no gauge with a needle (the half ring reads the same and its number is text); no radar, boxplot, histogram, lollipop, alluvial, word cloud, circle pack or map (Carbon has them; none of the four products has asked, and a histogram is a bar chart of bins the data layer makes); no zoom, brush or export toolbar (Carbon's; a range is a control in the Frame's `actions`, and export is the register's); no animation, which all four references have (the data is the point, and a bar sliding into place says nothing about it).
 
-## Details
+## Anatomy
 
-- Charts do not animate. The data is the point, and a bar sliding into place says nothing about it.
-- `chartColor(tone)` returns the `var()` for a tone, for anything recharts does not cover.
-- The bespoke diagrams in the product (the control workspace's rings and fan) stay bespoke and take their paint from the same tokens.
+| Part      | What it is                                                                                                                                          |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Title     | `font.body` medium in `color.text`, a noun phrase: what the chart shows. It names the plot to a screen reader.                                       |
+| Description | `font.body.small` in `color.text.subtle`, one line under the title: the period, the unit, the source.                                            |
+| Legend    | Swatch and label per series, `font.body.small` in `color.text.subtle`, at the end of the header. A square for a fill, a stroke for a line, a dot for a point. Present for two or more series; a single series needs none, the title names it. |
+| Actions   | Controls at the end of the header: a range, a filter. Then the Table toggle.                                                                        |
+| Plot      | The marks on a hairline grid. Ticks are `font.body.xsmall` in `color.text.subtlest`; grid lines and the axis line are `color.border`, solid, 1px.   |
+| Marks     | Bars 24px thick at most, the data end rounded 2px and the baseline square; lines 2px with round joins; markers 8px ringed in the surface; area washes at 12%; a 2px surface gap between stacked segments and slices. |
+| Tooltip   | The overlay surface. The category first, then every series at that point: the value in `font.body.small` medium, then the name, keyed by the mark's swatch. |
+| Reference | A dashed hairline at a target, a limit or a milestone, labelled at its end; a band is a 10% wash between two values.                                 |
+| Table     | The same numbers as a [Table](?path=/docs/components-table--docs), one toggle away: the category column, then a column per series.                  |
+
+## Variants
+
+| Variant                        | Use                                                                                                                   |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| `Chart` (the Frame)            | Every chart on a page. Title, description, legend, actions, the states, the table twin, and the legend's interaction.  |
+| `Chart.Bar`                    | Bars per category; `stacked`, `horizontal`, `labels="end"`, a `target` per bar, a `line` over the bars, `[from, to]` values that float. |
+| `Chart.Line`, `Chart.Area`     | A line per series; `curve`, `dots`, `labels="end"`, `baseline="auto"`, `bands`, `connectNulls`; `Area` adds the wash and `stacked`. |
+| `Chart.Donut`                  | A ring on a `color.chart.track` with a number and a caption in the middle; `arc="half"` is a gauge.                   |
+| `Chart.Sparkline`              | A trend with no axes beside a number; `line`, `area` or `bars`; an `endDot` and a `reference`.                        |
+| `Chart.Scatter`                | Points on two value axes, in `groups` of a tone, sized by `z`.                                                        |
+| `Chart.Treemap`                | Tiles by value with a hierarchy.                                                                                      |
+| `Chart.Heatmap`, `Chart.Scale` | A grid of values in a colour scale, and the scale's key.                                                              |
+| `Chart.Legend`                 | The key on its own, outside a Frame: beside a Donut, under a stacked bar.                                             |
+
+<Canvas of={Stories.Stacked} />
+<Canvas of={Stories.Targets} />
+<Canvas of={Stories.Windows} />
+<Canvas of={Stories.Burndown} />
+<Canvas of={Stories.Donuts} />
+<Canvas of={Stories.ScatterStory} />
+<Canvas of={Stories.TreemapStory} />
+<Canvas of={Stories.Heatmaps} />
+
+## Sizes
+
+| Size     | Height | Where                                                                                       |
+| -------- | ------ | ------------------------------------------------------------------------------------------- |
+| `small`  | 120px  | A rail, a card in a grid of them, a cell of the matrix.                                     |
+| `medium` | 200px  | A Section. The default.                                                                     |
+| `large`  | 320px  | The one chart a page is about: the scatter of risks, the treemap of findings.               |
+
+The height is the whole plot, axis band included, so a card never scrolls inside itself. `height` takes pixels when a layout must. A Donut and a Sparkline are sized in pixels, since they sit inline: a ring is 64, 120 or 160 across; a sparkline is 96 by 24. A Heatmap's `size` is its cell's height, 24, 32 or 40.
+
+<Canvas of={Stories.Sparklines} />
+
+## States
+
+| State       | What changes                                                                                                                                       |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hover       | The tooltip, for every series at that point; a hovered bar lightens; a line's marker appears. A hovered legend item dims the other series to `opacity.disabled`. |
+| Isolated    | A clicked legend item hides its series; the swatch hollows. Clicking the last visible one shows everything again.                                   |
+| Selected    | With `onSelect` the marks are clickable and take the pointer: a bar, a slice, a point, a tile, a cell filters what is under the chart.              |
+| Loading     | The Frame holds the plot's height with a Skeleton. No skeleton on a refetch: hold the last render.                                                  |
+| Empty       | A dashed frame at the plot's height: "Nothing to show yet" and one line of why.                                                                    |
+| Error       | The same frame, the title in `color.text.danger`, and a Retry in `actions`.                                                                        |
+| Table       | The Table toggle swaps the plot for the same numbers as a Table; the legend and the actions stay.                                                  |
+
+<Canvas of={Stories.States} />
+<Canvas of={Stories.Selection} />
+
+## Modifiers
+
+- **`tone`** on a series, as in Series and tones below.
+- **`stacked`** and **`horizontal`** on bars; **`labels="end"`** to print the values; **`target`** for the mark across each bar; **`line`** for a series over the bars.
+- **`curve="smooth"`**, **`dots`**, **`labels="end"`**, **`baseline="auto"`** on lines and areas; **`bands`** and **`reference`** for the furniture; **`connectNulls`** when a gap is not data.
+- **`arc="half"`**, **`caption`** on a Donut; **`appearance`**, **`endDot`**, **`reference`** on a Sparkline; **`z`**, **`groups`**, **`xLabel`**, **`yLabel`** on a Scatter.
+- **`scale`**, **`domain`**, **`midpoint`**, **`showValues`** on a Heatmap.
+- **`format`** and **`formatX`** for the numbers and the categories, set once on the Frame and inherited.
+- **`legend`**, **`swatch`**, **`actions`**, **`status`** on the Frame.
+
+## Series and tones
+
+Every series names a `color.chart.*` token through its `tone`. A status tone on a chart is data, the same rule as a Badge or a Stat, and a series that is not a status never wears one.
+
+| Tone                                            | Use                                                                                                     |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `success`, `warning`, `danger`, `information`   | The series carries a status: satisfied, at risk, overdue, in progress.                                  |
+| `brand`                                         | The one series the reader is asked to look at.                                                          |
+| `neutral`                                       | Context: totals, the remainder, last period, the plan. Also a target line and Other.                    |
+| `categorical.1` to `categorical.6`              | Categories with no status, in this order: blue, orange, teal, red, purple, green. The default when a series has no tone. |
+| `categorical.7`                                 | Other: the fold for everything past the sixth. Grey.                                                    |
+
+The order is not cosmetic. It was chosen by enumerating every order of the six hues and keeping the ones whose neighbours stay apart under deutan and protan vision: the worst neighbouring pair sits at ΔE 12.7 in both modes, above the floor of 8, and the first three validate against each other in every pairing, which is why a Scatter takes three groups at most. Assign in order, never by rank: a filter that hides a series must not repaint the survivors. Past six, fold the tail into Other, split into small charts, or make a table; never a seventh hue.
+
+Two more scales exist for a Heatmap: `color.chart.sequential.1` to `5`, blue from light to dark for how much, the first step receding toward the surface; and `color.chart.diverging.negative.bold`, `negative`, `midpoint`, `positive`, `positive.bold`, red against blue around grey for above and below. Red is the negative arm because in these products below the line is the problem; when it is not, the data is not diverging.
+
+<Canvas of={Stories.Emphasis} />
+
+## Content
+
+- **The title is a noun phrase**: "Coverage by control family", "Findings over time". Not a sentence, not a verb.
+- **The description is the period, the unit or the source**, one line: "Opened in the month", "Sized by exposure in $K".
+- **A series label is what the legend and the table call it**: "Other than satisfied", not "other". Sentence case, no acronyms the reader would not say.
+- **The numbers are formatted once**, on the Frame: grouped, two decimals at most, compact from ten thousand. A unit goes in `format`, so the axis, the tooltip, the labels and the table agree.
+- **Label the end, the extreme or the one series that matters.** Never every point.
+- **A reference says what it is**: "Target", "Limit", "Today", "Milestone C".
+
+## Style
+
+| Element      | Token                                                                                                                              |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Series       | `color.chart.<tone>` · the same step in both modes                                                                                 |
+| Grid, axis   | `color.border` · 1px solid                                                                                                         |
+| Ticks        | `font.body.xsmall` · `color.text.subtlest` · tabular                                                                               |
+| Labels       | `font.body.xsmall` · `color.text.subtle` · tabular                                                                                 |
+| Bars         | 24px at most · `radius` 2px at the data end · 2px `elevation.surface` gap when stacked · hover at 80%                              |
+| Lines        | 2px · round joins · markers 8px with a 2px `elevation.surface` ring                                                                |
+| Area         | The series colour at 12%                                                                                                           |
+| Track        | `color.chart.track`                                                                                                                |
+| Tooltip      | `elevation.surface.overlay` · `color.border` · `radius.medium` · `elevation.shadow.overlay` · `space.150` inline, `space.100` block |
+| Hover cursor | `color.background.neutral.subtle.hovered` behind a bar · `color.border.bold` across a line chart                                   |
+| Reference    | `color.chart.<tone>` · 1px dashed 4 3 · label `font.body.xsmall` in `color.text.subtlest`                                          |
+| Band         | `color.chart.<tone>` at 10%                                                                                                        |
+| Target       | `color.text` · 2px across the bar                                                                                                  |
+| Dimmed       | `opacity.disabled`                                                                                                                 |
+| Heatmap cell | `color.chart.sequential.*` or `color.chart.diverging.*`, or a tone's `color.background.<tone>` and `color.text.<tone>` · `radius.xsmall` · 2px apart |
+| Treemap tile | `color.chart.<tone>` · 2px `elevation.surface` gap · the name on an `elevation.surface` chip in `color.text`                       |
+
+Every chart colour clears 3:1 on `elevation.surface` in both modes. Text never wears a chart colour: values, labels and legends stay in the text tokens, and a coloured mark beside them carries identity. The one place text sits on a chart colour is a status Heatmap cell, which is the Badge's fill and text, already in the contrast test.
+
+## Accessibility
+
+- **The Frame is a figure named by its title.** A screen reader hears "Coverage by control family, figure", then the description, then the legend as a list of toggle buttons, then the table.
+- **The table is one toggle away, for everyone.** Every chart in a Frame given `data` and `x` lays the same numbers out as a Table when the Table toggle is pressed; the toggle is a button like any other, and the plot's markup is not the only copy of the data. The tooltip enhances; it never gates.
+- **The plot is a group named by the title**, or by its own `label` outside a Frame. It is focusable, and the arrow keys move the tooltip across the points (recharts' accessibility layer). A plot with no name is decoration: hidden from a screen reader and not focusable, so a sparkline beside a number says nothing twice.
+- **Colour is never the only channel.** Two or more series have a legend; a status series has its word in the legend, the tooltip and the table; a Heatmap's status cells print their value; a target is ink, not a hue; a gap in a line is a gap.
+- **The categorical order is validated** for deutan and protan vision (Machado 2009, severity 1.0) and for normal vision, both modes. A Scatter's groups stop at three for the same reason.
+- **Selecting is a shortcut.** A chart that filters on click is not keyboard-operable (recharts' marks are not buttons); the filter is also a control on the page. A Heatmap's cells are buttons and take focus.
+- **The axe gate runs the matrix** in both modes.
+
+## Props
+
+The Frame, `Chart`:
+
+<ArgTypes of={Chart.Frame} />
+
+### Chart.Bar
+
+<ArgTypes of={Chart.Bar} />
+
+### Chart.Line
+
+<ArgTypes of={Chart.Line} />
+
+### Chart.Area
+
+<ArgTypes of={Chart.Area} />
+
+### Chart.Donut
+
+<ArgTypes of={Chart.Donut} />
+
+### Chart.Sparkline
+
+<ArgTypes of={Chart.Sparkline} />
+
+### Chart.Scatter
+
+<ArgTypes of={Chart.Scatter} />
+
+### Chart.Treemap
+
+<ArgTypes of={Chart.Treemap} />
+
+### Chart.Heatmap
+
+<ArgTypes of={Chart.Heatmap} />
+
+### Chart.Scale
+
+<ArgTypes of={Chart.Scale} />
+
+### Chart.Legend
+
+<ArgTypes of={Chart.Legend} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Stat](?path=/docs/components-stat--docs): one number, which is not a chart.
+- [Progress](?path=/docs/components-progress--docs): one value against a whole, and a stacked bar of a register's parts.
+- [Table](?path=/docs/components-table--docs): the twin every chart carries, and the answer past seven classes.
+- [Badge](?path=/docs/components-badge--docs): the tone table a status series reads.
+- [Tokens/Color](?path=/docs/tokens-color--docs): the chart tokens, both modes.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

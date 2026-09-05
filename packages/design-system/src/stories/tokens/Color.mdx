@@ -69,6 +69,12 @@ A status border comes in `default` (3:1) and `subtle` (decorative): `color.borde
 
 `color.blanket` (`bg-blanket`) is the scrim under a dialog, a drawer and the open side nav on a small screen. `color.skeleton` (`bg-skeleton`) is the loading fill; `color.skeleton.subtle` is its shimmer.
 
+## Chart
+
+A series on a chart is a `color.chart.*` token: a status tone when the series is a status, `brand` for the one the reader is asked to look at, `neutral` for context, or the categorical set, six hues in a fixed order validated for colour vision, then Other. Two scales exist for a heatmap: `sequential`, one hue from near zero to the most, and `diverging`, red against blue around grey. Every step is the same in both modes. The parts read these through `tone` on a series; `fill-chart-*`, `stroke-chart-*` and `bg-chart-*` let a bespoke SVG take the same paint. How each is used is on Components/Chart.
+
+<Canvas of={Stories.Chart} />
+
 ## Sheets
 
 <Canvas of={Stories.Background} />

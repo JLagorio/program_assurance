@@ -18,7 +18,33 @@ export { Breadcrumb, type BreadcrumbItemProps } from "./breadcrumb";
 export { Button, IconButton, type ButtonProps, type IconButtonProps } from "./button";
 export { ButtonGroup } from "./button-group";
 export { Calendar, type CalendarProps } from "./calendar";
-export { Chart, chartColor, type ChartDatum, type ChartSeries, type ChartTone } from "./chart";
+export {
+  Chart,
+  categoricalTone,
+  chartColor,
+  formatNumber,
+  type ChartAreaProps,
+  type ChartBand,
+  type ChartBarProps,
+  type ChartDatum,
+  type ChartDonutProps,
+  type ChartFrameProps,
+  type ChartHeatmapProps,
+  type ChartLegendProps,
+  type ChartLineProps,
+  type ChartReference,
+  type ChartScaleProps,
+  type ChartScatterGroup,
+  type ChartScatterProps,
+  type ChartSeries,
+  type ChartSize,
+  type ChartSparklineProps,
+  type ChartTone,
+  type ChartTreemapProps,
+  type DonutSlice,
+  type HeatmapScale,
+  type TreemapNodeInput,
+} from "./chart";
 export { FilterChip, type FilterChipProps } from "./chip";
 export { CodeBlock } from "./code-block";
 export { Combobox, type ComboboxOption, type ComboboxProps } from "./combobox";
