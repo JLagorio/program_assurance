@@ -1,19 +1,121 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { AlertDialog } from "../../components";
 import * as Stories from "./AlertDialog.stories";
-import * as Overview from "./Overlays.stories";
 
 <Meta of={Stories} />
 
 # AlertDialog
 
-- An AlertDialog has no close button and does not close on an outside click. `pending` holds it open with the confirm button busy while the caller saves. Use `tone="danger"` when the action destroys.
+A decision that needs a word before it happens: archive, delete, submit for authorization, close a finding. The title asks, the description says what follows, and the two buttons are the only way out. No close button, no click on the blanket: the reader answers or cancels, so nothing irreversible happens by a slip.
+
+A task is a [Dialog](?path=/docs/components-dialog--docs); a small task at its button is a [Popover](?path=/docs/components-popover--docs). Carbon calls this the danger and transactional modal, Base Web the alert modal; the kit gives it its own part and its own rules.
 
 <Canvas of={Stories.AlertDialogMatrix} />
 
-<Canvas of={Overview.Modal} />
+## Anatomy
+
+| Part        | What it is                                                                                                                 |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Blanket     | `color.blanket` over the page. A click on it does nothing.                                                                 |
+| Surface     | `elevation.surface.overlay`, `radius.xxlarge`, `elevation.shadow.overlay`, 440px wide, high on the page.                   |
+| Title       | The question, `font.heading.xsmall`, with the object in it.                                                                |
+| Description | What happens, `font.body` in `color.text.subtle`: what is kept, what cannot be undone.                                     |
+| Control     | Optional, under the description: one thing the decision needs, a Checkbox or a Field.                                      |
+| Footer      | Cancel, then the verb, at the end on `elevation.surface.sunken`. The verb is red when the act removes or cannot be undone. |
+
+There is no close button and no eyebrow: the title names the object.
+
+## Variants
+
+AlertDialog has one appearance. What varies is the weight of the act:
+
+| The act                                       | Use                                                         |
+| --------------------------------------------- | ----------------------------------------------------------- |
+| Removes, closes, or cannot be undone          | `tone="danger"`: the verb in red, focus on Cancel.          |
+| Commits something others see: submit, approve | `tone="primary"`.                                           |
+| Takes a moment to save                        | `pending`: the verb shows its spinner and the dialog holds. |
+| Needs one more thing decided                  | A Checkbox or a Field as `children`.                        |
+| Routine and reversible: save, move, rename    | Not an AlertDialog: the act happens, and Undo where it can. |
+| A task with fields                            | Not an AlertDialog: a Dialog.                               |
+| Urgent information with nothing to decide     | Not an AlertDialog: an Alert or a Banner.                   |
+
+Not built, on purpose: a third button (Carbon allows one; a third choice is a Dialog with a form), an acknowledgment with one button (a Dialog does that), and a warning icon in the title: the words are the warning.
+
+## Sizes
+
+One: 440px wide, the viewport's width less `space.200` on a narrow screen, as tall as its words, set higher on the page than a Dialog so the eye finds it at once.
+
+## States
+
+An open dialog covers the page, so the states are one click away in the matrix above and one is held open in the Open story.
+
+| State   | What changes                                                                                                     |
+| ------- | ---------------------------------------------------------------------------------------------------------------- |
+| Closed  | Nothing on the page.                                                                                             |
+| Opening | The blanket fades in; the surface enters. Focus lands on Cancel, so Enter never confirms by accident.            |
+| Open    | The page behind is inert. Tab moves between Cancel, the verb and the control.                                    |
+| Pending | The verb shows its spinner; Cancel is disabled; Escape does nothing.                                             |
+| Closing | Cancel or Escape close it; the verb calls `onConfirm` and the caller closes it. Focus returns to what opened it. |
+
+## Modifiers
+
+- **`open`**, **`onClose`**, **`onConfirm`**: the caller's state, and the act.
+- **`title`** and **`description`**.
+- **`confirmLabel`** and **`cancelLabel`**: the verb, and Cancel.
+- **`tone`**: `primary` or `danger`.
+- **`pending`**: holds the dialog while the caller saves.
+- **`children`**: one control the decision needs.
+
+## Content
+
+- **The title asks, with the object in it**: "Archive this program?", "Submit for authorization?", "Close 3 findings?". Never "Are you sure?"
+- **The description says what happens**, in one or two sentences: what is kept, what is notified, what cannot be undone. Not why the reader should.
+- **The verb is the act**: Archive, Submit, Delete, Close. Never OK, Yes, Confirm, Continue.
+- **Cancel is Cancel.** Not No, not Back.
+- **One control at most**, and only when the decision needs it: "Also close its open findings".
+- **A word before a reversible act is a toll**; the reader learns to click through, and the one that matters is clicked through too.
+
+## Style
+
+| Element     | Token                                                                                                                |
+| ----------- | -------------------------------------------------------------------------------------------------------------------- |
+| Blanket     | `color.blanket` · fades in `motion.duration.medium`                                                                  |
+| Surface     | `elevation.surface.overlay` · `radius.xxlarge` · `elevation.shadow.overlay` · 440px · enters in `fast`               |
+| Placement   | `space.1000` from the top on a wide screen · `space.200` on a narrow one                                             |
+| Title       | `font.heading.xsmall` `color.text` · `space.250` sides · `space.200` top                                             |
+| Description | `font.body` `color.text.subtle` · `space.100` under the title                                                        |
+| Footer      | `elevation.surface.sunken` · `color.border` above · `space.250` sides · `space.150` top and bottom · gap `space.100` |
+| Verb        | Button `primary`, or `danger` in `color.background.danger.bold`                                                      |
+
+## Accessibility
+
+- **It is an alert dialog** (Radix): `role="alertdialog"`, `aria-modal`, named by its title and described by its description, so a screen reader hears the question and the consequence together.
+- **Focus lands on Cancel**, whatever the tone, which is Carbon's rule for a destructive dialog and safe for the rest: Enter on arrival cancels.
+- **The only ways out are the two buttons and Escape**, which cancels. The blanket does nothing and there is no close button, so an accidental click never decides.
+- **Pending disables Cancel and ignores Escape**, so a save is never abandoned halfway.
+- **The Open story turns off axe's `aria-hidden-focus` rule**, since Radix hides the page and axe cannot see the trap.
+- **Not colour alone.** The red verb is also the verb: Archive, Delete.
 
 ## Props
 
 <ArgTypes of={AlertDialog} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Dialog](?path=/docs/components-dialog--docs): a task. [Sheet](?path=/docs/components-sheet--docs): the one surface an AlertDialog opens over.
+- [Button](?path=/docs/components-button--docs): the `danger` variant the verb takes. [Toaster](?path=/docs/components-toaster--docs): the Undo a reversible act offers instead.
+- [Alert](?path=/docs/components-alert--docs), [Banner](?path=/docs/components-banner--docs): information with nothing to decide.
+- [Overlays](?path=/docs/components-overlays--docs): every surface that floats, and which one.
+
+## Don't
+
+An open overlay covers the page, so each pair is a button: open the do, then the don't.
+
+<Canvas of={Stories.Dont} />

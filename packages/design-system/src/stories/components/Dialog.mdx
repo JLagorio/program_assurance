@@ -1,19 +1,129 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Dialog } from "../../components";
 import * as Stories from "./Dialog.stories";
-import * as Overview from "./Overlays.stories";
 
 <Meta of={Stories} />
 
 # Dialog
 
-- A Dialog has a title, a body, and a footer of actions with the primary on the right. Header and footer stay put while a long body scrolls. An `aside` puts facts beside the body.
+A focused task over the page: a short form, a table to pick from, a comparison, with a verb at the end. The page behind is blanketed and inert until the task is done or given up. It interrupts, so it is for a task that is short and not often repeated; a task the reader does all day belongs on the page.
+
+A decision that needs a word is an [AlertDialog](?path=/docs/components-alertdialog--docs); a record's detail beside its list is a [Sheet](?path=/docs/components-sheet--docs); a small task at a button is a [Popover](?path=/docs/components-popover--docs). Carbon calls all of these modals and Base Web has two; here each is its own part.
 
 <Canvas of={Stories.DialogMatrix} />
 
-<Canvas of={Overview.Modal} />
+## Anatomy
+
+| Part    | What it is                                                                                                                                                                   |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Blanket | `color.blanket` over the page. A click on it closes the dialog, unless it is pending.                                                                                        |
+| Surface | `elevation.surface.overlay`, `radius.xxlarge`, `elevation.shadow.overlay`, 520px or 860px wide, as tall as its content up to the viewport less `space.600`.                  |
+| Header  | An optional eyebrow (the record's id, a status), the title in `font.heading.xsmall`, an optional description in `color.text.subtle`, the close at the end. A hairline under. |
+| Body    | The task. It scrolls; nothing else does. `space.250` sides, `space.200` top and bottom.                                                                                      |
+| Aside   | A column of facts beside the body on `elevation.surface.sunken`, a third of a large dialog; under the body on a narrow screen.                                               |
+| Footer  | Cancel, then the verb, at the end, on `elevation.surface.sunken` with a hairline above.                                                                                      |
+| Close   | An icon button at the top end, "Close". Disabled while pending.                                                                                                              |
+
+## Variants
+
+Dialog has one appearance. What varies is the task:
+
+| The task                                    | Use                                                                                                 |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Two or three fields and a verb              | `medium`.                                                                                           |
+| A table to choose from, a comparison, prose | `large`.                                                                                            |
+| A task with the record's facts beside it    | `large` with `aside`.                                                                               |
+| A task about one record                     | `eyebrow` with the id and its status, so the reader knows which.                                    |
+| A save that takes a moment                  | `pending` with `isLoading` on the verb: the dialog holds until the save returns.                    |
+| A message the reader must acknowledge       | A Dialog with the message as its body and one button. Rare; most messages are an Alert on the page. |
+| A decision: delete, submit, close           | Not a Dialog: an AlertDialog.                                                                       |
+| A record's detail                           | Not a Dialog: a Sheet, or the record's page.                                                        |
+| Many steps                                  | Not a Dialog: a page with a Stepper. Carbon's progress modal is not built.                          |
+
+Not built, on purpose: Carbon's extra-small and small sizes (the AlertDialog is the small one), full-bleed footer buttons at half the width each, a dialog over a dialog (an AlertDialog over a Sheet is the one stack allowed), and a task repeated all day in a dialog.
+
+## Sizes
+
+Two: `medium` 520px and `large` 860px, each the viewport's width less `space.200` on a narrow screen. The height is the content's, up to the viewport less `space.600` top and bottom; past that the body scrolls under the fixed header and footer. Carbon's sizes are percentages of the viewport on its grid; two fixed widths are the kit's answer, since a form reads at one measure whatever the screen.
+
+## States
+
+An open dialog covers the page, so the states are one click away in the matrix above and one is held open in the Open story.
+
+| State     | What changes                                                                                                                                                 |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Closed    | Nothing on the page.                                                                                                                                         |
+| Opening   | The blanket fades in over `motion.duration.medium`; the surface enters in `fast`. Focus lands on the first field, or on the first button when there is none. |
+| Open      | The page behind is inert and does not scroll; Tab cycles inside.                                                                                             |
+| Scrolling | A body taller than the room scrolls; the header, the aside and the footer stay.                                                                              |
+| Pending   | The verb shows its spinner; Cancel and the close are disabled; Escape and the blanket do nothing.                                                            |
+| Invalid   | The dialog stays open; the Field shows its error under the control; the verb does not close it.                                                              |
+| Closing   | Escape, the blanket, the close, Cancel, or the verb when the save returns. Focus goes back to what opened it.                                                |
+
+## Modifiers
+
+- **`open`** and **`onClose`**: the caller's state. A Dialog is opened by an act and closed by the caller.
+- **`title`**, the task as the button said it; **`eyebrow`** above it; **`description`** under it, one sentence, only when the title does not say enough.
+- **`width`**: `medium` or `large`.
+- **`aside`**: facts beside the body, in a large dialog.
+- **`footer`**: Cancel, then the verb.
+- **`pending`**: holds the dialog while the caller saves.
+
+## Content
+
+- **The title is the button's label**: Schedule assessment, Link evidence, New mapping rule. Sentence case, no full stop, no question mark. Carbon says the same.
+- **The description only when the title is not enough**, one sentence: who is notified, what the task applies to.
+- **The verb says the act**: Schedule, Link 3 items, Create. Never OK, Done, Submit alone, Yes.
+- **Cancel, then the verb**, at the end. Cancel undoes nothing the reader did not save.
+- **Validate before closing.** A bad entry is marked in its Field and the dialog stays open.
+- **The eyebrow names the record**: its id and its status. The title stays the task.
+- **What the reader must know is in the body**, not behind an icon.
+
+## Style
+
+| Element | Token                                                                                                                               |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Blanket | `color.blanket` · fades in `motion.duration.medium`, out in `fast`                                                                  |
+| Surface | `elevation.surface.overlay` · `radius.xxlarge` · `elevation.shadow.overlay` · enters and exits in `fast`                            |
+| Width   | `medium` 520px · `large` 860px · full less `space.200` on a narrow screen                                                           |
+| Header  | `space.150` top and bottom · `space.250` start · `space.600` end for the close · `color.border` under                               |
+| Title   | `font.heading.xsmall` `color.text` · description `font.body` `color.text.subtle` · eyebrow row `space.100` apart                    |
+| Body    | `space.250` sides · `space.200` top and bottom · `font.body`                                                                        |
+| Aside   | `elevation.surface.sunken` · `color.border` start · a third of the width · under the body below `md`                                |
+| Footer  | `elevation.surface.sunken` · `color.border` above · `space.250` sides · `space.150` top and bottom · gap `space.100`                |
+| Close   | `dimension.control.small` · `radius.medium` · `space.150` from the end, `space.100` from the top · `opacity.disabled` while pending |
+
+## Accessibility
+
+- **It is a modal dialog** (Radix): `role="dialog"`, `aria-modal`, named by its title and described by its description when there is one.
+- **Focus moves in** when it opens: to the first field, or the first button when there are none, or the close when there is nothing else, which is Carbon's order. **It returns** to what opened the dialog when it closes.
+- **Focus stays inside.** Tab and Shift-Tab cycle through the dialog's controls; the page behind is hidden from assistive technology and does not scroll.
+- **Escape closes it**, as do the blanket, the close button and Cancel. A pending dialog ignores them all and disables the close and Cancel, so a save is never abandoned halfway.
+- **Errors are announced where they are**: the Field's error, wired to its control; the dialog stays open.
+- **The Open story turns off axe's `aria-hidden-focus` rule**, since Radix hides the page and axe cannot see the trap.
+- **Contrast.** The overlay surface with the default text; the sunken aside and footer keep 4.5:1 for their text.
 
 ## Props
 
 <ArgTypes of={Dialog} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [AlertDialog](?path=/docs/components-alertdialog--docs): a decision. [Sheet](?path=/docs/components-sheet--docs): a record's detail beside its list. [Drawer](?path=/docs/components-drawer--docs): the bottom sheet.
+- [Popover](?path=/docs/components-popover--docs): a small task at its button.
+- [Field](?path=/docs/components-field--docs), [Forms](?path=/docs/components-forms--docs): what goes in the body, and how a form validates.
+- [Stepper](?path=/docs/components-stepper--docs): a task in steps, on a page.
+- [Overlays](?path=/docs/components-overlays--docs): every surface that floats, and which one.
+
+## Don't
+
+An open overlay covers the page, so each pair is a button: open the do, then the don't.
+
+<Canvas of={Stories.Dont} />

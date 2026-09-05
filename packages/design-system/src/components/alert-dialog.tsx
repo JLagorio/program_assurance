@@ -4,16 +4,24 @@ import type { ReactNode } from "react";
 import { Button } from "./button";
 
 export type AlertDialogProps = {
+  /** The caller's state. */
   open: boolean;
+  /** Called by Cancel and by Escape. Ignored while `pending`. */
   onClose: () => void;
+  /** Called by the confirm button. The caller does the act and closes. */
   onConfirm: () => void;
+  /** The question, with the object in it: "Archive this program?" */
   title: ReactNode;
+  /** What happens, in one or two sentences: what is kept, what cannot be undone. */
   description?: ReactNode;
+  /** The verb, as the button that started it: Archive, Submit, Delete. Never OK or Yes. */
   confirmLabel?: string | undefined;
   cancelLabel?: string | undefined;
+  /** `danger` when the act removes, closes or cannot be undone; the button turns red. */
   tone?: "primary" | "danger" | undefined;
   /** Holds the dialog open with the confirm button busy while the caller saves. */
   pending?: boolean | undefined;
+  /** Under the description: one control the decision needs, a Checkbox or a Field. */
   children?: ReactNode;
 };
 

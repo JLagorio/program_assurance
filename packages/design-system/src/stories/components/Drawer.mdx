@@ -1,17 +1,116 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Drawer } from "../../components";
 import * as Stories from "./Drawer.stories";
-import * as Overview from "./Overlays.stories";
 
 <Meta of={Stories} />
 
 # Drawer
 
+The bottom sheet: a surface that rises from the bottom edge with a drag handle, for a narrow screen and a quick task. Three things to do with the record under the thumb, the filters of a list, a short choice. It is the small-screen form of a [Sheet](?path=/docs/components-sheet--docs) and a [Popover](?path=/docs/components-popover--docs); on a wide screen those are the answer.
+
+It is vaul underneath, on Radix's dialog, so it is the one overlay the reader can drag. Base Web's drawer anchored to the bottom is the same part; Carbon and Atlassian have none.
+
 <Canvas of={Stories.DrawerMatrix} />
 
-<Canvas of={Overview.Modal} />
+## Anatomy
+
+| Part    | What it is                                                                                                                            |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Blanket | `color.blanket` over the page; a click on it closes the drawer.                                                                       |
+| Surface | `elevation.surface.overlay` from the bottom edge, up to 640px wide and 85% of the viewport tall, `radius.xxlarge` on its top corners. |
+| Handle  | A short bar in `color.background.neutral.bold` centred at the top: drag it down to close.                                             |
+| Header  | The title in `font.heading.xsmall`, an optional description under it. A hairline under.                                               |
+| Body    | The task. It scrolls; nothing else does.                                                                                              |
+| Footer  | The buttons at the end, on `elevation.surface.sunken`.                                                                                |
+
+There is no close button: the handle, the blanket and Escape close it.
+
+## Variants
+
+Drawer has one appearance. What varies is the task:
+
+| The task                           | Use                                                                        |
+| ---------------------------------- | -------------------------------------------------------------------------- |
+| A few things to do with one record | A list of subtle, full-width Buttons.                                      |
+| The filters of a list              | Checkboxes, with Clear and Apply in the footer.                            |
+| A short choice                     | A RadioGroup or a few Buttons.                                             |
+| A form                             | Not a Drawer: a Dialog, or a page. The keyboard covers half a drawer.      |
+| A record's detail                  | Not a Drawer: a Sheet on a wide screen, the record's page on a narrow one. |
+| The same on a wide screen          | Not a Drawer: a Popover or a DropdownMenu at the button.                   |
+
+Not built, on purpose: snap points (a drawer is open or closed), a drawer from the top or the sides (the Sheet is the side one), and a drawer that stays open under the page.
+
+## Sizes
+
+One: the viewport's width up to 640px, centred; as tall as its content up to 85% of the viewport, then the body scrolls under the handle and the header.
+
+## States
+
+An open drawer covers the page, so the states are one click away in the matrix above and one is held open in the Open story.
+
+| State     | What changes                                                                                   |
+| --------- | ---------------------------------------------------------------------------------------------- |
+| Closed    | Nothing on the page.                                                                           |
+| Opening   | The blanket fades in; the drawer rises from the bottom edge. Focus lands on the first control. |
+| Open      | The page behind is inert and does not scroll.                                                  |
+| Dragging  | The drawer follows the thumb; past a threshold it closes, else it springs back.                |
+| Scrolling | A body taller than the drawer scrolls; the handle, the header and the footer stay.             |
+| Closing   | A drag down, the blanket, Escape, or a footer button. Focus goes back to what opened it.       |
+
+## Modifiers
+
+- **`open`** and **`onClose`**: the caller's state.
+- **`title`** and **`description`**.
+- **`footer`**: the buttons.
+- **`className`** for a product's own width.
+
+## Content
+
+- **The title is the task or the object**: Quick actions, Filters, Sort by.
+- **The description says which record**, when the title does not: "For CTRL-0412."
+- **Three to five things**, each a full-width subtle Button; the verb first, the object omitted.
+- **The footer's verb says the act**: Apply, not OK.
+
+## Style
+
+| Element | Token                                                                                                                |
+| ------- | -------------------------------------------------------------------------------------------------------------------- |
+| Blanket | `color.blanket`                                                                                                      |
+| Surface | `elevation.surface.overlay` · `radius.xxlarge` top corners · `elevation.shadow.overlay` · up to 640px wide, 85% tall |
+| Handle  | `space.050` tall · `space.500` wide · `color.background.neutral.bold` · `space.150` from the top                     |
+| Header  | `space.250` sides · `space.150` top and bottom · `font.heading.xsmall` · description `color.text.subtle`             |
+| Body    | `color.border` above · `space.250` sides · `space.200` top and bottom                                                |
+| Footer  | `elevation.surface.sunken` · `color.border` above · `space.250` sides · `space.150` top and bottom                   |
+| Motion  | vaul's spring on the drag; the blanket fades                                                                         |
+
+## Accessibility
+
+- **It is a modal dialog** (vaul on Radix): `role="dialog"`, `aria-modal`, named by its title and described by its description.
+- **Focus moves in** to the first control and **returns** to what opened it. Focus stays inside; the page behind is hidden and does not scroll.
+- **The handle is for the thumb.** A keyboard reader closes with Escape; a screen reader with the blanket or a footer button. Nothing is only behind the drag.
+- **Escape closes it**, as does the blanket.
+- **The Open story turns off axe's `aria-hidden-focus` rule**, since Radix hides the page and axe cannot see the trap.
+- **Contrast.** The overlay surface with the default text; the handle is decoration and has no text.
 
 ## Props
 
 <ArgTypes of={Drawer} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Sheet](?path=/docs/components-sheet--docs): the side sheet, on a wide screen. [Dialog](?path=/docs/components-dialog--docs): a form.
+- [Popover](?path=/docs/components-popover--docs), [DropdownMenu](?path=/docs/components-dropdownmenu--docs): the same tasks at a button on a wide screen.
+- [Overlays](?path=/docs/components-overlays--docs): every surface that floats, and which one.
+
+## Don't
+
+An open overlay covers the page, so each pair is a button: open the do, then the don't.
+
+<Canvas of={Stories.Dont} />

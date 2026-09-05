@@ -81,6 +81,16 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Added
 
+- `Dialog` takes `eyebrow` (the record's id and status above the title, as Sheet has) and
+  `pending` (holds the dialog while the caller saves: Escape, the blanket and the close do
+  nothing and the close is disabled, as AlertDialog already did). Every prop of Dialog, Sheet,
+  Drawer and AlertDialog is described, so their generated tables fill.
+- Pages on the template: Dialog, Sheet, Drawer and AlertDialog, each with a Matrix of states one
+  click away (an open overlay covers the page), an Open story held open for the a11y gate and
+  the screenshots, a Dont of button pairs, and a Playground. The Overlays overview is rewritten:
+  which one, the anatomy the eight share, focus and closing, stacking, where each opens from;
+  a Stacked story shows the one stack allowed, an AlertDialog over a Sheet. Twenty-eight pages
+  on the template; 641 gaps grandfathered.
 - `TooltipProvider`: one provider for a product, so moving from one tooltipped control to the
   next shows the next tooltip at once (Carbon's and Atlassian's behaviour). The Shell mounts it
   and the Storybook preview wraps every story in it; a Tooltip with no provider above makes its

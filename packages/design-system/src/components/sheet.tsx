@@ -8,9 +8,13 @@ import { overlayClose } from "./dialog";
 import { Fact } from "./typography";
 
 export type SheetProps = {
+  /** The caller's state. */
   open: boolean;
+  /** Called on Escape, the blanket and the close button. */
   onClose: () => void;
+  /** The record's id or name, or the task. Truncates to one line. */
   title: ReactNode;
+  /** The meta line under the title: kind, path, owner. Read as the sheet's description. */
   subtitle?: ReactNode;
   /** A row above the title: an Eyebrow, an id, a status. */
   eyebrow?: ReactNode;
@@ -20,9 +24,13 @@ export type SheetProps = {
   onBack?: (() => void) | undefined;
   /** A row between the header and the body that does not scroll: search and filters, a defaults row. */
   toolbar?: ReactNode;
+  /** The buttons at the end: the way to the record, the one thing to do. It stays put while the body scrolls. */
   footer?: ReactNode;
+  /** The edge it slides from. `end` by default; `start` for a sheet about the navigation. */
   side?: "end" | "start" | undefined;
+  /** Pixels. 420 for a detail, 640 for a form, 880 for a picker's table. */
   width?: number | undefined;
+  /** The body. It scrolls; the header, the toolbar and the footer do not. */
   children: ReactNode;
 };
 

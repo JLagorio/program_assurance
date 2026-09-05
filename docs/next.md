@@ -20,6 +20,9 @@ Updated 2026-09-04.
 - [ ] **No items-per-page select** (2026-09-04). Carbon and Base Web let the reader change the page size; the Pagination page says the author sets it (25 or 50) and density is the reader's lever. Keep, or build the select?
 - [ ] **Column resizing is pointer-only** (2026-09-04), as it is in Carbon and Base Web; the DataTable page says so and points a keyboard user at Reset view. Leave, or add a keyboard resize to the column menu?
 - [ ] **Hand titles in the prototype** (2026-09-04). Twenty-one `title` attributes on spans in ingestion, conmon, te-phases and the system tree show the whole of a truncated value or a joined list. The Tooltip page says a truncated value's whole is the cell's title, so these stand; the ones on a plain span that is not truncated (the tree's "name no control" count) would be a Tooltip on a focusable trigger. Sweep, or leave?
+- [ ] **Staged overlays in the docs** (2026-09-04). An open Dialog or Sheet covers the docs page, so the pages show their states one click away and hold one open in a canvas-only story. Rendering one inside a frame on the page would need `isModal={false}` and a portal `container` on the four blanketed overlays, which is the same prop the non-modal Sheet decision above needs. Add it for both, or leave the states a click away?
+- [ ] **The Drawer has no consumer** (2026-09-04). No prototype screen opens one; it waits for the narrow-screen pass. Keep it in the kit for that, or drop it until then?
+- [ ] **Eyebrows by hand in dialog asides** (2026-09-04). The mapping-rule and evidence dialogs draw their aside's heading as a `<p>` with the eyebrow classes; the kit has `Eyebrow`. Sweep when those screens are touched.
 - [ ] **Data table, the calls.** Eight calls made without asking in `docs/superpowers/specs/2026-09-03-data-table.md`, plus one more from step 6: Tab moves across an editable table, Enter moves down. Overturn any in one reading.
 - [ ] **Baseline and ConMon hydration, which fix stays.** This line renders both routes client-only (`ssr: false`, 8bb9e3b). The parallel line kept SSR and had the loader build the control-text index on both sides (769a412, 81911c1); that version was not merged. Taking it would restore SSR on the two routes.
 
@@ -34,7 +37,7 @@ The maturity walk, one part per sitting, each page onto the template (`docs/supe
 - [x] Checkbox, RadioGroup, Switch; the Forms overview (2026-09-04)
 - [x] Table, Pagination, Toolbar, FilterChip; DataTable (2026-09-04)
 - [x] Tooltip, HoverCard, Popover, DropdownMenu (2026-09-04)
-- [ ] Dialog, Sheet, Drawer, AlertDialog; the Overlays overview
+- [x] Dialog, Sheet, Drawer, AlertDialog; the Overlays overview (2026-09-04)
 - [ ] Alert, Banner, Progress, Stat, Gates
 - [ ] Badge, Count, Indicator
 - [ ] Breadcrumb, Item, Avatar, Id, KeyValue, Fact, Typography

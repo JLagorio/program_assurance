@@ -1,19 +1,125 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Sheet } from "../../components";
-import * as Overview from "./Overlays.stories";
 import * as Stories from "./Sheet.stories";
 
 <Meta of={Stories} />
 
 # Sheet
 
-- A Sheet defaults to the end edge at 420px. Use it for a record's detail when the list behind should stay in view. Its header takes `eyebrow` above the title and `facts` under the subtitle, `toolbar` is a row between header and body that does not scroll, and `onBack` puts a chevron before the title for a sheet that is one frame of a stack.
+A surface that slides in from an edge and leaves the page visible: a record's detail beside the list it came from, a form that belongs to what is behind it, a picker's table. Its header is a compact record header, an eyebrow, a title, a meta line, a few facts, so a record reads the same in the sheet and on its page. The list behind stays where it was; the sheet closes and nothing has moved.
+
+It is the frame under three patterns: the [PreviewSheet](?path=/docs/patterns-previewsheet--docs) (a peek at one row with the way to the record), the [PickerSheet](?path=/docs/patterns-pickersheet--docs) (choosing many from hundreds) and the Shell's peek over a full-width table. A task that needs the reader's whole attention is a [Dialog](?path=/docs/components-dialog--docs); the bottom sheet for a narrow screen is a [Drawer](?path=/docs/components-drawer--docs). Atlassian's drawer and Base Web's are the same part; Carbon's core has none.
 
 <Canvas of={Stories.SheetMatrix} />
 
-<Canvas of={Overview.Modal} />
+## Anatomy
+
+| Part    | What it is                                                                                                                                                       |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Blanket | `color.blanket` over the page; a click on it closes the sheet.                                                                                                   |
+| Surface | `elevation.surface.overlay` from the end edge (or the start), the full height, 420px wide by default, `elevation.shadow.overlay`. Square corners: it is an edge. |
+| Header  | A back chevron when the sheet is one frame of a stack; an eyebrow row; the title, one line; the subtitle, one line; up to three facts. A hairline under.         |
+| Toolbar | A row between the header and the body that does not scroll: a search and its filters, a defaults row.                                                            |
+| Body    | The detail. It scrolls; nothing else does. `space.200` sides, `space.150` top and bottom.                                                                        |
+| Footer  | The way to the record, or the one thing to do: a TextLink at the start, buttons at the end, on `elevation.surface.sunken`.                                       |
+| Close   | An icon button at the top end, "Close".                                                                                                                          |
+
+## Variants
+
+Sheet has one appearance. What varies is what is behind it:
+
+| Behind the sheet                             | Use                                                                                                                             |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| A full-width table, a tree, a board          | The PreviewSheet: eyebrow, facts, the peek's body, "Open the full record" in the footer.                                        |
+| A table that leaves room                     | Not a Sheet: the PreviewRail beside the table.                                                                                  |
+| A record the reader is adding many things to | The PickerSheet, 880 wide: a toolbar of search and chips, a table with a checkbox column, the count and the verb in the footer. |
+| A form about what is behind                  | A Sheet at 640 with a footer of Cancel and the verb.                                                                            |
+| A link inside the sheet to another record    | The next frame of the same sheet, with `onBack`; the caller keeps the stack in the URL.                                         |
+| Something about the navigation               | `side="start"`, over the side nav.                                                                                              |
+| A task needing the reader's whole attention  | Not a Sheet: a Dialog.                                                                                                          |
+| A decision                                   | Not a Sheet: an AlertDialog, which may open over a sheet.                                                                       |
+
+Not built, on purpose: a non-modal sheet that leaves the table behind clickable (a decision parked for Josef), a sheet from the top or the bottom (the Drawer is the bottom one), a resizable sheet, and a sheet inside a sheet: the next frame replaces the one before, with the chevron to go back.
+
+## Sizes
+
+`width` in pixels, the full height always: 420 for a detail, 640 for a form, 880 for a picker's table; on a narrow screen the sheet is the viewport's width. Atlassian names four widths; the kit's three uses cover the same range. The header truncates its title and subtitle to one line each so the width holds.
+
+## States
+
+An open sheet covers the page, so the states are one click away in the matrix above and one is held open in the Open story.
+
+| State     | What changes                                                                                                                         |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Closed    | Nothing on the page.                                                                                                                 |
+| Opening   | The blanket fades in over `motion.duration.medium`; the sheet slides in from its edge in `medium`. Focus lands on the first control. |
+| Open      | The page behind is inert and does not scroll; Tab cycles inside.                                                                     |
+| Scrolling | A body taller than the sheet scrolls; the header, the toolbar and the footer stay.                                                   |
+| Stacked   | A second frame replaces the first, the chevron before its title; the chevron and the browser's back both return.                     |
+| Closing   | Escape, the blanket, the close, or the footer's verb. The sheet slides out; focus goes back to what opened it.                       |
+
+## Modifiers
+
+- **`open`** and **`onClose`**: the caller's state.
+- **`title`** and **`subtitle`**; **`eyebrow`** above (an Id, a Badge); **`facts`** under, as Facts, at most three.
+- **`onBack`** for a frame of a stack.
+- **`toolbar`**: a row that does not scroll.
+- **`footer`**: the way to the record, the verb.
+- **`side`**: `end` by default; `start` for something about the navigation.
+- **`width`** in pixels.
+
+## Content
+
+- **The header is the record's**: the id and one status in the eyebrow, the name as the title, the meta line as the subtitle, at most three facts the reader acts on. The same words as the record's page.
+- **The footer's first item is the way to the record** in a preview: "Open the full record". A form's footer is Cancel, then the verb.
+- **A sheet holds what the reader came for**, not the whole record: the rest is one click away through the footer.
+- **The toolbar asks; the body answers.** Search and chips above; the table below.
+- **A frame's back chevron is "Back"**; the title says where the reader is.
+
+## Style
+
+| Element | Token                                                                                                                             |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Blanket | `color.blanket` · fades in `motion.duration.medium`                                                                               |
+| Surface | `elevation.surface.overlay` · `elevation.shadow.overlay` · full height · slides in and out in `motion.duration.medium`            |
+| Width   | 420px by default · the viewport's width on a narrow screen                                                                        |
+| Header  | `space.150` top and bottom · `space.200` start · `space.600` end · `color.border` under · gap `space.100`                         |
+| Title   | `font.heading.xsmall` `color.text`, one line · subtitle `font.body.small` `color.text.subtle`, one line · facts `space.075` under |
+| Toolbar | `space.200` sides · `space.100` top and bottom · `color.border` under                                                             |
+| Body    | `space.200` sides · `space.150` top and bottom · `font.body`                                                                      |
+| Footer  | `elevation.surface.sunken` · `color.border` above · `space.200` sides · `space.100` top and bottom · gap `space.100`              |
+| Close   | `dimension.control.small` · `radius.medium` · `space.150` from the end and the top · back chevron a small IconButton              |
+
+## Accessibility
+
+- **It is a modal dialog** (Radix): `role="dialog"`, `aria-modal`, named by its title and described by its subtitle when there is one.
+- **Focus moves in** to the first control when it opens, and **returns** to what opened it when it closes, whatever closed it.
+- **Focus stays inside**; the page behind is hidden from assistive technology and does not scroll. That is why a sheet is never left open beside a table the reader is meant to click: the table is inert.
+- **Escape closes it**, as do the blanket and the close button. A frame's chevron goes back one frame without closing.
+- **The header truncates** its title and subtitle; the full text is on the record the footer opens.
+- **The Open story turns off axe's `aria-hidden-focus` rule**, since Radix hides the page and axe cannot see the trap.
+- **Contrast.** The overlay surface with the default text; the sunken footer keeps 4.5:1 for its text.
 
 ## Props
 
 <ArgTypes of={Sheet} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [PreviewSheet](?path=/docs/patterns-previewsheet--docs), [PickerSheet](?path=/docs/patterns-pickersheet--docs): the patterns on it. [PreviewRail](?path=/docs/patterns-previewrail--docs): the preview beside a table that leaves room.
+- [Dialog](?path=/docs/components-dialog--docs): a task over the page. [Drawer](?path=/docs/components-drawer--docs): the bottom sheet. [AlertDialog](?path=/docs/components-alertdialog--docs): the one thing that opens over a sheet.
+- [Panel](?path=/docs/patterns-panel--docs): the shell's area beside the page, which is not an overlay.
+- [Overlays](?path=/docs/components-overlays--docs): every surface that floats, and which one.
+
+## Don't
+
+An open overlay covers the page, so each pair is a button: open the do, then the don't.
+
+<Canvas of={Stories.Dont} />

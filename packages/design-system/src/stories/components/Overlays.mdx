@@ -6,37 +6,57 @@ import * as Stories from "./Overlays.stories";
 
 # Overlays
 
-Everything that floats over the page, from the smallest label to a full task. Every one is Radix (or vaul for the Drawer) underneath: focus moves in and back, Escape closes, the page behind stops scrolling where it should. The surfaces share one recipe: `elevation.surface.overlay`, the overlay shadow, the large radius, the enter and exit motion.
+Everything that floats over the page, from the smallest label to a full task. Four are anchored to the thing that opened them and four cover the page under a blanket. Every one is Radix underneath (vaul for the Drawer): focus moves in and back, Escape closes, the page behind stops scrolling where it should. The surfaces share one recipe, `elevation.surface.overlay`, `elevation.shadow.overlay`, the large radius, the enter and exit motion, so a product's overlays read as one family.
 
-## Parts
-
-- [Tooltip](?path=/docs/components-tooltip--docs)
-- [HoverCard](?path=/docs/components-hovercard--docs)
-- [Popover](?path=/docs/components-popover--docs)
-- [DropdownMenu](?path=/docs/components-dropdownmenu--docs)
-- [Dialog](?path=/docs/components-dialog--docs)
-- [Sheet](?path=/docs/components-sheet--docs)
-- [Drawer](?path=/docs/components-drawer--docs)
-- [AlertDialog](?path=/docs/components-alertdialog--docs)
-
-<Canvas of={Stories.Anchored} />
+Each part has its own page: [Tooltip](?path=/docs/components-tooltip--docs), [HoverCard](?path=/docs/components-hovercard--docs), [Popover](?path=/docs/components-popover--docs), [DropdownMenu](?path=/docs/components-dropdownmenu--docs), [Dialog](?path=/docs/components-dialog--docs), [Sheet](?path=/docs/components-sheet--docs), [Drawer](?path=/docs/components-drawer--docs), [AlertDialog](?path=/docs/components-alertdialog--docs).
 
 ## Which one
 
-| Need                                                   | Use              | Opens on                             |
-| ------------------------------------------------------ | ---------------- | ------------------------------------ |
-| A short label                                          | **Tooltip**      | Hover or focus, after a delay        |
-| A peek at a record: a few facts, no actions            | **HoverCard**    | Hover or focus, after a longer delay |
-| A small task: a filter form, a picker, a confirmation  | **Popover**      | Click                                |
-| A list of actions or options                           | **DropdownMenu** | Click, Enter, Space, ArrowDown       |
-| A focused task over the page                           | **Dialog**       | The caller's state                   |
-| A detail surface that leaves the page visible          | **Sheet**        | The caller's state                   |
-| The bottom sheet, for narrow screens and quick actions | **Drawer**       | The caller's state                   |
-| A decision that needs a word before it happens         | **AlertDialog**  | The caller's state                   |
+| Need                                                       | Use              | Opens on                            | Closes on                              |
+| ---------------------------------------------------------- | ---------------- | ----------------------------------- | -------------------------------------- |
+| A short label                                              | **Tooltip**      | Hover or focus, after 300ms         | Leaving, Escape                        |
+| A peek at a record: a few facts, no actions                | **HoverCard**    | Hover or focus, after 400ms         | Leaving, Escape                        |
+| A small task at its button: a filter, a reason, a picker   | **Popover**      | Click                               | Escape, outside click, Done            |
+| A list of actions                                          | **DropdownMenu** | Click, Enter, Space, the down arrow | Choosing, Escape, outside click        |
+| A focused task over the page                               | **Dialog**       | The caller's state                  | Escape, the blanket, Cancel, the verb  |
+| A record's detail beside its list; a picker; a form behind | **Sheet**        | The caller's state                  | Escape, the blanket, the footer's verb |
+| The bottom sheet, for a narrow screen and a quick task     | **Drawer**       | The caller's state                  | A drag down, Escape, the blanket       |
+| A decision that needs a word before it happens             | **AlertDialog**  | The caller's state                  | Cancel, Escape, the verb               |
+
+<Canvas of={Stories.Anchored} />
 
 <Canvas of={Stories.Modal} />
+
+## Anatomy of an overlay
+
+- **The anchored four** sit beside their trigger, 4 to 6px off it, flipping when there is no room, with no caret: the trigger's open face says where they came from. A Tooltip is the dark one, `color.background.neutral.bold` with inverse text; the other three are the overlay surface with a hairline border.
+- **The blanketed four** paint `color.blanket` over the page; nothing else paints it. Their surface is `elevation.surface.overlay` with `radius.xxlarge` (a Sheet has square corners, since it is an edge), a header with the title in `font.heading.xsmall`, a body that scrolls, a footer on `elevation.surface.sunken` with the buttons at the end.
+- **The close** is one shared icon button at the top end, `dimension.control.small`. An AlertDialog and a Drawer have none: the AlertDialog's buttons are the way out, and the Drawer's handle.
+
+## Focus and closing
+
+- **Focus moves in** when a blanketed overlay opens (the first field, else the first button, else the close) and **returns** to what opened it when it closes. The page behind is hidden from assistive technology and does not scroll.
+- **Escape closes** every overlay. An outside click closes the anchored ones and the blanket closes a Dialog, a Sheet and a Drawer; an AlertDialog ignores it.
+- **Pending holds.** A Dialog or an AlertDialog saving takes `pending`: Escape, the blanket and the close do nothing until the save returns.
+- **A tooltip never holds a control**, a hover card never holds an action, a popover never holds a task the reader must finish.
+
+## Stacking
+
+- **One blanket at a time.** An AlertDialog may open over a Sheet or a Dialog, for the decision the task ends in; that is the only stack. A Dialog over a Dialog, a Sheet over a Sheet, is a sign the first should have been a page.
+- **A sheet's next record is its next frame**, not a second sheet: the same surface, the chevron before the title, `onBack`, the stack in the URL so the browser's back agrees.
+- **Anchored overlays stack on anything.** A Tooltip in a Dialog, a DropdownMenu in a Sheet, a Popover in a Drawer are fine; a Popover in a Popover is not.
+
+<Canvas of={Stories.Stacked} />
+
+## Where each opens from
+
+- **Triggers are elements**: `trigger={<Button>…</Button>}` for a Popover or a DropdownMenu, the child of a Tooltip or a HoverCard. The overlay clones the element and adds the aria; the element must take a ref and spread its props, which every kit control does.
+- **The blanketed four are opened by state**: `open` and `onClose`. An act sets it; the caller clears it. Nothing opens a Dialog for the reader who did not ask.
+- **Where the task lives decides the overlay.** At the button: Popover. Over the page: Dialog. Beside the list: Sheet. Under the thumb: Drawer.
 
 ## Rules
 
 - The blanket is `color.blanket`; nothing else paints it.
-- Triggers are elements: `trigger={<Button>…</Button>}` or the child of a Tooltip. The component clones the element and adds the aria; the element must take a ref and spread its props.
+- A blanketed overlay's title is the act's verb (a Dialog), the record's name (a Sheet), or the question (an AlertDialog). Its primary button says the verb, never OK.
+- What the reader must know is on the page or in the body, never only in a tooltip or a hover card.
+- An overlay is never the record. The record has a page; the overlay is the way to it or the task on it.

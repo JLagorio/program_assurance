@@ -207,3 +207,50 @@ function Modals() {
 }
 
 export const Modal: Story = { render: () => <Modals /> };
+
+function StackDemo() {
+  const [sheet, setSheet] = useState(false);
+  const [confirm, setConfirm] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setSheet(true)}>Sheet, then a decision</Button>
+      <Sheet
+        open={sheet}
+        onClose={() => setSheet(false)}
+        title="CTRL-0412"
+        subtitle="Segregation of duties, payables"
+        footer={
+          <>
+            <Button variant="danger" onClick={() => setConfirm(true)}>
+              Archive
+            </Button>
+            <Button variant="primary" onClick={() => setSheet(false)}>
+              Done
+            </Button>
+          </>
+        }
+      >
+        <Stack space="space.050">
+          <KeyValue label="Owner">Dana Whitfield</KeyValue>
+          <KeyValue label="Frequency">Quarterly</KeyValue>
+          <KeyValue label="Last verified">12 Aug 2026</KeyValue>
+        </Stack>
+      </Sheet>
+      <AlertDialog
+        open={confirm}
+        onClose={() => setConfirm(false)}
+        onConfirm={() => {
+          setConfirm(false);
+          setSheet(false);
+        }}
+        tone="danger"
+        title="Archive this control?"
+        description="It leaves the register; its evidence and findings stay readable."
+        confirmLabel="Archive"
+      />
+    </>
+  );
+}
+
+/** The one stack the kit allows: an AlertDialog over a Sheet. Focus goes to Cancel and comes back to the sheet's button. */
+export const Stacked: Story = { render: () => <StackDemo /> };
