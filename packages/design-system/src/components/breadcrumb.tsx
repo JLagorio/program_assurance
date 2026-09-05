@@ -7,13 +7,15 @@ import { cn } from "../lib/cn";
 export type BreadcrumbProps = {
   /** Breadcrumb.Item children, from the highest level down to the page. */
   children: ReactNode;
+  /** The landmark's name, "Breadcrumb" by default. A second trail on the page, a chart's drill-down path, takes its own: "Chart path". */
+  label?: string | undefined;
   className?: string | undefined;
 };
 
 /** Where you are. Every item but the last is a link back up the record tree; the last is the page itself. One line: a crumb truncates rather than wraps. */
-function BreadcrumbRoot({ className, children }: BreadcrumbProps) {
+function BreadcrumbRoot({ className, label = "Breadcrumb", children }: BreadcrumbProps) {
   return (
-    <nav aria-label="Breadcrumb" className={cn("min-w-0", className)}>
+    <nav aria-label={label} className={cn("min-w-0", className)}>
       <ol className="flex items-center gap-050 font-body-small text-subtle">{children}</ol>
     </nav>
   );

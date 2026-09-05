@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Stepper } from "../../components";
 import * as Stories from "./Stepper.stories";
@@ -7,12 +7,115 @@ import * as Stories from "./Stepper.stories";
 
 # Stepper
 
-Progress through an ordered path. One step is `current`; `blocked` is the step that failed. Horizontal puts labels under markers; vertical stacks them down the left.
+Progress through an ordered path: the RMF steps, a program's milestones, a wizard. One step is `current`, the steps behind it are `done`, the ones ahead `upcoming`, and `blocked` is the step that failed. The list knows each step's place and its neighbour's state, so the rail is bold behind every completed step and a hairline ahead. Carbon's Progress indicator, Base Web's ProgressSteps and Atlassian's Progress tracker are the models.
+
+A path is fixed and has three or more steps. Two steps are a [Badge](?path=/docs/components-badge--docs); a percentage is a [Progress](?path=/docs/components-progress--docs) bar; a set of conditions that are met or not is [Gates](?path=/docs/components-gates--docs); events in time are a [Timeline](?path=/docs/components-timeline--docs).
 
 <Canvas of={Stories.StepperMatrix} />
 
-<Canvas of={Stories.Steppers} />
+## Anatomy
+
+| Part   | What it is                                                                                                                                                                                                                                                               |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Marker | A 16px circle: a check on `color.background.success.bold` when done, a cross on `color.background.danger.bold` when blocked, a `color.border.selected` ring at the focused width when current, a hairline ring when upcoming. `numbered` writes the step's number in it. |
+| Rail   | The line between markers. `color.border.selected` behind a completed step, `color.border` ahead. It stops at the first and last markers.                                                                                                                                 |
+| Label  | One or two words, `font.body.small`: semibold in `color.text` when current, medium otherwise, `color.text.subtle` when upcoming, `color.text.danger` when blocked. Under the marker horizontally, beside it vertically.                                                  |
+| Meta   | Under the label, `font.body.xsmall` in `color.text.subtle`: the date, the owner, why it is blocked. Carbon's helper text.                                                                                                                                                |
+| Step   | The marker and its text together, one `li`: a button when it can be moved to, a plain block when it only reports.                                                                                                                                                        |
+
+## Variants
+
+| Variant      | Use                                                                                                                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `horizontal` | Labels under markers on one line: a record's milestone header, the top of a form.                                                                                                |
+| `vertical`   | Markers down the left with labels beside them: a wizard's rail, a panel. Carbon prefers it wherever it fits, because the labels and metas can wrap.                              |
+| `numbered`   | The marker shows the step's number; done and blocked keep their icon. Carbon and Base Web both offer it: numbers make the order plain on a long path.                            |
+| Interactive  | A step with `onSelect` is a button the reader can move to; a step without one only reports. Carbon's interactive progress indicator. Mix them: done steps open, the rest do not. |
+
+Not built, and why: a disabled state (Carbon, Atlassian), because a step the reader cannot reach is `upcoming` without `onSelect`; a skeleton (Carbon), because the steps are known before the data is.
+
+A vertical step takes `children`: under the label, with the rail running past it, a Collapsible with the owner and the open task, a sentence, a Badge. That is a rail of milestones, where each step carries its record. A wizard's step carries nothing, because its content is the page it opens.
+
+<Canvas of={Stories.Milestones} />
+
+## Sizes
+
+One size: the marker 16px, the label `font.body.small`, the meta `font.body.xsmall`. Horizontally each step is one equal column of the list, which is 420px wide at least; give a longer path a wider minimum or let its container scroll. Vertically the list is as wide as its longest label and meta allow, and a step is `space.200` above the next.
+
+<Canvas of={Stories.Paths} />
+
+## States
+
+| State      | What changes                                                                                                                              |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `done`     | The check on the success fill; the rail behind and ahead of it bold; the label medium.                                                    |
+| `current`  | The selected ring at the focused width; the label semibold; `aria-current="step"`. The rail behind it is bold if the step before is done. |
+| `upcoming` | A hairline ring; the label in `color.text.subtle`; a hairline rail.                                                                       |
+| `blocked`  | The cross on the danger fill; the label in `color.text.danger`; the meta says why.                                                        |
+| Hover      | On a step with `onSelect`: the label underlines.                                                                                          |
+| Focus      | On a step with `onSelect`: the focus outline around the whole step.                                                                       |
+
+## Modifiers
+
+- **`orientation`**, **`numbered`** as in Variants; **`label`** names the list.
+- **`meta`** for the date, the owner or the reason under the label. It may wrap; the label does not.
+- **`title`** for the full text when a label truncates.
+- **`children`** for what a milestone carries under its label. Anything interactive in it is its own stop beside the step's button.
+- **`onSelect`** on the steps the reader may move to. On a wizard that is every done step and the next one; on a milestone header, every step, to open the milestone.
+
+## Content
+
+- **Labels are one or two words** in sentence case, sixteen characters at most: "Categorize", "Select controls", "MS-C". A noun, or verb and noun. Never "Processing".
+- **The meta is a date, a person or a reason**, in the product's date format: "3 Aug", "Priya Natarajan", "Baseline not approved".
+- **A blocked step says why** in its meta. The marker alone is a red dot with no story.
+- **Numbers on a long path.** Six RMF steps read better as 1 to 6; three steps do not need them.
+
+## Style
+
+| Element | Token                                                                                                                                                                                                                                                                                        |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Marker  | 16px · `radius.full` · done `color.border.success` on `color.background.success.bold` · blocked `color.border.danger` on `color.background.danger.bold` · current `color.border.selected` at `border.width.selected` on `elevation.surface` · upcoming `color.border` on `elevation.surface` |
+| Number  | `font.body.xsmall` medium · `color.text.selected` when current, `color.text.subtle` when upcoming                                                                                                                                                                                            |
+| Rail    | 1px · `color.border.selected` behind a done step · `color.border` otherwise                                                                                                                                                                                                                  |
+| Label   | `font.body.small` · current semibold `color.text` · done medium `color.text` · upcoming medium `color.text.subtle` · blocked medium `color.text.danger`                                                                                                                                      |
+| Meta    | `font.body.xsmall` · `color.text.subtle` · tabular                                                                                                                                                                                                                                           |
+| Spacing | horizontal: label `space.075` under the marker, `space.050` inline · vertical: `space.150` between marker and text, `space.200` under each step                                                                                                                                              |
+| Hover   | Label underline on a selectable step                                                                                                                                                                                                                                                         |
+| Focus   | The focus outline, `radius.medium`, around the step                                                                                                                                                                                                                                          |
+| Motion  | Marker colours in `motion.duration.fast`                                                                                                                                                                                                                                                     |
+
+Carbon draws every marker in the interactive blue and tells the states apart by icon. Here done is green and blocked is red, the product's status tones, because on a milestone header the states are the story and colour carries it alongside the icon.
+
+## Accessibility
+
+- **The list is an ordered list**, named by `label`; a screen reader hears "RMF steps, list, 6 items" and moves step by step.
+- **The state is in the name.** Each label is prefixed, visually hidden, with "Completed", "Not started" or "Blocked", and the current step carries `aria-current="step"`. Carbon: labels include the state of each step.
+- **One button per step.** A step that can be moved to is a single button holding its marker and text, so it is one tab stop with one name. A step that only reports is not focusable.
+- **Keyboard:** Tab moves between the selectable steps, Enter or Space moves to one. Carbon moves with the arrow keys in a single stop; here each reachable step is its own stop, which is what a wizard's rail of three or four wants.
+- **Colour is never alone.** Done and blocked have their icon, current its weight and ring, and the words are read.
+- **Contrast:** the inverse check and cross pass on their fills; the danger label passes on the surface. The gate runs both orientations.
 
 ## Props
 
 <ArgTypes of={Stepper} />
+
+### Stepper.Item
+
+<ArgTypes of={Stepper.Item} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Progress](?path=/docs/components-progress--docs): how much, as a bar.
+- [Gates](?path=/docs/components-gates--docs): conditions met or not, in no order.
+- [Timeline](?path=/docs/components-timeline--docs): what happened, in order, with no fixed end.
+- [Tabs](?path=/docs/components-tabs--docs): sections the reader may take in any order.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

@@ -125,9 +125,13 @@ export { TextLink, type TextLinkProps } from "./text-link";
 export { Tabs, type TabProps, type TabsProps } from "./tabs";
 export {
   Timeline,
+  type TimelineAlign,
   type TimelineGroupProps,
   type TimelineItemProps,
+  type TimelineOrientation,
   type TimelineProps,
+  type TimelineSize,
+  type TimelineTimePosition,
 } from "./timeline";
 export { Toaster, toast } from "./toaster";
 export { Toggle, ToggleGroup, type ToggleGroupProps, type ToggleProps } from "./toggle";

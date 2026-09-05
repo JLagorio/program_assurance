@@ -249,6 +249,32 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   `Eyebrow` takes `id`, so a list can be labelled by it. The wizard and the coverage header drop
   their `first`/`last` flags. Components/Stepper: Matrix, Paths; Components/Timeline: Matrix;
   Components/Tree: Matrix.
+- `Timeline` takes `orientation="horizontal"`: events across a record header, oldest first, the
+  time above each marker, on the Stepper's geometry; and `icon` on an item, passed bare, which
+  makes the marker a disc in the tone with the icon on it, for a pipeline's check, cross and play.
+  Josef's release, journey, activity-feed and pipeline patterns are the stories: a Badge in a title,
+  an Avatar as the marker, a Collapsible under a row. Components/Timeline: Matrix, Runs.
+- The Stepper's numbered marker centres its number with flex; on the current step's 2px ring the
+  grid had set it a pixel low. Components/Stepper: Matrix.
+- `Timeline` is pushed on review, against Josef's nine references. Down the page the list is one
+  CSS grid the rows share (time · marker · body) and every row draws its own piece of the rail in
+  the marker column, so the rail runs through the markers' centre by construction; it had sat 3.5px
+  to the start. The list takes `size` (`small` a bare Dot at 16px, `medium` the ring at 20,
+  `large` a `small` Avatar or a 24px disc for a feed of people), `timePosition` (`end` of the
+  title's line, `above` it as a dated line, `below` first in the footer, `start` in a column
+  before the rail, as wide as its widest stamp) and, across, `align` (`center` with the time
+  above, or `start` with the time below and the text under the marker, for stages with a body).
+  An item takes `description` (a wrapping sentence under the meta) and `footer` (Badges for the
+  kind and the state, or the name, last). The group label sits on the title column. New stories:
+  a feed of people with sentence titles, a menu on every row, an attachment from ButtonGroup, two
+  buttons, a stack, a progress and a quote; a dated log; releases by month; a workflow across a
+  scrolling area; the feed in a Sheet. Components/Timeline: Matrix, People, Log, Releases, Runs,
+  In a sheet.
+- A vertical `Stepper.Item` takes `children`: what a milestone carries under its label, with the
+  rail running past it. The step's control is now its label stretched over the step, so a
+  Collapsible or a button under it is a separate stop. Components/Stepper: Milestones.
+- `Breadcrumb` takes `label`, "Breadcrumb" by default, so a second trail on a page, a chart's
+  drill-down path, is a navigation landmark with a name of its own. Components/Breadcrumb.
 - `Eyebrow` takes `as`: `h3` or `h4` when it heads a section, so the page's outline has it,
   `dt` when it labels a value. Fifty-four eyebrows the prototype drew by hand are `Eyebrow`,
   the section headings among them as headings. Components/Typography: Matrix, InRail.

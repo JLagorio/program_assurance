@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Timeline } from "../../components";
 import * as Stories from "./Timeline.stories";
@@ -7,12 +7,160 @@ import * as Stories from "./Timeline.stories";
 
 # Timeline
 
-Events along one rail. Groups carry sticky labels on the current surface. A marker is a ring-and-dot in the tone, or anything 20px you pass.
+Events in order along one rail: a record's activity, a scope's history, an audit trail, a pipeline, a line of releases, a feed of what people did. Each event is a marker on the rail, what happened, who and when, and under it what the event carries: a sentence, a file, a note, two buttons. Vertical reads down, newest first, with sticky group labels over a week or a month; horizontal reads across, oldest first. None of Carbon, Base Web or Atlassian has a timeline, so the anatomy follows [Item](?path=/docs/components-item--docs): a row that opens is its title stretched over the row, and everything beside it is a separate stop.
+
+A timeline is for events; things with a date are an Item list, and a fixed path with a current step is a [Stepper](?path=/docs/components-stepper--docs).
 
 <Canvas of={Stories.TimelineMatrix} />
 
-<Canvas of={Stories.TimelineStory} />
+## Anatomy
+
+| Part        | What it is                                                                                                                                                                                                                                                                                     |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rail        | A hairline, `color.border`, through the centre of every marker. Each row draws its own piece of it in the marker column, so it runs from the first marker to the last whatever the rows hold and wherever the time sits.                                                                       |
+| Marker      | On the rail, at the list's size: a bare Dot in the tone at `small`; a ring on `elevation.surface.raised` holding a Dot at `medium` and `large`. With `icon`, a disc in the tone with the icon on it (a check, a cross, a play). Anything the slot holds as `marker`: an Avatar for who did it. |
+| Title       | What happened, `font.body` in `color.text`, one line; medium weight when emphasised. It may be a sentence: the name in medium weight, the verb subtle, the record as a link. On a row that opens, this is the link or button, stretched over the row.                                          |
+| Time        | `font.body.xsmall` in `color.text.subtle`, as the reader would say it, where the list puts it: at the end of the title's line, above the title as a dated line, first in the footer, or in a column before the rail. Across, above or below the marker. A `<time>` when `dateTime` is given.   |
+| Meta        | Under the title, one line, `font.body.xsmall` in `color.text.subtle`: who, and the kind.                                                                                                                                                                                                       |
+| Description | Under the meta, `font.body.small` in `color.text.subtle`, wrapping: what the event amounts to, in a sentence.                                                                                                                                                                                  |
+| Body        | Under the description, `font.body`: the note, the diff, what was said; a file; two buttons; who is on it; a collapsible detail.                                                                                                                                                                |
+| Footer      | The last line: Badges for the kind and the state, or who did it; the time first, when it sits below.                                                                                                                                                                                           |
+| Trailing    | At the end of the title's line, beside the row's control: an unread Count, a chevron, a menu button.                                                                                                                                                                                           |
+| Group       | A run of events under a sticky Eyebrow with a count, on the current surface and on the title's column; the rail runs to its edge.                                                                                                                                                              |
+
+## Variants
+
+| Variant      | Use                                                                                                                                                                                                                                                                                                                  |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vertical`   | The default. Reads down, newest first, the rail on the left: a feed, a history, a log, a pipeline. Groups live here.                                                                                                                                                                                                 |
+| `horizontal` | Reads across, oldest first, the rail on top: releases, a project's journey, a workflow's stages on a record header. `center`, the default, puts each marker mid-column with the time above, like a Stepper; `start` puts it at the column's start with the time below and the text under it, for stages with a body. |
+
+Where the time sits, `timePosition` on the list:
+
+| Position | Use                                                                                                                           |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `end`    | The default: at the end of the title's line. A history, an audit trail, anywhere the rows are one or two lines.               |
+| `above`  | A dated line above the title: a log where the date is the point, and the rows carry a sentence and a file.                    |
+| `below`  | First in the footer, with the kind and the state: a feed of people, where the title is who did what and the when is a detail. |
+| `start`  | A column before the rail, on the title's line: releases by month, a changelog, where the reader scans the dates.              |
+
+What a row does:
+
+| The row        | Use                                                                                              |
+| -------------- | ------------------------------------------------------------------------------------------------ |
+| Opens a record | `link` with the router's Link: the title is the link, stretched over the row.                    |
+| Opens in place | `onSelect`: the title is a button over the row; `isActive` marks the event open beside the list. |
+| Only reads     | Neither: a plain row.                                                                            |
+| Is unread      | `emphasis`: the title in medium weight, and an unread mark in `trailing`.                        |
+
+<Canvas of={Stories.People} />
+
+<Canvas of={Stories.Log} />
+
+Not built, and why: alternating sides (Ant Design), because the rail is a list, not a poster; a collapsed "show more" (GitHub), because the group's count says how many and the page scrolls; a rating on an event, because a rating is a record's fact, not an event's; markers in the accent hues, a colour per row to tell rows apart, because the marker's colour is the tone and a colour that says nothing is a colour the reader tries to read.
+
+## Sizes
+
+| Size     | Slot | Marker                                                  | Row                         | Where                                                                                  |
+| -------- | ---- | ------------------------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------- |
+| `small`  | 16px | A bare 8px Dot; an `xsmall` Avatar; a 16px disc         | `space.050` above and below | A dense log, a changelog, a rail's recent activity.                                    |
+| `medium` | 20px | A 12px ring with a Dot; an `xsmall` Avatar; a 20px disc | `space.075` above and below | The default: a record's history, an audit trail, a pipeline.                           |
+| `large`  | 24px | A 16px ring with a Dot; a `small` Avatar; a 24px disc   | `space.100` above and below | A feed of people, where the avatar is the marker; a workflow's stages across a header. |
+
+The size is the list's, not the row's: every marker in a list sits on the same rail. The title stays `font.body` at every size; what scales is the marker and the room around it. A vertical timeline is as wide as its container; in a rail it is the rail's width, on a record page a measure. A horizontal one gives each event an equal column, 420px in all at least, like a Stepper; in a scrolling area it can be as wide as its stages need.
+
+<Canvas of={Stories.Releases} />
+
+<Canvas of={Stories.Runs} />
+
+<Canvas of={Stories.Activity} />
+
+## States
+
+| State          | What changes                                                                                         |
+| -------------- | ---------------------------------------------------------------------------------------------------- |
+| Plain          | No hover. Text on the surface.                                                                       |
+| Link or button | `color.background.neutral.subtle.hovered` on hover across the row; the focus outline around the row. |
+| Active         | `color.background.selected`, and its hovered step on hover: the event open beside the list.          |
+| Emphasised     | The title medium: unread, or the current one.                                                        |
+
+The feed in a Sheet, the count in its title, is the [In a sheet](?path=/story/components-timeline--in-a-sheet) story.
+
+## Modifiers
+
+- **`orientation`**, **`size`**, **`timePosition`** and, across, **`align`**, as in Variants and Sizes. All four are the list's, so every row agrees.
+- **`tone`** colours the default marker's dot by the event's kind; **`icon`**, passed bare, turns the marker into a disc in the tone with the icon on it; **`marker`** replaces it.
+- **`time`** as said, **`timeTitle`** as the full stamp on hover, **`dateTime`** as the machine stamp, which makes it a `<time>`.
+- **`meta`** for who and the kind, one line; **`description`** for the sentence under it; **`children`** for what the event carries; **`footer`** for the Badges and the name last.
+- **`link`**, **`onSelect`**, **`isActive`**, **`emphasis`**, **`trailing`** as in Variants.
+- **Group `label`** and **`count`**; the label sticks to the top of the scrolling surface.
+- **`label`** on the list names it: "Activity", "History", "Releases".
+
+## Content
+
+- **Newest first** down a page; oldest first across. The reader wants what just happened; the beginning is at the bottom.
+- **The title says what happened**, in one line: "Verified", "Due date moved", "Evidence linked". As a sentence, who first: "Nadia Flores approved payout batch ACH-4182", the name in medium weight, the verb subtle, the record a link.
+- **The meta says who and what changed**: "Dana Whitfield · 14 Sep → 18 Sep". **The description says why**, in one sentence.
+- **The footer is the kind, then the state**: "Payout · Same day", "Risk · High". Or the name, when the title is the thing done: "Maya Brooks · Done".
+- **The time matches its place**: "2h ago" and "Yesterday" at the end of the line or in the footer; "6 May 2026" above; "May 2025" in the column. The full stamp is the tooltip.
+- **Group by period**: "This week", "August", "Earlier". A count on the group when there are more than a few.
+
+## Style
+
+| Element     | Token                                                                                                                                                                                                                                               |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rail        | 1px · `color.border` · through the marker column's centre, each row its own piece, the first row's top and the last row's bottom hidden                                                                                                             |
+| Marker      | slot 16, 20 or 24px · ring 12 or 16px `color.border` on `elevation.surface.raised` · Dot in the tone · disc the slot's size in `color.background.{tone}.bold` with a 12 or 16px icon in `color.text.inverse`, neutral in `color.background.neutral` |
+| Row         | `space.050`, `space.075` or `space.100` block by size · `space.050` inline · `space.100` between marker and text · `space.150` between the time column and the marker · `radius.medium` when it clicks                                              |
+| Across      | rail 1px `color.border` between markers, from the marker when start-aligned · time `space.050` above the marker or first under it · text `space.075` below · equal columns, 420px in all at least                                                   |
+| Title       | `font.body` · `color.text` · medium when emphasised                                                                                                                                                                                                 |
+| Time        | `font.body.xsmall` · `color.text.subtle` · tabular · right-aligned in the column                                                                                                                                                                    |
+| Meta        | `font.body.xsmall` · `color.text.subtle` · one line                                                                                                                                                                                                 |
+| Description | `font.body.small` · `color.text.subtle`                                                                                                                                                                                                             |
+| Footer      | `font.body.xsmall` · `color.text.subtle` · `space.075` between its parts · `space.025` above                                                                                                                                                        |
+| Group       | Eyebrow · on the title column · `space.050` below, `space.150` above after the first · `elevation.surface.current` behind                                                                                                                           |
+| Hover       | `color.background.neutral.subtle.hovered`                                                                                                                                                                                                           |
+| Active      | `color.background.selected` · `color.background.selected.hovered`                                                                                                                                                                                   |
+
+Down the page the list is one CSS grid the rows share, time · marker · body, and each row a subgrid of it: the time column is as wide as its widest stamp, the marker column as wide as the size's slot, and the rail is drawn inside the marker column, so it is centred by construction.
+
+## Accessibility
+
+- **The list is an ordered list**, named by `label`, and every event an `li`; a group is an `li` holding a heading and its own list, labelled by the heading.
+- **The title is the control.** A row that opens is a link or a button named by the title alone and stretched over the row; the time, the meta, the description and the footer are read as the text beside it. Nothing interactive sits inside it: the trailing slot, a file's download, a menu and the buttons in the body are their own stops beside it.
+- **The time is a `<time>`** when `dateTime` is given, so the machine stamp travels with the words; the full stamp is the tooltip.
+- **Tone is never alone.** The marker's colour says the kind; the title says what happened. A footer Badge says the state in a word.
+- **An Avatar as the marker is decorative** when the name is in the title, so the name is read once.
+- **A plain row is not focusable.**
 
 ## Props
 
 <ArgTypes of={Timeline} />
+
+### Timeline.Item
+
+<ArgTypes of={Timeline.Item} />
+
+### Timeline.Group
+
+<ArgTypes of={Timeline.Group} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Item](?path=/docs/components-item--docs): rows that are things, not events.
+- [Stepper](?path=/docs/components-stepper--docs): a fixed path with a current step, which a horizontal timeline resembles and is not; with a record under each milestone.
+- [Collapsible](?path=/docs/components-collapsible--docs): a detail folded under a row.
+- [Avatar](?path=/docs/components-avatar--docs): a person as the marker.
+- [Badge](?path=/docs/components-badge--docs): the kind and the state in the footer.
+- [Sheet](?path=/docs/components-sheet--docs): the feed from the page's edge.
+- [Dot](?path=/docs/components-indicator--docs): the tone in the default marker.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

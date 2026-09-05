@@ -77,6 +77,7 @@ No underline: Carbon underlines on hover and Atlassian does; the kit's crumbs da
 
 ## Accessibility
 
+- **Two trails on one page take two names.** The landmark is named "Breadcrumb"; a chart's drill-down path inside the page passes its own `label`, so the two navigation landmarks are told apart.
 - **A navigation landmark named "Breadcrumb"** holding an ordered list, so a screen reader announces "breadcrumb navigation, list, 3 items" and can skip it. Carbon and ARIA say the same.
 - **Every crumb but the page is a link**, reached by Tab and opened by Enter; the page carries `aria-current="page"` and is not in the tab order.
 - **A crumb that navigates is a link, not a button.** A button cannot be opened in a new tab and is announced as a button; `asChild` with the router's Link is how.

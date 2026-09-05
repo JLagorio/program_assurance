@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Tree } from "../../components";
 import * as Stories from "./Tree.stories";
@@ -7,12 +7,116 @@ import * as Stories from "./Tree.stories";
 
 # Tree
 
-A hierarchy the caller flattens. Rows carry indent guides, a chevron where there are children, and the tree aria.
+A hierarchy the reader opens and closes: control families, a system's composition, a folder of evidence. The caller owns the data, the open set and the selection and renders one row per visible node; the tree draws the indent guides, the chevron on rows that have children, and owns the keyboard: one tab stop, the arrows move and open, Enter selects. Carbon's Tree view, Base Web's TreeView and the ARIA tree pattern are the models.
+
+A tree is for two or more levels. One level is a collapsible [Item](?path=/docs/components-item--docs) list; a hierarchy with columns is [Table.Tree](?path=/docs/components-table--docs).
 
 <Canvas of={Stories.TreeMatrix} />
 
-<Canvas of={Stories.TreeStory} />
+## Anatomy
+
+| Part     | What it is                                                                                                                              |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Row      | One visible node, 32px (`small`) or 24px (`xsmall`), the tree item itself: focusable, selected on a click.                              |
+| Guides   | One 16px column per ancestor level, a hairline down it while that ancestor's branch continues (`lines`).                                |
+| Chevron  | On a branch: right while closed, down while open. A click on it opens or closes without selecting. A leaf has a small dot in its place. |
+| Icon     | Optional, before the label, 16px: a folder for a branch, a document for a leaf. On every row, or on none.                               |
+| Label    | `font.body` in `color.text`, one line. It is the row's accessible name.                                                                 |
+| Trailing | At the end: a Count of what is beneath, a Badge for the row's state, a Dot.                                                             |
+
+## Variants
+
+Tree has one appearance. What varies:
+
+| Variant    | Use                                                                                                                                                          |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Selectable | Rows with `onSelect` and one `isSelected`: the tree is a navigator, and the selected row is where the reader is. The composition browser, the families rail. |
+| Read-only  | No `onSelect`: the tree only shows shape. Rare; a hierarchy worth drawing is usually worth opening.                                                          |
+| With icons | An icon on every row, so labels at one level align. Carbon's rule, and its Don't.                                                                            |
+
+Not built, and why: multi-select with checkboxes (Base Web, Carbon's feature flag), because bulk work on nodes is a table; drag to reorder (Atlassian's tree), because nothing here is rearranged by hand; a tree that owns its data (Base Web's `data` prop), because the callers already flatten a tree with rolled-up posture on every row.
+
+## Sizes
+
+| Size     | Row  | Where                                                                                 |
+| -------- | ---- | ------------------------------------------------------------------------------------- |
+| `small`  | 32px | The default: a composition browser, a families rail. Carbon's small.                  |
+| `xsmall` | 24px | A deep tree that must show more at once; a tree inside a panel. Carbon's extra small. |
+
+Rows stack with no space between them. The indent is 16px per level, the guide down its middle.
+
+<Canvas of={Stories.Families} />
+
+## States
+
+| State    | What changes                                                                                                                                                   |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plain    | Text on the surface.                                                                                                                                           |
+| Hover    | `color.background.neutral.subtle.hovered` across the row.                                                                                                      |
+| Selected | `color.background.selected`; `aria-selected`. The row is the tree's tab stop. If its branch is closed, the parent shows the selection instead (Carbon's rule). |
+| Focus    | The focus outline around the row, on keyboard focus.                                                                                                           |
+| Open     | The chevron down; `aria-expanded="true"`; the children rendered under it by the caller.                                                                        |
+| Closed   | The chevron right; `aria-expanded="false"`; a Count in `trailing` says how many are beneath.                                                                   |
+
+## Modifiers
+
+- **`depth`** and **`lines`**: how deep, and which ancestors' guides to draw. A last child under each ancestor clears that ancestor's line.
+- **`hasChildren`**, **`expanded`**, **`onToggle`** on a branch; **`isSelected`**, **`onSelect`** on a selectable row.
+- **`trailing`** for a Count, a Badge or a Dot. A button there is a tab stop of its own, outside the tree's keyboard model.
+- **`size`** on the tree; **`label`** names it.
+
+## Content
+
+- **Branch labels say what kind of children they hold**: "Finance", "Payables", "Ground segment".
+- **Leaf labels say what the node is**: "CTRL-0412 Segregation of duties", "mission-api:2.1.4".
+- **Icons on every row or none**: a folder and a document, and nothing else.
+- **The count beneath a closed branch goes in `trailing`**, so a closed tree still says how big it is.
+
+## Style
+
+| Element  | Token                                                                                                                                                      |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Row      | `dimension.control.medium` 32px `small` · `dimension.control.xsmall` 24px `xsmall` · `radius.medium` · `space.100` end padding · `space.075` between parts |
+| Guide    | 16px column (`space.200`) · 1px `color.border`                                                                                                             |
+| Chevron  | 20px · `color.icon.subtle`, `color.icon` on hover · `radius.small` · rotates in `motion.duration.fast`                                                     |
+| Leaf dot | 4px · `color.background.neutral.pressed`                                                                                                                   |
+| Label    | `font.body` · `color.text`                                                                                                                                 |
+| Hover    | `color.background.neutral.subtle.hovered`                                                                                                                  |
+| Selected | `color.background.selected`                                                                                                                                |
+| Focus    | The focus outline                                                                                                                                          |
+
+Carbon marks the selected row with a left border in the interactive colour as well; here the selected fill is the same one a table row and a list row take, so a selection reads the same everywhere.
+
+## Accessibility
+
+- **It is a tree**: `role="tree"` named by `label`, every row a `treeitem` with `aria-level`, `aria-selected`, and `aria-expanded` on a branch. Carbon and the ARIA pattern.
+- **One tab stop.** The selected row is tabbable, or the first row when none is; every other row is reached with the arrows. Carbon: a single tab stop, landing on the selected node.
+- **Keyboard:** Down and Up move between visible rows; Right opens a closed branch, or moves into an open one; Left closes an open branch, or moves to the parent; Home and End go to the ends; Enter or Space selects.
+- **The chevron is for the mouse.** It opens the branch without selecting the row and is hidden from the keyboard and screen readers, which have Right and Left.
+- **Trailing controls are outside the model.** A button in `trailing` is its own tab stop; keep to a Count, a Badge or a Dot where the tree is long.
+- **The selection is never hidden.** When the selected row's branch is closed, the caller selects the parent, so the reader does not lose their place.
 
 ## Props
 
 <ArgTypes of={Tree} />
+
+### Tree.Item
+
+<ArgTypes of={Tree.Item} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Table](?path=/docs/components-table--docs): `Table.Tree`, a hierarchy with columns.
+- [Item](?path=/docs/components-item--docs): one level of nesting, as a collapsible list.
+- [Collapsible](?path=/docs/components-collapsible--docs): one section that opens.
+- [SystemTree](?path=/docs/patterns-systemtree--docs): the product's system hierarchy, built on Tree.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

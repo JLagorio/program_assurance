@@ -341,8 +341,6 @@ export function ProgramWizard() {
                         ? framework.name
                         : `Step ${i + 1} of ${steps.length}`
                   }
-                  first={i === 0}
-                  last={i === steps.length - 1}
                   {...(reachable && i !== index ? { onSelect: () => setStep(s) } : {})}
                 />
               );

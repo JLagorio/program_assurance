@@ -157,8 +157,6 @@ export function MilestoneTrack({
                 </>
               }
               title={`${n.id} ${n.name} — ${n.status}, planned ${n.planned}`}
-              first={i === 0}
-              last={i === nodes.length - 1}
               onSelect={() => onSelect(n)}
             />
           ))}

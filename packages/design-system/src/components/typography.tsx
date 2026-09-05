@@ -13,14 +13,17 @@ export type EyebrowProps = {
   tone?: Tone | undefined;
   /** The element: `div` by default; `h3` or `h4` when the eyebrow heads a section, `dt` when it labels a value. */
   as?: "div" | "span" | "p" | "h2" | "h3" | "h4" | "dt" | undefined;
+  /** An id, so a list can be labelled by its eyebrow. */
+  id?: string | undefined;
   className?: string | undefined;
 };
 
 /** Uppercase micro-label on the xxsmall heading token. A tone colours it for a callout. */
-export function Eyebrow({ children, tone = "neutral", as = "div", className }: EyebrowProps) {
+export function Eyebrow({ children, tone = "neutral", as = "div", id, className }: EyebrowProps) {
   const Comp = as;
   return (
     <Comp
+      id={id}
       className={cn(
         "font-heading-xxsmall uppercase",
         tone === "neutral" ? "text-subtle" : toneClasses[tone].text,

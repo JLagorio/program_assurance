@@ -203,3 +203,36 @@ Josef's review of the record-facts batch: Item had odd spacing and too little to
 **Item.** The root cause of the spacing was that each row laid out its own columns, so a group's titles zig-zagged and a row's expanded content sat under the mark rather than the title. The rebuild puts a group on one six-column grid (toggle, mark, id, body, trailing, actions) with every row a subgrid of it; empty columns cost nothing because the gaps live on the cells. The interactive element is the title, stretched over the row by a pseudo-element, which also removed a nested-interactive fault: the old row was a button or link with the action buttons inside it. Added from the references: a group heading with a count and a read-out (Carbon's contained-list header, which the POA&M was drawing by hand three times), a compact size (Carbon's row heights, Base Web's sizes, reduced to two), collapsible rows on Radix Collapsible with a chevron toggle (Carbon's disclosed list) and one level of nesting through them. Not built and said on the page: a search in the header, a checkbox per row, drag handles.
 
 **Avatar.** Two initials cannot sit in 16px or 20px, so the scale is Atlassian's: 16 with one initial, 24 as the default, 32, 40, 64. Photos with the initials as the fallback. Colour is opt-in: neutral by default, then tinted, bold and gradient, in a hue hashed from the name so a person is the same colour everywhere, or pinned with `hue` for a thing, which is also what `shape="square"` is for. The hues needed a token family that carries no meaning, so the accent colours entered the palette in Atlassian's grammar at two steps chosen by contrast: the 200 step under the hue's 900 text and the 800 step under inverse text, mirrored in dark. The Color page's rule that avatars stay neutral and that teal and purple are chart-only is rewritten: neutral is the default, and the two hues reach the accent family too. Whether the product adopts a coloured avatar, and whether accents reach tags, are Josef's calls in docs/next.md.
+
+### 17. Stepper, Timeline, Tree (2026-09-04)
+
+Walked against Carbon's Progress indicator and Tree view (usage, style, accessibility), Base Web's ProgressSteps and TreeView (types and docs), and Atlassian's Progress tracker and Tree, which are stubs. No reference has a timeline; the page says so and takes Item's anatomy.
+
+**Stepper.** Carbon's anatomy is the one here (marker, active and inactive line, label, helper text) and its rules land as content guidance: three or more steps, one or two words, helper text for the reason, vertical where it fits. Two structural faults fixed: a step was up to four elements with two hidden per orientation, now one button; and the caller told each step whether it was first or last, now the list knows, and with that it also knows the neighbour's state and draws the rail bold behind completed steps, Carbon's active line. Added `numbered` (Carbon, Base Web) and `label`. The keyboard stays Tab per step rather than Carbon's arrow model, which is a decision in docs/next.md.
+
+**Timeline.** Rebuilt on the Item anatomy: title stretched over the row, trailing beside it, `link` added, `<time>` with `dateTime`, the group label an Eyebrow that labels the group's list. Content rules written down: newest first, past tense titles, meta says who and what changed, relative times with the full stamp as a tooltip.
+
+On review Josef sent a set of timeline patterns from another kit (releases across a header, a project's journey, an activity feed with avatars, deployments with badges and commit meta, a pipeline with collapsible frames) and a note that the numbered current marker sat a pixel low. The marker is flex-centred now, measured to the pixel over CDP. The Timeline takes `orientation="horizontal"` on the Stepper's geometry and `icon` markers; the rest of those patterns were already slots (a Badge in a title, an Avatar as the marker, a Collapsible under a row) and are now stories. The page draws the line between the two horizontals: a Stepper is a path with a current step, a horizontal timeline is what happened when.
+
+**Tree.** The old tree item held two buttons, which is not the ARIA pattern Carbon and Base Web follow. Now the row is the tree item and the single tab stop; arrows move and open, Enter selects, the chevron is mouse-only. Carbon's two sizes (32 and 24) are `small` and `xsmall`. Carbon's rules recorded: icons on every row or none, a collapsed parent shows a hidden child's selection, one level is not a tree. The wizard's row buttons in `trailing` break the single-stop model and are a decision.
+
+### 17a. Timeline, pushed on review (2026-09-04)
+
+Josef reviewed the batch twice. First the numbered Stepper marker sat a pixel low on the current
+step's 2px ring (grid centring; now flex, measured at 0px). Then the Timeline's rail: it was an
+absolute hairline at 10px while the markers centred at 14px, and once that was fixed Josef sent
+nine references (a milestone rail with cards, a dated log, a finance feed with avatars and a
+footer of badges, a team feed with a menu on every row, a release changelog with the month in a
+column, a workflow across a header, the feed in a card and in a sheet) with "this level of polish
+and options".
+
+What changed in the kit. The vertical Timeline is one CSS grid the rows share, time · marker ·
+body, each row a subgrid, and each row draws its own piece of the rail inside the marker column:
+centred by construction at any size, and the time column is as wide as its widest stamp. Root:
+`size` (small 16 / medium 20 / large 24), `timePosition` (end / above / below / start),
+`align` across (center / start). Item: `description` and `footer`. The Stepper's vertical
+step takes `children`, the step control becoming its label stretched over the step, which is the
+milestone rail of the first reference. Stories map the references one to one; the attachment chip
+is a ButtonGroup composition and its promotion is a decision in docs/next.md, with the prototype's
+adoption of sizes and a quote pattern. Not built and said on the page: a rating on an event, and
+markers in the six accent hues.
