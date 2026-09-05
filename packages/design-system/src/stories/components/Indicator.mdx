@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Dot, Indicator } from "../../components";
 import * as Stories from "./Indicator.stories";
@@ -7,11 +7,67 @@ import * as Stories from "./Indicator.stories";
 
 # Indicator
 
-A Dot is a 6px circle in the tone's icon colour, which is tuned to read at small sizes. An Indicator is a Dot with text: severity or priority in a row, never a pill, so the status column stays the only pill in the row.
-
-<Canvas of={Stories.InContext} />
+A Dot with a word: severity or health beside a label, in a row or a rail. High, Medium, Low; Healthy, Degraded. Never a pill, so the status column stays the only pill in the row and the eye can tell the rank from the state. The Dot alone is a 6px circle in the tone's icon colour, tuned to read at small sizes, for a status in a spot too small for a word. Neither Carbon nor Base Web has one; Carbon for IBM Products' status indicator is the nearest, and it uses icons where this uses the Dot.
 
 <Canvas of={Stories.IndicatorMatrix} />
+
+## Anatomy
+
+| Part | What it is                                                                                                                |
+| ---- | ------------------------------------------------------------------------------------------------------------------------- |
+| Dot  | 6px, round, `color.icon.<tone>`. It never shrinks.                                                                        |
+| Word | `font.body` after the Dot, `space.075` away: `color.text`, or `color.text.subtle` when the tone is neutral. It truncates. |
+
+## Variants
+
+| Variant     | Use                                                                                                        |
+| ----------- | ---------------------------------------------------------------------------------------------------------- |
+| `Indicator` | Severity or health with its word: a column in a table, a fact in a rail.                                   |
+| `Dot`       | The status alone: a cell 24px wide, a name in a tree, a mark in a timeline. With `label` it says its name. |
+
+The tone is a rank, not a state: `danger` High, `warning` Medium, `neutral` Low, `success` Healthy, `information` Informational. Neutral mutes the word as well as the Dot, so a scale reads from loud to quiet. A record's state, Verified or Overdue, is a [Badge](?path=/docs/components-badge--docs).
+
+Not built, and why: an icon per tone (Carbon for IBM Products' failed, warning, in-progress), because the Dot is the kit's one status mark and the word says the rest; a large Dot; an Indicator in a pill.
+
+## Sizes
+
+One size. The Dot is 6px whatever the text beside it; the word is `font.body`, the row's size, and in a `font.body.small` line it takes that size from the parent. An Indicator is as wide as its word and truncates when the column is narrower.
+
+<Canvas of={Stories.Truncation} />
+
+## States
+
+An Indicator has one state and does not hover, focus or disable. The tone is the whole variation.
+
+<Canvas of={Stories.InRows} />
+
+## Modifiers
+
+- **`tone`** as in Variants; `neutral` when unsaid.
+- **Dot `label`** for a Dot with no text beside it: the status as a word, spoken and not shown.
+- **`className`** for placement, never for colour.
+
+## Content
+
+- **The word is the rank:** High, Medium, Low; Healthy, Degraded, Down. One word, two at most.
+- **The same scale everywhere.** A severity is High, Medium or Low on every screen, never Critical on one and Severe on another.
+- **A Dot's label is the same word** the Indicator would show: "Suspect", "Blocked".
+
+## Style
+
+| Element | Token                                                                         |
+| ------- | ----------------------------------------------------------------------------- |
+| Dot     | 6px · `color.icon.<tone>` · `color.icon.subtlest` at neutral                  |
+| Word    | `font.body` · `color.text` · `color.text.subtle` at neutral · `space.075` gap |
+
+The icon colours are Badge's, so a danger Dot and a danger Badge's text are one red, and the icon colour is the step tuned for a 6px mark.
+
+## Accessibility
+
+- **The word carries the rank**; the Dot reinforces it and is hidden from a screen reader, so "High" is read once.
+- **A Dot alone is colour alone.** Give it `label`: it becomes an image named "Suspect", and the cell is no longer silent. Without a label it is hidden, which is right only when text beside it says the same thing.
+- **Neutral is muted, not disabled.** `color.text.subtle` passes the contrast test; the gate runs every tone.
+- **Nothing to focus.** An Indicator is a span in the row's reading order.
 
 ## Props
 
@@ -21,6 +77,19 @@ A Dot is a 6px circle in the tone's icon colour, which is tuned to read at small
 
 <ArgTypes of={Dot} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
 - [Badge](?path=/docs/components-badge--docs): the tone table, and which of Badge, Count, Indicator and Dot to use.
+- [Gates](?path=/docs/components-gates--docs): the Dot on an unmet gate.
+- [Timeline](?path=/docs/components-timeline--docs): the Dot as a mark.
+- [Alert](?path=/docs/components-alert--docs): the Dot before a title.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

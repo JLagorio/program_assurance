@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Count } from "../../components";
 import * as Stories from "./Count.stories";
@@ -7,14 +7,86 @@ import * as Stories from "./Count.stories";
 
 # Count
 
-A number in a pill: unread items, rows in a group, results behind a filter. Anything above `max` (99 by default) renders as `99+`. Atlassian calls this a Badge.
+A number in a pill: unread items, rows in a group, results behind a filter, findings on a control. It sits after the name of what it counts and is named by it. Anything above `max`, 99 by default, renders as `99+`. Atlassian calls this a Badge; Base Web's Badge is the notification circle on a corner, which this is not.
 
-<Canvas of={Stories.Counts} />
+<Canvas of={Stories.CountMatrix} />
+
+## Anatomy
+
+| Part   | What it is                                                                                             |
+| ------ | ------------------------------------------------------------------------------------------------------ |
+| Pill   | 20px tall, at least 20px wide, round, `space.075` at each end: the neutral fill or one of four others. |
+| Number | `font.body.small` medium, tabular, centred. Never a word.                                              |
+
+## Variants
+
+| Appearance  | Use                                                                                           |
+| ----------- | --------------------------------------------------------------------------------------------- |
+| `default`   | Rows in a group, results behind a filter, items in a section. The neutral fill.               |
+| `primary`   | The one count on the screen that must be seen: unread, new since you last looked. Brand fill. |
+| `important` | What needs attention now: overdue, blocked. Danger fill.                                      |
+| `added`     | Rows a change adds. Success fill, subtle.                                                     |
+| `removed`   | Rows a change removes. Danger fill, subtle.                                                   |
+
+Not built, and why: Base Web's corner placement on an avatar or an icon (a notification circle); the shell's navigation has no unread counts yet, and when it does the Count will sit after the item's label, not on its icon. No count in a tone's text colour without a fill; the number alone is a Stat.
+
+## Sizes
+
+One size, 20px, the height of a small Badge, so the two sit on one line. The width grows with the digits and stops at three and a plus.
+
+## States
+
+A Count has one state. A count of zero is usually not shown: a section with nothing in it says so in words, and the consumers that take a `count` hide it at zero.
+
+<Canvas of={Stories.InContext} />
+
+## Modifiers
+
+- **`value`** as a number, or a string when the text is not a number the pill should cap ("12 of 40" is not a Count).
+- **`max`** for the ceiling: 99 by default; 999 or 9999 on a tab that counts rows.
+- **`appearance`** as in Variants; `default` when unsaid.
+
+## Content
+
+- **A number.** Digits only; the word before it says what they count.
+- **Named by its label.** "Findings 3", "Evidence 7": the Count follows the label at `space.100`.
+- **Capped, not exact.** Past the ceiling the reader needs the order of magnitude; the exact number is a Stat.
+
+## Style
+
+| Element   | Token                                                                                        |
+| --------- | -------------------------------------------------------------------------------------------- |
+| Pill      | `dimension.control.xsmall` 20px tall and at least as wide · `radius.full` · `space.075` ends |
+| Number    | `font.body.small` medium · tabular                                                           |
+| default   | `color.background.neutral` · `color.text.subtle`                                             |
+| primary   | `color.background.brand.bold` · `color.text.inverse`                                         |
+| important | `color.background.danger.bold` · `color.text.inverse`                                        |
+| added     | `color.background.success` · `color.text.success`                                            |
+| removed   | `color.background.danger` · `color.text.danger`                                              |
+
+## Accessibility
+
+- **It is text**, read in the flow after its label: "Findings, 3". The label names it; a Count on its own says only a number.
+- **`99+` is read as "99 plus"**, which is the meaning.
+- **The appearance is not the only signal.** An important count sits beside a label that says why; the red ranks it.
+- **Nothing to focus.** A Count inside a Tab or a Collapsible is part of that control's name.
 
 ## Props
 
 <ArgTypes of={Count} />
 
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
 ## Related
 
 - [Badge](?path=/docs/components-badge--docs): the tone table, and which of Badge, Count, Indicator and Dot to use.
+- [Stat](?path=/docs/components-stat--docs): the exact number, big.
+- [Tabs](?path=/docs/components-tabs--docs), [Collapsible](?path=/docs/components-collapsible--docs), [Related](?path=/docs/patterns-related--docs): the controls that take a `count`.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

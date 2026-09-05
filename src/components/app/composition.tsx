@@ -337,7 +337,7 @@ function BomTreeRow({
         <>
           {node.attested ? null : (
             <Inline title="No supplier attestation on file" as="span" alignBlock="center">
-              <Dot tone="warning" />
+              <Dot tone="warning" label="No supplier attestation on file" />
             </Inline>
           )}
           {!row.open && row.subtree > 0 ? (

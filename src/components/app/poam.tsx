@@ -26,6 +26,7 @@ import {
   TextLink,
   Timeline,
   useRequired,
+  Indicator,
 } from "@ledger/design-system";
 import {
   formatOscalDate,
@@ -239,10 +240,7 @@ export function PoamSection({
                     <Badge tone={poamSeverityTone[i.severity]}>{i.severity}</Badge>
                   </Table.Cell>
                   <Table.Cell width={112}>
-                    <Inline as="span" space="space.075" alignBlock="center">
-                      <Dot tone={poamStatusTone[i.status]} />
-                      <span className="truncate">{i.status}</span>
-                    </Inline>
+                    <Indicator tone={poamStatusTone[i.status]}>{i.status}</Indicator>
                   </Table.Cell>
                   <Table.Cell width={128}>
                     <Inline as="span" space="space.100" alignBlock="center">

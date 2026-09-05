@@ -92,7 +92,7 @@ function CurrencyMark({ row }: { row: SctmRow }) {
       {row.currency === "Invalidated" ? (
         <CurrencyChip currency={row.currency} />
       ) : (
-        <Dot tone="warning" />
+        <Dot tone="warning" label={row.currency} />
       )}
     </Inline>
   );

@@ -323,17 +323,13 @@ export function ScanTable({
                 }
               >
                 {replacedBy ? (
-                  <Inline as="span" space="space.075" alignBlock="center">
-                    <Dot tone="neutral" />
-                    <span>Superseded by</span>
-                    <Id className="text-subtle">{replacedBy}</Id>
-                  </Inline>
+                  <Indicator tone="neutral">
+                    Superseded by <Id className="text-subtle">{replacedBy}</Id>
+                  </Indicator>
                 ) : s.supersedes ? (
-                  <Inline as="span" space="space.075" alignBlock="center">
-                    <Dot tone="success" />
-                    <span>Replaces</span>
-                    <Id className="text-subtle">{s.supersedes}</Id>
-                  </Inline>
+                  <Indicator tone="success">
+                    Replaces <Id className="text-subtle">{s.supersedes}</Id>
+                  </Indicator>
                 ) : (
                   <span>First run</span>
                 )}
@@ -1010,10 +1006,7 @@ export function DedupTable({
               {g.duplicates.length === 0 ? (
                 <span>Sole source</span>
               ) : (
-                <Inline className="min-w-0" as="span" space="space.075" alignBlock="center">
-                  <Dot tone="warning" />
-                  <span className="min-w-0 truncate">{foldedInLabel(g.duplicates)}</span>
-                </Inline>
+                <Indicator tone="warning">{foldedInLabel(g.duplicates)}</Indicator>
               )}
             </Table.Cell>
             <Table.Cell className="truncate" title={g.existingAll.join(", ")}>

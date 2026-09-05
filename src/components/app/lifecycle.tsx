@@ -5,7 +5,6 @@ import {
   Box,
   Button,
   Dialog,
-  Dot,
   Field,
   Grid,
   Id,
@@ -18,6 +17,7 @@ import {
   Table,
   Textarea,
   useRequired,
+  Indicator,
 } from "@ledger/design-system";
 import {
   gateKindTone,
@@ -154,12 +154,7 @@ export function LifecycleSection({
                       <Badge tone={gateKindTone[g.kind]}>{gateKindShort[g.kind]}</Badge>
                     </Table.Cell>
                     <Table.Cell width={104}>
-                      <Inline as="span" space="space.075" alignBlock="center">
-                        <Dot tone={gateStatusTone[g.status]} />
-                        <span className={g.status === "Planned" ? "text-subtle" : ""}>
-                          {g.status}
-                        </span>
-                      </Inline>
+                      <Indicator tone={gateStatusTone[g.status]}>{g.status}</Indicator>
                     </Table.Cell>
                     <Table.Cell width={152}>{g.cyberGate}</Table.Cell>
                     <Table.Cell width={92}>{g.owner}</Table.Cell>

@@ -10,6 +10,7 @@ export {
   tones,
   type BadgeProps,
   type CountProps,
+  type DotProps,
   type IndicatorProps,
   type Tone,
 } from "./badge";

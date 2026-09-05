@@ -7,16 +7,97 @@ import * as Stories from "./Badge.stories";
 
 # Badge
 
-Four ways to say a status, from one tone table. A **tone** is `neutral`, `information`, `success`, `warning` or `danger`, and every status component reads the same tokens for it, so a tone is one decision.
+A short status word in a soft fill: the state of a record. Verified, In review, Overdue, Draft. Atlassian calls this a Lozenge, Carbon a read-only Tag, Base Web a Tag; the kit's Badge is the read-only one, never dismissed, selected or clicked.
+
+It is one of four ways to say a status, and all four read the same tone table, so a tone is one decision everywhere:
+
+| Say                                     | Use                                                 |
+| --------------------------------------- | --------------------------------------------------- |
+| The state of a record                   | Badge                                               |
+| How many                                | [Count](?path=/docs/components-count--docs)         |
+| Severity or health beside a label       | [Indicator](?path=/docs/components-indicator--docs) |
+| A status in a spot too small for a word | [Dot](?path=/docs/components-indicator--docs)       |
 
 <Canvas of={Stories.Matrix} />
 
-A short status word in a soft fill: the Stripe badge, the Linear tag. Atlassian calls this a Lozenge.
+## Anatomy
 
-- `subtle` (default) is the tinted fill with the tone's text. Use it for the status column and for tags.
-- `bold` is the solid fill. One per view, for the status that must win.
-- `small` (20px) is the default; `xsmall` (16px) fits a table row or a tab.
-- `icon` puts a 12px icon before the word.
+| Part | What it is                                                                                                                            |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Fill | `radius.small`, the tone's subtle fill (`color.background.success`) or its bold fill, `space.075` at each end, `space.050` at xsmall. |
+| Word | `font.body.small` medium in the tone's text colour, or the inverse colour on bold. `font.body.xsmall` at xsmall. It does not wrap.    |
+| Icon | Optional, 12px before the word, `space.050` away.                                                                                     |
+
+## Variants
+
+| Appearance | Use                                                                                                             |
+| ---------- | --------------------------------------------------------------------------------------------------------------- |
+| `subtle`   | The default: the tinted fill with the tone's text. The status column, a state beside a title, a category.       |
+| `bold`     | The solid fill with inverse text. One per view, for the status that must win: the overdue on a record's header. |
+
+The tone is the meaning:
+
+| Tone          | Use                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| `neutral`     | A category, a kind, a stage without a judgement: Inspection, Draft, Inherited. The default. |
+| `information` | In progress: In review, In remediation.                                                     |
+| `success`     | Done and good: Verified, Satisfied, Closed.                                                 |
+| `warning`     | Needs attention soon: Due soon, Partial, Suspect.                                           |
+| `danger`      | Wrong or late: Overdue, Other than satisfied, Invalidated.                                  |
+
+Not built, and why: Carbon's dismissible, selectable and operational tags and Base Web's closeable and clickable tags. A filter the reader turns on and off is a [FilterChip](?path=/docs/components-filterchip--docs); something that takes the reader somewhere is a [TextLink](?path=/docs/components-textlink--docs), and Carbon says the same, no tags as links. Carbon's hue palette for categories is not here either: in this kit a colour is a status, so a category is neutral and differs by its word. No outline or high-contrast appearance; `bold` is the one emphasis.
+
+<Canvas of={Stories.Categories} />
+
+## Sizes
+
+| Size     | Height | Where                                                                    |
+| -------- | ------ | ------------------------------------------------------------------------ |
+| `small`  | 20px   | The default: beside a title, in a rail, in a header.                     |
+| `xsmall` | 16px   | A table row, a tab, a list item, anywhere the line is `font.body.small`. |
+
+Carbon has a large tag at 32px for a tag that is the page's task; there is no large Badge because a Badge is never the task. The word sets the width; a Badge does not truncate, so its word is short.
+
+<Canvas of={Stories.InRows} />
+
+## States
+
+A Badge has one state. It does not hover, focus, press or disable: it is text with a fill. When the record changes state, the Badge is replaced, not animated.
+
+## Modifiers
+
+- **`tone`** as in Variants; `neutral` when unsaid.
+- **`appearance="bold"`** for the one status in the view that must win.
+- **`size="xsmall"`** in a row.
+- **`icon`** before the word, rarely: when the word alone is ambiguous ("Attested" signed or unsigned).
+
+<Canvas of={Stories.OneBold} />
+
+## Content
+
+- **One or two words, sentence case:** Verified, In review, Other than satisfied. Not a sentence, not who or when.
+- **The state, not the tone:** Overdue, not Danger; Verified, not Success.
+- **A category's word is the whole difference:** Inspection, Test, Analysis, all neutral.
+- **The same word for the same state everywhere.** A product keeps one vocabulary of states, and the Badge is where it shows.
+
+## Style
+
+| Element | Token                                                                                                                       |
+| ------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Fill    | `color.background.<tone>` subtle · `color.background.<tone>.bold` bold · `radius.small`                                     |
+| Word    | `font.body.small` medium · `color.text.<tone>` subtle · `color.text.inverse` bold (`color.text.warning.inverse` on warning) |
+| xsmall  | 16px · `space.050` at each end · `font.body.xsmall`                                                                         |
+| small   | 20px · `space.075` at each end · `font.body.small`                                                                          |
+| Icon    | 12px · `space.050` before the word                                                                                          |
+
+The subtle fills sit on `elevation.surface` and on a row's hover; the contrast test covers both, in both modes.
+
+## Accessibility
+
+- **It is text.** A Badge is a span, read as its word in the flow of the row: "CTRL-0412, Segregation of duties, Verified". Nothing to focus, nothing to operate.
+- **The word carries the status**, not the colour: Overdue reads as overdue with no red. The tone reinforces.
+- **Not a link and not a button.** A clickable Badge is not focusable and says nothing about where it goes. If it must go somewhere, it is a TextLink.
+- **Contrast**: the tone's text on the tone's subtle fill passes 4.5:1 in both modes, and the gate runs every tone.
 
 ## Props
 
@@ -30,9 +111,11 @@ A short status word in a soft fill: the Stripe badge, the Linear tag. Atlassian 
 
 ## Related
 
-| Say                                    | Use                                                 |
-| -------------------------------------- | --------------------------------------------------- |
-| The state of a record                  | Badge                                               |
-| How many                               | [Count](?path=/docs/components-count--docs)         |
-| Severity or priority beside a label    | [Indicator](?path=/docs/components-indicator--docs) |
-| Presence or activity in a cramped spot | [Dot](?path=/docs/components-indicator--docs)       |
+- [Count](?path=/docs/components-count--docs): a number in a pill.
+- [Indicator](?path=/docs/components-indicator--docs): severity as a Dot and a word; and the Dot alone.
+- [FilterChip](?path=/docs/components-filterchip--docs): the tag the reader turns on and off.
+- [Eyebrow](?path=/docs/components-typography--docs): a status word above a title, without a fill.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

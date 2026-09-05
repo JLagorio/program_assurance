@@ -27,6 +27,10 @@ Updated 2026-09-04.
 - [ ] **Tinted count boxes** (2026-09-04). The T&E effects page and the baseline's cascade summary draw a number, a caption and a paragraph inside a tone-tinted, tone-bordered card: a tinted Stat, which is neither an Alert nor a `Stat.Tile`. The Stat page says no tinted tile. Give `Stat.Tile` a tinted appearance with a body, or keep these two bespoke?
 - [ ] **The dashboard's headline numbers** (2026-09-04). `DashboardStat` is a Stat with an uppercase label, a bigger number, a hint and a bar under it, separated by left rules. `Stat.Tile` with a slot under the note and a `band` frame would carry it. Add the slot, or keep the dashboard's own?
 - [ ] **An indeterminate bar needs a duration** (2026-09-04). Carbon, Base Web and Atlassian all have one; the kit's wait is a Spinner, and a repeating sweep needs a motion duration the tokens do not have (fast 120ms, medium 180ms). Add `motion.duration.slow` and the variant, or leave waits to the Spinner?
+- [ ] **A link that looks like a tag** (2026-09-04). `InheritChip` draws an inherited component as a bordered chip that is the router's Link, with an icon and a stale mark. Carbon's rule is no tags as links, and the kit's Badge does not click. A TextLink with the share icon, an Item row, or a kit chip that links?
+- [ ] **A legend under a stacked bar** (2026-09-04). Three screens draw the same legend by hand under a stacked bar: a Dot, the segment's label in subtle text and its count in tabular medium. A `Progress.Legend` built from the bar's segments, or keep the three by hand?
+- [ ] **A status column of bare Dots** (2026-09-04). The program-state table's first column is a Dot in a tone with nothing spoken; the tone means blocking or attention, and the row's label does not say which. Give the Dot a label from the data, or make the column an Indicator?
+- [ ] **A Dot as a bullet** (2026-09-04). Six lists mark each row with a warning or danger Dot before a sentence, as a bullet in a tone. It is decorative there, and the sentence carries the meaning. Say so on the Indicator page, or make those lists Gates?
 - [ ] **Read-outs left by hand** (2026-09-04). Eight bars still print their number themselves: the allocation bars colour it danger past 100, and the register, components, index and inheritance lists set it medium weight or at a fixed width beside a count. The kit's `showValue` is small, subtle and 40px wide. Adopt the kit's read-out there, or give `showValue` a weight and a tone?
 - [ ] **Data table, the calls.** Eight calls made without asking in `docs/superpowers/specs/2026-09-03-data-table.md`, plus one more from step 6: Tab moves across an editable table, Enter moves down. Overturn any in one reading.
 - [ ] **Baseline and ConMon hydration, which fix stays.** This line renders both routes client-only (`ssr: false`, 8bb9e3b). The parallel line kept SSR and had the loader build the control-text index on both sides (769a412, 81911c1); that version was not merged. Taking it would restore SSR on the two routes.
@@ -44,7 +48,7 @@ The maturity walk, one part per sitting, each page onto the template (`docs/supe
 - [x] Tooltip, HoverCard, Popover, DropdownMenu (2026-09-04)
 - [x] Dialog, Sheet, Drawer, AlertDialog; the Overlays overview (2026-09-04)
 - [x] Alert, Banner, Progress, Stat, Gates (2026-09-04)
-- [ ] Badge, Count, Indicator
+- [x] Badge, Count, Indicator (2026-09-04)
 - [ ] Breadcrumb, Item, Avatar, Id, KeyValue, Fact, Typography
 - [ ] Stepper, Timeline, Tree
 - [ ] Toggle, ToggleGroup, ButtonGroup, Kbd, Separator, Skeleton, Spinner

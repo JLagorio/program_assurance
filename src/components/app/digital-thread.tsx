@@ -7,7 +7,6 @@ import {
   Box,
   Button,
   Dialog,
-  Dot,
   Field,
   Grid,
   Id,
@@ -23,6 +22,7 @@ import {
   Textarea,
   toast,
   useRequired,
+  Indicator,
 } from "@ledger/design-system";
 import {
   artifactShort,
@@ -168,10 +168,7 @@ export function DigitalThreadSection({
                   </Table.Cell>
                   <Table.Cell>{c.scope}</Table.Cell>
                   <Table.Cell width={112}>
-                    <Inline as="span" space="space.075" alignBlock="center">
-                      <Dot tone={healthTone[c.health]} />
-                      {c.health}
-                    </Inline>
+                    <Indicator tone={healthTone[c.health]}>{c.health}</Indicator>
                   </Table.Cell>
                   <Table.Cell className="tabular-nums text-right" width={84}>
                     {c.ingested}
@@ -238,10 +235,7 @@ export function DigitalThreadSection({
                     <Id>{r.id}</Id>
                   </Table.Cell>
                   <Table.Cell width={200}>
-                    <Inline as="span" space="space.075" alignBlock="center">
-                      <Dot tone={r.enabled ? "success" : "neutral"} />
-                      <span className="truncate">{r.name}</span>
-                    </Inline>
+                    <Indicator tone={r.enabled ? "success" : "neutral"}>{r.name}</Indicator>
                   </Table.Cell>
                   <Table.Cell width={108}>{r.source}</Table.Cell>
                   <Table.Cell width={128}>{r.signal}</Table.Cell>

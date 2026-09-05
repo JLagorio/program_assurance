@@ -38,7 +38,6 @@ import {
   Badge,
   Box,
   Button,
-  Dot,
   Empty,
   Grid,
   Id,
@@ -51,6 +50,7 @@ import {
   Table,
   Toolbar,
   Alert,
+  Indicator,
 } from "@ledger/design-system";
 import type { Tone } from "@ledger/design-system";
 import {
@@ -473,10 +473,9 @@ export function PinDiffTable({
               </Table.Cell>
               <Table.Cell>
                 {unrecorded ? (
-                  <Inline as="span" space="space.075" alignBlock="center">
-                    <Dot tone="danger" />
-                    <span className="truncate font-medium text-danger">No change record</span>
-                  </Inline>
+                  <Indicator tone="danger">
+                    <span className="font-medium text-danger">No change record</span>
+                  </Indicator>
                 ) : (
                   <Id className="text-subtle">{row.recorded}</Id>
                 )}

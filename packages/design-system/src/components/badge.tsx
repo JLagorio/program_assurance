@@ -61,16 +61,20 @@ const badgeSizes = {
 } as const;
 
 export type BadgeProps = {
+  /** The status the word carries, from the tone table. `neutral` is the default, and a category or a kind is always neutral. */
   tone?: Tone | undefined;
   /** `subtle` is the tinted fill with the tone's text (the Stripe badge, the Linear tag); `bold` is the solid fill for the one status that must win. */
   appearance?: "subtle" | "bold";
+  /** `small` is 20px, the default; `xsmall` is 16px, for a table row or a tab. */
   size?: keyof typeof badgeSizes;
+  /** A 12px icon before the word, rarely: when the word alone is ambiguous. */
   icon?: ReactNode;
+  /** One or two words in sentence case: the state. */
   children: ReactNode;
   className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"span">, "children" | "className">;
 
-/** A short status word in a soft fill. Atlassian calls this a Lozenge. */
+/** A short status word in a soft fill: the state of a record. Atlassian calls this a Lozenge, Carbon a read-only Tag. */
 export function Badge({
   tone = "neutral",
   appearance = "subtle",
@@ -107,12 +111,14 @@ const countAppearances = {
 export type CountProps = {
   /** The number. Anything above `max` renders as `max+`; a string renders as given. */
   value: number | string;
+  /** The ceiling, 99 by default: the pill never grows past three characters and a plus. */
   max?: number;
+  /** `default` is the neutral pill; `primary` the brand fill for the one count that must be seen; `important` the danger fill for what needs attention now; `added` and `removed` for a diff. */
   appearance?: keyof typeof countAppearances;
   className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"span">, "children" | "className">;
 
-/** A number in a pill: unread items, rows in a group, results behind a filter. Atlassian calls this a Badge. */
+/** A number in a pill: unread items, rows in a group, results behind a filter. It is named by the label beside it. Atlassian calls this a Badge. */
 export function Count({ value, max = 99, appearance = "default", className, ...rest }: CountProps) {
   const text = typeof value === "number" && value > max ? `${max}+` : String(value);
   return (
@@ -129,17 +135,20 @@ export function Count({ value, max = 99, appearance = "default", className, ...r
   );
 }
 
-/** A 6px status dot. It is an icon, so it takes the tone's icon colour, which is tuned to read at small sizes. */
-export function Dot({
-  tone = "neutral",
-  className,
-}: {
+export type DotProps = {
   tone?: Tone | undefined;
-  className?: string;
-}) {
+  /** What the dot says when no text sits beside it: the status as a word ("Suspect", "No supplier attestation on file"). With it the dot is an image named by the label; without it the dot is hidden and the text beside it carries the status. */
+  label?: string | undefined;
+  className?: string | undefined;
+};
+
+/** A 6px status dot. It is an icon, so it takes the tone's icon colour, which is tuned to read at small sizes. */
+export function Dot({ tone = "neutral", label, className }: DotProps) {
   return (
     <svg
-      aria-hidden
+      role={label ? "img" : undefined}
+      aria-label={label}
+      aria-hidden={label ? undefined : true}
       viewBox="0 0 8 8"
       className={cn(
         "inline-block size-075 shrink-0 align-middle",
@@ -153,24 +162,26 @@ export function Dot({
 }
 
 export type IndicatorProps = {
+  /** The severity or the health the Dot carries. `neutral` mutes the text as well: the lowest rung. */
   tone?: Tone | undefined;
+  /** The word beside the Dot: "High", "Healthy", "Obligation not stated". It truncates when the row is narrower than it. */
   children: ReactNode;
   className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"span">, "children" | "className">;
 
-/** Severity as a Dot plus text. Never a pill, so the status column stays the only pill in a row. */
+/** Severity or health as a Dot plus text. Never a pill, so the status column stays the only pill in a row. */
 export function Indicator({ tone = "neutral", className, children, ...rest }: IndicatorProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-075 whitespace-nowrap font-body",
+        "inline-flex max-w-full items-center gap-075 whitespace-nowrap font-body",
         tone === "neutral" ? "text-subtle" : "text-default",
         className,
       )}
       {...rest}
     >
       <Dot tone={tone} />
-      {children}
+      <span className="min-w-0 truncate">{children}</span>
     </span>
   );
 }

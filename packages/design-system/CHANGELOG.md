@@ -83,6 +83,15 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
   Components/Gates.
 - A zero Stat reads muted whether it is the number 0 or the string "0"; the prototype's template
   literals were slipping past. Components/Stat: Matrix.
+- `Indicator` truncates its word when the column is narrower than it, and never shrinks its Dot;
+  the prototype had wrapped it by hand with `truncate` spans. Components/Indicator: Truncation.
+- Badge, Count and Indicator (with Dot) are on the template, walked against Carbon's Tag (usage,
+  style, accessibility), Base Web's Tag and Badge, and Atlassian's Lozenge and Badge as known.
+  Every prop of the four is described, so four generated tables fill. Said on the pages and not
+  built: dismissible, selectable and operational tags (a FilterChip and a TextLink are those), a hue
+  per category (a tone is a status, so a category is neutral), a large Badge, an outline or
+  high-contrast appearance, a corner-placed Count, an icon per Indicator tone. Components/Badge,
+  Components/Count, Components/Indicator.
 
 - An InputGroup's leading icon was painted over by a NativeSelect inside it; the ends render after
   the control. Components/InputGroup.
@@ -163,6 +172,10 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 - `scripts/ds-check.mjs` covers a compound's exported parts by their compound name in a story
   (`Stat.Grid`) and skips exports marked `@deprecated`, so parts can be exported for their props
   tables without growing the allow list.
+- `Dot` takes `label`: a Dot with no text beside it becomes an image named by the label, so a
+  status column of dots is no longer silent to a screen reader. Without one it stays hidden and the
+  text beside it carries the status. Two lone Dots in the prototype say their names; twelve rows
+  that drew a Dot and a word by hand are `Indicator`. Components/Indicator: Matrix, Dont.
 
 ## 0.4.0 · 2026-09-04
 

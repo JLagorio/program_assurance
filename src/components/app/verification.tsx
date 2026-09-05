@@ -6,7 +6,6 @@ import {
   Box,
   Button,
   Dialog,
-  Dot,
   Field,
   FilterChip,
   Grid,
@@ -199,11 +198,7 @@ export function VerificationSection({ programName }: { programName: string }) {
             {[
               {
                 label: "IATT status",
-                value: (
-                  <Inline as="span" display="inline-flex" space="space.075" alignBlock="center">
-                    <Dot tone="warning" /> {iatt.status}
-                  </Inline>
-                ),
+                value: <Indicator tone="warning">{iatt.status}</Indicator>,
               },
               { label: "Requested", value: iatt.requested },
               { label: "Decision target", value: iatt.decisionTarget },
@@ -357,10 +352,9 @@ export function VerificationSection({ programName }: { programName: string }) {
               {rows.map((f) => (
                 <Table.Row key={f.id} className="cursor-pointer" onClick={() => setOpenFinding(f)}>
                   <Table.Cell>
-                    <Inline as="span" space="space.075" alignBlock="center">
-                      <Dot tone={severityTone[f.severity]} />
+                    <Indicator tone={severityTone[f.severity]}>
                       <Id>{f.ref}</Id>
-                    </Inline>
+                    </Indicator>
                   </Table.Cell>
                   <Table.Cell>
                     <Badge tone="neutral">{sourceShort[f.source]}</Badge>

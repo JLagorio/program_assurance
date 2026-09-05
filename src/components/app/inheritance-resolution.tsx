@@ -35,6 +35,7 @@ import {
   Stack,
   Stat,
   Table,
+  Indicator,
 } from "@ledger/design-system";
 import type { Tone } from "@ledger/design-system";
 import {
@@ -229,10 +230,9 @@ export function ResolutionTable({
                 }
               >
                 {unstated ? (
-                  <Inline as="span" space="space.075" alignBlock="center">
-                    <Dot tone="danger" />
-                    <span className="truncate font-medium">Obligation not stated</span>
-                  </Inline>
+                  <Indicator tone="danger">
+                    <span className="font-medium">Obligation not stated</span>
+                  </Indicator>
                 ) : isBlank(row.consumerObligation) ? (
                   <span title="Fully inherited — the provider carries this control end to end.">
                     Nothing — fully inherited
