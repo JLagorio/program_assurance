@@ -499,3 +499,59 @@ Before it, the same day, the reference sweep (f0f5bf9): every sentence in the pa
 named another design system rewritten in the kit's own voice, 353 on the pages and in captions,
 47 source comment blocks, 51 token descriptions (regenerated), 40 changelog entries. Radix stays
 named as what runs underneath; the working notes under docs/ keep their sources.
+
+### 27. Editable, Command, CodeBlock, Resizable, ScrollArea, Toaster (2026-09-05)
+
+The last component walk. Six pages onto the template, each with a Matrix, a Dont and a
+Playground, and the kit changes the walk found. Editable: `label` required on Text as on Select
+(the input had no accessible name and the row's name was the bare value; now "Owner: Dana
+Whitfield" and `aria-label` on the field); the resting row is flush on the text column with the
+tint reaching `space.050` past it, through a `before:` box and a Bleed around the field (the
+lint refuses a negative margin), so an editable value lines up with the plain values beside it
+where it sat 4px in; an empty value is `Absent`; Enter and Escape return focus to the row, and
+the real-input probe found that Enter reopened the field it had just closed: React flushes the
+state change and moves focus to the row inside the keydown, and the key's default action then
+clicks the row, so both keys `preventDefault`; a landed save is announced from a status region.
+Command: the cursor row takes the menu's tint (`neutral.subtle.hovered`) in place of the
+selected fill, since menu.ts exists so a menu and a palette cannot drift; `Command.Loading`
+(cmdk's progressbar, the kit's Spinner); and the a11y gate refused the matrix because a listbox
+may hold only options and groups, so `Command.Empty` and `Command.Loading` now sit after
+`Command.List` in the kit's Combobox, CommandPalette and RecordPicker and in every story (cmdk
+shows them by the Command's state wherever they are); the unused `commandLabel` export is gone.
+CodeBlock: `copy` (a subtle IconButton that says Copied, with a status region), `wrap`, a typed
+props object, the frame a named group and a tab stop. Resizable: `persist` through the
+library's `useDefaultLayout` with a memory storage on the server; `collapsible`, `id` and
+`onResize` on a Panel; `label` on a Handle; the page states the kit's rule that a number is a
+share in percent where the library reads pixels. The probe found Enter folds only the pane before
+the handle (the library's `separatorToPanels[0]`), so the stories put the folding pane first and
+the page says so; parked. ScrollArea: `label` makes the viewport a named region (a focusable
+scroll box with no name), `bar="always"`, the thumb darkens under the pointer. Toaster: the kit's
+own `toast` object wrapping sonner's, `error` at eight seconds with a close; the loading mark is
+the Spinner; `transitionDuration` set inline to `--ds-motion-duration-moderate` so a toast moves
+in 240ms as the Motion page already claimed; the close button styled and ordered last; the live
+region named "Notifications"; `toastClasses` and `toastIcons` exported from the file (not the
+index) so the page's matrix draws every kind statically while sonner renders to the viewport.
+
+Verified with real input over CDP: Editable (click opens the field with the value, Enter commits
+and lands on the row, "Saved" announced, Enter reopens, Escape reverts and returns, Tab moves
+on); Resizable (arrows move 5%, Home and End, the brand line on focus, Enter folds and unfolds
+the pane before the handle, a persisted split reopens at the moved value after a reload);
+ScrollArea (Tab lands on the named region with the outline, arrows and End scroll it); Command
+(Down moves the cursor with the neutral tint, End skips the disabled row); Toaster (two live
+toasts at 240ms, the success gone at four seconds and the error standing with its close, the
+close removing it). Screenshots of every matrix and docs page; the docs probe finds the eleven
+headings on all six. Prototype: ten Editable.Text call sites pass `label`; the program record's
+rail values now sit on the column. Ratchet: 138 exports, 103 pages, 99 on the template, 529
+stories, 39 grandfathered; the full a11y gate 101 passed.
+
+Josef, on the report: "scroll area and tables etc shouldn't have that weird mac overscroll." One rule
+in `base.css`: `overscroll-behavior: none` on the overflow utilities (`.overflow-auto`,
+`.overflow-y-auto`, `.overflow-x-auto`, the scroll forms, the work pane's `lg:` one) and on the
+Radix ScrollArea and Select viewports, so every inner scroller in the kit and in a product stops
+at its edge: no rubber band, no chaining into the page, no back-swipe from a sideways table.
+Verified by computed style on the ScrollArea viewport, a Table frame, a CodeBlock, a Command
+list and a Sheet body. Josef then: "horizontal works in the table but not the scrollable." The
+browser's rule: a scroller contains a gesture only in an axis it can scroll, so a sideways swipe
+over a vertical ScrollArea reaches the document and becomes the back gesture, where a wide table
+catches it. The root takes `overscroll-behavior: none` too (in `base.css`, so a product gets it
+with the kit): no page bounce, no back-swipe anywhere in the product; the parked question closed.

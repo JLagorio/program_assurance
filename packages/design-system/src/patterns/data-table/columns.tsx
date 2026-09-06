@@ -153,6 +153,7 @@ export function columnKinds<TData extends RowData>() {
         if (editable)
           return (
             <Editable.Text
+              label={header ?? key}
               value={isAbsent(v) ? "" : String(v)}
               onChange={(next) => editable.onChange(row.original, next)}
               save={(next) => editable.save(row.original, next)}

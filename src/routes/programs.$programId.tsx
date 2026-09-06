@@ -347,6 +347,7 @@ function ProgramDetail() {
         </KeyValue>
         <KeyValue label="Acronym">
           <Editable.Text
+            label="Acronym"
             value={fields.acronym}
             onChange={(v) => setFields((f) => ({ ...f, acronym: v }))}
             validate={(v) =>
@@ -459,6 +460,7 @@ function ProgramDetail() {
         <p className="pb-050 pt-025 font-body-small text-subtle">{program.summary}</p>
         <KeyValue label="System">
           <Editable.Text
+            label="System"
             value={fields.system}
             onChange={(v) => setFields((f) => ({ ...f, system: v }))}
             validate={required("System")}
@@ -522,6 +524,7 @@ function ProgramDetail() {
         <KeyValue label="Baseline">{program.baseline}</KeyValue>
         <KeyValue label="Assessor">
           <Editable.Text
+            label="Assessor"
             value={fields.assessor}
             onChange={(v) => setFields((f) => ({ ...f, assessor: v }))}
             validate={required("Assessor")}

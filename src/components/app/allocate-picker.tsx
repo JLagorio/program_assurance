@@ -144,6 +144,7 @@ function FieldCells({
       </Table.Cell>
       <Table.Cell>
         <Editable.Text
+          label="Claim"
           value={fields.claim}
           placeholder="The bounded claim"
           onChange={(next) => setField(id, { claim: next })}
@@ -407,6 +408,7 @@ export function AllocateRequirementsSheet({
                     <Table.Cell />
                     <Table.Cell>
                       <Editable.Text
+                        label="Reason"
                         value={out}
                         placeholder="Why it does not reach this element"
                         onChange={(next) => setRuledOut((m) => ({ ...m, [r.id]: next }))}

@@ -52,7 +52,6 @@ export function RecordPicker({
     <Command.Dialog open={open} onClose={onClose} label={title} width="large">
       <Command.Input placeholder={placeholder} hint={<Command.Count />} autoFocus />
       <Command.List style={{ maxHeight: "46vh" }}>
-        <Command.Empty>{emptyHint ?? "Nothing matches."}</Command.Empty>
         {records.map((r) => (
           <Command.Item
             key={r.id}
@@ -78,6 +77,7 @@ export function RecordPicker({
           </Command.Item>
         ))}
       </Command.List>
+      <Command.Empty>{emptyHint ?? "Nothing matches."}</Command.Empty>
       <Command.Footer>
         <CommandKeys />
       </Command.Footer>

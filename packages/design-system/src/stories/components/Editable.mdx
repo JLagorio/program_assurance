@@ -1,4 +1,4 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import * as Stories from "./Editable.stories";
 
@@ -6,6 +6,137 @@ import * as Stories from "./Editable.stories";
 
 # Editable
 
-A value you edit where it sits: click, change, and it saves. It commits optimistically, rolls back on failure, and shows the save state beside the value. `Editable.Text` is a one-line input; `Editable.Select` is a DropdownMenu of the allowed values. `validate` blocks a commit with a message; `save` returns a promise.
+A value edited where it sits. The reader clicks it, changes it, and it saves: no form, no Save button, no dialog. It commits at once and shows the save beside the value; a refused save puts the old value back with the reason under it. **Editable.Text** is one line of text; **Editable.Select** is one of a fixed set, drawn as the record draws it.
+
+It is for one value on a record that already exists: the owner in the rail, the next action in a table's cell, the status as a Badge. A record that does not exist yet is a [form](?path=/docs/components-forms--docs); several values that change together are a form in a Dialog; a paragraph is a Textarea.
 
 <Canvas of={Stories.Rail} />
+
+## Anatomy
+
+| Part      | What it is                                                                                                                                                                  |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Row       | A button the full width of its cell, 24px tall. The value sits flush on the text column; under the pointer the row tints, the tint reaching `space.050` past the value.     |
+| Value     | The committed value in `font.body`, one line that truncates. Empty, the `placeholder` in `color.text.subtlest`, or the muted dash.                                          |
+| Mark      | At the end of the row: a Spinner while saving, a check in `color.icon.success` for a moment after, a warning in `color.icon.danger` after a refusal. A chevron on a Select. |
+| Field     | Text, editing: an input of `dimension.control.xsmall` in the value's place, its box reaching `space.050` past the column so the text stays on it.                             |
+| Menu      | Select, editing: a DropdownMenu of the options under the row, headed by the label, the current one marked.                                                                  |
+| Message   | Under the row in `font.body.xsmall` and `color.text.danger`: what `validate` refused, or why the save failed.                                                                |
+
+## Variants
+
+Two, by what the value is. **Text** for a value the reader writes: a name, an acronym, a next action, a date typed as text. **Select** for one of a fixed set: a status, a method, an owner from a roster, drawn by `render` as the record draws it, a Badge or a Person, so the rail and the table agree.
+
+Where it lives: in a [KeyValue](?path=/docs/components-keyvalue--docs) row of the rail, in a [Fact](?path=/docs/components-fact--docs), in a [Table](?path=/docs/components-table--docs) cell under the column's heading. A [DataTable](?path=/docs/patterns-datatable--docs) column with `editable` draws these itself.
+
+<Canvas of={Stories.InTable} />
+
+Not built, and why: a multi-line Editable, because a paragraph edited in place hides the paragraph while it is edited; a narrative is a Textarea in a Sheet with a Save. A date Editable, because a date is picked, not typed; the DatePicker is the control and the decision on typed dates is open.
+
+## Sizes
+
+One: 24px, `dimension.control.xsmall`, so the row is a line of body text with `space.025` above and below, the height of the KeyValue row and the table cell it sits in. The width is the cell's.
+
+## States
+
+| State    | Look                                                                                                                                         |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rest     | The value, flush. Nothing says it edits until the pointer arrives; the rail's rows all edit, so nothing needs to.                             |
+| Hover    | The row tints `color.background.neutral.subtle.hovered`; pressed, `.pressed`.                                                                 |
+| Focus    | The kit's focus outline on the row.                                                                                                          |
+| Editing  | Text: the field in the value's place, focused, the whole value selected for typing over. Select: the menu open under the row.                |
+| Invalid  | Editing, the field's border `color.border.danger` and the message under it, as the reader types. The commit is refused while it shows.       |
+| Saving   | The new value shows at once and a Spinner sits at the end of the row.                                                                        |
+| Saved    | A check for `motion.duration.slower` twice, then nothing.                                                                                     |
+| Failed   | The old value is back, the warning mark at the end, the reason under the row. It stays until the next edit.                                  |
+| Empty    | The placeholder in `color.text.subtlest`, or the muted dash. Never a grey instruction.                                                        |
+
+There is no disabled state. A value the reader cannot change is plain text in the same row, which lines up with the editable ones.
+
+<Canvas of={Stories.EditableMatrix} />
+
+## Modifiers
+
+- **`validate`**: a function of the draft that returns a message or null. It runs as the reader types and again at the commit, so a rule is seen before Enter is refused.
+- **`save`**: a promise. Resolved, the check; rejected, the rollback and the error's message. `onChange` is called at once with the new value, and again with the old one when the save fails, so the caller's state is always what the reader sees.
+- **`placeholder`** on Text: what goes here, as a noun.
+- **`options`** and **`render`** on Select: the set, and how a value is drawn.
+- **`label`**: the field's name for a screen reader. The KeyValue or the column shows the visible one.
+
+<Canvas of={Stories.Validation} />
+
+<Canvas of={Stories.Failing} />
+
+## Content
+
+- **The label is the field's name as the rail shows it:** "Owner", "Next action". The same word as the KeyValue's label or the column's heading.
+- **A placeholder says what goes here, as a noun:** "Unassigned", "Add next action". Not "Click to edit", not "Enter a value".
+- **A validation message says the rule, in one sentence:** "Two to twelve letters, digits or hyphens." Not "Invalid".
+- **A save failure says why, from the server's message when it has one,** and "Could not save" when it does not.
+- **A Select's options are the record's words,** drawn as the record draws them.
+
+## Style
+
+| Element  | Token                                                                                                                                 |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Row      | `dimension.control.xsmall` 24px · `space.025` block · `space.075` gap · `radius.small` · tint reaching `space.050` past the column     |
+| Value    | `font.body` · `color.text` · `color.text.subtlest` for the placeholder                                                                 |
+| Tint     | `color.background.neutral.subtle.hovered`, `.pressed` · `motion.duration.fast` on `motion.easing.standard`                            |
+| Field    | `dimension.control.xsmall` · `color.background.input` · `color.border.input`, `color.border.focused` focused, `color.border.danger` invalid |
+| Mark     | `dimension.icon.small` 14px · `color.icon.success` · `color.icon.danger` · the Spinner                                                |
+| Message  | `font.body.xsmall` · `color.text.danger`                                                                                               |
+| Focus    | The kit's focus outline, `color.border.focused`                                                                                        |
+
+## Accessibility
+
+- **The row is a button named by the label and the value:** "Owner: Dana Whitfield". The label is read before the value, so a screen reader hears what the field is where a sighted reader reads the KeyValue's label beside it.
+- **The field is named by the label** (`aria-label`) and, invalid, is `aria-invalid` and described by the message.
+- **Keyboard:** Tab reaches the row; Enter or Space opens the field with the value selected; Enter commits and Escape puts the old value back, and either returns focus to the row. Leaving the field by Tab or a click commits and focus goes where the reader sent it. A Select opens with Enter, Space or Down and moves as a menu does.
+- **A landed save is announced:** "Saved", or "Not saved", from a status region under the row; the Spinner says "Saving".
+- **The a11y gate** checks the names and the contrast on the resting rows; the field and the menu are one click away.
+
+## Props
+
+By hand until the generated tables reach a part.
+
+### Editable.Text
+
+| Prop          | Type                                  | What it is                                                                                     |
+| ------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `label`       | `string`, required                    | The field's name for a screen reader: "Owner".                                                 |
+| `value`       | `string`, required                    | The committed value, shown at rest.                                                            |
+| `onChange`    | `(next: string) => void`, required    | Called at once with the new value, and with the old one again if the save fails.               |
+| `save`        | `(next: string) => Promise`, required | Saves it. Rejected, the value rolls back and the error's message shows.                        |
+| `validate`    | `(next: string) => string \| null`    | A message blocks the commit; null lets it through.                                             |
+| `placeholder` | `string`                              | What goes here, as a noun, shown while empty.                                                  |
+
+### Editable.Select
+
+| Prop       | Type                               | What it is                                                                 |
+| ---------- | ---------------------------------- | -------------------------------------------------------------------------- |
+| `label`    | `string`, required                 | The field's name, and the menu's heading.                                  |
+| `value`    | `T`, required                      | The current option.                                                        |
+| `options`  | `readonly T[]`, required           | The set, in the order it shows.                                            |
+| `onChange` | `(next: T) => void`, required      | As Text.                                                                   |
+| `save`     | `(next: T) => Promise`, required   | As Text.                                                                   |
+| `validate` | `(next: string) => string \| null` | As Text: a status the record is not ready for, with the reason.            |
+| `render`   | `(value: T) => ReactNode`          | Draws a value: a Badge, a Person. Unsaid, the value as text.               |
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [KeyValue](?path=/docs/components-keyvalue--docs) and [Fact](?path=/docs/components-fact--docs): the rows an Editable sits in.
+- [DataTable](?path=/docs/patterns-datatable--docs): columns with `editable`, and Enter moving down the column.
+- [Forms](?path=/docs/components-forms--docs): a record that does not exist yet, and values that change together.
+- [Input](?path=/docs/components-input--docs) and [Textarea](?path=/docs/components-textarea--docs): the field in a form.
+- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): the menu a Select opens.
+- [Badge](?path=/docs/components-badge--docs): what a status Select renders.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

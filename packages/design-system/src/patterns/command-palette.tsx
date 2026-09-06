@@ -64,7 +64,6 @@ export function CommandPalette({
     <Command.Dialog open={open} onClose={onClose} label="Command palette">
       <Command.Input placeholder={placeholder} hint={null} />
       <Command.List>
-        <Command.Empty>No commands match.</Command.Empty>
         {groups.map(([group, items]) => (
           <Command.Group key={group} heading={group}>
             {items.map((c) => (
@@ -83,6 +82,7 @@ export function CommandPalette({
           </Command.Group>
         ))}
       </Command.List>
+      <Command.Empty>No commands match.</Command.Empty>
       <Command.Footer>
         <CommandKeys choose="to run" />
       </Command.Footer>

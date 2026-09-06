@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { CodeBlock } from "../../components";
 import * as Stories from "./CodeBlock.stories";
@@ -7,12 +7,100 @@ import * as Stories from "./CodeBlock.stories";
 
 # CodeBlock
 
-Source shown as source: a line-number gutter that stays put when the block scrolls sideways, one row per line, the code face. The caller owns highlighting and passes rendered lines.
+Source shown as source: a configuration excerpt, a serialised record, a log, a command the reader will paste. One row per line in the code face, a line-number gutter that stays put when the block scrolls sideways, a cap on the height so a long document scrolls inside the block and not the page, and a Copy when the reader will take the text away. The caller owns highlighting and passes rendered lines.
+
+It is not a field: a value the reader edits is a [Textarea](?path=/docs/components-textarea--docs). It is not prose: a paragraph is [Text](?path=/docs/primitives-text--docs). A single identifier in a sentence is an [Id](?path=/docs/components-id--docs).
+
+<Canvas of={Stories.Code} />
+
+## Anatomy
+
+| Part   | What it is                                                                                                                                                                 |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frame  | A box in `elevation.surface.sunken` with a 1px `color.border` and `radius.medium`. It scrolls both ways inside itself; it is a tab stop so the keyboard can scroll it.        |
+| Gutter | The line numbers, `color.text.subtlest`, tabular, right-aligned, on a column that sticks to the start edge when the lines scroll sideways, with a 1px rule at its end.        |
+| Line   | One row per entry of `lines`, `space.150` from the gutter, in `font.code`. A string, or the caller's spans.                                                                  |
+| Copy   | With `copy`, a subtle IconButton at the top end that puts the text on the clipboard and says Copied for a moment.                                                            |
+
+## Variants
+
+One. What changes is what the lines are: a string per line, or nodes the caller has coloured, because a kit tokenizer for every format the product meets is not the kit's job. The export page splits its JSON and colours the keys; a log is strings.
+
+<Canvas of={Stories.Highlighted} />
+
+Not built, and why: a highlighted line (the one a validation error points at, the changed lines of a revision), because no screen asks for it yet; a diff, which is two documents and a decision; a language picker or a tokenizer.
+
+## Sizes
+
+One face, `font.code`, at the body size. The block is as wide as its container and as tall as its lines up to `maxHeight`, 560px by default; a short excerpt never scrolls. The gutter is as wide as the last line number needs, three digits at least.
+
+## States
+
+| State     | Look                                                                                                         |
+| --------- | ------------------------------------------------------------------------------------------------------------ |
+| Rest      | The lines, the gutter, the frame.                                                                            |
+| Focus     | The kit's focus outline on the frame, on keyboard focus, so a keyboard reader can scroll it.                 |
+| Scrolled  | Sideways, the gutter stays and the lines pass under it. Down, the gutter goes with the lines.                |
+| Copied    | The Copy's icon is a check in `color.icon.success` and its label reads Copied, for a moment.                 |
 
 <Canvas of={Stories.CodeBlockMatrix} />
 
-<Canvas of={Stories.Code} />
+## Modifiers
+
+- **`start`**: the number of the first line, for an excerpt of a longer file.
+- **`maxHeight`**: pixels before the block scrolls inside itself.
+- **`wrap`**: long lines fold at the block's edge. Off by default so code keeps its columns; on for a log or a value with no columns to keep.
+- **`copy`**: the text a Copy puts on the clipboard, usually the lines joined. Unsaid, there is no button.
+- **`label`**: the block's accessible name, the file or the format. "Code" by default; say which.
+
+<Canvas of={Stories.Wrapped} />
+
+<Canvas of={Stories.Capped} />
+
+## Content
+
+- **Lines are the source as it is,** indentation included. Do not trim, reflow or re-indent for the page.
+- **`label` names the thing:** "control.json", "Ingest log", "Router configuration". Not "Code".
+- **`start` is the real line number** when the block is an excerpt, so a reader can find the line in the file.
+- **A Copy where the reader will paste:** a command, a configuration, a document. Not on a log they read.
+- **Highlighting colours the grammar, in the kit's text colours:** keys in `color.text.brand`, strings subtle, comments subtlest. Never a rainbow.
+
+## Style
+
+| Element | Token                                                                                                   |
+| ------- | ------------------------------------------------------------------------------------------------------- |
+| Frame   | `elevation.surface.sunken` · 1px `color.border` · `radius.medium` · `space.050` block inside              |
+| Gutter  | `font.code` · `color.text.subtlest` · tabular · `space.100` inline · 1px `color.border` at its end        |
+| Line    | `font.code` · `color.text` · `space.150` from the gutter                                                  |
+| Copy    | IconButton `subtle` `small` at `space.100` from the top and the end · `color.icon.success` when copied    |
+| Focus   | The kit's focus outline, `color.border.focused`                                                           |
+
+## Accessibility
+
+- **The frame is a group named by `label`** and a tab stop, so a keyboard reader can reach a block that scrolls and move it with the arrows. A block with a bare "Code" name is a block the screen reader cannot tell from the next one.
+- **Line numbers are not selectable,** so a copied selection is the code alone.
+- **The Copy is an IconButton:** named, with the kit's tooltip, and a status region says Copied.
+- **Contrast:** the gutter's `color.text.subtlest` passes on the sunken surface in both modes; the caller's highlight colours are the kit's text tokens, which do too.
+- **The a11y gate** checks the name, the tab stop and the contrast in the matrix.
 
 ## Props
 
 <ArgTypes of={CodeBlock} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Textarea](?path=/docs/components-textarea--docs): code the reader edits.
+- [Id](?path=/docs/components-id--docs): one identifier in running text.
+- [Text](?path=/docs/primitives-text--docs): prose.
+- [IconButton](?path=/docs/components-iconbutton--docs): the Copy.
+- [ScrollArea](?path=/docs/components-scrollarea--docs): a region that scrolls with the kit's bar; the CodeBlock uses the platform's, so the gutter can stick.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

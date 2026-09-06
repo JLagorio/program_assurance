@@ -284,6 +284,7 @@ function RequirementRecord() {
                 <>
                   <Fact label="Owner">
                     <Editable.Text
+                      label="Owner"
                       value={requirement.owner}
                       onChange={(next) => setRequirementField(requirement.id, { owner: next })}
                       save={(next) => saveRequirementField(`${requirement.id} owner`, next)}
@@ -459,6 +460,7 @@ function RequirementRecord() {
                   <Fact label="Success criteria">
                     <span className="font-body font-regular">
                       <Editable.Text
+                        label="Success criteria"
                         value={requirement.successCriteria}
                         onChange={(next) =>
                           setRequirementField(requirement.id, { successCriteria: next })

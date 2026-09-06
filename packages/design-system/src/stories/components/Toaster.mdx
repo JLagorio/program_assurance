@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { Toaster } from "../../components";
 import * as Stories from "./Toaster.stories";
@@ -7,12 +7,116 @@ import * as Stories from "./Toaster.stories";
 
 # Toaster
 
-Confirmation of an action: bottom right, gone in a few seconds. Render one Toaster near the root, then call `toast.success`, `toast.error`, `toast.warning` or `toast.info` from anywhere.
+Feedback after an act. The reader linked the evidence, archived the program, exported the report; a toast says so at the bottom right and goes. **Toaster** is the stack, rendered once near the root; **`toast`** fires one from anywhere: `toast.success("Evidence linked")`. sonner underneath for the stack, the timer, the swipe and the live region; the kit owns the look and the defaults.
+
+A toast is one of three messages. A condition of the record is an [Alert](?path=/docs/components-alert--docs) on the record; a message about the whole site is a [Banner](?path=/docs/components-banner--docs). A toast is never a question: that is an [AlertDialog](?path=/docs/components-alertdialog--docs), and the toast comes after it.
+
+<Canvas of={Stories.Toasts} />
+
+## Anatomy
+
+| Part        | What it is                                                                                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Card        | 356px on `elevation.surface.overlay` with a 1px `color.border`, `radius.large`, the overlay shadow, `space.150` inside. It slides in from the edge.             |
+| Mark        | Before the text, `dimension.icon.medium`, in the tone's icon colour: a check, an info, a warning, a danger. A plain toast has none; a working one has the Spinner. |
+| Title       | What happened, `font.body` medium, one line.                                                                                                                 |
+| Description | Under it when there is more to say, `font.body.small`, `color.text.subtle`.                                                                                  |
+| Action      | At the end: one verb the reader may still take, Undo mostly, as a small bold button. `cancel` is a quiet second beside it.                                    |
+| Close       | An error's, at the end, so a reader can be rid of it; `closeButton` puts one on every toast.                                                                 |
+| Stack       | Newest at the bottom right, the older ones behind it, four at most; the pointer over the stack fans them out.                                                 |
+
+## Variants
+
+Five kinds, by what happened. **Plain**, `toast("Saved")`: no mark, for the small confirmations. **Success**: the act landed. **Info**: something the reader should know now, "3 controls updated". **Warning**: the act landed with a caveat, "Due in 2 days". **Error**: the act did not land; it stays longer and carries a close. And **working**, `toast.loading` or `toast.promise`: the Spinner while it runs, then the outcome in the same card.
+
+The card is one colour in every kind; the mark carries the tone. There is no tinted toast, for the reason there is no tinted Stat: a tone fills a Badge or an Alert, and a toast is neither.
+
+<Canvas of={Stories.WithAction} />
+
+<Canvas of={Stories.Working} />
+
+## Sizes
+
+One: 356px wide, so a title and a line of description fit, and as tall as its text. On a narrow screen it spans the width. The stack sits `space.200` from the edges with `space.100` between cards.
+
+## States
+
+| State    | Look                                                                                                                          |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Arriving | Slides in from the bottom in `motion.duration.moderate`; the stack lifts to make room.                                        |
+| Resting  | Four seconds for most; eight for an error; until it settles for working; `duration: Infinity` for one that must be closed.     |
+| Hover    | The timer pauses and the stack fans out, so a reader who looks can read.                                                      |
+| Focus    | The card is a tab stop with the kit's focus outline; the action, the cancel and the close are reached inside it.               |
+| Leaving  | Fades and drops in `motion.duration.moderate`; a swipe to the side dismisses it.                                              |
+| Expanded | `expand` on the Toaster: every card at full height instead of stacked.                                                         |
 
 <Canvas of={Stories.ToasterMatrix} />
 
-<Canvas of={Stories.Toasts} />
+## Modifiers
+
+- **`description`**: the second line, the object or the consequence.
+- **`action`**: `{ label, onClick }`, one verb; **`cancel`**: the quiet second.
+- **`duration`**: milliseconds; `Infinity` for a toast the reader must close. The kit's defaults are in States.
+- **`closeButton`** per toast, or on the Toaster for every toast.
+- **`id`**: fire again with the same id to replace a toast in place, as `loading` then `success` does.
+- **`toast.promise(p, { loading, success, error })`**: one card through the three.
+- **`toast.dismiss(id)`**: take one down, or all with no id.
+- **`position`** and **`expand`** on the Toaster, chosen once per product.
+
+<Canvas of={Stories.Errors} />
+
+## Content
+
+- **The title is what happened, past tense, with the object:** "Evidence linked", "Archived PRG-1041", "Could not save". Not "Success!", not "Error", not a sentence.
+- **The description names the thing or the consequence,** one line: "Bank reconciliation, July", "Its controls stay readable."
+- **An error says what to do** when there is something: "Add the SAR and export again."
+- **One action, a verb:** Undo, View, Retry. Never Yes or No: a toast does not ask.
+- **Say what the product did, not what the reader clicked.** The click is known; the outcome is the news.
+- **One toast per act.** An act that touched twelve records says "12 controls updated", not twelve toasts.
+
+## Style
+
+| Element     | Token                                                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Card        | `elevation.surface.overlay` · 1px `color.border` · `radius.large` · `elevation.shadow.overlay` · `space.150` inside · `space.100` gap |
+| Mark        | `dimension.icon.medium` 16px · `color.icon.success`, `.information`, `.warning`, `.danger` · the Spinner `medium`      |
+| Title       | `font.body` at `font.weight.medium` · `color.text`                                                                     |
+| Description | `font.body.small` · `color.text.subtle`                                                                                 |
+| Action      | `dimension.control.xsmall` 24px · `color.background.brand.bold`, `.hovered` · `color.text.inverse` · `font.body.small` medium · `radius.medium` |
+| Cancel      | `dimension.control.xsmall` · `color.text.subtle`, `color.text` on `color.background.neutral.subtle.hovered`             |
+| Close       | 24px · `dimension.icon.small` · `color.text.subtle` · `color.background.neutral.subtle.hovered`                          |
+| Stack       | `space.200` from the edges · `space.100` between · four visible                                                          |
+| Motion      | `motion.duration.moderate` in and out                                                                                    |
+
+## Accessibility
+
+- **The stack is a live region,** `aria-live="polite"`, named "Notifications", so a screen reader hears a toast when it arrives without being interrupted. An error is polite too: it says what failed, and the failed control says it as well.
+- **Keyboard:** Alt+T moves focus to the stack; each card is a tab stop, and Tab reaches its action, its cancel and its close. Escape does nothing to a toast; the close and the timer do.
+- **The timer pauses on hover and on focus,** so a reader who reaches a toast can read it.
+- **An error stays eight seconds and has a close,** because four is not enough to read why and a reader who looked away must still find it. A toast that must be acted on is `Infinity` with an action.
+- **Reduced motion** shows and hides the card at once.
+- **The a11y gate** checks the specimens' contrast and the buttons' names; the live region is sonner's and is checked by hand.
 
 ## Props
 
 <ArgTypes of={Toaster} />
+
+`toast` takes a title and sonner's options: `description`, `action`, `cancel`, `duration`, `closeButton`, `id`, `icon`, `onDismiss`, `onAutoClose`. `toast.success`, `.info`, `.warning`, `.error`, `.loading`, `.promise`, `.dismiss` as in Modifiers.
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Alert](?path=/docs/components-alert--docs): a condition of the record, on the record.
+- [Banner](?path=/docs/components-banner--docs): a message about the whole site.
+- [AlertDialog](?path=/docs/components-alertdialog--docs): the question a toast never asks; the toast comes after.
+- [Spinner](?path=/docs/components-spinner--docs): the mark of a working toast.
+- [Motion](?path=/docs/tokens-motion--docs): the arrival and the leaving.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

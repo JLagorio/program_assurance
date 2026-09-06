@@ -65,9 +65,9 @@ export {
   type TreemapSelection,
 } from "./chart";
 export { FilterChip, type FilterChipProps } from "./chip";
-export { CodeBlock } from "./code-block";
+export { CodeBlock, type CodeBlockProps } from "./code-block";
 export { Combobox, type ComboboxOption, type ComboboxProps } from "./combobox";
-export { Command } from "./command";
+export { Command, type CommandDialogProps } from "./command";
 export {
   Checkbox,
   Field,
@@ -98,7 +98,12 @@ export {
 } from "./disclosure";
 export { Drawer, type DrawerProps } from "./drawer";
 export { DropdownMenu, type DropdownMenuItemProps, type DropdownMenuProps } from "./dropdown-menu";
-export { Editable, type EditableProps } from "./editable";
+export {
+  Editable,
+  type EditableProps,
+  type EditableSelectProps,
+  type EditableTextProps,
+} from "./editable";
 export { Gates, type GateItemProps, type GatesProps } from "./gates";
 export { HoverCard, type HoverCardProps } from "./hover-card";
 export { Id, type IdListProps, type IdProps } from "./id";
@@ -115,8 +120,13 @@ export {
   type ProgressStackedProps,
   type StackedSegment,
 } from "./progress";
-export { Resizable } from "./resizable";
-export { ScrollArea } from "./scroll-area";
+export {
+  Resizable,
+  type ResizableHandleProps,
+  type ResizablePanelProps,
+  type ResizableProps,
+} from "./resizable";
+export { ScrollArea, type ScrollAreaProps } from "./scroll-area";
 export { Select, type SelectGroupProps, type SelectItemProps, type SelectProps } from "./select";
 export { Separator, type SeparatorProps } from "./separator";
 export { Sheet, type SheetProps } from "./sheet";
@@ -143,7 +153,7 @@ export {
   type TimelineSize,
   type TimelineTimePosition,
 } from "./timeline";
-export { Toaster, toast } from "./toaster";
+export { Toaster, toast, type ToasterProps } from "./toaster";
 export {
   Toggle,
   ToggleGroup,

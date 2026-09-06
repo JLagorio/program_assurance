@@ -8,6 +8,12 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Breaking
 
+- `Editable.Text` takes `label`, as `Editable.Select` did: the field's name for a screen reader,
+  read before the value ("Owner: Dana Whitfield") and on the input while editing. DataTable's
+  `text` column passes its header; the prototype's ten call sites pass the row's label.
+  `Command.Empty` and `Command.Loading` render after `Command.List`, not inside it: a listbox may
+  hold only options and groups, and the a11y gate said so. The kit's Combobox, CommandPalette
+  and RecordPicker moved theirs. Components/Editable, Components/Command.
 - `Accordion` is `Collapsible.Group`: one part for a section that folds, alone or in a set. A
   Collapsible inside a Group takes the group's keyboard (Up and Down between the titles, Home and
   End, wrapping) and the group's open state, and is written the way it is written alone:
@@ -172,6 +178,27 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Added
 
+- Every scroller stops at its edge, the page included: `overscroll-behavior: none` on the
+  overflow utilities, the library viewports (ScrollArea, Select) and the root, from `base.css`.
+  No rubber band inside a table frame, a ScrollArea, a code block, a menu list or a sheet's body,
+  none at the end of the page, and no scroll chaining into the page behind them. A sideways swipe
+  never becomes the browser's back gesture, over a wide table or over a rail that scrolls down
+  alone: a scroller contains a gesture only in an axis it can scroll, so the root holds the rest.
+  Components/ScrollArea, Components/Table.
+- Editable, Command, CodeBlock, Resizable, ScrollArea and Toaster are on the template, each with
+  a Matrix, a Dont and a Playground. Editable: the value sits flush on the text column with the
+  tint reaching `space.050` past it, so an editable value lines up with the plain values beside
+  it; an empty value is the kit's `Absent`; Enter and Escape return focus to the row, and Enter
+  no longer reopens the field it just closed; a landed save is announced. Command: the cursor row
+  tints as a menu's does, `color.background.neutral.subtle.hovered`, in place of the selected
+  fill; `Command.Loading` for rows fetched as the reader types. CodeBlock: `copy` (a Copy that
+  says Copied), `wrap`, `CodeBlockProps`. Resizable: `persist` keeps the reader's sizes in
+  localStorage; `collapsible`, `id` and `onResize` on a Panel; `label` on a Handle, "Resize"
+  unsaid; typed props. ScrollArea: `label` names the viewport a region, `bar="always"`, the thumb
+  darkens under the pointer. Toaster: `toast` is the kit's, `error` staying eight seconds with a
+  close; the loading mark is the Spinner; a toast moves in `motion.duration.moderate`, as the
+  Motion page said; the close is styled; `closeButton` on the Toaster; `toastClasses` and
+  `toastIcons` for the page's specimens. Ninety-nine pages on the template; 39 gaps grandfathered.
 - `Collapsible` and `Accordion` take `headingLevel` (the title as an h2 to h6, so a rail's
   sections are in the page's outline) and `disabled`; the row tints under the pointer, the tint
   reaching `space.100` past a flush title. `AccordionItemProps`

@@ -107,7 +107,6 @@ export function Combobox({
       <Command className="rounded-large">
         <Command.Input placeholder={searchPlaceholder} hint={null} autoFocus />
         <Command.List style={{ maxHeight: 260 }}>
-          <Command.Empty>{empty}</Command.Empty>
           {options.map((o) => (
             <Command.Item
               key={o.value}
@@ -129,6 +128,7 @@ export function Combobox({
             </Command.Item>
           ))}
         </Command.List>
+        <Command.Empty>{empty}</Command.Empty>
       </Command>
     </Popover>
   );

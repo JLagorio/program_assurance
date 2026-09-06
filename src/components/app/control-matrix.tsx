@@ -260,6 +260,7 @@ export function ControlMatrixSection({
                   </Table.Cell>
                   <Table.Cell className="overflow-visible">
                     <Editable.Text
+                      label="Next action"
                       value={r.nextAction}
                       placeholder="Add next action"
                       onChange={(next) => updateControl(programId, r.id, { nextAction: next })}
@@ -268,6 +269,7 @@ export function ControlMatrixSection({
                   </Table.Cell>
                   <Table.Cell className="tabular-nums overflow-visible text-right">
                     <Editable.Text
+                      label="Due"
                       value={r.due}
                       placeholder="—"
                       onChange={(next) => updateControl(programId, r.id, { due: next })}

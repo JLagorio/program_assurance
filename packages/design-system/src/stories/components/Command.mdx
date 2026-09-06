@@ -6,8 +6,167 @@ import * as Stories from "./Command.stories";
 
 # Command
 
-A list you filter from the keyboard: the ⌘K palette, a record picker, the search behind a Combobox. cmdk underneath for filtering, arrow keys, typeahead and aria; the tokens own the look. Compose it from Input, List, Group, Item, Empty, Separator, a Footer of hints, and Dialog for the overlay form. `Command.Count` reads the live filtered count.
+A list the reader filters from the keyboard. A field at the top, the rows under it narrowing as the reader types, the arrows moving a cursor and Enter choosing the row under it. It is the ⌘K palette, the record picker, and the list behind a Combobox; the parts are the same in each and the composition differs. cmdk underneath for the filtering, the keys and the roles; the look is the floating list's, so a palette's row and a menu's row are one row.
 
-<Canvas of={Stories.Inline_} />
+A Command is for a list worth searching: a dozen commands, every record of a kind, a roster. A handful of actions is a [DropdownMenu](?path=/docs/components-dropdownmenu--docs); one answer from a short list is a [Select](?path=/docs/components-select--docs); choosing many by attribute is a [PickerSheet](?path=/docs/patterns-pickersheet--docs).
+
+<Canvas of={Stories.Palette} />
+
+## Anatomy
+
+| Part      | What it is                                                                                                                                                                 |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Field     | `Command.Input`: 36px, a search mark before the input, a rule under it. At the end a hint: `esc` by default, a `Command.Count` in a picker, `null` in a Combobox.           |
+| List      | `Command.List`: the rows, `space.075` inside, scrolling within themselves past 340px.                                                                                       |
+| Group     | `Command.Group`: rows under a heading in `font.heading.xxsmall` uppercase, `color.text.subtlest`. The heading goes when its rows are filtered out.                          |
+| Row       | `Command.Item`: 32px, the menu row; an icon before the label when the rows are of kinds, `trailing` at the end. A picker's row is two lines, the id before and a Badge after. |
+| Separator | `Command.Separator`: a rule between groups, hidden with them.                                                                                                              |
+| Empty     | `Command.Empty`: what to say when nothing matches, centred, `color.text.subtle`. It sits after the List, because a listbox may hold only options.                           |
+| Loading   | `Command.Loading`: the Spinner and a word while the rows are fetched, after the List for the same reason.                                                                   |
+| Footer    | `Command.Footer`: keys and what they do on `elevation.surface.sunken`, and the `Command.Count` at the end.                                                                 |
+| Dialog    | `Command.Dialog`: the whole as an overlay near the top of the page, `medium` 560px or `large` 640px, on the blanket.                                                        |
+
+## Variants
+
+Three compositions of one part. **The palette:** commands under group headings, a verb and its object each, a shortcut or a hint at the end, `to run` in the footer; the kit's [CommandPalette](?path=/docs/patterns-commandpalette--docs) is this with the commands as data. **The picker:** records, two lines each with the id before and the state after, the count in the field, `large`; the kit's [RecordPicker](?path=/docs/patterns-recordpicker--docs) is this. **The Combobox's list:** the Command inline in a Popover under a field, no hint, no footer, a check on the chosen option.
 
 <Canvas of={Stories.AsDialog} />
+
+<Canvas of={Stories.Picker} />
+
+Inline, on the page, it is rare: a Command needs a surface of its own (the Dialog's, the Popover's, a Card's) because its field and its list are one control.
+
+## Sizes
+
+One row: 32px, `dimension.control.medium`, one line. A picker's row takes `h-auto py-100` and two lines. The field is 36px, `dimension.control.large`, so it reads as the head of the list. The Dialog is `medium`, 560px, for a palette, and `large`, 640px, for a picker whose rows carry a meta line; the list inside caps at 340px and scrolls.
+
+## States
+
+| State   | Look                                                                                                                                      |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Row     | Rest: `color.text`. Cursor: `color.background.neutral.subtle.hovered`, the row Enter chooses; the pointer moves it too. Disabled: `color.text.disabled`, skipped. |
+| List    | Matching: the rows that match, groups whose rows all went hidden. Empty: the Empty alone. Loading: the Loading row.                        |
+| Field   | Focused on open; the kit's focus outline does not show inside the Dialog, where the field is the only control.                              |
+| Dialog  | Open, on the blanket; gone on Escape, a click outside, or a choice.                                                                        |
+
+<Canvas of={Stories.CommandMatrix} />
+
+## Modifiers
+
+- **`label`** on the Command: the list's name for a screen reader. The Dialog takes it as the dialog's name and passes it down.
+- **`value` and `onValueChange`** on the Command: the cursor row, when the caller holds it.
+- **`shouldFilter={false}`** and the field's **`value` and `onValueChange`**: the caller filters, for rows fetched from a server as the reader types; `Command.Loading` holds the list meanwhile.
+- **`filter`**: the match function, when cmdk's is not the one. **`keywords`** on a row: words it matches besides its label.
+- **`loop`**: the cursor wraps from the last row to the first. Off by default, so the reader feels the end.
+- **`trailing`** on a row: a shortcut as Kbd, a hint in `color.text.subtle`, a Badge for a state.
+- **`hint`** on the field, as in Anatomy. **`width`** on the Dialog, as in Sizes.
+- **`forceMount`** on a row or a group: shown whatever the query, for an action that is always there.
+
+<Canvas of={Stories.Loading} />
+
+## Content
+
+- **A command is a verb and its object:** "Record assessment", "Export the SSP", "Open CTRL-0412". Not a sentence, not a question, no "click".
+- **A group heading is the kind, one word:** "Controls", "People", "Actions". The page's verbs first, the places after.
+- **A picker's row is the record as the register shows it:** the id, the title, one meta line, one state.
+- **The field's placeholder says what to type:** "Type a command…", "Search evidence…".
+- **The Empty says nothing matched and what to try,** in one line. Never blank.
+- **Shortcuts are keys at the end,** as Kbd, and one per row at most.
+
+## Style
+
+| Element   | Token                                                                                                                   |
+| --------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Field     | `dimension.control.large` 36px · `space.150` inline · 1px `color.border` under · `dimension.icon.medium` mark             |
+| Row       | `dimension.control.medium` 32px · `space.100` inline · `radius.medium` · `font.body` · `space.100` gap                    |
+| Cursor    | `color.background.neutral.subtle.hovered` · `motion.duration.fast` on `motion.easing.standard`                           |
+| Heading   | `font.heading.xxsmall` uppercase · `color.text.subtlest` · `space.100` above, `space.050` under                           |
+| Trailing  | `font.body.xsmall` · `color.text.subtle`                                                                                  |
+| Footer    | `elevation.surface.sunken` · 1px `color.border` above · `space.150` inline, `space.100` block · `font.body.xsmall`         |
+| Surface   | `elevation.surface.overlay` · `radius.xxlarge` · `elevation.shadow.overlay` in the Dialog                                 |
+| Dialog    | `space.1000` from the top · `color.blanket` · `motion.duration.moderate` in on `motion.easing.enter`, out on `exit`        |
+
+## Accessibility
+
+- **The field is a combobox** that controls the list, a listbox; each row is an option and the cursor is `aria-selected`; groups are named by their headings. cmdk sets all of it.
+- **Keyboard:** typing filters; Down and Up move the cursor, Home and End go to the ends, Enter chooses, Escape closes the Dialog. Focus stays in the field, so a screen reader hears the cursor row as the active descendant.
+- **The Dialog is named by `label`** and traps focus; the field is focused on open and the trigger gets focus back on close.
+- **A disabled row is skipped** by the arrows and says so.
+- **Empty and Loading sit after the listbox,** not in it: a listbox may hold only options and groups, so a message row inside it fails the a11y gate. cmdk shows and hides them by the Command's state wherever they are.
+- **Loading is a progressbar** named by `label`, so a screen reader hears that the rows are coming.
+- **The a11y gate** checks the roles and names in the matrix; the keys are cmdk's and are checked by hand.
+
+## Props
+
+By hand until the generated tables reach a part.
+
+### Command
+
+| Prop            | Type                       | What it is                                                             |
+| --------------- | -------------------------- | ---------------------------------------------------------------------- |
+| `label`         | `string`                   | The list's accessible name.                                            |
+| `value`         | `string`                   | The cursor row, by its value, with `onValueChange`.                    |
+| `onValueChange` | `(value: string) => void`  | Called as the cursor moves.                                            |
+| `shouldFilter`  | `boolean`                  | `false`: the caller filters. On by default.                            |
+| `filter`        | `(value, search, keywords) => number` | The match, 0 to 1. cmdk's by default.                       |
+| `loop`          | `boolean`                  | The cursor wraps. Off by default.                                      |
+| `className`     | `string`                   | Layout and the surface, inline: a border, a shadow.                    |
+| `children`      | `ReactNode`                | The parts, in order: Input, List, then Empty and Loading, Footer.      |
+
+### Command.Input
+
+| Prop            | Type                       | What it is                                                             |
+| --------------- | -------------------------- | ---------------------------------------------------------------------- |
+| `placeholder`   | `string`                   | What to type.                                                          |
+| `hint`          | `ReactNode`                | At the end: `esc` unsaid, a `Command.Count`, or `null`.                |
+| `value`         | `string`                   | The query, with `onValueChange`, when the caller holds it.             |
+| `onValueChange` | `(search: string) => void` | Called as the reader types.                                            |
+| `autoFocus`     | `boolean`                  | Focus on mount; the Dialog does this itself.                           |
+
+### Command.Item
+
+| Prop         | Type                      | What it is                                                              |
+| ------------ | ------------------------- | ----------------------------------------------------------------------- |
+| `value`      | `string`                  | What the row matches and is chosen by. Unsaid, its text.                |
+| `keywords`   | `string[]`                | More words the row matches.                                             |
+| `onSelect`   | `(value: string) => void` | Called on Enter or a click.                                             |
+| `trailing`   | `ReactNode`               | At the end: a Kbd, a hint, a Badge.                                     |
+| `disabled`   | `boolean`                 | Skipped and dimmed.                                                     |
+| `forceMount` | `boolean`                 | Shown whatever the query.                                               |
+| `className`  | `string`                  | `h-auto py-100` for a two-line row.                                     |
+| `children`   | `ReactNode`               | The label, with an icon before it when the rows are of kinds.           |
+
+### Command.Group, Empty, Loading, Separator, Footer, Count
+
+| Part        | Props                                                                                                     |
+| ----------- | --------------------------------------------------------------------------------------------------------- |
+| `Group`     | `heading`, the kind; `value` when there is no heading; `forceMount`.                                       |
+| `Empty`     | `children`: what to say when nothing matches.                                                             |
+| `Loading`   | `children`: the word beside the Spinner, "Searching…" unsaid; `label` for the progressbar, "Loading" unsaid. |
+| `Separator` | None.                                                                                                     |
+| `Footer`    | `children`: the keys, from `CommandKeys` in the kit's dialogs, and a `Count`.                             |
+| `Count`     | `one` and `many`: the noun, "match" and "matches" unsaid.                                                  |
+
+### Command.Dialog
+
+| Prop       | Type                     | What it is                                                     |
+| ---------- | ------------------------ | -------------------------------------------------------------- |
+| `open`     | `boolean`, required      | Whether it shows.                                              |
+| `onClose`  | `() => void`, required   | Called on Escape, the blanket, and after a choice by the caller. |
+| `label`    | `string`, required       | The dialog's and the list's name: the task.                    |
+| `width`    | `"medium" \| "large"`    | 560px or 640px. `medium` unsaid.                               |
+| `children` | `ReactNode`              | Input, List, Footer.                                           |
+
+## Related
+
+- [CommandPalette](?path=/docs/patterns-commandpalette--docs): the ⌘K palette with commands as data, and `useCommandPalette`.
+- [RecordPicker](?path=/docs/patterns-recordpicker--docs): one record by name, with records as data.
+- [Combobox](?path=/docs/components-combobox--docs): one answer from a list worth searching, in a form.
+- [PickerSheet](?path=/docs/patterns-pickersheet--docs): many records by attribute.
+- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): a handful of actions, no field.
+- [Kbd](?path=/docs/components-kbd--docs): the keys in a row's trailing and the footer.
+- [Dialog](?path=/docs/components-dialog--docs): the overlay the Command.Dialog is built on.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

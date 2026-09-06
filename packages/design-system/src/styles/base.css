@@ -32,3 +32,31 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+@layer base {
+  /* An inner scroller stops at its edge: no rubber band, no scroll chaining into the page behind
+     it, and a sideways table never turns the two-finger swipe into the browser's back gesture.
+     Keyed on the overflow utilities and the viewports the libraries draw, so every scroller in
+     the kit and in a product gets it without a class of its own. */
+  .overflow-auto,
+  .overflow-scroll,
+  .overflow-x-auto,
+  .overflow-y-auto,
+  .overflow-x-scroll,
+  .overflow-y-scroll,
+  .lg\:overflow-y-auto,
+  [data-radix-scroll-area-viewport],
+  [data-radix-select-viewport] {
+    overscroll-behavior: none;
+  }
+}
+
+@layer base {
+  /* The page stops at its edges too. A scroller contains a gesture only in an axis it can scroll,
+     so a sideways swipe over a rail that scrolls down alone reaches the document, and there it
+     would be the browser's back gesture; and the document's own bounce at its end is the same
+     rubber band. The root holds both. */
+  html {
+    overscroll-behavior: none;
+  }
+}

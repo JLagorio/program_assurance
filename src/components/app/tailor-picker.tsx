@@ -287,6 +287,7 @@ export function TailorControlsSheet({
               </Table.Cell>
               <Table.Cell>
                 <Editable.Text
+                  label="Rationale"
                   value={fieldOf(c.id).rationale}
                   placeholder="Why"
                   onChange={(next) => setField(c.id, { rationale: next })}
