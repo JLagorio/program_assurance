@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../../lib/locale";
 import { useMemo, type ReactNode } from "react";
 import { CartesianGrid, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
 
@@ -41,7 +42,11 @@ export type ChartScatterGroup = {
 };
 
 /** What was chosen on a scatter: the record, its group, and its index in the data. */
-export type ScatterSelection = { datum: ChartDatum; group?: ChartScatterGroup | undefined; index: number };
+export type ScatterSelection = {
+  datum: ChartDatum;
+  group?: ChartScatterGroup | undefined;
+  index: number;
+};
 
 export type ChartScatterProps = {
   data: ChartDatum[];
@@ -101,7 +106,9 @@ function Point({
   return (
     <g className={cn(clickable && "cursor-pointer", dim && "opacity-disabled") || undefined}>
       <circle cx={cx} cy={cy} r={Math.max(12, r + 6)} fill="transparent" />
-      {chosen === payload ? <circle cx={cx} cy={cy} r={r + 4} fill={fill} fillOpacity={0.2} /> : null}
+      {chosen === payload ? (
+        <circle cx={cx} cy={cy} r={r + 4} fill={fill} fillOpacity={0.2} />
+      ) : null}
       <circle
         cx={cx}
         cy={cy}
@@ -115,7 +122,13 @@ function Point({
   );
 }
 
-type Group = { key: string; label: string; tone: ChartTone; rows: ChartDatum[]; source?: ChartScatterGroup | undefined };
+type Group = {
+  key: string;
+  label: string;
+  tone: ChartTone;
+  rows: ChartDatum[];
+  source?: ChartScatterGroup | undefined;
+};
 type Clicked = { payload: ChartDatum; cx?: number; cy?: number; size?: number };
 
 /** A point per datum on two value axes, in groups of a tone; a bubble when `z` sizes them. A click on a point chooses it. */
@@ -141,6 +154,8 @@ export function ChartScatter({
   details,
   className,
 }: ChartScatterProps) {
+  const { t } = useLedgerLocale();
+
   const { name, hidden, highlighted, format, formatX, loading } = useFrame(
     label,
     formatProp,
@@ -159,10 +174,12 @@ export function ChartScatter({
         rows: data.filter((d) => String(d[groupBy]) === g.key),
         source: g,
       }));
-    return [{ key: "all", label: "Points", tone, rows: data }];
-  }, [data, groupBy, groups, tone]);
+    return [{ key: "all", label: t("points"), tone, rows: data }];
+  }, [data, groupBy, groups, tone, t]);
   if (loading)
-    return <PlotSkeleton kind="dots" name={name} size={size} height={height} className={className} />;
+    return (
+      <PlotSkeleton kind="dots" name={name} size={size} height={height} className={className} />
+    );
   const axes: ChartSeries[] = [
     { key: x, label: xLabel ?? x },
     { key: y, label: yLabel ?? y },
@@ -190,8 +207,10 @@ export function ChartScatter({
             shape="dot"
           />
         }
-        title={nameKey ? String(picked.item.datum[nameKey] ?? "") : "Point"}
-        subtitle={picked.item.group ? (picked.item.group.label ?? picked.item.group.key) : undefined}
+        title={nameKey ? String(picked.item.datum[nameKey] ?? "") : t("point")}
+        subtitle={
+          picked.item.group ? (picked.item.group.label ?? picked.item.group.key) : undefined
+        }
         rows={axisRows(picked.item.datum)}
       />
       {details?.(picked.item)}
@@ -271,7 +290,12 @@ export function ChartScatter({
                     if (details)
                       pick(
                         selection,
-                        rectAnchor({ x: (c.cx ?? 0) - r, y: (c.cy ?? 0) - r, width: r * 2, height: r * 2 }),
+                        rectAnchor({
+                          x: (c.cx ?? 0) - r,
+                          y: (c.cy ?? 0) - r,
+                          width: r * 2,
+                          height: r * 2,
+                        }),
                       );
                   },
                 }

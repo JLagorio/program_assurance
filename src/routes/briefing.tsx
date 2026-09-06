@@ -1,3 +1,4 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { BriefingRoom } from "@/components/app/authorization";
@@ -51,7 +52,12 @@ function BriefingPage() {
             </Inline>
           </div>
           <Inline space="space.100" alignBlock="center">
-            <Button variant="secondary">Export briefing deck</Button>
+            <UnavailableAction
+              reason="Presentation export is not available. Review the briefing on this page."
+              variant="secondary"
+            >
+              Export briefing deck
+            </UnavailableAction>
           </Inline>
         </Inline>
 

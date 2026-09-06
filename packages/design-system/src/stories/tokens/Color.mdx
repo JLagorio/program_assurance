@@ -14,25 +14,25 @@ The ramps are on the Palette sheet (Tokens/Palette). No ramp step has a utility.
 
 The canvas is white: `elevation.surface` is `color.neutral.0` in light. Blue is the only accent. Brand, selected, information and focus all draw on the blue ramp, so blue is spent on action, selection, focus and links and on nothing else.
 
-| Job | Token | Utility |
-| --- | --- | --- |
-| The primary button | `color.background.brand.bold` | `bg-brand-bold` |
-| An active row, a checked menu item, an open dropdown trigger | `color.background.selected` | `bg-selected` |
-| A selected tab's text and underline | `color.text.selected`, `color.border.selected` | `text-selected`, `border-selected` |
-| The focus ring | `color.border.focused` at `border.width.focused` | `border-focused`, `border-w-focused` |
-| A link | `color.text.brand` | `text-brand`, or TextLink |
+| Job                                                          | Token                                            | Utility                              |
+| ------------------------------------------------------------ | ------------------------------------------------ | ------------------------------------ |
+| The primary button                                           | `color.background.brand.bold`                    | `bg-brand-bold`                      |
+| An active row, a checked menu item, an open dropdown trigger | `color.background.selected`                      | `bg-selected`                        |
+| A selected tab's text and underline                          | `color.text.selected`, `color.border.selected`   | `text-selected`, `border-selected`   |
+| The focus ring                                               | `color.border.focused` at `border.width.focused` | `border-focused`, `border-w-focused` |
+| A link                                                       | `color.text.brand`                               | `text-brand`, or TextLink            |
 
 Ids and counts stay neutral, and so does an avatar by default. An Id is blue only inside a link or a button (`ledger/id-not-blue`). Colour that carries no meaning is the accent family: `color.background.accent.*` in six hues, `subtler` under `color.text.accent.*` and `bolder` under `color.text.inverse`, for an avatar's tint, fill or gradient and, later, a tag. Teal and purple reach only the accent family and `color.chart.*`; a status is never drawn in them.
 
 ## Text and icons
 
-| Job | Text | Icon |
-| --- | --- | --- |
-| Content, sentence-case headings, buttons | `color.text` | `color.icon` |
-| Secondary: navigation, field labels, subtle links | `color.text.subtle` | `color.icon.subtle` |
+| Job                                                        | Text                  | Icon                  |
+| ---------------------------------------------------------- | --------------------- | --------------------- |
+| Content, sentence-case headings, buttons                   | `color.text`          | `color.icon`          |
+| Secondary: navigation, field labels, subtle links          | `color.text.subtle`   | `color.icon.subtle`   |
 | Tertiary: metadata, breadcrumbs, placeholders, helper text | `color.text.subtlest` | `color.icon.subtlest` |
-| Off | `color.text.disabled` | `color.icon.disabled` |
-| On a bold fill | `color.text.inverse` | `color.icon.inverse` |
+| Off                                                        | `color.text.disabled` | `color.icon.disabled` |
+| On a bold fill                                             | `color.text.inverse`  | `color.icon.inverse`  |
 
 An icon mirrors its text, one step bolder where a thin glyph needs it. Text and Heading take these as `color="color.text.subtle"`; a class says `text-subtle`.
 
@@ -40,13 +40,13 @@ An icon mirrors its text, one step bolder where a thin glyph needs it. Text and 
 
 A tone is one decision. The subtle fill takes the tone's text. The bold fill takes inverse text; warning's bold fill is light, so it takes `color.text.warning.inverse`. A dot takes the tone's icon colour.
 
-| Tone | Subtle fill | Text | Bold fill | Icon |
-| --- | --- | --- | --- | --- |
-| `neutral` | `color.background.neutral` | `color.text.subtle` | `color.background.neutral.bold` | `color.icon.subtlest` |
+| Tone          | Subtle fill                    | Text                     | Bold fill                           | Icon                     |
+| ------------- | ------------------------------ | ------------------------ | ----------------------------------- | ------------------------ |
+| `neutral`     | `color.background.neutral`     | `color.text.subtle`      | `color.background.neutral.bold`     | `color.icon.subtlest`    |
 | `information` | `color.background.information` | `color.text.information` | `color.background.information.bold` | `color.icon.information` |
-| `success` | `color.background.success` | `color.text.success` | `color.background.success.bold` | `color.icon.success` |
-| `warning` | `color.background.warning` | `color.text.warning` | `color.background.warning.bold` | `color.icon.warning` |
-| `danger` | `color.background.danger` | `color.text.danger` | `color.background.danger.bold` | `color.icon.danger` |
+| `success`     | `color.background.success`     | `color.text.success`     | `color.background.success.bold`     | `color.icon.success`     |
+| `warning`     | `color.background.warning`     | `color.text.warning`     | `color.background.warning.bold`     | `color.icon.warning`     |
+| `danger`      | `color.background.danger`      | `color.text.danger`      | `color.background.danger.bold`      | `color.icon.danger`      |
 
 Reach these through the `tone` prop on Badge, Dot, Indicator, Alert, Progress and Stat, never by hand. The `subtler` and `subtle` emphases are for lozenges and non-interactive chips. `hovered` and `pressed` are their own tokens, never alpha on the default (`ledger/no-alpha-token`). What each tone means in the product is in `docs/guides/status-vocabulary.md`.
 
@@ -54,16 +54,16 @@ Reach these through the `tone` prop on Badge, Dot, Indicator, Alert, Progress an
 
 The matrix is complete on purpose: every fill has `hovered` and `pressed`, every tone has `subtler`, `subtle`, the default and `bold`, the inverse subtle fill exists for a control on a bold fill, and the bolder text colours exist for a word on a tone's label. About forty of them have no part that draws them yet. That is accepted (2026-09-05): a token is minted when its place in the grammar is clear and drawn when the part arrives, so a part never invents a colour. The families still open, and the part each waits for:
 
-| Family | Waits for |
-| --- | --- |
-| `color.background.{danger,warning,success,information}.{hovered,pressed}` and `.subtler.{hovered,pressed}` | A status fill that is pressed: a toned chip that filters, a status pill that opens its record. |
-| `color.background.{warning,success,information}.bold.{hovered,pressed}`, `neutral.bold.{hovered,pressed}` | A bold button in a tone other than brand and danger. |
-| `color.background.brand.boldest` and states, `brand.subtlest.{hovered,pressed}`, `selected.bold` and states | A pressed primary, a hovered brand tint, a bold selected control. |
-| `color.background.danger.subtler`, `warning.subtler`, the three `.subtle` | A lozenge emphasis between the subtle fill and the bold one. |
-| `color.background.inverse.subtle` | The resting fill of a control on a bold surface; its `hovered` and `pressed` are drawn by the Banner's action. |
-| `color.text.{danger,warning,success,information}.bolder`, `color.border.warning`, `color.border.information` | A word on a tone's label; a 3:1 status border in those tones. |
-| `color.icon.warning.inverse`, `color.border.inverse` | An icon and a border on a bold warning fill; the Box paints its text inverse and icons follow it, so the icon token is reached through `currentColor`. |
-| `elevation.surface.pressed`, `elevation.surface.overlay.{hovered,pressed}`, `elevation.shadow.overflow` | A pressed page surface, a hovered overlay, a scroll edge. |
+| Family                                                                                                       | Waits for                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `color.background.{danger,warning,success,information}.{hovered,pressed}` and `.subtler.{hovered,pressed}`   | A status fill that is pressed: a toned chip that filters, a status pill that opens its record.                                                         |
+| `color.background.{warning,success,information}.bold.{hovered,pressed}`, `neutral.bold.{hovered,pressed}`    | A bold button in a tone other than brand and danger.                                                                                                   |
+| `color.background.brand.boldest` and states, `brand.subtlest.{hovered,pressed}`, `selected.bold` and states  | A pressed primary, a hovered brand tint, a bold selected control.                                                                                      |
+| `color.background.danger.subtler`, `warning.subtler`, the three `.subtle`                                    | A lozenge emphasis between the subtle fill and the bold one.                                                                                           |
+| `color.background.inverse.subtle`                                                                            | The resting fill of a control on a bold surface; its `hovered` and `pressed` are drawn by the Banner's action.                                         |
+| `color.text.{danger,warning,success,information}.bolder`, `color.border.warning`, `color.border.information` | A word on a tone's label; a 3:1 status border in those tones.                                                                                          |
+| `color.icon.warning.inverse`, `color.border.inverse`                                                         | An icon and a border on a bold warning fill; the Box paints its text inverse and icons follow it, so the icon token is reached through `currentColor`. |
+| `elevation.surface.pressed`, `elevation.surface.overlay.{hovered,pressed}`, `elevation.shadow.overflow`      | A pressed page surface, a hovered overlay, a scroll edge.                                                                                              |
 
 Drawn this pass: `color.background.input.pressed`, every field on focus; `color.background.inverse.subtle.hovered` and `.pressed`, the Banner's action under the pointer. The chart tokens are reached at runtime through `tone`, which a name scan cannot see; Components/Chart.
 
@@ -71,14 +71,18 @@ Drawn this pass: `color.background.input.pressed`, every field on focus; `color.
 
 Every border is a 1px hairline: `border.width` is 1px and `color.border` is the default colour. Prefer a rule to a box.
 
-| Job | Token | Utility |
-| --- | --- | --- |
-| Hairlines, dividers, flat cards | `color.border` | `border-default` |
-| Emphasis that must pass 3:1 | `color.border.bold` | `border-bold` |
-| Text fields, checkboxes, radios | `color.border.input` | `border-input` |
-| Focus ring, 2px | `color.border.focused` | `border-focused border-w-focused` |
-| Selected tab or item, 2px | `color.border.selected` | `border-selected border-w-selected` |
-| Off | `color.border.disabled` | `border-disabled` |
+| Job                             | Token                   | Utility                             |
+| ------------------------------- | ----------------------- | ----------------------------------- |
+| Hairlines, dividers, flat cards | `color.border`          | `border-default`                    |
+| Emphasis that must pass 3:1     | `color.border.bold`     | `border-bold`                       |
+| Text fields, checkboxes, radios | `color.border.input`    | `border-input`                      |
+| Focus ring, 2px                 | `color.border.focused`  | `border-focused border-w-focused`   |
+| Selected tab or item, 2px       | `color.border.selected` | `border-selected border-w-selected` |
+| Off                             | `color.border.disabled` | `border-disabled`                   |
+
+Input boundaries meet at least 3:1 against the supported page, sunken, raised, overlay and input surfaces, including hovered and pressed input fills. This supersedes the earlier 1.5:1 resting-border decision. Decorative rules and disabled controls use separate tokens; a decorative border must not be the only visible boundary of an interactive control.
+
+The automated contrast contract covers default, hovered and pressed text/fill pairs, selected rows, status fills, focus and input borders, and translucent fills on their actual parent surfaces in both modes. Alpha blends are composed in encoded sRGB before calculating WCAG luminance. These token checks complement rendered interaction and manual accessibility checks; they do not establish conformance for arbitrary custom combinations.
 
 A status border comes in `default` (3:1) and `subtle` (decorative): `color.border.danger`, `color.border.danger.subtle`, and the same for warning, success and information.
 
@@ -106,13 +110,13 @@ A series on a chart is a `color.chart.*` token: a status tone when the series is
 
 Hairline plus soft lift, never heavy. A surface pairs with a shadow; nothing else casts one.
 
-| Sits | Surface | Utility | Shadow |
-| --- | --- | --- | --- |
-| The page | `elevation.surface` | `bg-surface` | none |
-| A well: the side nav, a grouped list | `elevation.surface.sunken` | `bg-surface-sunken` | none |
-| A card | `elevation.surface.raised` | `bg-surface-raised` | `elevation.shadow.raised` (`shadow-raised`) |
-| A menu, popover or dialog | `elevation.surface.overlay` | `bg-surface-overlay` | `elevation.shadow.overlay` (`shadow-overlay`) |
-| Content scrolling under a sticky header | | | `elevation.shadow.overflow` (`shadow-overflow`) |
+| Sits                                    | Surface                     | Utility              | Shadow                                          |
+| --------------------------------------- | --------------------------- | -------------------- | ----------------------------------------------- |
+| The page                                | `elevation.surface`         | `bg-surface`         | none                                            |
+| A well: the side nav, a grouped list    | `elevation.surface.sunken`  | `bg-surface-sunken`  | none                                            |
+| A card                                  | `elevation.surface.raised`  | `bg-surface-raised`  | `elevation.shadow.raised` (`shadow-raised`)     |
+| A menu, popover or dialog               | `elevation.surface.overlay` | `bg-surface-overlay` | `elevation.shadow.overlay` (`shadow-overlay`)   |
+| Content scrolling under a sticky header |                             |                      | `elevation.shadow.overflow` (`shadow-overflow`) |
 
 Each surface has `hovered` and `pressed` states. In dark, surfaces climb in lightness instead of casting more shadow. These three shadows are the only ones; `ledger/no-kit-shadow` reports any other.
 

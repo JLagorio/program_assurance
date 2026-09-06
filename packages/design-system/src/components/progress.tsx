@@ -79,7 +79,7 @@ export type StackedSegment = {
   tone: Tone;
   /** `hatched` is what is not known or not covered: a hole in the record, drawn in the tone's icon colour over the track, never a flat fill. */
   appearance?: "solid" | "hatched" | undefined;
-  /** What the segment is, with its count ("41 verified"): the tooltip, the button's name, and a line of the bar's description. */
+  /** What the segment is, with its count ("41 verified"): the tooltip, the button's name, and a line of the bar's description. An interactive segment falls back to its key when no title is supplied; prefer a descriptive title. */
   title?: string | undefined;
   /** Makes the segment a button, for a bar that filters what is under it. */
   onClick?: (() => void) | undefined;
@@ -138,7 +138,7 @@ export function ProgressStacked({
             key={s.key}
             type="button"
             title={s.title}
-            aria-label={s.title}
+            aria-label={s.title || s.key}
             onClick={s.onClick}
             className={segmentClass(s)}
             style={segmentStyle(s, total)}

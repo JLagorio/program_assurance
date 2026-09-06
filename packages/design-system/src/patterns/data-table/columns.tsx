@@ -1,5 +1,6 @@
 import type { RowData } from "@tanstack/react-table";
-import { format, isValid, parseISO } from "date-fns";
+import { isValid, parseISO } from "date-fns";
+import { useLedgerLocale } from "../../lib/locale";
 import type { ReactNode } from "react";
 
 import { Badge, type Tone } from "../../components/badge";
@@ -100,18 +101,35 @@ const sortOf = <TData extends RowData>(
     : kind;
 
 const numberFormats = {
-  integer: new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }),
-  decimal: new Intl.NumberFormat(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 }),
-  percent: new Intl.NumberFormat(undefined, { style: "percent", maximumFractionDigits: 0 }),
-};
+  integer: { maximumFractionDigits: 0 },
+  decimal: { minimumFractionDigits: 1, maximumFractionDigits: 2 },
+  percent: { style: "percent", maximumFractionDigits: 0 },
+} satisfies Record<string, Intl.NumberFormatOptions>;
 
-const dateFormats = { short: "d MMM yyyy", medium: "d MMM yyyy, HH:mm" } as const;
+const dateFormats = {
+  short: { day: "numeric", month: "short", year: "numeric" },
+  medium: { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" },
+} satisfies Record<string, Intl.DateTimeFormatOptions>;
 
-/** An ISO date renders on the short or medium pattern; anything else renders as given. */
-function formatDate(value: unknown, pattern: keyof typeof dateFormats): ReactNode {
+function LocalizedNumber({
+  value,
+  pattern,
+}: {
+  value: number;
+  pattern: keyof typeof numberFormats;
+}) {
+  const { formatNumber } = useLedgerLocale();
+  return formatNumber(value, numberFormats[pattern]);
+}
+
+function LocalizedDate({ value, pattern }: { value: unknown; pattern: keyof typeof dateFormats }) {
+  const { formatDate, formatCalendarDate } = useLedgerLocale();
   if (typeof value !== "string") return isAbsent(value) ? <Absent /> : String(value);
   const parsed = parseISO(value);
-  return isValid(parsed) ? format(parsed, dateFormats[pattern]) : value;
+  if (!isValid(parsed)) return value;
+  return /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? formatCalendarDate(parsed, dateFormats[pattern])
+    : formatDate(parsed, dateFormats[pattern]);
 }
 
 export function columnKinds<TData extends RowData>() {
@@ -181,7 +199,7 @@ export function columnKinds<TData extends RowData>() {
       glance,
       tone = "brand",
     }: Shared<TData> & {
-      /** The eye on hover opens the row's preview surface. */
+      /** The eye at the end of the row's first value cell opens the row's preview surface. */
       preview?: ((row: TData) => void) | undefined;
       /** The row whose preview is open. */
       active?: ((row: TData) => boolean) | undefined;
@@ -233,7 +251,11 @@ export function columnKinds<TData extends RowData>() {
                 .map((r): unknown => r[key])
                 .filter((v): v is number => typeof v === "number");
               const total = totals[footer](values);
-              return typeof fmt === "function" ? fmt(total) : numberFormats[fmt].format(total);
+              return typeof fmt === "function" ? (
+                fmt(total)
+              ) : (
+                <LocalizedNumber value={total} pattern={fmt} />
+              );
             },
           }
         : {}),
@@ -251,7 +273,7 @@ export function columnKinds<TData extends RowData>() {
         if (cell) return cell(row.original);
         const v = getValue();
         if (typeof v !== "number") return isAbsent(v) ? <Absent /> : String(v);
-        return typeof fmt === "function" ? fmt(v) : numberFormats[fmt].format(v);
+        return typeof fmt === "function" ? fmt(v) : <LocalizedNumber value={v} pattern={fmt} />;
       },
     });
 
@@ -281,7 +303,8 @@ export function columnKinds<TData extends RowData>() {
       enableGlobalFilter: false,
       ...shared({ pin, hideable, resizable }),
       meta: { pin, kind: "date", align: "start" },
-      cell: ({ row, getValue }) => (cell ? cell(row.original) : formatDate(getValue(), fmt)),
+      cell: ({ row, getValue }) =>
+        cell ? cell(row.original) : <LocalizedDate value={getValue()} pattern={fmt} />,
     });
 
   const status = (
@@ -379,7 +402,7 @@ export function columnKinds<TData extends RowData>() {
       meta: { kind: "actions", align: "end", actions: rowActions },
     });
 
-  /** Anything else: a bar, an icon, a composed cell. `sort` reads the value the column sorts by; without it the column does not sort. */
+  /** Anything else: a bar, an icon, a composed cell. `sort` reads the value the column sorts by; without it the column does not sort. `pin`, `hideable` and `resizable` as on every kind. */
   const custom = (
     columnId: string,
     {
@@ -387,10 +410,13 @@ export function columnKinds<TData extends RowData>() {
       width,
       minWidth,
       align = "start",
+      pin,
+      hideable,
+      resizable,
       cell,
       sort,
       text,
-    }: {
+    }: Pick<Shared<TData>, "pin" | "hideable" | "resizable"> & {
       header?: ReactNode | undefined;
       width?: number | undefined;
       minWidth?: number | undefined;
@@ -400,8 +426,14 @@ export function columnKinds<TData extends RowData>() {
       /** What the column exports; without it a custom column exports nothing. */
       text?: ((row: TData) => string) | undefined;
     },
-  ): DataTableColumn<TData> =>
-    sort
+  ): DataTableColumn<TData> => {
+    const meta = {
+      pin,
+      kind: "custom" as const,
+      align,
+      export: text as ((row: never) => string) | undefined,
+    };
+    return sort
       ? helper.accessor(sort, {
           id: columnId,
           header: typeof header === "string" ? header : () => header ?? columnId,
@@ -410,7 +442,8 @@ export function columnKinds<TData extends RowData>() {
           enableSorting: true,
           sortFn: "alphanumeric",
           enableGlobalFilter: false,
-          meta: { kind: "custom", align, export: text as ((row: never) => string) | undefined },
+          ...shared({ pin, hideable, resizable }),
+          meta,
           cell: ({ row }) => cell(row.original),
         })
       : helper.display({
@@ -419,9 +452,11 @@ export function columnKinds<TData extends RowData>() {
           ...(width === undefined ? {} : { size: width }),
           minSize: minOf(width, minWidth ?? minWidths.custom),
           enableSorting: false,
-          meta: { kind: "custom", align, export: text as ((row: never) => string) | undefined },
+          ...shared({ pin, hideable, resizable }),
+          meta,
           cell: ({ row }) => cell(row.original),
         });
+  };
 
   /** A heading over several columns: a second header row. */
   const group = (header: string, columns: ReadonlyArray<DataTableColumn<TData>>) =>

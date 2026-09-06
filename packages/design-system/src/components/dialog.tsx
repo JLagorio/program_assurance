@@ -1,6 +1,8 @@
+import { useLedgerLocale } from "../lib/locale";
+import { useOverlayFocus } from "./_overlay-focus";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 
 import { cn } from "../lib/cn";
 
@@ -11,6 +13,8 @@ export const overlayClose =
 export type DialogProps = {
   /** The caller's state. A dialog is opened by an act and closed by the caller. */
   open: boolean;
+  /** Focus destination after closing; defaults to the opener, then a surviving dialog or main. */
+  returnFocusRef?: RefObject<HTMLElement | null> | undefined;
   /** Called on Escape, the blanket, the close button, and Cancel. Ignored while `pending`. */
   onClose: () => void;
   /** The task, as the button that opened it says it: "Schedule assessment". */
@@ -36,6 +40,7 @@ const widths = { medium: 520, large: 860 } as const;
 /** A focused task over the page: title, optional description, body, optional aside, footer actions. Focus moves in and back; Escape and the blanket close it. */
 export function Dialog({
   open,
+  returnFocusRef,
   onClose,
   title,
   eyebrow,
@@ -46,6 +51,8 @@ export function Dialog({
   width = "medium",
   pending = false,
 }: DialogProps) {
+  const { t, direction } = useLedgerLocale();
+  const restoreFocus = useOverlayFocus(open, returnFocusRef);
   return (
     <DialogPrimitive.Root
       open={open}
@@ -57,6 +64,8 @@ export function Dialog({
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-dim-in data-[state=closed]:animate-dim-out" />
         <div className="fixed inset-0 z-50 flex items-start justify-center p-200 sm:p-600">
           <DialogPrimitive.Content
+            onCloseAutoFocus={restoreFocus}
+            dir={direction}
             {...(description ? {} : { "aria-describedby": undefined })}
             style={{ maxWidth: widths[width] }}
             className="relative flex max-h-full w-full flex-col overflow-hidden rounded-xxlarge bg-surface-overlay shadow-overlay outline-none data-[state=open]:animate-dialog-in data-[state=closed]:animate-dialog-out"
@@ -90,7 +99,7 @@ export function Dialog({
             <DialogPrimitive.Close asChild>
               <button
                 type="button"
-                aria-label="Close"
+                aria-label={t("close")}
                 disabled={pending}
                 className={cn(overlayClose, "absolute end-150 top-100 disabled:opacity-disabled")}
               >

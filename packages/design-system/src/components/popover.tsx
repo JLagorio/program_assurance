@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../lib/locale";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
@@ -44,6 +45,7 @@ function PopoverRoot({
   className,
   children,
 }: PopoverProps) {
+  const { direction } = useLedgerLocale();
   return (
     <PopoverPrimitive.Root
       {...(open === undefined ? { defaultOpen } : { open })}
@@ -52,6 +54,7 @@ function PopoverRoot({
       <PopoverPrimitive.Trigger asChild>{trigger}</PopoverPrimitive.Trigger>
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Content
+          dir={direction}
           side={side}
           align={align}
           sideOffset={4}

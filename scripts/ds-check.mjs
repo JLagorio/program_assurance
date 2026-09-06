@@ -8,6 +8,9 @@
 // `@deprecated` is an alias kept for the lint's rename and needs no story.
 import fs from "node:fs";
 import path from "node:path";
+import ts from "typescript";
+import { execFileSync } from "node:child_process";
+import { publicApi } from "./ds-public-api.mjs";
 
 const PKG = "packages/design-system/src";
 const LAYERS = ["primitives", "components", "patterns", "shapes", "shell", "mode"];
@@ -39,23 +42,22 @@ const walk = (dir, out = []) => {
 };
 
 // name -> file, for every component the package exports from its layers
-const exports_ = new Map();
-const partOf = new Map(); // StatGrid -> "Stat.Grid"
+const exports_ = new Map(
+  publicApi
+    .filter(
+      (e) =>
+        e.kind === "value" &&
+        /^[A-Z]/.test(e.name) &&
+        !/^[A-Z0-9_]+$/.test(e.name) &&
+        !e.deprecated,
+    )
+    .map((e) => [e.name, e.source]),
+);
+const partOf = new Map();
 for (const layer of LAYERS) {
-  const dir = path.join(PKG, layer);
-  if (!fs.existsSync(dir)) continue;
-  for (const f of walk(dir)) {
-    if (!/\.tsx?$/.test(f) || f.endsWith("index.ts") || f.endsWith("tokens.ts")) continue;
-    // A file named `_x.tsx` is internal to its folder: the furniture a compound's parts share
-    // (chart/_shared.tsx), exported for them and for nothing else.
-    if (path.basename(f).startsWith("_")) continue;
+  for (const f of walk(path.join(PKG, layer))) {
+    if (!/\.tsx?$/.test(f)) continue;
     const src = fs.readFileSync(f, "utf8");
-    for (const m of src.matchAll(/^export (?:function|const) ([A-Z]\w*)/gm)) {
-      const doc = src.slice(0, m.index).match(/\/\*\*(?:(?!\*\/)[\s\S])*\*\/\s*$/);
-      if (doc && doc[0].includes("@deprecated")) continue;
-      exports_.set(m[1], f);
-    }
-    // Stat = Object.assign(StatRoot, { Tile: StatTile, Grid: StatGrid }): the parts read as Stat.Tile, Stat.Grid
     for (const m of src.matchAll(/^export const ([A-Z]\w*) = Object\.assign\(\w+, \{([^}]*)\}\)/gm))
       for (const part of m[2].matchAll(/(\w+): ([A-Z]\w*)/g))
         partOf.set(part[2], `${m[1]}.${part[1]}`);
@@ -65,16 +67,40 @@ for (const layer of LAYERS) {
 const storyTree = walk(path.join(PKG, "stories"));
 const storyFiles = storyTree.filter((f) => /\.stories\.tsx?$/.test(f));
 const pageFiles = storyTree.filter((f) => f.endsWith(".mdx"));
-const stories = storyFiles
-  .map((f) => fs.readFileSync(f, "utf8").replace(/^import[^\n]*\n/gm, ""))
-  .join("\n");
+// Only executable syntax counts; imports and comments cannot manufacture coverage.
+const storyReferences = new Set();
+const contractFiles = new Set();
+for (const file of [...storyFiles, "packages/design-system/.storybook/preview.tsx"]) {
+  const source = ts.createSourceFile(
+    file,
+    fs.readFileSync(file, "utf8"),
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const visit = (node) => {
+    if (ts.isImportDeclaration(node)) return;
+    if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node))
+      storyReferences.add(node.tagName.getText(source));
+    if (ts.isCallExpression(node)) storyReferences.add(node.expression.getText(source));
+    if (
+      ts.isPropertyAssignment(node) &&
+      node.name.getText(source) === "tags" &&
+      ts.isArrayLiteralExpression(node.initializer) &&
+      node.initializer.elements.some((e) => ts.isStringLiteral(e) && e.text === "contract")
+    )
+      contractFiles.add(file);
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
+}
 const storyCount = storyFiles.reduce(
   (n, f) => n + (fs.readFileSync(f, "utf8").match(/^export const /gm) ?? []).length,
   0,
 );
 
 const inStories = (name) =>
-  new RegExp(`(?<![\\w.$])${name.replace(".", "\\.")}(?![\\w$])`).test(stories);
+  storyReferences.has(name) || [...storyReferences].some((ref) => ref.startsWith(`${name}.`));
 const covered = (name) => inStories(name) || (partOf.has(name) && inStories(partOf.get(name)));
 
 // every component family (a file under components/, patterns/, shapes/, shell/) has a Matrix story:
@@ -88,7 +114,7 @@ const matrixOf = (file) =>
   storyFiles.some((sf) => {
     const text = fs.readFileSync(sf, "utf8").replace(/^import[^\n]*\n/gm, "");
     return (
-      /^export const \w*Matrix\b/m.test(text) &&
+      contractFiles.has(sf) &&
       namesOf(file).some(
         (n) =>
           new RegExp(`(?<![\\w.$])${n}(?![\\w$])`).test(text) ||
@@ -160,7 +186,7 @@ console.log(
 );
 if (newGaps.length) {
   console.log(
-    `\nNew gaps (add the story or the page section under ${PKG}/stories, or list the entry in scripts/ds-check.allow with a reason):`,
+    `\nNew gaps (add the story or the page section under ${PKG}/stories, coverage exceptions cannot grow):`,
   );
   for (const n of newGaps) console.log(`  ${n}${exports_.has(n) ? `  ← ${exports_.get(n)}` : ""}`);
 }
@@ -168,15 +194,28 @@ if (stale.length) {
   console.log("\nAllowlisted entries that are closed. Remove them from scripts/ds-check.allow:");
   for (const n of stale) console.log(`  ${n}`);
 }
-if (process.argv.includes("--write-allow")) {
-  fs.writeFileSync(
-    allowPath,
-    "# Package exports without a story, families (matrix:<file>) without a Matrix story, and family pages\n" +
-      "# (page:<family>, page:<family>#<heading>) missing from the template. Shrink this list; never grow it.\n" +
-      gaps.join("\n") +
-      "\n",
-  );
-  console.log(`\nwrote ${allowPath} with ${gaps.length} entries`);
-  process.exit(0);
+// Compare with the committed baseline. Editing the exception file cannot authorize new gaps.
+const requestedBaseline = process.env.DS_BASE_REF || "HEAD";
+const baselineRef = /^0+$/.test(requestedBaseline) ? "HEAD^" : requestedBaseline;
+let baseline;
+try {
+  baseline = execFileSync("git", ["show", `${baselineRef}:${allowPath}`], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+} catch {
+  console.error(`Cannot read coverage baseline ${baselineRef}; fetch it before checking.`);
+  process.exit(1);
 }
-process.exit(newGaps.length || stale.length ? 1 : 0);
+const previous = new Set(
+  baseline
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("#")),
+);
+const growth = [...allow].filter((entry) => !previous.has(entry));
+if (growth.length) console.error("Coverage exceptions may not grow:", growth.join(", "));
+console.log(
+  `${publicApi.length} public API symbols resolved through TypeScript · ${contractFiles.size} files with explicit contracts`,
+);
+process.exit(newGaps.length || stale.length || growth.length ? 1 : 0);

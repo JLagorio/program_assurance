@@ -8,12 +8,50 @@
  * a number and callers key a `useMemo` off it.
  */
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { toast } from "@ledger/design-system";
+import { z } from "zod";
 
 import { programs, type Program } from "@/lib/grc-data";
 
 const listeners = new Set<() => void>();
 let version = 0;
+let restored = false;
+const commandKey = "equinox.program-commands.v1";
+type CommandPatch = Pick<Program, "archivedAt" | "assessmentScheduled">;
+let commandPatches: Record<string, CommandPatch> = {};
+
+export function restoreProgramCommands() {
+  if (restored || typeof window === "undefined") return;
+  restored = true;
+  const raw = window.localStorage.getItem(commandKey);
+  if (!raw) return;
+  commandPatches = z
+    .record(
+      z.object({ archivedAt: z.string().optional(), assessmentScheduled: z.string().optional() }),
+    )
+    .parse(JSON.parse(raw));
+  for (const [id, patch] of Object.entries(commandPatches)) {
+    const program = programs.find((item) => item.id === id);
+    if (program && patch && typeof patch === "object") Object.assign(program, patch);
+  }
+  version += 1;
+  for (const listener of listeners) listener();
+}
+
+export function saveProgramCommand(id: string, patch: CommandPatch) {
+  saveProgramCommands([id], patch);
+}
+
+export function saveProgramCommands(ids: string[], patch: CommandPatch) {
+  if (ids.some((id) => !programs.some((program) => program.id === id)))
+    throw new Error("Program not found.");
+  const next = { ...commandPatches };
+  for (const id of ids) next[id] = { ...next[id], ...patch };
+  window.localStorage.setItem(commandKey, JSON.stringify(next));
+  commandPatches = next;
+  for (const id of ids) updateProgram(id, patch);
+}
 
 export function subscribePrograms(cb: () => void): () => void {
   listeners.add(cb);
@@ -27,6 +65,15 @@ export function programsVersion(): number {
 }
 
 export function useProgramsVersion(): number {
+  useEffect(() => {
+    try {
+      restoreProgramCommands();
+    } catch {
+      toast.error("Saved program actions could not be restored", {
+        description: "Browser storage is unavailable or saved data is invalid.",
+      });
+    }
+  }, []);
   return useSyncExternalStore(subscribePrograms, programsVersion, programsVersion);
 }
 

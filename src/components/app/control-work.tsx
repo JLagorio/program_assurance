@@ -1,3 +1,5 @@
+import { useCallback, type SetStateAction, useState } from "react";
+import { useRecordForm } from "@/lib/record-form";
 /**
  * The control work surface.
  *
@@ -7,9 +9,11 @@
  * Inspector, and nothing carries a description.
  */
 
-import { useState } from "react";
+import { MoreHorizontal } from "lucide-react";
 import {
   ActionBar,
+  DropdownMenu,
+  IconButton,
   Badge,
   Block,
   Box,
@@ -22,7 +26,6 @@ import {
   Stack,
   Table,
   Textarea,
-  useRequired,
 } from "@ledger/design-system";
 import { ActionBarAction, RecordPicker } from "@ledger/design-system";
 import { cn } from "@ledger/design-system/cn";
@@ -31,6 +34,7 @@ import {
   addComment,
   assessmentStates,
   assessmentTone,
+  assignOwner,
   commentsFor,
   currentSession,
   gatesFor,
@@ -68,12 +72,21 @@ export function ControlActionBar({
   const session = currentSession();
   const offers = offersFor(work, context, session.role);
   const [pending, setPending] = useState<string | null>(null);
-  const [note, setNote] = useState("");
+  const { form, values, setValue, formId, formRef } = useRecordForm(
+    {
+      note: "",
+    },
+    (value) => ({ note: chosen?.def.note === "required" && value.note }),
+  );
+  const { note } = values;
+  const setNote = useCallback(
+    (value: SetStateAction<typeof note>) => setValue("note", value),
+    [setValue],
+  );
   const [error, setError] = useState<string | null>(null);
 
   const chosen = offers.find((o) => o.def.key === pending);
 
-  const req = useRequired({ note: chosen?.def.note === "required" && note });
   const actions: ActionBarAction[] = offers.map((o) => ({
     label: o.def.label,
     primary:
@@ -87,13 +100,16 @@ export function ControlActionBar({
   }));
 
   const fire = () => {
-    if (!req.check()) return;
-    if (!pending) return;
-    const result = perform(work.id, pending, context, note);
-    if (!result.ok) return setError(result.reason);
-    setPending(null);
-    setNote("");
-    onChange();
+    return form.handleSubmit({
+      save: () => {
+        if (!pending) return;
+        const result = perform(work.id, pending, context, note);
+        if (!result.ok) return setError(result.reason);
+        setPending(null);
+        setNote("");
+        onChange();
+      },
+    });
   };
 
   return (
@@ -130,28 +146,56 @@ export function ControlActionBar({
           <>
             {error ? <span className="mr-auto font-body-small text-danger">{error}</span> : null}
             <Button onClick={() => setPending(null)}>Cancel</Button>
-            <Button variant="primary" onClick={fire}>
+            <Button
+              variant="primary"
+              type="submit"
+              form={formId + "-1"}
+              disabled={form.state.isSubmitting}
+            >
               {chosen?.def.label ?? "Confirm"}
             </Button>
           </>
         }
       >
-        <Grid gap="space.150">
-          <Box
-            className="rounded-large border border-default bg-surface-sunken font-body-small"
-            paddingInline="space.150"
-            paddingBlock="space.100"
-          >
-            {session.name} · {session.role}
-          </Box>
-          <Field
-            isRequired={chosen?.def.note === "required"}
-            error={req.errorFor("note")}
-            label={chosen?.def.note === "required" ? "Reason (required)" : "Note"}
-          >
-            <Textarea value={note} onChange={(e) => setNote(e.target.value)} />
-          </Field>
-        </Grid>
+        <form
+          id={formId + "-1"}
+          ref={formRef}
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            void fire();
+          }}
+        >
+          <Grid gap="space.150">
+            <Box
+              className="rounded-large border border-default bg-surface-sunken font-body-small"
+              paddingInline="space.150"
+              paddingBlock="space.100"
+            >
+              {session.name} · {session.role}
+            </Box>
+            <form.Field name="note">
+              {(field) => (
+                <Field
+                  isRequired={chosen?.def.note === "required"}
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                  label={chosen?.def.note === "required" ? "Reason (required)" : "Note"}
+                >
+                  <Textarea
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  />
+                </Field>
+              )}
+            </form.Field>
+          </Grid>
+        </form>
       </Dialog>
     </>
   );
@@ -196,6 +240,7 @@ export function Narrative({ work, onChange }: { work: ControlWork; onChange: () 
     return (
       <div>
         <Textarea
+          autoFocus
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="How this system satisfies the control, in terms an assessor can verify."
@@ -377,6 +422,7 @@ export function Comments({ work, onChange }: { work: ControlWork; onChange: () =
         </ul>
       ) : null}
       <Textarea
+        aria-label={`Reply as ${session.name}`}
         className="pt-100"
         value={body}
         onChange={(e) => setBody(e.target.value)}
@@ -460,5 +506,181 @@ export function AxisControls({ work, context }: { work: ControlWork; context: Wo
         <GateList work={work} context={context} />
       </Block>
     </Stack>
+  );
+}
+
+/* --------------------------------------------------------- Header actions */
+
+/**
+ * The record header's actions: Assign to me while nobody has it, the state
+ * machine's primary verb, the rest in a menu. Every verb is confirmed with the
+ * reason it asks for, as the action bar did.
+ */
+export function ControlActions({
+  work,
+  context,
+  onChange,
+  extra,
+}: {
+  work: ControlWork;
+  context: WorkContext;
+  onChange: () => void;
+  extra?: React.ReactNode;
+}) {
+  const session = currentSession();
+  const offers = offersFor(work, context, session.role);
+  const [pending, setPending] = useState<string | null>(null);
+  const { form, values, setValue, formId, formRef } = useRecordForm(
+    {
+      note: "",
+    },
+    (value) => ({ note: chosen?.def.note === "required" && value.note }),
+  );
+  const { note } = values;
+  const setNote = useCallback(
+    (value: SetStateAction<typeof note>) => setValue("note", value),
+    [setValue],
+  );
+  const [error, setError] = useState<string | null>(null);
+  const chosen = offers.find((o) => o.def.key === pending);
+
+  const primary =
+    offers.find((o) => o.allowed && ["implement", "submit", "satisfy"].includes(o.def.key)) ??
+    offers.find((o) => o.allowed);
+  const rest = offers.filter((o) => o !== primary);
+
+  const start = (key: string) => {
+    setPending(key);
+    setNote("");
+    setError(null);
+  };
+
+  const fire = () => {
+    return form.handleSubmit({
+      save: () => {
+        if (!pending) return;
+        const result = perform(work.id, pending, context, note);
+        if (!result.ok) return setError(result.reason);
+        setPending(null);
+        setNote("");
+        onChange();
+      },
+    });
+  };
+
+  return (
+    <>
+      {extra}
+      {!work.owner ? (
+        <Button
+          size="small"
+          onClick={() => {
+            assignOwner(work.id, session.name);
+            onChange();
+          }}
+        >
+          Assign to me
+        </Button>
+      ) : null}
+      {primary ? (
+        <Button size="small" variant="primary" onClick={() => start(primary.def.key)}>
+          {primary.def.label}
+        </Button>
+      ) : null}
+      {rest.length ? (
+        <DropdownMenu
+          align="end"
+          width={260}
+          trigger={
+            <IconButton
+              label="More actions"
+              variant="secondary"
+              size="small"
+              icon={<MoreHorizontal />}
+            />
+          }
+        >
+          {(close) => (
+            <>
+              {rest.map((o) => (
+                <DropdownMenu.Item
+                  key={o.def.key}
+                  disabled={!o.allowed}
+                  onSelect={() => {
+                    start(o.def.key);
+                    close();
+                  }}
+                >
+                  <span className="block">{o.def.label}</span>
+                  {o.blocked ? (
+                    <span className="block font-body-xsmall text-subtle">{o.blocked}</span>
+                  ) : null}
+                </DropdownMenu.Item>
+              ))}
+            </>
+          )}
+        </DropdownMenu>
+      ) : null}
+
+      <Dialog
+        open={pending !== null}
+        onClose={() => setPending(null)}
+        title={chosen?.def.label ?? "Confirm"}
+        footer={
+          <>
+            {error ? <span className="mr-auto font-body-small text-danger">{error}</span> : null}
+            <Button onClick={() => setPending(null)}>Cancel</Button>
+            <Button
+              variant="primary"
+              type="submit"
+              form={formId + "-2"}
+              disabled={form.state.isSubmitting}
+            >
+              {chosen?.def.label ?? "Confirm"}
+            </Button>
+          </>
+        }
+      >
+        <form
+          id={formId + "-2"}
+          ref={formRef}
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            void fire();
+          }}
+        >
+          <Grid gap="space.150">
+            <Box
+              className="rounded-large border border-default bg-surface-sunken font-body-small"
+              paddingInline="space.150"
+              paddingBlock="space.100"
+            >
+              {session.name} · {session.role}
+            </Box>
+            <form.Field name="note">
+              {(field) => (
+                <Field
+                  isRequired={chosen?.def.note === "required"}
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                  label={chosen?.def.note === "required" ? "Reason (required)" : "Note"}
+                >
+                  <Textarea
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  />
+                </Field>
+              )}
+            </form.Field>
+          </Grid>
+        </form>
+      </Dialog>
+    </>
   );
 }

@@ -1,0 +1,62 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+import { TaskRow } from "../../patterns";
+import * as Stories from "./TaskRow.stories";
+
+<Meta of={Stories} />
+
+# TaskRow
+
+An experimental shared completion row for checklists and work queues. The package owns the completion control, row layout and independent navigation/actions. The application owns its task model, status vocabulary, deadlines and persistence. Owner: Ledger maintainers; consumers own state mappings.
+
+<Canvas of={Stories.TaskRowMatrix} />
+
+## Anatomy
+
+A completion checkbox, text title, optional contextual meta, and trailing owner/date/status content. Actions and title navigation are separate interactive targets. TaskRow renders a list item: place it inside Item.Group for list headings, aligned columns and empty content.
+
+## Variants
+
+The same presentation supports interactive completion or a row without a completion control. Omitting `onCompletedChange` removes that control. Status is caller-rendered content; the package has no waiting/blocked enum.
+
+## Sizes
+
+Inherits the surrounding Item.Group's default or compact density. There is no second independent row-size scale. The title truncates within the row; dense metadata should be kept concise in narrow layouts.
+
+## States
+
+`completed` is caller-owned and strikes through the title. `onCompletedChange` requests the next boolean; it does not persist or optimistically change the row. Use `completionDisabled` while the application is saving and explain that state in `status`. Read-only rows can still navigate or expose separate actions.
+
+<Canvas of={Stories.CompletionContract} />
+
+## Modifiers
+
+`assignee`, `due`, `status`, `meta` and `actions` are content slots. `dueDateTime` adds a semantic time element around due content. Without it, relative words remain plain content. The caller computes overdue status and supplies the corresponding styling. `link` or `onSelect` makes the title interactive; choose one. Completion and action controls remain siblings of the title control.
+
+## Content
+
+Use a short action as the title, such as “Review draft.” Supply formatted date content and a machine-readable date where possible. Translate `completionLabel` to name the current action and its row; English defaults are “Complete: title” and “Reopen: title.” Keep status wording and owner identity in the application.
+
+## Style
+
+Item supplies the shared row grid and interactive hit areas. Checkbox supplies focus and checked styling. Completed titles use subtle text and a line-through; due content retains tabular numerals. The product supplies any semantic status or deadline tone.
+
+## Accessibility
+
+Completion is a named, controlled checkbox with Space-key operation. Completing a task does not activate its row navigation. Title and action buttons are independent keyboard stops, without nested interactive elements. Completed rows without a checkbox include screen-reader text from `completedLabel` (English default “Completed”), so the strike-through is not the only completion cue.
+
+## Props
+
+<ArgTypes of={TaskRow} />
+<Canvas of={Stories.Playground} />
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Item](?path=/docs/components-item--docs) for general rows and groups.
+- [Checkbox](?path=/docs/components-checkbox--docs) for independent boolean input.
+- [Badge](?path=/docs/components-badge--docs) for caller-owned status content.
+- The application's Task wrapper maps open/waiting/blocked/done, owner names and overdue presentation onto this contract. Create-task workflows remain in the application Storybook.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

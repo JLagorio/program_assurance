@@ -1,6 +1,7 @@
 import type { Decorator, Preview } from "@storybook/react-vite";
 import { useEffect } from "react";
 
+import { LedgerProvider } from "../src/lib/locale";
 import { TooltipProvider } from "../src/components/tooltip";
 import "../src/styles/storybook.css";
 
@@ -28,14 +29,22 @@ const withMode: Decorator = (Story, ctx) => (
 
 /** One tooltip provider per page, as the Shell mounts for a product: the second tooltip shows at once. */
 const withTooltips: Decorator = (Story) => (
-  <TooltipProvider>
-    <Story />
-  </TooltipProvider>
+  <LedgerProvider>
+    <TooltipProvider>
+      <Story />
+    </TooltipProvider>
+  </LedgerProvider>
 );
 
 const preview: Preview = {
   parameters: {
     layout: "padded",
+    viewport: {
+      options: {
+        ledgerNarrow: { name: "Narrow (320 CSS px)", styles: { width: "320px", height: "900px" } },
+        ledgerDesktop: { name: "Desktop", styles: { width: "1200px", height: "900px" } },
+      },
+    },
     backgrounds: { disable: true },
     // The Matrix stories are the family contracts; `npm run test:a11y` runs axe on each and fails on violations.
     a11y: { test: "error" },
@@ -49,7 +58,7 @@ const preview: Preview = {
           "Primitives",
           ["Overview"],
           "Components",
-          ["Forms", "Overlays", "Chart", ["Overview", "*"], "*"],
+          ["Overlays", "Chart", ["Overview", "*"], "*"],
           "Patterns",
           ["Pages"],
           "Shapes",
@@ -60,6 +69,7 @@ const preview: Preview = {
     },
   },
   globalTypes: {
+    viewport: { description: "Preview dimensions" },
     design: {
       description: "Design",
       toolbar: {

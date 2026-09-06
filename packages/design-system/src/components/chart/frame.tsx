@@ -1,5 +1,15 @@
+import { useLedgerLocale } from "../../lib/locale";
 import { Download, Maximize2, Table2 } from "lucide-react";
-import { createContext, useCallback, useContext, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 import { cn } from "../../lib/cn";
 import { Breadcrumb } from "../breadcrumb";
@@ -17,8 +27,7 @@ import {
   chartColor,
   download,
   fileName,
-  formatCategory,
-  formatNumber,
+  useChartFormat,
   formatValue,
   heights,
   none,
@@ -168,6 +177,9 @@ export type ChartFrameProps = {
 const ExpandedContext = createContext(false);
 
 export function ChartFrame(props: ChartFrameProps) {
+  const { t } = useLedgerLocale();
+  const { format: defaultFormat, category: defaultCategory } = useChartFormat();
+
   const {
     title,
     description,
@@ -188,7 +200,7 @@ export function ChartFrame(props: ChartFrameProps) {
     x,
     xLabel,
     columns,
-    format = formatNumber,
+    format = defaultFormat,
     formatX,
     size = "medium",
     height,
@@ -236,13 +248,18 @@ export function ChartFrame(props: ChartFrameProps) {
   // A column of numbers sits to the end, as the series do. Every cell keeps its full width, so the table sizes to its content and scrolls in its own frame past the Frame's width, rather than clipping a word or a value.
   const numeric = (c: ChartColumn) => Boolean(data?.some((d) => typeof d[c.key] === "number"));
   const plotHeight = height ?? heights[size];
-  const fx = formatX ?? formatCategory;
+  const fx = formatX ?? defaultCategory;
   const showing = status === "ready" || status === "refreshing";
   const csv = downloads?.includes("csv") && twin;
   const png = downloads?.includes("png");
   const saveCsv = () => {
     if (!data || !x || !series) return;
-    download(fileName(title, "csv"), new Blob([toCsv(data, x, xLabel ?? x, series, fx, columns)], { type: "text/csv;charset=utf-8" }));
+    download(
+      fileName(title, "csv"),
+      new Blob([toCsv(data, x, xLabel ?? x, series, fx, columns)], {
+        type: "text/csv;charset=utf-8",
+      }),
+    );
   };
   const savePng = async () => {
     const svg = figure.current?.querySelector<SVGSVGElement>("svg.recharts-surface");
@@ -264,7 +281,7 @@ export function ChartFrame(props: ChartFrameProps) {
               <span id={id} className="font-body font-medium text-default">
                 {title}
               </span>
-              {status === "refreshing" ? <Spinner size="small" label="Refreshing" /> : null}
+              {status === "refreshing" ? <Spinner size="small" label={t("refreshing")} /> : null}
             </span>
             {description && !inDialog ? (
               <span className="font-body-small text-subtle">{description}</span>
@@ -275,7 +292,7 @@ export function ChartFrame(props: ChartFrameProps) {
               </span>
             ) : null}
             {path?.length ? (
-              <Breadcrumb label="Chart path" className="pt-025">
+              <Breadcrumb label={t("chartPath")} className="pt-025">
                 {path.map((c, i) => (
                   <Breadcrumb.Item
                     key={i}
@@ -290,7 +307,9 @@ export function ChartFrame(props: ChartFrameProps) {
           </figcaption>
           {legendAt === "top" || actions || tools ? (
             <div className="flex min-w-0 flex-wrap items-center justify-end gap-150">
-              {legendAt === "top" && series ? <ChartLegend series={series} swatch={swatch} /> : null}
+              {legendAt === "top" && series ? (
+                <ChartLegend series={series} swatch={swatch} />
+              ) : null}
               {actions}
               {tools ? (
                 <span className="flex items-center gap-050">
@@ -300,7 +319,7 @@ export function ChartFrame(props: ChartFrameProps) {
                       pressed={showTable}
                       onPressedChange={setShowTable}
                       disabled={!showing}
-                      aria-label={showTable ? "Show as chart" : "Show as table"}
+                      aria-label={showTable ? t("showChart") : t("showTable")}
                     >
                       <Table2 className="size-icon-small" />
                       Table
@@ -311,7 +330,7 @@ export function ChartFrame(props: ChartFrameProps) {
                       align="end"
                       trigger={
                         <IconButton
-                          label="Download"
+                          label={t("download")}
                           icon={<Download />}
                           variant="subtle"
                           size="small"
@@ -319,7 +338,9 @@ export function ChartFrame(props: ChartFrameProps) {
                         />
                       }
                     >
-                      {csv ? <DropdownMenu.Item onSelect={saveCsv}>Download CSV</DropdownMenu.Item> : null}
+                      {csv ? (
+                        <DropdownMenu.Item onSelect={saveCsv}>Download CSV</DropdownMenu.Item>
+                      ) : null}
                       {png ? (
                         <DropdownMenu.Item onSelect={() => void savePng()} disabled={showTable}>
                           Download PNG
@@ -329,7 +350,7 @@ export function ChartFrame(props: ChartFrameProps) {
                   ) : null}
                   {expandable ? (
                     <IconButton
-                      label="Expand"
+                      label={t("expand")}
                       icon={<Maximize2 />}
                       variant="subtle"
                       size="small"
@@ -356,8 +377,7 @@ export function ChartFrame(props: ChartFrameProps) {
                 status === "error" ? "text-danger" : "text-default",
               )}
             >
-              {statusTitle ??
-                (status === "error" ? "The chart could not load" : "Nothing to show yet")}
+              {statusTitle ?? (status === "error" ? t("chartError") : t("nothingToShow"))}
             </span>
             {statusText ? <span className="font-body-small text-subtle">{statusText}</span> : null}
           </div>
@@ -373,7 +393,7 @@ export function ChartFrame(props: ChartFrameProps) {
         ) : null}
         {twin && showTable && showing && data && x && series ? (
           <div>
-            <Table label={`${title}, as a table`}>
+            <Table label={t("tableLabel", { label: title })}>
               <thead>
                 <tr>
                   <Table.Header>{xLabel ?? x}</Table.Header>

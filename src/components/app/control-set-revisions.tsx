@@ -1,5 +1,6 @@
+import { useCallback, type SetStateAction, useMemo, useState } from "react";
+import { useRecordForm } from "@/lib/record-form";
 import { Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
 
 import {
   Alert,
@@ -21,7 +22,6 @@ import {
   TextLink,
   Timeline,
   toast,
-  useRequired,
 } from "@ledger/design-system";
 import {
   approvalConsequence,
@@ -220,19 +220,32 @@ export function ProposeChange({ scopeId }: { scopeId: string }) {
   useControlSetVersion();
   useWorkVersion();
   const [proposing, setProposing] = useState(false);
-  const [reason, setReason] = useState("");
-  const req = useRequired({ reason });
+  const { form, values, setValue, formId, formRef } = useRecordForm(
+    {
+      reason: "",
+    },
+    (value) => ({ reason: value.reason }),
+  );
+  const { reason } = values;
+  const setReason = useCallback(
+    (value: SetStateAction<typeof reason>) => setValue("reason", value),
+    [setValue],
+  );
+
   const session = currentSession();
   const inForce = inForceRevision(scopeId);
   const scope = scopeById.get(scopeId);
   const blocked = proposeBlocked(scopeId, session.role);
 
   const propose = () => {
-    if (!req.check()) return;
-    const rev = proposeRevision(scopeId, reason);
-    setProposing(false);
-    setReason("");
-    if (rev) toast.success(`v${rev.number} drafted`, { description: rev.reason });
+    return form.handleSubmit({
+      save: () => {
+        const rev = proposeRevision(scopeId, reason);
+        setProposing(false);
+        setReason("");
+        if (rev) toast.success(`v${rev.number} drafted`, { description: rev.reason });
+      },
+    });
   };
 
   return (
@@ -261,25 +274,50 @@ export function ProposeChange({ scopeId }: { scopeId: string }) {
             <Button variant="subtle" onClick={() => setProposing(false)}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={propose}>
+            <Button
+              variant="primary"
+              type="submit"
+              form={formId + "-1"}
+              disabled={form.state.isSubmitting}
+            >
               Draft revision
             </Button>
           </>
         }
       >
-        <Field
-          isRequired
-          error={req.errorFor("reason")}
-          label="What changed"
-          hint="The reason the control set has to move."
+        <form
+          id={formId + "-1"}
+          ref={formRef}
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            void propose();
+          }}
         >
-          <Textarea
-            autoFocus
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder="A new interface, a categorization challenge, an overlay revision, a finding…"
-          />
-        </Field>
+          <form.Field name="reason">
+            {(field) => (
+              <Field
+                isRequired
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+                label="What changed"
+                hint="The reason the control set has to move."
+              >
+                <Textarea
+                  autoFocus
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="A new interface, a categorization challenge, an overlay revision, a finding…"
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+        </form>
       </Dialog>
     </Stack>
   );
@@ -345,7 +383,7 @@ export function RevisionReview({
               as="dl"
               columnGap="space.300"
               rowGap="space.025"
-              templateColumns="repeat(4, minmax(0, 1fr))"
+              templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(4, minmax(0, 1fr))" }}
               className="font-body-small"
             >
               <RevisionFact label="Author">{revision.author}</RevisionFact>

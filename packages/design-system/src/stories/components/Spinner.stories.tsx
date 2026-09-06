@@ -1,6 +1,7 @@
+import { expect, userEvent, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Download } from "lucide-react";
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 
 import { Button, IconButton, Skeleton, Spinner } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
@@ -18,6 +19,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Three sizes by appearance; then where each sits: beside a word, in a button, on its own in a row, centred in an empty section. */
 export const SpinnerMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Matrix
@@ -156,3 +158,31 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {};
+
+function ChangingDelay() {
+  const [delay, setDelay] = useState(60_000);
+  // Re-arm before timers run: a revealed spinner must stay visible even across this update.
+  useLayoutEffect(() => {
+    if (delay === 0) setDelay(60_000);
+  }, [delay]);
+  return (
+    <Stack space="space.100">
+      <Button onClick={() => setDelay(0)}>Show now</Button>
+      <Button onClick={() => setDelay(60_000)}>Delay again</Button>
+      <Spinner delay={delay} label="Pending operation" />
+    </Stack>
+  );
+}
+
+export const ChangingDelayContract: Story = {
+  tags: ["contract"],
+  render: () => <ChangingDelay />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.queryByRole("status", { name: "Pending operation" })).toBeNull();
+    await userEvent.click(canvas.getByRole("button", { name: "Show now" }));
+    await expect(canvas.getByRole("status", { name: "Pending operation" })).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Delay again" }));
+    await expect(canvas.getByRole("status", { name: "Pending operation" })).toBeVisible();
+  },
+};

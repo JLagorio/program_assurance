@@ -90,6 +90,7 @@ export function PickerSheet({
                       value={search.value}
                       onChange={(e) => search.onChange(e.target.value)}
                       placeholder={search.placeholder ?? "Search"}
+                      aria-label={search.placeholder ?? "Search"}
                       className="h-control-small"
                     />
                   </InputGroup>

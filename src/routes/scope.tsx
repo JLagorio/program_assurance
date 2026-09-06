@@ -146,7 +146,7 @@ function ScopeApprovals() {
                           <Link
                             to="/programs/$programId"
                             params={{ programId: r.program }}
-                            search={{ tab: "Systems" }}
+                            search={{ tab: "System" }}
                           >
                             <Id>{r.program}</Id>
                           </Link>

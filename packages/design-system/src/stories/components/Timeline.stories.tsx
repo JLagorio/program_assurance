@@ -1,3 +1,5 @@
+import { ChevronDown } from "lucide-react";
+import { Collapsible } from "../../components";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   Check,
@@ -16,7 +18,6 @@ import {
   Badge,
   Button,
   ButtonGroup,
-  Collapsible,
   Count,
   Dot,
   DropdownMenu,
@@ -30,6 +31,7 @@ import {
   Timeline,
   tones,
 } from "../../components";
+
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -128,6 +130,7 @@ const three = (size?: "small" | "medium" | "large") => (
 
 /** Every tone as a marker; the states; icon markers; the three sizes; the four places the time can sit; and across, centred with the time above and start-aligned with it below. */
 export const TimelineMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Box className="max-w-layout-measure">
@@ -781,10 +784,23 @@ export const Runs: Story = {
           meta="12s"
           time="3m ago"
         >
-          <Collapsible title="Alex Johnson" className="border-t-0">
-            <Text size="small" color="color.text.subtle">
-              Fetched the latest changes from main.
-            </Text>
+          <Collapsible className="border-t border-default border-t-0">
+            <h3>
+              <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+                {"Alex Johnson"}
+                <ChevronDown
+                  aria-hidden="true"
+                  className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
+                />
+              </Collapsible.Trigger>
+            </h3>
+            <Collapsible.Content>
+              <div className="pb-200">
+                <Text size="small" color="color.text.subtle">
+                  Fetched the latest changes from main.
+                </Text>
+              </div>
+            </Collapsible.Content>
           </Collapsible>
         </Timeline.Item>
         <Timeline.Item
@@ -802,10 +818,23 @@ export const Runs: Story = {
           time="now"
           emphasis
         >
-          <Collapsible title="Michael Rodriguez" defaultOpen className="border-t-0">
-            <Text size="small" color="color.text.subtle">
-              Running 142 suites across the codebase.
-            </Text>
+          <Collapsible defaultOpen className="border-t border-default border-t-0">
+            <h3>
+              <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+                {"Michael Rodriguez"}
+                <ChevronDown
+                  aria-hidden="true"
+                  className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
+                />
+              </Collapsible.Trigger>
+            </h3>
+            <Collapsible.Content>
+              <div className="pb-200">
+                <Text size="small" color="color.text.subtle">
+                  Running 142 suites across the codebase.
+                </Text>
+              </div>
+            </Collapsible.Content>
           </Collapsible>
         </Timeline.Item>
         <Timeline.Item title="Production build" meta="Pending" />
@@ -955,3 +984,28 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {};
+
+/** A feed already fits Timeline.Item: callers supply markers, sentences and event labels. */
+export const FeedComposition: Story = {
+  render: () => (
+    <Timeline label="Updates" size="large" timePosition="end">
+      <Timeline.Item
+        marker={<Avatar name="Sam Rivera" size="small" isDecorative />}
+        title="Sam Rivera shared an update"
+        meta="Comment"
+        time="10:30"
+        dateTime="2026-09-06T10:30:00Z"
+      >
+        <Text>The draft is ready for review.</Text>
+      </Timeline.Item>
+      <Timeline.Item
+        icon={<Check />}
+        tone="success"
+        title="Review finished"
+        meta="Automation"
+        time="10:45"
+        dateTime="2026-09-06T10:45:00Z"
+      />
+    </Timeline>
+  ),
+};

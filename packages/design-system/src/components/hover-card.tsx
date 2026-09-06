@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../lib/locale";
 import * as HoverCardPrimitive from "@radix-ui/react-hover-card";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
@@ -36,11 +37,13 @@ export function HoverCard({
   className,
   children,
 }: HoverCardProps) {
+  const { direction } = useLedgerLocale();
   return (
     <HoverCardPrimitive.Root openDelay={delay} closeDelay={120} defaultOpen={defaultOpen}>
       <HoverCardPrimitive.Trigger asChild>{children}</HoverCardPrimitive.Trigger>
       <HoverCardPrimitive.Portal>
         <HoverCardPrimitive.Content
+          dir={direction}
           side={side}
           align={align}
           sideOffset={6}

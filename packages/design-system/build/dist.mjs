@@ -3,7 +3,7 @@
 // `src/` minus the stories. The consumer's Tailwind scans the shipped `src/` for classes (ledger.css
 // says `@source "../"`), so the source stays in the tarball; a bundler with the `development`
 // condition uses it directly, everything else uses dist.
-import { execFileSync } from "node:child_process";
+import ts from "typescript";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,7 +12,73 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dist = path.join(root, "dist");
 
 fs.rmSync(dist, { recursive: true, force: true });
-execFileSync("npx", ["tsc", "-p", "tsconfig.build.json"], { cwd: root, stdio: "inherit" });
+const configPath = path.join(root, "tsconfig.build.json");
+const config = ts.readConfigFile(configPath, ts.sys.readFile);
+const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, root);
+const program = ts.createProgram(parsed.fileNames, parsed.options);
+// Resolve relative module specifiers while emitting both JavaScript and declarations. Keeping this
+// in the compiler (rather than rewriting emitted text) also keeps source maps accurate.
+const nodeSpecifiers = (context) => (source) => {
+  const rewrite = (literal) => {
+    if (!ts.isStringLiteral(literal) || !literal.text.startsWith(".")) return literal;
+    const resolved = ts.resolveModuleName(
+      literal.text,
+      source.fileName,
+      parsed.options,
+      ts.sys,
+    ).resolvedModule;
+    if (!resolved || !/\.[cm]?tsx?$/.test(resolved.resolvedFileName)) return literal;
+    let relative = path
+      .relative(path.dirname(source.fileName), resolved.resolvedFileName)
+      .split(path.sep)
+      .join("/");
+    relative = relative.replace(/\.[cm]?tsx?$/, ".js");
+    if (!relative.startsWith(".")) relative = `./${relative}`;
+    return context.factory.createStringLiteral(relative);
+  };
+  const visit = (node, parent, grandparent) => {
+    if (
+      ts.isStringLiteral(node) &&
+      parent &&
+      (((ts.isImportDeclaration(parent) || ts.isExportDeclaration(parent)) &&
+        parent.moduleSpecifier === node) ||
+        (ts.isCallExpression(parent) && parent.expression.kind === ts.SyntaxKind.ImportKeyword) ||
+        (ts.isLiteralTypeNode(parent) && grandparent && ts.isImportTypeNode(grandparent)))
+    )
+      return rewrite(node);
+    return ts.visitEachChild(node, (child) => visit(child, node, parent), context);
+  };
+  return ts.visitNode(source, visit);
+};
+const diagnostics = [
+  ...(config.error ? [config.error] : []),
+  ...parsed.errors,
+  ...ts.getPreEmitDiagnostics(program),
+];
+if (diagnostics.length) {
+  console.error(
+    ts.formatDiagnosticsWithColorAndContext(diagnostics, {
+      getCanonicalFileName: (f) => f,
+      getCurrentDirectory: () => root,
+      getNewLine: () => "\n",
+    }),
+  );
+  process.exit(1);
+}
+const result = program.emit(undefined, undefined, undefined, undefined, {
+  before: [nodeSpecifiers],
+  afterDeclarations: [nodeSpecifiers],
+});
+if (result.emitSkipped || result.diagnostics.length) {
+  console.error(
+    ts.formatDiagnosticsWithColorAndContext(result.diagnostics, {
+      getCanonicalFileName: (f) => f,
+      getCurrentDirectory: () => root,
+      getNewLine: () => "\n",
+    }),
+  );
+  process.exit(1);
+}
 
 const copies = [
   ...fs

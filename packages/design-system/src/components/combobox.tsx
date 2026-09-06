@@ -1,10 +1,11 @@
+import { useLedgerLocale } from "../lib/locale";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { useState } from "react";
-import type { ReactNode } from "react";
+import { useId, useState } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 import { Command } from "./command";
-import { controlBase, controlHeight, type ControlSize } from "./controls";
+import { controlBase, controlHeight, useFieldControl, type ControlSize } from "./controls";
 import { Popover } from "./popover";
 
 export type ComboboxOption = {
@@ -20,9 +21,12 @@ export type ComboboxOption = {
   disabled?: boolean | undefined;
 };
 
-export type ComboboxProps = {
+type ComboboxOwnProps = {
   /** The options, every one known before the list opens. */
   options: ComboboxOption[];
+  /** The controlled value participates in native form submission when named. */
+  name?: string | undefined;
+  form?: string | undefined;
   /** The chosen value. The Combobox is always controlled. */
   value?: string | undefined;
   /** Called with the new value when the reader chooses. */
@@ -44,6 +48,8 @@ export type ComboboxProps = {
   /** Layout only. */
   className?: string | undefined;
   /** The name, when there is no Field around it. */
+  id?: string | undefined;
+  "aria-labelledby"?: string | undefined;
   "aria-label"?: string | undefined;
   /** Set by the Field from `error`; the border turns. */
   "aria-invalid"?: boolean | undefined;
@@ -53,83 +59,115 @@ export type ComboboxProps = {
   "aria-describedby"?: string | undefined;
 };
 
+export type ComboboxProps = ComboboxOwnProps &
+  Omit<ComponentProps<"button">, keyof ComboboxOwnProps | "children" | "type" | "defaultValue">;
+
 /** One answer from a list worth searching: people, controls, requirements. The field is the control; the list is a Command in a Popover, filtered as the reader types. */
 export function Combobox({
   options,
+  name,
+  form,
   value,
   onChange,
-  placeholder = "Choose…",
-  searchPlaceholder = "Search…",
-  empty = "Nothing matches.",
+  placeholder,
+  searchPlaceholder,
+  empty,
   size = "medium",
   width,
   disabled,
   defaultOpen = false,
   className,
+  id,
+  "aria-labelledby": ariaLabelledby,
   "aria-label": ariaLabel,
   "aria-invalid": ariaInvalid,
   "aria-required": ariaRequired,
   "aria-describedby": ariaDescribedby,
+  ...triggerProps
 }: ComboboxProps) {
+  const { t } = useLedgerLocale();
+  const generatedId = useId();
+  const field = useFieldControl({
+    ...triggerProps,
+    id,
+    "aria-label": ariaLabel,
+    "aria-labelledby": ariaLabelledby,
+    "aria-invalid": ariaInvalid,
+    "aria-describedby": ariaDescribedby,
+    "aria-required": ariaRequired,
+  });
+  const triggerId = field.id ?? generatedId;
   const [open, setOpen] = useState(defaultOpen);
   const selected = options.find((o) => o.value === value);
   return (
-    <Popover
-      open={open}
-      onOpenChange={setOpen}
-      {...(width === undefined ? { matchTriggerWidth: true } : { width })}
-      className="p-0"
-      trigger={
-        <button
-          type="button"
-          role="combobox"
-          aria-haspopup="listbox"
-          aria-expanded={open}
-          aria-label={ariaLabel}
-          aria-invalid={ariaInvalid}
-          aria-required={ariaRequired}
-          aria-describedby={ariaDescribedby}
-          disabled={disabled}
-          className={cn(
-            controlBase,
-            controlHeight[size],
-            "flex items-center justify-between gap-100 text-left",
-            className,
-          )}
-        >
-          <span className={cn("min-w-0 flex-1 truncate", !selected && "text-subtlest")}>
-            {selected?.label ?? placeholder}
-          </span>
-          <ChevronsUpDown className="size-icon-small shrink-0 icon-subtle" />
-        </button>
-      }
-    >
-      <Command className="rounded-large">
-        <Command.Input placeholder={searchPlaceholder} hint={null} autoFocus />
-        <Command.List style={{ maxHeight: 260 }}>
-          {options.map((o) => (
-            <Command.Item
-              key={o.value}
-              value={`${o.label} ${o.value} ${o.keywords ?? ""}`}
-              {...(o.disabled ? { disabled: true } : {})}
-              onSelect={() => {
-                onChange(o.value);
-                setOpen(false);
-              }}
-              trailing={o.meta}
-            >
-              <span className="min-w-0 flex-1 truncate">{o.label}</span>
-              <Check
-                className={cn(
-                  "size-icon-small shrink-0",
-                  o.value === value ? "visible" : "invisible",
-                )}
-              />
-            </Command.Item>
-          ))}
-        </Command.List>
-        <Command.Empty>{empty}</Command.Empty>
-      </Command>
-    </Popover>
+    <>
+      <input
+        type="hidden"
+        name={name}
+        form={form}
+        value={value ?? ""}
+        disabled={disabled}
+        data-ds-focus-target={triggerId}
+      />
+      <Popover
+        label={searchPlaceholder ?? ariaLabel ?? placeholder ?? t("search")}
+        open={open && !disabled}
+        onOpenChange={(next) => setOpen(next && !disabled)}
+        {...(width === undefined ? { matchTriggerWidth: true } : { width })}
+        className="p-0"
+        trigger={
+          <button
+            type="button"
+            role="combobox"
+            aria-haspopup="listbox"
+            aria-expanded={open && !disabled}
+            {...field}
+            id={triggerId}
+            style={{ ...triggerProps.style, ...(width === undefined ? {} : { width }) }}
+            form={form}
+            disabled={disabled}
+            className={cn(
+              controlBase,
+              controlHeight[size],
+              "flex items-center justify-between gap-100 text-left",
+              className,
+            )}
+          >
+            <span className={cn("min-w-0 flex-1 truncate", !selected && "text-subtlest")}>
+              {selected?.label ?? placeholder ?? t("choose")}
+            </span>
+            <ChevronsUpDown className="size-icon-small shrink-0 icon-subtle" />
+          </button>
+        }
+      >
+        <Command className="rounded-large">
+          <Command.Input placeholder={searchPlaceholder ?? t("search")} hint={null} autoFocus />
+          <Command.List style={{ maxHeight: 260 }}>
+            {options.map((o) => (
+              <Command.Item
+                key={o.value}
+                value={`${o.label} ${o.value} ${o.keywords ?? ""}`}
+                {...(o.disabled ? { disabled: true } : {})}
+                onSelect={() => {
+                  if (disabled || o.disabled) return;
+                  onChange(o.value);
+                  setOpen(false);
+                }}
+                trailing={o.meta}
+              >
+                <span className="min-w-0 flex-1 truncate">{o.label}</span>
+                <Check
+                  className={cn(
+                    "size-icon-small shrink-0",
+                    o.value === value ? "visible" : "invisible",
+                  )}
+                />
+              </Command.Item>
+            ))}
+          </Command.List>
+          <Command.Empty>{empty ?? t("noMatches")}</Command.Empty>
+        </Command>
+      </Popover>
+    </>
   );
 }

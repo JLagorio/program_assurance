@@ -58,6 +58,7 @@ const brand = [{ key: "findings", label: "Findings", tone: "brand" as const }];
 
 /** The Frame in every state, the legend in every swatch, the tones, and one of each kind inside it. */
 export const ChartMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Frame · ready · loading (the plot's own skeleton) · refreshing (the last plot, dimmed)">

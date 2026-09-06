@@ -1,0 +1,174 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Activity } from "@/components/app/activity";
+import * as Stories from "./Activity.stories";
+
+<Meta of={Stories} />
+
+# Activity
+
+Application-owned workflow composition. Its states, actions and data conventions belong to this prototype; it adapts shared Ledger patterns for presentation and interaction.
+
+Everything that happened to a record, in one feed, and the way to add to it. The work happens outside the platform: a call, a hallway answer, a file someone sends. It comes back in through the **log bar**: a note, a task, a request to a person, a link to what arrived. What the system did, a field changed, a stage moved, a task closed, sits in the same feed with an icon where a person's event has a face. One feed, filtered by record, by person or by program; a record's page shows its own slice, last.
+
+**Activity** is the feed, **Activity.Item** one event, **Activity.Group** a run under a sticky label. **Activity.Composer** is the box that adds to it, with `@` completion over the people who can be mentioned, and **Activity.Text** draws a body with its mentions tinted. **Activity.LogBar** is the row of ways in.
+
+<Canvas of={Stories.Feed} />
+
+## Anatomy
+
+| Part     | What it is                                                                                                                                     |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Feed     | A [Timeline](http://localhost:6007/?path=/docs/components-timeline--docs) at `large`, the rail on the left, newest first.                      |
+| Marker   | A `small` Avatar for a person's event, 24px. For the system's, a disc in the kind's tone with its icon.                                        |
+| Sentence | The name in weight 500, then what they did in the past tense: "asked Joel Barrantes for the account review procedure". One line; it truncates. |
+| Meta     | Under the sentence, subtle: the kind's icon and word, then the record it was on when the feed spans records.                                   |
+| Time     | At the end of the sentence's line, as the reader would say it: "2h ago", "27 Aug". The full stamp is its tooltip.                              |
+| Body     | Under the meta: an Activity.Text, an attachment row, a before and after.                                                                       |
+| Footer   | The last line: a Badge, or the actions on the event.                                                                                           |
+| Composer | The author's Avatar, a three-line field, the people list that `@` opens, and the line under it with the shortcut and the button.               |
+| Log bar  | Small secondary Buttons in a row, one pressed while its composer or dialog is open.                                                            |
+| Mention  | `@Name` in the information tint, inline. A button when it opens the person.                                                                    |
+
+## Variants
+
+Two kinds of event and one feed. A **person's** event carries their face and their name leads the sentence. The **system's** carries the kind's icon and starts with what happened. They are not two lists: a request and the task it closed sit next to each other.
+
+The kinds, each an icon and a tone: `note`, `comment`, `task`, `request`, `link`, `change`, `stage`, `assign`, `done`, `created`. Four come in through the log bar. The rest the system writes.
+
+<Canvas of={Stories.Logging} />
+
+<Canvas of={Stories.Mentions} />
+
+## Sizes
+
+One. The marker is 24px, so a face is legible and a row is one rhythm with a Task row beside it. The composer is three lines and grows with the text.
+
+## States
+
+| State    | Look                                                                                            |
+| -------- | ----------------------------------------------------------------------------------------------- |
+| Event    | The sentence in `color.text`, the name in weight 500.                                           |
+| Emphasis | The sentence in weight 500: it mentions the reader, or is unread.                               |
+| Opens    | With `link` or `onSelect` the sentence stretches over the row and tints under the pointer.      |
+| Composer | Empty, the button disabled. With text, enabled. With `@`, the people list open under the field. |
+| Log bar  | One button pressed while its way in is open; none when the feed is at rest.                     |
+
+<Canvas of={Stories.ActivityMatrix} />
+
+## Modifiers
+
+- **`actor`** on an Item: the person, by full name. Without it, the system.
+- **`kind`** on an Item: the icon, the tone and the word.
+- **`meta`** on an Item: where it happened, when the feed spans records.
+- **`emphasis`**, **`link`**, **`onSelect`**, **`footer`** on an Item, as in States and Anatomy.
+- **`people`** on the Composer: who `@` offers. Without it, no list.
+- **`onCancel`** on the Composer: a Cancel beside the button, when the log bar opened it.
+- **`children`** on the Composer: fields above the body, a "To" for a request.
+- **`submitLabel`**, **`placeholder`**, **`actor`** on the Composer.
+- **`value`** on the LogBar: the item that is open, pressed.
+- **`mention`** on Text: how to draw a mention, when it should open the person.
+
+## Content
+
+- **The sentence is past tense, the person first:** "asked", "linked", "took ownership". Not "Request sent", not a code.
+- **The system's sentence starts with what moved:** "Implementation moved from Planned to Partially implemented".
+- **The body is what was said or sent.** A note, a reply, the file's name. Not a restatement of the sentence.
+- **A mention is written `@[Full Name]`** and drawn as `@Name`. The person sees it in their queue; prose with a first name tells nobody.
+- **The log bar has four items at most,** nouns: Note, Task, Request, Evidence.
+- **Group by when the reader would:** Today, Yesterday, Last week, then the month.
+- **Newest first.** The feed is what happened since they last looked.
+
+## Style
+
+| Element  | Token                                                                                                                  |
+| -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Feed     | Timeline `large` · `space.100` between rows · the rail in `color.border`                                               |
+| Marker   | Avatar `small` 24px · the system's disc in the kind's tone                                                             |
+| Sentence | `font.body` · `color.text` · the name at weight 500 · weight 500 throughout under `emphasis`                           |
+| Meta     | `font.body.small` · `color.text.subtle` · `dimension.icon.small` for the kind                                          |
+| Body     | `font.body` · `color.text` · `layout.measure` wide · line breaks kept                                                  |
+| Mention  | `color.background.information` on `color.text.information` · `radius.small` · `space.025` inline                       |
+| Composer | The kit's Textarea · the list on `color.background.surface.overlay` with the overlay shadow · `space.100` between rows |
+| Log bar  | Small secondary Buttons · `space.100` apart · the open one `isSelected`                                                |
+
+## Accessibility
+
+- **The feed is a list** named `label`; each row is an item. The Timeline sets it.
+- **The time is a `<time>`** when `dateTime` is given, its full stamp the tooltip.
+- **The composer's field is a textbox** named by `label` or the placeholder, with `aria-autocomplete="list"`. While the people list is open it is the field's `aria-controls`, and the active row its `aria-activedescendant`; the list is a listbox named "People", each name an option.
+- **Keyboard in the composer:** type `@` to open the list; Up and Down move, Enter or Tab write the mention, Escape closes. ⌘↵ or Ctrl+↵ posts. Tab leaves the field for the buttons.
+- **A mention is text**, or a button when it opens the person.
+- **The log bar is a group** named `label`; the open item says `aria-pressed`.
+- **The a11y gate** checks the matrix: the feed's roles and names, the composer closed and its controls, the log bar's group.
+
+## Props
+
+<ArgTypes of={Activity} />
+
+The parts, by hand until the generated tables reach a part:
+
+### Activity.Item
+
+| Prop        | Type                  | What it is                                             |
+| ----------- | --------------------- | ------------------------------------------------------ |
+| `actor`     | `string`              | Who did it, by full name. Unsaid, the system.          |
+| `kind`      | `ActivityKind`        | The icon, the tone and the word.                       |
+| `title`     | `ReactNode`, required | The sentence after the name, past tense.               |
+| `meta`      | `ReactNode`           | Where it happened, when the feed spans records.        |
+| `time`      | `ReactNode`           | When, as the reader would say it.                      |
+| `dateTime`  | `string`              | The machine-readable stamp; makes the time a `<time>`. |
+| `timeTitle` | `string`              | The full stamp as the time's tooltip.                  |
+| `emphasis`  | `boolean`             | Mentions the reader, or unread.                        |
+| `link`      | `ReactElement`        | A router's Link that becomes the sentence.             |
+| `onSelect`  | `() => void`          | The sentence as a button.                              |
+| `children`  | `ReactNode`           | The body.                                              |
+| `footer`    | `ReactNode`           | The last line.                                         |
+
+### Activity.Composer
+
+| Prop           | Type                                 | What it is                                                               |
+| -------------- | ------------------------------------ | ------------------------------------------------------------------------ |
+| `onSubmit`     | `(text, mentions) => void`, required | The body as written and the names it mentions. The field clears.         |
+| `people`       | `{ name, meta? }[]`                  | Who `@` offers.                                                          |
+| `onCancel`     | `() => void`                         | A Cancel beside the button.                                              |
+| `placeholder`  | `string`                             | What the field says while empty. Also its name, unless `label` is given. |
+| `label`        | `string`                             | The field's accessible name.                                             |
+| `submitLabel`  | `string`                             | The verb on the button: "Post", "Send".                                  |
+| `actor`        | `string`                             | The author, whose Avatar sits beside the field.                          |
+| `defaultValue` | `string`                             | The text to start with.                                                  |
+| `autoFocus`    | `boolean`                            | Focus on mount: the log bar opened it.                                   |
+| `children`     | `ReactNode`                          | Fields above the body.                                                   |
+
+### Activity.LogBar
+
+| Prop       | Type                                  | What it is                               |
+| ---------- | ------------------------------------- | ---------------------------------------- |
+| `items`    | `{ value, label, icon? }[]`, required | The ways in, four at most.               |
+| `value`    | `string \| null`                      | The open one, pressed.                   |
+| `onSelect` | `(value) => void`, required           | The caller opens its composer or dialog. |
+| `label`    | `string`                              | The group's name: "Log".                 |
+
+### Activity.Text and Activity.Mention
+
+`Activity.Text` takes the body as a string with mentions written `@[Full Name]`, and `mention` to draw one. `Activity.Mention` takes `name` and `onSelect`. `parseMentions(text)` returns the names, once each, for the caller that stores them.
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+The composer delegates keyboard suggestions and recoverable submission to shared [Composer](http://localhost:6007/?path=/docs/patterns-composer--docs). This product supplies its people lookup and `@[Full Name]` insertion format. Feed items use Timeline.Item.
+
+## Related
+
+- [Task](?path=/docs/product-workflows-task--docs): what the log bar's Task creates, and what a `done` event closes.
+- [Timeline](http://localhost:6007/?path=/docs/components-timeline--docs): the rail underneath.
+- [Avatar](http://localhost:6007/?path=/docs/components-avatar--docs): the marker and the composer's author.
+- [Forms](http://localhost:6007/?path=/docs/patterns-forms--docs): the Textarea and the Field a request adds.
+- [Section](http://localhost:6007/?path=/docs/patterns-section--docs): the record's last section, where the feed sits.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

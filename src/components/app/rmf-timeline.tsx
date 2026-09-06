@@ -74,7 +74,7 @@ export function RmfTimeline({
     <Section
       title="RMF timeline"
       action={
-        <Box style={{ width: 240 }}>
+        <Box style={{ width: 240, maxWidth: "100%" }}>
           <Inline space="space.100" alignBlock="center">
             <Progress.Stacked
               size="small"

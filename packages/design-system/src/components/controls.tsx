@@ -1,9 +1,13 @@
+import { useLedgerLocale } from "../lib/locale";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import * as SwitchPrimitive from "@radix-ui/react-switch";
 import { Check, ChevronDown, Minus } from "lucide-react";
 import {
   cloneElement,
+  createContext,
+  useContext,
+  type AriaAttributes,
   isValidElement,
   type ComponentProps,
   type ComponentPropsWithoutRef,
@@ -20,20 +24,55 @@ import { cn } from "../lib/cn";
  * children and the children become a label that toggles the control.
  */
 
-type AriaProps = {
-  "aria-invalid"?: boolean | undefined;
-  "aria-required"?: boolean | undefined;
-  "aria-describedby"?: string | undefined;
+type FieldBinding = {
+  controlId: string;
+  labelId: string;
+  messageId?: string | undefined;
+  invalid: boolean;
+  required: boolean;
+  group: boolean;
 };
+const FieldContext = createContext<FieldBinding | null>(null);
+
+/** Bind a native or custom control, including controls behind wrappers and fragments. */
+export function useFieldControl<P extends AriaAttributes & { id?: string | undefined }>(
+  props: P,
+  groupContainer = false,
+) {
+  const field = useContext(FieldContext);
+  const receivesName = field && (!field.group || groupContainer);
+  return {
+    ...props,
+    ...(receivesName
+      ? {
+          id: props.id ?? field.controlId,
+          "aria-labelledby":
+            props["aria-labelledby"] ?? (props["aria-label"] ? undefined : field.labelId),
+        }
+      : {}),
+    "aria-invalid": field?.invalid || props["aria-invalid"],
+    "aria-required": (receivesName && field.required) || props["aria-required"],
+    "aria-describedby":
+      [
+        ...new Set(
+          [props["aria-describedby"], field?.messageId]
+            .filter(Boolean)
+            .flatMap((value) => value!.split(/\s+/)),
+        ),
+      ].join(" ") || undefined,
+  };
+}
 
 export type FieldProps = {
   /** The control's name, read by the label and by assistive technology. Sentence case, no colon. */
   label: ReactNode;
+  /** Stable control ID for external labels or custom controls. Otherwise generated. */
+  controlId?: string | undefined;
   /** Shown under the control and read as its description: the format, the reason, the consequence. A full sentence. */
   hint?: ReactNode;
   /** Replaces the hint, marks the control invalid (its border turns) and is announced as an alert. */
   error?: ReactNode;
-  /** Paints the asterisk and sets aria-required. Not the browser's `required`: the form checks on submit with `useRequired`. */
+  /** Paints the asterisk and sets aria-required. Not the browser's `required`: validation belongs to the form (see the TanStack Forms pattern). */
   isRequired?: boolean | undefined;
   /** The child is a group, a RadioGroup or several Checkboxes in a Stack: the Field renders a fieldset with the label as its legend, so the group is named, and the hint or the error describes the group. */
   isGroup?: boolean | undefined;
@@ -43,6 +82,7 @@ export type FieldProps = {
 
 export function Field({
   label,
+  controlId: suppliedId,
   hint,
   error,
   isRequired,
@@ -50,28 +90,44 @@ export function Field({
   children,
   className,
 }: FieldProps) {
-  // The label wraps the control, so any control is named by it. The hint or the error sits outside
-  // the label as the control's description (aria-describedby), never as part of its name; the one
-  // control inside also takes aria-invalid, so its border turns, and aria-required. A group is a
-  // fieldset with the label as its legend; the fieldset carries the description, and a RadioGroup
-  // inside it takes aria-invalid and aria-required, which a stack of checkboxes cannot.
   const id = useId();
+  const childId =
+    isValidElement<{ id?: string }>(children) &&
+    (typeof children.type !== "string" ||
+      ["input", "textarea", "select", "button"].includes(children.type))
+      ? children.props.id
+      : undefined;
+  const controlId = suppliedId ?? childId ?? `${id}-control`;
+  const labelId = `${id}-label`;
   const messageId = error ? `${id}-error` : hint ? `${id}-hint` : undefined;
-  const isRadioGroup = isValidElement(children) && children.type === RadioGroup;
-  const takesState = !isGroup || isRadioGroup;
-  const control = isValidElement<AriaProps>(children)
-    ? cloneElement(children, {
-        ...(error && takesState ? { "aria-invalid": true } : {}),
-        ...(isRequired && takesState ? { "aria-required": true } : {}),
-        ...(messageId && !isGroup
-          ? {
-              "aria-describedby": [children.props["aria-describedby"], messageId]
-                .filter(Boolean)
-                .join(" "),
-            }
-          : {}),
-      })
-    : children;
+  const binding: FieldBinding = {
+    controlId,
+    labelId,
+    messageId,
+    invalid: Boolean(error),
+    required: Boolean(isRequired),
+    group: Boolean(isGroup),
+  };
+  // Only clone native controls. Components bind through useFieldControl; structural wrappers never receive the control ID.
+  const control =
+    isValidElement<AriaAttributes & { id?: string }>(children) &&
+    typeof children.type === "string" &&
+    ["input", "textarea", "select", "button"].includes(children.type)
+      ? cloneElement(children, {
+          ...(!isGroup
+            ? { id: controlId, "aria-labelledby": children.props["aria-labelledby"] ?? labelId }
+            : {}),
+          ...(error ? { "aria-invalid": true } : {}),
+          ...(isRequired && !isGroup ? { "aria-required": true } : {}),
+          ...(messageId
+            ? {
+                "aria-describedby": [children.props["aria-describedby"], messageId]
+                  .filter(Boolean)
+                  .join(" "),
+              }
+            : {}),
+        })
+      : children;
   const labelText = (
     <>
       {label}
@@ -93,27 +149,37 @@ export function Field({
   ) : null;
   if (isGroup) {
     return (
-      <fieldset
-        className={cn("min-w-0", className)}
-        aria-describedby={messageId}
-        aria-invalid={error ? true : undefined}
-      >
-        <legend className="font-body-small font-medium text-subtle">{labelText}</legend>
-        <div className="flex flex-col gap-050 pt-050">
-          {control}
-          {message}
-        </div>
-      </fieldset>
+      <FieldContext.Provider value={binding}>
+        <fieldset
+          className={cn("min-w-0", className)}
+          aria-describedby={messageId}
+          aria-invalid={error ? true : undefined}
+          data-invalid={error ? true : undefined}
+        >
+          <legend id={labelId} className="font-body-small font-medium text-subtle">
+            {labelText}
+          </legend>
+          <div className="flex flex-col gap-050 pt-050">
+            {control}
+            {message}
+          </div>
+        </fieldset>
+      </FieldContext.Provider>
     );
   }
   return (
-    <div className={cn("flex flex-col gap-050", className)}>
-      <label className="flex flex-col gap-050">
-        <span className="font-body-small font-medium text-subtle">{labelText}</span>
+    <FieldContext.Provider value={binding}>
+      <div
+        className={cn("flex flex-col gap-050", className)}
+        data-invalid={error ? true : undefined}
+      >
+        <label id={labelId} htmlFor={controlId} className="font-body-small font-medium text-subtle">
+          {labelText}
+        </label>
         {control}
-      </label>
-      {message}
-    </div>
+        {message}
+      </div>
+    </FieldContext.Provider>
   );
 }
 
@@ -136,6 +202,7 @@ export type InputProps = {
 
 /** One line of free text. Inside a Field for its label, hint and error; inside an InputGroup for an icon, a unit or a shortcut at either end. `type="search"` for a search box: the browser's own clear control is hidden, Escape clears it. */
 export function Input({ size = "medium", className, ...props }: InputProps) {
+  const bound = useFieldControl(props);
   return (
     <input
       className={cn(
@@ -144,7 +211,7 @@ export function Input({ size = "medium", className, ...props }: InputProps) {
         "[&::-webkit-search-cancel-button]:appearance-none",
         className,
       )}
-      {...props}
+      {...bound}
     />
   );
 }
@@ -156,11 +223,12 @@ export type NativeSelectProps = {
 
 /** The browser's own select with the kit's look: a short, plain list the reader picks one of. The chevron is a real icon, so it follows the colour mode. `className` goes to the wrapper. */
 export function NativeSelect({ size = "medium", className, ...props }: NativeSelectProps) {
+  const bound = useFieldControl(props);
   return (
     <span className={cn("relative block w-full", className)}>
       <select
         className={cn(controlBase, controlHeight[size], "appearance-none pe-400")}
-        {...props}
+        {...bound}
       />
       <ChevronDown
         aria-hidden
@@ -172,8 +240,9 @@ export function NativeSelect({ size = "medium", className, ...props }: NativeSel
 
 /** Several lines of free text: a note, a description, a narrative. `rows` says how long an answer is expected; the reader can drag it taller. Inside a Field like an Input. */
 export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
+  const bound = useFieldControl(props);
   return (
-    <textarea className={cn(controlBase, "min-h-800 resize-y py-075", className)} {...props} />
+    <textarea className={cn(controlBase, "min-h-800 resize-y py-075", className)} {...bound} />
   );
 }
 
@@ -279,6 +348,7 @@ export function Checkbox({
   name,
   ...rest
 }: CheckboxProps) {
+  rest = useFieldControl(rest);
   const descriptionId = useId();
   const box = (
     <CheckboxPrimitive.Root
@@ -353,6 +423,7 @@ export function Switch({
   name,
   ...rest
 }: SwitchProps) {
+  rest = useFieldControl(rest);
   const descriptionId = useId();
   const control = (
     <SwitchPrimitive.Root
@@ -365,7 +436,7 @@ export function Switch({
       {...defined({ checked, defaultChecked, onCheckedChange, disabled, name })}
       aria-describedby={describedBy(rest["aria-describedby"], description, descriptionId)}
     >
-      <SwitchPrimitive.Thumb className="block size-200 rounded-full bg-surface shadow-raised transition-transform duration-micro ease-standard group-disabled:opacity-disabled data-[state=checked]:translate-x-250" />
+      <SwitchPrimitive.Thumb className="block size-200 rounded-full bg-surface shadow-raised transition-transform duration-micro ease-standard group-disabled:opacity-disabled data-[state=checked]:translate-x-250 rtl:data-[state=checked]:-translate-x-250" />
     </SwitchPrimitive.Root>
   );
   return children ? (
@@ -422,6 +493,7 @@ export type RadioGroupProps = {
 
 /** One answer from two to five options, every one in view. Inside a Field with `isGroup` for its name, hint and error. More options are a NativeSelect. */
 function RadioGroupRoot({
+  dir,
   orientation = "vertical",
   className,
   value,
@@ -431,8 +503,11 @@ function RadioGroupRoot({
   name,
   ...rest
 }: RadioGroupProps) {
+  const { direction } = useLedgerLocale();
+  rest = useFieldControl(rest, true);
   return (
     <RadioGroupPrimitive.Root
+      dir={dir ?? direction}
       orientation={orientation}
       className={cn(
         "flex",

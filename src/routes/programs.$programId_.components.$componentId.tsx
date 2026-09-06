@@ -6,11 +6,10 @@ import { NodeRail } from "@/components/app/composition";
 import { DerivedControlTrace, ElementAllocationTable } from "@/components/app/requirements";
 import { AllocateRequirementsSheet } from "@/components/app/allocate-picker";
 import { RevisionStrip } from "@/components/app/control-set-revisions";
-import {
-  ScopeControlSetTab,
-  ScopeFacts,
-  ScopeRailGroups,
-} from "@/components/app/scope-control-set";
+import { RecordActivity } from "@/components/app/record-activity";
+import { ScopeControlSetTab, ScopeRailGroups } from "@/components/app/scope-control-set";
+import { TasksSection } from "@/components/app/tasks-section";
+import { currentSession } from "@/lib/control-work";
 import {
   Breadcrumb,
   Badge,
@@ -20,6 +19,8 @@ import {
   Fact,
   Id,
   Indicator,
+  Inspector,
+  KeyValue,
   RecordHeader,
   Section,
   ShowPage,
@@ -189,6 +190,7 @@ function ComponentRecord() {
   const parent = node.parent ? nodeById.get(node.parent) : null;
   const anchoredSet = anchored ? controlSetFor(anchored.id) : null;
   const go = (next: NodeTab) => navigate({ search: { tab: next }, replace: true });
+  const me = currentSession().name;
 
   return (
     <Shell>
@@ -200,6 +202,47 @@ function ComponentRecord() {
             tab === "Overview" ? (
               <>
                 <NodeRail node={node} posture={posture} />
+                <Inspector.Group title="Position">
+                  <KeyValue label="Attestation">
+                    <Badge size="xsmall" tone={node.attested ? "success" : "warning"}>
+                      {node.attested ? "Attested" : "Not attested"}
+                    </Badge>
+                  </KeyValue>
+                  {posture?.worst ? (
+                    <KeyValue label="Findings">
+                      <Indicator tone={severityTone(posture.worst)}>{posture.worst} open</Indicator>
+                    </KeyValue>
+                  ) : null}
+                  {anchored ? (
+                    <KeyValue label="Authorization">
+                      {anchored.independentlyAuthorized
+                        ? "Separately authorized"
+                        : "Inside the program ATO"}
+                    </KeyValue>
+                  ) : null}
+                  {anchored ? (
+                    <KeyValue label="Control set" wrap>
+                      <RevisionStrip scopeId={anchored.id} />
+                    </KeyValue>
+                  ) : null}
+                  <KeyValue label="Sits in">
+                    {parent ? (
+                      <TextLink>
+                        <Link
+                          to="/programs/$programId/components/$componentId"
+                          params={{ programId, componentId: parent.id }}
+                        >
+                          {parent.name}
+                        </Link>
+                      </TextLink>
+                    ) : (
+                      "Top of the tree"
+                    )}
+                  </KeyValue>
+                  <KeyValue label="Scopes">{scopes.length}</KeyValue>
+                  <KeyValue label="Requirements">{allocations.length || "None"}</KeyValue>
+                  <KeyValue label="Controls reached">{trace.controls.length || "None"}</KeyValue>
+                </Inspector.Group>
                 {anchored ? <ScopeRailGroups scope={anchored} /> : null}
               </>
             ) : null
@@ -215,7 +258,7 @@ function ComponentRecord() {
                     <Link
                       to="/programs/$programId"
                       params={{ programId }}
-                      search={{ tab: "Systems" }}
+                      search={{ tab: "System" }}
                     >
                       {program.name}
                     </Link>
@@ -231,57 +274,13 @@ function ComponentRecord() {
               }
               id={node.id}
               title={node.name}
-              meta={`${node.kind} · ${node.class}${node.version === "—" ? "" : ` · ${node.version}`} · ${program.acronym}`}
               actions={
-                <>
-                  <Badge tone={node.attested ? "success" : "warning"}>
-                    {node.attested ? "Attested" : "Not attested"}
-                  </Badge>
-                  {posture?.worst ? (
-                    <Indicator tone={severityTone(posture.worst)}>{posture.worst} open</Indicator>
-                  ) : null}
-                  {anchored ? (
-                    <Badge tone={anchored.independentlyAuthorized ? "warning" : "neutral"}>
-                      {anchored.independentlyAuthorized
-                        ? "Separately authorized"
-                        : "Inside the program ATO"}
-                    </Badge>
-                  ) : null}
-                </>
+                <Button size="small" variant="primary" onClick={() => setDeciding(true)}>
+                  {undecided.length
+                    ? `Review ${undecided.length} unanswered`
+                    : "Allocate requirements"}
+                </Button>
               }
-              facts={
-                <>
-                  {anchored && anchoredSet ? (
-                    <ScopeFacts scope={anchored} set={anchoredSet} />
-                  ) : null}
-                  <Fact label="Supplier">{node.supplier}</Fact>
-                  {node.partNumber ? (
-                    <Fact label="Part number">
-                      <Id>{node.partNumber}</Id>
-                    </Fact>
-                  ) : null}
-                  <Fact label="Trust zone">{node.zone}</Fact>
-                  <Fact label="Criticality">{node.criticality}</Fact>
-                  <Fact label="Scopes">{scopes.length}</Fact>
-                  <Fact label="Requirements">{allocations.length || "None"}</Fact>
-                  <Fact label="Controls reached">{trace.controls.length || "None"}</Fact>
-                  <Fact label="Sits in">
-                    {parent ? (
-                      <TextLink>
-                        <Link
-                          to="/programs/$programId/components/$componentId"
-                          params={{ programId, componentId: parent.id }}
-                        >
-                          {parent.name}
-                        </Link>
-                      </TextLink>
-                    ) : (
-                      "Top of the tree"
-                    )}
-                  </Fact>
-                </>
-              }
-              below={anchored ? <RevisionStrip scopeId={anchored.id} /> : null}
             />
           }
           tabs={
@@ -305,14 +304,7 @@ function ComponentRecord() {
           ) : (
             <>
               {scopes.some((sc) => sc.id !== anchored?.id) ? (
-                <Section
-                  title="Assessment scopes"
-                  description={
-                    serves.length
-                      ? "This component serves more than one scope. Its obligations are the union, and the strictest categorization governs."
-                      : "The scope whose obligations reach this component."
-                  }
-                >
+                <Section title="Assessment scopes">
                   <Table className="pt-050">
                     <thead>
                       <Table.Row>
@@ -371,16 +363,7 @@ function ComponentRecord() {
                 </Section>
               ) : null}
 
-              <Section
-                title="Security requirements allocated here"
-                action={
-                  <Button size="small" variant="primary" onClick={() => setDeciding(true)}>
-                    {undecided.length
-                      ? `Review ${undecided.length} unanswered`
-                      : "Allocate requirements"}
-                  </Button>
-                }
-              >
+              <Section title="Security requirements allocated here">
                 <ElementAllocationTable
                   allocations={allocations}
                   programId={programId}
@@ -619,6 +602,18 @@ function ComponentRecord() {
                   <p className="max-w-layout-measure pt-100 font-body text-subtle">{node.note}</p>
                 ) : null}
               </Section>
+
+              <TasksSection
+                program={programId}
+                subject={{ kind: "node", id: node.id, label: node.name }}
+                me={me}
+              />
+
+              <RecordActivity
+                program={programId}
+                subject={{ kind: "node", id: node.id, label: node.name }}
+                me={me}
+              />
             </>
           )}
         </ShowPage>

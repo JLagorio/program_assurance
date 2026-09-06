@@ -40,6 +40,7 @@ function Frame({ children, width = 300, height }: { children: React.ReactNode; w
 
 /** The two directions; the six distributions along the main axis; the five alignments on the cross axis against a taller child; wrapping. */
 export const FlexMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Stack space="space.100">

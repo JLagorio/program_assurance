@@ -1,0 +1,65 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+import { Composer } from "../../patterns";
+import * as Stories from "./Composer.stories";
+
+<Meta of={Stories} />
+
+# Composer
+
+An experimental shared text composer for messages, comments and other short drafts. Ledger owns keyboard completion, submission progress and recovery. The consuming application owns recipients, permissions, persistence, suggestion identity and serialized text. Owner: Ledger maintainers; consumers own their adapters.
+
+<Canvas of={Stories.ComposerMatrix} />
+
+## Anatomy
+
+A named textarea, optional leading marker, contextual fields above, instructions below, optional cancel action, and primary submission action. Suggestions attach beneath the field; rejection produces a visible alert.
+
+## Variants
+
+One composition, with optional suggestion and leading slots. No event taxonomy or built-in mention syntax. The example below uses a `#` adapter and stable topic identifiers to demonstrate a non-person use case.
+
+<Canvas of={Stories.SuggestionsContract} />
+
+## Sizes
+
+Three initial textarea rows. The layout follows its container; the suggestion popup is bounded by the available width and scrolls when tall. Long option labels truncate visually while retaining their accessible text.
+
+## States
+
+Empty drafts cannot submit. Nonempty drafts submit with the button or Ctrl/⌘ + Enter. While pending, the textarea is read-only and repeat submission and cancellation are blocked. Fulfillment clears the submitted draft; rejection retains it with a retry message. A newer controlled draft is retained when an earlier request resolves. A disabled composer cannot be edited or submitted.
+
+<Canvas of={Stories.SaveRecoveryContract} />
+
+## Modifiers
+
+`value` and `onValueChange` select caller-owned state; `defaultValue` supplies an uncontrolled initial draft. Do not switch ownership while mounted. `ref`, `id`, and `name` target the visible textarea. `leading`, `hint` and `children` are rendered slots.
+
+`getSuggestions(text, caret)` returns UTF-16 replacement offsets and ordered options, or null. The caller provides unique option IDs, accessible labels, exact insertion strings, filtering and result limits. Invalid ranges are ignored. The adapter is synchronous; fetching remote candidates belongs to the caller. No rich-text document model is implied.
+
+## Content
+
+Supply a descriptive `label` independently of placeholder text. Translate `submitLabel`, `cancelLabel`, `suggestionsLabel`, `errorMessage` and `hint`. Use stable identities when your product serializes references; a display name need not be an identity. Resolve `onSubmit` only when your application's promised save boundary succeeds; throw or reject on failure.
+
+## Style
+
+Textarea and Button provide the control styling. Layout uses `space.100`; suggestions use the overlay surface, default border and overlay shadow. Pending and error states remain understandable without animation or color alone.
+
+## Accessibility
+
+The textarea keeps focus while suggestions are navigated. Up/Down selects an option, Enter/Tab inserts it, and Escape closes the list without dismissing a containing overlay. IME confirmation does not insert or submit. Suggestions expose listbox/option semantics and an active descendant. Pointer selection returns focus to the textarea. Instructions and errors describe the textarea; rejection is announced through an alert. The completion key handling and save recovery run in both color modes.
+
+## Props
+
+<ArgTypes of={Composer} />
+<Canvas of={Stories.Playground} />
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Textarea](?path=/docs/components-textarea--docs) for plain multiline input.
+- [Timeline](?path=/docs/components-timeline--docs) for rendering events independently of the composer.
+- Application Activity.Composer adapts this contract to its people list and `@[Full Name]` format; those workflows remain in the application Storybook.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

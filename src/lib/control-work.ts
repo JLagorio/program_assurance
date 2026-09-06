@@ -32,6 +32,12 @@
 
 import { useSyncExternalStore } from "react";
 
+import {
+  clockNow,
+  isoFromDatasetDate,
+  record as recordActivity,
+  type ActivityKind,
+} from "@/lib/activity";
 import { datasetToday } from "@/lib/dataset-clock";
 import type { Tone } from "@ledger/design-system";
 
@@ -424,7 +430,13 @@ const comments: Comment[] = [];
 let eventSeq = 0;
 let commentSeq = 0;
 
-function log(work: string, kind: EventKind, summary: string, extra: Partial<WorkEvent> = {}) {
+function log(
+  work: string,
+  kind: EventKind,
+  summary: string,
+  extra: Partial<WorkEvent> = {},
+  body?: string,
+) {
   eventSeq += 1;
   events.push({
     id: `EVT-${String(eventSeq).padStart(4, "0")}`,
@@ -435,6 +447,86 @@ function log(work: string, kind: EventKind, summary: string, extra: Partial<Work
     kind,
     summary,
     ...extra,
+  });
+  forward(work, kind, summary, extra, clockNow().toISOString(), body, session.name);
+}
+
+const activityKind: Record<EventKind, ActivityKind> = {
+  created: "created",
+  assigned: "assign",
+  narrative: "change",
+  "evidence-linked": "link",
+  "evidence-unlinked": "link",
+  transition: "stage",
+  comment: "comment",
+};
+
+/** The work event as the one log says it: a sentence after the person's name. */
+function sentenceFor(
+  kind: EventKind,
+  summary: string,
+  actor: string,
+  w: ControlWork,
+  before?: string,
+  after?: string,
+): string {
+  switch (kind) {
+    case "created":
+      return "started the work";
+    case "assigned": {
+      const to = summary.replace(/^(Owner set to|Assigned to)\s*/i, "").trim();
+      return to === actor ? "took ownership" : `assigned it to ${to}`;
+    }
+    case "narrative":
+      return /written$/i.test(summary) || w.narrativeRevision <= 1
+        ? "wrote the implementation statement"
+        : `revised the implementation statement to r${w.narrativeRevision}`;
+    case "evidence-linked":
+      return `linked ${summary.replace(/^Linked\s*/i, "")}`;
+    case "evidence-unlinked":
+      return `unlinked ${summary.replace(/^Unlinked\s*/i, "")}`;
+    case "transition": {
+      if (before && after) return `moved it from ${before} to ${after}`;
+      const m = summary.match(/^(.+?) → (.+)$/);
+      if (m) return `moved it from ${m[1]} to ${m[2]}`;
+      return summary.charAt(0).toLowerCase() + summary.slice(1);
+    }
+    case "comment":
+      return "commented";
+  }
+}
+
+let seedMinute = 0;
+
+/** Every work event is also an entry in the one log, on the control it belongs to. */
+function forward(
+  workId: string,
+  kind: EventKind,
+  summary: string,
+  extra: Partial<WorkEvent>,
+  at: string,
+  body?: string,
+  actor?: string,
+) {
+  const w = work.find((x) => x.id === workId);
+  if (!w) return;
+  const who = actor ?? session.name;
+  const evidence =
+    kind === "evidence-linked" || kind === "evidence-unlinked"
+      ? (extra.after ?? extra.before)
+      : undefined;
+  recordActivity({
+    at,
+    program: w.program,
+    actor: who,
+    kind: activityKind[kind],
+    summary: sentenceFor(kind, summary, who, w, extra.before, extra.after),
+    body: body ?? extra.note,
+    subject: { kind: "control", id: w.control },
+    about: evidence ? { kind: "evidence", id: evidence } : { kind: "scope", id: w.scope },
+    ...(extra.field ? { field: extra.field } : {}),
+    ...(extra.before ? { before: extra.before } : {}),
+    ...(extra.after ? { after: extra.after } : {}),
   });
 }
 
@@ -460,7 +552,7 @@ export function addComment(workId: string, body: string) {
     role: session.role,
     body: body.trim(),
   });
-  log(workId, "comment", `${session.name} commented`);
+  log(workId, "comment", `${session.name} commented`, {}, body.trim());
 }
 
 /* -------------------------------------------------------------- The store */
@@ -1055,6 +1147,15 @@ for (const seed of seeds) {
       summary: h.summary,
       ...(h.note ? { note: h.note } : {}),
     });
+    forward(
+      created.id,
+      h.kind,
+      h.summary,
+      h.note ? { note: h.note } : {},
+      isoFromDatasetDate(h.at, 9, seedMinute++),
+      undefined,
+      h.actor,
+    );
   }
 }
 
@@ -1104,4 +1205,13 @@ for (const c of seedComments) {
     role: c.role,
     body: c.body,
   });
+  forward(
+    w.id,
+    "comment",
+    `${c.author} commented`,
+    {},
+    isoFromDatasetDate(c.at, 11, seedMinute++),
+    c.body,
+    c.author,
+  );
 }

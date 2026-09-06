@@ -4,6 +4,40 @@ Semantic versions. A rename or a removed prop is a major step once the package r
 then it is a minor step, and it ships with a deprecation the lint fixes (`ledger/no-deprecated-name`,
 `ledger/no-deprecated-token`) wherever one is possible. Every entry names the story that shows it.
 
+## Unreleased · audit implementation
+
+- The table at Josef's 2026-09-06 review. `DataTable.Presets` takes `variant="menu"`, one button that reads the current question and opens the list with counts, for a toolbar that also holds search and filters. `DataTable.Settings` is a gear beside `DataTable.Columns` for the rows' density and Reset view; the Columns menu is the columns alone. The checkbox, handle and detail columns are always first and always pinned; the pinned column that touches the middle keeps its hairline while the frame is scrolled (a pseudo-element, since a collapsed table border stays put under a sticky cell); a `Table.Group` heading sticks to the frame's leading edge while the rows scroll sideways. The preview eye sits at the end of the row's first value cell and is there at rest, muted; `Table.Id` draws its eye the same way. `custom` columns take `pin`, `hideable` and `resizable`. Patterns/Data table.
+- `Editable.Select` shows the options and nothing else (the label is for the screen reader), and past eight options, or with `searchable`, it is a searched list of the values as words. Components/Editable.
+- `color.border.input` is `neutral.400` (dark `darkNeutral.500`) again, the lighter field border Josef asked for on 2026-09-04; the audit's contrast pair for it is a visibility floor, the focus and danger borders keep 3:1.
+
+- Restore Accordion as a composable base component and separate independent Collapsible behavior. Add explicit Header/Trigger/Content parts, typed root selection, stable item IDs, native attributes/refs, slotted triggers and safely hidden retained content. Existing title/count layouts now compose these parts directly; there is no additional section pattern. See Components/Accordion and Components/Collapsible.
+- Deliberate next-minor API migration: former title/count and Group APIs are available as deprecated LegacyCollapsible and LegacyAccordion through the next minor release. All current callers are migrated. See `docs/guides/disclosure-migration.md`; no release is implied.
+
+- Complete the 204-entry component API review and enforce DOM/state/default/axis review coverage in CI (public API matrix).
+- Fix dropped Select styles, Combobox trigger width and popup naming, Drawer description association, Table.Selection pinning, DataTable/Shell naming, slotted Shell.AppLogo activation and read-only ModeSwitch ownership. Review the tagged contracts in the corresponding component stories.
+- Fix Panel subheader-only composition, duplicate CommandPalette labels, and PickerSheet search naming. Add Text.htmlFor for label association, preserve Inline list semantics, and fix changing Spinner delay and Progress segment names; each has a regression story.
+- Forward locale direction into direction-sensitive Radix controls while preserving explicit dir overrides.
+
+- Add experimental `Composer` and `TaskRow` patterns with neutral package stories and interaction contracts. Composer supports caller-owned suggestion serialization, controlled/uncontrolled drafts, pending submission and failed-save recovery. TaskRow separates boolean completion from caller-rendered status, owner and due content.
+- Keep Activity/Task product wrappers, event/task vocabulary and mention parsing in the application. Product/Workflows owns the business examples. Timeline.Item remains the shared feed item; Activity.Composer and Task now adapt the shared Composer and TaskRow.
+
+- Fix package declarations and Node ESM consumption; add packed consumer validation.
+- Fix DatePicker form values, composite focus/form integration, Field wrapper bindings, full-form validation, slotted activation, inline-save races, overlay focus return, tree navigation and keyboard table resizing. Review their tagged contract stories.
+- Add LedgerProvider deterministic formatting and reduced-motion contracts (Tokens/Motion).
+- Remove localization/Arabic and reference-workflow demos and the writing-direction toolbar. Keep keyboard resize and saved-view regressions under Patterns/Data table in English.
+- Validate stored table layouts, isolate view names and restore author defaults.
+- Add DTCG 2025.10 light/dark interchange exports while preserving ledger-css-v1 authoring compatibility. Strengthen pressed/selected colors and resting input boundaries; test 376 declared contrast pairs.
+- Require explicit Storybook contracts in light/dark modes, selected narrow-screen workflows, compiler-resolved public coverage and non-growing exceptions.
+
+Migration: custom controls inside Field must call `useFieldControl` or explicitly bind their native target using `controlId`; arbitrary component cloning is no longer the association mechanism. Slotted Button refs/events describe their actual HTMLElement target. Controlled form reset remains caller-owned. No release has been published.
+
+## 0.6.0 · 2026-09-05
+
+### Deprecated
+
+- `RecordHeader` `facts`. The header is the trail, the title and the actions; the details are the
+  rail's Inspector. The prop renders for one release. Story: Patterns/RecordHeader, Don't.
+
 ## 0.5.0 · 2026-09-04
 
 ### Breaking

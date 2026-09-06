@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../../lib/locale";
 import {
   flexRender,
   type Cell,
@@ -17,11 +18,11 @@ import { HoverCard } from "../../components/hover-card";
 import { Id } from "../../components/id";
 import { Pagination } from "../../components/pagination";
 import { Skeleton } from "../../components/skeleton";
-import { Table } from "../../components/table";
+import { PreviewButton, Table } from "../../components/table";
 import { cn } from "../../lib/cn";
 import { Empty } from "../empty";
 import type { DataTableFeatures } from "./features";
-import { Columns, HeaderMenu } from "./columns-menu";
+import { Columns, HeaderMenu, Settings } from "./columns-menu";
 import { Filter, Presets, Search } from "./filter";
 import { ColumnSortable, DragContext, RowSortable, useColumnDrag, useRowDrag } from "./reorder";
 import { SelectionBar } from "./selection-bar";
@@ -82,11 +83,35 @@ const pinning = <TData extends RowData>(column: Column<F, TData, unknown>, befor
   };
 };
 
-/** The leading columns the renderer adds: selection, the drag handle, the detail chevron. */
+/**
+ * The leading columns the renderer adds: selection, the drag handle, the detail chevron. They are
+ * always the first columns and always pinned, whatever the reader pins, so the checkbox never
+ * scrolls away or lands after a pinned column.
+ */
 type Leading = { selectable: boolean; handle: boolean; detail: boolean };
 
 const leadingCount = (l: Leading) => [l.selectable, l.handle, l.detail].filter(Boolean).length;
 const leadingWidth = (l: Leading) => leadingCount(l) * NARROW;
+
+/** Each leading column's offset from the start edge, and whether it is the last of them. */
+const leadingPins = (l: Leading, dataPinned: boolean) => {
+  const order = (["selectable", "handle", "detail"] as const).filter((k) => l[k]);
+  const last = order[order.length - 1];
+  return (key: (typeof order)[number]) => ({
+    pinned: "start" as const,
+    offset: order.indexOf(key) * NARROW,
+    edge: key === last && !dataPinned ? ("scrolled" as const) : false,
+  });
+};
+
+/** The column whose first cell carries the preview eye: the leftmost column that holds a value. */
+const previewColumn = <TData extends RowData>(columns: Column<F, TData, unknown>[]) =>
+  (
+    columns.find((c) => {
+      const kind = c.columnDef.meta?.kind;
+      return kind !== "custom" && kind !== "actions";
+    }) ?? columns[0]
+  )?.id;
 
 function HeaderCell<TData extends RowData>({
   header,
@@ -147,6 +172,19 @@ function HeaderCell<TData extends RowData>({
             resize: {
               onResizeStart: header.getResizeHandler(),
               onResizeReset: () => column.resetSize(),
+              value: column.getSize(),
+              min: column.columnDef.minSize ?? 20,
+              max: Math.min(column.columnDef.maxSize ?? 10000, 10000),
+              onResizeKeyboard: (change: number | "min" | "max") => {
+                const min = column.columnDef.minSize ?? 20;
+                const max = Math.min(column.columnDef.maxSize ?? 10000, 10000);
+                const next =
+                  change === "min" ? min : change === "max" ? max : column.getSize() + change;
+                table.setColumnSizing((current) => ({
+                  ...current,
+                  [column.id]: Math.min(max, Math.max(min, next)),
+                }));
+              },
               isResizing: column.getIsResizing(),
               resizeDelta: column.getIsResizing() ? resizing.deltaOffset : null,
             },
@@ -163,18 +201,34 @@ function BodyCell<TData extends RowData>({
   row,
   before,
   treeColumn,
+  previewAt,
 }: {
   cell: Cell<F, TData, unknown>;
   row: Row<F, TData>;
   before: number;
   /** The column that carries the tree cell, in tree mode. */
   treeColumn: string | undefined;
+  /** The column whose cell carries the preview eye, when an id column has `preview`. */
+  previewAt: string | undefined;
 }) {
+  const { t } = useLedgerLocale();
+
   const meta = cell.column.columnDef.meta;
   const options = cell.column.table.options.meta;
   const content = flexRender(cell.column.columnDef.cell, cell.getContext());
   const record = row.original as never;
   const pin = pinning(cell.column, before);
+  const idMeta =
+    previewAt === cell.column.id
+      ? cell.column.table.getAllLeafColumns().find((c) => c.columnDef.meta?.kind === "id")
+          ?.columnDef.meta
+      : undefined;
+  const preview = idMeta?.preview
+    ? {
+        onPreview: () => idMeta.preview?.(record),
+        isActive: idMeta.active ? idMeta.active(record) : false,
+      }
+    : undefined;
 
   if (options?.tree && cell.column.id === treeColumn) {
     const folded = row.getCanExpand() && !row.getIsExpanded();
@@ -214,7 +268,7 @@ function BodyCell<TData extends RowData>({
         pinned={pin.pinned}
         offset={pin.offset}
         edge={pin.edge}
-        {...(meta.preview ? { onPreview: () => meta.preview?.(record) } : {})}
+        {...(preview ? { onPreview: preview.onPreview } : {})}
         {...(meta.active ? { isActive: meta.active(record) } : {})}
       />
     );
@@ -243,7 +297,7 @@ function BodyCell<TData extends RowData>({
           align="end"
           trigger={
             <IconButton
-              label="Row actions"
+              label={t("rowActions")}
               variant="subtle"
               className="invisible focus-visible:visible group-hover/row:visible data-[state=open]:visible"
               icon={<MoreHorizontal />}
@@ -264,6 +318,23 @@ function BodyCell<TData extends RowData>({
       </Table.Cell>
     );
   }
+
+  if (preview)
+    return (
+      <Table.Cell
+        className={cn(alignClass(meta?.align), meta?.wrap && "whitespace-normal")}
+        pinned={pin.pinned}
+        offset={pin.offset}
+        edge={pin.edge}
+        {...(typeof content === "string" ? { title: content } : {})}
+        {...(meta?.editable ? { onKeyDown: enterMovesDown } : {})}
+      >
+        <span className="flex items-center gap-075">
+          <span className="min-w-0 flex-1 truncate">{content}</span>
+          <PreviewButton onPreview={preview.onPreview} isActive={preview.isActive} />
+        </span>
+      </Table.Cell>
+    );
 
   return (
     <Table.Cell
@@ -307,7 +378,10 @@ type BodyRowProps<TData extends RowData> = {
   columnsKey: string;
   /** The width of the pinned leading columns. */
   before: number;
+  /** A data column is pinned to the start, so the leading columns' edge is not the table's. */
+  dataPinned: boolean;
   treeColumn: string | undefined;
+  previewAt: string | undefined;
   columnCount: number;
   isPinnedRow: boolean;
   onRowClick?: ((row: TData) => void) | undefined;
@@ -329,18 +403,21 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
   columnsKey: _columnsKey,
   isActive: _isActive,
   before,
+  dataPinned,
   treeColumn,
+  previewAt,
   columnCount,
   isPinnedRow,
   onRowClick,
   onKeyDown,
 }: BodyRowProps<TData>) {
+  const { t } = useLedgerLocale();
   const options = row.table.options.meta;
   const tree = Boolean(options?.tree);
   const detail = options?.detail;
   const drag = useRowDrag(row.id, leading.handle);
   const detailId = `${options?.view ?? "table"}-${row.id}-detail`;
-  const pinnedLeading = before > 0;
+  const pins = leadingPins(leading, dataPinned);
   return (
     <>
       <Table.Row
@@ -367,22 +444,27 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
           <Table.Selection
             checked={isSelected}
             onCheckedChange={(next) => row.toggleSelected(next)}
-            label={`Select row ${row.id}`}
+            label={t("selectRow", { id: row.id })}
             disabled={!canSelect}
-            pinned={pinnedLeading ? "start" : false}
+            {...pins("selectable")}
           />
         ) : null}
         {leading.handle ? (
           <Table.Handle
             {...(drag.handle ?? {})}
             isDragging={drag.isDragging}
-            label={`Reorder row ${row.id}`}
+            label={t("reorderRow", { id: row.id })}
+            {...pins("handle")}
           />
         ) : null}
         {leading.detail ? (
-          <Table.Cell className="w-400 max-w-none pe-0" onClick={(e) => e.stopPropagation()}>
+          <Table.Cell
+            className="w-400 max-w-none pe-0"
+            onClick={(e) => e.stopPropagation()}
+            {...pins("detail")}
+          >
             <IconButton
-              label={isExpanded ? "Close" : "Open"}
+              label={isExpanded ? t("close") : t("open")}
               variant="subtle"
               className="size-250"
               aria-expanded={isExpanded}
@@ -400,7 +482,14 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
           </Table.Cell>
         ) : null}
         {row.getVisibleCells().map((cell) => (
-          <BodyCell key={cell.id} cell={cell} row={row} before={before} treeColumn={treeColumn} />
+          <BodyCell
+            key={cell.id}
+            cell={cell}
+            row={row}
+            before={before}
+            treeColumn={treeColumn}
+            previewAt={previewAt}
+          />
         ))}
       </Table.Row>
       {detail && isExpanded ? (
@@ -413,7 +502,10 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
 }) as <TData extends RowData>(props: BodyRowProps<TData>) => ReactNode;
 
 /** The arrow keys on a treegrid: up and down move between rows, right opens or steps in, left closes or steps out. */
-function treeKeys<TData extends RowData>(table: DataTableInstance<TData>) {
+function treeKeys<TData extends RowData>(
+  table: DataTableInstance<TData>,
+  direction: "ltr" | "rtl",
+) {
   return (event: KeyboardEvent<HTMLTableRowElement>) => {
     const tr = event.currentTarget;
     const id = tr.dataset["rowId"];
@@ -429,7 +521,13 @@ function treeKeys<TData extends RowData>(table: DataTableInstance<TData>) {
       el.focus();
     };
     const at = siblings.indexOf(tr);
-    switch (event.key) {
+    switch (
+      direction === "rtl" && event.key === "ArrowLeft"
+        ? "ArrowRight"
+        : direction === "rtl" && event.key === "ArrowRight"
+          ? "ArrowLeft"
+          : event.key
+    ) {
       case "ArrowDown":
         focusAt(siblings[at + 1]);
         break;
@@ -476,6 +574,7 @@ function DataTableRoot<TData extends RowData>({
   maxHeight,
   className,
 }: DataTableProps<TData>) {
+  const { t, direction } = useLedgerLocale();
   const options = table.options.meta;
   const selectable = Boolean(table.options.enableRowSelection);
   const leading: Leading = {
@@ -497,11 +596,15 @@ function DataTableRoot<TData extends RowData>({
     ...table.state.columnPinning.end,
     JSON.stringify(table.state.columnSizing),
   ].join(" ");
-  const active = visibleColumns.find((c) => c.columnDef.meta?.kind === "id")?.columnDef.meta
-    ?.active;
+  const idMeta = table.getAllLeafColumns().find((c) => c.columnDef.meta?.kind === "id")
+    ?.columnDef.meta;
+  const active = idMeta?.active;
+  const previewAt = idMeta?.preview ? previewColumn(visibleColumns) : undefined;
   const fixed = options?.layout === "fixed";
-  // The leading columns pin with the start-pinned columns, so their offsets begin after them.
-  const before = table.state.columnPinning.start.length > 0 ? leadingWidth(leading) : 0;
+  // The leading columns are always pinned, so every start offset begins after them.
+  const before = leadingWidth(leading);
+  const dataPinned = table.state.columnPinning.start.length > 0;
+  const pins = leadingPins(leading, dataPinned);
   const minWidth = fixed
     ? visibleColumns.reduce((sum, c) => {
         const sized =
@@ -517,7 +620,7 @@ function DataTableRoot<TData extends RowData>({
         (c) => c.columnDef.meta?.kind !== "id" && c.columnDef.meta?.kind !== "actions",
       )?.id)
     : undefined;
-  const onKeyDown = tree ? treeKeys(table) : undefined;
+  const onKeyDown = tree ? treeKeys(table, direction) : undefined;
 
   const allRows = table.getRowModel().rows;
   const pinRows = Boolean(options?.pinRows);
@@ -558,7 +661,9 @@ function DataTableRoot<TData extends RowData>({
       isExpanded={row.getIsExpanded()}
       columnsKey={columnsKey}
       before={before}
+      dataPinned={dataPinned}
       treeColumn={treeColumn}
+      previewAt={previewAt}
       columnCount={columnCount}
       isPinnedRow={isPinnedRow}
       onRowClick={onRowClick}
@@ -567,8 +672,8 @@ function DataTableRoot<TData extends RowData>({
   );
 
   const narrowHeader = (key: "handle" | "detail") => (
-    <Table.Header key={key} className="w-400 pe-0" pinned={before > 0 ? "start" : false}>
-      <span className="sr-only">{key === "detail" ? "Details" : "Reorder"}</span>
+    <Table.Header key={key} className="w-400 pe-0" {...pins(key)}>
+      <span className="sr-only">{key === "detail" ? t("details") : t("reorder")}</span>
     </Table.Header>
   );
 
@@ -589,7 +694,7 @@ function DataTableRoot<TData extends RowData>({
             colSpan={columnCount}
             className="h-auto max-w-none whitespace-normal px-150 py-150"
           >
-            <Alert tone="danger">{error ?? "The rows could not be loaded."}</Alert>
+            <Alert tone="danger">{error ?? t("rowsError")}</Alert>
           </Table.Cell>
         </Table.Row>
       ) : null}
@@ -600,7 +705,7 @@ function DataTableRoot<TData extends RowData>({
             className="h-auto max-w-none whitespace-normal px-150 py-150"
           >
             <Empty
-              title={empty?.title ?? "Nothing here"}
+              title={empty?.title ?? t("nothingHere")}
               description={empty?.description}
               action={empty?.action}
             />
@@ -617,7 +722,7 @@ function DataTableRoot<TData extends RowData>({
         <Table
           frameRef={frame}
           density={options?.density ?? "default"}
-          {...(label ? { "aria-label": label } : {})}
+          label={label}
           {...(maxHeight === undefined ? {} : { maxHeight })}
           {...(tree ? { role: "treegrid" } : options?.editable ? { role: "grid" } : {})}
           className={fixed ? "table-fixed" : undefined}
@@ -640,8 +745,8 @@ function DataTableRoot<TData extends RowData>({
                                 : false
                           }
                           onCheckedChange={(next) => table.toggleAllPageRowsSelected(next)}
-                          label="Select all rows on this page"
-                          pinned={before > 0 ? "start" : false}
+                          label={t("selectPage")}
+                          {...pins("selectable")}
                         />
                       ) : null}
                       {leading.handle ? narrowHeader("handle") : null}
@@ -732,7 +837,7 @@ function DataTableRoot<TData extends RowData>({
           onPageChange={(p) => table.setPageIndex(p - 1)}
           total={table.getRowCount()}
           pageSize={pageSize}
-          label={label ? `${label} pagination` : undefined}
+          label={label ? t("paginationLabel", { label }) : undefined}
           className="border-t border-default px-150 py-100"
         />
       ) : null}
@@ -746,4 +851,5 @@ export const DataTable = Object.assign(DataTableRoot, {
   Search,
   Presets,
   Columns,
+  Settings,
 });

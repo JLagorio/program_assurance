@@ -1,0 +1,57 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guidance/Quality contract" />
+
+# Quality contract
+
+The system should help a person understand the situation, choose an action, complete it, and recover if it fails. A familiar visual style alone does not establish that contract. Test the whole task with realistic content, keyboard input and the conditions people actually encounter.
+
+## Before adding an API
+
+Start with the user's task and the semantic HTML element. Reuse a native control when its behavior answers the task. A new prop needs a distinct consumer need and a documented default, valid combinations, ownership of state, and behavior when absent. Avoid booleans that encode several mutually exclusive modes. Prefer a union when only one mode can apply. Preserve native names for native behavior.
+
+| Question | Required evidence |
+| --- | --- |
+| Who owns the state? | Controlled and uncontrolled behavior, defaults, reset, and async external updates. |
+| What reaches the DOM? | The target for `id`, `name`, `form`, `aria-*`, `data-*`, handlers, and the ref. |
+| What can fail? | Pending, rejected save, retry, cancellation, and stale completion examples. |
+| What can be composed? | Compound slots and valid nesting; no interactive element inside another interactive element. |
+| What does a dependency expose? | Explicit adapter types for toast, table and chart APIs; all other implementation internals remain private. |
+
+## State and content
+
+Every collection needs loading, empty, filtered empty, error, ready, and refreshed states where applicable. A filtered empty state keeps filters visible and offers Clear filters. A save failure keeps the draft. Announce success only after the command succeeds; if persistence is local to this browser, say so. Permissions are business rules enforced by commands as well as reflected by controls.
+
+Use sentence case, a specific verb for actions, and an error that says what the person can do next. Name the affected record when ambiguity is possible. Essential guidance belongs beside the control. Disabled actions need a visible reason; an enabled control must navigate or perform its stated action. Do not use a notification to conceal an unimplemented operation.
+
+## Keyboard, focus and targets
+
+Check Tab and Shift+Tab, Enter and Space, Escape, arrow keys, Home/End and typeahead where the widget requires them. Trees maintain one tab stop and expose level, expansion and selection. Closing a modal returns focus to its opener or an explicitly supplied replacement. Failed form submission focuses the first invalid control and exposes all errors. A sticky header or action bar must not fully obscure focused content.
+
+The web minimum target requirement is **24 by 24 CSS pixels**, subject to the WCAG 2.2 spacing, equivalent, inline, user-agent and essential exceptions. Document any exception on the actual control. Native platform point guidance is not a CSS pixel requirement. Prefer larger targets for frequent touch actions. Measure both the target and the distance to neighboring targets; a small icon inside a sufficiently large button is fine.
+
+Inspect 320 CSS pixel width, 200% text enlargement and 400% browser zoom. A dense data table may scroll in its own region; surrounding search, headings, dialogs and actions must reflow. Check focus after scrolling, opening menus, validating a long form, collapsing navigation, and removing the selected item. Reduced-motion preference should remove nonessential movement while keeping pending state understandable through text and semantics.
+
+## Automated checks and their limits
+
+`node scripts/ds-check.mjs` resolves public exports through the TypeScript compiler, counts executable story references, requires contract tags and documentation, and rejects a growing exception baseline. `node scripts/ds-public-api.mjs` prints the full public value/type inventory. A reference proves use, not correctness; interaction assertions establish behavior.
+
+`npm run test:a11y -w packages/design-system` runs tagged contracts in light and dark Chromium, including play functions, axe and unexpected-console checks. Dark-mode contracts also enable reduced motion. A renamed display title cannot silently remove a contract. Keep an explicit `tags: ["contract"]` on any new regression story. The package unit suite checks storage corruption, token interchange, formatting and declared contrast pairs. The packed consumer suite validates a separate install, ESM imports, declarations, SSR and generated CSS.
+
+Axe does not certify keyboard quality, reading order, useful labels, focus visibility, zoom or screen-reader announcements. Review representative workflows with a screen reader and Firefox/WebKit before release. Contrast results cover the declared pairs, including alpha compositing and interactive states; they do not prove every possible composition. Resting input borders now meet 3:1 against their declared adjacent surfaces; text and non-text checks keep their separate thresholds.
+
+## Reference workflows for review
+
+| Workflow | Story or product surface | Review focus |
+| --- | --- | --- |
+| Validate and repair a form | Patterns/Forms contract stories | All errors, first focus, preserved values, custom control wiring. |
+| Pick and submit a date | Components/DatePicker contract stories | Closed picker FormData, external form, reset, disabled omission. |
+| Save inline with failure | Components/Editable contract stories | One pending operation, rollback ownership, external updates. |
+| Complete a nested modal task | Components/Dialog contract stories | Escape, successful close, return to correct opener. |
+| Navigate a hierarchy | Components/Tree contract stories | One tab stop, hierarchy, typeahead, selected item removal. |
+| Filter records and recover | Risks, controls and findings pages | Empty results, clear filters, visible labels, durable supported actions. |
+| Read a chart | Components/Chart contract stories | Table equivalent, deterministic formatting and color mode. |
+
+## Ownership and lifecycle
+
+The repository maintainers own the package contract and review changes to tokens, accessibility behavior and adapters. A contribution names a responsible reviewer and intended consumer. Mark experimental additions and known limitations; promote after the documented checks and consumer review. Deprecations identify the replacement and migration in the changelog. User testing and assistive-technology review remain release work even when all automated checks pass.

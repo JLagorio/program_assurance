@@ -3,6 +3,7 @@ import type { ComponentPropsWithoutRef } from "react";
 import { Toaster as Sonner, toast as sonnerToast, type ExternalToast } from "sonner";
 
 import { Spinner } from "./spinner";
+import { useLedgerLocale } from "../lib/locale";
 
 /* Feedback after an act: "Evidence linked", "Could not save". A toast is a card at the bottom
    right that says what happened and goes; it is never a question and never a record's state. One
@@ -47,22 +48,31 @@ export type ToasterProps = {
 };
 
 /** The stack. Render one near the root; the toasts find it. */
-export function Toaster({ position = "bottom-right", expand = false, closeButton = false }: ToasterProps) {
+export function Toaster({
+  position = "bottom-right",
+  expand = false,
+  closeButton = false,
+}: ToasterProps) {
+  const { t, direction } = useLedgerLocale();
   return (
     <Sonner
       position={position}
+      dir={direction}
       expand={expand}
       closeButton={closeButton}
       gap={8}
       offset={16}
       visibleToasts={4}
-      containerAriaLabel="Notifications"
-      icons={toastIcons}
+      containerAriaLabel={t("notifications")}
+      icons={{ ...toastIcons, loading: <Spinner size="medium" label={t("loading")} /> }}
       toastOptions={{
         unstyled: true,
-        style: { width: 356, transitionDuration: "var(--ds-motion-duration-moderate)" },
+        style: {
+          width: "min(356px, calc(100vw - 32px))",
+          transitionDuration: "var(--ds-motion-duration-moderate)",
+        },
         classNames: toastClasses,
-        closeButtonAriaLabel: "Close",
+        closeButtonAriaLabel: t("close"),
       }}
     />
   );
@@ -70,8 +80,24 @@ export function Toaster({ position = "bottom-right", expand = false, closeButton
 
 type Message = Parameters<typeof sonnerToast>[0];
 
+/** Explicit public adapter: preserve Sonner's generic promise result without leaking inferred private names. */
+export type Toast = ((message: Message, data?: ExternalToast) => ReturnType<typeof sonnerToast>) &
+  Pick<
+    typeof sonnerToast,
+    | "success"
+    | "info"
+    | "warning"
+    | "error"
+    | "loading"
+    | "promise"
+    | "message"
+    | "custom"
+    | "dismiss"
+  >;
+export type ToastOptions = ExternalToast;
+
 /** Fires a toast. The kinds are sonner's with the kit's defaults: `error` stays eight seconds and carries a close; the rest go in four. `loading` and `promise` stay until they settle. */
-export const toast = Object.assign(
+export const toast: Toast = Object.assign(
   (message: Message, data?: ExternalToast) => sonnerToast(message, data),
   {
     success: sonnerToast.success,

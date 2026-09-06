@@ -1,10 +1,20 @@
-import { Area, Bar, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useLedgerLocale } from "../../lib/locale";
+import {
+  Area,
+  Bar,
+  ComposedChart,
+  Line,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { cn } from "../../lib/cn";
 import {
   TooltipContent,
   chartColor,
-  plainCategory,
   surface,
   useFrame,
   useMotion,
@@ -57,17 +67,22 @@ export function ChartSparkline({
   loading: loadingProp,
   className,
 }: ChartSparklineProps) {
-  const { name, format, loading } = useFrame(label, formatProp, undefined, loadingProp);
+  const { t } = useLedgerLocale();
+
+  const { name, format, formatX, loading } = useFrame(label, formatProp, undefined, loadingProp);
   const motion = useMotion();
   const tooltipMotion = useTooltipMotion();
   const color = chartColor(tone);
-  const series: ChartSeries[] = [{ key: y, label: "Value", tone }];
+  const series: ChartSeries[] = [{ key: y, label: t("value"), tone }];
   const last = data.length - 1;
   if (loading)
     return (
       <span
         aria-hidden
-        className={cn("inline-block animate-pulse rounded-xsmall bg-skeleton align-middle", className)}
+        className={cn(
+          "inline-block animate-pulse rounded-xsmall bg-skeleton align-middle",
+          className,
+        )}
         style={{ width, height }}
       />
     );
@@ -88,7 +103,7 @@ export function ChartSparkline({
       className={cn("inline-block align-middle", className)}
       style={{ width, height }}
     >
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" initialDimension={{ width, height }}>
         <ComposedChart
           data={data}
           margin={{ top: 3, right: 3, bottom: 3, left: 3 }}
@@ -102,12 +117,7 @@ export function ChartSparkline({
               cursor={false}
               {...tooltipMotion}
               content={
-                <TooltipContent
-                  series={series}
-                  swatch="line"
-                  format={format}
-                  formatX={plainCategory}
-                />
+                <TooltipContent series={series} swatch="line" format={format} formatX={formatX} />
               }
             />
           ) : null}

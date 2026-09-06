@@ -568,7 +568,7 @@ function ProgramTePhases() {
                       }}
                       aria-label="Phase"
                       className="h-control-small font-body"
-                      style={{ width: 560 }}
+                      style={{ width: 560, maxWidth: "100%" }}
                     >
                       {phases.map((p) => {
                         const r = readiness.get(p.id);

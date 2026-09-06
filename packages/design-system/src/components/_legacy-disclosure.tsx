@@ -1,5 +1,5 @@
-import * as AccordionPrimitive from "@radix-ui/react-accordion";
-import * as CollapsiblePrimitive from "@radix-ui/react-collapsible";
+import * as LegacyAccordionPrimitive from "@radix-ui/react-accordion";
+import * as LegacyCollapsiblePrimitive from "@radix-ui/react-collapsible";
 import { ChevronDown } from "lucide-react";
 import {
   Children,
@@ -14,16 +14,16 @@ import {
 import { cn } from "../lib/cn";
 import { Count } from "./badge";
 
-/* Reference material: present, addressable, closed. A Collapsible is one section that opens and
-   closes; several in a Collapsible.Group know about each other: the arrows move between their
+/* Reference material: present, addressable, closed. A LegacyCollapsible is one section that opens and
+   closes; several in a LegacyCollapsible.Group know about each other: the arrows move between their
    titles, and a `single` group opens one at a time. The row is the title, flush with the body
    under it and semibold so it reads as a section, a count after it, and the chevron at the end:
    down while closed, up while open. Under the pointer the row tints, the tint reaching space.100
-   past a flush title, so the title stays on the text column. Alone it is Radix Collapsible; in a
-   group it is a Radix Accordion item, and the group is the accordion. */
+   past a flush title, so the title stays on the text column. Alone it is Radix LegacyCollapsible; in a
+   group it is a Radix LegacyAccordion item, and the group is the accordion. */
 
 /** The heading level a section's title takes, so a rail's sections are in the page's outline. Unsaid, the title is a plain row. */
-export type DisclosureHeading = 2 | 3 | 4 | 5 | 6;
+type DisclosureHeading = 2 | 3 | 4 | 5 | 6;
 
 type GroupSettings = {
   headingLevel: DisclosureHeading | undefined;
@@ -70,10 +70,10 @@ function TriggerRow({
 const body =
   "overflow-hidden data-[state=open]:animate-collapse-open data-[state=closed]:animate-collapse-close";
 
-export type CollapsibleProps = {
+export type LegacyCollapsibleProps = {
   /** The row's title: what is inside, as a noun. "Catalog statement", "Assessment objectives". */
   title: ReactNode;
-  /** Inside a Collapsible.Group, what the group opens and closes by. Unsaid, the title when it is a string. */
+  /** Inside a LegacyCollapsible.Group, what the group opens and closes by. Unsaid, the title when it is a string. */
   value?: string | undefined;
   /** A Count after the title: how many are inside. Zero, null and undefined show nothing. */
   count?: number | string | null | undefined;
@@ -105,29 +105,29 @@ function Alone({
   inset,
   className,
   children,
-}: CollapsibleProps) {
+}: LegacyCollapsibleProps) {
   return (
-    <CollapsiblePrimitive.Root
+    <LegacyCollapsiblePrimitive.Root
       {...(open === undefined ? { defaultOpen } : { open })}
       {...(onOpenChange ? { onOpenChange } : {})}
       {...(disabled ? { disabled: true } : {})}
       className={cn("border-t border-default", className)}
     >
       <Title level={headingLevel}>
-        <CollapsiblePrimitive.Trigger
+        <LegacyCollapsiblePrimitive.Trigger
           className={cn(trigger, inset ? "px-300 before:inset-x-0" : "before:-inset-x-100")}
         >
           <TriggerRow title={title} count={count} />
-        </CollapsiblePrimitive.Trigger>
+        </LegacyCollapsiblePrimitive.Trigger>
       </Title>
-      <CollapsiblePrimitive.Content className={body}>
+      <LegacyCollapsiblePrimitive.Content className={body}>
         <div className={cn("pb-200", inset && "px-300")}>{children}</div>
-      </CollapsiblePrimitive.Content>
-    </CollapsiblePrimitive.Root>
+      </LegacyCollapsiblePrimitive.Content>
+    </LegacyCollapsiblePrimitive.Root>
   );
 }
 
-const valueOf = (props: Pick<CollapsibleProps, "value" | "title">) =>
+const valueOf = (props: Pick<LegacyCollapsibleProps, "value" | "title">) =>
   props.value ?? (typeof props.title === "string" ? props.title : undefined);
 
 function InGroup({
@@ -140,39 +140,39 @@ function InGroup({
   inset,
   className,
   children,
-}: CollapsibleProps & { group: GroupSettings }) {
+}: LegacyCollapsibleProps & { group: GroupSettings }) {
   const fallback = useId();
   const level = headingLevel ?? group.headingLevel;
   const isInset = inset ?? group.inset;
   return (
-    <AccordionPrimitive.Item
+    <LegacyAccordionPrimitive.Item
       value={valueOf({ value, title }) ?? fallback}
       {...(disabled ? { disabled: true } : {})}
       className={cn("border-t border-default", className)}
     >
-      <AccordionPrimitive.Header asChild>
+      <LegacyAccordionPrimitive.Header asChild>
         <Title level={level}>
-          <AccordionPrimitive.Trigger
+          <LegacyAccordionPrimitive.Trigger
             className={cn(trigger, isInset ? "px-300 before:inset-x-0" : "before:-inset-x-100")}
           >
             <TriggerRow title={title} count={count} />
-          </AccordionPrimitive.Trigger>
+          </LegacyAccordionPrimitive.Trigger>
         </Title>
-      </AccordionPrimitive.Header>
-      <AccordionPrimitive.Content className={body}>
+      </LegacyAccordionPrimitive.Header>
+      <LegacyAccordionPrimitive.Content className={body}>
         <div className={cn("pb-200", isInset && "px-300")}>{children}</div>
-      </AccordionPrimitive.Content>
-    </AccordionPrimitive.Item>
+      </LegacyAccordionPrimitive.Content>
+    </LegacyAccordionPrimitive.Item>
   );
 }
 
-/** One section that opens and closes. Alone, Radix Collapsible underneath for aria-expanded and the keyboard, uncontrolled unless `open` is passed. Inside a Collapsible.Group, one of the group's sections, with the group's keyboard and open state. */
-function CollapsibleRoot(props: CollapsibleProps) {
+/** One section that opens and closes. Alone, Radix LegacyCollapsible underneath for aria-expanded and the keyboard, uncontrolled unless `open` is passed. Inside a LegacyCollapsible.Group, one of the group's sections, with the group's keyboard and open state. */
+function LegacyCollapsibleRoot(props: LegacyCollapsibleProps) {
   const group = useContext(GroupContext);
   return group ? <InGroup group={group} {...props} /> : <Alone {...props} />;
 }
 
-export type CollapsibleGroupProps = {
+export type LegacyCollapsibleGroupProps = {
   /** `multiple`, the default: each section opens on its own and the arrows move between them, for reference the reader compares. `single`: one at a time, and the open one can close, for a set the reader takes one by one. */
   type?: "single" | "multiple" | undefined;
   /** The sections open at first, by value, when uncontrolled. Unsaid, the sections that say `defaultOpen`. */
@@ -186,7 +186,7 @@ export type CollapsibleGroupProps = {
   /** Every section inset by space.300, for a surface whose rules run edge to edge. */
   inset?: boolean | undefined;
   className?: string | undefined;
-  /** Collapsibles, two or more; one section stands alone. */
+  /** LegacyCollapsibles, two or more; one section stands alone. */
   children: ReactNode;
 };
 
@@ -194,7 +194,7 @@ export type CollapsibleGroupProps = {
 function openByDefault(children: ReactNode): string[] {
   const open: string[] = [];
   Children.forEach(children, (child) => {
-    if (!isValidElement<CollapsibleProps>(child) || child.type !== Collapsible) return;
+    if (!isValidElement<LegacyCollapsibleProps>(child) || child.type !== LegacyCollapsible) return;
     if (!child.props.defaultOpen) return;
     const value = valueOf(child.props);
     if (value !== undefined) open.push(value);
@@ -203,7 +203,7 @@ function openByDefault(children: ReactNode): string[] {
 }
 
 /** Several sections that know about each other: Up and Down move between the titles, Home and End go to the ends, and a `single` group opens one at a time. The rail's shape: the Inspector's groups are this, every one open. */
-function CollapsibleGroup({
+function LegacyCollapsibleGroup({
   type = "multiple",
   defaultValue,
   value,
@@ -212,7 +212,7 @@ function CollapsibleGroup({
   inset,
   className,
   children,
-}: CollapsibleGroupProps) {
+}: LegacyCollapsibleGroupProps) {
   const settings: GroupSettings = { headingLevel, inset };
   const shared = {
     className: cn("border-b border-default", className),
@@ -223,9 +223,11 @@ function CollapsibleGroup({
     const many = (v: string | string[] | undefined) =>
       v === undefined ? undefined : Array.isArray(v) ? v : [v];
     return (
-      <AccordionPrimitive.Root
+      <LegacyAccordionPrimitive.Root
         type="multiple"
-        {...(value === undefined ? { defaultValue: many(initial) ?? [] } : { value: many(value) ?? [] })}
+        {...(value === undefined
+          ? { defaultValue: many(initial) ?? [] }
+          : { value: many(value) ?? [] })}
         {...(onValueChange ? { onValueChange } : {})}
         {...shared}
       />
@@ -234,37 +236,45 @@ function CollapsibleGroup({
   const one = (v: string | string[] | undefined) =>
     v === undefined ? undefined : Array.isArray(v) ? (v[0] ?? "") : v;
   return (
-    <AccordionPrimitive.Root
+    <LegacyAccordionPrimitive.Root
       type="single"
       collapsible
-      {...(value === undefined ? { defaultValue: one(initial) ?? "" } : { value: one(value) ?? "" })}
+      {...(value === undefined
+        ? { defaultValue: one(initial) ?? "" }
+        : { value: one(value) ?? "" })}
       {...(onValueChange ? { onValueChange } : {})}
       {...shared}
     />
   );
 }
 
-export const Collapsible = Object.assign(CollapsibleRoot, { Group: CollapsibleGroup });
+/** @deprecated Use Collapsible, or compose Collapsible.Trigger and Collapsible.Content. Retained through the next minor release. */
+export const LegacyCollapsible = Object.assign(LegacyCollapsibleRoot, {
+  Group: LegacyCollapsibleGroup,
+});
 
 /* ---------- the old names, kept for one release ---------- */
 
-/** @deprecated The set is `Collapsible.Group`, `multiple` unless `type="single"` is said; `ledger/no-deprecated-name` says so. */
-export type AccordionProps = CollapsibleGroupProps;
+/** @deprecated The set is `LegacyCollapsible.Group`, `multiple` unless `type="single"` is said; `ledger/no-deprecated-name` says so. */
+export type LegacyAccordionProps = LegacyCollapsibleGroupProps;
 
-/** @deprecated A section in a group is a `Collapsible`; `ledger/no-deprecated-name` says so. */
-export type AccordionItemProps = Omit<CollapsibleProps, "defaultOpen" | "open" | "onOpenChange"> & {
+/** @deprecated A section in a group is a `LegacyCollapsible`; `ledger/no-deprecated-name` says so. */
+export type LegacyAccordionItemProps = Omit<
+  LegacyCollapsibleProps,
+  "defaultOpen" | "open" | "onOpenChange"
+> & {
   value: string;
 };
 
-function AccordionRoot({ type = "single", ...rest }: AccordionProps) {
-  return <CollapsibleGroup type={type} {...rest} />;
+function LegacyAccordionRoot({ type = "single", ...rest }: LegacyAccordionProps) {
+  return <LegacyCollapsibleGroup type={type} {...rest} />;
 }
 
-function AccordionItem(props: AccordionItemProps) {
-  return <CollapsibleRoot {...props} />;
+function LegacyAccordionItem(props: LegacyAccordionItemProps) {
+  return <LegacyCollapsibleRoot {...props} />;
 }
 
-const accordion = Object.assign(AccordionRoot, { Item: AccordionItem });
+const accordion = Object.assign(LegacyAccordionRoot, { Item: LegacyAccordionItem });
 
-/** @deprecated `Accordion` is `Collapsible.Group` (`single` here, `multiple` there unless said) and `Accordion.Item` is `Collapsible`; `ledger/no-deprecated-name` says so. */
-export const Accordion = accordion;
+/** @deprecated `LegacyAccordion` is `LegacyCollapsible.Group` (`single` here, `multiple` there unless said) and `LegacyAccordion.Item` is `LegacyCollapsible`; `ledger/no-deprecated-name` says so. */
+export const LegacyAccordion = accordion;

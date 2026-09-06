@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../../lib/locale";
 import { useId, useMemo, useRef, type ReactNode } from "react";
 import {
   Bar,
@@ -191,7 +192,8 @@ type Radius = [number, number, number, number];
 /** The rounded end is the data end: the top of a positive bar, the bottom of a negative one, the far end of a horizontal one. */
 const radiusFor = (value: unknown, stacked: boolean, horizontal: boolean): Radius => {
   if (stacked) return [0, 0, 0, 0];
-  const negative = typeof value === "number" ? value < 0 : isRange(value) ? value[1] < value[0] : false;
+  const negative =
+    typeof value === "number" ? value < 0 : isRange(value) ? value[1] < value[0] : false;
   if (horizontal) return negative ? [2, 0, 0, 2] : [0, 2, 2, 0];
   return negative ? [0, 0, 2, 2] : [2, 2, 0, 0];
 };
@@ -226,6 +228,8 @@ export function ChartBar({
   details,
   className,
 }: ChartBarProps) {
+  const { t } = useLedgerLocale();
+
   const { name, hidden, highlighted, format, formatX, loading, sync, texture } = useFrame(
     label,
     formatProp,
@@ -246,9 +250,23 @@ export function ChartBar({
     );
     return Math.min(160, Math.max(56, 8 + 6.5 * longest));
   }, [data, x, formatX]);
-  const negative = useMemo(() => hasNegative(data, series.map((s) => s.key)), [data, series]);
+  const negative = useMemo(
+    () =>
+      hasNegative(
+        data,
+        series.map((s) => s.key),
+      ),
+    [data, series],
+  );
   const valueWidth = useMemo(
-    () => axisWidth(data, series.map((s) => s.key), format, domain, Boolean(yLabel)),
+    () =>
+      axisWidth(
+        data,
+        series.map((s) => s.key),
+        format,
+        domain,
+        Boolean(yLabel),
+      ),
     [data, series, format, domain, yLabel],
   );
   if (loading)
@@ -299,7 +317,10 @@ export function ChartBar({
               ),
               title: picked.item.series.label ?? picked.item.series.key,
               subtitle: formatX((picked.item.datum[x] as string | number | undefined) ?? ""),
-              value: formatValue(picked.item.datum[picked.item.series.key], fmtOf(picked.item.series)),
+              value: formatValue(
+                picked.item.datum[picked.item.series.key],
+                fmtOf(picked.item.series),
+              ),
             }
           : {
               title: formatX((picked.item.datum[x] as string | number | undefined) ?? ""),
@@ -343,7 +364,11 @@ export function ChartBar({
         data={data}
         layout={horizontal ? "vertical" : "horizontal"}
         margin={{
-          ...marginFor({ endLabels: labels === "end", refLabels: hasRefLabels(reference), horizontal }),
+          ...marginFor({
+            endLabels: labels === "end",
+            refLabels: hasRefLabels(reference),
+            horizontal,
+          }),
           bottom: xLabel || (negative && labels === "end" && !horizontal) ? 12 : 0,
           left: yLabel || (negative && labels === "end" && horizontal) ? 8 : 0,
           ...(negative && labels === "end" && horizontal ? { left: 40 } : {}),
@@ -356,7 +381,11 @@ export function ChartBar({
         {texture ? (
           <TextureDefs
             id={id}
-            entries={series.map((s, i) => ({ key: s.key, color: colorOf(s, i), texture: textureOf(i) }))}
+            entries={series.map((s, i) => ({
+              key: s.key,
+              color: colorOf(s, i),
+              texture: textureOf(i),
+            }))}
           />
         ) : null}
         <CartesianGrid {...grid} vertical={Boolean(horizontal)} horizontal={!horizontal} />
@@ -429,7 +458,10 @@ export function ChartBar({
             maxBarSize={24}
             hide={hidden.has(s.key)}
             {...seriesClass(s.key, highlighted, chooses)}
-            activeBar={{ fill: texture ? fillOf(s, i) : hoveredOf(s, i), fillOpacity: texture ? 0.85 : 1 }}
+            activeBar={{
+              fill: texture ? fillOf(s, i) : hoveredOf(s, i),
+              fillOpacity: texture ? 0.85 : 1,
+            }}
             {...motion}
             {...(stacked ? { stackId: "stack" } : {})}
             {...(chooses
@@ -459,7 +491,7 @@ export function ChartBar({
         {target ? (
           <Scatter
             dataKey={target}
-            name="Target"
+            name={t("target")}
             shape={<TargetMark horizontal={horizontal} />}
             isAnimationActive={false}
           />

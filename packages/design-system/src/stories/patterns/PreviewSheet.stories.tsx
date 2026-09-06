@@ -169,7 +169,8 @@ export const PreviewSheetStory: Story = {
   name: "Preview sheet",
   render: () => <PreviewSheetStates />,
 };
-export const PreviewSheetMatrix: Story = { render: () => <PreviewSheetStates /> };
+export const PreviewSheetMatrix: Story = {
+  tags: ["contract"], render: () => <PreviewSheetStates /> };
 
 /** The sheet's footer, drawn on its own for a pair. */
 function Footer({ children }: { children: ReactNode }) {

@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../../lib/locale";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import {
   createContext,
@@ -57,17 +58,16 @@ export const hoveredColor = (tone: ChartTone): string =>
 export const categoricalTone = (i: number): ChartTone =>
   i < 6 ? (`categorical.${(i + 1) as 1 | 2 | 3 | 4 | 5 | 6}` as ChartTone) : "categorical.7";
 
-export const sequentialColor = (step: 1 | 2 | 3 | 4 | 5) =>
-  token(`color.chart.sequential.${step}`);
+export const sequentialColor = (step: 1 | 2 | 3 | 4 | 5) => token(`color.chart.sequential.${step}`);
 export const divergingColor = (
   step: "negative.bold" | "negative" | "midpoint" | "positive" | "positive.bold",
 ) => token(`color.chart.diverging.${step}` as TokenName);
 
-const compactFormat = new Intl.NumberFormat(undefined, {
+const compactFormat = new Intl.NumberFormat("en-US", {
   notation: "compact",
   maximumFractionDigits: 1,
 });
-const plainFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
+const plainFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
 
 /** The default number format: grouped, two decimals at most, compact from ten thousand (12.4K). */
 export function formatNumber(value: number): string {
@@ -167,7 +167,7 @@ export const isRange = (v: unknown): v is readonly [number, number] =>
 
 export const formatValue = (v: unknown, format: Formatter): string => {
   if (typeof v === "number") return format(v);
-  if (isRange(v)) return `${format(v[0])} to ${format(v[1])}`;
+  if (isRange(v)) return `${format(v[0])}–${format(v[1])}`;
   if (v === null || v === undefined) return "";
   if (v instanceof Date) return fullDate(v.getTime());
   return String(v);
@@ -239,40 +239,79 @@ export const toMs = (v: unknown): number =>
   v instanceof Date ? v.getTime() : typeof v === "number" ? v : new Date(String(v)).getTime();
 
 const DAY = 86_400_000;
-const dayFmt = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short" });
-const monthFmt = new Intl.DateTimeFormat(undefined, { month: "short" });
-const monthYearFmt = new Intl.DateTimeFormat(undefined, { month: "short", year: "2-digit" });
-const yearFmt = new Intl.DateTimeFormat(undefined, { year: "numeric" });
-const hourFmt = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
-const fullFmt = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short", year: "numeric" });
-const fullTimeFmt = new Intl.DateTimeFormat(undefined, {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-});
+export const fullDate = (ms: number) =>
+  new Intl.DateTimeFormat("en-US", {
+    timeZone: "UTC",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(ms);
 
-export const fullDate = (ms: number) => fullFmt.format(ms);
+/** Chart defaults share the provider's locale; explicit component formatters still win. */
+export function useChartFormat() {
+  const locale = useLedgerLocale();
+  return useMemo(
+    () => ({
+      format: (value: number) =>
+        locale.formatNumber(
+          value,
+          Math.abs(value) >= 10000
+            ? { notation: "compact", maximumFractionDigits: 1 }
+            : { maximumFractionDigits: 2 },
+        ),
+      category: (value: string | number | Date) =>
+        value instanceof Date || (typeof value === "string" && isoDate.test(value))
+          ? locale.formatDate(value instanceof Date ? value : new Date(value), {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+              ...(typeof value === "string" && value.length === 10 ? { timeZone: "UTC" } : {}),
+            })
+          : String(value),
+    }),
+    [locale],
+  );
+}
 
 /** The ticks of a time axis and their labels: hours, days, months or years, by the span, at most eight, each at a unit's start. */
-export function timeTicks(min: number, max: number): { ticks: number[]; tick: (ms: number) => string; full: (ms: number) => string } {
+export function timeTicks(
+  min: number,
+  max: number,
+  locale = "en-US",
+  timeZone = "UTC",
+): { ticks: number[]; tick: (ms: number) => string; full: (ms: number) => string } {
+  const dateFormat = (options: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat(locale, { timeZone, ...options });
+  const dayFmt = dateFormat({ day: "numeric", month: "short" });
+  const monthFmt = dateFormat({ month: "short" });
+  const monthYearFmt = dateFormat({ month: "short", year: "2-digit" });
+  const yearFmt = dateFormat({ year: "numeric" });
+  const hourFmt = dateFormat({ hour: "numeric", minute: "2-digit" });
+  const fullFmt = dateFormat({ day: "numeric", month: "short", year: "numeric" });
+  const fullTimeFmt = dateFormat({
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  const fullDate = (ms: number) => fullFmt.format(ms);
   const span = Math.max(1, max - min);
   const days = span / DAY;
   const ticks: number[] = [];
   if (days <= 3) {
     const stepH = days <= 0.5 ? 1 : days <= 1 ? 3 : days <= 2 ? 6 : 12;
     const d = new Date(min);
-    d.setMinutes(0, 0, 0);
-    d.setHours(Math.ceil(d.getHours() / stepH) * stepH);
+    d.setUTCMinutes(0, 0, 0);
+    d.setUTCHours(Math.ceil(d.getUTCHours() / stepH) * stepH);
     for (let t = d.getTime(); t <= max; t += stepH * 3_600_000) ticks.push(t);
     return { ticks, tick: (ms) => hourFmt.format(ms), full: (ms) => fullTimeFmt.format(ms) };
   }
   if (days <= 62) {
     const step = days <= 8 ? 1 : days <= 16 ? 2 : days <= 40 ? 7 : 14;
     const d = new Date(min);
-    d.setHours(0, 0, 0, 0);
-    if (d.getTime() < min) d.setDate(d.getDate() + 1);
+    d.setUTCHours(0, 0, 0, 0);
+    if (d.getTime() < min) d.setUTCDate(d.getUTCDate() + 1);
     for (let t = d.getTime(); t <= max; t += step * DAY) ticks.push(t);
     return { ticks, tick: (ms) => dayFmt.format(ms), full: fullDate };
   }
@@ -280,37 +319,41 @@ export function timeTicks(min: number, max: number): { ticks: number[]; tick: (m
     const months = days / 30.4;
     const step = months <= 8 ? 1 : months <= 16 ? 2 : 3;
     const d = new Date(min);
-    d.setHours(0, 0, 0, 0);
-    d.setDate(1);
-    if (d.getTime() < min) d.setMonth(d.getMonth() + 1);
-    for (; d.getTime() <= max; d.setMonth(d.getMonth() + step)) ticks.push(d.getTime());
-    const crossesYear = new Date(min).getFullYear() !== new Date(max).getFullYear();
+    d.setUTCHours(0, 0, 0, 0);
+    d.setUTCDate(1);
+    if (d.getTime() < min) d.setUTCMonth(d.getUTCMonth() + 1);
+    for (; d.getTime() <= max; d.setUTCMonth(d.getUTCMonth() + step)) ticks.push(d.getTime());
+    const crossesYear = new Date(min).getUTCFullYear() !== new Date(max).getUTCFullYear();
     return {
       ticks,
-      tick: (ms) => (crossesYear && new Date(ms).getMonth() === 0 ? monthYearFmt.format(ms) : monthFmt.format(ms)),
+      tick: (ms) =>
+        crossesYear && new Date(ms).getUTCMonth() === 0
+          ? monthYearFmt.format(ms)
+          : monthFmt.format(ms),
       full: fullDate,
     };
   }
   const years = days / 365;
   const step = years <= 8 ? 1 : years <= 16 ? 2 : 5;
   const d = new Date(min);
-  d.setHours(0, 0, 0, 0);
-  d.setMonth(0, 1);
-  if (d.getTime() < min) d.setFullYear(d.getFullYear() + 1);
-  for (; d.getTime() <= max; d.setFullYear(d.getFullYear() + step)) ticks.push(d.getTime());
+  d.setUTCHours(0, 0, 0, 0);
+  d.setUTCMonth(0, 1);
+  if (d.getTime() < min) d.setUTCFullYear(d.getUTCFullYear() + 1);
+  for (; d.getTime() <= max; d.setUTCFullYear(d.getUTCFullYear() + step)) ticks.push(d.getTime());
   return { ticks, tick: (ms) => yearFmt.format(ms), full: fullDate };
 }
 
 /** The rows of a plot on a time axis: the category as epoch milliseconds, with the ticks and formats the axis needs. */
 export function useTimeAxis(data: ChartDatum[], x: string, time: boolean) {
+  const { locale, timeZone } = useLedgerLocale();
   return useMemo(() => {
     if (!time) return null;
     const rows = data.map((d) => ({ ...d, [x]: toMs(d[x]) }));
     const values = rows.map((r) => r[x] as number).filter((n) => Number.isFinite(n));
     const min = Math.min(...values);
     const max = Math.max(...values);
-    return { rows, min, max, ...timeTicks(min, max) };
-  }, [data, x, time]);
+    return { rows, min, max, ...timeTicks(min, max, locale, timeZone) };
+  }, [data, x, time, locale, timeZone]);
 }
 
 /* ---------- the frame's state ---------- */
@@ -342,13 +385,15 @@ export function useFrame(
   syncId?: string | undefined,
   texture?: boolean | undefined,
 ) {
+  const defaults = useChartFormat();
+
   const frame = useContext(FrameContext);
   return {
     name: label ?? frame?.name,
     hidden: frame?.hidden ?? none,
     highlighted: frame?.highlighted ?? null,
-    format: format ?? frame?.format ?? formatNumber,
-    formatX: formatX ?? frame?.formatX ?? formatCategory,
+    format: format ?? frame?.format ?? defaults.format,
+    formatX: formatX ?? frame?.formatX ?? defaults.category,
     loading: loading ?? frame?.loading ?? false,
     sync: syncId ?? frame?.sync,
     texture: texture ?? frame?.texture ?? false,
@@ -385,7 +430,15 @@ export const labelProp = (l: ReturnType<typeof referenceLabel>) => (l ? { label:
 /** A pattern a series wears as well as its colour, so a stack reads in print, under colour-vision loss and in a forced-colours mode. `solid` is none. */
 export type Texture = "solid" | "hatch" | "hatch-back" | "dots" | "cross" | "lines" | "columns";
 
-const textureOrder: Texture[] = ["solid", "hatch", "hatch-back", "dots", "cross", "lines", "columns"];
+const textureOrder: Texture[] = [
+  "solid",
+  "hatch",
+  "hatch-back",
+  "dots",
+  "cross",
+  "lines",
+  "columns",
+];
 
 /** The texture of the i-th series: the first solid, then the six patterns in order. */
 export const textureOf = (i: number): Texture => textureOrder[i % textureOrder.length] ?? "solid";
@@ -497,7 +550,10 @@ export function useMotion(): Motion {
     () => ({
       isAnimationActive: !off,
       animationDuration: parseInt(readToken("motion.duration.slow", "400ms"), 10) || 400,
-      animationEasing: readToken("motion.easing.standard", "cubic-bezier(0.2, 0, 0.2, 1)") as Easing,
+      animationEasing: readToken(
+        "motion.easing.standard",
+        "cubic-bezier(0.2, 0, 0.2, 1)",
+      ) as Easing,
       animationBegin: 0,
     }),
     [off],
@@ -546,8 +602,12 @@ export const marginFor = ({
   left: 0,
 });
 
-export const hasRefLabels = (reference: ChartReference[] | undefined, bands?: ChartBand[] | undefined) =>
-  Boolean(reference?.some((r) => r.label)) || Boolean(bands?.some((b) => b.label && b.fromX !== undefined));
+export const hasRefLabels = (
+  reference: ChartReference[] | undefined,
+  bands?: ChartBand[] | undefined,
+) =>
+  Boolean(reference?.some((r) => r.label)) ||
+  Boolean(bands?.some((b) => b.label && b.fromX !== undefined));
 
 /** The zero line, drawn when the data goes below zero, so the baseline still reads. */
 export function ZeroLine({ horizontal }: { horizontal?: boolean | undefined }) {
@@ -696,13 +756,16 @@ export function TooltipContent({
   /** The texture per series key, for the swatches. */
   textures?: Record<string, Texture> | undefined;
 }) {
+  const { t } = useLedgerLocale();
+
   if (!active || !payload?.length) return null;
   const rows = payload.filter((p) => p.value !== null && p.value !== undefined);
   if (!rows.length) return null;
   const fmt = (key: string) => series.find((s) => s.key === key)?.format ?? format;
   const sum = total
     ? rows.reduce(
-        (n, p) => (typeof p.value === "number" && String(p.dataKey) !== targetKey ? n + p.value : n),
+        (n, p) =>
+          typeof p.value === "number" && String(p.dataKey) !== targetKey ? n + p.value : n,
         0,
       )
     : null;
@@ -720,7 +783,7 @@ export function TooltipContent({
           const key = String(p.dataKey ?? "");
           const s = series.find((r) => r.key === key);
           const isTarget = targetKey !== undefined && key === targetKey;
-          const name = isTarget ? "Target" : (s?.label ?? s?.key ?? p.name ?? key);
+          const name = isTarget ? t("target") : (s?.label ?? s?.key ?? p.name ?? key);
           const change = previous ? deltaText(p.value, previous[key], fmt(key)) : null;
           return (
             <div key={i} className="flex items-center gap-100 font-body-small">
@@ -752,7 +815,13 @@ export function TooltipContent({
 type ViewBox = { x: number; y: number; width: number; height: number };
 
 const labelText = (text: string, x: number, y: number, anchor: "start" | "middle" | "end") => (
-  <text x={x} y={y} textAnchor={anchor} className="font-body-xsmall" fill={token("color.text.subtlest")}>
+  <text
+    x={x}
+    y={y}
+    textAnchor={anchor}
+    className="font-body-xsmall"
+    fill={token("color.text.subtlest")}
+  >
     {text}
   </text>
 );
@@ -814,7 +883,13 @@ export function References({
   );
 }
 
-export function Bands({ bands, time }: { bands: ChartBand[] | undefined; time?: boolean | undefined }) {
+export function Bands({
+  bands,
+  time,
+}: {
+  bands: ChartBand[] | undefined;
+  time?: boolean | undefined;
+}) {
   if (!bands?.length) return null;
   return (
     <>
@@ -864,7 +939,10 @@ export const rectAnchor = (p: {
   height?: number | undefined;
 }): Anchor => ({ x: p.x ?? 0, y: p.y ?? 0, width: p.width ?? 0, height: p.height ?? 0 });
 
-export const pointAnchor = (p: { x?: number | undefined; y?: number | undefined } | undefined, r = 4): Anchor => ({
+export const pointAnchor = (
+  p: { x?: number | undefined; y?: number | undefined } | undefined,
+  r = 4,
+): Anchor => ({
   x: (p?.x ?? 0) - r,
   y: (p?.y ?? 0) - r,
   width: r * 2,
@@ -872,7 +950,10 @@ export const pointAnchor = (p: { x?: number | undefined; y?: number | undefined 
 });
 
 /** What the keyboard has under it: the active category and where the tooltip sits. */
-export type Active = { label: string | number | undefined; coordinate: { x: number; y: number } | undefined };
+export type Active = {
+  label: string | number | undefined;
+  coordinate: { x: number; y: number } | undefined;
+};
 
 /** Inside a chart: keeps the active point in a ref, so Enter on the plot can choose it. */
 export function ActiveProbe({ target }: { target: RefObject<Active | null> }) {
@@ -900,7 +981,9 @@ export function CardHead({
   subtitle?: string | undefined;
   value?: string | undefined;
   /** One line per series, for a whole category; `note` is the change from the point before. */
-  rows?: { swatch: ReactNode; label: string; value: string; note?: string | null | undefined }[] | undefined;
+  rows?:
+    | { swatch: ReactNode; label: string; value: string; note?: string | null | undefined }[]
+    | undefined;
 }) {
   return (
     <div className="flex flex-col gap-025">
@@ -943,6 +1026,8 @@ function Card({
   refocus: () => void;
   children: ReactNode;
 }) {
+  const { t, direction } = useLedgerLocale();
+
   return (
     <PopoverPrimitive.Root
       open
@@ -963,7 +1048,8 @@ function Card({
           align="center"
           sideOffset={6}
           collisionPadding={8}
-          aria-label={label ? `${label}, details` : "Details"}
+          dir={direction}
+          aria-label={label ? t("detailsLabel", { label }) : t("details")}
           onCloseAutoFocus={(e) => {
             e.preventDefault();
             refocus();
@@ -1040,7 +1126,12 @@ export function Plot({
       aria-busy={busy || undefined}
       data-focus={focusedBy ?? undefined}
       data-chart-plot=""
-      className={cn("relative", width === undefined && "w-full", busy && "opacity-loading", className)}
+      className={cn(
+        "relative",
+        width === undefined && "w-full",
+        busy && "opacity-loading",
+        className,
+      )}
       style={{ height: height ?? heights[size ?? "medium"], width }}
       onPointerDownCapture={() => setFocusedBy("pointer")}
       onKeyDownCapture={onKeyDownCapture}
@@ -1049,7 +1140,11 @@ export function Plot({
       }}
     >
       {width === undefined ? (
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          initialDimension={{ width: 320, height: height ?? heights[size ?? "medium"] }}
+        >
           {children as never}
         </ResponsiveContainer>
       ) : (
@@ -1108,10 +1203,12 @@ export function toCsv(
 
 /** A file name from a title: lower case, dashes, the extension. */
 export const fileName = (title: string, ext: string) =>
-  `${title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "") || "chart"}.${ext}`;
+  `${
+    title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "chart"
+  }.${ext}`;
 
 /** Hands the reader a file. */
 export function download(name: string, blob: Blob) {
@@ -1126,7 +1223,19 @@ export function download(name: string, blob: Blob) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-const inlined = ["fill", "stroke", "stroke-width", "stroke-dasharray", "opacity", "fill-opacity", "font-family", "font-size", "font-weight", "letter-spacing", "text-anchor"] as const;
+const inlined = [
+  "fill",
+  "stroke",
+  "stroke-width",
+  "stroke-dasharray",
+  "opacity",
+  "fill-opacity",
+  "font-family",
+  "font-size",
+  "font-weight",
+  "letter-spacing",
+  "text-anchor",
+] as const;
 
 /**
  * The plot as a PNG at twice the pixel density: the svg copied with every computed colour and font
@@ -1195,11 +1304,13 @@ export function PlotSkeleton({
   height?: number | undefined;
   className?: string | undefined;
 }) {
+  const { t } = useLedgerLocale();
+
   const h = height ?? heights[size ?? "medium"];
   return (
     <div
       role={name ? "group" : undefined}
-      aria-label={name ? `${name}, loading` : undefined}
+      aria-label={name ? t("loadingLabel", { label: name }) : undefined}
       aria-busy
       aria-hidden={name ? undefined : true}
       className={cn("relative w-full animate-pulse", className)}
@@ -1208,7 +1319,11 @@ export function PlotSkeleton({
       {kind === "columns" ? (
         <div className="flex h-full items-end gap-150 border-b border-default pb-025 pe-150 ps-500">
           {pattern.map((p, i) => (
-            <div key={i} className="flex-1 rounded-xsmall bg-skeleton" style={{ height: `${p}%` }} />
+            <div
+              key={i}
+              className="flex-1 rounded-xsmall bg-skeleton"
+              style={{ height: `${p}%` }}
+            />
           ))}
         </div>
       ) : kind === "bars" ? (

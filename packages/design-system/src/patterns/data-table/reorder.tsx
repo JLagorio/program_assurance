@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../../lib/locale";
 import {
   DndContext,
   KeyboardSensor,
@@ -50,6 +51,7 @@ export function DragContext<TData extends RowData>({
   table: DataTableInstance<TData>;
   children: ReactNode;
 }) {
+  const { t } = useLedgerLocale();
   const id = useId();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -83,6 +85,21 @@ export function DragContext<TData extends RowData>({
   return (
     <DndContext
       id={id}
+      accessibility={{
+        screenReaderInstructions: { draggable: t("dragInstructions") },
+        announcements: {
+          onDragStart: ({ active }) => t("dragStarted", { item: String(active.id) }),
+          onDragOver: ({ active, over }) =>
+            over
+              ? t("dragOver", { item: String(active.id), target: String(over.id) })
+              : t("dragOutside", { item: String(active.id) }),
+          onDragEnd: ({ active, over }) =>
+            over
+              ? t("dragDropped", { item: String(active.id), target: String(over.id) })
+              : t("dragCanceled", { item: String(active.id) }),
+          onDragCancel: ({ active }) => t("dragCanceled", { item: String(active.id) }),
+        },
+      }}
       sensors={sensors}
       collisionDetection={closestCenter}
       modifiers={[byKind]}
@@ -127,6 +144,7 @@ export function RowSortable<TData extends RowData>({
 
 /** What a draggable header needs: a ref and a style for the cell, and the grip for its trailing slot. */
 export function useColumnDrag(id: string, enabled: boolean) {
+  const { t } = useLedgerLocale();
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id,
     data: { type: "column" satisfies DragKind },
@@ -144,7 +162,7 @@ export function useColumnDrag(id: string, enabled: boolean) {
       {...attributes}
       {...listeners}
       role="button"
-      aria-label="Reorder column"
+      aria-label={t("reorderColumn")}
       className={cn(
         "inline-flex size-250 shrink-0 cursor-grab items-center justify-center rounded-small icon-subtle outline-none touch-none hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused",
         isDragging && "cursor-grabbing",

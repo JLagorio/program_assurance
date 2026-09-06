@@ -20,6 +20,7 @@ import { Route as RisksRouteImport } from './routes/risks'
 import { Route as ScopeRouteImport } from './routes/scope'
 import { Route as StigsRouteImport } from './routes/stigs'
 import { Route as VendorsRouteImport } from './routes/vendors'
+import { Route as WorkRouteImport } from './routes/work'
 import { Route as CampaignsCampaignIdRouteImport } from './routes/campaigns.$campaignId'
 import { Route as FindingsIndexRouteImport } from './routes/findings.index'
 import { Route as FindingsFindingIdRouteImport } from './routes/findings.$findingId'
@@ -30,6 +31,7 @@ import { Route as ProgramsProgramIdRouteImport } from './routes/programs.$progra
 import { Route as ProgramsNewRouteImport } from './routes/programs.new'
 import { Route as RegisterIndexRouteImport } from './routes/register.index'
 import { Route as RisksRiskIdRouteImport } from './routes/risks.$riskId'
+import { Route as TasksTaskIdRouteImport } from './routes/tasks.$taskId'
 import { Route as WorkstreamsWorkstreamIdRouteImport } from './routes/workstreams.$workstreamId'
 import { Route as FindingsAssetsAssetIdRouteImport } from './routes/findings.assets.$assetId'
 import { Route as LibraryComponentsIndexRouteImport } from './routes/library.components.index'
@@ -106,6 +108,11 @@ const VendorsRoute = VendorsRouteImport.update({
   path: '/vendors',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorkRoute = WorkRouteImport.update({
+  id: '/work',
+  path: '/work',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CampaignsCampaignIdRoute = CampaignsCampaignIdRouteImport.update({
   id: '/$campaignId',
   path: '/$campaignId',
@@ -155,6 +162,11 @@ const RisksRiskIdRoute = RisksRiskIdRouteImport.update({
   id: '/$riskId',
   path: '/$riskId',
   getParentRoute: () => RisksRoute,
+} as any)
+const TasksTaskIdRoute = TasksTaskIdRouteImport.update({
+  id: '/tasks/$taskId',
+  path: '/tasks/$taskId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const WorkstreamsWorkstreamIdRoute = WorkstreamsWorkstreamIdRouteImport.update({
   id: '/workstreams/$workstreamId',
@@ -280,6 +292,7 @@ export interface FileRoutesByFullPath {
   '/scope': typeof ScopeRoute
   '/stigs': typeof StigsRoute
   '/vendors': typeof VendorsRoute
+  '/work': typeof WorkRoute
   '/campaigns/$campaignId': typeof CampaignsCampaignIdRoute
   '/findings/$findingId': typeof FindingsFindingIdRoute
   '/packages/$pkgId': typeof PackagesPkgIdRoute
@@ -287,6 +300,7 @@ export interface FileRoutesByFullPath {
   '/programs/$programId': typeof ProgramsProgramIdRoute
   '/programs/new': typeof ProgramsNewRoute
   '/risks/$riskId': typeof RisksRiskIdRoute
+  '/tasks/$taskId': typeof TasksTaskIdRoute
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/findings/': typeof FindingsIndexRoute
   '/packages/': typeof PackagesIndexRoute
@@ -323,6 +337,7 @@ export interface FileRoutesByTo {
   '/scope': typeof ScopeRoute
   '/stigs': typeof StigsRoute
   '/vendors': typeof VendorsRoute
+  '/work': typeof WorkRoute
   '/campaigns/$campaignId': typeof CampaignsCampaignIdRoute
   '/findings/$findingId': typeof FindingsFindingIdRoute
   '/packages/$pkgId': typeof PackagesPkgIdRoute
@@ -330,6 +345,7 @@ export interface FileRoutesByTo {
   '/programs/$programId': typeof ProgramsProgramIdRoute
   '/programs/new': typeof ProgramsNewRoute
   '/risks/$riskId': typeof RisksRiskIdRoute
+  '/tasks/$taskId': typeof TasksTaskIdRoute
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/findings': typeof FindingsIndexRoute
   '/packages': typeof PackagesIndexRoute
@@ -367,6 +383,7 @@ export interface FileRoutesById {
   '/scope': typeof ScopeRoute
   '/stigs': typeof StigsRoute
   '/vendors': typeof VendorsRoute
+  '/work': typeof WorkRoute
   '/campaigns/$campaignId': typeof CampaignsCampaignIdRoute
   '/findings/$findingId': typeof FindingsFindingIdRoute
   '/packages/$pkgId': typeof PackagesPkgIdRoute
@@ -374,6 +391,7 @@ export interface FileRoutesById {
   '/programs/$programId': typeof ProgramsProgramIdRoute
   '/programs/new': typeof ProgramsNewRoute
   '/risks/$riskId': typeof RisksRiskIdRoute
+  '/tasks/$taskId': typeof TasksTaskIdRoute
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/findings/': typeof FindingsIndexRoute
   '/packages/': typeof PackagesIndexRoute
@@ -412,6 +430,7 @@ export interface FileRouteTypes {
     | '/scope'
     | '/stigs'
     | '/vendors'
+    | '/work'
     | '/campaigns/$campaignId'
     | '/findings/$findingId'
     | '/packages/$pkgId'
@@ -419,6 +438,7 @@ export interface FileRouteTypes {
     | '/programs/$programId'
     | '/programs/new'
     | '/risks/$riskId'
+    | '/tasks/$taskId'
     | '/workstreams/$workstreamId'
     | '/findings/'
     | '/packages/'
@@ -455,6 +475,7 @@ export interface FileRouteTypes {
     | '/scope'
     | '/stigs'
     | '/vendors'
+    | '/work'
     | '/campaigns/$campaignId'
     | '/findings/$findingId'
     | '/packages/$pkgId'
@@ -462,6 +483,7 @@ export interface FileRouteTypes {
     | '/programs/$programId'
     | '/programs/new'
     | '/risks/$riskId'
+    | '/tasks/$taskId'
     | '/workstreams/$workstreamId'
     | '/findings'
     | '/packages'
@@ -498,6 +520,7 @@ export interface FileRouteTypes {
     | '/scope'
     | '/stigs'
     | '/vendors'
+    | '/work'
     | '/campaigns/$campaignId'
     | '/findings/$findingId'
     | '/packages/$pkgId'
@@ -505,6 +528,7 @@ export interface FileRouteTypes {
     | '/programs/$programId'
     | '/programs/new'
     | '/risks/$riskId'
+    | '/tasks/$taskId'
     | '/workstreams/$workstreamId'
     | '/findings/'
     | '/packages/'
@@ -542,9 +566,11 @@ export interface RootRouteChildren {
   ScopeRoute: typeof ScopeRoute
   StigsRoute: typeof StigsRoute
   VendorsRoute: typeof VendorsRoute
+  WorkRoute: typeof WorkRoute
   FindingsFindingIdRoute: typeof FindingsFindingIdRoute
   PackagesPkgIdRoute: typeof PackagesPkgIdRoute
   PeoplePersonIdRoute: typeof PeoplePersonIdRoute
+  TasksTaskIdRoute: typeof TasksTaskIdRoute
   WorkstreamsWorkstreamIdRoute: typeof WorkstreamsWorkstreamIdRoute
   FindingsIndexRoute: typeof FindingsIndexRoute
   PackagesIndexRoute: typeof PackagesIndexRoute
@@ -635,6 +661,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VendorsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/work': {
+      id: '/work'
+      path: '/work'
+      fullPath: '/work'
+      preLoaderRoute: typeof WorkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/campaigns/$campaignId': {
       id: '/campaigns/$campaignId'
       path: '/$campaignId'
@@ -704,6 +737,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/risks/$riskId'
       preLoaderRoute: typeof RisksRiskIdRouteImport
       parentRoute: typeof RisksRoute
+    }
+    '/tasks/$taskId': {
+      id: '/tasks/$taskId'
+      path: '/tasks/$taskId'
+      fullPath: '/tasks/$taskId'
+      preLoaderRoute: typeof TasksTaskIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/workstreams/$workstreamId': {
       id: '/workstreams/$workstreamId'
@@ -927,9 +967,11 @@ const rootRouteChildren: RootRouteChildren = {
   ScopeRoute: ScopeRoute,
   StigsRoute: StigsRoute,
   VendorsRoute: VendorsRoute,
+  WorkRoute: WorkRoute,
   FindingsFindingIdRoute: FindingsFindingIdRoute,
   PackagesPkgIdRoute: PackagesPkgIdRoute,
   PeoplePersonIdRoute: PeoplePersonIdRoute,
+  TasksTaskIdRoute: TasksTaskIdRoute,
   WorkstreamsWorkstreamIdRoute: WorkstreamsWorkstreamIdRoute,
   FindingsIndexRoute: FindingsIndexRoute,
   PackagesIndexRoute: PackagesIndexRoute,

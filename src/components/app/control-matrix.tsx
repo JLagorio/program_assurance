@@ -122,7 +122,7 @@ export function ControlMatrixSection({
         onSearch={setQuery}
         placeholder="Search controls"
         actions={
-          <Box as="span" style={{ width: 220 }}>
+          <Box as="span" style={{ width: 220, maxWidth: "100%" }}>
             <Inline as="span" space="space.100" alignBlock="center">
               <Progress.Stacked
                 size="small"
@@ -140,13 +140,14 @@ export function ControlMatrixSection({
         }
       >
         <NativeSelect
+          aria-label="Control family"
           value={family}
           onChange={(e) => {
             onFamily(e.target.value);
             setLimit(PAGE);
           }}
           className="h-control-small"
-          style={{ width: 188 }}
+          style={{ width: 188, maxWidth: "100%" }}
         >
           <option value="All">All families</option>
           {families.map((f) => (
@@ -156,13 +157,14 @@ export function ControlMatrixSection({
           ))}
         </NativeSelect>
         <NativeSelect
+          aria-label="Control status"
           value={status}
           onChange={(e) => {
             onStatus(e.target.value as ControlStatus | "All");
             setLimit(PAGE);
           }}
           className="h-control-small"
-          style={{ width: 176 }}
+          style={{ width: 176, maxWidth: "100%" }}
         >
           <option value="All">All statuses</option>
           {controlStatuses.map((s) => (

@@ -38,6 +38,7 @@ const modalMenu = {
 
 /** One menu, open, holding every item state: plain, with a shortcut, chosen and not, disabled, and the danger item last under its separator. */
 export const DropdownMenuMatrix: Story = {
+  tags: ["contract"],
   parameters: modalMenu,
   render: () => (
     <Box style={{ height: 320 }} className="p-400">

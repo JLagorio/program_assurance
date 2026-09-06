@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+import { useLedgerLocale } from "../lib/locale";
+import { useOverlayFocus } from "./_overlay-focus";
+import type { ReactNode, RefObject } from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
 
 import { cn } from "../lib/cn";
@@ -6,6 +8,8 @@ import { cn } from "../lib/cn";
 export type DrawerProps = {
   /** The caller's state. */
   open: boolean;
+  /** Focus destination after closing; defaults to the opener, then a surviving dialog or main. */
+  returnFocusRef?: RefObject<HTMLElement | null> | undefined;
   /** Called on Escape, the blanket, and a drag down past the handle. */
   onClose: () => void;
   /** The task or the object. */
@@ -22,6 +26,7 @@ export type DrawerProps = {
 /** The bottom sheet: a task surface that rises from the bottom edge with a drag handle, for narrow screens and quick actions. */
 export function Drawer({
   open,
+  returnFocusRef,
   onClose,
   title,
   description,
@@ -29,6 +34,8 @@ export function Drawer({
   children,
   className,
 }: DrawerProps) {
+  const { t, direction } = useLedgerLocale();
+  const restoreFocus = useOverlayFocus(open, returnFocusRef);
   return (
     <DrawerPrimitive.Root
       open={open}
@@ -39,6 +46,9 @@ export function Drawer({
       <DrawerPrimitive.Portal>
         <DrawerPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket" />
         <DrawerPrimitive.Content
+          onCloseAutoFocus={restoreFocus}
+          dir={direction}
+          {...(description ? {} : { "aria-describedby": undefined })}
           style={{ maxWidth: 640, maxHeight: "85vh" }}
           className={cn(
             "fixed inset-x-0 bottom-0 z-50 mx-auto flex w-full flex-col rounded-t-xxlarge bg-surface-overlay shadow-overlay outline-none",

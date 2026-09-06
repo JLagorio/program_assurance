@@ -197,7 +197,7 @@ function ProgramIngestion() {
           onChange={(e) => selectScan(e.target.value)}
           aria-label="Scan run"
           className="h-control-small font-body"
-          style={{ width: 360 }}
+          style={{ width: 360, maxWidth: "100%" }}
         >
           {scans.map((s) => (
             <option key={s.id} value={s.id}>

@@ -5,7 +5,7 @@ Ledger is the product design system. It is a package, `@ledger/design-system`, a
 every export has a story, every family has a matrix and a page on the template, and `npm run build` fails when one is missing.
 This guide says how the package is shaped and how a screen uses it. The reasoning lives in the specs
 under `docs/superpowers/specs/`, and the parts document themselves in the package's Storybook
-(`npm run storybook` inside the package, port 6009).
+(`npm run storybook` inside the package, port 6007).
 
 ## Layers
 
@@ -25,6 +25,12 @@ the layers below it, by relative path, so the dependency graph stays visible.
 Domain files (`src/components/app/*.tsx`) and routes assemble these. They may own a tone map for
 their vocabulary and a component that binds data to a pattern. They never declare a primitive or a
 copy of a kit part; the lint (`ledger/no-kit-shadow`) names the kit part to import instead.
+
+Activity and Task are application compositions in `src/components/app`: their event kinds,
+task states and mention format belong to this product. Their stories live in the application
+Storybook under **Product / Workflows**. Ledger owns the reusable Composer and TaskRow patterns: the application supplies suggestion
+identities/insertion text and task status content. Timeline.Item already supplies the feed item.
+Package stories cover these neutral contracts; workflow stories cover product decisions.
 
 ## Importing
 
@@ -52,7 +58,7 @@ The stylesheet is three imports after Tailwind, in this order:
 @import "@ledger/design-system/base.css";
 ```
 
-Hooks that belong with parts live in the package too: `useRequired` for a form's required fields,
+Hooks that belong with parts live in the package too: `useRequired` for legacy consumers,
 `useSort` and `usePage` for a Table, `useCommandPalette` for the ⌘K palette, `useSideNav` for the
 shell. A product keeps no copy of anything generic; the prototype is the test vehicle, and when it
 breaks the system is what gets fixed.
@@ -126,10 +132,22 @@ every product. A product's own config adds nothing about the kit.
    line), Related, Don't (a `Pair` per mistake). A heading that does not apply says so under itself. The
    ratchet lists the headings a page is missing; the families not yet walked are grandfathered in
    `scripts/ds-check.allow`, which only shrinks. `Components/Button` and `Components/Input` are the pages to copy; a family that is a choice keeps an
-   overview page (Forms, Overlays, Pages, Shapes, Primitives) that says which part to reach for.
+   overview page (Overlays, Pages, Shapes, Primitives) that says which part to reach for. Forms belongs under Patterns: compose Ledger controls with TanStack Form and Zod for state and validation.
 4. Check it in both modes in Storybook. Then, and only on a go, move the prototype onto it.
 
 ## Versioning and publishing
+
+The [API prop matrix](design-system-api-matrix.md) records component and compound props,
+semantic axes and explicit unresolved details. After an API change, run `npm run ds:api:matrix`
+and review the generated diff. `npm run ds:api:matrix:check` rejects stale output in CI.
+
+`npm run ds:api:check` compares compiler-emitted public declarations and their reachable
+dependencies with `packages/design-system/api/public-api.json`. A deliberate signature change
+requires compatibility review, migration notes where needed, and `npm run ds:api:update`.
+CI also reports changes relative to the pull request's base snapshot. This detects declaration
+drift, including dependency changes; it does not prove behavioral compatibility or assign a
+semantic version automatically. Initial adoption records the current API without retrospectively
+certifying earlier changes.
 
 Semantic versions, recorded in `packages/design-system/CHANGELOG.md` with the story that shows each
 change. Until 1.0 a rename or a removed prop is a minor step; it ships with a deprecation the lint
@@ -160,3 +178,13 @@ imports any of these directly.
 - `docs/superpowers/specs/2026-09-02-navigation-system.md`: the shell on Atlassian's grammar, what was
   left out, and the prototype's cutover plan.
 - `docs/next.md`: the living list of what is next and what is waiting on a decision.
+
+## Forms
+
+Forms belongs under **Patterns** in Storybook. Use TanStack Form for state and submission, Zod for validation, and Ledger Field and controls for presentation. The [Forms pattern](http://localhost:6007/?path=/docs/patterns-forms--docs) documents the mapping to shadcn's TanStack guidance.
+
+Application record forms use `src/lib/record-form.ts`: `useRecordForm` configures TanStack's validation policy and exposes its `form.Field` render props, values and form ref. It validates on submit, then on change; changing an action's required fields revalidates existing errors. Submission metadata selects the save command, so draft saves and conditional confirmation actions retain their behavior. All former application `useRequired` callers have been migrated; the exported legacy hook remains for package compatibility.
+
+## Accordion and Collapsible
+
+Accordion coordinates a set of sections using explicit item values and root-owned selection. Collapsible owns one independent boolean toggle. Compose titles, counts, actions, borders and body spacing with their parts; no extra disclosure pattern is needed. Both expose native attributes and refs on their named parts. See [the migration guide](disclosure-migration.md) for the former title/count/Group API and temporary legacy adapters.

@@ -29,6 +29,7 @@ const stateProps = (s: State) => ({
 
 /** Every state down the side; bare, inside a Field, and inside an InputGroup across. */
 export const InputMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Grid
       rows={states}

@@ -1,3 +1,4 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
 /**
  * The assurance workspace: one surface, several ways to read the same tree.
  *
@@ -974,13 +975,14 @@ function ClosurePipeline({
               </Inline>
             </Box>
             <Box className="mt-auto border-t border-default" paddingBlock="space.100">
-              <Button
+              <UnavailableAction
+                reason="This action is not available for this record. Review its details in the linked workspace."
                 size="small"
                 className="w-full"
                 disabled={!sel || !c.beads.some((b) => b.kind === sel.kind && b.id === sel.id)}
               >
                 {c.action}
-              </Button>
+              </UnavailableAction>
             </Box>
           </Stack>
         ))}
@@ -1397,7 +1399,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                         "absolute left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-surface px-150 py-250 text-center",
                         path.length ? "cursor-pointer" : "pointer-events-none",
                       )}
-                      style={{ width: 200 }}
+                      style={{ width: 200, maxWidth: "100%" }}
                     >
                       <Eyebrow>
                         {cur.kind === "root"
@@ -1463,7 +1465,12 @@ export function ControlWorkspace({ programId }: { programId: string }) {
               </div>
               <ChainList hops={chain} />
               <Inline space="space.100">
-                <Button size="small" variant="primary" disabled>
+                <UnavailableAction
+                  reason="This action is not available for this record. Review its details in the linked workspace."
+                  size="small"
+                  variant="primary"
+                  disabled
+                >
                   {sel.kind === "poam"
                     ? "Reassess"
                     : sel.kind === "finding"
@@ -1471,7 +1478,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                       : tree.byControl.get(sel.id)?.st === "nd"
                         ? "Record determination"
                         : "Create finding"}
-                </Button>
+                </UnavailableAction>
                 <Button size="small" onClick={() => setSel(null)}>
                   Clear
                 </Button>
@@ -1554,12 +1561,21 @@ export function ControlWorkspace({ programId }: { programId: string }) {
               </div>
               <p className="font-body-small text-subtle">{blast.change.analysis}</p>
               <Inline space="space.100">
-                <Button size="small" variant="primary" disabled>
+                <UnavailableAction
+                  reason="This action is not available for this record. Review its details in the linked workspace."
+                  size="small"
+                  variant="primary"
+                  disabled
+                >
                   Reassess affected rows
-                </Button>
-                <Button size="small" disabled>
+                </UnavailableAction>
+                <UnavailableAction
+                  reason="This action is not available for this record. Review its details in the linked workspace."
+                  size="small"
+                  disabled
+                >
                   Report change
-                </Button>
+                </UnavailableAction>
               </Inline>
             </Stack>
           ) : view === "threads" && threads ? (

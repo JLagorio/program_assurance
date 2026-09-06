@@ -45,16 +45,29 @@ export const Toasts: Story = {
       <Button variant="secondary" onClick={() => toast("Saved")}>
         Plain
       </Button>
-      <Button variant="secondary" onClick={() => toast.success("Evidence linked", { description: "Bank reconciliation, July" })}>
+      <Button
+        variant="secondary"
+        onClick={() =>
+          toast.success("Evidence linked", { description: "Bank reconciliation, July" })
+        }
+      >
         Success
       </Button>
       <Button variant="secondary" onClick={() => toast.info("Three artifacts expire this month")}>
         Info
       </Button>
-      <Button variant="secondary" onClick={() => toast.warning("Due in 2 days", { description: "The assessment of AC-2." })}>
+      <Button
+        variant="secondary"
+        onClick={() => toast.warning("Due in 2 days", { description: "The assessment of AC-2." })}
+      >
         Warning
       </Button>
-      <Button variant="secondary" onClick={() => toast.error("Could not save", { description: "The owner must be on the programme." })}>
+      <Button
+        variant="secondary"
+        onClick={() =>
+          toast.error("Could not save", { description: "The owner must be on the programme." })
+        }
+      >
         Error
       </Button>
     </Inline>
@@ -62,33 +75,68 @@ export const Toasts: Story = {
 };
 
 /** `action`: one verb the reader may still take, Undo mostly. `cancel` is the quiet second. */
+function UndoExample() {
+  const [archived, setArchived] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+  return (
+    <Stack space="space.200">
+      <Text role="status">PRG-1041 is {archived ? "archived" : "active"} in this example.</Text>
+      <Inline space="space.100" shouldWrap>
+        <Button
+          disabled={archived}
+          onClick={() => {
+            setArchived(true);
+            toast.success("Archived PRG-1041", {
+              action: {
+                label: "Undo",
+                onClick: () => {
+                  setArchived(false);
+                  toast("Restored PRG-1041");
+                },
+              },
+            });
+          }}
+        >
+          Archive example
+        </Button>
+        <Button
+          onClick={() =>
+            toast.info("3 controls updated", {
+              action: { label: "View", onClick: () => setShowDetails(true) },
+              cancel: { label: "Dismiss", onClick: () => setShowDetails(false) },
+            })
+          }
+        >
+          View and Dismiss
+        </Button>
+      </Inline>
+      {showDetails ? <Text>Updated controls: AC-1, AC-2, AC-3.</Text> : null}
+    </Stack>
+  );
+}
 export const WithAction: Story = {
-  render: () => (
-    <Inline space="space.100" shouldWrap>
-      <Button
-        variant="secondary"
-        onClick={() =>
-          toast.success("Archived PRG-1041", {
-            description: "Its controls stay readable.",
-            action: { label: "Undo", onClick: () => toast("Restored PRG-1041") },
-          })
-        }
-      >
-        With Undo
-      </Button>
-      <Button
-        variant="secondary"
-        onClick={() =>
-          toast.info("3 controls updated", {
-            action: { label: "View", onClick: () => undefined },
-            cancel: { label: "Dismiss", onClick: () => undefined },
-          })
-        }
-      >
-        View and Dismiss
-      </Button>
-    </Inline>
-  ),
+  tags: ["contract"],
+  render: () => <UndoExample />,
+  play: async ({ canvasElement }) => {
+    const { expect, userEvent, within } = await import("storybook/test");
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Archive example" }));
+    await expect(canvas.getByRole("status")).toHaveTextContent("archived");
+    await userEvent.click(
+      await within(canvasElement.ownerDocument.body).findByRole("button", {
+        name: "Undo",
+      }),
+    );
+    await expect(canvas.getByRole("status")).toHaveTextContent("active");
+    await userEvent.click(canvas.getByRole("button", { name: "View and Dismiss" }));
+    await userEvent.click(
+      await within(canvasElement.ownerDocument.body).findByRole("button", {
+        name: "View",
+      }),
+    );
+    await expect(canvas.getByText("Updated controls: AC-1, AC-2, AC-3.")).toBeVisible();
+    toast.dismiss();
+  },
 };
 
 /** An error stays eight seconds and carries a close; a reader who looked away still finds it. */
@@ -190,6 +238,7 @@ function Specimen({
 
 /** Every kind at rest, then the shapes a toast takes: a title alone, with a description, with an action, an error with its close, working. Drawn with the Toaster's classes; the buttons above fire the live ones. */
 export const ToasterMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="kinds">
@@ -201,9 +250,19 @@ export const ToasterMatrix: Story = {
       </Specimens>
       <Specimens title="shapes">
         <Specimen kind="success" title="Evidence linked" description="Bank reconciliation, July" />
-        <Specimen kind="success" title="Archived PRG-1041" description="Its controls stay readable." action="Undo" />
+        <Specimen
+          kind="success"
+          title="Archived PRG-1041"
+          description="Its controls stay readable."
+          action="Undo"
+        />
         <Specimen kind="info" title="3 controls updated" action="View" cancel="Dismiss" />
-        <Specimen kind="error" title="Export failed" description="The package is missing the SAR. Add it and export again." close />
+        <Specimen
+          kind="error"
+          title="Export failed"
+          description="The package is missing the SAR. Add it and export again."
+          close
+        />
         <Specimen kind="loading" title="Building the package…" />
       </Specimens>
     </Stack>
@@ -244,7 +303,15 @@ export const Dont: Story = {
           </Stack>
         }
         doText="The question is an AlertDialog; the toast confirms what was done and offers Undo."
-        dont={<Specimen kind="warning" title="Delete F-0088?" description="This cannot be undone." action="Delete" cancel="Keep" />}
+        dont={
+          <Specimen
+            kind="warning"
+            title="Delete F-0088?"
+            description="This cannot be undone."
+            action="Delete"
+            cancel="Keep"
+          />
+        }
         dontText="A toast that asks. It goes in four seconds, it sits in the corner while the reader works, and Enter does not answer it."
       />
       <Pair
@@ -256,13 +323,31 @@ export const Dont: Story = {
           </Box>
         }
         doText="A condition of the record is an Alert on the record: true until the record changes, read by every reader."
-        dont={<Specimen kind="warning" title="Assessment overdue" description="AC-2 was due on 12 Aug." />}
+        dont={
+          <Specimen
+            kind="warning"
+            title="Assessment overdue"
+            description="AC-2 was due on 12 Aug."
+          />
+        }
         dontText="A record's state as a toast. It is gone in four seconds and the next reader never sees it."
       />
       <Pair
-        do={<Specimen kind="success" title="Evidence linked" description="Bank reconciliation, July" />}
+        do={
+          <Specimen
+            kind="success"
+            title="Evidence linked"
+            description="Bank reconciliation, July"
+          />
+        }
         doText="The title is what happened, past tense, with the object; the description names the thing."
-        dont={<Specimen kind="success" title="Success!" description="The evidence has been successfully linked to the control." />}
+        dont={
+          <Specimen
+            kind="success"
+            title="Success!"
+            description="The evidence has been successfully linked to the control."
+          />
+        }
         dontText="A cheer for a title and the outcome in the description. The reader glances at the title and learns nothing."
       />
     </Stack>
@@ -275,10 +360,16 @@ export const Playground: Story = {
     <Stack space="space.150">
       <Toaster {...args} />
       <Text size="small" color="color.text.subtle">
-        This story mounts a Toaster of its own with the controls below; open it alone from the sidebar.
+        This story mounts a Toaster of its own with the controls below; open it alone from the
+        sidebar.
       </Text>
       <Inline space="space.100">
-        <Button variant="secondary" onClick={() => toast.success("Evidence linked", { description: "Bank reconciliation, July" })}>
+        <Button
+          variant="secondary"
+          onClick={() =>
+            toast.success("Evidence linked", { description: "Bank reconciliation, July" })
+          }
+        >
           Fire one
         </Button>
         <Button variant="secondary" onClick={() => toast.error("Could not save")}>

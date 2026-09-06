@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { Button, NativeSelect } from "../../components";
@@ -229,7 +230,10 @@ function PickerStates() {
 }
 /** Frame one is a DataTable in the sheet: search, the family and state facets, a sortable id column and a selection that survives the search; frame two is a second DataTable whose responsibility and coverage cells edit in place, with a defaults row and "Does not apply" per row. Open it. */
 export const PickerSheetStory: Story = { name: "Picker sheet", render: () => <PickerStates /> };
-export const PickerSheetMatrix: Story = { render: () => <PickerStates /> };
+export const PickerSheetMatrix: Story = {
+  tags: ["contract"],
+  render: () => <PickerStates />,
+};
 
 /** The sheet's footer, drawn on its own for a pair. */
 function Footer({ children }: { children: ReactNode }) {
@@ -297,4 +301,43 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+};
+
+function ControlledSearchDemo() {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  return (
+    <Stack>
+      <Button onClick={() => setOpen(true)}>Open searchable picker</Button>
+      <PickerSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Choose records"
+        search={{ value: query, onChange: setQuery }}
+        selected={0}
+        action={{ label: "Link records", onClick: () => undefined }}
+      >
+        <Text>Current query: {query || "none"}</Text>
+      </PickerSheet>
+    </Stack>
+  );
+}
+
+/** Search has a persistent accessible name and reports string values to the caller. */
+export const ControlledSearch: Story = {
+  tags: ["contract"],
+  render: () => <ControlledSearchDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Open searchable picker" }));
+    const dialog = within(await page.findByRole("dialog", { name: "Choose records" }));
+    const search = dialog.getByRole("textbox", { name: "Search" });
+    await userEvent.type(search, "Annual review");
+    await expect(search).toHaveAccessibleName("Search");
+    await expect(dialog.getByText("Current query: Annual review")).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Link records" })).toBeDisabled();
+    await userEvent.click(dialog.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
+  },
 };

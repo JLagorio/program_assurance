@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, within } from "storybook/test";
 import { ExternalLink, Info, Maximize2 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -51,6 +52,7 @@ export const PanelStory: Story = {
 
 /** The header's forms, a subheader, a footer; flush with no header at all, the detail of a selected row; the trigger for a dismissible panel. */
 export const PanelMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Plain · with an icon and two actions · with a back button and a subheader">
@@ -168,4 +170,23 @@ export const Playground: Story = {
       <Panel {...args} onClose={() => undefined} />
     </PanelBox>
   ),
+};
+
+/** A subheader is an independent slot even when the panel has no title row. */
+export const SubheaderOnly: Story = {
+  tags: ["contract"],
+  render: () => (
+    <PanelBox>
+      <Panel subheader="3 selected records" flush>
+        <Text>Selection details</Text>
+      </Panel>
+    </PanelBox>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText("3 selected records")).toBeVisible();
+    await expect(canvas.getByText("Selection details")).toBeVisible();
+    await expect(canvas.queryByRole("heading")).not.toBeInTheDocument();
+    await expect(canvas.queryByRole("button", { name: "Close" })).not.toBeInTheDocument();
+  },
 };

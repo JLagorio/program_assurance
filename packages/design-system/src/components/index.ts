@@ -71,6 +71,7 @@ export { Command, type CommandDialogProps } from "./command";
 export {
   Checkbox,
   Field,
+  useFieldControl,
   Input,
   NativeSelect,
   RadioGroup,
@@ -89,13 +90,26 @@ export { Dialog, type DialogProps } from "./dialog";
 export { AlertDialog, type AlertDialogProps } from "./alert-dialog";
 export {
   Accordion,
-  Collapsible,
-  type AccordionItemProps,
   type AccordionProps,
-  type CollapsibleGroupProps,
+  type AccordionItemProps,
+  type AccordionHeaderProps,
+  type AccordionTriggerProps,
+  type AccordionContentProps,
+} from "./accordion";
+export {
+  Collapsible,
   type CollapsibleProps,
-  type DisclosureHeading,
-} from "./disclosure";
+  type CollapsibleTriggerProps,
+  type CollapsibleContentProps,
+} from "./collapsible";
+export {
+  LegacyCollapsible,
+  LegacyAccordion,
+  type LegacyCollapsibleProps,
+  type LegacyCollapsibleGroupProps,
+  type LegacyAccordionProps,
+  type LegacyAccordionItemProps,
+} from "./_legacy-disclosure";
 export { Drawer, type DrawerProps } from "./drawer";
 export { DropdownMenu, type DropdownMenuItemProps, type DropdownMenuProps } from "./dropdown-menu";
 export {
@@ -153,7 +167,7 @@ export {
   type TimelineSize,
   type TimelineTimePosition,
 } from "./timeline";
-export { Toaster, toast, type ToasterProps } from "./toaster";
+export { Toaster, toast, type ToasterProps, type Toast, type ToastOptions } from "./toaster";
 export {
   Toggle,
   ToggleGroup,

@@ -1,3 +1,4 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
@@ -97,9 +98,13 @@ function CampaignsPage() {
           <PageHeader
             title="Test campaigns"
             actions={
-              <Button variant="primary" iconBefore={<Plus />}>
+              <UnavailableAction
+                reason="Campaign creation is not available. Open an existing campaign from the table."
+                variant="primary"
+                iconBefore={<Plus />}
+              >
                 Open campaign
-              </Button>
+              </UnavailableAction>
             }
           />
         }

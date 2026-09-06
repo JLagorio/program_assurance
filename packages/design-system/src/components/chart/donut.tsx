@@ -1,5 +1,14 @@
+import { useLedgerLocale } from "../../lib/locale";
 import { useId, type ReactNode } from "react";
-import { Cell, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, type PieSectorDataItem } from "recharts";
+import {
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Sector,
+  Tooltip,
+  type PieSectorDataItem,
+} from "recharts";
 
 import { token } from "../../generated/tokens";
 import { cn } from "../../lib/cn";
@@ -13,7 +22,6 @@ import {
   chartColor,
   hoveredColor,
   markClass,
-  plainCategory,
   rectAnchor,
   seriesClass,
   surface,
@@ -99,7 +107,9 @@ export function ChartDonut({
   details,
   className,
 }: ChartDonutProps) {
-  const { name, hidden, highlighted, format, loading, texture } = useFrame(
+  const { t, formatNumber } = useLedgerLocale();
+
+  const { name, hidden, highlighted, format, formatX, loading, texture } = useFrame(
     nameProp,
     formatProp,
     undefined,
@@ -125,12 +135,14 @@ export function ChartDonut({
   const textures: Record<string, Texture> = {};
   if (texture) slices.forEach((s, i) => (textures[s.key] = textureOf(i)));
   const fillOf = (s: DonutSlice) =>
-    texture ? textureFill(id, s.key, textureOf(slices.indexOf(s)), chartColor(toneOf(s))) : chartColor(toneOf(s));
+    texture
+      ? textureFill(id, s.key, textureOf(slices.indexOf(s)), chartColor(toneOf(s)))
+      : chartColor(toneOf(s));
   if (loading)
     return (
       <div
         role={name ? "group" : undefined}
-        aria-label={name ? `${name}, loading` : undefined}
+        aria-label={name ? t("loadingLabel", { label: name }) : undefined}
         aria-busy
         aria-hidden={name ? undefined : true}
         className={cn("relative inline-block shrink-0 animate-pulse", className)}
@@ -159,7 +171,10 @@ export function ChartDonut({
           />
         }
         title={picked.item.slice.label}
-        subtitle={`${Math.round(picked.item.share * 100)}% of ${format(total)}`}
+        subtitle={t("shareOfTotal", {
+          share: formatNumber(picked.item.share, { style: "percent", maximumFractionDigits: 0 }),
+          total: format(total),
+        })}
         value={format(picked.item.slice.value)}
       />
       {details?.(picked.item)}
@@ -176,11 +191,15 @@ export function ChartDonut({
       onClose={clear}
     >
       <>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          initialDimension={{ width: size, height: boxHeight }}
+        >
           <PieChart
             margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
             accessibilityLayer={Boolean(name)}
-              >
+          >
             <Pie
               data={[{ key: "track", value: 1 }]}
               dataKey="value"
@@ -264,7 +283,7 @@ export function ChartDonut({
                   series={series}
                   swatch="square"
                   format={format}
-                  formatX={plainCategory}
+                  formatX={formatX}
                   textures={textures}
                 />
               }

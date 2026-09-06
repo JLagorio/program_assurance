@@ -33,6 +33,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Groups by variant and size with a disabled member; a split button with its menu; icon buttons; a primary split. */
 export const ButtonGroupMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Matrix

@@ -85,6 +85,7 @@ function Specimen({ kind, state }: { kind: Kind; state: State }) {
 
 /** What can sit at either end, down the side; the states across. */
 export const InputGroupMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Grid
       rows={kinds}

@@ -1,10 +1,13 @@
+import { useLedgerLocale } from "../lib/locale";
 import { AlertCircle, Check, ChevronDown } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 import { Bleed } from "../primitives/bleed";
+import { Command } from "./command";
 import { DropdownMenu } from "./dropdown-menu";
+import { Popover } from "./popover";
 import { Spinner } from "./spinner";
 import { Absent } from "./typography";
 
@@ -35,18 +38,27 @@ function useOptimisticCommit<T extends string>({
   validate,
   save,
 }: EditableProps<T>) {
+  const { t } = useLedgerLocale();
   const [state, setState] = useState<SaveState>("idle");
   const [error, setError] = useState<string | null>(null);
+  const latestValue = useRef(value);
+  latestValue.current = value;
+  const mounted = useRef(true);
+  const operation = useRef(0);
+  const busy = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      operation.current += 1;
       if (timer.current) clearTimeout(timer.current);
-    },
-    [],
-  );
+    };
+  }, []);
 
   const commit = (next: T) => {
+    if (busy.current) return false;
     const message = validate?.(next) ?? null;
     if (message) {
       setError(message);
@@ -59,17 +71,42 @@ function useOptimisticCommit<T extends string>({
       return true;
     }
     const previous = value;
+    const request = ++operation.current;
+    busy.current = true;
+    if (timer.current) clearTimeout(timer.current);
+    const owns = () => mounted.current && operation.current === request;
     setError(null);
     setState("saving");
+    latestValue.current = next;
     onChange(next);
-    save(next)
+    let pending: Promise<unknown>;
+    try {
+      pending = save(next);
+    } catch (error) {
+      pending = Promise.reject(error);
+    }
+    pending
       .then(() => {
+        if (!owns()) return;
+        busy.current = false;
+        if (latestValue.current !== next) {
+          setState("idle");
+          return;
+        }
         setState("saved");
-        timer.current = setTimeout(() => setState("idle"), 1400);
+        timer.current = setTimeout(() => {
+          if (owns()) setState("idle");
+        }, 1400);
       })
       .catch((e: unknown) => {
+        if (!owns()) return;
+        busy.current = false;
+        if (latestValue.current !== next) {
+          setState("idle");
+          return;
+        }
         onChange(previous);
-        setError(e instanceof Error ? e.message : "Could not save");
+        setError(e instanceof Error ? e.message : t("saveFailed"));
         setState("error");
       });
     return true;
@@ -79,7 +116,8 @@ function useOptimisticCommit<T extends string>({
 }
 
 function StateIcon({ state }: { state: SaveState }) {
-  if (state === "saving") return <Spinner label="Saving" />;
+  const { t } = useLedgerLocale();
+  if (state === "saving") return <Spinner label={t("saving")} />;
   if (state === "saved") return <Check aria-hidden className="size-150 icon-success" />;
   if (state === "error") return <AlertCircle aria-hidden className="size-150 icon-danger" />;
   return null;
@@ -87,6 +125,7 @@ function StateIcon({ state }: { state: SaveState }) {
 
 /** The message under the value and what a screen reader hears when a save lands. */
 function Message({ id, state, error }: { id: string; state: SaveState; error: string | null }) {
+  const { t } = useLedgerLocale();
   return (
     <>
       {error ? (
@@ -95,7 +134,7 @@ function Message({ id, state, error }: { id: string; state: SaveState; error: st
         </p>
       ) : null}
       <span role="status" className="sr-only">
-        {state === "saved" ? "Saved" : state === "error" ? "Not saved" : ""}
+        {state === "saved" ? t("saved") : state === "error" ? t("notSaved") : ""}
       </span>
     </>
   );
@@ -168,7 +207,15 @@ function EditableText({ placeholder, ...props }: EditableTextProps) {
           />
         </Bleed>
       ) : (
-        <button ref={button} type="button" onClick={() => setEditing(true)} className={resting}>
+        <button
+          ref={button}
+          type="button"
+          aria-disabled={state === "saving" || undefined}
+          onClick={() => {
+            if (state !== "saving") setEditing(true);
+          }}
+          className={resting}
+        >
           <span className="sr-only">{props.label}: </span>
           <span className={cn("relative min-w-0 truncate", !props.value && "text-subtlest")}>
             {props.value || placeholder || <Absent />}
@@ -186,43 +233,93 @@ function EditableText({ placeholder, ...props }: EditableTextProps) {
 export type EditableSelectProps<T extends string> = EditableProps<T> & {
   /** The values on offer, in the order they show. */
   options: readonly T[];
-  /** Draws a value: a Badge for a status, a Person for an owner. Unsaid, the value as text. */
+  /** Draws a value: a Badge for a status, a Person for an owner. Unsaid, the value as text. The searchable list shows the values as words. */
   render?: ((value: T) => ReactNode) | undefined;
+  /** A list worth searching: a search field at the top, the options as plain words under it. On by itself past eight options. */
+  searchable?: boolean | undefined;
 };
 
-/** One of a fixed set, edited in place: the row opens a menu of the options with the current one marked, and choosing commits. */
-function EditableSelect<T extends string>({ options, render, ...props }: EditableSelectProps<T>) {
+/** Over eight options the list is searched rather than scanned. */
+const SEARCH_FROM = 8;
+
+/**
+ * One of a fixed set, edited in place: the row opens the options with the current one marked, and
+ * choosing commits. A short set is a menu; a long one, a roster of people, is a searched list.
+ * Nothing but the values shows in either: the row's label is for the screen reader.
+ */
+function EditableSelect<T extends string>({
+  options,
+  render,
+  searchable = options.length > SEARCH_FROM,
+  ...props
+}: EditableSelectProps<T>) {
+  const { t } = useLedgerLocale();
   const { state, error, commit } = useOptimisticCommit(props);
+  const [open, setOpen] = useState(false);
   const messageId = useId();
+  const trigger = (
+    <button
+      type="button"
+      disabled={state === "saving"}
+      aria-describedby={error ? messageId : undefined}
+      className={cn(resting, error && "before:border before:border-danger")}
+    >
+      <span className="sr-only">{props.label}: </span>
+      <span className="relative min-w-0 truncate">
+        {render ? render(props.value) : props.value}
+      </span>
+      <span className="relative ms-auto flex shrink-0 items-center gap-050">
+        <StateIcon state={state} />
+        <ChevronDown aria-hidden className="size-150 icon-subtle" />
+      </span>
+    </button>
+  );
   return (
     <div className="flex min-w-0 flex-col gap-025">
-      <DropdownMenu
-        align="start"
-        width={220}
-        trigger={
-          <button
-            type="button"
-            aria-describedby={error ? messageId : undefined}
-            className={cn(resting, error && "before:border before:border-danger")}
-          >
-            <span className="sr-only">{props.label}: </span>
-            <span className="relative min-w-0 truncate">
-              {render ? render(props.value) : props.value}
-            </span>
-            <span className="relative ms-auto flex shrink-0 items-center gap-050">
-              <StateIcon state={state} />
-              <ChevronDown aria-hidden className="size-150 icon-subtle" />
-            </span>
-          </button>
-        }
-      >
-        <DropdownMenu.Label>{props.label}</DropdownMenu.Label>
-        {options.map((o) => (
-          <DropdownMenu.Item key={o} isSelected={o === props.value} onSelect={() => commit(o)}>
-            {render ? render(o) : o}
-          </DropdownMenu.Item>
-        ))}
-      </DropdownMenu>
+      {searchable ? (
+        <Popover
+          label={props.label}
+          open={open}
+          onOpenChange={setOpen}
+          width={240}
+          className="p-0"
+          trigger={trigger}
+        >
+          <Command className="rounded-large">
+            <Command.Input placeholder={t("search")} hint={null} autoFocus />
+            <Command.List style={{ maxHeight: 260 }}>
+              {options.map((o) => (
+                <Command.Item
+                  key={o}
+                  value={o}
+                  onSelect={() => {
+                    setOpen(false);
+                    commit(o);
+                  }}
+                >
+                  <span className="min-w-0 flex-1 truncate">{o}</span>
+                  <Check
+                    aria-hidden
+                    className={cn(
+                      "size-icon-small shrink-0",
+                      o === props.value ? "visible" : "invisible",
+                    )}
+                  />
+                </Command.Item>
+              ))}
+            </Command.List>
+            <Command.Empty>{t("noMatches")}</Command.Empty>
+          </Command>
+        </Popover>
+      ) : (
+        <DropdownMenu align="start" width={220} trigger={trigger}>
+          {options.map((o) => (
+            <DropdownMenu.Item key={o} isSelected={o === props.value} onSelect={() => commit(o)}>
+              {render ? render(o) : o}
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu>
+      )}
       <Message id={messageId} state={state} error={error} />
     </div>
   );

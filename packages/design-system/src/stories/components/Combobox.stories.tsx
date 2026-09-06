@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
+import { expect, userEvent, within } from "storybook/test";
 
 import { Button, Combobox, Field, NativeSelect, useRequired } from "../../components";
 import type { ComboboxOption } from "../../components";
@@ -52,6 +53,7 @@ const stateProps = (s: State) => ({
 
 /** Every state down the side; bare and inside a Field across. Open one and type to filter. */
 export const ComboboxMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Grid
       rows={states}
@@ -297,3 +299,20 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {};
+
+/** The width contract covers both the visible field and its anchored list. */
+export const TriggerWidthContract: Story = {
+  tags: ["contract"],
+  args: { width: 224, style: { width: 300, marginInlineStart: 12 } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByRole("combobox", { name: "Owner" });
+    await expect(trigger).toHaveStyle({ width: "224px", marginInlineStart: "12px" });
+    await userEvent.click(trigger);
+    const popup = await within(canvasElement.ownerDocument.body).findByRole("dialog", {
+      name: "Search people…",
+    });
+    await expect(popup).toHaveStyle({ width: "224px" });
+    await userEvent.keyboard("{Escape}");
+  },
+};

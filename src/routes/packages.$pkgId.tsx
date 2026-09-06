@@ -1,3 +1,4 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AlertTriangle, FileDown } from "lucide-react";
@@ -109,9 +110,14 @@ function PackageRecord() {
           actions={
             <>
               <Badge tone={packageStateTone[pkg.state]}>{pkg.state}</Badge>
-              <Button variant="primary" disabled={!ready.shippable} iconBefore={<FileDown />}>
+              <UnavailableAction
+                reason="No receiving service is connected. Download artifacts from the program export workspace."
+                variant="primary"
+                disabled={!ready.shippable}
+                iconBefore={<FileDown />}
+              >
                 Submit snapshot
-              </Button>
+              </UnavailableAction>
             </>
           }
         />

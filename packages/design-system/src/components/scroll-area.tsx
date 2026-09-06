@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../lib/locale";
 import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 import type { ReactNode } from "react";
 
@@ -8,6 +9,8 @@ import { cn } from "../lib/cn";
    region or, said so, always. The viewport is a tab stop, so a keyboard reader can scroll it. */
 
 export type ScrollAreaProps = {
+  /** Reading and scrolling direction; defaults to the surrounding LedgerProvider. */
+  dir?: "ltr" | "rtl" | undefined;
   /** Which way it scrolls: `vertical`, the default; `horizontal` for a wide table in a card; `both`. */
   orientation?: "vertical" | "horizontal" | "both" | undefined;
   /** When the bar shows: `hover`, the default, while the pointer is over the region and for a moment after it scrolls; `always`, so a reader sees there is more without touching it. */
@@ -21,14 +24,17 @@ export type ScrollAreaProps = {
 
 /** A region that scrolls with the kit's thin bar. */
 export function ScrollArea({
+  dir,
   orientation = "vertical",
   bar = "hover",
   label,
   className,
   children,
 }: ScrollAreaProps) {
+  const { direction } = useLedgerLocale();
   return (
     <ScrollAreaPrimitive.Root
+      dir={dir ?? direction}
       type={bar}
       scrollHideDelay={600}
       className={cn("relative flex flex-col overflow-hidden", className)}

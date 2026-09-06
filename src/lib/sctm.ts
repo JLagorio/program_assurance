@@ -69,7 +69,7 @@
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
-import type { Tone } from "@ledger/design-system";
+import { toast, type Tone } from "@ledger/design-system";
 import { rowCurrency } from "@/lib/baselines";
 import { objectivesForCci, type TestObjective } from "@/lib/campaigns";
 import { ccis, ccisByControl, rulesByCci, type Cci } from "@/lib/catalog";
@@ -1111,13 +1111,31 @@ export function useSctm(programId: string, text: ControlTextIndex | null): Sctm 
  */
 let catalogIndex: ControlTextIndex | null = null;
 let catalogPromise: Promise<ControlTextIndex> | null = null;
+const catalogListeners = new Set<(index: ControlTextIndex) => void>();
 
 function loadControlText(): Promise<ControlTextIndex> {
   catalogPromise ??= import("@/lib/nist-control-text").then(({ controlText }) => {
     catalogIndex = buildControlTextIndex(controlText);
+    toast.dismiss("assessment-catalog-load");
+    for (const listener of catalogListeners) listener(catalogIndex);
     return catalogIndex;
   });
   return catalogPromise;
+}
+
+function reportCatalogFailure() {
+  catalogPromise = null;
+  toast.error("Assessment catalog could not load", {
+    id: "assessment-catalog-load",
+    description: "Showing CCI rows only. Retry to include assessment objectives.",
+    duration: Infinity,
+    action: {
+      label: "Retry",
+      onClick: () => {
+        void loadControlText().catch(reportCatalogFailure);
+      },
+    },
+  });
 }
 
 /**
@@ -1129,12 +1147,11 @@ export function useControlText(enabled = true): ControlTextIndex | null {
 
   useEffect(() => {
     if (!enabled || text) return;
-    let live = true;
-    void loadControlText().then((next) => {
-      if (live) setText(next);
-    });
+    catalogListeners.add(setText);
+    if (catalogIndex) setText(catalogIndex);
+    else void loadControlText().catch(reportCatalogFailure);
     return () => {
-      live = false;
+      catalogListeners.delete(setText);
     };
   }, [enabled, text]);
 

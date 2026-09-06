@@ -1,3 +1,5 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
+import { downloadText } from "@/components/app/export";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus } from "lucide-react";
@@ -57,10 +59,25 @@ function ComponentLibrary() {
             title="Provider library"
             actions={
               <>
-                <Button variant="secondary">Export inheritance matrix</Button>
-                <Button variant="primary" iconBefore={<Plus />}>
-                  New component
+                <Button
+                  variant="secondary"
+                  onClick={() =>
+                    downloadText(
+                      "provider-library.json",
+                      JSON.stringify(systemComponents, null, 2),
+                      "application/json",
+                    )
+                  }
+                >
+                  Export providers
                 </Button>
+                <UnavailableAction
+                  reason="Provider creation is not available in this workspace."
+                  variant="primary"
+                  iconBefore={<Plus />}
+                >
+                  New component
+                </UnavailableAction>
               </>
             }
           />

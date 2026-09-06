@@ -49,28 +49,32 @@ function PanelRoot({
   const hasHeader = title || icon || onBack || actions || onClose;
   return (
     <div className={cn("flex min-h-full flex-col", className)}>
-      {hasHeader ? (
+      {hasHeader || subheader ? (
         <div className="sticky top-0 z-10 shrink-0 bg-surface">
-          <div
-            className={cn(
-              "flex items-center gap-050 border-b border-default py-075 pe-100",
-              onBack ? "ps-100" : "ps-300",
-            )}
-          >
-            {onBack ? (
-              <IconButton label="Back" variant="subtle" onClick={onBack} icon={<ChevronLeft />} />
-            ) : null}
-            {icon ? <span className="flex shrink-0 items-center">{icon}</span> : null}
-            {title ? (
-              <h2 className="min-w-0 flex-1 truncate font-body font-medium text-default">{title}</h2>
-            ) : (
-              <span className="flex-1" />
-            )}
-            {actions ? <div className="flex shrink-0 items-center gap-025">{actions}</div> : null}
-            {onClose ? (
-              <IconButton label="Close" variant="subtle" onClick={onClose} icon={<X />} />
-            ) : null}
-          </div>
+          {hasHeader ? (
+            <div
+              className={cn(
+                "flex items-center gap-050 border-b border-default py-075 pe-100",
+                onBack ? "ps-100" : "ps-300",
+              )}
+            >
+              {onBack ? (
+                <IconButton label="Back" variant="subtle" onClick={onBack} icon={<ChevronLeft />} />
+              ) : null}
+              {icon ? <span className="flex shrink-0 items-center">{icon}</span> : null}
+              {title ? (
+                <h2 className="min-w-0 flex-1 truncate font-body font-medium text-default">
+                  {title}
+                </h2>
+              ) : (
+                <span className="flex-1" />
+              )}
+              {actions ? <div className="flex shrink-0 items-center gap-025">{actions}</div> : null}
+              {onClose ? (
+                <IconButton label="Close" variant="subtle" onClick={onClose} icon={<X />} />
+              ) : null}
+            </div>
+          ) : null}
           {subheader ? (
             <div className="border-b border-default px-300 py-100 font-body-small text-subtle">
               {subheader}

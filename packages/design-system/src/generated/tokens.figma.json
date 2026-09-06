@@ -208,21 +208,21 @@
           }
         },
         "hovered": {
-          "$value": "{color.blue.200}",
+          "$value": "{color.blue.150}",
           "$description": "Hovered state of the selected background.",
           "$extensions": {
             "ledger": {
-              "dark": "{color.blue.900}",
+              "dark": "{color.blue.950}",
               "introduced": "0.1.0"
             }
           }
         },
         "pressed": {
-          "$value": "{color.blue.300}",
+          "$value": "{color.blue.200}",
           "$description": "Pressed state of the selected background.",
           "$extensions": {
             "ledger": {
-              "dark": "{color.blue.800}",
+              "dark": "{color.blue.900}",
               "introduced": "0.1.0"
             }
           }
@@ -303,21 +303,21 @@
             }
           },
           "hovered": {
-            "$value": "{color.red.250}",
+            "$value": "{color.red.225}",
             "$description": "Hovered state of the subtler critical information background.",
             "$extensions": {
               "ledger": {
-                "dark": "{color.red.850}",
+                "dark": "{color.red.875}",
                 "introduced": "0.1.0"
               }
             }
           },
           "pressed": {
-            "$value": "{color.red.300}",
+            "$value": "{color.red.250}",
             "$description": "Pressed state of the subtler critical information background.",
             "$extensions": {
               "ledger": {
-                "dark": "{color.red.800}",
+                "dark": "{color.red.850}",
                 "introduced": "0.1.0"
               }
             }
@@ -409,21 +409,21 @@
             }
           },
           "hovered": {
-            "$value": "{color.orange.250}",
+            "$value": "{color.orange.225}",
             "$description": "Hovered state of the subtler caution background.",
             "$extensions": {
               "ledger": {
-                "dark": "{color.orange.850}",
+                "dark": "{color.orange.875}",
                 "introduced": "0.1.0"
               }
             }
           },
           "pressed": {
-            "$value": "{color.orange.300}",
+            "$value": "{color.orange.250}",
             "$description": "Pressed state of the subtler caution background.",
             "$extensions": {
               "ledger": {
-                "dark": "{color.orange.800}",
+                "dark": "{color.orange.850}",
                 "introduced": "0.1.0"
               }
             }
@@ -515,21 +515,21 @@
             }
           },
           "hovered": {
-            "$value": "{color.green.250}",
+            "$value": "{color.green.225}",
             "$description": "Hovered state of the subtler a favorable outcome background.",
             "$extensions": {
               "ledger": {
-                "dark": "{color.green.850}",
+                "dark": "{color.green.875}",
                 "introduced": "0.1.0"
               }
             }
           },
           "pressed": {
-            "$value": "{color.green.300}",
+            "$value": "{color.green.250}",
             "$description": "Pressed state of the subtler a favorable outcome background.",
             "$extensions": {
               "ledger": {
-                "dark": "{color.green.800}",
+                "dark": "{color.green.850}",
                 "introduced": "0.1.0"
               }
             }
@@ -621,21 +621,21 @@
             }
           },
           "hovered": {
-            "$value": "{color.blue.250}",
+            "$value": "{color.blue.225}",
             "$description": "Hovered state of the subtler information or something in progress background.",
             "$extensions": {
               "ledger": {
-                "dark": "{color.blue.850}",
+                "dark": "{color.blue.875}",
                 "introduced": "0.1.0"
               }
             }
           },
           "pressed": {
-            "$value": "{color.blue.300}",
+            "$value": "{color.blue.250}",
             "$description": "Pressed state of the subtler information or something in progress background.",
             "$extensions": {
               "ledger": {
-                "dark": "{color.blue.800}",
+                "dark": "{color.blue.850}",
                 "introduced": "0.1.0"
               }
             }
@@ -947,11 +947,11 @@
         }
       },
       "selected": {
-        "$value": "{color.blue.700}",
+        "$value": "{color.blue.800}",
         "$description": "Use for text in selected or opened states, such as tabs and dropdown buttons.",
         "$extensions": {
           "ledger": {
-            "dark": "{color.blue.400}",
+            "dark": "{color.blue.300}",
             "introduced": "0.1.0"
           }
         }
@@ -1294,7 +1294,7 @@
       },
       "input": {
         "$value": "{color.neutral.400}",
-        "$description": "Use for borders of form UI elements, such as text fields, checkboxes, and radio buttons.",
+        "$description": "Borders of form UI elements, such as text fields, checkboxes, and radio buttons. A light boundary by decision (2026-09-04): the input surface, the hover tint and the focus and danger borders carry the affordance.",
         "$extensions": {
           "ledger": {
             "dark": "{color.darkNeutral.500}",
@@ -1938,8 +1938,8 @@
         "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
       },
       "400A": {
-        "$value": "oklch(0.22 0.024 258 / 0.3)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$value": "oklch(0.22 0.024 258 / 0.18)",
+        "$description": "Pressed neutral fill, limited to 18% so subtle text stays readable on all supported surfaces."
       },
       "500A": {
         "$value": "oklch(0.22 0.024 258 / 0.5)",
@@ -2020,8 +2020,8 @@
         "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
       },
       "400A": {
-        "$value": "oklch(1 0 0 / 0.3)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$value": "oklch(1 0 0 / 0.18)",
+        "$description": "Pressed neutral fill, limited to 18% so subtle text stays readable on all supported surfaces."
       },
       "500A": {
         "$value": "oklch(1 0 0 / 0.5)",
@@ -2033,9 +2033,27 @@
         "$value": "oklch(0.97 0.022 254)",
         "$description": "Draft ramp step. Tune in step 1."
       },
+      "150": {
+        "$value": "oklch(0.9525 0.0335 254.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
+      },
       "200": {
         "$value": "oklch(0.935 0.045 254)",
         "$description": "Draft ramp step. Tune in step 1."
+      },
+      "225": {
+        "$value": "oklch(0.92 0.055 254.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
       },
       "250": {
         "$value": "oklch(0.905 0.065 254)",
@@ -2069,9 +2087,27 @@
         "$value": "oklch(0.44 0.17 254)",
         "$description": "Draft ramp step. Tune in step 1."
       },
+      "875": {
+        "$value": "oklch(0.41 0.1575 254.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
+      },
       "900": {
         "$value": "oklch(0.38 0.145 254)",
         "$description": "Draft ramp step. Tune in step 1."
+      },
+      "950": {
+        "$value": "oklch(0.34 0.1225 254.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
       },
       "1000": {
         "$value": "oklch(0.3 0.1 254)",
@@ -2086,6 +2122,15 @@
       "200": {
         "$value": "oklch(0.935 0.04 162)",
         "$description": "Draft ramp step. Tune in step 1."
+      },
+      "225": {
+        "$value": "oklch(0.9175 0.05 162.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
       },
       "250": {
         "$value": "oklch(0.9 0.06 162)",
@@ -2119,6 +2164,15 @@
         "$value": "oklch(0.41 0.095 162)",
         "$description": "Draft ramp step. Tune in step 1."
       },
+      "875": {
+        "$value": "oklch(0.38 0.0875 162.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
+      },
       "900": {
         "$value": "oklch(0.35 0.08 162)",
         "$description": "Draft ramp step. Tune in step 1."
@@ -2136,6 +2190,15 @@
       "200": {
         "$value": "oklch(0.945 0.055 75)",
         "$description": "Draft ramp step. Tune in step 1."
+      },
+      "225": {
+        "$value": "oklch(0.93 0.0675 73.5)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
       },
       "250": {
         "$value": "oklch(0.915 0.08 72)",
@@ -2169,6 +2232,15 @@
         "$value": "oklch(0.45 0.11 58)",
         "$description": "Draft ramp step. Tune in step 1."
       },
+      "875": {
+        "$value": "oklch(0.42 0.1025 57.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
+      },
       "900": {
         "$value": "oklch(0.39 0.095 56)",
         "$description": "Draft ramp step. Tune in step 1."
@@ -2186,6 +2258,15 @@
       "200": {
         "$value": "oklch(0.935 0.04 26)",
         "$description": "Draft ramp step. Tune in step 1."
+      },
+      "225": {
+        "$value": "oklch(0.92 0.05 26.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
       },
       "250": {
         "$value": "oklch(0.905 0.06 26)",
@@ -2218,6 +2299,15 @@
       "850": {
         "$value": "oklch(0.42 0.155 26)",
         "$description": "Draft ramp step. Tune in step 1."
+      },
+      "875": {
+        "$value": "oklch(0.39 0.1425 26.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
       },
       "900": {
         "$value": "oklch(0.36 0.13 26)",

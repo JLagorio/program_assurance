@@ -1,3 +1,5 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
+import { downloadText } from "@/components/app/export";
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Download, Plus } from "lucide-react";
@@ -24,7 +26,7 @@ import {
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { programStatusTone, programs, type Program } from "@/lib/grc-data";
-import { useProgramsVersion } from "@/lib/program-store";
+import { saveProgramCommands, useProgramsVersion } from "@/lib/program-store";
 
 export const Route = createFileRoute("/programs")({
   head: () => ({
@@ -58,7 +60,14 @@ function ProgramsLayout() {
   );
 }
 
-const tabLabels = ["All", "In assessment", "Authorized", "POA&M open", "Draft"] as const;
+const tabLabels = [
+  "All",
+  "In assessment",
+  "Authorized",
+  "POA&M open",
+  "Draft",
+  "Archived",
+] as const;
 
 function ProgramPeek({ program: p }: { program: Program }) {
   return (
@@ -137,6 +146,11 @@ const programColumns = defineColumns<Program>((c) => [
   c.status("status", { header: "Status", width: 124, tone: (p) => programStatusTone[p.status] }),
   c.person("owner", { header: "Owner", width: 140 }),
   c.date("expires", { header: "Expires", width: 112 }),
+  c.text("assessmentScheduled", {
+    header: "Assessment scheduled",
+    width: 160,
+    cell: (program) => program.assessmentScheduled || "—",
+  }),
 ]);
 
 function ProgramList() {
@@ -150,8 +164,11 @@ function ProgramList() {
     () =>
       tabLabels.map((label) => ({
         label,
-        count:
-          label === "All" ? programs.length : programs.filter((p) => p.status === label).length,
+        count: programs.filter((program) =>
+          label === "Archived"
+            ? !!program.archivedAt
+            : !program.archivedAt && (label === "All" || program.status === label),
+        ).length,
       })),
     // The seed array is mutated in place when a program is created.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -161,15 +178,21 @@ function ProgramList() {
   // The route owns the filters: the tabs set the status filter, the chips set theirs, the table filters.
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const tab = String(columnFilters.find((f) => f.id === "status")?.value ?? "All");
-  const setTab = (next: string) =>
+  const [showArchived, setShowArchived] = useState(false);
+  const setTab = (next: string) => {
+    setShowArchived(next === "Archived");
     setColumnFilters((f) => [
       ...f.filter((x) => x.id !== "status"),
-      ...(next === "All" ? [] : [{ id: "status", value: next }]),
+      ...(next === "All" || next === "Archived" ? [] : [{ id: "status", value: next }]),
     ]);
+  };
 
   // The seed array is mutated in place when a program is created, so the table gets a fresh copy per version.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const data = useMemo(() => [...programs], [programsVersion]);
+  const data = useMemo(
+    () => programs.filter((program) => (showArchived ? !!program.archivedAt : !program.archivedAt)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [programsVersion, showArchived],
+  );
   const table = useDataTable({
     columns: programColumns,
     data,
@@ -198,16 +221,18 @@ function ProgramList() {
                 isLoading={exporting}
                 iconBefore={<Download />}
                 onClick={() => {
-                  setExporting(true);
-                  window.setTimeout(() => {
-                    setExporting(false);
-                    toast.success("SSP export ready", {
-                      description: `${table.getRowCount()} programs · OSCAL 1.1.2 JSON`,
-                    });
-                  }, 900);
+                  downloadText(
+                    "program-register.json",
+                    JSON.stringify(
+                      table.getRowModel().rows.map((row) => row.original),
+                      null,
+                      2,
+                    ),
+                    "application/json",
+                  );
                 }}
               >
-                Export SSP
+                Export programs
               </Button>
               <Button
                 variant="primary"
@@ -221,7 +246,11 @@ function ProgramList() {
         />
       }
     >
-      <Tabs value={tab} onValueChange={(value) => setTab(value)} className="contents">
+      <Tabs
+        value={showArchived ? "Archived" : tab}
+        onValueChange={(value) => setTab(value)}
+        className="contents"
+      >
         <Tabs.List>
           {tabs.map((t) => (
             <Tabs.Tab key={t.label} value={t.label} count={t.count}>
@@ -229,7 +258,7 @@ function ProgramList() {
             </Tabs.Tab>
           ))}
         </Tabs.List>
-        <Tabs.Panel value={tab} className="contents">
+        <Tabs.Panel value={showArchived ? "Archived" : tab} className="contents">
           <Inline space="space.100" alignBlock="center" shouldWrap>
             <DataTable.Filter table={table} column="impact" />
             <DataTable.Filter table={table} column="owner" />
@@ -239,13 +268,31 @@ function ProgramList() {
             </Inline>
           </Inline>
 
+          {showArchived && selected.length ? (
+            <Button
+              onClick={() => {
+                try {
+                  saveProgramCommands(selected, { archivedAt: "" });
+                  toast.success("Programs restored");
+                } catch {
+                  toast.error("Programs could not be restored");
+                }
+              }}
+            >
+              Restore selected programs
+            </Button>
+          ) : null}
           <DataTable.SelectionBar
             table={table}
             actions={
               <>
-                <Button variant="secondary" size="small">
+                <UnavailableAction
+                  reason="Bulk assessor reassignment is not available."
+                  variant="secondary"
+                  size="small"
+                >
                   Reassign assessor
-                </Button>
+                </UnavailableAction>
                 <Button variant="secondary" size="small" onClick={() => setScheduling(true)}>
                   Schedule assessment
                 </Button>
@@ -265,7 +312,7 @@ function ProgramList() {
             open={scheduling}
             onClose={() => setScheduling(false)}
             title="Schedule assessment"
-            description={`${selected.length} ${selected.length === 1 ? "program" : "programs"} · the assessor is notified with the date`}
+            description={`${selected.length} ${selected.length === 1 ? "program" : "programs"} · schedule saved in this browser`}
             footer={
               <>
                 <Button variant="subtle" onClick={() => setScheduling(false)}>
@@ -277,6 +324,14 @@ function ProgramList() {
                   onClick={() => {
                     const d = scheduleDate;
                     if (!d) return;
+                    try {
+                      saveProgramCommands(selected, {
+                        assessmentScheduled: d.toISOString().slice(0, 10),
+                      });
+                    } catch {
+                      toast.error("Schedule could not be saved");
+                      return;
+                    }
                     setScheduling(false);
                     toast.success(
                       `Assessment scheduled for ${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`,

@@ -2,7 +2,7 @@ import { ChevronRight } from "lucide-react";
 import {
   createContext,
   useContext,
-  useEffect,
+  useLayoutEffect,
   useRef,
   type KeyboardEvent,
   type ReactNode,
@@ -31,17 +31,117 @@ export type TreeProps = {
 /** A hierarchy you open and close. The caller owns the data and the flattening; Tree renders the rows with indent guides, a chevron on rows that have children, and the tree aria and keyboard. */
 function TreeRoot({ label, size = "small", children, className }: TreeProps) {
   const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
+  const focused = useRef<HTMLElement | null>(null);
+  const previousRows = useRef<HTMLElement[]>([]);
+  const search = useRef({ text: "", time: 0 });
+  const rowsOf = (root: HTMLElement) =>
+    Array.from(root.querySelectorAll<HTMLElement>('[role="treeitem"]')).filter(
+      (row) => row.closest('[role="tree"]') === root,
+    );
+  const setEntry = (rows: HTMLElement[], entry: HTMLElement | undefined) => {
+    for (const row of rows) row.tabIndex = row === entry ? 0 : -1;
+  };
+  useLayoutEffect(() => {
     const root = ref.current;
     if (!root) return;
-    if (!root.querySelector('[role="treeitem"][tabindex="0"]')) {
-      const first = root.querySelector<HTMLElement>('[role="treeitem"]');
-      if (first) first.tabIndex = 0;
-    }
+    const synchronize = () => {
+      const rows = rowsOf(root);
+      const removed = focused.current && !rows.includes(focused.current);
+      const oldIndex = focused.current ? previousRows.current.indexOf(focused.current) : -1;
+      const preceding = previousRows.current
+        .slice(0, oldIndex)
+        .reverse()
+        .find((row) => rows.includes(row));
+      const active = rows.find(
+        (row) => row === document.activeElement || row.contains(document.activeElement),
+      );
+      const entry =
+        active ??
+        (removed ? preceding : undefined) ??
+        rows.find((row) => row.getAttribute("aria-selected") === "true") ??
+        rows[0];
+      setEntry(rows, entry);
+      if (
+        removed &&
+        entry &&
+        (document.activeElement === document.body || root.contains(document.activeElement))
+      ) {
+        entry.focus();
+        focused.current = entry;
+      }
+      const ancestors: HTMLElement[] = [];
+      const siblings = new Map<HTMLElement | undefined, HTMLElement[]>();
+      for (const row of rows) {
+        const level = Number(row.getAttribute("aria-level")) || 1;
+        ancestors.length = Math.max(0, level - 1);
+        const parent = ancestors[level - 2];
+        const group = siblings.get(parent) ?? [];
+        group.push(row);
+        siblings.set(parent, group);
+        ancestors[level - 1] = row;
+      }
+      for (const group of siblings.values())
+        group.forEach((row, index) => {
+          if (!row.hasAttribute("data-tree-position"))
+            row.setAttribute("aria-posinset", String(index + 1));
+          if (!row.hasAttribute("data-tree-size"))
+            row.setAttribute("aria-setsize", String(group.length));
+        });
+      previousRows.current = rows;
+    };
+    synchronize();
+    const observer = new MutationObserver(synchronize);
+    observer.observe(root, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["aria-selected", "aria-level"],
+    });
+    return () => observer.disconnect();
   });
   return (
     <TreeContext.Provider value={{ size }}>
-      <div ref={ref} role="tree" aria-label={label} className={className}>
+      <div
+        ref={ref}
+        role="tree"
+        aria-label={label}
+        className={className}
+        onFocusCapture={(event) => {
+          const row = (event.target as HTMLElement).closest<HTMLElement>('[role="treeitem"]');
+          if (row && row.closest('[role="tree"]') === event.currentTarget) {
+            focused.current = row;
+            setEntry(rowsOf(event.currentTarget), row);
+          }
+        }}
+        onKeyDown={(event) => {
+          if (
+            event.ctrlKey ||
+            event.metaKey ||
+            event.altKey ||
+            event.key.length !== 1 ||
+            event.key === " "
+          )
+            return;
+          if ((event.target as HTMLElement).getAttribute("role") !== "treeitem") return;
+          const now = Date.now();
+          const letter = event.key.toLocaleLowerCase();
+          const prior = now - search.current.time < 700 ? search.current.text : "";
+          const text = prior && [...prior].every((c) => c === letter) ? letter : prior + letter;
+          search.current = { text, time: now };
+          const rows = rowsOf(event.currentTarget);
+          const index = rows.indexOf(event.target as HTMLElement);
+          const match = [...rows.slice(index + 1), ...rows.slice(0, index + 1)].find((row) =>
+            (row.querySelector("[data-tree-label]")?.textContent ?? "")
+              .trim()
+              .toLocaleLowerCase()
+              .startsWith(text),
+          );
+          if (match) {
+            event.preventDefault();
+            match.focus();
+          }
+        }}
+      >
         {children}
       </div>
     </TreeContext.Provider>
@@ -51,6 +151,9 @@ function TreeRoot({ label, size = "small", children, className }: TreeProps) {
 export type TreeItemProps = {
   /** How deep the node sits, 0 at the root. One indent per level. */
   depth: number;
+  /** Explicit sibling metadata for partial or virtualized trees. Otherwise inferred from visible rows. */
+  posInSet?: number | undefined;
+  setSize?: number | undefined;
   /** One flag per ancestor level: draw the guide at that depth. Defaults to every level. */
   lines?: boolean[] | undefined;
   /** A branch: the row takes a chevron and `aria-expanded`. */
@@ -73,6 +176,8 @@ export type TreeItemProps = {
 /** One visible node. The row is the tree item: focusable, selected on a click, opened on its chevron. */
 export function TreeItem({
   depth,
+  posInSet,
+  setSize,
   lines,
   hasChildren = false,
   expanded = false,
@@ -115,7 +220,8 @@ export function TreeItem({
           onToggle?.();
           e.preventDefault();
         } else if (hasChildren && expanded) {
-          focus(items[i + 1]);
+          const child = items[i + 1];
+          if (child && Number(child.getAttribute("aria-level")) > level) focus(child);
         }
         break;
       case "ArrowLeft":
@@ -144,11 +250,17 @@ export function TreeItem({
   return (
     <div
       role="treeitem"
-      tabIndex={isSelected ? 0 : -1}
+      aria-posinset={posInSet}
+      aria-setsize={setSize}
+      data-tree-position={posInSet === undefined ? undefined : ""}
+      data-tree-size={setSize === undefined ? undefined : ""}
       aria-level={depth + 1}
       aria-selected={isSelected}
       aria-expanded={hasChildren ? expanded : undefined}
-      onClick={onSelect}
+      onClick={(event) => {
+        event.currentTarget.focus();
+        onSelect?.();
+      }}
       onKeyDown={onKeyDown}
       className={cn(
         "flex items-center gap-075 rounded-medium pe-100 outline-none transition-colors duration-fast ease-standard focus-visible:outline-focused",
@@ -186,7 +298,10 @@ export function TreeItem({
           <span className="size-050 rounded-full bg-neutral-pressed" />
         </span>
       )}
-      <span className="flex min-w-0 flex-1 items-center gap-100 font-body text-default">
+      <span
+        data-tree-label
+        className="flex min-w-0 flex-1 items-center gap-100 font-body text-default"
+      >
         {children}
       </span>
       {trailing ? (

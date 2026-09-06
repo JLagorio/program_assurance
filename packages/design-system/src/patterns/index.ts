@@ -20,3 +20,10 @@ export { PreviewSheet, type PreviewSheetProps } from "./preview-sheet";
 export { RecordHeader, type RecordHeaderProps } from "./record-header";
 export { Related, type RelatedProps, type RelatedRowProps } from "./related";
 export { Section, type SectionProps } from "./section";
+export {
+  Composer,
+  type ComposerProps,
+  type ComposerSuggestion,
+  type ComposerSuggestions,
+} from "./composer";
+export { TaskRow, type TaskRowProps } from "./task-row";

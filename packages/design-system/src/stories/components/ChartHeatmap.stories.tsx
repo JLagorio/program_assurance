@@ -32,6 +32,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Every grid in both modes: sequential, diverging and status scales with their keys; small cells, values printed, loading. */
 export const HeatmapMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Sequential · diverging · status, with values">

@@ -1,3 +1,4 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
@@ -118,10 +119,19 @@ function Vendors() {
             title="Vendor registry"
             actions={
               <>
-                <Button variant="secondary">Send questionnaire</Button>
-                <Button variant="primary" iconBefore={<Plus />}>
+                <UnavailableAction
+                  reason="No questionnaire delivery service is connected."
+                  variant="secondary"
+                >
+                  Send questionnaire
+                </UnavailableAction>
+                <UnavailableAction
+                  reason="Vendor creation is not available in this workspace."
+                  variant="primary"
+                  iconBefore={<Plus />}
+                >
                   Add vendor
-                </Button>
+                </UnavailableAction>
               </>
             }
           />

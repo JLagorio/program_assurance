@@ -17,6 +17,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Title alone; with an eyebrow and a line; with actions; a line that truncates with its tooltip. */
 export const PageHeaderMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <PageHeader title="Programs" />

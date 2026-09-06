@@ -1,3 +1,4 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { BomTree, type BomTreeNode } from "@/components/app/composition";
@@ -168,7 +169,14 @@ function AssetRecord() {
               id={asset.id}
               title={asset.name}
               meta={`${asset.kind} · ${asset.technology} · ${asset.environment}`}
-              actions={<Button variant="secondary">Re-scan asset</Button>}
+              actions={
+                <UnavailableAction
+                  reason="A scanning service must be connected before this asset can be scanned."
+                  variant="secondary"
+                >
+                  Re-scan asset
+                </UnavailableAction>
+              }
             />
           }
           tabs={<div className="border-b border-default" />}

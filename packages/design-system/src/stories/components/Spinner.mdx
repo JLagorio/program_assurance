@@ -42,7 +42,7 @@ The icon scale, so a spinner takes an icon's place at the same size: a Button sw
 
 ## States
 
-A spinner has one state: turning. `delay` holds it back for that many milliseconds; a load that finishes first shows nothing, so the page does not flash. It keeps turning under reduced motion, because the turning is the message.
+A spinner has one state: turning. `delay` holds it back for that many milliseconds; a load that finishes first shows nothing, so the page does not flash. Under reduced motion, the arc stays still and its named status remains available. Use `isDecorative` when an enclosing control already owns the busy announcement.
 
 ## Modifiers
 
@@ -62,7 +62,7 @@ A spinner has one state: turning. `delay` holds it back for that many millisecon
 | Element | Token                                                                     |
 | ------- | ------------------------------------------------------------------------- |
 | Arc     | 12, 16, 24px · `color.icon.subtle`, `color.icon.inverse`, or currentColor |
-| Motion  | one turn per second, linear; not reduced under `prefers-reduced-motion`   |
+| Motion  | one turn per second, linear; static under `prefers-reduced-motion`        |
 | Beside  | `space.075` to the word                                                   |
 
 ## Accessibility

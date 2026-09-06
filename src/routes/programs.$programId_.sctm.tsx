@@ -321,11 +321,12 @@ function ProgramSctm() {
                 }
               >
                 <NativeSelect
+                  aria-label="Control family"
                   value={activeFamily}
                   disabled={allFamilies}
                   onChange={(e) => refilter(() => setFamily(e.target.value))}
                   className="h-control-small font-body"
-                  style={{ width: 248 }}
+                  style={{ width: 248, maxWidth: "100%" }}
                 >
                   {familyStats.map((f) => (
                     <option key={f.id} value={f.id}>
@@ -341,6 +342,7 @@ function ProgramSctm() {
                   {allFamilies ? "Show one family" : "Show all families"}
                 </Button>
                 <NativeSelect
+                  aria-label="Link currency"
                   value={currency ?? ""}
                   onChange={(e) =>
                     refilter(() => {
@@ -350,7 +352,7 @@ function ProgramSctm() {
                     })
                   }
                   className="h-control-small font-body"
-                  style={{ width: 208 }}
+                  style={{ width: 208, maxWidth: "100%" }}
                 >
                   <option value="">Any currency ({sctm.counts.total})</option>
                   <option value="Current">Current ({currentRows})</option>

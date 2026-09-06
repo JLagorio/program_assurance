@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../lib/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cn } from "../lib/cn";
@@ -24,27 +25,30 @@ export function Pagination({
   onPageChange,
   total,
   pageSize,
-  label = "Pagination",
+  label,
   className,
 }: PaginationProps) {
+  const { t, formatNumber } = useLedgerLocale();
   const pages = visiblePages(page, pageCount);
   const from = total !== undefined && pageSize ? (page - 1) * pageSize + 1 : null;
   const to = total !== undefined && pageSize ? Math.min(page * pageSize, total) : null;
-  const num = (n: number) => n.toLocaleString();
+  const num = formatNumber;
   return (
     <nav
-      aria-label={label}
+      aria-label={label ?? t("pagination")}
       className={cn("flex flex-wrap items-center gap-150 font-body-small text-subtle", className)}
     >
       {from !== null && to !== null && total !== undefined ? (
         <span className="tabular-nums">
-          {total === 0 ? "0 rows" : `${num(from)}–${num(to)} of ${num(total)}`}
+          {total === 0
+            ? t("zeroRows")
+            : t("rowRange", { from: num(from), to: num(to), total: num(total) })}
         </span>
       ) : null}
       <span className="ms-auto flex items-center gap-025">
         <button
           type="button"
-          aria-label="Previous page"
+          aria-label={t("previousPage")}
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
           className={cn(pageButton, "size-control-small")}
@@ -60,7 +64,7 @@ export function Pagination({
             <button
               key={p}
               type="button"
-              aria-label={`Page ${num(p)}`}
+              aria-label={t("pageLabel", { page: num(p) })}
               aria-current={p === page ? "page" : undefined}
               onClick={() => onPageChange(p)}
               className={cn(
@@ -75,7 +79,7 @@ export function Pagination({
         )}
         <button
           type="button"
-          aria-label="Next page"
+          aria-label={t("nextPage")}
           disabled={page >= pageCount}
           onClick={() => onPageChange(page + 1)}
           className={cn(pageButton, "size-control-small")}

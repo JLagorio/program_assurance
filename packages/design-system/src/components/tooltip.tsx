@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../lib/locale";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { createContext, useContext, type ComponentPropsWithoutRef, type ReactNode } from "react";
 
@@ -48,12 +49,14 @@ export function Tooltip({
   className,
   children,
 }: TooltipProps) {
+  const { direction } = useLedgerLocale();
   const shared = useContext(SharedProvider);
   const tooltip = (
     <TooltipPrimitive.Root defaultOpen={defaultOpen} delayDuration={delay}>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content
+          dir={direction}
           side={side}
           align={align}
           sideOffset={6}

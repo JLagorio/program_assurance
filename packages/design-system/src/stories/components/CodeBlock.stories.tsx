@@ -74,6 +74,7 @@ export const Capped: Story = {
 
 /** A few lines; from a start line; wide lines scrolling sideways with the gutter held; wrapped; capped; with a Copy. */
 export const CodeBlockMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300" className="max-w-layout-measure">
       <Specimens title="short · from a line · wide">

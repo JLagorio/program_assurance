@@ -57,6 +57,7 @@ function Rows() {
 
 /** A strip to a card's edges (`inline`); a table to a card body's edges; rows to a panel's top and bottom (`block`); `all`; the rail's `space.100`. */
 export const BleedMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Inline space="space.300" alignBlock="start" shouldWrap>

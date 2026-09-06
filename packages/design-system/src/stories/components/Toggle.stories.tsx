@@ -17,6 +17,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Every size, off and on, disabled, and with a label; then a toolbar of them beside the controls they sit level with. */
 export const ToggleMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Matrix

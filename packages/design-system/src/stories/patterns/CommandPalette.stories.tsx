@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { Button, Command } from "../../components";
 import { CommandPalette, type PaletteCommand, useCommandPalette } from "../../patterns";
@@ -41,6 +42,7 @@ export const CommandPaletteStory: Story = {
 };
 /** Open, with three groups, hints on two commands and the keys in the footer: the one state a palette has. */
 export const CommandPaletteMatrix: Story = {
+  tags: ["contract"],
   render: () => <CommandPalette open onClose={() => undefined} commands={commands} />,
 };
 
@@ -92,4 +94,52 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+};
+
+function RepeatedCommandsDemo() {
+  const [open, setOpen] = useState(false);
+  const [result, setResult] = useState("Nothing run");
+  return (
+    <Stack space="space.150">
+      <Button onClick={() => setOpen(true)}>Open repeated commands</Button>
+      <span role="status">{result}</span>
+      <CommandPalette
+        open={open}
+        onClose={() => setOpen(false)}
+        commands={[
+          { id: "first", group: "Actions", label: "Export", run: () => setResult("First export") },
+          {
+            id: "second",
+            group: "Actions",
+            label: "Export",
+            run: () => setResult("Second export"),
+          },
+          { id: "settings", group: "Go to", label: "Settings", run: () => setResult("Settings") },
+          { id: "third", group: "Actions", label: "Export", run: () => setResult("Third export") },
+        ]}
+      />
+    </Stack>
+  );
+}
+
+/** Distinct command identities survive identical labels and repeated nonadjacent headings. */
+export const RepeatedCommandIdentity: Story = {
+  tags: ["contract"],
+  render: () => <RepeatedCommandsDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Open repeated commands" }));
+    const dialog = within(await page.findByRole("dialog", { name: "Command palette" }));
+    await userEvent.type(dialog.getByRole("combobox"), "Export");
+    const options = dialog.getAllByRole("option", { name: "Export" });
+    await expect(options).toHaveLength(3);
+    await userEvent.keyboard("{ArrowDown}{Enter}");
+    await expect(await canvas.findByRole("status")).toHaveTextContent("Second export");
+    await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
+    await userEvent.click(canvas.getByRole("button", { name: "Open repeated commands" }));
+    const reopened = within(await page.findByRole("dialog", { name: "Command palette" }));
+    await userEvent.click(reopened.getAllByRole("option", { name: "Export" })[2]!);
+    await expect(await canvas.findByRole("status")).toHaveTextContent("Third export");
+  },
 };

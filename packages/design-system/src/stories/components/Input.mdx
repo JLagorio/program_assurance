@@ -83,7 +83,7 @@ The width is the layout's. An Input fills its container; the container says how 
 - **The label is a noun**, sentence case, no colon, no article: Program name, Owner, Scheduled completion. Not an instruction ("Enter the name"), not a question.
 - **The placeholder shows the format** and nothing the reader must keep: `first.last@example.mil`, `RHEL9_V2R1_mission-compute.ckl`. It disappears on the first keystroke, so it is never the label and never carries a rule.
 - **The hint is a full sentence** with a full stop, under the control, and says what a good answer is or what the value is used for: "As it appears on the authorization package." "Auditors read this verbatim during sampling." One sentence; a second one is a paragraph on the page.
-- **The error says what is wrong and what fixes it**, in a sentence: "Choose a person who is on the program." The default from `useRequired` is "Required." and that is the whole message for an empty required field.
+- **The error says what is wrong and what fixes it**, in a sentence: "Choose a person who is on the program." The required-field schema can use "Required." as the message for an empty field.
 - **Required is marked, optional is not.** When most of a form is required, mark nothing and say "Optional." in the hint of the few that are.
 
 ## Style
@@ -116,7 +116,7 @@ The placeholder passes 4.5:1 and the focus and danger borders 3:1 against the in
 - **The label is the name.** The Field wraps the control in a `<label>`, so every control it holds is named by the label text, and a click on the label focuses the control. Without a Field, an Input needs `aria-label`, and a form has no such Input.
 - **The message is the description.** The Field's hint or error sits outside the label and is wired to the control with `aria-describedby`, so a screen reader reads the name, then the value, then the hint; the message never becomes part of the name.
 - **The error is announced.** It has `role="alert"`, so it is read when it appears, and the control carries `aria-invalid`, so the state is spoken with the name.
-- **Required is spoken, not enforced.** `isRequired` sets `aria-required` and paints the asterisk; it does not set the browser's `required`, so no native bubble fights the form's own check on submit ([Forms](?path=/docs/components-forms--docs), `useRequired`).
+- **Required is spoken, not enforced.** `isRequired` sets `aria-required` and paints the asterisk; it does not set the browser's `required`, so no native bubble fights the form's own check on submit ([Forms](?path=/docs/patterns-forms--docs), TanStack Form).
 - **Keyboard:** Tab reaches it, typing edits it, the arrow keys move within it, Escape does nothing. Read-only stays in the tab order; disabled leaves it.
 - **Disabled is the last resort.** A disabled field cannot be read by every screen reader and cannot say why. Prefer read-only for a value that is shown, and an enabled field with a hint for a value that is not editable yet.
 - The placeholder and the focus and danger borders are contrast-tested against the input surface in both modes. The rest border sits below 3:1 by decision; a field is found by its label and its fill, and shows its state with the borders that pass.
@@ -128,7 +128,7 @@ Input takes every attribute of `<input>` but `size`, which is the kit's height; 
 | Prop                         | Use                                                                                  |
 | ---------------------------- | ------------------------------------------------------------------------------------ |
 | `size`                       | `medium` (32px) in a form; `small` (28px) in the top navigation or a toolbar.        |
-| `value`, `defaultValue`      | Controlled or not. A form with `useRequired` is controlled.                          |
+| `value`, `defaultValue`      | Controlled or not. A TanStack form uses controlled values.                          |
 | `type`, `inputMode`          | The value's kind: `email`, `number` with `numeric`, `url`.                           |
 | `placeholder`                | The format, never the label.                                                         |
 | `readOnly`, `disabled`       | Shown but not edited here; not available. See States.                                |
@@ -151,7 +151,7 @@ Input takes every attribute of `<input>` but `size`, which is the kit's height; 
 - [Field](?path=/docs/components-field--docs): the label, the hint and the error around any control.
 - [InputGroup](?path=/docs/components-inputgroup--docs): an icon, a unit or a shortcut at either end.
 - [Textarea](?path=/docs/components-textarea--docs), [NativeSelect](?path=/docs/components-nativeselect--docs), [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs), [DatePicker](?path=/docs/components-datepicker--docs): the other answers.
-- [Forms](?path=/docs/components-forms--docs): which control for which answer, the layout, and `useRequired`.
+- [Forms](?path=/docs/patterns-forms--docs): which control for which answer, the layout, and TanStack Form validation.
 - [Editable](?path=/docs/components-editable--docs): a value read in place and edited on click, for a record's rail.
 
 ## Don't

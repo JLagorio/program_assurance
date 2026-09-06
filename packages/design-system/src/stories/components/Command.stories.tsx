@@ -228,6 +228,7 @@ export const Loading: Story = { render: () => <LoadingDemo /> };
 
 /** The rows' states in one list, then the list's: empty, loading. The cursor row is the one Enter would choose; it tints as a menu's does. */
 export const CommandMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="rows">

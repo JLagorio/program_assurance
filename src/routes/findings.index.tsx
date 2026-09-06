@@ -1,3 +1,4 @@
+import { downloadText } from "@/components/app/export";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Download, Search } from "lucide-react";
@@ -5,6 +6,7 @@ import { Download, Search } from "lucide-react";
 import {
   Badge,
   Button,
+  Empty,
   Id,
   IndexPage,
   Indicator,
@@ -134,8 +136,14 @@ function FindingsPage() {
           <PageHeader
             title="Findings & assets"
             actions={
-              <Button variant="secondary" iconBefore={<Download />}>
-                Export SAR extract
+              <Button
+                variant="secondary"
+                iconBefore={<Download />}
+                onClick={() =>
+                  downloadText("findings.json", JSON.stringify(rows, null, 2), "application/json")
+                }
+              >
+                Export findings JSON
               </Button>
             }
           />
@@ -165,7 +173,7 @@ function FindingsPage() {
                     onChange={(e) => setQ(e.target.value)}
                     placeholder="Search findings, CCIs, assets"
                     aria-label="Search"
-                    style={{ width: 240 }}
+                    style={{ width: 240, maxWidth: "100%" }}
                   />
                 </InputGroup>
                 <ToggleGroup
@@ -177,6 +185,9 @@ function FindingsPage() {
               </Inline>
             ) : null}
 
+            <p role="status" className="font-body-small text-subtle">
+              {tab === "Findings" ? `${rows.length} matching findings` : `${assets.length} assets`}
+            </p>
             <PreviewSplit open={preview !== null}>
               <div className="min-w-0 lg:pe-300">
                 {tab === "Findings" ? (
@@ -226,6 +237,27 @@ function FindingsPage() {
                           </Table.Cell>
                         </Table.Row>
                       ))}
+                      {rows.length === 0 ? (
+                        <Table.Row>
+                          <Table.Cell colSpan={12}>
+                            <Empty
+                              title="No results match your filters"
+                              description="Clear the filters to see the available records."
+                              action={
+                                <Button
+                                  variant="secondary"
+                                  onClick={() => {
+                                    setQ("");
+                                    setScope("All");
+                                  }}
+                                >
+                                  Clear filters
+                                </Button>
+                              }
+                            />
+                          </Table.Cell>
+                        </Table.Row>
+                      ) : null}
                     </tbody>
                   </Table>
                 ) : (

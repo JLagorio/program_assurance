@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../lib/locale";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -20,9 +21,11 @@ export type SpinnerProps = {
   size?: SpinnerSize | undefined;
   /** What the wait is, for a screen reader: "Loading", the default; "Saving", "Exporting". Beside a word that already says it, pass that word. */
   label?: string | undefined;
+  /** Hide the graphic when its parent already communicates the busy state. */
+  isDecorative?: boolean | undefined;
   /** `subtle`, the default, on a surface; `inverse` on a bold fill; `inherit` takes the text colour around it, for a button. */
   appearance?: "subtle" | "inverse" | "inherit" | undefined;
-  /** Milliseconds before it appears, so a fast load never flashes one. 0 by default; 300 for a load that is usually quick. */
+  /** Milliseconds before it appears. Defaults to 0; non-positive values show immediately. Changing a pending delay restarts the wait; once shown, it stays visible until unmounted. */
   delay?: number | undefined;
   className?: string | undefined;
 };
@@ -32,24 +35,29 @@ const appearances = { subtle: "icon-subtle", inverse: "icon-inverse", inherit: "
 /** Something is in flight. */
 export function Spinner({
   size = "small",
-  label = "Loading",
+  label,
+  isDecorative = false,
   appearance = "subtle",
   delay = 0,
   className,
 }: SpinnerProps) {
-  const [shown, setShown] = useState(delay === 0);
+  const { t } = useLedgerLocale();
+  const [shown, setShown] = useState(delay <= 0);
+  // Latch an immediate reveal during this render; a subsequent positive delay must not hide it.
+  if (!shown && delay <= 0) setShown(true);
   useEffect(() => {
-    if (delay === 0) return;
+    if (shown) return;
     const t = window.setTimeout(() => setShown(true), delay);
     return () => window.clearTimeout(t);
-  }, [delay]);
-  if (!shown) return null;
+  }, [delay, shown]);
+  if (!shown && delay > 0) return null;
   return (
     <Loader2
-      role="status"
-      aria-label={label}
+      role={isDecorative ? undefined : "status"}
+      aria-label={isDecorative ? undefined : (label ?? t("loading"))}
+      aria-hidden={isDecorative || undefined}
       className={cn(
-        "shrink-0 animate-spin",
+        "shrink-0 animate-spin motion-reduce:animate-none",
         spinnerSizes[size],
         appearances[appearance],
         className,

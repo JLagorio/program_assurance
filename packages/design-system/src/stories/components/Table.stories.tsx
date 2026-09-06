@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Filter, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
+import { expect, userEvent, within } from "storybook/test";
 
 import {
   Absent,
@@ -397,6 +398,7 @@ function GroupStates() {
 
 /** Every header, row, cell and id state, then a group open and closed. */
 export const TableMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Table>
@@ -723,3 +725,57 @@ export const Playground: Story = {
     </Table>
   ),
 };
+
+/** Selection cells must keep their pinning geometry when composed after another pinned column. */
+export const SelectionPinningContract: Story = {
+  tags: ["contract"],
+  render: () => <PinnedSelection />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = canvas.getByRole("checkbox", { name: "Select page" });
+    const row = canvas.getByRole("checkbox", { name: "Select record" });
+    await expect(page.closest("th")).toHaveStyle({ insetInlineStart: "48px" });
+    await expect(row.closest("td")).toHaveStyle({ insetInlineStart: "48px" });
+    await expect(row.closest("td")).toHaveClass("border-e");
+    await userEvent.click(row);
+    await expect(row).toBeChecked();
+    await expect(page).toBeChecked();
+  },
+};
+
+function PinnedSelection() {
+  const [checked, setChecked] = useState(false);
+  return (
+    <Table label="Selection geometry">
+      <thead>
+        <Table.Row>
+          <Table.Header width={48}>Id</Table.Header>
+          <Table.Selection
+            header
+            checked={checked}
+            onCheckedChange={setChecked}
+            label="Select page"
+            pinned="start"
+            offset={48}
+            edge
+          />
+          <Table.Header>Name</Table.Header>
+        </Table.Row>
+      </thead>
+      <tbody>
+        <Table.Row>
+          <Table.Cell>A</Table.Cell>
+          <Table.Selection
+            checked={checked}
+            onCheckedChange={setChecked}
+            label="Select record"
+            pinned="start"
+            offset={48}
+            edge
+          />
+          <Table.Cell>Example record</Table.Cell>
+        </Table.Row>
+      </tbody>
+    </Table>
+  );
+}

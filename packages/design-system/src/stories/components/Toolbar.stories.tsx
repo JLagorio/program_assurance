@@ -25,6 +25,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Search only; search and filters; filters and actions; no search, the children carry the row; a Select that narrows. */
 export const ToolbarMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.200" className="max-w-layout-measure">
       <Toolbar search="" onSearch={() => {}} placeholder="Search controls" />

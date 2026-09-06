@@ -1,5 +1,6 @@
+import { useCallback, type SetStateAction, useMemo, useState } from "react";
+import { useRecordForm } from "@/lib/record-form";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
 
 import {
   Absent,
@@ -21,7 +22,6 @@ import {
   Textarea,
   toast,
   useDataTable,
-  useRequired,
 } from "@ledger/design-system";
 import {
   addCompositionNodes,
@@ -429,12 +429,37 @@ export function AddNodeSheet({
   parent: CompositionNode | null;
   scopes: AssessmentScope[];
 }) {
-  const [name, setName] = useState("");
-  const [kind, setKind] = useState<NodeKind>("Subsystem");
-  const [note, setNote] = useState("");
-  const [owner, setOwner] = useState("");
-  const [basis, setBasis] = useState("");
-  const req = useRequired({ name });
+  const { form, values, setValue, formId, formRef } = useRecordForm(
+    {
+      name: "",
+      kind: "Subsystem" as NodeKind,
+      note: "",
+      owner: "",
+      basis: "",
+    },
+    (value) => ({ name: value.name }),
+  );
+  const { name, kind, note, owner, basis } = values;
+  const setName = useCallback(
+    (value: SetStateAction<typeof name>) => setValue("name", value),
+    [setValue],
+  );
+  const setKind = useCallback(
+    (value: SetStateAction<typeof kind>) => setValue("kind", value),
+    [setValue],
+  );
+  const setNote = useCallback(
+    (value: SetStateAction<typeof note>) => setValue("note", value),
+    [setValue],
+  );
+  const setOwner = useCallback(
+    (value: SetStateAction<typeof owner>) => setValue("owner", value),
+    [setValue],
+  );
+  const setBasis = useCallback(
+    (value: SetStateAction<typeof basis>) => setValue("basis", value),
+    [setValue],
+  );
 
   const chosen = addableKinds.find((k) => k.kind === kind) ?? addableKinds[0]!;
   const isScope = kind === "Subsystem" || kind === "Enclave";
@@ -449,53 +474,56 @@ export function AddNodeSheet({
   };
 
   const create = () => {
-    if (!req.check()) return;
-    if (!name.trim() || !parent) return;
-    const [node] = addCompositionNodes([
-      {
-        id: nextNodeId(),
-        name: name.trim(),
-        kind: chosen.kind,
-        class: chosen.class,
-        parent: parent.id,
-        program: programId,
-        note: note.trim(),
+    return form.handleSubmit({
+      save: () => {
+        if (!name.trim() || !parent) return;
+        const [node] = addCompositionNodes([
+          {
+            id: nextNodeId(),
+            name: name.trim(),
+            kind: chosen.kind,
+            class: chosen.class,
+            parent: parent.id,
+            program: programId,
+            note: note.trim(),
+          },
+        ]);
+        if (!node) return;
+        if (isScope && basisScope) {
+          const [scope] = addScopes([
+            {
+              program: programId,
+              element: node.id,
+              name: name.trim(),
+              owner: owner || basisScope.owner,
+              mission: note.trim() || `${name.trim()} subsystem.`,
+              independentlyAuthorized: false,
+              parameters: { ...basisScope.parameters },
+              separationBasis: `Categorized as ${basisScope.name} until its own boundary is demonstrated.`,
+            },
+          ]);
+          if (scope) {
+            const rev = createInitialRevision({
+              program: programId,
+              scope: scope.id,
+              parameters: { ...basisScope.parameters },
+              overlays: initialOverlayDecisions(basisScope.parameters),
+              tailoring: [],
+              separationBasis: scope.separationBasis,
+              reason: `Subsystem added under ${parent.name}`,
+              submit: false,
+            });
+            toast.success(`${scope.id} created`, {
+              description: `${name.trim()} · categorized as ${basisScope.name} · v${rev.number} draft`,
+            });
+          }
+        } else {
+          toast.success(`${node.id} added`, { description: `${name.trim()} under ${parent.name}` });
+        }
+        reset();
+        onClose();
       },
-    ]);
-    if (!node) return;
-    if (isScope && basisScope) {
-      const [scope] = addScopes([
-        {
-          program: programId,
-          element: node.id,
-          name: name.trim(),
-          owner: owner || basisScope.owner,
-          mission: note.trim() || `${name.trim()} subsystem.`,
-          independentlyAuthorized: false,
-          parameters: { ...basisScope.parameters },
-          separationBasis: `Categorized as ${basisScope.name} until its own boundary is demonstrated.`,
-        },
-      ]);
-      if (scope) {
-        const rev = createInitialRevision({
-          program: programId,
-          scope: scope.id,
-          parameters: { ...basisScope.parameters },
-          overlays: initialOverlayDecisions(basisScope.parameters),
-          tailoring: [],
-          separationBasis: scope.separationBasis,
-          reason: `Subsystem added under ${parent.name}`,
-          submit: false,
-        });
-        toast.success(`${scope.id} created`, {
-          description: `${name.trim()} · categorized as ${basisScope.name} · v${rev.number} draft`,
-        });
-      }
-    } else {
-      toast.success(`${node.id} added`, { description: `${name.trim()} under ${parent.name}` });
-    }
-    reset();
-    onClose();
+    });
   };
 
   return (
@@ -522,73 +550,137 @@ export function AddNodeSheet({
           >
             Cancel
           </Button>
-          <Button variant="primary" onClick={create} disabled={!parent}>
+          <Button variant="primary" type="submit" form={formId + "-1"} disabled={!parent}>
             Add {kind.toLowerCase()}
           </Button>
         </>
       }
     >
-      <Stack space="space.150">
-        <Field label="Kind">
-          <NativeSelect
-            value={kind}
-            onChange={(e) => setKind(e.target.value as NodeKind)}
-            aria-label="Kind"
-          >
-            {addableKinds.map((k) => (
-              <option key={k.kind} value={k.kind}>
-                {k.kind} · {k.class}
-              </option>
-            ))}
-          </NativeSelect>
-        </Field>
-        <Field isRequired error={req.errorFor("name")} label="Name">
-          <Input
-            autoFocus
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder={isScope ? "Flight computer" : "Mission data bus controller"}
-          />
-        </Field>
-        <Field label={isScope ? "Function" : "Note"} hint="What it does for the mission.">
-          <Textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Flight control laws, actuator command, and the mission data bus."
-          />
-        </Field>
-        {isScope ? (
-          <>
-            <Field label="Owner">
-              <Combobox
-                value={owner}
-                onChange={setOwner}
-                options={people.map((p) => ({ value: p, label: p }))}
-                placeholder={basisScope ? `Inherits ${basisScope.owner}` : "Choose an owner"}
-                searchPlaceholder="Search people…"
-                className="w-full"
-              />
-            </Field>
-            <Field
-              label="Start from the categorization of"
-              hint="Copied into revision 1 as a draft; change it on the scope's Control set tab before submitting."
-            >
-              <Select
-                value={basisScope?.id ?? ""}
-                onValueChange={setBasis}
-                aria-label="Basis scope"
+      <form
+        id={formId + "-1"}
+        ref={formRef}
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          void create();
+        }}
+      >
+        <Stack space="space.150">
+          <form.Field name="kind">
+            {(field) => (
+              <Field
+                label="Kind"
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
               >
-                {scopes.map((s) => (
-                  <Select.Item key={s.id} value={s.id}>
-                    {s.name} · {triadOf(s).Confidentiality[0]}-{triadOf(s).Integrity[0]}-
-                    {triadOf(s).Availability[0]}
-                  </Select.Item>
-                ))}
-              </Select>
-            </Field>
-          </>
-        ) : null}
-      </Stack>
+                <NativeSelect
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value as NodeKind)}
+                  aria-label="Kind"
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                >
+                  {addableKinds.map((k) => (
+                    <option key={k.kind} value={k.kind}>
+                      {k.kind} · {k.class}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="name">
+            {(field) => (
+              <Field
+                isRequired
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+                label="Name"
+              >
+                <Input
+                  autoFocus
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder={isScope ? "Flight computer" : "Mission data bus controller"}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="note">
+            {(field) => (
+              <Field
+                label={isScope ? "Function" : "Note"}
+                hint="What it does for the mission."
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+              >
+                <Textarea
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Flight control laws, actuator command, and the mission data bus."
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+          {isScope ? (
+            <>
+              <form.Field name="owner">
+                {(field) => (
+                  <Field
+                    label="Owner"
+                    error={
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? [...new Set(field.state.meta.errors)].join(" ")
+                        : undefined
+                    }
+                  >
+                    <Combobox
+                      value={field.state.value}
+                      onChange={field.handleChange}
+                      options={people.map((p) => ({ value: p, label: p }))}
+                      placeholder={basisScope ? `Inherits ${basisScope.owner}` : "Choose an owner"}
+                      searchPlaceholder="Search people…"
+                      className="w-full"
+                      name={field.name}
+                      onBlur={field.handleBlur}
+                    />
+                  </Field>
+                )}
+              </form.Field>
+              <Field
+                label="Start from the categorization of"
+                hint="Copied into revision 1 as a draft; change it on the scope's Control set tab before submitting."
+              >
+                <Select
+                  value={basisScope?.id ?? ""}
+                  onValueChange={setBasis}
+                  aria-label="Basis scope"
+                >
+                  {scopes.map((s) => (
+                    <Select.Item key={s.id} value={s.id}>
+                      {s.name} · {triadOf(s).Confidentiality[0]}-{triadOf(s).Integrity[0]}-
+                      {triadOf(s).Availability[0]}
+                    </Select.Item>
+                  ))}
+                </Select>
+              </Field>
+            </>
+          ) : null}
+        </Stack>
+      </form>
     </Sheet>
   );
 }

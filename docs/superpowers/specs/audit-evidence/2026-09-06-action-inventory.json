@@ -1,0 +1,1935 @@
+{
+  "method": "AST census of Button, IconButton, button, and UnavailableAction in every app/route TSX module. Handler implemented means a handler exists; it is not a substitute for behavior testing. Primitive internal controls and library compound actions are delegated to their owning components.",
+  "counts": {
+    "delegated navigation": 8,
+    "handler implemented": 201,
+    "unavailable with visible explanation": 37,
+    "demonstration": 6,
+    "delegated trigger": 6,
+    "unavailable": 1,
+    "form submit": 2,
+    "delegated props": 8
+  },
+  "actions": [
+    {
+      "file": "src/routes/__root.tsx",
+      "line": 36,
+      "component": "Button",
+      "label": "<Link to=\"/\">Go home</Link>",
+      "classification": "delegated navigation"
+    },
+    {
+      "file": "src/routes/__root.tsx",
+      "line": 60,
+      "component": "Button",
+      "label": "Try again",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/__root.tsx",
+      "line": 69,
+      "component": "Button",
+      "label": "<Link to=\"/\">Go home</Link>",
+      "classification": "delegated navigation"
+    },
+    {
+      "file": "src/routes/briefing.tsx",
+      "line": 55,
+      "component": "UnavailableAction",
+      "label": "Export briefing deck",
+      "classification": "unavailable with visible explanation",
+      "reason": "Presentation export is not available. Review the briefing on this page."
+    },
+    {
+      "file": "src/routes/campaigns.$campaignId.tsx",
+      "line": 466,
+      "component": "button",
+      "label": "Close",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/campaigns.tsx",
+      "line": 101,
+      "component": "UnavailableAction",
+      "label": "Open campaign",
+      "classification": "unavailable with visible explanation",
+      "reason": "Campaign creation is not available. Open an existing campaign from the table."
+    },
+    {
+      "file": "src/routes/campaigns.tsx",
+      "line": 382,
+      "component": "button",
+      "label": "<span className=\"min-w-0 truncate\"> <Id className=\"text-brand\">{e.id}</Id>{\" \"} <span className=\"text-subtle\">{e.name}</span> </span> <span className=\"shrink-0 text-subtle\">{e.state}</span>",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/components.tsx",
+      "line": 75,
+      "component": "Button",
+      "label": "Request evidence",
+      "classification": "demonstration"
+    },
+    {
+      "file": "src/routes/components.tsx",
+      "line": 76,
+      "component": "Button",
+      "label": "Export",
+      "classification": "demonstration"
+    },
+    {
+      "file": "src/routes/components.tsx",
+      "line": 77,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "demonstration"
+    },
+    {
+      "file": "src/routes/components.tsx",
+      "line": 78,
+      "component": "Button",
+      "label": "Delete",
+      "classification": "demonstration"
+    },
+    {
+      "file": "src/routes/components.tsx",
+      "line": 79,
+      "component": "Button",
+      "label": "View report",
+      "classification": "demonstration"
+    },
+    {
+      "file": "src/routes/components.tsx",
+      "line": 80,
+      "component": "IconButton",
+      "label": "More",
+      "classification": "demonstration"
+    },
+    {
+      "file": "src/routes/controls.tsx",
+      "line": 102,
+      "component": "UnavailableAction",
+      "label": "Import catalog",
+      "classification": "unavailable with visible explanation",
+      "reason": "Catalog import is not connected. This catalog is read-only."
+    },
+    {
+      "file": "src/routes/controls.tsx",
+      "line": 192,
+      "component": "Button",
+      "label": "Clear filters",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/controls.tsx",
+      "line": 310,
+      "component": "Button",
+      "label": "Clear filters",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/evidence.tsx",
+      "line": 129,
+      "component": "UnavailableAction",
+      "label": "Saved views",
+      "classification": "unavailable with visible explanation",
+      "reason": "Saved views are not available for evidence yet."
+    },
+    {
+      "file": "src/routes/evidence.tsx",
+      "line": 136,
+      "component": "UnavailableAction",
+      "label": "Upload artifact",
+      "classification": "unavailable with visible explanation",
+      "reason": "Artifact storage is not connected. Uploads are unavailable."
+    },
+    {
+      "file": "src/routes/findings.$findingId.tsx",
+      "line": 171,
+      "component": "Button",
+      "label": "<span className=\"tabular-nums font-body-small font-medium\"> {residual.score} </span> <Badge tone={bandTone[residual.band]}>{residual.band}</Badge> {!isDeficiency(finding) ? ( <span className=\"font-body-xsmall text-subtle\">not carried</span> ) : null}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/findings.$findingId.tsx",
+      "line": 239,
+      "component": "Button",
+      "label": "<Link to=\"/register/poam/$poamId\" params={{ poamId: finding.poam }}> Open {finding.poam} </Link>",
+      "classification": "delegated navigation"
+    },
+    {
+      "file": "src/routes/findings.$findingId.tsx",
+      "line": 245,
+      "component": "UnavailableAction",
+      "label": "Add to POA&amp;M",
+      "classification": "unavailable with visible explanation",
+      "reason": "Add a POA&M item from the relevant program record."
+    },
+    {
+      "file": "src/routes/findings.assets.$assetId.tsx",
+      "line": 173,
+      "component": "UnavailableAction",
+      "label": "Re-scan asset",
+      "classification": "unavailable with visible explanation",
+      "reason": "A scanning service must be connected before this asset can be scanned."
+    },
+    {
+      "file": "src/routes/findings.index.tsx",
+      "line": 139,
+      "component": "Button",
+      "label": "Export findings JSON",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/findings.index.tsx",
+      "line": 247,
+      "component": "Button",
+      "label": "Clear filters",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/index.tsx",
+      "line": 82,
+      "component": "Button",
+      "label": "Export",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/index.tsx",
+      "line": 95,
+      "component": "UnavailableAction",
+      "label": "Request evidence",
+      "classification": "unavailable with visible explanation",
+      "reason": "Choose a program and request evidence from its control workspace."
+    },
+    {
+      "file": "src/routes/index.tsx",
+      "line": 245,
+      "component": "UnavailableAction",
+      "label": "History",
+      "classification": "unavailable with visible explanation",
+      "reason": "This overview has no separate activity history. Program records have an Activity tab."
+    },
+    {
+      "file": "src/routes/library.components.$componentKey.tsx",
+      "line": 129,
+      "component": "UnavailableAction",
+      "label": "Edit definition",
+      "classification": "unavailable with visible explanation",
+      "reason": "Provider definitions are read-only in this workspace."
+    },
+    {
+      "file": "src/routes/library.components.index.tsx",
+      "line": 62,
+      "component": "Button",
+      "label": "Export providers",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/library.components.index.tsx",
+      "line": 74,
+      "component": "UnavailableAction",
+      "label": "New component",
+      "classification": "unavailable with visible explanation",
+      "reason": "Provider creation is not available in this workspace."
+    },
+    {
+      "file": "src/routes/packages.$pkgId.tsx",
+      "line": 113,
+      "component": "UnavailableAction",
+      "label": "Submit snapshot",
+      "classification": "unavailable with visible explanation",
+      "reason": "No receiving service is connected. Download artifacts from the program export workspace."
+    },
+    {
+      "file": "src/routes/packages.index.tsx",
+      "line": 55,
+      "component": "UnavailableAction",
+      "label": "Regenerate stale",
+      "classification": "unavailable with visible explanation",
+      "reason": "Open the program export workspace to generate current artifacts."
+    },
+    {
+      "file": "src/routes/programs.$programId.tsx",
+      "line": 485,
+      "component": "Button",
+      "label": "Views",
+      "classification": "delegated trigger"
+    },
+    {
+      "file": "src/routes/programs.$programId.tsx",
+      "line": 517,
+      "component": "Button",
+      "label": "{state.primaryAction}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId.tsx",
+      "line": 524,
+      "component": "IconButton",
+      "label": "More actions",
+      "classification": "delegated trigger"
+    },
+    {
+      "file": "src/routes/programs.$programId.tsx",
+      "line": 621,
+      "component": "Button",
+      "label": "See all",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId.tsx",
+      "line": 644,
+      "component": "button",
+      "label": "See all",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId.tsx",
+      "line": 776,
+      "component": "Button",
+      "label": "New requirement",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId.tsx",
+      "line": 857,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId.tsx",
+      "line": 860,
+      "component": "Button",
+      "label": "Open assessment workspace",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.components.$componentId.tsx",
+      "line": 278,
+      "component": "Button",
+      "label": "{undecided.length ? `Review ${undecided.length} unanswered` : \"Allocate requirements\"}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.composition.tsx",
+      "line": 275,
+      "component": "button",
+      "label": "{nameOf(e.from)}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.composition.tsx",
+      "line": 285,
+      "component": "button",
+      "label": "{nameOf(e.to)}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.composition.tsx",
+      "line": 395,
+      "component": "button",
+      "label": "{nameOf(d.subject)}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.composition.tsx",
+      "line": 474,
+      "component": "Button",
+      "label": "<Id className=\"text-brand\">{nameOf(selectedPosture.worstNode)}</Id>",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.conmon.tsx",
+      "line": 181,
+      "component": "Button",
+      "label": "Open {label}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.conmon.tsx",
+      "line": 604,
+      "component": "Button",
+      "label": "Open",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.controls.$controlId.tsx",
+      "line": 352,
+      "component": "Button",
+      "label": "Add task",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.controls.$controlId.tsx",
+      "line": 387,
+      "component": "Button",
+      "label": "Map requirements",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.requirements.$requirementId.tsx",
+      "line": 239,
+      "component": "Button",
+      "label": "{requirement.derivations.length} on the Provenance tab",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.requirements.$requirementId.tsx",
+      "line": 353,
+      "component": "Button",
+      "label": "Allocate",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.requirements.$requirementId.tsx",
+      "line": 366,
+      "component": "Button",
+      "label": "Allocate to…",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.sctm.tsx",
+      "line": 279,
+      "component": "Button",
+      "label": "Export CSV",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.sctm.tsx",
+      "line": 337,
+      "component": "Button",
+      "label": "{allFamilies ? \"Show one family\" : \"Show all families\"}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.sctm.tsx",
+      "line": 385,
+      "component": "Button",
+      "label": "Show {Math.min(PAGE, visible.length - shown.length)} more · {\" \"} {visible.length - shown.length} remaining",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.sctm.tsx",
+      "line": 541,
+      "component": "Button",
+      "label": "Show {Math.min(PAGE, visible.length - shown.length)} more · {\" \"} {visible.length - shown.length} remaining",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.sctm.tsx",
+      "line": 560,
+      "component": "button",
+      "label": "Close",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.$programId_.te-phases.tsx",
+      "line": 921,
+      "component": "Button",
+      "label": "Read the criteria",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.tsx",
+      "line": 219,
+      "component": "Button",
+      "label": "Export programs",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.tsx",
+      "line": 237,
+      "component": "Button",
+      "label": "New program",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.tsx",
+      "line": 272,
+      "component": "Button",
+      "label": "Restore selected programs",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.tsx",
+      "line": 289,
+      "component": "UnavailableAction",
+      "label": "Reassign assessor",
+      "classification": "unavailable with visible explanation",
+      "reason": "Bulk assessor reassignment is not available."
+    },
+    {
+      "file": "src/routes/programs.tsx",
+      "line": 296,
+      "component": "Button",
+      "label": "Schedule assessment",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.tsx",
+      "line": 318,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/programs.tsx",
+      "line": 321,
+      "component": "Button",
+      "label": "Schedule",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/register.index.tsx",
+      "line": 116,
+      "component": "Button",
+      "label": "Export POA&M JSON",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/register.index.tsx",
+      "line": 234,
+      "component": "Button",
+      "label": "Clear filters",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/register.index.tsx",
+      "line": 370,
+      "component": "UnavailableAction",
+      "label": "New POA&M",
+      "classification": "unavailable with visible explanation",
+      "reason": "Create a POA&M item from the relevant program record."
+    },
+    {
+      "file": "src/routes/register.index.tsx",
+      "line": 377,
+      "component": "UnavailableAction",
+      "label": "Attach risk",
+      "classification": "unavailable with visible explanation",
+      "reason": "Finding-to-risk linking is not available from this view."
+    },
+    {
+      "file": "src/routes/register.poam.$poamId.tsx",
+      "line": 125,
+      "component": "UnavailableAction",
+      "label": "Update milestone",
+      "classification": "unavailable with visible explanation",
+      "reason": "This register snapshot is read-only. Edit milestones in the program record."
+    },
+    {
+      "file": "src/routes/register.risks.$riskId.tsx",
+      "line": 182,
+      "component": "UnavailableAction",
+      "label": "Record AO decision",
+      "classification": "unavailable with visible explanation",
+      "reason": "Authorization decisions cannot be issued from this read-only register."
+    },
+    {
+      "file": "src/routes/risks.$riskId.tsx",
+      "line": 114,
+      "component": "Button",
+      "label": "<Link to=\"/risks\">Back to risks</Link>",
+      "classification": "delegated navigation"
+    },
+    {
+      "file": "src/routes/risks.$riskId.tsx",
+      "line": 165,
+      "component": "UnavailableAction",
+      "label": "Reassign",
+      "classification": "unavailable with visible explanation",
+      "reason": "Reassignment is not available in this view."
+    },
+    {
+      "file": "src/routes/risks.$riskId.tsx",
+      "line": 171,
+      "component": "Button",
+      "label": "Add treatment",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/risks.$riskId.tsx",
+      "line": 180,
+      "component": "IconButton",
+      "label": "More risk actions unavailable",
+      "classification": "unavailable"
+    },
+    {
+      "file": "src/routes/risks.$riskId.tsx",
+      "line": 214,
+      "component": "UnavailableAction",
+      "label": "Attach",
+      "classification": "unavailable with visible explanation",
+      "reason": "Evidence storage is not connected. Attachments are unavailable."
+    },
+    {
+      "file": "src/routes/risks.$riskId.tsx",
+      "line": 297,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/risks.$riskId.tsx",
+      "line": 300,
+      "component": "Button",
+      "label": "Add treatment",
+      "classification": "form submit"
+    },
+    {
+      "file": "src/routes/risks.tsx",
+      "line": 183,
+      "component": "Button",
+      "label": "Export",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/risks.tsx",
+      "line": 206,
+      "component": "Button",
+      "label": "New risk",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/risks.tsx",
+      "line": 229,
+      "component": "UnavailableAction",
+      "label": "Reassign",
+      "classification": "unavailable with visible explanation",
+      "reason": "Reassignment is not available in this view."
+    },
+    {
+      "file": "src/routes/risks.tsx",
+      "line": 236,
+      "component": "UnavailableAction",
+      "label": "Change treatment",
+      "classification": "unavailable with visible explanation",
+      "reason": "Open a risk record to add a treatment plan."
+    },
+    {
+      "file": "src/routes/scope.tsx",
+      "line": 197,
+      "component": "Button",
+      "label": "{openStates.includes(r.state) ? \"Review\" : \"Open\"}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/routes/stigs.tsx",
+      "line": 59,
+      "component": "UnavailableAction",
+      "label": "Import benchmark",
+      "classification": "unavailable with visible explanation",
+      "reason": "Benchmark import is not connected. This library is read-only."
+    },
+    {
+      "file": "src/routes/vendors.tsx",
+      "line": 122,
+      "component": "UnavailableAction",
+      "label": "Send questionnaire",
+      "classification": "unavailable with visible explanation",
+      "reason": "No questionnaire delivery service is connected."
+    },
+    {
+      "file": "src/routes/vendors.tsx",
+      "line": 128,
+      "component": "UnavailableAction",
+      "label": "Add vendor",
+      "classification": "unavailable with visible explanation",
+      "reason": "Vendor creation is not available in this workspace."
+    },
+    {
+      "file": "src/routes/work.tsx",
+      "line": 44,
+      "component": "Button",
+      "label": "<Link to=\"/scope\">Control set changes</Link>",
+      "classification": "delegated navigation"
+    },
+    {
+      "file": "src/components/app/activity-timeline.tsx",
+      "line": 110,
+      "component": "Button",
+      "label": "Clear",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/activity-timeline.tsx",
+      "line": 114,
+      "component": "Button",
+      "label": "Mark all read {unread ? ` (${unread})` : \"\"}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/activity-timeline.tsx",
+      "line": 130,
+      "component": "Button",
+      "label": "Clear filters",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/activity-timeline.tsx",
+      "line": 179,
+      "component": "Button",
+      "label": "{expanded ? \"Show less\" : `Show ${filtered.length - shown.length} more`}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/activity-timeline.tsx",
+      "line": 197,
+      "component": "Button",
+      "label": "Mark unread",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/activity-timeline.tsx",
+      "line": 208,
+      "component": "Button",
+      "label": "<Link to={active.to} params={active.params as never}> Open record </Link>",
+      "classification": "delegated navigation"
+    },
+    {
+      "file": "src/components/app/activity-timeline.tsx",
+      "line": 265,
+      "component": "Button",
+      "label": "{label} : {value} <ChevronDown className=\"text-subtle size-150\" />",
+      "classification": "delegated trigger"
+    },
+    {
+      "file": "src/components/app/allocate-picker.tsx",
+      "line": 421,
+      "component": "Button",
+      "label": "{out === undefined ? \"Does not apply\" : \"Applies\"}",
+      "classification": "delegated props"
+    },
+    {
+      "file": "src/components/app/allocate-picker.tsx",
+      "line": 651,
+      "component": "Button",
+      "label": "Remove",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/authorization.tsx",
+      "line": 103,
+      "component": "UnavailableAction",
+      "label": "Lock version",
+      "classification": "unavailable with visible explanation",
+      "reason": "Version locking is not available on this draft view."
+    },
+    {
+      "file": "src/components/app/authorization.tsx",
+      "line": 110,
+      "component": "UnavailableAction",
+      "label": "Submit to SCA",
+      "classification": "unavailable with visible explanation",
+      "reason": "Submission is unavailable until a receiving service is connected."
+    },
+    {
+      "file": "src/components/app/authorization.tsx",
+      "line": 192,
+      "component": "Button",
+      "label": "Grant access",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/authorization.tsx",
+      "line": 237,
+      "component": "Button",
+      "label": "Log observation",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/authorization.tsx",
+      "line": 361,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/authorization.tsx",
+      "line": 364,
+      "component": "Button",
+      "label": "Log observation",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/authorization.tsx",
+      "line": 503,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/authorization.tsx",
+      "line": 506,
+      "component": "Button",
+      "label": "Save & sync",
+      "classification": "delegated props"
+    },
+    {
+      "file": "src/components/app/authorization.tsx",
+      "line": 585,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/authorization.tsx",
+      "line": 588,
+      "component": "UnavailableAction",
+      "label": "Send invite",
+      "classification": "unavailable with visible explanation",
+      "reason": "Signing and access administration require connected services. This workspace cannot issue approvals or grant access."
+    },
+    {
+      "file": "src/components/app/authorization.tsx",
+      "line": 655,
+      "component": "Button",
+      "label": "Issue authorization memo",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/authorization.tsx",
+      "line": 865,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/authorization.tsx",
+      "line": 868,
+      "component": "Button",
+      "label": "Record decision",
+      "classification": "delegated props"
+    },
+    {
+      "file": "src/components/app/authorization.tsx",
+      "line": 944,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/authorization.tsx",
+      "line": 947,
+      "component": "UnavailableAction",
+      "label": "Sign & issue",
+      "classification": "unavailable with visible explanation",
+      "reason": "Signing and access administration require connected services. This workspace cannot issue approvals or grant access."
+    },
+    {
+      "file": "src/components/app/baselines.tsx",
+      "line": 190,
+      "component": "Button",
+      "label": "{expanded ? \"Show fewer\" : `Show ${hidden} more ${noun}`}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/baselines.tsx",
+      "line": 675,
+      "component": "Button",
+      "label": "Open impact",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/baselines.tsx",
+      "line": 680,
+      "component": "Button",
+      "label": "{change.acknowledged ? \"Withdraw acknowledgement\" : \"Acknowledge — re-verified\"}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/baselines.tsx",
+      "line": 782,
+      "component": "Button",
+      "label": "{cap.expanded ? \"Show fewer\" : `Show ${cap.hidden} more`}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/baselines.tsx",
+      "line": 1094,
+      "component": "Button",
+      "label": "{change.acknowledged ? \"Withdraw acknowledgement\" : \"Acknowledge — re-verified\"}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/baselines.tsx",
+      "line": 1432,
+      "component": "Button",
+      "label": "Show {Math.min(120, filtered.length - shown.length)} more",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/composition.tsx",
+      "line": 266,
+      "component": "Button",
+      "label": "Expand all",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/composition.tsx",
+      "line": 276,
+      "component": "Button",
+      "label": "Collapse all",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-board.tsx",
+      "line": 151,
+      "component": "button",
+      "label": "<span className={cn( \"relative block h-100 w-full overflow-hidden rounded-small\", segment[s.state], )} style={segmentStyle(s.state)} > {s.state === \"partial\" ? ( <span className=\"absolute inset-y-0 left-0 bg-neutral-bold\" style={{ width: `${Math.round(s.fill * 100)}%` }} /> ) : null} </span> <Box className={cn( \"pt-075 block truncate border-b font-body-xsmall transition-colors\", isActive ? \"border-bold text-default\" : \"border-transparent text-subtle group-hover/stage:text-default\", )} as=\"span\" paddingBlockEnd=\"space.025\" > {s.label} </Box>",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-board.tsx",
+      "line": 226,
+      "component": "button",
+      "label": "<div className=\"font-body-small text-subtle\">{f.label}</div> <Inline className=\"pt-025\" space=\"space.075\" alignBlock=\"baseline\"> <span className=\"tabular-nums font-heading-small font-semibold\">{f.reached}</span> <span className=\"tabular-nums font-body-small text-subtle\">of {total}</span> </Inline> <Box paddingBlockStart=\"space.100\"> <div className=\"w-full overflow-hidden rounded-full bg-neutral\" style={{ height: 3 }} > <div className=\"h-full bg-neutral-bold\" style={{ width: `${total ? Math.round((f.reached / total) * 100) : 0}%` }} /> </div> </Box> <Inline className=\"pt-075 font-body-xsmall min-h-200\" space=\"space.150\" shouldWrap> {f.note ? <span className=\"tabular-nums text-subtle\">{f.note}</span> : null} {f.stuck ? <span className=\"tabular-nums text-subtle\">{f.stuck} stuck</span> : null} {f.unknown ? ( <Inline className=\"tabular-nums text-subtle\" as=\"span\" display=\"inline-flex\" space=\"space.050\" alignBlock=\"center\" > <span className=\"inline-block size-100 rounded-xsmall text-subtlest\" style={hatch} /> {f.unknown} unknown </Inline> ) : null} {f.broken ? ( <span className=\"tabular-nums text-danger\">{f.broken} broken</span> ) : null} {f.suspect ? ( <span className=\"tabular-nums text-warning\">{f.suspect} suspect</span> ) : null} </Inline>",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-board.tsx",
+      "line": 347,
+      "component": "button",
+      "label": "<Id className={cn( \"text-subtle transition-colors duration-fast\", active ? \"text-brand\" : \"group-hover/row:text-brand\", )} > {c.id} </Id> <span className=\"truncate\">{c.title}</span> <StageStrip stages={c.stages} /> {narrow ? null : ( <span className={cn(\"truncate\", !c.owner ? \"text-subtle\" : null)}>{ownerLabel(c)}</span> )} {narrow ? null : <NextCell control={c} muted={muted} />}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-board.tsx",
+      "line": 422,
+      "component": "button",
+      "label": "<Box paddingBlockStart=\"space.075\"> <span className={cn( \"shrink-0 rounded-full\", stage.state === \"unknown\" ? \"size-100\" : \"size-075\", dot[stage.state], )} style={segmentStyle(stage.state)} /> </Box> <span className=\"min-w-0 flex-1\"> <Inline as=\"span\" space=\"space.100\" alignBlock=\"baseline\"> <span className=\"font-body-small text-default\">{stage.label}</span> </Inline> <span className=\"block truncate font-body-xsmall text-subtle\">{stage.note}</span> </span>",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-board.tsx",
+      "line": 553,
+      "component": "button",
+      "label": "<X className=\"size-icon-medium\" />",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-board.tsx",
+      "line": 601,
+      "component": "Button",
+      "label": "Assign owner",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-board.tsx",
+      "line": 621,
+      "component": "Button",
+      "label": "{o.def.label}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-board.tsx",
+      "line": 683,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-board.tsx",
+      "line": 686,
+      "component": "Button",
+      "label": "{chosen.def.label}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-matrix.tsx",
+      "line": 183,
+      "component": "Button",
+      "label": "Reset filters",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-matrix.tsx",
+      "line": 287,
+      "component": "Button",
+      "label": "Show {Math.min(PAGE, filtered.length - visible.length)} more",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-set-revisions.tsx",
+      "line": 152,
+      "component": "Button",
+      "label": "{o.def.label}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-set-revisions.tsx",
+      "line": 185,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-set-revisions.tsx",
+      "line": 188,
+      "component": "Button",
+      "label": "{acting.def.label}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-set-revisions.tsx",
+      "line": 240,
+      "component": "Button",
+      "label": "Propose change",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-set-revisions.tsx",
+      "line": 261,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-set-revisions.tsx",
+      "line": 264,
+      "component": "Button",
+      "label": "Draft revision",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-work.tsx",
+      "line": 136,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-work.tsx",
+      "line": 137,
+      "component": "Button",
+      "label": "{chosen?.def.label ?? \"Confirm\"}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-work.tsx",
+      "line": 210,
+      "component": "Button",
+      "label": "Save revision",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-work.tsx",
+      "line": 221,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-work.tsx",
+      "line": 236,
+      "component": "Button",
+      "label": "{work.narrative ? \"Revise\" : \"Write\"}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-work.tsx",
+      "line": 279,
+      "component": "Button",
+      "label": "Unlink",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-work.tsx",
+      "line": 299,
+      "component": "Button",
+      "label": "Link evidence…",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-work.tsx",
+      "line": 347,
+      "component": "Button",
+      "label": "Save",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-work.tsx",
+      "line": 391,
+      "component": "Button",
+      "label": "Comment",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-work.tsx",
+      "line": 522,
+      "component": "Button",
+      "label": "Assign to me",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-work.tsx",
+      "line": 533,
+      "component": "Button",
+      "label": "{primary.def.label}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-work.tsx",
+      "line": 542,
+      "component": "IconButton",
+      "label": "More actions",
+      "classification": "delegated trigger"
+    },
+    {
+      "file": "src/components/app/control-work.tsx",
+      "line": 579,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-work.tsx",
+      "line": 580,
+      "component": "Button",
+      "label": "{chosen?.def.label ?? \"Confirm\"}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-workspace.tsx",
+      "line": 948,
+      "component": "button",
+      "label": "button",
+      "classification": "delegated props"
+    },
+    {
+      "file": "src/components/app/control-workspace.tsx",
+      "line": 978,
+      "component": "UnavailableAction",
+      "label": "{c.action}",
+      "classification": "unavailable with visible explanation",
+      "reason": "This action is not available for this record. Review its details in the linked workspace."
+    },
+    {
+      "file": "src/components/app/control-workspace.tsx",
+      "line": 1175,
+      "component": "Button",
+      "label": "{primaryAct}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-workspace.tsx",
+      "line": 1259,
+      "component": "button",
+      "label": "<Inline className=\"font-body-small\" space=\"space.100\" alignBlock=\"center\"> <Id>{b.change.id}</Id> <Badge size=\"xsmall\" tone={b.change.impact === \"Significant\" ? \"danger\" : \"neutral\"} > {b.change.impact} </Badge> </Inline> <div className=\"font-body\"> {b.change.node !== \"—\" ? (nodeById.get(b.change.node)?.name ?? b.change.subject) : b.change.subject} </div> <div className=\"font-body-xsmall text-subtle\"> <span className=\"line-through\">{b.change.from}</span> → {b.change.to} </div> <Box className=\"font-body\" paddingBlockStart=\"space.050\"> <span className={cn( \"tabular-nums font-body-large font-semibold\", b.invalidated ? \"text-danger\" : \"text-warning\", )} > {b.rows.length} </span>{\" \"} <span className=\"font-body-xsmall text-subtle\"> determinations in question </span> </Box>",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-workspace.tsx",
+      "line": 1395,
+      "component": "button",
+      "label": "<Eyebrow> {cur.kind === \"root\" ? \"baseline\" : cur.kind === \"family\" ? `family ${cur.id}` : cur.kind} </Eyebrow> <div className={cn( \"tabular-nums font-heading-large font-semibold\", a.ns ? \"text-danger\" : a.nd ? \"text-subtle\" : \"text-default\", )} > {a.ns || a.nd || a.w} </div> <div className=\"font-body-small text-subtle\"> {a.ns ? \"Other than satisfied\" : a.nd ? \"with no determination\" : \"rows, all Satisfied\"} </div> <Box className=\"truncate font-body font-medium\" paddingBlockStart=\"space.050\"> {cur.kind === \"root\" ? baselineLabel : cur.kind === \"family\" ? cur.title : `${cur.label} — ${cur.title}`} </Box> {path.length ? ( <Box className=\"inline-flex items-center gap-050 font-body-small text-brand\" paddingBlockStart=\"space.050\" > <ArrowUp className=\"size-150\" /> up one level </Box> ) : null}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-workspace.tsx",
+      "line": 1468,
+      "component": "UnavailableAction",
+      "label": "{sel.kind === \"poam\" ? \"Reassess\" : sel.kind === \"finding\" ? \"Create POA&M item\" : tree.byControl.get(sel.id)?.st === \"nd\" ? \"Record determination\" : \"Create finding\"}",
+      "classification": "unavailable with visible explanation",
+      "reason": "This action is not available for this record. Review its details in the linked workspace."
+    },
+    {
+      "file": "src/components/app/control-workspace.tsx",
+      "line": 1482,
+      "component": "Button",
+      "label": "Clear",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-workspace.tsx",
+      "line": 1544,
+      "component": "button",
+      "label": "<Id className=\"text-left w-400\">{f.id}</Id> <span className=\"flex-1 overflow-hidden rounded-full bg-neutral h-075\"> <span className=\"block h-full bg-danger-bold\" style={{ width: `${(f.n / (blast.families[0]?.n ?? 1)) * 100}%` }} /> </span> <span className=\"tabular-nums text-right w-300\">{f.n}</span>",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-workspace.tsx",
+      "line": 1564,
+      "component": "UnavailableAction",
+      "label": "Reassess affected rows",
+      "classification": "unavailable with visible explanation",
+      "reason": "This action is not available for this record. Review its details in the linked workspace."
+    },
+    {
+      "file": "src/components/app/control-workspace.tsx",
+      "line": 1572,
+      "component": "UnavailableAction",
+      "label": "Report change",
+      "classification": "unavailable with visible explanation",
+      "reason": "This action is not available for this record. Review its details in the linked workspace."
+    },
+    {
+      "file": "src/components/app/control-workspace.tsx",
+      "line": 1595,
+      "component": "Button",
+      "label": "Release selection",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-workspace.tsx",
+      "line": 1614,
+      "component": "button",
+      "label": "{r.control.id}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/control-workspace.tsx",
+      "line": 1805,
+      "component": "button",
+      "label": "<span className={cn( \"shrink-0 rounded-full\", k.st === \"ns\" ? \"bg-danger-bold\" : k.st === \"nd\" ? \"bg-neutral-bold\" : \"bg-neutral-bold\", \"size-075\", )} /> <Id className=\"shrink-0 truncate whitespace-nowrap text-subtle\" style={{ width: 76 }} > {k.label} </Id> <span className=\"min-w-0 flex-1 truncate font-body-small\">{k.title}</span> <span className={cn( \"shrink-0 font-body-xsmall\", k.agg.ns ? \"text-danger\" : k.agg.nd ? \"text-subtle\" : \"text-subtlest\", )} > {k.agg.ns ? `${k.agg.ns} failing` : k.agg.nd ? `${k.agg.nd} unknown` : \"clear\"} </span>",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/coverage.tsx",
+      "line": 76,
+      "component": "button",
+      "label": "<span className={cn(\"rounded-full\", toneDot[s.tone], \"size-075\")} /> <span className=\"text-subtle group-hover:text-default\">{s.label}</span> <span className=\"tabular-nums font-medium\">{s.value}</span>",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/coverage.tsx",
+      "line": 96,
+      "component": "button",
+      "label": "<Id className=\"shrink-0 text-subtle w-400\">{f.id}</Id> <span className=\"min-w-0 flex-1 truncate font-body-small\">{f.name}</span> <span className=\"shrink-0 w-1000\"> <Progress.Stacked size=\"small\" segments={[ { key: \"s\", value: f.satisfied, tone: \"success\" }, { key: \"p\", value: f.partial, tone: \"warning\" }, { key: \"o\", value: f.other, tone: \"danger\" }, { key: \"n\", value: f.notAssessed, tone: \"neutral\" }, ]} /> </span> <span className=\"tabular-nums shrink-0 text-right font-body-small text-subtle w-800\"> {f.satisfied}/{f.total} </span>",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/digital-thread.tsx",
+      "line": 133,
+      "component": "UnavailableAction",
+      "label": "Sync now",
+      "classification": "unavailable with visible explanation",
+      "reason": "No connector is connected to synchronize this evidence."
+    },
+    {
+      "file": "src/components/app/digital-thread.tsx",
+      "line": 140,
+      "component": "UnavailableAction",
+      "label": "Add connector",
+      "classification": "unavailable with visible explanation",
+      "reason": "Connector setup is not available in this workspace."
+    },
+    {
+      "file": "src/components/app/digital-thread.tsx",
+      "line": 202,
+      "component": "Button",
+      "label": "New rule",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/digital-thread.tsx",
+      "line": 418,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/digital-thread.tsx",
+      "line": 421,
+      "component": "Button",
+      "label": "{creating ? \"Create rule\" : \"Save rule\"}",
+      "classification": "delegated props"
+    },
+    {
+      "file": "src/components/app/digital-thread.tsx",
+      "line": 575,
+      "component": "Button",
+      "label": "Close",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/digital-thread.tsx",
+      "line": 578,
+      "component": "Button",
+      "label": "Reject",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/digital-thread.tsx",
+      "line": 585,
+      "component": "Button",
+      "label": "Accept into SSP",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/digital-thread.tsx",
+      "line": 655,
+      "component": "Button",
+      "label": "<Link to=\"/programs/$programId/export\" params={{ programId }} search={{ tab: \"Air-gap bundle\" }} > Open package workspace </Link>",
+      "classification": "delegated navigation"
+    },
+    {
+      "file": "src/components/app/export.tsx",
+      "line": 134,
+      "component": "Button",
+      "label": "{label}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/export.tsx",
+      "line": 254,
+      "component": "button",
+      "label": "<span className=\"font-body-xsmall\">{entry.key}</span> <span className=\"tabular-nums font-body-xsmall text-subtle\">{entry.summary}</span>",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/export.tsx",
+      "line": 288,
+      "component": "Button",
+      "label": "Back to line 1",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/export.tsx",
+      "line": 299,
+      "component": "Button",
+      "label": "Show {num(Math.min(windowSize, remaining))} more · {num(remaining)} below",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/export.tsx",
+      "line": 370,
+      "component": "Button",
+      "label": "Show {num(Math.min(pageSize, remaining))} more",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/export.tsx",
+      "line": 491,
+      "component": "Button",
+      "label": "<Download className=\"size-150\" /> File",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/lifecycle.tsx",
+      "line": 238,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/lifecycle.tsx",
+      "line": 241,
+      "component": "Button",
+      "label": "Save gate",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/link-currency.tsx",
+      "line": 28,
+      "component": "Button",
+      "label": "Review",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/node-preview.tsx",
+      "line": 206,
+      "component": "Button",
+      "label": "Allocate",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/node-preview.tsx",
+      "line": 247,
+      "component": "Button",
+      "label": "{on?.name ?? a.target}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/node-preview.tsx",
+      "line": 369,
+      "component": "Button",
+      "label": "{child.name}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/persona-switch.tsx",
+      "line": 27,
+      "component": "Button",
+      "label": "<Avatar name={session.name} size=\"small\" /> <Box as=\"span\" style={{ maxWidth: 180 }}> <Text size=\"small\" color=\"color.text.subtle\" maxLines={1} className=\"block\"> {session.role} </Text> </Box>",
+      "classification": "delegated trigger"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 177,
+      "component": "Button",
+      "label": "New POA&amp;M item",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 184,
+      "component": "button",
+      "label": "<Inline as=\"span\" display=\"inline-flex\" alignBlock=\"center\" className={ f === filter ? \"h-control-small rounded-medium bg-brand-subtlest px-100 font-body font-medium text-brand\" : \"h-control-small rounded-medium px-100 font-body text-subtle transition-colors hover:bg-neutral-subtle-hovered hover:text-default\" } > {f} </Inline>",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 277,
+      "component": "button",
+      "label": "<Pencil className=\"size-icon-small\" />",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 287,
+      "component": "button",
+      "label": "<Trash2 className=\"size-icon-small\" />",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 454,
+      "component": "Button",
+      "label": "Delete",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 463,
+      "component": "Button",
+      "label": "Close",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 466,
+      "component": "Button",
+      "label": "Edit item",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 757,
+      "component": "Button",
+      "label": "Delete",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 766,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 769,
+      "component": "Button",
+      "label": "Save changes",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 903,
+      "component": "Button",
+      "label": "Add milestone",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 949,
+      "component": "button",
+      "label": "<X className=\"size-icon-small\" />",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 974,
+      "component": "Button",
+      "label": "Add prop",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 1008,
+      "component": "button",
+      "label": "<X className=\"size-icon-small\" />",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 1047,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 1050,
+      "component": "Button",
+      "label": "Delete item",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 1163,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/poam.tsx",
+      "line": 1166,
+      "component": "Button",
+      "label": "Create item",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/program-state.tsx",
+      "line": 51,
+      "component": "button",
+      "label": "{status === \"done\" ? ( <Check className=\"text-success size-150\" /> ) : status === \"current\" ? ( <Dot tone={blocked ? \"danger\" : \"information\"} /> ) : ( <span className=\"rounded-full border border-bold size-075\" /> )} {s}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/program-state.tsx",
+      "line": 164,
+      "component": "button",
+      "label": "<span className=\"text-subtle\">{i.label}</span> <span className={cn( \"tabular-nums font-medium\", i.tone === \"danger\" ? \"text-danger\" : i.tone === \"warning\" ? \"text-warning\" : \"text-default\", )} > {i.value} </span>",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/program-state.tsx",
+      "line": 250,
+      "component": "Button",
+      "label": "{expanded ? \"Show less\" : `Show ${actions.length - 5} more`}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/program-wizard.tsx",
+      "line": 315,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/program-wizard.tsx",
+      "line": 368,
+      "component": "Button",
+      "label": "{index === 0 ? \"Cancel\" : \"Back\"}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/program-wizard.tsx",
+      "line": 381,
+      "component": "Button",
+      "label": "Continue",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/program-wizard.tsx",
+      "line": 390,
+      "component": "Button",
+      "label": "Create program",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/program-wizard.tsx",
+      "line": 621,
+      "component": "Button",
+      "label": "Add system",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/program-wizard.tsx",
+      "line": 654,
+      "component": "Button",
+      "label": "<Plus className=\"size-150\" /> Subsystem",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/program-wizard.tsx",
+      "line": 665,
+      "component": "Button",
+      "label": "<Trash2 className=\"size-150\" />",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/program-wizard.tsx",
+      "line": 696,
+      "component": "Button",
+      "label": "<Trash2 className=\"size-150\" />",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/program-wizard.tsx",
+      "line": 740,
+      "component": "Button",
+      "label": "Done",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/record-activity.tsx",
+      "line": 260,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/record-activity.tsx",
+      "line": 263,
+      "component": "Button",
+      "label": "Link evidence",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/requirement-forms.tsx",
+      "line": 113,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/requirement-forms.tsx",
+      "line": 114,
+      "component": "Button",
+      "label": "Create requirement",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/risk-create-dialog.tsx",
+      "line": 97,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/risk-create-dialog.tsx",
+      "line": 100,
+      "component": "Button",
+      "label": "Save draft",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/risk-create-dialog.tsx",
+      "line": 103,
+      "component": "Button",
+      "label": "Create risk",
+      "classification": "form submit"
+    },
+    {
+      "file": "src/components/app/rmf-timeline.tsx",
+      "line": 189,
+      "component": "button",
+      "label": "{w.controls.length} controls {wOpen ? ` · ${wOpen} open` : \"\"}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/rmf-timeline.tsx",
+      "line": 252,
+      "component": "Button",
+      "label": "Full timeline",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/scope-tailoring.tsx",
+      "line": 429,
+      "component": "Button",
+      "label": "Tailor controls…",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/scope-tailoring.tsx",
+      "line": 490,
+      "component": "Button",
+      "label": "Undo",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/scopes.tsx",
+      "line": 100,
+      "component": "Button",
+      "label": "{open ? `Review ${open} open change${open === 1 ? \"\" : \"s\"}` : \"Open Systems\"}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/sctm-matrix.tsx",
+      "line": 150,
+      "component": "Button",
+      "label": "{allOpen ? \"Collapse all\" : \"Expand all\"}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/sctm-matrix.tsx",
+      "line": 194,
+      "component": "Button",
+      "label": "Reset filters",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/shell.tsx",
+      "line": 121,
+      "component": "Button",
+      "label": "Search programs, risks, and findings",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/shell.tsx",
+      "line": 134,
+      "component": "IconButton",
+      "label": "IconButton",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/shell.tsx",
+      "line": 231,
+      "component": "Button",
+      "label": "<Link to=\"/work\">Open my work</Link>",
+      "classification": "delegated navigation"
+    },
+    {
+      "file": "src/components/app/stage-strip.tsx",
+      "line": 50,
+      "component": "IconButton",
+      "label": "Edit stages",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/stage-strip.tsx",
+      "line": 111,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/stage-strip.tsx",
+      "line": 114,
+      "component": "Button",
+      "label": "Save stages",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/stage-strip.tsx",
+      "line": 154,
+      "component": "IconButton",
+      "label": "IconButton",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/stage-strip.tsx",
+      "line": 165,
+      "component": "Button",
+      "label": "Add stage",
+      "classification": "delegated props"
+    },
+    {
+      "file": "src/components/app/system-tree.tsx",
+      "line": 516,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/system-tree.tsx",
+      "line": 525,
+      "component": "Button",
+      "label": "Add {kind.toLowerCase()}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/tailor-picker.tsx",
+      "line": 298,
+      "component": "Button",
+      "label": "Remove",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/tailoring.tsx",
+      "line": 151,
+      "component": "Button",
+      "label": "Request changes",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/tailoring.tsx",
+      "line": 154,
+      "component": "Button",
+      "label": "Approve scope",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/tailoring.tsx",
+      "line": 163,
+      "component": "Button",
+      "label": "Submit for approval",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/tailoring.tsx",
+      "line": 173,
+      "component": "Button",
+      "label": "Edit parameters",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/tailoring.tsx",
+      "line": 330,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/tailoring.tsx",
+      "line": 333,
+      "component": "Button",
+      "label": "Save and recompute",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/tailoring.tsx",
+      "line": 475,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/tailoring.tsx",
+      "line": 478,
+      "component": "Button",
+      "label": "{deciding === \"approve\" ? \"Approve scope\" : \"Request changes\"}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/task-dialog.tsx",
+      "line": 88,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/task-dialog.tsx",
+      "line": 97,
+      "component": "Button",
+      "label": "Add task",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/tasks-section.tsx",
+      "line": 150,
+      "component": "IconButton",
+      "label": "IconButton",
+      "classification": "delegated trigger"
+    },
+    {
+      "file": "src/components/app/tasks-section.tsx",
+      "line": 250,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/tasks-section.tsx",
+      "line": 253,
+      "component": "Button",
+      "label": "Save",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/tasks-section.tsx",
+      "line": 341,
+      "component": "Button",
+      "label": "Add task",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/tasks-section.tsx",
+      "line": 353,
+      "component": "Button",
+      "label": "{showDone ? \"Hide done\" : `Show done (${done.length})`}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/tasks-section.tsx",
+      "line": 398,
+      "component": "Button",
+      "label": "Add task",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/te-phases.tsx",
+      "line": 320,
+      "component": "button",
+      "label": "{body}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/te-phases.tsx",
+      "line": 1274,
+      "component": "Button",
+      "label": "{cap.expanded ? \"Show fewer\" : `Show ${cap.hidden} more`}",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/test-execution.tsx",
+      "line": 864,
+      "component": "Button",
+      "label": "Mark run complete",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/unavailable-action.tsx",
+      "line": 19,
+      "component": "Button",
+      "label": "{children} <span className=\"font-body-xsmall\">(unavailable)</span>",
+      "classification": "delegated props"
+    },
+    {
+      "file": "src/components/app/verification.tsx",
+      "line": 113,
+      "component": "UnavailableAction",
+      "label": "Re-run simulation",
+      "classification": "unavailable with visible explanation",
+      "reason": "No simulation service is connected."
+    },
+    {
+      "file": "src/components/app/verification.tsx",
+      "line": 192,
+      "component": "UnavailableAction",
+      "label": "Add test event",
+      "classification": "unavailable with visible explanation",
+      "reason": "Test event creation is not available from this view."
+    },
+    {
+      "file": "src/components/app/verification.tsx",
+      "line": 265,
+      "component": "Button",
+      "label": "Ingest scan",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/verification.tsx",
+      "line": 463,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/verification.tsx",
+      "line": 466,
+      "component": "Button",
+      "label": "Save finding",
+      "classification": "delegated props"
+    },
+    {
+      "file": "src/components/app/verification.tsx",
+      "line": 563,
+      "component": "Button",
+      "label": "Cancel",
+      "classification": "handler implemented"
+    },
+    {
+      "file": "src/components/app/verification.tsx",
+      "line": 566,
+      "component": "Button",
+      "label": "Ingest",
+      "classification": "handler implemented"
+    }
+  ]
+}

@@ -9,7 +9,15 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
-import { Box, Inline, ModeProvider, Toaster, modeScript, shellScript } from "@ledger/design-system";
+import {
+  Box,
+  Button,
+  Inline,
+  ModeProvider,
+  Toaster,
+  modeScript,
+  shellScript,
+} from "@ledger/design-system";
 
 import appCss from "../styles.css?url";
 import { PersonaSwitch } from "../components/app/persona-switch";
@@ -25,12 +33,9 @@ function NotFoundComponent() {
           The page you're looking for doesn't exist or has been moved.
         </p>
         <Box paddingBlockStart="space.300">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-medium bg-brand-bold px-200 py-100 font-body font-medium text-inverse transition-colors hover:bg-brand-subtlest"
-          >
-            Go home
-          </Link>
+          <Button asChild variant="primary">
+            <Link to="/">Go home</Link>
+          </Button>
         </Box>
       </div>
     </Inline>
@@ -52,21 +57,18 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           Something went wrong on our end. You can try refreshing or head back home.
         </p>
         <Inline className="pt-300" space="space.100" alignInline="center" shouldWrap>
-          <button
+          <Button
+            variant="primary"
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-medium bg-brand-bold px-200 py-100 font-body font-medium text-inverse transition-colors hover:bg-brand-subtlest"
           >
             Try again
-          </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-medium border border-input bg-surface px-200 py-100 font-body font-medium text-default transition-colors hover:bg-neutral-subtle-hovered"
-          >
-            Go home
-          </a>
+          </Button>
+          <Button asChild variant="secondary">
+            <Link to="/">Go home</Link>
+          </Button>
         </Inline>
       </div>
     </Inline>

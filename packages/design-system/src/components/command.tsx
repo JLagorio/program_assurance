@@ -1,7 +1,9 @@
+import { useLedgerLocale } from "../lib/locale";
+import { useOverlayFocus } from "./_overlay-focus";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Command as CommandPrimitive, useCommandState } from "cmdk";
 import { Search } from "lucide-react";
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode, RefObject } from "react";
 
 import { cn } from "../lib/cn";
 import { Kbd } from "./kbd";
@@ -74,14 +76,15 @@ function CommandEmpty({
 
 /** The row shown while the rows are fetched: the kit's Spinner and a word. cmdk marks it a progressbar named by `label`. */
 function CommandLoading({
-  label = "Loading",
+  label,
   className,
-  children = "Searching…",
+  children,
   ...props
 }: ComponentPropsWithoutRef<typeof CommandPrimitive.Loading>) {
+  const { t } = useLedgerLocale();
   return (
     <CommandPrimitive.Loading
-      label={label}
+      label={label ?? t("loading")}
       className={cn(
         "flex items-center justify-center gap-100 px-100 py-300 font-body-small text-subtle",
         className,
@@ -90,7 +93,7 @@ function CommandLoading({
     >
       <span className="flex items-center justify-center gap-100">
         <Spinner size="small" />
-        <span>{children}</span>
+        <span>{children ?? t("search")}</span>
       </span>
     </CommandPrimitive.Loading>
   );
@@ -176,6 +179,8 @@ export type CommandDialogProps = Omit<
   "label"
 > & {
   open: boolean;
+  /** Focus destination after closing; defaults to the opener, then a surviving dialog or main. */
+  returnFocusRef?: RefObject<HTMLElement | null> | undefined;
   onClose: () => void;
   /** The dialog's name: the task, "Command palette", "Link evidence". */
   label: string;
@@ -183,9 +188,10 @@ export type CommandDialogProps = Omit<
   width?: keyof typeof dialogWidths | undefined;
 };
 
-/** The Command as an overlay: a dialog near the top of the page, at most `width` wide, gone on Escape, the blanket or a choice. */
+/** The Command as an overlay: a dialog near the top of the page, at most `width` wide. Escape and the blanket request onClose; an item's onSelect must close it when its action is done. */
 function CommandDialog({
   open,
+  returnFocusRef,
   onClose,
   label,
   width = "medium",
@@ -193,6 +199,8 @@ function CommandDialog({
   children,
   ...props
 }: CommandDialogProps) {
+  const { t, direction } = useLedgerLocale();
+  const restoreFocus = useOverlayFocus(open, returnFocusRef);
   return (
     <DialogPrimitive.Root
       open={open}
@@ -203,6 +211,8 @@ function CommandDialog({
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-dim-in data-[state=closed]:animate-dim-out" />
         <DialogPrimitive.Content
+          onCloseAutoFocus={restoreFocus}
+          dir={direction}
           aria-describedby={undefined}
           style={{ maxWidth: dialogWidths[width] }}
           className="fixed inset-x-200 top-1000 z-50 mx-auto overflow-hidden rounded-xxlarge border border-default bg-surface-overlay shadow-overlay outline-none data-[state=open]:animate-dialog-in data-[state=closed]:animate-dialog-out"

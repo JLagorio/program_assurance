@@ -14,11 +14,13 @@ export type ProgramCommandHandlers = {
 
 export const programTabs = [
   "Overview",
+  "System",
+  "Requirements",
   "Controls",
+  "Tasks",
   "Findings",
   "Evidence",
   "POA&M",
-  "Team",
   "Activity",
 ] as const;
 

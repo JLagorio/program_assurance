@@ -16,22 +16,22 @@ The recipe: one fill per variant, hovered and pressed as their own tokens, disab
 
 ## Anatomy
 
-| Part      | What it is                                                                                                       |
-| --------- | ---------------------------------------------------------------------------------------------------------------- |
-| Container | The fill, the radius (`radius.medium`, 5px) and the height (`dimension.control.*`). `link` has no container.     |
-| Label     | The text, `font.body` at `font.weight.medium`, centred, never wrapped. `xsmall` drops to `font.body.small`.      |
-| Icon      | Optional, before or after the label, `dimension.icon.small` (14px), 6px from the label. The button sizes it.     |
-| Spinner   | Takes the icon's place while `isLoading`; the label stays.                                                       |
+| Part      | What it is                                                                                                   |
+| --------- | ------------------------------------------------------------------------------------------------------------ |
+| Container | The fill, the radius (`radius.medium`, 5px) and the height (`dimension.control.*`). `link` has no container. |
+| Label     | The text, `font.body` at `font.weight.medium`, centred, never wrapped. `xsmall` drops to `font.body.small`.  |
+| Icon      | Optional, before or after the label, `dimension.icon.small` (14px), 6px from the label. The button sizes it. |
+| Spinner   | Takes the icon's place while `isLoading`; the label stays.                                                   |
 
 ## Variants
 
-| Variant     | Use                                                                                                                     | How many                                        |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| `primary`   | The one action the screen or the dialog is for: Save, Submit, Create.                                                   | At most one per view. A page may have none.     |
-| `secondary` | The default. Any action that is not the main one: Export, Edit, Open.                                                   | As many as the reader needs, usually two or three. |
-| `subtle`    | Toolbars, table rows, rails and dialog footers' Cancel, where a raised button would be noise.                            | Free.                                           |
-| `danger`    | An action that destroys or cannot be undone: Delete, Revoke, Remove. Only after an AlertDialog has asked.               | One, in the AlertDialog or the record's header. |
-| `link`      | An action that reads as text inside prose or a table cell: show more, add a row, drill into a child. Not navigation.    | Free.                                           |
+| Variant     | Use                                                                                                                  | How many                                           |
+| ----------- | -------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `primary`   | The one action the screen or the dialog is for: Save, Submit, Create.                                                | At most one per view. A page may have none.        |
+| `secondary` | The default. Any action that is not the main one: Export, Edit, Open.                                                | As many as the reader needs, usually two or three. |
+| `subtle`    | Toolbars, table rows, rails and dialog footers' Cancel, where a raised button would be noise.                        | Free.                                              |
+| `danger`    | An action that destroys or cannot be undone: Delete, Revoke, Remove. Only after an AlertDialog has asked.            | One, in the AlertDialog or the record's header.    |
+| `link`      | An action that reads as text inside prose or a table cell: show more, add a row, drill into a child. Not navigation. | Free.                                              |
 
 Beside a primary, everything else steps down: Cancel is `subtle`, the alternatives are `secondary`. Two primaries in one view means nothing is the one thing to do. A toolbar has no primary.
 
@@ -43,24 +43,24 @@ There is no `warning` variant. An action that needs attention but is recoverable
 
 ## Sizes
 
-| Size     | Height | Padding | Type              | Where                                                             |
-| -------- | ------ | ------- | ----------------- | ----------------------------------------------------------------- |
-| `medium` | 32px   | 12px    | `font.body`       | The default: forms, page headers, dialog footers.                 |
-| `small`  | 28px   | 12px    | `font.body`       | Toolbars, table rows, rails, anything beside a small control.     |
-| `xsmall` | 24px   | 8px     | `font.body.small` | The densest chrome: a row's inline action, a chip's action.       |
+| Size     | Height | Padding | Type              | Where                                                         |
+| -------- | ------ | ------- | ----------------- | ------------------------------------------------------------- |
+| `medium` | 32px   | 12px    | `font.body`       | The default: forms, page headers, dialog footers.             |
+| `small`  | 28px   | 12px    | `font.body`       | Toolbars, table rows, rails, anything beside a small control. |
+| `xsmall` | 24px   | 8px     | `font.body.small` | The densest chrome: a row's inline action, a chip's action.   |
 
 Buttons in one row share one size. `link` has no size; it takes the surrounding text.
 
 ## States
 
-| State    | What changes                                                                                                 |
-| -------- | ------------------------------------------------------------------------------------------------------------ |
-| Hover    | The fill steps to its `hovered` token; `subtle` also lifts its text from subtle to default; `link` underlines. |
-| Pressed  | The fill steps to its `pressed` token.                                                                       |
-| Focus    | `color.border.focused` as an outline, on keyboard focus only.                                                |
-| Disabled | `color.background.disabled` with `color.text.disabled`, no shadow, no pointer. See Accessibility for when.    |
+| State    | What changes                                                                                                           |
+| -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Hover    | The fill steps to its `hovered` token; `subtle` also lifts its text from subtle to default; `link` underlines.         |
+| Pressed  | The fill steps to its `pressed` token.                                                                                 |
+| Focus    | `color.border.focused` as an outline, on keyboard focus only.                                                          |
+| Disabled | `color.background.disabled` with `color.text.disabled`, no shadow, no pointer. See Accessibility for when.             |
 | Selected | `isSelected`: `color.background.selected` with `color.text.selected`, `aria-pressed`. A filter applied, a view chosen. |
-| Loading  | `isLoading`: the spinner takes the icon's place, the label stays, `aria-busy`, clicks are ignored, focus is kept. |
+| Loading  | `isLoading`: the spinner takes the icon's place, the label stays, `aria-busy`, clicks are ignored, focus is kept.      |
 
 <Canvas of={Stories.Loading} />
 
@@ -73,6 +73,8 @@ Buttons in one row share one size. `link` has no size; it takes the surrounding 
 **Icon only.** [IconButton](?path=/docs/components-iconbutton--docs), with `label` (required) and `icon`. The label is the accessible name and the tooltip. Use one only where the icon is understood on sight or the space is a toolbar's; never for a destructive action.
 
 <Canvas of={IconButtonStories.IconButtons} />
+
+Slotted links retain the child’s semantics and receive an `HTMLElement` ref and event target. The child must forward its ref and event props. `disabled` removes the link from the tab order; loading retains focus. Both states suppress child and wrapper click handlers and Enter/Space activation. The loading spinner is decorative, so the action’s accessible name stays stable.
 
 **As a link.** `asChild` puts the router's Link inside and it takes the button's classes and its icons. This is how a button navigates without the package depending on a router.
 
@@ -96,26 +98,26 @@ Buttons in one row share one size. `link` has no size; it takes the surrounding 
 
 The token for each variant in each state. `hovered` and `pressed` are the state's own tokens, never an alpha over the rest state.
 
-| Variant     | Rest                                                                    | Hover                                            | Pressed                                          | Text                                        |
-| ----------- | ----------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------ | ------------------------------------------- |
-| `primary`   | `color.background.brand.bold`                                           | `color.background.brand.bold.hovered`            | `color.background.brand.bold.pressed`            | `color.text.inverse`                        |
-| `secondary` | `elevation.surface.raised` with `elevation.shadow.raised`               | `elevation.surface.raised.hovered`               | `elevation.surface.raised.pressed`               | `color.text`                                |
-| `subtle`    | `color.background.neutral.subtle` (transparent)                         | `color.background.neutral.subtle.hovered`        | `color.background.neutral.subtle.pressed`        | `color.text.subtle`, `color.text` on hover  |
-| `danger`    | `color.background.danger.bold`                                          | `color.background.danger.bold.hovered`           | `color.background.danger.bold.pressed`           | `color.text.inverse`                        |
-| `link`      | none                                                                    | underline                                        | underline                                        | `color.text.brand`                          |
-| Selected    | `color.background.selected`                                             | `color.background.selected.hovered`              | `color.background.selected.pressed`              | `color.text.selected`                       |
-| Disabled    | `color.background.disabled`, no shadow                                  |                                                  |                                                  | `color.text.disabled`                       |
-| Focus       | `color.border.focused`, as an outline                                   |                                                  |                                                  |                                             |
+| Variant     | Rest                                                      | Hover                                     | Pressed                                   | Text                                       |
+| ----------- | --------------------------------------------------------- | ----------------------------------------- | ----------------------------------------- | ------------------------------------------ |
+| `primary`   | `color.background.brand.bold`                             | `color.background.brand.bold.hovered`     | `color.background.brand.bold.pressed`     | `color.text.inverse`                       |
+| `secondary` | `elevation.surface.raised` with `elevation.shadow.raised` | `elevation.surface.raised.hovered`        | `elevation.surface.raised.pressed`        | `color.text`                               |
+| `subtle`    | `color.background.neutral.subtle` (transparent)           | `color.background.neutral.subtle.hovered` | `color.background.neutral.subtle.pressed` | `color.text.subtle`, `color.text` on hover |
+| `danger`    | `color.background.danger.bold`                            | `color.background.danger.bold.hovered`    | `color.background.danger.bold.pressed`    | `color.text.inverse`                       |
+| `link`      | none                                                      | underline                                 | underline                                 | `color.text.brand`                         |
+| Selected    | `color.background.selected`                               | `color.background.selected.hovered`       | `color.background.selected.pressed`       | `color.text.selected`                      |
+| Disabled    | `color.background.disabled`, no shadow                    |                                           |                                           | `color.text.disabled`                      |
+| Focus       | `color.border.focused`, as an outline                     |                                           |                                           |                                            |
 
-| Measure  | Value                                                                       |
-| -------- | --------------------------------------------------------------------------- |
-| Height   | `dimension.control.xsmall` 24px · `small` 28px · `medium` 32px              |
-| Padding  | `space.100` 8px on `xsmall` · `space.150` 12px on `small` and `medium`      |
-| Icon     | `dimension.icon.small` 14px                                                 |
-| Gap      | `space.075` 6px between icon and label                                      |
-| Radius   | `radius.medium` 5px                                                         |
-| Type     | `font.body` at `font.weight.medium`; `font.body.small` on `xsmall`          |
-| Motion   | `motion.duration.fast` on the fill, `motion.easing.standard`                |
+| Measure | Value                                                                  |
+| ------- | ---------------------------------------------------------------------- |
+| Height  | `dimension.control.xsmall` 24px · `small` 28px · `medium` 32px         |
+| Padding | `space.100` 8px on `xsmall` · `space.150` 12px on `small` and `medium` |
+| Icon    | `dimension.icon.small` 14px                                            |
+| Gap     | `space.075` 6px between icon and label                                 |
+| Radius  | `radius.medium` 5px                                                    |
+| Type    | `font.body` at `font.weight.medium`; `font.body.small` on `xsmall`     |
+| Motion  | `motion.duration.fast` on the fill, `motion.easing.standard`           |
 
 Every pairing above passes 4.5:1 for text and 3:1 for icons in both modes; `packages/design-system/test/contrast.test.mjs` checks it on every build.
 
@@ -125,7 +127,7 @@ Every pairing above passes 4.5:1 for text and 3:1 for icons in both modes; `pack
 - Keyboard: Tab reaches it, Enter and Space press it, the focus outline shows on keyboard focus only.
 - `isSelected` sets `aria-pressed`; a toggle announces its state.
 - `isLoading` sets `aria-busy` and `aria-disabled`, ignores clicks and keeps focus, so a screen reader hears that the action is running and the reader is not thrown back to the top of the page.
-- **Disabled buttons are the last resort.** A disabled button is skipped by Tab, cannot be read, and does not say why. Keep the primary enabled and let the form say what is missing: `useRequired` marks the first empty field on press (see [Forms](?path=/docs/components-forms--docs)). Disable only when the action truly cannot run and the reason is visible beside the button.
+- **Disabled buttons are the last resort.** A disabled button is skipped by Tab, cannot be read, and does not say why. Keep the primary enabled and let the form say what is missing: TanStack Form reports invalid fields on submit (see [Forms](?path=/docs/patterns-forms--docs)). Disable only when the action truly cannot run and the reason is visible beside the button.
 - Contrast is tested, not assumed: every fill against its text in both modes.
 
 ## Props
@@ -145,7 +147,7 @@ Every pairing above passes 4.5:1 for text and 3:1 for icons in both modes; `pack
 - [ButtonGroup](?path=/docs/components-buttongroup--docs): two controls joined as one.
 - [Toggle](?path=/docs/components-toggle--docs) and [ToggleGroup](?path=/docs/components-togglegroup--docs): on or off, one of several views.
 - [DropdownMenu](?path=/docs/components-dropdownmenu--docs): a list of actions behind one button. [AlertDialog](?path=/docs/components-alertdialog--docs) carries the `danger` button. [Tooltip](?path=/docs/components-tooltip--docs).
-- [Forms](?path=/docs/components-forms--docs): the form the primary button submits, and `useRequired`.
+- [Forms](?path=/docs/patterns-forms--docs): the form the primary button submits, and TanStack Form validation.
 - [Pages](?path=/docs/patterns-pages--docs): where the primary sits on an index, a record, a dialog.
 
 ## Don't

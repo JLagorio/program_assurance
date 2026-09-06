@@ -25,6 +25,7 @@ const variants = ["neutral", "tinted", "bold", "gradient", "photo"] as const;
 
 /** Five sizes by five treatments; then shapes, a Person, and stacks that overflow. */
 export const AvatarMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Matrix

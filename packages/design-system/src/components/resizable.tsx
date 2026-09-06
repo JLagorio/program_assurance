@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../lib/locale";
 import { createContext, useContext, type ReactNode } from "react";
 import { Group, Panel, Separator, useDefaultLayout, type PanelSize } from "react-resizable-panels";
 
@@ -60,7 +61,12 @@ function Persisted({
 }
 
 /** Panes a reader sizes for themselves. */
-function ResizableRoot({ orientation = "horizontal", persist, className, children }: ResizableProps) {
+function ResizableRoot({
+  orientation = "horizontal",
+  persist,
+  className,
+  children,
+}: ResizableProps) {
   const groupClass = cn("flex size-full", orientation === "vertical" && "flex-col", className);
   return (
     <OrientationContext.Provider value={orientation}>
@@ -127,14 +133,17 @@ export type ResizableHandleProps = {
 };
 
 /** The hairline between two panes: drag it, or focus it and use the arrows. */
-function ResizableHandle({ label = "Resize", className }: ResizableHandleProps) {
+function ResizableHandle({ label, className }: ResizableHandleProps) {
+  const { t } = useLedgerLocale();
   const orientation = useContext(OrientationContext);
   return (
     <Separator
-      aria-label={label}
+      aria-label={label ?? t("resize")}
       className={cn(
         "relative shrink-0 border-default outline-none transition-colors duration-fast ease-standard hover:border-brand focus-visible:border-brand",
-        orientation === "horizontal" ? "w-0 cursor-col-resize border-s" : "h-0 cursor-row-resize border-t",
+        orientation === "horizontal"
+          ? "w-0 cursor-col-resize border-s"
+          : "h-0 cursor-row-resize border-t",
         className,
       )}
     >

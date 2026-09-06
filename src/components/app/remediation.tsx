@@ -134,7 +134,7 @@ export function RemediationPlanSection({
           </Grid>
 
           <Inline className="pt-050" space="space.150" alignBlock="center">
-            <span style={{ width: 240 }}>
+            <span style={{ width: 240, maxWidth: "100%" }}>
               <Progress
                 value={plan.progress}
                 tone={plan.status === "Blocked" ? "danger" : "success"}
@@ -261,7 +261,7 @@ export function RemediationPlanSection({
                   <span
                     className="shrink-0 truncate font-body-small"
                     title={t.title}
-                    style={{ width: 196 }}
+                    style={{ width: 196, maxWidth: "100%" }}
                   >
                     {t.title}
                   </span>
@@ -295,7 +295,7 @@ export function RemediationPlanSection({
               );
             })}
             <Inline className="pt-075" space="space.150" alignBlock="center">
-              <span className="shrink-0" style={{ width: 196 }} />
+              <span className="shrink-0" style={{ width: 196, maxWidth: "100%" }} />
               <Inline
                 className="tabular-nums min-w-0 font-body-xsmall text-subtle"
                 as="span"

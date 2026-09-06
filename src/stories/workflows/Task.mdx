@@ -1,0 +1,136 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Task } from "@/components/app/task";
+import * as Stories from "./Task.stories";
+
+<Meta of={Stories} />
+
+# Task
+
+Application-owned workflow composition. Its states, actions and data conventions belong to this prototype; it adapts shared Ledger patterns for presentation and interaction.
+
+The atom of the work: a verb, an object, a name and a date. A task is asked on a record, listed on that record and in the assignee's queue, and it closes when what it asked for exists. **Task** is one row: the box, the ask, then who has it, when it is due and what it waits on. **Task.List** stacks them with the empty state when there are none.
+
+A row is one line. Done is a line through the title and nothing else. Waiting is the one badge, because a question sent is not a question answered.
+
+<Canvas of={Stories.Tasks} />
+
+## Anatomy
+
+| Part     | What it is                                                                                                                                                                       |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Box      | A Checkbox in the [Item](http://localhost:6007/?path=/docs/components-item--docs)'s leading slot, named "Complete: " or "Reopen: " and the title. Absent without `onDoneChange`. |
+| Title    | The ask, `font.body`, one line; the link or button of the row when it opens. Struck through when done.                                                                           |
+| Subject  | Inline after the title, subtle: the record it sits on, when the list spans records.                                                                                              |
+| Assignee | At the end, a Person: the `xsmall` Avatar and the name, subtle.                                                                                                                  |
+| Due      | After the assignee, tabular: as the reader would say it. Danger and weight 500 when overdue.                                                                                     |
+| Badge    | Last: "Waiting on Name" in information, "Blocked" in danger. Nothing for open or done.                                                                                           |
+| Actions  | Buttons at the row's end, beside the row's link, never inside it.                                                                                                                |
+| List     | An Item.Group: hairlines between rows, a heading with a Count and one action, the Empty when there are none.                                                                     |
+
+## Variants
+
+One row, listed two ways. **On a record**, the rows are that record's tasks and the subject is not shown. **In a queue**, the list spans records and every row says where it sits with `subject`. Both are the same Task.
+
+<Canvas of={Stories.InAQueue} />
+
+A task is not a card, a percent or a Gantt bar. A plan with dates across time is a [Timeline](http://localhost:6007/?path=/docs/components-timeline--docs) or a Stepper; a checklist with met and unmet conditions is [Gates](http://localhost:6007/?path=/docs/components-gates--docs).
+
+## Sizes
+
+One row height, the Item's, so a task list is one rhythm with the Related rows and the Activity feed beside it. `size="compact"` on the List tightens the rows for a rail.
+
+## States
+
+| State   | Look                                                                                                                |
+| ------- | ------------------------------------------------------------------------------------------------------------------- |
+| Open    | The default. The box empty, the title in `color.text`, no badge.                                                    |
+| Waiting | The box empty and "Waiting on Name" at the end. Asked and not answered.                                             |
+| Blocked | The box empty and "Blocked" at the end.                                                                             |
+| Done    | The box checked and the title struck through in `color.text.subtle`. No badge.                                      |
+| Overdue | Past due and not done: the due in `color.text.danger`, weight 500. A modifier on the three open states.             |
+| Opens   | With `link` or `onSelect` the title stretches over the row and tints under the pointer; the box stays its own stop. |
+
+<Canvas of={Stories.Interactive} />
+
+<Canvas of={Stories.TaskMatrix} />
+
+## Modifiers
+
+- **`state`**, as in States.
+- **`onDoneChange`**: the box. Without it, a list the reader only reads.
+- **`assignee`**, **`due`**, **`dueDateTime`**, **`overdue`**, **`waitingOn`**, as in Anatomy.
+- **`subject`**: where it sits, in a queue.
+- **`link`** or **`onSelect`**: the row opens the record it sits on.
+- **`actions`**: reassign, a menu.
+- On the List: **`title`**, **`count`**, **`action`**, **`empty`**, **`size`**, **`flush`** inside a Card.
+
+## Content
+
+- **The title is a verb and an object:** "Confirm the account review procedure", "Link the IdP's quarterly report". Not a control id, not a noun alone, not a sentence with a because.
+- **One line.** What the ask is about lives on the record the task sits on; a task that needs a paragraph is a note with a task under it.
+- **The due date is a day,** as the reader would say it: "Today", "Fri 4 Sep", "3d overdue". Not a timestamp.
+- **Waiting names the person.** "Waiting on Joel Barrantes", so the reader knows who to nudge.
+- **Done is quiet.** The struck title is the whole message. No badge, no percent, no confetti.
+- **Empty says what fills it:** "No tasks. Ask for something from the log bar."
+- **Open first, then waiting, then done,** and done folded when there are many.
+
+## Style
+
+| Element  | Token                                                                                                     |
+| -------- | --------------------------------------------------------------------------------------------------------- |
+| Row      | The Item's: `space.100` block · hairline `color.border` · hover `color.background.neutral.subtle.hovered` |
+| Title    | `font.body` · `color.text` · `color.text.subtle` and line-through when done                               |
+| Subject  | `font.body.small` · `color.text.subtle`                                                                   |
+| Assignee | Person: Avatar `xsmall` · `font.body.small` · `color.text.subtle`                                         |
+| Due      | `font.body.small` tabular · `color.text.subtle` · `color.text.danger` at weight 500 overdue               |
+| Badge    | Badge `xsmall` · information for waiting · danger for blocked                                             |
+| Trailing | `space.150` between the assignee, the due and the badge                                                   |
+
+## Accessibility
+
+- **The box is a checkbox** named "Complete: " or "Reopen: " and the title, so a screen reader hears what it completes. It is its own stop beside the row's link.
+- **The list is the Item.Group's list,** named by its heading or `labelledBy`.
+- **The due is a `<time>`** when `dueDateTime` is given.
+- **Waiting and Blocked are text** in the badge, not colour alone. Overdue is the danger colour and weight 500, and the word "overdue" in the due when the caller writes it that way.
+- **Keyboard:** Tab reaches the box, then the row's link or button, then its actions. Space toggles the box.
+- **The a11y gate** checks the matrix: the boxes' names, the list's role, the contrast of the struck title.
+
+## Props
+
+<ArgTypes of={Task} />
+
+### Task.List
+
+By hand until the generated tables reach a part:
+
+| Prop         | Type        | What it is                                                |
+| ------------ | ----------- | --------------------------------------------------------- |
+| `title`      | `ReactNode` | A heading over the rows.                                  |
+| `count`      | `number`    | A Count after the title.                                  |
+| `action`     | `ReactNode` | At the end of the heading's line: "Add task".             |
+| `empty`      | `ReactNode` | When there are none. A string is a compact Empty's title. |
+| `size`       | `ItemSize`  | `compact` for a rail.                                     |
+| `flush`      | `boolean`   | Rows edge to edge, inside a Card.                         |
+| `labelledBy` | `string`    | An outside heading's id.                                  |
+| `children`   | `ReactNode` | Task rows.                                                |
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+This product maps its task vocabulary onto shared [TaskRow](http://localhost:6007/?path=/docs/patterns-taskrow--docs): completion is a boolean, status is rendered content, and overdue styling is a product decision.
+
+## Related
+
+- [Activity](?path=/docs/product-workflows-activity--docs): the feed a task is asked from and the `done` event that closes it.
+- [Item](http://localhost:6007/?path=/docs/components-item--docs): the row underneath.
+- [Gates](http://localhost:6007/?path=/docs/components-gates--docs): met and unmet conditions, which is what a task born from a gate closes.
+- [Related](http://localhost:6007/?path=/docs/patterns-related--docs): the card the list sits in on a page.
+- [Forms](http://localhost:6007/?path=/docs/patterns-forms--docs): the Checkbox.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

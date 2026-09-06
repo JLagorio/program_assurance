@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../lib/locale";
 import * as ToggleGroupPrimitive from "@radix-ui/react-toggle-group";
 import * as TogglePrimitive from "@radix-ui/react-toggle";
 import {
@@ -115,6 +116,8 @@ export type ToggleGroupItem<T extends string> = {
 };
 
 export type ToggleGroupProps<T extends string> = {
+  /** Reading and keyboard direction; defaults to the surrounding LedgerProvider. */
+  dir?: "ltr" | "rtl" | undefined;
   /** The views, two to five. */
   items: ToggleGroupItem<T>[];
   /** The view that is on. Exactly one always is. */
@@ -129,6 +132,7 @@ export type ToggleGroupProps<T extends string> = {
 
 /** One of several views or modes, always exactly one on: table or board, all or open, week or month. The recessed segmented control. */
 export function ToggleGroup<T extends string>({
+  dir,
   items,
   value,
   onChange,
@@ -136,9 +140,11 @@ export function ToggleGroup<T extends string>({
   "aria-label": ariaLabel,
   className,
 }: ToggleGroupProps<T>) {
+  const { direction } = useLedgerLocale();
   const s = groupSizes[size];
   return (
     <ToggleGroupPrimitive.Root
+      dir={dir ?? direction}
       type="single"
       value={value}
       onValueChange={(next) => {

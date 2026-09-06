@@ -218,7 +218,7 @@ export function TailorControlsSheet({
           <Text size="small" color="color.text.subtle">
             Apply to all
           </Text>
-          <Box style={{ width: 200 }}>
+          <Box style={{ width: 200, maxWidth: "100%" }}>
             <NativeSelect
               aria-label="Source for all"
               size="small"

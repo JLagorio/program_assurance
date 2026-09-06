@@ -78,10 +78,12 @@ function AlertDialogStates() {
 }
 
 /** Every state one click away, since an open dialog covers the page: primary, danger, pending while it saves, and with one control the decision needs. */
-export const AlertDialogMatrix: Story = { render: () => <AlertDialogStates /> };
+export const AlertDialogMatrix: Story = {
+  tags: ["contract"], render: () => <AlertDialogStates /> };
 
 /** A danger decision, held open. Focus is on Cancel. */
 export const OpenMatrix: Story = {
+  tags: ["contract"],
   name: "Open",
   parameters: modalOpen,
   render: () => (

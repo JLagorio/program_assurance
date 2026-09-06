@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, type SetStateAction, useEffect, useMemo, useState } from "react";
+import { useRecordForm } from "@/lib/record-form";
 import { Link } from "@tanstack/react-router";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 
@@ -28,7 +29,6 @@ import {
   Textarea,
   TextLink,
   Timeline,
-  useRequired,
 } from "@ledger/design-system";
 import {
   formatOscalDate,
@@ -181,7 +181,7 @@ export function PoamSection({
       >
         <Inline className="pb-150 pt-150" space="space.100" alignBlock="center" shouldWrap>
           {filters.map((f) => (
-            <button key={f} onClick={() => setFilter(f)}>
+            <button key={f} type="button" aria-pressed={filter === f} onClick={() => setFilter(f)}>
               <Inline
                 as="span"
                 display="inline-flex"
@@ -672,9 +672,21 @@ function PoamEditModal({
   onSave: (next: PoamItem) => void;
   onDelete: () => void;
 }) {
-  const [draft, setDraft] = useState<PoamItem | null>(item);
-  const req = useRequired({ title: draft?.title });
-  useEffect(() => setDraft(item), [item]);
+  const { form, values, setValue, formId, formRef } = useRecordForm(
+    {
+      draft: item as PoamItem | null,
+    },
+    (value) => ({ "draft.title": value.draft?.title }),
+  );
+  const { draft } = values;
+  const setDraft = useCallback(
+    (value: SetStateAction<typeof draft>) => setValue("draft", value),
+    [setValue],
+  );
+
+  useEffect(() => {
+    form.reset({ draft: item });
+  }, [item, form]);
 
   if (!item || !draft) return null;
 
@@ -724,24 +736,27 @@ function PoamEditModal({
     setDraft((d) => (d ? { ...d, props: d.props.filter((_, n) => n !== index) } : d));
 
   const save = () => {
-    if (!req.check()) return;
-    const cleanedProps = draft.props
-      .map((p) => ({ ...p, name: p.name.trim(), value: p.value.trim() }))
-      .filter((p) => p.name.length > 0);
-    const cleanedMilestones = draft.milestones
-      .filter((m) => m.title.trim().length > 0)
-      .map((m) => ({
-        ...m,
-        title: m.title.trim(),
-        completedDate: m.status === "Completed" ? (m.completedDate ?? m.targetDate) : null,
-      }));
-    onSave({
-      ...draft,
-      title: draft.title.trim(),
-      props: cleanedProps,
-      milestones: cleanedMilestones,
-      // uuid, poamId, published, links, observations and risk links are preserved
-      lastModified: nowOscal(),
+    return form.handleSubmit({
+      save: () => {
+        const cleanedProps = draft.props
+          .map((p) => ({ ...p, name: p.name.trim(), value: p.value.trim() }))
+          .filter((p) => p.name.length > 0);
+        const cleanedMilestones = draft.milestones
+          .filter((m) => m.title.trim().length > 0)
+          .map((m) => ({
+            ...m,
+            title: m.title.trim(),
+            completedDate: m.status === "Completed" ? (m.completedDate ?? m.targetDate) : null,
+          }));
+        onSave({
+          ...draft,
+          title: draft.title.trim(),
+          props: cleanedProps,
+          milestones: cleanedMilestones,
+          // uuid, poamId, published, links, observations and risk links are preserved
+          lastModified: nowOscal(),
+        });
+      },
     });
   };
 
@@ -766,7 +781,12 @@ function PoamEditModal({
           <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={save}>
+          <Button
+            variant="primary"
+            type="submit"
+            form={formId + "-1"}
+            disabled={form.state.isSubmitting}
+          >
             Save changes
           </Button>
         </>
@@ -796,212 +816,338 @@ function PoamEditModal({
         </div>
       }
     >
-      <Stack space="space.150">
-        <Field
-          isRequired
-          error={req.errorFor("title")}
-          label="Weakness title"
-          hint="markup-line — appears as the poam-item title."
-        >
-          <Input autoFocus value={draft.title} onChange={(e) => set("title", e.target.value)} />
-        </Field>
-        <Field label="Description" hint="markup-multiline">
-          <Textarea
-            value={draft.description}
-            onChange={(e) => set("description", e.target.value)}
-          />
-        </Field>
-        <Field label="Remarks" hint="markup-multiline — compensating controls, AO notes.">
-          <Textarea value={draft.remarks} onChange={(e) => set("remarks", e.target.value)} />
-        </Field>
+      <form
+        id={formId + "-1"}
+        ref={formRef}
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          void save();
+        }}
+      >
+        <Stack space="space.150">
+          <form.Field name="draft.title">
+            {(field) => (
+              <Field
+                isRequired
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+                label="Weakness title"
+                hint="markup-line — appears as the poam-item title."
+              >
+                <Input
+                  autoFocus
+                  value={field.state.value ?? ""}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="draft.description">
+            {(field) => (
+              <Field
+                label="Description"
+                hint="markup-multiline"
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+              >
+                <Textarea
+                  value={field.state.value ?? ""}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="draft.remarks">
+            {(field) => (
+              <Field
+                label="Remarks"
+                hint="markup-multiline — compensating controls, AO notes."
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+              >
+                <Textarea
+                  value={field.state.value ?? ""}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
 
-        <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
-          <Field label="Controls" hint="token list">
-            <Input
-              value={draft.controls.join(", ")}
-              onChange={(e) =>
-                set(
-                  "controls",
-                  e.target.value
-                    .split(",")
-                    .map((c) => c.trim())
-                    .filter(Boolean),
-                )
-              }
-            />
-          </Field>
-          <Field label="Severity">
-            <NativeSelect
-              value={draft.severity}
-              onChange={(e) => set("severity", e.target.value as PoamSeverity)}
-            >
-              {severities.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field label="Status">
-            <NativeSelect
-              value={draft.status}
-              onChange={(e) => set("status", e.target.value as PoamStatus)}
-            >
-              {statuses.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-        </Grid>
-
-        <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
-          <Field label="Scheduled completion" hint="date-time-with-timezone">
-            <DatePicker
-              value={toDateInput(draft.scheduledCompletion)}
-              onChange={(iso) => set("scheduledCompletion", toOscalDateTime(iso))}
-            />
-          </Field>
-          <Field label="Point of contact">
-            <NativeSelect
-              value={draft.pointOfContact}
-              onChange={(e) => set("pointOfContact", e.target.value)}
-            >
-              {[draft.pointOfContact, ...contacts.filter((c) => c !== draft.pointOfContact)].map(
-                (c) => (
-                  <option key={c}>{c}</option>
-                ),
+          <Grid
+            gap="space.150"
+            templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
+          >
+            <Field label="Controls" hint="token list">
+              <Input
+                value={draft.controls.join(", ")}
+                onChange={(e) =>
+                  set(
+                    "controls",
+                    e.target.value
+                      .split(",")
+                      .map((c) => c.trim())
+                      .filter(Boolean),
+                  )
+                }
+              />
+            </Field>
+            <form.Field name="draft.severity">
+              {(field) => (
+                <Field
+                  label="Severity"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value ?? ""}
+                    onChange={(e) => field.handleChange(e.target.value as PoamSeverity)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {severities.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
               )}
-            </NativeSelect>
-          </Field>
-          <Field label="Detection source">
-            <NativeSelect
-              value={draft.detectionSource}
-              onChange={(e) => set("detectionSource", e.target.value)}
+            </form.Field>
+            <form.Field name="draft.status">
+              {(field) => (
+                <Field
+                  label="Status"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value ?? ""}
+                    onChange={(e) => field.handleChange(e.target.value as PoamStatus)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {statuses.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+          </Grid>
+
+          <Grid
+            gap="space.150"
+            templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
+          >
+            <Field label="Scheduled completion" hint="date-time-with-timezone">
+              <DatePicker
+                value={toDateInput(draft.scheduledCompletion)}
+                onChange={(iso) => set("scheduledCompletion", toOscalDateTime(iso))}
+              />
+            </Field>
+            <form.Field name="draft.pointOfContact">
+              {(field) => (
+                <Field
+                  label="Point of contact"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value ?? ""}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {[
+                      draft.pointOfContact,
+                      ...contacts.filter((c) => c !== draft.pointOfContact),
+                    ].map((c) => (
+                      <option key={c}>{c}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="draft.detectionSource">
+              {(field) => (
+                <Field
+                  label="Detection source"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value ?? ""}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {[
+                      draft.detectionSource,
+                      ...detectionSources.filter((s) => s !== draft.detectionSource),
+                    ].map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+          </Grid>
+
+          {/* Milestones */}
+          <div>
+            <Inline
+              className="border-b border-default pb-100"
+              alignBlock="center"
+              spread="space-between"
             >
-              {[
-                draft.detectionSource,
-                ...detectionSources.filter((s) => s !== draft.detectionSource),
-              ].map((s) => (
-                <option key={s}>{s}</option>
+              <span className="font-body font-semibold">Milestones</span>
+              <Button variant="link" onClick={addMilestone} iconBefore={<Plus />}>
+                Add milestone
+              </Button>
+            </Inline>
+            <Box paddingBlockStart="space.050">
+              {draft.milestones.map((m) => (
+                <Grid
+                  key={m.uuid}
+                  className="border-b border-default py-100 last:border-0"
+                  gap="space.100"
+                  templateColumns={{
+                    base: "minmax(0,1fr)",
+                    md: "42px minmax(0,1fr) 128px 132px 24px",
+                  }}
+                  alignItems="center"
+                >
+                  <Id className="font-body-small text-subtle">{m.id}</Id>
+                  <Input
+                    aria-label={`Milestone ${m.id} title`}
+                    value={m.title}
+                    placeholder="Milestone title"
+                    onChange={(e) => setMilestone(m.uuid, { title: e.target.value })}
+                  />
+                  <NativeSelect
+                    aria-label={`Milestone ${m.id} status`}
+                    value={m.status}
+                    onChange={(e) =>
+                      setMilestone(m.uuid, { status: e.target.value as MilestoneStatus })
+                    }
+                  >
+                    {milestoneStatuses.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </NativeSelect>
+                  <DatePicker
+                    aria-label={`Milestone ${m.id} date`}
+                    value={toDateInput(m.completedDate ?? m.targetDate)}
+                    onChange={(iso) =>
+                      setMilestone(
+                        m.uuid,
+                        m.status === "Completed"
+                          ? { completedDate: toOscalDateTime(iso) }
+                          : { targetDate: toOscalDateTime(iso) },
+                      )
+                    }
+                  />
+                  <button
+                    aria-label={`Remove milestone ${m.id}`}
+                    className="inline-flex items-center justify-center rounded-medium text-subtle transition-colors hover:bg-danger hover:text-danger size-300"
+                    onClick={() => removeMilestone(m.uuid)}
+                  >
+                    <X className="size-icon-small" />
+                  </button>
+                </Grid>
               ))}
-            </NativeSelect>
-          </Field>
-        </Grid>
+              {draft.milestones.length === 0 ? (
+                <p className="py-100 font-body text-subtle">
+                  No milestones. Add one to track intermediate progress.
+                </p>
+              ) : null}
+            </Box>
+          </div>
 
-        {/* Milestones */}
-        <div>
-          <Inline
-            className="border-b border-default pb-100"
-            alignBlock="center"
-            spread="space-between"
-          >
-            <span className="font-body font-semibold">Milestones</span>
-            <Button variant="link" onClick={addMilestone} iconBefore={<Plus />}>
-              Add milestone
-            </Button>
-          </Inline>
-          <Box paddingBlockStart="space.050">
-            {draft.milestones.map((m) => (
-              <Grid
-                key={m.uuid}
-                className="border-b border-default py-100 last:border-0"
-                gap="space.100"
-                templateColumns="42px minmax(0,1fr) 128px 132px 24px"
-                alignItems="center"
-              >
-                <Id className="font-body-small text-subtle">{m.id}</Id>
-                <Input
-                  value={m.title}
-                  placeholder="Milestone title"
-                  onChange={(e) => setMilestone(m.uuid, { title: e.target.value })}
-                />
-                <NativeSelect
-                  value={m.status}
-                  onChange={(e) =>
-                    setMilestone(m.uuid, { status: e.target.value as MilestoneStatus })
-                  }
+          {/* Props */}
+          <div>
+            <Inline
+              className="border-b border-default pb-100"
+              alignBlock="center"
+              spread="space-between"
+            >
+              <span className="font-body font-semibold">Props</span>
+              <Button variant="link" onClick={addProp} iconBefore={<Plus />}>
+                Add prop
+              </Button>
+            </Inline>
+            <Box paddingBlockStart="space.050">
+              {draft.props.map((p, n) => (
+                <Grid
+                  key={n}
+                  className="border-b border-default py-100 last:border-0"
+                  gap="space.100"
+                  templateColumns={{
+                    base: "minmax(0,1fr)",
+                    md: "minmax(0,180px) minmax(0,1fr) minmax(0,120px) 24px",
+                  }}
+                  alignItems="center"
                 >
-                  {milestoneStatuses.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </NativeSelect>
-                <DatePicker
-                  value={toDateInput(m.completedDate ?? m.targetDate)}
-                  onChange={(iso) =>
-                    setMilestone(
-                      m.uuid,
-                      m.status === "Completed"
-                        ? { completedDate: toOscalDateTime(iso) }
-                        : { targetDate: toOscalDateTime(iso) },
-                    )
-                  }
-                />
-                <button
-                  aria-label={`Remove milestone ${m.id}`}
-                  className="inline-flex items-center justify-center rounded-medium text-subtle transition-colors hover:bg-danger hover:text-danger size-300"
-                  onClick={() => removeMilestone(m.uuid)}
-                >
-                  <X className="size-icon-small" />
-                </button>
-              </Grid>
-            ))}
-            {draft.milestones.length === 0 ? (
-              <p className="py-100 font-body text-subtle">
-                No milestones. Add one to track intermediate progress.
-              </p>
-            ) : null}
-          </Box>
-        </div>
-
-        {/* Props */}
-        <div>
-          <Inline
-            className="border-b border-default pb-100"
-            alignBlock="center"
-            spread="space-between"
-          >
-            <span className="font-body font-semibold">Props</span>
-            <Button variant="link" onClick={addProp} iconBefore={<Plus />}>
-              Add prop
-            </Button>
-          </Inline>
-          <Box paddingBlockStart="space.050">
-            {draft.props.map((p, n) => (
-              <Grid
-                key={n}
-                className="border-b border-default py-100 last:border-0"
-                gap="space.100"
-                templateColumns="minmax(0,180px) minmax(0,1fr) minmax(0,120px) 24px"
-                alignItems="center"
-              >
-                <Input
-                  value={p.name}
-                  placeholder="name (token)"
-                  onChange={(e) => setProp(n, { name: e.target.value })}
-                />
-                <Input
-                  value={p.value}
-                  placeholder="value"
-                  onChange={(e) => setProp(n, { value: e.target.value })}
-                />
-                <Input
-                  value={p.class ?? ""}
-                  placeholder="class"
-                  onChange={(e) => setProp(n, { class: e.target.value })}
-                />
-                <button
-                  aria-label={`Remove prop ${p.name || n + 1}`}
-                  className="inline-flex items-center justify-center rounded-medium text-subtle transition-colors hover:bg-danger hover:text-danger size-300"
-                  onClick={() => removeProp(n)}
-                >
-                  <X className="size-icon-small" />
-                </button>
-              </Grid>
-            ))}
-            {draft.props.length === 0 ? (
-              <p className="py-100 font-body text-subtle">No props on this item.</p>
-            ) : null}
-          </Box>
-        </div>
-      </Stack>
+                  <Input
+                    aria-label={`Property ${n + 1} name`}
+                    value={p.name}
+                    placeholder="name (token)"
+                    onChange={(e) => setProp(n, { name: e.target.value })}
+                  />
+                  <Input
+                    aria-label={`Property ${n + 1} value`}
+                    value={p.value}
+                    placeholder="value"
+                    onChange={(e) => setProp(n, { value: e.target.value })}
+                  />
+                  <Input
+                    aria-label={`Property ${n + 1} class`}
+                    value={p.class ?? ""}
+                    placeholder="class"
+                    onChange={(e) => setProp(n, { class: e.target.value })}
+                  />
+                  <button
+                    aria-label={`Remove prop ${p.name || n + 1}`}
+                    className="inline-flex items-center justify-center rounded-medium text-subtle transition-colors hover:bg-danger hover:text-danger size-300"
+                    onClick={() => removeProp(n)}
+                  >
+                    <X className="size-icon-small" />
+                  </button>
+                </Grid>
+              ))}
+              {draft.props.length === 0 ? (
+                <p className="py-100 font-body text-subtle">No props on this item.</p>
+              ) : null}
+            </Box>
+          </div>
+        </Stack>
+      </form>
     </Dialog>
   );
 }
@@ -1073,64 +1219,105 @@ function PoamCreateModal({
   nextId: string;
   onCreate: (item: PoamItem) => void;
 }) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [control, setControl] = useState(programControls[0]?.id ?? "AC-2");
-  const [severity, setSeverity] = useState<PoamSeverity>("Moderate");
-  const [status, setStatus] = useState<PoamStatus>("Open");
-  const [scheduled, setScheduled] = useState("2026-10-31");
-  const [source, setSource] = useState("Security assessment");
-  const [contact, setContact] = useState(defaultOwner);
-  const [marking, setMarking] = useState("CUI");
-  const [milestone, setMilestone] = useState("");
-  const [milestoneDate, setMilestoneDate] = useState("2026-09-30");
-  const [riskId, setRiskId] = useState("");
-  const req = useRequired({ title, control, contact });
+  const { form, values, setValue, formId, formRef } = useRecordForm(
+    {
+      title: "",
+      description: "",
+      control: programControls[0]?.id ?? "AC-2",
+      severity: "Moderate" as PoamSeverity,
+      status: "Open" as PoamStatus,
+      scheduled: "2026-10-31",
+      source: "Security assessment",
+      contact: defaultOwner,
+      marking: "CUI",
+      milestone: "",
+      milestoneDate: "2026-09-30",
+      riskId: "",
+    },
+    (value) => ({ title: value.title, control: value.control, contact: value.contact }),
+  );
+  const {
+    title,
+    description,
+    control,
+    severity,
+    status,
+    scheduled,
+    source,
+    contact,
+    marking,
+    milestone,
+    milestoneDate,
+    riskId,
+  } = values;
+  const setTitle = useCallback(
+    (value: SetStateAction<typeof title>) => setValue("title", value),
+    [setValue],
+  );
+  const setDescription = useCallback(
+    (value: SetStateAction<typeof description>) => setValue("description", value),
+    [setValue],
+  );
+
+  const setMilestone = useCallback(
+    (value: SetStateAction<typeof milestone>) => setValue("milestone", value),
+    [setValue],
+  );
+
+  const setRiskId = useCallback(
+    (value: SetStateAction<typeof riskId>) => setValue("riskId", value),
+    [setValue],
+  );
 
   const create = () => {
-    if (!req.check()) return;
-    const item: PoamItem = {
-      uuid: uuid(),
-      programId,
-      poamId: nextId,
-      title: title.trim(),
-      description: description.trim(),
-      remarks: "",
-      status,
-      severity,
-      controls: [control],
-      origin: contact,
-      detectionSource: source,
-      pointOfContact: contact,
-      published: nowOscal(),
-      lastModified: nowOscal(),
-      scheduledCompletion: toOscalDateTime(scheduled),
-      props: [
-        { name: "marking", value: marking, class: "banner" },
-        { name: "weakness-source", value: source, ns: "https://equinox.example/ns/oscal" },
-      ],
-      milestones: milestone.trim()
-        ? [
-            {
-              uuid: uuid(),
-              id: "MS-01",
-              title: milestone.trim(),
-              description: "",
-              targetDate: toOscalDateTime(milestoneDate),
-              completedDate: null,
-              status: "Planned",
-            },
-          ]
-        : [],
-      relatedObservations: [],
-      associatedRisks: riskId ? [{ riskUuid: uuid(), riskId, title: `Linked risk ${riskId}` }] : [],
-      links: [],
-    };
-    onCreate(item);
-    setTitle("");
-    setDescription("");
-    setMilestone("");
-    setRiskId("");
+    return form.handleSubmit({
+      save: () => {
+        const item: PoamItem = {
+          uuid: uuid(),
+          programId,
+          poamId: nextId,
+          title: title.trim(),
+          description: description.trim(),
+          remarks: "",
+          status,
+          severity,
+          controls: [control],
+          origin: contact,
+          detectionSource: source,
+          pointOfContact: contact,
+          published: nowOscal(),
+          lastModified: nowOscal(),
+          scheduledCompletion: toOscalDateTime(scheduled),
+          props: [
+            { name: "marking", value: marking, class: "banner" },
+            { name: "weakness-source", value: source, ns: "https://equinox.example/ns/oscal" },
+          ],
+          milestones: milestone.trim()
+            ? [
+                {
+                  uuid: uuid(),
+                  id: "MS-01",
+                  title: milestone.trim(),
+                  description: "",
+                  targetDate: toOscalDateTime(milestoneDate),
+                  completedDate: null,
+                  status: "Planned",
+                },
+              ]
+            : [],
+          relatedObservations: [],
+          associatedRisks: riskId
+            ? [{ riskUuid: uuid(), riskId, title: `Linked risk ${riskId}` }]
+            : [],
+          links: [],
+        };
+        onCreate(item);
+        setTitle("");
+        setDescription("");
+        setMilestone("");
+        setRiskId("");
+      },
+    });
   };
 
   return (
@@ -1145,7 +1332,12 @@ function PoamCreateModal({
           <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={create}>
+          <Button
+            variant="primary"
+            type="submit"
+            form={formId + "-2"}
+            disabled={form.state.isSubmitting}
+          >
             Create item
           </Button>
         </>
@@ -1196,108 +1388,306 @@ function PoamCreateModal({
         </div>
       }
     >
-      <Stack space="space.150">
-        <Field
-          isRequired
-          error={req.errorFor("title")}
-          label="Weakness title"
-          hint="markup-line — appears as the poam-item title."
-        >
-          <Input
-            autoFocus
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Privileged function invocations are not forwarded to the audit sink"
-          />
-        </Field>
-        <Field
-          label="Description"
-          hint="markup-multiline — the weakness as it will read to the AO."
-        >
-          <Textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describe the weakness, the affected component, and the sampling that identified it."
-          />
-        </Field>
-        <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
-          <Field isRequired error={req.errorFor("control")} label="Control">
-            <NativeSelect value={control} onChange={(e) => setControl(e.target.value)}>
-              {programControls.map((c) => (
-                <option key={c.id}>{c.id}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field label="Severity">
-            <NativeSelect
-              value={severity}
-              onChange={(e) => setSeverity(e.target.value as PoamSeverity)}
-            >
-              {severities.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field label="Status">
-            <NativeSelect value={status} onChange={(e) => setStatus(e.target.value as PoamStatus)}>
-              <option>Open</option>
-              <option>Ongoing</option>
-              <option>Risk accepted</option>
-              <option>Deferred</option>
-            </NativeSelect>
-          </Field>
-        </Grid>
-        <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
-          <Field label="Scheduled completion">
-            <DatePicker value={scheduled} onChange={setScheduled} />
-          </Field>
-          <Field isRequired error={req.errorFor("contact")} label="Point of contact">
-            <NativeSelect value={contact} onChange={(e) => setContact(e.target.value)}>
-              {[defaultOwner, ...contacts.filter((c) => c !== defaultOwner)].map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field label="Marking">
-            <NativeSelect value={marking} onChange={(e) => setMarking(e.target.value)}>
-              <option>CUI</option>
-              <option>CUI//SP-PRIV</option>
-              <option>CUI//SP-PRVCY</option>
-              <option>Unclassified</option>
-            </NativeSelect>
-          </Field>
-        </Grid>
-        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-          <Field label="Detection source">
-            <NativeSelect value={source} onChange={(e) => setSource(e.target.value)}>
-              {detectionSources.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field label="Associated risk" hint="Links the item to a risk exposure entry.">
-            <NativeSelect value={riskId} onChange={(e) => setRiskId(e.target.value)}>
-              <option value="">None</option>
-              <option>RSK-2419</option>
-              <option>RSK-2402</option>
-              <option>RSK-2388</option>
-              <option>RSK-2290</option>
-            </NativeSelect>
-          </Field>
-        </Grid>
-        <Grid gap="space.150" templateColumns="minmax(0,1fr) 160px">
-          <Field label="First milestone" hint="Additional milestones can be added after creation.">
-            <Input
-              value={milestone}
-              onChange={(e) => setMilestone(e.target.value)}
-              placeholder="Deploy audit forwarder to broker nodes"
-            />
-          </Field>
-          <Field label="Target date">
-            <DatePicker value={milestoneDate} onChange={setMilestoneDate} />
-          </Field>
-        </Grid>
-      </Stack>
+      <form
+        id={formId + "-2"}
+        ref={formRef}
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          void create();
+        }}
+      >
+        <Stack space="space.150">
+          <form.Field name="title">
+            {(field) => (
+              <Field
+                isRequired
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+                label="Weakness title"
+                hint="markup-line — appears as the poam-item title."
+              >
+                <Input
+                  autoFocus
+                  value={field.state.value ?? ""}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Privileged function invocations are not forwarded to the audit sink"
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="description">
+            {(field) => (
+              <Field
+                label="Description"
+                hint="markup-multiline — the weakness as it will read to the AO."
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+              >
+                <Textarea
+                  value={field.state.value ?? ""}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Describe the weakness, the affected component, and the sampling that identified it."
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+          <Grid
+            gap="space.150"
+            templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
+          >
+            <form.Field name="control">
+              {(field) => (
+                <Field
+                  isRequired
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                  label="Control"
+                >
+                  <NativeSelect
+                    value={field.state.value ?? ""}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {programControls.map((c) => (
+                      <option key={c.id}>{c.id}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="severity">
+              {(field) => (
+                <Field
+                  label="Severity"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value ?? ""}
+                    onChange={(e) => field.handleChange(e.target.value as PoamSeverity)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {severities.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="status">
+              {(field) => (
+                <Field
+                  label="Status"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value ?? ""}
+                    onChange={(e) => field.handleChange(e.target.value as PoamStatus)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    <option>Open</option>
+                    <option>Ongoing</option>
+                    <option>Risk accepted</option>
+                    <option>Deferred</option>
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+          </Grid>
+          <Grid
+            gap="space.150"
+            templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
+          >
+            <form.Field name="scheduled">
+              {(field) => (
+                <Field
+                  label="Scheduled completion"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <DatePicker
+                    value={field.state.value ?? ""}
+                    onChange={field.handleChange}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  />
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="contact">
+              {(field) => (
+                <Field
+                  isRequired
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                  label="Point of contact"
+                >
+                  <NativeSelect
+                    value={field.state.value ?? ""}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {[defaultOwner, ...contacts.filter((c) => c !== defaultOwner)].map((c) => (
+                      <option key={c}>{c}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="marking">
+              {(field) => (
+                <Field
+                  label="Marking"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value ?? ""}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    <option>CUI</option>
+                    <option>CUI//SP-PRIV</option>
+                    <option>CUI//SP-PRVCY</option>
+                    <option>Unclassified</option>
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+          </Grid>
+          <Grid
+            gap="space.150"
+            templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
+          >
+            <form.Field name="source">
+              {(field) => (
+                <Field
+                  label="Detection source"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value ?? ""}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {detectionSources.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="riskId">
+              {(field) => (
+                <Field
+                  label="Associated risk"
+                  hint="Links the item to a risk exposure entry."
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value ?? ""}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    <option value="">None</option>
+                    <option>RSK-2419</option>
+                    <option>RSK-2402</option>
+                    <option>RSK-2388</option>
+                    <option>RSK-2290</option>
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+          </Grid>
+          <Grid gap="space.150" templateColumns="minmax(0,1fr) 160px">
+            <form.Field name="milestone">
+              {(field) => (
+                <Field
+                  label="First milestone"
+                  hint="Additional milestones can be added after creation."
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <Input
+                    value={field.state.value ?? ""}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Deploy audit forwarder to broker nodes"
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  />
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="milestoneDate">
+              {(field) => (
+                <Field
+                  label="Target date"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <DatePicker
+                    value={field.state.value ?? ""}
+                    onChange={field.handleChange}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  />
+                </Field>
+              )}
+            </form.Field>
+          </Grid>
+        </Stack>
+      </form>
     </Dialog>
   );
 }

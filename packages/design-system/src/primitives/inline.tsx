@@ -87,7 +87,7 @@ export function Inline({
       )}
       {...rest}
     >
-      {separator
+      {separator && as !== "ul" && as !== "ol"
         ? items.map((child, i) => (
             <Fragment key={i}>
               {child}

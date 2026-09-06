@@ -31,6 +31,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Depth, guide lines, an open and a closed branch, a leaf, the selected row and a trailing slot; then the same tree at xsmall, and one with icons. */
 export const TreeMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="small (32px), text only">
@@ -284,3 +285,56 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {};
+
+function TreeContractDemo() {
+  const [selected, setSelected] = useState("");
+  const [items, setItems] = useState(["Alpha", "Beta", "Charlie"]);
+  return (
+    <>
+      <Tree label="Keyboard hierarchy">
+        {items.map((item) => (
+          <Tree.Item
+            key={item}
+            depth={0}
+            isSelected={item === selected}
+            onSelect={() => setSelected(item)}
+            trailing={
+              <button
+                type="button"
+                onClick={() => setItems((rows) => rows.filter((row) => row !== item))}
+              >
+                Remove {item}
+              </button>
+            }
+          >
+            {item}
+          </Tree.Item>
+        ))}
+      </Tree>
+    </>
+  );
+}
+
+export const KeyboardContract: Story = {
+  tags: ["contract"],
+  render: () => <TreeContractDemo />,
+  play: async ({ canvasElement }) => {
+    const { expect, userEvent, within, waitFor } = await import("storybook/test");
+    const canvas = within(canvasElement);
+    const tree = canvas.getByRole("tree", { name: "Keyboard hierarchy" });
+    const entries = () => tree.querySelectorAll('[role="treeitem"][tabindex="0"]');
+    await expect(entries()).toHaveLength(1);
+    await userEvent.click(canvas.getByText("Beta", { exact: true }));
+    await expect(entries()).toHaveLength(1);
+    await expect(entries()[0]).toHaveAttribute("aria-selected", "true");
+    await userEvent.keyboard("c");
+    await expect(document.activeElement).toHaveTextContent("Charlie");
+    await expect(entries()).toHaveLength(1);
+    await expect(document.activeElement).toHaveAttribute("aria-posinset", "3");
+    await expect(document.activeElement).toHaveAttribute("aria-setsize", "3");
+    await userEvent.click(canvas.getByRole("button", { name: "Remove Charlie" }));
+    await waitFor(() => expect(document.activeElement).toHaveTextContent("Beta"));
+    await expect(entries()).toHaveLength(1);
+    await expect(document.activeElement).toHaveAttribute("aria-setsize", "2");
+  },
+};

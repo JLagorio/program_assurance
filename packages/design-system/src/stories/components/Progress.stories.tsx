@@ -1,3 +1,4 @@
+import { expect, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
@@ -24,6 +25,7 @@ const coverage = [
 
 /** Every tone at three values; the three sizes; the read-out; the stacked bar. */
 export const ProgressMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Matrix
@@ -105,7 +107,7 @@ export const WithValue: Story = {
         <Inline key={String(name)} space="space.150" alignBlock="center">
           <Box style={{ width: 160 }} className="shrink-0">
             <Text size="small" color="color.text.subtle" maxLines={1} className="block">
-            {name}
+              {name}
             </Text>
           </Box>
           <Progress
@@ -119,7 +121,7 @@ export const WithValue: Story = {
       <Inline space="space.150" alignBlock="center">
         <Box style={{ width: 160 }} className="shrink-0">
           <Text size="small" color="color.text.subtle" maxLines={1} className="block">
-          Remediation
+            Remediation
           </Text>
         </Box>
         <Progress value={64} tone="success" showValue valueText="64% complete" />
@@ -170,9 +172,9 @@ export const Dont: Story = {
         do={
           <Box style={{ width: 280 }}>
             <Stack space="space.100">
-            <Progress value={100} tone="success" showValue />
-            <Progress value={72} showValue />
-            <Progress value={9} tone="danger" showValue />
+              <Progress value={100} tone="success" showValue />
+              <Progress value={72} showValue />
+              <Progress value={9} tone="danger" showValue />
             </Stack>
           </Box>
         }
@@ -180,9 +182,9 @@ export const Dont: Story = {
         dont={
           <Box style={{ width: 280 }}>
             <Stack space="space.100">
-            <Progress value={100} tone="warning" showValue />
-            <Progress value={72} tone="success" showValue />
-            <Progress value={9} tone="information" showValue />
+              <Progress value={100} tone="warning" showValue />
+              <Progress value={72} tone="success" showValue />
+              <Progress value={9} tone="information" showValue />
             </Stack>
           </Box>
         }
@@ -198,9 +200,9 @@ export const Dont: Story = {
         dont={
           <Box style={{ width: 280 }}>
             <Stack space="space.100">
-            <Progress value={80} tone="success" showValue valueText="298 satisfied" />
-            <Progress value={11} tone="warning" showValue valueText="40 partial" />
-            <Progress value={7} tone="danger" showValue valueText="26 other" />
+              <Progress value={80} tone="success" showValue valueText="298 satisfied" />
+              <Progress value={11} tone="warning" showValue valueText="40 partial" />
+              <Progress value={7} tone="danger" showValue valueText="26 other" />
             </Stack>
           </Box>
         }
@@ -211,3 +213,21 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {};
+
+export const InteractiveSegmentNameContract: Story = {
+  tags: ["contract"],
+  render: () => (
+    <Progress.Stacked
+      label="Coverage"
+      segments={[
+        { key: "Reviewed", value: 4, tone: "success", onClick: () => {} },
+        { key: "pending", value: 2, tone: "warning", title: "2 pending review", onClick: () => {} },
+      ]}
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("button", { name: "Reviewed" })).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "2 pending review" })).toBeVisible();
+  },
+};

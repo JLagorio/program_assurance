@@ -8,6 +8,7 @@ import { CommandKeys } from "../lib/command-keys";
    supplies, so the palette stays presentational and every page can reuse it. */
 
 export type PaletteCommand = {
+  /** Unique command identity; labels and group headings may repeat. */
   id: string;
   /** Commands with the same group, in sequence, share a heading. */
   group: string;
@@ -65,11 +66,12 @@ export function CommandPalette({
       <Command.Input placeholder={placeholder} hint={null} />
       <Command.List>
         {groups.map(([group, items]) => (
-          <Command.Group key={group} heading={group}>
+          <Command.Group key={items[0]!.id} value={items[0]!.id} heading={group}>
             {items.map((c) => (
               <Command.Item
                 key={c.id}
-                value={`${c.group} ${c.label} ${c.hint ?? ""}`}
+                value={c.id}
+                keywords={[c.group, c.label, c.hint ?? ""]}
                 trailing={c.hint}
                 onSelect={() => {
                   onClose();

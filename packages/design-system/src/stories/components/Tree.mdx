@@ -32,15 +32,15 @@ Tree has one appearance. What varies:
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Selectable | Rows with `onSelect` and one `isSelected`: the tree is a navigator, and the selected row is where the reader is. The composition browser, the families rail. |
 | Read-only  | No `onSelect`: the tree only shows shape. Rare; a hierarchy worth drawing is usually worth opening.                                                          |
-| With icons | An icon on every row, so labels at one level align; see Don't.                                                                            |
+| With icons | An icon on every row, so labels at one level align; see Don't.                                                                                               |
 
 Not built, and why: multi-select with checkboxes, because bulk work on nodes is a table; drag to reorder, because nothing here is rearranged by hand; a tree that owns its data, because the callers already flatten a tree with rolled-up posture on every row.
 
 ## Sizes
 
-| Size     | Row  | Where                                                                                 |
-| -------- | ---- | ------------------------------------------------------------------------------------- |
-| `small`  | 32px | The default: a composition browser, a families rail.                  |
+| Size     | Row  | Where                                                           |
+| -------- | ---- | --------------------------------------------------------------- |
+| `small`  | 32px | The default: a composition browser, a families rail.            |
 | `xsmall` | 24px | A deep tree that must show more at once; a tree inside a panel. |
 
 Rows stack with no space between them. The indent is 16px per level, the guide down its middle.
@@ -49,14 +49,14 @@ Rows stack with no space between them. The indent is 16px per level, the guide d
 
 ## States
 
-| State    | What changes                                                                                                                                                   |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Plain    | Text on the surface.                                                                                                                                           |
-| Hover    | `color.background.neutral.subtle.hovered` across the row.                                                                                                      |
+| State    | What changes                                                                                                                                   |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plain    | Text on the surface.                                                                                                                           |
+| Hover    | `color.background.neutral.subtle.hovered` across the row.                                                                                      |
 | Selected | `color.background.selected`; `aria-selected`. The row is the tree's tab stop. If its branch is closed, the parent shows the selection instead. |
-| Focus    | The focus outline around the row, on keyboard focus.                                                                                                           |
-| Open     | The chevron down; `aria-expanded="true"`; the children rendered under it by the caller.                                                                        |
-| Closed   | The chevron right; `aria-expanded="false"`; a Count in `trailing` says how many are beneath.                                                                   |
+| Focus    | The focus outline around the row, on keyboard focus.                                                                                           |
+| Open     | The chevron down; `aria-expanded="true"`; the children rendered under it by the caller.                                                        |
+| Closed   | The chevron right; `aria-expanded="false"`; a Count in `trailing` says how many are beneath.                                                   |
 
 ## Modifiers
 
@@ -86,6 +86,8 @@ Rows stack with no space between them. The indent is 16px per level, the guide d
 | Focus    | The focus outline                                                                                                                                          |
 
 No left border marks the selected row: the selected fill is the same one a table row and a list row take, so a selection reads the same everywhere.
+
+The tree retains one entry tab stop as rows are selected, removed or collapsed. Typing a label prefix moves focus without selecting. Flat visible rows receive inferred `aria-posinset` and `aria-setsize`; for partial or virtualized sibling sets, supply `posInSet` and `setSize` with the complete sibling position and count.
 
 ## Accessibility
 

@@ -11,7 +11,11 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 /* ---- load + resolve the DTCG source ---- */
 const tree = {};
-const deep = (a, b) => { for (const [k, v] of Object.entries(b)) a[k] = v && typeof v === "object" && !Array.isArray(v) ? deep(a[k] ?? {}, v) : v; return a; };
+const deep = (a, b) => {
+  for (const [k, v] of Object.entries(b))
+    a[k] = v && typeof v === "object" && !Array.isArray(v) ? deep(a[k] ?? {}, v) : v;
+  return a;
+};
 for (const f of fs.readdirSync(path.join(root, "tokens")).filter((f) => f.endsWith(".json")))
   deep(tree, JSON.parse(fs.readFileSync(path.join(root, "tokens", f), "utf8")));
 
@@ -35,11 +39,14 @@ function parse(css) {
   const m = css.match(/oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+))?\s*\)/);
   if (!m) throw new Error(`cannot parse ${css}`);
   const [, L, C, H, A] = m.map(Number);
-  const a = C * Math.cos((H * Math.PI) / 180), b = C * Math.sin((H * Math.PI) / 180);
+  const a = C * Math.cos((H * Math.PI) / 180),
+    b = C * Math.sin((H * Math.PI) / 180);
   const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
   const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
   const s_ = L - 0.0894841775 * a - 1.291485548 * b;
-  const l = l_ ** 3, mm = m_ ** 3, s = s_ ** 3;
+  const l = l_ ** 3,
+    mm = m_ ** 3,
+    s = s_ ** 3;
   const clamp = (x) => Math.min(1, Math.max(0, x));
   return {
     r: clamp(4.0767416621 * l - 3.3077115913 * mm + 0.2309699292 * s),
@@ -48,13 +55,26 @@ function parse(css) {
     a: Number.isNaN(A) ? 1 : A,
   };
 }
-const over = (fg, bg) => ({ r: fg.a * fg.r + (1 - fg.a) * bg.r, g: fg.a * fg.g + (1 - fg.a) * bg.g, b: fg.a * fg.b + (1 - fg.a) * bg.b, a: 1 });
+// CSS alpha compositing is in encoded sRGB; WCAG luminance is computed afterwards in linear sRGB.
+const encode = (v) => (v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055);
+const decode = (v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+const over = (fg, bg) =>
+  Object.fromEntries([
+    ...["r", "g", "b"].map((channel) => [
+      channel,
+      decode(fg.a * encode(fg[channel]) + (1 - fg.a) * encode(bg[channel])),
+    ]),
+    ["a", 1],
+  ]);
 const lum = (c) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
-const ratio = (fg, bg) => { const [hi, lo] = [lum(fg), lum(bg)].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05); };
+const ratio = (fg, bg) => {
+  const [hi, lo] = [lum(fg), lum(bg)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+};
 
 /** Resolve a background token to an opaque colour by compositing over the surface. */
-function fill(token, mode) {
-  const surface = parse(value("elevation.surface", mode));
+function fill(token, mode, base = "elevation.surface") {
+  const surface = parse(value(base, mode));
   const c = parse(value(token, mode));
   return c === null ? surface : over(c, surface);
 }
@@ -65,19 +85,36 @@ function ink(token, mode, bg) {
 
 /* ---- the pairings ---- */
 const status = ["danger", "warning", "success", "information"];
-const surfaces = ["elevation.surface", "elevation.surface.sunken", "elevation.surface.raised", "elevation.surface.overlay", "color.background.input"];
+const surfaces = [
+  "elevation.surface",
+  "elevation.surface.sunken",
+  "elevation.surface.raised",
+  "elevation.surface.overlay",
+  "color.background.input",
+];
 // Interactive neutral fills: guaranteed for text and text.subtle. Atlassian does not promise
 // text.subtlest on these either (dark DarkNeutral700 on DarkNeutral200A sits near 3.4:1).
 const neutralFills = ["color.background.neutral", "color.background.neutral.subtle.hovered"];
 
 const cases = [];
-const add = (fg, bg, min, note = "") => cases.push({ fg, bg, min, note });
+const add = (fg, bg, min, note = "", base = "elevation.surface") =>
+  cases.push({ fg, bg, min, note, base });
 
-for (const t of ["color.text", "color.text.subtle", "color.text.subtlest"]) for (const s of surfaces) add(t, s, 4.5);
+for (const t of ["color.text", "color.text.subtle", "color.text.subtlest"])
+  for (const s of surfaces) add(t, s, 4.5);
 for (const t of ["color.text", "color.text.subtle"]) for (const s of neutralFills) add(t, s, 4.5);
-for (const s of ["color.background.selected", "color.background.brand.subtlest"]) add("color.text", s, 4.5), add("color.text.selected", s, 4.5);
-for (const b of ["color.background.neutral.bold", "color.background.brand.bold", "color.background.brand.boldest", "color.background.selected.bold", "color.background.danger.bold", "color.background.success.bold", "color.background.information.bold"])
-  add("color.text.inverse", b, 4.5), add("color.icon.inverse", b, 3);
+for (const s of ["color.background.selected", "color.background.brand.subtlest"])
+  (add("color.text", s, 4.5), add("color.text.selected", s, 4.5));
+for (const b of [
+  "color.background.neutral.bold",
+  "color.background.brand.bold",
+  "color.background.brand.boldest",
+  "color.background.selected.bold",
+  "color.background.danger.bold",
+  "color.background.success.bold",
+  "color.background.information.bold",
+])
+  (add("color.text.inverse", b, 4.5), add("color.icon.inverse", b, 3));
 add("color.text.warning.inverse", "color.background.warning.bold", 4.5);
 add("color.icon.warning.inverse", "color.background.warning.bold", 3);
 for (const s of status) {
@@ -88,34 +125,100 @@ for (const s of status) {
   add(`color.icon.${s}`, "elevation.surface", 3);
   add(`color.border.${s}`, "elevation.surface", 3);
   // warning.bold is a light orange carrying dark text (text.warning.inverse), as in Atlassian; it is not a 3:1 fill on white.
-  if (s !== "warning") add(`color.background.${s}.bold`, "elevation.surface", 3, "bold fill as a non-text element");
+  if (s !== "warning")
+    add(`color.background.${s}.bold`, "elevation.surface", 3, "bold fill as a non-text element");
 }
 for (const t of ["color.text.brand", "color.text.selected"]) add(t, "elevation.surface", 4.5);
-for (const t of ["color.icon", "color.icon.subtle", "color.icon.subtlest", "color.icon.brand", "color.icon.selected"]) add(t, "elevation.surface", 3);
-for (const b of ["color.border.bold", "color.border.focused", "color.border.selected", "color.border.brand"]) add(b, "elevation.surface", 3);
+for (const t of [
+  "color.icon",
+  "color.icon.subtle",
+  "color.icon.subtlest",
+  "color.icon.brand",
+  "color.icon.selected",
+])
+  add(t, "elevation.surface", 3);
+for (const b of [
+  "color.border.bold",
+  "color.border.focused",
+  "color.border.selected",
+  "color.border.brand",
+])
+  add(b, "elevation.surface", 3);
 // the field's danger and focus borders against the input surface it sits on
-for (const b of ["color.border.danger", "color.border.focused"]) add(b, "color.background.input", 3);
-// The rest border is lighter than 3:1 by decision (2026-09-04): the label, the placeholder, the focus
-// border and the danger border identify the field. The floor keeps it from fading to nothing.
-add("color.border.input", "color.background.input", 1.5, "rest border, below 3:1 by decision");
-add("color.border.input", "elevation.surface", 1.5, "rest border, below 3:1 by decision");
-for (const b of ["color.background.neutral.bold", "color.background.brand.bold", "color.background.selected.bold"]) add(b, "elevation.surface", 3, "bold fill as a non-text element");
+for (const b of ["color.border.danger", "color.border.focused"])
+  add(b, "color.background.input", 3);
+// The field border is light by decision (Josef, 2026-09-04): it must stay visible at rest, and the
+// focus and danger borders above carry 3:1. Restored 2026-09-06 after the audit had darkened it.
+for (const surface of [
+  ...surfaces,
+  "color.background.input.hovered",
+  "color.background.input.pressed",
+])
+  add("color.border.input", surface, 1.5, "light field border by decision");
+for (const b of [
+  "color.background.neutral.bold",
+  "color.background.brand.bold",
+  "color.background.selected.bold",
+])
+  add(b, "elevation.surface", 3, "bold fill as a non-text element");
+
+// Rendered interaction contracts: button/menu fills, selected rows, input hover/focus,
+// and translucent neutral fills composed on raised/overlay surfaces, not only the page.
+for (const state of ["hovered", "pressed"]) {
+  for (const role of ["neutral", "brand", "selected", "danger", "success", "information"])
+    add("color.text.inverse", `color.background.${role}.bold.${state}`, 4.5);
+  add("color.text.warning.inverse", `color.background.warning.bold.${state}`, 4.5);
+  for (const role of status) {
+    add(`color.text.${role}`, `color.background.${role}.${state}`, 4.5);
+    add(`color.text.${role}`, `color.background.${role}.subtler.${state}`, 4.5);
+  }
+  for (const text of ["color.text", "color.text.selected"])
+    add(text, `color.background.selected.${state}`, 4.5);
+  for (const text of ["color.text", "color.text.subtle", "color.text.subtlest"])
+    add(text, `color.background.input.${state}`, 4.5);
+  for (const border of ["color.border.focused", "color.border.danger"])
+    add(border, `color.background.input.${state}`, 3);
+}
+for (const surface of surfaces) {
+  for (const fill of [
+    "color.background.neutral",
+    "color.background.neutral.hovered",
+    "color.background.neutral.pressed",
+    "color.background.neutral.subtle.hovered",
+    "color.background.neutral.subtle.pressed",
+  ])
+    for (const text of ["color.text", "color.text.subtle"])
+      add(text, fill, 4.5, "translucent interactive fill on its actual parent", surface);
+  add("color.border.focused", surface, 3);
+}
 
 const results = [];
 for (const mode of ["light", "dark"]) {
   for (const c of cases) {
-    const bg = fill(c.bg, mode);
-    const fg = c.fg.startsWith("color.background") ? fill(c.fg, mode) : ink(c.fg, mode, bg);
+    const bg = fill(c.bg, mode, c.base);
+    const fg = c.fg.startsWith("color.background") ? fill(c.fg, mode, c.base) : ink(c.fg, mode, bg);
     results.push({ ...c, mode, ratio: ratio(fg, bg) });
   }
 }
 
 const failures = results.filter((r) => r.ratio < r.min);
 if (process.env.CONTRAST_REPORT) {
-  for (const r of results) console.log(`${r.ratio < r.min ? "FAIL" : "ok  "} ${r.mode.padEnd(5)} ${r.ratio.toFixed(2).padStart(5)} ≥ ${r.min}  ${r.fg} on ${r.bg}`);
+  for (const r of results)
+    console.log(
+      `${r.ratio < r.min ? "FAIL" : "ok  "} ${r.mode.padEnd(5)} ${r.ratio.toFixed(2).padStart(5)} ≥ ${r.min}  ${r.fg} on ${r.bg}`,
+    );
 }
 
 test(`contrast: ${results.length} pairings, both modes`, () => {
-  const lines = failures.map((r) => `${r.mode} ${r.ratio.toFixed(2)} < ${r.min}: ${r.fg} on ${r.bg}${r.note ? ` (${r.note})` : ""}`);
+  const lines = failures.map(
+    (r) =>
+      `${r.mode} ${r.ratio.toFixed(2)} < ${r.min}: ${r.fg} on ${r.bg} over ${r.base}${r.note ? ` (${r.note})` : ""}`,
+  );
   assert.equal(failures.length, 0, `\n${lines.join("\n")}\n`);
+});
+
+test("alpha compositing uses encoded sRGB before WCAG luminance", () => {
+  const grey = over({ r: 1, g: 1, b: 1, a: 0.5 }, { r: 0, g: 0, b: 0, a: 1 });
+  assert.ok(Math.abs(lum(grey) - 0.21404114048223255) < 1e-12);
+  assert.ok(Math.abs(ratio(grey, { r: 0, g: 0, b: 0, a: 1 }) - 5.280822809644651) < 1e-10);
 });

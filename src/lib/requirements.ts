@@ -1354,3 +1354,35 @@ export function needsOf(input: Requirement): RequirementNeed[] {
     });
   return out;
 }
+
+/**
+ * Map an existing requirement to a control: a derivation citing the control's
+ * statement. The reverse of deriving a new requirement from a control, for the
+ * customer's own requirements that arrive already written.
+ */
+export function mapRequirementToControl(
+  requirementId: string,
+  controlId: string,
+  controlLabel: string,
+  rationale: string,
+): boolean {
+  const r = requirements.find((x) => x.id === requirementId);
+  if (!r) return false;
+  if (
+    r.derivations.some(
+      (d) =>
+        (d.sourceType === "Control statement" || d.sourceType === "Overlay") &&
+        d.sourceId === controlId,
+    )
+  ) {
+    return false;
+  }
+  r.derivations.push({
+    sourceType: "Control statement",
+    sourceId: controlId,
+    sourceLabel: controlLabel,
+    rationale: rationale.trim() || `Satisfies ${controlId}`,
+  });
+  bump();
+  return true;
+}

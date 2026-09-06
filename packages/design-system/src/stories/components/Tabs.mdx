@@ -26,7 +26,7 @@ A tab is a different view of the same record. It is not a filter over the same r
 
 ## Variants
 
-One: the line strip. Contained tabs (a filled tab attached to its panel), vertical tabs and a fixed fill that divides the strip equally are not built. The product's tabs sit under a RecordHeader on the page's surface, where a line is enough; a rail's sections are a [Collapsible.Group](?path=/docs/components-collapsible--docs), and moving between pages is the shell's SideNav.
+One: the line strip. Contained tabs (a filled tab attached to its panel), vertical tabs and a fixed fill that divides the strip equally are not built. The product's tabs sit under a RecordHeader on the page's surface, where a line is enough; a rail's sections are an [Accordion](?path=/docs/components-accordion--docs), and moving between pages is the shell's SideNav.
 
 Where it lives: under the RecordHeader, running the full width. [ShowPage](?path=/docs/patterns-pages--docs) takes `tab` and `onTabChange` and makes the page the Tabs root and the tab's body its panel, so a record page is one ARIA pattern without wiring. Under the [ActionBar](?path=/docs/shapes-actionbar--docs) on a work page, where the page wraps the bar and the work in `Tabs`. On an index page above the register it is usually a filter, which is a ToggleGroup: see Don't.
 

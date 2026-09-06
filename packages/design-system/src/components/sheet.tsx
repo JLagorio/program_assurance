@@ -1,6 +1,8 @@
+import { useLedgerLocale } from "../lib/locale";
+import { useOverlayFocus } from "./_overlay-focus";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { ChevronLeft, X } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 
 import { cn } from "../lib/cn";
 import { IconButton } from "./button";
@@ -10,6 +12,8 @@ import { Fact } from "./typography";
 export type SheetProps = {
   /** The caller's state. */
   open: boolean;
+  /** Focus destination after closing; defaults to the opener, then a surviving dialog or main. */
+  returnFocusRef?: RefObject<HTMLElement | null> | undefined;
   /** Called on Escape, the blanket and the close button. */
   onClose: () => void;
   /** The record's id or name, or the task. Truncates to one line. */
@@ -37,6 +41,7 @@ export type SheetProps = {
 /** A detail surface that slides in from an edge and leaves the page visible. For the bottom sheet with a drag handle, Drawer. */
 export function Sheet({
   open,
+  returnFocusRef,
   onClose,
   title,
   subtitle,
@@ -49,6 +54,8 @@ export function Sheet({
   width = 420,
   children,
 }: SheetProps) {
+  const { t, direction } = useLedgerLocale();
+  const restoreFocus = useOverlayFocus(open, returnFocusRef);
   return (
     <DialogPrimitive.Root
       open={open}
@@ -59,6 +66,8 @@ export function Sheet({
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-dim-in data-[state=closed]:animate-dim-out" />
         <DialogPrimitive.Content
+          onCloseAutoFocus={restoreFocus}
+          dir={direction}
           {...(subtitle ? {} : { "aria-describedby": undefined })}
           style={{ maxWidth: width }}
           className={cn(
@@ -71,7 +80,7 @@ export function Sheet({
           <div className="flex shrink-0 items-start gap-100 border-b border-default py-150 pe-600 ps-200">
             {onBack ? (
               <IconButton
-                label="Back"
+                label={t("back")}
                 variant="subtle"
                 size="small"
                 onClick={onBack}
@@ -103,7 +112,7 @@ export function Sheet({
           <DialogPrimitive.Close asChild>
             <button
               type="button"
-              aria-label="Close"
+              aria-label={t("close")}
               className={cn(overlayClose, "absolute end-150 top-150")}
             >
               <X className="size-icon-small" />

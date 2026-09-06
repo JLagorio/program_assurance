@@ -59,6 +59,7 @@ function SplitDemo({ open }: { open: boolean }) {
 }
 export const PreviewSplitStory: Story = { name: "Preview split", render: () => <SplitDemo open /> };
 export const PreviewSplitMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Closed: the list at full width">

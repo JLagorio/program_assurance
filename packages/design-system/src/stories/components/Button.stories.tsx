@@ -229,3 +229,91 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = { args: { variant: "primary", size: "medium" } };
+
+function SlottedContractDemo() {
+  const [blocked, setBlocked] = useState(true);
+  const [calls, setCalls] = useState(0);
+  return (
+    <Stack space="space.200">
+      <Button onClick={() => setBlocked((value) => !value)}>Toggle blocking</Button>
+      <Button asChild isLoading={blocked} onClick={() => setCalls((n) => n + 1)}>
+        <a
+          href="#contract-navigation"
+          onClick={(event) => {
+            event.preventDefault();
+            setCalls((n) => n + 1);
+          }}
+        >
+          Loading link
+        </a>
+      </Button>
+      <Button asChild disabled={blocked}>
+        <a
+          href="#contract-navigation"
+          onClick={(event) => {
+            event.preventDefault();
+            setCalls((n) => n + 1);
+          }}
+        >
+          Disabled link
+        </a>
+      </Button>
+      <IconButton asChild disabled={blocked} label="Disabled icon link" icon={<Plus />}>
+        <a
+          href="#contract-navigation"
+          onClick={(event) => {
+            event.preventDefault();
+            setCalls((n) => n + 1);
+          }}
+        />
+      </IconButton>
+      <output aria-label="Handler calls">{calls}</output>
+    </Stack>
+  );
+}
+
+export const SlottedActivationContract: Story = {
+  tags: ["contract"],
+  render: () => <SlottedContractDemo />,
+  play: async ({ canvasElement }) => {
+    const { expect, userEvent, within } = await import("storybook/test");
+    const canvas = within(canvasElement);
+    for (const name of ["Loading link", "Disabled link", "Disabled icon link"]) {
+      const link = canvas.getByRole("link", { name });
+      await userEvent.click(link);
+      link.focus();
+      await userEvent.keyboard("{Enter}");
+    }
+    await expect(canvas.getByLabelText("Handler calls")).toHaveTextContent("0");
+    await userEvent.click(canvas.getByRole("button", { name: "Toggle blocking" }));
+    await userEvent.click(canvas.getByRole("link", { name: "Loading link" }));
+    await expect(canvas.getByLabelText("Handler calls")).toHaveTextContent("2");
+    await userEvent.click(canvas.getByRole("link", { name: "Disabled link" }));
+    await userEvent.click(canvas.getByRole("link", { name: "Disabled icon link" }));
+    await expect(canvas.getByLabelText("Handler calls")).toHaveTextContent("4");
+  },
+};
+
+/** Dense controls retain a minimum 24 CSS-pixel target without overlapping neighbors. */
+export const TargetSizeContract: Story = {
+  tags: ["contract"],
+  render: () => (
+    <Inline space="space.100">
+      <Button size="xsmall">Dense action</Button>
+      <Button size="small">Small action</Button>
+      <IconButton size="small" icon={<Plus />} label="Add item" />
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    const { expect, within } = await import("storybook/test");
+    const buttons = within(canvasElement).getAllByRole("button");
+    for (const button of buttons) {
+      const rect = button.getBoundingClientRect();
+      await expect(rect.width).toBeGreaterThanOrEqual(24);
+      await expect(rect.height).toBeGreaterThanOrEqual(24);
+    }
+    await expect(buttons[0]!.getBoundingClientRect().right).toBeLessThanOrEqual(
+      buttons[1]!.getBoundingClientRect().left,
+    );
+  },
+};

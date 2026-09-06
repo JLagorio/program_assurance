@@ -148,6 +148,7 @@ export const WorkPaneStory: Story = {
 
 /** Every row tone, one active, the list's label with its count, and the empty detail. */
 export const WorkPaneMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Box style={{ height: 360 }}>
       <WorkPane

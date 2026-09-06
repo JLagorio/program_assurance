@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useCallback, type SetStateAction, useMemo, useState } from "react";
+import { useRecordForm } from "@/lib/record-form";
 import { Check, Pencil, Send, X } from "lucide-react";
 
 import {
@@ -21,7 +22,6 @@ import {
   Textarea,
   Timeline,
   toast,
-  useRequired,
   Eyebrow,
 } from "@ledger/design-system";
 import {
@@ -70,12 +70,30 @@ export function TailoringSection({
 }) {
   const [params, setParams] = useState<SystemParameters>(defaultParameters);
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState<SystemParameters>(defaultParameters);
+  const { form, values, setValue, formId, formRef } = useRecordForm(
+    {
+      draft: defaultParameters as SystemParameters,
+      message: "",
+      note: "",
+    },
+    (value) => ({
+      message: submitting && value.message,
+      note: deciding === "changes" && value.note,
+    }),
+  );
+  const { draft, message, note } = values;
+  const setDraft = useCallback(
+    (value: SetStateAction<typeof draft>) => setValue("draft", value),
+    [setValue],
+  );
+
+  const setNote = useCallback(
+    (value: SetStateAction<typeof note>) => setValue("note", value),
+    [setValue],
+  );
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState("");
+
   const [deciding, setDeciding] = useState<null | "approve" | "changes">(null);
-  const [note, setNote] = useState("");
-  const req = useRequired({ message: submitting && message, note: deciding === "changes" && note });
 
   const seed = scopeApprovals.find((a) => a.programId === programId);
   const [state, setState] = useState<ApprovalState>(seed?.state ?? "Draft");
@@ -337,7 +355,10 @@ export function TailoringSection({
         }
       >
         <Stack space="space.150">
-          <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
+          <Grid
+            gap="space.150"
+            templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
+          >
             {(["confidentiality", "integrity", "availability"] as const).map((k) => (
               <Field key={k} label={k.charAt(0).toUpperCase() + k.slice(1)}>
                 <NativeSelect
@@ -351,53 +372,107 @@ export function TailoringSection({
               </Field>
             ))}
           </Grid>
-          <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-            <Field label="System class">
-              <NativeSelect
-                value={draft.systemClass}
-                onChange={(e) => setDraft({ ...draft, systemClass: e.target.value as SystemClass })}
-              >
-                {systemClasses.map((s) => (
-                  <option key={s}>{s}</option>
-                ))}
-              </NativeSelect>
-            </Field>
-            <Field label="Hosting">
-              <NativeSelect
-                value={draft.hosting}
-                onChange={(e) => setDraft({ ...draft, hosting: e.target.value as Hosting })}
-              >
-                {hostingOptions.map((s) => (
-                  <option key={s}>{s}</option>
-                ))}
-              </NativeSelect>
-            </Field>
+          <Grid
+            gap="space.150"
+            templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
+          >
+            <form.Field name="draft.systemClass">
+              {(field) => (
+                <Field
+                  label="System class"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value as SystemClass)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {systemClasses.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="draft.hosting">
+              {(field) => (
+                <Field
+                  label="Hosting"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value as Hosting)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {hostingOptions.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
           </Grid>
-          <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-            <Field label="Classification">
-              <NativeSelect
-                value={draft.classification}
-                onChange={(e) =>
-                  setDraft({ ...draft, classification: e.target.value as Classification })
-                }
-              >
-                {classifications.map((s) => (
-                  <option key={s}>{s}</option>
-                ))}
-              </NativeSelect>
-            </Field>
-            <Field label="Connectivity">
-              <NativeSelect
-                value={draft.connectivity}
-                onChange={(e) =>
-                  setDraft({ ...draft, connectivity: e.target.value as Connectivity })
-                }
-              >
-                {connectivityOptions.map((s) => (
-                  <option key={s}>{s}</option>
-                ))}
-              </NativeSelect>
-            </Field>
+          <Grid
+            gap="space.150"
+            templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
+          >
+            <form.Field name="draft.classification">
+              {(field) => (
+                <Field
+                  label="Classification"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value as Classification)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {classifications.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="draft.connectivity">
+              {(field) => (
+                <Field
+                  label="Connectivity"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value as Connectivity)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {connectivityOptions.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
           </Grid>
           <Inline
             className="border-t border-default pt-150"
@@ -429,30 +504,58 @@ export function TailoringSection({
         open={submitting}
         onClose={() => setSubmitting(false)}
         onConfirm={() => {
-          if (!req.check()) return;
-          submit();
+          return form.handleSubmit({
+            save: () => {
+              submit();
+            },
+          });
         }}
         title="Submit scope for PM approval"
         description={`${programId} · ${result.total} controls · ${result.overlays.length} overlays. The PM sees the tailored scope on the approvals dashboard and every stage below Categorize locks until they decide.`}
         confirmLabel="Send for approval"
+        pending={form.state.isSubmitting}
       >
-        <Stack space="space.150">
-          <Field label="Approver">
-            <Input defaultValue={`${programOwner} (PM)`} readOnly />
-          </Field>
-          <Field
-            label="Message"
-            hint="Shown on the shared scope approvals dashboard."
-            isRequired
-            error={req.errorFor("message")}
-          >
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Tailored scope reflects the DDIL tactical profile agreed at the SRR working group."
-            />
-          </Field>
-        </Stack>
+        <form
+          id={formId + "-1"}
+          ref={formRef}
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            void form.handleSubmit({
+              save: () => {
+                submit();
+              },
+            });
+          }}
+        >
+          <Stack space="space.150">
+            <Field label="Approver">
+              <Input defaultValue={`${programOwner} (PM)`} readOnly />
+            </Field>
+            <form.Field name="message">
+              {(field) => (
+                <Field
+                  label="Message"
+                  hint="Shown on the shared scope approvals dashboard."
+                  isRequired
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <Textarea
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Tailored scope reflects the DDIL tactical profile agreed at the SRR working group."
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  />
+                </Field>
+              )}
+            </form.Field>
+          </Stack>
+        </form>
       </AlertDialog>
 
       {/* -------------------------------------------------- decision modal */}
@@ -468,28 +571,54 @@ export function TailoringSection({
             </Button>
             <Button
               variant={deciding === "approve" ? "primary" : "danger"}
-              onClick={() => {
-                if (!req.check()) return;
-                decide(deciding ?? "approve");
-              }}
+              type="submit"
+              form={formId + "-2"}
+              disabled={form.state.isSubmitting}
             >
               {deciding === "approve" ? "Approve scope" : "Request changes"}
             </Button>
           </>
         }
       >
-        <Field
-          isRequired={deciding === "changes"}
-          error={req.errorFor("note")}
-          label={deciding === "approve" ? "Approval note" : "What needs to change?"}
-          hint={
-            deciding === "approve"
-              ? "Recorded against the authorization package."
-              : "Returned to the systems security engineer."
-          }
+        <form
+          id={formId + "-2"}
+          ref={formRef}
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            void form.handleSubmit({
+              save: () => {
+                decide(deciding ?? "approve");
+              },
+            });
+          }}
         >
-          <Textarea value={note} onChange={(e) => setNote(e.target.value)} />
-        </Field>
+          <form.Field name="note">
+            {(field) => (
+              <Field
+                isRequired={deciding === "changes"}
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+                label={deciding === "approve" ? "Approval note" : "What needs to change?"}
+                hint={
+                  deciding === "approve"
+                    ? "Recorded against the authorization package."
+                    : "Returned to the systems security engineer."
+                }
+              >
+                <Textarea
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+        </form>
       </Dialog>
     </>
   );

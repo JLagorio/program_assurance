@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../../lib/locale";
 import type { RowData } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 
@@ -12,7 +13,7 @@ import type { DataTableInstance } from "./use-data-table";
 export function SelectionBar<TData extends RowData>({
   table,
   actions,
-  noun = "selected",
+  noun,
   className,
 }: {
   table: DataTableInstance<TData>;
@@ -22,6 +23,8 @@ export function SelectionBar<TData extends RowData>({
   noun?: string | undefined;
   className?: string | undefined;
 }) {
+  const { t, formatNumber } = useLedgerLocale();
+
   const chosen = table.getSelectedRowModel().rows.length;
   if (chosen === 0) return null;
   const total = table.getRowCount();
@@ -31,7 +34,7 @@ export function SelectionBar<TData extends RowData>({
   return (
     <div
       role="region"
-      aria-label="Selection"
+      aria-label={t("selection")}
       onKeyDown={(e) => {
         if (e.key === "Escape") table.resetRowSelection();
       }}
@@ -41,17 +44,19 @@ export function SelectionBar<TData extends RowData>({
       )}
     >
       <span className="tabular-nums font-medium">
-        {chosen.toLocaleString()} {noun}
+        {noun
+          ? `${formatNumber(chosen)} ${noun}`
+          : t("selectedCount", { count: formatNumber(chosen) })}
       </span>
       {offerRest ? (
         <Button variant="link" size="small" onClick={() => table.toggleAllRowsSelected(true)}>
-          Select all {total.toLocaleString()}
+          {t("selectAllCount", { count: formatNumber(total) })}
         </Button>
       ) : null}
       <span className="ms-auto flex items-center gap-100">
         {actions}
         <Button variant="subtle" size="small" onClick={() => table.resetRowSelection()}>
-          Clear
+          {t("clear")}
         </Button>
       </span>
     </div>

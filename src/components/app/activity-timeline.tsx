@@ -205,11 +205,11 @@ export function ActivityTimeline({
                 Mark unread
               </Button>
               {active.to ? (
-                <Link to={active.to} params={active.params as never}>
-                  <Button variant="primary" size="small">
+                <Button asChild variant="primary" size="small">
+                  <Link to={active.to} params={active.params as never}>
                     Open record
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               ) : null}
             </>
           ) : null

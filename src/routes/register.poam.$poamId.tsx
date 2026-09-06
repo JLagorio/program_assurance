@@ -1,3 +1,4 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import {
@@ -121,7 +122,12 @@ function PoamRecord() {
               actions={
                 <>
                   <Badge tone={statusTone(item.status)}>{item.status}</Badge>
-                  <Button variant="secondary">Update milestone</Button>
+                  <UnavailableAction
+                    reason="This register snapshot is read-only. Edit milestones in the program record."
+                    variant="secondary"
+                  >
+                    Update milestone
+                  </UnavailableAction>
                 </>
               }
             />

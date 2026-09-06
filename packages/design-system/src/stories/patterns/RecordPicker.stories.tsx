@@ -55,6 +55,7 @@ export const RecordPickerStory: Story = { name: "Record picker", render: () => <
 
 /** Open, with a badge, without one, with a meta line, without one; the count in the field and the keys in the footer. */
 export const RecordPickerMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <RecordPicker
       open

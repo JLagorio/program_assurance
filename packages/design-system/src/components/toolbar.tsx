@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../lib/locale";
 import { Search } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -23,11 +24,12 @@ export type ToolbarProps = {
 export function Toolbar({
   search,
   onSearch,
-  placeholder = "Search",
+  placeholder,
   children,
   actions,
   className,
 }: ToolbarProps) {
+  const { t } = useLedgerLocale();
   return (
     <div className={cn("flex flex-wrap items-center gap-100 pb-100 pt-150", className)}>
       {onSearch ? (
@@ -37,8 +39,8 @@ export function Toolbar({
             size="small"
             value={search ?? ""}
             onChange={(e) => onSearch(e.target.value)}
-            placeholder={placeholder}
-            aria-label={placeholder}
+            placeholder={placeholder ?? t("search")}
+            aria-label={placeholder ?? t("search")}
           />
         </InputGroup>
       ) : null}

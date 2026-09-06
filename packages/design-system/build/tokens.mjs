@@ -17,6 +17,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import StyleDictionary from "style-dictionary";
 import { resolveReferences } from "style-dictionary/utils";
+import { exportDtcg } from "./dtcg.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = path.join(root, "src/generated");
@@ -543,7 +544,7 @@ ${Object.entries(bleedProps)
 `,
 );
 
-// Figma export: the merged DTCG source, untouched.
+// Legacy CSS-oriented source export retained for existing consumers.
 const merged = {};
 const deep = (a, b) => {
   for (const [k, v] of Object.entries(b))
@@ -556,6 +557,8 @@ for (const f of fs
   .sort())
   deep(merged, JSON.parse(fs.readFileSync(path.join(root, "tokens", f), "utf8")));
 fs.writeFileSync(path.join(outDir, "tokens.figma.json"), JSON.stringify(merged, null, 2) + "\n");
+for (const mode of ["light", "dark"])
+  fs.writeFileSync(path.join(outDir, `tokens.dtcg.${mode}.json`), JSON.stringify(exportDtcg(merged, mode), null, 2) + "\n");
 
 console.log(
   `tokens: ${all.length} · dark values: ${darkVars.length} · utilities: ${allClasses.length} · theme keys: ${themeLines.length}`,

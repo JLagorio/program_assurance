@@ -302,7 +302,7 @@ export function ProgramWizard() {
     void navigate({
       to: "/programs/$programId",
       params: { programId: program.id },
-      search: { tab: "Systems" },
+      search: { tab: "System" },
     });
   };
 

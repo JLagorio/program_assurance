@@ -1,6 +1,9 @@
+import { ChevronDown } from "lucide-react";
+import { Collapsible } from "../../components";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Avatar, Badge, Collapsible, Person, Stepper } from "../../components";
+import { Avatar, Badge, Person, Stepper } from "../../components";
+
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -23,6 +26,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Every state on one path, plain and numbered; vertical, plain and numbered, with steps that can be moved to. */
 export const StepperMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Horizontal: done, done, current, blocked, upcoming">
@@ -129,45 +133,88 @@ export const Milestones: Story = {
     <Box style={{ width: 520 }}>
       <Stepper label="Activation" orientation="vertical">
         <Stepper.Item state="done" label="Contract signed" meta="12 Aug">
-          <Collapsible title={<Person name="Maya Brooks" />} className="border-t-0">
-            <Text size="small" color="color.text.subtle">
-              Revenue operations. Signed and countersigned; the workspace order is on file.
-            </Text>
+          <Collapsible className="border-t border-default border-t-0">
+            <h3>
+              <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+                {<Person name="Maya Brooks" />}
+                <ChevronDown
+                  aria-hidden="true"
+                  className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
+                />
+              </Collapsible.Trigger>
+            </h3>
+            <Collapsible.Content>
+              <div className="pb-200">
+                <Text size="small" color="color.text.subtle">
+                  Revenue operations. Signed and countersigned; the workspace order is on file.
+                </Text>
+              </div>
+            </Collapsible.Content>
           </Collapsible>
         </Stepper.Item>
         <Stepper.Item state="current" label="Workspace provisioning" meta="Due 18 Sep">
-          <Collapsible title={<Person name="Nina Patel" />} defaultOpen className="border-t-0">
-            <Stack space="space.100">
-              <Inline space="space.050">
-                <Badge size="xsmall" tone="warning">
-                  Pending
-                </Badge>
-                <Badge size="xsmall">Identity setup</Badge>
-                <Badge size="xsmall">Medium</Badge>
-              </Inline>
-              <Text weight="medium">Admin group mapping</Text>
-              <Text size="small" color="color.text.subtle">
-                SCIM groups are being matched to launch roles before the first admin invites go out.
-              </Text>
-              <Inline space="space.100" alignBlock="center" spread="space-between">
-                <Avatar.Stack names={["Nina Patel", "Owen Fox", "Sam Lee", "Ira Wells"]} max={2} />
-                <Inline space="space.100" alignBlock="center">
-                  <Text size="xsmall" color="color.text.subtle">
-                    3 comments
+          <Collapsible defaultOpen className="border-t border-default border-t-0">
+            <h3>
+              <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+                {<Person name="Nina Patel" />}
+                <ChevronDown
+                  aria-hidden="true"
+                  className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
+                />
+              </Collapsible.Trigger>
+            </h3>
+            <Collapsible.Content>
+              <div className="pb-200">
+                <Stack space="space.100">
+                  <Inline space="space.050">
+                    <Badge size="xsmall" tone="warning">
+                      Pending
+                    </Badge>
+                    <Badge size="xsmall">Identity setup</Badge>
+                    <Badge size="xsmall">Medium</Badge>
+                  </Inline>
+                  <Text weight="medium">Admin group mapping</Text>
+                  <Text size="small" color="color.text.subtle">
+                    SCIM groups are being matched to launch roles before the first admin invites go
+                    out.
                   </Text>
-                  <Text size="xsmall" color="color.text.subtle">
-                    Today
-                  </Text>
-                </Inline>
-              </Inline>
-            </Stack>
+                  <Inline space="space.100" alignBlock="center" spread="space-between">
+                    <Avatar.Stack
+                      names={["Nina Patel", "Owen Fox", "Sam Lee", "Ira Wells"]}
+                      max={2}
+                    />
+                    <Inline space="space.100" alignBlock="center">
+                      <Text size="xsmall" color="color.text.subtle">
+                        3 comments
+                      </Text>
+                      <Text size="xsmall" color="color.text.subtle">
+                        Today
+                      </Text>
+                    </Inline>
+                  </Inline>
+                </Stack>
+              </div>
+            </Collapsible.Content>
           </Collapsible>
         </Stepper.Item>
         <Stepper.Item state="upcoming" label="Launch readiness">
-          <Collapsible title={<Person name="Leah Stone" />} className="border-t-0">
-            <Text size="small" color="color.text.subtle">
-              Account executive. Opens when provisioning closes.
-            </Text>
+          <Collapsible className="border-t border-default border-t-0">
+            <h3>
+              <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+                {<Person name="Leah Stone" />}
+                <ChevronDown
+                  aria-hidden="true"
+                  className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
+                />
+              </Collapsible.Trigger>
+            </h3>
+            <Collapsible.Content>
+              <div className="pb-200">
+                <Text size="small" color="color.text.subtle">
+                  Account executive. Opens when provisioning closes.
+                </Text>
+              </div>
+            </Collapsible.Content>
           </Collapsible>
         </Stepper.Item>
       </Stepper>

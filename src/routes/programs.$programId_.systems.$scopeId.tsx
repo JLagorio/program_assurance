@@ -24,7 +24,7 @@ export const Route = createFileRoute("/programs/$programId_/systems/$scopeId")({
       throw redirect({
         to: "/programs/$programId",
         params: { programId: params.programId },
-        search: { tab: "Systems" },
+        search: { tab: "System" },
         replace: true,
       });
     }

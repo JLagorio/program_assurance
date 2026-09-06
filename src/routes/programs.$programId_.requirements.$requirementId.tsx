@@ -1,15 +1,19 @@
+import { Box } from "@ledger/design-system";
+import { ChevronDown } from "lucide-react";
+import { Collapsible, Count } from "@ledger/design-system";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import { AllocationTable, ProvenanceTable, RequirementTable } from "@/components/app/requirements";
 import { AllocateElementsSheet } from "@/components/app/allocate-picker";
+import { RecordActivity } from "@/components/app/record-activity";
+import { TasksSection } from "@/components/app/tasks-section";
 import {
   Breadcrumb,
   Badge,
   Block,
   Button,
-  Collapsible,
   Combobox,
   Editable,
   Fact,
@@ -155,6 +159,7 @@ function RequirementRecord() {
   const objectives = objectivesForRequirement(requirement.id);
   const candidates = unlinkedObjectives(requirement.id);
   const go = (next: RequirementTab) => navigate({ search: { tab: next }, replace: true });
+  const me = currentSession().name;
 
   return (
     <Shell>
@@ -165,22 +170,71 @@ function RequirementRecord() {
           rail={
             tab === "Overview" ? (
               <>
-                <Collapsible
-                  title="Gates"
-                  count={unmet.length || null}
-                  defaultOpen
-                  className="first:border-t-0"
-                >
-                  <Gates>
-                    {gates.map((g) => (
-                      <Gates.Item
-                        key={g.key}
-                        met={g.met}
-                        label={g.label}
-                        reason={g.met ? undefined : g.reason}
+                <Inspector.Group title="Details">
+                  <KeyValue label="Type">{requirement.type}</KeyValue>
+                  <KeyValue label="Revision">{`r${requirement.revision}`}</KeyValue>
+                  <KeyValue label="Owner">
+                    <Editable.Text
+                      label="Owner"
+                      value={requirement.owner}
+                      onChange={(next) => setRequirementField(requirement.id, { owner: next })}
+                      save={(next) => saveRequirementField(`${requirement.id} owner`, next)}
+                    />
+                  </KeyValue>
+                  <KeyValue label="Method">
+                    <Editable.Select
+                      label="Verification method"
+                      options={verificationMethods}
+                      value={requirement.method}
+                      onChange={(next) => setRequirementField(requirement.id, { method: next })}
+                      save={(next) => saveRequirementField(`${requirement.id} method`, next)}
+                    />
+                  </KeyValue>
+                  <KeyValue label="Allocations">{allocations.length || "None"}</KeyValue>
+                  <KeyValue label="From catalog" wrap>
+                    {controlSources.length ? (
+                      <Inline as="span" space="space.050" shouldWrap>
+                        {controlSources.map((d) => (
+                          <TextLink key={d.sourceId}>
+                            <Link
+                              to="/programs/$programId/controls/$controlId"
+                              params={{ programId, controlId: d.sourceId }}
+                              search={{ tab: undefined }}
+                            >
+                              <Id>{d.sourceId}</Id>
+                            </Link>
+                          </TextLink>
+                        ))}
+                      </Inline>
+                    ) : (
+                      <span className="text-warning">None</span>
+                    )}
+                  </KeyValue>
+                </Inspector.Group>
+                <Collapsible defaultOpen className="border-t border-default first:border-t-0">
+                  <h3>
+                    <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+                      {"Gates"} {unmet.length > 0 ? <Count value={unmet.length} /> : null}
+                      <ChevronDown
+                        aria-hidden="true"
+                        className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
                       />
-                    ))}
-                  </Gates>
+                    </Collapsible.Trigger>
+                  </h3>
+                  <Collapsible.Content>
+                    <Box paddingBlockEnd="space.200">
+                      <Gates>
+                        {gates.map((g) => (
+                          <Gates.Item
+                            key={g.key}
+                            met={g.met}
+                            label={g.label}
+                            reason={g.met ? undefined : g.reason}
+                          />
+                        ))}
+                      </Gates>
+                    </Box>
+                  </Collapsible.Content>
                 </Collapsible>
                 <Inspector.Group title="Derives from">
                   {requirement.derivations.map((d) => (
@@ -261,7 +315,6 @@ function RequirementRecord() {
               }
               id={requirement.id}
               title={requirement.text}
-              meta={`${program.acronym} · ${requirement.type} · revision ${requirement.revision}`}
               actions={
                 <Editable.Select
                   label="State"
@@ -276,50 +329,6 @@ function RequirementRecord() {
                   save={(next) => saveRequirementField(`${requirement.id} state`, next)}
                   render={(v) => <Badge tone={requirementStateTone[v]}>{v}</Badge>}
                 />
-              }
-              facts={
-                // The facts you act on, on one line above the fold. Reference
-                // joins live in the rail; these do not, because needing to open a
-                // panel to find out who owns a requirement is the problem.
-                <>
-                  <Fact label="Owner">
-                    <Editable.Text
-                      label="Owner"
-                      value={requirement.owner}
-                      onChange={(next) => setRequirementField(requirement.id, { owner: next })}
-                      save={(next) => saveRequirementField(`${requirement.id} owner`, next)}
-                    />
-                  </Fact>
-                  <Fact label="Method">
-                    <Editable.Select
-                      label="Verification method"
-                      options={verificationMethods}
-                      value={requirement.method}
-                      onChange={(next) => setRequirementField(requirement.id, { method: next })}
-                      save={(next) => saveRequirementField(`${requirement.id} method`, next)}
-                    />
-                  </Fact>
-                  <Fact label="Allocations">{allocations.length || "None"}</Fact>
-                  <Fact label="From catalog">
-                    {controlSources.length ? (
-                      <Inline as="span" space="space.050" shouldWrap>
-                        {controlSources.map((d) => (
-                          <TextLink key={d.sourceId}>
-                            <Link
-                              to="/programs/$programId/controls/$controlId"
-                              params={{ programId, controlId: d.sourceId }}
-                              search={{ tab: undefined }}
-                            >
-                              <Id>{d.sourceId}</Id>
-                            </Link>
-                          </TextLink>
-                        ))}
-                      </Inline>
-                    ) : (
-                      <span className="text-warning">None</span>
-                    )}
-                  </Fact>
-                </>
               }
             />
           }
@@ -473,6 +482,17 @@ function RequirementRecord() {
                   </Fact>
                 </Fact.Group>
               </Section>
+              <TasksSection
+                program={programId}
+                subject={{ kind: "requirement", id: requirement.id, label: requirement.text }}
+                me={me}
+              />
+
+              <RecordActivity
+                program={programId}
+                subject={{ kind: "requirement", id: requirement.id, label: requirement.text }}
+                me={me}
+              />
             </>
           ) : null}
 

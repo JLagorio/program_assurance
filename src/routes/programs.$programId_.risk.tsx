@@ -363,7 +363,7 @@ function ProgramRisk() {
                     onChange={(e) => selectSubject(e.target.value)}
                     aria-label="Scored finding"
                     className="h-control-small font-body"
-                    style={{ width: 460 }}
+                    style={{ width: 460, maxWidth: "100%" }}
                   >
                     {scored.map((r) => (
                       <option key={r.score.subject} value={r.score.subject}>

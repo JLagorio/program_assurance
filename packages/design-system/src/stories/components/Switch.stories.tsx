@@ -31,6 +31,7 @@ const stateProps = (s: State) => ({
 
 /** Every state down the side; bare, labelled, and with a description across. */
 export const SwitchMatrix: Story = {
+  tags: ["contract"],
   parameters: disabledLabels,
   render: () => (
     <Grid

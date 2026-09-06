@@ -1,6 +1,9 @@
+import { ChevronDown } from "lucide-react";
+import { Collapsible } from "../../components";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Button, Collapsible, Indicator, Table } from "../../components";
+import { Button, Indicator, Table } from "../../components";
+
 import { Section } from "../../patterns";
 import { Stack, Text } from "../../primitives";
 import { Block } from "../../shapes";
@@ -33,6 +36,7 @@ const findings = (
 
 /** Title alone; with a count; with an action; a count of zero; a table as the work. */
 export const BlockMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300" className="max-w-layout-measure">
       <Block title="Determination">
@@ -100,8 +104,21 @@ export const Dont: Story = {
         }
         doText="The work the reader came for is always open: a Block."
         dont={
-          <Collapsible title="Determination">
-            <Text color="color.text.subtle">The work, behind a click.</Text>
+          <Collapsible className="border-t border-default">
+            <h3>
+              <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+                {"Determination"}
+                <ChevronDown
+                  aria-hidden="true"
+                  className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
+                />
+              </Collapsible.Trigger>
+            </h3>
+            <Collapsible.Content>
+              <div className="pb-200">
+                <Text color="color.text.subtle">The work, behind a click.</Text>
+              </div>
+            </Collapsible.Content>
           </Collapsible>
         }
         dontText="The work folded. Collapsible is for reference the reader may not need; folding the determination hides the page's job."

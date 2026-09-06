@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../lib/locale";
 import { Monitor, Moon, Sun } from "lucide-react";
 import {
   createContext,
@@ -130,7 +131,7 @@ export function ModeSwitch({
   value,
   onChange,
   showLabels = false,
-  "aria-label": ariaLabel = "Colour mode",
+  "aria-label": ariaLabel,
   className,
 }: {
   value?: ColorMode | undefined;
@@ -140,21 +141,24 @@ export function ModeSwitch({
   "aria-label"?: string | undefined;
   className?: string | undefined;
 }) {
+  const { t } = useLedgerLocale();
   const ctx = useContext(ModeContext);
   const current = value ?? ctx?.mode ?? "system";
-  const change = onChange ?? ctx?.setMode ?? (() => undefined);
+  const change = onChange ?? (value === undefined ? ctx?.setMode : undefined) ?? (() => undefined);
   return (
     <ToggleGroup<ColorMode>
-      aria-label={ariaLabel}
+      aria-label={ariaLabel ?? t("colorMode")}
       className={className}
       value={current}
       onChange={change}
-      items={modes.map(({ value: v, label, icon: Icon }) => ({
+      items={modes.map(({ value: v, icon: Icon }) => ({
         value: v,
         label: (
           <>
             <Icon className="size-icon-small" />
-            <span className={showLabels ? undefined : "sr-only"}>{label}</span>
+            <span className={showLabels ? undefined : "sr-only"}>
+              {t(v === "light" ? "lightMode" : v === "dark" ? "darkMode" : "systemMode")}
+            </span>
           </>
         ),
       }))}

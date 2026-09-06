@@ -1,3 +1,4 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle } from "lucide-react";
 
@@ -125,7 +126,12 @@ function ComponentRecord() {
               actions={
                 <>
                   <Badge tone={componentHealthTone[component.health]}>{component.health}</Badge>
-                  <Button variant="secondary">Edit definition</Button>
+                  <UnavailableAction
+                    reason="Provider definitions are read-only in this workspace."
+                    variant="secondary"
+                  >
+                    Edit definition
+                  </UnavailableAction>
                 </>
               }
             />

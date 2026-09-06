@@ -1,14 +1,15 @@
+import { useLedgerLocale } from "../lib/locale";
 import { format, isValid, parseISO } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useId, useRef, useState, type ComponentProps } from "react";
 
 import { cn } from "../lib/cn";
 import { Button } from "./button";
 import { Calendar } from "./calendar";
-import { controlBase, controlHeight, type ControlSize } from "./controls";
+import { controlBase, controlHeight, useFieldControl, type ControlSize } from "./controls";
 import { Popover } from "./popover";
 
-export type DatePickerProps = {
+type DatePickerOwnProps = {
   /** The chosen day as an ISO date ("2026-09-14"), controlled; pair it with `onChange`. */
   value?: string | undefined;
   /** The starting day when uncontrolled, as an ISO date. */
@@ -23,6 +24,10 @@ export type DatePickerProps = {
   disabled?: boolean | undefined;
   /** The form field's name; a hidden input carries the ISO date on submit. */
   name?: string | undefined;
+  /** An external owning form, matching the native form attribute. */
+  form?: string | undefined;
+  id?: string | undefined;
+  "aria-labelledby"?: string | undefined;
   /** Open on first render; for a sheet that exists to pick this day, and for the docs. */
   defaultOpen?: boolean | undefined;
   /** Layout only. */
@@ -37,28 +42,62 @@ export type DatePickerProps = {
   "aria-describedby"?: string | undefined;
 };
 
+export type DatePickerProps = DatePickerOwnProps &
+  Omit<ComponentProps<"button">, keyof DatePickerOwnProps | "children" | "type">;
+
 /** One day, picked from a Calendar in a Popover. Holds and reports an ISO day ("2026-09-14"), the contract of `input type="date"`, and shows it as "Sep 14, 2026". Today and Clear sit under the month. */
 export function DatePicker({
   value,
   defaultValue,
   onChange,
-  placeholder = "Choose a date",
+  placeholder,
   size = "medium",
   disabled,
   name,
+  form,
+  id,
+  "aria-labelledby": ariaLabelledby,
   defaultOpen = false,
   className,
   "aria-label": ariaLabel,
   "aria-invalid": ariaInvalid,
   "aria-describedby": ariaDescribedby,
+  ...triggerProps
 }: DatePickerProps) {
+  const { t, formatCalendarDate } = useLedgerLocale();
+  const generatedId = useId();
+  const field = useFieldControl({
+    ...triggerProps,
+    id,
+    "aria-label": ariaLabel,
+    "aria-labelledby": ariaLabelledby,
+    "aria-invalid": ariaInvalid,
+    "aria-describedby": ariaDescribedby,
+  });
+  const triggerId = field.id ?? generatedId;
+  const input = useRef<HTMLInputElement>(null);
   const [inner, setInner] = useState(defaultValue ?? "");
   const [open, setOpen] = useState(defaultOpen);
   const current = value ?? inner;
   const parsed = current ? parseISO(current) : undefined;
   const date = parsed && isValid(parsed) ? parsed : undefined;
 
+  useEffect(() => {
+    const owner = input.current?.form;
+    if (!owner) return;
+    const reset = (event: Event) => {
+      queueMicrotask(() => {
+        if (event.defaultPrevented) return;
+        if (value === undefined) setInner(defaultValue ?? "");
+        setOpen(false);
+      });
+    };
+    owner.addEventListener("reset", reset);
+    return () => owner.removeEventListener("reset", reset);
+  }, [form, value, defaultValue]);
+
   const pick = (next: Date | undefined) => {
+    if (disabled) return;
     const iso = next ? format(next, "yyyy-MM-dd") : "";
     if (value === undefined) setInner(iso);
     onChange?.(iso);
@@ -66,46 +105,59 @@ export function DatePicker({
   };
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={setOpen}
-      label="Choose a date"
-      className="p-0"
-      trigger={
-        <button
-          type="button"
-          disabled={disabled}
-          aria-label={ariaLabel}
-          aria-invalid={ariaInvalid}
-          aria-describedby={ariaDescribedby}
-          className={cn(
-            controlBase,
-            controlHeight[size],
-            "flex items-center gap-100 text-left",
-            className,
-          )}
-        >
-          <CalendarIcon className="size-icon-small shrink-0 icon-subtle" />
-          <span className={cn("min-w-0 flex-1 truncate tabular-nums", !date && "text-subtlest")}>
-            {date ? format(date, "MMM d, yyyy") : placeholder}
-          </span>
-        </button>
-      }
-    >
-      {name ? <input type="hidden" name={name} value={current} /> : null}
-      <Calendar
-        mode="single"
-        {...(date ? { selected: date, defaultMonth: date } : {})}
-        onSelect={pick}
+    <>
+      <input
+        ref={input}
+        type="hidden"
+        name={name}
+        form={form}
+        value={current}
+        disabled={disabled}
+        data-ds-focus-target={triggerId}
       />
-      <div className="flex items-center justify-between gap-100 border-t border-default px-150 py-100">
-        <Button variant="subtle" size="small" onClick={() => pick(new Date())}>
-          Today
-        </Button>
-        <Button variant="subtle" size="small" disabled={!date} onClick={() => pick(undefined)}>
-          Clear
-        </Button>
-      </div>
-    </Popover>
+      <Popover
+        open={open && !disabled}
+        onOpenChange={(next) => setOpen(next && !disabled)}
+        label={t("chooseDate")}
+        className="p-0"
+        trigger={
+          <button
+            type="button"
+            form={form}
+            disabled={disabled}
+            {...field}
+            id={triggerId}
+            aria-required={undefined}
+            className={cn(
+              controlBase,
+              controlHeight[size],
+              "flex items-center gap-100 text-left",
+              className,
+            )}
+          >
+            <CalendarIcon className="size-icon-small shrink-0 icon-subtle" />
+            <span className={cn("min-w-0 flex-1 truncate tabular-nums", !date && "text-subtlest")}>
+              {date
+                ? formatCalendarDate(date, { month: "short", day: "numeric", year: "numeric" })
+                : (placeholder ?? t("chooseDate"))}
+            </span>
+          </button>
+        }
+      >
+        <Calendar
+          mode="single"
+          {...(date ? { selected: date, defaultMonth: date } : {})}
+          onSelect={pick}
+        />
+        <div className="flex items-center justify-between gap-100 border-t border-default px-150 py-100">
+          <Button variant="subtle" size="small" onClick={() => pick(new Date())}>
+            {t("today")}
+          </Button>
+          <Button variant="subtle" size="small" disabled={!date} onClick={() => pick(undefined)}>
+            {t("clear")}
+          </Button>
+        </div>
+      </Popover>
+    </>
   );
 }

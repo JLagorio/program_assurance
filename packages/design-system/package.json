@@ -1,8 +1,8 @@
 {
   "name": "@ledger/design-system",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
-  "description": "Ledger: tokens, primitives and components. DTCG source in tokens/, generated outputs in src/generated/.",
+  "description": "Ledger: tokens, primitives and components. Versioned CSS token source with DTCG 2025.10 interchange exports.",
   "type": "module",
   "sideEffects": [
     "*.css"
@@ -23,7 +23,9 @@
     "./reset.css": "./src/styles/reset.css",
     "./tokens.css": "./src/generated/tokens.css",
     "./tokens.json": "./src/generated/tokens.figma.json",
-    "./eslint": "./eslint-plugin/index.js"
+    "./eslint": "./eslint-plugin/index.js",
+    "./tokens.dtcg.light.json": "./src/generated/tokens.dtcg.light.json",
+    "./tokens.dtcg.dark.json": "./src/generated/tokens.dtcg.dark.json"
   },
   "scripts": {
     "build": "node build/dist.mjs",
@@ -34,12 +36,16 @@
     "build-storybook": "storybook build",
     "test": "node --test \"test/**/*.test.mjs\"",
     "test:report": "CONTRAST_REPORT=1 node --test \"test/**/*.test.mjs\"",
-    "test:a11y": "vitest run --project storybook",
-    "lint": "eslint ."
+    "test:a11y": "vitest run --project storybook-light --project storybook-dark",
+    "lint": "eslint .",
+    "test:consumer": "node build/consumer-smoke.mjs"
   },
   "devDependencies": {
+    "@tanstack/react-form": "^1.33.5",
+    "ajv": "^8.20.0",
     "remark-gfm": "^4.0.1",
-    "style-dictionary": "^5.5.2"
+    "style-dictionary": "^5.5.2",
+    "zod": "^3.25.76"
   },
   "files": [
     "dist",

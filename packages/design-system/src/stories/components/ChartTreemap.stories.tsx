@@ -20,6 +20,7 @@ const systems = bySystem.map((s) => ({ key: s.name, label: s.name }));
 
 /** Every treemap in both modes: four systems with their components; small; one branch alone; loading. */
 export const TreemapMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Four systems · small · one branch (its tone inherited)">

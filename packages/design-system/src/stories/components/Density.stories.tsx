@@ -158,6 +158,7 @@ export const ByDesign: Story = {
 
 /** The two heights side by side on a plain Table and on a DataTable; the header row is 32px in both. */
 export const DensityMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Table · default · compact">

@@ -22,6 +22,7 @@ function Label({ children }: { children: string }) {
 
 /** The four sizes with the element each renders by default; the element overridden by `as`; inverse on a bold fill, set by the Box. */
 export const HeadingMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Stack space="space.100">

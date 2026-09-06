@@ -95,6 +95,7 @@ export const InspectorGroups: Story = {
 
 /** Groups from data with a footer, beside a page; the composed group with an action; the same groups in a flush Panel, the rules edge to edge. */
 export const InspectorMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Inline space="space.300" alignBlock="start" shouldWrap>
       <Box className="w-layout-rail">

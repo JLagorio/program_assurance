@@ -130,3 +130,8 @@
   position: sticky;
   top: var(--shell-top, var(--ds-dimension-layout-topnav));
 }
+
+/* Keep keyboard-focused controls clear of sticky application furniture when scrolled into view. */
+:where(input, textarea, select, button, a[href], [tabindex]):focus-visible {
+  scroll-margin-block: calc(var(--shell-top, var(--ds-dimension-layout-topnav)) + var(--ds-space-200)) var(--ds-space-1000);
+}

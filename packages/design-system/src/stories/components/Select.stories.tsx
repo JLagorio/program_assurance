@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
+import { expect, within } from "storybook/test";
 
 import { Button, Combobox, Dot, Field, NativeSelect, Select, useRequired } from "../../components";
 import type { Tone } from "../../components";
@@ -51,6 +52,7 @@ const stateProps = (s: State) => ({
 
 /** Every state down the side; bare and inside a Field across. Open one to see the list. */
 export const SelectMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Grid
       rows={states}
@@ -306,3 +308,38 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {};
+
+/** Trigger DOM styles survive the wrapper, with the explicit width prop taking precedence. */
+export const TriggerStyleContract: Story = {
+  tags: ["contract"],
+  render: () => (
+    <Stack space="space.100">
+      <Select
+        aria-label="Styled status"
+        style={{ width: 216, marginInlineStart: 12 }}
+        defaultValue="review"
+      >
+        <StatusItems />
+      </Select>
+      <Select
+        aria-label="Sized status"
+        width={192}
+        style={{ width: 216, marginInlineStart: 12 }}
+        defaultValue="review"
+      >
+        <StatusItems />
+      </Select>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("combobox", { name: "Styled status" })).toHaveStyle({
+      width: "216px",
+      marginInlineStart: "12px",
+    });
+    await expect(canvas.getByRole("combobox", { name: "Sized status" })).toHaveStyle({
+      width: "192px",
+      marginInlineStart: "12px",
+    });
+  },
+};

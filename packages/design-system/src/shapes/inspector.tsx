@@ -1,6 +1,9 @@
+import { ChevronDown } from "lucide-react";
+import { Collapsible } from "../components/collapsible";
 import { useContext, type ReactNode } from "react";
 
-import { Collapsible } from "../components/disclosure";
+import { Accordion } from "../components/accordion";
+
 import { KeyValue } from "../components/key-value";
 import { ScrollArea } from "../components/scroll-area";
 import { cn } from "../lib/cn";
@@ -9,7 +12,7 @@ import { PanelContext } from "../lib/panel-context";
 /* Groups of facts beside the work, each group a heading that folds, every group open until the
    reader folds it, a Configure link at the end. An accordion usually opens closed so its titles
    are the overview; a rail of facts is the exception, content the reader will read, so the
-   groups open. The row is a label and a value, no nesting, a small set. A Collapsible.Group of
+   groups open. The row is a label and a value, no nesting, a small set. An Accordion of Accordion.Item sections and
    KeyValue rows, sticky beside a page, scrolling with a panel. */
 
 export type InspectorGroupData = {
@@ -35,24 +38,34 @@ function InspectorRoot({ groups, footer, sticky }: InspectorProps) {
   const flush = panel?.flush ?? false;
   const body = (
     <>
-      <Collapsible.Group inset={flush} className="border-b-0">
+      <Accordion defaultValue={groups.map((g) => g.title)} type="multiple" className="border-b-0">
         {groups.map((g, index) => (
-          <Collapsible
+          <Accordion.Item
+            value={g.title}
             key={g.title}
-            title={g.title}
-            defaultOpen
-            className={index === 0 ? "border-t-0" : undefined}
+            className={index === 0 ? "border-t-0" : "border-t border-default"}
           >
-            <div className="flex flex-col">
-              {g.rows.map((r) => (
-                <KeyValue key={r.label} label={r.label}>
-                  {r.value}
-                </KeyValue>
-              ))}
-            </div>
-          </Collapsible>
+            <Accordion.Header asChild>
+              <h3>
+                <Accordion.Trigger className={flush ? "px-300" : undefined}>
+                  {g.title}
+                </Accordion.Trigger>
+              </h3>
+            </Accordion.Header>
+            <Accordion.Content>
+              <div className={flush ? "px-300 pb-200" : "pb-200"}>
+                <div className="flex flex-col">
+                  {g.rows.map((r) => (
+                    <KeyValue key={r.label} label={r.label}>
+                      {r.value}
+                    </KeyValue>
+                  ))}
+                </div>
+              </div>
+            </Accordion.Content>
+          </Accordion.Item>
         ))}
-      </Collapsible.Group>
+      </Accordion>
       {footer ? <div className={cn("pt-150", flush && "px-300 pb-200")}>{footer}</div> : null}
     </>
   );
@@ -78,14 +91,22 @@ export type InspectorGroupProps = {
 function InspectorGroup({ title, children, action }: InspectorGroupProps) {
   const panel = useContext(PanelContext);
   return (
-    <Collapsible
-      title={title}
-      defaultOpen
-      inset={panel?.flush ?? false}
-      className="first:border-t-0"
-    >
-      {action ? <div className="flex justify-end pb-050">{action}</div> : null}
-      <div className="flex flex-col">{children}</div>
+    <Collapsible defaultOpen className="border-t border-default first:border-t-0">
+      <h3>
+        <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+          {title}
+          <ChevronDown
+            aria-hidden="true"
+            className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
+          />
+        </Collapsible.Trigger>
+      </h3>
+      <Collapsible.Content>
+        <div className={(panel?.flush ?? false) ? "px-300 pb-200" : "pb-200"}>
+          {action ? <div className="flex justify-end pb-050">{action}</div> : null}
+          <div className="flex flex-col">{children}</div>
+        </div>
+      </Collapsible.Content>
     </Collapsible>
   );
 }

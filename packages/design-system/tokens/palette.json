@@ -63,8 +63,8 @@
         "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
       },
       "400A": {
-        "$value": "oklch(0.22 0.024 258 / 0.3)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$value": "oklch(0.22 0.024 258 / 0.18)",
+        "$description": "Pressed neutral fill, limited to 18% so subtle text stays readable on all supported surfaces."
       },
       "500A": {
         "$value": "oklch(0.22 0.024 258 / 0.5)",
@@ -145,8 +145,8 @@
         "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
       },
       "400A": {
-        "$value": "oklch(1 0 0 / 0.3)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$value": "oklch(1 0 0 / 0.18)",
+        "$description": "Pressed neutral fill, limited to 18% so subtle text stays readable on all supported surfaces."
       },
       "500A": {
         "$value": "oklch(1 0 0 / 0.5)",
@@ -201,6 +201,42 @@
       "1000": {
         "$value": "oklch(0.3 0.1 254)",
         "$description": "Draft ramp step. Tune in step 1."
+      },
+      "225": {
+        "$value": "oklch(0.92 0.055 254.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
+      },
+      "875": {
+        "$value": "oklch(0.41 0.1575 254.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
+      },
+      "150": {
+        "$value": "oklch(0.9525 0.0335 254.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
+      },
+      "950": {
+        "$value": "oklch(0.34 0.1225 254.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
       }
     },
     "green": {
@@ -251,6 +287,24 @@
       "1000": {
         "$value": "oklch(0.28 0.06 162)",
         "$description": "Draft ramp step. Tune in step 1."
+      },
+      "225": {
+        "$value": "oklch(0.9175 0.05 162.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
+      },
+      "875": {
+        "$value": "oklch(0.38 0.0875 162.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
       }
     },
     "orange": {
@@ -301,6 +355,24 @@
       "1000": {
         "$value": "oklch(0.31 0.07 54)",
         "$description": "Draft ramp step. Tune in step 1."
+      },
+      "225": {
+        "$value": "oklch(0.93 0.0675 73.5)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
+      },
+      "875": {
+        "$value": "oklch(0.42 0.1025 57.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
       }
     },
     "red": {
@@ -351,6 +423,24 @@
       "1000": {
         "$value": "oklch(0.28 0.09 26)",
         "$description": "Draft ramp step. Tune in step 1."
+      },
+      "225": {
+        "$value": "oklch(0.92 0.05 26.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
+      },
+      "875": {
+        "$value": "oklch(0.39 0.1425 26.0)",
+        "$description": "Intermediate interaction step preserving text contrast across rest, hover and press.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.6.0"
+          }
+        }
       }
     },
     "teal": {

@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../lib/locale";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Check } from "lucide-react";
 import { useState } from "react";
@@ -15,6 +16,8 @@ import {
 } from "./menu";
 
 export type DropdownMenuProps = {
+  /** Reading direction for the portaled menu; defaults to the surrounding LedgerProvider. */
+  dir?: "ltr" | "rtl" | undefined;
   /** One element, usually a Button or an IconButton. It opens and closes the menu and carries the aria. The render form receives `open`; `toggle` is inert and kept for older call sites. */
   trigger: ReactNode | ((props: { open: boolean; toggle: () => void }) => ReactNode);
   /** `start` by default: the menu's edge flush with the trigger's. `end` for a kebab at the end of a row. */
@@ -44,16 +47,18 @@ export type DropdownMenuItemProps = {
 
 /** A list of actions or options anchored to a trigger. Items take arrow keys, Home and End, typeahead and Escape; the menu closes when an item is chosen. */
 function DropdownMenuRoot({
+  dir,
   trigger,
   align = "start",
   width = 200,
   defaultOpen = false,
   children,
 }: DropdownMenuProps) {
+  const { direction } = useLedgerLocale();
   const [open, setOpen] = useState(defaultOpen);
   const close = () => setOpen(false);
   return (
-    <DropdownMenuPrimitive.Root open={open} onOpenChange={setOpen}>
+    <DropdownMenuPrimitive.Root dir={dir ?? direction} open={open} onOpenChange={setOpen}>
       <DropdownMenuPrimitive.Trigger asChild>
         {typeof trigger === "function" ? trigger({ open, toggle: () => undefined }) : trigger}
       </DropdownMenuPrimitive.Trigger>

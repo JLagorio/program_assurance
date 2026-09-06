@@ -1,11 +1,12 @@
+import { Fragment, useMemo, useState, useEffect } from "react";
+import { useRecordForm } from "@/lib/record-form";
+import { saveProgramCommand, useProgramsVersion } from "@/lib/program-store";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { Fragment, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { useEffect } from "react";
 import { ChevronDown, ChevronRight, Lock, Pencil } from "lucide-react";
 
+import { Task } from "@/components/app/task";
 import { CdrPackageModal, DigitalThreadSection } from "@/components/app/digital-thread";
-import { InheritChip } from "@/components/app/inheritance";
 import { LifecycleSection } from "@/components/app/lifecycle";
 import {
   Breadcrumb,
@@ -44,28 +45,26 @@ import {
   toast,
   Toolbar,
   useCommandPalette,
-  useRequired,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { AuthorizationSection } from "@/components/app/authorization";
 import { VerificationSection } from "@/components/app/verification";
-import { TeamSection } from "@/components/app/team";
-import { LockedNotice, OpenWorkSection } from "@/components/app/program-state";
-import { CoverageBand, MilestoneTrack } from "@/components/app/coverage";
-import { SctmMatrixSection } from "@/components/app/sctm-matrix";
+import { CoverageBand } from "@/components/app/coverage";
 import { ControlBoard } from "@/components/app/control-board";
-import { ControlWorkspace } from "@/components/app/control-workspace";
-import { GateOutlookSection, RmfTimeline } from "@/components/app/rmf-timeline";
+import { RecordActivity } from "@/components/app/record-activity";
+import { StageStrip } from "@/components/app/stage-strip";
+import { ProgramTasks, TaskRows } from "@/components/app/tasks-section";
+import { currentSession } from "@/lib/control-work";
+import { stageOf } from "@/lib/stages";
+import { tasksForProgram, useTasksVersion } from "@/lib/tasks";
 import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
-import { ActivityTimeline } from "@/components/app/activity-timeline";
 import { saveProgramField } from "@/lib/program-save";
-import { findingsForProgram, nextActions, programPosture } from "@/lib/program-actions";
-import { programActivity } from "@/lib/program-activity";
-import { coverageFromRows, gateOutlook, programMilestones } from "@/lib/program-coverage";
+import { findingsForProgram, programPosture } from "@/lib/program-actions";
+import { coverageFromRows } from "@/lib/program-coverage";
 import { isOpen } from "@/lib/findings";
 import { programCommands } from "@/lib/program-commands";
 import { NewRequirementModal } from "@/components/app/requirement-forms";
-import { ControlSetsSummary, ScopeTable } from "@/components/app/scopes";
+import { ScopeTable } from "@/components/app/scopes";
 import { RequirementCoverage } from "@/components/app/requirement-coverage";
 import { RequirementTable } from "@/components/app/requirements";
 import { programControls, programStatuses, programStatusTone, programs } from "@/lib/grc-data";
@@ -73,7 +72,7 @@ import { allocationsFor, requirementsForProgram, useRequirementsVersion } from "
 import { rollupControlSet, scopesForProgram, useScopesVersion } from "@/lib/scopes";
 import { poamItems as registerPoams } from "@/lib/register";
 import { statusTone } from "@/lib/spine";
-import { programState, stages, type Stage } from "@/lib/program-stage";
+import { programState, type Stage } from "@/lib/program-stage";
 import { peopleForProgram, personById, workstreamsForProgram } from "@/lib/people";
 import { inheritanceForProgram } from "@/lib/inheritance";
 import { staleThresholdDays } from "@/lib/reusable-components";
@@ -88,7 +87,11 @@ export const Route = createFileRoute("/programs/$programId")({
     const raw = String(search["tab"] ?? "");
     // The peek stack: element ids, outermost first. The browser's back is the sheet's back.
     const peek = typeof search["peek"] === "string" && search["peek"] ? search["peek"] : undefined;
-    return { tab: tabOrder.find((t) => t.toLowerCase() === raw.toLowerCase()), peek };
+    return {
+      tab:
+        tabOrder.find((t) => t.toLowerCase() === raw.toLowerCase()) ?? tabAlias[raw.toLowerCase()],
+      peek,
+    };
   },
   loader: ({ params }) => {
     const program = programs.find((p) => p.id.toLowerCase() === params.programId.toLowerCase());
@@ -121,32 +124,35 @@ export const Route = createFileRoute("/programs/$programId")({
 /** Object-oriented tabs. The workflow lives in the lifecycle bar, not here. */
 type Tab =
   | "Overview"
-  | "Controls"
-  | "Controls v2"
-  | "Controls v3"
-  | "Systems"
+  | "System"
   | "Requirements"
-  | "Timeline"
+  | "Controls"
+  | "Tasks"
   | "Findings"
   | "Evidence"
   | "POA&M"
-  | "Team"
   | "Activity";
 
 const tabOrder: Tab[] = [
   "Overview",
-  "Controls",
-  "Controls v2",
-  "Controls v3",
-  "Systems",
+  "System",
   "Requirements",
-  "Timeline",
+  "Controls",
+  "Tasks",
   "Findings",
   "Evidence",
   "POA&M",
-  "Team",
   "Activity",
 ];
+
+/** Old tab names still linked from elsewhere land on the tab that holds them now. */
+const tabAlias: Record<string, Tab> = {
+  systems: "System",
+  team: "Overview",
+  timeline: "Overview",
+  "controls v2": "Controls",
+  "controls v3": "Controls",
+};
 
 /**
  * The pages that hang off a program. They live in the header's Views menu,
@@ -222,7 +228,6 @@ const segmentStatus: Record<string, ControlStatus> = {
 function ProgramDetail() {
   const program = Route.useLoaderData();
   const [tab, setTab] = useState<Tab>(Route.useSearch().tab ?? "Overview");
-  const [stageFilter, setStageFilter] = useState<Stage | null>(null);
   const teamSize = useMemo(() => peopleForProgram(program.id).length, [program.id]);
   const scopesVersion = useScopesVersion();
   const scopeRows = useMemo(() => scopesForProgram(program.id), [program.id, scopesVersion]);
@@ -233,9 +238,17 @@ function ProgramDetail() {
     [program.id, requirementsVersion],
   );
   const [newRequirement, setNewRequirement] = useState(false);
+  useProgramsVersion();
   const [assessing, setAssessing] = useState(false);
   const [archiving, setArchiving] = useState(false);
-  const [assessControl, setAssessControl] = useState("AC-6(9)");
+  const { form, values, formId, formRef } = useRecordForm(
+    {
+      assessControl: "AC-6(9)",
+    },
+    (value) => ({ assessControl: value.assessControl }),
+  );
+  const { assessControl } = values;
+
   const [status, setStatus] = useState(program.status);
   const [owner, setOwner] = useState(program.owner);
   const palette = useCommandPalette();
@@ -247,7 +260,7 @@ function ProgramDetail() {
     system: program.system,
     assessor: program.assessor,
   });
-  const req = useRequired({ assessControl });
+
   const saveField = (field: string) => (value: string) =>
     saveProgramField({ programId: program.id, field, value });
   const required = (label: string) => (v: string) =>
@@ -277,20 +290,14 @@ function ProgramDetail() {
     [program, posture.controlsFailing],
   );
   const coverage = useMemo(() => coverageFromRows(matrix), [matrix]);
-  const outlook = useMemo(() => gateOutlook(program, matrix), [program, matrix]);
-  const milestones = useMemo(() => programMilestones(program), [program]);
   const openFindings = useMemo(() => findingsForProgram(program.id).filter(isOpen), [program.id]);
   const programWorkstreams = useMemo(() => workstreamsForProgram(program.id), [program.id]);
-  const feed = useMemo(() => programActivity(program), [program]);
   const navigate = useNavigate();
-  const actions = useMemo(() => nextActions(program, matrix), [program, matrix]);
 
   const ownerOptions = useMemo(() => {
     const names = peopleForProgram(program.id).map((p) => p.name);
     return [...new Set([program.owner, ...names])].slice(0, 8);
   }, [program.id, program.owner]);
-
-  const locked = stageFilter !== null && state.stageStatus[stageFilter] === "locked";
 
   const runPrimary = () => {
     if (state.primaryAction === "Generate CDR package") setCdrOpen(true);
@@ -298,9 +305,12 @@ function ProgramDetail() {
   };
 
   const selectStage = (s: Stage | null) => {
-    setStageFilter(s);
     if (s) setTab(stageHome[s]);
   };
+  const me = currentSession().name;
+  useTasksVersion();
+  const programTasks = tasksForProgram(program.id);
+  const openTaskCount = programTasks.filter((t) => t.state !== "Done").length;
 
   useEffect(() => {
     let armed = false;
@@ -336,14 +346,27 @@ function ProgramDetail() {
 
   const rail = (
     <>
-      <Inspector.Group
-        title="Properties"
-        action={
-          <IconButton label="Edit properties" variant="subtle" size="small" icon={<Pencil />} />
-        }
-      >
-        <KeyValue label="Program ID">
-          <Id>{program.id}</Id>
+      <Inspector.Group title="Details">
+        <KeyValue label="Status">
+          <Editable.Select
+            label="Status"
+            value={status}
+            options={programStatuses}
+            onChange={setStatus}
+            save={saveField("Status")}
+            render={(v) => <Badge tone={programStatusTone[v]}>{v}</Badge>}
+          />
+        </KeyValue>
+        <KeyValue label="Stage">{stageOf(program.id)}</KeyValue>
+        <KeyValue label="Owner">
+          <Editable.Select
+            label="Owner"
+            value={owner}
+            options={ownerOptions}
+            onChange={setOwner}
+            save={saveField("Owner")}
+            render={(v) => <Person name={v} />}
+          />
         </KeyValue>
         <KeyValue label="Acronym">
           <Editable.Text
@@ -360,104 +383,6 @@ function ProgramDetail() {
             save={saveField("Acronym")}
           />
         </KeyValue>
-        <KeyValue label="System type">{program.type}</KeyValue>
-        <KeyValue label="Environment">{program.environment}</KeyValue>
-        <KeyValue label="Owner">
-          <Editable.Select
-            label="Owner"
-            value={owner}
-            options={ownerOptions}
-            onChange={setOwner}
-            save={saveField("Owner")}
-            render={(v) => <Person name={v} />}
-          />
-        </KeyValue>
-        <KeyValue label="Status">
-          <Editable.Select
-            label="Status"
-            value={status}
-            options={programStatuses}
-            onChange={setStatus}
-            save={saveField("Status")}
-            render={(v) => <Badge tone={programStatusTone[v]}>{v}</Badge>}
-          />
-        </KeyValue>
-      </Inspector.Group>
-
-      <Inspector.Group title="Lifecycle">
-        <KeyValue label="Stage">
-          <DropdownMenu
-            align="start"
-            width={190}
-            trigger={({ toggle }) => (
-              <button
-                type="button"
-                onClick={toggle}
-                className="flex w-full items-center gap-075 rounded-small px-050 py-025 text-left transition-colors hover:bg-neutral-subtle-hovered"
-              >
-                <Dot tone={state.blockerTone === "danger" ? "danger" : "information"} />
-                <span className="truncate">{stageFilter ?? state.currentStage}</span>
-                <ChevronDown className="ml-auto shrink-0 text-subtle size-150" />
-              </button>
-            )}
-          >
-            {(close) => (
-              <>
-                <DropdownMenu.Label>Jump to stage</DropdownMenu.Label>
-                {stages.map((s) => (
-                  <DropdownMenu.Item
-                    key={s}
-                    isSelected={s === (stageFilter ?? state.currentStage)}
-                    onSelect={() => {
-                      selectStage(s === stageFilter ? null : s);
-                      close();
-                    }}
-                  >
-                    {s}
-                  </DropdownMenu.Item>
-                ))}
-              </>
-            )}
-          </DropdownMenu>
-        </KeyValue>
-        <KeyValue label="Current gate">
-          {state.currentGate ? (
-            <Inline as="span" space="space.075" alignBlock="center">
-              <Id className="text-subtle">{state.currentGate.id}</Id>
-              <span className="truncate">{state.currentGate.name}</span>
-            </Inline>
-          ) : (
-            "—"
-          )}
-        </KeyValue>
-        <KeyValue label="Timing">
-          {state.daysOut === null ? (
-            "—"
-          ) : (
-            <span
-              className={
-                state.daysOut < 0
-                  ? "tabular-nums text-danger"
-                  : state.daysOut < 30
-                    ? "tabular-nums text-warning"
-                    : "tabular-nums"
-              }
-            >
-              {state.daysOut < 0 ? `${Math.abs(state.daysOut)}d overdue` : `${state.daysOut}d out`}
-            </span>
-          )}
-        </KeyValue>
-        <KeyValue label="Blocker">
-          {state.blocker ? (
-            <span className="block font-body-small font-medium text-danger">{state.blocker}</span>
-          ) : (
-            <span className="text-subtle">None</span>
-          )}
-        </KeyValue>
-      </Inspector.Group>
-
-      <Inspector.Group title="About">
-        <p className="pb-050 pt-025 font-body-small text-subtle">{program.summary}</p>
         <KeyValue label="System">
           <Editable.Text
             label="System"
@@ -467,61 +392,22 @@ function ProgramDetail() {
             save={saveField("System")}
           />
         </KeyValue>
+        <KeyValue label="Type">{program.type}</KeyValue>
+        <KeyValue label="Environment">{program.environment}</KeyValue>
+        <KeyValue label="Next gate">
+          {state.currentGate ? (
+            <Inline as="span" space="space.075" alignBlock="center">
+              <Id className="text-subtle">{state.currentGate.id}</Id>
+              <span className="truncate">{state.currentGate.name}</span>
+            </Inline>
+          ) : (
+            "—"
+          )}
+        </KeyValue>
         <KeyValue label="Updated">{program.updated}</KeyValue>
       </Inspector.Group>
 
-      <Inspector.Group title="Categorization">
-        <KeyValue label="Impact">{program.impact}</KeyValue>
-        <KeyValue label="Confidentiality">{program.confidentiality}</KeyValue>
-        <KeyValue label="Integrity">{program.integrity}</KeyValue>
-        <KeyValue label="Availability">{program.availability}</KeyValue>
-      </Inspector.Group>
-
-      <Inspector.Group title="Posture">
-        <KeyValue label="Controls">
-          <span className="tabular-nums">
-            {posture.controlsSatisfied}/{posture.controlsTotal} satisfied
-          </span>
-        </KeyValue>
-        <KeyValue label="Open findings">
-          <span className={posture.catI > 0 ? "tabular-nums text-danger" : "tabular-nums"}>
-            {posture.findingsOpen}
-            {posture.catI ? ` · ${posture.catI} CAT I` : ""}
-          </span>
-        </KeyValue>
-        <KeyValue label="POA&M open">
-          <span className={posture.poamOverdue > 0 ? "tabular-nums text-danger" : "tabular-nums"}>
-            {posture.poamOpen}
-            {posture.poamOverdue ? ` · ${posture.poamOverdue} overdue` : ""}
-          </span>
-        </KeyValue>
-        <KeyValue label="Evidence stale">
-          <span
-            className={posture.evidenceStale > 0 ? "tabular-nums text-warning" : "tabular-nums"}
-          >
-            {posture.evidenceStale}
-          </span>
-        </KeyValue>
-        <KeyValue label="Inherited">
-          {/*
-            The coverage card above this rail counts matrix rows the resolution
-            designated Common; the inheritance page counts every resolved offer,
-            including the Hybrid and System-Specific ones this system still owes
-            work on. Both numbers are true and they are not the same number, so
-            this row prints them together off the same two sources rather than
-            giving the bare word "Inherited" a second, larger value.
-          */}
-          <span
-            className="tabular-nums"
-            title={`${coverage.inherited} of ${inheritance.size} resolved offers are fully inherited (Common). The rest are Hybrid or System-Specific and still carry a consumer obligation.`}
-          >
-            {coverage.inherited} of {inheritance.size} resolved
-          </span>
-        </KeyValue>
-      </Inspector.Group>
-
-      <Inspector.Group title="Authorization">
-        <KeyValue label="Baseline">{program.baseline}</KeyValue>
+      <Inspector.Group title="Team">
         <KeyValue label="Assessor">
           <Editable.Text
             label="Assessor"
@@ -532,9 +418,28 @@ function ProgramDetail() {
           />
         </KeyValue>
         <KeyValue label="AO">{program.authorizingOfficial}</KeyValue>
+        {programWorkstreams.map((w) => (
+          <KeyValue key={w.id} label={w.title} wrap>
+            <TextLink>
+              <Link to="/workstreams/$workstreamId" params={{ workstreamId: w.id }}>
+                {personById.get(w.lead)?.name ?? w.lead}
+              </Link>
+            </TextLink>
+          </KeyValue>
+        ))}
+      </Inspector.Group>
+
+      <Inspector.Group title="Categorization">
+        <KeyValue label="Impact">{program.impact}</KeyValue>
+        <KeyValue label="Confidentiality">{program.confidentiality}</KeyValue>
+        <KeyValue label="Integrity">{program.integrity}</KeyValue>
+        <KeyValue label="Availability">{program.availability}</KeyValue>
+      </Inspector.Group>
+
+      <Inspector.Group title="Authorization">
+        <KeyValue label="Baseline">{program.baseline}</KeyValue>
         <KeyValue label="Authorized">{program.authorized}</KeyValue>
         <KeyValue label="Expires">{program.expires}</KeyValue>
-        <KeyValue label="Updated">{program.updated}</KeyValue>
       </Inspector.Group>
 
       <Inspector.Group title="Inherits from">
@@ -679,16 +584,13 @@ function ProgramDetail() {
               {(
                 [
                   ["Overview", null],
-                  ["Controls", coverage.segments[2]?.value || null],
-                  ["Controls v2", null],
-                  ["Controls v3", null],
-                  ["Systems", scopeRows.length || null],
+                  ["System", scopeRows.length || null],
                   ["Requirements", requirementRows.length || null],
-                  ["Timeline", outlook.remaining.length || null],
+                  ["Controls", posture.controlsFailing || null],
+                  ["Tasks", openTaskCount || null],
                   ["Findings", posture.findingsOpen || null],
                   ["Evidence", posture.evidenceStale || null],
                   ["POA&M", posture.poamOpen || null],
-                  ["Team", teamSize],
                   ["Activity", null],
                 ] as [Tab, number | null][]
               ).map(([key, count]) => (
@@ -699,10 +601,10 @@ function ProgramDetail() {
             </Tabs.List>
           }
         >
-          {locked ? <LockedNotice stage={stageFilter!} gate={state.currentGate?.id} /> : null}
-
           {tab === "Overview" ? (
             <>
+              <StageStrip programId={program.id} />
+
               <CoverageBand
                 coverage={coverage}
                 baseline={`${program.baseline} — ${program.impact}`}
@@ -718,203 +620,109 @@ function ProgramDetail() {
                 }}
               />
 
-              <MilestoneTrack nodes={milestones} onSelect={() => setTab("Timeline")} />
-
-              <GateOutlookSection
-                rows={outlook.remaining}
-                programId={program.id}
-                onSelect={() => setTab("Timeline")}
-              />
-
-              <OpenWorkSection
-                actions={actions}
-                onRun={(a) => {
-                  if (a.cta === "Record result") setAssessing(true);
-                  else setTab(a.target);
-                }}
-              />
-
-              <Section title="Activity">
-                <ActivityTimeline programId={program.id} events={feed} />
-              </Section>
-            </>
-          ) : null}
-
-          {tab === "Controls" ? (
-            <>
               <Section
-                title="Inheritance"
+                title="Tasks"
+                count={openTaskCount || null}
                 action={
-                  <TextLink size="small" className="inline-flex items-center gap-025">
-                    <Link
-                      to="/programs/$programId/inheritance"
-                      params={{ programId: program.id }}
-                      search={{ tab: undefined, control: undefined }}
-                    >
-                      Open inheritance
-                    </Link>
-                  </TextLink>
+                  <Button size="small" variant="subtle" onClick={() => setTab("Tasks")}>
+                    See all
+                  </Button>
                 }
               >
-                <p className="pt-100 font-body-small text-subtle">
-                  {inheritedComponents.length} common control{" "}
-                  {inheritedComponents.length === 1 ? "provider reaches" : "providers reach"}{" "}
-                  {program.acronym}. Precedence between overlapping offers, applicability against
-                  this program's own inventory, and the residual consumer obligations are resolved
-                  there.
-                </p>
+                <Box paddingBlockStart="space.100">
+                  <Task.List empty="No open tasks. Ask for something from a record's log bar.">
+                    <TaskRows
+                      tasks={programTasks.filter((t) => t.state !== "Done").slice(0, 6)}
+                      me={me}
+                      showSubject
+                    />
+                  </Task.List>
+                </Box>
               </Section>
 
-              <Section
-                title="Configuration baseline"
-                action={
-                  <TextLink size="small" className="inline-flex items-center gap-025">
-                    <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>
-                      Open baseline
-                    </Link>
-                  </TextLink>
+              <RecordActivity
+                program={program.id}
+                subject={{ kind: "program", id: program.id, label: program.name }}
+                me={me}
+                wholeProgram
+                limit={8}
+                seeAll={
+                  <button type="button" onClick={() => setTab("Activity")}>
+                    See all
+                  </button>
                 }
-              >
-                <p className="pt-100 font-body-small text-subtle">
-                  A determination is only as current as the configuration it was taken against. The
-                  baseline page carries the pin diff, the CM-3(2) security impact analyses, the
-                  invalidated rows and the retest queue.
-                </p>
-              </Section>
-
-              <ControlSetsSummary scopes={scopeRows} onOpen={() => setTab("Systems")} />
-
-              <SctmMatrixSection
-                programId={program.id}
-                family={family}
-                onFamily={setFamily}
-                status={statusFilter}
-                onStatus={setStatusFilter}
               />
             </>
           ) : null}
 
-          {tab === "Controls v2" ? <ControlBoard programId={program.id} /> : null}
-          {tab === "Controls v3" ? <ControlWorkspace programId={program.id} /> : null}
-
-          {tab === "Timeline" ? (
-            <RmfTimeline
-              programId={program.id}
-              rows={matrix}
-              onOpenControls={(f) => {
-                setFamily(f);
-                setStatusFilter("All");
-                setTab("Controls");
-              }}
-            />
-          ) : null}
+          {tab === "Controls" ? <ControlBoard programId={program.id} /> : null}
 
           {tab === "Findings" ? (
-            <>
-              <Section
-                title="Cyber test and evaluation"
-                action={
-                  <TextLink size="small" className="inline-flex items-center gap-025">
+            <Section
+              title="Verification"
+              action={
+                <Inline space="space.150" alignBlock="center">
+                  <TextLink size="small">
                     <Link
                       to="/programs/$programId/te-phases"
                       params={{ programId: program.id }}
                       search={{ tab: undefined }}
                     >
-                      Open T&amp;E phases
+                      T&amp;E phases
                     </Link>
                   </TextLink>
-                }
-              >
-                <p className="pt-100 font-body-small text-subtle">
-                  A phase gate that is a checkbox is worthless. Wherever the platform can already
-                  judge a criterion it does — off {program.acronym}&apos;s own scan record, SCTM,
-                  finding register and change log — and the gate page prints the computed sentence
-                  and the evidence ids behind it rather than a tick.
-                </p>
-              </Section>
-
-              <Section
-                title="Verification"
-                description={`Scanner ingest, findings and assessor readiness for ${program.name}.`}
-                action={
-                  <TextLink size="small" className="inline-flex items-center gap-025">
+                  <TextLink size="small">
                     <Link to="/programs/$programId/ingestion" params={{ programId: program.id }}>
-                      Open ingestion
+                      Ingestion
                     </Link>
                   </TextLink>
-                }
-              >
-                <Box paddingBlockStart="space.200">
-                  <VerificationSection programName={program.name} />
-                </Box>
-              </Section>
-            </>
+                </Inline>
+              }
+            >
+              <Box paddingBlockStart="space.200">
+                <VerificationSection programName={program.name} />
+              </Box>
+            </Section>
           ) : null}
 
           {tab === "Evidence" ? (
             <>
-              <Section
-                title="Interoperability and transfer"
-                action={
-                  <TextLink size="small" className="inline-flex items-center gap-025">
-                    <Link
-                      to="/programs/$programId/export"
-                      params={{ programId: program.id }}
-                      search={{ tab: undefined }}
-                    >
-                      Open export
-                    </Link>
-                  </TextLink>
-                }
-              >
-                <p className="pt-100 font-body-small text-subtle">
-                  Every artifact is generated from {program.acronym}&apos;s live SCTM, composition
-                  graph and finding register rather than re-keyed, so an export taken twice is byte
-                  identical and the manifest hash means something. The reconciliation view diffs a
-                  bundle received from the far side against the one generated here and says, in one
-                  sentence, what moved.
-                </p>
-              </Section>
-
+              <Inline alignInline="end">
+                <TextLink size="small">
+                  <Link
+                    to="/programs/$programId/export"
+                    params={{ programId: program.id }}
+                    search={{ tab: undefined }}
+                  >
+                    Export
+                  </Link>
+                </TextLink>
+              </Inline>
               <LifecycleSection programId={program.id} programName={program.name} />
               <DigitalThreadSection programId={program.id} programName={program.name} />
+              <AuthorizationSection programId={program.id} programName={program.name} />
             </>
           ) : null}
 
           {tab === "POA&M" ? (
             <>
               <Section
-                title="Residual risk"
-                action={
-                  <TextLink size="small" className="inline-flex items-center gap-025">
-                    <Link
-                      to="/programs/$programId/risk"
-                      params={{ programId: program.id }}
-                      search={{ tab: undefined }}
-                    >
-                      Open risk scoring
-                    </Link>
-                  </TextLink>
-                }
-              >
-                <p className="pt-100 font-body-small text-subtle">
-                  {posture.findingsOpen} open finding
-                  {posture.findingsOpen === 1 ? " is" : "s are"} scored, banded and ranked there,
-                  and the register risks show the computed residual beside the number the assessor
-                  wrote down. Where the two disagree, the disagreement is the finding — the authored
-                  value is never overwritten.
-                </p>
-              </Section>
-
-              <Section
                 title="POA&M items"
                 action={
-                  <TextLink size="small" className="inline-flex items-center gap-025">
-                    <Link to="/register">
-                      Open register
-                      <ChevronRight className="size-icon-small" />
-                    </Link>
-                  </TextLink>
+                  <Inline space="space.150" alignBlock="center">
+                    <TextLink size="small">
+                      <Link
+                        to="/programs/$programId/risk"
+                        params={{ programId: program.id }}
+                        search={{ tab: undefined }}
+                      >
+                        Risk scoring
+                      </Link>
+                    </TextLink>
+                    <TextLink size="small">
+                      <Link to="/register">Register</Link>
+                    </TextLink>
+                  </Inline>
                 }
               >
                 {programPoams.length === 0 ? (
@@ -964,7 +772,7 @@ function ProgramDetail() {
             </>
           ) : null}
 
-          {tab === "Systems" ? (
+          {tab === "System" ? (
             <ScopeTable scopes={scopeRows} rollup={rollup} programId={program.id} />
           ) : null}
 
@@ -994,40 +802,17 @@ function ProgramDetail() {
             )
           ) : null}
 
+          {tab === "Tasks" ? <ProgramTasks programId={program.id} me={me} /> : null}
+
           {tab === "Activity" ? (
-            <>
-              <Section
-                title="Continuous monitoring"
-                action={
-                  <TextLink size="small" className="inline-flex items-center gap-025">
-                    <Link
-                      to="/programs/$programId/conmon"
-                      params={{ programId: program.id }}
-                      search={{ tab: undefined }}
-                    >
-                      Open ConMon
-                    </Link>
-                  </TextLink>
-                }
-              >
-                <p className="pt-100 font-body-small text-subtle">
-                  The timeline below records what happened to {program.acronym}. The ConMon page
-                  records what has drifted since — an unrecorded configuration change, a
-                  determination the change invalidated, evidence past its collection interval, an
-                  SLCM assessment that has gone overdue — each stated with the numbers behind it and
-                  the next step.
-                </p>
-              </Section>
-
-              <AuthorizationSection programId={program.id} programName={program.name} />
-
-              <Section title="Activity">
-                <ActivityTimeline programId={program.id} events={feed} />
-              </Section>
-            </>
+            <RecordActivity
+              program={program.id}
+              subject={{ kind: "program", id: program.id, label: program.name }}
+              me={me}
+              wholeProgram
+              filters
+            />
           ) : null}
-
-          {tab === "Team" ? <TeamSection programId={program.id} /> : null}
         </ShowPage>
       </>
 
@@ -1049,19 +834,29 @@ function ProgramDetail() {
         open={archiving}
         onClose={() => setArchiving(false)}
         onConfirm={() => {
-          setArchiving(false);
-          toast.success("Program archived", { description: `${program.id} · ${program.name}` });
+          try {
+            saveProgramCommand(program.id, { archivedAt: new Date().toISOString() });
+            setArchiving(false);
+            toast.success("Program archived", {
+              description: "Saved in this browser. Restore it from the Archived list.",
+            });
+            void navigate({ to: "/programs" });
+          } catch {
+            toast.error("Program could not be archived", {
+              description: "Browser storage is unavailable. Try again after freeing storage.",
+            });
+          }
         }}
         tone="danger"
         title={`Archive ${program.name}?`}
-        description="The program leaves every queue and dashboard. Its SCTM, evidence and package history stay readable, and an admin can restore it."
+        description="Moves the program from the active program list to Archived in this browser. Its record and history remain readable."
         confirmLabel="Archive program"
       />
 
       <Dialog
         open={assessing}
         onClose={() => setAssessing(false)}
-        title="Record a control assessment"
+        title="Open a control assessment"
         description={`${program.id} · ${program.baseline}`}
         footer={
           <>
@@ -1070,65 +865,65 @@ function ProgramDetail() {
             </Button>
             <Button
               variant="primary"
-              onClick={() => {
-                if (!req.check()) return;
-                setAssessing(false);
-                toast.success("Assessment recorded", {
-                  description: `${program.id} · result saved to the SCTM`,
-                });
-              }}
+              type="submit"
+              form={formId + "-1"}
+              disabled={form.state.isSubmitting}
             >
-              Save assessment
+              Open assessment workspace
             </Button>
           </>
         }
       >
-        <Stack space="space.150">
-          <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-            <Field isRequired error={req.errorFor("assessControl")} label="Control">
-              <Combobox
-                value={assessControl}
-                onChange={setAssessControl}
-                options={programControls.map((c) => ({
-                  value: c.id,
-                  label: c.id,
-                  meta: c.title,
-                  keywords: `${c.title} ${c.family}`,
-                }))}
-                placeholder="Choose a control"
-                searchPlaceholder="Search controls…"
-                width={380}
-                className="w-full"
-              />
-            </Field>
-            <Field label="Result">
-              <Select defaultValue="Other than satisfied" aria-label="Result">
-                {["Satisfied", "Other than satisfied", "Not applicable"].map((r) => (
-                  <Select.Item key={r} value={r}>
-                    {r}
-                  </Select.Item>
-                ))}
-              </Select>
-            </Field>
-          </Grid>
-          <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-            <Field label="Assessment method">
-              <Select defaultValue="Test" aria-label="Assessment method">
-                {["Examine", "Interview", "Test"].map((m) => (
-                  <Select.Item key={m} value={m}>
-                    {m}
-                  </Select.Item>
-                ))}
-              </Select>
-            </Field>
-            <Field label="Assessed on">
-              <DatePicker defaultValue="2026-08-27" />
-            </Field>
-          </Grid>
-          <Field label="Assessor findings" hint="Included verbatim in the SAR export.">
-            <Textarea placeholder="Privileged function invocations on the settlement service are not forwarded to the audit sink; sampling of 20 events found 6 missing." />
-          </Field>
-        </Stack>
+        <form
+          id={formId + "-1"}
+          ref={formRef}
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            void form.handleSubmit({
+              save: () => {
+                setAssessing(false);
+                void navigate({
+                  to: "/programs/$programId/controls/$controlId",
+                  params: { programId: program.id, controlId: assessControl },
+                  search: {},
+                });
+              },
+            });
+          }}
+        >
+          <Stack space="space.150">
+            <form.Field name="assessControl">
+              {(field) => (
+                <Field
+                  isRequired
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? field.state.meta.errors.join(" ")
+                      : undefined
+                  }
+                  label="Control"
+                  hint="Review the evidence and record the determination in the control workspace. Your role and the control's readiness determine which actions are available."
+                >
+                  <Combobox
+                    value={field.state.value}
+                    onChange={field.handleChange}
+                    options={programControls.map((control) => ({
+                      value: control.id,
+                      label: control.id,
+                      meta: control.title,
+                    }))}
+                    placeholder="Choose a control"
+                    searchPlaceholder="Search controls…"
+                    className="w-full"
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  />
+                </Field>
+              )}
+            </form.Field>
+          </Stack>
+        </form>
       </Dialog>
     </Shell>
   );

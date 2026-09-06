@@ -1,6 +1,9 @@
+import { ChevronDown } from "lucide-react";
+import { Collapsible } from "../../components";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Badge, Count, Collapsible, Indicator } from "../../components";
+import { Badge, Count, Indicator } from "../../components";
+
 import { Inline, Stack, Text } from "../../primitives";
 import { Matrix as Grid } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -18,6 +21,7 @@ const appearances = ["default", "primary", "important", "added", "removed"] as c
 
 /** Every appearance at one, two and three digits, and past the ceiling. */
 export const CountMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Grid
       rows={appearances}
@@ -51,10 +55,23 @@ export const InContext: Story = {
         <Count value={12} appearance="added" />
         <Count value={3} appearance="removed" />
       </Inline>
-      <Collapsible title="Evidence" count={7} defaultOpen>
-        <Text size="small" color="color.text.subtle">
-          Seven artifacts, the newest collected on 28 Aug.
-        </Text>
+      <Collapsible className="border-t border-default" defaultOpen>
+        <h3>
+          <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+            {"Evidence"} <Count value={7} />
+            <ChevronDown
+              aria-hidden="true"
+              className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
+            />
+          </Collapsible.Trigger>
+        </h3>
+        <Collapsible.Content>
+          <div className="pb-200">
+            <Text size="small" color="color.text.subtle">
+              Seven artifacts, the newest collected on 28 Aug.
+            </Text>
+          </div>
+        </Collapsible.Content>
       </Collapsible>
     </Stack>
   ),

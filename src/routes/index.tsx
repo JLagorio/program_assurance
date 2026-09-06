@@ -1,3 +1,5 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
+import { downloadText } from "@/components/app/export";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Download } from "lucide-react";
 
@@ -77,10 +79,25 @@ function Overview() {
           title="Overview"
           actions={
             <>
-              <Button variant="secondary" iconBefore={<Download />}>
+              <Button
+                variant="secondary"
+                iconBefore={<Download />}
+                onClick={() =>
+                  downloadText(
+                    "portfolio.json",
+                    JSON.stringify({ risks, frameworks }, null, 2),
+                    "application/json",
+                  )
+                }
+              >
                 Export
               </Button>
-              <Button variant="primary">Request evidence</Button>
+              <UnavailableAction
+                reason="Choose a program and request evidence from its control workspace."
+                variant="primary"
+              >
+                Request evidence
+              </UnavailableAction>
             </>
           }
         />
@@ -127,11 +144,9 @@ function Overview() {
             <Section
               title="Highest residual risk"
               action={
-                <Link to="/risks">
-                  <Button variant="link" iconAfter={<ArrowRight />}>
-                    Risk register
-                  </Button>
-                </Link>
+                <TextLink>
+                  <Link to="/risks">Risk register</Link>
+                </TextLink>
               }
             >
               <Table>
@@ -224,7 +239,17 @@ function Overview() {
           </Stack>
 
           <Stack space="space.300">
-            <Section title="Assurance stream" action={<Button variant="link">History</Button>}>
+            <Section
+              title="Assurance stream"
+              action={
+                <UnavailableAction
+                  reason="This overview has no separate activity history. Program records have an Activity tab."
+                  variant="link"
+                >
+                  History
+                </UnavailableAction>
+              }
+            >
               <Timeline className="pt-100">
                 {activity.map((item) => (
                   <Timeline.Item

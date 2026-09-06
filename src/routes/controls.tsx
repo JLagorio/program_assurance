@@ -1,3 +1,4 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
@@ -5,6 +6,7 @@ import { Search } from "lucide-react";
 import {
   Badge,
   Button,
+  Empty,
   Id,
   Indicator,
   Inline,
@@ -96,7 +98,14 @@ function Catalog() {
       <Stack className="animate-rise" space="space.200">
         <PageHeader
           title="Control catalog"
-          actions={<Button variant="secondary">Import catalog</Button>}
+          actions={
+            <UnavailableAction
+              reason="Catalog import is not connected. This catalog is read-only."
+              variant="secondary"
+            >
+              Import catalog
+            </UnavailableAction>
+          }
         />
 
         <Tabs
@@ -123,7 +132,7 @@ function Catalog() {
                     onChange={(e) => setQ(e.target.value)}
                     placeholder={tab === "Controls" ? "Search controls" : "Search CCIs"}
                     aria-label="Search"
-                    style={{ width: 240 }}
+                    style={{ width: 240, maxWidth: "100%" }}
                   />
                 </InputGroup>
                 <ToggleGroup
@@ -135,6 +144,13 @@ function Catalog() {
               </Inline>
             ) : null}
 
+            <p role="status" className="font-body-small text-subtle">
+              {tab === "Controls"
+                ? `${filteredControls.length} matching controls`
+                : tab === "CCIs"
+                  ? `${filteredCcis.length} matching CCIs`
+                  : `${overlays.length} overlays`}
+            </p>
             <PreviewSplit open={selected !== null}>
               <div className="min-w-0 lg:pe-300">
                 {tab === "Controls" ? (
@@ -166,6 +182,27 @@ function Catalog() {
                           <Table.Cell className="tabular-nums text-right">{c.cciCount}</Table.Cell>
                         </Table.Row>
                       ))}
+                      {filteredControls.length === 0 ? (
+                        <Table.Row>
+                          <Table.Cell colSpan={12}>
+                            <Empty
+                              title="No results match your filters"
+                              description="Clear the filters to see the available records."
+                              action={
+                                <Button
+                                  variant="secondary"
+                                  onClick={() => {
+                                    setQ("");
+                                    setFamily("All");
+                                  }}
+                                >
+                                  Clear filters
+                                </Button>
+                              }
+                            />
+                          </Table.Cell>
+                        </Table.Row>
+                      ) : null}
                     </tbody>
                   </Table>
                 ) : null}
@@ -263,6 +300,27 @@ function Catalog() {
                           </Table.Cell>
                         </Table.Row>
                       ))}
+                      {filteredCcis.length === 0 ? (
+                        <Table.Row>
+                          <Table.Cell colSpan={12}>
+                            <Empty
+                              title="No results match your filters"
+                              description="Clear the filters to see the available records."
+                              action={
+                                <Button
+                                  variant="secondary"
+                                  onClick={() => {
+                                    setQ("");
+                                    setFamily("All");
+                                  }}
+                                >
+                                  Clear filters
+                                </Button>
+                              }
+                            />
+                          </Table.Cell>
+                        </Table.Row>
+                      ) : null}
                     </tbody>
                   </Table>
                 ) : null}

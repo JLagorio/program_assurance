@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../lib/locale";
 import { Slottable } from "@radix-ui/react-slot";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
@@ -15,6 +16,8 @@ import { cn } from "../lib/cn";
  */
 
 export type TabsProps = {
+  /** Reading and keyboard direction; defaults to the surrounding LedgerProvider. */
+  dir?: "ltr" | "rtl" | undefined;
   /** The selected tab's value, with `onValueChange`. On a record it is the router's search param, so a tab has a URL. */
   value?: string | undefined;
   /** The tab selected at first, when uncontrolled. */
@@ -31,6 +34,7 @@ export type TabsProps = {
 };
 
 function TabsRoot({
+  dir,
   value,
   defaultValue,
   onValueChange,
@@ -39,8 +43,10 @@ function TabsRoot({
   className,
   children,
 }: TabsProps) {
+  const { direction } = useLedgerLocale();
   return (
     <TabsPrimitive.Root
+      dir={dir ?? direction}
       {...(value === undefined ? (defaultValue === undefined ? {} : { defaultValue }) : { value })}
       {...(onValueChange ? { onValueChange } : {})}
       {...(asChild ? { asChild: true } : {})}
@@ -75,7 +81,9 @@ function TabList({ label, className, children }: TabListProps) {
     const measure = () => {
       const active = list.querySelector<HTMLElement>('[role="tab"][data-state="active"]');
       const next =
-        active && active.offsetWidth > 0 ? { x: active.offsetLeft, width: active.offsetWidth } : null;
+        active && active.offsetWidth > 0
+          ? { x: active.offsetLeft, width: active.offsetWidth }
+          : null;
       setMark((prev) =>
         prev && next && prev.x === next.x && prev.width === next.width ? prev : next,
       );
@@ -133,7 +141,16 @@ export type TabProps = {
   children: ReactNode;
 } & Omit<ComponentPropsWithoutRef<"button">, "children" | "className" | "disabled" | "value">;
 
-function Tab({ value, count, trailing, disabled, asChild, className, children, ...rest }: TabProps) {
+function Tab({
+  value,
+  count,
+  trailing,
+  disabled,
+  asChild,
+  className,
+  children,
+  ...rest
+}: TabProps) {
   return (
     <TabsPrimitive.Trigger
       value={value}

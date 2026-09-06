@@ -146,10 +146,14 @@ function DialogStates() {
 }
 
 /** Every state one click away, since an open dialog covers the page: medium, large, with an aside, a body that scrolls, an eyebrow, and pending while it saves. */
-export const DialogMatrix: Story = { render: () => <DialogStates /> };
+export const DialogMatrix: Story = {
+  tags: ["contract"],
+  render: () => <DialogStates />,
+};
 
 /** Large, with an eyebrow, a description, an aside and a footer, held open. */
 export const OpenMatrix: Story = {
+  tags: ["contract"],
   name: "Open",
   parameters: modalOpen,
   render: () => (
@@ -291,3 +295,53 @@ function DontDemo() {
 export const Dont: Story = { render: () => <DontDemo /> };
 
 export const Playground: Story = {};
+
+function ReturnFocusContractDemo() {
+  const [open, setOpen] = useState(false);
+  const [nested, setNested] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Open contract dialog</Button>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Parent task"
+        footer={<Button onClick={() => setOpen(false)}>Save parent</Button>}
+      >
+        <Button onClick={() => setNested(true)}>Open nested dialog</Button>
+        <Dialog
+          open={nested}
+          onClose={() => setNested(false)}
+          title="Nested task"
+          footer={<Button onClick={() => setNested(false)}>Finish nested</Button>}
+        >
+          <Field label="Nested name">
+            <Input />
+          </Field>
+        </Dialog>
+      </Dialog>
+    </>
+  );
+}
+
+export const ReturnFocusContract: Story = {
+  tags: ["contract"],
+  render: () => <ReturnFocusContractDemo />,
+  play: async ({ canvasElement }) => {
+    const { expect, userEvent, within, waitFor } = await import("storybook/test");
+    const canvas = within(canvasElement);
+    const page = within(document.body);
+    const opener = canvas.getByRole("button", { name: "Open contract dialog" });
+    await userEvent.click(opener);
+    await userEvent.click(page.getByRole("button", { name: "Open nested dialog" }));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() =>
+      expect(page.getByRole("button", { name: "Open nested dialog" })).toHaveFocus(),
+    );
+    await userEvent.click(page.getByRole("button", { name: "Save parent" }));
+    await waitFor(() => expect(opener).toHaveFocus());
+    await userEvent.click(opener);
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(opener).toHaveFocus());
+  },
+};

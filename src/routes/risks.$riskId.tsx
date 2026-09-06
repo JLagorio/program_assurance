@@ -1,9 +1,14 @@
+import { useCallback, type SetStateAction, useId, useState } from "react";
+import { useRecordForm } from "@/lib/record-form";
+import { UnavailableAction } from "@/components/app/unavailable-action";
+import { addRiskTreatment, treatmentsForRisk, useRisksVersion } from "@/lib/risk-store";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useState } from "react";
 import { ChevronLeft, MoreHorizontal, Paperclip, Pencil } from "lucide-react";
 
 import {
   Badge,
+  Empty,
+  toast,
   Box,
   Button,
   DatePicker,
@@ -23,7 +28,6 @@ import {
   Textarea,
   TextLink,
   Timeline,
-  useRequired,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
 import { riskStatusTone, risks } from "@/lib/grc-data";
@@ -31,7 +35,6 @@ import { riskStatusTone, risks } from "@/lib/grc-data";
 export const Route = createFileRoute("/risks/$riskId")({
   loader: ({ params }) => {
     const risk = risks.find((r) => r.id.toLowerCase() === params.riskId.toLowerCase());
-    if (!risk) throw notFound();
     return risk;
   },
   head: ({ loaderData }) => ({
@@ -90,18 +93,74 @@ const linkedEvidence = [
 ];
 
 function RiskDetail() {
-  const risk = Route.useLoaderData();
+  useRisksVersion();
+  const treatmentFormId = useId();
+  const { riskId } = Route.useParams();
+  const risk = risks.find((item) => item.id.toLowerCase() === riskId.toLowerCase());
   const [treating, setTreating] = useState(false);
-  const [plan, setPlan] = useState("");
-  const [due, setDue] = useState("2026-03-31");
-  const req = useRequired({ plan, due });
+  const { form, values, setValue, formRef } = useRecordForm(
+    {
+      plan: "",
+      due: "",
+      action: "Mitigate",
+      assignee: risk?.owner ?? "Sarah Chen",
+    },
+    (value) => ({ plan: value.plan, due: value.due }),
+  );
+  const { plan, due, action, assignee } = values;
+  const setPlan = useCallback(
+    (value: SetStateAction<typeof plan>) => setValue("plan", value),
+    [setValue],
+  );
+
+  const setAssignee = useCallback(
+    (value: SetStateAction<typeof assignee>) => setValue("assignee", value),
+    [setValue],
+  );
+
+  const [saveError, setSaveError] = useState("");
+
+  if (!risk)
+    return (
+      <Shell>
+        <Empty
+          title="Risk not found"
+          description="The record may be stored in another browser."
+          action={
+            <Button asChild variant="secondary">
+              <Link to="/risks">Back to risks</Link>
+            </Button>
+          }
+        />
+      </Shell>
+    );
+  const savedTreatments = treatmentsForRisk(risk.id);
+  const saveTreatment = () => {
+    return form.handleSubmit({
+      save: () => {
+        try {
+          addRiskTreatment({ riskId: risk.id, action, plan, assignee, due });
+          setTreating(false);
+          setPlan("");
+          setSaveError("");
+          toast.success("Treatment recorded", { description: "Saved in this browser." });
+        } catch (error) {
+          setSaveError(error instanceof Error ? error.message : "Treatment could not be saved.");
+        }
+      },
+    });
+  };
 
   return (
     <Shell>
       <Stack className="animate-rise" space="space.250">
         <Inline space="space.150" alignBlock="center" spread="space-between" shouldWrap>
           <Inline className="min-w-0" space="space.100" alignBlock="center" shouldWrap>
-            <Link to="/risks" className="text-subtle transition-colors hover:text-default">
+            <Link
+              to="/risks"
+              aria-label="Back to risks"
+              className="text-subtle transition-colors hover:text-default"
+            >
               <ChevronLeft className="size-icon-medium" />
             </Link>
             <h1 className="truncate font-heading-small font-semibold">{risk.title}</h1>
@@ -122,21 +181,48 @@ function RiskDetail() {
             </Inline>
           </Inline>
           <Inline space="space.100" alignBlock="center">
-            <Button variant="secondary">Reassign</Button>
-            <Button variant="primary" onClick={() => setTreating(true)}>
+            <UnavailableAction
+              reason="Reassignment is not available in this view."
+              variant="secondary"
+            >
+              Reassign
+            </UnavailableAction>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setAssignee(risk.owner);
+                setTreating(true);
+              }}
+            >
               Add treatment
             </Button>
-            <Button
+            <IconButton
+              label="More risk actions unavailable"
               variant="secondary"
-              className="px-0 w-400"
-              iconBefore={<MoreHorizontal />}
-            ></Button>
+              icon={<MoreHorizontal />}
+              disabled
+              title="No additional risk actions are available."
+            />
           </Inline>
         </Inline>
 
         <Box className="border-t border-default" paddingBlockStart="space.250">
           <div className="grid gap-400 lg:grid-cols-main-rail lg:gap-0">
             <Stack space="space.300" className="lg:pe-300">
+              {savedTreatments.length ? (
+                <Section title="Treatment plans">
+                  <Stack space="space.150">
+                    {savedTreatments.map((item) => (
+                      <div key={item.id}>
+                        <p className="font-medium">
+                          {item.action} · {item.assignee} · due {item.due}
+                        </p>
+                        <p>{item.plan}</p>
+                      </div>
+                    ))}
+                  </Stack>
+                </Section>
+              ) : null}
               <Section title="Summary">
                 <p className="pt-100 font-body">{risk.summary}</p>
               </Section>
@@ -144,9 +230,14 @@ function RiskDetail() {
               <Section
                 title="Linked evidence"
                 action={
-                  <Button variant="secondary" size="small" iconBefore={<Paperclip />}>
+                  <UnavailableAction
+                    reason="Evidence storage is not connected. Attachments are unavailable."
+                    variant="secondary"
+                    size="small"
+                    iconBefore={<Paperclip />}
+                  >
                     Attach
-                  </Button>
+                  </UnavailableAction>
                 }
               >
                 <Table>
@@ -184,17 +275,7 @@ function RiskDetail() {
               </Section>
             </Stack>
             <aside className="border-t border-default pt-300 lg:border-s lg:border-t-0 lg:ps-300 lg:pt-0">
-              <Inspector.Group
-                title="Properties"
-                action={
-                  <IconButton
-                    label="Edit properties"
-                    variant="subtle"
-                    size="small"
-                    icon={<Pencil />}
-                  />
-                }
-              >
+              <Inspector.Group title="Properties">
                 <KeyValue label="Risk ID">
                   <Id>{risk.id}</Id>
                 </KeyValue>
@@ -229,7 +310,7 @@ function RiskDetail() {
         open={treating}
         onClose={() => setTreating(false)}
         title="Add treatment"
-        description={`Recorded against ${risk.id}. Reviewers are notified immediately.`}
+        description={`Recorded against ${risk.id} and saved in this browser.`}
         footer={
           <>
             <Button variant="subtle" onClick={() => setTreating(false)}>
@@ -237,49 +318,125 @@ function RiskDetail() {
             </Button>
             <Button
               variant="primary"
-              onClick={() => {
-                if (!req.check()) return;
-                setTreating(false);
-              }}
+              type="submit"
+              form={treatmentFormId}
+              disabled={form.state.isSubmitting}
             >
               Add treatment
             </Button>
           </>
         }
       >
-        <Stack space="space.150">
-          <Field label="Action">
-            <NativeSelect defaultValue="Mitigate">
-              {["Mitigate", "Accept", "Transfer", "Avoid"].map((t) => (
-                <option key={t}>{t}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field
-            label="Plan"
-            hint="Include the control change and how it will be verified."
-            isRequired
-            error={req.errorFor("plan")}
-          >
-            <Textarea
-              value={plan}
-              onChange={(e) => setPlan(e.target.value)}
-              placeholder="Enforce tenant scoping in the export resolver and add a regression test."
-            />
-          </Field>
-          <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-            <Field label="Assignee">
-              <NativeSelect defaultValue={risk.owner}>
-                {["Sarah Chen", "Linus Aarto", "Marcus Ryde", "Priya Raghavan"].map((o) => (
-                  <option key={o}>{o}</option>
-                ))}
-              </NativeSelect>
-            </Field>
-            <Field label="Due date" isRequired error={req.errorFor("due")}>
-              <DatePicker value={due} onChange={setDue} />
-            </Field>
-          </Grid>
-        </Stack>
+        <form
+          id={treatmentFormId}
+          ref={formRef}
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            saveTreatment();
+          }}
+        >
+          <Stack space="space.150">
+            {saveError ? (
+              <p role="alert" className="text-danger">
+                {saveError}
+              </p>
+            ) : null}
+            <form.Field name="action">
+              {(field) => (
+                <Field
+                  label="Action"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? field.state.meta.errors.join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {["Mitigate", "Accept", "Transfer", "Avoid"].map((t) => (
+                      <option key={t}>{t}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="plan">
+              {(field) => (
+                <Field
+                  label="Plan"
+                  hint="Include the control change and how it will be verified."
+                  isRequired
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? field.state.meta.errors.join(" ")
+                      : undefined
+                  }
+                >
+                  <Textarea
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Enforce tenant scoping in the export resolver and add a regression test."
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  />
+                </Field>
+              )}
+            </form.Field>
+            <Grid
+              gap="space.150"
+              templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
+            >
+              <form.Field name="assignee">
+                {(field) => (
+                  <Field
+                    label="Assignee"
+                    error={
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? field.state.meta.errors.join(" ")
+                        : undefined
+                    }
+                  >
+                    <NativeSelect
+                      value={field.state.value}
+                      onChange={(event) => field.handleChange(event.target.value)}
+                      name={field.name}
+                      onBlur={field.handleBlur}
+                    >
+                      {["Sarah Chen", "Linus Aarto", "Marcus Ryde", "Priya Raghavan"].map((o) => (
+                        <option key={o}>{o}</option>
+                      ))}
+                    </NativeSelect>
+                  </Field>
+                )}
+              </form.Field>
+              <form.Field name="due">
+                {(field) => (
+                  <Field
+                    label="Due date"
+                    isRequired
+                    error={
+                      field.state.meta.isTouched && !field.state.meta.isValid
+                        ? field.state.meta.errors.join(" ")
+                        : undefined
+                    }
+                  >
+                    <DatePicker
+                      value={field.state.value}
+                      onChange={field.handleChange}
+                      name={field.name}
+                      onBlur={field.handleBlur}
+                    />
+                  </Field>
+                )}
+              </form.Field>
+            </Grid>
+          </Stack>
+        </form>
       </Dialog>
     </Shell>
   );

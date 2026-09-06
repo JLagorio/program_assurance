@@ -1,3 +1,4 @@
+import { expect, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Box, Heading, Inline, Stack, Text } from "../../primitives";
@@ -14,7 +15,13 @@ type Story = StoryObj<typeof meta>;
 
 function Chip({ label }: { label: string }) {
   return (
-    <Box backgroundColor="color.background.neutral" paddingBlock="space.025" paddingInline="space.100" className="rounded-small">
+    <Box
+      as="span"
+      backgroundColor="color.background.neutral"
+      paddingBlock="space.025"
+      paddingInline="space.100"
+      className="rounded-small"
+    >
       <Text size="small">{label}</Text>
     </Box>
   );
@@ -30,7 +37,12 @@ function Label({ children }: { children: string }) {
 
 function Frame({ children, width = 360 }: { children: React.ReactNode; width?: number }) {
   return (
-    <Box backgroundColor="elevation.surface.sunken" padding="space.100" className="rounded-medium" style={{ width }}>
+    <Box
+      backgroundColor="elevation.surface.sunken"
+      padding="space.100"
+      className="rounded-medium"
+      style={{ width }}
+    >
       {children}
     </Box>
   );
@@ -38,6 +50,7 @@ function Frame({ children, width = 360 }: { children: React.ReactNode; width?: n
 
 /** The space steps; the block alignments against a taller child; wrapping with its own row space; `spread`; a separator; `grow`; and the inline-level row inside a sentence. */
 export const InlineMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Stack space="space.100">
@@ -175,7 +188,11 @@ export const SeparatorAndSpread: Story = {
           Assessed 12 days ago
         </Text>
       </Inline>
-      <Box backgroundColor="elevation.surface.sunken" padding="space.100" className="rounded-medium">
+      <Box
+        backgroundColor="elevation.surface.sunken"
+        padding="space.100"
+        className="rounded-medium"
+      >
         <Inline spread="space-between" alignBlock="center">
           <Text weight="medium">Findings</Text>
           <Chip label="24" />
@@ -183,9 +200,9 @@ export const SeparatorAndSpread: Story = {
       </Box>
       <Box style={{ maxWidth: 360 }}>
         <Inline space="space.100" rowSpace="space.100" shouldWrap>
-        {Array.from({ length: 9 }, (_, i) => (
-          <Chip key={i} label={`Tag ${i + 1}`} />
-        ))}
+          {Array.from({ length: 9 }, (_, i) => (
+            <Chip key={i} label={`Tag ${i + 1}`} />
+          ))}
         </Inline>
       </Box>
     </Stack>
@@ -256,7 +273,9 @@ export const Dont: Story = {
             </Inline>
           </Inline>
         }
-        doText={"A list of chips is a list: `as=\"ul\"` with `li` children, and the space between them."}
+        doText={
+          'A list of chips is a list: `as="ul"` with `li` children, and the space between them.'
+        }
         dont={
           <Inline as="ul" space="space.100" separator="·">
             <Inline as="li">
@@ -283,4 +302,21 @@ export const Playground: Story = {
       </Inline>
     </Frame>
   ),
+};
+
+export const ListSemanticsContract: Story = {
+  tags: ["contract"],
+  render: () => (
+    <Inline as="ul" separator="/" aria-label="Related records" space="space.100">
+      <li>First record</li>
+      <li>Second record</li>
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const list = canvas.getByRole("list", { name: "Related records" });
+    await expect(within(list).getAllByRole("listitem")).toHaveLength(2);
+    await expect(Array.from(list.children).every((child) => child.tagName === "LI")).toBe(true);
+    await expect(within(list).queryByText("/")).toBeNull();
+  },
 };

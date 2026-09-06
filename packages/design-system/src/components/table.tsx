@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../lib/locale";
 import {
   ArrowDown,
   ArrowUp,
@@ -48,12 +49,14 @@ export type TableProps = {
  * table's `label` when it has one, else a plain named group, since two landmarks cannot share a name.
  */
 function TableRoot({ label, className, maxHeight, frameRef, role, density, ...props }: TableProps) {
+  const { t, direction } = useLedgerLocale();
   const frame = useRef<HTMLDivElement>(null);
   const track = useCallback(() => {
     const el = frame.current;
     if (!el) return;
-    const start = el.scrollLeft > 0;
-    const end = Math.ceil(el.scrollLeft + el.clientWidth) < el.scrollWidth;
+    const distance = direction === "rtl" ? Math.abs(el.scrollLeft) : el.scrollLeft;
+    const start = distance > 0;
+    const end = Math.ceil(distance + el.clientWidth) < el.scrollWidth;
     if (start) el.dataset["scrolledStart"] = "";
     else delete el.dataset["scrolledStart"];
     if (end) el.dataset["scrolledEnd"] = "";
@@ -62,13 +65,13 @@ function TableRoot({ label, className, maxHeight, frameRef, role, density, ...pr
     if (overflows) {
       el.tabIndex = 0;
       el.setAttribute("role", label ? "region" : "group");
-      el.setAttribute("aria-label", label ? `${label}, scrolls` : "Table, scrolls");
+      el.setAttribute("aria-label", label ? t("tableScrollsLabel", { label }) : t("tableScrolls"));
     } else {
       el.removeAttribute("tabindex");
       el.removeAttribute("role");
       el.removeAttribute("aria-label");
     }
-  }, [label]);
+  }, [label, t, direction]);
   useEffect(() => {
     const el = frame.current;
     if (!el || typeof ResizeObserver === "undefined") return;
@@ -102,25 +105,37 @@ function TableRoot({ label, className, maxHeight, frameRef, role, density, ...pr
   );
 }
 
-/** Where a column is pinned, and how far from that edge. `edge` marks the pinned column that touches the scrolling middle. */
+/** Where a column is pinned, and how far from that edge. `edge` marks the pinned column that touches the scrolling middle: `true` draws its hairline at rest, `"scrolled"` only while the frame is scrolled, for a checkbox column that is pinned on its own. */
 export type PinnedProps = {
   pinned?: "start" | "end" | false | undefined;
   /** Pixels from the pinned edge: the widths of the pinned columns before it. */
   offset?: number | undefined;
-  edge?: boolean | undefined;
+  edge?: boolean | "scrolled" | undefined;
 };
 
-const pinnedClass = (pinned: PinnedProps["pinned"], edge: boolean | undefined, z: string) =>
+/* The hairline is a pseudo-element, not the cell's border: collapsed table borders are painted by
+   the table and stay put while a sticky cell moves, so a border would vanish on the first scroll. */
+const rule = "after:pointer-events-none after:absolute after:inset-y-0 after:border-default";
+
+const edgeClass = {
+  start: {
+    rest: `${rule} after:end-0 after:border-e`,
+    scrolled: `${rule} after:end-0 group-data-[scrolled-start]/scroll:after:border-e`,
+  },
+  end: {
+    rest: `${rule} after:start-0 after:border-s`,
+    scrolled: `${rule} after:start-0 group-data-[scrolled-end]/scroll:after:border-s`,
+  },
+} as const;
+
+/** The pinned column that touches the middle carries the same hairline as every other border, and keeps it while the frame is scrolled. */
+const pinnedClass = (pinned: PinnedProps["pinned"], edge: PinnedProps["edge"], z: string) =>
   pinned
     ? cn(
         "sticky bg-surface-current",
         z,
-        edge &&
-          pinned === "start" &&
-          "border-e border-default group-data-[scrolled-start]/scroll:border-bold",
-        edge &&
-          pinned === "end" &&
-          "border-s border-default group-data-[scrolled-end]/scroll:border-bold",
+        edge && edgeClass[pinned].scrolled,
+        edge === true && edgeClass[pinned].rest,
       )
     : undefined;
 
@@ -148,6 +163,11 @@ export type ThProps = ComponentPropsWithoutRef<"th"> &
     resize?:
       | {
           onResizeStart: (event: unknown) => void;
+          /** Keyboard change in pixels, or the minimum/maximum boundary. */
+          onResizeKeyboard?: ((change: number | "min" | "max") => void) | undefined;
+          value?: number | undefined;
+          min?: number | undefined;
+          max?: number | undefined;
           onResizeReset?: (() => void) | undefined;
           isResizing?: boolean | undefined;
           resizeDelta?: number | null | undefined;
@@ -178,6 +198,7 @@ function Th({
   children,
   ...props
 }: ThProps) {
+  const { direction, t } = useLedgerLocale();
   const sortable = sort !== undefined || onSort !== undefined;
   const pinned = pinnedProp ?? (sticky ? "start" : false);
   return (
@@ -224,7 +245,26 @@ function Th({
         <span
           role="separator"
           aria-orientation="vertical"
-          aria-label="Resize column"
+          aria-label={t("resizeColumn")}
+          tabIndex={resize.onResizeKeyboard ? 0 : undefined}
+          aria-valuenow={resize.onResizeKeyboard ? (resize.value ?? width) : undefined}
+          aria-valuemin={resize.onResizeKeyboard ? resize.min : undefined}
+          aria-valuemax={resize.onResizeKeyboard ? resize.max : undefined}
+          onKeyDown={(event) => {
+            if (!resize.onResizeKeyboard) return;
+            const step = event.shiftKey ? 32 : 8;
+            const changes: Record<string, number | "min" | "max"> = {
+              ArrowLeft: direction === "rtl" ? step : -step,
+              ArrowRight: direction === "rtl" ? -step : step,
+              Home: "min",
+              End: "max",
+            };
+            const change = changes[event.key];
+            if (change !== undefined) {
+              event.preventDefault();
+              resize.onResizeKeyboard(change);
+            }
+          }}
           onMouseDown={resize.onResizeStart}
           onTouchStart={resize.onResizeStart}
           onDoubleClick={resize.onResizeReset}
@@ -309,7 +349,45 @@ function Tr({
   );
 }
 
-/** The id column. The row itself opens the record; the eye that appears on hover opens the same row in the preview rail. */
+/**
+ * The eye that opens a row in the preview surface. It sits at the end of a row's first cell and is
+ * there at rest, muted, so a reader never has to hunt for it; the open row's eye reads selected.
+ */
+export function PreviewButton({
+  onPreview,
+  isActive,
+  className,
+}: {
+  onPreview: () => void;
+  isActive?: boolean | undefined;
+  className?: string | undefined;
+}) {
+  const { t } = useLedgerLocale();
+  return (
+    <Tooltip content={t("preview")}>
+      <button
+        type="button"
+        aria-label={t("previewRow")}
+        aria-pressed={isActive ? true : undefined}
+        onClick={(e) => {
+          e.stopPropagation();
+          onPreview();
+        }}
+        className={cn(
+          "inline-flex size-250 shrink-0 items-center justify-center rounded-small outline-none transition-colors duration-fast ease-standard focus-visible:outline-focused",
+          isActive
+            ? "bg-selected icon-selected"
+            : "icon-subtlest hover:bg-neutral-subtle-hovered hover:icon-default group-hover/row:icon-subtle",
+          className,
+        )}
+      >
+        <Eye className="size-icon-small" />
+      </button>
+    </Tooltip>
+  );
+}
+
+/** The id column. The row itself opens the record; the eye at the end of the cell opens the same row in the preview surface. */
 function IdCell({
   id,
   onPreview,
@@ -340,24 +418,7 @@ function IdCell({
           {id}
         </Id>
         {onPreview ? (
-          <Tooltip content="Preview">
-            <button
-              type="button"
-              aria-label="Preview row"
-              onClick={(e) => {
-                e.stopPropagation();
-                onPreview();
-              }}
-              className={cn(
-                "ms-auto inline-flex size-250 shrink-0 items-center justify-center rounded-small outline-none transition-colors duration-fast ease-standard focus-visible:visible focus-visible:outline-focused",
-                isActive
-                  ? "visible bg-selected icon-selected"
-                  : "invisible icon-subtle hover:bg-neutral-subtle-hovered hover:icon-default group-hover/row:visible",
-              )}
-            >
-              <Eye className="size-icon-small" />
-            </button>
-          </Tooltip>
+          <PreviewButton onPreview={onPreview} isActive={isActive} className="ms-auto" />
         ) : null}
       </span>
     </Td>
@@ -372,6 +433,8 @@ function SelectionCell({
   label,
   disabled,
   pinned,
+  offset,
+  edge,
 }: PinnedProps & {
   header?: boolean | undefined;
   checked: boolean | "indeterminate";
@@ -389,17 +452,17 @@ function SelectionCell({
     />
   );
   return header ? (
-    <Th className="w-400 pe-0" pinned={pinned}>
+    <Th className="w-400 pe-0" pinned={pinned} offset={offset} edge={edge}>
       <span className="flex items-center">{box}</span>
     </Th>
   ) : (
-    <Td className="w-400 max-w-none pe-0" pinned={pinned}>
+    <Td className="w-400 max-w-none pe-0" pinned={pinned} offset={offset} edge={edge}>
       <span className="flex items-center">{box}</span>
     </Td>
   );
 }
 
-/** A band of rows under one heading that opens and closes. Renders a tbody, so several groups stack inside one Table. */
+/** A band of rows under one heading that opens and closes. Renders a tbody, so several groups stack inside one Table. The heading sticks to the frame's leading edge, so it stays read while the rows scroll sideways. */
 function TableGroup({
   colSpan,
   open,
@@ -417,18 +480,19 @@ function TableGroup({
   trailing?: ReactNode;
   children?: ReactNode;
 }) {
+  const { t } = useLedgerLocale();
   return (
     <tbody className="border-t border-default">
       <tr
         className="cursor-pointer bg-surface-sunken transition-colors duration-fast ease-standard hover:bg-surface-hovered"
         onClick={onToggle}
       >
-        <td colSpan={colSpan} className="px-100 py-075">
-          <span className="flex items-center gap-150">
+        <td colSpan={colSpan} className="py-075">
+          <span className="sticky start-0 inline-flex max-w-full items-center gap-150 px-100">
             <button
               type="button"
               aria-expanded={open}
-              aria-label={open ? "Collapse" : "Expand"}
+              aria-label={open ? t("collapse") : t("expand")}
               onClick={(e) => {
                 e.stopPropagation();
                 onToggle();
@@ -483,6 +547,7 @@ function TreeCell({
   className?: string | undefined;
   children: ReactNode;
 }) {
+  const { t } = useLedgerLocale();
   return (
     <Td className={cn("max-w-none", className)}>
       <span
@@ -492,7 +557,7 @@ function TreeCell({
         {hasChildren ? (
           <button
             type="button"
-            aria-label={expanded ? `Collapse ${label}` : `Expand ${label}`}
+            aria-label={expanded ? t("collapseLabel", { label }) : t("expandLabel", { label })}
             onClick={(e) => {
               e.stopPropagation();
               onToggle?.();
@@ -547,21 +612,26 @@ function DetailRow({
  */
 function HandleCell({
   ref,
-  label = "Reorder row",
+  label,
   isDragging,
   className,
+  pinned,
+  offset,
+  edge,
   ...props
-}: ComponentPropsWithoutRef<"span"> & {
-  ref?: Ref<HTMLSpanElement> | undefined;
-  label?: string | undefined;
-  isDragging?: boolean | undefined;
-}) {
+}: ComponentPropsWithoutRef<"span"> &
+  PinnedProps & {
+    ref?: Ref<HTMLSpanElement> | undefined;
+    label?: string | undefined;
+    isDragging?: boolean | undefined;
+  }) {
+  const { t } = useLedgerLocale();
   return (
-    <Td className="w-400 max-w-none pe-0">
+    <Td className="w-400 max-w-none pe-0" pinned={pinned} offset={offset} edge={edge}>
       <span
         ref={ref}
         role="button"
-        aria-label={label}
+        aria-label={label ?? t("reorder")}
         className={cn(
           "inline-flex size-250 shrink-0 items-center justify-center rounded-small icon-subtlest outline-none touch-none cursor-grab hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused",
           isDragging && "cursor-grabbing",

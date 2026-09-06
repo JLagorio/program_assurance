@@ -1,5 +1,17 @@
 import { Slot, Slottable } from "@radix-ui/react-slot";
-import type { ComponentPropsWithoutRef, ReactElement, ReactNode, Ref } from "react";
+import {
+  cloneElement,
+  isValidElement,
+  type ComponentPropsWithoutRef,
+  type DOMAttributes,
+  type ElementType,
+  type HTMLAttributes,
+  type MouseEvent,
+  type ReactElement,
+  type ReactNode,
+  type Ref,
+  type SyntheticEvent,
+} from "react";
 
 import { cn } from "../lib/cn";
 import { Spinner } from "./spinner";
@@ -42,8 +54,46 @@ const iconSlot = "size-icon-small shrink-0";
 const onBold = (variant: ButtonVariant, isSelected: boolean | undefined) =>
   !isSelected && (variant === "primary" || variant === "danger");
 
+type ButtonElementProps =
+  | ({
+      asChild?: false | undefined;
+      ref?: Ref<HTMLButtonElement> | undefined;
+    } & DOMAttributes<HTMLButtonElement>)
+  | ({
+      /** Render a single child that forwards its ref and event props to its DOM element. */
+      asChild: true;
+      ref?: Ref<HTMLElement> | undefined;
+    } & DOMAttributes<HTMLElement>);
+
+/** Guard before Radix's child-first event merge, including keyboard activation and custom children. */
+function guardedChild(children: ReactNode, blocked: boolean, disabled: boolean | undefined) {
+  if (!isValidElement<HTMLAttributes<HTMLElement>>(children)) return children;
+  const props = children.props;
+  const stop = (event: SyntheticEvent<HTMLElement>) => {
+    if (!blocked || ("key" in event && event.key !== "Enter" && event.key !== " ")) return false;
+    event.preventDefault();
+    event.stopPropagation();
+    return true;
+  };
+  return cloneElement(children, {
+    ...(blocked ? { "aria-disabled": true } : {}),
+    ...(disabled ? { tabIndex: -1 } : {}),
+    onClick: (event) => {
+      if (!stop(event)) props.onClick?.(event);
+    },
+    onClickCapture: (event) => {
+      if (!stop(event)) props.onClickCapture?.(event);
+    },
+    onKeyDown: (event) => {
+      if (!stop(event)) props.onKeyDown?.(event);
+    },
+    onKeyDownCapture: (event) => {
+      if (!stop(event)) props.onKeyDownCapture?.(event);
+    },
+  });
+}
+
 export type ButtonProps = {
-  ref?: Ref<HTMLButtonElement>;
   /** The emphasis. `secondary` is the default; at most one `primary` per view. */
   variant?: ButtonVariant | undefined;
   /** `medium` (32px) for forms and pages, `small` (28px) for toolbars, rows and rails, `xsmall` (24px) for the densest chrome. `link` has no size. */
@@ -58,11 +108,14 @@ export type ButtonProps = {
   isSelected?: boolean | undefined;
   /** Fills the container: a sheet's footer, a narrow form. */
   isFullWidth?: boolean | undefined;
-  /** Render the child element instead of a `<button>`, keeping the button's classes. This is how a router's Link becomes a button. */
-  asChild?: boolean | undefined;
+  /** The visible label, or a single ref-forwarding element when asChild is true. */
   children?: ReactNode;
   className?: string | undefined;
-} & Omit<ComponentPropsWithoutRef<"button">, "children" | "className">;
+} & ButtonElementProps &
+  Omit<
+    ComponentPropsWithoutRef<"button">,
+    "children" | "className" | keyof DOMAttributes<HTMLElement>
+  >;
 
 export function Button({
   variant = "secondary",
@@ -73,13 +126,14 @@ export function Button({
   isSelected,
   isFullWidth,
   asChild,
+  disabled,
   className,
   type,
   onClick,
   children,
   ...rest
 }: ButtonProps) {
-  const Comp = asChild ? Slot : "button";
+  const Comp = (asChild ? Slot : "button") as ElementType;
   return (
     <Comp
       className={cn(
@@ -93,25 +147,33 @@ export function Button({
       )}
       aria-pressed={isSelected}
       aria-busy={isLoading || undefined}
-      aria-disabled={isLoading || undefined}
+      aria-disabled={isLoading || disabled || undefined}
+      disabled={asChild ? undefined : disabled}
+      tabIndex={asChild && disabled ? -1 : undefined}
       type={asChild ? undefined : (type ?? "button")}
-      onClick={(e) => {
-        if (isLoading) {
+      onClick={(e: MouseEvent<HTMLElement>) => {
+        if (isLoading || disabled) {
           e.preventDefault();
           return;
         }
-        onClick?.(e);
+        if (asChild) onClick?.(e);
+        else onClick?.(e as MouseEvent<HTMLButtonElement>);
       }}
       {...rest}
     >
       {isLoading ? (
-        <Spinner className={cn(iconSlot, onBold(variant, isSelected) && "icon-inverse")} />
+        <Spinner
+          isDecorative
+          className={cn(iconSlot, onBold(variant, isSelected) && "icon-inverse")}
+        />
       ) : iconBefore ? (
         <Slot className={iconSlot} aria-hidden>
           {iconBefore}
         </Slot>
       ) : null}
-      <Slottable>{children}</Slottable>
+      <Slottable>
+        {asChild ? guardedChild(children, Boolean(isLoading || disabled), disabled) : children}
+      </Slottable>
       {iconAfter ? (
         <Slot className={iconSlot} aria-hidden>
           {iconAfter}
@@ -122,7 +184,6 @@ export function Button({
 }
 
 export type IconButtonProps = {
-  ref?: Ref<HTMLButtonElement>;
   /** The accessible name and the tooltip. Required: the icon has no text. */
   label: string;
   /** The icon, passed bare; the button sizes it. */
@@ -137,11 +198,14 @@ export type IconButtonProps = {
   isLoading?: boolean | undefined;
   /** The button is the current choice. Sets `aria-pressed` and paints the selected role. */
   isSelected?: boolean | undefined;
-  /** Render the child element instead of a `<button>`, keeping the classes; the icon goes inside it. */
-  asChild?: boolean | undefined;
+  /** A single ref-forwarding element when asChild is true; the icon goes inside it. */
   children?: ReactNode;
   className?: string | undefined;
-} & Omit<ComponentPropsWithoutRef<"button">, "children" | "className" | "aria-label">;
+} & ButtonElementProps &
+  Omit<
+    ComponentPropsWithoutRef<"button">,
+    "children" | "className" | "aria-label" | keyof DOMAttributes<HTMLElement>
+  >;
 
 const iconButtonSizes = { small: "size-control-small", medium: "size-control-medium" } as const;
 const iconButtonIcons = {
@@ -159,13 +223,14 @@ export function IconButton({
   isLoading,
   isSelected,
   asChild,
+  disabled,
   className,
   type,
   onClick,
   children,
   ...rest
 }: IconButtonProps) {
-  const Comp = asChild ? Slot : "button";
+  const Comp = (asChild ? Slot : "button") as ElementType;
   const button = (
     <Comp
       className={cn(
@@ -180,20 +245,26 @@ export function IconButton({
       aria-label={label}
       aria-pressed={isSelected}
       aria-busy={isLoading || undefined}
-      aria-disabled={isLoading || undefined}
+      aria-disabled={isLoading || disabled || undefined}
+      disabled={asChild ? undefined : disabled}
+      tabIndex={asChild && disabled ? -1 : undefined}
       type={asChild ? undefined : (type ?? "button")}
-      onClick={(e) => {
-        if (isLoading) {
+      onClick={(e: MouseEvent<HTMLElement>) => {
+        if (isLoading || disabled) {
           e.preventDefault();
           return;
         }
-        onClick?.(e);
+        if (asChild) onClick?.(e);
+        else onClick?.(e as MouseEvent<HTMLButtonElement>);
       }}
       {...rest}
     >
-      <Slottable>{children}</Slottable>
+      <Slottable>
+        {asChild ? guardedChild(children, Boolean(isLoading || disabled), disabled) : children}
+      </Slottable>
       {isLoading ? (
         <Spinner
+          isDecorative
           className={cn(iconButtonIcons[size], onBold(variant, isSelected) && "icon-inverse")}
         />
       ) : (

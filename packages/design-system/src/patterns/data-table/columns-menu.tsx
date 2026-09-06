@@ -1,5 +1,15 @@
+import { useLedgerLocale } from "../../lib/locale";
 import type { Column, RowData } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ChevronDown, Columns3, EyeOff, Pin, PinOff } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  Columns3,
+  EyeOff,
+  Pin,
+  PinOff,
+  Settings2,
+} from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button } from "../../components/button";
@@ -10,9 +20,10 @@ import type { DataTableInstance } from "./use-data-table";
 import { resetView } from "./view-store";
 
 /*
- * Two menus. The Columns menu in the toolbar shows and hides columns and resets the reader's view.
- * The column menu on a header's hover sorts, pins and hides that column. Both write the table's
- * state, which the view store persists.
+ * Three menus. The Columns menu in the toolbar shows and hides columns; the Settings menu beside it
+ * holds the rest of the reader's view, the rows' density and Reset view. The column menu on a
+ * header's hover sorts, pins and hides that column. All three write the table's state, which the
+ * view store persists.
  */
 
 const labelOf = <TData extends RowData>(
@@ -22,10 +33,10 @@ const labelOf = <TData extends RowData>(
   return typeof header === "string" ? header : column.id;
 };
 
-/** Which columns to show, and how tall the rows are. Items stay open while the reader toggles; Reset view is last. */
+/** Which columns to show. Items stay open while the reader toggles. */
 export function Columns<TData extends RowData>({
   table,
-  label = "Columns",
+  label,
   children,
 }: {
   table: DataTableInstance<TData>;
@@ -33,11 +44,10 @@ export function Columns<TData extends RowData>({
   /** The trigger, in place of the default Button. */
   children?: ReactNode;
 }) {
+  const { t } = useLedgerLocale();
+
   const columns = table.getAllLeafColumns().filter((c) => c.getCanHide());
   const hidden = columns.filter((c) => !c.getIsVisible()).length;
-  const view = table.options.meta?.view;
-  const density = table.options.meta?.density ?? "default";
-  const setDensity = table.options.meta?.setDensity;
   return (
     <DropdownMenu
       align="end"
@@ -45,7 +55,7 @@ export function Columns<TData extends RowData>({
       trigger={
         children ?? (
           <Button variant="secondary" size="small" iconBefore={<Columns3 />}>
-            {label}
+            {label ?? t("columns")}
             {hidden ? (
               <span className="tabular-nums text-subtle">
                 {columns.length - hidden}/{columns.length}
@@ -55,7 +65,7 @@ export function Columns<TData extends RowData>({
         )
       }
     >
-      <DropdownMenu.Label>Show</DropdownMenu.Label>
+      <DropdownMenu.Label>{t("show")}</DropdownMenu.Label>
       {columns.map((c) => (
         <DropdownMenu.Item
           key={c.id}
@@ -66,22 +76,56 @@ export function Columns<TData extends RowData>({
           {labelOf(c)}
         </DropdownMenu.Item>
       ))}
+    </DropdownMenu>
+  );
+}
+
+/** The reader's view of the table beyond the columns: the rows' density, and Reset view last. A gear beside the Columns menu. */
+export function Settings<TData extends RowData>({
+  table,
+  label,
+  children,
+}: {
+  table: DataTableInstance<TData>;
+  label?: string | undefined;
+  /** The trigger, in place of the default IconButton. */
+  children?: ReactNode;
+}) {
+  const { t } = useLedgerLocale();
+
+  const view = table.options.meta?.view;
+  const density = table.options.meta?.density ?? "default";
+  const setDensity = table.options.meta?.setDensity;
+  return (
+    <DropdownMenu
+      align="end"
+      width={220}
+      trigger={
+        children ?? (
+          <IconButton
+            label={label ?? t("tableSettings")}
+            variant="secondary"
+            size="small"
+            icon={<Settings2 />}
+          />
+        )
+      }
+    >
       {setDensity ? (
         <>
-          <DropdownMenu.Separator />
-          <DropdownMenu.Label>Rows</DropdownMenu.Label>
+          <DropdownMenu.Label>{t("rows")}</DropdownMenu.Label>
           <DropdownMenu.Item
             isSelected={density === "compact"}
             closeOnSelect={false}
             onSelect={() => setDensity(density === "compact" ? "default" : "compact")}
           >
-            Compact rows
+            {t("compactRows")}
           </DropdownMenu.Item>
+          <DropdownMenu.Separator />
         </>
       ) : null}
-      <DropdownMenu.Separator />
       <DropdownMenu.Item onSelect={() => resetView(table)}>
-        {view ? "Reset view" : "Reset columns"}
+        {view ? t("resetView") : t("resetColumns")}
       </DropdownMenu.Item>
     </DropdownMenu>
   );
@@ -95,6 +139,8 @@ export function HeaderMenu<TData extends RowData>({
   table: DataTableInstance<TData>;
   column: Column<DataTableFeatures, TData, unknown>;
 }) {
+  const { t } = useLedgerLocale();
+
   const meta = table.options.meta;
   const canSort = column.getCanSort();
   const canPin = Boolean(meta?.pinnable) && column.getCanPin();
@@ -108,7 +154,7 @@ export function HeaderMenu<TData extends RowData>({
       width={200}
       trigger={
         <IconButton
-          label={`${labelOf(column)} column menu`}
+          label={t("columnMenu", { label: labelOf(column) })}
           variant="subtle"
           className="size-250"
           icon={<ChevronDown />}
@@ -122,7 +168,7 @@ export function HeaderMenu<TData extends RowData>({
             onSelect={() => column.toggleSorting(false)}
           >
             <span className="flex items-center gap-100">
-              <ArrowUp className="size-icon-small icon-subtle" /> Sort ascending
+              <ArrowUp className="size-icon-small icon-subtle" /> {t("sortAscending")}
             </span>
           </DropdownMenu.Item>
           <DropdownMenu.Item
@@ -130,7 +176,7 @@ export function HeaderMenu<TData extends RowData>({
             onSelect={() => column.toggleSorting(true)}
           >
             <span className="flex items-center gap-100">
-              <ArrowDown className="size-icon-small icon-subtle" /> Sort descending
+              <ArrowDown className="size-icon-small icon-subtle" /> {t("sortDescending")}
             </span>
           </DropdownMenu.Item>
         </>
@@ -141,21 +187,21 @@ export function HeaderMenu<TData extends RowData>({
           {pinned !== "start" ? (
             <DropdownMenu.Item onSelect={() => column.pin("start")}>
               <span className="flex items-center gap-100">
-                <Pin className="size-icon-small icon-subtle" /> Pin to start
+                <Pin className="size-icon-small icon-subtle" /> {t("pinStart")}
               </span>
             </DropdownMenu.Item>
           ) : null}
           {pinned !== "end" ? (
             <DropdownMenu.Item onSelect={() => column.pin("end")}>
               <span className="flex items-center gap-100">
-                <Pin className="size-icon-small icon-subtle" /> Pin to end
+                <Pin className="size-icon-small icon-subtle" /> {t("pinEnd")}
               </span>
             </DropdownMenu.Item>
           ) : null}
           {pinned ? (
             <DropdownMenu.Item onSelect={() => column.pin(false)}>
               <span className="flex items-center gap-100">
-                <PinOff className="size-icon-small icon-subtle" /> Unpin
+                <PinOff className="size-icon-small icon-subtle" /> {t("unpin")}
               </span>
             </DropdownMenu.Item>
           ) : null}
@@ -164,7 +210,7 @@ export function HeaderMenu<TData extends RowData>({
       {canHide ? (
         <DropdownMenu.Item onSelect={() => column.toggleVisibility(false)}>
           <span className="flex items-center gap-100">
-            <EyeOff className="size-icon-small icon-subtle" /> Hide column
+            <EyeOff className="size-icon-small icon-subtle" /> {t("hideColumn")}
           </span>
         </DropdownMenu.Item>
       ) : null}

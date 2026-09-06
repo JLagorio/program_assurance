@@ -40,8 +40,9 @@ const facts = (
   </>
 );
 
-/** The id as the trail; with facts; the parents in the trail, meta and actions; a sub-page under its record's trail with a strip below; a lifecycle below. */
+/** The id as the trail; with facts (deprecated); the parents in the trail, meta and actions; a sub-page under its record's trail with a strip below; a lifecycle below. */
 export const RecordHeaderMatrix: Story = {
+  tags: ["contract"],
   // Several record headers in one story mean several trails named "Breadcrumb"; a page has one.
   parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
   render: () => (
@@ -132,8 +133,8 @@ export const Dont: Story = {
   render: () => (
     <Stack space="space.400">
       <Pair
-        do={<RecordHeader id="REQ-0118" title="Encrypt telemetry in transit" facts={facts} />}
-        doText="At most six facts: the ones the reader acts on. The rest are the rail's."
+        do={<RecordHeader id="REQ-0118" title="Encrypt telemetry in transit" />}
+        doText="The trail, the title and the actions. The owner, the method and the state are the rail's Details."
         dont={
           <RecordHeader
             id="REQ-0118"

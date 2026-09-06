@@ -1,3 +1,4 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Fragment, useMemo } from "react";
 
@@ -235,15 +236,19 @@ function FindingRecord() {
                   </Indicator>
                   <Badge tone={statusTone(finding.lifecycle)}>{finding.lifecycle}</Badge>
                   {finding.poam ? (
-                    <Link to="/register/poam/$poamId" params={{ poamId: finding.poam }}>
-                      <Button variant="secondary" size="small">
+                    <Button asChild variant="secondary" size="small">
+                      <Link to="/register/poam/$poamId" params={{ poamId: finding.poam }}>
                         Open {finding.poam}
-                      </Button>
-                    </Link>
-                  ) : (
-                    <Button variant="secondary" size="small">
-                      Add to POA&amp;M
+                      </Link>
                     </Button>
+                  ) : (
+                    <UnavailableAction
+                      reason="Add a POA&M item from the relevant program record."
+                      variant="secondary"
+                      size="small"
+                    >
+                      Add to POA&amp;M
+                    </UnavailableAction>
                   )}
                 </>
               }

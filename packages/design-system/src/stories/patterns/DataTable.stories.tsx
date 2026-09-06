@@ -9,6 +9,11 @@ import {
   HeaderMenu,
   RowSortable,
   defineColumns,
+  columnKinds,
+  resetView,
+  viewKey,
+  writeView,
+  readView,
   useColumnDrag,
   useDataTable,
   type ColumnFiltersState,
@@ -18,6 +23,7 @@ import {
   type SortingState,
 } from "../../patterns";
 import { Table } from "../../components";
+import { LedgerProvider } from "../../lib/locale";
 import { Inline, Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 
@@ -195,8 +201,10 @@ function Wide({ view }: { view?: string | undefined }) {
     <Stack space="space.150">
       <Inline space="space.100" alignBlock="center">
         <DataTable.Search table={table} />
+        <DataTable.Presets table={table} presets={presets} variant="menu" />
         <Inline className="ml-auto" space="space.100">
           <DataTable.Columns table={table} />
+          <DataTable.Settings table={table} />
         </Inline>
       </Inline>
       <DataTable table={table} maxHeight={420} />
@@ -812,6 +820,11 @@ function Parts() {
         <Filter table={table} column="due" />
       </Inline>
       <Presets table={table} presets={presets} />
+      <Inline space="space.100" alignBlock="center">
+        <Presets table={table} presets={presets} variant="menu" />
+        <DataTable.Columns table={table} />
+        <DataTable.Settings table={table} />
+      </Inline>
       <SelectionBar table={table} actions={<Button size="small">Reassign</Button>} />
     </Stack>
   );
@@ -819,6 +832,7 @@ function Parts() {
 
 /** Every state the renderer draws: sorted, filtered, selected, with a glance, with actions; loading, empty and error; the toolbar parts alone; pinned, resizable and reorderable columns; column groups; a header by hand; a tree, detail rows, groups, pinned rows with totals, rows in the reader's order; the Table parts alone. */
 export const DataTableMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Register />
@@ -915,4 +929,125 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+};
+
+const kinds = columnKinds<{ name: string; count: number }>();
+const persistedColumns = [
+  kinds.text("name", { header: "Program name", width: 280 }),
+  kinds.number("count", { header: "Count", width: 160 }),
+];
+function ResizableTable() {
+  const table = useDataTable({
+    columns: persistedColumns,
+    data: [{ name: "Assurance program", count: 1234 }],
+    resizable: true,
+    label: "Programs",
+    layout: "fixed",
+  });
+  return <DataTable table={table} />;
+}
+export const KeyboardResizeMatrix: Story = {
+  tags: ["contract"],
+  render: () => (
+    <LedgerProvider>
+      <ResizableTable />
+    </LedgerProvider>
+  ),
+  play: async ({ canvasElement }) => {
+    const { expect, userEvent, within, waitFor } = await import("storybook/test");
+    const handles = within(canvasElement).getAllByRole("separator", {
+      name: "Resize column",
+    });
+    const handle = handles[0]!;
+    const before = Number(handle.getAttribute("aria-valuenow"));
+    handle.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await waitFor(() => expect(handle).toHaveAttribute("aria-valuenow", String(before + 8)));
+    await userEvent.keyboard("{Home}");
+    await waitFor(() =>
+      expect(handle.getAttribute("aria-valuenow")).toBe(handle.getAttribute("aria-valuemin")),
+    );
+    await expect(within(canvasElement).getByText("1,234")).toBeVisible();
+  },
+};
+
+const firstView = "contract-data-table-first";
+const secondView = "contract-data-table-second";
+const storageRows = [{ name: "Persisted program", count: 1234 }];
+function StoredTable() {
+  const [view, setView] = useState(firstView);
+  const table = useDataTable({
+    columns: persistedColumns,
+    data: storageRows,
+    view,
+    resizable: true,
+    label: "Stored programs",
+    layout: "fixed",
+    initialState: { columnOrder: ["count", "name"], columnSizing: { name: 340 } },
+  });
+  return (
+    <Stack space="space.200">
+      <Button onClick={() => setView(firstView)}>First view</Button>
+      <Button onClick={() => setView(secondView)}>Second view</Button>
+      <Button onClick={() => table.setColumnSizing({ name: 420 })}>Widen current view</Button>
+      <Button onClick={() => resetView(table)}>Restore author layout</Button>
+      <DataTable table={table} />
+    </Stack>
+  );
+}
+function StoredViewsFixture() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const saved = [firstView, secondView].map((view) => localStorage.getItem(viewKey(view)));
+    writeView(firstView, {
+      order: ["name", "count"],
+      sizing: { name: 310 },
+      visibility: {},
+      pinning: { start: [], end: [] },
+    });
+    writeView(secondView, {
+      order: ["count", "name"],
+      sizing: { name: 400 },
+      visibility: {},
+      pinning: { start: [], end: [] },
+    });
+    setReady(true);
+    return () =>
+      [firstView, secondView].forEach((view, index) => {
+        const previous = saved[index];
+        if (previous == null) localStorage.removeItem(viewKey(view));
+        else localStorage.setItem(viewKey(view), previous);
+      });
+  }, []);
+  return ready ? <StoredTable /> : <Text>Preparing saved views</Text>;
+}
+export const StoredViewsMatrix: Story = {
+  tags: ["contract"],
+  render: () => <StoredViewsFixture />,
+  play: async ({ canvasElement }) => {
+    const { expect, userEvent, within, waitFor } = await import("storybook/test");
+    const canvas = within(canvasElement);
+    const firstHeader = () => canvas.getAllByRole("columnheader")[0]!;
+    const nameWidth = () =>
+      canvas
+        .getAllByRole("columnheader")
+        .find((header) => header.textContent?.includes("Program name"))!
+        .querySelector('[role="separator"]')!
+        .getAttribute("aria-valuenow");
+    await canvas.findByRole("table", { name: "Stored programs" });
+    await waitFor(() => expect(nameWidth()).toBe("310"));
+    await expect(firstHeader()).toHaveTextContent("Program name");
+    await userEvent.click(canvas.getByRole("button", { name: "Second view" }));
+    await waitFor(() => expect(nameWidth()).toBe("400"));
+    await expect(firstHeader()).toHaveTextContent("Count");
+    await expect(readView(firstView)?.sizing["name"]).toBe(310);
+    await userEvent.click(canvas.getByRole("button", { name: "Widen current view" }));
+    await waitFor(() => expect(readView(secondView)?.sizing["name"]).toBe(420));
+    await userEvent.click(canvas.getByRole("button", { name: "First view" }));
+    await waitFor(() => expect(nameWidth()).toBe("310"));
+    await expect(readView(secondView)?.sizing["name"]).toBe(420);
+    await userEvent.click(canvas.getByRole("button", { name: "Restore author layout" }));
+    await waitFor(() => expect(nameWidth()).toBe("340"));
+    await expect(firstHeader()).toHaveTextContent("Count");
+  },
 };

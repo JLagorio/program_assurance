@@ -1,3 +1,12 @@
+import {
+  useCallback,
+  type SetStateAction,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
+import { useRecordForm } from "@/lib/record-form";
 /**
  * The control board: the SCTM as a working surface rather than an artifact.
  *
@@ -13,7 +22,6 @@
  * existing control record already writes to, through the same components.
  */
 
-import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { X } from "lucide-react";
 
@@ -38,7 +46,6 @@ import {
   TextLink,
   ToggleGroup,
   Toolbar,
-  useRequired,
   Eyebrow,
 } from "@ledger/design-system";
 import {
@@ -503,20 +510,32 @@ function BoardDetail({
   const people = useMemo(() => peopleForProgram(programId).map((p) => p.name), [programId]);
   const [ownerDraft, setOwnerDraft] = useState("");
   const [pending, setPending] = useState<string | null>(null);
-  const [note, setNote] = useState("");
+  const { form, values, setValue, formId, formRef } = useRecordForm(
+    {
+      note: "",
+    },
+    (value) => ({ note: chosen?.def.note === "required" && value.note }),
+  );
+  const { note } = values;
+  const setNote = useCallback(
+    (value: SetStateAction<typeof note>) => setValue("note", value),
+    [setValue],
+  );
   const [error, setError] = useState<string | null>(null);
   const chosen = offers.find((o) => o.def.key === pending);
 
-  const req = useRequired({ note: chosen?.def.note === "required" && note });
   const fire = () => {
-    if (!req.check()) return;
-    if (!work || !pending) return;
-    const result = perform(work.id, pending, context, note);
-    if (!result.ok) return setError(result.reason);
-    setPending(null);
-    setNote("");
-    setError(null);
-    refresh();
+    return form.handleSubmit({
+      save: () => {
+        if (!work || !pending) return;
+        const result = perform(work.id, pending, context, note);
+        if (!result.ok) return setError(result.reason);
+        setPending(null);
+        setNote("");
+        setError(null);
+        refresh();
+      },
+    });
   };
 
   const owed = control.rows.filter((r) => r.determination !== "Not applicable");
@@ -651,44 +670,74 @@ function BoardDetail({
             </Stack>
           ) : null}
           {chosen ? (
-            <Box paddingBlockStart="space.150">
-              <Stack
-                className="rounded-medium border border-default bg-surface-sunken p-150"
-                space="space.100"
-              >
-                <div className="font-body-small text-subtle">
-                  {chosen.def.label} · {session.name} · {session.role}
-                </div>
-                {/* An authority-bearing action names its consequence before it
+            <form
+              id={formId}
+              ref={formRef}
+              noValidate
+              onSubmit={(event) => {
+                event.preventDefault();
+                void fire();
+              }}
+            >
+              {" "}
+              <Box paddingBlockStart="space.150">
+                <Stack
+                  className="rounded-medium border border-default bg-surface-sunken p-150"
+                  space="space.100"
+                >
+                  <div className="font-body-small text-subtle">
+                    {chosen.def.label} · {session.name} · {session.role}
+                  </div>
+                  {/* An authority-bearing action names its consequence before it
                   is taken. A one-click state change is how a workflow turns
                   into folklore. */}
-                <p className="font-body">
-                  {consequenceOf(
-                    chosen.def.key,
-                    work!,
-                    control,
-                    context,
-                    scope?.name ?? "this scope",
-                  )}
-                </p>
-                <Field
-                  isRequired={chosen?.def.note === "required"}
-                  error={req.errorFor("note")}
-                  label={chosen.def.note === "required" ? "Reason (required)" : "Note"}
-                >
-                  <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} />
-                </Field>
-                {error ? <div className="font-body-small text-danger">{error}</div> : null}
-                <Inline space="space.100" alignInline="end">
-                  <Button size="small" onClick={() => setPending(null)}>
-                    Cancel
-                  </Button>
-                  <Button size="small" variant="primary" onClick={fire}>
-                    {chosen.def.label}
-                  </Button>
-                </Inline>
-              </Stack>
-            </Box>
+                  <p className="font-body">
+                    {consequenceOf(
+                      chosen.def.key,
+                      work!,
+                      control,
+                      context,
+                      scope?.name ?? "this scope",
+                    )}
+                  </p>
+                  <form.Field name="note">
+                    {(field) => (
+                      <Field
+                        isRequired={chosen?.def.note === "required"}
+                        error={
+                          field.state.meta.isTouched && !field.state.meta.isValid
+                            ? [...new Set(field.state.meta.errors)].join(" ")
+                            : undefined
+                        }
+                        label={chosen.def.note === "required" ? "Reason (required)" : "Note"}
+                      >
+                        <Textarea
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          rows={2}
+                          name={field.name}
+                          onBlur={field.handleBlur}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                  {error ? <div className="font-body-small text-danger">{error}</div> : null}
+                  <Inline space="space.100" alignInline="end">
+                    <Button size="small" onClick={() => setPending(null)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="primary"
+                      type="submit"
+                      disabled={form.state.isSubmitting}
+                    >
+                      {chosen.def.label}
+                    </Button>
+                  </Inline>
+                </Stack>
+              </Box>
+            </form>
           ) : null}
         </Box>
       ) : null}

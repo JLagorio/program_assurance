@@ -157,10 +157,11 @@ export function SctmMatrixSection({
         }
       >
         <NativeSelect
+          aria-label="Control family"
           value={family}
           onChange={(e) => onFamily(e.target.value)}
           size="small"
-          style={{ width: 188 }}
+          style={{ width: 188, maxWidth: "100%" }}
         >
           <option value="All">All families</option>
           {families.map((f) => (
@@ -170,10 +171,11 @@ export function SctmMatrixSection({
           ))}
         </NativeSelect>
         <NativeSelect
+          aria-label="Control determination"
           value={status}
           onChange={(e) => onStatus(e.target.value as ControlStatus | "All")}
           size="small"
-          style={{ width: 176 }}
+          style={{ width: 176, maxWidth: "100%" }}
         >
           <option value="All">All determinations</option>
           {controlStatuses.map((s) => (

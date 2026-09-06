@@ -19,6 +19,7 @@ const open = [{ key: "open", label: "Open", tone: "brand" as const }];
 
 /** Every area in both modes: one series, stacked, smooth with end labels; cropped, with a band, the skeleton. */
 export const AreaMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="One series · stacked · smooth with end labels">

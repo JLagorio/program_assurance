@@ -1,9 +1,10 @@
+import { useLedgerLocale } from "../lib/locale";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "../lib/cn";
-import { controlBase, controlHeight, type ControlSize } from "./controls";
+import { controlBase, controlHeight, useFieldControl, type ControlSize } from "./controls";
 import {
   menuItem,
   menuItemDisabled,
@@ -14,7 +15,7 @@ import {
   menuSurface,
 } from "./menu";
 
-export type SelectProps = {
+type SelectOwnProps = {
   /** The chosen value, controlled; pair it with `onValueChange`. */
   value?: string | undefined;
   /** The starting value when uncontrolled. */
@@ -29,7 +30,10 @@ export type SelectProps = {
   disabled?: boolean | undefined;
   /** The form field's name; a hidden input carries the value on submit. */
   name?: string | undefined;
+  form?: string | undefined;
   /** The name, when there is no Field around it. */
+  id?: string | undefined;
+  "aria-labelledby"?: string | undefined;
   "aria-label"?: string | undefined;
   /** Set by the Field from `error`; the border turns. */
   "aria-invalid"?: boolean | undefined;
@@ -45,6 +49,9 @@ export type SelectProps = {
   children: ReactNode;
 };
 
+export type SelectProps = SelectOwnProps &
+  Omit<ComponentProps<typeof SelectPrimitive.Trigger>, keyof SelectOwnProps | "asChild">;
+
 /** One answer from a short, fixed list whose options mean more than their words: a status with its Dot, a kind with its Badge. For plain words, NativeSelect; for a list worth searching, Combobox. */
 function SelectRoot({
   value,
@@ -54,6 +61,9 @@ function SelectRoot({
   size = "medium",
   disabled,
   name,
+  form,
+  id,
+  "aria-labelledby": ariaLabelledby,
   "aria-label": ariaLabel,
   "aria-invalid": ariaInvalid,
   "aria-required": ariaRequired,
@@ -61,26 +71,36 @@ function SelectRoot({
   width,
   className,
   children,
+  ...triggerProps
 }: SelectProps) {
+  const { direction } = useLedgerLocale();
+  const field = useFieldControl({
+    ...triggerProps,
+    id,
+    "aria-label": ariaLabel,
+    "aria-labelledby": ariaLabelledby,
+    "aria-invalid": ariaInvalid,
+    "aria-describedby": ariaDescribedby,
+    "aria-required": ariaRequired,
+  });
   return (
     <SelectPrimitive.Root
+      dir={direction}
+      {...(form ? { form } : {})}
       {...(value === undefined ? (defaultValue === undefined ? {} : { defaultValue }) : { value })}
       {...(onValueChange ? { onValueChange } : {})}
       {...(disabled ? { disabled } : {})}
       {...(name ? { name } : {})}
     >
       <SelectPrimitive.Trigger
-        aria-label={ariaLabel}
-        aria-invalid={ariaInvalid}
-        aria-required={ariaRequired}
-        aria-describedby={ariaDescribedby}
+        {...field}
         className={cn(
           controlBase,
           controlHeight[size],
           "flex items-center justify-between gap-100 text-left data-[placeholder]:text-subtlest",
           className,
         )}
-        style={width === undefined ? undefined : { width }}
+        style={{ ...triggerProps.style, ...(width === undefined ? {} : { width }) }}
       >
         <span className="min-w-0 flex-1 truncate">
           <SelectPrimitive.Value placeholder={placeholder} />

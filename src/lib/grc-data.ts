@@ -321,6 +321,9 @@ export const programStatuses = [
 export type ProgramStatus = (typeof programStatuses)[number];
 
 export type Program = {
+  /** Archived records remain readable and can be restored from the program list. */
+  archivedAt?: string | undefined;
+  assessmentScheduled?: string | undefined;
   id: string;
   name: string;
   acronym: string;

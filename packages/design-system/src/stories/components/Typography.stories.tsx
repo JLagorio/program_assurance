@@ -16,6 +16,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Eyebrow in every tone and as a heading; Absent; Prose in every tone. */
 export const TypographyMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Eyebrow">

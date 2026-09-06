@@ -1,3 +1,5 @@
+import { expect, userEvent, within } from "storybook/test";
+import { Input } from "../../components";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Box, Grid, Heading, Inline, Stack, Text } from "../../primitives";
@@ -7,7 +9,10 @@ const meta = {
   title: "Primitives/Text",
   component: Text,
   parameters: { layout: "padded" },
-  args: { children: "Deny network communications traffic by default and allow by exception.", size: "medium" },
+  args: {
+    children: "Deny network communications traffic by default and allow by exception.",
+    size: "medium",
+  },
 } satisfies Meta<typeof Text>;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -40,11 +45,16 @@ const colors = [
 
 /** The four sizes by the three weights; the text colours; alignment; one, two and three lines clamped; a paragraph at the reading measure; inverse on a bold fill without a colour. */
 export const TextMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Stack space="space.100">
         <Label>size by weight</Label>
-        <Grid templateColumns="72px repeat(3, minmax(0, 1fr))" gap="space.100" alignItems="baseline">
+        <Grid
+          templateColumns="72px repeat(3, minmax(0, 1fr))"
+          gap="space.100"
+          alignItems="baseline"
+        >
           <span />
           {weights.map((w) => (
             <Label key={w}>{w}</Label>
@@ -64,17 +74,29 @@ export const TextMatrix: Story = {
       <Stack space="space.100">
         <Label>color; disabled is left out here, it comes from a disabled control</Label>
         <Inline space="space.200" shouldWrap>
-          {colors.filter((c) => c !== "color.text.disabled").map((c) => (
-            <Text key={c} color={c} size="small">
-              {c.replace("color.text.", "") === c ? "text" : c.replace("color.text.", "")}
-            </Text>
-          ))}
+          {colors
+            .filter((c) => c !== "color.text.disabled")
+            .map((c) => (
+              <Text key={c} color={c} size="small">
+                {c.replace("color.text.", "") === c ? "text" : c.replace("color.text.", "")}
+              </Text>
+            ))}
         </Inline>
         <Inline space="space.100">
-          <Box backgroundColor="color.background.neutral.bold" paddingBlock="space.075" paddingInline="space.150" className="rounded-medium">
+          <Box
+            backgroundColor="color.background.neutral.bold"
+            paddingBlock="space.075"
+            paddingInline="space.150"
+            className="rounded-medium"
+          >
             <Text size="small">inverse, from the bold fill</Text>
           </Box>
-          <Box backgroundColor="color.background.warning.bold" paddingBlock="space.075" paddingInline="space.150" className="rounded-medium">
+          <Box
+            backgroundColor="color.background.warning.bold"
+            paddingBlock="space.075"
+            paddingInline="space.150"
+            className="rounded-medium"
+          >
             <Text size="small">warning.inverse, from the warning bold</Text>
           </Box>
         </Inline>
@@ -83,7 +105,13 @@ export const TextMatrix: Story = {
         <Label>align, in a 240px block</Label>
         <Inline space="space.200" alignBlock="start">
           {(["start", "center", "end"] as const).map((a) => (
-            <Box key={a} backgroundColor="elevation.surface.sunken" padding="space.100" className="rounded-medium" style={{ width: 240 }}>
+            <Box
+              key={a}
+              backgroundColor="elevation.surface.sunken"
+              padding="space.100"
+              className="rounded-medium"
+              style={{ width: 240 }}
+            >
               <Text as="p" size="small" align={a}>
                 {a}: two findings carried
               </Text>
@@ -95,7 +123,13 @@ export const TextMatrix: Story = {
         <Label>maxLines 1 · 2 · 3, in a 240px block</Label>
         <Inline space="space.200" alignBlock="start">
           {([1, 2, 3] as const).map((m) => (
-            <Box key={m} backgroundColor="elevation.surface.sunken" padding="space.100" className="rounded-medium" style={{ width: 240 }}>
+            <Box
+              key={m}
+              backgroundColor="elevation.surface.sunken"
+              padding="space.100"
+              className="rounded-medium"
+              style={{ width: 240 }}
+            >
               <Text as="p" size="small" maxLines={m} title={long}>
                 {long}
               </Text>
@@ -120,8 +154,8 @@ export const Sizes: Story = {
         <Inline key={s} space="space.300" alignBlock="baseline">
           <Box style={{ width: 72 }}>
             <Text size="xsmall" color="color.text.subtlest">
-            {s}
-          </Text>
+              {s}
+            </Text>
           </Box>
           <Text size={s}>{sample}</Text>
         </Inline>
@@ -147,7 +181,11 @@ export const WeightsAndColors: Story = {
           </Text>
         ))}
       </Inline>
-      <Box backgroundColor="color.background.neutral.bold" padding="space.150" className="rounded-medium">
+      <Box
+        backgroundColor="color.background.neutral.bold"
+        padding="space.150"
+        className="rounded-medium"
+      >
         <Text>inverse, on neutral.bold, from the fill</Text>
       </Box>
       <Box style={{ width: 240 }}>
@@ -228,3 +266,21 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {};
+
+export const LabelAssociationContract: Story = {
+  tags: ["contract"],
+  render: () => (
+    <Stack space="space.100">
+      <Text as="label" htmlFor="text-contract-name">
+        Display name
+      </Text>
+      <Input id="text-contract-name" />
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("textbox", { name: "Display name" });
+    await userEvent.click(canvas.getByText("Display name"));
+    await expect(input).toHaveFocus();
+  },
+};

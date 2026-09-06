@@ -70,7 +70,7 @@ The width is the layout's. A Textarea fills its container, and in a form's Grid 
 - **The label is a noun**, sentence case, no colon: Function, Note, Implementation statement. Not an instruction, not a question.
 - **The hint says what a good answer is** and, when there is one, the limit: "How this system satisfies the control, in terms an assessor can verify." One sentence, or two when the second is the limit.
 - **The placeholder is one example**, short, and gone on the first keystroke: "Terrain-following radar and collision avoidance." Never the instructions, never a rule.
-- **The error says what fixes it**: "Required." from `useRequired` for an empty required field; "Keep it under 2,000 characters." from the form's own rule.
+- **The error says what fixes it**: "Required." for an empty required field; "Keep it under 2,000 characters." from the form's own rule.
 - **The value is prose** the next reader will read as written. The hint sets the register: an assessor's, an engineer's, a colleague's.
 
 ## Style
@@ -117,7 +117,7 @@ Textarea takes every attribute of `<textarea>`; the ones this page is about:
 | Prop                    | Use                                                                             |
 | ----------------------- | ------------------------------------------------------------------------------- |
 | `rows`                  | The expected length: `2` a note, `4` a description, `8` a narrative.            |
-| `value`, `defaultValue` | Controlled or not. A form with `useRequired` is controlled.                     |
+| `value`, `defaultValue` | Controlled or not. A TanStack form uses controlled values.                     |
 | `placeholder`           | One example, never the instructions.                                            |
 | `maxLength`             | The store's limit, said in the hint.                                            |
 | `readOnly`, `disabled`  | Read here, edited elsewhere; not available. See States.                         |
@@ -135,7 +135,7 @@ Textarea takes every attribute of `<textarea>`; the ones this page is about:
 
 - [Field](?path=/docs/components-field--docs): the label, the hint and the error around it.
 - [Input](?path=/docs/components-input--docs): one line.
-- [Forms](?path=/docs/components-forms--docs): the layout, and `useRequired` for the required fields checked on submit.
+- [Forms](?path=/docs/patterns-forms--docs): the layout, and TanStack Form validation.
 - [Editable](?path=/docs/components-editable--docs): a value read in place and edited on click, for a record's rail.
 - [CodeBlock](?path=/docs/components-codeblock--docs): a value that is code.
 

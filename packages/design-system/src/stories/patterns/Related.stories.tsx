@@ -202,6 +202,7 @@ const addAction = (
 
 /** In a rail: rows with an id and the state, a Dot and a date, people; a handful of many with See all; the empty state, plain and with a line and an action. In the body of a page: a grid of cards with a mark, the name as the link, one status, four properties and the actions on hover; people as cards; the empty state at that width. */
 export const RelatedMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="In a rail: list">

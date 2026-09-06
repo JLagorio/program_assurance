@@ -7,7 +7,7 @@ import * as Stories from "./RecordHeader.stories";
 
 # RecordHeader
 
-The head of a record page, two lines: the trail, its parents and then the record's id as the current crumb, which is the way back; and the title's line, the name with a word of meta after it and the actions at the end. The record's id is the last crumb, unlinked, and the title sits under it with the actions beside. This one keeps the tabs for the [ShowPage](?path=/docs/patterns-pages--docs), draws no back chevron because the trail is the way back, and shows at most six facts under the title; the rest are the rail's.
+The head of a record page, two lines: the trail, its parents and then the record's id as the current crumb, which is the way back; and the title's line, the name with a word of meta after it and the actions at the end. The record's id is the last crumb, unlinked, and the title sits under it with the actions beside. This one keeps the tabs for the [ShowPage](?path=/docs/patterns-pages--docs), draws no back chevron because the trail is the way back, and shows no facts: what the reader does not need on every load is the rail's Inspector.
 
 <Canvas of={Stories.RecordHeaderMatrix} />
 
@@ -20,7 +20,7 @@ The head of a record page, two lines: the trail, its parents and then the record
 | Meta       | After the id, `font.body.small` subtle: the state as a Badge, the baseline, when it was updated. A few words. |
 | Title      | The record's name, the h1, `font.heading.small` semibold.                                                     |
 | Actions    | At the end of the row: one primary and at most two beside it, the rest behind a menu.                         |
-| Facts      | Under the title, above a rule: a Fact.Group of at most six, the ones the reader acts on.                      |
+| Facts      | Deprecated. A Fact.Group under the title, kept for one release; the details are the rail's Inspector.        |
 | Below      | A persistent strip under everything: a lifecycle Stepper, an ActionBar, a Tabs strip on a sub-page.           |
 
 ## Variants
@@ -31,7 +31,7 @@ RecordHeader has one appearance. What varies is what it carries:
 | ----------------- | ----------------------------------------------------------------------------------------------------- |
 | Id and title      | A record in a preview, a finding under its parent.                                                    |
 | With back         | Every record page: the chevron returns to the list.                                                   |
-| With facts        | A record whose six facts decide what the reader does next: the requirement's owner, method and state. |
+| With facts        | Deprecated: facts under the title. The requirement's owner, method and state are the rail's Details.  |
 | With a breadcrumb | A sub-page of a record: the program, then its matrix.                                                 |
 | With a strip      | A record with a lifecycle: the program's RMF steps, the finding's ActionBar.                          |
 
@@ -49,13 +49,13 @@ A header has no state. The record's state is a Badge in `meta`, a Stepper in `be
 
 ## Modifiers
 
-- **`crumbs`**, **`id`**, **`title`**, **`meta`**, **`actions`**, **`facts`**, **`below`** as in Anatomy. `breadcrumb` and `back` are deprecated: the header builds the trail from the crumbs and the id, and the trail is the way back.
+- **`crumbs`**, **`id`**, **`title`**, **`meta`**, **`actions`**, **`below`** as in Anatomy. `facts`, `breadcrumb` and `back` are deprecated: the details are the rail's, the header builds the trail from the crumbs and the id, and the trail is the way back.
 
 ## Content
 
 - **The title is the record's name** as it reads in its list: "Atlas payments platform", "The gateway shall encrypt telemetry in transit".
 - **The meta is a word or a Badge**: the state, the baseline, "Updated 2h ago". Never a sentence.
-- **At most six facts**, the ones that decide the next action; everything else goes in the rail's Inspector.
+- **No facts in the header.** The owner, the state, the dates are the rail's Inspector, read when the reader needs them, not on every load.
 - **One primary action**, and past two the rest are a menu. A danger action is never in the row.
 - **The trail ends with the id**, unlinked, after the parents: "Programs, PRG-1041" over a program; "Programs, Atlas payments platform, PRG-1041" over its matrix. The title is the name.
 
@@ -67,14 +67,14 @@ A header has no state. The record's state is a Badge in `meta`, a Stepper in `be
 | Id      | `font.body` · `color.text.subtle`                                                                                           |
 | Meta    | `font.body.small` · `color.text.subtle` · `space.100` after the id                                                          |
 | Title   | `font.heading.small` semibold · `color.text`                                                                                |
-| Facts   | Fact.Group · `color.border` rule above · `space.100` under the rule                                                         |
+| Facts   | Deprecated · Fact.Group · `color.border` rule above · `space.100` under the rule                                            |
 | Layout  | `space.150` between the rows and before the back chevron · `space.025` between id and title · `space.100` between actions   |
 
 ## Accessibility
 
 - **The title's line is the page's `h1`**: the name and the meta are read as one heading, "Atlas payments platform, In assessment".
 - **The trail is a `nav`** named "Breadcrumb", read before the heading; its last crumb is the id, marked as the current page, and the one before it is the way back.
-- **The facts are a list of terms and values**, read in order after the title.
+- **The rail's details are a list of terms and values**, read after the page's body; the header carries none.
 - **The actions are their own stops** after the title, in reading order; the primary is last among them, as in a form.
 
 ## Props

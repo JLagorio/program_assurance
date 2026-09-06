@@ -3,138 +3,294 @@
    the curves are the tokens; nothing here names a number. Six durations by the size of the move,
    three curves by whether the thing arrives, leaves or stays. */
 @keyframes ds-enter {
-  from { opacity: 0; transform: scale(0.98); }
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
 }
 @keyframes ds-exit {
-  to { opacity: 0; transform: scale(0.98); }
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
 }
 @keyframes ds-fade-in {
-  from { opacity: 0; }
+  from {
+    opacity: 0;
+  }
 }
 @keyframes ds-fade-out {
-  to { opacity: 0; }
+  to {
+    opacity: 0;
+  }
 }
 @keyframes ds-slide-in-end {
-  from { transform: translateX(100%); }
+  from {
+    transform: translateX(100%);
+  }
 }
 @keyframes ds-slide-out-end {
-  to { transform: translateX(100%); }
+  to {
+    transform: translateX(100%);
+  }
 }
 @keyframes ds-slide-in-start {
-  from { transform: translateX(-100%); }
+  from {
+    transform: translateX(-100%);
+  }
 }
 @keyframes ds-slide-out-start {
-  to { transform: translateX(-100%); }
+  to {
+    transform: translateX(-100%);
+  }
 }
 @keyframes ds-slide-in-bottom {
-  from { transform: translateY(100%); }
+  from {
+    transform: translateY(100%);
+  }
 }
 @keyframes ds-slide-out-bottom {
-  to { transform: translateY(100%); }
+  to {
+    transform: translateY(100%);
+  }
 }
 @keyframes ds-slide-in-top {
-  from { transform: translateY(-100%); }
+  from {
+    transform: translateY(-100%);
+  }
 }
 @keyframes ds-slide-out-top {
-  to { transform: translateY(-100%); }
+  to {
+    transform: translateY(-100%);
+  }
 }
 @keyframes ds-rise {
-  from { opacity: 0; transform: translateY(var(--ds-space-075)); }
+  from {
+    opacity: 0;
+    transform: translateY(var(--ds-space-075));
+  }
 }
 /* Radix sets the content's measured height as a variable on the element itself: one name for an
    Accordion, another for a Collapsible, so the keyframe reads whichever is there. */
 @keyframes ds-collapse-open {
-  from { height: 0; opacity: 0; }
-  to { height: var(--radix-accordion-content-height, var(--radix-collapsible-content-height)); opacity: 1; }
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height, var(--radix-collapsible-content-height));
+    opacity: 1;
+  }
 }
 @keyframes ds-collapse-close {
-  from { height: var(--radix-accordion-content-height, var(--radix-collapsible-content-height)); opacity: 1; }
-  to { height: 0; opacity: 0; }
+  from {
+    height: var(--radix-accordion-content-height, var(--radix-collapsible-content-height));
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
 }
 
 /* Small overlays: a menu, a popover, a hover card, a command list. Arrive in medium on the enter
    curve, leave in fast on the exit curve. */
 @utility animate-enter {
   animation: ds-enter var(--ds-motion-duration-medium) var(--ds-motion-easing-enter) both;
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 @utility animate-exit {
   animation: ds-exit var(--ds-motion-duration-fast) var(--ds-motion-easing-exit) both;
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 /* A dialog: the same move, one tier slower, because it is bigger and further. */
 @utility animate-dialog-in {
   animation: ds-enter var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) both;
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 @utility animate-dialog-out {
   animation: ds-exit var(--ds-motion-duration-medium) var(--ds-motion-easing-exit) both;
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 /* A fade with no movement: a tooltip. */
 @utility animate-fade-in {
   animation: ds-fade-in var(--ds-motion-duration-fast) var(--ds-motion-easing-enter) both;
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 @utility animate-fade-out {
   animation: ds-fade-out var(--ds-motion-duration-fast) var(--ds-motion-easing-exit) both;
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 /* The blanket under a dialog, a sheet or the command palette: dims slowly, clears with the
    content. */
 @utility animate-dim-in {
   animation: ds-fade-in var(--ds-motion-duration-slower) var(--ds-motion-easing-enter) both;
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 @utility animate-dim-out {
   animation: ds-fade-out var(--ds-motion-duration-medium) var(--ds-motion-easing-exit) both;
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 /* A sheet or a panel: arrives in moderate on the enter curve; leaves on the standard curve, because
    a side panel stays nearby. */
 @utility animate-slide-in-end {
   animation: ds-slide-in-end var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) both;
+  &:dir(rtl) {
+    animation-name: ds-slide-in-start;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 @utility animate-slide-out-end {
   animation: ds-slide-out-end var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+  &:dir(rtl) {
+    animation-name: ds-slide-out-start;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 @utility animate-slide-in-start {
   animation: ds-slide-in-start var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) both;
+  &:dir(rtl) {
+    animation-name: ds-slide-in-end;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 @utility animate-slide-out-start {
-  animation: ds-slide-out-start var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+  animation: ds-slide-out-start var(--ds-motion-duration-medium) var(--ds-motion-easing-standard)
+    both;
+  &:dir(rtl) {
+    animation-name: ds-slide-out-end;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 @utility animate-slide-in-bottom {
-  animation: ds-slide-in-bottom var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) both;
+  animation: ds-slide-in-bottom var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter)
+    both;
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 @utility animate-slide-out-bottom {
-  animation: ds-slide-out-bottom var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+  animation: ds-slide-out-bottom var(--ds-motion-duration-medium) var(--ds-motion-easing-standard)
+    both;
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 @utility animate-slide-in-top {
   animation: ds-slide-in-top var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) both;
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 @utility animate-slide-out-top {
   animation: ds-slide-out-top var(--ds-motion-duration-medium) var(--ds-motion-easing-standard) both;
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 /* Content arriving in place: a page, a tile, a card. A short rise with a fade. */
 @utility animate-rise {
   animation: ds-rise var(--ds-motion-duration-moderate) var(--ds-motion-easing-enter) both;
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 /* A section opening or closing: height and opacity together, medium both ways. */
 @utility animate-collapse-open {
   animation: ds-collapse-open var(--ds-motion-duration-medium) var(--ds-motion-easing-enter);
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 @utility animate-collapse-close {
   animation: ds-collapse-close var(--ds-motion-duration-medium) var(--ds-motion-easing-exit);
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
 }
 /* A set arriving together: each child after the first waits one stagger step more than the one
    before it, up to six, so the last lands within a moderate duration. */
 @utility stagger-children {
-  & > :nth-child(2) { animation-delay: calc(1 * var(--ds-motion-stagger)); }
-  & > :nth-child(3) { animation-delay: calc(2 * var(--ds-motion-stagger)); }
-  & > :nth-child(4) { animation-delay: calc(3 * var(--ds-motion-stagger)); }
-  & > :nth-child(5) { animation-delay: calc(4 * var(--ds-motion-stagger)); }
-  & > :nth-child(n + 6) { animation-delay: calc(5 * var(--ds-motion-stagger)); }
+  & > :nth-child(2) {
+    animation-delay: calc(1 * var(--ds-motion-stagger));
+  }
+  & > :nth-child(3) {
+    animation-delay: calc(2 * var(--ds-motion-stagger));
+  }
+  & > :nth-child(4) {
+    animation-delay: calc(3 * var(--ds-motion-stagger));
+  }
+  & > :nth-child(5) {
+    animation-delay: calc(4 * var(--ds-motion-stagger));
+  }
+  & > :nth-child(n + 6) {
+    animation-delay: calc(5 * var(--ds-motion-stagger));
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-rise, .animate-enter, .animate-exit, .animate-dialog-in, .animate-dialog-out,
-  .animate-fade-in, .animate-fade-out, .animate-dim-in, .animate-dim-out,
-  .animate-slide-in-end, .animate-slide-out-end, .animate-slide-in-start, .animate-slide-out-start,
-  .animate-slide-in-bottom, .animate-slide-out-bottom, .animate-slide-in-top, .animate-slide-out-top,
-  .animate-collapse-open, .animate-collapse-close {
+  .animate-rise,
+  .animate-enter,
+  .animate-exit,
+  .animate-dialog-in,
+  .animate-dialog-out,
+  .animate-fade-in,
+  .animate-fade-out,
+  .animate-dim-in,
+  .animate-dim-out,
+  .animate-slide-in-end,
+  .animate-slide-out-end,
+  .animate-slide-in-start,
+  .animate-slide-out-start,
+  .animate-slide-in-bottom,
+  .animate-slide-out-bottom,
+  .animate-slide-in-top,
+  .animate-slide-out-top,
+  .animate-collapse-open,
+  .animate-collapse-close {
     animation-duration: 0.01ms;
   }
   .stagger-children > * {
@@ -142,8 +298,7 @@
   }
 }
 
-/* A skeleton's pulse stops under reduced motion; a spinner keeps turning, because the turning is
-   the message. */
+/* Skeleton pulsing stops; Spinner also uses motion-reduce:animate-none while retaining its status label. */
 @media (prefers-reduced-motion: reduce) {
   .animate-pulse {
     animation: none;

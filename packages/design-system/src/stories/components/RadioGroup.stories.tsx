@@ -58,6 +58,7 @@ const stateProps = (s: State) => ({
 
 /** Every state down the side; bare, in a Field, and with descriptions across. */
 export const RadioGroupMatrix: Story = {
+  tags: ["contract"],
   parameters: disabledLabels,
   render: () => (
     <Grid

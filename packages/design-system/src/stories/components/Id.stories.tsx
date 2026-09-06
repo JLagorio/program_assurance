@@ -16,6 +16,7 @@ type Story = StoryObj<typeof meta>;
 
 /** An Id in text, in a title, in a link, in a cell, a hash, and the list with many and with none. */
 export const IdMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="In text, in a title, in a link">

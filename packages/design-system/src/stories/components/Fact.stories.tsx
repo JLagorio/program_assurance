@@ -16,6 +16,7 @@ type Story = StoryObj<typeof meta>;
 
 /** A strip of six; every kind of value; a strip that wraps. */
 export const FactMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Six facts">

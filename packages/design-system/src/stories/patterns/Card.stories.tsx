@@ -22,6 +22,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Plain with a body; with a header; with a description and an action; a table drawing its own edges. */
 export const CardMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.200" className="w-layout-list">
       <Card>

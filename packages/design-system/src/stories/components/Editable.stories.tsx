@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { act, useState } from "react";
 
 import {
   Badge,
@@ -76,9 +76,61 @@ function RailDemo() {
 /** A record's facts in its rail: the name, the owner and the status edit in place; the frequency is plain text and lines up with them. Click a value, change it, and it saves. */
 export const Rail: Story = { render: () => <RailDemo /> };
 
+const roster = [
+  "Amara Bell",
+  "Dan Whitfield",
+  "Elena Vasquez",
+  "Hana Lindqvist",
+  "Ingrid Solberg",
+  "Joel Barrantes",
+  "Marcus Ryde",
+  "Nadia Fournier",
+  "Priya Raghavan",
+  "Sarah Chen",
+  "Tom Okafor",
+  "Victor Amsel",
+] as const;
+type Member = (typeof roster)[number];
+
+function RosterDemo() {
+  const [owner, setOwner] = useState<Member>("Marcus Ryde");
+  const [reviewer, setReviewer] = useState<Member>("Sarah Chen");
+  return (
+    <Stack space="space.050" className="w-layout-list">
+      <KeyValue label="Owner">
+        <Editable.Select<Member>
+          label="Owner"
+          value={owner}
+          onChange={setOwner}
+          options={roster}
+          save={() => wait(500)}
+        />
+      </KeyValue>
+      <KeyValue label="Reviewer">
+        <Editable.Select<Member>
+          label="Reviewer"
+          value={reviewer}
+          onChange={setReviewer}
+          options={roster}
+          searchable
+          save={() => wait(500)}
+        />
+      </KeyValue>
+    </Stack>
+  );
+}
+
+/** A roster: past eight options the Select is a searched list of names, nothing else in it. */
+export const Roster: Story = { render: () => <RosterDemo /> };
+
 type Row = { id: string; name: string; next: string; status: Status };
 const rows: Row[] = [
-  { id: "AC-2", name: "Account management", next: "Confirm the review cadence", status: "In review" },
+  {
+    id: "AC-2",
+    name: "Account management",
+    next: "Confirm the review cadence",
+    status: "In review",
+  },
   { id: "AC-3", name: "Access enforcement", next: "", status: "Verified" },
   { id: "AC-6", name: "Least privilege", next: "Collect the admin roster", status: "Overdue" },
 ];
@@ -151,8 +203,8 @@ function ValidationDemo() {
         />
       </KeyValue>
       <Text size="xsmall" color="color.text.subtlest">
-        Type a space to see the message; Enter is refused while it shows; Escape puts the old
-        value back.
+        Type a space to see the message; Enter is refused while it shows; Escape puts the old value
+        back.
       </Text>
     </Stack>
   );
@@ -176,7 +228,8 @@ function FailingDemo() {
         />
       </KeyValue>
       <Text size="xsmall" color="color.text.subtlest">
-        The value shows at once; when the save is refused it goes back, and the reason stays under it.
+        The value shows at once; when the save is refused it goes back, and the reason stays under
+        it.
       </Text>
     </Stack>
   );
@@ -242,6 +295,7 @@ function States() {
 
 /** Resting, empty, with a placeholder, validating, failing to save, a select, and a plain value beside them for the alignment. Edit a row to see editing, saving and saved: an open field is a click away. */
 export const EditableMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <States />
@@ -273,7 +327,13 @@ function Dashes() {
       do={
         <Box className="w-layout-list">
           <KeyValue label="Owner">
-            <Editable.Text label="Owner" value={a} onChange={setA} placeholder="Unassigned" save={() => wait(300)} />
+            <Editable.Text
+              label="Owner"
+              value={a}
+              onChange={setA}
+              placeholder="Unassigned"
+              save={() => wait(300)}
+            />
           </KeyValue>
         </Box>
       }
@@ -281,7 +341,13 @@ function Dashes() {
       dont={
         <Box className="w-layout-list">
           <KeyValue label="Owner">
-            <Editable.Text label="Owner" value={b} onChange={setB} placeholder="Click to edit" save={() => wait(300)} />
+            <Editable.Text
+              label="Owner"
+              value={b}
+              onChange={setB}
+              placeholder="Click to edit"
+              save={() => wait(300)}
+            />
           </KeyValue>
         </Box>
       }
@@ -298,7 +364,14 @@ function StatusAsText() {
       do={
         <Box className="w-layout-list">
           <KeyValue label="Status">
-            <Editable.Select label="Status" options={statuses} value={a} onChange={setA} save={() => wait(300)} render={(s) => <Badge tone={toneOf[s]}>{s}</Badge>} />
+            <Editable.Select
+              label="Status"
+              options={statuses}
+              value={a}
+              onChange={setA}
+              save={() => wait(300)}
+              render={(s) => <Badge tone={toneOf[s]}>{s}</Badge>}
+            />
           </KeyValue>
         </Box>
       }
@@ -338,10 +411,22 @@ function FormOfEditables() {
       dont={
         <Stack space="space.050" className="w-layout-list">
           <KeyValue label="Title">
-            <Editable.Text label="Title" value={title} onChange={setTitle} placeholder="What was found" save={() => wait(300)} />
+            <Editable.Text
+              label="Title"
+              value={title}
+              onChange={setTitle}
+              placeholder="What was found"
+              save={() => wait(300)}
+            />
           </KeyValue>
           <KeyValue label="Owner">
-            <Editable.Text label="Owner" value={owner} onChange={setOwner} placeholder="Who fixes it" save={() => wait(300)} />
+            <Editable.Text
+              label="Owner"
+              value={owner}
+              onChange={setOwner}
+              placeholder="Who fixes it"
+              save={() => wait(300)}
+            />
           </KeyValue>
         </Stack>
       }
@@ -368,7 +453,13 @@ function PlaygroundText({ label, placeholder, value: initial }: PlaygroundArgs) 
   return (
     <Box className="w-layout-list">
       <KeyValue label={label}>
-        <Editable.Text label={label} value={value} onChange={setValue} placeholder={placeholder} save={() => wait(500)} />
+        <Editable.Text
+          label={label}
+          value={value}
+          onChange={setValue}
+          placeholder={placeholder}
+          save={() => wait(500)}
+        />
       </KeyValue>
     </Box>
   );
@@ -377,4 +468,94 @@ function PlaygroundText({ label, placeholder, value: initial }: PlaygroundArgs) 
 export const Playground: StoryObj<PlaygroundArgs> = {
   args: { label: "Owner", value: "Dana Whitfield", placeholder: "Unassigned" },
   render: (args) => <PlaygroundText key={args.value} {...args} />,
+};
+
+function SerializedSaveDemo() {
+  const [value, setValue] = useState("Alpha");
+  const [request, setRequest] = useState<{ resolve: () => void; reject: () => void } | null>(null);
+  const [mounted, setMounted] = useState(true);
+  return (
+    <Stack space="space.200">
+      {mounted ? (
+        <Editable.Text
+          label="Owner"
+          value={value}
+          onChange={setValue}
+          save={(next) =>
+            next === "Immediate"
+              ? Promise.reject(new Error("Immediate rejection"))
+              : new Promise<void>((resolve, reject) =>
+                  setRequest({ resolve, reject: () => reject(new Error("Save failed")) }),
+                )
+          }
+        />
+      ) : null}
+      <Button onClick={() => request?.resolve()}>Resolve save</Button>
+      <Button onClick={() => request?.reject()}>Reject save</Button>
+      <Button onClick={() => setValue("External")}>External update</Button>
+      <Button onClick={() => setMounted(false)}>Unmount editor</Button>
+      <output aria-label="Committed owner">{value}</output>
+    </Stack>
+  );
+}
+
+export const SerializedSaveContract: Story = {
+  tags: ["contract"],
+  render: () => <SerializedSaveDemo />,
+  play: async ({ canvasElement }) => {
+    const { expect, within } = await import("storybook/test");
+    const canvas = within(canvasElement);
+    // Storybook's userEvent wrapper disables the act environment during async work.
+    // Drive these promise-settlement cases with awaited native events in a single act scope.
+    const interact = async (event: () => void) => {
+      const environment = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean };
+      const previous = environment.IS_REACT_ACT_ENVIRONMENT;
+      environment.IS_REACT_ACT_ENVIRONMENT = true;
+      try {
+        await act(async () => {
+          event();
+        });
+      } finally {
+        if (previous === undefined) delete environment.IS_REACT_ACT_ENVIRONMENT;
+        else environment.IS_REACT_ACT_ENVIRONMENT = previous;
+      }
+    };
+    const click = async (name: string | RegExp) =>
+      interact(() => canvas.getByRole("button", { name }).click());
+    const edit = async (current: string, next: string) => {
+      await click(new RegExp(`Owner: ${current}`));
+      const input = canvas.getByRole("textbox", { name: "Owner" }) as HTMLInputElement;
+      await interact(() => {
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(
+          input,
+          next,
+        );
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      await interact(() =>
+        input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })),
+      );
+    };
+    await edit("Alpha", "Beta");
+    await expect(canvas.getByLabelText("Committed owner")).toHaveTextContent("Beta");
+    await click(/Owner: Beta/);
+    await expect(canvas.queryByRole("textbox", { name: "Owner" })).toBeNull();
+    await click("Reject save");
+    await expect(canvas.getByLabelText("Committed owner")).toHaveTextContent("Alpha");
+    await edit("Alpha", "Gamma");
+    await click("External update");
+    await click("Reject save");
+    await expect(canvas.getByLabelText("Committed owner")).toHaveTextContent("External");
+    await edit("External", "Immediate");
+    await expect(canvas.getByLabelText("Committed owner")).toHaveTextContent("External");
+    await edit("External", "Resolved");
+    await click("Resolve save");
+    await expect(canvas.getByText("Saved", { selector: "[role=status]" })).toHaveTextContent(
+      "Saved",
+    );
+    await edit("Resolved", "Delta");
+    await click("Unmount editor");
+    await click("Reject save");
+    await expect(canvas.getByLabelText("Committed owner")).toHaveTextContent("Delta");
+  },
 };

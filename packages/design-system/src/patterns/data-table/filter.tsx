@@ -1,10 +1,13 @@
+import { useLedgerLocale } from "../../lib/locale";
 import type { ColumnFiltersState, RowData } from "@tanstack/react-table";
-import { Search as SearchIcon } from "lucide-react";
+import { ChevronDown, Search as SearchIcon } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 
+import { Count } from "../../components/badge";
 import { Button } from "../../components/button";
 import { FilterChip } from "../../components/chip";
 import { Checkbox, Input } from "../../components/controls";
+import { DropdownMenu } from "../../components/dropdown-menu";
 import { InputGroup } from "../../components/input-group";
 import { Popover } from "../../components/popover";
 import { ToggleGroup } from "../../components/toggle";
@@ -33,6 +36,8 @@ function FacetBody({
   chosen: unknown[];
   onChange: (next: unknown[]) => void;
 }) {
+  const { formatNumber } = useLedgerLocale();
+
   const has = (v: unknown) => chosen.some((c) => String(c) === String(v));
   return (
     <div className="flex flex-col gap-075">
@@ -50,7 +55,9 @@ function FacetBody({
         >
           <span className="flex items-center gap-100">
             <span>{String(value)}</span>
-            <span className="tabular-nums font-body-small text-subtlest">{count}</span>
+            <span className="tabular-nums font-body-small text-subtlest">
+              {formatNumber(count)}
+            </span>
           </span>
         </Checkbox>
       ))}
@@ -71,6 +78,8 @@ function RangeBody({
   min?: number | undefined;
   max?: number | undefined;
 }) {
+  const { t } = useLedgerLocale();
+
   const [from, to] = value;
   const str = (v: unknown) => (v == null ? "" : String(v));
   const parse = (v: string) => (v === "" ? undefined : type === "number" ? Number(v) : v);
@@ -80,8 +89,8 @@ function RangeBody({
         type={type}
         value={str(from)}
         onChange={(e) => onChange([parse(e.target.value), to])}
-        placeholder={min === undefined ? "from" : String(min)}
-        aria-label="From"
+        placeholder={min === undefined ? t("from") : String(min)}
+        aria-label={t("from")}
         className="h-control-small"
       />
       <span className="text-subtle">–</span>
@@ -89,8 +98,8 @@ function RangeBody({
         type={type}
         value={str(to)}
         onChange={(e) => onChange([from, parse(e.target.value)])}
-        placeholder={max === undefined ? "to" : String(max)}
-        aria-label="To"
+        placeholder={max === undefined ? t("to") : String(max)}
+        aria-label={t("to")}
         className="h-control-small"
       />
     </div>
@@ -109,6 +118,8 @@ export function Filter<TData extends RowData>({
   label?: string | undefined;
   width?: number | undefined;
 }) {
+  const { t, formatNumber, locale } = useLedgerLocale();
+
   const column = table.getColumn(columnId);
   const [open, setOpen] = useState(false);
   const kind = column?.columnDef.meta?.kind;
@@ -122,8 +133,8 @@ export function Filter<TData extends RowData>({
       ([v]) => v != null && v !== "",
     );
     if (kind === "text" && values.length > FACET_LIMIT) return null;
-    return values.sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])));
-  }, [column, kind]);
+    return values.sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0]), locale));
+  }, [column, kind, locale]);
   if (!column) return null;
 
   let body: ReactNode;
@@ -164,7 +175,7 @@ export function Filter<TData extends RowData>({
       chosen.length === 1
         ? String(chosen[0])
         : chosen.length > 1
-          ? `${chosen.length} chosen`
+          ? t("chosenCount", { count: formatNumber(chosen.length) })
           : undefined;
   } else {
     const contains =
@@ -177,8 +188,8 @@ export function Filter<TData extends RowData>({
         onChange={(e) =>
           column.setFilterValue(e.target.value ? { contains: e.target.value } : undefined)
         }
-        placeholder={`${title} contains`}
-        aria-label={`${title} contains`}
+        placeholder={t("contains", { label: title })}
+        aria-label={t("contains", { label: title })}
         className="h-control-small"
       />
     );
@@ -197,7 +208,7 @@ export function Filter<TData extends RowData>({
         {value !== undefined ? (
           <div className="flex justify-end">
             <Button variant="link" size="small" onClick={() => column.setFilterValue(undefined)}>
-              Clear
+              {t("clear")}
             </Button>
           </div>
         ) : null}
@@ -209,20 +220,22 @@ export function Filter<TData extends RowData>({
 /** The global filter, as a search field. Text and id columns take part; numbers and dates do not. */
 export function Search<TData extends RowData>({
   table,
-  placeholder = "Search",
+  placeholder,
   width = 200,
 }: {
   table: DataTableInstance<TData>;
   placeholder?: string | undefined;
   width?: number | undefined;
 }) {
+  const { t } = useLedgerLocale();
+
   return (
     <InputGroup leading={<SearchIcon />} width={width}>
       <Input
         value={String(table.state.globalFilter ?? "")}
         onChange={(e) => table.setGlobalFilter(e.target.value)}
-        placeholder={placeholder}
-        aria-label={placeholder}
+        placeholder={placeholder ?? t("search")}
+        aria-label={placeholder ?? t("search")}
         className="h-control-small"
       />
     </InputGroup>
@@ -250,25 +263,66 @@ export function countRows<TData extends RowData>(
     .rows.filter((row) => resolved.every((f) => f.fn(row, f.id, f.value))).length;
 }
 
-/** Saved questions: a ToggleGroup whose items carry the count each preset would show. Choosing one replaces the column filters. */
+/**
+ * Saved questions, each with the count it would show. Choosing one replaces the column filters.
+ * `strip` is a ToggleGroup on its own line above the table; `menu` is one small button in the
+ * toolbar that reads the current question and opens the list, for a toolbar that also holds
+ * search and filters.
+ */
 export function Presets<TData extends RowData>({
   table,
   presets,
-  "aria-label": ariaLabel = "Saved questions",
+  variant = "strip",
+  "aria-label": ariaLabel,
   className,
 }: {
   table: DataTableInstance<TData>;
   presets: Preset[];
+  variant?: "strip" | "menu" | undefined;
   "aria-label"?: string | undefined;
   className?: string | undefined;
 }) {
+  const { t } = useLedgerLocale();
+
   const current = JSON.stringify(table.state.columnFilters);
-  const active = presets.find((p) => JSON.stringify(p.filters ?? []) === current)?.id ?? "";
+  const active = presets.find((p) => JSON.stringify(p.filters ?? []) === current);
+  if (variant === "menu") {
+    const count = active ? countRows(table, active.filters) : undefined;
+    return (
+      <DropdownMenu
+        align="start"
+        width={240}
+        trigger={
+          <Button
+            variant="secondary"
+            size="small"
+            iconAfter={<ChevronDown />}
+            aria-label={ariaLabel ?? t("savedQuestions")}
+            className={className}
+          >
+            {active?.label ?? t("view")}
+            {count === undefined ? null : <Count value={count} />}
+          </Button>
+        }
+      >
+        {presets.map((p) => (
+          <DropdownMenu.Item
+            key={p.id}
+            isSelected={p.id === active?.id}
+            onSelect={() => table.setColumnFilters(p.filters ?? [])}
+            trailing={<span className="tabular-nums">{countRows(table, p.filters)}</span>}
+          >
+            {p.label}
+          </DropdownMenu.Item>
+        ))}
+      </DropdownMenu>
+    );
+  }
   return (
     <ToggleGroup<string>
-      aria-label={ariaLabel}
+      aria-label={ariaLabel ?? t("savedQuestions")}
       className={className}
-      value={active}
+      value={active?.id ?? ""}
       onChange={(id) => {
         const preset = presets.find((p) => p.id === id);
         table.setColumnFilters(preset?.filters ?? []);

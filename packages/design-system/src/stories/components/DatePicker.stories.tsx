@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button, Calendar, DatePicker, Field, Input, useRequired } from "../../components";
 import { Inline, Stack } from "../../primitives";
@@ -24,6 +24,7 @@ const stateProps = (s: State) => ({
 
 /** Every state down the side; bare and inside a Field across. Open one to see the month. */
 export const DatePickerMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Grid
       rows={states}
@@ -163,3 +164,100 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {};
+
+function NativeFormContractDemo() {
+  const [disabled, setDisabled] = useState(false);
+  const [controlled, setControlled] = useState("2026-09-20");
+  return (
+    <>
+      <form id="date-contract-form" aria-label="Date submission">
+        <Field label="Uncontrolled date">
+          <DatePicker name="scheduled" defaultValue="2026-09-18" disabled={disabled} />
+        </Field>
+        <Field label="Controlled date">
+          <DatePicker name="controlled" value={controlled} onChange={setControlled} />
+        </Field>
+        <Button type="reset">Reset dates</Button>
+      </form>
+      <Field label="External date">
+        <DatePicker name="external" form="date-contract-form" defaultValue="2026-09-22" />
+      </Field>
+      <Button onClick={() => setDisabled((value) => !value)}>Toggle disabled</Button>
+    </>
+  );
+}
+
+/** Portals never move submitted values out of their owning form. */
+export const NativeFormContract: Story = {
+  tags: ["contract"],
+  render: () => <NativeFormContractDemo />,
+  play: async ({ canvasElement }) => {
+    const { expect, userEvent, within, waitFor } = await import("storybook/test");
+    const canvas = within(canvasElement);
+    const form = canvas.getByRole("form", { name: "Date submission" }) as HTMLFormElement;
+    const value = (name: string) => new FormData(form).get(name);
+    await expect(value("scheduled")).toBe("2026-09-18");
+    await expect(value("external")).toBe("2026-09-22");
+    await userEvent.click(canvas.getByRole("button", { name: "Uncontrolled date" }));
+    await expect(value("scheduled")).toBe("2026-09-18");
+    await userEvent.click(within(document.body).getByRole("button", { name: "Clear" }));
+    await waitFor(() => expect(value("scheduled")).toBe(""));
+    await userEvent.click(canvas.getByRole("button", { name: "Reset dates" }));
+    await waitFor(() => expect(value("scheduled")).toBe("2026-09-18"));
+    await expect(value("controlled")).toBe("2026-09-20");
+    await userEvent.click(canvas.getByRole("button", { name: "Toggle disabled" }));
+    await expect(value("scheduled")).toBeNull();
+    await expect(canvas.getByRole("button", { name: "Uncontrolled date" })).toBeDisabled();
+  },
+};
+
+function FocusIntegrationDemo() {
+  const formRef = useRef<HTMLFormElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [date, setDate] = useState("");
+  const [blurred, setBlurred] = useState(false);
+  const validation = useRequired({ date }, undefined, { formRef });
+  return (
+    <form
+      ref={formRef}
+      onSubmit={(event) => {
+        event.preventDefault();
+        validation.check();
+      }}
+    >
+      <Field label="Due date" isRequired error={validation.errorFor("date")}>
+        <DatePicker
+          ref={triggerRef}
+          name="date"
+          data-testid="date-trigger"
+          value={date}
+          onChange={setDate}
+          onBlur={() => {
+            setBlurred(true);
+            validation.touch("date");
+          }}
+        />
+      </Field>
+      <Button type="submit">Validate date</Button>
+      <Button onClick={() => triggerRef.current?.focus()}>Focus date ref</Button>
+      <output aria-label="Date touched">{String(blurred)}</output>
+    </form>
+  );
+}
+export const FocusIntegrationContract: Story = {
+  tags: ["contract"],
+  render: () => <FocusIntegrationDemo />,
+  play: async ({ canvasElement }) => {
+    const { expect, userEvent, within } = await import("storybook/test");
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Validate date" }));
+    const trigger = canvas.getByRole("button", { name: "Due date" });
+    await expect(trigger).toHaveFocus();
+    await expect(trigger).toHaveAttribute("data-testid", "date-trigger");
+    await expect(trigger).toHaveAttribute("aria-invalid", "true");
+    await userEvent.tab();
+    await expect(canvas.getByLabelText("Date touched")).toHaveTextContent("true");
+    await userEvent.click(canvas.getByRole("button", { name: "Focus date ref" }));
+    await expect(trigger).toHaveFocus();
+  },
+};

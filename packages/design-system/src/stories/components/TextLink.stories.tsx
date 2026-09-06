@@ -16,6 +16,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Inherited, small and medium sizes by weight; a TextLink beside a Button link, which is an action and not navigation. */
 export const TextLinkMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Grid

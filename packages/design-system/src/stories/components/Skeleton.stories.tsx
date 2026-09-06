@@ -16,6 +16,7 @@ type Story = StoryObj<typeof meta>;
 
 /** The four shapes, lines by count, and three things waiting: a record head, a row of a list, a card with a chart. */
 export const SkeletonMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Shapes: line, heading, circle, block">

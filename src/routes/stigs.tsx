@@ -1,3 +1,4 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
@@ -54,7 +55,14 @@ function StigLibrary() {
         header={
           <PageHeader
             title="STIG & SRG library"
-            actions={<Button variant="secondary">Import benchmark</Button>}
+            actions={
+              <UnavailableAction
+                reason="Benchmark import is not connected. This library is read-only."
+                variant="secondary"
+              >
+                Import benchmark
+              </UnavailableAction>
+            }
           />
         }
       >
@@ -119,7 +127,7 @@ function StigLibrary() {
               value={benchmark}
               onChange={(e) => setBenchmark(e.target.value)}
               aria-label="Benchmark"
-              style={{ width: 224 }}
+              style={{ width: 224, maxWidth: "100%" }}
             >
               <option value="All">All benchmarks</option>
               {benchmarks.map((b) => (

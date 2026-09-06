@@ -1,5 +1,4 @@
-import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
-
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
 import { Collapsible } from "../../components";
 import * as Stories from "./Collapsible.stories";
 
@@ -7,135 +6,63 @@ import * as Stories from "./Collapsible.stories";
 
 # Collapsible
 
-Reference material: present, addressable, closed. The catalog statement, the assessment objectives and the discussion are things a reader occasionally needs and never needs first; rendering them expanded is most of why a control page reads as a novel. A **Collapsible** is one such section: a title row that opens and closes, the body under it. Several in a **Collapsible.Group** know about each other: the arrows move between their titles, and a `single` group opens one at a time. The Inspector's groups are a Group, every section open.
-
-What a Collapsible is not: the record's work. Implementation statements, the assessment, the evidence table are a [Section](?path=/docs/patterns-section--docs) or a [Block](?path=/docs/shapes-block--docs), open, in the outline, read by every reader. If a reader is likely to read all of the content, do not fold it.
-
-<Canvas of={Stories.Collapsibles} />
+One independent disclosure. Experimental; owner: Ledger maintainers. The caller supplies the trigger and content. Compose a title, count or chevron into the trigger when needed.
 
 ## Anatomy
 
-| Part    | What it is                                                                                                                                                        |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Row     | The trigger: a button the full width, `space.100` above and below the title, a 1px rule in `color.border` above it. Under the pointer it tints.                   |
-| Title   | Flush left in `font.body` semibold, `color.text`, one line that truncates. A heading of `headingLevel` when the section is in the page's outline.                 |
-| Count   | After the title, a Count: how many are inside. Zero shows nothing.                                                                                                |
-| Chevron | At the end of the row, `dimension.icon.small`, `color.icon.subtle`. Down while closed, up while open, turning in `motion.duration.fast`.                           |
-| Body    | Under the row, from the rule to `space.200` below it. It opens to its measured height in `motion.duration.medium` on the enter curve and closes on the exit.       |
-| Group   | `Collapsible.Group`: sections in a column with one rule under the last. It holds which are open, moves the arrows between the titles, and names each body a region. |
+`Collapsible` owns boolean state. `Collapsible.Trigger` toggles it. `Collapsible.Content` contains what it reveals. No title row, heading, count, border or chevron is imposed.
+
+```tsx
+<Collapsible>
+  <Collapsible.Trigger asChild>
+    <Button>Advanced options</Button>
+  </Collapsible.Trigger>
+  <Collapsible.Content>Additional settings.</Collapsible.Content>
+</Collapsible>
+```
 
 ## Variants
 
-Alone, or in a Group, and the Group has two kinds. **Alone**, a section holds its own state: `defaultOpen`, or `open` and `onOpenChange`. In a **Group**, the group holds every section's state and the arrows move between the titles; `multiple`, the default, lets each section open on its own, for reference the reader compares, and **`single`** opens one at a time and lets the open one close, for a set the reader takes one by one. A section in a group is written the way it is written alone: `defaultOpen` says which start open, and `value` names it when the title is not a string.
-
-<Canvas of={Stories.Grouped} />
-
-<Canvas of={Stories.OneAtATime} />
-
-Each comes in two alignments. **Flush**, the default, puts the title on the text column: a rail, a page, a Section's body. The hover tint reaches `space.100` past the title at each end, so the title stays on the column. **Inset** steps the row and the body in by `space.300`, for a surface whose rules run edge to edge: a Card, a Panel. The first row on a surface drops its rule with `border-t-0`, and a group on a surface drops its last with `border-b-0`.
-
-<Canvas of={Stories.Inset} />
-
-A start-aligned chevron, for a fold that behaves as a tree, is not built: a hierarchy is a [Tree](?path=/docs/components-tree--docs).
-
-## Sizes
-
-One: the row is 36px, `space.100` around a line of body text, so a rail of rows is one rhythm with the KeyValue rows beside it. A group is as tall as its rows and its open bodies.
-
-## States
-
-| State    | Look                                                                                                      |
-| -------- | --------------------------------------------------------------------------------------------------------- |
-| Closed   | The default. The chevron points down; the body is absent from the page.                                   |
-| Open     | The chevron points up; the body is present and in the tab order.                                          |
-| Hover    | The row tints `color.background.neutral.subtle.hovered`; pressed, `.pressed`.                             |
-| Focus    | The kit's focus outline on the row.                                                                       |
-| Disabled | Title and chevron in the disabled colours, no pointer, skipped by a group's arrows. Rare: prefer the row open with an Empty inside. |
-
-A group's state is which sections are open: none, so the titles are the overview; one; or several, under `multiple`.
+The same interaction accepts either a plain native trigger or `asChild` around a single ref-capable Button. Use Accordion for coordinated sections. An independent Collapsible keeps its own state even inside an Accordion's content.
 
 <Canvas of={Stories.CollapsibleMatrix} />
 
+## Sizes
+
+No fixed dimensions. Button determines the size of a composed trigger; the content takes its container width. Supply wrapping labels and responsive body content.
+
+## States
+
+Closed by default; `defaultOpen` opens initially. `open` and `onOpenChange` make state controlled. `disabled` disables toggling. Focus remains on a trigger when it closes its panel. Avoid changing between controlled and uncontrolled use during a mount.
+
 ## Modifiers
 
-- **`defaultOpen`**, or **`open`** and **`onOpenChange`** when the caller holds it: a rail whose sections remember their state, a "show all" that opens every row. In a group, `defaultOpen` is read by the group, and the group's **`defaultValue`**, or **`value`** and **`onValueChange`**, hold the set's state as a value or a list of values.
-- **`type`** on a Group, `multiple` or `single`, as in Variants.
-- **`count`**: how many are inside, hidden at zero.
-- **`headingLevel`**: the title as an h2 to h6, so the section is in the page's outline and a screen reader's heading list. Under a Section's h2 the rows are h3s. On a Group it sets every section's.
-- **`inset`**, as in Variants; on a Group it sets every section's.
-- **`disabled`**, as in States.
-- **`value`** on a section in a group: what the group opens it by, when the title is not a string.
+Native attributes, events and refs go to the named root, button or content. `asChild` merges them onto a single child that must forward them. `Content forceMount` retains local child state while closed content is hidden and out of the tab order. Closed retained panels hide immediately; ordinary panels animate before unmounting. Caller-controlled closures must relocate focus first if it is inside the panel.
 
-<Canvas of={Stories.Headings} />
+<Canvas of={Stories.ControlledAndRetained} />
 
 ## Content
 
-- **The title is what is inside, as a noun:** "Catalog statement", "Assessment objectives", "Discussion". Not "Show more", not a question.
-- **Closed is the default.** The titles are the overview; the reader opens what they came for. Open one row when the reader arrives for it; open every row only when the set is a rail's facts, read together.
-- **In a group, titles differ within a page:** each body is a region landmark named by its title, and two "Details" regions confuse a screen reader's landmark list.
-- **The body is reference:** Text, KeyValue rows, a short list. Not a table the reader works in, not a form.
-- **Nothing inside is an Empty**, compact, saying what would be here and what fills it. Never a grey word.
-- **Never nested.** A fold inside a fold is two clicks to a paragraph; flatten it, or a Tree for a hierarchy.
-- **A group of one is a section alone.** Nothing to move between.
-- **The whole page scrolls,** never the body of one row.
+Name what the trigger reveals. Forms, reference material and additional settings are supported. Avoid hiding required steps without a discoverable path to reveal them. Closed content cannot be found with browser search; retaining it does not implement hidden-until-found behavior.
 
 ## Style
 
-| Element | Token                                                                                                                    |
-| ------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Row     | `space.100` block · `space.100` gap · 1px `color.border` above · `radius.small` for the tint and the focus outline       |
-| Title   | `font.body` semibold · `color.text` · `color.text.disabled` disabled                                                      |
-| Chevron | `dimension.icon.small` 14px · `color.icon.subtle` · `motion.duration.fast` on `motion.easing.standard`                   |
-| Tint    | `color.background.neutral.subtle.hovered`, `.pressed`, reaching `space.100` past a flush title                            |
-| Body    | `space.200` below · opens in `motion.duration.medium` on `motion.easing.enter`, closes on `motion.easing.exit`             |
-| Inset   | `space.300` inline on the row and the body                                                                                |
-| Group   | 1px `color.border` under the last section                                                                                 |
+Minimal small-radius focus treatment on the trigger, disabled text and pointer behavior. Content uses Ledger collapse motion and honors reduced motion. Spacing and visual surfaces belong to the composition.
 
 ## Accessibility
 
-- **The row is a button with `aria-expanded`** and `aria-controls` to the body; Radix sets them, so the chevron needs no text of its own. In a group each body is a region named by its title.
-- **Keyboard, alone:** Tab reaches the row; Enter or Space toggles it. Controls inside an open body join the tab order after the row. Sections that stand alone do not know about each other, so there is no arrow model between them.
-- **Keyboard, in a group:** Tab reaches the first row and Tab again the next; Up and Down move between the rows of one group and wrap, Home and End go to the ends; Enter or Space toggles.
-- **Headings:** with `headingLevel` the title is a heading, and a screen reader's heading list shows the rail's sections. The kit asks for it wherever the rows are in a Section. The Inspector sets none, because a rail's groups are labels, not sections of the page.
-- **Reduced motion** shows the body at once.
-- **The a11y gate** checks the roles, the names, the heading order and the landmark names in the matrix; a disabled row is skipped by its contrast check as a disabled control.
+A native button handles Enter and Space, `aria-expanded` and `aria-controls`; Radix associates it with the content ID. There is no group arrow-navigation model and no implicit region landmark or heading. Add semantic structure when the content requires it. Hidden retained controls are excluded from tab navigation and the accessibility tree. Use a button as the slotted trigger, not a navigation link.
 
 ## Props
 
 <ArgTypes of={Collapsible} />
 
-### Collapsible.Group
-
-By hand until the generated tables reach a part:
-
-| Prop            | Type                           | What it is                                                                                      |
-| --------------- | ------------------------------ | ----------------------------------------------------------------------------------------------- |
-| `type`          | `"multiple" \| "single"`       | `multiple`, the default: each section on its own. `single`: one at a time, and it can close.    |
-| `defaultValue`  | `string \| string[]`           | The sections open at first, by value. Unsaid, the sections that say `defaultOpen`.              |
-| `value`         | `string \| string[]`           | The open section or sections, with `onValueChange`, when the caller holds them.                 |
-| `onValueChange` | `(value) => void`              | Called with the open section, or sections, when the reader toggles a row.                       |
-| `headingLevel`  | `2 \| 3 \| 4 \| 5 \| 6`        | Every section's title as a heading of this level.                                               |
-| `inset`         | `boolean`                      | Every section inset by `space.300`.                                                             |
-| `className`     | `string`                       | Layout only.                                                                                    |
-| `children`      | `ReactNode`                    | Collapsibles, two or more.                                                                      |
-
-`Accordion` and `Accordion.Item` are the old names for a group and its sections, kept for one release; `ledger/no-deprecated-name` says so and rewrites an item. An `Accordion` was `single` unless told otherwise; a Group is `multiple`.
-
-### Playground
-
-<Canvas of={Stories.Playground} />
-
-<Controls of={Stories.Playground} />
+`Trigger` accepts native button attributes/events and an HTMLButtonElement ref. Root and Content accept native div attributes/events and HTMLDivElement refs. Content adds `forceMount`; the root adds `open`, `defaultOpen`, `onOpenChange`, and `disabled`.
 
 ## Related
 
-- [Section](?path=/docs/patterns-section--docs): the record's work, open.
-- [Block](?path=/docs/shapes-block--docs): a block of work, always open, with a count or an action.
-- [Inspector](?path=/docs/shapes-inspector--docs): a rail's groups, a Group of KeyValue rows.
-- [Tree](?path=/docs/components-tree--docs): a hierarchy that folds.
-- [Tabs](?path=/docs/components-tabs--docs): views of the record, one at a time, under the header.
-- [Motion](?path=/docs/tokens-motion--docs): the collapse.
+[Accordion](?path=/docs/components-accordion--docs), [Button](?path=/docs/components-button--docs), [shadcn Collapsible](https://ui.shadcn.com/docs/components/base/collapsible).
 
 ## Don't
 
-<Canvas of={Stories.Dont} />
+Do not put a Button inside a native Trigger without `asChild`. Do not use `title`, `count`, `inset`, or `.Group` to request the former section API. Compose the trigger and content directly; use Accordion for coordinated state.

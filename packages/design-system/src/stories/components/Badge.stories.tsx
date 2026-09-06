@@ -25,6 +25,7 @@ const labels = {
 
 /** Every tone as subtle, bold, xsmall and with an icon. */
 export const Matrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Grid
       rows={tones}

@@ -1,7 +1,10 @@
+import { ChevronDown } from "lucide-react";
+import { Collapsible, Count } from "../../components";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Button, Collapsible, Dialog, Popover, Sheet, Stat } from "../../components";
+import { Button, Dialog, Popover, Sheet, Spinner, Stat } from "../../components";
+
 import { Box, Inline, Stack, Text } from "../../primitives";
 
 const meta = { title: "Tokens/Motion", parameters: { layout: "padded" } } satisfies Meta;
@@ -40,11 +43,24 @@ export const Specimens: Story = {
           </Button>
         </Inline>
         <Box style={{ width: 360 }}>
-          <Collapsible title="A section that opens and closes" count={3}>
-            <Text size="small" color="color.text.subtle">
-              Height and opacity together: medium on the enter curve opening, medium on the exit
-              curve closing.
-            </Text>
+          <Collapsible className="border-t border-default">
+            <h3>
+              <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+                {"A section that opens and closes"} <Count value={3} />
+                <ChevronDown
+                  aria-hidden="true"
+                  className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
+                />
+              </Collapsible.Trigger>
+            </h3>
+            <Collapsible.Content>
+              <div className="pb-200">
+                <Text size="small" color="color.text.subtle">
+                  Height and opacity together: medium on the enter curve opening, medium on the exit
+                  curve closing.
+                </Text>
+              </div>
+            </Collapsible.Content>
           </Collapsible>
         </Box>
         <Stat.Grid key={round} cols={4}>
@@ -82,5 +98,49 @@ export const Specimens: Story = {
         </Sheet>
       </Stack>
     );
+  },
+};
+
+/** Checks the generated state variants, including the reduced-motion media rules. */
+export const PreferenceContract: Story = {
+  tags: ["contract"],
+  render: () => (
+    <Stack space="space.200">
+      <div data-testid="motion-enter" data-state="open" className="data-[state=open]:animate-enter">
+        Overlay arrives
+      </div>
+      <div
+        data-testid="motion-exit"
+        data-state="closed"
+        className="data-[state=closed]:animate-exit"
+      >
+        Overlay leaves
+      </div>
+      <div
+        data-testid="motion-slide"
+        data-state="open"
+        className="data-[state=open]:animate-slide-in-end"
+      >
+        Panel arrives from the logical end
+      </div>
+      <Spinner label="Refreshing records" />
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const { expect, within } = await import("storybook/test");
+    const canvas = within(canvasElement);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    for (const name of ["motion-enter", "motion-exit", "motion-slide"]) {
+      const duration = Number.parseFloat(
+        getComputedStyle(canvas.getByTestId(name)).animationDuration,
+      );
+      if (reduced) await expect(duration).toBeLessThanOrEqual(0.001);
+      else await expect(duration).toBeGreaterThan(0.001);
+    }
+    await expect(getComputedStyle(canvas.getByTestId("motion-slide")).animationName).toBe(
+      "ds-slide-in-end",
+    );
+    const status = canvas.getByRole("status", { name: "Refreshing records" });
+    await expect(getComputedStyle(status).animationName).toBe(reduced ? "none" : "spin");
   },
 };

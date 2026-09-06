@@ -259,7 +259,7 @@ function ProgramBaseline() {
           onChange={(e) => selectChange(e.target.value)}
           aria-label="Change record"
           className="h-control-small font-body"
-          style={{ width: 520 }}
+          style={{ width: 520, maxWidth: "100%" }}
         >
           {changes.map((c) => (
             <option key={c.id} value={c.id}>

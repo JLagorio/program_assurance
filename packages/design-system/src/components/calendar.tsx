@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../lib/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { ComponentProps } from "react";
 import { DayPicker, getDefaultClassNames } from "react-day-picker";
@@ -21,13 +22,39 @@ function Chevron({ orientation }: { orientation?: "up" | "down" | "left" | "righ
 export function Calendar({
   className,
   classNames,
+  formatters,
+  labels,
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  const { direction, t, formatCalendarDate } = useLedgerLocale();
   const base = getDefaultClassNames();
   return (
     <DayPicker
+      dir={direction}
       showOutsideDays={showOutsideDays}
+      formatters={{
+        formatCaption: (date) => formatCalendarDate(date, { month: "long", year: "numeric" }),
+        formatWeekdayName: (date) => formatCalendarDate(date, { weekday: "short" }),
+        formatMonthDropdown: (date) => formatCalendarDate(date, { month: "long" }),
+        ...formatters,
+      }}
+      labels={{
+        labelPrevious: () => t("previousMonth"),
+        labelNext: () => t("nextMonth"),
+        labelMonthDropdown: () => t("month"),
+        labelYearDropdown: () => t("year"),
+        labelWeekNumber: (week) => t("calendarWeek", { week }),
+        labelDayButton: (date, modifiers) =>
+          [
+            formatCalendarDate(date, { dateStyle: "full" }),
+            modifiers["today"] ? t("today") : null,
+            modifiers["selected"] ? t("selected") : null,
+          ]
+            .filter(Boolean)
+            .join(", "),
+        ...labels,
+      }}
       className={cn("p-150", className)}
       classNames={{
         root: cn(base.root, "font-body text-default"),

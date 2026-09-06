@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRecordForm } from "@/lib/record-form";
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { AlertTriangle, Check, Plus, RefreshCw, Upload } from "lucide-react";
 
 import {
@@ -20,7 +22,6 @@ import {
   Stack,
   Table,
   Textarea,
-  useRequired,
   Eyebrow,
 } from "@ledger/design-system";
 import {
@@ -109,9 +110,13 @@ export function VerificationSection({ programName }: { programName: string }) {
           title="SCA simulation"
           description={`How the government Security Control Assessor sees ${programName} today, ahead of the official audit.`}
           action={
-            <Button variant="secondary" iconBefore={<RefreshCw />}>
+            <UnavailableAction
+              reason="No simulation service is connected."
+              variant="secondary"
+              iconBefore={<RefreshCw />}
+            >
               Re-run simulation
-            </Button>
+            </UnavailableAction>
           }
         >
           <Box paddingBlockStart="space.150">
@@ -141,7 +146,7 @@ export function VerificationSection({ programName }: { programName: string }) {
                   </p>
                 </div>
               </Inline>
-              <Box className="shrink-0" style={{ width: 180 }}>
+              <Box className="shrink-0" style={{ width: 180, maxWidth: "100%" }}>
                 <Progress value={readiness} tone={blocking > 0 ? "danger" : "success"} showValue />
               </Box>
             </Inline>
@@ -184,9 +189,13 @@ export function VerificationSection({ programName }: { programName: string }) {
         <Section
           title="IATT window & test schedule"
           action={
-            <Button variant="secondary" iconBefore={<Plus />}>
+            <UnavailableAction
+              reason="Test event creation is not available from this view."
+              variant="secondary"
+              iconBefore={<Plus />}
+            >
               Add test event
-            </Button>
+            </UnavailableAction>
           }
         >
           <dl className="pt-150 grid gap-x-400 gap-y-150 border-b border-default pb-150 sm:grid-cols-3 lg:grid-cols-6">
@@ -391,20 +400,26 @@ function FindingModal({
   onClose: () => void;
   onSave: (next: Finding) => void;
 }) {
-  const [status, setStatus] = useState<FindingStatus>("Open");
-  const [owner, setOwner] = useState("");
-  const [due, setDue] = useState("");
-  const [mitigation, setMitigation] = useState("");
-  const [key, setKey] = useState<string | null>(null);
-  const req = useRequired({ owner, due });
+  const { form, values, formId, formRef } = useRecordForm(
+    {
+      status: "Open" as FindingStatus,
+      owner: "",
+      due: "",
+      mitigation: "",
+    },
+    (value) => ({ owner: value.owner, due: value.due }),
+  );
+  const { status, owner, due, mitigation } = values;
 
-  if (finding && key !== finding.id) {
-    setKey(finding.id);
-    setStatus(finding.status);
-    setOwner(finding.owner);
-    setDue(finding.due);
-    setMitigation(finding.mitigation);
-  }
+  useEffect(() => {
+    if (finding)
+      form.reset({
+        status: finding.status,
+        owner: finding.owner,
+        due: finding.due,
+        mitigation: finding.mitigation,
+      });
+  }, [finding, form]);
   if (!finding) return null;
 
   const blocksIatt = finding.severity === "CAT I" && (status === "Open" || status === "Mitigating");
@@ -456,41 +471,121 @@ function FindingModal({
           </Button>
           <Button
             variant="primary"
-            onClick={() => {
-              if (!req.check()) return;
-              onSave({ ...finding, status, owner, due, mitigation });
-            }}
+            type="submit"
+            form={formId + "-1"}
             iconBefore={<Check />}
+            disabled={form.state.isSubmitting}
           >
             Save finding
           </Button>
         </>
       }
     >
-      <Stack space="space.150">
-        <p className="font-body text-subtle">{finding.detail}</p>
-        <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
-          <Field label="Status">
-            <NativeSelect
-              value={status}
-              onChange={(e) => setStatus(e.target.value as FindingStatus)}
-            >
-              {findingStatuses.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field isRequired error={req.errorFor("owner")} label="Owner">
-            <Input value={owner} onChange={(e) => setOwner(e.target.value)} />
-          </Field>
-          <Field isRequired error={req.errorFor("due")} label="Mitigation due">
-            <Input value={due} onChange={(e) => setDue(e.target.value)} />
-          </Field>
-        </Grid>
-        <Field label="Mitigation / assessor response">
-          <Textarea rows={4} value={mitigation} onChange={(e) => setMitigation(e.target.value)} />
-        </Field>
-      </Stack>
+      <form
+        id={formId + "-1"}
+        ref={formRef}
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit({
+            save: () => {
+              onSave({ ...finding, status, owner, due, mitigation });
+            },
+          });
+        }}
+      >
+        <Stack space="space.150">
+          <p className="font-body text-subtle">{finding.detail}</p>
+          <Grid
+            gap="space.150"
+            templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
+          >
+            <form.Field name="status">
+              {(field) => (
+                <Field
+                  label="Status"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value as FindingStatus)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {findingStatuses.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="owner">
+              {(field) => (
+                <Field
+                  isRequired
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                  label="Owner"
+                >
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  />
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="due">
+              {(field) => (
+                <Field
+                  isRequired
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                  label="Mitigation due"
+                >
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  />
+                </Field>
+              )}
+            </form.Field>
+          </Grid>
+          <form.Field name="mitigation">
+            {(field) => (
+              <Field
+                label="Mitigation / assessor response"
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+              >
+                <Textarea
+                  rows={4}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+        </Stack>
+      </form>
     </Dialog>
   );
 }
@@ -506,11 +601,16 @@ function IngestModal({
   onClose: () => void;
   onIngest: (next: ScanIngest) => void;
 }) {
-  const [source, setSource] = useState<ScanSource>("STIG Viewer");
-  const [artifact, setArtifact] = useState("");
-  const [asset, setAsset] = useState("Mission compute (x4)");
-  const [notes, setNotes] = useState("");
-  const req = useRequired({ artifact });
+  const { form, values, formId, formRef } = useRecordForm(
+    {
+      source: "STIG Viewer" as ScanSource,
+      artifact: "",
+      asset: "Mission compute (x4)",
+      notes: "",
+    },
+    (value) => ({ artifact: value.artifact }),
+  );
+  const { source, artifact, asset, notes } = values;
 
   if (!open) return null;
 
@@ -553,8 +653,24 @@ pipeline:
           </Button>
           <Button
             variant="primary"
-            onClick={() => {
-              if (!req.check()) return;
+            type="submit"
+            form={formId + "-2"}
+            iconBefore={<Upload />}
+            disabled={form.state.isSubmitting}
+          >
+            Ingest
+          </Button>
+        </>
+      }
+    >
+      <form
+        id={formId + "-2"}
+        ref={formRef}
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit({
+            save: () => {
               onIngest({
                 id: `ING-${2207 + Math.floor(Date.now() % 90)}`,
                 source,
@@ -568,50 +684,110 @@ pipeline:
                 catIII: 0,
                 coverage: 0,
               });
-            }}
-            iconBefore={<Upload />}
+            },
+          });
+        }}
+      >
+        <Stack space="space.150">
+          <Grid
+            gap="space.150"
+            templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
           >
-            Ingest
-          </Button>
-        </>
-      }
-    >
-      <Stack space="space.150">
-        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-          <Field label="Source">
-            <NativeSelect value={source} onChange={(e) => setSource(e.target.value as ScanSource)}>
-              {sources.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field label="Asset / boundary component">
-            <NativeSelect value={asset} onChange={(e) => setAsset(e.target.value)}>
-              <option>Mission compute (x4)</option>
-              <option>UUV payload segment</option>
-              <option>Autonomy core (C++)</option>
-              <option>Range network stack</option>
-              <option>Ground station</option>
-              <option>Integration lab (SCIF)</option>
-            </NativeSelect>
-          </Field>
-        </Grid>
-        <Field isRequired error={req.errorFor("artifact")} label="Artifact file" hint={parser}>
-          <Input
-            value={artifact}
-            onChange={(e) => setArtifact(e.target.value)}
-            placeholder="e.g. RHEL9_V2R1_mission-compute.ckl"
-          />
-        </Field>
-        <Field label="Assessor notes">
-          <Textarea
-            rows={3}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Scan conditions, credentialed vs uncredentialed, exclusions…"
-          />
-        </Field>
-      </Stack>
+            <form.Field name="source">
+              {(field) => (
+                <Field
+                  label="Source"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value as ScanSource)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {sources.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="asset">
+              {(field) => (
+                <Field
+                  label="Asset / boundary component"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    <option>Mission compute (x4)</option>
+                    <option>UUV payload segment</option>
+                    <option>Autonomy core (C++)</option>
+                    <option>Range network stack</option>
+                    <option>Ground station</option>
+                    <option>Integration lab (SCIF)</option>
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+          </Grid>
+          <form.Field name="artifact">
+            {(field) => (
+              <Field
+                isRequired
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+                label="Artifact file"
+                hint={parser}
+              >
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="e.g. RHEL9_V2R1_mission-compute.ckl"
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="notes">
+            {(field) => (
+              <Field
+                label="Assessor notes"
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+              >
+                <Textarea
+                  rows={3}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Scan conditions, credentialed vs uncredentialed, exclusions…"
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+        </Stack>
+      </form>
     </Dialog>
   );
 }

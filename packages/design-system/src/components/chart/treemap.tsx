@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../../lib/locale";
 import { useMemo, type ReactNode } from "react";
 import { Tooltip, Treemap } from "recharts";
 
@@ -11,7 +12,6 @@ import {
   TooltipContent,
   categoricalTone,
   chartColor,
-  plainCategory,
   rectAnchor,
   surface,
   truncate,
@@ -152,7 +152,15 @@ function Tile({
   );
 }
 
-type Clicked = { name: string; value: number; group?: string; x?: number; y?: number; width?: number; height?: number };
+type Clicked = {
+  name: string;
+  value: number;
+  group?: string;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+};
 
 /** Part-to-whole with a hierarchy: a tile per leaf, sized by value, in the tone of its top-level parent. A click on a tile chooses it. */
 export function ChartTreemap({
@@ -166,7 +174,9 @@ export function ChartTreemap({
   details,
   className,
 }: ChartTreemapProps) {
-  const { name, hidden, highlighted, format, loading } = useFrame(
+  const { t } = useLedgerLocale();
+
+  const { name, hidden, highlighted, format, formatX, loading } = useFrame(
     label,
     formatProp,
     undefined,
@@ -178,8 +188,10 @@ export function ChartTreemap({
   const nodes = useMemo(() => withTones(data), [data]);
   const shown = useMemo(() => nodes.filter((n) => !hidden.has(n.name)), [nodes, hidden]);
   if (loading)
-    return <PlotSkeleton kind="tiles" name={name} size={size} height={height} className={className} />;
-  const series: ChartSeries[] = [{ key: "value", label: "Value" }];
+    return (
+      <PlotSkeleton kind="tiles" name={name} size={size} height={height} className={className} />
+    );
+  const series: ChartSeries[] = [{ key: "value", label: t("value") }];
   const chooses = Boolean(onSelect || details);
   const content = (p: TileProps) => (
     <Tile
@@ -237,12 +249,7 @@ export function ChartTreemap({
         <Tooltip
           {...tooltipMotion}
           content={
-            <TooltipContent
-              series={series}
-              swatch="square"
-              format={format}
-              formatX={plainCategory}
-            />
+            <TooltipContent series={series} swatch="square" format={format} formatX={formatX} />
           }
         />
       </Treemap>

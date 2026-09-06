@@ -638,7 +638,7 @@ function AppLogo({
   ) : null;
   if (asChild)
     return (
-      <Slot className={base}>
+      <Slot className={base} aria-label={name} onClick={onClick}>
         {mark}
         <Slottable>{children}</Slottable>
         {names}
@@ -646,7 +646,7 @@ function AppLogo({
     );
   if (onClick)
     return (
-      <button type="button" onClick={onClick} className={base}>
+      <button type="button" aria-label={name} onClick={onClick} className={base}>
         {mark}
         {names}
         {chevron}
@@ -1080,6 +1080,7 @@ function Main({ id, label = "Main content", className, children }: ShellMainProp
   const skipId = useSkipLink(id, label);
   return (
     <main
+      aria-label={label}
       id={skipId}
       tabIndex={-1}
       className={cn(

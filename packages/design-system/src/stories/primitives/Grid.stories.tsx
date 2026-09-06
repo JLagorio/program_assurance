@@ -48,6 +48,7 @@ function Frame({ children, width }: { children: React.ReactNode; width?: number 
 
 /** Equal columns; a label column and a value column as a description list; the main column and the rail; named areas; one template per breakpoint; the gap steps. */
 export const GridMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Stack space="space.100">

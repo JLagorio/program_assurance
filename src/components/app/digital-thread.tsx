@@ -1,4 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useCallback, type SetStateAction, useMemo, useState } from "react";
+import { useRecordForm } from "@/lib/record-form";
+import { UnavailableAction } from "@/components/app/unavailable-action";
+import { Link } from "@tanstack/react-router";
 import { Check, Download, Plus, RefreshCw, X } from "lucide-react";
 
 import {
@@ -22,7 +25,6 @@ import {
   Table,
   Textarea,
   toast,
-  useRequired,
 } from "@ledger/design-system";
 import {
   artifactShort,
@@ -128,12 +130,20 @@ export function DigitalThreadSection({
           description={`Live links from ${programName} engineering tooling into the RMF record.`}
           action={
             <>
-              <Button variant="secondary" iconBefore={<RefreshCw />}>
+              <UnavailableAction
+                reason="No connector is connected to synchronize this evidence."
+                variant="secondary"
+                iconBefore={<RefreshCw />}
+              >
                 Sync now
-              </Button>
-              <Button variant="secondary" iconBefore={<Plus />}>
+              </UnavailableAction>
+              <UnavailableAction
+                reason="Connector setup is not available in this workspace."
+                variant="secondary"
+                iconBefore={<Plus />}
+              >
                 Add connector
-              </Button>
+              </UnavailableAction>
             </>
           }
         >
@@ -272,6 +282,7 @@ export function DigitalThreadSection({
           description={`${mappedControls} controls carry engineering evidence · ${pending} artifacts awaiting security-engineer acceptance.`}
           action={
             <NativeSelect
+              aria-label="Evidence status"
               value={status}
               onChange={(e) => setStatus(e.target.value as (typeof statusFilters)[number])}
               size="small"
@@ -372,14 +383,26 @@ function RuleModal({
   onClose: () => void;
   onSave: (r: MappingRule) => void;
 }) {
-  const [draft, setDraft] = useState<MappingRule | null>(rule);
-  const [controls, setControls] = useState(rule?.controls.join(", ") ?? "");
-  const req = useRequired({ name: draft?.name, signal: draft?.signal, controls });
+  const { form, values, setValue, formId, formRef } = useRecordForm(
+    {
+      draft: rule as MappingRule | null,
+      controls: rule?.controls.join(", ") ?? "",
+    },
+    (value) => ({
+      "draft.name": value.draft?.name,
+      "draft.signal": value.draft?.signal,
+      controls: value.controls,
+    }),
+  );
+  const { draft, controls } = values;
+  const setDraft = useCallback(
+    (value: SetStateAction<typeof draft>) => setValue("draft", value),
+    [setValue],
+  );
 
-  if (rule && draft?.id !== rule.id) {
-    setDraft(rule);
-    setControls(rule.controls.join(", "));
-  }
+  useEffect(() => {
+    form.reset({ draft: rule, controls: rule?.controls.join(", ") ?? "" });
+  }, [rule, form]);
   if (!rule || !draft) return null;
 
   const parsed = controls
@@ -409,99 +432,197 @@ function RuleModal({
           </Button>
           <Button
             variant="primary"
-            onClick={() => {
-              if (!req.check()) return;
-              onSave({ ...draft, controls: parsed });
-            }}
+            type="submit"
+            form={formId + "-1"}
+            disabled={form.state.isSubmitting}
           >
             {creating ? "Create rule" : "Save rule"}
           </Button>
         </>
       }
     >
-      <Stack space="space.150">
-        <Field isRequired error={req.errorFor("name")} label="Rule name">
-          <Input
-            value={draft.name}
-            placeholder="Multifactor authentication"
-            onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-          />
-        </Field>
-        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-          <Field label="Source tool">
-            <NativeSelect
-              value={draft.source}
-              onChange={(e) => {
-                const source = e.target.value as ConnectorKind;
-                setDraft({ ...draft, source, signal: connectorSignals[source][0] ?? "Label" });
-              }}
-            >
-              {(Object.keys(connectorSignals) as ConnectorKind[]).map((k) => (
-                <option key={k} value={k}>
-                  {k}
-                </option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field isRequired error={req.errorFor("signal")} label="Signal">
-            <NativeSelect
-              value={draft.signal}
-              onChange={(e) => setDraft({ ...draft, signal: e.target.value as MappingRuleSignal })}
-            >
-              {connectorSignals[draft.source].map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </NativeSelect>
-          </Field>
-        </Grid>
-        <Field
-          label="Match expression"
-          hint="JQL fragment, path glob, commit trailer or stereotype."
-        >
-          <Input
-            value={draft.match}
-            placeholder="sec:mfa OR component = Identity"
-            onChange={(e) => setDraft({ ...draft, match: e.target.value })}
-          />
-        </Field>
-        <Field
-          isRequired
-          error={req.errorFor("controls")}
-          label="Mapped controls"
-          hint="Comma separated NIST SP 800-53 Rev. 5 control IDs."
-        >
-          <Input
-            value={controls}
-            placeholder="IA-2, IA-2(1)"
-            onChange={(e) => setControls(e.target.value)}
-          />
-        </Field>
-        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-          <Field label="Confidence">
-            <NativeSelect
-              value={draft.confidence}
-              onChange={(e) =>
-                setDraft({ ...draft, confidence: e.target.value as MappingRule["confidence"] })
-              }
-            >
-              <option>High</option>
-              <option>Medium</option>
-              <option>Low</option>
-            </NativeSelect>
-          </Field>
-          <Field label="State">
-            <NativeSelect
-              value={draft.enabled ? "Enabled" : "Disabled"}
-              onChange={(e) => setDraft({ ...draft, enabled: e.target.value === "Enabled" })}
-            >
-              <option>Enabled</option>
-              <option>Disabled</option>
-            </NativeSelect>
-          </Field>
-        </Grid>
-      </Stack>
+      <form
+        id={formId + "-1"}
+        ref={formRef}
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit({
+            save: () => {
+              onSave({ ...draft, controls: parsed });
+            },
+          });
+        }}
+      >
+        <Stack space="space.150">
+          <form.Field name="draft.name">
+            {(field) => (
+              <Field
+                isRequired
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+                label="Rule name"
+              >
+                <Input
+                  value={field.state.value ?? ""}
+                  placeholder="Multifactor authentication"
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+          <Grid
+            gap="space.150"
+            templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
+          >
+            <form.Field name="draft.source">
+              {(field) => (
+                <Field
+                  label="Source tool"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={draft.source}
+                    onChange={(e) => {
+                      const source = e.target.value as ConnectorKind;
+                      setDraft({
+                        ...draft,
+                        source,
+                        signal: connectorSignals[source][0] ?? "Label",
+                      });
+                    }}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {(Object.keys(connectorSignals) as ConnectorKind[]).map((k) => (
+                      <option key={k} value={k}>
+                        {k}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="draft.signal">
+              {(field) => (
+                <Field
+                  isRequired
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                  label="Signal"
+                >
+                  <NativeSelect
+                    value={field.state.value ?? ""}
+                    onChange={(e) => field.handleChange(e.target.value as MappingRuleSignal)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {connectorSignals[draft.source].map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+          </Grid>
+          <form.Field name="draft.match">
+            {(field) => (
+              <Field
+                label="Match expression"
+                hint="JQL fragment, path glob, commit trailer or stereotype."
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+              >
+                <Input
+                  value={field.state.value ?? ""}
+                  placeholder="sec:mfa OR component = Identity"
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="controls">
+            {(field) => (
+              <Field
+                isRequired
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+                label="Mapped controls"
+                hint="Comma separated NIST SP 800-53 Rev. 5 control IDs."
+              >
+                <Input
+                  value={field.state.value ?? ""}
+                  placeholder="IA-2, IA-2(1)"
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+          <Grid
+            gap="space.150"
+            templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
+          >
+            <form.Field name="draft.confidence">
+              {(field) => (
+                <Field
+                  label="Confidence"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value ?? ""}
+                    onChange={(e) =>
+                      field.handleChange(e.target.value as MappingRule["confidence"])
+                    }
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    <option>High</option>
+                    <option>Medium</option>
+                    <option>Low</option>
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+            <Field label="State">
+              <NativeSelect
+                value={draft.enabled ? "Enabled" : "Disabled"}
+                onChange={(e) => setDraft({ ...draft, enabled: e.target.value === "Enabled" })}
+              >
+                <option>Enabled</option>
+                <option>Disabled</option>
+              </NativeSelect>
+            </Field>
+          </Grid>
+        </Stack>
+      </form>
     </Dialog>
   );
 }
@@ -519,11 +640,17 @@ function EvidenceModal({
   onClose: () => void;
   onStatus: (id: string, next: EvidenceStatus) => void;
 }) {
-  const [statement, setStatement] = useState(evidence?.statement ?? "");
-  const req = useRequired({ statement: statement || evidence?.statement });
-  if (evidence && statement !== undefined && evidence.statement && statement === "") {
-    setStatement(evidence.statement);
-  }
+  const { form, values, formId, formRef } = useRecordForm(
+    {
+      statement: evidence?.statement ?? "",
+    },
+    (value) => ({ statement: value.statement }),
+  );
+  const { statement } = values;
+
+  useEffect(() => {
+    form.reset({ statement: evidence?.statement ?? "" });
+  }, [evidence, form]);
   if (!evidence) return null;
 
   return (
@@ -567,47 +694,73 @@ function EvidenceModal({
           </Button>
           <Button
             variant="primary"
-            onClick={() => {
-              if (!req.check()) return;
-              onStatus(evidence.id, "Accepted");
-            }}
+            type="submit"
+            form={formId + "-2"}
             iconBefore={<Check />}
+            disabled={form.state.isSubmitting}
           >
             Accept into SSP
           </Button>
         </>
       }
     >
-      <Stack space="space.150">
-        <Field
-          isRequired
-          error={req.errorFor("statement")}
-          label="Generated implementation statement"
-          hint="Drafted from the artifact and edited by the product security engineer before it enters the SSP."
-        >
-          <Textarea
-            rows={5}
-            value={statement || evidence.statement}
-            onChange={(e) => setStatement(e.target.value)}
-          />
-        </Field>
-        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-          <Field label="Status">
-            <NativeSelect
-              value={evidence.status}
-              onChange={(e) => onStatus(evidence.id, e.target.value as EvidenceStatus)}
-            >
-              <option>Auto-mapped</option>
-              <option>Needs review</option>
-              <option>Accepted</option>
-              <option>Rejected</option>
-            </NativeSelect>
-          </Field>
-          <Field label="Reviewer">
-            <Input defaultValue={evidence.reviewer ?? "Sarah Chen"} />
-          </Field>
-        </Grid>
-      </Stack>
+      <form
+        id={formId + "-2"}
+        ref={formRef}
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit({
+            save: () => {
+              onStatus(evidence.id, "Accepted");
+            },
+          });
+        }}
+      >
+        <Stack space="space.150">
+          <form.Field name="statement">
+            {(field) => (
+              <Field
+                isRequired
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+                label="Generated implementation statement"
+                hint="Drafted from the artifact and edited by the product security engineer before it enters the SSP."
+              >
+                <Textarea
+                  rows={5}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                  value={field.state.value ?? ""}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+              </Field>
+            )}
+          </form.Field>
+          <Grid
+            gap="space.150"
+            templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
+          >
+            <Field label="Status">
+              <NativeSelect
+                value={evidence.status}
+                onChange={(e) => onStatus(evidence.id, e.target.value as EvidenceStatus)}
+              >
+                <option>Auto-mapped</option>
+                <option>Needs review</option>
+                <option>Accepted</option>
+                <option>Rejected</option>
+              </NativeSelect>
+            </Field>
+            <Field label="Reviewer">
+              <Input defaultValue={evidence.reviewer ?? "Sarah Chen"} />
+            </Field>
+          </Grid>
+        </Stack>
+      </form>
     </Dialog>
   );
 }
@@ -625,193 +778,29 @@ export function CdrPackageModal({
   programId: string;
   programName: string;
 }) {
-  const [included, setIncluded] = useState<string[]>(sspSections.map((s) => s.id));
-  const [format, setFormat] = useState("OSCAL SSP (JSON) + PDF");
-  const [generated, setGenerated] = useState(false);
-  const [confirming, setConfirming] = useState(false);
-  const [pending, setPending] = useState(false);
-
-  const selected = sspSections.filter((s) => included.includes(s.id));
-  const controls = selected.reduce((n, s) => n + s.controls, 0);
-  const artifacts = selected.reduce((n, s) => n + s.evidence, 0);
-  const blockers = selected.filter((s) => !s.ready);
-  const readiness = Math.round(
-    (selected.filter((s) => s.ready).length / Math.max(selected.length, 1)) * 100,
-  );
-
-  function toggle(id: string) {
-    setGenerated(false);
-    setIncluded((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  }
-
   return (
-    <>
-      <Dialog
-        open={open}
-        onClose={onClose}
-        width="large"
-        title="Generate CDR package"
-        description={`${programName} · ${programId} · Critical Design Review submission`}
-        aside={
-          <div>
-            <Eyebrow as="p">Package summary</Eyebrow>
-            <Box paddingBlockStart="space.100">
-              <KeyValue label="Sections">
-                {selected.length} of {sspSections.length}
-              </KeyValue>
-              <KeyValue label="Controls">{controls}</KeyValue>
-              <KeyValue label="Artifacts">{artifacts}</KeyValue>
-              <KeyValue label="Format">{format}</KeyValue>
-              <KeyValue label="Readiness">
-                <Inline as="span" space="space.100" alignBlock="center">
-                  <span className="w-600">
-                    <Progress value={readiness} tone={readiness === 100 ? "success" : "warning"} />
-                  </span>
-                  <span className="tabular-nums">{readiness}%</span>
-                </Inline>
-              </KeyValue>
-            </Box>
-            {blockers.length ? (
-              <p className="pt-150 border-t border-default font-body-small text-warning">
-                {blockers.map((b) => b.blocker).join(" · ")}
-              </p>
-            ) : (
-              <p className="pt-150 border-t border-default font-body-small text-subtle">
-                All selected sections are review-ready. The package compiles architecture drawings,
-                SysML exports and accepted implementation statements into a government-ready SSP.
-              </p>
-            )}
-            {generated ? (
-              <p className="pt-150 font-body-small text-success">
-                Package built — <Id>{programId}-CDR-SSP.zip</Id>
-              </p>
-            ) : null}
-          </div>
-        }
-        footer={
-          <>
-            <Button variant="subtle" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => {
-                if (generated)
-                  toast.info("Download started", { description: `${programId}-CDR-SSP.zip` });
-                else setConfirming(true);
-              }}
-              iconBefore={<Download />}
-            >
-              {" "}
-              {generated ? "Download package" : "Generate package"}
-            </Button>
-          </>
-        }
-      >
-        <Stack space="space.150">
-          <Table className="table-fixed">
-            <thead>
-              <tr>
-                <Table.Selection
-                  header
-                  checked={
-                    included.length > 0 && included.length === sspSections.length
-                      ? true
-                      : included.length > 0
-                        ? "indeterminate"
-                        : false
-                  }
-                  onCheckedChange={(next) => setIncluded(next ? sspSections.map((s) => s.id) : [])}
-                  label="Include all sections"
-                />
-                <Table.Header>Section</Table.Header>
-                <Table.Header className="text-right" width={76}>
-                  Controls
-                </Table.Header>
-                <Table.Header className="text-right" width={76}>
-                  Evidence
-                </Table.Header>
-                <Table.Header width={104}>State</Table.Header>
-              </tr>
-            </thead>
-            <tbody>
-              {sspSections.map((s) => (
-                <Table.Row key={s.id}>
-                  <Table.Selection
-                    checked={included.includes(s.id)}
-                    onCheckedChange={() => toggle(s.id)}
-                    label={`Include ${s.name}`}
-                  />
-                  <Table.Cell title={s.description}>{s.name}</Table.Cell>
-                  <Table.Cell className="tabular-nums text-right" width={76}>
-                    {s.controls || "—"}
-                  </Table.Cell>
-                  <Table.Cell className="tabular-nums text-right" width={76}>
-                    {s.evidence}
-                  </Table.Cell>
-                  <Table.Cell width={104}>
-                    <Badge tone={s.ready ? "success" : "warning"}>
-                      {s.ready ? "Ready" : "Gaps"}
-                    </Badge>
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </tbody>
-          </Table>
-          <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-            <Field label="Output format">
-              <NativeSelect
-                value={format}
-                onChange={(e) => setFormat(e.target.value as typeof format)}
-                aria-label="Output format"
-              >
-                {[
-                  "OSCAL SSP (JSON) + PDF",
-                  "OSCAL SSP (XML)",
-                  "eMASS import bundle",
-                  "PDF only",
-                ].map((f) => (
-                  <option key={f} value={f}>
-                    {f}
-                  </option>
-                ))}
-              </NativeSelect>
-            </Field>
-            <Field label="Review gate">
-              <NativeSelect defaultValue="CDR — Critical Design Review" aria-label="Review gate">
-                {[
-                  "PDR — Preliminary Design Review",
-                  "CDR — Critical Design Review",
-                  "TRR — Test Readiness Review",
-                ].map((g) => (
-                  <option key={g} value={g}>
-                    {g}
-                  </option>
-                ))}
-              </NativeSelect>
-            </Field>
-          </Grid>
-        </Stack>
-      </Dialog>
-      <AlertDialog
-        open={confirming}
-        onClose={() => setConfirming(false)}
-        onConfirm={() => {
-          setPending(true);
-          window.setTimeout(() => {
-            setPending(false);
-            setConfirming(false);
-            setGenerated(true);
-            toast.success("CDR package built", {
-              description: `${programId}-CDR-SSP.zip · ${controls} controls · ${artifacts} artifacts`,
-            });
-          }, 900);
-        }}
-        pending={pending}
-        title="Generate and sign the CDR package?"
-        description={`${selected.length} of ${sspSections.length} sections as ${format}. The package is hashed and logged against ${programId}; a section left out needs a waiver at the gate.`}
-        confirmLabel="Generate package"
-      />
-    </>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      title="Prepare a CDR package"
+      description={`${programName} · ${programId}`}
+      footer={
+        <Button asChild variant="primary">
+          <Link
+            to="/programs/$programId/export"
+            params={{ programId }}
+            search={{ tab: "Air-gap bundle" }}
+          >
+            Open package workspace
+          </Link>
+        </Button>
+      }
+    >
+      <p>
+        Review the generated artifacts, inspect their integrity digests, and download the actual
+        bundle files in the export workspace. This prototype does not hold a signing key or issue
+        government approvals.
+      </p>
+    </Dialog>
   );
 }

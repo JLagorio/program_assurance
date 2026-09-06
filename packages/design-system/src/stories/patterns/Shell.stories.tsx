@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+import { expect, userEvent, within } from "storybook/test";
 
 import {
   Breadcrumb,
@@ -296,6 +297,7 @@ export const Remembered: Story = {
 
 /** Every part on its own: the items and their states, the levels, the logo's forms, the buttons, the end list. */
 export const ShellMatrix: Story = {
+  tags: ["contract"],
   parameters: { layout: "padded" },
   render: () => (
     <Stack space="space.400">
@@ -465,7 +467,8 @@ function RecordDemo() {
       </Shell.SideNav>
       <Shell.Main>
         <ShowPage
-          tab={tab} onTabChange={(value) => setTab(value as typeof tab)}
+          tab={tab}
+          onTabChange={(value) => setTab(value as typeof tab)}
           header={
             <RecordHeader
               crumbs={
@@ -650,3 +653,32 @@ export const Dont: Story = {
     </Stack>
   ),
 };
+
+/** Slot actions and landmark labels retain the contract of the product-supplied props. */
+export const ForwardingContract: Story = {
+  tags: ["contract"],
+  render: () => <ForwardingExample />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("main", { name: "Account content" })).toHaveAttribute(
+      "id",
+      "account-content",
+    );
+    await userEvent.click(canvas.getByRole("button", { name: "Account console" }));
+    await expect(canvas.getByText("Opened 1 time")).toBeVisible();
+  },
+};
+
+function ForwardingExample() {
+  const [count, setCount] = useState(0);
+  return (
+    <Stack>
+      <Shell.AppLogo name="Account console" asChild onClick={() => setCount((n) => n + 1)}>
+        <button type="button" />
+      </Shell.AppLogo>
+      <Shell.Main id="account-content" label="Account content">
+        <Text>Opened {count} time</Text>
+      </Shell.Main>
+    </Stack>
+  );
+}

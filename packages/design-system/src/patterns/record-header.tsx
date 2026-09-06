@@ -7,7 +7,8 @@ import { Fact } from "../components/typography";
 /* A record's header is two lines: the trail, its parents then the record's id as the current crumb,
    unlinked, which is the way back; and the title's line, the name with a word of meta after it and
    the actions at the end. Josef, on review: no back chevron, no line of its own for the id, never
-   more than the trail and the title. The facts and a state strip are their own rows under it. */
+   more than the trail and the title, and no facts: what is not needed on every load is the rail's.
+   `facts` is deprecated; a state strip may still sit below. */
 
 export type RecordHeaderProps = {
   /** The trail's parents as Breadcrumb.Items, the list the record came from last: Programs; or Programs, then the program, over its sub-page. The record's `id` follows them as the current crumb. */
@@ -20,7 +21,7 @@ export type RecordHeaderProps = {
   meta?: ReactNode;
   /** The record's actions at the end of the title's line: one primary, and at most two beside it; the rest in a menu. */
   actions?: ReactNode;
-  /** Facts under the title, on one line above the fold: the ones the reader acts on. At most six; the rest go in the rail. */
+  /** @deprecated The header is the trail, the title and the actions; the details are the rail's Inspector. Kept for one release. */
   facts?: ReactNode;
   /** A persistent strip under everything: a lifecycle, a Stepper, an ActionBar. */
   below?: ReactNode;

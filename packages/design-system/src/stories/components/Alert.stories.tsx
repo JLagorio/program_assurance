@@ -20,6 +20,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Every tone as a note, titled, and with an action. */
 export const AlertMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Matrix
       rows={tones}

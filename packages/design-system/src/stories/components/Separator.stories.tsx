@@ -17,6 +17,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Horizontal between blocks, vertical between groups in a toolbar, and decorative under a heading. */
 export const SeparatorMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Horizontal, between two blocks in a Stack">

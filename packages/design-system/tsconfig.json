@@ -1,5 +1,12 @@
 {
-  "include": ["src/**/*.ts", "src/**/*.tsx", "build/**/*.mjs", ".storybook/**/*.ts", ".storybook/**/*.tsx"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "test/**/*.types.tsx",
+    "build/**/*.mjs",
+    ".storybook/**/*.ts",
+    ".storybook/**/*.tsx"
+  ],
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "react-jsx",

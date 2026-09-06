@@ -45,6 +45,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Every side and alignment as a trigger, and one held open with a title, a line and a Close. */
 export const PopoverMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300" className="p-400">
       <Matrix

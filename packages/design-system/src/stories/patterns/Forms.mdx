@@ -1,0 +1,176 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as Stories from "./Forms.stories";
+
+<Meta of={Stories} />
+
+# Forms
+
+**Forms is a pattern**, composed from Field, input controls, layout primitives and buttons. There is no standalone Form component. TanStack Form owns form state and validation; Ledger owns the presentation.
+
+How the form controls go together: which control answers which question, how a form is laid out, how required fields and errors work, and where the buttons go. Each control has its own page; this one is the choice between them and the rules they share.
+
+<Canvas of={Stories.Fields} />
+
+## Variants
+
+| The answer                                               | The control                                                                                                       |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| One line of free text: a name, an email, a number        | [Input](?path=/docs/components-input--docs), with `type` for the value's kind.                                    |
+| Several lines: a note, a description, a narrative        | [Textarea](?path=/docs/components-textarea--docs), with `rows` for the expected length.                           |
+| A search box, a number with a unit                       | [InputGroup](?path=/docs/components-inputgroup--docs) around the Input.                                           |
+| One of two or three answers, all worth seeing            | [RadioGroup](?path=/docs/components-radiogroup--docs).                                                            |
+| One of four to a dozen plain words                       | [NativeSelect](?path=/docs/components-nativeselect--docs).                                                        |
+| One of a short list whose options carry a Dot or a Badge | [Select](?path=/docs/components-select--docs).                                                                    |
+| One of many, or names the reader would type              | [Combobox](?path=/docs/components-combobox--docs).                                                                |
+| Several things that can each be true                     | [Checkbox](?path=/docs/components-checkbox--docs)es in a Field with `isGroup`.                                    |
+| On or off, applied the moment it is flipped              | [Switch](?path=/docs/components-switch--docs), outside the form's Save.                                           |
+| A day to schedule                                        | [DatePicker](?path=/docs/components-datepicker--docs). A remembered date is an Input with the format in the hint. |
+| A record: a person, a control, a requirement             | Combobox, or a [RecordPicker](?path=/docs/patterns-recordpicker--docs) when the choice needs more than a row.     |
+
+<Canvas of={Stories.Pickers} />
+
+## Anatomy
+
+Every control sits in a [Field](?path=/docs/components-field--docs), which gives it its label above, its hint or error below, and its wiring. A group of choice controls sits in a Field with `isGroup`, whose label becomes the group's legend. The Fields stack `space.200` apart, or sit in a Grid when the answers are short. The buttons come last.
+
+| Part    | What it is                                                                                                                   |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Field   | Label, control, message. The label is a noun in sentence case; the hint a sentence; the error what fixes it.                 |
+| Group   | A Field with `isGroup`: a legend over Checkboxes or a RadioGroup, with the hint and the error for the group.                 |
+| Section | When a form has parts, a [Block](?path=/docs/shapes-block--docs) per part, its title the part's noun, `space.300` between.   |
+| Buttons | An Inline at the end of the form, aligned to the end: Cancel as a subtle Button, then the primary. The primary says the act. |
+
+<Canvas of={Stories.Choices} />
+
+## Sizes
+
+- **Labels above**, never beside: one left edge, room for any label length, and the eye moves down.
+- **Each field as wide as its answer.** In a six-column Grid, an acronym takes two columns, a name four, an owner three, a description the row. A field wider than its answer lies about the answer.
+- **One column on a narrow screen.** The Grid collapses; the order stays.
+- **`space.200`** (16px) between fields, **`space.300`** (24px) between sections, **`space.100`** (8px) between the choices of a group.
+- **The first field takes focus** in a dialog or a sheet that exists to fill the form (`autoFocus`). On a page, nothing does.
+
+<Canvas of={Stories.Layout} />
+
+## Modifiers
+
+- **Required is marked, optional is not.** `isRequired` on the Field paints the asterisk and sets `aria-required`; the form checks on submit.
+- **When most of a form is required, mark nothing**, and say "Optional." in the hint of the few that are. The rule is per product, not per form: the products' record forms mark required.
+- **Choose one validation presentation.** Use `noValidate` when the application supplies its own error summary and inline messages. Native `required` remains available for native form validation; `isRequired` communicates the requirement through Field.
+
+## States
+
+- **TanStack Form owns state.** Create the form with `useForm`, bind each control through a `form.Field` render prop, and submit a native `<form>` with `form.handleSubmit()`.
+- **Validate with Zod.** The main example uses `onDynamic` with `revalidateLogic({ mode: "blur", modeAfterSubmission: "change" })`: validate on blur initially, then on change after submission, with errors shown for touched invalid fields. One validation slot avoids stale messages from another mode. The example below uses only `onSubmit`, so validation runs when Save is pressed. Submit-only validation does not promise immediate feedback as the user repairs a value.
+- **Keep Save available for incomplete values.** Disable it while submitting, using `form.Subscribe`; show success only after persistence completes. The examples save locally for demonstration.
+- **Expose errors accessibly.** Pass the issue messages to `Field.error`. Field renders an alert, sets `data-invalid` on its wrapper, and connects `aria-invalid` and `aria-describedby` to the control. The main example focuses the first invalid control after submission.
+- **Reset deliberately.** Use `form.reset()` for an explicit Reset action. Preserve the draft after a server failure.
+
+<Canvas of={Stories.RequiredOnSubmit} />
+
+## Content
+
+- **Cancel, then the primary**, at the end of the row, aligned to the end. The primary's label is the act: Create program, Save statement, Assign. Never OK or Submit.
+- **A form that saves as it goes has no buttons**: an [Editable](?path=/docs/components-editable--docs) value on a record, a Switch in a settings list.
+- **A destructive act is not a form's primary**; it is a danger Button with an [AlertDialog](?path=/docs/components-alertdialog--docs).
+
+## Style
+
+| Form                                 | Where                                                                                                 |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| Creating a record with several parts | A page, in Blocks, or the wizard in [Stepper](?path=/docs/components-stepper--docs) steps.            |
+| Editing a few fields of a record     | A [Sheet](?path=/docs/components-sheet--docs) from the record, the first field focused.               |
+| One or two fields                    | A [Dialog](?path=/docs/components-dialog--docs) or a [Popover](?path=/docs/components-popover--docs). |
+| One value on a record                | An [Editable](?path=/docs/components-editable--docs), read in place and edited on click.              |
+
+## Related
+
+- [Field](?path=/docs/components-field--docs): the label, hint and error around one control or one group.
+- [Input](?path=/docs/components-input--docs), [Textarea](?path=/docs/components-textarea--docs), [NativeSelect](?path=/docs/components-nativeselect--docs), [InputGroup](?path=/docs/components-inputgroup--docs): the fields.
+- [Checkbox](?path=/docs/components-checkbox--docs), [Switch](?path=/docs/components-switch--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): the choice controls.
+- [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs), [DatePicker](?path=/docs/components-datepicker--docs), [Calendar](?path=/docs/components-calendar--docs): the pickers.
+- [Button](?path=/docs/components-button--docs): the primary and its Cancel.
+
+## Accessibility
+
+Use a visible label for every control. Field connects labels, hints and errors across wrappers through context. A custom control calls `useFieldControl(props)` and spreads the returned attributes onto the actual focusable element; use `controlId` when integrating an external control. Groups use a fieldset and legend. On failed submit, focus the first invalid field and present all errors together when a form spans several sections. Keep submitted values after a server failure.
+
+## Props
+
+Not applicable: Forms is a composition pattern, with no component props of its own. Import `useForm` from `@tanstack/react-form` and `z` from `zod` (Zod 3.25+ or 4 supports Standard Schema). Applications declare these dependencies themselves; Ledger's controls do not depend on a form library.
+
+### TanStack and shadcn anatomy
+
+This follows the [shadcn TanStack Form guide](https://ui.shadcn.com/docs/forms/tanstack-form) and [TanStack validation documentation](https://tanstack.com/form/latest/docs/framework/react/guides/validation). Ledger keeps its existing component API:
+
+| shadcn guide                                       | Ledger pattern                                                                   |
+| -------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `useForm`, `form.Field`                            | The same TanStack hooks and render props.                                        |
+| `FieldGroup`                                       | `Stack` or `Grid` to lay out fields.                                             |
+| `FieldLabel`                                       | `Field.label`, rendered as a label linked to the control.                        |
+| `FieldDescription`                                 | `Field.hint`, connected as the accessible description.                           |
+| `FieldError`                                       | `Field.error`, receiving messages from `field.state.meta.errors`.                |
+| `data-invalid` on Field, `aria-invalid` on control | Derived from `Field.error`; controls can also receive `aria-invalid` explicitly. |
+
+```tsx
+const form = useForm({
+  defaultValues: { title: "" },
+  validators: {
+    onSubmit: z.object({ title: z.string().trim().min(1, "Enter a title.") }),
+  },
+  onSubmit: async ({ value }) => {
+    await saveRecord(value);
+  },
+});
+
+<form
+  onSubmit={(event) => {
+    event.preventDefault();
+    void form.handleSubmit();
+  }}
+>
+  <Stack space="space.200">
+    <form.Field name="title">
+      {(field) => {
+        const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+        return (
+          <Field
+            label="Title"
+            isRequired
+            error={
+              isInvalid
+                ? [...new Set(field.state.meta.errors.map((error) => error?.message))].join(" ")
+                : undefined
+            }
+          >
+            <Input
+              name={field.name}
+              value={field.state.value}
+              required
+              onBlur={field.handleBlur}
+              onChange={(event) => field.handleChange(event.target.value)}
+              aria-invalid={isInvalid}
+            />
+          </Field>
+        );
+      }}
+    </form.Field>
+    <Button type="submit">Save</Button>
+  </Stack>
+</form>;
+```
+
+The live examples use `noValidate` to demonstrate schema errors. For production, retain native constraints such as `required`, `type` and `maxLength`; omit `noValidate` when native browser feedback is appropriate. `isRequired` alone sets the accessible requirement and visual marker, not native validation.
+
+Bind Input, Textarea and NativeSelect with `value`, `onBlur={field.handleBlur}` and `onChange` passing `event.target.value`. Select and RadioGroup use `value` and `onValueChange={field.handleChange}`; Checkbox and Switch use `checked` and `onCheckedChange` (normalize an indeterminate checkbox to a boolean when the schema expects one). Combobox and DatePicker use their `value` and `onChange` APIs. Forward blur to the focusable control. For checkbox arrays, use `form.Field` with `mode="array"` and TanStack's `pushValue`/`removeValue` helpers.
+
+### Existing forms
+
+Application forms formerly using `useRequired` now use TanStack through the application-owned `useRecordForm` policy: Zod required checks, conditional requirements, validation on submit followed by validation on change, nested drafts, and command selection through submit metadata. Their controls bind through `form.Field`.
+
+`useRequired` remains exported for compatibility with older consumers and component examples; it is a custom helper, not TanStack Form. Its legacy contract stories verify required checks, custom control binding and focus recovery. New forms should use the TanStack pattern above.
+
+## Don't
+
+Do not disable submit merely because values are incomplete, discard a draft after failure, use placeholders as labels, or announce success before saving. Do not put a button inside a link. Keep essential instructions visible, and let long translated labels wrap.

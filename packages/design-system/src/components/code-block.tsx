@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../lib/locale";
 import { Check, Copy } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
@@ -31,15 +32,16 @@ export function CodeBlock({
   maxHeight = 560,
   wrap = false,
   copy,
-  label = "Code",
+  label,
   className,
 }: CodeBlockProps) {
+  const { t, formatNumber } = useLedgerLocale();
   const width = String(start + lines.length - 1).length;
   return (
     <div className={cn("relative", className)}>
       <div
         role="group"
-        aria-label={label}
+        aria-label={label ?? t("code")}
         tabIndex={0}
         className="overflow-auto rounded-medium border border-default bg-surface-sunken outline-none focus-visible:outline-focused"
         style={{ maxHeight }}
@@ -51,12 +53,12 @@ export function CodeBlock({
           )}
         >
           {lines.map((line, i) => (
-            <div key={start + i} className="flex">
+            <div key={formatNumber(start + i, { useGrouping: false })} className="flex">
               <span
                 className="sticky start-0 shrink-0 select-none border-e border-default bg-surface-sunken px-100 text-end text-subtlest tabular-nums"
                 style={{ width: `${Math.max(width, 3) + 2.5}ch` }}
               >
-                {start + i}
+                {formatNumber(start + i, { useGrouping: false })}
               </span>
               <span className="min-w-0 px-150">{line}</span>
             </div>
@@ -70,7 +72,9 @@ export function CodeBlock({
 
 /** Puts the text on the clipboard and says Copied for a moment. */
 function CopyButton({ text }: { text: string }) {
+  const { t } = useLedgerLocale();
   const [copied, setCopied] = useState(false);
+  const [failed, setFailed] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
     () => () => {
@@ -83,18 +87,25 @@ function CopyButton({ text }: { text: string }) {
       <IconButton
         variant="subtle"
         size="small"
-        label={copied ? "Copied" : "Copy"}
+        label={copied ? t("copied") : t("copy")}
         icon={copied ? <Check className="icon-success" /> : <Copy />}
         onClick={() => {
-          void navigator.clipboard.writeText(text).then(() => {
-            setCopied(true);
-            if (timer.current) clearTimeout(timer.current);
-            timer.current = setTimeout(() => setCopied(false), 1400);
-          });
+          setFailed(false);
+          void Promise.resolve()
+            .then(() => navigator.clipboard.writeText(text))
+            .then(() => {
+              setCopied(true);
+              if (timer.current) clearTimeout(timer.current);
+              timer.current = setTimeout(() => setCopied(false), 1400);
+            })
+            .catch(() => {
+              setCopied(false);
+              setFailed(true);
+            });
         }}
       />
       <span role="status" className="sr-only">
-        {copied ? "Copied" : ""}
+        {failed ? t("copyFailed") : copied ? t("copied") : ""}
       </span>
     </span>
   );

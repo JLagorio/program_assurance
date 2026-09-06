@@ -1,3 +1,5 @@
+import { ChevronDown } from "lucide-react";
+import { Collapsible, Count } from "@ledger/design-system";
 /**
  * One scope's categorization and tailoring, edited in place.
  *
@@ -17,7 +19,6 @@ import {
   Box,
   Button,
   Checkbox,
-  Collapsible,
   Field,
   Gates,
   Grid,
@@ -223,7 +224,10 @@ export function ScopeTailoringPane({
             </dl>
           ) : (
             <Stack space="space.150">
-              <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
+              <Grid
+                gap="space.150"
+                templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
+              >
                 <Field label="System class">
                   <NativeSelect
                     value={p.systemClass}
@@ -416,120 +420,132 @@ export function ScopeTailoringPane({
       ) : null}
 
       {show("controls") ? (
-        <Collapsible
-          title="Individual controls"
-          count={draft.tailoring.length || null}
-          defaultOpen={draft.tailoring.length > 0}
-        >
-          {readOnly ? null : (
-            <Inline className="pb-150" space="space.150">
-              <Button size="small" variant="secondary" onClick={() => setTailoring(true)}>
-                Tailor controls…
-              </Button>
-              <TailorControlsSheet
-                open={tailoring}
-                onClose={() => setTailoring(false)}
-                inSet={inSet}
-                decided={decided}
-                onAdd={(ds) => onChange({ tailoring: [...draft.tailoring, ...ds] })}
+        <Collapsible className="border-t border-default" defaultOpen={draft.tailoring.length > 0}>
+          <h3>
+            <Collapsible.Trigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
+              {"Individual controls"}{" "}
+              {draft.tailoring.length > 0 ? <Count value={draft.tailoring.length} /> : null}
+              <ChevronDown
+                aria-hidden="true"
+                className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
               />
-            </Inline>
-          )}
-          {draft.tailoring.length ? (
-            <Table>
-              <thead>
-                <Table.Row>
-                  <Table.Header width={96}>Control</Table.Header>
-                  <Table.Header>Title</Table.Header>
-                  <Table.Header width={110}>Decision</Table.Header>
-                  <Table.Header width={190}>Source</Table.Header>
-                  <Table.Header width={84} />
-                </Table.Row>
-              </thead>
-              <tbody>
-                {draft.tailoring.map((t) => {
-                  const control = nistControls.find((c) => c.id === t.control);
-                  return [
-                    <Table.Row key={t.control}>
-                      <Table.Cell>
-                        <Id>{t.control}</Id>
-                      </Table.Cell>
-                      <Table.Cell className="truncate">{control?.title ?? "—"}</Table.Cell>
-                      <Table.Cell>
-                        <Badge
-                          size="xsmall"
-                          tone={t.decision === "excluded" ? "danger" : "information"}
-                        >
-                          {t.decision === "excluded" ? "Tailored out" : "Tailored in"}
-                        </Badge>
-                      </Table.Cell>
-                      <Table.Cell>
-                        {readOnly ? (
-                          tailoringSources.find((s) => s.value === t.source)?.label
-                        ) : (
-                          <Select
-                            value={t.source}
-                            onValueChange={(v) =>
-                              patchDecision(t.control, { source: v as TailoringSource })
-                            }
-                            aria-label="Decision source"
-                          >
-                            {tailoringSources.map((s) => (
-                              <Select.Item key={s.value} value={s.value}>
-                                {s.label}
-                              </Select.Item>
-                            ))}
-                          </Select>
-                        )}
-                      </Table.Cell>
-                      <Table.Cell className="text-right">
-                        {readOnly ? null : (
-                          <Button
-                            variant="subtle"
-                            size="xsmall"
-                            onClick={() => removeDecision(t.control)}
-                          >
-                            Undo
-                          </Button>
-                        )}
-                      </Table.Cell>
-                    </Table.Row>,
-                    <Table.Row key={`${t.control}-why`}>
-                      <Table.Cell />
-                      <Table.Cell colSpan={4} className="whitespace-normal py-100 align-top">
-                        {readOnly ? (
-                          <span className="">{t.rationale || "—"}</span>
-                        ) : (
-                          <Field
-                            label={
-                              t.decision === "excluded"
-                                ? "Why this scope does not owe it"
-                                : "Why this scope owes it after all"
-                            }
-                            hint={t.rationale.trim() ? undefined : "Needs a reason before submit"}
-                          >
-                            <Textarea
-                              value={t.rationale}
-                              onChange={(e) =>
-                                patchDecision(t.control, { rationale: e.target.value })
-                              }
-                              placeholder="Why this scope does not owe it, or why it owes it after all…"
-                              style={{ minHeight: 48 }}
-                            />
-                          </Field>
-                        )}
-                      </Table.Cell>
-                    </Table.Row>,
-                  ];
-                })}
-              </tbody>
-            </Table>
-          ) : (
-            <p className="font-body-small text-subtle">
-              No control tailored by hand. Overlays already added {set.added.length} and removed{" "}
-              {set.removed.length}.
-            </p>
-          )}
+            </Collapsible.Trigger>
+          </h3>
+          <Collapsible.Content>
+            <Box paddingBlockEnd="space.200">
+              {readOnly ? null : (
+                <Inline className="pb-150" space="space.150">
+                  <Button size="small" variant="secondary" onClick={() => setTailoring(true)}>
+                    Tailor controls…
+                  </Button>
+                  <TailorControlsSheet
+                    open={tailoring}
+                    onClose={() => setTailoring(false)}
+                    inSet={inSet}
+                    decided={decided}
+                    onAdd={(ds) => onChange({ tailoring: [...draft.tailoring, ...ds] })}
+                  />
+                </Inline>
+              )}
+              {draft.tailoring.length ? (
+                <Table>
+                  <thead>
+                    <Table.Row>
+                      <Table.Header width={96}>Control</Table.Header>
+                      <Table.Header>Title</Table.Header>
+                      <Table.Header width={110}>Decision</Table.Header>
+                      <Table.Header width={190}>Source</Table.Header>
+                      <Table.Header width={84} />
+                    </Table.Row>
+                  </thead>
+                  <tbody>
+                    {draft.tailoring.map((t) => {
+                      const control = nistControls.find((c) => c.id === t.control);
+                      return [
+                        <Table.Row key={t.control}>
+                          <Table.Cell>
+                            <Id>{t.control}</Id>
+                          </Table.Cell>
+                          <Table.Cell className="truncate">{control?.title ?? "—"}</Table.Cell>
+                          <Table.Cell>
+                            <Badge
+                              size="xsmall"
+                              tone={t.decision === "excluded" ? "danger" : "information"}
+                            >
+                              {t.decision === "excluded" ? "Tailored out" : "Tailored in"}
+                            </Badge>
+                          </Table.Cell>
+                          <Table.Cell>
+                            {readOnly ? (
+                              tailoringSources.find((s) => s.value === t.source)?.label
+                            ) : (
+                              <Select
+                                value={t.source}
+                                onValueChange={(v) =>
+                                  patchDecision(t.control, { source: v as TailoringSource })
+                                }
+                                aria-label="Decision source"
+                              >
+                                {tailoringSources.map((s) => (
+                                  <Select.Item key={s.value} value={s.value}>
+                                    {s.label}
+                                  </Select.Item>
+                                ))}
+                              </Select>
+                            )}
+                          </Table.Cell>
+                          <Table.Cell className="text-right">
+                            {readOnly ? null : (
+                              <Button
+                                variant="subtle"
+                                size="xsmall"
+                                onClick={() => removeDecision(t.control)}
+                              >
+                                Undo
+                              </Button>
+                            )}
+                          </Table.Cell>
+                        </Table.Row>,
+                        <Table.Row key={`${t.control}-why`}>
+                          <Table.Cell />
+                          <Table.Cell colSpan={4} className="whitespace-normal py-100 align-top">
+                            {readOnly ? (
+                              <span className="">{t.rationale || "—"}</span>
+                            ) : (
+                              <Field
+                                label={
+                                  t.decision === "excluded"
+                                    ? "Why this scope does not owe it"
+                                    : "Why this scope owes it after all"
+                                }
+                                hint={
+                                  t.rationale.trim() ? undefined : "Needs a reason before submit"
+                                }
+                              >
+                                <Textarea
+                                  value={t.rationale}
+                                  onChange={(e) =>
+                                    patchDecision(t.control, { rationale: e.target.value })
+                                  }
+                                  placeholder="Why this scope does not owe it, or why it owes it after all…"
+                                  style={{ minHeight: 48 }}
+                                />
+                              </Field>
+                            )}
+                          </Table.Cell>
+                        </Table.Row>,
+                      ];
+                    })}
+                  </tbody>
+                </Table>
+              ) : (
+                <p className="font-body-small text-subtle">
+                  No control tailored by hand. Overlays already added {set.added.length} and removed{" "}
+                  {set.removed.length}.
+                </p>
+              )}
+            </Box>
+          </Collapsible.Content>
         </Collapsible>
       ) : null}
     </Stack>

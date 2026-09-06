@@ -1,3 +1,5 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
+import { downloadText } from "@/components/app/export";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Download, Search } from "lucide-react";
@@ -5,6 +7,7 @@ import { Download, Search } from "lucide-react";
 import {
   Badge,
   Button,
+  Empty,
   Id,
   IndexPage,
   Indicator,
@@ -110,8 +113,18 @@ function RegisterPage() {
           <PageHeader
             title="POA&M & risk register"
             actions={
-              <Button variant="secondary" iconBefore={<Download />}>
-                Export eMASS POA&M
+              <Button
+                variant="secondary"
+                iconBefore={<Download />}
+                onClick={() =>
+                  downloadText(
+                    "poam-register.json",
+                    JSON.stringify(poamRows, null, 2),
+                    "application/json",
+                  )
+                }
+              >
+                Export POA&M JSON
               </Button>
             }
           />
@@ -141,12 +154,19 @@ function RegisterPage() {
                     onChange={(e) => setQ(e.target.value)}
                     placeholder="Search POA&M items, owners"
                     aria-label="Search"
-                    style={{ width: 240 }}
+                    style={{ width: 240, maxWidth: "100%" }}
                   />
                 </InputGroup>
               </Inline>
             ) : null}
 
+            <p role="status" className="font-body-small text-subtle">
+              {tab === "POA&M"
+                ? `${poamRows.length} matching POA&M items`
+                : tab === "Risks"
+                  ? `${registerRisks.length} risks`
+                  : `${unrolled.length} unrolled findings`}
+            </p>
             <PreviewSplit open={preview !== null}>
               <div className="min-w-0 lg:pe-300">
                 {tab === "POA&M" ? (
@@ -204,6 +224,26 @@ function RegisterPage() {
                           </Table.Row>
                         );
                       })}
+                      {poamRows.length === 0 ? (
+                        <Table.Row>
+                          <Table.Cell colSpan={12}>
+                            <Empty
+                              title="No results match your filters"
+                              description="Clear the filters to see the available records."
+                              action={
+                                <Button
+                                  variant="secondary"
+                                  onClick={() => {
+                                    setQ("");
+                                  }}
+                                >
+                                  Clear filters
+                                </Button>
+                              }
+                            />
+                          </Table.Cell>
+                        </Table.Row>
+                      ) : null}
                     </tbody>
                   </Table>
                 ) : null}
@@ -327,12 +367,20 @@ function RegisterPage() {
                                 display="inline-flex"
                                 space="space.075"
                               >
-                                <Button size="small" variant="secondary">
+                                <UnavailableAction
+                                  reason="Create a POA&M item from the relevant program record."
+                                  size="small"
+                                  variant="secondary"
+                                >
                                   New POA&M
-                                </Button>
-                                <Button size="small" variant="secondary">
+                                </UnavailableAction>
+                                <UnavailableAction
+                                  reason="Finding-to-risk linking is not available from this view."
+                                  size="small"
+                                  variant="secondary"
+                                >
                                   Attach risk
-                                </Button>
+                                </UnavailableAction>
                               </Inline>
                             </Table.Cell>
                           </Table.Row>

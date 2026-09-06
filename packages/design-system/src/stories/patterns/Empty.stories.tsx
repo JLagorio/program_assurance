@@ -17,6 +17,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Title; with a line; with the action; with a second way; a search with no results, with its icon; compact in a rail card, in a panel and beside a page's body. */
 export const EmptyMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300" className="max-w-layout-measure">
       <Empty title="No findings" />

@@ -1,5 +1,8 @@
+import { useMemo, useState } from "react";
+import { CreateRiskDialog } from "@/components/app/risk-create-dialog";
+import { UnavailableAction } from "@/components/app/unavailable-action";
+import { useRisksVersion } from "@/lib/risk-store";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
 import { Download, Plus } from "lucide-react";
 
 import {
@@ -29,7 +32,6 @@ import {
   toCsv,
   type Tone,
   useDataTable,
-  useRequired,
 } from "@ledger/design-system";
 import { useTableSearch, validateTableSearch } from "@/lib/table-state";
 import { Shell } from "@/components/app/shell";
@@ -137,6 +139,10 @@ const riskColumns = defineColumns<Risk>((c) => [
 ]);
 
 function RiskList() {
+  const riskVersion = useRisksVersion();
+  // Mutations keep the seed array identity; the store version invalidates the table snapshot.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const data = useMemo(() => [...risks], [riskVersion]);
   const [creating, setCreating] = useState(false);
   const [exporting, setExporting] = useState(false);
   // The URL owns the question: the presets write the status filter, the chips write theirs, the
@@ -150,7 +156,7 @@ function RiskList() {
   );
   const table = useDataTable({
     columns: riskColumns,
-    data: risks,
+    data,
     getRowId: (r) => r.id,
     selectable: true,
     pageSize: 5,
@@ -219,12 +225,20 @@ function RiskList() {
         table={table}
         actions={
           <>
-            <Button variant="secondary" size="small">
+            <UnavailableAction
+              reason="Reassignment is not available in this view."
+              variant="secondary"
+              size="small"
+            >
               Reassign
-            </Button>
-            <Button variant="secondary" size="small">
+            </UnavailableAction>
+            <UnavailableAction
+              reason="Open a risk record to add a treatment plan."
+              variant="secondary"
+              size="small"
+            >
               Change treatment
-            </Button>
+            </UnavailableAction>
           </>
         }
       />
@@ -237,149 +251,7 @@ function RiskList() {
         }}
       />
 
-      <CreateRiskModal open={creating} onClose={() => setCreating(false)} />
+      {creating ? <CreateRiskDialog open onClose={() => setCreating(false)} /> : null}
     </IndexPage>
-  );
-}
-
-function CreateRiskModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [title, setTitle] = useState("");
-  const [framework, setFramework] = useState("SOC 2");
-  const [control, setControl] = useState("CC6.1");
-  const [owner, setOwner] = useState("Sarah Chen");
-  const [treatment, setTreatment] = useState("Mitigate");
-  const [likelihood, setLikelihood] = useState("3");
-  const [impact, setImpact] = useState("4");
-  const req = useRequired({ title, owner });
-
-  const inherent = Number(likelihood) * Number(impact) * 4;
-  const residual = Math.round(inherent * (treatment === "Accept" ? 0.95 : 0.55));
-
-  return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      width="large"
-      title="Create a risk"
-      description="Risks inherit scoring from likelihood × impact and recalculate when the linked control changes state."
-      aside={
-        <div>
-          <Eyebrow>Preview</Eyebrow>
-          <Box paddingBlockStart="space.150">
-            <Box className="rounded-medium border border-default bg-surface" padding="space.150">
-              <Id className="text-subtle">RSK-2431</Id>
-              <Box className="font-body font-medium" paddingBlockStart="space.050">
-                {title || "Untitled risk"}
-              </Box>
-              <Box className="font-body-small text-subtle" paddingBlockStart="space.050">
-                {framework} · {control} · {owner}
-              </Box>
-              <dl className="pt-150 space-y-100 border-t border-default">
-                <Inline className="font-body-small" alignBlock="center" spread="space-between">
-                  <dt className="text-subtle">Inherent</dt>
-                  <dd className="tabular-nums font-medium">{inherent}</dd>
-                </Inline>
-                <Inline className="font-body-small" alignBlock="center" spread="space-between">
-                  <dt className="text-subtle">Residual</dt>
-                  <dd className="tabular-nums font-medium">{residual}</dd>
-                </Inline>
-                <Progress
-                  value={residual}
-                  tone={residual > 60 ? "danger" : residual > 30 ? "warning" : "success"}
-                />
-              </dl>
-            </Box>
-          </Box>
-          <p className="pt-150 font-body-small text-subtle">
-            Creating this risk notifies {owner} and opens a treatment task due in 30 days.
-          </p>
-        </div>
-      }
-      footer={
-        <>
-          <Button variant="subtle" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="secondary" onClick={onClose}>
-            Save draft
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              if (!req.check()) return;
-              onClose();
-            }}
-          >
-            Create risk
-          </Button>
-        </>
-      }
-    >
-      <Stack space="space.150">
-        <Field isRequired error={req.errorFor("title")} label="Title">
-          <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Unscoped object references on export endpoint"
-          />
-        </Field>
-        <Field label="Description" hint="Auditors read this verbatim during sampling.">
-          <Textarea placeholder="What could happen, to which system, and why it matters." />
-        </Field>
-        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-          <Field label="Framework">
-            <NativeSelect value={framework} onChange={(e) => setFramework(e.target.value)}>
-              {["SOC 2", "ISO 27001", "GDPR", "PCI DSS"].map((f) => (
-                <option key={f}>{f}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field label="Linked control">
-            <NativeSelect value={control} onChange={(e) => setControl(e.target.value)}>
-              {["CC6.1", "CC6.2", "CC7.2", "CC9.2", "A.8.9"].map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field isRequired error={req.errorFor("owner")} label="Owner">
-            <Combobox
-              value={owner}
-              onChange={setOwner}
-              options={["Sarah Chen", "Linus Aarto", "Marcus Ryde", "Priya Raghavan"].map(
-                (name) => ({ value: name, label: name }),
-              )}
-              placeholder="Choose an owner"
-              searchPlaceholder="Search people…"
-              className="w-full"
-            />
-          </Field>
-          <Field label="Treatment">
-            <NativeSelect value={treatment} onChange={(e) => setTreatment(e.target.value)}>
-              {["Mitigate", "Accept", "Transfer", "Avoid"].map((t) => (
-                <option key={t}>{t}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field label="Likelihood (1–5)">
-            <Input
-              type="number"
-              min={1}
-              max={5}
-              value={likelihood}
-              onChange={(e) => setLikelihood(e.target.value)}
-            />
-          </Field>
-          <Field label="Impact (1–5)">
-            <Input
-              type="number"
-              min={1}
-              max={5}
-              value={impact}
-              onChange={(e) => setImpact(e.target.value)}
-            />
-          </Field>
-        </Grid>
-      </Stack>
-    </Dialog>
   );
 }

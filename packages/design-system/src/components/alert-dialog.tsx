@@ -1,11 +1,15 @@
+import { useLedgerLocale } from "../lib/locale";
+import { useOverlayFocus } from "./_overlay-focus";
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 
 import { Button } from "./button";
 
 export type AlertDialogProps = {
   /** The caller's state. */
   open: boolean;
+  /** Focus destination after closing; defaults to the opener, then a surviving dialog or main. */
+  returnFocusRef?: RefObject<HTMLElement | null> | undefined;
   /** Called by Cancel and by Escape. Ignored while `pending`. */
   onClose: () => void;
   /** Called by the confirm button. The caller does the act and closes. */
@@ -28,16 +32,19 @@ export type AlertDialogProps = {
 /** A decision that needs a word before it happens. No close button, no outside click: the two buttons are the only way out. */
 export function AlertDialog({
   open,
+  returnFocusRef,
   onClose,
   onConfirm,
   title,
   description,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel,
+  cancelLabel,
   tone = "primary",
   pending = false,
   children,
 }: AlertDialogProps) {
+  const { t, direction } = useLedgerLocale();
+  const restoreFocus = useOverlayFocus(open, returnFocusRef);
   return (
     <AlertDialogPrimitive.Root
       open={open}
@@ -49,6 +56,8 @@ export function AlertDialog({
         <AlertDialogPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-dim-in data-[state=closed]:animate-dim-out" />
         <div className="fixed inset-0 z-50 flex items-start justify-center p-200 sm:pt-1000">
           <AlertDialogPrimitive.Content
+            onCloseAutoFocus={restoreFocus}
+            dir={direction}
             {...(description ? {} : { "aria-describedby": undefined })}
             style={{ maxWidth: 440 }}
             className="relative w-full overflow-hidden rounded-xxlarge bg-surface-overlay shadow-overlay outline-none data-[state=open]:animate-dialog-in data-[state=closed]:animate-dialog-out"
@@ -67,7 +76,7 @@ export function AlertDialog({
             <div className="flex items-center justify-end gap-100 border-t border-default bg-surface-sunken px-250 py-150">
               <AlertDialogPrimitive.Cancel asChild>
                 <Button variant="subtle" disabled={pending}>
-                  {cancelLabel}
+                  {cancelLabel ?? t("cancel")}
                 </Button>
               </AlertDialogPrimitive.Cancel>
               <AlertDialogPrimitive.Action asChild>
@@ -79,7 +88,7 @@ export function AlertDialog({
                     if (!pending) onConfirm();
                   }}
                 >
-                  {confirmLabel}
+                  {confirmLabel ?? t("confirm")}
                 </Button>
               </AlertDialogPrimitive.Action>
             </div>

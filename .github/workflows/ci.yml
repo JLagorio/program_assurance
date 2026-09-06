@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -19,16 +21,26 @@ jobs:
       - run: npm ci
       - name: The generated tokens match the source
         run: npm run build:tokens -w packages/design-system && git diff --exit-code -- packages/design-system/src/generated
-      - name: Every export has a story, every family a matrix
+      - name: Every public component has a story and coverage exceptions cannot grow
+        env:
+          DS_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
         run: node scripts/ds-check.mjs
       - name: The package typechecks, lints and passes its tests
         run: npm run typecheck -w packages/design-system && npm run lint -w packages/design-system && npm test -w packages/design-system
-      - name: Every family matrix passes axe
+      - name: Public declarations and the prop matrix match their reviewed baselines
+        env:
+          DS_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+        run: npm run test:api && npm run ds:api:check -- --base-ref "$DS_BASE_REF" && npm run ds:api:matrix:check
+      - name: Light and dark contracts pass interactions, axe and console checks
         run: npx playwright install --with-deps chromium && npm run test:a11y -w packages/design-system
       - name: The prototype typechecks and lints
         run: npx tsc --noEmit -p tsconfig.json && npx eslint .
+      - name: App commands persist outcomes and recover from storage failures
+        run: npm run test:app && npm run test:app:stories
       - name: Everything builds
         run: npm run build
+      - name: A packed external consumer imports, typechecks, renders and builds CSS
+        run: npm run test:consumer -w packages/design-system
       - name: The package packs
         run: npm pack -w packages/design-system --pack-destination out
       - uses: actions/upload-artifact@v4
@@ -39,10 +51,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: The Storybook builds
-        run: npm run build-storybook -w packages/design-system
+      - name: Both Storybooks build
+        run: npm run build-storybook -w packages/design-system && npm run build-storybook

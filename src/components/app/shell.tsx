@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Archive,
   Bell,
@@ -20,10 +20,22 @@ import {
   Sparkle,
   Users,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+
+import { programs, risks } from "@/lib/grc-data";
+import { findings } from "@/lib/findings";
+import { useRisksVersion } from "@/lib/risk-store";
+import { useProgramsVersion } from "@/lib/program-store";
+import { currentSession, useWorkVersion } from "@/lib/control-work";
+import { openTasks, tasksAssignedTo, useTasksVersion } from "@/lib/tasks";
 
 import {
   Avatar,
+  Button,
+  CommandPalette,
+  Dialog,
+  Stack,
+  TextLink,
   IconButton,
   Inline,
   Input,
@@ -46,7 +58,7 @@ const navGroups: {
   {
     label: "Work",
     items: [
-      { label: "My queue", to: "/scope", icon: ShieldCheck, badge: "1" },
+      { label: "My work", to: "/work", icon: ShieldCheck, badge: "" },
       { label: "Programs", to: "/programs", icon: ClipboardList },
       { label: "Test campaigns", to: "/campaigns", icon: FlaskConical },
       { label: "Portfolio", to: "/", icon: Gauge },
@@ -87,6 +99,16 @@ const topNavEnd = [
 
 export function Shell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  useTasksVersion();
+  useWorkVersion();
+  useRisksVersion();
+  useProgramsVersion();
+  const navigate = useNavigate();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const session = currentSession();
+  const openCount = openTasks(tasksAssignedTo(currentSession().name)).length;
   return (
     <DsShell sideNavShortcut persist>
       <DsShell.TopNav>
@@ -96,33 +118,31 @@ export function Shell({ children }: { children: ReactNode }) {
           </DsShell.AppLogo>
         </DsShell.TopNav.Start>
         <DsShell.TopNav.Middle>
-          <InputGroup
-            leading={<Search />}
-            trailing={
-              <Inline
-                className="pointer-events-none"
-                as="span"
-                space="space.025"
-                alignBlock="center"
-              >
-                <CommandIcon className="size-100" />K
-              </Inline>
-            }
-            width={420}
+          <Button
+            variant="secondary"
+            iconBefore={<Search />}
+            onClick={() => setSearchOpen(true)}
+            aria-label="Search programs, risks, and findings"
           >
-            <Input
-              type="search"
-              placeholder="Search risks, controls, evidence…"
-              aria-label="Search"
-              size="small"
-            />
-          </InputGroup>
+            Search programs, risks, and findings
+          </Button>
         </DsShell.TopNav.Middle>
         <DsShell.TopNav.End>
           <ModeSwitch />
           {topNavEnd.map(([Icon, label]) => (
             <Tooltip key={label} content={label}>
-              <IconButton label={label} variant="subtle" icon={<Icon />} />
+              <IconButton
+                label={label}
+                variant="subtle"
+                icon={<Icon />}
+                onClick={() =>
+                  label === "Help and shortcuts"
+                    ? setHelpOpen(true)
+                    : label === "Settings"
+                      ? setSettingsOpen(true)
+                      : void navigate({ to: "/work" })
+                }
+              />
             </Tooltip>
           ))}
         </DsShell.TopNav.End>
@@ -139,7 +159,13 @@ export function Shell({ children }: { children: ReactNode }) {
                     asChild
                     icon={item.icon}
                     isActive={active}
-                    badge={item.badge}
+                    badge={
+                      item.to === "/work"
+                        ? openCount
+                          ? String(openCount)
+                          : undefined
+                        : item.badge || undefined
+                    }
                   >
                     <Link to={item.to}>{item.label}</Link>
                   </DsShell.SideNav.Item>
@@ -150,15 +176,77 @@ export function Shell({ children }: { children: ReactNode }) {
         </DsShell.SideNav.Body>
         <DsShell.SideNav.Footer>
           <DsShell.Profile
-            avatar={<Avatar name="Sarah Chen" size="small" />}
-            name="Sarah Chen"
-            role="Compliance lead"
-            onClick={() => undefined}
+            avatar={<Avatar name={session.name} size="small" />}
+            name={session.name}
+            role={session.role}
+            onClick={() => setSettingsOpen(true)}
           />
         </DsShell.SideNav.Footer>
         <DsShell.SideNav.Splitter label="Resize side navigation" />
       </DsShell.SideNav>
       <DsShell.Main>{children}</DsShell.Main>
+      <CommandPalette
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        placeholder="Search programs, risks, and findings…"
+        commands={[
+          ...programs.map((program) => ({
+            id: program.id,
+            group: "Programs",
+            label: `${program.id} · ${program.name}${program.archivedAt ? " (archived)" : ""}`,
+            run: () => {
+              void navigate({ to: "/programs/$programId", params: { programId: program.id } });
+            },
+          })),
+          ...risks.map((risk) => ({
+            id: risk.id,
+            group: "Risks",
+            label: `${risk.id} · ${risk.title}`,
+            run: () => {
+              void navigate({ to: "/risks/$riskId", params: { riskId: risk.id } });
+            },
+          })),
+          ...findings.map((finding) => ({
+            id: finding.id,
+            group: "Findings",
+            label: `${finding.id} · ${finding.title}`,
+            run: () => {
+              void navigate({ to: "/findings/$findingId", params: { findingId: finding.id } });
+            },
+          })),
+        ]}
+      />
+      <Dialog
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+        title="Help and shortcuts"
+        description="Find records with the search button. My work shows requests, tasks, and mentions assigned to you."
+      >
+        <Stack space="space.150">
+          <p>
+            Use Tab to move between controls and Enter or Space to activate buttons. Press Escape to
+            close a dialog.
+          </p>
+          <p>On a program record, ⌘K or Ctrl+K opens its command palette.</p>
+          <Button asChild variant="secondary">
+            <Link to="/work">Open my work</Link>
+          </Button>
+        </Stack>
+      </Dialog>
+      <Dialog
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        title="Profile and appearance"
+        description={`Acting as ${session.name} · ${session.role}`}
+      >
+        <Stack space="space.150">
+          <p>Choose the appearance for this browser.</p>
+          <ModeSwitch />
+          <p>
+            The role switch in the lower corner lets you review the prototype with a different role.
+          </p>
+        </Stack>
+      </Dialog>
     </DsShell>
   );
 }

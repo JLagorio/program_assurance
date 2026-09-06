@@ -1,3 +1,4 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Fragment } from "react";
 
@@ -178,7 +179,12 @@ function RiskRecord() {
               actions={
                 <>
                   <Badge tone={statusTone(risk.disposition)}>{risk.disposition}</Badge>
-                  <Button variant="primary">Record AO decision</Button>
+                  <UnavailableAction
+                    reason="Authorization decisions cannot be issued from this read-only register."
+                    variant="primary"
+                  >
+                    Record AO decision
+                  </UnavailableAction>
                 </>
               }
             />

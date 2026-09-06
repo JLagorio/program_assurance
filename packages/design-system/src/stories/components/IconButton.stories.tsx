@@ -17,6 +17,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Both variants down the side; the two sizes, then selected, loading and disabled across. */
 export const IconButtonMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Grid
       rows={["secondary", "subtle"] as const}

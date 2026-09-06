@@ -1,3 +1,4 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
@@ -50,7 +51,14 @@ function PackagesIndex() {
         header={
           <PageHeader
             title="Authorization packages"
-            actions={<Button iconBefore={<RefreshCw />}>Regenerate stale</Button>}
+            actions={
+              <UnavailableAction
+                reason="Open the program export workspace to generate current artifacts."
+                iconBefore={<RefreshCw />}
+              >
+                Regenerate stale
+              </UnavailableAction>
+            }
           />
         }
       >

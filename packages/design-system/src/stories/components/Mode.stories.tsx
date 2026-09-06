@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
+import { expect, userEvent, within } from "storybook/test";
 
 import { Button } from "../../components";
 import { MODE_STORAGE_KEY, ModeProvider, ModeSwitch, useMode, type ColorMode } from "../../mode";
@@ -52,6 +53,7 @@ export const ControlledStory: Story = { name: "Controlled", render: () => <Contr
 
 /** Each state, icons only and with labels; then the control in a row of chrome. Nothing here touches the root. */
 export const ModeMatrix: Story = {
+  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Matrix
@@ -119,4 +121,28 @@ export const Dont: Story = {
 export const Playground: Story = {
   args: { value: "system", showLabels: true },
   render: (args) => <ModeSwitch {...args} onChange={() => {}} />,
+};
+
+/** A controlled read-only field must not silently write the surrounding provider. */
+export const ControlledOwnershipContract: Story = {
+  tags: ["contract"],
+  render: () => (
+    <ModeProvider storageKey="ledger.story.mode-ownership">
+      <Stack>
+        <ModeSwitch value="light" showLabels aria-label="Read-only draft" />
+        <Resolved />
+      </Stack>
+    </ModeProvider>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const before = canvas.getByText(/^Choice:/).textContent;
+    const draft = within(canvas.getByRole("radiogroup", { name: "Read-only draft" }));
+    await userEvent.click(draft.getByRole("radio", { name: "Dark" }));
+    await expect(draft.getByRole("radio", { name: "Light" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    await expect(canvas.getByText(/^Choice:/)).toHaveTextContent(before ?? "");
+  },
 };

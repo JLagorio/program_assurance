@@ -147,7 +147,11 @@ export function NodePreviewSheet({
       {node ? (
         <Stack space="space.050">
           <Block title="Element">
-            <Grid as="dl" columnGap="space.300" templateColumns="repeat(3, minmax(0, 1fr))">
+            <Grid
+              as="dl"
+              columnGap="space.300"
+              templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
+            >
               <KeyValue label="Supplier">
                 {node.supplier}
                 {node.version !== "—" ? ` · ${node.version}` : ""}

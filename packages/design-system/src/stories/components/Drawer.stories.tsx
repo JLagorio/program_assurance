@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
+import { expect, userEvent, within } from "storybook/test";
 
 import { Button, Checkbox, Drawer, Field, Input } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
@@ -112,10 +113,14 @@ function DrawerStates() {
 }
 
 /** Every state one click away, since an open drawer covers the page: quick actions, filters with a footer, and a body that scrolls under the handle. */
-export const DrawerMatrix: Story = { render: () => <DrawerStates /> };
+export const DrawerMatrix: Story = {
+  tags: ["contract"],
+  render: () => <DrawerStates />,
+};
 
 /** Quick actions for one record, held open. Drag the handle down to close it. */
 export const OpenMatrix: Story = {
+  tags: ["contract"],
   name: "Open",
   parameters: modalOpen,
   render: () => (
@@ -183,3 +188,30 @@ function DontDemo() {
 export const Dont: Story = { render: () => <DontDemo /> };
 
 export const Playground: Story = {};
+
+function TitleOnlyDrawer() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Open title-only drawer</Button>
+      <Drawer open={open} onClose={() => setOpen(false)} title="Quick actions">
+        <Button onClick={() => setOpen(false)}>Done</Button>
+      </Drawer>
+    </>
+  );
+}
+
+/** An omitted optional description must not leave a dangling accessible relationship. */
+export const OptionalDescriptionContract: Story = {
+  tags: ["contract"],
+  render: () => <TitleOnlyDrawer />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Open title-only drawer" }));
+    const dialog = await within(canvasElement.ownerDocument.body).findByRole("dialog", {
+      name: "Quick actions",
+    });
+    await expect(dialog).not.toHaveAttribute("aria-describedby");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Done" }));
+  },
+};

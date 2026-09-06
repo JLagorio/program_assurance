@@ -1,3 +1,4 @@
+import { useLedgerLocale } from "../../lib/locale";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 
@@ -7,7 +8,7 @@ import { menuMotion } from "../menu";
 import {
   CardHead,
   divergingColor,
-  formatNumber,
+  useChartFormat,
   sequentialColor,
   type ChartSize,
   type Formatter,
@@ -15,9 +16,7 @@ import {
 
 /** One hue for how much, two for above and below, or a function that says which status tone a cell carries, from its value or its place. */
 export type HeatmapScale =
-  | "sequential"
-  | "diverging"
-  | ((value: number, row: string, column: string) => Tone);
+  "sequential" | "diverging" | ((value: number, row: string, column: string) => Tone);
 
 /** What was chosen on a heatmap: the cell's row, column and value. */
 export type HeatmapSelection = { row: string; column: string; value: number };
@@ -68,7 +67,7 @@ export function ChartHeatmap({
   midpoint = 0,
   showValues,
   size = "medium",
-  format = formatNumber,
+  format: formatProp,
   label,
   rowLabel,
   columnLabel,
@@ -77,6 +76,10 @@ export function ChartHeatmap({
   details,
   className,
 }: ChartHeatmapProps) {
+  const { t } = useLedgerLocale();
+  const { format: defaultFormat } = useChartFormat();
+  const format = formatProp ?? defaultFormat;
+
   const [picked, setPicked] = useState<HeatmapSelection | null>(null);
   const anchor = useRef<HTMLButtonElement | null>(null);
   const values = useMemo(
@@ -127,7 +130,11 @@ export function ChartHeatmap({
   const head = "h-row-header px-050 pb-050 align-bottom font-body-xsmall font-medium text-subtlest";
   return (
     <div className={cn("overflow-x-auto", className)}>
-      <table aria-label={loading ? `${label}, loading` : label} aria-busy={loading || undefined} className="border-collapse">
+      <table
+        aria-label={loading ? t("loadingLabel", { label }) : label}
+        aria-busy={loading || undefined}
+        className="border-collapse"
+      >
         <thead>
           <tr>
             {rowLabel ? (
@@ -172,7 +179,9 @@ export function ChartHeatmap({
                     title={loading ? undefined : title}
                   >
                     {has && printed && !status ? (
-                      <span className="rounded-xsmall bg-surface px-050 text-default">{format(v)}</span>
+                      <span className="rounded-xsmall bg-surface px-050 text-default">
+                        {format(v)}
+                      </span>
                     ) : has && printed ? (
                       format(v)
                     ) : has ? (
@@ -218,7 +227,7 @@ export function ChartHeatmap({
               align="center"
               sideOffset={6}
               collisionPadding={8}
-              aria-label={`${label}, details`}
+              aria-label={t("detailsLabel", { label })}
               onCloseAutoFocus={(e) => e.preventDefault()}
               className={cn(
                 "z-50 flex flex-col gap-150 rounded-large border border-default bg-surface-overlay p-150 font-body text-default shadow-overlay outline-none",

@@ -1,3 +1,4 @@
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { createFileRoute } from "@tanstack/react-router";
 import { Filter, Upload } from "lucide-react";
 
@@ -125,12 +126,20 @@ function Evidence() {
             title="Evidence vault"
             actions={
               <>
-                <Button variant="secondary" iconBefore={<Filter />}>
+                <UnavailableAction
+                  reason="Saved views are not available for evidence yet."
+                  variant="secondary"
+                  iconBefore={<Filter />}
+                >
                   Saved views
-                </Button>
-                <Button variant="primary" iconBefore={<Upload />}>
+                </UnavailableAction>
+                <UnavailableAction
+                  reason="Artifact storage is not connected. Uploads are unavailable."
+                  variant="primary"
+                  iconBefore={<Upload />}
+                >
                   Upload artifact
-                </Button>
+                </UnavailableAction>
               </>
             }
           />

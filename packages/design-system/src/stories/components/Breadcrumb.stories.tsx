@@ -28,6 +28,7 @@ const manyNavs = { a11y: { config: { rules: [{ id: "landmark-unique", enabled: f
 
 /** Two levels, four, the page alone, in-place crumbs, and a trail too long for its header. */
 export const BreadcrumbMatrix: Story = {
+  tags: ["contract"],
   parameters: manyNavs,
   render: () => (
     <Stack space="space.300">

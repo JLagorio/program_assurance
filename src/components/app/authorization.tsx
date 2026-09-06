@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRecordForm } from "@/lib/record-form";
+import { UnavailableAction } from "@/components/app/unavailable-action";
 import { Check, FileSignature, Lock, Plus, ShieldCheck, UserPlus } from "lucide-react";
 
 import {
@@ -21,7 +23,6 @@ import {
   Stack,
   Table,
   Textarea,
-  useRequired,
   Eyebrow,
 } from "@ledger/design-system";
 import {
@@ -99,12 +100,20 @@ export function AuthorizationSection({
           description={`SSP, SAR and POA&M assembled for ${programName} and served read-only to the government assessor.`}
           action={
             <>
-              <Button variant="secondary" iconBefore={<Lock />}>
+              <UnavailableAction
+                reason="Version locking is not available on this draft view."
+                variant="secondary"
+                iconBefore={<Lock />}
+              >
                 Lock version
-              </Button>
-              <Button variant="primary" iconBefore={<FileSignature />}>
+              </UnavailableAction>
+              <UnavailableAction
+                reason="Submission is unavailable until a receiving service is connected."
+                variant="primary"
+                iconBefore={<FileSignature />}
+              >
                 Submit to SCA
-              </Button>
+              </UnavailableAction>
             </>
           }
         >
@@ -126,7 +135,7 @@ export function AuthorizationSection({
                   Milestone C {authorization.milestoneC}
                 </p>
               </div>
-              <Box className="shrink-0" style={{ width: 180 }}>
+              <Box className="shrink-0" style={{ width: 180, maxWidth: "100%" }}>
                 <Progress
                   value={readiness}
                   tone={readiness >= 80 ? "success" : "information"}
@@ -316,12 +325,17 @@ function ObservationModal({
   onLog: (next: ScaObservation) => void;
   programId: string;
 }) {
-  const [title, setTitle] = useState("");
-  const [severity, setSeverity] = useState<ScaObservation["severity"]>("CAT II");
-  const [control, setControl] = useState("");
-  const [due, setDue] = useState("Sep 15, 2026");
-  const [detail, setDetail] = useState("");
-  const req = useRequired({ title, control });
+  const { form, values, formId, formRef } = useRecordForm(
+    {
+      title: "",
+      severity: "CAT II" as ScaObservation["severity"],
+      control: "",
+      due: "Sep 15, 2026",
+      detail: "",
+    },
+    (value) => ({ title: value.title, control: value.control }),
+  );
+  const { title, severity, control, due, detail } = values;
 
   if (!open) return null;
 
@@ -354,8 +368,24 @@ next: triage -> jira issue`}
           </Button>
           <Button
             variant="primary"
-            onClick={() => {
-              if (!req.check()) return;
+            type="submit"
+            form={formId + "-1"}
+            iconBefore={<Check />}
+            disabled={form.state.isSubmitting}
+          >
+            Log observation
+          </Button>
+        </>
+      }
+    >
+      <form
+        id={formId + "-1"}
+        ref={formRef}
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit({
+            save: () => {
               onLog({
                 id: `OBS-${119 + Math.floor(Date.now() % 40)}`,
                 title: title || "Untitled observation",
@@ -370,53 +400,125 @@ next: triage -> jira issue`}
                 detail,
                 response: "",
               });
-            }}
-            iconBefore={<Check />}
+            },
+          });
+        }}
+      >
+        <Stack space="space.150">
+          <form.Field name="title">
+            {(field) => (
+              <Field
+                isRequired
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+                label="Observation"
+              >
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="e.g. Session termination not enforced on maintenance console"
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+          <Grid
+            gap="space.150"
+            templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" }}
           >
-            Log observation
-          </Button>
-        </>
-      }
-    >
-      <Stack space="space.150">
-        <Field isRequired error={req.errorFor("title")} label="Observation">
-          <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Session termination not enforced on maintenance console"
-          />
-        </Field>
-        <Grid gap="space.150" templateColumns="repeat(3, minmax(0, 1fr))">
-          <Field label="Severity">
-            <NativeSelect
-              value={severity}
-              onChange={(e) => setSeverity(e.target.value as ScaObservation["severity"])}
-            >
-              <option>CAT I</option>
-              <option>CAT II</option>
-              <option>CAT III</option>
-            </NativeSelect>
-          </Field>
-          <Field isRequired error={req.errorFor("control")} label="Control">
-            <Input
-              value={control}
-              onChange={(e) => setControl(e.target.value)}
-              placeholder="AC-12"
-            />
-          </Field>
-          <Field label="Response due">
-            <Input value={due} onChange={(e) => setDue(e.target.value)} />
-          </Field>
-        </Grid>
-        <Field label="Assessor detail">
-          <Textarea
-            rows={4}
-            value={detail}
-            onChange={(e) => setDetail(e.target.value)}
-            placeholder="What was observed, where, and under what test conditions…"
-          />
-        </Field>
-      </Stack>
+            <form.Field name="severity">
+              {(field) => (
+                <Field
+                  label="Severity"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value}
+                    onChange={(e) =>
+                      field.handleChange(e.target.value as ScaObservation["severity"])
+                    }
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    <option>CAT I</option>
+                    <option>CAT II</option>
+                    <option>CAT III</option>
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="control">
+              {(field) => (
+                <Field
+                  isRequired
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                  label="Control"
+                >
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="AC-12"
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  />
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="due">
+              {(field) => (
+                <Field
+                  label="Response due"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  />
+                </Field>
+              )}
+            </form.Field>
+          </Grid>
+          <form.Field name="detail">
+            {(field) => (
+              <Field
+                label="Assessor detail"
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+              >
+                <Textarea
+                  rows={4}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="What was observed, where, and under what test conditions…"
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+        </Stack>
+      </form>
     </Dialog>
   );
 }
@@ -432,22 +534,28 @@ function RemediationModal({
   onClose: () => void;
   onSave: (next: ScaObservation) => void;
 }) {
-  const [key, setKey] = useState<string | null>(null);
-  const [status, setStatus] = useState<ScaObservationStatus>("Triaged");
-  const [project, setProject] = useState("TRIDENT");
-  const [assignee, setAssignee] = useState(jiraAssignees[0]!);
-  const [due, setDue] = useState("");
-  const [response, setResponse] = useState("");
-  const req = useRequired({ assignee, due, response });
+  const { form, values, formId, formRef } = useRecordForm(
+    {
+      status: "Triaged" as ScaObservationStatus,
+      project: "TRIDENT",
+      assignee: jiraAssignees[0]!,
+      due: "",
+      response: "",
+    },
+    (value) => ({ assignee: value.assignee, due: value.due, response: value.response }),
+  );
+  const { status, project, assignee, due, response } = values;
 
-  if (observation && key !== observation.id) {
-    setKey(observation.id);
-    setStatus(observation.status === "Logged" ? "Triaged" : observation.status);
-    setProject(observation.jira?.split("-")[0] ?? "TRIDENT");
-    setAssignee(observation.assignee !== "—" ? observation.assignee : jiraAssignees[0]!);
-    setDue(observation.due);
-    setResponse(observation.response);
-  }
+  useEffect(() => {
+    if (observation)
+      form.reset({
+        status: observation.status === "Logged" ? "Triaged" : observation.status,
+        project: observation.jira?.split("-")[0] ?? "TRIDENT",
+        assignee: observation.assignee !== "—" ? observation.assignee : jiraAssignees[0]!,
+        due: observation.due,
+        response: observation.response,
+      });
+  }, [observation, form]);
   if (!observation) return null;
 
   const jira =
@@ -493,8 +601,24 @@ links:
           </Button>
           <Button
             variant="primary"
-            onClick={() => {
-              if (!req.check()) return;
+            type="submit"
+            form={formId + "-2"}
+            iconBefore={<Check />}
+            disabled={form.state.isSubmitting}
+          >
+            Save & sync
+          </Button>
+        </>
+      }
+    >
+      <form
+        id={formId + "-2"}
+        ref={formRef}
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit({
+            save: () => {
               onSave({
                 ...observation,
                 status,
@@ -503,49 +627,130 @@ links:
                 due,
                 response,
               });
-            }}
-            iconBefore={<Check />}
+            },
+          });
+        }}
+      >
+        <Stack space="space.150">
+          <p className="font-body text-subtle">{observation.detail}</p>
+          <Grid
+            gap="space.150"
+            templateColumns={{ base: "minmax(0, 1fr)", md: "repeat(4, minmax(0, 1fr))" }}
           >
-            Save & sync
-          </Button>
-        </>
-      }
-    >
-      <Stack space="space.150">
-        <p className="font-body text-subtle">{observation.detail}</p>
-        <Grid gap="space.150" templateColumns="repeat(4, minmax(0, 1fr))">
-          <Field label="Status">
-            <NativeSelect
-              value={status}
-              onChange={(e) => setStatus(e.target.value as ScaObservationStatus)}
-            >
-              {observationStatuses.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field label="Jira project">
-            <NativeSelect value={project} onChange={(e) => setProject(e.target.value)}>
-              {jiraProjects.map((p) => (
-                <option key={p}>{p}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field isRequired error={req.errorFor("assignee")} label="Assignee">
-            <NativeSelect value={assignee} onChange={(e) => setAssignee(e.target.value)}>
-              {jiraAssignees.map((a) => (
-                <option key={a}>{a}</option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field isRequired error={req.errorFor("due")} label="Due">
-            <Input value={due} onChange={(e) => setDue(e.target.value)} />
-          </Field>
-        </Grid>
-        <Field isRequired error={req.errorFor("response")} label="Program response to the assessor">
-          <Textarea rows={4} value={response} onChange={(e) => setResponse(e.target.value)} />
-        </Field>
-      </Stack>
+            <form.Field name="status">
+              {(field) => (
+                <Field
+                  label="Status"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value as ScaObservationStatus)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {observationStatuses.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="project">
+              {(field) => (
+                <Field
+                  label="Jira project"
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                >
+                  <NativeSelect
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {jiraProjects.map((p) => (
+                      <option key={p}>{p}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="assignee">
+              {(field) => (
+                <Field
+                  isRequired
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                  label="Assignee"
+                >
+                  <NativeSelect
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  >
+                    {jiraAssignees.map((a) => (
+                      <option key={a}>{a}</option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="due">
+              {(field) => (
+                <Field
+                  isRequired
+                  error={
+                    field.state.meta.isTouched && !field.state.meta.isValid
+                      ? [...new Set(field.state.meta.errors)].join(" ")
+                      : undefined
+                  }
+                  label="Due"
+                >
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                  />
+                </Field>
+              )}
+            </form.Field>
+          </Grid>
+          <form.Field name="response">
+            {(field) => (
+              <Field
+                isRequired
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+                label="Program response to the assessor"
+              >
+                <Textarea
+                  rows={4}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+        </Stack>
+      </form>
     </Dialog>
   );
 }
@@ -553,10 +758,15 @@ links:
 /* ------------------------------------------------------------ grant modal */
 
 function GrantModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState("SCA team");
-  const [access, setAccess] = useState("Read only");
-  const req = useRequired({ email });
+  const { form, values } = useRecordForm(
+    {
+      email: "",
+      role: "SCA team",
+      access: "Read only",
+    },
+    (value) => ({ email: value.email }),
+  );
+  const { email, role, access } = values;
 
   if (!open) return null;
   return (
@@ -570,48 +780,90 @@ function GrantModal({ open, onClose }: { open: boolean; onClose: () => void }) {
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button
+          <UnavailableAction
+            reason="Signing and access administration require connected services. This workspace cannot issue approvals or grant access."
             variant="primary"
-            onClick={() => {
-              if (!req.check()) return;
-              onClose();
-            }}
             iconBefore={<Check />}
           >
             Send invite
-          </Button>
+          </UnavailableAction>
         </>
       }
     >
       <Stack space="space.150">
-        <Field
-          isRequired
-          error={req.errorFor("email")}
-          label="Government email"
-          hint=".mil or .gov only"
+        <form.Field name="email">
+          {(field) => (
+            <Field
+              isRequired
+              error={
+                field.state.meta.isTouched && !field.state.meta.isValid
+                  ? [...new Set(field.state.meta.errors)].join(" ")
+                  : undefined
+              }
+              label="Government email"
+              hint=".mil or .gov only"
+            >
+              <Input
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder="first.last@us.navy.mil"
+                name={field.name}
+                onBlur={field.handleBlur}
+              />
+            </Field>
+          )}
+        </form.Field>
+        <Grid
+          gap="space.150"
+          templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
         >
-          <Input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="first.last@us.navy.mil"
-          />
-        </Field>
-        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-          <Field label="Role">
-            <NativeSelect value={role} onChange={(e) => setRole(e.target.value)}>
-              <option>SCA</option>
-              <option>SCA team</option>
-              <option>AO</option>
-              <option>AODR</option>
-            </NativeSelect>
-          </Field>
-          <Field label="Access">
-            <NativeSelect value={access} onChange={(e) => setAccess(e.target.value)}>
-              <option>Read only</option>
-              <option>Read + comment</option>
-              <option>Sign authority</option>
-            </NativeSelect>
-          </Field>
+          <form.Field name="role">
+            {(field) => (
+              <Field
+                label="Role"
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+              >
+                <NativeSelect
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                >
+                  <option>SCA</option>
+                  <option>SCA team</option>
+                  <option>AO</option>
+                  <option>AODR</option>
+                </NativeSelect>
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="access">
+            {(field) => (
+              <Field
+                label="Access"
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+              >
+                <NativeSelect
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                >
+                  <option>Read only</option>
+                  <option>Read + comment</option>
+                  <option>Sign authority</option>
+                </NativeSelect>
+              </Field>
+            )}
+          </form.Field>
         </Grid>
       </Stack>
     </Dialog>
@@ -671,7 +923,7 @@ export function BriefingRoom() {
                   {authorization.targetSignature}
                 </p>
               </div>
-              <Box className="shrink-0" style={{ width: 180 }}>
+              <Box className="shrink-0" style={{ width: 180, maxWidth: "100%" }}>
                 <Progress
                   value={progress}
                   tone={pending.length > 0 ? "warning" : "success"}
@@ -807,16 +1059,22 @@ function RiskDecisionModal({
   onClose: () => void;
   onSave: (next: ResidualRisk) => void;
 }) {
-  const [key, setKey] = useState<string | null>(null);
-  const [decision, setDecision] = useState<ResidualRisk["decision"]>("Accepted");
-  const [rationale, setRationale] = useState("");
-  const req = useRequired({ rationale });
+  const { form, values, formId, formRef } = useRecordForm(
+    {
+      decision: "Accepted" as ResidualRisk["decision"],
+      rationale: "",
+    },
+    (value) => ({ rationale: value.rationale }),
+  );
+  const { decision, rationale } = values;
 
-  if (risk && key !== risk.id) {
-    setKey(risk.id);
-    setDecision(risk.decision === "Pending AO" ? "Accepted" : risk.decision);
-    setRationale(risk.rationale);
-  }
+  useEffect(() => {
+    if (risk)
+      form.reset({
+        decision: risk.decision === "Pending AO" ? "Accepted" : risk.decision,
+        rationale: risk.rationale,
+      });
+  }, [risk, form]);
   if (!risk) return null;
 
   return (
@@ -852,50 +1110,94 @@ function RiskDecisionModal({
           </Button>
           <Button
             variant="primary"
-            onClick={() => {
-              if (!req.check()) return;
-              onSave({ ...risk, decision, rationale });
-            }}
+            type="submit"
+            form={formId + "-3"}
             iconBefore={<ShieldCheck />}
+            disabled={form.state.isSubmitting}
           >
             Record decision
           </Button>
         </>
       }
     >
-      <Stack space="space.150">
-        <p className="font-body text-subtle">Mitigation in place: {risk.mitigation}</p>
-        <Field label="AO decision">
-          <NativeSelect
-            value={decision}
-            onChange={(e) => setDecision(e.target.value as ResidualRisk["decision"])}
-          >
-            <option>Accepted</option>
-            <option>Rejected</option>
-            <option>Deferred</option>
-            <option>Pending AO</option>
-          </NativeSelect>
-        </Field>
-        <Field isRequired error={req.errorFor("rationale")} label="Rationale for the record">
-          <Textarea
-            rows={4}
-            value={rationale}
-            onChange={(e) => setRationale(e.target.value)}
-            placeholder="Basis for acceptance, conditions, and review point…"
-          />
-        </Field>
-      </Stack>
+      <form
+        id={formId + "-3"}
+        ref={formRef}
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit({
+            save: () => {
+              onSave({ ...risk, decision, rationale });
+            },
+          });
+        }}
+      >
+        <Stack space="space.150">
+          <p className="font-body text-subtle">Mitigation in place: {risk.mitigation}</p>
+          <form.Field name="decision">
+            {(field) => (
+              <Field
+                label="AO decision"
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+              >
+                <NativeSelect
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value as ResidualRisk["decision"])}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                >
+                  <option>Accepted</option>
+                  <option>Rejected</option>
+                  <option>Deferred</option>
+                  <option>Pending AO</option>
+                </NativeSelect>
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="rationale">
+            {(field) => (
+              <Field
+                isRequired
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+                label="Rationale for the record"
+              >
+                <Textarea
+                  rows={4}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Basis for acceptance, conditions, and review point…"
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
+        </Stack>
+      </form>
     </Dialog>
   );
 }
 
 function MemoModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [type, setType] = useState(authorization.type);
-  const [expires, setExpires] = useState("Oct 02, 2029");
-  const [conditions, setConditions] = useState(
-    "Close POAM-0031 and POAM-0044 within 90 days. Submit continuous monitoring report quarterly.",
+  const { form, values } = useRecordForm(
+    {
+      type: authorization.type,
+      expires: "Oct 02, 2029",
+      conditions:
+        "Close POAM-0031 and POAM-0044 within 90 days. Submit continuous monitoring report quarterly.",
+    },
+    (value) => ({ expires: value.expires }),
   );
-  const req = useRequired({ expires });
+  const { type, expires, conditions } = values;
 
   if (!open) return null;
   return (
@@ -929,37 +1231,87 @@ conditions: |
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button
+          <UnavailableAction
+            reason="Signing and access administration require connected services. This workspace cannot issue approvals or grant access."
             variant="primary"
-            onClick={() => {
-              if (!req.check()) return;
-              onClose();
-            }}
             iconBefore={<FileSignature />}
           >
             Sign & issue
-          </Button>
+          </UnavailableAction>
         </>
       }
     >
       <Stack space="space.150">
-        <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
-          <Field label="Authorization type">
-            <NativeSelect value={type} onChange={(e) => setType(e.target.value)}>
-              <option>ATO with conditions (36 months)</option>
-              <option>ATO (36 months)</option>
-              <option>Continuous ATO (cATO)</option>
-              <option>IATT (90 days)</option>
-              <option>Denial of authorization</option>
-            </NativeSelect>
-          </Field>
-          <Field isRequired error={req.errorFor("expires")} label="Expires">
-            <Input value={expires} onChange={(e) => setExpires(e.target.value)} />
-          </Field>
+        <Grid
+          gap="space.150"
+          templateColumns={{ base: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}
+        >
+          <form.Field name="type">
+            {(field) => (
+              <Field
+                label="Authorization type"
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+              >
+                <NativeSelect
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                >
+                  <option>ATO with conditions (36 months)</option>
+                  <option>ATO (36 months)</option>
+                  <option>Continuous ATO (cATO)</option>
+                  <option>IATT (90 days)</option>
+                  <option>Denial of authorization</option>
+                </NativeSelect>
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="expires">
+            {(field) => (
+              <Field
+                isRequired
+                error={
+                  field.state.meta.isTouched && !field.state.meta.isValid
+                    ? [...new Set(field.state.meta.errors)].join(" ")
+                    : undefined
+                }
+                label="Expires"
+              >
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                />
+              </Field>
+            )}
+          </form.Field>
         </Grid>
-        <Field label="Conditions of authorization">
-          <Textarea rows={4} value={conditions} onChange={(e) => setConditions(e.target.value)} />
-        </Field>
+        <form.Field name="conditions">
+          {(field) => (
+            <Field
+              label="Conditions of authorization"
+              error={
+                field.state.meta.isTouched && !field.state.meta.isValid
+                  ? [...new Set(field.state.meta.errors)].join(" ")
+                  : undefined
+              }
+            >
+              <Textarea
+                rows={4}
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                name={field.name}
+                onBlur={field.handleBlur}
+              />
+            </Field>
+          )}
+        </form.Field>
       </Stack>
     </Dialog>
   );

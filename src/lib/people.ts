@@ -426,3 +426,15 @@ export function crossDisciplineEdges(programId: string) {
   }
   return Array.from(seen.values()).sort((x, y) => y.via.length - x.via.length);
 }
+
+/** Who a note can mention and a task can go to: the program's people first, then everyone. */
+export function mentionablePeople(programId?: string): { name: string; meta: string }[] {
+  const inProgram = programId ? peopleForProgram(programId) : [];
+  const seen = new Set(inProgram.map((p) => p.id));
+  const rest = people.filter((p) => !seen.has(p.id));
+  return [...inProgram, ...rest].map((p) => ({ name: p.name, meta: p.discipline }));
+}
+
+export function personByName(name: string): Person | undefined {
+  return people.find((p) => p.name === name);
+}

@@ -15,13 +15,13 @@ A date the reader already knows, a date of birth or the month on an authorizatio
 
 ## Anatomy
 
-| Part    | What it is                                                                                                                                                             |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Label   | From the [Field](?path=/docs/components-field--docs), or `aria-label` on a picker in a toolbar. It is the control's name.                                              |
-| Control | The field: `dimension.control.medium` (32px) or `small` (28px), the calendar icon in `color.icon.subtle` at the start, then the day in words in tabular figures, or the placeholder in `color.text.subtlest`. |
+| Part    | What it is                                                                                                                                                                                                               |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Label   | From the [Field](?path=/docs/components-field--docs), or `aria-label` on a picker in a toolbar. It is the control's name.                                                                                                |
+| Control | The field: `dimension.control.medium` (32px) or `small` (28px), the calendar icon in `color.icon.subtle` at the start, then the day in words in tabular figures, or the placeholder in `color.text.subtlest`.            |
 | Month   | The [Calendar](?path=/docs/components-calendar--docs) in a Popover under the field, aligned to its start edge: the month's name, previous and next, the weekdays, the days. Today is semibold; the chosen day is filled. |
-| Footer  | Under the month, two subtle small Buttons: **Today** picks today, **Clear** empties the field. Clear is disabled while the field is empty.                              |
-| Message | From the Field, under the control: the hint, or the error that replaces it.                                                                                            |
+| Footer  | Under the month, two subtle small Buttons: **Today** picks today, **Clear** empties the field. Clear is disabled while the field is empty.                                                                               |
+| Message | From the Field, under the control: the hint, or the error that replaces it.                                                                                                                                              |
 
 <Canvas of={Stories.Open} />
 
@@ -29,35 +29,35 @@ A date the reader already knows, a date of birth or the month on an authorizatio
 
 DatePicker has one appearance. What varies is which control the date wants:
 
-| The date                                            | Use                                                                                       |
-| --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| A day to schedule, near today                       | `DatePicker`.                                                                             |
-| A day the reader remembers, or an approximate date  | `Input`, with the format in the hint: "Month and year, as on the ATO letter."             |
-| A range that filters a table                        | `Calendar` in `mode="range"` inside a Popover, with the range shown on its trigger.       |
-| A date shown, not edited                            | Text: a [KeyValue](?path=/docs/components-keyvalue--docs) row, a [Fact](?path=/docs/components-fact--docs). |
+| The date                                           | Use                                                                                                         |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| A day to schedule, near today                      | `DatePicker`.                                                                                               |
+| A day the reader remembers, or an approximate date | `Input`, with the format in the hint: "Month and year, as on the ATO letter."                               |
+| A range that filters a table                       | `Calendar` in `mode="range"` inside a Popover, with the range shown on its trigger.                         |
+| A date shown, not edited                           | Text: a [KeyValue](?path=/docs/components-keyvalue--docs) row, a [Fact](?path=/docs/components-fact--docs). |
 
 Not built, by decision: no typed entry in the field (a typed date is an Input, and the picker stays a picker), no time, no range in one field, and no month or year menus in the caption: the picker is for near days, reached by paging.
 
 ## Sizes
 
-| Size     | Height                          | Use                                                                          |
-| -------- | ------------------------------- | ---------------------------------------------------------------------------- |
-| `medium` | `dimension.control.medium` 32px | In a form, inside a Field, beside medium Buttons. The default.               |
-| `small`  | `dimension.control.small` 28px  | A toolbar, beside small Buttons.                                             |
+| Size     | Height                          | Use                                                            |
+| -------- | ------------------------------- | -------------------------------------------------------------- |
+| `medium` | `dimension.control.medium` 32px | In a form, inside a Field, beside medium Buttons. The default. |
+| `small`  | `dimension.control.small` 28px  | A toolbar, beside small Buttons.                               |
 
 The field's width is the layout's: in a form's Grid the column sets it, and "Sep 14, 2026" fits in a narrow one. The month is a fixed size, seven 32px cells wide, and does not follow the field.
 
 ## States
 
-| State    | What changes                                                                                                                                      |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Rest     | `color.border.input` on `color.background.input`; the day, or the placeholder in `color.text.subtlest`.                                            |
-| Hover    | The background steps to `color.background.input.hovered`.                                                                                          |
-| Focus    | The border turns `color.border.focused` and the focus outline shows.                                                                               |
-| Open     | The month is open under the field with focus on the chosen day, or on today. The field keeps its focus look.                                       |
-| Filled   | A day is chosen and shown in words; its cell is filled in the month.                                                                               |
-| Invalid  | `aria-invalid`, from the Field's `error`: the border turns `color.border.danger` and the error replaces the hint.                                   |
-| Disabled | `color.background.disabled`, `color.border.disabled`, `color.text.disabled`. See Accessibility for when.                                           |
+| State    | What changes                                                                                                      |
+| -------- | ----------------------------------------------------------------------------------------------------------------- |
+| Rest     | `color.border.input` on `color.background.input`; the day, or the placeholder in `color.text.subtlest`.           |
+| Hover    | The background steps to `color.background.input.hovered`.                                                         |
+| Focus    | The border turns `color.border.focused` and the focus outline shows.                                              |
+| Open     | The month is open under the field with focus on the chosen day, or on today. The field keeps its focus look.      |
+| Filled   | A day is chosen and shown in words; its cell is filled in the month.                                              |
+| Invalid  | `aria-invalid`, from the Field's `error`: the border turns `color.border.danger` and the error replaces the hint. |
+| Disabled | `color.background.disabled`, `color.border.disabled`, `color.text.disabled`. See Accessibility for when.          |
 
 A DatePicker has no read-only state. A date the reader can see but not change here is text.
 
@@ -65,9 +65,10 @@ A DatePicker has no read-only state. A date the reader can see but not change he
 
 ## Modifiers
 
-- **`value` with `onChange`**, or `defaultValue`, both ISO days. `onChange` reports `""` when the reader clears the field. A form with `useRequired` is controlled.
+- **`value` with `onChange`**, or `defaultValue`, both ISO days. `onChange` reports `""` when the reader clears the field. A TanStack form uses controlled values.
 - **`placeholder`** for what to do: "Choose a date". Never a format; the reader cannot type here.
-- **`name`** when a form submits natively; a hidden input carries the ISO day.
+- **`name`** when a form submits natively; a persistent hidden input carries the ISO day whether the calendar is open or closed. `form` associates both trigger and value with an external form. Disabled pickers are omitted from submission. Native reset restores `defaultValue` for uncontrolled pickers; the caller owns reset for controlled values.
+- **`ref`**, `onFocus`, `onBlur`, ARIA and data attributes target the visible button. Use `onBlur` to mark a field touched. `useRequired` can focus a named DatePicker through its form, or an explicit `fieldRefs` entry.
 - **`defaultOpen`** for a sheet that exists to pick this day.
 - **`size`** for a toolbar.
 
@@ -80,23 +81,23 @@ A DatePicker has no read-only state. A date the reader can see but not change he
 
 ## Style
 
-| Element   | Token                                                                                              |
-| --------- | -------------------------------------------------------------------------------------------------- |
-| Field     | `color.background.input` · `color.border.input` · `radius.medium` 5px                              |
-| Hover     | `color.background.input.hovered`                                                                   |
-| Focus     | `color.border.focused` as the border, plus the focus outline                                       |
-| Invalid   | `color.border.danger`; the message in `color.text.danger`                                          |
-| Disabled  | `color.background.disabled` · `color.border.disabled` · `color.text.disabled`                      |
-| Icon      | `color.icon.subtle` · `dimension.icon.small` 14px, at the start                                    |
-| Value     | `font.body` in `color.text`, tabular figures; placeholder in `color.text.subtlest`                 |
-| Month     | The Calendar's tokens, on `elevation.surface.overlay` with `color.border.default`, `radius.large`, `elevation.shadow.overlay` |
-| Footer    | A `color.border.default` rule above; `space.150` at the sides, `space.100` above and below; subtle small Buttons |
+| Element  | Token                                                                                                                         |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Field    | `color.background.input` · `color.border.input` · `radius.medium` 5px                                                         |
+| Hover    | `color.background.input.hovered`                                                                                              |
+| Focus    | `color.border.focused` as the border, plus the focus outline                                                                  |
+| Invalid  | `color.border.danger`; the message in `color.text.danger`                                                                     |
+| Disabled | `color.background.disabled` · `color.border.disabled` · `color.text.disabled`                                                 |
+| Icon     | `color.icon.subtle` · `dimension.icon.small` 14px, at the start                                                               |
+| Value    | `font.body` in `color.text`, tabular figures; placeholder in `color.text.subtlest`                                            |
+| Month    | The Calendar's tokens, on `elevation.surface.overlay` with `color.border.default`, `radius.large`, `elevation.shadow.overlay` |
+| Footer   | A `color.border.default` rule above; `space.150` at the sides, `space.100` above and below; subtle small Buttons              |
 
-| Measure | Value                                                                        |
-| ------- | ---------------------------------------------------------------------------- |
-| Height  | `dimension.control.medium` 32px · `dimension.control.small` 28px             |
-| Gap     | `space.100` 8px between the icon and the day                                 |
-| Month   | `space.050` 4px below the field, aligned to its start edge; 32px cells       |
+| Measure | Value                                                                                   |
+| ------- | --------------------------------------------------------------------------------------- |
+| Height  | `dimension.control.medium` 32px · `dimension.control.small` 28px                        |
+| Gap     | `space.100` 8px between the icon and the day                                            |
+| Month   | `space.050` 4px below the field, aligned to its start edge; 32px cells                  |
 | Motion  | `motion.duration.fast` on the colours; the month enters and leaves with the menu motion |
 
 ## Accessibility
@@ -123,7 +124,7 @@ A DatePicker has no read-only state. A date the reader can see but not change he
 
 - [Calendar](?path=/docs/components-calendar--docs): the month inside, and on its own for a range.
 - [Input](?path=/docs/components-input--docs): a date the reader types.
-- [Field](?path=/docs/components-field--docs) and [Forms](?path=/docs/components-forms--docs): the label, the hint, the error, and `useRequired`.
+- [Field](?path=/docs/components-field--docs) and [Forms](?path=/docs/patterns-forms--docs): the label, the hint, the error, and TanStack Form validation.
 - [Popover](?path=/docs/components-popover--docs): the surface the month opens in.
 - [Timeline](?path=/docs/components-timeline--docs): dates shown in order, not chosen.
 
