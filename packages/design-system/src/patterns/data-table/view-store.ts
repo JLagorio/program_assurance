@@ -1,10 +1,11 @@
 import type { RowData } from "@tanstack/react-table";
 import { useEffect, useRef } from "react";
 
+import type { Density } from "../../mode/density";
 import type { DataTableInstance } from "./use-data-table";
 
 /*
- * The reader's view: column order, widths, visibility and pins, per table, per browser. The URL
+ * The reader's view: column order, widths, visibility, pins and density, per table, per browser. The URL
  * keeps the question (sort, filters, page); this keeps the layout. Read on mount and applied over
  * the author's defaults in one commit; written on every change of the four slices. A stored column
  * the table no longer has is dropped; a column the store does not know takes its default place.
@@ -20,6 +21,7 @@ type StoredView = {
   sizing: Record<string, number>;
   visibility: Record<string, boolean>;
   pinning: { start: string[]; end: string[] };
+  density?: Density | undefined;
 };
 
 export function readView(view: string): StoredView | null {
@@ -57,6 +59,7 @@ export function useViewStore<TData extends RowData>(
 ) {
   const loaded = useRef(false);
   const { columnOrder, columnSizing, columnVisibility, columnPinning } = table.state;
+  const density = table.options.meta?.density;
 
   useEffect(() => {
     if (!view) return;
@@ -77,6 +80,7 @@ export function useViewStore<TData extends RowData>(
         Object.fromEntries(Object.entries(stored.visibility).filter(([id]) => known.has(id))),
       );
       table.setColumnPinning({ start: keep(stored.pinning.start), end: keep(stored.pinning.end) });
+      if (stored.density) table.options.meta?.setDensity?.(stored.density);
     }
     loaded.current = true;
     // runs once per table and view name; the table instance is stable
@@ -89,8 +93,9 @@ export function useViewStore<TData extends RowData>(
       sizing: columnSizing,
       visibility: columnVisibility,
       pinning: { start: columnPinning.start, end: columnPinning.end },
+      ...(density ? { density } : {}),
     });
-  }, [view, columnOrder, columnSizing, columnVisibility, columnPinning]);
+  }, [view, columnOrder, columnSizing, columnVisibility, columnPinning, density]);
 }
 
 /** Back to the author's layout, and the store forgets the reader's. */
@@ -99,6 +104,7 @@ export function resetView<TData extends RowData>(table: DataTableInstance<TData>
   table.resetColumnSizing(true);
   table.resetColumnVisibility(true);
   table.resetColumnPinning(true);
+  table.options.meta?.setDensity?.(table.options.meta.defaultDensity ?? "default");
   const view = table.options.meta?.view;
   if (view) clearView(view);
 }

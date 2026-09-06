@@ -1,101 +1,56 @@
 import { AlignJustify, Rows3 } from "lucide-react";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import type { ReactNode } from "react";
 
 import { ToggleGroup } from "../components/toggle";
 
 /*
- * The row density. density.css reads `data-density` on the root: "compact" resolves
- * `dimension.row` to `dimension.row.compact`, so every table in the app follows one setting and no
- * table takes a density prop. The same three parts as the colour mode: storage, a before-paint
- * script, a provider with the control. Per browser, never per account. A table that is compact by
- * design (a picker's) sets the attribute on its own frame instead.
+ * Row density is a table's setting, not the document's. `Table` takes `density`; a DataTable keeps
+ * the reader's choice with the rest of its view and offers it as Compact rows in its Columns menu;
+ * a picker's table is compact by design. density.css resolves dimension.row to its compact value
+ * under `data-density="compact"` on any frame, which is what `Table density` sets. The app-wide
+ * provider, script and switch of 0.5 are kept for one release as no-ops, so a product that mounted
+ * them keeps rendering while `ledger/no-deprecated-name` points at the table's setting.
  */
 
 export type Density = "default" | "compact";
 
+/** @deprecated Density is a table's: `Table density`, or Compact rows in a DataTable's Columns menu. Nothing is stored under this key any more. */
 export const DENSITY_STORAGE_KEY = "ledger.density";
 
-/** The stored choice; "default" when nothing is stored or storage is unavailable. */
-export function readDensity(key: string = DENSITY_STORAGE_KEY): Density {
-  try {
-    return localStorage.getItem(key) === "compact" ? "compact" : "default";
-  } catch {
-    return "default";
-  }
+/** @deprecated Density is a table's. Returns `default`. */
+export function readDensity(_key?: string): Density {
+  return "default";
 }
 
-/** Stores the choice; "default" clears it. */
-export function writeDensity(density: Density, key: string = DENSITY_STORAGE_KEY): void {
-  try {
-    if (density === "default") localStorage.removeItem(key);
-    else localStorage.setItem(key, density);
-  } catch {
-    // storage unavailable: the choice lives for the page
-  }
+/** @deprecated Density is a table's. Does nothing. */
+export function writeDensity(_density: Density, _key?: string): void {
+  // the setting lives with each table's view now
 }
 
-/** Sets or removes `data-density` on the root. */
-export function applyDensity(density: Density, root: HTMLElement = document.documentElement): void {
-  if (density === "default") delete root.dataset["density"];
-  else root.dataset["density"] = density;
+/** @deprecated Density is a table's. Does nothing. */
+export function applyDensity(_density: Density, _root?: HTMLElement): void {
+  // the setting lives with each table's view now
 }
 
-/** The before-paint script for a custom storage key; put it in the document head beside the mode script. */
-export const densityScriptFor = (key: string): string =>
-  `(function(){try{if(localStorage.getItem(${JSON.stringify(key)})==="compact")document.documentElement.dataset.density="compact";}catch(e){}})();`;
+/** @deprecated Density is a table's. An empty script. */
+export const densityScriptFor = (_key: string): string => "";
 
-/** The before-paint script for the default key. */
-export const densityScript = densityScriptFor(DENSITY_STORAGE_KEY);
+/** @deprecated Density is a table's. An empty script. */
+export const densityScript = "";
 
-type DensityContextValue = { density: Density; setDensity: (density: Density) => void };
-
-const DensityContext = createContext<DensityContextValue | null>(null);
-
-/** Owns the choice: reads storage on mount (a no-op after the before-paint script), stores and applies every change. */
+/** @deprecated Density is a table's. Renders its children and touches nothing. */
 export function DensityProvider({
-  storageKey = DENSITY_STORAGE_KEY,
   children,
 }: {
   storageKey?: string | undefined;
   children: ReactNode;
 }) {
-  const [density, setDensityState] = useState<Density>("default");
-
-  useEffect(() => {
-    const stored = readDensity(storageKey);
-    setDensityState(stored);
-    applyDensity(stored);
-  }, [storageKey]);
-
-  const setDensity = useCallback(
-    (next: Density) => {
-      setDensityState(next);
-      writeDensity(next, storageKey);
-      applyDensity(next);
-    },
-    [storageKey],
-  );
-
-  const value = useMemo<DensityContextValue>(
-    () => ({ density, setDensity }),
-    [density, setDensity],
-  );
-  return <DensityContext.Provider value={value}>{children}</DensityContext.Provider>;
+  return <>{children}</>;
 }
 
-/** The current density and its setter. Throws outside a DensityProvider. */
-export function useDensity(): DensityContextValue {
-  const ctx = useContext(DensityContext);
-  if (!ctx) throw new Error("useDensity needs a DensityProvider above it.");
-  return ctx;
+/** @deprecated Density is a table's. Returns `default` and a setter that does nothing. */
+export function useDensity(): { density: Density; setDensity: (density: Density) => void } {
+  return { density: "default", setDensity: () => undefined };
 }
 
 const densities: { value: Density; label: string; icon: typeof Rows3 }[] = [
@@ -103,10 +58,10 @@ const densities: { value: Density; label: string; icon: typeof Rows3 }[] = [
   { value: "compact", label: "Compact", icon: AlignJustify },
 ];
 
-/** The two-state control. Reads the provider; `value` and `onChange` override it, for a settings form or a story. */
+/** @deprecated The control of the app-wide setting. A DataTable's Columns menu carries Compact rows; a table that is compact by design passes `density`. */
 export function DensitySwitch({
-  value,
-  onChange,
+  value = "default",
+  onChange = () => undefined,
   showLabels = false,
   "aria-label": ariaLabel = "Row density",
   className,
@@ -117,15 +72,12 @@ export function DensitySwitch({
   "aria-label"?: string | undefined;
   className?: string | undefined;
 }) {
-  const ctx = useContext(DensityContext);
-  const current = value ?? ctx?.density ?? "default";
-  const change = onChange ?? ctx?.setDensity ?? (() => undefined);
   return (
     <ToggleGroup<Density>
       aria-label={ariaLabel}
       className={className}
-      value={current}
-      onChange={change}
+      value={value}
+      onChange={onChange}
       items={densities.map(({ value: v, label, icon: Icon }) => ({
         value: v,
         label: (

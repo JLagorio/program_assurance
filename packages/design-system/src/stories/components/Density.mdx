@@ -1,24 +1,113 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { DensitySwitch } from "../../mode";
 import * as Stories from "./Density.stories";
 
 <Meta of={Stories} />
 
 # Density
 
-Row density is the same shape: `data-density="compact"` on the root resolves `dimension.row` to its compact value (36px instead of 40px), so every table follows and no table takes a density prop. `densityScript` goes in the head beside `modeScript`; `DensityProvider` owns the choice under `ledger.density`; `DensitySwitch` is the two-state control, beside the mode switch in chrome. A table that is compact by design sets `data-density` on its own frame instead.
+How tall a table's rows are: `default`, 40px, or `compact`, 36px. It is a table's setting, never the document's. A plain **Table** takes `density`; a **DataTable** keeps the reader's choice with the rest of its view and offers it as Compact rows in its Columns menu; a picker's table is compact by design. One token moves, `dimension.row`, and every row inside the frame follows.
 
-<Canvas of={Stories.DensityLive} />
+The app-wide switch of 0.5, its provider and its before-paint script are gone: a setting in the top bar squeezed every table at once, including the rails and the pickers that were sized on purpose. The names stay exported for one release as no-ops, and the lint says where the setting went.
 
-<Canvas of={Stories.DensityControlledStory} />
+<Canvas of={Stories.Tables} />
+
+## Anatomy
+
+| Part      | What it is                                                                                                                                                              |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Token     | `dimension.row`, 40px, and `dimension.row.compact`, 36px. Every `h-row` reads the first; the attribute below points it at the second.                                    |
+| Attribute | `data-density="compact"` on a table's frame. `density.css` resolves the token under it, so rows, tree cells and selection cells inside follow without a prop each.       |
+| Prop      | `density` on `Table`, which sets the attribute; `density` on `useDataTable`, the author's default for a DataTable.                                                       |
+| Menu item | Compact rows, in a DataTable's Columns menu under the columns: a checkbox item that stays open while the reader toggles. Reset view puts the author's default back.      |
+| View      | The choice, kept with the column order, widths, visibility and pins under the table's `view` name, per browser.                                                          |
+
+## Variants
+
+Two heights. **Default**, 40px: a register the reader reads, where a Badge and a name have room and the pointer has a target. **Compact**, 36px: a picker's table, where the rows are many and short and the reader scans for one; or a register the reader has set so themselves. The header row is 32px in both.
+
+<Canvas of={Stories.RegisterStory} />
+
+<Canvas of={Stories.ByDesign} />
+
+There is no third height. A table denser than 36px loses its 24px controls; a table taller than 40px is a list of cards.
+
+## Sizes
+
+The two heights are the variants. The setting changes nothing else: the type, the padding at the sides and the header stay, so a compact table reads as the same table with less air.
+
+## States
+
+| State     | Look                                                                                                                              |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Default   | 40px rows, the author's setting unless said otherwise.                                                                            |
+| Compact   | 36px rows, from the prop, the author's `density`, or the reader's tick in the Columns menu.                                       |
+| Kept      | A DataTable with a `view` opens at the reader's last choice, as it opens at their column widths.                                  |
+| Reset     | Reset view in the Columns menu returns the rows to the author's default with the rest of the layout.                              |
 
 <Canvas of={Stories.DensityMatrix} />
 
+## Modifiers
+
+- **`density`** on `Table`: `default` or `compact`, for a table drawn by hand.
+- **`density`** on `useDataTable`: the author's default for that table; `compact` for a picker's. The reader can still change it.
+- **`view`** on `useDataTable`: with a name, the reader's choice persists; without one, it lives for the page.
+- **Compact rows** in `DataTable.Columns`: the reader's control. It shows whenever the table has a Columns menu.
+
+## Content
+
+- **Compact is for scanning, not for fitting.** A picker's list of ids and names; a register the reader has set so. Never a page that would otherwise scroll.
+- **The author chooses the default, the reader may change it.** A picker is compact by design; a register is default by design.
+- **One table at a time.** The setting is the table's, so two tables on a page can differ, and a rail's rows never follow a table's.
+- **Nothing else compacts.** Facts, KeyValue rows, Items and cards keep their heights; density is a table's rows.
+
+## Style
+
+| Element   | Token                                                                                                  |
+| --------- | ------------------------------------------------------------------------------------------------------ |
+| Row       | `dimension.row` 40px · `dimension.row.compact` 36px                                                    |
+| Header    | `dimension.row.header` 32px, in both                                                                   |
+| Cells     | `space.150` inline in both; the row's height is the only change                                        |
+| Attribute | `data-density="compact"` on the frame, from `Table density`                                            |
+
+## Accessibility
+
+- **A compact row still holds a 24px control** with 6px above and below, so the checkbox, the row's buttons and an Editable keep their targets.
+- **The menu item is a checkbox item:** `menuitemcheckbox`, checked when compact, and the menu stays open so a reader can hear the change and toggle back.
+- **The setting is the table's, so a screen reader's table stays one table:** no attribute on the document changes the page around it.
+- **Contrast and type do not change,** so a compact table passes what a default one passes.
+- **The a11y gate** checks both heights in the matrix.
+
 ## Props
 
-<ArgTypes of={DensitySwitch} />
+By hand: `Table` and `useDataTable` each take one prop, and the deprecated names are listed for what the lint says.
+
+| Where          | Prop      | Type                       | What it is                                                                                 |
+| -------------- | --------- | -------------------------- | ------------------------------------------------------------------------------------------ |
+| `Table`        | `density` | `"default" \| "compact"`   | The rows' height. Sets `data-density` on the frame.                                        |
+| `useDataTable` | `density` | `"default" \| "compact"`   | The author's default; the reader's choice from the Columns menu overrides it and persists with `view`. |
+
+| Deprecated                                        | Now                                                                                   |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `DensityProvider`, `useDensity`                    | Nothing: the provider renders its children and touches nothing; the hook returns `default`. |
+| `DensitySwitch`                                    | Compact rows in a DataTable's Columns menu, or `Table density` for a table that is compact by design. |
+| `densityScript`, `densityScriptFor`               | An empty string: no before-paint script is needed for a table's setting.               |
+| `readDensity`, `writeDensity`, `applyDensity`, `DENSITY_STORAGE_KEY` | No-ops; nothing is stored under the key.                            |
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
 
 ## Related
 
-- [Mode](?path=/docs/components-mode--docs)
+- [Table](?path=/docs/components-table--docs): the frame the attribute sits on.
+- [DataTable](?path=/docs/patterns-datatable--docs): the Columns menu, the view store and Reset view.
+- [PickerSheet](?path=/docs/patterns-pickersheet--docs) and [RecordPicker](?path=/docs/patterns-recordpicker--docs): tables that are compact by design.
+- [Metrics](?path=/docs/tokens-metrics--docs): `dimension.row` and its compact value.
+- [Mode](?path=/docs/components-mode--docs): the setting that is the document's.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

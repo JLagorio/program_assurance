@@ -130,7 +130,6 @@ function PoamRecord() {
         >
           <Section
             title="Planned remediation"
-            description="The commitment. The dated task plan behind it lives on the control."
             action={
               controls.length ? (
                 <Inline className="font-body-small" as="span" space="space.100" alignBlock="center">

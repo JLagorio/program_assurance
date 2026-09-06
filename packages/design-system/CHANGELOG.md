@@ -8,6 +8,14 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Breaking
 
+- Row density is a table's setting, not the document's. `Table` takes `density` (`default` 40px,
+  `compact` 36px) and sets `data-density` on its frame; `useDataTable` takes `density` as the
+  author's default, and the reader's choice is Compact rows in the Columns menu, kept with the
+  view under its name and put back by Reset view. The app-wide `DensityProvider`, `DensitySwitch`,
+  `useDensity`, `densityScript` and the storage functions stay exported for one release as no-ops,
+  and `ledger/no-deprecated-name` says where the setting went; the Storybook toolbar's density
+  axis is gone. `Item.Group`'s `empty` string renders as a compact Empty, never a grey line.
+  Components/Density, Components/Table, Patterns/Data table.
 - `Editable.Text` takes `label`, as `Editable.Select` did: the field's name for a screen reader,
   read before the value ("Owner: Dana Whitfield") and on the input while editing. DataTable's
   `text` column passes its header; the prototype's ten call sites pass the row's label.
@@ -178,6 +186,10 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Added
 
+- Mode and Density are on the template: the walk's last two pages. Mode is the one setting that is
+  the document's; Density is the table's, with the Register story showing Compact rows persisting
+  and Reset view putting it back. 101 of 103 pages on the template; the two overviews carry the
+  remaining grandfathered gaps.
 - Every scroller stops at its edge, the page included: `overscroll-behavior: none` on the
   overflow utilities, the library viewports (ScrollArea, Select) and the root, from `base.css`.
   No rubber band inside a table frame, a ScrollArea, a code block, a menu list or a sheet's body,

@@ -8,7 +8,9 @@ import {
   Button,
   Combobox,
   DataTable,
+  defineColumns,
   Dialog,
+  Eyebrow,
   Field,
   Glance,
   Grid,
@@ -18,18 +20,16 @@ import {
   Input,
   NativeSelect,
   PageHeader,
+  type Preset,
   Progress,
   Stack,
-  Tabs,
-  TextLink,
   Textarea,
-  defineColumns,
+  TextLink,
   toast,
   toCsv,
+  type Tone,
   useDataTable,
   useRequired,
-  type Tone,
-  Eyebrow,
 } from "@ledger/design-system";
 import { useTableSearch, validateTableSearch } from "@/lib/table-state";
 import { Shell } from "@/components/app/shell";
@@ -58,13 +58,12 @@ export const Route = createFileRoute("/risks")({
   component: RisksLayout,
 });
 
-const tabs = [
-  { label: "All", count: 24 },
-  { label: "Active", count: 4 },
-  { label: "Mitigating", count: 11 },
-  { label: "Accepted", count: 6 },
-  { label: "Closed", count: 3 },
-];
+/** The states as saved questions over the register; the counts are live. */
+const presets: Preset[] = ["All", "Active", "Mitigating", "Accepted", "Closed"].map((s) => ({
+  id: s,
+  label: s,
+  filters: s === "All" ? [] : [{ id: "status", value: s }],
+}));
 
 function RisksLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -140,7 +139,7 @@ const riskColumns = defineColumns<Risk>((c) => [
 function RiskList() {
   const [creating, setCreating] = useState(false);
   const [exporting, setExporting] = useState(false);
-  // The URL owns the question: the tabs write the status filter, the chips write theirs, the
+  // The URL owns the question: the presets write the status filter, the chips write theirs, the
   // headers write the sort, Pagination writes the page. A link carries all of it.
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
@@ -149,12 +148,6 @@ function RiskList() {
     (patch) => void navigate({ search: (prev) => ({ ...prev, ...patch }), replace: true }),
     { sort: "id", dir: "desc", pageSize: 5 },
   );
-  const tab = String(url.state.columnFilters.find((f) => f.id === "status")?.value ?? "All");
-  const setTab = (next: string) =>
-    url.onColumnFiltersChange((f) => [
-      ...f.filter((x) => x.id !== "status"),
-      ...(next === "All" ? [] : [{ id: "status", value: next }]),
-    ]);
   const table = useDataTable({
     columns: riskColumns,
     data: risks,
@@ -178,7 +171,6 @@ function RiskList() {
       header={
         <PageHeader
           title="Risk register"
-          description="24 tracked risks across 4 frameworks. Residual scores recalculate when linked controls change state."
           actions={
             <>
               <Button
@@ -212,50 +204,40 @@ function RiskList() {
         />
       }
     >
-      <Tabs value={tab} onValueChange={(value) => setTab(value)} className="contents">
-        <Tabs.List>
-          {tabs.map((t) => (
-            <Tabs.Tab key={t.label} value={t.label} count={t.count}>
-              {t.label}
-            </Tabs.Tab>
-          ))}
-        </Tabs.List>
-        <Tabs.Panel value={tab} className="contents">
-          <Inline space="space.100" alignBlock="center" shouldWrap>
-            <DataTable.Filter table={table} column="framework" />
-            <DataTable.Filter table={table} column="owner" />
-            <DataTable.Filter table={table} column="treatment" />
-            <DataTable.Filter table={table} column="updated" />
-            <Inline className="ml-auto" space="space.100" alignBlock="center">
-              <DataTable.Columns table={table} />
-            </Inline>
-          </Inline>
+      <DataTable.Presets table={table} presets={presets} aria-label="Status" />
+      <Inline space="space.100" alignBlock="center" shouldWrap>
+        <DataTable.Filter table={table} column="framework" />
+        <DataTable.Filter table={table} column="owner" />
+        <DataTable.Filter table={table} column="treatment" />
+        <DataTable.Filter table={table} column="updated" />
+        <Inline className="ml-auto" space="space.100" alignBlock="center">
+          <DataTable.Columns table={table} />
+        </Inline>
+      </Inline>
 
-          <DataTable.SelectionBar
-            table={table}
-            actions={
-              <>
-                <Button variant="secondary" size="small">
-                  Reassign
-                </Button>
-                <Button variant="secondary" size="small">
-                  Change treatment
-                </Button>
-              </>
-            }
-          />
+      <DataTable.SelectionBar
+        table={table}
+        actions={
+          <>
+            <Button variant="secondary" size="small">
+              Reassign
+            </Button>
+            <Button variant="secondary" size="small">
+              Change treatment
+            </Button>
+          </>
+        }
+      />
 
-          <DataTable
-            table={table}
-            empty={{
-              title: "No risks match",
-              description: "Change the tab or the treatment filter.",
-            }}
-          />
+      <DataTable
+        table={table}
+        empty={{
+          title: "No risks match",
+          description: "Change the tab or the treatment filter.",
+        }}
+      />
 
-          <CreateRiskModal open={creating} onClose={() => setCreating(false)} />
-        </Tabs.Panel>
-      </Tabs>
+      <CreateRiskModal open={creating} onClose={() => setCreating(false)} />
     </IndexPage>
   );
 }

@@ -230,10 +230,7 @@ function ProgramComposition() {
           }
         >
           {!root || !tree || !rootPosture ? (
-            <Section
-              title="System composition"
-              description="No hardware, firmware or software items have been declared for this program."
-            >
+            <Section title="System composition">
               <Box paddingBlockStart="space.200">
                 <Empty
                   title="Nothing in the composition"
@@ -245,19 +242,13 @@ function ProgramComposition() {
 
           {root && tree && rootPosture && tab === "Tree" ? (
             <>
-              <Section
-                title="Rollup"
-                description="Every finding in the subtree, counted once at the part it names and once at each ancestor above it."
-              >
+              <Section title="Rollup">
                 <Box paddingBlockStart="space.200">
                   <PostureStrip posture={rootPosture} />
                 </Box>
               </Section>
 
-              <Section
-                title="Bill of materials"
-                description="Hardware, firmware and software as one strict containment tree. Select a part to load it into the rail."
-              >
+              <Section title="Bill of materials">
                 <BomTree root={tree} selected={selectedId} onSelect={select} />
               </Section>
 
@@ -319,10 +310,7 @@ function ProgramComposition() {
 
           {root && tab === "Supply chain" ? (
             <>
-              <Section
-                title="Composition profile"
-                description="What the system is made of, where it came from, and how much of it arrived with an attestation."
-              >
+              <Section title="Composition profile">
                 <Box paddingBlockStart="space.200">
                   <BomSummary stats={stats} />
                 </Box>
@@ -338,10 +326,7 @@ function ProgramComposition() {
           ) : null}
 
           {root && tab === "Reconciliation" ? (
-            <Section
-              title="Scanner declared against register tracked"
-              description="The asset row carries what the last full scan declared; the register carries what is currently open against it. The delta is the number the package has to explain."
-            >
+            <Section title="Scanner declared against register tracked">
               <ReconciliationTable
                 rows={reconciliation}
                 onSelect={(assetId) =>

@@ -111,7 +111,6 @@ export function ControlMatrixSection({
   return (
     <Section
       title="Control matrix"
-      description="Every tailored control with its assessment, remediation section and next action."
       action={
         <span className="tabular-nums font-body-small text-subtle">
           {filtered.length} of {rows.length} controls

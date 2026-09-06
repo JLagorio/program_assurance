@@ -109,7 +109,6 @@ function RegisterPage() {
         header={
           <PageHeader
             title="POA&M & risk register"
-            description="A POA&M item is a dated commitment to close findings. A risk is what the AO signs. Both reach the spine only through findings — never straight to a control."
             actions={
               <Button variant="secondary" iconBefore={<Download />}>
                 Export eMASS POA&M
@@ -352,7 +351,7 @@ function RegisterPage() {
                   openTo={
                     <TextLink>
                       <Link to="/register/poam/$poamId" params={{ poamId: preview.item.id }}>
-                        Open POA&M item →
+                        Open POA&M item
                       </Link>
                     </TextLink>
                   }
@@ -383,7 +382,7 @@ function RegisterPage() {
                   openTo={
                     <TextLink>
                       <Link to="/register/risks/$riskId" params={{ riskId: preview.item.id }}>
-                        Open risk →
+                        Open risk
                       </Link>
                     </TextLink>
                   }

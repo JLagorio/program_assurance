@@ -303,10 +303,7 @@ function ProgramConMon() {
               </Box>
             </Section>
 
-            <Section
-              title="How the score was built"
-              description="Six factors, each read from a record somewhere else in this system and none of them a constant. The shape is deliberately the one the residual risk model uses — a weighted sum whose contributions add up in front of the reader — because drift and residual risk are the same kind of argument asked about two different questions."
-            >
+            <Section title="How the score was built">
               <DriftFactorTable score={drift} />
             </Section>
 
@@ -336,10 +333,7 @@ function ProgramConMon() {
               </Box>
             </Section>
 
-            <Section
-              title="What feeds the score"
-              description="The four monitoring surfaces the factors above are counted from. Each one is a full table of its own; the counts here are the same rows, summarised."
-            >
+            <Section title="What feeds the score">
               <Grid
                 className="pt-200"
                 gap="space.150"

@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { cn } from "../lib/cn";
+import { Empty } from "../patterns/empty";
 import { Count } from "./badge";
 import { Id } from "./id";
 
@@ -97,8 +98,7 @@ function ItemRoot({
   const text = <span className="block truncate font-body text-default">{title}</span>;
   const titleClass = cn(
     "block min-w-0 outline-none",
-    clickable &&
-      "after:absolute after:inset-0 focus-visible:after:outline-focused",
+    clickable && "after:absolute after:inset-0 focus-visible:after:outline-focused",
     clickable && (flush ? "after:rounded-none" : "after:rounded-medium"),
   );
   const titleEl = link ? (
@@ -249,7 +249,7 @@ export type ItemGroupProps = {
   className?: string | undefined;
 };
 
-/** The list the rows stack in: one grid the rows share, hairlines between them, `empty` when there are none, a heading when the list needs its own. */
+/** The list the rows stack in: one grid the rows share, hairlines between them, `empty` when there are none (a string is a compact Empty's title; a node is drawn as given), a heading when the list needs its own. */
 export function ItemGroup({
   children,
   empty,
@@ -265,15 +265,9 @@ export function ItemGroup({
   const has = Array.isArray(children) ? children.some(Boolean) : Boolean(children);
   const body =
     !has && empty ? (
-      <p
-        className={cn(
-          "font-body text-subtle",
-          flush ? "px-200" : "px-050",
-          size === "compact" ? "py-050" : "py-100",
-        )}
-      >
-        {empty}
-      </p>
+      <div className={cn(flush ? "px-200" : "px-050", size === "compact" ? "py-050" : "py-100")}>
+        {typeof empty === "string" ? <Empty size="compact" title={empty} /> : empty}
+      </div>
     ) : (
       <ol
         aria-labelledby={title ? headingId : labelledBy}

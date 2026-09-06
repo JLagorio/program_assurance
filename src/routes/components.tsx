@@ -63,15 +63,7 @@ function CardSection({
 function Components() {
   return (
     <Shell>
-      <IndexPage
-        header={
-          <PageHeader
-            eyebrow="System"
-            title="Design system"
-            description="Every surface in Equinox is built from these primitives. Hairline borders, one accent, tabular numerals."
-          />
-        }
-      >
+      <IndexPage header={<PageHeader eyebrow="System" title="Design system" />}>
         <Grid
           gap="space.250"
           templateColumns={{ base: "repeat(1, minmax(0, 1fr))", xl: "repeat(2, minmax(0, 1fr))" }}

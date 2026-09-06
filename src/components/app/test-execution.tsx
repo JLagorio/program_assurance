@@ -225,7 +225,6 @@ export function ExecutionSummary({
 
       <Section
         title="Objectives as executed"
-        description="Every result on this row is derived from the run log — each procedure's latest complete run, rolled up to the worst verdict across the procedures written for the objective, falling back to the declared value only where nothing has been executed."
         action={
           <span className="tabular-nums font-body-small text-subtle">
             {execution.complete}/{planned} carry a complete run

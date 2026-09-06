@@ -220,7 +220,6 @@ export function AuthorizationSection({
         {/* ------------------------------------------------- live POA&M tracker */}
         <Section
           title="Live POA&M tracker"
-          description="Observations logged by the SCA in-platform, triaged and pushed to engineering as Jira issues."
           action={
             <>
               <span className="font-body-small text-subtle">
@@ -637,7 +636,6 @@ export function BriefingRoom() {
       <Stack space="space.300">
         <Section
           title="Risk posture"
-          description="Everything the Authorizing Official needs to make the authorization decision, on one page."
           action={
             <Button
               variant="primary"
@@ -709,10 +707,7 @@ export function BriefingRoom() {
           </dl>
         </Section>
 
-        <Section
-          title="Residual risk acceptance"
-          description="Each risk carries its mitigation and POA&M reference. Sign off or send back."
-        >
+        <Section title="Residual risk acceptance">
           <Table className="pt-150 table-fixed">
             <thead>
               <tr>
@@ -754,10 +749,7 @@ export function BriefingRoom() {
           </Table>
         </Section>
 
-        <Section
-          title="Open assessor observations"
-          description="Live from the SCA enclave — the same records the assessment team is working."
-        >
+        <Section title="Open assessor observations">
           <Table className="pt-150 table-fixed">
             <thead>
               <tr>

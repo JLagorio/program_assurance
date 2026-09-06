@@ -9,16 +9,19 @@ import {
   DatePicker,
   Dialog,
   Dot,
+  Eyebrow,
   Field,
   FilterChip,
   Grid,
   Id,
+  Indicator,
   Inline,
   Input,
   Item,
   KeyValue,
   NativeSelect,
   Progress,
+  Related,
   Section,
   Stack,
   Table,
@@ -26,8 +29,6 @@ import {
   TextLink,
   Timeline,
   useRequired,
-  Indicator,
-  Eyebrow,
 } from "@ledger/design-system";
 import {
   formatOscalDate,
@@ -172,7 +173,6 @@ export function PoamSection({
     <>
       <Section
         title="Plan of action and milestones"
-        description="OSCAL poam-item entries scoped to this program, ordered by severity then scheduled completion."
         action={
           <Button variant="primary" onClick={() => setCreating(true)} iconBefore={<Plus />}>
             New POA&amp;M item
@@ -310,7 +310,6 @@ export function PoamSection({
 
       <Section
         title="Audit trail"
-        description="Immutable record of every POA&M create, edit and delete with actor attribution and field-level changes."
         action={
           <span className="font-body-small text-subtle">
             Signed in as {currentUser.name} · {currentUser.role}
@@ -565,33 +564,49 @@ function PoamDetailModal({
         </div>
 
         <div>
-          <Item.Group title="Related observations" empty="No related observations.">
+          <Related
+            title="Related observations"
+            count={item.relatedObservations.length || undefined}
+            layout="cards"
+            empty={{
+              title: "No related observations",
+              description:
+                "Observations that led to this item appear here when the assessor links them.",
+            }}
+          >
             {item.relatedObservations.map((o) => (
-              <Item
+              <Related.Card
                 key={o.observationUuid}
                 link={<Link to={o.href} />}
-                leading={<Badge tone="neutral">{o.method}</Badge>}
                 title={o.title}
+                status={<Badge tone="neutral">{o.method}</Badge>}
                 meta={<Id>{o.observationUuid.slice(0, 8)}</Id>}
-                trailing={formatOscalDate(o.collected)}
+                properties={[{ label: "Collected", value: formatOscalDate(o.collected) }]}
               />
             ))}
-          </Item.Group>
+          </Related>
         </div>
 
         <div>
-          <Item.Group title="Associated risks" empty="No risk exposure entry linked.">
+          <Related
+            title="Associated risks"
+            count={item.associatedRisks.length || undefined}
+            layout="cards"
+            empty={{
+              title: "No risk linked",
+              description: "A risk exposure entry that rests on this item appears here.",
+            }}
+          >
             {item.associatedRisks.map((r) => (
-              <Item
+              <Related.Card
                 key={r.riskUuid}
                 link={<Link to="/risks/$riskId" params={{ riskId: r.riskId }} />}
-                id={r.riskId}
-                idWidth={76}
                 title={r.title}
-                trailing={<Id>{r.riskUuid.slice(0, 8)}</Id>}
+                meta={<Id>{r.riskId}</Id>}
+                properties={[{ label: "Entry", value: <Id>{r.riskUuid.slice(0, 8)}</Id> }]}
               />
             ))}
-          </Item.Group>
+          </Related>
         </div>
 
         <div>

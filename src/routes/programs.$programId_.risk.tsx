@@ -296,10 +296,7 @@ function ProgramRisk() {
               </Grid>
             </Section>
 
-            <Section
-              title="Band distribution"
-              description="Where the scored population falls. A band is a verdict rather than a property, which is why it is the part of this page that carries colour — and why Moderate is deliberately left neutral: the amber has to mean something."
-            >
+            <Section title="Band distribution">
               <BandDistribution byBand={posture.byBand} />
             </Section>
 
@@ -325,10 +322,7 @@ function ProgramRisk() {
               ) : null}
             </Section>
 
-            <Section
-              title="What moved, and why"
-              description="The counterfactual: what each finding would score if nothing had invalidated the evidence behind it and no KEV listing sat above its component. This is the loop between configuration management and risk — a determination is only ever true of a configuration, and when the configuration moves the residual goes up rather than staying where the last assessor left it."
-            >
+            <Section title="What moved, and why">
               <MoversTable movers={posture.movers} />
             </Section>
           </>
@@ -384,10 +378,7 @@ function ProgramRisk() {
                 </Stack>
               </Section>
             ) : (
-              <Section
-                title="Calculation trail"
-                description="Select a finding above to read the arithmetic behind its residual."
-              >
+              <Section title="Calculation trail">
                 <Box paddingBlockStart="space.200">
                   <Empty
                     title="Nothing selected"
@@ -401,17 +392,11 @@ function ProgramRisk() {
 
         {tab === "Calculation" ? (
           <>
-            <Section
-              title="The model"
-              description="Six factors, each computed from a record somewhere else in this system and none of them a constant. A scoring model a program cannot inspect will not be trusted by an authorizing official, and it should not be — so the weights, the inputs and the normalisation ladders are published here rather than buried in the code that applies them."
-            >
+            <Section title="The model">
               <FactorModel />
             </Section>
 
-            <Section
-              title="Bands"
-              description="Where the cuts fall, and what each one is meant to provoke. The band is derived from the score and nothing else; it adds no judgement the factor table has not already shown."
-            >
+            <Section title="Bands">
               <BandLadder byBand={posture.byBand} />
             </Section>
 
@@ -442,10 +427,7 @@ function ProgramRisk() {
                 </Stack>
               </Section>
             ) : (
-              <Section
-                title="Worked example"
-                description="A worked example has to be worked on a real finding, and this program has none."
-              >
+              <Section title="Worked example">
                 <Box paddingBlockStart="space.200">
                   <Empty
                     title="No finding to work through"

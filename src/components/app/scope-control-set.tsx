@@ -122,7 +122,6 @@ export function ScopeControlSetTab({
 
       <Section
         title="Controls in force"
-        description="The set this element answers to today. A change is proposed above and approved before it lands here."
         action={
           <Inline space="space.075" shouldWrap>
             {families.slice(0, 12).map((f) => (
@@ -134,10 +133,7 @@ export function ScopeControlSetTab({
         <ControlTable rows={rows} programId={programId} />
       </Section>
 
-      <Section
-        title="What each objective selects"
-        description="CNSSI 1253 selects per objective and takes the union — the triad is never collapsed to its highest value."
-      >
+      <Section title="What each objective selects">
         <Table className="pt-050">
           <thead>
             <Table.Row>
@@ -196,29 +192,20 @@ export function ScopeControlSetTab({
         )}
       </Section>
 
-      <Section
-        title="Separation basis"
-        description="Why this element may categorize below its siblings."
-      >
+      <Section title="Separation basis">
         <Text as="p" className="max-w-layout-measure pt-150">
           {scope.separationBasis}
         </Text>
       </Section>
 
       {unique.length > 0 ? (
-        <Section
-          title="Required only here"
-          description="A single program-wide control set would fold these into the union and lose the reason they are there."
-        >
+        <Section title="Required only here">
           <ControlTable rows={unique} programId={programId} />
         </Section>
       ) : null}
 
       {set.removed.length > 0 ? (
-        <Section
-          title="Tailored out by overlay"
-          description="Selected by categorization, then removed. Recorded rather than absent."
-        >
+        <Section title="Tailored out by overlay">
           <ControlTable rows={set.removed} programId={programId} showRemoval />
         </Section>
       ) : null}

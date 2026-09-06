@@ -191,7 +191,6 @@ function ProgramList() {
       header={
         <PageHeader
           title="Programs"
-          description="Each program scopes one or more systems, categorizes each under CNSSI 1253, and assesses the tailored NIST SP 800-53 Rev. 5 control set it selects."
           actions={
             <>
               <Button

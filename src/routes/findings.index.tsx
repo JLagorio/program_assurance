@@ -133,7 +133,6 @@ function FindingsPage() {
         header={
           <PageHeader
             title="Findings & assets"
-            description="One technical fact per row, joined to a CCI and an asset. Open a row for the record; hover the first column to preview it in place."
             actions={
               <Button variant="secondary" iconBefore={<Download />}>
                 Export SAR extract
@@ -291,7 +290,7 @@ function FindingsPage() {
                   openTo={
                     <TextLink>
                       <Link to="/findings/$findingId" params={{ findingId: preview.item.id }}>
-                        Open finding →
+                        Open finding
                       </Link>
                     </TextLink>
                   }
@@ -342,7 +341,7 @@ function FindingsPage() {
                   openTo={
                     <TextLink>
                       <Link to="/findings/assets/$assetId" params={{ assetId: preview.item.id }}>
-                        Open asset →
+                        Open asset
                       </Link>
                     </TextLink>
                   }

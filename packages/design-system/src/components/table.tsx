@@ -7,10 +7,19 @@ import {
   Eye,
   GripVertical,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, type ComponentPropsWithoutRef, type CSSProperties, type ReactNode, type Ref } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  type ComponentPropsWithoutRef,
+  type CSSProperties,
+  type ReactNode,
+  type Ref,
+} from "react";
 
 import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
+import type { Density } from "../mode/density";
 import { Count } from "./badge";
 import { Checkbox } from "./controls";
 import { Id } from "./id";
@@ -25,6 +34,8 @@ export type TableProps = {
   frameRef?: Ref<HTMLDivElement> | undefined;
   /** `treegrid` for a hierarchy with columns; `grid` only when cells are editable. */
   role?: "table" | "treegrid" | "grid" | undefined;
+  /** The rows' height: `default`, `dimension.row` 40px, or `compact`, 36px, for a picker's table or a register the reader has set so. Never the document's setting. */
+  density?: Density | undefined;
   className?: string | undefined;
   children?: ReactNode;
 } & Omit<ComponentPropsWithoutRef<"table">, "className" | "children" | "role">;
@@ -36,7 +47,7 @@ export type TableProps = {
  * frame that overflows is a tab stop, so the keyboard can scroll it too: a landmark named after the
  * table's `label` when it has one, else a plain named group, since two landmarks cannot share a name.
  */
-function TableRoot({ label, className, maxHeight, frameRef, role, ...props }: TableProps) {
+function TableRoot({ label, className, maxHeight, frameRef, role, density, ...props }: TableProps) {
   const frame = useRef<HTMLDivElement>(null);
   const track = useCallback(() => {
     const el = frame.current;
@@ -74,6 +85,7 @@ function TableRoot({ label, className, maxHeight, frameRef, role, ...props }: Ta
         if (el) track();
       }}
       onScroll={track}
+      {...(density === "compact" ? { "data-density": "compact" } : {})}
       className={cn(
         "group/scroll w-full rounded-small outline-none focus-visible:outline-focused",
         maxHeight === undefined ? "overflow-x-auto" : "overflow-auto",

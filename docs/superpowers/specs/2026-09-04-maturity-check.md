@@ -555,3 +555,153 @@ browser's rule: a scroller contains a gesture only in an axis it can scroll, so 
 over a vertical ScrollArea reaches the document and becomes the back gesture, where a wide table
 catches it. The root takes `overscroll-behavior: none` too (in `base.css`, so a product gets it
 with the kit): no page bounce, no back-swipe anywhere in the product; the parked question closed.
+
+### 28. Mode and Density, and the prototype sweeps (2026-09-05)
+
+Josef: "Let's do 1 and 2. Density is only a table setting, it shouldn't be applicable to the
+entire app." Density moved off the document: `Table density` sets `data-density` on the frame
+(density.css already resolved `dimension.row` under the attribute on any frame); `useDataTable`
+takes `density` as the author's default, holds the reader's choice in React state exposed
+through the table's meta (`density`, `defaultDensity`, `setDensity`), the view store reads and
+writes it with the order, widths, visibility and pins (`StoredView.density`, same version, older
+stores default), the Columns menu carries Compact rows as a checkbox item under the columns, and
+Reset view puts the author's default back; the virtualizer's row estimate reads the table's
+density instead of the document. The app-wide parts (`DensityProvider`, `DensitySwitch`,
+`useDensity`, `densityScript`, the storage functions) are `@deprecated` no-ops for one release
+with lint entries; the Storybook toolbar's density axis is gone; the prototype's top bar and root
+lost the switch, the provider and the script. Mode and Density are on the template (Mode with a
+Dont of the two-state toggle and the hex colour; Density with the Register story, By design, a
+matrix of the two heights and a Dont of the top-bar switch and the page-wrapper attribute).
+Verified with real input: Compact rows takes the rows from 40 to 36, the item reads checked, the
+view stores `density: "compact"`, a reload keeps 36, Reset view returns 40 and the store.
+
+The sweeps, on Josef's go: the twelve "→" arrows after the rails' links dropped ("Open →" is
+"Open campaign"); the scope's states are a ToggleGroup with counts and the risk register's
+states are `DataTable.Presets` with live counts (the strip's were hard-coded 24, 4, 11, 6, 3;
+the register holds 6); the team panel's and the register index's strips are views and stand; the
+eight Selects of plain words are NativeSelects; `Item.Group empty` renders a compact Empty in the
+kit, so its five sites are proper at once; the POA&M module's two related lists are Related
+cards (`PoamSection` has no consumer yet); 118 string descriptions on Sections and PageHeaders
+that were sentences removed (rule: ends in a stop or runs past seven words), 60 computed ones
+left for a hand each. The program record's twelve tabs are still Josef's pick. Ratchet: 135
+exports, 103 pages, 101 on the template, 534 stories, 23 gaps left, all on the two overviews.
+
+Descriptions removed, for review:
+  campaigns.$campaignId.tsx · Section · The left result is what the campaign record asserts. The right result is what the step records add up to: each procedure's latest complete run, rolled up to the worst of them, because every procedure written for an objective has to hold for it to be met. Where they differ the run is the fact and the declaration is the claim.
+  campaigns.$campaignId.tsx · Section · One procedure proves one objective. A procedure that has never been run is a plan, not evidence.
+  campaigns.$campaignId.tsx · Section · State and verdict are independent. The state says what happened to the run; the verdict is derived from the step records and says what they add up to.
+  campaigns.$campaignId.tsx · Section · Every step compared against the run it re-executes. Only steps with a decisive record on both sides appear — an inconclusive or un-run step is not evidence of a regression or of a fix.
+  campaigns.$campaignId.tsx · Section · The scheduled windows the runs above were executed inside.
+  campaigns.tsx · PageHeader · A campaign is scoped work opened against a trigger. Its events prove objectives, and every objective names the CCIs it covers — that is the only place T&E and RMF meet.
+  components.tsx · PageHeader · Every surface in Equinox is built from these primitives. Hairline borders, one accent, tabular numerals.
+  controls.tsx · PageHeader · 800-53 Rev 5, CNSSI 1253 overlays and the CCI decomposition. Every rule, procedure and test objective in the product resolves to a CCI in this table.
+  evidence.tsx · PageHeader · 1,402 artifacts mapped to controls. Auditors sample directly from this library — nothing is re-uploaded by hand.
+  findings.$findingId.tsx · Section · Where the statement comes from, and what it knocks down.
+  findings.$findingId.tsx · Section · The assessor's conclusion, carried verbatim into the SAR.
+  findings.$findingId.tsx · Section · What the assessor says should happen, whether or not it is scheduled.
+  findings.$findingId.tsx · Section · Five weighted terms and one credit. Each row carries the input it read, the arithmetic, the ids it rests on, and one sentence an assessor can disagree with.
+  findings.index.tsx · PageHeader · One technical fact per row, joined to a CCI and an asset. Open a row for the record; hover the first column to preview it in place.
+  index.tsx · PageHeader · Continuous posture across four frameworks. Last full evaluation completed 12 minutes ago.
+  library.components.$componentKey.tsx · Section · What consuming programs inherit, and how fresh the evidence behind it is.
+  library.components.index.tsx · PageHeader · Definitions, not instances. Programs inherit controls from these providers, and requirements allocate to them; changing one here propagates to every consumer.
+  packages.index.tsx · PageHeader · A package is a snapshot of the spine, not a folder of documents. The SSP, SAR and POA&M are generated views of the same in-scope CCIs — if a CCI has no objective, no result, or an open finding it did not declare, the package is not shippable.
+  people.$personId.tsx · Section · Everything this person is committed to, and what they do on it.
+  people.$personId.tsx · Section · People sharing at least one workstream — the coordination surface, not the org chart.
+  programs.$programId.tsx · Section · Which common control provider actually satisfies each inherited row, what this program still owes on a shared control, and where an accepted inheritance has drifted from the provider's current assessment.
+  programs.$programId.tsx · Section · The authorized build, the changes proposed against it, and which determinations those changes invalidate. A change the ISSE analysed as having no security impact is recorded and contained — it does not turn the matrix amber.
+  programs.$programId.tsx · Section · The six DoD Cybersecurity T&E phases, their entry and exit criteria, the threat scenarios the red team walks and the mission effects those scenarios actually achieved.
+  programs.$programId.tsx · Section · The same body of evidence has to leave this platform three ways: as OSCAL 1.1.2 an assessor can import, as the eMASS CSV column sets a package submission actually requires, and as a hashed bundle that can cross an air gap and be reconciled on the far side.
+  programs.$programId.tsx · Section · CAT I/II/III is a severity, not a risk. Every finding carries a 0-100 residual built from severity, mitigation credit, exploitability, exposure, mission impact and evidence currency — with the whole calculation attached to it.
+  programs.$programId.tsx · Section · Open commitments for this program. Managed in the register.
+  programs.$programId.tsx · Section · After the ATO the question stops being whether this system was ever assessed and becomes whether what is running is still what was authorized. The drift score, the SLCM assessment schedule, evidence freshness against its SLA, scan cadence and POA&M slippage are all computed there.
+  programs.$programId.tsx · Section · Continuous monitoring events and record changes for this program.
+  programs.$programId_.baseline.tsx · Section · A diff needs an authorized baseline and a candidate. This program has only one of them.
+  programs.$programId_.baseline.tsx · Section · The organization-defined parameter values this build fixes. An ODP is a property of the requirement rather than of any one component, which is why moving one invalidates its whole row set wherever the graph allocated it.
+  programs.$programId_.baseline.tsx · Section · CM-3(2) requires a security impact analysis before a change is implemented. It is a gate, not a formality: an analysis that finds no impact is a result the ISSE signs for, and it is the reason a firmware dot-release does not turn a hundred requirement rows amber.
+  programs.$programId_.baseline.tsx · Section · Nothing has been proposed against this program's baseline.
+  programs.$programId_.baseline.tsx · Section · Each row names the requirement, the component it is allocated to, how it has to be verified, and the procedure that can execute it where the campaign model knows one. Rows with no procedure are done by hand.
+  programs.$programId_.components.$componentId.tsx · Section · Derived from the allocations above — never stored against this component
+  programs.$programId_.components.$componentId.tsx · Section · Considered for this component and excluded. An absence would be indistinguishable from nobody having looked.
+  programs.$programId_.composition.tsx · Section · No hardware, firmware or software items have been declared for this program.
+  programs.$programId_.composition.tsx · Section · Every finding in the subtree, counted once at the part it names and once at each ancestor above it.
+  programs.$programId_.composition.tsx · Section · Hardware, firmware and software as one strict containment tree. Select a part to load it into the rail.
+  programs.$programId_.composition.tsx · Section · What the system is made of, where it came from, and how much of it arrived with an attestation.
+  programs.$programId_.composition.tsx · Section · The asset row carries what the last full scan declared; the register carries what is currently open against it. The delta is the number the package has to explain.
+  programs.$programId_.conmon.tsx · Section · Six factors, each read from a record somewhere else in this system and none of them a constant. The shape is deliberately the one the residual risk model uses — a weighted sum whose contributions add up in front of the reader — because drift and residual risk are the same kind of argument asked about two different questions.
+  programs.$programId_.conmon.tsx · Section · The four monitoring surfaces the factors above are counted from. Each one is a full table of its own; the counts here are the same rows, summarised.
+  programs.$programId_.dashboard.tsx · Section · Everything below is derived from the live matrix, the lifecycle gates and the register.
+  programs.$programId_.dashboard.tsx · Section · One calendar: gates, POA&M commitments and dated control remediation, soonest first.
+  programs.$programId_.export.tsx · Section · Four models, generated from the same record the pages elsewhere in this program render: the SSP from the control matrix and composition graph, the assessment plan from the T&E phases, the results from the findings and the residual-risk trail, and the POA&M from the register. Every uuid is a deterministic RFC 4122 v5 over a stable seed, so a re-export is byte-identical and an importer sees the same document rather than a new one.
+  programs.$programId_.export.tsx · Section · The five sheets an eMASS operator uploads, with eMASS's own column names. Every cell is derived from the record — a value this dataset does not carry is the em dash rather than a plausible-looking invention, because a fabricated serial number is worse than a blank one.
+  programs.$programId_.export.tsx · Section · What is written to the write-once media, and the manifest that travels with it. The digests below are computed from the generated bytes at the moment the bundle is assembled; because every input is derived and no clock or random value is read, assembling it again reproduces the same manifest and the same manifest digest.
+  programs.$programId_.export.tsx · Section · Reconciliation compares a manifest that arrived on media against the bundle this side generates, path by path.
+  programs.$programId_.ingestion.tsx · Section · No scanner output has been delivered against this program.
+  programs.$programId_.ingestion.tsx · Section · Select a result to audit it end to end. The left panel is the tool's own record, untouched; the right panel is what the normalizer produced; the block underneath is why.
+  programs.$programId_.ingestion.tsx · Section · Which source wins when two of them describe the same condition. A benchmark checklist is the authoritative statement about a configuration setting; a network scanner inferring the same thing from the outside is corroboration, not a second weakness.
+  programs.$programId_.inheritance.tsx · Section · Every offer a reusable component makes to this system, resolved against the CCP tier ladder and checked against what the consumer actually accepted. A failing provider stays a deficiency here — it is never re-scored as Not assessed, because that would sever the POA&M obligation.
+  programs.$programId_.inheritance.tsx · Section · Two components offered the same control. The nearer provider on the eMASS common-control-provider ladder wins, because that is who the AO holds accountable — but the candidate that lost is kept on the record with the reason, not dropped.
+  programs.$programId_.inheritance.tsx · Section · A provider listed this system as a consumer, but the offer is scoped to inventory the system does not carry. These belong in the inherited-controls appendix with the reason, not in the matrix — and not silently missing from either.
+  programs.$programId_.risk.tsx · Section · Where the scored population falls. A band is a verdict rather than a property, which is why it is the part of this page that carries colour — and why Moderate is deliberately left neutral: the amber has to mean something.
+  programs.$programId_.risk.tsx · Section · The counterfactual: what each finding would score if nothing had invalidated the evidence behind it and no KEV listing sat above its component. This is the loop between configuration management and risk — a determination is only ever true of a configuration, and when the configuration moves the residual goes up rather than staying where the last assessor left it.
+  programs.$programId_.risk.tsx · Section · Select a finding above to read the arithmetic behind its residual.
+  programs.$programId_.risk.tsx · Section · Six factors, each computed from a record somewhere else in this system and none of them a constant. A scoring model a program cannot inspect will not be trusted by an authorizing official, and it should not be — so the weights, the inputs and the normalisation ladders are published here rather than buried in the code that applies them.
+  programs.$programId_.risk.tsx · Section · Where the cuts fall, and what each one is meant to provoke. The band is derived from the score and nothing else; it adds no judgement the factor table has not already shown.
+  programs.$programId_.risk.tsx · Section · A worked example has to be worked on a real finding, and this program has none.
+  programs.$programId_.sctm.tsx · Section · One row per DISA CCI where the catalog publishes one, per SP 800-53A assessment objective where it does not, and per control otherwise. Where a recorded change reaches the components a row is allocated to, the Determination column carries it: a withdrawn claim struck through beside what replaced it and an Invalidated chip, or an amber dot for a determination that stands and is flagged.
+  programs.$programId_.sctm.tsx · Section · A family is covered when every one of its requirement rows carries a determination and no gap.
+  programs.$programId_.sctm.tsx · Section · Each requirement row is tested against the package rules in order; the first rule that fires is the gap recorded.
+  programs.$programId_.te-phases.tsx · Section · The DoD Cybersecurity Test and Evaluation Guidebook defines six phases, not three. All six are carried here so the model is not wrong about its own shape, and each one names the lifecycle gate it informs. Selecting a phase opens its record in the rail; its gate is one click away.
+  programs.$programId_.te-phases.tsx · Section · A phase is a doctrine; a campaign is the work. Two phases carry no campaign at all — they produce the requirement matrix and the attack-surface picture every later phase is judged against, and recording an empty execution against them would be a fiction.
+  programs.$programId_.te-phases.tsx · Section · What has to be true before the phase may open. A derived criterion is recomputed on every render from the SCTM, the finding register, the scan record, the run log, the change log and the composition graph; an attested one reports a signature, because no platform can judge whether an agreement was negotiated in good faith.
+  programs.$programId_.te-phases.tsx · Section · What has to be true before the phase may close. These are re-read against today's register rather than against the record as it stood on the day the phase was signed off — which is why a phase can be Complete and still fail its own exit criteria here. That divergence is the point of a derived gate, and it is reported rather than reconciled away.
+  programs.$programId_.te-phases.tsx · Section · A phase gate that is a row of checkboxes proves nothing: it records that somebody ticked, not that anything is true.
+  programs.$programId_.te-phases.tsx · Section · Every technique below is a real ATT&CK id with its published name and tactic, and every scenario path is walked against the actual composition graph. A scenario whose path is not traversable is the same class of defect as a fabricated technique id, so the walk is printed rather than asserted.
+  programs.$programId_.te-phases.tsx · Section · Tier is a property of the portrayal, not a verdict: a DoD Cyber Table Top tier VI adversary is a different assumption about who is attacking, not worse news than a tier II one. Cooperative CVPA scenarios and adversarial AA scenarios sit in the same table because they cover the same surface — the phase column says which regime authored each.
+  programs.$programId_.te-phases.tsx · Section · The ordered technique chain, and beneath it the walk through the system it claims. Each hop names the reachability edge or the containment link that carries it, so the claim can be checked on the composition page rather than believed.
+  programs.$programId_.te-phases.tsx · Section · An adversarial assessment is scored in mission effect, not in findings count — an AA that reports twelve CAT II findings and no mission effect has missed its own point. Each row records what an operator would have seen, how long it lasted and what they could do about it.
+  programs.$programId_.te-phases.tsx · Section · Each effect names the run or event that confirmed it, whether it was reproduced on a second attempt, and the finding it raised. An effect with no finding and no workaround is what blocks the adversarial assessment's exit criterion.
+  programs.$programId_.te-phases.tsx · Section · The same read-out from the mission's side rather than the adversary's: which functions have been exercised at all, and what the worst recorded outcome against each of them was.
+  programs.tsx · PageHeader · Each program scopes one or more systems, categorizes each under CNSSI 1253, and assesses the tailored NIST SP 800-53 Rev. 5 control set it selects.
+  register.index.tsx · PageHeader · A POA&M item is a dated commitment to close findings. A risk is what the AO signs. Both reach the spine only through findings — never straight to a control.
+  register.poam.$poamId.tsx · Section · The commitment. The dated task plan behind it lives on the control.
+  register.risks.$riskId.tsx · Section · Five weighted terms and one credit. Each row carries the input it read, the arithmetic, the ids it rests on, and one sentence an assessor can disagree with.
+  risks.tsx · PageHeader · 24 tracked risks across 4 frameworks. Residual scores recalculate when linked controls change state.
+  scope.tsx · PageHeader · Engineers propose a scope's categorization, overlays and tailoring as a revision; the program manager approves it before it takes effect.
+  scope.tsx · Section · Review opens the proposal here; decide it without leaving the queue.
+  stigs.tsx · PageHeader · Benchmarks by technology and version. Every rule declares the CCIs it satisfies, which is how a scan result reaches an authorization decision.
+  stigs.tsx · Section · The join. A failed rule becomes a finding against the CCI it maps to, and the parent control's assessment recalculates from there.
+  vendors.tsx · PageHeader · Every sub-processor with access to customer data, scored on the assurance evidence we hold today.
+  workstreams.$workstreamId.tsx · Section · Allocation is the share of that person's time committed to this workstream.
+  workstreams.$workstreamId.tsx · Section · What this workstream is waiting on, and what is waiting on it.
+  authorization.tsx · Section · Observations logged by the SCA in-platform, triaged and pushed to engineering as Jira issues.
+  authorization.tsx · Section · Everything the Authorizing Official needs to make the authorization decision, on one page.
+  authorization.tsx · Section · Each risk carries its mitigation and POA&M reference. Sign off or send back.
+  authorization.tsx · Section · Live from the SCA enclave — the same records the assessment team is working.
+  baselines.tsx · Section · The gate produces a record whether or not it cascades. This is the one line a package reviewer reads to see that the change was analysed and why the analysis ended here.
+  baselines.tsx · Section · Two states, two rules, and the direction between them is the doctrine. Descending the composition tree invalidates; ascending it only casts suspicion. Reversing that would make one package bump invalidate the whole system.
+  baselines.tsx · Section · Allocated to a component that contains or reaches the change but is not itself altered by it. These determinations stand and still count toward coverage; they are put in front of the assessor rather than taken away.
+  baselines.tsx · Section · Cited by an invalidated row and collected before the change was requested, so it describes the configuration the change replaces. Evidence gathered after the request date survives.
+  baselines.tsx · Section · A finding closed against a configuration that no longer exists has not been proven closed against the one that does. This is a queue for the assessor — nothing here has been re-opened.
+  baselines.tsx · Section · The program accepted a named assessment from this provider. That is no longer the assessment the provider publishes, so the accepted reference points at something that has moved.
+  control-matrix.tsx · Section · Every tailored control with its assessment, remediation section and next action.
+  coverage-chart.tsx · Section · The tailored baseline by control family. Click a segment for the family's card; the matrix below follows it.
+  digital-thread.tsx · Section · Rules that convert closed tickets, merged code and model elements into living technical evidence.
+  poam.tsx · Section · OSCAL poam-item entries scoped to this program, ordered by severity then scheduled completion.
+  poam.tsx · Section · Immutable record of every POA&M create, edit and delete with actor attribution and field-level changes.
+  remediation.tsx · Section · Each step names an owner and a date. The plan cannot close while any step is open.
+  rmf-timeline.tsx · Section · Acquisition phases, decision gates and the work that has to close under each.
+  scope-control-set.tsx · Section · The set this element answers to today. A change is proposed above and approved before it lands here.
+  scope-control-set.tsx · Section · CNSSI 1253 selects per objective and takes the union — the triad is never collapsed to its highest value.
+  scope-control-set.tsx · Section · Why this element may categorize below its siblings.
+  scope-control-set.tsx · Section · A single program-wide control set would fold these into the union and lose the reason they are there.
+  scope-control-set.tsx · Section · Selected by categorization, then removed. Recorded rather than absent.
+  scopes.tsx · Section · Each scope's categorization, overlays and tailoring are frozen as a numbered revision. A change is proposed, reviewed and approved on the Systems tab; nothing here is edited in place.
+  sctm.tsx · Section · Whether what is on file still describes the configuration in force. A configuration change does not re-assess anything, so an invalidated row's positive claim is withdrawn and stops counting toward coverage while a deficiency is retained and owed a re-test; a suspect row keeps its determination and is flagged for the assessor.
+  sctm.tsx · Section · How each requirement is evidenced — Test, Demonstration, Analysis or Inspection.
+  sctm.tsx · Section · What the system implements itself against what it inherits.
+  tailoring.tsx · Section · Inputs the engine uses to derive the baseline and DoD overlays.
+  team.tsx · Section · Who is building what. A workstream is the unit of work — it has a lead, the disciplines it pulls in, the controls it satisfies, and the workstreams it cannot finish without.
+  test-execution.tsx · Section · Every result on this row is derived from the run log — each procedure's latest complete run, rolled up to the worst verdict across the procedures written for the objective, falling back to the declared value only where nothing has been executed.
+  verification.tsx · Section · Test events matched against the interim authority to test validity period.
+  verification.tsx · Section · STIG CKL, ACAS / Nessus, SonarQube and manual implementation statements.
+  verification.tsx · Section · Deduplicated across scan sources and mapped to NIST 800-53 controls.

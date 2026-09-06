@@ -157,10 +157,7 @@ export function RemediationPlanSection({
         </Stack>
       </Section>
 
-      <Section
-        title="Tasks"
-        description="Each step names an owner and a date. The plan cannot close while any step is open."
-      >
+      <Section title="Tasks">
         <Table className="table-fixed">
           <thead>
             <tr>

@@ -24,7 +24,6 @@ import type { ReactNode } from "react";
 
 import {
   Avatar,
-  DensitySwitch,
   IconButton,
   Inline,
   Input,
@@ -120,7 +119,6 @@ export function Shell({ children }: { children: ReactNode }) {
           </InputGroup>
         </DsShell.TopNav.Middle>
         <DsShell.TopNav.End>
-          <DensitySwitch />
           <ModeSwitch />
           {topNavEnd.map(([Icon, label]) => (
             <Tooltip key={label} content={label}>

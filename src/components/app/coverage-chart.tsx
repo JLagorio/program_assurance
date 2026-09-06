@@ -76,7 +76,6 @@ export function FamilyCoverageChart({
   return (
     <Section
       title="Control coverage"
-      description="The tailored baseline by control family. Click a segment for the family's card; the matrix below follows it."
       action={<span className="font-body-small text-subtle">{baseline}</span>}
     >
       <Chart.Frame

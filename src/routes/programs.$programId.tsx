@@ -744,7 +744,6 @@ function ProgramDetail() {
             <>
               <Section
                 title="Inheritance"
-                description="Which common control provider actually satisfies each inherited row, what this program still owes on a shared control, and where an accepted inheritance has drifted from the provider's current assessment."
                 action={
                   <TextLink size="small" className="inline-flex items-center gap-025">
                     <Link
@@ -768,7 +767,6 @@ function ProgramDetail() {
 
               <Section
                 title="Configuration baseline"
-                description="The authorized build, the changes proposed against it, and which determinations those changes invalidate. A change the ISSE analysed as having no security impact is recorded and contained — it does not turn the matrix amber."
                 action={
                   <TextLink size="small" className="inline-flex items-center gap-025">
                     <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>
@@ -815,7 +813,6 @@ function ProgramDetail() {
             <>
               <Section
                 title="Cyber test and evaluation"
-                description="The six DoD Cybersecurity T&E phases, their entry and exit criteria, the threat scenarios the red team walks and the mission effects those scenarios actually achieved."
                 action={
                   <TextLink size="small" className="inline-flex items-center gap-025">
                     <Link
@@ -858,7 +855,6 @@ function ProgramDetail() {
             <>
               <Section
                 title="Interoperability and transfer"
-                description="The same body of evidence has to leave this platform three ways: as OSCAL 1.1.2 an assessor can import, as the eMASS CSV column sets a package submission actually requires, and as a hashed bundle that can cross an air gap and be reconciled on the far side."
                 action={
                   <TextLink size="small" className="inline-flex items-center gap-025">
                     <Link
@@ -889,7 +885,6 @@ function ProgramDetail() {
             <>
               <Section
                 title="Residual risk"
-                description="CAT I/II/III is a severity, not a risk. Every finding carries a 0-100 residual built from severity, mitigation credit, exploitability, exposure, mission impact and evidence currency — with the whole calculation attached to it."
                 action={
                   <TextLink size="small" className="inline-flex items-center gap-025">
                     <Link
@@ -913,7 +908,6 @@ function ProgramDetail() {
 
               <Section
                 title="POA&M items"
-                description="Open commitments for this program. Managed in the register."
                 action={
                   <TextLink size="small" className="inline-flex items-center gap-025">
                     <Link to="/register">
@@ -1004,7 +998,6 @@ function ProgramDetail() {
             <>
               <Section
                 title="Continuous monitoring"
-                description="After the ATO the question stops being whether this system was ever assessed and becomes whether what is running is still what was authorized. The drift score, the SLCM assessment schedule, evidence freshness against its SLA, scan cadence and POA&M slippage are all computed there."
                 action={
                   <TextLink size="small" className="inline-flex items-center gap-025">
                     <Link
@@ -1028,10 +1021,7 @@ function ProgramDetail() {
 
               <AuthorizationSection programId={program.id} programName={program.name} />
 
-              <Section
-                title="Activity"
-                description="Continuous monitoring events and record changes for this program."
-              >
+              <Section title="Activity">
                 <ActivityTimeline programId={program.id} events={feed} />
               </Section>
             </>

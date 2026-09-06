@@ -96,7 +96,6 @@ function Catalog() {
       <Stack className="animate-rise" space="space.200">
         <PageHeader
           title="Control catalog"
-          description="800-53 Rev 5, CNSSI 1253 overlays and the CCI decomposition. Every rule, procedure and test objective in the product resolves to a CCI in this table."
           actions={<Button variant="secondary">Import catalog</Button>}
         />
 

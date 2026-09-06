@@ -19,17 +19,18 @@ import {
   Checkbox,
   Collapsible,
   Field,
+  Gates,
   Grid,
   Id,
   Indicator,
   Inline,
+  NativeSelect,
   Select,
   Stack,
   Switch,
   Table,
   Textarea,
   ToggleGroup,
-  Gates,
 } from "@ledger/design-system";
 import {
   contestedOverlays,
@@ -224,34 +225,36 @@ export function ScopeTailoringPane({
             <Stack space="space.150">
               <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
                 <Field label="System class">
-                  <Select
+                  <NativeSelect
                     value={p.systemClass}
-                    onValueChange={(v) =>
-                      setParameters({ systemClass: v as SystemParameters["systemClass"] })
+                    onChange={(e) =>
+                      setParameters({
+                        systemClass: e.target.value as SystemParameters["systemClass"],
+                      })
                     }
                     aria-label="System class"
                   >
                     {systemClasses.map((c) => (
-                      <Select.Item key={c} value={c}>
+                      <option key={c} value={c}>
                         {c}
-                      </Select.Item>
+                      </option>
                     ))}
-                  </Select>
+                  </NativeSelect>
                 </Field>
                 <Field label="Hosting">
-                  <Select
+                  <NativeSelect
                     value={p.hosting}
-                    onValueChange={(v) =>
-                      setParameters({ hosting: v as SystemParameters["hosting"] })
+                    onChange={(e) =>
+                      setParameters({ hosting: e.target.value as SystemParameters["hosting"] })
                     }
                     aria-label="Hosting"
                   >
                     {hostingOptions.map((c) => (
-                      <Select.Item key={c} value={c}>
+                      <option key={c} value={c}>
                         {c}
-                      </Select.Item>
+                      </option>
                     ))}
-                  </Select>
+                  </NativeSelect>
                 </Field>
                 <Field label="Classification">
                   <Select

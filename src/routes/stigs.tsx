@@ -54,7 +54,6 @@ function StigLibrary() {
         header={
           <PageHeader
             title="STIG & SRG library"
-            description="Benchmarks by technology and version. Every rule declares the CCIs it satisfies, which is how a scan result reaches an authorization decision."
             actions={<Button variant="secondary">Import benchmark</Button>}
           />
         }
@@ -115,7 +114,6 @@ function StigLibrary() {
 
         <Section
           title="Rule to CCI mapping"
-          description="The join. A failed rule becomes a finding against the CCI it maps to, and the parent control's assessment recalculates from there."
           action={
             <NativeSelect
               value={benchmark}

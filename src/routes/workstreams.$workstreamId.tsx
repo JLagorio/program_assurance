@@ -136,10 +136,7 @@ function WorkstreamDetail() {
             <p className="pt-150 max-w-layout-measure font-body-small">{ws.note}</p>
           </Section>
 
-          <Section
-            title="Assigned people"
-            description="Allocation is the share of that person's time committed to this workstream."
-          >
+          <Section title="Assigned people">
             <Table className="table-fixed">
               <thead>
                 <tr>
@@ -175,10 +172,7 @@ function WorkstreamDetail() {
             </Table>
           </Section>
 
-          <Section
-            title="Dependencies"
-            description="What this workstream is waiting on, and what is waiting on it."
-          >
+          <Section title="Dependencies">
             <Table className="table-fixed">
               <thead>
                 <tr>

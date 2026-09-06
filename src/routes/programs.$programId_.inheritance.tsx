@@ -191,10 +191,7 @@ function ProgramInheritance() {
         >
           {tab === "Resolved" ? (
             <>
-              <Section
-                title="Inheritance posture"
-                description="Every offer a reusable component makes to this system, resolved against the CCP tier ladder and checked against what the consumer actually accepted. A failing provider stays a deficiency here — it is never re-scored as Not assessed, because that would sever the POA&M obligation."
-              >
+              <Section title="Inheritance posture">
                 <InheritanceSummaryStats summary={summary} unstated={unstated} />
               </Section>
 
@@ -212,10 +209,7 @@ function ProgramInheritance() {
           ) : null}
 
           {tab === "Conflicts" ? (
-            <Section
-              title="Why this provider"
-              description="Two components offered the same control. The nearer provider on the eMASS common-control-provider ladder wins, because that is who the AO holds accountable — but the candidate that lost is kept on the record with the reason, not dropped."
-            >
+            <Section title="Why this provider">
               <Box paddingBlockStart="space.050">
                 <ConflictList items={conflicts} nameOf={nameOf} />
               </Box>
@@ -242,10 +236,7 @@ function ProgramInheritance() {
           ) : null}
 
           {tab === "Not applicable" ? (
-            <Section
-              title="Offered but not applicable"
-              description="A provider listed this system as a consumer, but the offer is scoped to inventory the system does not carry. These belong in the inherited-controls appendix with the reason, not in the matrix — and not silently missing from either."
-            >
+            <Section title="Offered but not applicable">
               <NotApplicableTable rows={notApplicable} />
             </Section>
           ) : null}

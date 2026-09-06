@@ -169,7 +169,6 @@ export function TailoringSection({
         {/* --------------------------------------------- system parameters */}
         <Section
           title="System parameters"
-          description="Inputs the engine uses to derive the baseline and DoD overlays."
           action={
             <Button
               variant="secondary"

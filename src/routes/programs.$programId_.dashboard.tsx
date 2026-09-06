@@ -243,10 +243,7 @@ function ProgramDashboard() {
         }
         tabs={<div className="border-b border-default" />}
       >
-        <Section
-          title="Where the program stands"
-          description="Everything below is derived from the live matrix, the lifecycle gates and the register."
-        >
+        <Section title="Where the program stands">
           <Grid
             className="pt-200"
             columnGap="space.200"
@@ -411,10 +408,7 @@ function ProgramDashboard() {
           </Table>
         </Section>
 
-        <Section
-          title="Next RMF deadlines"
-          description="One calendar: gates, POA&M commitments and dated control remediation, soonest first."
-        >
+        <Section title="Next RMF deadlines">
           <Table className="table-fixed">
             <thead>
               <tr>

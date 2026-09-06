@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
 import { ModeSwitch } from "../../mode";
 import * as Stories from "./Mode.stories";
@@ -7,19 +7,88 @@ import * as Stories from "./Mode.stories";
 
 # Mode
 
-The colour mode is an attribute on the root: `data-color-mode="light"` or `"dark"` pins it, and no attribute lets `prefers-color-scheme` decide. Every token flips by itself, so nothing else changes. The choice is per browser, in `localStorage` under `ledger.color-mode`, never per account.
+The colour mode: light, dark, or whatever the machine says. It is one attribute on the root, `data-color-mode`, and every token reads it, so the whole product flips at once and no component knows. The choice is the reader's, per browser, in `localStorage` under `ledger.color-mode`; never per account, so a shared machine keeps each person's choice. **`modeScript`** applies the stored choice before the first paint, **`ModeProvider`** owns it, **`ModeSwitch`** is the control.
+
+It is the one setting that belongs to the document. Row [density](?path=/docs/components-density--docs) is a table's; the shell's widths are the shell's.
 
 <Canvas of={Stories.Live} />
 
-## Three parts
+## Anatomy
 
-| Part           | Does                                                                                                                                                                                                                        |
+| Part           | What it is                                                                                                                                                                                                                  |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `modeScript`   | A string for the document head. It applies the stored choice before the first paint so nothing flashes. `modeScriptFor(key)` for a custom storage key.                                                                      |
-| `ModeProvider` | Owns the choice. On mount it reads storage and applies it (a no-op after the script); every change is stored and applied at once. `useMode()` returns `{ mode, setMode, resolved }`, where `resolved` is what is on screen. |
-| `ModeSwitch`   | The three-state control: light, dark, system. Icons only in chrome, `showLabels` in a settings form. `value` and `onChange` override the provider.                                                                          |
+| Attribute      | `data-color-mode="light"` or `"dark"` on the root pins a mode; no attribute lets `prefers-color-scheme` decide. `tokens.css` and `base.css` read it.                                                                        |
+| Script         | `modeScript`: a string for the document head, above the stylesheet. It applies the stored choice before the first paint so nothing flashes. `modeScriptFor(key)` for another storage key.                                    |
+| Provider       | `ModeProvider`: owns the choice. On mount it reads storage and applies it (a no-op after the script); every change is stored and applied at once. `useMode()` returns `{ mode, setMode, resolved }`, `resolved` being what is on screen. |
+| Switch         | `ModeSwitch`: a ToggleGroup of three, sun, moon and monitor, `small`. Icons only in chrome; `showLabels` in a settings form.                                                                                                |
 
-## Wiring it
+## Variants
+
+One control, in two forms. **Icons only**, in the top navigation's end, where the reader expects it and a label would be noise. **With labels**, `showLabels`, in a settings form, where the three words sit in a row of other settings.
+
+There is no two-state form. A light-or-dark toggle has no answer for a machine that changes at dusk, and it pins a choice the reader never made; system is the default and the third state.
+
+<Canvas of={Stories.ControlledStory} />
+
+## Sizes
+
+One: the ToggleGroup's `small`, 28px, the height of the chrome it sits in.
+
+## States
+
+| State    | Look                                                                                                                       |
+| -------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Light    | The root pinned light; the sun is the selected item.                                                                       |
+| Dark     | The root pinned dark; the moon.                                                                                            |
+| System   | No attribute; the monitor. What is on screen follows the machine, and `resolved` says which.                               |
+| Hover, focus, selected | The ToggleGroup's: the item tints, takes the kit's focus outline, and the selected one carries the selected fill. |
+
+<Canvas of={Stories.ModeMatrix} />
+
+## Modifiers
+
+- **`value` and `onChange`** on the switch override the provider, for a settings form that commits later, or for a story.
+- **`showLabels`**, as in Variants.
+- **`storageKey`** on the provider and **`modeScriptFor(key)`**, when a product keeps its own key. The two must agree.
+- **`aria-label`** on the switch: "Appearance" by default.
+
+## Content
+
+- **The three words are Light, Dark and System.** Not "Match system", not "Auto", not "Night".
+- **The switch's name is Appearance.** The reader is choosing how the product looks, not a "theme".
+- **Never a colour by hand.** A hex value written into a component does not flip; every colour is a token, and the mode flips the tokens.
+- **Never a mode-specific screen.** A page does not know which mode it is in; if a figure needs a different colour in dark, that colour is a token with two values.
+
+## Style
+
+| Element   | Token                                                                                              |
+| --------- | -------------------------------------------------------------------------------------------------- |
+| Switch    | The ToggleGroup, `small`: `dimension.control.small` 28px · `dimension.icon.small` 14px              |
+| Attribute | `data-color-mode` on `html` · every `color.*` and `elevation.*` token has a light and a dark value  |
+| Motion    | None. A mode changes at once; a fade across every surface reads as a fault.                        |
+
+## Accessibility
+
+- **The switch is a radio group** named Appearance; each state is a radio with its word as the accessible name, so icons only still read as Light, Dark, System.
+- **Keyboard:** Tab reaches the group on the selected item; Left and Right move and select; Space and Enter select.
+- **System honours the reader's machine,** including `prefers-color-scheme` set for a vision reason, so it is the default and never overridden by the product.
+- **Contrast is tested in both modes:** every pairing on the Colour sheet, and the a11y gate runs each matrix in the mode the toolbar sets.
+- **No flash:** the script marks the root before the first paint, so a reader who chose dark never sees a light page load.
+
+## Props
+
+<ArgTypes of={ModeSwitch} />
+
+The provider and the script, by hand:
+
+| Export          | What it is                                                                                                  |
+| --------------- | ----------------------------------------------------------------------------------------------------------- |
+| `ModeProvider`  | Wraps the app; `storageKey` for a key of the product's own. Renders nothing itself.                         |
+| `useMode()`     | `{ mode, setMode, resolved }`. Throws outside a provider.                                                   |
+| `modeScript`    | The before-paint script for the default key; `modeScriptFor(key)` for another.                              |
+| `readMode`, `writeMode`, `applyMode` | The three steps the provider takes, for a product that wires them itself.                  |
+
+### Wiring it
 
 Plain HTML: put the script in the head, above the stylesheet.
 
@@ -34,7 +103,7 @@ Plain HTML: put the script in the head, above the stylesheet.
 </script>
 ```
 
-A framework with a `head()` hook (TanStack Start, Remix) renders the same string inline:
+A framework with a `head()` hook renders the same string inline:
 
 ```tsx
 import { modeScript, ModeProvider, ModeSwitch } from "@ledger/design-system";
@@ -56,14 +125,19 @@ head: () => ({ scripts: [{ children: modeScript }] });
 
 Do not also pin `data-color-mode` on the root in markup: the pin wins over the script and the switch cannot move it. Put `suppressHydrationWarning` on the `<html>` element: the script marks it before React hydrates, and React would otherwise report the mismatch.
 
-<Canvas of={Stories.ControlledStory} />
+### Playground
 
-<Canvas of={Stories.ModeMatrix} />
+<Canvas of={Stories.Playground} />
 
-## Props
-
-<ArgTypes of={ModeSwitch} />
+<Controls of={Stories.Playground} />
 
 ## Related
 
-- [Density](?path=/docs/components-density--docs)
+- [Colour](?path=/docs/tokens-color--docs): every token's two values.
+- [ToggleGroup](?path=/docs/components-togglegroup--docs): the control the switch is.
+- [Shell](?path=/docs/shell-shell--docs): where the switch sits, in the top navigation's end.
+- [Density](?path=/docs/components-density--docs): the setting that is a table's, not the document's.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

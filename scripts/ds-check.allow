@@ -1,14 +1,5 @@
 # Package exports without a story, families (matrix:<file>) without a Matrix story, and family pages
 # (page:<family>, page:<family>#<heading>) missing from the template. Shrink this list; never grow it.
-page:Density#Accessibility
-page:Density#Anatomy
-page:Density#Content
-page:Density#Don't
-page:Density#Modifiers
-page:Density#Sizes
-page:Density#States
-page:Density#Style
-page:Density#Variants
 page:Forms#Accessibility
 page:Forms#Anatomy
 page:Forms#Content
@@ -19,15 +10,6 @@ page:Forms#Sizes
 page:Forms#States
 page:Forms#Style
 page:Forms#Variants
-page:Mode#Accessibility
-page:Mode#Anatomy
-page:Mode#Content
-page:Mode#Don't
-page:Mode#Modifiers
-page:Mode#Sizes
-page:Mode#States
-page:Mode#Style
-page:Mode#Variants
 page:Overlays#Accessibility
 page:Overlays#Anatomy
 page:Overlays#Content

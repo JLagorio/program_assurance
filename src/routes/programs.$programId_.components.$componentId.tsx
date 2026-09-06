@@ -388,10 +388,7 @@ function ComponentRecord() {
                 />
               </Section>
 
-              <Section
-                title="Controls reached"
-                description="Derived from the allocations above — never stored against this component"
-              >
+              <Section title="Controls reached">
                 <DerivedControlTrace trace={trace} programId={programId} />
               </Section>
 
@@ -492,10 +489,7 @@ function ComponentRecord() {
               ) : null}
 
               {skipped.length > 0 ? (
-                <Section
-                  title="Ruled out here"
-                  description="Considered for this component and excluded. An absence would be indistinguishable from nobody having looked."
-                >
+                <Section title="Ruled out here">
                   <Table className="pt-050">
                     <thead>
                       <Table.Row>

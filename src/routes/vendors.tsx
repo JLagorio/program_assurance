@@ -116,7 +116,6 @@ function Vendors() {
         header={
           <PageHeader
             title="Vendor registry"
-            description="Every sub-processor with access to customer data, scored on the assurance evidence we hold today."
             actions={
               <>
                 <Button variant="secondary">Send questionnaire</Button>

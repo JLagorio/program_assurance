@@ -326,10 +326,7 @@ function RiskRecord() {
           </Section>
 
           {computed ? (
-            <Section
-              title="Calculation"
-              description="Five weighted terms and one credit. Each row carries the input it read, the arithmetic, the ids it rests on, and one sentence an assessor can disagree with."
-            >
+            <Section title="Calculation">
               <FactorTrail factors={computed.factors} score={computed.score} />
             </Section>
           ) : null}

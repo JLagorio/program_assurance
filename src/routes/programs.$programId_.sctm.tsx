@@ -300,7 +300,6 @@ function ProgramSctm() {
           {tab === "Matrix" ? (
             <Section
               title="Requirement rows"
-              description="One row per DISA CCI where the catalog publishes one, per SP 800-53A assessment objective where it does not, and per control otherwise. Where a recorded change reaches the components a row is allocated to, the Determination column carries it: a withdrawn claim struck through beside what replaced it and an Invalidated chip, or an amber dot for a determination that stands and is flagged."
               action={
                 <span className="tabular-nums font-body-small text-subtle">
                   {shown.length === visible.length
@@ -394,10 +393,7 @@ function ProgramSctm() {
             <>
               <SctmSummary sctm={sctm} />
 
-              <Section
-                title="Coverage by control family"
-                description="A family is covered when every one of its requirement rows carries a determination and no gap."
-              >
+              <Section title="Coverage by control family">
                 <Table className="table-fixed">
                   <thead>
                     <tr>
@@ -466,7 +462,6 @@ function ProgramSctm() {
             <>
               <Section
                 title="Why rows cannot ship"
-                description="Each requirement row is tested against the package rules in order; the first rule that fires is the gap recorded."
                 action={
                   <span className="tabular-nums font-body-small text-subtle">
                     {sctm.gaps} of {sctm.counts.total} rows
@@ -574,7 +569,7 @@ function ProgramSctm() {
                         to="/programs/$programId/controls/$controlId"
                         params={{ programId, controlId: selectedRow.control }}
                       >
-                        Open {selectedRow.control} →
+                        Open {selectedRow.control}
                       </Link>
                     </TextLink>
                   </Box>

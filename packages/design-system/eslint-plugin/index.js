@@ -251,6 +251,10 @@ const deprecatedNames = {
   "Shell.NavItem": { to: "Shell.SideNav.Item", fix: true },
   "Shell.User": { to: "Shell.Profile", fix: true },
   Tiles: { to: "Stat.Grid", note: "the same row of Stat.Tile cells, under the Stat name" },
+  DensityProvider: { to: "nothing", note: "density is a table's: Table density, or Compact rows in a DataTable's Columns menu; the provider renders its children and touches nothing" },
+  DensitySwitch: { to: "Compact rows in DataTable.Columns", note: "or Table density for a table that is compact by design" },
+  useDensity: { to: "table.options.meta.density", note: "a DataTable's own; the hook returns default" },
+  densityScript: { to: "nothing", note: "an empty string; no before-paint script is needed for a table's setting" },
   Accordion: {
     to: "Collapsible.Group",
     note: "multiple unless type=\"single\" is said, where Accordion was single; its sections are Collapsibles",

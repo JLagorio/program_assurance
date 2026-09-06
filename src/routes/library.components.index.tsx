@@ -55,7 +55,6 @@ function ComponentLibrary() {
         header={
           <PageHeader
             title="Provider library"
-            description="Definitions, not instances. Programs inherit controls from these providers, and requirements allocate to them; changing one here propagates to every consumer."
             actions={
               <>
                 <Button variant="secondary">Export inheritance matrix</Button>
@@ -140,7 +139,7 @@ function ComponentLibrary() {
                     to="/library/components/$componentKey"
                     params={{ componentKey: preview.key }}
                   >
-                    Open component →
+                    Open component
                   </Link>
                 </TextLink>
               }

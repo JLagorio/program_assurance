@@ -368,10 +368,7 @@ function ProgramBaseline() {
                   </Stack>
                 </Section>
               ) : (
-                <Section
-                  title="Baseline comparison"
-                  description="A diff needs an authorized baseline and a candidate. This program has only one of them."
-                >
+                <Section title="Baseline comparison">
                   <Box paddingBlockStart="space.200">
                     <Empty
                       title="Nothing to compare"
@@ -382,10 +379,7 @@ function ProgramBaseline() {
               )}
 
               {selectedBuild ? (
-                <Section
-                  title={`Parameters in force — ${selectedBuild.id}`}
-                  description="The organization-defined parameter values this build fixes. An ODP is a property of the requirement rather than of any one component, which is why moving one invalidates its whole row set wherever the graph allocated it."
-                >
+                <Section title={`Parameters in force — ${selectedBuild.id}`}>
                   <ParameterTable parameters={selectedBuild.parameters} />
                 </Section>
               ) : null}
@@ -412,10 +406,7 @@ function ProgramBaseline() {
                 />
               </Section>
 
-              <Section
-                title="What the gate decided"
-                description="CM-3(2) requires a security impact analysis before a change is implemented. It is a gate, not a formality: an analysis that finds no impact is a result the ISSE signs for, and it is the reason a firmware dot-release does not turn a hundred requirement rows amber."
-              >
+              <Section title="What the gate decided">
                 <Grid
                   className="pt-200"
                   gap="space.150"
@@ -474,10 +465,7 @@ function ProgramBaseline() {
                   onAcknowledge={setAck}
                 />
               ) : (
-                <Section
-                  title="Change impact"
-                  description="Nothing has been proposed against this program's baseline."
-                >
+                <Section title="Change impact">
                   <Box paddingBlockStart="space.200">
                     <Empty
                       title="No change to analyse"
@@ -502,10 +490,7 @@ function ProgramBaseline() {
                 </Box>
               </Section>
 
-              <Section
-                title="Work outstanding"
-                description="Each row names the requirement, the component it is allocated to, how it has to be verified, and the procedure that can execute it where the campaign model knows one. Rows with no procedure are done by hand."
-              >
+              <Section title="Work outstanding">
                 <RetestQueueTable items={retests} nodeName={nodeName} />
               </Section>
             </>

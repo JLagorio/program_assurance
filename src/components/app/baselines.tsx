@@ -1152,10 +1152,7 @@ export function ImpactView({
       </Stat.Grid>
 
       {contained ? (
-        <Section
-          title="Audit record"
-          description="The gate produces a record whether or not it cascades. This is the one line a package reviewer reads to see that the change was analysed and why the analysis ended here."
-        >
+        <Section title="Audit record">
           <Box paddingBlockStart="space.200">
             <AuditTrail records={impact.records} />
           </Box>
@@ -1164,10 +1161,7 @@ export function ImpactView({
 
       {!contained ? (
         <>
-          <Section
-            title="Touched components"
-            description="Two states, two rules, and the direction between them is the doctrine. Descending the composition tree invalidates; ascending it only casts suspicion. Reversing that would make one package bump invalidate the whole system."
-          >
+          <Section title="Touched components">
             {impact.touched.length === 0 ? (
               <Box paddingBlockStart="space.200">
                 <Empty
@@ -1255,7 +1249,6 @@ export function ImpactView({
           {suspectRowRecords.length > 0 ? (
             <Section
               title="Determinations flagged"
-              description="Allocated to a component that contains or reaches the change but is not itself altered by it. These determinations stand and still count toward coverage; they are put in front of the assessor rather than taken away."
               action={
                 <span className="tabular-nums font-body-small text-subtle">
                   {impact.suspectRows.length} row{impact.suspectRows.length === 1 ? "" : "s"}
@@ -1269,28 +1262,19 @@ export function ImpactView({
           ) : null}
 
           {impact.invalidatedEvidence.length > 0 ? (
-            <Section
-              title="Evidence superseded"
-              description="Cited by an invalidated row and collected before the change was requested, so it describes the configuration the change replaces. Evidence gathered after the request date survives."
-            >
+            <Section title="Evidence superseded">
               <IdChips ids={impact.invalidatedEvidence} tone="warning" />
             </Section>
           ) : null}
 
           {impact.reopenCandidates.length > 0 ? (
-            <Section
-              title="Closures to re-confirm"
-              description="A finding closed against a configuration that no longer exists has not been proven closed against the one that does. This is a queue for the assessor — nothing here has been re-opened."
-            >
+            <Section title="Closures to re-confirm">
               <IdChips ids={impact.reopenCandidates} tone="warning" />
             </Section>
           ) : null}
 
           {impact.invalidatedInheritance.length > 0 ? (
-            <Section
-              title="Inheritance references invalidated"
-              description="The program accepted a named assessment from this provider. That is no longer the assessment the provider publishes, so the accepted reference points at something that has moved."
-            >
+            <Section title="Inheritance references invalidated">
               <Table className="table-fixed">
                 <thead>
                   <tr>

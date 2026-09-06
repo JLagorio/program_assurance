@@ -96,7 +96,6 @@ export function ControlSetsSummary({
   return (
     <Section
       title="Control sets"
-      description="Each scope's categorization, overlays and tailoring are frozen as a numbered revision. A change is proposed, reviewed and approved on the Systems tab; nothing here is edited in place."
       action={
         <Button size="small" variant="secondary" onClick={onOpen}>
           {open ? `Review ${open} open change${open === 1 ? "" : "s"}` : "Open Systems"}

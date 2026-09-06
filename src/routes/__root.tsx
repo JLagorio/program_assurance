@@ -9,16 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
-import {
-  Box,
-  DensityProvider,
-  Inline,
-  ModeProvider,
-  Toaster,
-  densityScript,
-  modeScript,
-  shellScript,
-} from "@ledger/design-system";
+import { Box, Inline, ModeProvider, Toaster, modeScript, shellScript } from "@ledger/design-system";
 
 import appCss from "../styles.css?url";
 import { PersonaSwitch } from "../components/app/persona-switch";
@@ -89,8 +80,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "author", content: "Equinox" },
     ],
-    // Apply the stored colour mode, row density and shell state before the first paint; the providers take over after mount.
-    scripts: [{ children: modeScript }, { children: densityScript }, { children: shellScript }],
+    // Apply the stored colour mode and shell state before the first paint; the providers take over after mount.
+    scripts: [{ children: modeScript }, { children: shellScript }],
     links: [
       {
         rel: "stylesheet",
@@ -132,12 +123,10 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ModeProvider>
-        <DensityProvider>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-          <Toaster />
-          <PersonaSwitch />
-        </DensityProvider>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <Toaster />
+        <PersonaSwitch />
       </ModeProvider>
     </QueryClientProvider>
   );

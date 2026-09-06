@@ -73,7 +73,6 @@ export function RmfTimeline({
   return (
     <Section
       title="RMF timeline"
-      description="Acquisition phases, decision gates and the work that has to close under each."
       action={
         <Box style={{ width: 240 }}>
           <Inline space="space.100" alignBlock="center">

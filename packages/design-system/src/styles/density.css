@@ -1,5 +1,6 @@
-/* Row density. `data-density="compact"` on the root (the DensityProvider and its before-paint script) or on
-   any frame resolves dimension.row to its compact value, so every h-row inside follows without a prop. */
+/* Row density. `data-density="compact"` on a table's frame (`Table density`, a DataTable's Compact rows,
+   a picker's table by design) resolves dimension.row to its compact value, so every h-row inside follows.
+   It is a table's setting, never the document's. */
 [data-density="compact"] {
   --ds-dimension-row: var(--ds-dimension-row-compact);
 }

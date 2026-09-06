@@ -75,7 +75,6 @@ function Overview() {
         <PageHeader
           eyebrow="Program"
           title="Overview"
-          description="Continuous posture across four frameworks. Last full evaluation completed 12 minutes ago."
           actions={
             <>
               <Button variant="secondary" iconBefore={<Download />}>

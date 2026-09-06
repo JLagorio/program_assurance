@@ -136,10 +136,7 @@ function PersonDetail() {
           }
           tabs={<div className="border-b border-default" />}
         >
-          <Section
-            title="Workstreams"
-            description="Everything this person is committed to, and what they do on it."
-          >
+          <Section title="Workstreams">
             <Table className="table-fixed">
               <thead>
                 <tr>
@@ -181,10 +178,7 @@ function PersonDetail() {
             </Table>
           </Section>
 
-          <Section
-            title="Works with"
-            description="People sharing at least one workstream — the coordination surface, not the org chart."
-          >
+          <Section title="Works with">
             <Table className="table-fixed">
               <thead>
                 <tr>

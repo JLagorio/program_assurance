@@ -183,7 +183,6 @@ export function VerificationSection({ programName }: { programName: string }) {
         {/* ------------------------------------------------------ IATT clock */}
         <Section
           title="IATT window & test schedule"
-          description="Test events matched against the interim authority to test validity period."
           action={
             <Button variant="secondary" iconBefore={<Plus />}>
               Add test event
@@ -253,7 +252,6 @@ export function VerificationSection({ programName }: { programName: string }) {
         {/* --------------------------------------------------------- ingests */}
         <Section
           title="Ingested assessment data"
-          description="STIG CKL, ACAS / Nessus, SonarQube and manual implementation statements."
           action={
             <Button variant="secondary" onClick={() => setIngesting(true)} iconBefore={<Upload />}>
               Ingest scan
@@ -311,7 +309,6 @@ export function VerificationSection({ programName }: { programName: string }) {
         {/* -------------------------------------------------------- findings */}
         <Section
           title="Aggregated findings"
-          description="Deduplicated across scan sources and mapped to NIST 800-53 controls."
           action={
             <Inline space="space.075" alignBlock="center">
               {severityFilters.map((s) => (

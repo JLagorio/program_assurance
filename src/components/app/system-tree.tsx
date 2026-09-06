@@ -7,17 +7,18 @@ import {
   Button,
   Combobox,
   DataTable,
+  defineColumns,
   Field,
   Indicator,
   Inline,
   Input,
+  NativeSelect,
   Progress,
   Select,
   Sheet,
   Stack,
   Text,
   Textarea,
-  defineColumns,
   toast,
   useDataTable,
   useRequired,
@@ -529,13 +530,17 @@ export function AddNodeSheet({
     >
       <Stack space="space.150">
         <Field label="Kind">
-          <Select value={kind} onValueChange={(v) => setKind(v as NodeKind)} aria-label="Kind">
+          <NativeSelect
+            value={kind}
+            onChange={(e) => setKind(e.target.value as NodeKind)}
+            aria-label="Kind"
+          >
             {addableKinds.map((k) => (
-              <Select.Item key={k.kind} value={k.kind}>
+              <option key={k.kind} value={k.kind}>
                 {k.kind} · {k.class}
-              </Select.Item>
+              </option>
             ))}
-          </Select>
+          </NativeSelect>
         </Field>
         <Field isRequired error={req.errorFor("name")} label="Name">
           <Input

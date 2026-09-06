@@ -27,9 +27,9 @@ import {
   Input,
   Inspector,
   KeyValue,
+  NativeSelect,
   PageHeader,
   RadioGroup,
-  Select,
   Sheet,
   Stack,
   Stepper,
@@ -463,45 +463,50 @@ function ProgramStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
             />
           </Field>
           <Field label="Authorizing official">
-            <Select
+            <NativeSelect
               value={draft.authorizingOfficial}
-              onValueChange={(v) => dispatch({ type: "field", patch: { authorizingOfficial: v } })}
+              onChange={(e) =>
+                dispatch({ type: "field", patch: { authorizingOfficial: e.target.value } })
+              }
               aria-label="Authorizing official"
             >
               {officials.map((o) => (
-                <Select.Item key={o} value={o}>
+                <option key={o} value={o}>
                   {o}
-                </Select.Item>
+                </option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Assessor">
-            <Select
+            <NativeSelect
               value={draft.assessor}
-              onValueChange={(v) => dispatch({ type: "field", patch: { assessor: v } })}
+              onChange={(e) => dispatch({ type: "field", patch: { assessor: e.target.value } })}
               aria-label="Assessor"
             >
               {assessors.map((o) => (
-                <Select.Item key={o} value={o}>
+                <option key={o} value={o}>
                   {o}
-                </Select.Item>
+                </option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
           <Field label="Environment">
-            <Select
+            <NativeSelect
               value={draft.environment}
-              onValueChange={(v) =>
-                dispatch({ type: "field", patch: { environment: v as Program["environment"] } })
+              onChange={(e) =>
+                dispatch({
+                  type: "field",
+                  patch: { environment: e.target.value as Program["environment"] },
+                })
               }
               aria-label="Environment"
             >
               {environments.map((o) => (
-                <Select.Item key={o} value={o}>
+                <option key={o} value={o}>
                   {o}
-                </Select.Item>
+                </option>
               ))}
-            </Select>
+            </NativeSelect>
           </Field>
         </Grid>
       </Stack>

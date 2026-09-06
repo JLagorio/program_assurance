@@ -96,7 +96,6 @@ function CampaignsPage() {
         header={
           <PageHeader
             title="Test campaigns"
-            description="A campaign is scoped work opened against a trigger. Its events prove objectives, and every objective names the CCIs it covers — that is the only place T&E and RMF meet."
             actions={
               <Button variant="primary" iconBefore={<Plus />}>
                 Open campaign
@@ -187,7 +186,7 @@ function CampaignsPage() {
                                   params={{ campaignId: c.id }}
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  Open →
+                                  Open campaign
                                 </Link>
                               </TextLink>
                             </Table.Cell>

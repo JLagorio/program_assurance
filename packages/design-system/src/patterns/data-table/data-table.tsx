@@ -526,17 +526,13 @@ function DataTableRoot<TData extends RowData>({
   const rows = pinRows ? table.getCenterRows() : allRows;
 
   // Only the rows in view are drawn; a spacer row above and below keeps the scroll height honest.
-  // Rows are dimension.row tall, so the estimate is the density's row height and nothing measures.
+  // Rows are dimension.row tall, so the estimate is the table's density and nothing measures.
   const virtual = options?.virtualize && !groupBy ? options.virtualize : undefined;
   const frame = useRef<HTMLDivElement>(null);
   const virtualizer = useVirtualizer({
     count: virtual ? rows.length : 0,
     getScrollElement: () => frame.current,
-    estimateSize: () =>
-      virtual?.estimate ??
-      (typeof document !== "undefined" && document.documentElement.dataset["density"] === "compact"
-        ? 36
-        : 40),
+    estimateSize: () => virtual?.estimate ?? (options?.density === "compact" ? 36 : 40),
     overscan: virtual?.overscan ?? 8,
     initialRect: { width: 0, height: maxHeight ?? 480 },
   });
@@ -620,6 +616,7 @@ function DataTableRoot<TData extends RowData>({
       <DragContext table={table}>
         <Table
           frameRef={frame}
+          density={options?.density ?? "default"}
           {...(label ? { "aria-label": label } : {})}
           {...(maxHeight === undefined ? {} : { maxHeight })}
           {...(tree ? { role: "treegrid" } : options?.editable ? { role: "grid" } : {})}

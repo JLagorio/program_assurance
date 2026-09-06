@@ -304,10 +304,7 @@ function FindingRecord() {
                 ) : null}
               </Section>
 
-              <Section
-                title="Requirement"
-                description="Where the statement comes from, and what it knocks down."
-              >
+              <Section title="Requirement">
                 <Box paddingBlockStart="space.050">
                   <TextBlock label="Control">
                     {controlLink}
@@ -453,10 +450,7 @@ function FindingRecord() {
                 </Box>
               </Section>
 
-              <Section
-                title="Determination"
-                description="The assessor's conclusion, carried verbatim into the SAR."
-              >
+              <Section title="Determination">
                 <p className="max-w-layout-measure pt-150 font-body">
                   {finding.assessment.determination}
                 </p>
@@ -490,10 +484,7 @@ function FindingRecord() {
                 </Box>
               </Section>
 
-              <Section
-                title="Recommendation"
-                description="What the assessor says should happen, whether or not it is scheduled."
-              >
+              <Section title="Recommendation">
                 <p className="max-w-layout-measure pt-150 font-body">{finding.recommendation}</p>
               </Section>
             </>
@@ -615,10 +606,7 @@ function FindingRecord() {
                   </Grid>
                 </Section>
 
-                <Section
-                  title="Calculation"
-                  description="Five weighted terms and one credit. Each row carries the input it read, the arithmetic, the ids it rests on, and one sentence an assessor can disagree with."
-                >
+                <Section title="Calculation">
                   <FactorTrail factors={residual.factors} score={residual.score} />
                 </Section>
               </>

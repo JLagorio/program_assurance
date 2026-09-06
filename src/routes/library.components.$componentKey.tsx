@@ -134,10 +134,7 @@ function ComponentRecord() {
         >
           <p className="max-w-layout-measure font-body text-subtle">{component.summary}</p>
 
-          <Section
-            title="Provided controls"
-            description="What consuming programs inherit, and how fresh the evidence behind it is."
-          >
+          <Section title="Provided controls">
             <ProvidedControlsTable component={component} />
           </Section>
 

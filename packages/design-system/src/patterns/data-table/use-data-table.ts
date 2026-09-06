@@ -4,8 +4,9 @@ import {
   type RowData,
   type TableOptions,
 } from "@tanstack/react-table";
+import type { Density } from "../../mode/density";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import { dataTableFeatures, type DataTableFeatures } from "./features";
 import { useViewStore } from "./view-store";
@@ -57,8 +58,10 @@ export type DataTableOptions<TData extends RowData> = Partial<TanStackOptions<TD
   columnMenu?: boolean | undefined;
   /** `fixed` makes every width authoritative and leaves the slack to the unsized columns; on by itself when the table resizes or reorders. `auto` lets the browser fit content. */
   layout?: "auto" | "fixed" | undefined;
-  /** Names the table so the reader's layout (order, widths, visibility, pins) persists in this browser. */
+  /** Names the table so the reader's layout (order, widths, visibility, pins, density) persists in this browser. */
   view?: string | undefined;
+  /** The rows' height at first: `compact` (36px) for a picker's table; `default` (40px) unsaid. The reader changes it from the Columns menu, and the choice persists with `view`. */
+  density?: Density | undefined;
   /** Nested rows: `children` reads a row's parts; the table is a treegrid and the name column carries the chevron. */
   tree?:
     | {
@@ -115,6 +118,7 @@ export function useDataTable<TData extends RowData>({
   columnMenu,
   layout,
   view,
+  density: defaultDensity = "default",
   tree,
   detail,
   groupBy,
@@ -125,6 +129,7 @@ export function useDataTable<TData extends RowData>({
   ...rest
 }: DataTableOptions<TData>) {
   const pins = pinsOf(columns);
+  const [density, setDensity] = useState<Density>(defaultDensity);
   const editable = columns.some((c) => c.meta?.editable);
   const expanded =
     tree?.initialExpanded === true || groupBy
@@ -169,6 +174,9 @@ export function useDataTable<TData extends RowData>({
       columnMenu: columnMenu ?? (pinnable || hideable),
       layout: layout ?? (resizable || reorderable ? "fixed" : "auto"),
       view,
+      density,
+      defaultDensity,
+      setDensity,
       ...(tree
         ? {
             tree: {

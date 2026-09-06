@@ -123,7 +123,6 @@ function Evidence() {
         header={
           <PageHeader
             title="Evidence vault"
-            description="1,402 artifacts mapped to controls. Auditors sample directly from this library — nothing is re-uploaded by hand."
             actions={
               <>
                 <Button variant="secondary" iconBefore={<Filter />}>

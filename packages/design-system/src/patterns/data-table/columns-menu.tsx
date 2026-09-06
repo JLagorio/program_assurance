@@ -22,7 +22,7 @@ const labelOf = <TData extends RowData>(
   return typeof header === "string" ? header : column.id;
 };
 
-/** Which columns to show. Items stay open while the reader toggles; Reset view is last. */
+/** Which columns to show, and how tall the rows are. Items stay open while the reader toggles; Reset view is last. */
 export function Columns<TData extends RowData>({
   table,
   label = "Columns",
@@ -36,6 +36,8 @@ export function Columns<TData extends RowData>({
   const columns = table.getAllLeafColumns().filter((c) => c.getCanHide());
   const hidden = columns.filter((c) => !c.getIsVisible()).length;
   const view = table.options.meta?.view;
+  const density = table.options.meta?.density ?? "default";
+  const setDensity = table.options.meta?.setDensity;
   return (
     <DropdownMenu
       align="end"
@@ -64,6 +66,19 @@ export function Columns<TData extends RowData>({
           {labelOf(c)}
         </DropdownMenu.Item>
       ))}
+      {setDensity ? (
+        <>
+          <DropdownMenu.Separator />
+          <DropdownMenu.Label>Rows</DropdownMenu.Label>
+          <DropdownMenu.Item
+            isSelected={density === "compact"}
+            closeOnSelect={false}
+            onSelect={() => setDensity(density === "compact" ? "default" : "compact")}
+          >
+            Compact rows
+          </DropdownMenu.Item>
+        </>
+      ) : null}
       <DropdownMenu.Separator />
       <DropdownMenu.Item onSelect={() => resetView(table)}>
         {view ? "Reset view" : "Reset columns"}

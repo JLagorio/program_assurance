@@ -7,23 +7,22 @@ import {
   Box,
   Button,
   Dialog,
+  Eyebrow,
   Field,
   Grid,
   Id,
+  Indicator,
   Inline,
   Input,
   KeyValue,
   NativeSelect,
   Progress,
   Section,
-  Select,
   Stack,
   Table,
   Textarea,
   toast,
   useRequired,
-  Indicator,
-  Eyebrow,
 } from "@ledger/design-system";
 import {
   artifactShort,
@@ -189,7 +188,6 @@ export function DigitalThreadSection({
         {/* ------------------------------------------------- mapping as code */}
         <Section
           title="Control mapping as code"
-          description="Rules that convert closed tickets, merged code and model elements into living technical evidence."
           action={
             <Button
               variant="secondary"
@@ -762,31 +760,35 @@ export function CdrPackageModal({
           </Table>
           <Grid gap="space.150" templateColumns="repeat(2, minmax(0, 1fr))">
             <Field label="Output format">
-              <Select value={format} onValueChange={setFormat} aria-label="Output format">
+              <NativeSelect
+                value={format}
+                onChange={(e) => setFormat(e.target.value as typeof format)}
+                aria-label="Output format"
+              >
                 {[
                   "OSCAL SSP (JSON) + PDF",
                   "OSCAL SSP (XML)",
                   "eMASS import bundle",
                   "PDF only",
                 ].map((f) => (
-                  <Select.Item key={f} value={f}>
+                  <option key={f} value={f}>
                     {f}
-                  </Select.Item>
+                  </option>
                 ))}
-              </Select>
+              </NativeSelect>
             </Field>
             <Field label="Review gate">
-              <Select defaultValue="CDR — Critical Design Review" aria-label="Review gate">
+              <NativeSelect defaultValue="CDR — Critical Design Review" aria-label="Review gate">
                 {[
                   "PDR — Preliminary Design Review",
                   "CDR — Critical Design Review",
                   "TRR — Test Readiness Review",
                 ].map((g) => (
-                  <Select.Item key={g} value={g}>
+                  <option key={g} value={g}>
                     {g}
-                  </Select.Item>
+                  </option>
                 ))}
-              </Select>
+              </NativeSelect>
             </Field>
           </Grid>
         </Stack>

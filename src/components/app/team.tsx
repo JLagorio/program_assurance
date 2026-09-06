@@ -51,10 +51,7 @@ export function TeamSection({ programId }: { programId: string }) {
   const railOpen = (tab === "Workstreams" && ws) || (tab === "People" && person);
 
   return (
-    <Section
-      title="Team"
-      description="Who is building what. A workstream is the unit of work — it has a lead, the disciplines it pulls in, the controls it satisfies, and the workstreams it cannot finish without."
-    >
+    <Section title="Team">
       <Tabs
         value={tab}
         onValueChange={(value) => {
@@ -240,7 +237,7 @@ export function TeamSection({ programId }: { programId: string }) {
                 openTo={
                   <TextLink>
                     <Link to="/workstreams/$workstreamId" params={{ workstreamId: ws.id }}>
-                      Open workstream →
+                      Open workstream
                     </Link>
                   </TextLink>
                 }
@@ -279,7 +276,7 @@ export function TeamSection({ programId }: { programId: string }) {
                 openTo={
                   <TextLink>
                     <Link to="/people/$personId" params={{ personId: person.id }}>
-                      Open person →
+                      Open person
                     </Link>
                   </TextLink>
                 }

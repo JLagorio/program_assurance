@@ -450,7 +450,6 @@ function ProgramTePhases() {
             <>
               <Section
                 title="The six-phase model"
-                description="The DoD Cybersecurity Test and Evaluation Guidebook defines six phases, not three. All six are carried here so the model is not wrong about its own shape, and each one names the lifecycle gate it informs. Selecting a phase opens its record in the rail; its gate is one click away."
                 action={
                   <span className="tabular-nums font-body-small text-subtle">
                     {phases.filter((p) => p.state === "Complete").length} complete ·{" "}
@@ -478,10 +477,7 @@ function ProgramTePhases() {
               </Section>
 
               {phases.length === 0 ? null : (
-                <Section
-                  title="What each phase is executing"
-                  description="A phase is a doctrine; a campaign is the work. Two phases carry no campaign at all — they produce the requirement matrix and the attack-surface picture every later phase is judged against, and recording an empty execution against them would be a fiction."
-                >
+                <Section title="What each phase is executing">
                   <Table className="table-fixed">
                     <thead>
                       <tr>
@@ -604,10 +600,7 @@ function ProgramTePhases() {
                     />
                   </Section>
 
-                  <Section
-                    title="Entry criteria"
-                    description="What has to be true before the phase may open. A derived criterion is recomputed on every render from the SCTM, the finding register, the scan record, the run log, the change log and the composition graph; an attested one reports a signature, because no platform can judge whether an agreement was negotiated in good faith."
-                  >
+                  <Section title="Entry criteria">
                     <CriteriaTable
                       criteria={phaseCriteria}
                       results={criterionResults}
@@ -615,10 +608,7 @@ function ProgramTePhases() {
                     />
                   </Section>
 
-                  <Section
-                    title="Exit criteria"
-                    description="What has to be true before the phase may close. These are re-read against today's register rather than against the record as it stood on the day the phase was signed off — which is why a phase can be Complete and still fail its own exit criteria here. That divergence is the point of a derived gate, and it is reported rather than reconciled away."
-                  >
+                  <Section title="Exit criteria">
                     <CriteriaTable
                       criteria={phaseCriteria}
                       results={criterionResults}
@@ -626,10 +616,7 @@ function ProgramTePhases() {
                     />
                   </Section>
 
-                  <Section
-                    title="Why two kinds of criterion"
-                    description="A phase gate that is a row of checkboxes proves nothing: it records that somebody ticked, not that anything is true."
-                  >
+                  <Section title="Why two kinds of criterion">
                     <Grid
                       className="pt-200"
                       gap="space.150"
@@ -699,7 +686,6 @@ function ProgramTePhases() {
               <>
                 <Section
                   title="Attack surface exercised"
-                  description="Every technique below is a real ATT&CK id with its published name and tactic, and every scenario path is walked against the actual composition graph. A scenario whose path is not traversable is the same class of defect as a fabricated technique id, so the walk is printed rather than asserted."
                   action={
                     <span className="tabular-nums font-body-small text-subtle">
                       {brokenPaths === 0
@@ -713,7 +699,6 @@ function ProgramTePhases() {
 
                 <Section
                   title="Threat scenarios"
-                  description="Tier is a property of the portrayal, not a verdict: a DoD Cyber Table Top tier VI adversary is a different assumption about who is attacking, not worse news than a tier II one. Cooperative CVPA scenarios and adversarial AA scenarios sit in the same table because they cover the same surface — the phase column says which regime authored each."
                   action={
                     <span className="tabular-nums font-body-small text-subtle">
                       {coverage.exercised} executed of {scenarios.length}
@@ -734,7 +719,6 @@ function ProgramTePhases() {
                 {selectedScenario ? (
                   <Section
                     title="Chain and path"
-                    description="The ordered technique chain, and beneath it the walk through the system it claims. Each hop names the reachability edge or the containment link that carries it, so the claim can be checked on the composition page rather than believed."
                     action={
                       <TextLink size="small">
                         <Link
@@ -778,7 +762,6 @@ function ProgramTePhases() {
               <>
                 <Section
                   title="What the adversary did to the mission"
-                  description="An adversarial assessment is scored in mission effect, not in findings count — an AA that reports twelve CAT II findings and no mission effect has missed its own point. Each row records what an operator would have seen, how long it lasted and what they could do about it."
                   action={
                     <span className="tabular-nums font-body-small text-subtle">
                       {effects.filter((e) => e.effect === "No effect").length} of {effects.length}{" "}
@@ -855,19 +838,13 @@ function ProgramTePhases() {
                   </Grid>
                 </Section>
 
-                <Section
-                  title="Confirmed effects"
-                  description="Each effect names the run or event that confirmed it, whether it was reproduced on a second attempt, and the finding it raised. An effect with no finding and no workaround is what blocks the adversarial assessment's exit criterion."
-                >
+                <Section title="Confirmed effects">
                   <Box paddingBlockStart="space.100">
                     <MissionEffectTable effects={effects} scenarioName={scenarioName} />
                   </Box>
                 </Section>
 
-                <Section
-                  title="Mission functions touched"
-                  description="The same read-out from the mission's side rather than the adversary's: which functions have been exercised at all, and what the worst recorded outcome against each of them was."
-                >
+                <Section title="Mission functions touched">
                   <MissionFunctionTable effects={effects} />
                 </Section>
               </>

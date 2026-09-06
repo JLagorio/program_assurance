@@ -268,10 +268,7 @@ function ProgramIngestion() {
           }
         >
           {!scan ? (
-            <Section
-              title="Automated ingestion"
-              description="No scanner output has been delivered against this program."
-            >
+            <Section title="Automated ingestion">
               <Box paddingBlockStart="space.200">
                 <Empty
                   title="Nothing ingested"
@@ -306,10 +303,7 @@ function ProgramIngestion() {
                 <IngestSummary batch={batch} scan={scan} />
               </Section>
 
-              <Section
-                title="Native record against normalized record"
-                description="Select a result to audit it end to end. The left panel is the tool's own record, untouched; the right panel is what the normalizer produced; the block underneath is why."
-              >
+              <Section title="Native record against normalized record">
                 <Box paddingBlockStart="space.200">
                   <NormalizationView
                     rows={rows}
@@ -338,10 +332,7 @@ function ProgramIngestion() {
                 />
               </Section>
 
-              <Section
-                title="Source authority"
-                description="Which source wins when two of them describe the same condition. A benchmark checklist is the authoritative statement about a configuration setting; a network scanner inferring the same thing from the outside is corroboration, not a second weakness."
-              >
+              <Section title="Source authority">
                 <Inline
                   className="pt-200"
                   as="ol"

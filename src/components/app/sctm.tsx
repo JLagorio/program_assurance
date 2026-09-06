@@ -674,7 +674,6 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
           would be counted twice. */}
       <Section
         title="Determination currency"
-        description="Whether what is on file still describes the configuration in force. A configuration change does not re-assess anything, so an invalidated row's positive claim is withdrawn and stops counting toward coverage while a deficiency is retained and owed a re-test; a suspect row keeps its determination and is flagged for the assessor."
         action={
           <TextLink size="small">
             <Link to="/programs/$programId/baseline" params={{ programId: sctm.program }}>
@@ -716,10 +715,7 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
       </Section>
 
       <Grid gap="space.300" templateColumns={{ md: "repeat(2, minmax(0, 1fr))" }}>
-        <Section
-          title="Verification method"
-          description="How each requirement is evidenced — Test, Demonstration, Analysis or Inspection."
-        >
+        <Section title="Verification method">
           <Box paddingBlockStart="space.075">
             {sctm.byMethod.map((m) => (
               <BreakdownRow
@@ -733,10 +729,7 @@ export function SctmSummary({ sctm }: { sctm: Sctm }) {
           </Box>
         </Section>
 
-        <Section
-          title="Control origination"
-          description="What the system implements itself against what it inherits."
-        >
+        <Section title="Control origination">
           <Box paddingBlockStart="space.075">
             {sctm.byOrigination.map((o) => (
               <BreakdownRow

@@ -50,7 +50,6 @@ function PackagesIndex() {
         header={
           <PageHeader
             title="Authorization packages"
-            description="A package is a snapshot of the spine, not a folder of documents. The SSP, SAR and POA&M are generated views of the same in-scope CCIs — if a CCI has no objective, no result, or an open finding it did not declare, the package is not shippable."
             actions={<Button iconBefore={<RefreshCw />}>Regenerate stale</Button>}
           />
         }
@@ -118,7 +117,7 @@ function PackagesIndex() {
               openTo={
                 <TextLink>
                   <Link to="/packages/$pkgId" params={{ pkgId: preview.id }}>
-                    Open package →
+                    Open package
                   </Link>
                 </TextLink>
               }

@@ -28,6 +28,7 @@ import {
   sortFns,
   tableFeatures,
 } from "@tanstack/react-table";
+import type { Density } from "../../mode/density";
 import type { ReactNode } from "react";
 
 /*
@@ -95,6 +96,11 @@ export type DataTableMeta = {
   layout?: "auto" | "fixed" | undefined;
   /** The name under which the reader's layout persists. */
   view?: string | undefined;
+  /** The rows' height, `default` 40px or `compact` 36px: the reader's choice, kept with the view. */
+  density?: Density | undefined;
+  /** The author's density, what Reset view returns to. */
+  defaultDensity?: Density | undefined;
+  setDensity?: ((density: Density) => void) | undefined;
   /** A column edits in place, so the table is a grid and Enter moves down the column. */
   editable?: boolean | undefined;
   /** Nested rows: the name column carries the tree cell. */

@@ -300,7 +300,6 @@ function CampaignRecord() {
 
               <Section
                 title="Declared result versus executed result"
-                description="The left result is what the campaign record asserts. The right result is what the step records add up to: each procedure's latest complete run, rolled up to the worst of them, because every procedure written for an objective has to hold for it to be met. Where they differ the run is the fact and the declaration is the claim."
                 action={
                   <span className="tabular-nums font-body-small text-subtle">
                     {objectiveRows.length} objectives · {events.length} events
@@ -322,7 +321,6 @@ function CampaignRecord() {
             <>
               <Section
                 title="Written procedures"
-                description="One procedure proves one objective. A procedure that has never been run is a plan, not evidence."
                 action={
                   <span className="tabular-nums font-body-small text-subtle">
                     {procedureRows.length} procedures · {execution.withProcedure} of{" "}
@@ -377,7 +375,6 @@ function CampaignRecord() {
             <>
               <Section
                 title="Runs"
-                description="State and verdict are independent. The state says what happened to the run; the verdict is derived from the step records and says what they add up to."
                 action={
                   <span className="tabular-nums font-body-small text-subtle">
                     {runRows.filter((r) => r.run.state === "Complete").length} complete of{" "}
@@ -414,7 +411,6 @@ function CampaignRecord() {
           {tab === "Regression" ? (
             <Section
               title="Step movement across retests"
-              description="Every step compared against the run it re-executes. Only steps with a decisive record on both sides appear — an inconclusive or un-run step is not evidence of a regression or of a fix."
               action={
                 <span className="tabular-nums font-body-small text-subtle">
                   {regressionRows.filter((r) => r.state === "Regressed").length} regressed ·{" "}
@@ -426,10 +422,7 @@ function CampaignRecord() {
             </Section>
           ) : null}
 
-          <Section
-            title="Events under this campaign"
-            description="The scheduled windows the runs above were executed inside."
-          >
+          <Section title="Events under this campaign">
             {events.length === 0 ? (
               <Empty
                 title="This campaign has no events"
