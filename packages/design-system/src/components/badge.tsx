@@ -1,104 +1,226 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
+import { cva, type VariantProps } from "class-variance-authority";
+import {
+  cloneElement,
+  Fragment,
+  isValidElement,
+  type ComponentPropsWithoutRef,
+  type ReactNode,
+} from "react";
 
 import { cn } from "../lib/cn";
+import { toneClasses, type Tone } from "../lib/status-tone";
 
-/**
- * Status colour, said once. Every component that paints a status (Badge, Dot, Indicator, Count,
- * later Meter and the bars) reads this table, so a tone is one decision: the subtlest fill with
- * the tone's text on it, the bold fill with inverse text, the icon colour for a 6px dot, and the
- * fill for a bar (Progress, Stacked). Neutral's fill is neutral.bold.
- * The names are the token names (information, not info) so a tone reads straight through to
- * `color.background.<tone>` and `color.text.<tone>`.
- */
-export type Tone = "neutral" | "information" | "success" | "warning" | "danger";
+export { toneClasses, tones, type Tone } from "../lib/status-tone";
 
-export const tones = ["neutral", "information", "success", "warning", "danger"] as const;
+type BadgeTone = Tone | "brand";
+type BadgeAppearance = "subtle" | "bold";
 
-export const toneClasses: Record<
-  Tone,
-  { subtle: string; bold: string; text: string; icon: string; fill: string }
+const badgeRecipe = cva(
+  "group/badge inline-flex w-fit shrink-0 items-center justify-center gap-050 overflow-hidden rounded-full border-w-default border-solid border-transparent font-medium whitespace-nowrap transition-all duration-fast ease-standard focus-visible:border-focused focus-visible:outline-focused aria-invalid:border-danger aria-invalid:outline-danger! [&>svg]:pointer-events-none [&>svg]:size-150!",
+  {
+    variants: {
+      variant: {
+        default: "",
+        secondary: "",
+        destructive: "",
+        outline: "",
+        ghost: "",
+        link: "underline-offset-4 hover:underline",
+      },
+      size: {
+        small:
+          "h-250 px-100 py-025 font-body-small has-data-[icon=inline-end]:pr-075 has-data-[icon=inline-start]:pl-075",
+        xsmall:
+          "h-200 px-050 py-0 font-body-xsmall has-data-[icon=inline-end]:pr-050 has-data-[icon=inline-start]:pl-050",
+      },
+    },
+    defaultVariants: { variant: "default", size: "small" },
+  },
+);
+
+type BadgeVariant = NonNullable<VariantProps<typeof badgeRecipe>["variant"]>;
+
+const variantDefaults: Record<BadgeVariant, { tone: BadgeTone; appearance: BadgeAppearance }> = {
+  default: { tone: "brand", appearance: "bold" },
+  secondary: { tone: "neutral", appearance: "subtle" },
+  destructive: { tone: "danger", appearance: "subtle" },
+  outline: { tone: "neutral", appearance: "subtle" },
+  ghost: { tone: "neutral", appearance: "subtle" },
+  link: { tone: "brand", appearance: "subtle" },
+};
+
+const badgePalette: Record<
+  BadgeTone,
+  {
+    subtle: string;
+    bold: string;
+    text: string;
+    border: string;
+    subtleLinkHover: string;
+    boldLinkHover: string;
+    outlineLinkHover: string;
+    ghostHover: string;
+  }
 > = {
+  brand: {
+    subtle: "bg-brand-subtlest text-brand",
+    bold: "bg-brand-bold text-inverse",
+    text: "text-brand",
+    border: "border-brand",
+    subtleLinkHover: "[a]:hover:bg-brand-subtlest-hovered",
+    boldLinkHover: "[a]:hover:bg-brand-bold-hovered",
+    outlineLinkHover: "[a]:hover:bg-brand-subtlest-hovered",
+    ghostHover: "hover:bg-brand-subtlest-hovered",
+  },
   neutral: {
-    subtle: "bg-neutral text-subtle",
-    bold: "bg-neutral-bold text-inverse",
-    text: "text-subtle",
-    icon: "icon-subtlest",
-    fill: "bg-neutral-bold",
+    ...toneClasses.neutral,
+    border: "border-default",
+    subtleLinkHover: "[a]:hover:bg-neutral-hovered",
+    boldLinkHover: "[a]:hover:bg-neutral-bold-hovered",
+    outlineLinkHover: "[a]:hover:bg-neutral [a]:hover:text-subtle",
+    ghostHover: "hover:bg-neutral hover:text-subtle",
   },
   information: {
-    subtle: "bg-information text-information",
-    bold: "bg-information-bold text-inverse",
-    text: "text-information",
-    icon: "icon-information",
-    fill: "bg-information-bold",
+    ...toneClasses.information,
+    border: "border-information",
+    subtleLinkHover: "[a]:hover:bg-information-hovered",
+    boldLinkHover: "[a]:hover:bg-information-bold-hovered",
+    outlineLinkHover: "[a]:hover:bg-information-hovered",
+    ghostHover: "hover:bg-information-hovered",
   },
   success: {
-    subtle: "bg-success text-success",
-    bold: "bg-success-bold text-inverse",
-    text: "text-success",
-    icon: "icon-success",
-    fill: "bg-success-bold",
+    ...toneClasses.success,
+    border: "border-success",
+    subtleLinkHover: "[a]:hover:bg-success-hovered",
+    boldLinkHover: "[a]:hover:bg-success-bold-hovered",
+    outlineLinkHover: "[a]:hover:bg-success-hovered",
+    ghostHover: "hover:bg-success-hovered",
   },
   warning: {
-    subtle: "bg-warning text-warning",
-    bold: "bg-warning-bold text-warning-inverse",
-    text: "text-warning",
-    icon: "icon-warning",
-    fill: "bg-warning-bold",
+    ...toneClasses.warning,
+    border: "border-warning",
+    subtleLinkHover: "[a]:hover:bg-warning-hovered",
+    boldLinkHover: "[a]:hover:bg-warning-bold-hovered",
+    outlineLinkHover: "[a]:hover:bg-warning-hovered",
+    ghostHover: "hover:bg-warning-hovered",
   },
   danger: {
-    subtle: "bg-danger text-danger",
-    bold: "bg-danger-bold text-inverse",
-    text: "text-danger",
-    icon: "icon-danger",
-    fill: "bg-danger-bold",
+    ...toneClasses.danger,
+    border: "border-danger",
+    subtleLinkHover: "[a]:hover:bg-danger-hovered",
+    boldLinkHover: "[a]:hover:bg-danger-bold-hovered",
+    outlineLinkHover: "[a]:hover:bg-danger-hovered",
+    ghostHover: "hover:bg-danger-hovered",
   },
 };
 
-const badgeSizes = {
-  xsmall: "h-200 gap-050 px-050 font-body-xsmall",
-  small: "h-250 gap-050 px-075 font-body-small",
-} as const;
+type BadgeRecipeProps = Omit<NonNullable<Parameters<typeof badgeRecipe>[0]>, "size"> & {
+  /** Small is 20px; xsmall is 16px for dense rows and tabs. */
+  size?: "small" | "xsmall" | undefined;
+  /** Overrides the variant's palette. Brand, or one of the five semantic status tones. */
+  tone?: BadgeTone | undefined;
+  /** Overrides the subtle or bold fill on default, secondary and destructive variants. */
+  appearance?: BadgeAppearance | undefined;
+};
 
-export type BadgeProps = {
-  /** The status the word carries, from the tone table. `neutral` is the default, and a category or a kind is always neutral. */
-  tone?: Tone | undefined;
-  /** `subtle` is the tinted fill with the tone's text; `bold` is the solid fill for the one status that must win. */
-  appearance?: "subtle" | "bold";
-  /** `small` is 20px, the default; `xsmall` is 16px, for a table row or a tab. */
-  size?: keyof typeof badgeSizes;
-  /** A 12px icon before the word, rarely: when the word alone is ambiguous. */
-  icon?: ReactNode;
-  /** One or two words in sentence case: the state. */
-  children: ReactNode;
-  className?: string | undefined;
-} & Omit<ComponentPropsWithoutRef<"span">, "children" | "className">;
-
-/** A short status word in a soft fill: the state of a record. Read-only: never dismissed, selected or clicked. */
-export function Badge({
-  tone = "neutral",
-  appearance = "subtle",
+/** One recipe for treatment, palette, emphasis and density, also usable on a native element. */
+function badgeVariants({
+  variant = "default",
   size = "small",
-  icon,
+  tone,
+  appearance,
   className,
-  children,
-  ...rest
-}: BadgeProps) {
-  return (
-    <span
-      className={cn(
-        "inline-flex shrink-0 items-center whitespace-nowrap rounded-small font-medium",
-        badgeSizes[size],
-        toneClasses[tone][appearance],
-        className,
-      )}
-      {...rest}
-    >
-      {icon}
-      {children}
-    </span>
+  class: classProp,
+}: BadgeRecipeProps = {}) {
+  const defaults = variantDefaults[variant ?? "default"];
+  const palette = badgePalette[tone ?? defaults.tone];
+  const emphasis = appearance ?? defaults.appearance;
+  const unfilledText = (tone ?? defaults.tone) === "neutral" ? "text-default" : palette.text;
+  const paint =
+    variant === null
+      ? undefined
+      : variant === "outline"
+        ? cn(palette.border, unfilledText, palette.outlineLinkHover)
+        : variant === "ghost"
+          ? cn(unfilledText, palette.ghostHover)
+          : variant === "link"
+            ? palette.text
+            : cn(
+                palette[emphasis],
+                emphasis === "bold" ? palette.boldLinkHover : palette.subtleLinkHover,
+              );
+  return cn(
+    badgeRecipe({ variant, size }),
+    paint,
+    (tone ?? defaults.tone) === "danger" && "focus-visible:outline-danger!",
+    classProp,
+    className,
   );
 }
+
+export type BadgeProps = useRender.ComponentProps<"span"> &
+  VariantProps<typeof badgeVariants> & {
+    /** An optional leading icon. Explicit icon children and their position attributes also work. */
+    icon?: ReactNode;
+  };
+
+/** A compact label with standard variants, semantic palettes and native render composition. */
+function Badge({
+  className,
+  variant = "default",
+  tone,
+  appearance,
+  size = "small",
+  icon,
+  children,
+  render,
+  ...props
+}: BadgeProps) {
+  const defaults = variantDefaults[variant ?? "default"];
+  const resolvedTone = tone ?? defaults.tone;
+  const resolvedAppearance = appearance ?? defaults.appearance;
+  const leadingIcon =
+    isValidElement<{ "data-icon"?: string }>(icon) && icon.type !== Fragment
+      ? cloneElement(icon, { "data-icon": "inline-start" })
+      : icon;
+  const hasIcon = icon != null && typeof icon !== "boolean";
+  const renderElement = isValidElement<{ children?: ReactNode }>(render) ? render : null;
+  const content = children === undefined ? renderElement?.props.children : children;
+  const hasChildren = children !== undefined || hasIcon;
+  const composedChildren = hasIcon ? (
+    <>
+      {leadingIcon}
+      {content}
+    </>
+  ) : (
+    content
+  );
+  return useRender({
+    defaultTagName: "span",
+    props: mergeProps<"span">(
+      {
+        className: badgeVariants({ variant, tone, appearance, size, className }),
+        ...(hasChildren ? { children: composedChildren } : {}),
+      },
+      props,
+    ),
+    render:
+      renderElement && hasChildren
+        ? cloneElement(renderElement, { children: composedChildren })
+        : render,
+    state: {
+      slot: "badge",
+      variant,
+      tone: resolvedTone,
+      appearance: resolvedAppearance,
+      size,
+    },
+  });
+}
+
+export { Badge, badgeVariants };
 
 const countAppearances = {
   default: "bg-neutral text-subtle",

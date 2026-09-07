@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ExternalLink, MoreHorizontal, Plus } from "lucide-react";
 
 import {
-  Avatar,
   Badge,
+  Avatar,
   Button,
   Dot,
   DropdownMenu,
@@ -108,7 +108,12 @@ function cardActions(name: string) {
       <DropdownMenu
         align="end"
         trigger={
-          <IconButton label={`More for ${name}`} variant="subtle" size="small" icon={<MoreHorizontal />} />
+          <IconButton
+            label={`More for ${name}`}
+            variant="subtle"
+            size="small"
+            icon={<MoreHorizontal />}
+          />
         }
       >
         <DropdownMenu.Item onSelect={() => {}}>Edit the link</DropdownMenu.Item>
@@ -161,7 +166,7 @@ const systemCards = systems.map((s) => (
     link={<a href={`#${s.name}`} />}
     meta={s.meta}
     status={
-      <Badge size="xsmall" tone={s.tone}>
+      <Badge variant="secondary" size="xsmall" tone={s.tone}>
         {s.state}
       </Badge>
     }
@@ -325,7 +330,9 @@ export const RelatedTable: Story = {
               <Table.Id id={`FND-${2231 - i}`} />
               <Table.Cell className="truncate">{t}</Table.Cell>
               <Table.Cell>
-                <Indicator tone={i % 3 ? "warning" : "danger"}>{i % 3 ? "CAT II" : "CAT I"}</Indicator>
+                <Indicator tone={i % 3 ? "warning" : "danger"}>
+                  {i % 3 ? "CAT II" : "CAT I"}
+                </Indicator>
               </Table.Cell>
               <Table.Cell>edge-sw-a1</Table.Cell>
               <Table.Cell>12 Aug</Table.Cell>
@@ -353,7 +360,15 @@ export const Dont: Story = {
             {systems.slice(0, 2).map((s) => (
               <Related.Card
                 key={s.name}
-                leading={<Avatar name={s.name} shape="square" variant="tinted" size="medium" isDecorative />}
+                leading={
+                  <Avatar
+                    name={s.name}
+                    shape="square"
+                    variant="tinted"
+                    size="medium"
+                    isDecorative
+                  />
+                }
                 title={s.name}
                 meta={s.meta}
                 properties={[
@@ -440,13 +455,15 @@ export const Dont: Story = {
                 title="Router management plane accepts unencrypted telnet"
                 meta={
                   <Inline space="space.050">
-                    <Badge tone="danger" size="xsmall">
+                    <Badge variant="secondary" tone="danger" size="xsmall">
                       CAT I
                     </Badge>
-                    <Badge tone="warning" size="xsmall">
+                    <Badge variant="secondary" tone="warning" size="xsmall">
                       Open
                     </Badge>
-                    <Badge size="xsmall">STIG</Badge>
+                    <Badge variant="secondary" tone="neutral" size="xsmall">
+                      STIG
+                    </Badge>
                   </Inline>
                 }
                 description="Found by the ACAS scan of 12 August on edge-sw-a1 and confirmed by hand the next day."
@@ -457,13 +474,15 @@ export const Dont: Story = {
                 title="SSH permits GSSAPI authentication"
                 meta={
                   <Inline space="space.050">
-                    <Badge tone="warning" size="xsmall">
+                    <Badge variant="secondary" tone="warning" size="xsmall">
                       CAT II
                     </Badge>
-                    <Badge tone="warning" size="xsmall">
+                    <Badge variant="secondary" tone="warning" size="xsmall">
                       Open
                     </Badge>
-                    <Badge size="xsmall">STIG</Badge>
+                    <Badge variant="secondary" tone="neutral" size="xsmall">
+                      STIG
+                    </Badge>
                   </Inline>
                 }
                 description="Found by the ACAS scan of 30 June on edge-sw-a1; the fix is scheduled for the next window."

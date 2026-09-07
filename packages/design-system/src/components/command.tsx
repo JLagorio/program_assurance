@@ -55,7 +55,7 @@ function CommandList({
   return (
     <CommandPrimitive.List
       style={{ maxHeight: 340 }}
-      className={cn("overflow-y-auto overflow-x-hidden p-075", className)}
+      className={cn("overflow-y-auto overflow-x-hidden overscroll-none p-075", className)}
       {...props}
     />
   );

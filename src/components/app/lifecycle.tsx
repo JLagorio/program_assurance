@@ -154,7 +154,9 @@ export function LifecycleSection({
                     </Table.Cell>
                     <Table.Cell>{g.name}</Table.Cell>
                     <Table.Cell width={116}>
-                      <Badge tone={gateKindTone[g.kind]}>{gateKindShort[g.kind]}</Badge>
+                      <Badge variant="secondary" tone={gateKindTone[g.kind]}>
+                        {gateKindShort[g.kind]}
+                      </Badge>
                     </Table.Cell>
                     <Table.Cell width={104}>
                       <Indicator tone={gateStatusTone[g.status]}>{g.status}</Indicator>

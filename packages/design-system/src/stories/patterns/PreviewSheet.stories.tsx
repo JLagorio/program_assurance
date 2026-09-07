@@ -63,7 +63,7 @@ function PreviewSheetStates() {
         }
         status={
           open === "stack" ? (
-            <Badge size="xsmall" tone={stacked ? "success" : "information"}>
+            <Badge variant="secondary" size="xsmall" tone={stacked ? "success" : "information"}>
               {stacked ? "Verified" : "In assessment"}
             </Badge>
           ) : undefined
@@ -139,7 +139,7 @@ function PreviewSheetStates() {
                       The gateway shall encrypt telemetry in transit.
                     </Table.Cell>
                     <Table.Cell>
-                      <Badge size="xsmall" tone="success">
+                      <Badge variant="secondary" size="xsmall" tone="success">
                         Verified
                       </Badge>
                     </Table.Cell>
@@ -150,7 +150,7 @@ function PreviewSheetStates() {
                       The gateway shall log every command it forwards.
                     </Table.Cell>
                     <Table.Cell>
-                      <Badge size="xsmall" tone="warning">
+                      <Badge variant="secondary" size="xsmall" tone="warning">
                         Allocated
                       </Badge>
                     </Table.Cell>

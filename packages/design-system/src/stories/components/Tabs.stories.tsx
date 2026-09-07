@@ -144,7 +144,7 @@ export const TabsMatrix: Story = {
             <Tabs.Tab
               value="trailing"
               trailing={
-                <Badge tone="warning" size="xsmall">
+                <Badge variant="secondary" tone="warning" size="xsmall">
                   Draft
                 </Badge>
               }

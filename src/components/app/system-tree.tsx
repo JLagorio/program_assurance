@@ -207,7 +207,7 @@ export function SystemTree({ programId }: { programId: string }) {
             cell: (r) => {
               const triad = r.scope ? triadOf(r.scope) : null;
               return triad ? (
-                <Badge size="xsmall" tone={impactTone[triad[o]]}>
+                <Badge variant="secondary" size="xsmall" tone={impactTone[triad[o]]}>
                   {triad[o].slice(0, 1)}
                 </Badge>
               ) : null;

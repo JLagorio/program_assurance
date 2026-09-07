@@ -214,7 +214,7 @@ function ProgramComposition() {
               meta={`${program.system} · ${program.environment} · ${stats.nodes} components · ${stats.suppliers} suppliers`}
               actions={
                 <>
-                  <Badge tone={stats.unattested > 0 ? "warning" : "success"}>
+                  <Badge variant="secondary" tone={stats.unattested > 0 ? "warning" : "success"}>
                     {stats.unattested} unattested
                   </Badge>
                   <TextLink size="small">
@@ -285,7 +285,9 @@ function ProgramComposition() {
                           </TextLink>
                         </Table.Cell>
                         <Table.Cell>
-                          <Badge size="xsmall">{e.kind}</Badge>
+                          <Badge variant="secondary" tone="neutral" size="xsmall">
+                            {e.kind}
+                          </Badge>
                         </Table.Cell>
                         <Table.Cell className="truncate">
                           <TextLink asChild className="truncate text-left">
@@ -300,7 +302,7 @@ function ProgramComposition() {
                         <Table.Cell>{e.critical ? "No redundancy" : "Redundant"}</Table.Cell>
                         <Table.Cell>
                           {crossesBoundary(e) ? (
-                            <Badge size="xsmall" tone="warning">
+                            <Badge variant="secondary" size="xsmall" tone="warning">
                               {zoneOf(e.from)} → {zoneOf(e.to)}
                             </Badge>
                           ) : (
@@ -410,7 +412,11 @@ function ProgramComposition() {
                           </Table.Cell>
                           <Table.Cell>
                             <Inline as="span" space="space.075" alignBlock="center">
-                              <Badge size="xsmall" tone={d.signed ? "success" : "warning"}>
+                              <Badge
+                                variant="secondary"
+                                size="xsmall"
+                                tone={d.signed ? "success" : "warning"}
+                              >
                                 {d.signed ? "Signed" : "Unsigned"}
                               </Badge>
                               <span title={`sha256:${d.sha256}`}>

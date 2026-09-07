@@ -138,7 +138,11 @@ function PersonDetail() {
               id={person.id}
               title={person.name}
               meta={`${person.title} · ${person.org} · ${person.site}`}
-              actions={<Badge tone="neutral">{person.discipline}</Badge>}
+              actions={
+                <Badge variant="secondary" tone="neutral">
+                  {person.discipline}
+                </Badge>
+              }
             />
           }
           tabs={<div className="border-b border-default" />}
@@ -173,7 +177,9 @@ function PersonDetail() {
                         {m?.role ?? (w.lead === person.id ? "Workstream lead" : "—")}
                       </Table.Cell>
                       <Table.Cell>
-                        <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
+                        <Badge variant="secondary" tone={workstreamStatusTone(w.status)}>
+                          {w.status}
+                        </Badge>
                       </Table.Cell>
                       <Table.Cell className="tabular-nums text-right">
                         {m ? `${m.allocation}%` : "—"}

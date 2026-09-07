@@ -8,7 +8,11 @@ import { Pair } from "../_lib/pair";
 const glance = (
   <Glance
     id="CTRL-0412"
-    status={<Badge tone="success">Verified</Badge>}
+    status={
+      <Badge variant="secondary" tone="success">
+        Verified
+      </Badge>
+    }
     title="Segregation of duties, payables"
     meta="Finance · Dana Whitfield"
     facts={[

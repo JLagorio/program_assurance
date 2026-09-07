@@ -140,7 +140,7 @@ function DeadlineRow({ programId, d }: { programId: string; d: Deadline }) {
     <Table.Row>
       <Table.Cell>{idCell}</Table.Cell>
       <Table.Cell>
-        <Badge tone={deadlineTone[d.kind] ?? "neutral"} size="xsmall">
+        <Badge variant="secondary" tone={deadlineTone[d.kind] ?? "neutral"} size="xsmall">
           {d.kind}
         </Badge>
       </Table.Cell>
@@ -382,12 +382,12 @@ function ProgramDashboard() {
                     {gate.name}
                   </Table.Cell>
                   <Table.Cell>
-                    <Badge tone={gateKindTone[gate.kind]} size="xsmall">
+                    <Badge variant="secondary" tone={gateKindTone[gate.kind]} size="xsmall">
                       {gate.kind}
                     </Badge>
                   </Table.Cell>
                   <Table.Cell>
-                    <Badge tone={tone} size="xsmall">
+                    <Badge variant="secondary" tone={tone} size="xsmall">
                       {gate.status}
                     </Badge>
                   </Table.Cell>

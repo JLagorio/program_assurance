@@ -97,7 +97,7 @@ function fixed2(n: number): string {
 
 export function BandChip({ band, size = "small" }: { band: RiskBand; size?: "xsmall" | "small" }) {
   return (
-    <Badge size={size} tone={bandTone[band]}>
+    <Badge variant="secondary" size={size} tone={bandTone[band]}>
       {band}
     </Badge>
   );
@@ -295,7 +295,7 @@ function MissingFactorRows({ factorKey, caveats }: { factorKey: FactorKey; cavea
       <Table.Row className="border-0 align-top" isStatic>
         <Table.Cell className="py-100 align-top">{label}</Table.Cell>
         <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
-          <Badge size="xsmall" tone="warning">
+          <Badge variant="secondary" size="xsmall" tone="warning">
             Not computed
           </Badge>
         </Table.Cell>
@@ -533,7 +533,7 @@ export function TopRisksTable({
             <Inline as="span" space="space.075" alignBlock="center">
               <span>{r.subject}</span>
               {r.score.caveats.length > 0 ? (
-                <Badge size="xsmall" tone="warning">
+                <Badge variant="secondary" size="xsmall" tone="warning">
                   {r.score.caveats.length}
                 </Badge>
               ) : null}

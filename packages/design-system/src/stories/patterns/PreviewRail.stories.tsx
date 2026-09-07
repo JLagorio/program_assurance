@@ -57,7 +57,7 @@ export const PreviewRailMatrix: Story = {
           title="Router management plane accepts unencrypted telnet"
           subtitle="Finding · edge-sw-a1 · ACAS"
           status={
-            <Badge size="xsmall" tone="danger">
+            <Badge variant="secondary" size="xsmall" tone="danger">
               CAT I
             </Badge>
           }
@@ -130,7 +130,12 @@ export const Dont: Story = {
       <Pair
         do={
           <Box className="w-layout-rail">
-            <PreviewRail id="FND-2199" title="Audit log retention below one year" onClose={() => undefined} openTo={openTo}>
+            <PreviewRail
+              id="FND-2199"
+              title="Audit log retention below one year"
+              onClose={() => undefined}
+              openTo={openTo}
+            >
               {facts}
             </PreviewRail>
           </Box>

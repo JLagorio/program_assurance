@@ -219,7 +219,9 @@ function RegisterPage() {
                               {p.risk ? <Id>{p.risk}</Id> : <span className="text-subtle">—</span>}
                             </Table.Cell>
                             <Table.Cell className="truncate">
-                              <Badge tone={statusTone(p.status)}>{p.status}</Badge>
+                              <Badge variant="secondary" tone={statusTone(p.status)}>
+                                {p.status}
+                              </Badge>
                             </Table.Cell>
                           </Table.Row>
                         );
@@ -305,7 +307,9 @@ function RegisterPage() {
                               </Inline>
                             </Table.Cell>
                             <Table.Cell className="truncate">
-                              <Badge tone={statusTone(r.disposition)}>{r.disposition}</Badge>
+                              <Badge variant="secondary" tone={statusTone(r.disposition)}>
+                                {r.disposition}
+                              </Badge>
                             </Table.Cell>
                           </Table.Row>
                         );
@@ -358,7 +362,9 @@ function RegisterPage() {
                               </Indicator>
                             </Table.Cell>
                             <Table.Cell className="truncate">
-                              <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
+                              <Badge variant="secondary" tone={statusTone(f.lifecycle)}>
+                                {f.lifecycle}
+                              </Badge>
                             </Table.Cell>
                             <Table.Cell className="max-w-none text-right">
                               <Inline
@@ -406,7 +412,9 @@ function RegisterPage() {
                 >
                   <Inspector.Group title="Commitment">
                     <KeyValue label="Status">
-                      <Badge tone={statusTone(preview.item.status)}>{preview.item.status}</Badge>
+                      <Badge variant="secondary" tone={statusTone(preview.item.status)}>
+                        {preview.item.status}
+                      </Badge>
                     </KeyValue>
                     <KeyValue label="Owner">{preview.item.owner}</KeyValue>
                     <KeyValue label="Scheduled">{preview.item.scheduledCompletion}</KeyValue>
@@ -437,7 +445,7 @@ function RegisterPage() {
                 >
                   <Inspector.Group title="Adjudication">
                     <KeyValue label="Disposition">
-                      <Badge tone={statusTone(preview.item.disposition)}>
+                      <Badge variant="secondary" tone={statusTone(preview.item.disposition)}>
                         {preview.item.disposition}
                       </Badge>
                     </KeyValue>

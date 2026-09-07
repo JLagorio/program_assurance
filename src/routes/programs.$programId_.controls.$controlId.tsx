@@ -219,12 +219,12 @@ function ControlRecord() {
           </NativeSelect>
         </KeyValue>
         <KeyValue label="Implementation">
-          <Badge size="xsmall" tone={implementationTone[work.implementation]}>
+          <Badge variant="secondary" size="xsmall" tone={implementationTone[work.implementation]}>
             {work.implementation}
           </Badge>
         </KeyValue>
         <KeyValue label="Assessment">
-          <Badge size="xsmall" tone={assessmentTone[work.assessment]}>
+          <Badge variant="secondary" size="xsmall" tone={assessmentTone[work.assessment]}>
             {work.assessment}
           </Badge>
         </KeyValue>
@@ -250,7 +250,7 @@ function ControlRecord() {
       <Inspector.Group title="Linked">
         <KeyValue label="Findings">
           {open.length ? (
-            <Badge size="xsmall" tone="danger">
+            <Badge variant="secondary" size="xsmall" tone="danger">
               {open.length} open
             </Badge>
           ) : (

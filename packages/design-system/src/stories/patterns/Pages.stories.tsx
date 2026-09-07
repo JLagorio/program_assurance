@@ -3,8 +3,8 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 
 import {
-  Avatar,
   Badge,
+  Avatar,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbSeparator,
@@ -150,7 +150,9 @@ export const Preview: Story = {
             <Avatar name="Priya Natarajan" size="xsmall" /> Priya Natarajan
           </KeyValue>
           <KeyValue label="Status">
-            <Badge tone="danger">Overdue</Badge>
+            <Badge variant="secondary" tone="danger">
+              Overdue
+            </Badge>
           </KeyValue>
         </div>
       </PreviewRail>

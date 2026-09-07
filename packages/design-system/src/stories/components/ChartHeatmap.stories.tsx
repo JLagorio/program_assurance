@@ -25,7 +25,14 @@ const meta = {
   title: "Components/Chart/Heatmap",
   component: Chart.Heatmap,
   parameters: { layout: "padded" },
-  args: { rows: families, columns: heatMonths, value: findings, label: "Findings by family and month", rowLabel: "Family", columnLabel: "Month" },
+  args: {
+    rows: families,
+    columns: heatMonths,
+    value: findings,
+    label: "Findings by family and month",
+    rowLabel: "Family",
+    columnLabel: "Month",
+  },
 } satisfies Meta<typeof Chart.Heatmap>;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -36,19 +43,63 @@ export const HeatmapMatrix: Story = {
     <Stack space="space.400">
       <Specimens title="Sequential · diverging · status, with values">
         <Stack space="space.100">
-          <Chart.Heatmap rows={families} columns={heatMonths} value={findings} size="small" label="Findings by family and month" />
+          <Chart.Heatmap
+            rows={families}
+            columns={heatMonths}
+            value={findings}
+            size="small"
+            label="Findings by family and month"
+          />
           <Chart.Scale scale="sequential" min="0" max="12" />
         </Stack>
         <Stack space="space.100">
-          <Chart.Heatmap rows={phases} columns={heatMonths} value={variance} scale="diverging" domain={[-12, 12]} format={days} size="small" label="Schedule variance by phase and month" />
+          <Chart.Heatmap
+            rows={phases}
+            columns={heatMonths}
+            value={variance}
+            scale="diverging"
+            domain={[-12, 12]}
+            format={days}
+            size="small"
+            label="Schedule variance by phase and month"
+          />
           <Chart.Scale scale="diverging" min="−12 days" mid="On plan" max="+12 days" />
         </Stack>
-        <Chart.Heatmap rows={[...likelihoods].reverse()} columns={impacts} value={riskCount} scale={riskTone} size="small" label="Risk matrix" rowLabel="Likelihood" columnLabel="Impact" />
+        <Chart.Heatmap
+          rows={[...likelihoods].reverse()}
+          columns={impacts}
+          value={riskCount}
+          scale={riskTone}
+          size="small"
+          label="Risk matrix"
+          rowLabel="Likelihood"
+          columnLabel="Impact"
+        />
       </Specimens>
       <Specimens title="Values printed on a colour scale · large cells · loading">
-        <Chart.Heatmap rows={families} columns={heatMonths} value={findings} showValues size="small" label="Findings by family and month, with values" />
-        <Chart.Heatmap rows={families.slice(0, 3)} columns={heatMonths} value={findings} size="large" label="Findings by family and month, large" />
-        <Chart.Heatmap rows={families.slice(0, 3)} columns={heatMonths} value={findings} size="small" label="Findings by family and month" loading />
+        <Chart.Heatmap
+          rows={families}
+          columns={heatMonths}
+          value={findings}
+          showValues
+          size="small"
+          label="Findings by family and month, with values"
+        />
+        <Chart.Heatmap
+          rows={families.slice(0, 3)}
+          columns={heatMonths}
+          value={findings}
+          size="large"
+          label="Findings by family and month, large"
+        />
+        <Chart.Heatmap
+          rows={families.slice(0, 3)}
+          columns={heatMonths}
+          value={findings}
+          size="small"
+          label="Findings by family and month"
+          loading
+        />
       </Specimens>
     </Stack>
   ),
@@ -59,7 +110,14 @@ export const Sequential: Story = {
   render: () => (
     <Chart title="Findings by family and month" description="Opened in the month">
       <Stack space="space.150">
-        <Chart.Heatmap rows={families} columns={heatMonths} value={findings} label="Findings by family and month" rowLabel="Family" columnLabel="Month" />
+        <Chart.Heatmap
+          rows={families}
+          columns={heatMonths}
+          value={findings}
+          label="Findings by family and month"
+          rowLabel="Family"
+          columnLabel="Month"
+        />
         <Chart.Scale scale="sequential" min="0" max="12 findings" />
       </Stack>
     </Chart>
@@ -71,7 +129,17 @@ export const Diverging: Story = {
   render: () => (
     <Chart title="Schedule variance by phase" description="Days against the plan at month end">
       <Stack space="space.150">
-        <Chart.Heatmap rows={phases} columns={heatMonths} value={variance} scale="diverging" domain={[-12, 12]} format={days} label="Schedule variance by phase and month" rowLabel="Phase" columnLabel="Month" />
+        <Chart.Heatmap
+          rows={phases}
+          columns={heatMonths}
+          value={variance}
+          scale="diverging"
+          domain={[-12, 12]}
+          format={days}
+          label="Schedule variance by phase and month"
+          rowLabel="Phase"
+          columnLabel="Month"
+        />
         <Chart.Scale scale="diverging" min="−12 days" mid="On plan" max="+12 days" />
       </Stack>
     </Chart>
@@ -82,7 +150,16 @@ export const Diverging: Story = {
 export const Status: Story = {
   render: () => (
     <Chart title="Risk matrix" description="Open risks by likelihood and impact">
-      <Chart.Heatmap rows={[...likelihoods].reverse()} columns={impacts} value={riskCount} scale={riskTone} size="large" label="Risk matrix" rowLabel="Likelihood" columnLabel="Impact" />
+      <Chart.Heatmap
+        rows={[...likelihoods].reverse()}
+        columns={impacts}
+        value={riskCount}
+        scale={riskTone}
+        size="large"
+        label="Risk matrix"
+        rowLabel="Likelihood"
+        columnLabel="Impact"
+      />
     </Chart>
   ),
 };
@@ -109,7 +186,9 @@ export const Details: Story = {
                 </KeyValue>
               ))}
             </Stack>
-            <Button size="small" variant="secondary">Open the register</Button>
+            <Button size="small" variant="secondary">
+              Open the register
+            </Button>
           </Stack>
         )}
       />
@@ -124,7 +203,13 @@ export const Dont: Story = {
       <Pair
         do={
           <Stack space="space.100">
-            <Chart.Heatmap rows={families.slice(0, 4)} columns={heatMonths} value={findings} size="small" label="Findings by family and month" />
+            <Chart.Heatmap
+              rows={families.slice(0, 4)}
+              columns={heatMonths}
+              value={findings}
+              size="small"
+              label="Findings by family and month"
+            />
             <Chart.Scale scale="sequential" min="0" max="12" />
           </Stack>
         }
@@ -134,7 +219,9 @@ export const Dont: Story = {
             rows={families.slice(0, 4)}
             columns={heatMonths}
             value={findings}
-            scale={(v) => (v >= 9 ? "danger" : v >= 5 ? "warning" : v >= 2 ? "information" : "success")}
+            scale={(v) =>
+              v >= 9 ? "danger" : v >= 5 ? "warning" : v >= 2 ? "information" : "success"
+            }
             size="small"
             label="Findings by family and month, as statuses"
           />
@@ -144,14 +231,35 @@ export const Dont: Story = {
       <Pair
         do={
           <Stack space="space.100">
-            <Chart.Heatmap rows={[...likelihoods].reverse()} columns={impacts} value={riskCount} scale={riskTone} size="small" label="Risk matrix" rowLabel="Likelihood" columnLabel="Impact" />
+            <Chart.Heatmap
+              rows={[...likelihoods].reverse()}
+              columns={impacts}
+              value={riskCount}
+              scale={riskTone}
+              size="small"
+              label="Risk matrix"
+              rowLabel="Likelihood"
+              columnLabel="Impact"
+            />
           </Stack>
         }
         doText="The status cells print their count: the tone's text on the tone's fill, already in the contrast test."
         dont={
           <Stack space="space.100">
-            <Chart.Heatmap rows={[...likelihoods].reverse()} columns={impacts} value={riskCount} scale={riskTone} showValues={false} size="small" label="Risk matrix, no values" rowLabel="Likelihood" columnLabel="Impact" />
-            <Badge tone="danger">2</Badge>
+            <Chart.Heatmap
+              rows={[...likelihoods].reverse()}
+              columns={impacts}
+              value={riskCount}
+              scale={riskTone}
+              showValues={false}
+              size="small"
+              label="Risk matrix, no values"
+              rowLabel="Likelihood"
+              columnLabel="Impact"
+            />
+            <Badge variant="secondary" tone="danger">
+              2
+            </Badge>
           </Stack>
         }
         dontText="Counts hidden on a status grid, and the number moved elsewhere. The reader hovers every cell to learn there are two risks in the corner."

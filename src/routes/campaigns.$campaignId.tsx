@@ -268,15 +268,17 @@ function CampaignRecord() {
               meta={`${campaign.program} · ${campaign.trigger} · ${campaign.gate} gate · lead ${campaign.lead} · ${campaign.opened} → ${campaign.target}`}
               actions={
                 <>
-                  <Badge tone={statusTone(campaign.state)}>{campaign.state}</Badge>
+                  <Badge variant="secondary" tone={statusTone(campaign.state)}>
+                    {campaign.state}
+                  </Badge>
                   {disagreements.length > 0 ? (
-                    <Badge tone="warning">
+                    <Badge variant="secondary" tone="warning">
                       {disagreements.length} declared{" "}
                       {disagreements.length === 1 ? "result disagrees" : "results disagree"}
                     </Badge>
                   ) : null}
                   {execution.unproceduredObjectives.length > 0 ? (
-                    <Badge tone="danger">
+                    <Badge variant="secondary" tone="danger">
                       {execution.unproceduredObjectives.length} without a procedure
                     </Badge>
                   ) : null}
@@ -447,7 +449,9 @@ function CampaignRecord() {
                       </Link>
                     </TextLink>
                     <span className="font-body font-medium">{e.name}</span>
-                    <Badge tone={statusTone(e.state)}>{e.state}</Badge>
+                    <Badge variant="secondary" tone={statusTone(e.state)}>
+                      {e.state}
+                    </Badge>
                     <span className="font-body-small text-subtle">{e.kind}</span>
                     <span className="tabular-nums font-body-small text-subtle">{e.window}</span>
                     <span className="font-body-small text-subtle">{e.team}</span>

@@ -81,11 +81,21 @@ function Components() {
           </CardSection>
 
           <CardSection title="Status" description="Tone carries meaning; shape stays constant.">
-            <Badge tone="success">Passing</Badge>
-            <Badge tone="warning">Needs review</Badge>
-            <Badge tone="danger">Failing</Badge>
-            <Badge tone="information">Automated</Badge>
-            <Badge tone="neutral">Accepted</Badge>
+            <Badge variant="secondary" tone="success">
+              Passing
+            </Badge>
+            <Badge variant="secondary" tone="warning">
+              Needs review
+            </Badge>
+            <Badge variant="secondary" tone="danger">
+              Failing
+            </Badge>
+            <Badge variant="secondary" tone="information">
+              Automated
+            </Badge>
+            <Badge variant="secondary" tone="neutral">
+              Accepted
+            </Badge>
             <Inline
               className="font-body text-subtle"
               as="span"
@@ -172,7 +182,9 @@ function Components() {
                   <Table.Cell>{row.item}</Table.Cell>
                   <Table.Cell>{row.owner}</Table.Cell>
                   <Table.Cell className="text-right">
-                    <Badge tone={row.tone}>{row.status}</Badge>
+                    <Badge variant="secondary" tone={row.tone}>
+                      {row.status}
+                    </Badge>
                   </Table.Cell>
                 </Table.Row>
               ))}

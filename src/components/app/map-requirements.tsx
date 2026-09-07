@@ -148,7 +148,7 @@ export function MapRequirementsSheet({
                 </Table.Cell>
                 <Table.Cell className="truncate">{r.type}</Table.Cell>
                 <Table.Cell>
-                  <Badge size="xsmall" tone={requirementStateTone[r.state]}>
+                  <Badge variant="secondary" size="xsmall" tone={requirementStateTone[r.state]}>
                     {r.state}
                   </Badge>
                 </Table.Cell>

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { useState } from "react";
 
 import {
@@ -60,7 +61,9 @@ const facts = (
 const eyebrow = (
   <>
     <Id>CTRL-0412</Id>
-    <Badge tone="success">Verified</Badge>
+    <Badge variant="secondary" tone="success">
+      Verified
+    </Badge>
   </>
 );
 

@@ -69,7 +69,7 @@ export function ActionBar({
         <Fact key={s.label} label={s.label}>
           {s.control ??
             (i === 0 ? (
-              <Badge size="xsmall" tone={s.tone}>
+              <Badge variant="secondary" size="xsmall" tone={s.tone}>
                 {s.value}
               </Badge>
             ) : (

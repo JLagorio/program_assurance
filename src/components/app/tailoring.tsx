@@ -154,7 +154,9 @@ export function TailoringSection({
           alignBlock="center"
           shouldWrap
         >
-          <Badge tone={approvalTone[state]}>{state}</Badge>
+          <Badge variant="secondary" tone={approvalTone[state]}>
+            {state}
+          </Badge>
           <span className="min-w-0 flex-1 truncate font-body-small text-subtle">
             {state === "Approved"
               ? `Approved by ${decision?.by ?? "—"} on ${decision?.at ?? "—"}${decision?.note ? ` · ${decision.note}` : ""}`
@@ -306,7 +308,9 @@ export function TailoringSection({
                       {c.title}
                     </Table.Cell>
                     <Table.Cell width={132}>
-                      <Badge tone={actionTone[c.action]}>{c.action}</Badge>
+                      <Badge variant="secondary" tone={actionTone[c.action]}>
+                        {c.action}
+                      </Badge>
                     </Table.Cell>
                     <Table.Cell className="truncate" width={188}>
                       {o.name}

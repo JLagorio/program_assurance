@@ -27,7 +27,14 @@ export const TaskRowMatrix: Story = {
         dueDateTime="2026-09-07"
       />
       <TaskRow title="Check figures" completed onCompletedChange={() => undefined} />
-      <TaskRow title="Prepare handoff" status={<Badge tone="information">Needs review</Badge>} />
+      <TaskRow
+        title="Prepare handoff"
+        status={
+          <Badge variant="secondary" tone="information">
+            Needs review
+          </Badge>
+        }
+      />
       <TaskRow
         title="Save confirmation"
         completionDisabled
@@ -80,7 +87,14 @@ export const Dont: Story = {
     <Pair
       do={
         <Item.Group>
-          <TaskRow title="Review draft" status={<Badge tone="information">Needs review</Badge>} />
+          <TaskRow
+            title="Review draft"
+            status={
+              <Badge variant="secondary" tone="information">
+                Needs review
+              </Badge>
+            }
+          />
         </Item.Group>
       }
       doText="Supply your product's status as content. Completion is a separate boolean."

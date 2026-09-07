@@ -22,10 +22,10 @@ import { useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import {
+  Badge,
   BreadcrumbItem,
   BreadcrumbLink,
   Avatar,
-  Badge,
   Banner,
   Button,
   Count,
@@ -234,7 +234,7 @@ function Demo({
                 {p.id}
               </Text>
               <Text>{p.title}</Text>
-              <Badge tone="neutral" size="xsmall">
+              <Badge variant="secondary" tone="neutral" size="xsmall">
                 {p.phase}
               </Badge>
             </Inline>
@@ -338,7 +338,7 @@ export const ShellMatrix: Story = {
                 icon={Bell}
                 href="#badge"
                 badge={
-                  <Badge tone="danger" size="xsmall">
+                  <Badge variant="secondary" tone="danger" size="xsmall">
                     New
                   </Badge>
                 }

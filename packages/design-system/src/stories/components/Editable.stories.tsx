@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { act, useState } from "react";
 
 import {
@@ -65,7 +66,11 @@ function RailDemo() {
           onChange={setStatus}
           options={statuses}
           save={() => wait(500)}
-          render={(s) => <Badge tone={toneOf[s]}>{s}</Badge>}
+          render={(s) => (
+            <Badge variant="secondary" tone={toneOf[s]}>
+              {s}
+            </Badge>
+          )}
         />
       </KeyValue>
       <KeyValue label="Frequency">Quarterly</KeyValue>
@@ -170,7 +175,11 @@ function TableDemo() {
                 value={r.status}
                 onChange={(status) => set(r.id, { status })}
                 save={() => wait(500)}
-                render={(s) => <Badge tone={toneOf[s]}>{s}</Badge>}
+                render={(s) => (
+                  <Badge variant="secondary" tone={toneOf[s]}>
+                    {s}
+                  </Badge>
+                )}
               />
             </Table.Cell>
           </Table.Row>
@@ -285,7 +294,11 @@ function States() {
           value={status}
           onChange={setStatus}
           save={() => wait(600)}
-          render={(v) => <Badge tone={toneOf[v]}>{v}</Badge>}
+          render={(v) => (
+            <Badge variant="secondary" tone={toneOf[v]}>
+              {v}
+            </Badge>
+          )}
         />
       </KeyValue>
       <KeyValue label="Plain">Not editable: plain text in the same row.</KeyValue>
@@ -369,7 +382,11 @@ function StatusAsText() {
               value={a}
               onChange={setA}
               save={() => wait(300)}
-              render={(s) => <Badge tone={toneOf[s]}>{s}</Badge>}
+              render={(s) => (
+                <Badge variant="secondary" tone={toneOf[s]}>
+                  {s}
+                </Badge>
+              )}
             />
           </KeyValue>
         </Box>

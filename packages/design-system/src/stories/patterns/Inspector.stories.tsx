@@ -16,7 +16,7 @@ const groups = [
       {
         label: "Status",
         value: (
-          <Badge tone="warning" size="xsmall">
+          <Badge variant="secondary" tone="warning" size="xsmall">
             Partially satisfied
           </Badge>
         ),
@@ -83,7 +83,7 @@ export const InspectorGroups: Story = {
       {exposure}
       <Inspector.Group title="Adjudication">
         <KeyValue label="Disposition">
-          <Badge tone="information" size="xsmall">
+          <Badge variant="secondary" tone="information" size="xsmall">
             Under review
           </Badge>
         </KeyValue>

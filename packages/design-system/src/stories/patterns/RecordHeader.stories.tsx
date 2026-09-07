@@ -32,7 +32,9 @@ const facts = (
     <Fact label="Owner">Dana Whitfield</Fact>
     <Fact label="Method">Test</Fact>
     <Fact label="State">
-      <Badge tone="success">Verified</Badge>
+      <Badge variant="secondary" tone="success">
+        Verified
+      </Badge>
     </Fact>
     <Fact label="Allocated to">
       <TextLink asChild={false} href="#cmp">
@@ -66,7 +68,9 @@ export const RecordHeaderMatrix: Story = {
         title="Atlas payments platform"
         meta={
           <Inline space="space.100" alignBlock="center">
-            <Badge tone="information">In assessment</Badge>
+            <Badge variant="secondary" tone="information">
+              In assessment
+            </Badge>
             <Text size="small" color="color.text.subtle">
               NIST SP 800-53 Rev. 5 · High
             </Text>
@@ -196,7 +200,11 @@ export const Dont: Story = {
           <RecordHeader
             id="PRG-1041"
             title="Atlas payments platform"
-            meta={<Badge tone="information">In assessment</Badge>}
+            meta={
+              <Badge variant="secondary" tone="information">
+                In assessment
+              </Badge>
+            }
           />
         }
         doText="Meta is a word or a Badge after the id: the state."

@@ -126,7 +126,9 @@ export function ProvidedControlsTable({ component }: { component: SystemComponen
               <Table.Cell className="truncate">{c.evidence}</Table.Cell>
               <Table.Cell className="tabular-nums whitespace-nowrap text-right">
                 {stale ? (
-                  <Badge tone="warning">{c.evidenceAge}d</Badge>
+                  <Badge variant="secondary" tone="warning">
+                    {c.evidenceAge}d
+                  </Badge>
                 ) : (
                   <span className="text-subtle">{c.evidenceAge}d</span>
                 )}

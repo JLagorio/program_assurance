@@ -1,8 +1,9 @@
 import { ChevronDown } from "lucide-react";
-import { Collapsible } from "../../components";
+
+import { Badge, Collapsible } from "../../components";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Avatar, Badge, Person, Stepper } from "../../components";
+import { Avatar, Person, Stepper } from "../../components";
 
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -166,11 +167,15 @@ export const Milestones: Story = {
               <div className="pb-200">
                 <Stack space="space.100">
                   <Inline space="space.050">
-                    <Badge size="xsmall" tone="warning">
+                    <Badge variant="secondary" size="xsmall" tone="warning">
                       Pending
                     </Badge>
-                    <Badge size="xsmall">Identity setup</Badge>
-                    <Badge size="xsmall">Medium</Badge>
+                    <Badge variant="secondary" tone="neutral" size="xsmall">
+                      Identity setup
+                    </Badge>
+                    <Badge variant="secondary" tone="neutral" size="xsmall">
+                      Medium
+                    </Badge>
                   </Inline>
                   <Text weight="medium">Admin group mapping</Text>
                   <Text size="small" color="color.text.subtle">
@@ -304,7 +309,9 @@ export const Dont: Story = {
               <Stepper.Item state="upcoming" label="Implement" />
             </Stepper>
             <div>
-              <Badge tone="danger">Blocked</Badge>
+              <Badge variant="secondary" tone="danger">
+                Blocked
+              </Badge>
             </div>
           </Stack>
         }

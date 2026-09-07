@@ -121,7 +121,7 @@ function versionRead(row: ResolvedInheritance): VersionRead {
 export function InheritanceStateChip({ row }: { row: ResolvedInheritance }) {
   return (
     <span title={row.stateReason}>
-      <Badge size="xsmall" tone={inheritanceStateTone[row.state]}>
+      <Badge variant="secondary" size="xsmall" tone={inheritanceStateTone[row.state]}>
         {row.state}
       </Badge>
     </span>
@@ -131,7 +131,7 @@ export function InheritanceStateChip({ row }: { row: ResolvedInheritance }) {
 export function DesignationChip({ row }: { row: ResolvedInheritance }) {
   return (
     <span title={`eMASS implementation status: ${row.emassStatus}`}>
-      <Badge size="xsmall" tone={designationTone[row.designation]}>
+      <Badge variant="secondary" size="xsmall" tone={designationTone[row.designation]}>
         {row.designation}
       </Badge>
     </span>
@@ -200,7 +200,7 @@ export function ResolutionTable({
                 <DesignationChip row={row} />
               </Table.Cell>
               <Table.Cell>
-                <Badge size="xsmall" tone={shareTone[row.share]}>
+                <Badge variant="secondary" size="xsmall" tone={shareTone[row.share]}>
                   {row.share}
                 </Badge>
               </Table.Cell>
@@ -214,7 +214,7 @@ export function ResolutionTable({
                     </Id>
                   </Inline>
                 ) : (
-                  <Badge size="xsmall" tone="warning">
+                  <Badge variant="secondary" size="xsmall" tone="warning">
                     Never accepted
                   </Badge>
                 )}
@@ -289,8 +289,12 @@ function ProviderCard({
       </Box>
       <Inline className="pt-050" space="space.075" alignBlock="center" shouldWrap>
         <Id className="text-subtle">{id}</Id>
-        <Badge size="xsmall">{tier} tier</Badge>
-        <Badge size="xsmall">{model}</Badge>
+        <Badge variant="secondary" tone="neutral" size="xsmall">
+          {tier} tier
+        </Badge>
+        <Badge variant="secondary" tone="neutral" size="xsmall">
+          {model}
+        </Badge>
       </Inline>
     </Box>
   );
@@ -389,7 +393,7 @@ export function ObligationList({ rows }: { rows: ResolvedInheritance[] }) {
               <Id>{row.control}</Id>
               <span className="min-w-0 truncate font-body font-medium">{row.provided.title}</span>
               <DesignationChip row={row} />
-              <Badge size="xsmall" tone={shareTone[row.share]}>
+              <Badge variant="secondary" size="xsmall" tone={shareTone[row.share]}>
                 {row.share}
               </Badge>
               <Inline className="ml-auto" as="span" space="space.075" alignBlock="center">
@@ -488,7 +492,9 @@ export function NotApplicableTable({ rows }: { rows: ResolvedInheritance[] }) {
               {row.component.name}
             </Table.Cell>
             <Table.Cell>
-              <Badge size="xsmall">{row.provided.model}</Badge>
+              <Badge variant="secondary" tone="neutral" size="xsmall">
+                {row.provided.model}
+              </Badge>
             </Table.Cell>
             <Table.Cell className="truncate" title={row.applicabilityReason}>
               {isBlank(row.applicabilityReason) ? <Absent /> : row.applicabilityReason}
@@ -749,7 +755,7 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
           <DesignationChip row={row} />
         </KeyValue>
         <KeyValue label="Share">
-          <Badge size="xsmall" tone={shareTone[row.share]}>
+          <Badge variant="secondary" size="xsmall" tone={shareTone[row.share]}>
             {row.share}
           </Badge>
         </KeyValue>
@@ -758,7 +764,7 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
 
       <Inspector.Group title="State">
         <KeyValue label="Resolution">
-          <Badge size="xsmall" tone={inheritanceStateTone[row.state]}>
+          <Badge variant="secondary" size="xsmall" tone={inheritanceStateTone[row.state]}>
             {row.state}
           </Badge>
         </KeyValue>
@@ -794,7 +800,11 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
           </span>
         </KeyValue>
         <KeyValue label="Provider status">
-          <Badge size="xsmall" tone={row.provided.status === "Satisfied" ? "success" : "danger"}>
+          <Badge
+            variant="secondary"
+            size="xsmall"
+            tone={row.provided.status === "Satisfied" ? "success" : "danger"}
+          >
             {row.provided.status}
           </Badge>
         </KeyValue>
@@ -817,7 +827,7 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
 
       <Inspector.Group title="Applicability">
         <KeyValue label="Applies">
-          <Badge size="xsmall" tone={row.applicable ? "success" : "neutral"}>
+          <Badge variant="secondary" size="xsmall" tone={row.applicable ? "success" : "neutral"}>
             {row.applicable ? "Yes" : "No"}
           </Badge>
         </KeyValue>
@@ -830,8 +840,12 @@ export function ResolutionRail({ row }: { row: ResolvedInheritance }) {
             <Box key={conflict.component} className="first:pt-025" paddingBlockStart="space.075">
               <Inline space="space.075" alignBlock="center" shouldWrap>
                 <Id className="text-subtle">{conflict.component}</Id>
-                <Badge size="xsmall">{conflict.tier} tier</Badge>
-                <Badge size="xsmall">{conflict.model}</Badge>
+                <Badge variant="secondary" tone="neutral" size="xsmall">
+                  {conflict.tier} tier
+                </Badge>
+                <Badge variant="secondary" tone="neutral" size="xsmall">
+                  {conflict.model}
+                </Badge>
               </Inline>
               <p className="pt-050 font-body-small text-subtle">{conflict.reason}</p>
             </Box>

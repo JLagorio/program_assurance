@@ -84,7 +84,7 @@ function RiskPeek({ risk: r }: { risk: Risk }) {
       title={r.title}
       meta={`${r.framework} · ${r.control} · ${r.team}`}
       status={
-        <Badge tone={riskStatusTone[r.status]} size="xsmall">
+        <Badge variant="secondary" tone={riskStatusTone[r.status]} size="xsmall">
           {r.status}
         </Badge>
       }

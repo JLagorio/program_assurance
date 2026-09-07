@@ -78,7 +78,9 @@ function PoamRecord() {
                   <Id>{item.id}</Id>
                 </KeyValue>
                 <KeyValue label="Status">
-                  <Badge tone={statusTone(item.status)}>{item.status}</Badge>
+                  <Badge variant="secondary" tone={statusTone(item.status)}>
+                    {item.status}
+                  </Badge>
                 </KeyValue>
                 <KeyValue label="Owner">{item.owner}</KeyValue>
                 <KeyValue label="Resources">{item.resources}</KeyValue>
@@ -122,7 +124,9 @@ function PoamRecord() {
               meta={`${item.owner} · scheduled ${item.scheduledCompletion}`}
               actions={
                 <>
-                  <Badge tone={statusTone(item.status)}>{item.status}</Badge>
+                  <Badge variant="secondary" tone={statusTone(item.status)}>
+                    {item.status}
+                  </Badge>
                   <UnavailableAction
                     reason="This register snapshot is read-only. Edit milestones in the program record."
                     variant="secondary"
@@ -227,7 +231,9 @@ function PoamRecord() {
                         </Indicator>
                       </Table.Cell>
                       <Table.Cell className="truncate">
-                        <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
+                        <Badge variant="secondary" tone={statusTone(f.lifecycle)}>
+                          {f.lifecycle}
+                        </Badge>
                       </Table.Cell>
                     </Table.Row>
                   ))}

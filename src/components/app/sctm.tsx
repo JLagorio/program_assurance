@@ -60,16 +60,24 @@ import {
 /* ── Chips ───────────────────────────────────────────────────────────────── */
 
 export function MethodChip({ method }: { method: VerificationMethod }) {
-  return <Badge tone={verificationMethodTone[method]}>{method}</Badge>;
+  return (
+    <Badge variant="secondary" tone={verificationMethodTone[method]}>
+      {method}
+    </Badge>
+  );
 }
 
 export function DeterminationChip({ determination }: { determination: Determination }) {
-  return <Badge tone={determinationTone[determination]}>{determination}</Badge>;
+  return (
+    <Badge variant="secondary" tone={determinationTone[determination]}>
+      {determination}
+    </Badge>
+  );
 }
 
 export function CurrencyChip({ currency }: { currency: RowCurrency }) {
   return (
-    <Badge size="xsmall" tone={rowCurrencyTone[currency]}>
+    <Badge variant="secondary" size="xsmall" tone={rowCurrencyTone[currency]}>
       {currency}
     </Badge>
   );
@@ -160,7 +168,9 @@ export function SctmRowCells({ row, programId }: { row: SctmRow; programId?: str
       </Table.Cell>
       <Table.Cell className="truncate">
         <Inline className="min-w-0" as="span" space="space.075" alignBlock="center">
-          <Badge size="xsmall">{row.unit}</Badge>
+          <Badge variant="secondary" tone="neutral" size="xsmall">
+            {row.unit}
+          </Badge>
           <Id className="shrink-0">{row.requirement}</Id>
           <span className="min-w-0 truncate font-body-small text-subtle">{row.statement}</span>
         </Inline>
@@ -331,7 +341,7 @@ export function SctmFamilyTable({
                     grain at which it can actually be acted on. Invalidation
                     is rare, so it stays. */}
                 {group.invalidated > 0 ? (
-                  <Badge size="xsmall" tone="warning">
+                  <Badge variant="secondary" size="xsmall" tone="warning">
                     {group.invalidated} invalidated
                   </Badge>
                 ) : null}
@@ -416,7 +426,9 @@ export function SctmRail({ row }: { row: SctmRow }) {
           {row.family} — {row.familyName}
         </KeyValue>
         <KeyValue label="Unit">
-          <Badge size="xsmall">{row.unit}</Badge>
+          <Badge variant="secondary" tone="neutral" size="xsmall">
+            {row.unit}
+          </Badge>
         </KeyValue>
         <KeyValue label="Requirement">
           <Id>{row.requirement}</Id>
@@ -426,7 +438,9 @@ export function SctmRail({ row }: { row: SctmRow }) {
 
       <Inspector.Group title="Implementation">
         <KeyValue label="Origination">
-          <Badge size="xsmall">{row.origination}</Badge>
+          <Badge variant="secondary" tone="neutral" size="xsmall">
+            {row.origination}
+          </Badge>
         </KeyValue>
         <KeyValue label="Responsible">{row.responsibleParty}</KeyValue>
         <WrapValue label="Consumer owes">{row.consumerResponsibility}</WrapValue>
@@ -438,7 +452,11 @@ export function SctmRail({ row }: { row: SctmRow }) {
             rail must not print the same sentences twice. */}
         {row.inheritanceState !== null ? (
           <KeyValue label="Inheritance">
-            <Badge size="xsmall" tone={inheritanceStateTone[row.inheritanceState]}>
+            <Badge
+              variant="secondary"
+              size="xsmall"
+              tone={inheritanceStateTone[row.inheritanceState]}
+            >
               {row.inheritanceState}
             </Badge>
           </KeyValue>

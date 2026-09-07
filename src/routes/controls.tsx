@@ -282,9 +282,13 @@ function Catalog() {
                           <Table.Cell className="truncate">{c.definition}</Table.Cell>
                           <Table.Cell>
                             {c.compliance === "Non-compliant" ? (
-                              <Badge tone="danger">Non-compliant</Badge>
+                              <Badge variant="secondary" tone="danger">
+                                Non-compliant
+                              </Badge>
                             ) : c.compliance === "Compliant" ? (
-                              <Badge tone="success">Compliant</Badge>
+                              <Badge variant="secondary" tone="success">
+                                Compliant
+                              </Badge>
                             ) : (
                               <span className="text-subtle">{c.compliance}</span>
                             )}
@@ -336,7 +340,9 @@ function Catalog() {
                     </KeyValue>
                     <KeyValue label="Statement type">{selected.type}</KeyValue>
                     <KeyValue label="Compliance">
-                      <Badge tone={statusTone(selected.compliance)}>{selected.compliance}</Badge>
+                      <Badge variant="secondary" tone={statusTone(selected.compliance)}>
+                        {selected.compliance}
+                      </Badge>
                     </KeyValue>
                     <KeyValue label="Sibling CCIs">
                       {(ccisByControl.get(selected.control)?.length ?? 1) - 1}

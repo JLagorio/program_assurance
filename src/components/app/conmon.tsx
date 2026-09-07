@@ -162,7 +162,7 @@ export function DriftBandChip({
   provisional?: boolean;
 }) {
   return (
-    <Badge size={size} tone={provisional ? "neutral" : driftBandTone[band]}>
+    <Badge variant="secondary" size={size} tone={provisional ? "neutral" : driftBandTone[band]}>
       {provisional ? `${band} — provisional` : band}
     </Badge>
   );
@@ -170,7 +170,7 @@ export function DriftBandChip({
 
 export function AssessmentStatusChip({ status }: { status: ScheduleRow["status"] }) {
   return (
-    <Badge size="xsmall" tone={assessmentStatusTone[status]}>
+    <Badge variant="secondary" size="xsmall" tone={assessmentStatusTone[status]}>
       {status}
     </Badge>
   );
@@ -178,7 +178,7 @@ export function AssessmentStatusChip({ status }: { status: ScheduleRow["status"]
 
 export function FreshnessChip({ freshness }: { freshness: EvidenceSlaRow["freshness"] }) {
   return (
-    <Badge size="xsmall" tone={freshnessTone[freshness]}>
+    <Badge variant="secondary" size="xsmall" tone={freshnessTone[freshness]}>
       {freshness}
     </Badge>
   );
@@ -191,7 +191,7 @@ export function FreshnessChip({ freshness }: { freshness: EvidenceSlaRow["freshn
  */
 export function MethodChip({ method }: { method: ScheduleRow["method"] }) {
   return (
-    <Badge size="xsmall" tone={slcmMethodTone[method]}>
+    <Badge variant="secondary" size="xsmall" tone={slcmMethodTone[method]}>
       {method}
     </Badge>
   );
@@ -454,7 +454,7 @@ function MissingDriftFactorRows({
       <Table.Row className="border-0 align-top" isStatic>
         <Table.Cell className="py-100 align-top">{label}</Table.Cell>
         <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
-          <Badge size="xsmall" tone="warning">
+          <Badge variant="secondary" size="xsmall" tone="warning">
             Not measured
           </Badge>
         </Table.Cell>
@@ -506,7 +506,11 @@ export function AlertSummary({ alerts }: { alerts: ConMonAlert[] }) {
       <Inline as="span" space="space.100" alignBlock="center" shouldWrap>
         {bySeverity.map((s) => (
           <Inline key={s.severity} as="span" space="space.075" alignBlock="center">
-            <Badge size="xsmall" tone={s.count > 0 ? alertSeverityTone[s.severity] : "neutral"}>
+            <Badge
+              variant="secondary"
+              size="xsmall"
+              tone={s.count > 0 ? alertSeverityTone[s.severity] : "neutral"}
+            >
               {s.severity}
             </Badge>
             <span
@@ -566,7 +570,7 @@ export function AlertList({
       {alerts.map((alert) => (
         <Box key={alert.id} as="li" paddingInline="space.200" paddingBlock="space.150">
           <Inline space="space.100" alignBlock="center" shouldWrap>
-            <Badge size="xsmall" tone={alertSeverityTone[alert.severity]}>
+            <Badge variant="secondary" size="xsmall" tone={alertSeverityTone[alert.severity]}>
               {alert.severity}
             </Badge>
             <span className="font-body font-semibold">{alert.kind}</span>
@@ -689,7 +693,7 @@ const freshnessColumns = defineColumns<FreshnessRowView>((c) => [
     hideable: false,
     cell: (r) => (
       <Inline title={r.requirement} as="span" space="space.075" alignBlock="center">
-        <Badge size="xsmall" tone="neutral">
+        <Badge variant="secondary" size="xsmall" tone="neutral">
           {r.unit}
         </Badge>
         <span className="min-w-0 truncate">{r.name}</span>

@@ -1289,6 +1289,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                           <Inline className="font-body-small" space="space.100" alignBlock="center">
                             <Id>{b.change.id}</Id>
                             <Badge
+                              variant="secondary"
                               size="xsmall"
                               tone={b.change.impact === "Significant" ? "danger" : "neutral"}
                             >
@@ -1678,6 +1679,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                   {cur.control ? (
                     <>
                       <Badge
+                        variant="secondary"
                         size="xsmall"
                         tone={
                           cur.origination === "Common"
@@ -1689,18 +1691,28 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                       >
                         {cur.origination ?? "—"}
                       </Badge>
-                      <Badge size="xsmall">{cur.method ?? "—"}</Badge>
-                      <Badge size="xsmall" tone={cur.st === "ns" ? "danger" : "neutral"}>
+                      <Badge variant="secondary" tone="neutral" size="xsmall">
+                        {cur.method ?? "—"}
+                      </Badge>
+                      <Badge
+                        variant="secondary"
+                        size="xsmall"
+                        tone={cur.st === "ns" ? "danger" : "neutral"}
+                      >
                         {stLabel(cur.st)}
                       </Badge>
                     </>
                   ) : (
                     <>
-                      <Badge size="xsmall">{a.w} rows</Badge>
-                      <Badge size="xsmall" tone={a.ns ? "danger" : "neutral"}>
+                      <Badge variant="secondary" tone="neutral" size="xsmall">
+                        {a.w} rows
+                      </Badge>
+                      <Badge variant="secondary" size="xsmall" tone={a.ns ? "danger" : "neutral"}>
                         {a.ns} failing
                       </Badge>
-                      <Badge size="xsmall">{a.nd} unknown</Badge>
+                      <Badge variant="secondary" tone="neutral" size="xsmall">
+                        {a.nd} unknown
+                      </Badge>
                     </>
                   )}
                 </Inline>
@@ -1760,6 +1772,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                       <div key={r.key}>
                         <Inline space="space.100" alignBlock="center">
                           <Badge
+                            variant="secondary"
                             size="xsmall"
                             tone={
                               r.determination === "Satisfied"
@@ -1795,7 +1808,7 @@ export function ControlWorkspace({ programId }: { programId: string }) {
                   </Box>
                   <Inline space="space.050" shouldWrap>
                     {allocatedNames(cur.nodes).map((name) => (
-                      <Badge key={name} size="xsmall">
+                      <Badge variant="secondary" tone="neutral" key={name} size="xsmall">
                         {name}
                       </Badge>
                     ))}

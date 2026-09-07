@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { FileText, Search, Settings, User } from "lucide-react";
 import { useState } from "react";
 
@@ -162,7 +163,7 @@ function PickerDemo() {
                 <span className="block truncate">{r.title}</span>
                 <span className="block truncate font-body-xsmall text-subtle">{r.meta}</span>
               </span>
-              <Badge size="xsmall" tone={r.tone}>
+              <Badge variant="secondary" size="xsmall" tone={r.tone}>
                 {r.badge}
               </Badge>
             </Command.Item>
@@ -244,7 +245,14 @@ export const CommandMatrix: Story = {
               <Command.Item value="ac-3" trailing={<Kbd>⌘ 3</Kbd>}>
                 AC-3 Access enforcement, the cursor
               </Command.Item>
-              <Command.Item value="ac-6" trailing={<Badge tone="warning">Partial</Badge>}>
+              <Command.Item
+                value="ac-6"
+                trailing={
+                  <Badge variant="secondary" tone="warning">
+                    Partial
+                  </Badge>
+                }
+              >
                 AC-6 Least privilege
               </Command.Item>
               <Command.Item value="ac-7" disabled>

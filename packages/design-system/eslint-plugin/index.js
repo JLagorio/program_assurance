@@ -48,8 +48,36 @@ function collect(node, out) {
       }
       return;
     case "CallExpression":
-      if (node.callee.type === "Identifier" && CLASS_FNS.has(node.callee.name))
+      if (node.callee.type !== "Identifier" || !CLASS_FNS.has(node.callee.name)) return;
+      if (node.callee.name === "cva") {
+        collect(node.arguments[0], out);
+        const config = node.arguments[1];
+        if (config?.type !== "ObjectExpression") return;
+        for (const property of config.properties) {
+          if (property.type !== "Property") continue;
+          const name = property.key.name ?? property.key.value;
+          if (name === "variants" && property.value.type === "ObjectExpression") {
+            for (const axis of property.value.properties) {
+              if (axis.type !== "Property" || axis.value.type !== "ObjectExpression") continue;
+              for (const variant of axis.value.properties)
+                if (variant.type === "Property") collect(variant.value, out);
+            }
+          }
+          if (name === "compoundVariants" && property.value.type === "ArrayExpression") {
+            for (const compound of property.value.elements) {
+              if (compound?.type !== "ObjectExpression") continue;
+              for (const entry of compound.properties)
+                if (
+                  entry.type === "Property" &&
+                  ["class", "className"].includes(entry.key.name ?? entry.key.value)
+                )
+                  collect(entry.value, out);
+            }
+          }
+        }
+      } else {
         for (const a of node.arguments) collect(a, out);
+      }
       return;
     case "JSXExpressionContainer":
       collect(node.expression, out);
@@ -81,7 +109,8 @@ function classesOf(text) {
         } else cur += ch;
       }
       parts.push(cur);
-      const base = parts.pop();
+      // Tailwind accepts both v4 trailing and legacy leading important modifiers.
+      const base = parts.pop().replace(/^!|!$/g, "");
       return { cls, variants: parts, base };
     });
 }
@@ -107,8 +136,7 @@ function forEachClass(context, cb) {
         handle(node.value);
     },
     CallExpression(node) {
-      if (node.callee.type === "Identifier" && CLASS_FNS.has(node.callee.name))
-        for (const a of node.arguments) handle(a);
+      if (node.callee.type === "Identifier" && CLASS_FNS.has(node.callee.name)) handle(node);
     },
   };
 }
@@ -132,6 +160,7 @@ const structural = [
   /^grid-flow-(row|col|dense|row-dense|col-dense)$/,
   /^auto-(cols|rows)-(auto|min|max|fr)$/,
   /^overflow(-x|-y)?-(auto|hidden|visible|scroll|clip)$/,
+  /^overscroll(-x|-y)?-(auto|contain|none)$/,
   /^(truncate|text-ellipsis|text-clip)$/,
   /^whitespace-(normal|nowrap|pre|pre-line|pre-wrap|break-spaces)$/,
   /^(break-normal|break-words|break-all|break-keep|hyphens-(none|manual|auto))$/,

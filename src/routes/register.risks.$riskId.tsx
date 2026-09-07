@@ -132,7 +132,9 @@ function RiskRecord() {
                       <span className="tabular-nums font-body-small font-medium">
                         {computed.score}
                       </span>
-                      <Badge tone={bandTone[computed.band]}>{computed.band}</Badge>
+                      <Badge variant="secondary" tone={bandTone[computed.band]}>
+                        {computed.band}
+                      </Badge>
                     </Inline>
                   ) : (
                     "—"
@@ -142,7 +144,9 @@ function RiskRecord() {
               </Inspector.Group>
               <Inspector.Group title="Adjudication">
                 <KeyValue label="Disposition">
-                  <Badge tone={statusTone(risk.disposition)}>{risk.disposition}</Badge>
+                  <Badge variant="secondary" tone={statusTone(risk.disposition)}>
+                    {risk.disposition}
+                  </Badge>
                 </KeyValue>
                 <KeyValue label="Owner">{risk.owner}</KeyValue>
                 <KeyValue label="Reviewed">{risk.reviewed}</KeyValue>
@@ -179,7 +183,9 @@ function RiskRecord() {
               meta={`${risk.owner} · reviewed ${risk.reviewed}`}
               actions={
                 <>
-                  <Badge tone={statusTone(risk.disposition)}>{risk.disposition}</Badge>
+                  <Badge variant="secondary" tone={statusTone(risk.disposition)}>
+                    {risk.disposition}
+                  </Badge>
                   <UnavailableAction
                     reason="Authorization decisions cannot be issued from this read-only register."
                     variant="primary"
@@ -264,7 +270,9 @@ function RiskRecord() {
                         {computed.score}
                       </span>
                       <span className="font-body-small text-subtle">residual / 100</span>
-                      <Badge tone={bandTone[computed.band]}>{computed.band}</Badge>
+                      <Badge variant="secondary" tone={bandTone[computed.band]}>
+                        {computed.band}
+                      </Badge>
                     </Inline>
                     <Box paddingBlockStart="space.150">
                       <Progress value={computed.score} tone={bandTone[computed.band]} />
@@ -371,7 +379,9 @@ function RiskRecord() {
                       <Table.Cell className="truncate">{p.owner}</Table.Cell>
                       <Table.Cell className="truncate">{p.scheduledCompletion}</Table.Cell>
                       <Table.Cell className="truncate">
-                        <Badge tone={statusTone(p.status)}>{p.status}</Badge>
+                        <Badge variant="secondary" tone={statusTone(p.status)}>
+                          {p.status}
+                        </Badge>
                       </Table.Cell>
                     </Table.Row>
                   ))}
@@ -418,7 +428,9 @@ function RiskRecord() {
                       </Indicator>
                     </Table.Cell>
                     <Table.Cell className="truncate">
-                      <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
+                      <Badge variant="secondary" tone={statusTone(f.lifecycle)}>
+                        {f.lifecycle}
+                      </Badge>
                     </Table.Cell>
                   </Table.Row>
                 ))}

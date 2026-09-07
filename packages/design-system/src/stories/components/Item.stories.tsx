@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { ExternalLink, MoreHorizontal, Plus } from "lucide-react";
 
-import { Avatar, Badge, Button, Dot, IconButton, Item, Table } from "../../components";
+import { Badge, Avatar, Button, Dot, IconButton, Item, Table } from "../../components";
 import { Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 
@@ -184,7 +185,9 @@ export const Lists: Story = {
           description="Wants to see the payables run end to end before signing off."
           trailing="Yesterday"
         >
-          <Badge tone="information">Open request</Badge>
+          <Badge variant="secondary" tone="information">
+            Open request
+          </Badge>
         </Item>
       </Item.Group>
     </Stack>
@@ -349,5 +352,9 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {
-  render: (args) => <Item.Group><Item {...args} /></Item.Group>,
+  render: (args) => (
+    <Item.Group>
+      <Item {...args} />
+    </Item.Group>
+  ),
 };

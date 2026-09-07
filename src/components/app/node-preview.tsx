@@ -181,7 +181,7 @@ export function NodePreviewSheet({
                 {objectives.map((o) => (
                   <Inline key={o} as="span" space="space.075" alignBlock="center">
                     {o}
-                    <Badge size="xsmall" tone={impactTone[triad[o]]}>
+                    <Badge variant="secondary" size="xsmall" tone={impactTone[triad[o]]}>
                       {triad[o]}
                     </Badge>
                   </Inline>
@@ -257,7 +257,11 @@ export function NodePreviewSheet({
                           {a.responsibility} · {a.coverage}
                         </Table.Cell>
                         <Table.Cell>
-                          <Badge size="xsmall" tone={allocationStateTone[a.state]}>
+                          <Badge
+                            variant="secondary"
+                            size="xsmall"
+                            tone={allocationStateTone[a.state]}
+                          >
                             {a.state}
                           </Badge>
                         </Table.Cell>

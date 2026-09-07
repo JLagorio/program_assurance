@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { Download, Plus } from "lucide-react";
 import { useState } from "react";
 
@@ -136,7 +137,15 @@ function LiveDemo() {
               <Table.Id id={c.id} />
               <Table.Cell>{c.title}</Table.Cell>
               <Table.Cell>
-                {c.gap ? <Badge tone="danger">Gap</Badge> : <Badge tone="success">Satisfied</Badge>}
+                {c.gap ? (
+                  <Badge variant="secondary" tone="danger">
+                    Gap
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" tone="success">
+                    Satisfied
+                  </Badge>
+                )}
               </Table.Cell>
             </Table.Row>
           ))}

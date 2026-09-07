@@ -173,7 +173,9 @@ function FindingRecord() {
                         <span className="tabular-nums font-body-small font-medium">
                           {residual.score}
                         </span>
-                        <Badge tone={bandTone[residual.band]}>{residual.band}</Badge>
+                        <Badge variant="secondary" tone={bandTone[residual.band]}>
+                          {residual.band}
+                        </Badge>
                         {!isDeficiency(finding) ? (
                           <span className="font-body-xsmall text-subtle">not carried</span>
                         ) : null}
@@ -237,7 +239,9 @@ function FindingRecord() {
                   <Indicator tone={severityTone(finding.mitigatedSeverity)}>
                     {finding.mitigatedSeverity}
                   </Indicator>
-                  <Badge tone={statusTone(finding.lifecycle)}>{finding.lifecycle}</Badge>
+                  <Badge variant="secondary" tone={statusTone(finding.lifecycle)}>
+                    {finding.lifecycle}
+                  </Badge>
                   {finding.poam ? (
                     <Button asChild variant="secondary" size="small">
                       <Link to="/register/poam/$poamId" params={{ poamId: finding.poam }}>
@@ -274,6 +278,7 @@ function FindingRecord() {
                     key === "Residual risk" ? (
                       residual ? (
                         <Badge
+                          variant="secondary"
                           tone={bandTone[residual.band]}
                           size="xsmall"
                           className="tabular-nums"
@@ -325,7 +330,11 @@ function FindingRecord() {
                   <TextBlock label="Assessment status">
                     {controlRow ? (
                       <>
-                        <Badge tone={statusTone(controlRow.status)} size="xsmall">
+                        <Badge
+                          variant="secondary"
+                          tone={statusTone(controlRow.status)}
+                          size="xsmall"
+                        >
                           {controlRow.status}
                         </Badge>
                         <Box className="text-subtle" as="span" paddingInlineStart="space.100">
@@ -397,7 +406,9 @@ function FindingRecord() {
                             </Indicator>
                           </Table.Cell>
                           <Table.Cell className="truncate">
-                            <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
+                            <Badge variant="secondary" tone={statusTone(f.lifecycle)}>
+                              {f.lifecycle}
+                            </Badge>
                           </Table.Cell>
                         </Table.Row>
                       ))}
@@ -421,6 +432,7 @@ function FindingRecord() {
                 <Box paddingBlockStart="space.050">
                   <TextBlock label="Method">
                     <Badge
+                      variant="secondary"
                       tone={
                         finding.assessment.method === "Test"
                           ? "warning"
@@ -547,7 +559,9 @@ function FindingRecord() {
                           {residual.score}
                         </span>
                         <span className="font-body-small text-subtle">/ 100</span>
-                        <Badge tone={bandTone[residual.band]}>{residual.band}</Badge>
+                        <Badge variant="secondary" tone={bandTone[residual.band]}>
+                          {residual.band}
+                        </Badge>
                       </Inline>
                       <Box paddingBlockStart="space.150">
                         <Progress value={residual.score} tone={bandTone[residual.band]} />
@@ -576,7 +590,7 @@ function FindingRecord() {
                     </Box>
                     <div>
                       <TextBlock label="Band">
-                        <Badge tone={bandTone[residual.band]} size="xsmall">
+                        <Badge variant="secondary" tone={bandTone[residual.band]} size="xsmall">
                           {residual.band}
                         </Badge>
                         <Box className="text-subtle" as="span" paddingInlineStart="space.100">

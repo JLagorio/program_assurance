@@ -128,7 +128,9 @@ function ComponentRecord() {
               meta={`${component.type} · ${component.version} · ${component.owner}`}
               actions={
                 <>
-                  <Badge tone={componentHealthTone[component.health]}>{component.health}</Badge>
+                  <Badge variant="secondary" tone={componentHealthTone[component.health]}>
+                    {component.health}
+                  </Badge>
                   <UnavailableAction
                     reason="Provider definitions are read-only in this workspace."
                     variant="secondary"

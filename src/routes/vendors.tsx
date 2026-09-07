@@ -161,7 +161,9 @@ function Vendors() {
                   <Table.Cell>{vendor.data}</Table.Cell>
                   <Table.Cell>{vendor.tier}</Table.Cell>
                   <Table.Cell>
-                    <Badge tone={vendor.reportTone}>{vendor.report}</Badge>
+                    <Badge variant="secondary" tone={vendor.reportTone}>
+                      {vendor.report}
+                    </Badge>
                   </Table.Cell>
                   <Table.Cell>
                     <Inline space="space.100" alignBlock="center">

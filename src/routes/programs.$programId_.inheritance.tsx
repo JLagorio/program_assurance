@@ -168,12 +168,18 @@ function ProgramInheritance() {
               actions={
                 <>
                   {failing > 0 ? (
-                    <Badge tone="danger">{failing} provider failed</Badge>
+                    <Badge variant="secondary" tone="danger">
+                      {failing} provider failed
+                    </Badge>
                   ) : (
-                    <Badge tone="success">No failing provider</Badge>
+                    <Badge variant="secondary" tone="success">
+                      No failing provider
+                    </Badge>
                   )}
                   {unstated > 0 ? (
-                    <Badge tone="danger">{unstated} obligation unstated</Badge>
+                    <Badge variant="secondary" tone="danger">
+                      {unstated} obligation unstated
+                    </Badge>
                   ) : null}
                   <TextLink size="small">
                     <Link to="/programs/$programId" params={{ programId: program.id }}>

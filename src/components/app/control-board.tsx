@@ -553,7 +553,9 @@ function BoardDetail({
         <div className="min-w-0 flex-1">
           <Inline className="font-body-small text-subtle" space="space.100" alignBlock="center">
             <Id className="text-default">{control.id}</Id>
-            <Badge size="xsmall">{control.origination}</Badge>
+            <Badge variant="secondary" tone="neutral" size="xsmall">
+              {control.origination}
+            </Badge>
             {scope ? <span className="truncate">{scope.name}</span> : null}
           </Inline>
           <Box className="truncate font-body-large font-medium" paddingBlockStart="space.025">
@@ -871,7 +873,11 @@ function BoardDetail({
               <RowTable
                 rows={owed}
                 cell={(r) => (
-                  <Badge size="xsmall" tone={determinationTone[r.determination]}>
+                  <Badge
+                    variant="secondary"
+                    size="xsmall"
+                    tone={determinationTone[r.determination]}
+                  >
                     {r.determination}
                   </Badge>
                 )}
@@ -887,7 +893,7 @@ function BoardDetail({
                 rows={stale}
                 cell={(r) => (
                   <Inline className="min-w-0" as="span" space="space.075" alignBlock="center">
-                    <Badge size="xsmall" tone={rowCurrencyTone[r.currency]}>
+                    <Badge variant="secondary" size="xsmall" tone={rowCurrencyTone[r.currency]}>
                       {r.currency}
                     </Badge>
                     <span className="truncate font-body-small text-subtle" title={r.currencyReason}>

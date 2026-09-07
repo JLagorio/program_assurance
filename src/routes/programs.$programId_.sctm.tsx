@@ -280,7 +280,7 @@ function ProgramSctm() {
               meta={`${program.acronym} · ${program.impact} baseline · ${catalogVersion} · generated ${sctm.generated}`}
               actions={
                 <>
-                  <Badge tone={sctm.gaps > 0 ? "danger" : "success"}>
+                  <Badge variant="secondary" tone={sctm.gaps > 0 ? "danger" : "success"}>
                     {sctm.gaps > 0 ? `${sctm.gaps} rows cannot ship` : "No gaps"}
                   </Badge>
                   <Button

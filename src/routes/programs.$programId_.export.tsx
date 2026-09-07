@@ -256,7 +256,9 @@ function ProgramExport() {
             meta={`${program.acronym} · OSCAL ${oscalVersion} · eMASS sheets · generated ${sctm.generated}`}
             actions={
               <>
-                <Badge tone="neutral">{sctm.counts.total} exported requirement rows</Badge>
+                <Badge variant="secondary" tone="neutral">
+                  {sctm.counts.total} exported requirement rows
+                </Badge>
                 <TextLink size="medium">
                   <Link to="/programs/$programId/sctm" params={{ programId }}>
                     Open SCTM

@@ -1,8 +1,9 @@
 import { ChevronDown } from "lucide-react";
-import { Collapsible } from "../../components";
+
+import { Badge, Collapsible } from "../../components";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Badge, Count, Indicator } from "../../components";
+import { Count, Indicator } from "../../components";
 
 import { Inline, Stack, Text } from "../../primitives";
 import { Matrix as Grid } from "../_lib/matrix";
@@ -101,7 +102,9 @@ export const Dont: Story = {
         do={
           <Inline space="space.100" alignBlock="center">
             <Text weight="medium">Status</Text>
-            <Badge tone="success">Verified</Badge>
+            <Badge variant="secondary" tone="success">
+              Verified
+            </Badge>
           </Inline>
         }
         doText="A state is a Badge."

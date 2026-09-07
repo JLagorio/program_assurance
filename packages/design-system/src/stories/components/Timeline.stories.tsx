@@ -1,5 +1,6 @@
 import { ChevronDown } from "lucide-react";
-import { Collapsible } from "../../components";
+
+import { Badge, Collapsible } from "../../components";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   Check,
@@ -15,7 +16,6 @@ import { useState, type ReactNode } from "react";
 
 import {
   Avatar,
-  Badge,
   Button,
   ButtonGroup,
   Count,
@@ -179,10 +179,12 @@ export const TimelineMatrix: Story = {
               timeTitle="2026-08-28 09:12"
               footer={
                 <>
-                  <Badge size="xsmall" tone="warning">
+                  <Badge variant="secondary" size="xsmall" tone="warning">
                     Due date
                   </Badge>
-                  <Badge size="xsmall">Milestone</Badge>
+                  <Badge variant="secondary" tone="neutral" size="xsmall">
+                    Milestone
+                  </Badge>
                 </>
               }
             >
@@ -239,7 +241,7 @@ export const TimelineMatrix: Story = {
                 meta="Priya Natarajan"
                 time="2h ago"
                 footer={
-                  <Badge size="xsmall" tone="success">
+                  <Badge variant="secondary" size="xsmall" tone="success">
                     Done
                   </Badge>
                 }
@@ -278,7 +280,7 @@ export const TimelineMatrix: Story = {
               title={
                 <span className="inline-flex items-center gap-050">
                   v2.0
-                  <Badge tone="information" size="xsmall">
+                  <Badge variant="secondary" tone="information" size="xsmall">
                     Current
                   </Badge>
                 </span>
@@ -345,10 +347,10 @@ function Feed() {
         timeTitle="2026-09-04 14:05"
         footer={
           <>
-            <Badge size="xsmall" icon={<Dot tone="success" />}>
+            <Badge variant="secondary" tone="neutral" size="xsmall" icon={<Dot tone="success" />}>
               Payout
             </Badge>
-            <Badge size="xsmall" tone="success">
+            <Badge variant="secondary" size="xsmall" tone="success">
               Same day
             </Badge>
           </>
@@ -369,10 +371,10 @@ function Feed() {
         dateTime="2026-09-04T13:52"
         footer={
           <>
-            <Badge size="xsmall" icon={<Dot tone="warning" />}>
+            <Badge variant="secondary" tone="neutral" size="xsmall" icon={<Dot tone="warning" />}>
               Risk
             </Badge>
-            <Badge size="xsmall" tone="warning">
+            <Badge variant="secondary" size="xsmall" tone="warning">
               High
             </Badge>
           </>
@@ -399,7 +401,7 @@ function Feed() {
         time="42 minutes ago"
         dateTime="2026-09-04T13:28"
         footer={
-          <Badge size="xsmall" icon={<Dot tone="information" />}>
+          <Badge variant="secondary" tone="neutral" size="xsmall" icon={<Dot tone="information" />}>
             Ledger
           </Badge>
         }
@@ -413,7 +415,11 @@ function Feed() {
         description="Monthly card volume increased to $850K."
         time="1 hour ago"
         dateTime="2026-09-04T13:10"
-        footer={<Badge size="xsmall">Limit raised</Badge>}
+        footer={
+          <Badge variant="secondary" tone="neutral" size="xsmall">
+            Limit raised
+          </Badge>
+        }
         trailing={menu()}
       >
         <Avatar.Stack
@@ -432,10 +438,12 @@ function Feed() {
         dateTime="2026-09-02"
         footer={
           <>
-            <Badge size="xsmall" tone="warning">
+            <Badge variant="secondary" size="xsmall" tone="warning">
               3 tasks in progress
             </Badge>
-            <Badge size="xsmall">Sprint 18</Badge>
+            <Badge variant="secondary" tone="neutral" size="xsmall">
+              Sprint 18
+            </Badge>
           </>
         }
         trailing={menu()}
@@ -453,7 +461,11 @@ function Feed() {
         }
         time="1 day ago"
         dateTime="2026-09-03"
-        footer={<Badge size="xsmall">Thread open</Badge>}
+        footer={
+          <Badge variant="secondary" tone="neutral" size="xsmall">
+            Thread open
+          </Badge>
+        }
         trailing={menu()}
       >
         <Text size="small" color="color.text.subtle">
@@ -545,10 +557,10 @@ export const Log: Story = {
         footer={
           <>
             Maya Brooks
-            <Badge size="xsmall" tone="success">
+            <Badge variant="secondary" size="xsmall" tone="success">
               Done
             </Badge>
-            <Badge size="xsmall" icon={<Dot tone="success" />}>
+            <Badge variant="secondary" tone="neutral" size="xsmall" icon={<Dot tone="success" />}>
               Healthy
             </Badge>
           </>
@@ -565,10 +577,15 @@ export const Log: Story = {
         footer={
           <>
             Nina Patel
-            <Badge size="xsmall" tone="information">
+            <Badge variant="secondary" size="xsmall" tone="information">
               Auth
             </Badge>
-            <Badge size="xsmall" icon={<Dot tone="information" />}>
+            <Badge
+              variant="secondary"
+              tone="neutral"
+              size="xsmall"
+              icon={<Dot tone="information" />}
+            >
               Low risk
             </Badge>
           </>
@@ -584,8 +601,10 @@ export const Log: Story = {
         footer={
           <>
             Theo Grant
-            <Badge size="xsmall">Limit</Badge>
-            <Badge size="xsmall" icon={<Dot />}>
+            <Badge variant="secondary" tone="neutral" size="xsmall">
+              Limit
+            </Badge>
+            <Badge variant="secondary" tone="neutral" size="xsmall" icon={<Dot />}>
               125% cap
             </Badge>
           </>
@@ -600,10 +619,10 @@ export const Log: Story = {
         footer={
           <>
             Leah Stone
-            <Badge size="xsmall" tone="warning">
+            <Badge variant="secondary" size="xsmall" tone="warning">
               Data
             </Badge>
-            <Badge size="xsmall" icon={<Dot tone="warning" />}>
+            <Badge variant="secondary" tone="neutral" size="xsmall" icon={<Dot tone="warning" />}>
               18.4k rows
             </Badge>
           </>
@@ -628,12 +647,18 @@ export const Releases: Story = {
         description="Staged release channels for beta teams, enterprise accounts and internal QA cohorts."
         footer={
           <>
-            <Badge size="xsmall" tone="information">
+            <Badge variant="secondary" size="xsmall" tone="information">
               New
             </Badge>
-            <Badge size="xsmall">Team rollout</Badge>
-            <Badge size="xsmall">Channel permissions</Badge>
-            <Badge size="xsmall">Scheduled publishing</Badge>
+            <Badge variant="secondary" tone="neutral" size="xsmall">
+              Team rollout
+            </Badge>
+            <Badge variant="secondary" tone="neutral" size="xsmall">
+              Channel permissions
+            </Badge>
+            <Badge variant="secondary" tone="neutral" size="xsmall">
+              Scheduled publishing
+            </Badge>
           </>
         }
       />
@@ -644,11 +669,15 @@ export const Releases: Story = {
         description="Workspace summaries, prompt presets and faster review suggestions."
         footer={
           <>
-            <Badge size="xsmall" tone="information">
+            <Badge variant="secondary" size="xsmall" tone="information">
               New
             </Badge>
-            <Badge size="xsmall">Faster reviews</Badge>
-            <Badge size="xsmall">Prompt library</Badge>
+            <Badge variant="secondary" tone="neutral" size="xsmall">
+              Faster reviews
+            </Badge>
+            <Badge variant="secondary" tone="neutral" size="xsmall">
+              Prompt library
+            </Badge>
           </>
         }
       />
@@ -659,11 +688,15 @@ export const Releases: Story = {
         description="Token previews, component states and one-click CSS exports."
         footer={
           <>
-            <Badge size="xsmall" tone="success">
+            <Badge variant="secondary" size="xsmall" tone="success">
               Improved
             </Badge>
-            <Badge size="xsmall">Design systems</Badge>
-            <Badge size="xsmall">CSS export</Badge>
+            <Badge variant="secondary" tone="neutral" size="xsmall">
+              Design systems
+            </Badge>
+            <Badge variant="secondary" tone="neutral" size="xsmall">
+              CSS export
+            </Badge>
           </>
         }
       />
@@ -674,11 +707,15 @@ export const Releases: Story = {
         description="Shared cursors, presence labels and conflict-safe draft recovery."
         footer={
           <>
-            <Badge size="xsmall" tone="success">
+            <Badge variant="secondary" size="xsmall" tone="success">
               Improved
             </Badge>
-            <Badge size="xsmall">Collaboration</Badge>
-            <Badge size="xsmall">Draft recovery</Badge>
+            <Badge variant="secondary" tone="neutral" size="xsmall">
+              Collaboration
+            </Badge>
+            <Badge variant="secondary" tone="neutral" size="xsmall">
+              Draft recovery
+            </Badge>
           </>
         }
       />

@@ -82,7 +82,7 @@ export function Dialog({
                 </DialogPrimitive.Description>
               ) : null}
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-none">
               <div className={cn("grid", aside && "grid-cols-1 md:grid-cols-3")}>
                 <div className={cn("px-250 py-200", aside && "md:col-span-2")}>{children}</div>
                 {aside ? (

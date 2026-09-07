@@ -279,7 +279,7 @@ export function Composer({
               id={listId}
               role="listbox"
               aria-label={suggestionsLabel}
-              className="absolute start-0 top-full z-50 max-w-full overflow-y-auto rounded-large border border-default bg-surface-overlay py-050 shadow-overlay"
+              className="absolute start-0 top-full z-50 max-w-full overflow-y-auto overscroll-none rounded-large border border-default bg-surface-overlay py-050 shadow-overlay"
               style={{ width: 280, maxHeight: 240 }}
             >
               {suggestions.items.map((option, index) => (

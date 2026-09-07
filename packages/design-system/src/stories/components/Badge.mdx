@@ -7,99 +7,206 @@ import * as Stories from "./Badge.stories";
 
 # Badge
 
-A short status word in a soft fill: the state of a record. Verified, In review, Overdue, Draft. A lozenge or a tag by other names; the kit's Badge is read-only, never dismissed, selected or clicked.
+A compact label built on the shadcn Base UI Badge foundation and adapted to Ledger. One Badge combines six visual treatments with semantic tones, subtle or bold emphasis, two density sizes, optional icons, and rendered-link composition. Every combination uses the same pill anatomy.
 
-It is one of four ways to say a status, and all four read the same tone table, so a tone is one decision everywhere:
-
-| Say                                     | Use                                                 |
-| --------------------------------------- | --------------------------------------------------- |
-| The state of a record                   | Badge                                               |
-| How many                                | [Count](?path=/docs/components-count--docs)         |
-| Severity or health beside a label       | [Indicator](?path=/docs/components-indicator--docs) |
-| A status in a spot too small for a word | [Dot](?path=/docs/components-indicator--docs)       |
+`variant` chooses the treatment and its defaults; `tone` chooses the palette; `appearance` adjusts the emphasis of filled treatments; `size` adjusts density. With no props, Badge is the standard brand-filled `default` variant. A record status commonly uses `variant="secondary"` with its tone.
 
 <Canvas of={Stories.Matrix} />
 
 ## Anatomy
 
-| Part | What it is                                                                                                                            |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Fill | `radius.small`, the tone's subtle fill (`color.background.success`) or its bold fill, `space.075` at each end, `space.050` at xsmall. |
-| Word | `font.body.small` medium in the tone's text colour, or the inverse colour on bold. `font.body.xsmall` at xsmall. It does not wrap.    |
-| Icon | Optional, 12px before the word, `space.050` away.                                                                                     |
+| Export or part  | Responsibility                                                                                                              |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `Badge`         | A `span` by default, or the element supplied through Base UI's `render` prop.                                               |
+| `badgeVariants` | The shared class recipe for treatment, tone, emphasis, and size. Consumers composing their own element can use it directly. |
+| Label           | Concise children that remain meaningful without color or an icon.                                                           |
+| Icon            | An optional leading `icon`, or explicit icon children with `data-icon="inline-start"` / `"inline-end"`.                     |
+
+Badge emits `data-slot="badge"` and its resolved `data-variant`, `data-tone`, `data-appearance`, and `data-size`. Palette choices do not select a different component or change the shape.
+
+```tsx
+import { Badge, badgeVariants } from "@ledger/design-system";
+import { ArrowUpRight, CircleCheck } from "lucide-react";
+
+<Badge>Featured</Badge>;
+<Badge variant="secondary" tone="neutral">
+  Draft
+</Badge>;
+<Badge variant="secondary" tone="success" icon={<CircleCheck aria-hidden="true" />}>
+  Verified
+</Badge>;
+<Badge variant="secondary" tone="danger" appearance="bold" size="xsmall">
+  Overdue
+</Badge>;
+<Badge variant="outline" tone="success" render={<a href="/evidence" />}>
+  Verified evidence
+  <ArrowUpRight aria-hidden="true" data-icon="inline-end" />
+</Badge>;
+
+<span className={badgeVariants({ variant: "secondary", tone: "success", size: "xsmall" })}>
+  Verified
+</span>;
+```
+
+The recipe supplies classes only. A consumer using `badgeVariants` directly owns its element, attributes, refs, semantics, and composition.
+
+<Canvas of={Stories.Recipe} />
 
 ## Variants
 
-| Appearance | Use                                                                                                             |
-| ---------- | --------------------------------------------------------------------------------------------------------------- |
-| `subtle`   | The default: the tinted fill with the tone's text. The status column, a state beside a title, a category.       |
-| `bold`     | The solid fill with inverse text. One per view, for the status that must win: the overdue on a record's header. |
+All six treatments accept the same tone and size axes.
 
-The tone is the meaning:
+| `variant`     | Default palette / emphasis | Treatment                                                                                      |
+| ------------- | -------------------------- | ---------------------------------------------------------------------------------------------- |
+| `default`     | Brand / bold               | Filled. A rendered anchor uses the palette's hover fill. The default.                          |
+| `secondary`   | Neutral / subtle           | Filled. A rendered anchor uses the palette's hover fill.                                       |
+| `destructive` | Danger / subtle            | Filled. Its default danger tone uses the danger focus outline.                                 |
+| `outline`     | Neutral                    | Transparent with a visible border; a rendered anchor gains the palette's subtle fill on hover. |
+| `ghost`       | Neutral                    | Transparent, with the palette's subtle fill on hover.                                          |
+| `link`        | Brand                      | Palette-colored text, underlined on hover. Render an anchor to give it link behavior.          |
 
-| Tone          | Use                                                                                         |
-| ------------- | ------------------------------------------------------------------------------------------- |
-| `neutral`     | A category, a kind, a stage without a judgement: Inspection, Draft, Inherited. The default. |
-| `information` | In progress: In review, In remediation.                                                     |
-| `success`     | Done and good: Verified, Satisfied, Closed.                                                 |
-| `warning`     | Needs attention soon: Due soon, Partial, Suspect.                                           |
-| `danger`      | Wrong or late: Overdue, Other than satisfied, Invalidated.                                  |
+`appearance="subtle"` or `"bold"` overrides the filled treatments' default emphasis. Outline, ghost, and link retain their treatment when an appearance is supplied. `tone` overrides the palette across every variant, including outline borders and link text.
 
-Not built, and why: dismissible, selectable, closeable and clickable tags. A filter the reader turns on and off is a [FilterChip](?path=/docs/components-filterchip--docs); something that takes the reader somewhere is a [TextLink](?path=/docs/components-textlink--docs): no tags as links. A hue palette for categories is not here either: in this kit a colour is a status, so a category is neutral and differs by its word. No outline or high-contrast appearance; `bold` is the one emphasis.
+| Tone          | Meaning                                                                      |
+| ------------- | ---------------------------------------------------------------------------- |
+| `brand`       | Branding or a featured label. The default palette for `default` and `link`.  |
+| `neutral`     | A category, kind, or state without a judgment: Inspection, Draft, Inherited. |
+| `information` | In progress: In review, In remediation.                                      |
+| `success`     | Done and good: Verified, Satisfied, Closed.                                  |
+| `warning`     | Needs attention soon: Due soon, Partial, Suspect.                            |
+| `danger`      | Wrong or late: Overdue, Other than satisfied, Invalidated.                   |
 
-<Canvas of={Stories.Categories} />
+<Canvas of={Stories.SemanticMatrix} />
+
+The next matrix applies every status tone to all six variants at the compact size. Outline and link examples render actual anchors. The radius, icon anatomy, and density are shared across the matrix.
+
+<Canvas of={Stories.SemanticVariants} />
 
 ## Sizes
 
-| Size     | Height | Where                                                                    |
-| -------- | ------ | ------------------------------------------------------------------------ |
-| `small`  | 20px   | The default: beside a title, in a rail, in a header.                     |
-| `xsmall` | 16px   | A table row, a tab, a list item, anywhere the line is `font.body.small`. |
+| `size`   | Height / text | Use                                                 |
+| -------- | ------------- | --------------------------------------------------- |
+| `small`  | 20px / 12px   | Default. Beside a title, in a rail, or in a header. |
+| `xsmall` | 16px / 11px   | A table row, a tab, or a dense list item.           |
 
-There is no large Badge, because a Badge is never the page's task. The word sets the width; a Badge does not truncate, so its word is short.
+Both sizes use the same pill radius and 12px icons. Small badges use 8px horizontal padding, reduced to 6px beside a marked icon; xsmall badges keep 4px padding for density. The width follows the label, which stays on one line. Containers should wrap separate badges when space is limited; keep long labels readable.
 
 <Canvas of={Stories.InRows} />
 
+<Canvas of={Stories.DenseAndLongContent} />
+
 ## States
 
-A Badge has one state. It does not hover, focus, press or disable: it is text with a fill. When the record changes state, the Badge is replaced, not animated.
+| State           | Behavior                                                                                            |
+| --------------- | --------------------------------------------------------------------------------------------------- |
+| Plain label     | Native span semantics. No default tab stop or action.                                               |
+| Rendered anchor | Native link semantics, Tab focus, Enter activation, and treatment-specific hover styling.           |
+| Focus visible   | Focus border and Ledger's 2px outline with a 2px offset. A danger tone uses the danger outline.     |
+| Invalid         | Caller-owned `aria-invalid` selects the danger border and outline color. It does not validate data. |
+
+Badge manages no selection, dismissal, loading, or disabled state. Use an appropriate interactive control for those behaviors. A variant supplies presentation; a rendered element supplies its native interaction semantics.
+
+<Canvas of={Stories.States} />
 
 ## Modifiers
 
-- **`tone`** as in Variants; `neutral` when unsaid.
-- **`appearance="bold"`** for the one status in the view that must win.
-- **`size="xsmall"`** in a row.
-- **`icon`** before the word, rarely: when the word alone is ambiguous ("Attested" signed or unsigned).
+- **`variant`** chooses filled, outlined, ghost, or link presentation and the palette/emphasis defaults shown above.
+- **`tone`** changes the palette while preserving the treatment and geometry.
+- **`appearance`** chooses subtle or bold emphasis on filled variants.
+- **`size`** chooses the standard or compact density.
+- **`icon`** prepends an optional leading icon. Explicit children support either icon position and conditional content.
+- **`render`** supplies a native anchor or custom component that forwards props and its ref.
+- **Native props and `ref`** reach the actual element. Attributes, classes, styles, handlers, and refs compose with those on the rendered element.
 
-<Canvas of={Stories.OneBold} />
+### Render composition
+
+Keep the destination on the rendered anchor or router element. A router adapter must forward every received prop and its ref to the actual anchor so that styles, handlers, and accessibility attributes reach the same element.
+
+```tsx
+import { forwardRef, type ComponentProps } from "react";
+import { Badge } from "@ledger/design-system";
+
+type RouterLinkProps = Omit<ComponentProps<"a">, "href"> & { to: string };
+
+const RouterLink = forwardRef<HTMLAnchorElement, RouterLinkProps>(function RouterLink(
+  { to, ...props },
+  ref,
+) {
+  return <a ref={ref} href={to} {...props} />;
+});
+
+<Badge variant="outline" tone="information" render={<RouterLink to="/programs" />}>
+  Programs
+</Badge>;
+```
+
+The example verifies both refs, attributes, classes, styles, and handlers on one anchor. Mouse and keyboard activation each invoke both handlers. The demonstration adapter prevents navigation to keep the canvas open.
+
+<Canvas of={Stories.RenderLink} />
+
+### Icons and conditional content
+
+Use `icon={<CircleCheck aria-hidden="true" />}` for a leading icon, or place icons explicitly among the children. Explicit leading and trailing icons use `data-icon="inline-start"` and `data-icon="inline-end"` to select the corresponding padding. An icon element supplied through the shorthand receives the leading marker. Keep the label meaningful whether an optional icon is present or absent.
+
+<Canvas of={Stories.ConditionalIcons} />
+
+### Migrating existing Badge uses
+
+| Previous use                                        | Updated use                                                                                            |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `<Badge tone="success">Verified</Badge>`            | `<Badge variant="secondary" tone="success">Verified</Badge>` preserves subtle status emphasis.         |
+| Neutral `<Badge>Draft</Badge>`                      | `<Badge variant="secondary" tone="neutral">Draft</Badge>`. The unconfigured default is now brand/bold. |
+| `appearance="bold"`, `size="xsmall"`, or `icon={…}` | Keep these conveniences on Badge. Use `secondary` for existing status compositions.                    |
+| A clickable span                                    | Supply a real anchor through `render` for navigation.                                                  |
+| `BadgeProps`                                        | Continue using the same export; it now also includes variants and Base UI render composition.          |
+
+All Badge uses now share the shadcn-derived pill shape, including semantic tones. Existing semantic palettes and compact heights remain, while small labels adopt the shared padding and border anatomy. `Count`, `Dot`, `Indicator`, `Tone`, `tones`, and `toneClasses` keep their existing contracts. `Avatar.Badge` remains a separate Avatar part.
 
 ## Content
 
-- **One or two words, sentence case:** Verified, In review, Other than satisfied. Not a sentence, not who or when.
-- **The state, not the tone:** Overdue, not Danger; Verified, not Success.
-- **A category's word is the whole difference:** Inspection, Test, Analysis, all neutral.
-- **The same word for the same state everywhere.** A product keeps one vocabulary of states, and the Badge is where it shows.
+- Use one or two words that remain useful without color: Verified, In review, Overdue.
+- Use the state rather than the tone name: Overdue, not Danger.
+- Keep categories neutral; their words distinguish them.
+- Use one vocabulary for each state throughout the product.
+- Keep bold emphasis for the status that needs the most attention.
+- Give rendered links labels that make their destinations understandable.
+
+<Canvas of={Stories.Categories} />
+
+<Canvas of={Stories.OneBold} />
 
 ## Style
 
-| Element | Token                                                                                                                       |
-| ------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Fill    | `color.background.<tone>` subtle · `color.background.<tone>.bold` bold · `radius.small`                                     |
-| Word    | `font.body.small` medium · `color.text.<tone>` subtle · `color.text.inverse` bold (`color.text.warning.inverse` on warning) |
-| xsmall  | 16px · `space.050` at each end · `font.body.xsmall`                                                                         |
-| small   | 20px · `space.075` at each end · `font.body.small`                                                                          |
-| Icon    | 12px · `space.050` before the word                                                                                          |
+| Element or state              | Ledger token mapping                                                                                               |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Shape                         | `radius.full`, default border width; the same anatomy for every tone and treatment                                 |
+| Small                         | `h-250`, `px-100`, `py-025`, `gap-050`, `font-body-small`, medium weight                                           |
+| Xsmall                        | `h-200`, `px-050`, `py-0`, `font-body-xsmall`; same 12px icons                                                     |
+| Icon ends                     | Direct SVGs use `size-150`; marked icon ends use `space.075` at small and `space.050` at xsmall                    |
+| Filled subtle                 | The chosen tone's subtle background and readable tone text                                                         |
+| Filled bold                   | The chosen tone's bold background and inverse text; warning uses `color.text.warning.inverse`                      |
+| Outline / ghost / link        | The chosen palette's text, border, and hover background, according to treatment                                    |
+| Focus                         | `color.border.focused`, `border.width.focused`, and `space.025` offset through `outline-focused`                   |
+| Destructive / invalid outline | The same outline geometry with `color.border.danger` through `outline-danger`; invalid also uses the danger border |
+| Motion                        | `duration-fast`, `ease-standard`                                                                                   |
 
-The subtle fills sit on `elevation.surface` and on a row's hover; the contrast test covers both, in both modes.
+Semantic colors adapt to both modes. Ledger's named 2px focus outlines replace the reference's translucent rings. Use the Storybook mode toolbar to review the examples; browser checks run the stories in light and dark projects.
 
 ## Accessibility
 
-- **It is text.** A Badge is a span, read as its word in the flow of the row: "CTRL-0412, Segregation of duties, Verified". Nothing to focus, nothing to operate.
-- **The word carries the status**, not the colour: Overdue reads as overdue with no red. The tone reinforces.
-- **Not a link and not a button.** A clickable Badge is not focusable and says nothing about where it goes. If it must go somewhere, it is a TextLink.
-- **Contrast**: the tone's text on the tone's subtle fill passes 4.5:1 in both modes, and the gate runs every tone.
+- A plain Badge is inline text. A click handler does not make it a keyboard control.
+- A link requires an actual anchor with a destination through `render`; `variant="link"` supplies presentation only.
+- Native attributes and refs reach the actual element. Custom router adapters must forward them.
+- Pair semantic colors with visible words and hide decorative icons from assistive technology.
+- Use native controls for selection or dismissal. Badge does not implement those behaviors.
+
+<Canvas of={Stories.NativeAttributes} />
+
+<Canvas of={Stories.SemanticNativeAttributes} />
 
 ## Props
+
+`BadgeProps` combines native span props and Base UI's `render` composition with the shared recipe's variant, tone, appearance, and size axes, plus the optional icon. `React.ComponentProps<typeof Badge>` derives the same component props. The ref receives the actual rendered element; anchor-specific props such as `href` belong on the anchor supplied through `render`.
 
 <ArgTypes of={Badge} />
 
@@ -109,13 +216,19 @@ The subtle fills sit on `elevation.surface` and on a row's hover; the contrast t
 
 <Controls of={Stories.Playground} />
 
+<Canvas of={Stories.SemanticPlayground} />
+
+<Controls of={Stories.SemanticPlayground} />
+
 ## Related
 
-- [Count](?path=/docs/components-count--docs): a number in a pill.
-- [Indicator](?path=/docs/components-indicator--docs): severity as a Dot and a word; and the Dot alone.
-- [FilterChip](?path=/docs/components-filterchip--docs): the tag the reader turns on and off.
-- [Eyebrow](?path=/docs/components-typography--docs): a status word above a title, without a fill.
+- [Count](?path=/docs/components-count--docs): numeric counts.
+- [Indicator](?path=/docs/components-indicator--docs): a status dot and a word.
+- [FilterChip](?path=/docs/components-filterchip--docs): a filter the reader can change.
+- Reference: [shadcn Base UI Badge](https://ui.shadcn.com/docs/components/base/badge). The checked-in application reference is the foundation for this adaptation.
 
 ## Don't
 
 <Canvas of={Stories.Dont} />
+
+<Canvas of={Stories.StatusGuidance} />

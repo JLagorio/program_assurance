@@ -239,7 +239,11 @@ export function ControlMatrixSection({
                       value={r.status}
                       onChange={(next) => updateControl(programId, r.id, { status: next })}
                       save={save(r.id, "status")}
-                      render={(v) => <Badge tone={controlStatusTone[v]}>{v}</Badge>}
+                      render={(v) => (
+                        <Badge variant="secondary" tone={controlStatusTone[v]}>
+                          {v}
+                        </Badge>
+                      )}
                     />
                   </Table.Cell>
                   <Table.Cell className="truncate" title={r.source}>

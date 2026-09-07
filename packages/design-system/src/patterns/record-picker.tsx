@@ -70,7 +70,7 @@ export function RecordPicker({
               ) : null}
             </span>
             {r.badge ? (
-              <Badge size="xsmall" tone={r.badge.tone ?? "neutral"}>
+              <Badge variant="secondary" size="xsmall" tone={r.badge.tone ?? "neutral"}>
                 {r.badge.label}
               </Badge>
             ) : null}

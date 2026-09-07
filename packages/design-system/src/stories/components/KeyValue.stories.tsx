@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Absent, Badge, KeyValue, Person, TextLink } from "../../components";
+import { Badge, Absent, KeyValue, Person, TextLink } from "../../components";
 import { Box, Stack } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -25,7 +25,9 @@ export const KeyValueMatrix: Story = {
             <Person name="Dana Whitfield" />
           </KeyValue>
           <KeyValue label="Status">
-            <Badge tone="warning">Partially satisfied</Badge>
+            <Badge variant="secondary" tone="warning">
+              Partially satisfied
+            </Badge>
           </KeyValue>
           <KeyValue label="Evidence">
             <TextLink>
@@ -71,7 +73,9 @@ export const InRail: Story = {
       <KeyValue label="Last verified">12 Aug 2026</KeyValue>
       <KeyValue label="Next due">12 Nov 2026</KeyValue>
       <KeyValue label="Status">
-        <Badge tone="success">Verified</Badge>
+        <Badge variant="secondary" tone="success">
+          Verified
+        </Badge>
       </KeyValue>
       <KeyValue label="Assessor">
         <Absent />

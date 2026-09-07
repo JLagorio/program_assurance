@@ -41,7 +41,7 @@ const glances = {
       title="The module shall refuse firmware whose security version is below the value recorded in the rollback fuses."
       meta="Derived · revision 1"
       status={
-        <Badge size="xsmall" tone="information">
+        <Badge variant="secondary" size="xsmall" tone="information">
           Approved
         </Badge>
       }
@@ -167,7 +167,7 @@ export const Playground: Story = {
       <Glance
         {...args}
         status={
-          <Badge size="xsmall" tone="information">
+          <Badge variant="secondary" size="xsmall" tone="information">
             Approved
           </Badge>
         }

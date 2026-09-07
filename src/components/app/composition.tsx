@@ -355,7 +355,7 @@ function BomTreeRow({
               as="span"
               alignBlock="center"
             >
-              <Badge size="xsmall" tone={postureToneOf(posture)}>
+              <Badge variant="secondary" size="xsmall" tone={postureToneOf(posture)}>
                 {open} open
               </Badge>
             </Inline>
@@ -372,7 +372,7 @@ function BomTreeRow({
       >
         {node.name}
       </span>
-      <Badge size="xsmall" className="shrink-0">
+      <Badge variant="secondary" tone="neutral" size="xsmall" className="shrink-0">
         {node.kind}
       </Badge>
       {node.version === "—" ? null : <Id className="shrink-0 text-subtle">{node.version}</Id>}
@@ -434,7 +434,7 @@ export function NodeRail({
         <KeyValue label="BOM source">{node.bomSource}</KeyValue>
         <KeyValue label="BOM document">{node.bom ? <Id>{node.bom}</Id> : <Absent />}</KeyValue>
         <KeyValue label="Attested">
-          <Badge size="xsmall" tone={node.attested ? "success" : "warning"}>
+          <Badge variant="secondary" size="xsmall" tone={node.attested ? "success" : "warning"}>
             {node.attested ? "On file" : "Not on file"}
           </Badge>
         </KeyValue>
@@ -629,7 +629,7 @@ export function ReconciliationTable({
               {r.delta > 0 ? `+${r.delta}` : r.delta}
             </Table.Cell>
             <Table.Cell>
-              <Badge size="xsmall" tone={r.agrees ? "success" : "warning"}>
+              <Badge variant="secondary" size="xsmall" tone={r.agrees ? "success" : "warning"}>
                 {r.agrees ? "Reconciled" : "Unreconciled"}
               </Badge>
             </Table.Cell>
@@ -883,7 +883,7 @@ export function SupplyChainTable({
                 {r.supplier}
               </Table.Cell>
               <Table.Cell className="truncate" title={r.origins.join(", ")}>
-                <Badge size="xsmall" tone={originTone[origin] ?? "neutral"}>
+                <Badge variant="secondary" size="xsmall" tone={originTone[origin] ?? "neutral"}>
                   {r.origins.length > 1 ? `${origin} +${r.origins.length - 1}` : origin}
                 </Badge>
               </Table.Cell>

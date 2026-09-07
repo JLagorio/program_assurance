@@ -15,13 +15,13 @@ The page scrolls on its own; a ScrollArea is for a region inside the page that h
 
 ## Anatomy
 
-| Part     | What it is                                                                                                                                       |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Region   | The box, sized by `className`; it clips and never grows taller than its content. Radix ScrollArea underneath.                                     |
-| Viewport | What scrolls: the content at its full size. A tab stop, and a region named by `label` when one is given.                                         |
+| Part     | What it is                                                                                                                                         |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Region   | The box, sized by `className`; it clips and never grows taller than its content. Radix ScrollArea underneath.                                      |
+| Viewport | What scrolls: the content at its full size. A tab stop, and a region named by `label` when one is given.                                           |
 | Bar      | Over the content's edge, `space.100` wide with `space.025` around the thumb; vertical, horizontal or both. It does not take room from the content. |
-| Thumb    | `color.background.neutral.pressed`, `radius.full`; `color.background.neutral.bold` under the pointer. Its length is the visible share.            |
-| Corner   | Where two bars meet, when there are two.                                                                                                         |
+| Thumb    | `color.background.neutral.pressed`, `radius.full`; `color.background.neutral.bold` under the pointer. Its length is the visible share.             |
+| Corner   | Where two bars meet, when there are two.                                                                                                           |
 
 ## Variants
 
@@ -37,14 +37,14 @@ None of its own: `className` sizes it (`h-full` in a pane, `max-h-full` in a rai
 
 ## States
 
-| State     | Look                                                                                                                         |
-| --------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Rest      | The content; no bar, under `hover`.                                                                                          |
-| Hover     | The bar fades in while the pointer is over the region, and stays 600ms after the last scroll.                                |
-| Always    | `bar="always"`: the bar stays, so the reader sees there is more.                                                             |
-| Scrolling | The thumb moves; under the pointer it darkens to `color.background.neutral.bold`.                                            |
-| Focus     | The kit's focus outline on the viewport, on keyboard focus, so a keyboard reader sees which region the arrows move.          |
-| Fits      | The content fits: no bar, nothing to scroll, the region is exactly its content.                                              |
+| State     | Look                                                                                                                |
+| --------- | ------------------------------------------------------------------------------------------------------------------- |
+| Rest      | The content; no bar, under `hover`.                                                                                 |
+| Hover     | The bar fades in while the pointer is over the region, and stays 600ms after the last scroll.                       |
+| Always    | `bar="always"`: the bar stays, so the reader sees there is more.                                                    |
+| Scrolling | The thumb moves; under the pointer it darkens to `color.background.neutral.bold`.                                   |
+| Focus     | The kit's focus outline on the viewport, on keyboard focus, so a keyboard reader sees which region the arrows move. |
+| Fits      | The content fits: no bar, nothing to scroll, the region is exactly its content.                                     |
 
 <Canvas of={Stories.ScrollAreaMatrix} />
 
@@ -65,12 +65,12 @@ None of its own: `className` sizes it (`h-full` in a pane, `max-h-full` in a rai
 
 ## Style
 
-| Element | Token                                                                                              |
-| ------- | -------------------------------------------------------------------------------------------------- |
-| Bar     | `space.100` 8px · `space.025` around the thumb                                                      |
-| Thumb   | `color.background.neutral.pressed` · `color.background.neutral.bold` hovered · `radius.full` · `motion.duration.fast` on `motion.easing.standard` |
-| Focus   | The kit's focus outline, `color.border.focused`, on the viewport                                    |
-| Edge    | `overscroll-behavior: none`: the region stops at its end, with no rubber band and no scroll chaining into the page. Every scroller in the kit does, and the page itself, from `base.css` |
+| Element | Token                                                                                                                                                                                                                                                                                                       |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bar     | `space.100` 8px · `space.025` around the thumb                                                                                                                                                                                                                                                              |
+| Thumb   | `color.background.neutral.pressed` · `color.background.neutral.bold` hovered · `radius.full` · `motion.duration.fast` on `motion.easing.standard`                                                                                                                                                           |
+| Focus   | The kit's focus outline, `color.border.focused`, on the viewport                                                                                                                                                                                                                                            |
+| Edge    | The viewport chains: at its end the gesture goes on to the page, as every scroller in the flow of a page does. Only the root and the surfaces with nothing behind them (the shell's side nav and panel, a sheet's, dialog's or drawer's body, a menu, a listbox) stop at their edge, with `overscroll-none` |
 
 ## Accessibility
 
@@ -78,7 +78,7 @@ None of its own: `className` sizes it (`h-full` in a pane, `max-h-full` in a rai
 - **With `label` it is a region** named by it, so a screen reader announces "Facts, region" on arrival and lists it among the landmarks. Give one wherever the region is not the only thing in its container.
 - **The bar is not in the tab order** and has no role: it is a drawing of where the reader is, and the viewport is the control.
 - **The bar takes no room,** so nothing reflows when it appears.
-- **The region stops at its edge.** Scrolling past its end does not bounce and does not move the page behind it, and a swipe never becomes the browser's back gesture. The same rule covers every scroller in the kit (a Table's frame, a CodeBlock, a Command's list, a Sheet's body) and the page: a region contains a gesture only in an axis it can scroll, so a sideways swipe over a region that scrolls down alone reaches the page, and the page holds it.
+- **The region reaches its edge and hands on.** Scrolling past its end moves the page behind it, as any scroller in the flow of a page does, and a swipe never becomes the browser's back gesture: the page holds `overscroll-behavior: none` at the root, from `base.css`. The surfaces with nothing behind them (the shell's side nav and panel, a sheet's, dialog's or drawer's body, a menu, a listbox) stop at their edge instead, with `overscroll-none` on their own element. A region in the flow must not: Chrome contains a gesture in any scroller whose overflow is auto, whether or not it has anything to scroll and in every axis the gesture touches, so a region that fits its content would swallow the wheel and the page would not scroll under the pointer.
 - **The a11y gate** checks the focusability and the name in the matrix.
 
 ## Props

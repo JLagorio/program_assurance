@@ -122,7 +122,7 @@ function SourceCell({ derivations }: { derivations: Derivation[] }) {
       space="space.050"
       alignBlock="center"
     >
-      <Badge size="xsmall" tone={derivationSourceTone[first.sourceType]}>
+      <Badge variant="secondary" size="xsmall" tone={derivationSourceTone[first.sourceType]}>
         {first.sourceId}
       </Badge>
       {rest.length ? (
@@ -287,7 +287,7 @@ export function ProvenanceTable({
         {derivations.map((d) => (
           <Table.Row key={`${d.sourceType}-${d.sourceId}`}>
             <Table.Cell className="align-top py-100">
-              <Badge size="xsmall" tone={derivationSourceTone[d.sourceType]}>
+              <Badge variant="secondary" size="xsmall" tone={derivationSourceTone[d.sourceType]}>
                 {d.sourceType}
               </Badge>
             </Table.Cell>
@@ -498,12 +498,16 @@ export function ElementAllocationTable({
                 {requirement?.text ?? "—"}
               </Table.Cell>
               <Table.Cell>
-                <Badge size="xsmall" tone={responsibilityTone[a.responsibility]}>
+                <Badge
+                  variant="secondary"
+                  size="xsmall"
+                  tone={responsibilityTone[a.responsibility]}
+                >
                   {a.responsibility}
                 </Badge>
               </Table.Cell>
               <Table.Cell>
-                <Badge size="xsmall" tone={coverageTone[a.coverage]}>
+                <Badge variant="secondary" size="xsmall" tone={coverageTone[a.coverage]}>
                   {a.coverage}
                 </Badge>
               </Table.Cell>
@@ -513,7 +517,7 @@ export function ElementAllocationTable({
               <Table.Cell className="truncate">{a.owner}</Table.Cell>
               <Table.Cell>
                 <Stack as="span" space="space.025">
-                  <Badge size="xsmall" tone={allocationStateTone[a.state]}>
+                  <Badge variant="secondary" size="xsmall" tone={allocationStateTone[a.state]}>
                     {a.state}
                   </Badge>
                   <SuspectFlag
@@ -659,12 +663,16 @@ function TraceRow({ hop, programId }: { hop: ControlTraceHop; programId: string 
         )}
       </Table.Cell>
       <Table.Cell>
-        <Badge size="xsmall" tone={responsibilityTone[hop.allocation.responsibility]}>
+        <Badge
+          variant="secondary"
+          size="xsmall"
+          tone={responsibilityTone[hop.allocation.responsibility]}
+        >
           {hop.allocation.responsibility}
         </Badge>
       </Table.Cell>
       <Table.Cell>
-        <Badge size="xsmall" tone={coverageTone[hop.allocation.coverage]}>
+        <Badge variant="secondary" size="xsmall" tone={coverageTone[hop.allocation.coverage]}>
           {hop.allocation.coverage}
         </Badge>
       </Table.Cell>
@@ -752,7 +760,7 @@ export function ControlRequirementTable({
                 {count === 0 ? <span className="text-subtle">—</span> : count}
               </Table.Cell>
               <Table.Cell>
-                <Badge size="xsmall" tone={requirementStateTone[r.state]}>
+                <Badge variant="secondary" size="xsmall" tone={requirementStateTone[r.state]}>
                   {r.state}
                 </Badge>
               </Table.Cell>

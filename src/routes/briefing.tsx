@@ -36,7 +36,9 @@ function BriefingPage() {
           <div className="min-w-0">
             <Inline className="min-w-0" space="space.100" alignBlock="center" shouldWrap>
               <h1 className="truncate font-heading-small font-semibold">ATO briefing room</h1>
-              <Badge tone="warning">{authorization.decision}</Badge>
+              <Badge variant="secondary" tone="warning">
+                {authorization.decision}
+              </Badge>
               <Inline
                 className="min-w-0 font-body-small text-subtle"
                 as="span"

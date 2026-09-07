@@ -271,7 +271,11 @@ export function TailorControlsSheet({
                 {c.title}
               </Table.Cell>
               <Table.Cell>
-                <Badge size="xsmall" tone={inSet.has(c.id) ? "danger" : "success"}>
+                <Badge
+                  variant="secondary"
+                  size="xsmall"
+                  tone={inSet.has(c.id) ? "danger" : "success"}
+                >
                   {inSet.has(c.id) ? "Tailored out" : "Tailored in"}
                 </Badge>
               </Table.Cell>

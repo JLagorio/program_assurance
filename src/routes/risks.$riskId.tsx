@@ -164,7 +164,9 @@ function RiskDetail() {
               <ChevronLeft className="size-icon-medium" />
             </Link>
             <h1 className="truncate font-heading-small font-semibold">{risk.title}</h1>
-            <Badge tone={riskStatusTone[risk.status]}>{risk.status}</Badge>
+            <Badge variant="secondary" tone={riskStatusTone[risk.status]}>
+              {risk.status}
+            </Badge>
             <Inline
               className="min-w-0 font-body-small text-subtle"
               as="span"

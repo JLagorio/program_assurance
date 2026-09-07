@@ -159,7 +159,7 @@ export function ScopeTailoringPane({
                     </div>
                   </div>
                   {locked ? (
-                    <Badge size="xsmall" tone={impactTone[value]}>
+                    <Badge variant="secondary" size="xsmall" tone={impactTone[value]}>
                       {value}
                     </Badge>
                   ) : (
@@ -469,6 +469,7 @@ export function ScopeTailoringPane({
                           <Table.Cell className="truncate">{control?.title ?? "—"}</Table.Cell>
                           <Table.Cell>
                             <Badge
+                              variant="secondary"
                               size="xsmall"
                               tone={t.decision === "excluded" ? "danger" : "information"}
                             >
@@ -566,7 +567,7 @@ export function ControlSetSummary({ draft }: { draft: RevisionDraft }) {
       {objectives.map((o) => (
         <SummaryRow key={o} label={o}>
           <Inline as="span" space="space.100" alignBlock="center">
-            <Badge size="xsmall" tone={impactTone[set.triad[o]]}>
+            <Badge variant="secondary" size="xsmall" tone={impactTone[set.triad[o]]}>
               {set.triad[o]}
             </Badge>
             <span className="tabular-nums text-subtle">{set.byObjective[o]}</span>

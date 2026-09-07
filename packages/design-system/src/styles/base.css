@@ -32,30 +32,15 @@
     font-variant-numeric: tabular-nums;
   }
 }
-
 @layer base {
-  /* An inner scroller stops at its edge: no rubber band, no scroll chaining into the page behind
-     it, and a sideways table never turns the two-finger swipe into the browser's back gesture.
-     Keyed on the overflow utilities and the viewports the libraries draw, so every scroller in
-     the kit and in a product gets it without a class of its own. */
-  .overflow-auto,
-  .overflow-scroll,
-  .overflow-x-auto,
-  .overflow-y-auto,
-  .overflow-x-scroll,
-  .overflow-y-scroll,
-  .lg\:overflow-y-auto,
-  [data-radix-scroll-area-viewport],
-  [data-radix-select-viewport] {
-    overscroll-behavior: none;
-  }
-}
-
-@layer base {
-  /* The page stops at its edges too. A scroller contains a gesture only in an axis it can scroll,
-     so a sideways swipe over a rail that scrolls down alone reaches the document, and there it
-     would be the browser's back gesture; and the document's own bounce at its end is the same
-     rubber band. The root holds both. */
+  /* The page stops at its edges: no bounce at the document's end, and a sideways swipe that
+     reaches the root, over a table at its edge or over a rail that scrolls down alone, is held
+     here rather than becoming the browser's back gesture. Only the root and the surfaces with
+     nothing behind them (the shell's side nav and panel, a sheet's, dialog's or drawer's body, a
+     menu, a listbox) carry overscroll-behavior: none, each on its own element. A scroller in the
+     flow of a page must not: Chrome contains a gesture in any scroller whose overflow is auto,
+     whether or not it has anything to scroll and in every axis the gesture touches, so a table's
+     frame with the rule swallowed the wheel over it and the page did not scroll. */
   html {
     overscroll-behavior: none;
   }

@@ -412,15 +412,17 @@ function ProgramTePhases() {
                     dirty one, and claiming "no phase blocked" over an empty
                     record would be the laundering this page exists to avoid. */}
                   {phases.length === 0 ? (
-                    <Badge>No cyber T&amp;E record</Badge>
+                    <Badge variant="secondary" tone="neutral">
+                      No cyber T&amp;E record
+                    </Badge>
                   ) : (
                     <>
-                      <Badge tone={blockedPhases > 0 ? "warning" : "success"}>
+                      <Badge variant="secondary" tone={blockedPhases > 0 ? "warning" : "success"}>
                         {blockedPhases === 0
                           ? "No phase blocked"
                           : `${blockedPhases} phase${blockedPhases === 1 ? "" : "s"} blocked`}
                       </Badge>
-                      <Badge tone={unsignedCount > 0 ? "danger" : "success"}>
+                      <Badge variant="secondary" tone={unsignedCount > 0 ? "danger" : "success"}>
                         {unsignedCount === 0
                           ? "Every attestation signed"
                           : `${unsignedCount} unsigned attestation${unsignedCount === 1 ? "" : "s"}`}
@@ -535,7 +537,7 @@ function ProgramTePhases() {
                                   </Table.Cell>
                                   <Table.Cell>
                                     {campaign ? (
-                                      <Badge tone={statusTone(campaign.state)}>
+                                      <Badge variant="secondary" tone={statusTone(campaign.state)}>
                                         {campaign.state}
                                       </Badge>
                                     ) : (
@@ -913,12 +915,20 @@ function PhaseRail({
           </span>
         </KeyValue>
         <KeyValue label="Can enter">
-          <Badge size="xsmall" tone={readiness?.canEnter ? "success" : "danger"}>
+          <Badge
+            variant="secondary"
+            size="xsmall"
+            tone={readiness?.canEnter ? "success" : "danger"}
+          >
             {readiness?.canEnter ? "Yes" : "No"}
           </Badge>
         </KeyValue>
         <KeyValue label="Can exit">
-          <Badge size="xsmall" tone={readiness?.canExit ? "success" : "warning"}>
+          <Badge
+            variant="secondary"
+            size="xsmall"
+            tone={readiness?.canExit ? "success" : "warning"}
+          >
             {readiness?.canExit ? "Yes" : "No"}
           </Badge>
         </KeyValue>
@@ -1029,6 +1039,7 @@ function MissionFunctionTable({
             </Table.Cell>
             <Table.Cell>
               <Badge
+                variant="secondary"
                 tone={
                   r.worst === "No effect"
                     ? "success"

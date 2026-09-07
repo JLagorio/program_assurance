@@ -186,7 +186,9 @@ function ProgramIngestion() {
       <Toolbar
         actions={
           <>
-            <Badge size="xsmall">{scan.format}</Badge>
+            <Badge variant="secondary" tone="neutral" size="xsmall">
+              {scan.format}
+            </Badge>
             <span className="tabular-nums font-body-small text-subtle">
               completed {scan.completed}
             </span>
@@ -250,7 +252,7 @@ function ProgramIngestion() {
               meta={`${scans.length} delivered runs · ${current.length} current · ${new Set(scans.map((s) => s.format)).size} formats`}
               actions={
                 <>
-                  <Badge tone={heldAcrossProgram > 0 ? "warning" : "success"}>
+                  <Badge variant="secondary" tone={heldAcrossProgram > 0 ? "warning" : "success"}>
                     {heldAcrossProgram} held for analyst
                   </Badge>
                   <TextLink size="small">

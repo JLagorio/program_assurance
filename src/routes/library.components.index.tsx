@@ -135,7 +135,9 @@ function ComponentLibrary() {
                             Current{stale ? ` · ${stale} stale` : ""}
                           </span>
                         ) : (
-                          <Badge tone={componentHealthTone[c.health]}>{c.health}</Badge>
+                          <Badge variant="secondary" tone={componentHealthTone[c.health]}>
+                            {c.health}
+                          </Badge>
                         )}
                       </Table.Cell>
                     </Table.Row>

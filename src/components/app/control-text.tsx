@@ -111,7 +111,7 @@ export function MethodList({ methods }: { methods: NistMethod[] }) {
           space="space.150"
         >
           <Box className="shrink-0" as="span" paddingBlockStart="space.025" style={{ width: 92 }}>
-            <Badge tone={methodTone[m.method]} size="xsmall">
+            <Badge variant="secondary" tone={methodTone[m.method]} size="xsmall">
               {m.method}
             </Badge>
           </Box>

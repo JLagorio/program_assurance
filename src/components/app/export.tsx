@@ -434,7 +434,14 @@ export function BundleManifest({
           { label: "Baseline", value: <Id>{bundle.build}</Id> },
           { label: "Created", value: bundle.created },
           { label: "Created by", value: bundle.createdBy },
-          { label: "Classification", value: <Badge tone="warning">{bundle.classification}</Badge> },
+          {
+            label: "Classification",
+            value: (
+              <Badge variant="secondary" tone="warning">
+                {bundle.classification}
+              </Badge>
+            ),
+          },
           {
             label: "Media",
             value: (
@@ -605,7 +612,7 @@ export function ReconcileVerdict({ reconciliation }: { reconciliation: Reconcili
       paddingBlock="space.150"
     >
       <Inline space="space.100" alignBlock="center" shouldWrap>
-        <Badge tone={tone}>
+        <Badge variant="secondary" tone={tone}>
           {reconciliation.signatureValid ? "Manifest verifies" : "Manifest does not verify"}
         </Badge>
         <span className="font-body-small text-subtle">
@@ -652,7 +659,9 @@ export function ReconcileTable({ reconciliation }: { reconciliation: Reconciliat
                 <Id>{row.path}</Id>
               </Table.Cell>
               <Table.Cell className="py-100 align-top">
-                <Badge tone={reconcileStateTone[row.state]}>{row.state}</Badge>
+                <Badge variant="secondary" tone={reconcileStateTone[row.state]}>
+                  {row.state}
+                </Badge>
               </Table.Cell>
               <Table.Cell className="max-w-none whitespace-normal py-100 align-top">
                 <Hash value={row.localHash} />

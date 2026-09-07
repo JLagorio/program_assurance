@@ -334,13 +334,17 @@ export function AllocateRequirementsSheet({
                 <Table.Cell className="truncate">{r.type}</Table.Cell>
                 <Table.Cell>
                   {r.derivations[0] ? (
-                    <Badge size="xsmall" tone={derivationSourceTone[r.derivations[0].sourceType]}>
+                    <Badge
+                      variant="secondary"
+                      size="xsmall"
+                      tone={derivationSourceTone[r.derivations[0].sourceType]}
+                    >
                       {r.derivations[0].sourceId}
                     </Badge>
                   ) : null}
                 </Table.Cell>
                 <Table.Cell>
-                  <Badge size="xsmall" tone={requirementStateTone[r.state]}>
+                  <Badge variant="secondary" size="xsmall" tone={requirementStateTone[r.state]}>
                     {r.state}
                   </Badge>
                 </Table.Cell>

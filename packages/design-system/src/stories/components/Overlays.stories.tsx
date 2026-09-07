@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { ChevronDown, MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 
 import {
-  AlertDialog,
   Badge,
+  AlertDialog,
   Button,
   Dialog,
   Drawer,
@@ -60,7 +61,7 @@ export const Anchored: Story = {
             <Text size="small" color="color.text.subtle">
               Owner Dana Whitfield · Verified 12 Aug 2026
             </Text>
-            <Badge tone="success" className="self-start">
+            <Badge variant="secondary" tone="success" className="self-start">
               Verified
             </Badge>
           </Stack>
@@ -140,7 +141,9 @@ function Modals() {
             <KeyValue label="Control">CTRL-0412</KeyValue>
             <KeyValue label="Owner">Dana Whitfield</KeyValue>
             <KeyValue label="Status">
-              <Badge tone="information">In review</Badge>
+              <Badge variant="secondary" tone="information">
+                In review
+              </Badge>
             </KeyValue>
           </Stack>
         }

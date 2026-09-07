@@ -98,7 +98,7 @@ export function LifecycleBar({
           </span>
         ) : null}
         {state.blocker ? (
-          <Badge tone={state.blockerTone === "danger" ? "danger" : "warning"}>
+          <Badge variant="secondary" tone={state.blockerTone === "danger" ? "danger" : "warning"}>
             {state.blocker}
           </Badge>
         ) : (

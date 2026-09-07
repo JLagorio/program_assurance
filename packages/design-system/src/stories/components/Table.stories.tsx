@@ -1,11 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { Filter, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { expect, userEvent, within } from "storybook/test";
 
 import {
-  Absent,
   Badge,
+  Absent,
   Button,
   FilterChip,
   Indicator,
@@ -175,7 +176,9 @@ function Register() {
                 <Person name={r.owner} />
               </Table.Cell>
               <Table.Cell>
-                <Badge tone={r.status.tone}>{r.status.label}</Badge>
+                <Badge variant="secondary" tone={r.status.tone}>
+                  {r.status.label}
+                </Badge>
               </Table.Cell>
               <Table.Cell>
                 <Indicator tone={r.severity.tone}>{r.severity.label}</Indicator>
@@ -231,7 +234,9 @@ function Grouped() {
                 <Table.Id id={r.id} tone="subtle" />
                 <Table.Cell>{r.name}</Table.Cell>
                 <Table.Cell>
-                  <Badge tone={r.status.tone}>{r.status.label}</Badge>
+                  <Badge variant="secondary" tone={r.status.tone}>
+                    {r.status.label}
+                  </Badge>
                 </Table.Cell>
               </Table.Row>
             ))}
@@ -372,14 +377,18 @@ function GroupStates() {
           <Table.Id id="AC-2" />
           <Table.Cell>Account management</Table.Cell>
           <Table.Cell>
-            <Badge tone="success">Satisfied</Badge>
+            <Badge variant="secondary" tone="success">
+              Satisfied
+            </Badge>
           </Table.Cell>
         </Table.Row>
         <Table.Row>
           <Table.Id id="AC-3" />
           <Table.Cell>Access enforcement</Table.Cell>
           <Table.Cell>
-            <Badge tone="warning">Partial</Badge>
+            <Badge variant="secondary" tone="warning">
+              Partial
+            </Badge>
           </Table.Cell>
         </Table.Row>
       </Table.Group>
@@ -456,7 +465,9 @@ export const TableMatrix: Story = {
             <Table.Id id="FND-2240" tone="subtle" />
             <Table.Cell>Static row · subtle id · disabled selection</Table.Cell>
             <Table.Cell>
-              <Badge tone="neutral">Triaged</Badge>
+              <Badge variant="secondary" tone="neutral">
+                Triaged
+              </Badge>
             </Table.Cell>
             <Table.Cell className="truncate">
               A cell that is much too long for its column truncates with an ellipsis
@@ -565,7 +576,9 @@ function Frame() {
               <Person name={r.owner} />
             </Table.Cell>
             <Table.Cell>
-              <Badge tone={r.status.tone}>{r.status.label}</Badge>
+              <Badge variant="secondary" tone={r.status.tone}>
+                {r.status.label}
+              </Badge>
             </Table.Cell>
             <Table.Cell>
               <Indicator tone={r.severity.tone}>{r.severity.label}</Indicator>
@@ -716,7 +729,9 @@ export const Playground: Story = {
             <Table.Id id={r.id} />
             <Table.Cell>{r.name}</Table.Cell>
             <Table.Cell>
-              <Badge tone={r.status.tone}>{r.status.label}</Badge>
+              <Badge variant="secondary" tone={r.status.tone}>
+                {r.status.label}
+              </Badge>
             </Table.Cell>
           </Table.Row>
         ))}

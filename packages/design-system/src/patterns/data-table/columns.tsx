@@ -350,11 +350,23 @@ export function columnKinds<TData extends RowData>() {
               save={(next) => editable.save(row.original, next)}
               validate={editable.validate}
               render={(o) =>
-                o ? <Badge tone={tone({ ...row.original, [key]: o })}>{o}</Badge> : <Absent />
+                o ? (
+                  <Badge variant="secondary" tone={tone({ ...row.original, [key]: o })}>
+                    {o}
+                  </Badge>
+                ) : (
+                  <Absent />
+                )
               }
             />
           );
-        return isAbsent(v) ? <Absent /> : <Badge tone={tone(row.original)}>{String(v)}</Badge>;
+        return isAbsent(v) ? (
+          <Absent />
+        ) : (
+          <Badge variant="secondary" tone={tone(row.original)}>
+            {String(v)}
+          </Badge>
+        );
       },
     });
 

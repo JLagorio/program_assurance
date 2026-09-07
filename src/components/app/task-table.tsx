@@ -252,7 +252,11 @@ export function TaskProperties({
           save={async (next) => {
             if (changeState(task.id, task.state, next, me)) onNeedsPerson?.();
           }}
-          render={(v) => <Badge tone={stateTone(v)}>{v}</Badge>}
+          render={(v) => (
+            <Badge variant="secondary" tone={stateTone(v)}>
+              {v}
+            </Badge>
+          )}
         />
       </KeyValue>
       {task.state === "Waiting" ? (
@@ -349,7 +353,11 @@ function TaskPanel({
           save={async (next) => renameTask(task.id, next, me)}
         />
       }
-      status={<Badge tone={stateTone(task.state)}>{task.state}</Badge>}
+      status={
+        <Badge variant="secondary" tone={stateTone(task.state)}>
+          {task.state}
+        </Badge>
+      }
       subtitle={<SubjectWords subject={task.subject} program={task.program} />}
       openTo={
         <Link to="/tasks/$taskId" params={{ taskId: task.id }}>

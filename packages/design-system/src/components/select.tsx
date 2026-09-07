@@ -120,7 +120,9 @@ function SelectRoot({
           }}
           className={cn(menuSurface, menuMotion)}
         >
-          <SelectPrimitive.Viewport>{children}</SelectPrimitive.Viewport>
+          <SelectPrimitive.Viewport className="overscroll-none">
+            {children}
+          </SelectPrimitive.Viewport>
         </SelectPrimitive.Content>
       </SelectPrimitive.Portal>
     </SelectPrimitive.Root>

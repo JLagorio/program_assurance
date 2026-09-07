@@ -332,7 +332,11 @@ function RequirementRecord() {
                   }
                   onChange={(next) => setRequirementField(requirement.id, { state: next })}
                   save={(next) => saveRequirementField(`${requirement.id} state`, next)}
-                  render={(v) => <Badge tone={requirementStateTone[v]}>{v}</Badge>}
+                  render={(v) => (
+                    <Badge variant="secondary" tone={requirementStateTone[v]}>
+                      {v}
+                    </Badge>
+                  )}
                 />
               }
             />
@@ -572,7 +576,7 @@ function SourceRef({
     );
   }
   return (
-    <Badge size="xsmall" tone={tone}>
+    <Badge variant="secondary" size="xsmall" tone={tone}>
       {sourceId}
     </Badge>
   );

@@ -94,7 +94,7 @@ export const Dont: Story = {
                   <span className="block truncate font-body-xsmall text-subtle">{r.meta}</span>
                 </span>
                 {r.badge ? (
-                  <Badge size="xsmall" tone={r.badge.tone ?? "neutral"}>
+                  <Badge variant="secondary" size="xsmall" tone={r.badge.tone ?? "neutral"}>
                     {r.badge.label}
                   </Badge>
                 ) : null}
@@ -114,11 +114,13 @@ export const Dont: Story = {
                 </span>
               </span>
               <Inline space="space.050">
-                <Badge size="xsmall" tone="success">
+                <Badge variant="secondary" size="xsmall" tone="success">
                   Fresh
                 </Badge>
-                <Badge size="xsmall">PDF</Badge>
-                <Badge size="xsmall" tone="information">
+                <Badge variant="secondary" tone="neutral" size="xsmall">
+                  PDF
+                </Badge>
+                <Badge variant="secondary" size="xsmall" tone="information">
                   Reviewed
                 </Badge>
               </Inline>
@@ -132,11 +134,13 @@ export const Dont: Story = {
                 </span>
               </span>
               <Inline space="space.050">
-                <Badge size="xsmall" tone="warning">
+                <Badge variant="secondary" size="xsmall" tone="warning">
                   Stale
                 </Badge>
-                <Badge size="xsmall">XLSX</Badge>
-                <Badge size="xsmall" tone="information">
+                <Badge variant="secondary" tone="neutral" size="xsmall">
+                  XLSX
+                </Badge>
+                <Badge variant="secondary" size="xsmall" tone="information">
                   Reviewed
                 </Badge>
               </Inline>

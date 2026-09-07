@@ -233,7 +233,9 @@ function FindingsPage() {
                             </Indicator>
                           </Table.Cell>
                           <Table.Cell className="truncate">
-                            <Badge tone={statusTone(f.lifecycle)}>{f.lifecycle}</Badge>
+                            <Badge variant="secondary" tone={statusTone(f.lifecycle)}>
+                              {f.lifecycle}
+                            </Badge>
                           </Table.Cell>
                         </Table.Row>
                       ))}
@@ -349,7 +351,7 @@ function FindingsPage() {
                       </Indicator>
                     </KeyValue>
                     <KeyValue label="Lifecycle">
-                      <Badge tone={statusTone(preview.item.lifecycle)}>
+                      <Badge variant="secondary" tone={statusTone(preview.item.lifecycle)}>
                         {preview.item.lifecycle}
                       </Badge>
                     </KeyValue>

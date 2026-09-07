@@ -195,7 +195,9 @@ function Overview() {
                         </Inline>
                       </Table.Cell>
                       <Table.Cell className="text-right">
-                        <Badge tone={riskStatusTone[risk.status]}>{risk.status}</Badge>
+                        <Badge variant="secondary" tone={riskStatusTone[risk.status]}>
+                          {risk.status}
+                        </Badge>
                       </Table.Cell>
                     </Table.Row>
                   ))}

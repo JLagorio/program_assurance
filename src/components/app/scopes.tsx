@@ -11,7 +11,6 @@ import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import {
-  Badge,
   Box,
   Button,
   Combobox,

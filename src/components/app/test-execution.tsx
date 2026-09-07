@@ -90,7 +90,11 @@ export type RunListRow = {
 /* ── Small shared pieces ─────────────────────────────────────────────────── */
 
 export function ResultChip({ result }: { result: ObjectiveResult }) {
-  return <Badge tone={objectiveTone(result)}>{result}</Badge>;
+  return (
+    <Badge variant="secondary" tone={objectiveTone(result)}>
+      {result}
+    </Badge>
+  );
 }
 
 function ProseBlock({ label, children }: { label: string; children: ReactNode }) {
@@ -533,7 +537,9 @@ export function ProcedureList({
               <Id>{procedure.objective}</Id>
             </Table.Cell>
             <Table.Cell className="truncate">
-              <Badge>{procedure.method}</Badge>
+              <Badge variant="secondary" tone="neutral">
+                {procedure.method}
+              </Badge>
             </Table.Cell>
             <Table.Cell className="tabular-nums text-right">{procedure.steps.length}</Table.Cell>
             <Table.Cell className="tabular-nums text-right">{procedure.duration}</Table.Cell>
@@ -605,7 +611,7 @@ export function StepTable({
               </Table.Cell>
               {records ? (
                 <Table.Cell className="whitespace-normal py-100 align-top">
-                  <Badge tone={stepResultTone[record?.result ?? "Not run"]}>
+                  <Badge variant="secondary" tone={stepResultTone[record?.result ?? "Not run"]}>
                     {record?.result ?? "Not run"}
                   </Badge>
                 </Table.Cell>
@@ -631,7 +637,9 @@ export function ProcedureRail({ row }: { row: ProcedureListRow }) {
           <Id>{procedure.objective}</Id>
         </KeyValue>
         <KeyValue label="Method">
-          <Badge>{procedure.method}</Badge>
+          <Badge variant="secondary" tone="neutral">
+            {procedure.method}
+          </Badge>
         </KeyValue>
         <KeyValue label="Steps">
           <span className="tabular-nums">{procedure.steps.length}</span>
@@ -743,7 +751,9 @@ export function RunTable({
             <Table.Cell className="truncate">{run.build}</Table.Cell>
             <Table.Cell className="truncate">{run.operator}</Table.Cell>
             <Table.Cell className="truncate">
-              <Badge tone={runStateTone[run.state]}>{run.state}</Badge>
+              <Badge variant="secondary" tone={runStateTone[run.state]}>
+                {run.state}
+              </Badge>
             </Table.Cell>
             <Table.Cell className="truncate">
               {verdict ? <ResultChip result={verdict.result} /> : <Absent />}
@@ -800,7 +810,9 @@ export function RunRecordView({
         description={`${run.procedure} · ${procedure?.method ?? "—"} · operator ${run.operator} · witness ${run.witness}`}
         action={
           <Inline as="span" space="space.100" alignBlock="center">
-            <Badge tone={runStateTone[run.state]}>{run.state}</Badge>
+            <Badge variant="secondary" tone={runStateTone[run.state]}>
+              {run.state}
+            </Badge>
             {verdict ? <ResultChip result={verdict.result} /> : null}
           </Inline>
         }
@@ -917,7 +929,9 @@ export function RunRecordView({
                   <div className="min-w-0">
                     <Inline space="space.100" alignBlock="center" shouldWrap>
                       <Id className="font-body-xsmall text-subtle">{step.id}</Id>
-                      <Badge tone={stepResultTone[result]}>{result}</Badge>
+                      <Badge variant="secondary" tone={stepResultTone[result]}>
+                        {result}
+                      </Badge>
                       <span className="tabular-nums font-body-xsmall text-subtle">
                         {record?.at ?? "—"}
                       </span>
@@ -937,7 +951,7 @@ export function RunRecordView({
                       <span className="text-subtle">Evidence</span>
                       <Id.List ids={record?.evidence ?? []} empty="None collected" />
                       {unevidenced ? (
-                        <Badge tone="warning" size="xsmall">
+                        <Badge variant="secondary" tone="warning" size="xsmall">
                           Recorded without the artifact the step demands
                         </Badge>
                       ) : null}
@@ -969,7 +983,9 @@ export function RunRail({ row }: { row: RunListRow }) {
         </KeyValue>
         <KeyValue label="Event">{run.event ? <Id>{run.event}</Id> : <Absent />}</KeyValue>
         <KeyValue label="State">
-          <Badge tone={runStateTone[run.state]}>{run.state}</Badge>
+          <Badge variant="secondary" tone={runStateTone[run.state]}>
+            {run.state}
+          </Badge>
         </KeyValue>
         <KeyValue label="Verdict">
           {verdict ? <ResultChip result={verdict.result} /> : <Absent />}
@@ -1048,16 +1064,22 @@ export function RegressionTable({ rows }: { rows: RegressionRow[] }) {
               <Id>{row.priorRun}</Id>
             </Table.Cell>
             <Table.Cell>
-              <Badge tone={stepResultTone[row.priorResult]}>{row.priorResult}</Badge>
+              <Badge variant="secondary" tone={stepResultTone[row.priorResult]}>
+                {row.priorResult}
+              </Badge>
             </Table.Cell>
             <Table.Cell>
               <Id>{row.currentRun}</Id>
             </Table.Cell>
             <Table.Cell>
-              <Badge tone={stepResultTone[row.currentResult]}>{row.currentResult}</Badge>
+              <Badge variant="secondary" tone={stepResultTone[row.currentResult]}>
+                {row.currentResult}
+              </Badge>
             </Table.Cell>
             <Table.Cell>
-              <Badge tone={regressionStateTone[row.state]}>{row.state}</Badge>
+              <Badge variant="secondary" tone={regressionStateTone[row.state]}>
+                {row.state}
+              </Badge>
             </Table.Cell>
             <Table.Cell className="truncate">
               {row.state === "Regressed"

@@ -238,7 +238,9 @@ export function PoamSection({
                   <Table.Cell>{i.title}</Table.Cell>
                   <Table.Cell width={104}>{i.controls.join(", ")}</Table.Cell>
                   <Table.Cell width={92}>
-                    <Badge tone={poamSeverityTone[i.severity]}>{i.severity}</Badge>
+                    <Badge variant="secondary" tone={poamSeverityTone[i.severity]}>
+                      {i.severity}
+                    </Badge>
                   </Table.Cell>
                   <Table.Cell width={112}>
                     <Indicator tone={poamStatusTone[i.status]}>{i.status}</Indicator>
@@ -334,6 +336,7 @@ export function PoamSection({
                 </Table.Cell>
                 <Table.Cell width={84}>
                   <Badge
+                    variant="secondary"
                     tone={
                       e.action === "Deleted"
                         ? "danger"
@@ -522,8 +525,12 @@ function PoamDetailModal({
     >
       <Stack space="space.250">
         <Inline space="space.100" alignBlock="center" shouldWrap>
-          <Badge tone={poamSeverityTone[item.severity]}>{item.severity}</Badge>
-          <Badge tone={poamStatusTone[item.status]}>{item.status}</Badge>
+          <Badge variant="secondary" tone={poamSeverityTone[item.severity]}>
+            {item.severity}
+          </Badge>
+          <Badge variant="secondary" tone={poamStatusTone[item.status]}>
+            {item.status}
+          </Badge>
           <span className="font-body-small text-subtle">{dueLabel(item).text}</span>
         </Inline>
 
@@ -579,7 +586,11 @@ function PoamDetailModal({
                 key={o.observationUuid}
                 link={<Link to={o.href} />}
                 title={o.title}
-                status={<Badge tone="neutral">{o.method}</Badge>}
+                status={
+                  <Badge variant="secondary" tone="neutral">
+                    {o.method}
+                  </Badge>
+                }
                 meta={<Id>{o.observationUuid.slice(0, 8)}</Id>}
                 properties={[{ label: "Collected", value: formatOscalDate(o.collected) }]}
               />

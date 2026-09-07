@@ -104,7 +104,9 @@ export function Sheet({
           {toolbar ? (
             <div className="shrink-0 border-b border-default px-200 py-100">{toolbar}</div>
           ) : null}
-          <div className="min-h-0 flex-1 overflow-y-auto px-200 py-150">{children}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+            {children}
+          </div>
           {footer ? (
             <div className="flex shrink-0 items-center justify-end gap-100 border-t border-default bg-surface-sunken px-200 py-100">
               {footer}

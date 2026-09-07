@@ -305,13 +305,18 @@ function ProgramBaseline() {
               actions={
                 <>
                   {unrecorded.length > 0 ? (
-                    <Badge tone="danger">
+                    <Badge variant="secondary" tone="danger">
                       {unrecorded.length} unrecorded change{unrecorded.length === 1 ? "" : "s"}
                     </Badge>
                   ) : (
-                    <Badge tone="success">Every movement recorded</Badge>
+                    <Badge variant="secondary" tone="success">
+                      Every movement recorded
+                    </Badge>
                   )}
-                  <Badge tone={invalidatedRows.size > 0 ? "warning" : "success"}>
+                  <Badge
+                    variant="secondary"
+                    tone={invalidatedRows.size > 0 ? "warning" : "success"}
+                  >
                     {invalidatedRows.size} rows invalidated
                   </Badge>
                   <TextLink size="small">

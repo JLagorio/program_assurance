@@ -805,58 +805,66 @@
       }
     },
     "Badge": {
-      "domTarget": "span receives remaining native span attributes and events; no ref in ComponentPropsWithoutRef.",
-      "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
-      "defaultBehavior": "tone=neutral, appearance=subtle, size=small (20px); xsmall is 16px. icon is a rendered node, not a constructor. Native defaultValue/defaultChecked do not create badge state.",
-      "reviewSources": ["packages/design-system/src/components/badge.tsx"],
+      "domTarget": "Native span by default, with native attributes, events, styles and HTMLSpanElement ref. Base UI render accepts an element or callback; a custom component must forward merged props/ref. Anchor-specific attributes and anchor refs belong on the rendered link.",
+      "controlledBehavior": "Stateless presentation and composition for labels and statuses. The caller owns content, navigation and any status changes. No selection, checked, disabled, dismissible or live-region behavior is inferred.",
+      "defaultBehavior": "variant=default, resolved tone=brand, appearance=bold, size=small (20px). Secondary defaults neutral/subtle; destructive defaults danger/subtle. Explicit tone changes only palette and appearance overrides emphasis for filled treatments. Outline/ghost/link retain their unfilled treatment. xsmall is 16px. All share pill anatomy, icon children or a leading icon shorthand, and data-slot=badge with resolved variant/tone/appearance/size axes. Base UI composes rendered-element props, styles, classes, events and refs.",
+      "reviewSources": [
+        "packages/design-system/src/components/badge.tsx",
+        "packages/design-system/src/lib/status-tone.ts",
+        "packages/design-system/build/tokens.mjs"
+      ],
       "props": {
-        "appearance": {
-          "meaning": "Fill emphasis: subtle or bold, independent of semantic tone.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
-        },
         "defaultChecked": {
           "meaning": "Inherited React DOM attribute forwarded to the rendered target. On these presentation/button elements it does not create checked or editable state.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "migration": "Preserve native DOM semantics on the actual element; Badge adds no input or selection state. Anchor-specific attributes belong on the element passed through render."
         },
         "defaultValue": {
           "meaning": "Inherited React DOM attribute forwarded to the rendered target. On these presentation/button elements it does not create checked or editable state.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
-        },
-        "icon": {
-          "meaning": "A 12px icon before the word, rarely: when the word alone is ambiguous.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "migration": "Preserve native DOM semantics on the actual element; Badge adds no input or selection state. Anchor-specific attributes belong on the element passed through render."
         },
         "id": {
           "meaning": "Native DOM id forwarded to the rendered target described above; it is not displayed record content.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "migration": "Preserve native DOM semantics on the actual element; Badge adds no input or selection state. Anchor-specific attributes belong on the element passed through render."
         },
         "onChange": {
           "meaning": "Inherited React DOM onChange event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "migration": "Preserve native DOM semantics on the actual element; Badge adds no input or selection state. Anchor-specific attributes belong on the element passed through render."
         },
         "onDurationChange": {
           "meaning": "Inherited React DOM onDurationChange event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "migration": "Preserve native DOM semantics on the actual element; Badge adds no input or selection state. Anchor-specific attributes belong on the element passed through render."
         },
         "onRateChange": {
           "meaning": "Inherited React DOM onRateChange event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "migration": "Preserve native DOM semantics on the actual element; Badge adds no input or selection state. Anchor-specific attributes belong on the element passed through render."
         },
         "onSelect": {
           "meaning": "Inherited React DOM onSelect event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "migration": "Preserve native DOM semantics on the actual element; Badge adds no input or selection state. Anchor-specific attributes belong on the element passed through render."
         },
         "onVolumeChange": {
           "meaning": "Inherited React DOM onVolumeChange event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "migration": "Preserve native DOM semantics on the actual element; Badge adds no input or selection state. Anchor-specific attributes belong on the element passed through render."
         },
-        "size": {
-          "meaning": "`small` is 20px, the default; `xsmall` is 16px, for a table row or a tab.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+        "variant": {
+          "meaning": "Visual treatment: default, secondary, destructive, outline, ghost or link. Variant chooses the default palette and fill emphasis; explicit tone changes palette without changing treatment or geometry.",
+          "migration": "Use the same Badge for standard and semantic labels. Existing subtle status labels select secondary and retain tone; generic Badge defaults to the shadcn brand/bold treatment."
         },
         "tone": {
-          "meaning": "Semantic tone from the component allowed union; neutral is not a category hue. Uses the family tone styling described above.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "meaning": "Badge palette: brand plus neutral, information, success, warning and danger. Defaults derive from variant. Tone affects color rather than anatomy, density or fill emphasis.",
+          "migration": "Keep status meaning on Badge. Former neutral labels explicitly choose neutral; the shared Tone type for other families remains unchanged."
+        },
+        "appearance": {
+          "meaning": "Optional subtle or bold emphasis for filled variants. Defaults derive from variant. Outline, ghost and link retain their unfilled treatment regardless of appearance.",
+          "migration": "Retain explicit bold/subtle status choices on Badge, with secondary selecting the usual subtle status treatment by default."
+        },
+        "size": {
+          "meaning": "small (20px) or xsmall (16px) density, independent of palette. All variants and tones use the same pill anatomy.",
+          "migration": "Retain xsmall for dense rows and tabs. The unified Badge uses the shadcn pill shape for statuses as well as generic labels."
+        },
+        "icon": {
+          "meaning": "Optional ReactNode rendered before the label as an icon shorthand. Icons can also be explicit children; callers provide accessible text and hide decorative marks.",
+          "migration": "Keep existing icon content on Badge or compose positioned icon children. No separate status component is required."
         }
       }
     },

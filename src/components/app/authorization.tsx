@@ -173,7 +173,9 @@ export function AuthorizationSection({
                   </Table.Cell>
                   <Table.Cell className="tabular-nums">{a.version}</Table.Cell>
                   <Table.Cell>
-                    <Badge tone={packageStatusTone[a.status]}>{a.status}</Badge>
+                    <Badge variant="secondary" tone={packageStatusTone[a.status]}>
+                      {a.status}
+                    </Badge>
                   </Table.Cell>
                   <Table.Cell className="tabular-nums text-right">{a.pages}</Table.Cell>
                   <Table.Cell className="tabular-nums">{a.updated}</Table.Cell>
@@ -218,7 +220,9 @@ export function AuthorizationSection({
                   <Table.Cell>{g.access}</Table.Cell>
                   <Table.Cell className="tabular-nums">{g.lastViewed}</Table.Cell>
                   <Table.Cell>
-                    <Badge tone={grantTone[g.status]}>{g.status}</Badge>
+                    <Badge variant="secondary" tone={grantTone[g.status]}>
+                      {g.status}
+                    </Badge>
                   </Table.Cell>
                 </Table.Row>
               ))}
@@ -278,7 +282,9 @@ export function AuthorizationSection({
                     <Id>{o.control}</Id>
                   </Table.Cell>
                   <Table.Cell>
-                    <Badge tone={observationTone[o.status]}>{o.status}</Badge>
+                    <Badge variant="secondary" tone={observationTone[o.status]}>
+                      {o.status}
+                    </Badge>
                   </Table.Cell>
                   <Table.Cell>{o.jira ? <Id>{o.jira}</Id> : "Not assigned"}</Table.Cell>
                   <Table.Cell>{o.assignee}</Table.Cell>
@@ -589,7 +595,9 @@ links:
               </Indicator>
             </KeyValue>
             <KeyValue label="Current">
-              <Badge tone={observationTone[observation.status]}>{observation.status}</Badge>
+              <Badge variant="secondary" tone={observationTone[observation.status]}>
+                {observation.status}
+              </Badge>
             </KeyValue>
           </Stack>
         </Stack>
@@ -987,13 +995,17 @@ export function BriefingRoom() {
                   </Table.Cell>
                   <Table.Cell>{r.likelihood}</Table.Cell>
                   <Table.Cell>
-                    <Badge tone={residualTone[r.residual]}>{r.residual}</Badge>
+                    <Badge variant="secondary" tone={residualTone[r.residual]}>
+                      {r.residual}
+                    </Badge>
                   </Table.Cell>
                   <Table.Cell>
                     <Id>{r.poam}</Id>
                   </Table.Cell>
                   <Table.Cell>
-                    <Badge tone={decisionTone[r.decision]}>{r.decision}</Badge>
+                    <Badge variant="secondary" tone={decisionTone[r.decision]}>
+                      {r.decision}
+                    </Badge>
                   </Table.Cell>
                 </Table.Row>
               ))}
@@ -1026,7 +1038,9 @@ export function BriefingRoom() {
                     <Indicator tone={severityTone[o.severity]}>{o.severity}</Indicator>
                   </Table.Cell>
                   <Table.Cell>
-                    <Badge tone={observationTone[o.status]}>{o.status}</Badge>
+                    <Badge variant="secondary" tone={observationTone[o.status]}>
+                      {o.status}
+                    </Badge>
                   </Table.Cell>
                   <Table.Cell>{o.jira ? <Id>{o.jira}</Id> : "Not assigned"}</Table.Cell>
                   <Table.Cell className="tabular-nums text-right">{o.due}</Table.Cell>
@@ -1091,7 +1105,9 @@ function RiskDecisionModal({
             <KeyValue label="Likelihood">{risk.likelihood}</KeyValue>
             <KeyValue label="Impact">{risk.impact}</KeyValue>
             <KeyValue label="Residual">
-              <Badge tone={residualTone[risk.residual]}>{risk.residual}</Badge>
+              <Badge variant="secondary" tone={residualTone[risk.residual]}>
+                {risk.residual}
+              </Badge>
             </KeyValue>
             <KeyValue label="POA&M">
               <Id>{risk.poam}</Id>

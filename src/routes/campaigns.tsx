@@ -234,7 +234,9 @@ function CampaignsPage() {
                           <Table.Cell className="truncate">{e.name}</Table.Cell>
                           <Table.Cell className="truncate">{e.kind}</Table.Cell>
                           <Table.Cell className="truncate">
-                            <Badge tone={statusTone(e.state)}>{e.state}</Badge>
+                            <Badge variant="secondary" tone={statusTone(e.state)}>
+                              {e.state}
+                            </Badge>
                           </Table.Cell>
                           <Table.Cell className="truncate">{e.window}</Table.Cell>
                           <Table.Cell className="tabular-nums text-right">
@@ -274,7 +276,9 @@ function CampaignsPage() {
                           <Table.Cell className="truncate">{o.method}</Table.Cell>
                           <Table.Cell>{o.event ? <Id>{o.event}</Id> : "—"}</Table.Cell>
                           <Table.Cell className="truncate">
-                            <Badge tone={objectiveTone(o.result)}>{o.result}</Badge>
+                            <Badge variant="secondary" tone={objectiveTone(o.result)}>
+                              {o.result}
+                            </Badge>
                           </Table.Cell>
                         </Table.Row>
                       ))}
@@ -301,7 +305,9 @@ function CampaignsPage() {
                       </KeyValue>
                       <KeyValue label="Type">{selected.kind}</KeyValue>
                       <KeyValue label="State">
-                        <Badge tone={statusTone(selected.state)}>{selected.state}</Badge>
+                        <Badge variant="secondary" tone={statusTone(selected.state)}>
+                          {selected.state}
+                        </Badge>
                       </KeyValue>
                       <KeyValue label="Window">{selected.window}</KeyValue>
                       <KeyValue label="Team">{selected.team}</KeyValue>
@@ -334,7 +340,9 @@ function CampaignsPage() {
                           <div key={o.id}>
                             <Inline space="space.100" alignBlock="baseline" spread="space-between">
                               <Id>{o.id}</Id>
-                              <Badge tone={objectiveTone(o.result)}>{o.result}</Badge>
+                              <Badge variant="secondary" tone={objectiveTone(o.result)}>
+                                {o.result}
+                              </Badge>
                             </Inline>
                             <p className="pt-025 text-subtle">{o.statement}</p>
                             <p className="pt-025">

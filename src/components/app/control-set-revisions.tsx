@@ -74,11 +74,11 @@ export function RevisionStrip({ scopeId }: { scopeId: string }) {
       <Inline as="span" space="space.075" alignBlock="center">
         In force
         {inForce ? (
-          <Badge size="xsmall" tone="success">
+          <Badge variant="secondary" size="xsmall" tone="success">
             v{inForce.number} · since {inForce.decided}
           </Badge>
         ) : (
-          <Badge size="xsmall" tone="neutral">
+          <Badge variant="secondary" size="xsmall" tone="neutral">
             None yet
           </Badge>
         )}
@@ -490,7 +490,7 @@ export function RevisionHistory({ scopeId }: { scopeId: string }) {
                   <Id>v{r.number}</Id>
                 </Table.Cell>
                 <Table.Cell>
-                  <Badge size="xsmall" tone={revisionTone[r.state]}>
+                  <Badge variant="secondary" size="xsmall" tone={revisionTone[r.state]}>
                     {r.state}
                   </Badge>
                 </Table.Cell>
@@ -666,7 +666,11 @@ function DeltaBlock({
                 </Table.Cell>
                 {compact ? null : <Table.Cell className="truncate">{c.control.title}</Table.Cell>}
                 <Table.Cell>
-                  <Badge size="xsmall" tone={c.kind === "added" ? "information" : "danger"}>
+                  <Badge
+                    variant="secondary"
+                    size="xsmall"
+                    tone={c.kind === "added" ? "information" : "danger"}
+                  >
                     {c.kind === "added" ? "Added" : "Removed"}
                   </Badge>
                 </Table.Cell>

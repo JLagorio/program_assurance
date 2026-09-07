@@ -256,6 +256,7 @@ export function DigitalThreadSection({
                   </Table.Cell>
                   <Table.Cell width={92}>
                     <Badge
+                      variant="secondary"
                       tone={
                         r.confidence === "High"
                           ? "success"
@@ -323,7 +324,9 @@ export function DigitalThreadSection({
                   </Table.Cell>
                   <Table.Cell>{e.title}</Table.Cell>
                   <Table.Cell width={80}>
-                    <Badge tone={artifactTone[e.kind]}>{artifactShort[e.kind]}</Badge>
+                    <Badge variant="secondary" tone={artifactTone[e.kind]}>
+                      {artifactShort[e.kind]}
+                    </Badge>
                   </Table.Cell>
                   <Table.Cell width={132}>
                     <Id>{e.controls.join(", ")}</Id>
@@ -332,7 +335,9 @@ export function DigitalThreadSection({
                     <Id>{e.rule}</Id>
                   </Table.Cell>
                   <Table.Cell width={124}>
-                    <Badge tone={evidenceStatusTone[e.status]}>{e.status}</Badge>
+                    <Badge variant="secondary" tone={evidenceStatusTone[e.status]}>
+                      {e.status}
+                    </Badge>
                   </Table.Cell>
                   <Table.Cell width={104}>{e.engineer}</Table.Cell>
                   <Table.Cell className="tabular-nums text-right" width={92}>

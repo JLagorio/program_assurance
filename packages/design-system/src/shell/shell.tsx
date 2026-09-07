@@ -792,7 +792,7 @@ function SideNavHeader({ children }: SideNavSlotProps) {
 /** The middle: the sections and items. It scrolls, and it grows to push the footer down. */
 function SideNavBody({ children }: SideNavSlotProps) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-200 overflow-y-auto px-150 py-150">
+    <div className="flex min-h-0 flex-1 flex-col gap-200 overflow-y-auto overscroll-none px-150 py-150">
       {children}
     </div>
   );
@@ -1142,7 +1142,7 @@ function PanelRoot({ id, label = "Panel", defaultWidth, className, children }: S
       aria-label={label}
       data-shell-area="panel"
       className={cn(
-        "shell-panel flex flex-col overflow-y-auto border-s border-default bg-surface shadow-overlay outline-none max-lg:animate-slide-in-end lg:animate-rise lg:shadow-none",
+        "shell-panel flex flex-col overflow-y-auto overscroll-none border-s border-default bg-surface shadow-overlay outline-none max-lg:animate-slide-in-end lg:animate-rise lg:shadow-none",
         className,
       )}
     >

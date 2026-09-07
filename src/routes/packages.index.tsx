@@ -98,7 +98,9 @@ function PackagesIndex() {
                       <Table.Cell className="truncate">{p.name}</Table.Cell>
                       <Table.Cell className="tabular-nums">{p.version}</Table.Cell>
                       <Table.Cell className="truncate">
-                        <Badge tone={packageStateTone[p.state]}>{p.state}</Badge>
+                        <Badge variant="secondary" tone={packageStateTone[p.state]}>
+                          {p.state}
+                        </Badge>
                       </Table.Cell>
                       <Table.Cell className="truncate">{p.snapshotAt}</Table.Cell>
                       <Table.Cell className="truncate">{p.owner}</Table.Cell>
@@ -133,7 +135,9 @@ function PackagesIndex() {
               <Inspector.Group title="Snapshot">
                 <KeyValue label="Version">{preview.version}</KeyValue>
                 <KeyValue label="State">
-                  <Badge tone={packageStateTone[preview.state]}>{preview.state}</Badge>
+                  <Badge variant="secondary" tone={packageStateTone[preview.state]}>
+                    {preview.state}
+                  </Badge>
                 </KeyValue>
                 <KeyValue label="Decision">{preview.decision}</KeyValue>
                 <KeyValue label="Taken">{preview.snapshotAt}</KeyValue>

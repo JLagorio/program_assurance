@@ -93,7 +93,7 @@ export const InRows: Story = {
                 <Indicator tone={r.sev}>{r.severity}</Indicator>
               </Table.Cell>
               <Table.Cell>
-                <Badge size="xsmall" tone={r.tone}>
+                <Badge variant="secondary" size="xsmall" tone={r.tone}>
                   {r.status}
                 </Badge>
               </Table.Cell>
@@ -127,14 +127,20 @@ export const Dont: Story = {
         do={
           <Inline space="space.200" alignBlock="center">
             <Indicator tone="danger">High</Indicator>
-            <Badge tone="danger">Open</Badge>
+            <Badge variant="secondary" tone="danger">
+              Open
+            </Badge>
           </Inline>
         }
         doText="Severity as an Indicator, status as the row's one pill."
         dont={
           <Inline space="space.100" alignBlock="center">
-            <Badge tone="danger">High</Badge>
-            <Badge tone="danger">Open</Badge>
+            <Badge variant="secondary" tone="danger">
+              High
+            </Badge>
+            <Badge variant="secondary" tone="danger">
+              Open
+            </Badge>
           </Inline>
         }
         dontText="Two pills in a row. The eye cannot tell the rank from the state."
@@ -146,7 +152,11 @@ export const Dont: Story = {
         dontText="A bare Dot in a cell. Colour alone, and nothing for a screen reader."
       />
       <Pair
-        do={<Badge tone="success">Verified</Badge>}
+        do={
+          <Badge variant="secondary" tone="success">
+            Verified
+          </Badge>
+        }
         doText="A record's state is a Badge."
         dont={<Indicator tone="success">Verified</Indicator>}
         dontText="A state as an Indicator. The Dot ranks; it does not name a stage."

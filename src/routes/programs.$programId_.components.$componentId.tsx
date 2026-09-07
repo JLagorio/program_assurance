@@ -206,7 +206,11 @@ function ComponentRecord() {
                 <NodeRail node={node} posture={posture} />
                 <Inspector.Group title="Position">
                   <KeyValue label="Attestation">
-                    <Badge size="xsmall" tone={node.attested ? "success" : "warning"}>
+                    <Badge
+                      variant="secondary"
+                      size="xsmall"
+                      tone={node.attested ? "success" : "warning"}
+                    >
                       {node.attested ? "Attested" : "Not attested"}
                     </Badge>
                   </KeyValue>
@@ -362,7 +366,11 @@ function ComponentRecord() {
                               <Table.Cell>{t.Integrity.slice(0, 1)}</Table.Cell>
                               <Table.Cell>{t.Availability.slice(0, 1)}</Table.Cell>
                               <Table.Cell>
-                                <Badge size="xsmall" tone={edge ? "information" : "neutral"}>
+                                <Badge
+                                  variant="secondary"
+                                  size="xsmall"
+                                  tone={edge ? "information" : "neutral"}
+                                >
                                   {edge ? "Serves" : "Contains"}
                                 </Badge>
                               </Table.Cell>
@@ -470,7 +478,7 @@ function ComponentRecord() {
                             </Table.Cell>
                             <Table.Cell>
                               {crossesBoundary(edge) ? (
-                                <Badge size="xsmall" tone="warning">
+                                <Badge variant="secondary" size="xsmall" tone="warning">
                                   Crosses
                                 </Badge>
                               ) : (

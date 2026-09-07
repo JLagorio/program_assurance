@@ -163,22 +163,22 @@ export const Dont: Story = {
             facts={
               <>
                 <Fact label="Assessment">
-                  <Badge size="xsmall" tone="warning">
+                  <Badge variant="secondary" size="xsmall" tone="warning">
                     Partially satisfied
                   </Badge>
                 </Fact>
                 <Fact label="Implementation">
-                  <Badge size="xsmall" tone="success">
+                  <Badge variant="secondary" size="xsmall" tone="success">
                     Implemented
                   </Badge>
                 </Fact>
                 <Fact label="Evidence">
-                  <Badge size="xsmall" tone="warning">
+                  <Badge variant="secondary" size="xsmall" tone="warning">
                     34d
                   </Badge>
                 </Fact>
                 <Fact label="Findings">
-                  <Badge size="xsmall" tone="danger">
+                  <Badge variant="secondary" size="xsmall" tone="danger">
                     2 open
                   </Badge>
                 </Fact>

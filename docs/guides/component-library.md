@@ -69,26 +69,30 @@ Custom rendered elements must accept the merged attributes, handlers and ref.
 
 ## Component contracts
 
-Standard reusable components follow the anatomy and public API of the local shadcn Base UI
-reference in `src/components/ui/`: flat named exports, explicit composable parts, native props
-and refs, and the reference's `render` and state contracts. Port the reference into the package
-using relative imports and the package `cn`; the package never imports application source.
-Replace styling values with Ledger tokens while preserving the reference's composition and
-behavior. Use Base UI where the reference uses it; simple semantic elements remain native HTML.
+Start with the local shadcn Base UI components in `src/components/ui/`, reuse their primitives,
+composition and accessibility behavior, and adapt them to the product. Shadcn is the foundation;
+its API is not a ceiling. Extend the same component with useful options when the product needs
+them, keeping one clear component for one job. A status badge is `Badge`.
 
-Product conveniences belong in patterns: assembled headers, automatic trails and opinionated
-content defaults can compose the standard parts without narrowing the component API. Tokens,
-layer boundaries, package imports and the product's domain boundary remain Ledger-owned.
+Use native props and refs, familiar component names and explicit composable parts. Preserve
+keyboard, focus, ARIA and `render` behavior when extending a component. Document defaults,
+interactions between options and intentional visual differences in the same component's page.
+Port source with relative imports and package `cn`; never import application source into the
+package. Use Ledger tokens for styling and keep the existing layer boundaries.
 
-Breadcrumb is the first family migrated to this policy. It exports `Breadcrumb`,
-`BreadcrumbList`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbPage`,
-`BreadcrumbSeparator` and `BreadcrumbEllipsis`. List and separator placement are explicit;
-`BreadcrumbLink` uses Base UI's `useRender` and `mergeProps`. Other existing families keep
-their current names and contracts until a migration updates their implementation, consumers,
+Patterns assemble components into workflows or larger regions, such as RecordHeader. Options
+for one component, such as Badge's status tone, size and icon, belong on that component.
+
+Breadcrumb exports `Breadcrumb`, `BreadcrumbList`, `BreadcrumbItem`, `BreadcrumbLink`,
+`BreadcrumbPage`, `BreadcrumbSeparator` and `BreadcrumbEllipsis`. Lists and separators are
+explicit; BreadcrumbLink uses Base UI `useRender` and `mergeProps`. Badge uses the same
+composition helpers and combines six shadcn variants with `tone`, `appearance`, `size` and
+`icon` options in one component. See the [Badge migration guide](badge-migration.md). Other
+families keep their current APIs until their own migration updates implementation, consumers,
 stories, API metadata and migration notes together.
 
-The [migration handoff](design-system-migration-handoff.md) records the completed Breadcrumb
-slice, the recommended Badge slice, integration constraints, and validation commands for the
+The [migration handoff](design-system-migration-handoff.md) records the completed Breadcrumb and Badge
+slices, the recommended Separator slice, integration constraints, and validation commands for the
 next agent.
 
 ## Naming
@@ -102,8 +106,8 @@ next agent.
   `RailGroup` became `Inspector.Group`.
 - **No domain words in the kit.** Severity, finding, control and requirement live in routes and
   `lib`. The kit knows tones, identifiers and values.
-- **Preserve component contracts.** Standard families keep the reference's prop names,
-  native DOM names and composition API. Existing Ledger axes retain their documented meanings
+- **Extend components deliberately.** Keep native DOM names and composition behavior,
+  and add useful product options to the same component. Existing Ledger axes retain their documented meanings
   until migrated: sizes include `xsmall`, `small`, `medium`, `large`; tones describe
   `neutral`, `information`, `success`, `warning`, `danger`, and `brand` where supported.
 
@@ -148,10 +152,10 @@ every product. A product's own config adds nothing about the kit.
 
 ## Adding to the kit
 
-1. For a standard family, start from the local shadcn Base UI reference and preserve its public
-   contracts. Put the part in its layer with relative imports and the package `cn`. Class strings
+1. For a standard family, start from the local shadcn Base UI reference and adapt the same
+   component to product needs while preserving native and accessible interaction behavior. Put the part in its layer with relative imports and the package `cn`. Class strings
    use Ledger token utilities; the package lints itself with the strict preset (`npm run lint`
-   there). Put convenience compositions in patterns.
+   there). Put multi-component compositions in patterns; keep useful single-component options on the component.
 2. Give the family a story file under the package's `src/stories` (`<Family>.stories.tsx`).
    Document and exercise every named part in that family, including flat exports, with representative states and interactions. Use a Matrix when it helps compare variants. Add `play` assertions to the same examples; Storybook tests every story by default. The toolbar switches the mode. `node scripts/ds-check.mjs` from the repo root says
    what is missing; `npm run build` runs it first.
@@ -190,7 +194,7 @@ changelog entry.
 
 ## What is underneath
 
-Base UI powers Avatar and Combobox and supplies BreadcrumbLink's composition helpers. The rest
+Base UI powers Avatar and Combobox and supplies Badge and BreadcrumbLink's composition helpers. The rest
 of Breadcrumb is native HTML; there is no dedicated Base UI breadcrumb primitive. Existing
 families still use Radix under overlays, choice controls, Tabs, Toggle, Progress and ScrollArea;
 cmdk under Command; vaul under Drawer; react-day-picker under Calendar and DatePicker;

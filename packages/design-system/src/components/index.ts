@@ -38,6 +38,7 @@ export {
 } from "./avatar";
 export {
   Badge,
+  badgeVariants,
   Count,
   Dot,
   Indicator,

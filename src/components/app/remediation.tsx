@@ -74,6 +74,7 @@ export function RemediationPlanSection({
           <Inline as="span" space="space.100" alignBlock="center">
             {plan.poam ? <PoamLink id={plan.poam.id} /> : null}
             <Badge
+              variant="secondary"
               tone={
                 plan.status === "Complete"
                   ? "success"
@@ -109,7 +110,7 @@ export function RemediationPlanSection({
               {plan.poam ? (
                 <Inline as="span" space="space.075" alignBlock="center">
                   <PoamLink id={plan.poam.id} />
-                  <Badge tone={statusTone(plan.poam.status)} size="xsmall">
+                  <Badge variant="secondary" tone={statusTone(plan.poam.status)} size="xsmall">
                     {plan.poam.status}
                   </Badge>
                 </Inline>
@@ -227,7 +228,7 @@ export function RemediationPlanSection({
                 <Table.Cell className="tabular-nums text-right">{t.start}</Table.Cell>
                 <Table.Cell className="tabular-nums text-right">{t.due}</Table.Cell>
                 <Table.Cell>
-                  <Badge tone={taskStatusTone[t.status]} size="xsmall">
+                  <Badge variant="secondary" tone={taskStatusTone[t.status]} size="xsmall">
                     {t.status}
                   </Badge>
                 </Table.Cell>

@@ -163,7 +163,13 @@ export const WorkPaneMatrix: Story = {
         }
         list={
           <>
-            <WorkPane.Row id="AC-2" title="Neutral" meta="Interview" tone="neutral" onSelect={noop} />
+            <WorkPane.Row
+              id="AC-2"
+              title="Neutral"
+              meta="Interview"
+              tone="neutral"
+              onSelect={noop}
+            />
             <WorkPane.Row
               id="AC-3"
               title="Information"
@@ -186,7 +192,13 @@ export const WorkPaneMatrix: Story = {
               isActive
               onSelect={noop}
             />
-            <WorkPane.Row id="AC-11" title="Danger" meta="Test · 51d" tone="danger" onSelect={noop} />
+            <WorkPane.Row
+              id="AC-11"
+              title="Danger"
+              meta="Test · 51d"
+              tone="danger"
+              onSelect={noop}
+            />
             <WorkPane.Row id="AC-17" title="Neutral again" meta="Examine · 8d" onSelect={noop} />
           </>
         }
@@ -214,7 +226,14 @@ export const Dont: Story = {
                 </Text>
               }
               list={items.slice(0, 3).map((i) => (
-                <WorkPane.Row key={i.id} id={i.id} title={i.title} meta={i.meta} tone={i.tone} onSelect={noop} />
+                <WorkPane.Row
+                  key={i.id}
+                  id={i.id}
+                  title={i.title}
+                  meta={i.meta}
+                  tone={i.tone}
+                  onSelect={noop}
+                />
               ))}
               detail={null}
               empty={chooseOne}
@@ -227,7 +246,14 @@ export const Dont: Story = {
             <WorkPane
               listWidth={220}
               list={items.slice(0, 3).map((i) => (
-                <WorkPane.Row key={i.id} id={i.id} title={i.title} meta={i.meta} tone={i.tone} onSelect={noop} />
+                <WorkPane.Row
+                  key={i.id}
+                  id={i.id}
+                  title={i.title}
+                  meta={i.meta}
+                  tone={i.tone}
+                  onSelect={noop}
+                />
               ))}
               detail={null}
               empty={
@@ -251,7 +277,15 @@ export const Dont: Story = {
                 </Text>
               }
               list={items.slice(1, 4).map((i) => (
-                <WorkPane.Row key={i.id} id={i.id} title={i.title} meta={i.meta} tone={i.tone} isActive={i.id === "CTRL-0418"} onSelect={noop} />
+                <WorkPane.Row
+                  key={i.id}
+                  id={i.id}
+                  title={i.title}
+                  meta={i.meta}
+                  tone={i.tone}
+                  isActive={i.id === "CTRL-0418"}
+                  onSelect={noop}
+                />
               ))}
               detail={<Text color="color.text.subtle">The detail.</Text>}
             />
@@ -272,7 +306,7 @@ export const Dont: Story = {
                   key={i.id}
                   title={i.title}
                   meta={
-                    <Badge size="xsmall" tone={i.tone}>
+                    <Badge variant="secondary" size="xsmall" tone={i.tone}>
                       {i.meta}
                     </Badge>
                   }

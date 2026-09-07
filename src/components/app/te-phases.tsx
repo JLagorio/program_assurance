@@ -71,7 +71,7 @@ function IdChips({ ids, tone = "neutral" }: { ids: string[]; tone?: Tone }) {
   return (
     <Inline space="space.075" shouldWrap>
       {ids.map((id) => (
-        <Badge key={id} tone={tone}>
+        <Badge variant="secondary" key={id} tone={tone}>
           <span className="font-body-xsmall">{id}</span>
         </Badge>
       ))}
@@ -94,14 +94,18 @@ function useCap<T>(rows: T[], initial: number) {
  */
 export function TierChip({ tier }: { tier: string }) {
   return (
-    <Badge size="xsmall">
+    <Badge variant="secondary" tone="neutral" size="xsmall">
       <span className="">Tier {tier}</span>
     </Badge>
   );
 }
 
 export function PhaseStateChip({ phase }: { phase: TePhase }) {
-  return <Badge tone={phaseStateTone[phase.state]}>{phase.state}</Badge>;
+  return (
+    <Badge variant="secondary" tone={phaseStateTone[phase.state]}>
+      {phase.state}
+    </Badge>
+  );
 }
 
 /** Entry 2/2 · Exit 0/1 — green only when the whole set is met. */
@@ -110,7 +114,7 @@ function GateCount({ label, met, total }: { label: string; met: number; total: n
   return (
     <Inline className="font-body-small" as="span" space="space.050" alignBlock="center">
       <span className="text-subtle">{label}</span>
-      <Badge size="xsmall" tone={tone}>
+      <Badge variant="secondary" size="xsmall" tone={tone}>
         <span className="tabular-nums">
           {met}/{total}
         </span>
@@ -179,7 +183,11 @@ export function PhaseTrack({
               shouldWrap
             >
               <h3 className="font-body-small font-semibold">{regime.title}</h3>
-              <Badge size="xsmall" tone={operational ? "information" : "neutral"}>
+              <Badge
+                variant="secondary"
+                size="xsmall"
+                tone={operational ? "information" : "neutral"}
+              >
                 {operational ? "OT&E" : "DT&E"}
               </Badge>
               <span className="font-body-small text-subtle">
@@ -276,7 +284,7 @@ function PhaseCard({
                 <span>No campaign — this phase produces a record, not an execution</span>
               ) : (
                 phase.campaigns.map((id) => (
-                  <Badge key={id} size="xsmall">
+                  <Badge variant="secondary" tone="neutral" key={id} size="xsmall">
                     <span className="font-body-xsmall" title={campaignName?.(id) ?? id}>
                       {id}
                     </span>
@@ -447,14 +455,18 @@ export function PhaseReadinessSummary({
 function BasisChip({ criterion }: { criterion: PhaseCriterion }) {
   if (criterion.basis === "Derived") {
     return (
-      <Badge tone="information" icon={<Calculator className="size-150" />}>
+      <Badge variant="secondary" tone="information" icon={<Calculator className="size-150" />}>
         Derived
       </Badge>
     );
   }
   const signed = criterion.attestedBy !== "—" && criterion.attestedOn !== "—";
   return (
-    <Badge tone={signed ? "neutral" : "danger"} icon={<PenLine className="size-150" />}>
+    <Badge
+      variant="secondary"
+      tone={signed ? "neutral" : "danger"}
+      icon={<PenLine className="size-150" />}
+    >
       {signed ? "Attested" : "Attested — unsigned"}
     </Badge>
   );
@@ -499,10 +511,14 @@ function CriterionRow({
     >
       <Inline space="space.100" rowSpace="space.050" alignBlock="center" shouldWrap>
         <Id>{criterion.id}</Id>
-        <Badge size="xsmall">{criterion.kind}</Badge>
+        <Badge variant="secondary" tone="neutral" size="xsmall">
+          {criterion.kind}
+        </Badge>
         <BasisChip criterion={criterion} />
         <Inline className="ml-auto" as="span" space="space.100" alignBlock="center">
-          <Badge tone={met ? "success" : "danger"}>{met ? "Met" : "Not met"}</Badge>
+          <Badge variant="secondary" tone={met ? "success" : "danger"}>
+            {met ? "Met" : "Not met"}
+          </Badge>
         </Inline>
       </Inline>
 
@@ -722,7 +738,7 @@ export function ScenarioTable({
                     {last && first && last.tactic !== first.tactic ? ` → ${last.tactic}` : ""}
                   </span>
                   {ics ? (
-                    <Badge size="xsmall" tone="information">
+                    <Badge variant="secondary" size="xsmall" tone="information">
                       ICS
                     </Badge>
                   ) : null}
@@ -733,7 +749,9 @@ export function ScenarioTable({
               </Table.Cell>
               <Table.Cell>{s.event ? <Id>{s.event}</Id> : <Absent />}</Table.Cell>
               <Table.Cell>
-                <Badge tone={scenarioStatusTone[s.status]}>{s.status}</Badge>
+                <Badge variant="secondary" tone={scenarioStatusTone[s.status]}>
+                  {s.status}
+                </Badge>
               </Table.Cell>
             </Table.Row>
           );
@@ -803,7 +821,7 @@ function TechniqueStep({ step, n }: { step: ThreatScenario["chain"][number]; n: 
           {step.tactic}
         </Eyebrow>
         {step.matrix === "ICS" ? (
-          <Badge size="xsmall" tone="information" className="ml-auto">
+          <Badge variant="secondary" size="xsmall" tone="information" className="ml-auto">
             ICS
           </Badge>
         ) : null}
@@ -850,7 +868,9 @@ export function AttackChain({
         <Id>{scenario.id}</Id>
         <h3 className="font-body font-semibold">{scenario.name}</h3>
         <TierChip tier={scenario.tier} />
-        <Badge tone={scenarioStatusTone[scenario.status]}>{scenario.status}</Badge>
+        <Badge variant="secondary" tone={scenarioStatusTone[scenario.status]}>
+          {scenario.status}
+        </Badge>
         <span className="ml-auto font-body-small text-subtle">
           {scenario.event ? (
             <>
@@ -948,17 +968,17 @@ export function AttackChain({
                       shouldWrap
                     >
                       {hop.via === "Unwalkable" ? (
-                        <Badge size="xsmall" tone="danger">
+                        <Badge variant="secondary" size="xsmall" tone="danger">
                           No path in the graph
                         </Badge>
                       ) : (
-                        <Badge size="xsmall" tone="neutral">
+                        <Badge variant="secondary" size="xsmall" tone="neutral">
                           {hop.kind}
                         </Badge>
                       )}
                       {hop.label !== "—" ? <span className="text-subtle">{hop.label}</span> : null}
                       {hop.crossesBoundary && previous ? (
-                        <Badge size="xsmall" tone="warning">
+                        <Badge variant="secondary" size="xsmall" tone="warning">
                           Crosses {previous.zone} → {node.zone}
                         </Badge>
                       ) : null}
@@ -998,10 +1018,18 @@ export function AttackChain({
                     <span className="font-body-small font-medium">
                       {node.missing ? "Not in the graph" : node.name}
                     </span>
-                    <Badge size="xsmall" tone={node.missing ? "danger" : "neutral"}>
+                    <Badge
+                      variant="secondary"
+                      size="xsmall"
+                      tone={node.missing ? "danger" : "neutral"}
+                    >
                       {node.kind}
                     </Badge>
-                    <Badge size="xsmall" tone={zoneTone[node.zone] ?? "neutral"}>
+                    <Badge
+                      variant="secondary"
+                      size="xsmall"
+                      tone={zoneTone[node.zone] ?? "neutral"}
+                    >
                       {node.zone}
                     </Badge>
                     <span className="font-body-small text-subtle">{node.criticality}</span>
@@ -1039,7 +1067,7 @@ export function AttackChain({
           </span>
         ) : (
           effects.map((e) => (
-            <Badge key={e.id} tone={effectTone[e.effect]}>
+            <Badge variant="secondary" key={e.id} tone={effectTone[e.effect]}>
               {e.id} — {e.effect}
             </Badge>
           ))
@@ -1100,7 +1128,9 @@ export function MissionEffectTable({
                   <Id>{e.id}</Id>
                 </Table.Cell>
                 <Table.Cell>
-                  <Badge tone={effectTone[e.effect]}>{e.effect}</Badge>
+                  <Badge variant="secondary" tone={effectTone[e.effect]}>
+                    {e.effect}
+                  </Badge>
                 </Table.Cell>
                 <Table.Cell className="truncate" title={e.missionFunction}>
                   {e.missionFunction}
@@ -1112,13 +1142,17 @@ export function MissionEffectTable({
                   <Id>{e.confirmedBy}</Id>
                 </Table.Cell>
                 <Table.Cell>
-                  <Badge size="xsmall" tone={e.reproduced ? "neutral" : "warning"}>
+                  <Badge
+                    variant="secondary"
+                    size="xsmall"
+                    tone={e.reproduced ? "neutral" : "warning"}
+                  >
                     {e.reproduced ? "Reproduced" : "Single observation"}
                   </Badge>
                 </Table.Cell>
                 <Table.Cell>
                   {e.findings.length === 0 ? (
-                    <Badge size="xsmall" tone={none ? "neutral" : "danger"}>
+                    <Badge variant="secondary" size="xsmall" tone={none ? "neutral" : "danger"}>
                       {none ? "None needed" : "None raised"}
                     </Badge>
                   ) : (
@@ -1252,7 +1286,9 @@ export function AttackSurfaceSummary({
           <Eyebrow>Tactics represented</Eyebrow>
           <Inline className="pt-075" space="space.075" shouldWrap>
             {coverage.tactics.map((t) => (
-              <Badge key={t}>{t}</Badge>
+              <Badge variant="secondary" tone="neutral" key={t}>
+                {t}
+              </Badge>
             ))}
           </Inline>
         </div>

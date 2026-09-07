@@ -174,7 +174,9 @@ export function VerificationSection({ programName }: { programName: string }) {
                     <span className="text-subtle"> — {c.requirement}</span>
                   </Table.Cell>
                   <Table.Cell>
-                    <Badge tone={verdictTone[c.verdict]}>{c.verdict}</Badge>
+                    <Badge variant="secondary" tone={verdictTone[c.verdict]}>
+                      {c.verdict}
+                    </Badge>
                   </Table.Cell>
                   <Table.Cell>{c.gate}</Table.Cell>
                   <Table.Cell>{c.finding}</Table.Cell>
@@ -244,7 +246,9 @@ export function VerificationSection({ programName }: { programName: string }) {
                     <Table.Cell className="tabular-nums">{shortDate(e.start)}</Table.Cell>
                     <Table.Cell className="tabular-nums">{shortDate(e.end)}</Table.Cell>
                     <Table.Cell>
-                      <Badge tone={testStatusTone[e.status]}>{e.status}</Badge>
+                      <Badge variant="secondary" tone={testStatusTone[e.status]}>
+                        {e.status}
+                      </Badge>
                     </Table.Cell>
                     <Table.Cell className={slack < 0 ? "text-danger" : undefined}>
                       {slack < 0
@@ -291,13 +295,17 @@ export function VerificationSection({ programName }: { programName: string }) {
                     <Id>{i.id}</Id>
                   </Table.Cell>
                   <Table.Cell>
-                    <Badge tone="neutral">{sourceShort[i.source]}</Badge>
+                    <Badge variant="secondary" tone="neutral">
+                      {sourceShort[i.source]}
+                    </Badge>
                   </Table.Cell>
                   <Table.Cell>{i.artifact}</Table.Cell>
                   <Table.Cell>{i.asset}</Table.Cell>
                   <Table.Cell className="tabular-nums">{shortStamp(i.ingested)}</Table.Cell>
                   <Table.Cell>
-                    <Badge tone={ingestTone[i.status]}>{i.status}</Badge>
+                    <Badge variant="secondary" tone={ingestTone[i.status]}>
+                      {i.status}
+                    </Badge>
                   </Table.Cell>
                   <Table.Cell className="text-right tabular-nums">
                     <span className={i.catI > 0 ? "font-medium text-danger" : "text-subtle"}>
@@ -359,7 +367,9 @@ export function VerificationSection({ programName }: { programName: string }) {
                     </Indicator>
                   </Table.Cell>
                   <Table.Cell>
-                    <Badge tone="neutral">{sourceShort[f.source]}</Badge>
+                    <Badge variant="secondary" tone="neutral">
+                      {sourceShort[f.source]}
+                    </Badge>
                   </Table.Cell>
                   <Table.Cell>{f.title}</Table.Cell>
                   <Table.Cell>
@@ -367,7 +377,9 @@ export function VerificationSection({ programName }: { programName: string }) {
                   </Table.Cell>
                   <Table.Cell>{f.asset}</Table.Cell>
                   <Table.Cell>
-                    <Badge tone={findingStatusTone[f.status]}>{f.status}</Badge>
+                    <Badge variant="secondary" tone={findingStatusTone[f.status]}>
+                      {f.status}
+                    </Badge>
                   </Table.Cell>
                   <Table.Cell className="text-right tabular-nums">{f.age}d</Table.Cell>
                   <Table.Cell className="tabular-nums">{shortDate(f.due)}</Table.Cell>

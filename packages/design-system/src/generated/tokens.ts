@@ -677,6 +677,7 @@ export const utilities = [
   "my-negative-400",
   "opacity-disabled",
   "opacity-loading",
+  "outline-danger",
   "outline-focused",
   "rounded-full",
   "rounded-large",

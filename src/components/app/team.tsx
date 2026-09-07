@@ -106,7 +106,9 @@ export function TeamSection({ programId }: { programId: string }) {
                           {personById.get(w.lead)?.name ?? "—"}
                         </Table.Cell>
                         <Table.Cell>
-                          <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
+                          <Badge variant="secondary" tone={workstreamStatusTone(w.status)}>
+                            {w.status}
+                          </Badge>
                         </Table.Cell>
                         <Table.Cell className="tabular-nums text-right">
                           {w.members.length}
@@ -247,7 +249,9 @@ export function TeamSection({ programId }: { programId: string }) {
                   <Inspector.Group title="Workstream">
                     <KeyValue label="Lead">{personById.get(ws.lead)?.name ?? "—"}</KeyValue>
                     <KeyValue label="Status">
-                      <Badge tone={workstreamStatusTone(ws.status)}>{ws.status}</Badge>
+                      <Badge variant="secondary" tone={workstreamStatusTone(ws.status)}>
+                        {ws.status}
+                      </Badge>
                     </KeyValue>
                     <KeyValue label="Stage">{ws.stage}</KeyValue>
                     <KeyValue label="Gate">{ws.gate}</KeyValue>

@@ -355,7 +355,11 @@ function ProgramDetail() {
             options={programStatuses}
             onChange={setStatus}
             save={saveField("Status")}
-            render={(v) => <Badge tone={programStatusTone[v]}>{v}</Badge>}
+            render={(v) => (
+              <Badge variant="secondary" tone={programStatusTone[v]}>
+                {v}
+              </Badge>
+            )}
           />
         </KeyValue>
         <KeyValue label="Stage">{stageOf(program.id)}</KeyValue>
@@ -756,7 +760,9 @@ function ProgramDetail() {
                           </Table.Cell>
                           <Table.Cell className="truncate">{p.title}</Table.Cell>
                           <Table.Cell>
-                            <Badge tone={statusTone(p.status)}>{p.status}</Badge>
+                            <Badge variant="secondary" tone={statusTone(p.status)}>
+                              {p.status}
+                            </Badge>
                           </Table.Cell>
                           <Table.Cell className="truncate">
                             <Person name={p.owner} />

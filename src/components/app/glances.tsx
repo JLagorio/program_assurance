@@ -68,7 +68,7 @@ export function RequirementGlance({ requirementId }: { requirementId: string }) 
       title={r.text}
       meta={`${r.type} · revision ${r.revision}`}
       status={
-        <Badge size="xsmall" tone={requirementStateTone[r.state]}>
+        <Badge variant="secondary" size="xsmall" tone={requirementStateTone[r.state]}>
           {r.state}
         </Badge>
       }

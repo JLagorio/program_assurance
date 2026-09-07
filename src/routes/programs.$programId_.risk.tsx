@@ -221,11 +221,15 @@ function ProgramRisk() {
               <>
                 {hasScores ? (
                   <>
-                    <Badge tone="neutral">Aggregate {posture.aggregate}</Badge>
+                    <Badge variant="secondary" tone="neutral">
+                      Aggregate {posture.aggregate}
+                    </Badge>
                     <BandChip band={aggregateBand} />
                   </>
                 ) : (
-                  <Badge tone="neutral">Nothing scored</Badge>
+                  <Badge variant="secondary" tone="neutral">
+                    Nothing scored
+                  </Badge>
                 )}
                 <TextLink size="small">
                   <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>

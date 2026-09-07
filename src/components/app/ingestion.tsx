@@ -61,7 +61,7 @@ function severityToneOf(severity: string): Tone {
 
 export function FormatChip({ format }: { format: ScanFormat }) {
   return (
-    <Badge size="xsmall" tone={formatTone[format]}>
+    <Badge variant="secondary" size="xsmall" tone={formatTone[format]}>
       {format}
     </Badge>
   );
@@ -309,7 +309,7 @@ export function ScanTable({
               </Table.Cell>
               <Table.Cell className="tabular-nums text-right">{s.rawItems}</Table.Cell>
               <Table.Cell>
-                <Badge size="xsmall" tone={scanStateTone[s.state]}>
+                <Badge variant="secondary" size="xsmall" tone={scanStateTone[s.state]}>
                   {s.state}
                 </Badge>
               </Table.Cell>
@@ -367,7 +367,7 @@ export function ScanRail({
           <FormatChip format={scan.format} />
         </KeyValue>
         <KeyValue label="State">
-          <Badge size="xsmall" tone={scanStateTone[scan.state]}>
+          <Badge variant="secondary" size="xsmall" tone={scanStateTone[scan.state]}>
             {scan.state}
           </Badge>
         </KeyValue>
@@ -713,7 +713,11 @@ export function NormalizationAudit({
                 <Indicator tone={severityToneOf(normalized.severity)}>
                   {normalized.severity}
                 </Indicator>
-                <Badge size="xsmall" tone={normalized.clean ? "success" : "neutral"}>
+                <Badge
+                  variant="secondary"
+                  size="xsmall"
+                  tone={normalized.clean ? "success" : "neutral"}
+                >
                   {normalized.clean ? "Clean" : "Reportable"}
                 </Badge>
               </Inline>
@@ -853,7 +857,11 @@ export function NormalizationView({
                 </Indicator>
               </Table.Cell>
               <Table.Cell>
-                <Badge size="xsmall" tone={normalized.clean ? "success" : "neutral"}>
+                <Badge
+                  variant="secondary"
+                  size="xsmall"
+                  tone={normalized.clean ? "success" : "neutral"}
+                >
                   {normalized.clean ? "Clean" : "Reportable"}
                 </Badge>
               </Table.Cell>
@@ -867,7 +875,7 @@ export function NormalizationView({
               <Table.Cell className="truncate">{labelNode(normalized.node, nodeName)}</Table.Cell>
               <Table.Cell className="text-right">
                 {normalized.unresolved.length > 0 ? (
-                  <Badge size="xsmall" tone="warning">
+                  <Badge variant="secondary" size="xsmall" tone="warning">
                     {normalized.unresolved.length}
                   </Badge>
                 ) : (
@@ -897,7 +905,12 @@ function FindingChips({ group }: { group: DedupGroup }) {
   return (
     <Inline className="min-w-0" as="span" space="space.050" alignBlock="center">
       {group.existingAll.map((id) => (
-        <Badge key={id} size="xsmall" tone={id === group.existing ? "information" : "neutral"}>
+        <Badge
+          variant="secondary"
+          key={id}
+          size="xsmall"
+          tone={id === group.existing ? "information" : "neutral"}
+        >
           {id}
         </Badge>
       ))}
@@ -996,7 +1009,11 @@ export function DedupTable({
                 the Normalization table rather than neutering the severity
                 tone, which is CAT III's colour and would collide. */}
             <Table.Cell>
-              <Badge size="xsmall" tone={g.primary.clean ? "success" : "neutral"}>
+              <Badge
+                variant="secondary"
+                size="xsmall"
+                tone={g.primary.clean ? "success" : "neutral"}
+              >
                 {g.primary.clean ? "Clean" : "Reportable"}
               </Badge>
             </Table.Cell>
@@ -1025,7 +1042,11 @@ export function DedupTable({
 function MemberLine({ result, role }: { result: NormalizedResult; role: "Primary" | "Duplicate" }) {
   return (
     <Inline className="min-w-0 py-025" space="space.075" alignBlock="baseline">
-      <Badge size="xsmall" tone={role === "Primary" ? "information" : "neutral"}>
+      <Badge
+        variant="secondary"
+        size="xsmall"
+        tone={role === "Primary" ? "information" : "neutral"}
+      >
         {result.format}
       </Badge>
       <Id className="shrink-0 text-subtle">{result.scan}</Id>
@@ -1057,7 +1078,11 @@ export function DedupRail({
             <Indicator tone={severityToneOf(group.primary.severity)}>
               {group.primary.severity}
             </Indicator>
-            <Badge size="xsmall" tone={group.primary.clean ? "success" : "neutral"}>
+            <Badge
+              variant="secondary"
+              size="xsmall"
+              tone={group.primary.clean ? "success" : "neutral"}
+            >
               {group.primary.clean ? "Clean" : "Reportable"}
             </Badge>
           </Inline>
@@ -1164,7 +1189,7 @@ export function ScanDiffTable({
             space="space.075"
             alignBlock="baseline"
           >
-            <Badge size="xsmall" tone={diffStateTone[t.state]}>
+            <Badge variant="secondary" size="xsmall" tone={diffStateTone[t.state]}>
               {t.state}
             </Badge>
             <span className="tabular-nums font-body font-medium">{t.count}</span>
@@ -1203,7 +1228,7 @@ export function ScanDiffTable({
             {rows.map((r) => (
               <Table.Row key={r.key}>
                 <Table.Cell>
-                  <Badge size="xsmall" tone={diffStateTone[r.state]}>
+                  <Badge variant="secondary" size="xsmall" tone={diffStateTone[r.state]}>
                     {r.state}
                   </Badge>
                 </Table.Cell>

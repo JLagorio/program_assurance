@@ -110,7 +110,9 @@ function PackageRecord() {
           meta={`${pkg.version} · ${pkg.program} · snapshot ${pkg.snapshotAt}`}
           actions={
             <>
-              <Badge tone={packageStateTone[pkg.state]}>{pkg.state}</Badge>
+              <Badge variant="secondary" tone={packageStateTone[pkg.state]}>
+                {pkg.state}
+              </Badge>
               <UnavailableAction
                 reason="No receiving service is connected. Download artifacts from the program export workspace."
                 variant="primary"
@@ -214,7 +216,9 @@ function PackageRecord() {
                             )}
                           </Table.Cell>
                           <Table.Cell className="truncate">
-                            <Badge tone={resultTone(r.result)}>{r.result}</Badge>
+                            <Badge variant="secondary" tone={resultTone(r.result)}>
+                              {r.result}
+                            </Badge>
                           </Table.Cell>
                           <Table.Cell className="tabular-nums text-right">
                             {r.openFindings}
@@ -260,7 +264,9 @@ function PackageRecord() {
                             {a.pages || "—"}
                           </Table.Cell>
                           <Table.Cell className="truncate">
-                            <Badge tone={statusTone(a.state)}>{a.state}</Badge>
+                            <Badge variant="secondary" tone={statusTone(a.state)}>
+                              {a.state}
+                            </Badge>
                           </Table.Cell>
                         </Table.Row>
                       ))}
@@ -326,7 +332,9 @@ function PackageRecord() {
                       )}
                     </KeyValue>
                     <KeyValue label="Result">
-                      <Badge tone={resultTone(preview.result)}>{preview.result}</Badge>
+                      <Badge variant="secondary" tone={resultTone(preview.result)}>
+                        {preview.result}
+                      </Badge>
                     </KeyValue>
                     <KeyValue label="Open findings">{preview.openFindings}</KeyValue>
                     <KeyValue label="Worst severity">{preview.worstSeverity}</KeyValue>

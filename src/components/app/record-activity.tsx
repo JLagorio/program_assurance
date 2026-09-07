@@ -48,7 +48,9 @@ function Sentence({ entry, me }: { entry: ActivityEntry; me: string }) {
         <Activity.Sentence strong={strong} me={me}>
           {`moved the program from ${entry.before} to`}
         </Activity.Sentence>{" "}
-        <Badge tone="information">{entry.after}</Badge>
+        <Badge variant="secondary" tone="information">
+          {entry.after}
+        </Badge>
       </>
     );
   }
@@ -58,7 +60,9 @@ function Sentence({ entry, me }: { entry: ActivityEntry; me: string }) {
         <Activity.Sentence strong={strong} me={me}>
           {`marked "${entry.about?.label ?? entry.subject.label ?? entry.subject.id}"`}
         </Activity.Sentence>{" "}
-        <Badge tone={stateToneOf(entry.after)}>{entry.after}</Badge>
+        <Badge variant="secondary" tone={stateToneOf(entry.after)}>
+          {entry.after}
+        </Badge>
       </>
     );
   }
@@ -70,7 +74,9 @@ function Sentence({ entry, me }: { entry: ActivityEntry; me: string }) {
       {entry.kind === "done" ? (
         <>
           {" "}
-          <Badge tone="success">Done</Badge>
+          <Badge variant="secondary" tone="success">
+            Done
+          </Badge>
         </>
       ) : null}
     </>

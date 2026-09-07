@@ -280,7 +280,10 @@ function ComboboxList({ className, style, ...props }: ComboboxListProps) {
       aria-labelledby={bound["aria-labelledby"]}
       aria-label={bound["aria-labelledby"] ? undefined : t("choose")}
       data-slot="combobox-list"
-      className={classes("min-h-0 overflow-y-auto p-050 outline-none empty:p-0", className)}
+      className={classes(
+        "min-h-0 overflow-y-auto overscroll-none p-050 outline-none empty:p-0",
+        className,
+      )}
       style={
         typeof style === "function"
           ? (state) => ({ ...defaults, ...style(state) })

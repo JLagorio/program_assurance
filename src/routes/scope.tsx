@@ -174,7 +174,9 @@ function ScopeApprovals() {
                       <Id>v{r.number}</Id>
                     </Table.Cell>
                     <Table.Cell width={150}>
-                      <Badge tone={revisionTone[r.state]}>{r.state}</Badge>
+                      <Badge variant="secondary" tone={revisionTone[r.state]}>
+                        {r.state}
+                      </Badge>
                     </Table.Cell>
                     <Table.Cell className="truncate" title={r.reason}>
                       {r.reason}

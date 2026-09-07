@@ -76,7 +76,7 @@ function ProgramPeek({ program: p }: { program: Program }) {
       title={p.name}
       meta={`${p.system} · ${p.environment}`}
       status={
-        <Badge tone={programStatusTone[p.status]} size="xsmall">
+        <Badge variant="secondary" tone={programStatusTone[p.status]} size="xsmall">
           {p.status}
         </Badge>
       }

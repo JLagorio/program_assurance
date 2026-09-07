@@ -413,7 +413,9 @@ export function Comments({ work, onChange }: { work: ControlWork; onChange: () =
             <Box key={c.id} as="li" paddingBlock="space.100">
               <Inline space="space.100" alignBlock="baseline" shouldWrap>
                 <span className="font-body font-medium">{c.author}</span>
-                <Badge size="xsmall">{c.role}</Badge>
+                <Badge variant="secondary" tone="neutral" size="xsmall">
+                  {c.role}
+                </Badge>
                 <span className="font-body-xsmall text-subtle">{c.at}</span>
               </Inline>
               <p className="pt-050 max-w-layout-measure font-body">{c.body}</p>

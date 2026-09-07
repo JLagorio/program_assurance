@@ -69,7 +69,7 @@ export function Drawer({
               </DrawerPrimitive.Description>
             ) : null}
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto border-t border-default px-250 py-200">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none border-t border-default px-250 py-200">
             {children}
           </div>
           {footer ? (

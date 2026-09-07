@@ -40,13 +40,32 @@ export const BarMatrix: Story = {
     <Stack space="space.400">
       <Specimens title="One series (brand) · grouped (the categorical set) · stacked (the status tones)">
         <Box style={{ width: 300 }}>
-          <Chart.Bar data={bySource} x="source" series={sourceSeries} size="small" label="Findings by source" />
+          <Chart.Bar
+            data={bySource}
+            x="source"
+            series={sourceSeries}
+            size="small"
+            label="Findings by source"
+          />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Bar data={byAssessor} x="week" series={assessors.slice(0, 3)} size="small" label="Reviews by assessor" />
+          <Chart.Bar
+            data={byAssessor}
+            x="week"
+            series={assessors.slice(0, 3)}
+            size="small"
+            label="Reviews by assessor"
+          />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Bar data={byFamily} x="family" series={statusSeries} stacked size="small" label="Coverage by family" />
+          <Chart.Bar
+            data={byFamily}
+            x="family"
+            series={statusSeries}
+            stacked
+            size="small"
+            label="Coverage by family"
+          />
         </Box>
       </Specimens>
       <Specimens title="Horizontal with end labels · a target per bar · floating from-to values with a milestone">
@@ -62,7 +81,14 @@ export const BarMatrix: Story = {
           />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Bar data={byFamily} x="family" series={satisfied} target="target" size="small" label="Satisfied against target" />
+          <Chart.Bar
+            data={byFamily}
+            x="family"
+            series={satisfied}
+            target="target"
+            size="small"
+            label="Satisfied against target"
+          />
         </Box>
         <Box style={{ width: 300 }}>
           <Chart.Bar
@@ -79,24 +105,69 @@ export const BarMatrix: Story = {
       </Specimens>
       <Specimens title="A line over the bars · axis titles · loading">
         <Box style={{ width: 300 }}>
-          <Chart.Bar data={byMonth} x="month" series={closedBars} line={planLine} size="small" label="Closed against the plan" />
+          <Chart.Bar
+            data={byMonth}
+            x="month"
+            series={closedBars}
+            line={planLine}
+            size="small"
+            label="Closed against the plan"
+          />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Bar data={bySource} x="source" series={sourceSeries} xLabel="Source" yLabel="Findings" size="small" label="Findings by source" />
+          <Chart.Bar
+            data={bySource}
+            x="source"
+            series={sourceSeries}
+            xLabel="Source"
+            yLabel="Findings"
+            size="small"
+            label="Findings by source"
+          />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Bar data={bySource} x="source" series={sourceSeries} size="small" label="Findings by source" loading />
+          <Chart.Bar
+            data={bySource}
+            x="source"
+            series={sourceSeries}
+            size="small"
+            label="Findings by source"
+            loading
+          />
         </Box>
       </Specimens>
       <Specimens title="Below zero, with the zero line · a shared domain · textured">
         <Box style={{ width: 300 }}>
-          <Chart.Bar data={varianceRows} x="phase" series={varianceSeries} labels="end" format={(v) => `${v > 0 ? "+" : ""}${v}d`} size="small" label="Schedule variance by phase" />
+          <Chart.Bar
+            data={varianceRows}
+            x="phase"
+            series={varianceSeries}
+            labels="end"
+            format={(v) => `${v > 0 ? "+" : ""}${v}d`}
+            size="small"
+            label="Schedule variance by phase"
+          />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Bar data={bySource} x="source" series={sourceSeries} domain={[0, 60]} size="small" label="Findings by source, to 60" />
+          <Chart.Bar
+            data={bySource}
+            x="source"
+            series={sourceSeries}
+            domain={[0, 60]}
+            size="small"
+            label="Findings by source, to 60"
+          />
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart.Bar data={byFamily} x="family" series={statusSeries} stacked texture size="small" label="Coverage by family, textured" />
+          <Chart.Bar
+            data={byFamily}
+            x="family"
+            series={statusSeries}
+            stacked
+            texture
+            size="small"
+            label="Coverage by family, textured"
+          />
         </Box>
       </Specimens>
       <Specimens title="Sizes · small 120 · medium 200 · large 320">
@@ -104,7 +175,13 @@ export const BarMatrix: Story = {
           <Chart.Bar data={bySource} x="source" series={sourceSeries} size="small" label="Small" />
         </Box>
         <Box style={{ width: 240 }}>
-          <Chart.Bar data={bySource} x="source" series={sourceSeries} size="medium" label="Medium" />
+          <Chart.Bar
+            data={bySource}
+            x="source"
+            series={sourceSeries}
+            size="medium"
+            label="Medium"
+          />
         </Box>
         <Box style={{ width: 240 }}>
           <Chart.Bar data={bySource} x="source" series={sourceSeries} size="large" label="Large" />
@@ -118,7 +195,14 @@ export const BarMatrix: Story = {
 export const Single: Story = {
   render: () => (
     <Box style={{ width: 560 }}>
-      <Chart title="Findings by source" description="Opened this year" data={bySource} x="source" xLabel="Source" series={sourceSeries}>
+      <Chart
+        title="Findings by source"
+        description="Opened this year"
+        data={bySource}
+        x="source"
+        xLabel="Source"
+        series={sourceSeries}
+      >
         <Chart.Bar data={bySource} x="source" series={sourceSeries} labels="end" />
       </Chart>
     </Box>
@@ -129,7 +213,14 @@ export const Single: Story = {
 export const Grouped: Story = {
   render: () => (
     <Box style={{ width: 640 }}>
-      <Chart title="Reviews by assessor" description="Per week, the last five weeks" series={assessors.slice(0, 3)} data={byAssessor} x="week" xLabel="Week">
+      <Chart
+        title="Reviews by assessor"
+        description="Per week, the last five weeks"
+        series={assessors.slice(0, 3)}
+        data={byAssessor}
+        x="week"
+        xLabel="Week"
+      >
         <Chart.Bar data={byAssessor} x="week" series={assessors.slice(0, 3)} />
       </Chart>
     </Box>
@@ -140,7 +231,14 @@ export const Grouped: Story = {
 export const Stacked: Story = {
   render: () => (
     <Box style={{ width: 640 }}>
-      <Chart title="Coverage by control family" description="Determinations across 372 controls" series={statusSeries} data={byFamily} x="family" xLabel="Family">
+      <Chart
+        title="Coverage by control family"
+        description="Determinations across 372 controls"
+        series={statusSeries}
+        data={byFamily}
+        x="family"
+        xLabel="Family"
+      >
         <Chart.Bar data={byFamily} x="family" series={statusSeries} stacked />
       </Chart>
     </Box>
@@ -151,8 +249,20 @@ export const Stacked: Story = {
 export const Horizontal: Story = {
   render: () => (
     <Box style={{ width: 480 }}>
-      <Chart title="Findings by source" data={bySource} x="source" xLabel="Source" series={[{ key: "n", label: "Findings" }]}>
-        <Chart.Bar data={bySource} x="source" series={[{ key: "n", label: "Findings", tone: "neutral" }]} horizontal labels="end" />
+      <Chart
+        title="Findings by source"
+        data={bySource}
+        x="source"
+        xLabel="Source"
+        series={[{ key: "n", label: "Findings" }]}
+      >
+        <Chart.Bar
+          data={bySource}
+          x="source"
+          series={[{ key: "n", label: "Findings", tone: "neutral" }]}
+          horizontal
+          labels="end"
+        />
       </Chart>
     </Box>
   ),
@@ -180,8 +290,22 @@ export const Targets: Story = {
 export const Windows: Story = {
   render: () => (
     <Box style={{ width: 560 }}>
-      <Chart title="RMF phase windows" description="Weeks from kickoff" data={windows} x="phase" xLabel="Phase" series={[{ key: "weeks", label: "Window" }]} format={(v) => `W${v}`}>
-        <Chart.Bar data={windows} x="phase" series={windowSeries} horizontal reference={[{ y: 16, label: "Today" }]} />
+      <Chart
+        title="RMF phase windows"
+        description="Weeks from kickoff"
+        data={windows}
+        x="phase"
+        xLabel="Phase"
+        series={[{ key: "weeks", label: "Window" }]}
+        format={(v) => `W${v}`}
+      >
+        <Chart.Bar
+          data={windows}
+          x="phase"
+          series={windowSeries}
+          horizontal
+          reference={[{ y: 16, label: "Today" }]}
+        />
       </Chart>
     </Box>
   ),
@@ -191,7 +315,14 @@ export const Windows: Story = {
 export const Combo: Story = {
   render: () => (
     <Box style={{ width: 640 }}>
-      <Chart title="Closed findings against the plan" description="Per month, this year" series={[...closedBars, planLine]} data={byMonth} x="month" xLabel="Month">
+      <Chart
+        title="Closed findings against the plan"
+        description="Per month, this year"
+        series={[...closedBars, planLine]}
+        data={byMonth}
+        x="month"
+        xLabel="Month"
+      >
         <Chart.Bar data={byMonth} x="month" series={closedBars} line={planLine} />
       </Chart>
     </Box>
@@ -211,7 +342,13 @@ export const Negatives: Story = {
         series={varianceSeries}
         format={(v) => `${v > 0 ? "+" : ""}${v} days`}
       >
-        <Chart.Bar data={varianceRows} x="phase" series={varianceSeries} labels="end" domain={[-6, 14]} />
+        <Chart.Bar
+          data={varianceRows}
+          x="phase"
+          series={varianceSeries}
+          labels="end"
+          domain={[-6, 14]}
+        />
       </Chart>
     </Box>
   ),
@@ -247,7 +384,15 @@ export const Rates: Story = {
 export const Textured: Story = {
   render: () => (
     <Box style={{ width: 640 }}>
-      <Chart title="Coverage by control family" description="Textured" series={statusSeries} texture data={byFamily} x="family" xLabel="Family">
+      <Chart
+        title="Coverage by control family"
+        description="Textured"
+        series={statusSeries}
+        texture
+        data={byFamily}
+        x="family"
+        xLabel="Family"
+      >
         <Chart.Bar data={byFamily} x="family" series={statusSeries} stacked />
       </Chart>
     </Box>
@@ -258,7 +403,14 @@ export const Textured: Story = {
 export const Details: Story = {
   render: () => (
     <Box style={{ width: 640 }}>
-      <Chart title="Coverage by control family" description="Click a segment" series={statusSeries} data={byFamily} x="family" xLabel="Family">
+      <Chart
+        title="Coverage by control family"
+        description="Click a segment"
+        series={statusSeries}
+        data={byFamily}
+        x="family"
+        xLabel="Family"
+      >
         <Chart.Bar
           data={byFamily}
           x="family"
@@ -300,13 +452,19 @@ export const Dont: Story = {
         dont={
           <Chart
             title="Coverage by control family"
-            series={statusSeries.map((s, i) => ({ ...s, tone: `categorical.${(i + 1) as 1 | 2 | 3 | 4}` as const }))}
+            series={statusSeries.map((s, i) => ({
+              ...s,
+              tone: `categorical.${(i + 1) as 1 | 2 | 3 | 4}` as const,
+            }))}
             size="small"
           >
             <Chart.Bar
               data={byFamily}
               x="family"
-              series={statusSeries.map((s, i) => ({ ...s, tone: `categorical.${(i + 1) as 1 | 2 | 3 | 4}` as const }))}
+              series={statusSeries.map((s, i) => ({
+                ...s,
+                tone: `categorical.${(i + 1) as 1 | 2 | 3 | 4}` as const,
+              }))}
               stacked
               size="small"
             />
@@ -317,14 +475,26 @@ export const Dont: Story = {
       <Pair
         do={
           <Chart title="Findings by source" size="small">
-            <Chart.Bar data={bySource} x="source" series={[{ key: "n", label: "Findings", tone: "neutral" }]} horizontal labels="end" size="small" />
+            <Chart.Bar
+              data={bySource}
+              x="source"
+              series={[{ key: "n", label: "Findings", tone: "neutral" }]}
+              horizontal
+              labels="end"
+              size="small"
+            />
           </Chart>
         }
         doText="Long names go down the side, whole, with the value at the bar's end."
         dont={
           <Box style={{ width: 240 }}>
             <Chart title="Findings by source" size="small">
-              <Chart.Bar data={bySource} x="source" series={[{ key: "n", label: "Findings", tone: "neutral" }]} size="small" />
+              <Chart.Bar
+                data={bySource}
+                x="source"
+                series={[{ key: "n", label: "Findings", tone: "neutral" }]}
+                size="small"
+              />
             </Chart>
           </Box>
         }

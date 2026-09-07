@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { FileText, Folder } from "lucide-react";
 import { useState } from "react";
 
@@ -47,7 +48,7 @@ export const TreeMatrix: Story = {
               lines={[true, true]}
               isSelected
               trailing={
-                <Badge tone="warning" size="xsmall">
+                <Badge variant="secondary" tone="warning" size="xsmall">
                   Partial
                 </Badge>
               }
@@ -132,7 +133,7 @@ function FamiliesDemo() {
                 isSelected={sel === "ctrl-0412"}
                 onSelect={() => setSel("ctrl-0412")}
                 trailing={
-                  <Badge tone="success" size="xsmall">
+                  <Badge variant="secondary" tone="success" size="xsmall">
                     Verified
                   </Badge>
                 }

@@ -93,7 +93,7 @@ function WorkstreamDetail() {
               <Inspector.Group title="Disciplines">
                 <Inline className="py-050" space="space.075" shouldWrap>
                   {ws.disciplines.map((d) => (
-                    <Badge key={d} tone="neutral">
+                    <Badge variant="secondary" key={d} tone="neutral">
                       {d}
                     </Badge>
                   ))}
@@ -131,7 +131,11 @@ function WorkstreamDetail() {
               id={ws.id}
               title={ws.title}
               meta={`${ws.program} · ${ws.stage} · ${ws.gate} · due ${ws.due}`}
-              actions={<Badge tone={workstreamStatusTone(ws.status)}>{ws.status}</Badge>}
+              actions={
+                <Badge variant="secondary" tone={workstreamStatusTone(ws.status)}>
+                  {ws.status}
+                </Badge>
+              }
             />
           }
           tabs={<div className="border-b border-default" />}
@@ -204,7 +208,9 @@ function WorkstreamDetail() {
                     </Table.Cell>
                     <Table.Cell className="truncate">{w.title}</Table.Cell>
                     <Table.Cell>
-                      <Badge tone={workstreamStatusTone(w.status)}>{w.status}</Badge>
+                      <Badge variant="secondary" tone={workstreamStatusTone(w.status)}>
+                        {w.status}
+                      </Badge>
                     </Table.Cell>
                     <Table.Cell className="truncate">
                       {personById.get(w.lead)?.name ?? "—"}

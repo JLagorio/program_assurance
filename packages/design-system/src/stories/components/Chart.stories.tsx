@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { Download, RotateCcw } from "lucide-react";
 import { useState } from "react";
 
@@ -67,19 +68,36 @@ export const ChartMatrix: Story = {
           </Chart>
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart title="Findings over time" series={findingSeries} swatch="line" size="small" status="loading">
+          <Chart
+            title="Findings over time"
+            series={findingSeries}
+            swatch="line"
+            size="small"
+            status="loading"
+          >
             <Chart.Line data={byMonth} x="month" series={findingSeries} size="small" />
           </Chart>
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart title="Findings over time" series={findingSeries} swatch="line" size="small" status="refreshing">
+          <Chart
+            title="Findings over time"
+            series={findingSeries}
+            swatch="line"
+            size="small"
+            status="refreshing"
+          >
             <Chart.Line data={byMonth} x="month" series={findingSeries} size="small" />
           </Chart>
         </Box>
       </Specimens>
       <Specimens title="Frame · empty · error with a retry · a drill-down's path">
         <Box style={{ width: 300 }}>
-          <Chart title="Findings over time" status="empty" statusText="No findings in this window." size="small">
+          <Chart
+            title="Findings over time"
+            status="empty"
+            statusText="No findings in this window."
+            size="small"
+          >
             <Chart.Line data={byMonth} x="month" series={findingSeries} size="small" />
           </Chart>
         </Box>
@@ -104,7 +122,13 @@ export const ChartMatrix: Story = {
             path={[{ label: "All systems", onSelect: () => {} }, { label: "Payments" }]}
             size="small"
           >
-            <Chart.Bar data={componentsOf("Payments")} x="name" series={brand} size="small" labels="end" />
+            <Chart.Bar
+              data={componentsOf("Payments")}
+              x="name"
+              series={brand}
+              size="small"
+              labels="end"
+            />
           </Chart>
         </Box>
       </Specimens>
@@ -173,12 +197,28 @@ export const ChartMatrix: Story = {
       </Specimens>
       <Specimens title="Frame · the Download menu and the Expand button · a narrow Frame wraps its header">
         <Box style={{ width: 420 }}>
-          <Chart title="Findings by source" data={bySource} x="source" xLabel="Source" series={sourceSeries} download={["csv", "png"]} expandable size="small">
+          <Chart
+            title="Findings by source"
+            data={bySource}
+            x="source"
+            xLabel="Source"
+            series={sourceSeries}
+            download={["csv", "png"]}
+            expandable
+            size="small"
+          >
             <Chart.Bar data={bySource} x="source" series={sourceSeries} size="small" />
           </Chart>
         </Box>
         <Box style={{ width: 300 }}>
-          <Chart title="Coverage by control family" description="Determinations across 372 controls" series={statusSeries} data={byFamily} x="family" size="small">
+          <Chart
+            title="Coverage by control family"
+            description="Determinations across 372 controls"
+            series={statusSeries}
+            data={byFamily}
+            x="family"
+            size="small"
+          >
             <Chart.Bar data={byFamily} x="family" series={statusSeries} stacked size="small" />
           </Chart>
         </Box>
@@ -258,7 +298,9 @@ function Drilling() {
     <Box style={{ width: 640 }}>
       <Chart.Frame
         title="Findings by system"
-        description={system ? `Open findings by component of ${system}` : "Click a bar for its components"}
+        description={
+          system ? `Open findings by component of ${system}` : "Click a bar for its components"
+        }
         path={
           system
             ? [{ label: "All systems", onSelect: () => setSystem(null) }, { label: system }]
@@ -336,36 +378,40 @@ function Filtering_() {
   return (
     <Box style={{ width: 640 }}>
       <Stack space="space.200">
-      <Chart
-        title="Coverage by control family"
-        description="Click a bar to filter the rows under it"
-        series={statusSeries}
-        data={byFamily}
-        x="family"
-      >
-        <Chart.Bar
+        <Chart
+          title="Coverage by control family"
+          description="Click a bar to filter the rows under it"
+          series={statusSeries}
           data={byFamily}
           x="family"
-          series={statusSeries}
-          stacked
-          onSelect={(s) => setFamily(String(s.datum["family"]))}
-        />
-      </Chart>
-      <Inline space="space.100" alignBlock="center">
-        <Text size="small" color="color.text.subtle">
-          {family ? `Showing ${family}.` : "Showing every family."}
-        </Text>
-        {family ? (
-          <Button size="small" variant="subtle" onClick={() => setFamily(null)}>
-            Clear
-          </Button>
-        ) : null}
-      </Inline>
-      <Inline space="space.100" shouldWrap>
-        {rows.map((r) => (
-          <Badge key={r.family}>{`${r.family} · ${r.satisfied + r.partial + r.other + r.notAssessed}`}</Badge>
-        ))}
-      </Inline>
+        >
+          <Chart.Bar
+            data={byFamily}
+            x="family"
+            series={statusSeries}
+            stacked
+            onSelect={(s) => setFamily(String(s.datum["family"]))}
+          />
+        </Chart>
+        <Inline space="space.100" alignBlock="center">
+          <Text size="small" color="color.text.subtle">
+            {family ? `Showing ${family}.` : "Showing every family."}
+          </Text>
+          {family ? (
+            <Button size="small" variant="subtle" onClick={() => setFamily(null)}>
+              Clear
+            </Button>
+          ) : null}
+        </Inline>
+        <Inline space="space.100" shouldWrap>
+          {rows.map((r) => (
+            <Badge
+              variant="secondary"
+              tone="neutral"
+              key={r.family}
+            >{`${r.family} · ${r.satisfied + r.partial + r.other + r.notAssessed}`}</Badge>
+          ))}
+        </Inline>
       </Stack>
     </Box>
   );
@@ -421,13 +467,30 @@ export const Emphasis: Story = {
 export const States: Story = {
   render: () => (
     <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap="space.300">
-      <Chart title="Findings over time" description="Loading" series={findingSeries} swatch="line" status="loading">
+      <Chart
+        title="Findings over time"
+        description="Loading"
+        series={findingSeries}
+        swatch="line"
+        status="loading"
+      >
         <Chart.Line data={byMonth} x="month" series={findingSeries} />
       </Chart>
-      <Chart title="Findings over time" description="Refreshing" series={findingSeries} swatch="line" status="refreshing">
+      <Chart
+        title="Findings over time"
+        description="Refreshing"
+        series={findingSeries}
+        swatch="line"
+        status="refreshing"
+      >
         <Chart.Line data={byMonth} x="month" series={findingSeries} />
       </Chart>
-      <Chart title="Findings over time" description="Empty" status="empty" statusText="No findings in this window.">
+      <Chart
+        title="Findings over time"
+        description="Empty"
+        status="empty"
+        statusText="No findings in this window."
+      >
         <Chart.Line data={byMonth} x="month" series={findingSeries} />
       </Chart>
       <Chart
@@ -458,7 +521,12 @@ function Replaying() {
         x="source"
         series={sourceSeries}
         actions={
-          <Button size="small" variant="subtle" iconBefore={<RotateCcw />} onClick={() => setN(n + 1)}>
+          <Button
+            size="small"
+            variant="subtle"
+            iconBefore={<RotateCcw />}
+            onClick={() => setN(n + 1)}
+          >
             Replay
           </Button>
         }
@@ -528,14 +596,59 @@ const assessed = [{ key: "assessed", label: "Assessed", tone: "brand" as const }
 export const Linked: Story = {
   render: () => (
     <GridPrimitive templateColumns={{ base: "1fr", md: "1fr 1fr 1fr" }} gap="space.300">
-      <Chart title="Open findings" description="Per month" series={open} syncId="findings" data={byMonth} x="month" size="small">
-        <Chart.Line data={byMonth} x="month" series={open} domain={[0, 20]} labels="end" size="small" />
+      <Chart
+        title="Open findings"
+        description="Per month"
+        series={open}
+        syncId="findings"
+        data={byMonth}
+        x="month"
+        size="small"
+      >
+        <Chart.Line
+          data={byMonth}
+          x="month"
+          series={open}
+          domain={[0, 20]}
+          labels="end"
+          size="small"
+        />
       </Chart>
-      <Chart title="Closed findings" description="Per month" series={closed} syncId="findings" data={byMonth} x="month" size="small">
-        <Chart.Line data={byMonth} x="month" series={closed} domain={[0, 20]} labels="end" size="small" />
+      <Chart
+        title="Closed findings"
+        description="Per month"
+        series={closed}
+        syncId="findings"
+        data={byMonth}
+        x="month"
+        size="small"
+      >
+        <Chart.Line
+          data={byMonth}
+          x="month"
+          series={closed}
+          domain={[0, 20]}
+          labels="end"
+          size="small"
+        />
       </Chart>
-      <Chart title="Controls assessed" description="Cumulative, its own scale" series={assessed} syncId="findings" data={byMonth} x="month" size="small">
-        <Chart.Line data={byMonth} x="month" series={assessed} baseline="auto" labels="end" size="small" />
+      <Chart
+        title="Controls assessed"
+        description="Cumulative, its own scale"
+        series={assessed}
+        syncId="findings"
+        data={byMonth}
+        x="month"
+        size="small"
+      >
+        <Chart.Line
+          data={byMonth}
+          x="month"
+          series={assessed}
+          baseline="auto"
+          labels="end"
+          size="small"
+        />
       </Chart>
     </GridPrimitive>
   ),
@@ -565,10 +678,24 @@ export const Downloads: Story = {
 export const Textured: Story = {
   render: () => (
     <GridPrimitive templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap="space.300">
-      <Chart title="Coverage by control family" description="Textured" series={statusSeries} texture data={byFamily} x="family">
+      <Chart
+        title="Coverage by control family"
+        description="Textured"
+        series={statusSeries}
+        texture
+        data={byFamily}
+        x="family"
+      >
         <Chart.Bar data={byFamily} x="family" series={statusSeries} stacked />
       </Chart>
-      <Chart title="Reviews by assessor" description="Textured" series={assessors.slice(0, 4)} texture data={byAssessor} x="week">
+      <Chart
+        title="Reviews by assessor"
+        description="Textured"
+        series={assessors.slice(0, 4)}
+        texture
+        data={byAssessor}
+        x="week"
+      >
         <Chart.Area data={byAssessor} x="week" series={assessors.slice(0, 4)} stacked />
       </Chart>
     </GridPrimitive>
@@ -602,10 +729,20 @@ export const Dont: Story = {
         do={
           <Stack space="space.200">
             <Chart title="Open findings" size="small">
-              <Chart.Line data={byMonth} x="month" series={[{ key: "open", label: "Open", tone: "brand" }]} size="small" />
+              <Chart.Line
+                data={byMonth}
+                x="month"
+                series={[{ key: "open", label: "Open", tone: "brand" }]}
+                size="small"
+              />
             </Chart>
             <Chart title="Controls assessed" size="small">
-              <Chart.Line data={byMonth} x="month" series={[{ key: "assessed", label: "Assessed", tone: "brand" }]} size="small" />
+              <Chart.Line
+                data={byMonth}
+                x="month"
+                series={[{ key: "assessed", label: "Assessed", tone: "brand" }]}
+                size="small"
+              />
             </Chart>
           </Stack>
         }
@@ -635,7 +772,14 @@ export const Dont: Story = {
       />
       <Pair
         do={
-          <Chart title="Findings by source" description="Opened this year" data={bySource} x="source" series={sourceSeries} size="small">
+          <Chart
+            title="Findings by source"
+            description="Opened this year"
+            data={bySource}
+            x="source"
+            series={sourceSeries}
+            size="small"
+          >
             <Chart.Bar data={bySource} x="source" series={sourceSeries} size="small" />
           </Chart>
         }

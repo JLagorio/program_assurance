@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Absent, Badge, Fact, Id, KeyValue, Person } from "../../components";
+import { Badge, Absent, Fact, Id, KeyValue, Person } from "../../components";
 import { Box, Heading, Inline, Stack } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -36,7 +36,7 @@ export const FactMatrix: Story = {
             <Person name="Dana Whitfield" />
           </Fact>
           <Fact label="Status">
-            <Badge size="xsmall" tone="success">
+            <Badge variant="secondary" size="xsmall" tone="success">
               Verified
             </Badge>
           </Fact>
@@ -68,7 +68,7 @@ export const UnderHeader: Story = {
       <Stack space="space.100">
         <Inline space="space.100" alignBlock="baseline">
           <Id className="text-subtle">CTRL-0412</Id>
-          <Badge size="xsmall" tone="success">
+          <Badge variant="secondary" size="xsmall" tone="success">
             Verified
           </Badge>
         </Inline>
@@ -164,5 +164,9 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {
-  render: (args) => <Fact.Group><Fact {...args} /></Fact.Group>,
+  render: (args) => (
+    <Fact.Group>
+      <Fact {...args} />
+    </Fact.Group>
+  ),
 };

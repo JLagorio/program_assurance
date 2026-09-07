@@ -80,7 +80,7 @@ type AuditRecord = ChangeImpact["records"][number];
 
 export function BuildStateChip({ state }: { state: BuildState }) {
   return (
-    <Badge size="xsmall" tone={buildStateTone[state]}>
+    <Badge variant="secondary" size="xsmall" tone={buildStateTone[state]}>
       {state}
     </Badge>
   );
@@ -88,7 +88,7 @@ export function BuildStateChip({ state }: { state: BuildState }) {
 
 export function ChangeKindChip({ kind }: { kind: ChangeKind }) {
   return (
-    <Badge size="xsmall" tone={changeKindTone[kind]}>
+    <Badge variant="secondary" size="xsmall" tone={changeKindTone[kind]}>
       {kind}
     </Badge>
   );
@@ -96,12 +96,16 @@ export function ChangeKindChip({ kind }: { kind: ChangeKind }) {
 
 /** The CM-3(2) verdict. "Significant" is caution — it cascades, it is not a failure. */
 export function ImpactChip({ impact }: { impact: SecurityImpact }) {
-  return <Badge tone={securityImpactTone[impact]}>{impact}</Badge>;
+  return (
+    <Badge variant="secondary" tone={securityImpactTone[impact]}>
+      {impact}
+    </Badge>
+  );
 }
 
 export function ImpactStateChip({ state }: { state: ImpactState }) {
   return (
-    <Badge size="xsmall" tone={impactStateTone[state]}>
+    <Badge variant="secondary" size="xsmall" tone={impactStateTone[state]}>
       {state}
     </Badge>
   );
@@ -335,7 +339,7 @@ export function BuildRail({
           <Inline as="span" space="space.075" alignBlock="center">
             <span className="tabular-nums">{unrecorded}</span>
             {unrecorded > 0 ? (
-              <Badge size="xsmall" tone="danger">
+              <Badge variant="secondary" size="xsmall" tone="danger">
                 CM-3
               </Badge>
             ) : null}
@@ -399,7 +403,9 @@ export function UnrecordedChangeNotice({
               <span className="font-medium">
                 {row.node === "—" ? row.label : (nodeName?.(row.node) ?? row.label)}
               </span>
-              <Badge size="xsmall">{row.kind}</Badge>
+              <Badge variant="secondary" tone="neutral" size="xsmall">
+                {row.kind}
+              </Badge>
               <span className="text-subtle line-through">{row.from}</span>
               <ArrowRight className="text-subtle size-150" />
               <span className="font-medium">{row.to}</span>
@@ -557,7 +563,7 @@ export function ChangeTable({
                 <Inline as="span" space="space.075" alignBlock="center">
                   <Id>{change.id}</Id>
                   {change.acknowledged ? (
-                    <Badge size="xsmall" tone="neutral">
+                    <Badge variant="secondary" size="xsmall" tone="neutral">
                       Ack
                     </Badge>
                   ) : null}
@@ -769,7 +775,7 @@ function TouchedGroup({
                 <span className="font-body-small font-medium">
                   {nodeName?.(node.node) ?? node.node}
                 </span>
-                <Badge size="xsmall">
+                <Badge variant="secondary" tone="neutral" size="xsmall">
                   {node.hops} hop{node.hops === 1 ? "" : "s"}
                 </Badge>
               </Inline>
@@ -809,7 +815,7 @@ function DeterminationOutcome({ record }: { record: AuditRecord }) {
         {record.from}
       </span>
       {withdrawn ? <ArrowRight className="shrink-0 text-subtle size-150" /> : null}
-      <Badge size="xsmall" tone={withdrawn ? "danger" : "warning"}>
+      <Badge variant="secondary" size="xsmall" tone={withdrawn ? "danger" : "warning"}>
         {record.outcome ?? (withdrawn ? "Withdrawn" : "Retained — re-test owed")}
       </Badge>
     </Inline>
@@ -836,7 +842,9 @@ function InvalidatedRowTable({ records }: { records: AuditRecord[] }) {
               <Table.Row key={record.id} title={record.why}>
                 <Table.Id id={row.control} />
                 <Table.Cell>
-                  <Badge size="xsmall">{row.unit}</Badge>
+                  <Badge variant="secondary" tone="neutral" size="xsmall">
+                    {row.unit}
+                  </Badge>
                 </Table.Cell>
                 <Table.Cell>
                   <Id>{row.requirement}</Id>
@@ -879,7 +887,9 @@ function SuspectRowTable({ records }: { records: AuditRecord[] }) {
               <Table.Row key={record.id} title={record.why}>
                 <Table.Id id={row.control} />
                 <Table.Cell>
-                  <Badge size="xsmall">{row.unit}</Badge>
+                  <Badge variant="secondary" tone="neutral" size="xsmall">
+                    {row.unit}
+                  </Badge>
                 </Table.Cell>
                 <Table.Cell>
                   <Id>{row.requirement}</Id>
@@ -887,7 +897,7 @@ function SuspectRowTable({ records }: { records: AuditRecord[] }) {
                 <Table.Cell>
                   <Inline as="span" space="space.075" alignBlock="center">
                     <span className="shrink-0 font-body-small">{record.from}</span>
-                    <Badge size="xsmall" tone="warning">
+                    <Badge variant="secondary" size="xsmall" tone="warning">
                       {record.outcome ?? "Stands — flagged"}
                     </Badge>
                   </Inline>
@@ -951,7 +961,7 @@ function IdChips({ ids, tone = "neutral" }: { ids: string[]; tone?: Tone }) {
   return (
     <Inline className="pt-150" space="space.075" shouldWrap>
       {ids.map((id) => (
-        <Badge key={id} tone={tone}>
+        <Badge variant="secondary" key={id} tone={tone}>
           <span className="font-body-xsmall">{id}</span>
         </Badge>
       ))}
@@ -1051,12 +1061,16 @@ export function ImpactView({
         <Inline space="space.100" alignBlock="center" shouldWrap>
           <Eyebrow as="span">CM-3(2) security impact analysis</Eyebrow>
           <ImpactChip impact={change.impact} />
-          <Badge tone={contained ? "success" : "danger"}>
+          <Badge variant="secondary" tone={contained ? "success" : "danger"}>
             {contained ? "Contained" : "Cascaded"}
           </Badge>
           <Inline className="ml-auto" as="span" space="space.100" alignBlock="center">
             <Id>{change.id}</Id>
-            {change.acknowledged ? <Badge size="xsmall">Acknowledged</Badge> : null}
+            {change.acknowledged ? (
+              <Badge variant="secondary" tone="neutral" size="xsmall">
+                Acknowledged
+              </Badge>
+            ) : null}
           </Inline>
         </Inline>
 
@@ -1298,7 +1312,7 @@ export function ImpactView({
                               Accepted
                             </span>
                             <ArrowRight className="shrink-0 text-subtle size-150" />
-                            <Badge size="xsmall" tone="danger">
+                            <Badge variant="secondary" size="xsmall" tone="danger">
                               Invalidated
                             </Badge>
                           </Inline>
@@ -1413,7 +1427,9 @@ export function RetestQueueTable({
                 <NodeRef id={item.node} nodeName={nodeName} />
               </Table.Cell>
               <Table.Cell>
-                <Badge size="xsmall">{item.method}</Badge>
+                <Badge variant="secondary" tone="neutral" size="xsmall">
+                  {item.method}
+                </Badge>
               </Table.Cell>
               <Table.Cell>
                 {item.procedure ? (

@@ -1,146 +1,154 @@
 # Design-system migration handoff
 
-Continue migrating `@ledger/design-system` to the local shadcn Base UI component contracts,
-one complete component family at a time. Breadcrumb is complete. **Badge is the recommended
-next slice; it has not been migrated.** Finish that slice and leave it ready for visual review
-before moving to another family.
+Continue migrating `@ledger/design-system` using the local shadcn Base UI components as the foundation,
+one complete component family at a time. **Breadcrumb and Badge are complete. Separator is
+recommended for the next selection; it has not been migrated.** Review the completed Badge
+slice before starting another family.
 
 ## Accepted direction
 
-The user approved using the shadcn components 1:1 in structure and applying Ledger's stylized
-token system. Preserve component names, named exports, anatomy, prop names and types, native
-attributes and refs, composition, and interaction behavior. Use the underlying primitives and
-helpers used by the reference. Base UI is the foundation where applicable; a native HTML part
-does not need an invented primitive.
+Start with the checked-in shadcn Base UI components, use their underlying primitives and
+composition, and adapt the same components to the product. **One component per job.** Shadcn
+is a starting point, and useful product extensions belong on that component. A status badge
+is Badge; do not create separate standard and product versions of the same control.
 
-Adapt styling to Ledger's colors, typography, spacing, dimensions, borders, focus, and motion
-tokens. The component contract stays familiar to a shadcn consumer. Preserve state selectors
-and interaction affordances when translating classes, including focus, invalid, disabled,
-hover, and rendered-link states where present.
+Retain useful names, anatomy, native attributes/refs, keyboard behavior, focus, ARIA and
+render composition. Add or adapt options where needed, documenting defaults and how they
+combine. Use existing tokens for colors, typography, spacing, dimensions, borders and motion
+in both modes. New token decisions belong in source and must be generated through the build.
 
-The package, tokens, themes, layout primitives, Storybook, and higher-level patterns remain.
-Convenience compositions belong above the standard components. Avoid restoring the former
-compound-name requirement or adding custom props to a migrated base component just to keep
-old call sites compiling. Other families retain their current APIs until their own migration.
+Patterns assemble several components into workflows or larger regions. Single-component
+options such as Badge's tone, density and icon stay on Badge. Existing layer boundaries still
+apply, and the package must not import application source. Migrate one family completely at a
+time, preserving unrelated component APIs and user changes.
 
-The current policy is [Component contracts](component-library.md#component-contracts).
-Older specs describe the custom kit and may conflict with this newly approved direction.
+This user clarification supersedes the previous exact-API-only interpretation. The policy is
+[Component contracts](component-library.md#component-contracts); older specifications and
+historical notes may conflict with the current direction.
 
 ## Read these sources first
 
 - [Repository instructions](../../AGENTS.md), especially the Lovable history rule.
 - [Component-library guide](component-library.md) and [package README](../../packages/design-system/README.md).
-- [Reference Badge](../../src/components/ui/badge.tsx) and [current Ledger Badge](../../packages/design-system/src/components/badge.tsx).
-- [Completed Breadcrumb implementation](../../packages/design-system/src/components/breadcrumb.tsx),
-  [stories](../../packages/design-system/src/stories/components/Breadcrumb.stories.tsx),
-  and [documentation](../../packages/design-system/src/stories/components/Breadcrumb.mdx).
+- [Reference Separator](../../src/components/ui/separator.tsx),
+  [Ledger Separator](../../packages/design-system/src/components/separator.tsx),
+  [stories](../../packages/design-system/src/stories/components/Separator.stories.tsx), and
+  [documentation](../../packages/design-system/src/stories/components/Separator.mdx).
+- Completed [Badge](../../packages/design-system/src/components/badge.tsx),
+  [stories](../../packages/design-system/src/stories/components/Badge.stories.tsx),
+  [documentation](../../packages/design-system/src/stories/components/Badge.mdx), and
+  [migration mapping](badge-migration.md).
 - [Package exports](../../packages/design-system/src/components/index.ts),
   [API policy](../../packages/design-system/api/axis-policy.json),
   [changelog](../../packages/design-system/CHANGELOG.md), and
   [packed-consumer check](../../packages/design-system/build/consumer-smoke.mjs).
 
-The checked-in files under `src/components/ui/` are the source baseline for this migration.
-Copy into the package and adapt imports to package-local utilities. The package must never
-import application source, and application consumers continue importing `@ledger/design-system`.
-Do not run a broad shadcn installation or upgrade the reference catalog as part of one slice.
+Files under `src/components/ui/` are the source baseline. Port into the package using relative
+imports and package `cn`; never import application source. Application consumers import the
+package root. Do not run a broad shadcn installation or upgrade the reference catalog in one slice.
 
-## What Breadcrumb established
+## What the completed slices established
 
-- Seven flat exports: `Breadcrumb`, `BreadcrumbList`, `BreadcrumbItem`, `BreadcrumbLink`,
-  `BreadcrumbPage`, `BreadcrumbSeparator`, and `BreadcrumbEllipsis`.
-- Base UI `useRender` and `mergeProps` on the link; native DOM props and refs on every part.
-- Explicit lists and separators, regular-weight current-page text, and wrapping by default.
-  `Breadcrumb.Item`, `isCurrent`, `asChild`, and root `label` were replaced in all consumers.
-- Router destinations, params, and search remain on the router element passed through `render`.
-  Local drill-down actions remain actual buttons; current-page text has no navigation action.
-- `RecordHeader` assembles the parent trail and current ID at the pattern layer. Its generated
-  separator uses `first:hidden`, so empty fragments or arrays do not leave a visible leading
-  chevron. Preserve that tested edge case.
-- Stories cover the standard trail, custom separators, collapsed parents, custom rendered links,
-  native refs and attributes, keyboard behavior, wrapping, and local actions. Keep interaction
-  assertions in representative stories; use callback spies instead of visible test counters.
-- Public exports, reviewed API metadata, generated baselines, migration docs, and packed-consumer
-  validation were updated together. The large JSON API-evidence diff is generated output.
+Breadcrumb exports seven flat parts: `Breadcrumb`, `BreadcrumbList`, `BreadcrumbItem`,
+`BreadcrumbLink`, `BreadcrumbPage`, `BreadcrumbSeparator` and `BreadcrumbEllipsis`. Lists and
+separators are explicit; the list wraps and the current page uses regular text. Link composition
+uses Base UI `useRender`/`mergeProps`. Router destinations, params and search remain on the
+rendered router element. In-place drill-down actions remain native buttons. RecordHeader builds
+its parent trail at the pattern layer; preserve its tested `first:hidden` separator behavior for
+empty fragments/arrays, which avoids a leading chevron.
 
-Review the completed slice at
-[Components / Breadcrumb](http://localhost:6007/?path=/docs/components-breadcrumb--docs).
-The local server may need starting with `npm run storybook` from the repository root.
+Badge is one component for generic labels, semantic statuses and rendered links. `Badge`,
+`BadgeProps` and `badgeVariants` combine the six shadcn variants with product options:
 
-## Next slice: Badge
+- `variant` chooses treatment: `default`, `secondary`, `destructive`, `outline`, `ghost`, `link`.
+- `tone` chooses the palette: `brand`, `neutral`, `information`, `success`, `warning`, `danger`.
+- `appearance` overrides subtle/bold emphasis for filled variants; it has no effect on outline,
+  ghost or link treatments.
+- `size` chooses 20px small or 16px xsmall density; every palette uses the same pill anatomy.
+- `icon` is an optional leading icon shorthand; icons can also be composed as children.
+- `render` composes a real anchor or custom element while preserving merged native props,
+  styles, classes, handlers and refs.
 
-Start from the local reference's exact `Badge` and `badgeVariants` exports. Preserve its
-`useRender.ComponentProps<"span">` composition and `VariantProps<typeof badgeVariants>` API,
-the default `variant="default"`, the variants `default`, `secondary`, `destructive`, `outline`,
-`ghost`, and `link`, and the `data-slot`/`data-variant` output. It has no Ledger-specific `tone`,
-`appearance`, `size`, or `icon` props. Express icon content through children and preserve the
-reference's icon-position data attributes and selectors.
+Default Badge is the shadcn brand/bold treatment. Secondary defaults neutral/subtle and
+destructive defaults danger/subtle. Tone changes palette without changing treatment or
+geometry. Existing status consumers use `variant="secondary"` and retain their tone/appearance;
+formerly implicit neutral labels explicitly set `tone="neutral"`. There is one Badge story and
+documentation family. All badge roots emit `data-slot="badge"` with their resolved axes.
 
-Before editing, inventory both root-package and relative imports, usages in components,
-patterns, shapes, shell, application routes, and stories. For example, run from the repo root:
+`Count`, `Dot`, `Indicator`, `Tone`, `tones` and `toneClasses` retain their contracts. Their
+shared palette is in `src/lib/status-tone.ts` and is re-exported through `components/badge.tsx`.
+Avatar's independent Badge/Count parts remain unchanged. Badge adds brand support locally
+without widening the shared Tone type used by other families.
+
+CVA is a declared package dependency. Ledger's focused/danger outlines replace the reference's
+translucent rings with solid 2px outlines and 2px offsets; `outline-danger` is generated from
+existing tokens. The lint parser checks CVA classes and important modifiers. Packed-consumer
+coverage exercises the same unified Badge for standard and semantic variants, rendered links,
+native attributes, types, SSR and generated CSS. API evidence is generated with the scripts.
+
+Review [Components / Badge](http://localhost:6008/?path=/docs/components-badge--docs).
+The review server uses port 6008 because the pre-existing port-6007 server had a stale preview
+module. Start it with `npm run storybook -w packages/design-system -- --port 6008 --no-open`
+if needed. Normal `npm run storybook` uses port 6007. The [Badge migration guide](badge-migration.md)
+records the API and token mapping.
+
+## Next selection: Separator
+
+Separator is recommended because its standalone use is small and isolated. Inventory imports
+again before editing. At this handoff, only its own stories, Toggle stories and Resizable
+stories consume the Ledger export; application routes and patterns do not. Exclude the
+`react-resizable-panels` Separator, compound menu/select/combobox separators,
+`BreadcrumbSeparator`, and the reference/reui catalogs.
 
 ```sh
-rg -n '\b(Badge|BadgeProps|badgeVariants|toneClasses|tones|Tone|Count|Dot|Indicator)\b' packages/design-system/src src --glob '!**/generated/**' --glob '!src/components/ui/**'
+rg -n '\b(Separator|SeparatorProps|isDecorative)\b' packages/design-system/src src --glob '!**/generated/**' --glob '!src/components/ui/**'
 ```
 
-Identify consumers by their imports before replacing names. Exclude the unrelated reui Badge
-in `src/components/examples/c-timeline-6.tsx`, the reference catalog, and `Avatar.Badge` /
-`Avatar.Count`. Badge has substantially more consumers than Breadcrumb, so keep the migration
-bounded to this family even when it changes many call sites.
+Start with the local reference's single `Separator` export and `SeparatorPrimitive.Props`
+from `@base-ui/react/separator`. Preserve `orientation="horizontal"`, `data-slot="separator"`,
+Base UI state, native props/refs and `render` composition. The current Ledger implementation
+is a handmade div despite outdated comments/MDX claiming Radix. Its narrow API has
+`orientation`, `isDecorative` and `className` only.
 
-Resolve these integration details as part of the slice:
+Resolve these details in the slice:
 
-1. **Preserve semantic status meaning.** Existing `tone="success"` or `tone="warning"` badges
-   cannot all become the reference's default brand badge. Map the old status treatments to
-   explicit token styling or a reusable `StatusBadge` pattern composed from the base Badge. Preserve the
-   actual neutral, informational, success, warning, and danger meanings, subtle/bold treatments,
-   and dense placements when migrating consumers. Document the mapping and show it in stories.
-   Existing neutral badges also need review because the new base default represents branding.
-   A `StatusBadge` pattern can retain the old `tone`, `appearance`, `size`, and `icon` conveniences;
-   keep status guidance in its documentation and the standard six variants in Badge's documentation.
-2. **Respect layer boundaries.** Components may not import patterns. If lower layers need shared
-   status styling, keep the recipe or token utilities in an appropriate lower layer and compose
-   the base Badge there. A higher-level status pattern can serve application/pattern consumers.
-   Avoid copying a separate status class map into every call site.
-3. **Preserve neighboring APIs.** The current `badge.tsx` also exports `Count`, `Dot`, `Indicator`,
-   `Tone`, `tones`, and `toneClasses`. They serve other families such as Avatar, Alert, charts,
-   Progress, Tabs, and Table. Do not delete or redesign them during the Badge migration. They
-   may be relocated with imports/barrels updated if needed, preserving their public contracts
-   and avoiding dependency cycles.
-4. **Declare runtime dependencies in the package.** The reference uses `class-variance-authority`.
-   At this handoff it is declared only in the root application package, so copying its import
-   without adding the design-system dependency would be masked by workspace hoisting. Update
-   the package manifest and lockfile deliberately, then verify a packed external consumer.
-5. **Retain render and native behavior.** A Badge is a span by default and can render a real
-   anchor through `render`. Preserve merged attributes, styles, handlers, and refs; demonstrate
-   keyboard focus for the link form. Use the package `cn`, not the reference's application import.
-6. **Translate the visual recipe deliberately.** Keep every reference variant available. Replace
-   raw values, arbitrary rings, opacity-based colors, and explicit dark classes with appropriate
-   Ledger tokens for both modes. A gap in tokens needs an explicit token decision and documented
-   mapping, not the silent removal of a variant or interaction state. Edit token sources and
-   run the token build if needed; never edit `src/generated/` by hand.
+1. **Adapt decoration on Separator itself.** Installed Base UI 1.7.0 has neither
+   `isDecorative` nor `decorative`. The existing `isDecorative` convenience may be retained on
+   Separator and translated to `role="none"`/`"presentation"`, `aria-hidden="true"` and omitted
+   `aria-orientation`, with explicit native overrides respected. Preserve this useful option
+   directly instead of creating a second separator component.
+2. **Match actual state attributes.** Base UI emits `data-orientation="horizontal"` or
+   `"vertical"`. The reference's `data-horizontal:`/`data-vertical:` depend on aliases in
+   shadcn's stylesheet, which Ledger does not import. Translate to
+   `data-[orientation=horizontal]:` and `data-[orientation=vertical]:` or deliberately define
+   supported aliases. Retain full horizontal width and vertical self-stretch/hairline geometry.
+3. **Preserve callback props.** Base UI allows `className(state)` and `style(state)`. The local
+   reference passes className directly to its helper; Ledger's `cn` does not accept a callback.
+   Resolve a function against `Separator.State` before merging the token classes, and forward
+   the style callback. Do not silently narrow the primitive's public prop type.
+4. **Document the border mapping.** Ledger currently draws `color.border` with `border-default`;
+   the reference draws a background-filled hairline. Explicitly map that paint to the existing
+   border token, retaining one-pixel geometry and parent-owned spacing.
+5. **Verify semantics and composition.** The primitive defaults to a div, role separator,
+   aria-orientation horizontal, and no tab stop; vertical updates orientation. Add executable
+   checks for native/ref targets, rendered elements, merged handlers/styles/refs, callback
+   classes/styles, decorative output and ordinary tab order in both modes.
 
-Keep the scope to Badge and the consumers/supporting files required for it. Button, Dialog,
-Avatar, Combobox, and other families have not yet adopted the new policy in full, even when
-they already use Base UI internally. Do not migrate them incidentally.
+Keep Button, Dialog, Avatar, Combobox and other families outside the slice even when they already
+use Base UI internally. Their full standard-contract migrations remain separate work.
 
 ## Completion workflow
 
-1. Inspect `git status`, current reference/component code, dependencies, and existing checks.
-   Preserve unrelated user changes. Record the old-to-new API and token mapping before applying
-   the mechanical consumer edits.
-2. Implement the reference contract with Ledger tokens and migrate the full family, including
-   conditional content, icons, links, styles, and all application/package consumers.
-3. Update the family stories and MDX, changelog, package exports, and any affected patterns.
-   Exercise all variants, both modes, representative dense/long content, native refs/attributes,
-   and rendered-link composition. Every public named part must have executable story coverage.
-4. Update `packages/design-system/api/axis-policy.json` to describe the actual final native
-   targets, state ownership, defaults, and tracked semantic axes. Keep unrelated policies intact.
-5. Regenerate the declaration snapshot and API matrix using their scripts. Review the generated
-   changes; do not hand-edit the generated evidence to make a check pass.
-6. Extend the existing packed-consumer fixture for the new exports, SSR/render composition, and
-   TypeScript contract. Run relevant checks, resolve regressions, and leave a reviewable slice.
+1. Inspect git status and preserve unrelated edits. Inventory imports before replacing names.
+2. Record the API/token mapping, adapt the component and migrate every family consumer.
+3. Update stories and the complete MDX template, exports, affected patterns, migration docs and changelog.
+4. Review axis policy against actual native targets, state ownership, defaults and tracked axes.
+   Preserve unrelated policy entries. Generate declarations/matrix using scripts; never hand-edit evidence.
+5. Extend the packed consumer fixture for exports, SSR/render composition and TypeScript contracts.
+6. Run checks, resolve regressions, leave the slice ready for visual review, and update this handoff
+   with the completed family and next suggested selection. Do not start that next family automatically.
 
-Run commands from the repository root unless a command supplies a workspace:
+Run from the repository root:
 
 ```sh
 npm run typecheck -w packages/design-system
@@ -155,53 +163,55 @@ npm run ds:api:matrix
 npm run ds:api:check
 npm run ds:api:matrix:check
 npm run ds:check
-npm run test:a11y -w packages/design-system -- src/stories/components/Badge.stories.tsx
+npm run test:a11y -w packages/design-system -- src/stories/components/Separator.stories.tsx src/stories/components/Toggle.stories.tsx src/stories/components/Resizable.stories.tsx
 npm run build
 npm run build-storybook -w packages/design-system
 npm run test:consumer -w packages/design-system
 git diff --check
 ```
 
-Add affected consumer stories to the Storybook command; it already runs both light and dark
-projects. Broaden to the full suite when a shared change warrants it. If token sources change,
-run `npm run build:tokens -w packages/design-system` before the checks. Do not rerun successful
-checks repeatedly unless code changes or unresolved concerns justify it.
+The Storybook command runs light and dark projects. Add other affected stories; broaden when a
+shared change warrants it. Rebuild tokens first if token sources or their generator change.
+Do not repeat successful checks unless later edits or unresolved concerns require it.
 
-## Validation at the Breadcrumb handoff
+## Validation at the Badge handoff
 
-Passed: application/package TypeScript, package and scoped changed-file lint, 13 package tests,
-2 API-check tests, 7 application tests, API declaration/matrix freshness and story coverage,
-affected Storybook render/interaction/accessibility checks in both modes, production and
-Storybook builds, and packed ESM/SSR/NodeNext/Vite/Tailwind consumer validation. The initial
-affected Storybook run passed 94 checks; the final Breadcrumb/RecordHeader rerun passed 30
-checks after story cleanup and the new empty-parent example.
+Passed for the unified Badge: application/package TypeScript, package lint, scoped consumer
+lint, 15 package tests, 2 API tests, 7 application tests, and 476 affected Storybook checks
+across 38 story files in both modes. Visual review inspected eight screenshots covering the
+standard matrix, semantic matrix, tone/variant combinations and dense rows: 154 badges had
+correct 16px/20px heights, 12px icons, a shared pill radius and no clipped labels or browser
+errors. Captures are in `/private/tmp/badge-unified-qa`.
 
-Known baseline: full-repository lint reports 12 formatting errors in unchanged
-`src/hooks/use-mobile.ts` and `src/lib/utils.ts`, plus existing warnings. These were not introduced
-by Breadcrumb. Recheck the current state rather than assuming they remain; distinguish baseline
-issues from regressions and avoid unrelated formatting churn in a component slice.
+Also passed: final declaration/matrix generation and freshness, all 115 exports with story
+coverage and all 107 documentation pages on the template, production and Storybook builds,
+and packed ESM/SSR/NodeNext/Vite/Tailwind validation outside the workspace. The final focused
+Badge rerun passed 34 checks after render-owned label composition was verified. The packed
+fixture covers icon plus render-owned text, false/omitted icon content, accepted semantic
+options and rejected invalid tones, appearances and null/unsupported sizes. Working-tree
+whitespace checks pass.
 
-During commit preparation, unrelated unstaged deletions appeared under `docs/superpowers`,
-including the working copy of the generated API matrix JSON. Those deletions were kept outside
-the Breadcrumb commit. Inspect the next session's working tree before regenerating evidence or
-restoring historical files; generation can recreate a file the user deliberately removed. The
-passing validation above describes the completed Breadcrumb content before those deletions.
+Known baseline: full-repository lint still reports 12 formatting errors in unchanged
+`src/hooks/use-mobile.ts` and `src/lib/utils.ts`, plus 45 existing warnings. Package lint passes.
+These baseline errors are outside the Badge slice; avoid unrelated formatting churn.
 
-Environment notes: the interactive browser runtime was unavailable, so manual visual review
-was not claimed. Automated Chromium tests passed after sandbox access to a local loopback
-server was allowed. The packed-consumer test needed a writable npm cache; it passed using
-`npm_config_cache=/private/tmp/breadcrumb-npm-cache` with the necessary package-download access.
-Use a task-specific temporary cache if needed; do not change ownership of the user's npm folder.
-Permission restrictions are environment-specific, and test failures must not be silently skipped.
+Environment: the browser plugin initialized but returned no available browser; documented
+discovery also returned an empty list. Use automated Chromium checks and local screenshot QA
+when that remains the case. Npm registry access and local browser/server checks can require
+sandbox network permission. A task-specific writable cache (`/private/tmp/badge-npm-cache`)
+avoids changing the user's npm folder ownership. Report restricted checks honestly.
 
 ## Delivery and version control
 
-Report the component/API changes, visual or behavioral differences, tests actually run, any
-remaining baseline failures, and the local Storybook review link. Update this handoff with the
-next completed family and suggested following slice. Package version remains `0.6.0` with
-unreleased notes; no release is implied by local migration work.
+Report component/API changes, visual/behavior differences, actual tests and remaining baseline
+failures, and the local Storybook review links. Package version remains `0.6.0` with unreleased
+notes; no release is implied.
 
 The repository is connected to Lovable. Preserve published history: no force pushes or rewriting
-pushed commits. The user requested a local commit for the completed Breadcrumb slice and this
-handoff; pushing or releasing was not requested. Follow the next session's authorization for
-commits or publishing, and stage only the intended work.
+pushed commits. The Badge request and subsequent single-component correction authorize local implementation
+and this updated handoff;
+no commit, push, publication or release was requested. Preserve unrelated edits in overlays,
+scroll containment, shell/composer and base styles. Inspect the working tree afresh rather than
+assuming the prior session's unrelated changes are still present. The user staged changes
+during this correction; final working-tree updates may differ from that staged snapshot.
+Review both before committing. Stage only intended work if later authorized to commit.

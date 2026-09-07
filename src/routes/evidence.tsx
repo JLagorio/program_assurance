@@ -171,7 +171,9 @@ function Evidence() {
                     {cap.caption}
                   </Box>
                 </div>
-                <Badge tone={cap.tone}>{cap.state}</Badge>
+                <Badge variant="secondary" tone={cap.tone}>
+                  {cap.state}
+                </Badge>
               </Inline>
             </Card>
           ))}
@@ -204,7 +206,9 @@ function Evidence() {
                   <Table.Cell className="tabular-nums text-right">{file.size}</Table.Cell>
                   <Table.Cell>{file.added}</Table.Cell>
                   <Table.Cell className="text-right">
-                    <Badge tone={stateTone[file.state]}>{file.state}</Badge>
+                    <Badge variant="secondary" tone={stateTone[file.state]}>
+                      {file.state}
+                    </Badge>
                   </Table.Cell>
                 </Table.Row>
               ))}

@@ -643,7 +643,7 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
               trailing={
                 <>
                   {leaf ? (
-                    <Badge size="xsmall" tone="information">
+                    <Badge variant="secondary" size="xsmall" tone="information">
                       Scope
                     </Badge>
                   ) : (
@@ -690,7 +690,7 @@ function SystemsStep({ draft, dispatch }: { draft: ProgramDraft; dispatch: (a: A
                     }
                     trailing={
                       <>
-                        <Badge size="xsmall" tone="information">
+                        <Badge variant="secondary" size="xsmall" tone="information">
                           Scope
                         </Badge>
                         <Button
@@ -954,7 +954,12 @@ function ReviewStep({
                   <Table.Cell>
                     <Inline as="span" space="space.050" alignBlock="center">
                       {objectives.map((o) => (
-                        <Badge key={o} size="xsmall" tone={impactTone[triadOfParameters(p)[o]]}>
+                        <Badge
+                          variant="secondary"
+                          key={o}
+                          size="xsmall"
+                          tone={impactTone[triadOfParameters(p)[o]]}
+                        >
                           {triadOfParameters(p)[o][0]}
                         </Badge>
                       ))}
@@ -1045,7 +1050,12 @@ function WizardInspector({
         <KeyValue label="Default">
           <Inline as="span" space="space.050" alignBlock="center">
             {objectives.map((o) => (
-              <Badge key={o} size="xsmall" tone={impactTone[triadOfParameters(draft.defaults)[o]]}>
+              <Badge
+                variant="secondary"
+                key={o}
+                size="xsmall"
+                tone={impactTone[triadOfParameters(draft.defaults)[o]]}
+              >
                 {triadOfParameters(draft.defaults)[o][0]}
               </Badge>
             ))}

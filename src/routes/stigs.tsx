@@ -107,7 +107,9 @@ function StigLibrary() {
                     {b.appliedVersion === b.version ? (
                       <span className="text-subtle">{b.appliedVersion}</span>
                     ) : (
-                      <Badge tone="warning">{b.appliedVersion} behind</Badge>
+                      <Badge variant="secondary" tone="warning">
+                        {b.appliedVersion} behind
+                      </Badge>
                     )}
                   </Table.Cell>
                   <Table.Cell className="tabular-nums text-right">{b.rules}</Table.Cell>

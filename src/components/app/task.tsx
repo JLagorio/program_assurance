@@ -70,11 +70,11 @@ function ProductTaskRow({
   const done = state === "done";
   const badge =
     state === "waiting" ? (
-      <Badge size="xsmall" tone="information">
+      <Badge variant="secondary" size="xsmall" tone="information">
         {waitingOn ? `Waiting on ${waitingOn}` : "Waiting"}
       </Badge>
     ) : state === "blocked" ? (
-      <Badge size="xsmall" tone="danger">
+      <Badge variant="secondary" size="xsmall" tone="danger">
         Blocked
       </Badge>
     ) : null;

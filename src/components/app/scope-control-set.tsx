@@ -58,7 +58,7 @@ export function ScopeFacts({ scope, set }: { scope: AssessmentScope; set: ScopeS
     <>
       {objectives.map((o) => (
         <Fact key={o} label={o.slice(0, 1)}>
-          <Badge size="xsmall" tone={impactTone[triad[o]]}>
+          <Badge variant="secondary" size="xsmall" tone={impactTone[triad[o]]}>
             {triad[o]}
           </Badge>
         </Fact>
@@ -78,7 +78,7 @@ export function ScopeRailGroups({ scope }: { scope: AssessmentScope }) {
       <Inspector.Group title="Categorization">
         {objectives.map((o) => (
           <KeyValue key={o} label={o}>
-            <Badge size="xsmall" tone={impactTone[triad[o]]}>
+            <Badge variant="secondary" size="xsmall" tone={impactTone[triad[o]]}>
               {triad[o]}
             </Badge>
           </KeyValue>
@@ -152,7 +152,7 @@ export function ScopeControlSetTab({
                 <Table.Row key={o}>
                   <Table.Cell>{o}</Table.Cell>
                   <Table.Cell>
-                    <Badge size="xsmall" tone={impactTone[triad[o]]}>
+                    <Badge variant="secondary" size="xsmall" tone={impactTone[triad[o]]}>
                       {triad[o]}
                     </Badge>
                   </Table.Cell>

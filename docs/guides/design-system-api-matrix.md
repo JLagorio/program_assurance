@@ -457,7 +457,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/att
 | <code>size</code> | <code>"medium" \| "small" \| undefined</code><br>Literal values: <code>"medium", "small"</code> | Optional | <code>"small"</code> | `small` (28px) is the default, for toolbars and rows; `medium` (32px) sits beside medium controls. **Reviewed:** `small` (28px) is the default, for toolbars and rows; `medium` (32px) sits beside medium controls. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
 | <code>style</code> | <code>React.CSSProperties \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. |
 | <code>value</code> | <code>string \| number \| readonly string[] \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Native button value forwarded to a compatible interactive target; no internal input or selection state. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
-| <code>variant</code> | <code>"subtle" \| "primary" \| "secondary" \| undefined</code><br>Literal values: <code>"subtle", "primary", "secondary"</code> | Optional | <code>"subtle"</code> | `secondary` is the raised button; `subtle` sits in toolbars and rows; `primary` is the bold fill, for the chevron of a primary split button. **Reviewed:** `secondary` is the raised button; `subtle` sits in toolbars and rows; `primary` is the bold fill, for the chevron of a primary split button. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
+| <code>variant</code> | <code>"subtle" \| "secondary" \| "primary" \| undefined</code><br>Literal values: <code>"subtle", "secondary", "primary"</code> | Optional | <code>"subtle"</code> | `secondary` is the raised button; `subtle` sits in toolbars and rows; `primary` is the bold fill, for the chevron of a primary split button. **Reviewed:** `secondary` is the raised button; `subtle` sits in toolbars and rows; `primary` is the bold fill, for the chevron of a primary split button. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
 
 ### Attachment.Actions
 
@@ -882,38 +882,39 @@ Reviewed implementation sources: <code>packages/design-system/src/components/ava
 
 ### Badge
 
-Source: <code>packages/design-system/src/components/badge.tsx:78</code>. 263 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/badge.tsx:170</code>. 265 additional inherited props are retained in JSON.
 
-DOM target: **reviewed** — span receives remaining native span attributes and events; no ref in ComponentPropsWithoutRef..
+DOM target: **reviewed** — Native span by default, with native attributes, events, styles and HTMLSpanElement ref. Base UI render accepts an element or callback; a custom component must forward merged props/ref. Anchor-specific attributes and anchor refs belong on the rendered link..
 
-Control: **reviewed** — Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.
+Control: **reviewed** — Stateless presentation and composition for labels and statuses. The caller owns content, navigation and any status changes. No selection, checked, disabled, dismissible or live-region behavior is inferred.
 
-Runtime defaults: **reviewed** — tone=neutral, appearance=subtle, size=small (20px); xsmall is 16px. icon is a rendered node, not a constructor. Native defaultValue/defaultChecked do not create badge state.
+Runtime defaults: **reviewed** — variant=default, resolved tone=brand, appearance=bold, size=small (20px). Secondary defaults neutral/subtle; destructive defaults danger/subtle. Explicit tone changes only palette and appearance overrides emphasis for filled treatments. Outline/ghost/link retain their unfilled treatment. xsmall is 16px. All share pill anatomy, icon children or a leading icon shorthand, and data-slot=badge with resolved variant/tone/appearance/size axes. Base UI composes rendered-element props, styles, classes, events and refs.
 
-Reviewed implementation sources: <code>packages/design-system/src/components/badge.tsx</code>
+Reviewed implementation sources: <code>packages/design-system/src/components/badge.tsx</code>, <code>packages/design-system/src/lib/status-tone.ts</code>, <code>packages/design-system/build/tokens.mjs</code>
 
 | Prop | Type / values | Presence | Parameter default | Meaning / reviewed exception |
 | --- | --- | --- | --- | --- |
-| <code>appearance</code> | <code>"subtle" \| "bold"</code><br>Literal values: <code>"subtle", "bold"</code> | Optional | <code>"subtle"</code> | `subtle` is the tinted fill with the tone's text; `bold` is the solid fill for the one status that must win. **Reviewed:** Fill emphasis: subtle or bold, independent of semantic tone. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
+| <code>appearance</code> | <code>BadgeAppearance \| undefined</code><br>Literal values: <code>"subtle", "bold"</code> | Optional | No parameter initializer | Overrides the subtle or bold fill on default, secondary and destructive variants. **Reviewed:** Optional subtle or bold emphasis for filled variants. Defaults derive from variant. Outline, ghost and link retain their unfilled treatment regardless of appearance. **Migration:** Retain explicit bold/subtle status choices on Badge, with secondary selecting the usual subtle status treatment by default. |
 | <code>aria-describedby</code> | <code>string \| undefined</code> | Optional | No parameter initializer | Identifies the element (or elements) that describes the object. |
 | <code>aria-label</code> | <code>string \| undefined</code> | Optional | No parameter initializer | Defines a string value that labels the current element. |
 | <code>aria-labelledby</code> | <code>string \| undefined</code> | Optional | No parameter initializer | Identifies the element (or elements) that labels the current element. |
-| <code>children</code> | <code>ReactNode</code><br>Literal values: <code>false, true</code> | Required | Caller required | One or two words in sentence case: the state. |
 | <code>className</code> | <code>string \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. |
-| <code>defaultChecked</code> | <code>boolean \| undefined</code><br>Literal values: <code>false, true</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Inherited React DOM attribute forwarded to the rendered target. On these presentation/button elements it does not create checked or editable state. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
-| <code>defaultValue</code> | <code>string \| number \| readonly string[] \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Inherited React DOM attribute forwarded to the rendered target. On these presentation/button elements it does not create checked or editable state. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
+| <code>defaultChecked</code> | <code>boolean \| undefined</code><br>Literal values: <code>false, true</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Inherited React DOM attribute forwarded to the rendered target. On these presentation/button elements it does not create checked or editable state. **Migration:** Preserve native DOM semantics on the actual element; Badge adds no input or selection state. Anchor-specific attributes belong on the element passed through render. |
+| <code>defaultValue</code> | <code>string \| number \| readonly string[] \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Inherited React DOM attribute forwarded to the rendered target. On these presentation/button elements it does not create checked or editable state. **Migration:** Preserve native DOM semantics on the actual element; Badge adds no input or selection state. Anchor-specific attributes belong on the element passed through render. |
 | <code>dir</code> | <code>string \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. |
-| <code>icon</code> | <code>ReactNode</code><br>Literal values: <code>false, true</code> | Optional | No parameter initializer | A 12px icon before the word, rarely: when the word alone is ambiguous. **Reviewed:** A 12px icon before the word, rarely: when the word alone is ambiguous. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
-| <code>id</code> | <code>string \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Native DOM id forwarded to the rendered target described above; it is not displayed record content. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
-| <code>onChange</code> | <code>React.ChangeEventHandler&lt;HTMLSpanElement, Element&gt; \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Inherited React DOM onChange event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
-| <code>onDurationChange</code> | <code>React.ReactEventHandler&lt;HTMLSpanElement&gt; \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Inherited React DOM onDurationChange event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
-| <code>onRateChange</code> | <code>React.ReactEventHandler&lt;HTMLSpanElement&gt; \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Inherited React DOM onRateChange event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
-| <code>onSelect</code> | <code>React.ReactEventHandler&lt;HTMLSpanElement&gt; \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Inherited React DOM onSelect event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
-| <code>onVolumeChange</code> | <code>React.ReactEventHandler&lt;HTMLSpanElement&gt; \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Inherited React DOM onVolumeChange event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
+| <code>icon</code> | <code>ReactNode</code><br>Literal values: <code>false, true</code> | Optional | No parameter initializer | An optional leading icon. Explicit icon children and their position attributes also work. **Reviewed:** Optional ReactNode rendered before the label as an icon shorthand. Icons can also be explicit children; callers provide accessible text and hide decorative marks. **Migration:** Keep existing icon content on Badge or compose positioned icon children. No separate status component is required. |
+| <code>id</code> | <code>string \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Native DOM id forwarded to the rendered target described above; it is not displayed record content. **Migration:** Preserve native DOM semantics on the actual element; Badge adds no input or selection state. Anchor-specific attributes belong on the element passed through render. |
+| <code>onChange</code> | <code>React.ChangeEventHandler&lt;HTMLSpanElement, Element&gt; \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Inherited React DOM onChange event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change. **Migration:** Preserve native DOM semantics on the actual element; Badge adds no input or selection state. Anchor-specific attributes belong on the element passed through render. |
+| <code>onDurationChange</code> | <code>React.ReactEventHandler&lt;HTMLSpanElement&gt; \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Inherited React DOM onDurationChange event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change. **Migration:** Preserve native DOM semantics on the actual element; Badge adds no input or selection state. Anchor-specific attributes belong on the element passed through render. |
+| <code>onRateChange</code> | <code>React.ReactEventHandler&lt;HTMLSpanElement&gt; \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Inherited React DOM onRateChange event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change. **Migration:** Preserve native DOM semantics on the actual element; Badge adds no input or selection state. Anchor-specific attributes belong on the element passed through render. |
+| <code>onSelect</code> | <code>React.ReactEventHandler&lt;HTMLSpanElement&gt; \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Inherited React DOM onSelect event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change. **Migration:** Preserve native DOM semantics on the actual element; Badge adds no input or selection state. Anchor-specific attributes belong on the element passed through render. |
+| <code>onVolumeChange</code> | <code>React.ReactEventHandler&lt;HTMLSpanElement&gt; \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Inherited React DOM onVolumeChange event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change. **Migration:** Preserve native DOM semantics on the actual element; Badge adds no input or selection state. Anchor-specific attributes belong on the element passed through render. |
+| <code>ref</code> | <code>React.Ref&lt;HTMLSpanElement&gt; \| undefined</code> | Optional | No parameter initializer | Allows getting a ref to the component instance.<br>Once the component unmounts, React will set `ref.current` to `null`<br>(or call the ref with `null` if you passed a callback ref). |
 | <code>role</code> | <code>React.AriaRole \| undefined</code><br>Literal values: <code>"row", "article", "main", "form", "figure", "button", "dialog", "img", "link", "menu", "menuitem", "option", "search", "table", "switch", "none", "checkbox", "listbox", "radio", "region", "cell", "grid", "math", "listitem", "menubar", "progressbar", "separator", "tab", "tabpanel", "toolbar", "tooltip", "treeitem", "scrollbar", "alert", "alertdialog", "application", "banner", "columnheader", "combobox", "complementary", "contentinfo", "definition", "directory", "document", "feed", "gridcell", "group", "heading", "list", "log", "marquee", "menuitemcheckbox", "menuitemradio", "navigation", "note", "presentation", "radiogroup", "rowgroup", "rowheader", "searchbox", "slider", "spinbutton", "status", "tablist", "term", "textbox", "timer", "tree", "treegrid"</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. |
-| <code>size</code> | <code>"xsmall" \| "small"</code><br>Literal values: <code>"xsmall", "small"</code> | Optional | <code>"small"</code> | `small` is 20px, the default; `xsmall` is 16px, for a table row or a tab. **Reviewed:** `small` is 20px, the default; `xsmall` is 16px, for a table row or a tab. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
+| <code>size</code> | <code>"xsmall" \| "small" \| undefined</code><br>Literal values: <code>"xsmall", "small"</code> | Optional | <code>"small"</code> | Small is 20px; xsmall is 16px for dense rows and tabs. **Reviewed:** small (20px) or xsmall (16px) density, independent of palette. All variants and tones use the same pill anatomy. **Migration:** Retain xsmall for dense rows and tabs. The unified Badge uses the shadcn pill shape for statuses as well as generic labels. |
 | <code>style</code> | <code>React.CSSProperties \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. |
-| <code>tone</code> | <code>Tone \| undefined</code><br>Literal values: <code>"neutral", "danger", "warning", "success", "information"</code> | Optional | <code>"neutral"</code> | The status the word carries, from the tone table. `neutral` is the default, and a category or a kind is always neutral. **Reviewed:** Semantic tone from the component allowed union; neutral is not a category hue. Uses the family tone styling described above. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
+| <code>tone</code> | <code>BadgeTone \| undefined</code><br>Literal values: <code>"neutral", "danger", "warning", "success", "information", "brand"</code> | Optional | No parameter initializer | Overrides the variant's palette. Brand, or one of the five semantic status tones. **Reviewed:** Badge palette: brand plus neutral, information, success, warning and danger. Defaults derive from variant. Tone affects color rather than anatomy, density or fill emphasis. **Migration:** Keep status meaning on Badge. Former neutral labels explicitly choose neutral; the shared Tone type for other families remains unchanged. |
+| <code>variant</code> | <code>"default" \| "link" \| "secondary" \| "destructive" \| "outline" \| "ghost" \| null \| undefined</code><br>Literal values: <code>"default", "link", "secondary", "destructive", "outline", "ghost"</code> | Optional | <code>"default"</code> | No source JSDoc; not semantically reviewed. **Reviewed:** Visual treatment: default, secondary, destructive, outline, ghost or link. Variant chooses the default palette and fill emphasis; explicit tone changes palette without changing treatment or geometry. **Migration:** Use the same Badge for standard and semantic labels. Existing subtle status labels select secondary and retain tone; generic Badge defaults to the shadcn brand/bold treatment. |
 
 ### Banner
 
@@ -1290,7 +1291,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/but
 | <code>size</code> | <code>ButtonSize \| undefined</code><br>Literal values: <code>"medium", "xsmall", "small"</code> | Optional | <code>"medium"</code> | `medium` (32px) for forms and pages, `small` (28px) for toolbars, rows and rails, `xsmall` (24px) for the densest chrome. `link` has no size. **Reviewed:** Control height: xsmall 24px, small 28px, medium 32px; link presentation has automatic height. **Migration:** Keep the documented exception for link rather than claiming size affects every variant identically. |
 | <code>style</code> | <code>React.CSSProperties \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. |
 | <code>value</code> | <code>string \| number \| readonly string[] \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Native button value forwarded to a compatible interactive target; no internal input or selection state. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
-| <code>variant</code> | <code>ButtonVariant \| undefined</code><br>Literal values: <code>"danger", "subtle", "link", "primary", "secondary"</code> | Optional | <code>"secondary"</code> | The emphasis. `secondary` is the default; at most one `primary` per view. **Reviewed:** Action emphasis: primary, secondary, subtle, danger, or link. danger intentionally combines destructive meaning with the action recipe. **Migration:** Retain this established action API. Splitting danger into a tone requires an explicit combination matrix and compatibility period, not a global rename. |
+| <code>variant</code> | <code>ButtonVariant \| undefined</code><br>Literal values: <code>"danger", "subtle", "link", "secondary", "primary"</code> | Optional | <code>"secondary"</code> | The emphasis. `secondary` is the default; at most one `primary` per view. **Reviewed:** Action emphasis: primary, secondary, subtle, danger, or link. danger intentionally combines destructive meaning with the action recipe. **Migration:** Retain this established action API. Splitting danger into a tone requires an explicit combination matrix and compatibility period, not a global rename. |
 
 ### ButtonGroup
 
@@ -1971,7 +1972,7 @@ Reviewed implementation sources: <code>packages/design-system/src/patterns/data-
 
 ### Combobox
 
-Source: <code>packages/design-system/src/components/combobox.tsx:498</code>. 281 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:501</code>. 281 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Editable native input role=combobox receives id, native attributes/events and HTMLInputElement ref, including Field bindings. className/style/width target the surrounding input group. Base UI hidden input owns name/form/selected value and visible focus-target association. Popup contains only options and empty state..
 
@@ -2016,7 +2017,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.Chip
 
-Source: <code>packages/design-system/src/components/combobox.tsx:513</code>. 264 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:516</code>. 264 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Native div for a selected value in the Root multiple-selection context. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks..
 
@@ -2045,7 +2046,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.ChipRemove
 
-Source: <code>packages/design-system/src/components/combobox.tsx:514</code>. 272 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:517</code>. 272 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Native button removing its enclosing chip’s selection. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks..
 
@@ -2077,7 +2078,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.Chips
 
-Source: <code>packages/design-system/src/components/combobox.tsx:512</code>. 264 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:515</code>. 264 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Native div anchoring and laying out selected chips and input. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks..
 
@@ -2106,7 +2107,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.Clear
 
-Source: <code>packages/design-system/src/components/combobox.tsx:515</code>. 273 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:518</code>. 273 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Native button clearing the Root selection and query. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks..
 
@@ -2138,7 +2139,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.Collection
 
-Source: <code>packages/design-system/src/components/combobox.tsx:509</code>. 1 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:512</code>. 1 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — No wrapper DOM node or DOM ref; renders the current filtered collection through children..
 
@@ -2153,7 +2154,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.Content
 
-Source: <code>packages/design-system/src/components/combobox.tsx:503</code>. 267 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:506</code>. 267 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Native Base UI Popup div; props/ref target Popup, not Positioner or Portal. A hidden local marker locates an enclosing dialog. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks..
 
@@ -2188,7 +2189,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.Empty
 
-Source: <code>packages/design-system/src/components/combobox.tsx:506</code>. 264 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:509</code>. 264 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Native div with Base UI’s polite live-region semantics. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks..
 
@@ -2217,7 +2218,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.Group
 
-Source: <code>packages/design-system/src/components/combobox.tsx:507</code>. 265 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:510</code>. 265 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Native div role=group with label association supplied by GroupLabel. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks..
 
@@ -2246,7 +2247,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.GroupLabel
 
-Source: <code>packages/design-system/src/components/combobox.tsx:508</code>. 264 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:511</code>. 264 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Native div providing the enclosing group’s accessible label. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks..
 
@@ -2275,7 +2276,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.Input
 
-Source: <code>packages/design-system/src/components/combobox.tsx:500</code>. 287 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:503</code>. 287 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Native input, including input ref; Field bindings attach to the editable control outside Content. The shorthand’s popup input has its own search name. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks..
 
@@ -2311,7 +2312,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.InputGroup
 
-Source: <code>packages/design-system/src/components/combobox.tsx:501</code>. 264 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:504</code>. 264 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Native div grouping the input and optional buttons. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks..
 
@@ -2340,7 +2341,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.Item
 
-Source: <code>packages/design-system/src/components/combobox.tsx:505</code>. 267 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:508</code>. 267 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Native div role=option; Base UI owns its generated ID and exposes no id override. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks..
 
@@ -2369,7 +2370,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.List
 
-Source: <code>packages/design-system/src/components/combobox.tsx:504</code>. 264 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:507</code>. 264 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Native div role=listbox with Base UI-generated relationship ID. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks..
 
@@ -2398,7 +2399,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.Root
 
-Source: <code>packages/design-system/src/components/combobox.tsx:499</code>. 28 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:502</code>. 28 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — No wrapper DOM node or DOM ref. inputRef targets Base UI’s hidden native form input; name/form apply there..
 
@@ -2424,7 +2425,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.Separator
 
-Source: <code>packages/design-system/src/components/combobox.tsx:511</code>. 265 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:514</code>. 265 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Native div with Base UI separator semantics. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks..
 
@@ -2453,7 +2454,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.Status
 
-Source: <code>packages/design-system/src/components/combobox.tsx:516</code>. 264 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:519</code>. 264 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Native div with Base UI’s polite status/live-region semantics. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks..
 
@@ -2482,7 +2483,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.Trigger
 
-Source: <code>packages/design-system/src/components/combobox.tsx:502</code>. 272 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:505</code>. 272 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Native button that opens/toggles Root’s popup. Native DOM attributes, events and refs target this part. Base UI render replaces that target and must preserve its semantic element, ref and merged props; className/style accept state callbacks..
 
@@ -2514,7 +2515,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/com
 
 ### Combobox.Value
 
-Source: <code>packages/design-system/src/components/combobox.tsx:510</code>. 2 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/combobox.tsx:513</code>. 2 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — No wrapper DOM node or DOM ref; renders selected values or a render-function result..
 
@@ -2901,7 +2902,7 @@ Reviewed implementation sources: <code>packages/design-system/src/patterns/compo
 
 ### Count
 
-Source: <code>packages/design-system/src/components/badge.tsx:122</code>. 263 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/badge.tsx:244</code>. 263 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — span receives native span attributes and events; no ref in the public type..
 
@@ -3172,7 +3173,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/dia
 
 ### Dot
 
-Source: <code>packages/design-system/src/components/badge.tsx:146</code>. 0 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/badge.tsx:268</code>. 0 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — SVG circle: supplied label makes a named image; otherwise aria-hidden. No native prop/ref bag..
 
@@ -3733,7 +3734,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/but
 | <code>size</code> | <code>"medium" \| "small" \| undefined</code><br>Literal values: <code>"medium", "small"</code> | Optional | <code>"small"</code> | `small` (28px) is the default, for toolbars and rows; `medium` (32px) sits beside medium controls. **Reviewed:** `small` (28px) is the default, for toolbars and rows; `medium` (32px) sits beside medium controls. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
 | <code>style</code> | <code>React.CSSProperties \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. |
 | <code>value</code> | <code>string \| number \| readonly string[] \| undefined</code> | Optional | No parameter initializer | No source JSDoc; not semantically reviewed. **Reviewed:** Native button value forwarded to a compatible interactive target; no internal input or selection state. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
-| <code>variant</code> | <code>"subtle" \| "primary" \| "secondary" \| undefined</code><br>Literal values: <code>"subtle", "primary", "secondary"</code> | Optional | <code>"secondary"</code> | `secondary` is the raised button; `subtle` sits in toolbars and rows; `primary` is the bold fill, for the chevron of a primary split button. **Reviewed:** `secondary` is the raised button; `subtle` sits in toolbars and rows; `primary` is the bold fill, for the chevron of a primary split button. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
+| <code>variant</code> | <code>"subtle" \| "secondary" \| "primary" \| undefined</code><br>Literal values: <code>"subtle", "secondary", "primary"</code> | Optional | <code>"secondary"</code> | `secondary` is the raised button; `subtle` sits in toolbars and rows; `primary` is the bold fill, for the chevron of a primary split button. **Reviewed:** `secondary` is the raised button; `subtle` sits in toolbars and rows; `primary` is the bold fill, for the chevron of a primary split button. **Migration:** Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename. |
 
 ### Id
 
@@ -3790,7 +3791,7 @@ Reviewed implementation sources: <code>packages/design-system/src/patterns/arche
 
 ### Indicator
 
-Source: <code>packages/design-system/src/components/badge.tsx:173</code>. 263 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/badge.tsx:295</code>. 263 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — span receives native span attributes and events; nested Dot is decorative. No public ref..
 
@@ -4913,7 +4914,7 @@ Reviewed implementation sources: <code>packages/design-system/src/patterns/secti
 
 ### Select
 
-Source: <code>packages/design-system/src/components/select.tsx:185</code>. 267 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/select.tsx:187</code>. 267 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Radix visible trigger button receives id, aria attributes, native events, style and React 19 ref; hidden native select owned by Radix carries form value. className targets trigger..
 
@@ -4955,7 +4956,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/sel
 
 ### Select.Group
 
-Source: <code>packages/design-system/src/components/select.tsx:187</code>. 0 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/select.tsx:189</code>. 0 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Radix group div with generated association to its label. No arbitrary DOM/ref API..
 
@@ -4972,7 +4973,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/sel
 
 ### Select.Item
 
-Source: <code>packages/design-system/src/components/select.tsx:186</code>. 0 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/select.tsx:188</code>. 0 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Radix option div with nested ItemText and decorative check; className targets option. No arbitrary DOM/ref API..
 
@@ -4991,7 +4992,7 @@ Reviewed implementation sources: <code>packages/design-system/src/components/sel
 
 ### Select.Separator
 
-Source: <code>packages/design-system/src/components/select.tsx:188</code>. 0 additional inherited props are retained in JSON.
+Source: <code>packages/design-system/src/components/select.tsx:190</code>. 0 additional inherited props are retained in JSON.
 
 DOM target: **reviewed** — Radix separator div inside Select content; no public props or ref..
 

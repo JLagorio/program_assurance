@@ -403,8 +403,13 @@ const composed = [
   outline: var(--ds-border-width-focused) solid var(--ds-color-border-focused);
   outline-offset: var(--ds-space-025);
 }`,
+  `/* The danger-state counterpart to outline-focused, using the same token geometry. */
+@utility outline-danger {
+  outline: var(--ds-border-width-focused) solid var(--ds-color-border-danger);
+  outline-offset: var(--ds-space-025);
+}`,
 ];
-allClasses.push("outline-focused");
+allClasses.push("outline-focused", "outline-danger");
 fs.writeFileSync(
   path.join(outDir, "utilities.css"),
   header("one utility per token, on its own property") +

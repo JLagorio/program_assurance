@@ -63,7 +63,9 @@ function Plain({ density }: { density?: "default" | "compact" | undefined }) {
             <Table.Id id={c.id} />
             <Table.Cell>{c.name}</Table.Cell>
             <Table.Cell>
-              <Badge tone={tone[c.status]}>{c.status}</Badge>
+              <Badge variant="secondary" tone={tone[c.status]}>
+                {c.status}
+              </Badge>
             </Table.Cell>
           </Table.Row>
         ))}

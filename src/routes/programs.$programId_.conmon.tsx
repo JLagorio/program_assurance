@@ -262,7 +262,9 @@ function ProgramConMon() {
             meta={`As of ${conmonAsOfLabel} · ${alerts.length} alert${alerts.length === 1 ? "" : "s"}${urgent > 0 ? ` (${urgent} critical or high)` : ""} · drift ${drift.score}/100${appliedWeight < 100 ? ` on ${appliedWeight} of 100 points of weight — read the band as a floor` : ""}`}
             actions={
               <>
-                <Badge tone="neutral">Drift {drift.score}</Badge>
+                <Badge variant="secondary" tone="neutral">
+                  Drift {drift.score}
+                </Badge>
                 <DriftBandChip band={drift.band} provisional={appliedWeight < 100} />
                 <TextLink size="small">
                   <Link to="/programs/$programId/baseline" params={{ programId: program.id }}>
@@ -560,7 +562,7 @@ function CountStrip({
     >
       {items.map((item) => (
         <Inline key={item.label} as="span" space="space.075" alignBlock="center">
-          <Badge size="xsmall" tone={item.count > 0 ? item.tone : "neutral"}>
+          <Badge variant="secondary" size="xsmall" tone={item.count > 0 ? item.tone : "neutral"}>
             {item.label}
           </Badge>
           <span

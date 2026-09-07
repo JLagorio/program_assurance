@@ -103,7 +103,11 @@ function TaskPage() {
                 save={async (next) => renameTask(task.id, next, me)}
               />
             }
-            meta={<Badge tone={stateTone(task.state)}>{task.state}</Badge>}
+            meta={
+              <Badge variant="secondary" tone={stateTone(task.state)}>
+                {task.state}
+              </Badge>
+            }
             actions={
               <Button
                 variant={done ? "secondary" : "primary"}

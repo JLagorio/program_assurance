@@ -128,10 +128,10 @@ export function RmfTimeline({
                       <span className="min-w-0 flex-1 truncate font-body-small font-medium">
                         {g.name}
                       </span>
-                      <Badge tone={gateKindTone[g.kind]} size="xsmall">
+                      <Badge variant="secondary" tone={gateKindTone[g.kind]} size="xsmall">
                         {g.kind}
                       </Badge>
-                      <Badge tone={tone} size="xsmall">
+                      <Badge variant="secondary" tone={tone} size="xsmall">
                         {g.status}
                       </Badge>
                       <span className="tabular-nums shrink-0 text-right font-body-small text-subtle w-1000">
@@ -264,7 +264,7 @@ export function GateOutlookSection({
               </Table.Cell>
               <Table.Cell className="truncate">{gate.name}</Table.Cell>
               <Table.Cell width={100}>
-                <Badge tone={tone} size="xsmall">
+                <Badge variant="secondary" tone={tone} size="xsmall">
                   {gate.status}
                 </Badge>
               </Table.Cell>
