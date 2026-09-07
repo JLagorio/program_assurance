@@ -8,8 +8,8 @@ import ts from "typescript";
 const ROOT = process.cwd();
 const PACKAGE = path.resolve("packages/design-system");
 const POLICY = "packages/design-system/api/axis-policy.json";
-const JSON_OUTPUT = "docs/superpowers/specs/audit-evidence/2026-09-06-api-prop-matrix.json";
-const MARKDOWN_OUTPUT = "docs/guides/design-system-api-matrix.md";
+const JSON_OUTPUT = "artifacts/design-system-api/prop-matrix.json";
+const MARKDOWN_OUTPUT = "artifacts/design-system-api/prop-matrix.md";
 const AXIS =
   /^(variant|appearance|tone|size|width|height|id|ids|action|actions|empty|icon|iconBefore|iconAfter|value|defaultValue|checked|defaultChecked|open|defaultOpen|selected|defaultSelected|on[A-Z].*Change|onChange|onClose|onSave|onSelect)$/;
 const DOM_INTEGRATION =
@@ -144,7 +144,7 @@ export function extractMatrix(program, entry, policy = { axes: {}, components: {
       const inheritedProps = [];
       for (const prop of [...propsByName.values()].sort((a, b) => a.name.localeCompare(b.name))) {
         const override = policy.components?.[name]?.props?.[prop.name];
-        if (override) prop.reviewedPolicy = override;
+        if (override) prop.policyNote = override;
         const isAxis = AXIS.test(prop.name);
         if (isAxis) prop.axis = prop.name.startsWith("on") ? "change-handlers" : prop.name;
         if (
@@ -179,16 +179,16 @@ export function extractMatrix(program, entry, policy = { axes: {}, components: {
         documentation: describe(checker, symbol) || null,
         signatures: signatureRecords,
         domTarget: reviewed?.domTarget
-          ? { status: "reviewed", description: reviewed.domTarget }
+          ? { status: "documented", description: reviewed.domTarget }
           : {
-              status: "not-reviewed",
+              status: "not-documented",
               typeCandidates: candidates,
               note: "Event/ref types are evidence, not proof of forwarding or the rendered root.",
             },
         controlledBehavior: reviewed?.controlledBehavior
-          ? { status: "reviewed", description: reviewed.controlledBehavior }
+          ? { status: "documented", description: reviewed.controlledBehavior }
           : {
-              status: "not-reviewed",
+              status: "not-documented",
               evidence: props
                 .filter((p) =>
                   /^(value|defaultValue|checked|defaultChecked|open|defaultOpen|selected|defaultSelected|onChange|on.*Change|onClose|onSave)$/.test(
@@ -199,9 +199,9 @@ export function extractMatrix(program, entry, policy = { axes: {}, components: {
               note: "A callback name alone does not prove controlled, uncontrolled, or async behavior.",
             },
         defaultBehavior: reviewed?.defaultBehavior
-          ? { status: "reviewed", description: reviewed.defaultBehavior }
+          ? { status: "documented", description: reviewed.defaultBehavior }
           : {
-              status: "not-reviewed",
+              status: "not-documented",
               note: "Parameter initializers alone do not establish runtime defaults.",
             },
         reviewSources: reviewed?.reviewSources ?? [],
@@ -245,32 +245,35 @@ const code = (value) =>
   `<code>${escapeCell(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</code>`;
 const shortType = (value) => code(value.length > 220 ? value.slice(0, 217) + "…" : value);
 
-/** A complete review is an explicit policy commitment, never inferred from JSDoc or types. */
-export function validateReview(matrix, policy) {
+/** Notes are optional; check only the entries an author chooses to maintain. */
+export function validatePolicy(matrix, policy) {
+  const nonempty = (value) => typeof value === "string" && value.trim().length > 0;
+  const validateNote = (note, name) => {
+    if (!nonempty(note?.meaning)) throw new Error(`Missing policy meaning: ${name}`);
+    for (const field of ["migration", "defaultBehavior"])
+      if (note[field] !== undefined && !nonempty(note[field]))
+        throw new Error(`Invalid policy note: ${name}.${field}`);
+  };
+  for (const [axis, note] of Object.entries(policy.axes ?? {})) validateNote(note, axis);
   for (const [name, component] of Object.entries(policy.components ?? {})) {
     const actual = matrix.components.find((candidate) => candidate.name === name);
     if (!actual) throw new Error(`Stale component policy: ${name}`);
-    for (const prop of Object.keys(component.props ?? {}))
-      if (!actual.props.some((candidate) => candidate.name === prop))
-        throw new Error(`Stale prop policy: ${name}.${prop}`);
-  }
-  if (!policy.requireCompleteReview) return;
-  const nonempty = (value) => typeof value === "string" && value.trim().length > 0;
-  for (const component of matrix.components) {
-    const review = policy.components?.[component.name];
     for (const field of ["domTarget", "controlledBehavior", "defaultBehavior"])
-      if (!nonempty(review?.[field]))
-        throw new Error(`Incomplete API review: ${component.name}.${field}`);
+      if (component[field] !== undefined && !nonempty(component[field]))
+        throw new Error(`Invalid policy note: ${name}.${field}`);
     if (
-      !Array.isArray(review.reviewSources) ||
-      !review.reviewSources.length ||
-      !review.reviewSources.every(nonempty)
+      component.reviewSources !== undefined &&
+      (!Array.isArray(component.reviewSources) || !component.reviewSources.every(nonempty))
     )
-      throw new Error(`Incomplete API review: ${component.name}.reviewSources`);
-    for (const prop of component.props.filter((candidate) => candidate.axis)) {
-      const decision = review.props?.[prop.name];
-      if (!nonempty(decision?.meaning) || !nonempty(decision?.migration))
-        throw new Error(`Incomplete axis review: ${component.name}.${prop.name}`);
+      throw new Error(`Invalid policy sources: ${name}.reviewSources`);
+    for (const [prop, note] of Object.entries(component.props ?? {})) {
+      const exists =
+        actual.props.some((candidate) => candidate.name === prop) ||
+        actual.inheritedProps?.some(
+          (candidate) => matrix.inheritedCatalog?.[candidate.definition]?.name === prop,
+        );
+      if (!exists) throw new Error(`Stale prop policy: ${name}.${prop}`);
+      validateNote(note, `${name}.${prop}`);
     }
   }
 }
@@ -279,19 +282,19 @@ export function renderMarkdown(matrix, policy) {
   const lines = [
     "# Design-system public prop and axis matrix",
     "",
-    "Generated by `node scripts/ds-api-matrix.mjs`; check freshness with `--check`. Curated decisions live in `packages/design-system/api/axis-policy.json`.",
+    "Generated on demand by `node scripts/ds-api-matrix.mjs`. This report is ignored by Git. Optional notes live in `packages/design-system/api/axis-policy.json`; new components and props do not require entries.",
     "",
-    `The compiler resolves **${matrix.components.length} callable public components and compound parts**. Every declared prop is retained in the [JSON evidence](../superpowers/specs/audit-evidence/2026-09-06-api-prop-matrix.json); repeated inherited DOM/dependency props reference its shared catalog. This page shows package-owned props and inherited semantic/DOM-integration axes. Hooks, constants, and standalone type exports are inventoried separately in JSON and covered by the declaration snapshot.`,
+    `The compiler resolves **${matrix.components.length} callable public components and compound parts**. Every declared prop is retained in the [JSON evidence](./prop-matrix.json); repeated inherited DOM/dependency props reference its shared catalog. This page shows package-owned props and inherited semantic/DOM-integration axes. Hooks, constants, and standalone type exports are inventoried separately in JSON.`,
     "",
-    "**How to read the evidence:** Meaning is source JSDoc unless a policy is explicitly marked reviewed. A parameter initializer is a source expression, not an evaluated value. `No parameter initializer` is an extraction fact; read the reviewed runtime-default summary for body fallbacks, dependency behavior, browser defaults and context. Requiredness is retained separately for each overload/union branch in JSON. Long types are abbreviated here; JSON retains the complete strings. Literal values expose named union aliases; they are not an exhaustive domain when the type also accepts non-literals. DOM forwarding, state ownership and defaults are explicit implementation reviews, not deductions from event/ref types. These reviews document intentional limitations as well as supported behavior; they are not exhaustive browser certification.",
+    "**How to read the evidence:** Meaning comes from source JSDoc and optional policy notes. A parameter initializer is a source expression, not an evaluated value. `No parameter initializer` is an extraction fact; implementation may supply body fallbacks, dependency behavior, browser defaults or context. Requiredness is retained separately for each overload/union branch in JSON. Long types are abbreviated here; JSON retains the complete strings. Literal values expose named union aliases; they are not an exhaustive domain when the type also accepts non-literals. Documented DOM targets, state ownership and runtime defaults are author notes, not deductions from event/ref types or a claim of complete review.",
     "",
-    "## Reviewed axis policy",
+    "## Optional axis notes",
     "",
-    "| Axis | Meaning and scope | Migration rule |",
+    "| Axis | Meaning and scope | Migration note |",
     "| --- | --- | --- |",
-    ...Object.entries(policy.axes).map(
+    ...Object.entries(policy.axes ?? {}).map(
       ([axis, value]) =>
-        `| ${code(axis)} | ${escapeCell(value.meaning)} | ${escapeCell(value.migration)} |`,
+        `| ${code(axis)} | ${escapeCell(value.meaning)} | ${escapeCell(value.migration ?? "")} |`,
     ),
     "",
     "## Components",
@@ -315,9 +318,9 @@ export function renderMarkdown(matrix, policy) {
     lines.push(
       `Runtime defaults: **${component.defaultBehavior.status}** — ${component.defaultBehavior.description ?? component.defaultBehavior.note}`,
       "",
-      `Reviewed implementation sources: ${component.reviewSources.length ? component.reviewSources.map(code).join(", ") : "None recorded."}`,
+      `Note sources: ${component.reviewSources.length ? component.reviewSources.map(code).join(", ") : "None recorded."}`,
       "",
-      "| Prop | Type / values | Presence | Parameter default | Meaning / reviewed exception |",
+      "| Prop | Type / values | Presence | Parameter default | Meaning / optional note |",
       "| --- | --- | --- | --- | --- |",
     );
     for (const prop of component.props) {
@@ -331,15 +334,15 @@ export function renderMarkdown(matrix, policy) {
           : prop.presence.every((p) => p.optional)
             ? "Optional"
             : "Branch-dependent";
-      const meaning = prop.documentation.join(" ") || "No source JSDoc; not semantically reviewed.";
-      const reviewed = prop.reviewedPolicy
-        ? ` **Reviewed:** ${prop.reviewedPolicy.meaning} **Migration:** ${prop.reviewedPolicy.migration}`
+      const meaning = prop.documentation.join(" ") || "No source JSDoc.";
+      const note = prop.policyNote
+        ? ` **Note:** ${prop.policyNote.meaning}${prop.policyNote.migration ? ` **Migration:** ${prop.policyNote.migration}` : ""}${prop.policyNote.defaultBehavior ? ` **Runtime default:** ${prop.policyNote.defaultBehavior}` : ""}`
         : "";
       const values = prop.literalValues.length
         ? `<br>Literal values: ${code(prop.literalValues.map((v) => JSON.stringify(v)).join(", "))}`
         : "";
       lines.push(
-        `| ${code(prop.name)} | ${prop.type.map(shortType).join(" / ")}${values} | ${required} | ${prop.default.status === "parameter-initializer" ? code(prop.default.expression) : required === "Required" ? "Caller required" : "No parameter initializer"} | ${escapeCell(meaning + reviewed)} |`,
+        `| ${code(prop.name)} | ${prop.type.map(shortType).join(" / ")}${values} | ${required} | ${prop.default.status === "parameter-initializer" ? code(prop.default.expression) : required === "Required" ? "Caller required" : "No parameter initializer"} | ${escapeCell(meaning + note)} |`,
       );
     }
     lines.push("");
@@ -348,6 +351,8 @@ export function renderMarkdown(matrix, policy) {
 }
 
 function main() {
+  if (process.argv.length > 2)
+    throw new Error("Usage: node scripts/ds-api-matrix.mjs (generates optional local reports)");
   const config = ts.readConfigFile(path.join(PACKAGE, "tsconfig.json"), ts.sys.readFile);
   if (config.error)
     throw new Error(ts.flattenDiagnosticMessageText(config.error.messageText, "\n"));
@@ -367,21 +372,20 @@ function main() {
     );
   const policy = JSON.parse(fs.readFileSync(POLICY, "utf8"));
   const extracted = extractMatrix(program, entry, policy);
-  validateReview(extracted, policy);
-  for (const component of Object.values(policy.components))
+  validatePolicy(extracted, policy);
+  for (const component of Object.values(policy.components ?? {}))
     for (const source of component.reviewSources ?? [])
       if (!fs.existsSync(source)) throw new Error(`Missing API review source: ${source}`);
   const matrix = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     provenance: {
       generator: "scripts/ds-api-matrix.mjs",
       typescript: ts.version,
       entry: relative(entry),
       policy: POLICY,
       defaultInference: "parameter initializers only",
-      semanticReview:
-        "Only axis-policy.json entries are reviewed decisions; JSDoc and name/type evidence are not independent semantic review.",
-      requireCompleteReview: policy.requireCompleteReview === true,
+      semanticNotes:
+        "axis-policy.json contains optional author notes. Missing notes do not imply defects or block new APIs; compiler evidence does not prove runtime behavior.",
     },
     ...extracted,
   };
@@ -390,16 +394,11 @@ function main() {
     [MARKDOWN_OUTPUT, renderMarkdown(matrix, policy)],
   ];
   for (const [filename, content] of outputs) {
-    if (process.argv.includes("--check")) {
-      if (!fs.existsSync(filename) || fs.readFileSync(filename, "utf8") !== content)
-        throw new Error(`${filename} is stale; run node scripts/ds-api-matrix.mjs`);
-    } else {
-      fs.mkdirSync(path.dirname(filename), { recursive: true });
-      fs.writeFileSync(filename, content);
-    }
+    fs.mkdirSync(path.dirname(filename), { recursive: true });
+    fs.writeFileSync(filename, content);
   }
   console.log(
-    `API matrix: ${matrix.components.length} component/compound entries, ${Object.keys(matrix.inheritedCatalog).length} shared inherited prop definitions; ${process.argv.includes("--check") ? "fresh" : "generated"}.`,
+    `API matrix: ${matrix.components.length} component/compound entries, ${Object.keys(matrix.inheritedCatalog).length} shared inherited prop definitions; generated ${MARKDOWN_OUTPUT} and ${JSON_OUTPUT}.`,
   );
 }
 

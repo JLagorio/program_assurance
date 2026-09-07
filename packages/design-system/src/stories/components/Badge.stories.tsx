@@ -76,39 +76,57 @@ export const Matrix: Story = {
   },
 };
 
-const nativeRef = createRef<HTMLSpanElement>();
+const nativeBadges = [
+  { id: "badge-preview", label: "Preview", ref: createRef<HTMLSpanElement>(), tone: "brand" },
+  { id: "record-status", label: "Draft", ref: createRef<HTMLSpanElement>(), tone: "neutral" },
+] as const;
 
 export const NativeAttributes: Story = {
   render: () => (
-    <Badge
-      ref={nativeRef}
-      id="badge-preview"
-      title="Preview availability"
-      lang="en"
-      dir="ltr"
-      data-example="native-span"
-      style={{ verticalAlign: "middle" }}
-    >
-      Preview
-    </Badge>
+    <Inline space="space.100">
+      {nativeBadges.map(({ id, label, ref, tone }) => (
+        <Badge
+          key={id}
+          ref={ref}
+          variant={tone === "neutral" ? "secondary" : undefined}
+          tone={tone === "neutral" ? tone : undefined}
+          id={id}
+          title={`${label} availability`}
+          lang="en"
+          dir="ltr"
+          data-example="native-span"
+          style={{ verticalAlign: "middle" }}
+        >
+          {label}
+        </Badge>
+      ))}
+    </Inline>
   ),
   play: async ({ canvasElement }) => {
     const { expect, within } = await import("storybook/test");
-    const badge = within(canvasElement).getByText("Preview");
-    await expect(nativeRef.current).toBe(badge);
-    await expect(badge.tagName).toBe("SPAN");
-    await expect(badge).toHaveAttribute("data-slot", "badge");
-    await expect(badge).toHaveAttribute("data-variant", "default");
-    await expect(badge).toHaveAttribute("data-tone", "brand");
-    await expect(badge).toHaveAttribute("data-appearance", "bold");
-    await expect(badge).toHaveAttribute("data-size", "small");
-    await expect(badge).toHaveAttribute("id", "badge-preview");
-    await expect(badge).toHaveAttribute("title", "Preview availability");
-    await expect(badge).toHaveAttribute("lang", "en");
-    await expect(badge).toHaveAttribute("dir", "ltr");
-    await expect(badge).toHaveAttribute("data-example", "native-span");
-    await expect(badge).toHaveStyle({ verticalAlign: "middle" });
-    await expect(badge.tabIndex).toBe(-1);
+    for (const { id, label, ref, tone } of nativeBadges) {
+      const badge = within(canvasElement).getByText(label);
+      await expect(ref.current).toBe(badge);
+      await expect(badge.tagName).toBe("SPAN");
+      await expect(badge).toHaveAttribute("data-slot", "badge");
+      await expect(badge).toHaveAttribute(
+        "data-variant",
+        tone === "neutral" ? "secondary" : "default",
+      );
+      await expect(badge).toHaveAttribute("data-tone", tone);
+      await expect(badge).toHaveAttribute(
+        "data-appearance",
+        tone === "neutral" ? "subtle" : "bold",
+      );
+      await expect(badge).toHaveAttribute("data-size", "small");
+      await expect(badge).toHaveAttribute("id", id);
+      await expect(badge).toHaveAttribute("title", `${label} availability`);
+      await expect(badge).toHaveAttribute("lang", "en");
+      await expect(badge).toHaveAttribute("dir", "ltr");
+      await expect(badge).toHaveAttribute("data-example", "native-span");
+      await expect(badge).toHaveStyle({ verticalAlign: "middle" });
+      await expect(badge.tabIndex).toBe(-1);
+    }
   },
 };
 
@@ -344,7 +362,13 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {
-  args: { variant: "secondary", children: "Preview" },
+  args: {
+    variant: "secondary",
+    tone: "success",
+    appearance: "subtle",
+    size: "small",
+    children: "Verified",
+  },
 };
 
 const labels = {
@@ -404,8 +428,6 @@ export const SemanticMatrix: Story = {
   },
 };
 
-const statusRef = createRef<HTMLSpanElement>();
-
 /** The same Badge recipe combines treatment, palette, and density. */
 export const SemanticVariants: Story = {
   render: () => (
@@ -447,37 +469,6 @@ export const SemanticVariants: Story = {
     await expect(getComputedStyle(outline).backgroundColor).toBe("rgba(0, 0, 0, 0)");
     await expect(getComputedStyle(link).backgroundColor).toBe("rgba(0, 0, 0, 0)");
     await expect(getComputedStyle(outline).color).toBe(getComputedStyle(link).color);
-  },
-};
-
-export const SemanticNativeAttributes: Story = {
-  render: () => (
-    <Badge
-      variant="secondary"
-      tone="neutral"
-      ref={statusRef}
-      id="record-status"
-      title="Current workflow state"
-      data-example="native-status"
-      style={{ verticalAlign: "middle" }}
-    >
-      Draft
-    </Badge>
-  ),
-  play: async ({ canvasElement }) => {
-    const { expect, within } = await import("storybook/test");
-    const badge = within(canvasElement).getByText("Draft");
-    await expect(statusRef.current).toBe(badge);
-    await expect(badge.tagName).toBe("SPAN");
-    await expect(badge).toHaveAttribute("data-slot", "badge");
-    await expect(badge).toHaveAttribute("data-tone", "neutral");
-    await expect(badge).toHaveAttribute("data-appearance", "subtle");
-    await expect(badge).toHaveAttribute("data-size", "small");
-    await expect(badge).toHaveAttribute("id", "record-status");
-    await expect(badge).toHaveAttribute("title", "Current workflow state");
-    await expect(badge).toHaveAttribute("data-example", "native-status");
-    await expect(badge).toHaveStyle({ verticalAlign: "middle" });
-    await expect(badge.tabIndex).toBe(-1);
   },
 };
 
@@ -705,14 +696,4 @@ export const StatusGuidance: Story = {
       />
     </Stack>
   ),
-};
-
-export const SemanticPlayground: Story = {
-  args: {
-    variant: "secondary",
-    tone: "success",
-    appearance: "subtle",
-    size: "small",
-    children: "Verified",
-  },
 };

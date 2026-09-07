@@ -1,5 +1,5 @@
-// Snapshot the compiler-visible API, including reachable declaration dependencies.
-// Implementation bodies, comments, and source positions are intentionally absent.
+// Review package declarations once, with compact fingerprints for exposed dependency contracts.
+// Implementation bodies, comments, source positions and ambient library files are absent.
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -77,8 +77,9 @@ export function extractApi({ packageRoot, entries, compilerOptions = {} }) {
   const checker = program.getTypeChecker();
   const printer = ts.createPrinter({ removeComments: true, newLine: ts.NewLineKind.LineFeed });
   const declarations = new Map();
-  const ambientDependencies = new Map();
+  const dependencyDeclarations = new Map();
   const visited = new Set();
+  const visitedDeclarations = new Set();
   const stablePath = (file) => {
     const normalized = slash(file);
     if (normalized.includes("/node_modules/"))
@@ -96,43 +97,50 @@ export function extractApi({ packageRoot, entries, compilerOptions = {} }) {
       ? qualified
       : `${stablePath(source.fileName)}#${qualified}`;
   };
+  // Properties, parameters and generic constraints are already printed with their owner.
+  const declarationRoot = (node) => {
+    while (node.parent && !ts.isSourceFile(node.parent) && !ts.isModuleBlock(node.parent)) {
+      if (ts.isVariableDeclaration(node) && ts.isVariableDeclarationList(node.parent)) break;
+      node = node.parent;
+    }
+    return node;
+  };
   function collect(rawSymbol) {
     const symbol = resolve(rawSymbol);
     if (!symbol || visited.has(symbol)) return;
     visited.add(symbol);
     const nodes = symbol.declarations ?? [];
-    const texts = [];
-    for (const node of nodes) {
+    for (const declaration of nodes) {
+      // A namespace import is resolved through its individual referenced members.
+      if (ts.isSourceFile(declaration)) continue;
+      const node = declarationRoot(declaration);
+      if (visitedDeclarations.has(node)) continue;
+      visitedDeclarations.add(node);
       const source = node.getSourceFile();
       const sourcePath = stablePath(source.fileName);
-      if (/node_modules\/(typescript\/lib|@types\/(react|react-dom))(\/|$)/.test(sourcePath)) {
-        if (!ambientDependencies.has(sourcePath))
-          ambientDependencies.set(sourcePath, hash(printer.printFile(source)));
+      // Peer/compiler libraries are covered by typechecks and consumer tests, not whole-file hashes.
+      if (/node_modules\/(typescript\/lib|@types\/(react|react-dom))(\/|$)/.test(sourcePath))
         continue;
-      }
-      // A namespace import is resolved through its individual referenced members.
-      if (ts.isSourceFile(node)) continue;
-      texts.push({
+      const record = {
         source: sourcePath,
         declaration: printer.printNode(ts.EmitHint.Unspecified, node, source),
-      });
+      };
+      const owner = node.name && checker.getSymbolAtLocation(node.name);
+      const key = owner ? symbolKey(owner) : symbolKey(symbol);
+      const dependency = sourcePath.match(/^node_modules\/((?:@[^/]+\/)?[^/]+)\//)?.[1];
+      const collection = dependency
+        ? (dependencyDeclarations.get(dependency) ?? new Map())
+        : declarations;
+      if (dependency) dependencyDeclarations.set(dependency, collection);
+      // Retain overloads and merged declarations while ignoring their source order.
+      const records = collection.get(key) ?? new Map();
+      records.set(JSON.stringify(record), record);
+      collection.set(key, records);
       const visit = (child) => {
         if (ts.isIdentifier(child)) collect(checker.getSymbolAtLocation(child));
         ts.forEachChild(child, visit);
       };
       ts.forEachChild(node, visit);
-    }
-    if (texts.length) {
-      const key = symbolKey(symbol);
-      // Anonymous property/type-parameter symbols can share a qualified name.
-      // Retain every distinct declaration instead of silently overwriting one.
-      const all = new Map(
-        [...(declarations.get(key) ?? []), ...texts].map((text) => [JSON.stringify(text), text]),
-      );
-      declarations.set(
-        key,
-        [...all.values()].sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))),
-      );
     }
   }
   const exports = new Map();
@@ -151,12 +159,25 @@ export function extractApi({ packageRoot, entries, compilerOptions = {} }) {
       });
     }
   }
+  const serializeDeclarations = (collection) =>
+    sorted(
+      [...collection].map(([key, records]) => [
+        key,
+        [...records.values()].sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))),
+      ]),
+    );
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     typescriptVersion: ts.version,
     exports: sorted(exports),
-    declarations: sorted(declarations),
-    ambientDependencies: sorted(ambientDependencies),
+    declarations: serializeDeclarations(declarations),
+    // A changed fingerprint names the dependency whose exposed API needs consumer review.
+    dependencyContracts: sorted(
+      [...dependencyDeclarations].map(([name, collection]) => [
+        name,
+        hash(JSON.stringify(serializeDeclarations(collection))),
+      ]),
+    ),
   };
 }
 
@@ -168,7 +189,12 @@ export function compareApi(before, after) {
       kind: "changed",
       name: `${before.schemaVersion} → ${after.schemaVersion}`,
     });
-  for (const section of ["exports", "declarations", "ambientDependencies"]) {
+  // Cross-schema declaration formats are not comparable; still report added/removed exports.
+  const sections =
+    before.schemaVersion === after.schemaVersion
+      ? ["exports", "declarations", "dependencyContracts"]
+      : ["exports"];
+  for (const section of sections) {
     const oldEntries = before[section] ?? {};
     const newEntries = after[section] ?? {};
     for (const key of [
@@ -196,6 +222,10 @@ export function compareApi(before, after) {
 function report(label, changes) {
   console.log(`${label}: ${changes.length} change(s)`);
   for (const change of changes) console.log(`  ${change.kind} ${change.section}: ${change.name}`);
+  if (changes.some((change) => change.section === "schema"))
+    console.log(
+      "  Snapshot formats differ: only exports are comparable across this format change.",
+    );
 }
 
 /** Read a baseline from a real revision. Missing files and failed reads are different outcomes. */

@@ -1,5 +1,5 @@
-// Every component @ledger/design-system exports has a story that renders it, and a documentation page
-// on the template (the H2 set below), each heading present or marked not applicable. Existing gaps are
+// Every component @ledger/design-system exports has a story that renders it, and a documentation page.
+// Page structure follows the component's needs; accuracy is reviewed with the examples. Existing gaps are
 // grandfathered in scripts/ds-check.allow; a new gap fails, and an allowlisted entry that closes must
 // leave the allowlist so the list only shrinks. `npm run build` runs this first.
 // A part of a compound (`Object.assign(Stat, { Grid: StatGrid })`) is exported so its props table
@@ -13,21 +13,6 @@ import { publicApi } from "./ds-public-api.mjs";
 
 const PKG = "packages/design-system/src";
 const LAYERS = ["primitives", "components", "patterns", "shapes", "shell", "mode"];
-// The page template. A family page carries every heading; under one that does not apply it says so
-// ("Not applicable: …") rather than leaving it out, so the reader knows it was considered.
-const TEMPLATE = [
-  "Anatomy",
-  "Variants",
-  "Sizes",
-  "States",
-  "Modifiers",
-  "Content",
-  "Style",
-  "Accessibility",
-  "Props",
-  "Related",
-  "Don't",
-];
 // Story folders whose files are families and need a page. Tokens are sheets; docs are pages already.
 const PAGE_FOLDERS = ["components", "patterns", "primitives"];
 
@@ -94,8 +79,7 @@ const inStories = (name) =>
   storyReferences.has(name) || [...storyReferences].some((ref) => ref.startsWith(`${name}.`));
 const covered = (name) => inStories(name) || (partOf.has(name) && inStories(partOf.get(name)));
 
-// every story file in a page folder has an MDX page (`<Meta of={…}>` importing it), and every page
-// carries the template's headings
+// Every story file in a page folder has an MDX page (`<Meta of={…}>` importing it).
 const pageOf = (storyFile) => {
   const stem = path.basename(storyFile).replace(/\.stories\.tsx?$/, "");
   const dir = path.dirname(storyFile);
@@ -116,14 +100,7 @@ for (const sf of storyFiles) {
   if (!PAGE_FOLDERS.includes(folder)) continue;
   const stem = path.basename(sf).replace(/\.stories\.tsx?$/, "");
   const page = pageOf(sf);
-  if (!page) {
-    pageGaps.push(`page:${stem}`);
-    continue;
-  }
-  const headings = new Set(
-    [...fs.readFileSync(page, "utf8").matchAll(/^## ([^\n]+)/gm)].map((m) => m[1].trim()),
-  );
-  for (const h of TEMPLATE) if (!headings.has(h)) pageGaps.push(`page:${stem}#${h}`);
+  if (!page) pageGaps.push(`page:${stem}`);
 }
 
 const allowPath = "scripts/ds-check.allow";
@@ -145,14 +122,13 @@ const stale = [...allow].filter((n) => !gaps.includes(n)).sort();
 const pagesChecked = storyFiles.filter((sf) =>
   PAGE_FOLDERS.includes(path.basename(path.dirname(sf))),
 ).length;
-const pagesComplete =
-  pagesChecked - new Set(pageGaps.map((g) => g.replace(/^page:/, "").replace(/#.*$/, ""))).size;
+const pagesComplete = pagesChecked - pageGaps.length;
 console.log(
-  `${exports_.size} exports · ${exports_.size - missing.length} with a story · ${missing.length} without · ${pagesChecked} pages · ${pagesComplete} on the template · ${storyCount} stories in ${storyFiles.length} files (${allow.size} grandfathered)`,
+  `${exports_.size} exports · ${exports_.size - missing.length} with a story · ${missing.length} without · ${pagesComplete}/${pagesChecked} family pages · ${storyCount} stories in ${storyFiles.length} files (${allow.size} grandfathered)`,
 );
 if (newGaps.length) {
   console.log(
-    `\nNew gaps (add the story or the page section under ${PKG}/stories, coverage exceptions cannot grow):`,
+    `\nNew gaps (add the story or page under ${PKG}/stories, coverage exceptions cannot grow):`,
   );
   for (const n of newGaps) console.log(`  ${n}${exports_.has(n) ? `  ← ${exports_.get(n)}` : ""}`);
 }

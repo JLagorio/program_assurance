@@ -16,16 +16,18 @@ test("API baseline detects compatibility changes and ignores implementation/comm
     path.join(dependencyRoot, "package.json"),
     JSON.stringify({ name: "adapter", types: "index.d.ts" }),
   );
-  const adapter = (optional = "?") =>
+  const adapter = (optional = "?", unusedType = "string") =>
     fs.writeFileSync(
       path.join(dependencyRoot, "index.d.ts"),
-      `export interface AdapterOptions { retry${optional}: number }\nexport declare function adapter(options: AdapterOptions): string;`,
+      `export interface AdapterOptions { retry${optional}: number }\nexport declare function adapter(options: AdapterOptions): string;\nexport interface UnusedOptions { unrelated: ${unusedType} }`,
     );
   adapter();
   const fixture = (changes = {}) => `
     import { adapter } from "adapter";
-    export interface Props { label${changes.required ? "" : "?"}: ${changes.number ? "number" : "string"} }
+    type InternalOptions = { nested: { enabled${changes.nestedRequired ? "" : "?"}: boolean } };
+    export interface Props { label${changes.required ? "" : "?"}: ${changes.number ? "number" : "string"}; options?: InternalOptions }
     export function Widget(props: Props): string { ${changes.body ?? 'return "original";'} }
+    export { Widget as ${changes.alias ?? "Alias"} };
     export function convert(value: string): string;
     ${changes.overload ? "" : "export function convert(value: number): number;"}
     export function convert(value: string | number): string | number { return value; }
@@ -45,6 +47,21 @@ test("API baseline detects compatibility changes and ignores implementation/comm
   try {
     const baseline = extract(fixture());
     assert.ok(baseline.exports["./cn#Widget"], "subpath exports are recorded");
+    assert.equal(baseline.exports[".#Alias"].target, baseline.exports[".#Widget"].target);
+    assert.ok(
+      Object.values(baseline.declarations)
+        .flat()
+        .some((record) => record.declaration.includes("type InternalOptions =")),
+      "reachable private types remain reviewable",
+    );
+    assert.ok(
+      Object.values(baseline.declarations)
+        .flat()
+        .every((record) => !record.source.startsWith("node_modules/")),
+      "dependency declaration bodies are not copied into the snapshot",
+    );
+    assert.deepEqual(Object.keys(baseline.dependencyContracts), ["adapter"]);
+    assert.equal("ambientDependencies" in baseline, false);
     assert.deepEqual(
       compareApi(baseline, extract(fixture({ body: 'return "changed";', comment: true }))),
       [],
@@ -54,6 +71,7 @@ test("API baseline detects compatibility changes and ignores implementation/comm
       { number: true },
       { part: "Replacement" },
       { overload: true },
+      { nestedRequired: true },
     ]) {
       assert.ok(
         compareApi(baseline, extract(fixture(change))).some(
@@ -62,6 +80,12 @@ test("API baseline detects compatibility changes and ignores implementation/comm
         `must detect ${JSON.stringify(change)}`,
       );
     }
+    assert.ok(
+      compareApi(baseline, extract(fixture({ alias: "ReplacementAlias" }))).some(
+        (entry) => entry.kind === "removed" && entry.name === ".#Alias",
+      ),
+      "export aliases remain protected",
+    );
     assert.ok(
       compareApi(baseline, extract(fixture({ removed: true }))).some(
         (entry) => entry.kind === "removed" && entry.name === ".#Status",
@@ -73,11 +97,16 @@ test("API baseline detects compatibility changes and ignores implementation/comm
       ),
     );
     adapter("");
-    assert.ok(
-      compareApi(baseline, extract(fixture())).some(
-        (entry) => entry.section === "declarations" && entry.name.includes("AdapterOptions"),
-      ),
+    assert.deepEqual(
+      compareApi(baseline, extract(fixture())),
+      [{ section: "dependencyContracts", kind: "changed", name: "adapter" }],
       "a referenced dependency prop change must be detected without a local source edit",
+    );
+    adapter("?", "number");
+    assert.deepEqual(
+      compareApi(baseline, extract(fixture())),
+      [],
+      "unexposed dependency declarations do not churn the fingerprint",
     );
     const reordered = fixture().replace("export type Status = 'open' | 'closed';", "");
     adapter();
@@ -89,6 +118,25 @@ test("API baseline detects compatibility changes and ignores implementation/comm
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
+});
+
+test("a snapshot format migration reports exports without comparing incompatible declaration formats", () => {
+  const before = {
+    schemaVersion: 1,
+    exports: { ".#Removed": { kind: "value", target: "Old" } },
+    declarations: { Old: [{ declaration: "old representation" }] },
+    ambientDependencies: { "node_modules/typescript/lib/lib.dom.d.ts": "old ambient hash" },
+  };
+  const after = {
+    schemaVersion: 2,
+    exports: {},
+    declarations: { New: [{ declaration: "new representation" }] },
+    dependencyContracts: { adapter: "new contract hash" },
+  };
+  assert.deepEqual(compareApi(before, after), [
+    { section: "schema", kind: "changed", name: "1 → 2" },
+    { section: "exports", kind: "removed", name: ".#Removed" },
+  ]);
 });
 
 test("base revision comparison reads snapshots larger than 1 MiB and rejects invalid revisions", () => {

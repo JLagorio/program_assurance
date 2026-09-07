@@ -36,3 +36,6 @@ docs/examples
 Program Assurance UI Kit
 # Storybook
 storybook-static/
+
+# Optional design-system API reports
+/artifacts/design-system-api/

@@ -10,24 +10,22 @@ import {
 import { Id } from "../components/id";
 import { Fact } from "../components/typography";
 
-/* A record's header is two lines: the trail, its parents then the record's id as the current crumb,
-   unlinked, which is the way back; and the title's line, the name with a word of meta after it and
-   the actions at the end. Josef, on review: no back chevron, no line of its own for the id, never
-   more than the trail and the title, and no facts: what is not needed on every load is the rail's.
-   `facts` is deprecated; a state strip may still sit below. */
+/* Parent breadcrumb links provide the way back; the unlinked record id marks the current page.
+   The title, short meta and actions share the next row. Put record details in the rail;
+   the deprecated `facts` slot still renders for compatibility. A state strip may sit below. */
 
 export type RecordHeaderProps = {
   /** The trail's parents as BreadcrumbItem elements with BreadcrumbSeparator between them. The header appends a separator and the record's `id` as the current crumb. */
   crumbs?: ReactNode;
   /** The record's id, the trail's last crumb: "PRG-1041". Unlinked; it says where the reader is. */
   id?: ReactNode;
-  /** The record's name, the h1. One line; it wraps when it must. */
+  /** The record's name in the h1. Long titles wrap. */
   title: ReactNode;
   /** After the title on its line, subtle: the state as a Badge, the baseline, when it was updated. A few words, never a sentence. */
   meta?: ReactNode;
   /** The record's actions at the end of the title's line: one primary, and at most two beside it; the rest in a menu. */
   actions?: ReactNode;
-  /** @deprecated The header is the trail, the title and the actions; the details are the rail's Inspector. Kept for one release. */
+  /** @deprecated Put details in the rail's Inspector. Still renders a Fact.Group below the title for compatibility. */
   facts?: ReactNode;
   /** A persistent strip under everything: a lifecycle, a Stepper, an ActionBar. */
   below?: ReactNode;
@@ -37,7 +35,7 @@ export type RecordHeaderProps = {
   back?: ReactNode;
 };
 
-/** The head of a record page: the trail ending in the record's id, then the title with a word of meta and the actions on one line; the facts that matter and a state strip under it. */
+/** A record page's breadcrumb trail, title, short meta and actions, with an optional state strip below. Record details belong in the rail; the deprecated facts slot remains supported. */
 export function RecordHeader({
   crumbs,
   id,

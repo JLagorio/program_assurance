@@ -65,7 +65,7 @@ All six treatments accept the same tone and size axes.
 | `ghost`       | Neutral                    | Transparent, with the palette's subtle fill on hover.                                          |
 | `link`        | Brand                      | Palette-colored text, underlined on hover. Render an anchor to give it link behavior.          |
 
-`appearance="subtle"` or `"bold"` overrides the filled treatments' default emphasis. Outline, ghost, and link retain their treatment when an appearance is supplied. `tone` overrides the palette across every variant, including outline borders and link text.
+`appearance="subtle"` or `"bold"` overrides the filled treatments' default emphasis. Outline, ghost, and link retain their treatment when an appearance is supplied. `tone` overrides the palette across every variant, including outline borders and link text. Semantic colors adapt to light and dark modes; bold warning badges use the dark `color.text.warning.inverse` text token.
 
 | Tone          | Meaning                                                                      |
 | ------------- | ---------------------------------------------------------------------------- |
@@ -108,17 +108,9 @@ Badge manages no selection, dismissal, loading, or disabled state. Use an approp
 
 <Canvas of={Stories.States} />
 
-## Modifiers
+## Composition
 
-- **`variant`** chooses filled, outlined, ghost, or link presentation and the palette/emphasis defaults shown above.
-- **`tone`** changes the palette while preserving the treatment and geometry.
-- **`appearance`** chooses subtle or bold emphasis on filled variants.
-- **`size`** chooses the standard or compact density.
-- **`icon`** prepends an optional leading icon. Explicit children support either icon position and conditional content.
-- **`render`** supplies a native anchor or custom component that forwards props and its ref.
-- **Native props and `ref`** reach the actual element. Attributes, classes, styles, handlers, and refs compose with those on the rendered element.
-
-### Render composition
+### Links
 
 Keep the destination on the rendered anchor or router element. A router adapter must forward every received prop and its ref to the actual anchor so that styles, handlers, and accessibility attributes reach the same element.
 
@@ -140,7 +132,7 @@ const RouterLink = forwardRef<HTMLAnchorElement, RouterLinkProps>(function Route
 </Badge>;
 ```
 
-The example verifies both refs, attributes, classes, styles, and handlers on one anchor. Mouse and keyboard activation each invoke both handlers. The demonstration adapter prevents navigation to keep the canvas open.
+Base UI merges attributes, classes, styles, event handlers, and both refs onto the same rendered element.
 
 <Canvas of={Stories.RenderLink} />
 
@@ -149,18 +141,6 @@ The example verifies both refs, attributes, classes, styles, and handlers on one
 Use `icon={<CircleCheck aria-hidden="true" />}` for a leading icon, or place icons explicitly among the children. Explicit leading and trailing icons use `data-icon="inline-start"` and `data-icon="inline-end"` to select the corresponding padding. An icon element supplied through the shorthand receives the leading marker. Keep the label meaningful whether an optional icon is present or absent.
 
 <Canvas of={Stories.ConditionalIcons} />
-
-### Migrating existing Badge uses
-
-| Previous use                                        | Updated use                                                                                            |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `<Badge tone="success">Verified</Badge>`            | `<Badge variant="secondary" tone="success">Verified</Badge>` preserves subtle status emphasis.         |
-| Neutral `<Badge>Draft</Badge>`                      | `<Badge variant="secondary" tone="neutral">Draft</Badge>`. The unconfigured default is now brand/bold. |
-| `appearance="bold"`, `size="xsmall"`, or `icon={…}` | Keep these conveniences on Badge. Use `secondary` for existing status compositions.                    |
-| A clickable span                                    | Supply a real anchor through `render` for navigation.                                                  |
-| `BadgeProps`                                        | Continue using the same export; it now also includes variants and Base UI render composition.          |
-
-All Badge uses now share the shadcn-derived pill shape, including semantic tones. Existing semantic palettes and compact heights remain, while small labels adopt the shared padding and border anatomy. `Count`, `Dot`, `Indicator`, `Tone`, `tones`, and `toneClasses` keep their existing contracts. `Avatar.Badge` remains a separate Avatar part.
 
 ## Content
 
@@ -175,22 +155,9 @@ All Badge uses now share the shadcn-derived pill shape, including semantic tones
 
 <Canvas of={Stories.OneBold} />
 
-## Style
+<Canvas of={Stories.Dont} />
 
-| Element or state              | Ledger token mapping                                                                                               |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Shape                         | `radius.full`, default border width; the same anatomy for every tone and treatment                                 |
-| Small                         | `h-250`, `px-100`, `py-025`, `gap-050`, `font-body-small`, medium weight                                           |
-| Xsmall                        | `h-200`, `px-050`, `py-0`, `font-body-xsmall`; same 12px icons                                                     |
-| Icon ends                     | Direct SVGs use `size-150`; marked icon ends use `space.075` at small and `space.050` at xsmall                    |
-| Filled subtle                 | The chosen tone's subtle background and readable tone text                                                         |
-| Filled bold                   | The chosen tone's bold background and inverse text; warning uses `color.text.warning.inverse`                      |
-| Outline / ghost / link        | The chosen palette's text, border, and hover background, according to treatment                                    |
-| Focus                         | `color.border.focused`, `border.width.focused`, and `space.025` offset through `outline-focused`                   |
-| Destructive / invalid outline | The same outline geometry with `color.border.danger` through `outline-danger`; invalid also uses the danger border |
-| Motion                        | `duration-fast`, `ease-standard`                                                                                   |
-
-Semantic colors adapt to both modes. Ledger's named 2px focus outlines replace the reference's translucent rings. Use the Storybook mode toolbar to review the examples; browser checks run the stories in light and dark projects.
+<Canvas of={Stories.StatusGuidance} />
 
 ## Accessibility
 
@@ -201,8 +168,6 @@ Semantic colors adapt to both modes. Ledger's named 2px focus outlines replace t
 - Use native controls for selection or dismissal. Badge does not implement those behaviors.
 
 <Canvas of={Stories.NativeAttributes} />
-
-<Canvas of={Stories.SemanticNativeAttributes} />
 
 ## Props
 
@@ -216,9 +181,17 @@ Semantic colors adapt to both modes. Ledger's named 2px focus outlines replace t
 
 <Controls of={Stories.Playground} />
 
-<Canvas of={Stories.SemanticPlayground} />
+## Migration
 
-<Controls of={Stories.SemanticPlayground} />
+| Previous use                                        | Updated use                                                                                            |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `<Badge tone="success">Verified</Badge>`            | `<Badge variant="secondary" tone="success">Verified</Badge>` preserves subtle status emphasis.         |
+| Neutral `<Badge>Draft</Badge>`                      | `<Badge variant="secondary" tone="neutral">Draft</Badge>`. The unconfigured default is now brand/bold. |
+| `appearance="bold"`, `size="xsmall"`, or `icon={…}` | Keep these conveniences on Badge. Use `secondary` for existing status compositions.                    |
+| A clickable span                                    | Supply a real anchor through `render` for navigation.                                                  |
+| `BadgeProps`                                        | Continue using the same export; it now also includes variants and Base UI render composition.          |
+
+All Badge uses now share the shadcn-derived pill shape, including semantic tones. Existing semantic palettes and compact heights remain, while small labels adopt the shared padding and border anatomy. `Count`, `Dot`, `Indicator`, `Tone`, `tones`, and `toneClasses` keep their existing contracts. `Avatar.Badge` and `Avatar.Count` remain separate Avatar parts with their existing APIs. The checked-in shadcn reference and the unrelated reui Badge remain separate code.
 
 ## Related
 
@@ -226,9 +199,3 @@ Semantic colors adapt to both modes. Ledger's named 2px focus outlines replace t
 - [Indicator](?path=/docs/components-indicator--docs): a status dot and a word.
 - [FilterChip](?path=/docs/components-filterchip--docs): a filter the reader can change.
 - Reference: [shadcn Base UI Badge](https://ui.shadcn.com/docs/components/base/badge). The checked-in application reference is the foundation for this adaptation.
-
-## Don't
-
-<Canvas of={Stories.Dont} />
-
-<Canvas of={Stories.StatusGuidance} />

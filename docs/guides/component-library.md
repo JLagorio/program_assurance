@@ -2,7 +2,8 @@
 
 Ledger is the product design system. It is a package, `@ledger/design-system`, at
 `packages/design-system`, and the prototype is its first consumer. Its Storybook is the contract:
-every export has a story, every family has a matrix and a page on the template, and `npm run build` fails when one is missing.
+every public component is exercised in a story, every family has a documentation page, and
+`npm run build` checks that coverage. Matrices are useful when variants need comparison.
 This guide says how the package is shaped and how a screen uses it. The reasoning lives in the specs
 under `docs/superpowers/specs/`, and the parts document themselves in the package's Storybook
 (`npm run storybook` inside the package, port 6007).
@@ -87,9 +88,9 @@ Breadcrumb exports `Breadcrumb`, `BreadcrumbList`, `BreadcrumbItem`, `Breadcrumb
 `BreadcrumbPage`, `BreadcrumbSeparator` and `BreadcrumbEllipsis`. Lists and separators are
 explicit; BreadcrumbLink uses Base UI `useRender` and `mergeProps`. Badge uses the same
 composition helpers and combines six shadcn variants with `tone`, `appearance`, `size` and
-`icon` options in one component. See the [Badge migration guide](badge-migration.md). Other
+`icon` options in one component. See the [Badge page](../../packages/design-system/src/stories/components/Badge.mdx#migration). Other
 families keep their current APIs until their own migration updates implementation, consumers,
-stories, API metadata and migration notes together.
+stories and any necessary compatibility notes together.
 
 The [migration handoff](design-system-migration-handoff.md) records the completed Breadcrumb and Badge
 slices, the recommended Separator slice, integration constraints, and validation commands for the
@@ -137,7 +138,7 @@ every product. A product's own config adds nothing about the kit.
 
 - A list row carries the name, one status, the number the reader sorts by, at most one bar, and
   the actions. Everything else goes in the peek.
-- A record header carries at most six facts; the rest go in the rail.
+- A record header carries the trail, title, brief meta and actions; details go in the rail.
 - Hover on an id is a glance (HoverCard, facts only); click is the peek (PreviewSheet, facts and
   the actions that make sense without leaving); the footer link is the record.
 - Rail beside an index table that leaves room; sheet over a full-width table and wherever the
@@ -152,34 +153,42 @@ every product. A product's own config adds nothing about the kit.
 
 ## Adding to the kit
 
-1. For a standard family, start from the local shadcn Base UI reference and adapt the same
-   component to product needs while preserving native and accessible interaction behavior. Put the part in its layer with relative imports and the package `cn`. Class strings
-   use Ledger token utilities; the package lints itself with the strict preset (`npm run lint`
-   there). Put multi-component compositions in patterns; keep useful single-component options on the component.
-2. Give the family a story file under the package's `src/stories` (`<Family>.stories.tsx`).
-   Document and exercise every named part in that family, including flat exports, with representative states and interactions. Use a Matrix when it helps compare variants. Add `play` assertions to the same examples; Storybook tests every story by default. The toolbar switches the mode. `node scripts/ds-check.mjs` from the repo root says
-   what is missing; `npm run build` runs it first.
-3. Write the part's page (`<Part>.mdx`) on the template: Anatomy, Variants, Sizes, States, Modifiers, Content, Style,
-   Accessibility, Props (`<ArgTypes of={Part} />`, generated from the types, so every prop carries a JSDoc
-   line), Related, Don't (a `Pair` per mistake). A heading that does not apply says so under itself. The
-   ratchet lists the headings a page is missing; the families not yet walked are grandfathered in
-   `scripts/ds-check.allow`, which only shrinks. `Components/Button` and `Components/Input` are the pages to copy; a family that is a choice keeps an
-   overview page (Overlays, Pages, Shapes, Primitives) that says which part to reach for. Forms belongs under Patterns: compose Ledger controls with TanStack Form and Zod for state and validation.
-4. Check it in both modes in Storybook. Then, and only on a go, move the prototype onto it.
+1. Implement the component and update affected consumers. For a standard family, start from
+   the local shadcn Base UI reference, preserve native and accessible behavior, and use Ledger
+   tokens, relative imports and package `cn`. Multi-component compositions belong in patterns.
+2. Exercise every named part in the family's `<Family>.stories.tsx` with representative
+   states and interactions. Add `play` assertions to those examples; use a matrix when it
+   helps compare variants. One playground usually covers the controls. Preserve distinct
+   regression cases when consolidating examples. Storybook tests all stories in both modes.
+3. Keep one accurate `<Family>.mdx` page with a useful example, generated props
+   (`<ArgTypes of={Part} />`) and relevant usage/accessibility guidance. JSDoc explains
+   package-specific props and defaults. Add anatomy, sizes, content rules or anti-examples
+   only when they help; there is no required heading set or “Not applicable” filler.
+   Keep migration examples on that page, or link to one focused guide for a larger migration.
+4. Add a changelog entry and run the relevant type, lint, story and package checks. Update the
+   API baseline only when declarations or exposed dependency contracts change. Extend the
+   packed-consumer fixture when exports, packaging or consumer integration change.
+
+`npm run ds:check` checks executable component coverage and family-page presence. Coverage
+exceptions in `scripts/ds-check.allow` may only shrink. Review documentation against the
+implementation and examples; the coverage check does not verify prose accuracy.
 
 ## Versioning and publishing
 
-The [API prop matrix](design-system-api-matrix.md) records component and compound props,
-semantic axes and explicit unresolved details. After an API change, run `npm run ds:api:matrix`
-and review the generated diff. `npm run ds:api:matrix:check` rejects stale output in CI.
+`npm run ds:api:check` compares package-owned public declarations and compact fingerprints of
+reachable dependency contracts with `packages/design-system/api/public-api.json`. A deliberate
+contract change needs review, migration notes where useful, and `npm run ds:api:update`.
+CI also reports changes relative to the pull request's base snapshot. Dependency fingerprints
+flag which package needs review; consumer type and interaction tests establish the impact.
+React and TypeScript ambient declarations rely on typechecks and consumer tests rather than
+whole-file hashes. The baseline detects declaration drift, not behavioral compatibility or
+semantic versions.
 
-`npm run ds:api:check` compares compiler-emitted public declarations and their reachable
-dependencies with `packages/design-system/api/public-api.json`. A deliberate signature change
-requires compatibility review, migration notes where needed, and `npm run ds:api:update`.
-CI also reports changes relative to the pull request's base snapshot. This detects declaration
-drift, including dependency changes; it does not prove behavioral compatibility or assign a
-semantic version automatically. Initial adoption records the current API without retrospectively
-certifying earlier changes.
+For an audit, `npm run ds:api:matrix` generates `prop-matrix.md` and `prop-matrix.json` under
+the ignored `artifacts/design-system-api/` directory. These are optional inspection reports,
+not committed baselines or CI freshness gates. `api/axis-policy.json` contains optional notes
+for package semantics and intentional integration behavior; new components and inherited
+native props do not require exhaustive review prose. Current usage guidance lives in Storybook.
 
 Semantic versions, recorded in `packages/design-system/CHANGELOG.md` with the story that shows each
 change. Until 1.0 a rename or a removed prop is a minor step; it ships with a deprecation the lint

@@ -7,94 +7,71 @@ import * as Stories from "./RecordHeader.stories";
 
 # RecordHeader
 
-The head of a record page, two lines: the trail, its parents and then the record's id as the current crumb, which is the way back; and the title's line, the name with a word of meta after it and the actions at the end. The record's id is the last crumb, unlinked, and the title sits under it with the actions beside. This one keeps the tabs for the [ShowPage](?path=/docs/patterns-pages--docs), draws no back chevron because the trail is the way back, and shows no facts: what the reader does not need on every load is the rail's Inspector.
+The head of a record page: a breadcrumb trail ending in the current record's id, followed by its title, short meta, and actions. Parent links provide the way back. Put record details in the page's rail and page-level tabs in [ShowPage](?path=/docs/patterns-pages--docs).
 
 <Canvas of={Stories.RecordHeaderMatrix} />
 
 ## Anatomy
 
-| Part       | What it is                                                                                                    |
-| ---------- | ------------------------------------------------------------------------------------------------------------- |
-| Breadcrumb | Above the row when the page is a sub-page of a record, starting on the title's column.                        |
-| Id         | The record's id before the title's line, `font.body` in `color.text.subtle`.                                  |
-| Meta       | After the id, `font.body.small` subtle: the state as a Badge, the baseline, when it was updated. A few words. |
-| Title      | The record's name, the h1, `font.heading.small` semibold.                                                     |
-| Actions    | At the end of the row: one primary and at most two beside it, the rest behind a menu.                         |
-| Facts      | Deprecated. A Fact.Group under the title, kept for one release; the details are the rail's Inspector.        |
-| Below      | A persistent strip under everything: a lifecycle Stepper, an ActionBar, a Tabs strip on a sub-page.           |
+| Part      | Responsibility                                                                                               |
+| --------- | ------------------------------------------------------------------------------------------------------------ |
+| `crumbs`  | Parent `BreadcrumbItem` elements, with separators between them. The header supplies the navigation and list. |
+| `id`      | The unlinked current crumb, appended after the parents. With no parents, it forms the whole trail.           |
+| `title`   | The record's name in an `h1`, under the trail. Long titles wrap.                                             |
+| `meta`    | A short label or Badge after the title, inside the same heading. Long meta truncates.                        |
+| `actions` | Controls beside the heading, in the order supplied by the caller.                                            |
+| `below`   | Optional content after the header rows, such as a lifecycle Stepper or an ActionBar.                         |
 
-## Variants
+Omit both `crumbs` and `id` for a heading without a trail. Empty parent fragments or arrays also work; an id-only trail has no visible leading separator.
 
-RecordHeader has one appearance. What varies is what it carries:
+<Canvas of={Stories.EmptyParentLevels} />
 
-| Header            | Use                                                                                                   |
-| ----------------- | ----------------------------------------------------------------------------------------------------- |
-| Id and title      | A record in a preview, a finding under its parent.                                                    |
-| With back         | Every record page: the chevron returns to the list.                                                   |
-| With facts        | Deprecated: facts under the title. The requirement's owner, method and state are the rail's Details.  |
-| With a breadcrumb | A sub-page of a record: the program, then its matrix.                                                 |
-| With a strip      | A record with a lifecycle: the program's RMF steps, the finding's ActionBar.                          |
+## Usage
 
-Not built, and why: a back chevron, because the trail is the way back and a second control for it is a second stop; a line for the id, because the trail already ends with it; a hero or an avatar, because a record is its id and its name; a subtitle that wraps, because the meta is a word and the facts are the rest; tabs inside the header, because the strip is the ShowPage's so it can run the full width; a status in the title line as its own slot, because a Badge in `meta` is that.
+- Use the record's name as the title, matching its list entry: “Atlas payments platform” or “Encrypt telemetry in transit.”
+- Keep meta brief: a status Badge, a baseline, or “Updated 2h ago.” It appears after the title, not after the id.
+- Use one primary action and at most two accompanying controls; put additional actions in a menu. The header preserves caller order.
+- Put owners, dates, and other details in the rail's Inspector. The legacy `facts` slot remains available while callers migrate.
+- Pass parent links as `crumbs` and the current record identifier as `id`. On a sub-page, the trail can include a link to its parent record.
+- Use ShowPage's `tabs` for a tab strip spanning the page. `below` remains available for a local strip and renders the content supplied to it.
 
-## Sizes
+<Canvas of={Stories.Dont} />
 
-One size: the title is `font.heading.small` (18px), a step under the index's, because a record is one of many and its name may be long. The header is as wide as the page; the facts wrap past the measure.
+## Layout
 
-<Canvas of={Stories.RecordHeaderMatrix} />
+The title uses `font.heading.small` (20px/26px) with semibold weight. Meta uses `font.body.small` and `color.text.subtle`. The current id inherits the breadcrumb's body-small font and uses `color.text`.
 
-## States
-
-A header has no state. The record's state is a Badge in `meta`, a Stepper in `below`, or a Fact.
-
-## Modifiers
-
-- **`crumbs`**, **`id`**, **`title`**, **`meta`**, **`actions`**, **`below`** as in Anatomy. `facts`, `breadcrumb` and `back` are deprecated: the details are the rail's, the header builds the trail from the crumbs and the id, and the trail is the way back.
-
-## Content
-
-- **The title is the record's name** as it reads in its list: "Atlas payments platform", "The gateway shall encrypt telemetry in transit".
-- **The meta is a word or a Badge**: the state, the baseline, "Updated 2h ago". Never a sentence.
-- **No facts in the header.** The owner, the state, the dates are the rail's Inspector, read when the reader needs them, not on every load.
-- **One primary action**, and past two the rest are a menu. A danger action is never in the row.
-- **The trail ends with the id**, unlinked, after the parents: "Programs, PRG-1041" over a program; "Programs, Atlas payments platform, PRG-1041" over its matrix. The title is the name.
-
-## Style
-
-| Element | Token                                                                                                                       |
-| ------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Back    | `dimension.control.xsmall` square · `radius.medium` · `color.icon.subtle` · hover `color.background.neutral.subtle.hovered` |
-| Id      | `font.body` · `color.text.subtle`                                                                                           |
-| Meta    | `font.body.small` · `color.text.subtle` · `space.100` after the id                                                          |
-| Title   | `font.heading.small` semibold · `color.text`                                                                                |
-| Facts   | Deprecated · Fact.Group · `color.border` rule above · `space.100` under the rule                                            |
-| Layout  | `space.150` between the rows and before the back chevron · `space.025` between id and title · `space.100` between actions   |
+The header fills its container. Its rows have `space.100` gaps; the heading and actions are separated by `space.150`, with `space.100` between actions. Title and meta can wrap onto another line. Actions keep their intrinsic width, so use a menu when the available space is limited.
 
 ## Accessibility
 
-- **The title's line is the page's `h1`**: the name and the meta are read as one heading, "Atlas payments platform, In assessment".
-- **The trail is a `nav`** named "Breadcrumb", read before the heading; its last crumb is the id, marked as the current page, and the one before it is the way back.
-- **The rail's details are a list of terms and values**, read after the page's body; the header carries none.
-- **The actions are their own stops** after the title, in reading order; the primary is last among them, as in a form.
+- The title and meta share the page's `h1`; use concise text that makes sense when announced together.
+- The generated trail is a `nav` named “breadcrumb,” before the heading. Its current id has `aria-current="page"` and is outside the tab order. Parent links are focusable.
+- Give action controls accessible names and arrange them in the desired reading and keyboard order; RecordHeader does not reorder them.
+- Content passed to `below` keeps its own semantics and interaction behavior.
 
 ## Props
 
 <ArgTypes of={RecordHeader} />
 
-### Playground
-
 <Canvas of={Stories.Playground} />
 
 <Controls of={Stories.Playground} />
 
+## Migration
+
+Three deprecated props remain in the API:
+
+| Prop         | Current behavior                                                              | Replacement                                                                 |
+| ------------ | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `facts`      | Still renders a `Fact.Group` below the title, with a top border and padding.  | Move details into the page's rail.                                          |
+| `breadcrumb` | Renders the supplied content as-is, taking precedence over `crumbs` and `id`. | Pass parent items through `crumbs` and the current identifier through `id`. |
+| `back`       | Ignored; no back control is rendered.                                         | Use the parent links in the breadcrumb trail.                               |
+
 ## Related
 
-- [Pages](?path=/docs/patterns-pages--docs): the ShowPage it heads.
+- [Pages](?path=/docs/patterns-pages--docs): ShowPage's tabs, body, and details rail.
 - [PageHeader](?path=/docs/patterns-pageheader--docs): the header of an index.
-- [Fact](?path=/docs/components-fact--docs): the strip under the title.
-- [Breadcrumb](?path=/docs/components-breadcrumb--docs): the trail above it.
-- [PreviewSheet](?path=/docs/patterns-previewsheet--docs): its header is the compact RecordHeader.
-
-## Don't
-
-<Canvas of={Stories.Dont} />
+- [Breadcrumb](?path=/docs/components-breadcrumb--docs): the items and links used in the trail.
+- [Inspector](?path=/docs/patterns-inspector--docs): record details beside the page body.
+- [PreviewSheet](?path=/docs/patterns-previewsheet--docs): a record preview without leaving the page.

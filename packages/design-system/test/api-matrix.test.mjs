@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import ts from "typescript";
-import { extractMatrix, renderMarkdown, validateReview } from "../../../scripts/ds-api-matrix.mjs";
+import { extractMatrix, renderMarkdown, validatePolicy } from "../../../scripts/ds-api-matrix.mjs";
 
 test("API matrix resolves aliases, compounds, branch-only props, and aliased literal axes", () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "ledger-prop-matrix-"));
@@ -63,9 +63,9 @@ test("API matrix resolves aliases, compounds, branch-only props, and aliased lit
       "not-resolved",
       "body fallbacks must not be falsely certified as parameter defaults",
     );
-    assert.equal(component.domTarget.status, "not-reviewed");
-    assert.equal(component.controlledBehavior.status, "not-reviewed");
-    assert.equal(component.defaultBehavior.status, "not-reviewed");
+    assert.equal(component.domTarget.status, "not-documented");
+    assert.equal(component.controlledBehavior.status, "not-documented");
+    assert.equal(component.defaultBehavior.status, "not-documented");
     const external = component.inheritedProps.find(
       (prop) => matrix.inheritedCatalog[prop.definition].name === "externalFlag",
     );
@@ -76,32 +76,38 @@ test("API matrix resolves aliases, compounds, branch-only props, and aliased lit
       "inherited optionality is preserved for every union branch",
     );
     assert.equal(matrix.components[1].props[0].default.expression, '"Part"');
-    const reviewedInherited = extractMatrix(program, entry, {
+    const inheritedPolicy = {
       components: {
         Renamed: {
           props: {
-            externalFlag: { meaning: "Reviewed dependency flag.", migration: "Keep forwarding." },
+            externalFlag: { meaning: "Dependency flag with an intentional integration note." },
           },
         },
       },
-    });
+    };
+    const documentedInherited = extractMatrix(program, entry, inheritedPolicy);
     assert.ok(
-      reviewedInherited.components[0].props.find((prop) => prop.name === "externalFlag")
-        ?.reviewedPolicy,
+      documentedInherited.components[0].props.find((prop) => prop.name === "externalFlag")
+        ?.policyNote,
     );
+    assert.doesNotThrow(() => validatePolicy(matrix, inheritedPolicy));
+    const documentedMarkdown = renderMarkdown(documentedInherited, inheritedPolicy);
+    assert.match(documentedMarkdown, /Dependency flag with an intentional integration note/);
+    assert.doesNotMatch(documentedMarkdown, /Migration:\*\* undefined/);
     const markdown = renderMarkdown(matrix, { axes: {} });
     assert.match(markdown, /Action emphasis, not status/);
-    assert.match(markdown, /not-reviewed/);
+    assert.match(markdown, /not-documented/);
     assert.match(markdown, /Literal values/);
+    assert.match(markdown, /new components and props do not require entries/);
+    assert.match(markdown, /\[JSON evidence\]\(\.\/prop-matrix.json\)/);
   } finally {
     fs.rmSync(directory, { recursive: true, force: true });
   }
 });
 
-test("complete API review rejects uncovered additions, missing behavior and axes, and orphaned policies", () => {
+test("optional API notes allow new APIs and reject stale or invalid supplied entries", () => {
   const matrix = { components: [{ name: "Example", props: [{ name: "value", axis: "value" }] }] };
   const policy = {
-    requireCompleteReview: true,
     components: {
       Example: {
         domTarget: "Input receives native props and ref.",
@@ -109,59 +115,85 @@ test("complete API review rejects uncovered additions, missing behavior and axes
         defaultBehavior: "No uncontrolled fallback.",
         reviewSources: ["example.tsx"],
         props: {
-          value: { meaning: "Displayed input value.", migration: "Preserve caller ownership." },
+          value: { meaning: "Displayed input value." },
         },
       },
     },
   };
-  assert.doesNotThrow(() => validateReview(matrix, policy));
+  assert.doesNotThrow(() => validatePolicy(matrix, policy));
   const mutate = (update) => {
     const copy = structuredClone(policy);
     update(copy.components.Example);
     return copy;
   };
   for (const field of ["domTarget", "controlledBehavior", "defaultBehavior", "reviewSources"])
-    assert.throws(
-      () =>
-        validateReview(
-          matrix,
-          mutate((review) => delete review[field]),
-        ),
-      /Incomplete API review/,
-    );
-  assert.throws(
-    () =>
-      validateReview(
+    assert.doesNotThrow(() =>
+      validatePolicy(
         matrix,
-        mutate((review) => delete review.props.value),
+        mutate((review) => delete review[field]),
       ),
-    /Incomplete axis review/,
+    );
+  assert.doesNotThrow(() =>
+    validatePolicy(
+      matrix,
+      mutate((review) => delete review.props.value),
+    ),
   );
   assert.throws(
     () =>
-      validateReview(
+      validatePolicy(
         matrix,
         mutate((review) => (review.props.value.migration = " ")),
       ),
-    /Incomplete axis review/,
+    /Invalid policy note: Example.value.migration/,
   );
+  assert.doesNotThrow(() =>
+    validatePolicy(
+      {
+        components: [
+          {
+            name: "Example",
+            props: [...matrix.components[0].props, { name: "newAxis", axis: "tone" }],
+          },
+          { name: "NewPart", props: [] },
+        ],
+      },
+      policy,
+    ),
+  );
+  assert.throws(() => validatePolicy({ components: [] }, policy), /Stale component policy/);
   assert.throws(
     () =>
-      validateReview(
-        { components: [...matrix.components, { name: "NewPart", props: [] }] },
-        policy,
-      ),
-    /NewPart.domTarget/,
-  );
-  assert.throws(() => validateReview({ components: [] }, policy), /Stale component policy/);
-  assert.throws(
-    () =>
-      validateReview(
+      validatePolicy(
         matrix,
         mutate((review) => (review.props.removed = {})),
       ),
     /Stale prop policy/,
   );
-  // Partial fixture inventories are not silently promoted to completed reviews.
-  assert.doesNotThrow(() => validateReview(matrix, { components: {} }));
+  assert.throws(
+    () =>
+      validatePolicy(
+        matrix,
+        mutate((review) => (review.props.value.meaning = " ")),
+      ),
+    /Missing policy meaning: Example.value/,
+  );
+  assert.throws(
+    () =>
+      validatePolicy(
+        matrix,
+        mutate((review) => (review.domTarget = 42)),
+      ),
+    /Invalid policy note: Example.domTarget/,
+  );
+  assert.throws(
+    () =>
+      validatePolicy(
+        matrix,
+        mutate((review) => (review.reviewSources = [""])),
+      ),
+    /Invalid policy sources/,
+  );
+  assert.doesNotThrow(() => validatePolicy(matrix, { components: {} }));
+  assert.doesNotThrow(() => validatePolicy(matrix, {}));
 });

@@ -36,10 +36,8 @@ historical notes may conflict with the current direction.
   [documentation](../../packages/design-system/src/stories/components/Separator.mdx).
 - Completed [Badge](../../packages/design-system/src/components/badge.tsx),
   [stories](../../packages/design-system/src/stories/components/Badge.stories.tsx),
-  [documentation](../../packages/design-system/src/stories/components/Badge.mdx), and
-  [migration mapping](badge-migration.md).
+  [documentation and migration mapping](../../packages/design-system/src/stories/components/Badge.mdx).
 - [Package exports](../../packages/design-system/src/components/index.ts),
-  [API policy](../../packages/design-system/api/axis-policy.json),
   [changelog](../../packages/design-system/CHANGELOG.md), and
   [packed-consumer check](../../packages/design-system/build/consumer-smoke.mjs).
 
@@ -57,40 +55,14 @@ rendered router element. In-place drill-down actions remain native buttons. Reco
 its parent trail at the pattern layer; preserve its tested `first:hidden` separator behavior for
 empty fragments/arrays, which avoids a leading chevron.
 
-Badge is one component for generic labels, semantic statuses and rendered links. `Badge`,
-`BadgeProps` and `badgeVariants` combine the six shadcn variants with product options:
+Badge is one component for generic labels, semantic statuses and rendered links. The
+[Badge page](../../packages/design-system/src/stories/components/Badge.mdx) owns its defaults,
+option interactions and migration examples. Existing status consumers use
+`variant="secondary"`; the unconfigured default is brand/bold. Preserve the shared Tone type
+and the separate Count, Dot, Indicator and Avatar-part contracts when adapting other families.
 
-- `variant` chooses treatment: `default`, `secondary`, `destructive`, `outline`, `ghost`, `link`.
-- `tone` chooses the palette: `brand`, `neutral`, `information`, `success`, `warning`, `danger`.
-- `appearance` overrides subtle/bold emphasis for filled variants; it has no effect on outline,
-  ghost or link treatments.
-- `size` chooses 20px small or 16px xsmall density; every palette uses the same pill anatomy.
-- `icon` is an optional leading icon shorthand; icons can also be composed as children.
-- `render` composes a real anchor or custom element while preserving merged native props,
-  styles, classes, handlers and refs.
-
-Default Badge is the shadcn brand/bold treatment. Secondary defaults neutral/subtle and
-destructive defaults danger/subtle. Tone changes palette without changing treatment or
-geometry. Existing status consumers use `variant="secondary"` and retain their tone/appearance;
-formerly implicit neutral labels explicitly set `tone="neutral"`. There is one Badge story and
-documentation family. All badge roots emit `data-slot="badge"` with their resolved axes.
-
-`Count`, `Dot`, `Indicator`, `Tone`, `tones` and `toneClasses` retain their contracts. Their
-shared palette is in `src/lib/status-tone.ts` and is re-exported through `components/badge.tsx`.
-Avatar's independent Badge/Count parts remain unchanged. Badge adds brand support locally
-without widening the shared Tone type used by other families.
-
-CVA is a declared package dependency. Ledger's focused/danger outlines replace the reference's
-translucent rings with solid 2px outlines and 2px offsets; `outline-danger` is generated from
-existing tokens. The lint parser checks CVA classes and important modifiers. Packed-consumer
-coverage exercises the same unified Badge for standard and semantic variants, rendered links,
-native attributes, types, SSR and generated CSS. API evidence is generated with the scripts.
-
-Review [Components / Badge](http://localhost:6008/?path=/docs/components-badge--docs).
-The review server uses port 6008 because the pre-existing port-6007 server had a stale preview
-module. Start it with `npm run storybook -w packages/design-system -- --port 6008 --no-open`
-if needed. Normal `npm run storybook` uses port 6007. The [Badge migration guide](badge-migration.md)
-records the API and token mapping.
+The packed-consumer fixture covers native attributes, render composition, types, SSR and CSS.
+Start `npm run storybook` and review [Components / Badge](http://localhost:6007/?path=/docs/components-badge--docs).
 
 ## Next selection: Separator
 
@@ -139,14 +111,16 @@ use Base UI internally. Their full standard-contract migrations remain separate 
 
 ## Completion workflow
 
-1. Inspect git status and preserve unrelated edits. Inventory imports before replacing names.
-2. Record the API/token mapping, adapt the component and migrate every family consumer.
-3. Update stories and the complete MDX template, exports, affected patterns, migration docs and changelog.
-4. Review axis policy against actual native targets, state ownership, defaults and tracked axes.
-   Preserve unrelated policy entries. Generate declarations/matrix using scripts; never hand-edit evidence.
-5. Extend the packed consumer fixture for exports, SSR/render composition and TypeScript contracts.
-6. Run checks, resolve regressions, leave the slice ready for visual review, and update this handoff
-   with the completed family and next suggested selection. Do not start that next family automatically.
+Follow [Adding to the kit](component-library.md#adding-to-the-kit): implement the change and
+affected consumers, exercise it in representative stories, update one accurate family page
+and the changelog, then run relevant checks. Inspect git status and inventory imports first.
+Extend packed-consumer coverage when exports or consumer integration change. Update this
+handoff's completed family and next selection when a migration finishes.
+
+Only intentional public contract changes need `npm run ds:api:update`. Review that diff before
+accepting it. Audit policy notes are optional; `npm run ds:api:matrix` produces ignored reports
+when an audit needs them. Neither matrix generation nor exhaustive prop-review prose is part
+of the normal component workflow.
 
 Run from the repository root:
 
@@ -158,10 +132,7 @@ npm run lint
 npm test -w packages/design-system
 npm run test:api
 npm run test:app
-npm run ds:api:update
-npm run ds:api:matrix
 npm run ds:api:check
-npm run ds:api:matrix:check
 npm run ds:check
 npm run test:a11y -w packages/design-system -- src/stories/components/Separator.stories.tsx src/stories/components/Toggle.stories.tsx src/stories/components/Resizable.stories.tsx
 npm run build
@@ -183,8 +154,8 @@ standard matrix, semantic matrix, tone/variant combinations and dense rows: 154 
 correct 16px/20px heights, 12px icons, a shared pill radius and no clipped labels or browser
 errors. Captures are in `/private/tmp/badge-unified-qa`.
 
-Also passed: final declaration/matrix generation and freshness, all 115 exports with story
-coverage and all 107 documentation pages on the template, production and Storybook builds,
+At that handoff, also passed: declaration/matrix generation and freshness under the former
+audit workflow, all 115 exports with story coverage and 107 documentation pages, production and Storybook builds,
 and packed ESM/SSR/NodeNext/Vite/Tailwind validation outside the workspace. The final focused
 Badge rerun passed 34 checks after render-owned label composition was verified. The packed
 fixture covers icon plus render-owned text, false/omitted icon content, accepted semantic

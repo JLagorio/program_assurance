@@ -97,7 +97,7 @@ Use the checked-in shadcn Base UI components in `src/components/ui/` as the foun
 
 Port source into the package with relative imports and package `cn`; application source is never a package dependency. Ledger tokens supply styling. Document defaults, how options combine, and intentional differences from the reference, and test the resulting contract.
 
-Breadcrumb has seven composable exports and uses Base UI `render` for links. Badge exposes six shadcn variants plus semantic `tone`, fill `appearance`, compact `size` and optional `icon`, with native span props/refs and rendered links in the same component. See Components/Badge and the [Badge migration guide](../../docs/guides/badge-migration.md). Other families retain their documented APIs until their own migration.
+Breadcrumb has seven composable exports and uses Base UI `render` for links. Badge combines shadcn variants and semantic status options in one component; its [Storybook page](src/stories/components/Badge.mdx) owns the usage and migration examples. Other families retain their documented APIs until their own migration.
 
 Semantic axes keep clear meanings: `tone` communicates status, `variant` chooses treatment and `size` chooses density. Native DOM names retain their meanings. Extend components deliberately instead of creating parallel standard and product versions of the same control.
 
@@ -107,7 +107,9 @@ Base UI, Radix, Vaul and layout helpers are implementation dependencies. Consume
 
 ## Lifecycle and contribution
 
-New components start experimental and name an owner, intended use, keyboard behavior, responsive behavior, supported states, and known limitations in their documentation. Promotion to stable requires a public export, complete family documentation, representative stories with play functions for stateful behavior, accessibility checks in both modes, and packed consumer validation. Deprecations name a replacement and migration, remain available for a documented transition, and appear in the changelog. Within 0.x, a minor release may break a documented contract; patches preserve it. No release is implied by local edits.
+Document a component's intended use, relevant behavior and known limitations alongside representative stories and generated props. Page sections follow the component's needs. New components start experimental; promotion to stable requires a public export, accurate documentation, play functions for stateful behavior, accessibility checks in both modes, and packed consumer validation. Deprecations name a replacement and migration, remain available for a documented transition, and appear in the changelog. Within 0.x, a minor release may break a documented contract; patches preserve it. No release is implied by local edits.
+
+The [contribution workflow](../../docs/guides/component-library.md#adding-to-the-kit) covers checks and API baseline updates. The large prop matrix is generated only when an audit needs it; it is not committed or checked for freshness in CI.
 
 Tokens and layout implement the design; keyboard operation, understandable copy, visible focus, validation, recovery and honest persistence implement the user contract. The application still owns business permissions and server durability. See Storybook Guidance/Testing and review for the review checklist and workflow specimens.
 

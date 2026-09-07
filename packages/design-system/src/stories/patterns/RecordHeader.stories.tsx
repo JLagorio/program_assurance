@@ -207,7 +207,7 @@ export const Dont: Story = {
             }
           />
         }
-        doText="Meta is a word or a Badge after the id: the state."
+        doText="Meta is a word or a Badge after the title: the state."
         dont={
           <RecordHeader
             id="PRG-1041"
