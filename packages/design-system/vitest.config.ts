@@ -8,7 +8,7 @@ import viteConfig from "./.storybook/vite.config";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Explicit contract tags survive renamed story titles. Run the same contracts in both modes.
+// Storybook runs all stories by default: render checks plus any play functions, in both modes.
 export default mergeConfig(
   viteConfig,
   defineConfig({
@@ -21,7 +21,6 @@ export default mergeConfig(
             configDir: path.join(dirname, ".storybook"),
             storybookScript: "npm run storybook -- --no-open",
             storybookUrl: "http://localhost:6007",
-            tags: { include: ["contract"] },
             initialGlobals: {
               mode: mode === "dark" ? "dark" : "light",
               viewport: {

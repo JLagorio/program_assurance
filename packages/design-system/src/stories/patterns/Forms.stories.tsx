@@ -182,7 +182,6 @@ function ControlForm() {
 
 /** A form pattern: TanStack owns state and validation; Ledger components render the fields. */
 export const Fields: Story = {
-  tags: ["contract"],
   render: () => <ControlForm />,
   play: async ({ canvasElement }) => {
     const { expect, userEvent, within, waitFor } = await import("storybook/test");
@@ -451,7 +450,7 @@ function BoundCustomControl(props: { value: string; onChange: (value: string) =>
     />
   );
 }
-function RecoveryContractDemo() {
+function RecoveryDemo() {
   const formRef = useRef<HTMLFormElement>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -507,10 +506,9 @@ function RecoveryContractDemo() {
   );
 }
 
-export const ValidationRecoveryContract: Story = {
+export const ValidationRecovery: Story = {
   name: "Legacy useRequired: validation recovery",
-  tags: ["contract"],
-  render: () => <RecoveryContractDemo />,
+  render: () => <RecoveryDemo />,
   play: async ({ canvasElement }) => {
     const { expect, userEvent, within, waitFor } = await import("storybook/test");
     const canvas = within(canvasElement);
@@ -539,17 +537,17 @@ export const ValidationRecoveryContract: Story = {
   },
 };
 
-function CompositeContractDemo() {
+function CompositeDemo() {
   const formRef = useRef<HTMLFormElement>(null);
   const selectRef = useRef<HTMLButtonElement>(null);
-  const comboRef = useRef<HTMLButtonElement>(null);
+  const comboRef = useRef<HTMLInputElement>(null);
   const [owner, setOwner] = useState("");
   const [blurred, setBlurred] = useState(false);
   const validation = useRequired({ owner }, undefined, { formRef });
   return (
     <>
       <form
-        id="composite-contract-form"
+        id="composite-controls-form"
         ref={formRef}
         onSubmit={(event) => {
           event.preventDefault();
@@ -585,7 +583,7 @@ function CompositeContractDemo() {
       <Combobox
         aria-label="External owner"
         name="external"
-        form="composite-contract-form"
+        form="composite-controls-form"
         value="alice"
         onChange={() => {}}
         options={[{ value: "alice", label: "Alice" }]}
@@ -593,10 +591,9 @@ function CompositeContractDemo() {
     </>
   );
 }
-export const CompositeControlContract: Story = {
+export const CompositeControl: Story = {
   name: "Legacy useRequired: composite controls",
-  tags: ["contract"],
-  render: () => <CompositeContractDemo />,
+  render: () => <CompositeDemo />,
   play: async ({ canvasElement }) => {
     const { expect, userEvent, within } = await import("storybook/test");
     const canvas = within(canvasElement);

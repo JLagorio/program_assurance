@@ -17,7 +17,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Every size, off and on, disabled, and with a label; then a toolbar of them beside the controls they sit level with. */
 export const ToggleMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Matrix
@@ -63,6 +62,8 @@ export const ToggleMatrix: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  // The negative example intentionally demonstrates an unnamed icon toggle.
+  parameters: { a11y: { config: { rules: [{ id: "button-name", enabled: false }] } } },
   render: () => (
     <Stack space="space.400">
       <Pair

@@ -20,7 +20,6 @@ const cols = ["toggle", "with a value", "opens a popover"] as const;
 
 /** Every state down the side; a toggle, a chip with a value and a chip that opens a popover across. */
 export const FilterChipMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Grid
       rows={states}

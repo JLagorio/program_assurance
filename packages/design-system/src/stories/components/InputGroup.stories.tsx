@@ -85,7 +85,6 @@ function Specimen({ kind, state }: { kind: Kind; state: State }) {
 
 /** What can sit at either end, down the side; the states across. */
 export const InputGroupMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Grid
       rows={kinds}
@@ -160,6 +159,8 @@ export const Units: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  // The negative example intentionally puts a button in an aria-hidden decorative slot.
+  parameters: { a11y: { config: { rules: [{ id: "aria-hidden-focus", enabled: false }] } } },
   render: () => (
     <Stack space="space.400">
       <Pair

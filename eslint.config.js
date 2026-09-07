@@ -13,7 +13,7 @@ const SERVER_ONLY = {
     "TanStack Start does not use the Next.js `server-only` package. Rename the module to `*.server.ts` or mark it with `@tanstack/react-start/server-only`.",
 };
 
-// The product: routes, app components, domain code and the router. Reference kits and stories are not the product.
+// The product: routes, app components, domain code and the router. Reference kits are not the product.
 const PRODUCT = [
   "src/routes/**/*.{ts,tsx}",
   "src/components/app/**/*.{ts,tsx}",
@@ -93,19 +93,9 @@ export default tseslint.config(
     rules: {},
   },
   {
-    // The reference sampler renders the shadcn preset on purpose.
-    files: ["src/stories/reference/**/*.{ts,tsx}"],
-    rules: { "no-restricted-imports": "off" },
-  },
-  {
     // The product shell composes the package's Shell parts and keeps the name; it is the one intentional shadow.
     files: ["src/components/app/shell.tsx"],
     rules: { "ledger/no-kit-shadow": "off" },
-  },
-  {
-    // Stories export a default meta object plus named story objects by design; story helpers export hooks alongside components.
-    files: ["src/stories/**/*.{ts,tsx}", ".storybook/**/*.{ts,tsx}"],
-    rules: { "react-refresh/only-export-components": "off" },
   },
   eslintPluginPrettier,
 );

@@ -124,7 +124,6 @@ export const Persisted: Story = {
 
 /** Horizontal and vertical; a floor and a ceiling; a collapsible pane; three panes with two handles. */
 export const ResizableMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="horizontal · vertical">

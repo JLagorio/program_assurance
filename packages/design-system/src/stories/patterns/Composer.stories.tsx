@@ -33,7 +33,6 @@ const getSuggestions: ComposerProps["getSuggestions"] = (text, caret) => {
 };
 
 export const ComposerMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Composer label="Message" onSubmit={() => undefined} />
@@ -41,6 +40,18 @@ export const ComposerMatrix: Story = {
         label="Reply"
         defaultValue="Thanks for the update."
         leading={<Avatar name="Sam Rivera" size="small" isDecorative />}
+        onSubmit={() => undefined}
+      />
+      <Composer
+        label="Comment"
+        submitLabel="Comment"
+        defaultValue="Confirm the review cadence with Sam before Friday."
+        leading={<Avatar name="Sam Rivera" size="medium" variant="bold" isDecorative />}
+        actions={
+          <Button size="small" variant="secondary">
+            Task
+          </Button>
+        }
         onSubmit={() => undefined}
       />
       <Composer
@@ -53,8 +64,7 @@ export const ComposerMatrix: Story = {
   ),
 };
 
-export const SuggestionsContract: Story = {
-  tags: ["contract"],
+export const Suggestions: Story = {
   args: { getSuggestions, hint: "Type # to insert a topic." },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -102,8 +112,7 @@ function SaveExample() {
   );
 }
 
-export const SaveRecoveryContract: Story = {
-  tags: ["contract"],
+export const SaveRecovery: Story = {
   render: () => <SaveExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -145,8 +154,7 @@ export const Dont: Story = {
 };
 export const Playground: Story = {};
 
-export const SynchronousReplacementContract: Story = {
-  tags: ["contract"],
+export const SynchronousReplacement: Story = {
   render: function Example() {
     const [value, setValue] = useState("First draft");
     return (

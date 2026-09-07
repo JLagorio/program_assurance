@@ -16,7 +16,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Inherited, small and medium sizes by weight; a TextLink beside a Button link, which is an action and not navigation. */
 export const TextLinkMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Grid
@@ -50,11 +49,11 @@ export const InProse: Story = {
     <Stack space="space.200">
       <Text>
         The finding was raised against{" "}
-        <TextLink>
+        <TextLink className="underline">
           <a href="#ctrl">AC-2(4)</a>
         </TextLink>{" "}
         and traces to{" "}
-        <TextLink>
+        <TextLink className="underline">
           <a href="#req">REQ-0118</a>
         </TextLink>
         .
@@ -85,7 +84,7 @@ export const Dont: Story = {
         do={
           <Text>
             Traces to{" "}
-            <TextLink asChild={false} href="#req">
+            <TextLink asChild={false} href="#req" className="underline">
               REQ-0118
             </TextLink>
             .

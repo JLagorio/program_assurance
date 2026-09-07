@@ -114,13 +114,11 @@ function DrawerStates() {
 
 /** Every state one click away, since an open drawer covers the page: quick actions, filters with a footer, and a body that scrolls under the handle. */
 export const DrawerMatrix: Story = {
-  tags: ["contract"],
   render: () => <DrawerStates />,
 };
 
 /** Quick actions for one record, held open. Drag the handle down to close it. */
 export const OpenMatrix: Story = {
-  tags: ["contract"],
   name: "Open",
   parameters: modalOpen,
   render: () => (
@@ -202,8 +200,7 @@ function TitleOnlyDrawer() {
 }
 
 /** An omitted optional description must not leave a dangling accessible relationship. */
-export const OptionalDescriptionContract: Story = {
-  tags: ["contract"],
+export const OptionalDescription: Story = {
   render: () => <TitleOnlyDrawer />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);

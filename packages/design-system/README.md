@@ -101,13 +101,13 @@ Radix, Vaul and layout helpers are implementation dependencies. Consumers should
 
 ## Lifecycle and contribution
 
-New components start experimental and name an owner, intended use, keyboard behavior, responsive behavior, supported states, and known limitations in their documentation. Promotion to stable requires a public export, complete family documentation, an explicit `contract` story, interaction checks for stateful behavior, accessibility checks in both modes, and packed consumer validation. Deprecations name a replacement and migration, remain available for a documented transition, and appear in the changelog. Within 0.x, a minor release may break a documented contract; patches preserve it. No release is implied by local edits.
+New components start experimental and name an owner, intended use, keyboard behavior, responsive behavior, supported states, and known limitations in their documentation. Promotion to stable requires a public export, complete family documentation, representative stories with play functions for stateful behavior, accessibility checks in both modes, and packed consumer validation. Deprecations name a replacement and migration, remain available for a documented transition, and appear in the changelog. Within 0.x, a minor release may break a documented contract; patches preserve it. No release is implied by local edits.
 
-Tokens and layout implement the design; keyboard operation, understandable copy, visible focus, validation, recovery and honest persistence implement the user contract. The application still owns business permissions and server durability. See Storybook Guidance/Quality contract for the review checklist and workflow specimens.
+Tokens and layout implement the design; keyboard operation, understandable copy, visible focus, validation, recovery and honest persistence implement the user contract. The application still owns business permissions and server durability. See Storybook Guidance/Testing and review for the review checklist and workflow specimens.
 
 
 ## Package and product boundary
 
 Shared patterns describe reusable presentation and interaction. `Composer` owns drafting, keyboard suggestions and recoverable submission; its adapter supplies option identities, filtering and exact insertion text. `TaskRow` owns a completion row with caller-rendered owner, date and status content. `Timeline.Item` already supplies the reusable feed item, so no second shared wrapper is needed.
 
-The application keeps `Activity` and `Task` wrappers, event taxonomies, waiting/blocked states, overdue decisions, people lookups and mention serialization (`src/lib/mentions.ts`). Those wrappers and `parseMentions` are not package exports. Product/Workflows in the application Storybook covers the workflows; Patterns/Composer, Patterns/TaskRow and Components/Timeline cover the reusable contracts. These new patterns are experimental; no release is implied.
+The application keeps `Activity` and `Task` wrappers, event taxonomies, waiting/blocked states, overdue decisions, people lookups and mention serialization (`src/lib/mentions.ts`). Those wrappers and `parseMentions` are not package exports. Patterns/Composer, Patterns/TaskRow and Components/Timeline demonstrate the reusable behaviors; product workflows stay in the application. These new patterns are experimental; no release is implied.

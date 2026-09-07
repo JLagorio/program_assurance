@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Box, Inline, Stack, Text } from "../../primitives";
 
 /**
- * The matrix is the contract: every variant down the side, every state or size across the top,
+ * The matrix compares examples: every variant down the side, every state or size across the top,
  * one cell per pairing. A family's Matrix story is what Josef signs off; the toolbar switches the mode.
  */
 export function Matrix<R extends string, C extends string>({

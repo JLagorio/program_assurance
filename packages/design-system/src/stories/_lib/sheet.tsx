@@ -78,9 +78,18 @@ export function Mode({
 
 function SwatchBody({ d }: { d: TokenDoc }) {
   const v = `var(${d.cssVar})`;
-  if (d.group === "text" || d.group === "icon")
+  if (d.group === "icon")
     return (
-      <span className="font-heading-small" style={{ color: v }}>
+      <svg aria-hidden="true" viewBox="0 0 24 24" className="size-300" style={{ color: v }} fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="12" cy="12" r="9" />
+        <path d="m8 12 3 3 5-6" />
+      </svg>
+    );
+  if (d.name === "color.text.disabled")
+    return <button type="button" disabled className="font-heading-small" style={{ color: v }}>Aa</button>;
+  if (d.group === "text")
+    return (
+      <span aria-hidden="true" className="font-heading-small" style={{ color: v }}>
         Aa
       </span>
     );
@@ -107,7 +116,7 @@ export function Swatch({ d, mode }: { d: TokenDoc; mode: "light" | "dark" }) {
   const v = `var(${d.cssVar})`;
   const isFill = d.group === "background" || d.group === "surface" || d.group === "palette";
   return (
-    <Mode mode={mode} className="flex h-600 w-full items-center justify-center rounded-medium">
+    <Mode mode={mode} className={`flex h-600 w-full items-center justify-center rounded-medium ${d.name.endsWith("warning.inverse") ? "bg-warning-bold" : d.name.endsWith(".inverse") ? "bg-neutral-bold" : ""}`}>
       {isFill ? (
         <span className="block size-full rounded-medium" style={{ backgroundColor: v }} />
       ) : (

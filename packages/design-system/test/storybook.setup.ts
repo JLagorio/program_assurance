@@ -13,5 +13,5 @@ beforeEach(() => {
 });
 afterEach(() => {
   restore?.();
-  expect(errors, "Contract stories must not emit unexpected console errors").toEqual([]);
+  expect(errors, "Stories must not emit unexpected console errors").toEqual([]);
 });

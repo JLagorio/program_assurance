@@ -22,7 +22,6 @@ function Label({ children }: { children: string }) {
 
 /** The four sizes with the element each renders by default; the element overridden by `as`; inverse on a bold fill, set by the Box. */
 export const HeadingMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Stack space="space.100">
@@ -79,7 +78,7 @@ export const Headings: Story = {
       </Heading>
       <Heading size="medium">Program CFC-2026 · Boundary protection</Heading>
       <Heading size="small">Assessment results</Heading>
-      <Heading size="xsmall" as="h4">
+      <Heading size="xsmall" as="h3">
         Schedule assessment
       </Heading>
       <Text size="small" color="color.text.subtlest">
@@ -91,6 +90,8 @@ export const Headings: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  // The negative example intentionally demonstrates a broken heading outline.
+  parameters: { a11y: { config: { rules: [{ id: "heading-order", enabled: false }] } } },
   render: () => (
     <Stack space="space.400">
       <Pair

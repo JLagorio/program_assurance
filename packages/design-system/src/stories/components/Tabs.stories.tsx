@@ -128,7 +128,6 @@ const six: SectionTab[] = [
 
 /** Every state on one strip, and the strip in a narrow space, where it scrolls. */
 export const TabsMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="States">

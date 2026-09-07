@@ -1,13 +1,38 @@
-export { Alert, type AlertProps } from "./alert";
+export {
+  Alert,
+  type AlertProps,
+  type AlertTitleProps,
+  type AlertDescriptionProps,
+  type AlertActionProps,
+} from "./alert";
+export {
+  Attachment,
+  type AttachmentProps,
+  type AttachmentState,
+  type AttachmentSize,
+  type AttachmentMediaProps,
+  type AttachmentContentProps,
+  type AttachmentTitleProps,
+  type AttachmentDescriptionProps,
+  type AttachmentActionsProps,
+  type AttachmentActionProps,
+  type AttachmentTriggerProps,
+  type AttachmentGroupProps,
+} from "./attachment";
 export { Banner, type BannerProps, type BannerTone } from "./banner";
 export {
   Avatar,
   Person,
+  type AvatarBadgeProps,
+  type AvatarCountProps,
+  type AvatarFallbackProps,
   type AvatarHue,
+  type AvatarImageProps,
   type AvatarProps,
   type AvatarSize,
   type AvatarStackPerson,
   type AvatarStackProps,
+  type AvatarStackSize,
   type AvatarVariant,
   type PersonProps,
 } from "./avatar";
@@ -66,7 +91,29 @@ export {
 } from "./chart";
 export { FilterChip, type FilterChipProps } from "./chip";
 export { CodeBlock, type CodeBlockProps } from "./code-block";
-export { Combobox, type ComboboxOption, type ComboboxProps } from "./combobox";
+export {
+  Combobox,
+  type ComboboxOption,
+  type ComboboxProps,
+  type ComboboxRootProps,
+  type ComboboxInputProps,
+  type ComboboxInputGroupProps,
+  type ComboboxTriggerProps,
+  type ComboboxContentProps,
+  type ComboboxListProps,
+  type ComboboxItemProps,
+  type ComboboxEmptyProps,
+  type ComboboxGroupProps,
+  type ComboboxGroupLabelProps,
+  type ComboboxCollectionProps,
+  type ComboboxValueProps,
+  type ComboboxSeparatorProps,
+  type ComboboxChipsProps,
+  type ComboboxChipProps,
+  type ComboboxChipRemoveProps,
+  type ComboboxClearProps,
+  type ComboboxStatusProps,
+} from "./combobox";
 export { Command, type CommandDialogProps } from "./command";
 export {
   Checkbox,

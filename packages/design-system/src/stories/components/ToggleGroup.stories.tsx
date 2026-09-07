@@ -34,7 +34,6 @@ const views = [
 
 /** Both sizes: words, words with icons, icons alone with their tooltips, counts, and a disabled item. */
 export const ToggleGroupMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       {(["small", "medium"] as const).map((size) => (

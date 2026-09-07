@@ -104,7 +104,6 @@ export const GlanceStory: Story = {
 
 /** The three record types at the card's width: an Indicator or a Badge as the status, four facts, three, a title of two lines. */
 export const GlanceMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Inline space="space.300" alignBlock="start" shouldWrap>
       {(Object.keys(glances) as (keyof typeof glances)[]).map((k) => (

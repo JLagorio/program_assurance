@@ -52,7 +52,6 @@ export const PanelStory: Story = {
 
 /** The header's forms, a subheader, a footer; flush with no header at all, the detail of a selected row; the trigger for a dismissible panel. */
 export const PanelMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Plain · with an icon and two actions · with a back button and a subheader">
@@ -122,6 +121,8 @@ export const PanelMatrix: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  // Independent panel examples repeat their landmark names.
+  parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -174,7 +175,6 @@ export const Playground: Story = {
 
 /** A subheader is an independent slot even when the panel has no title row. */
 export const SubheaderOnly: Story = {
-  tags: ["contract"],
   render: () => (
     <PanelBox>
       <Panel subheader="3 selected records" flush>

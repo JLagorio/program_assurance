@@ -31,7 +31,6 @@ type Story = StoryObj<typeof meta>;
 
 /** A primary allowed and a secondary blocked with its reason; every action blocked; the trail, a state with a control and the tab strip. */
 export const ActionBarMatrix: Story = {
-  tags: ["contract"],
   // Several bars in one story mean several trails named "Breadcrumb"; a page has one.
   parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
   render: () => (

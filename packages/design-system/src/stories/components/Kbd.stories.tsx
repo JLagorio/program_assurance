@@ -17,7 +17,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Letters, glyphs with their spoken names, chords in a Kbd.Group, and the cap in a sentence, a tooltip and a menu. */
 export const KbdMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Keys: letters say themselves; glyphs take a label">

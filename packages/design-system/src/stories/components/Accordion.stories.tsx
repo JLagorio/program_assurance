@@ -35,7 +35,6 @@ function Entry({
 }
 
 export const AccordionMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300" className="w-layout-list max-w-full">
       <Accordion type="single" collapsible defaultValue="first" aria-label="Single selection">
@@ -137,7 +136,6 @@ function ControlledExample() {
 }
 
 export const ControlledAndRetained: Story = {
-  tags: ["contract"],
   render: () => <ControlledExample />,
   play: async ({ canvasElement }) => {
     const { expect, userEvent, within, waitFor } = await import("storybook/test");
@@ -161,7 +159,6 @@ export const ControlledAndRetained: Story = {
 };
 
 export const Composition: Story = {
-  tags: ["contract"],
   render: () => (
     <Accordion type="single" defaultValue="outer">
       <Accordion.Item value="outer">

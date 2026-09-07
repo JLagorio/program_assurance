@@ -1,5 +1,5 @@
 import { useLedgerLocale } from "../lib/locale";
-import { useOverlayFocus } from "./_overlay-focus";
+import { preserveComboboxEscape, useOverlayFocus } from "./_overlay-focus";
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
 import type { ReactNode, RefObject } from "react";
 
@@ -56,6 +56,7 @@ export function AlertDialog({
         <AlertDialogPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket data-[state=open]:animate-dim-in data-[state=closed]:animate-dim-out" />
         <div className="fixed inset-0 z-50 flex items-start justify-center p-200 sm:pt-1000">
           <AlertDialogPrimitive.Content
+            onEscapeKeyDown={preserveComboboxEscape}
             onCloseAutoFocus={restoreFocus}
             dir={direction}
             {...(description ? {} : { "aria-describedby": undefined })}

@@ -1,8 +1,8 @@
 import { Meta } from "@storybook/addon-docs/blocks";
 
-<Meta title="Guidance/Quality contract" />
+<Meta title="Guidance/Testing and review" />
 
-# Quality contract
+# Testing and review
 
 The system should help a person understand the situation, choose an action, complete it, and recover if it fails. A familiar visual style alone does not establish that contract. Test the whole task with realistic content, keyboard input and the conditions people actually encounter.
 
@@ -34,9 +34,15 @@ Inspect 320 CSS pixel width, 200% text enlargement and 400% browser zoom. A dens
 
 ## Automated checks and their limits
 
-`node scripts/ds-check.mjs` resolves public exports through the TypeScript compiler, counts executable story references, requires contract tags and documentation, and rejects a growing exception baseline. `node scripts/ds-public-api.mjs` prints the full public value/type inventory. A reference proves use, not correctness; interaction assertions establish behavior.
+`node scripts/ds-check.mjs` resolves public exports through the TypeScript compiler, counts executable story references, checks story coverage and documentation, and rejects a growing exception baseline. `node scripts/ds-public-api.mjs` prints the full public value/type inventory. A reference proves use, not correctness; interaction assertions establish behavior.
 
-`npm run test:a11y -w packages/design-system` runs tagged contracts in light and dark Chromium, including play functions, axe and unexpected-console checks. Dark-mode contracts also enable reduced motion. A renamed display title cannot silently remove a contract. Keep an explicit `tags: ["contract"]` on any new regression story. The package unit suite checks storage corruption, token interchange, formatting and declared contrast pairs. The packed consumer suite validates a separate install, ESM imports, declarations, SSR and generated CSS.
+`npm run test:a11y -w packages/design-system` runs every story in light and dark Chromium using Storybook’s built-in `test` tag. Each story gets a render check; its `play` function adds interaction assertions. Axe and unexpected-console checks run alongside them. Dark mode also checks reduced motion.
+
+Keep examples and their interaction tests in the same component’s `.stories.tsx` file. Add assertions to an existing example before introducing another render fixture. Use `fn()` from `storybook/test` for callbacks instead of rendering test counters or “check refs” buttons. Add a distinct story only for a distinct useful state or workflow. The Interactions panel shows the test steps; test-only controls do not belong in the component showcase.
+
+Storybook applies `dev` and `test` automatically. No custom tag is needed to opt in. Use `!test` only for a documented case that cannot run automatically; intentional accessibility anti-examples can scope an exception to the demonstrated axe rule, with an explanation beside the story. The other accessibility checks and the render test still run. Do not recreate a separate hidden story catalog.
+
+See [Storybook interaction tests](https://storybook.js.org/docs/writing-tests/interaction-testing) and [tags](https://storybook.js.org/docs/writing-stories/tags). The package unit suite covers nonvisual logic and token generation. The packed consumer suite verifies installation, declarations, SSR and generated CSS.
 
 Axe does not certify keyboard quality, reading order, useful labels, focus visibility, zoom or screen-reader announcements. Review representative workflows with a screen reader and Firefox/WebKit before release. Contrast results cover the declared pairs, including alpha compositing and interactive states; they do not prove every possible composition. Resting input borders now meet 3:1 against their declared adjacent surfaces; text and non-text checks keep their separate thresholds.
 
@@ -44,13 +50,13 @@ Axe does not certify keyboard quality, reading order, useful labels, focus visib
 
 | Workflow | Story or product surface | Review focus |
 | --- | --- | --- |
-| Validate and repair a form | Patterns/Forms contract stories | All errors, first focus, preserved values, custom control wiring. |
-| Pick and submit a date | Components/DatePicker contract stories | Closed picker FormData, external form, reset, disabled omission. |
-| Save inline with failure | Components/Editable contract stories | One pending operation, rollback ownership, external updates. |
-| Complete a nested modal task | Components/Dialog contract stories | Escape, successful close, return to correct opener. |
-| Navigate a hierarchy | Components/Tree contract stories | One tab stop, hierarchy, typeahead, selected item removal. |
+| Validate and repair a form | Patterns/Forms stories | All errors, first focus, preserved values, custom control wiring. |
+| Pick and submit a date | Components/DatePicker stories | Closed picker FormData, external form, reset, disabled omission. |
+| Save inline with failure | Components/Editable stories | One pending operation, rollback ownership, external updates. |
+| Complete a nested modal task | Components/Dialog stories | Escape, successful close, return to correct opener. |
+| Navigate a hierarchy | Components/Tree stories | One tab stop, hierarchy, typeahead, selected item removal. |
 | Filter records and recover | Risks, controls and findings pages | Empty results, clear filters, visible labels, durable supported actions. |
-| Read a chart | Components/Chart contract stories | Table equivalent, deterministic formatting and color mode. |
+| Read a chart | Components/Chart stories | Table equivalent, deterministic formatting and color mode. |
 
 ## Ownership and lifecycle
 

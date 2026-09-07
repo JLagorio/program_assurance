@@ -49,7 +49,6 @@ const openTo = (
 
 /** The compact record header with a status, the meta line and the way to the record, over facts in groups; and the id alone. */
 export const PreviewRailMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Inline space="space.300" alignBlock="start" shouldWrap>
       <Box className="w-layout-rail">

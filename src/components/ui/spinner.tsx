@@ -1,16 +1,10 @@
-import { cn } from "@ledger/design-system/cn";
-import { RiLoaderLine } from "@remixicon/react";
+import { cn } from "cn"
+import { Loader2Icon } from "lucide-react"
 
-function Spinner({ className, ...props }: React.ComponentProps<typeof RiLoaderLine>) {
+function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
   return (
-    <RiLoaderLine
-      data-slot="spinner"
-      role="status"
-      aria-label="Loading"
-      className={cn("size-4 animate-spin", className)}
-      {...props}
-    />
-  );
+    <Loader2Icon data-slot="spinner" role="status" aria-label="Loading" className={cn("size-4 animate-spin", className)} {...props} />
+  )
 }
 
-export { Spinner };
+export { Spinner }

@@ -295,7 +295,6 @@ function States() {
 
 /** Resting, empty, with a placeholder, validating, failing to save, a select, and a plain value beside them for the alignment. Edit a row to see editing, saving and saved: an open field is a click away. */
 export const EditableMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <States />
@@ -499,8 +498,7 @@ function SerializedSaveDemo() {
   );
 }
 
-export const SerializedSaveContract: Story = {
-  tags: ["contract"],
+export const SerializedSave: Story = {
   render: () => <SerializedSaveDemo />,
   play: async ({ canvasElement }) => {
     const { expect, within } = await import("storybook/test");

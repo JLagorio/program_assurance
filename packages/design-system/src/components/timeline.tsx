@@ -64,6 +64,7 @@ type Ctx = {
   size: TimelineSize;
   timePosition: TimelineTimePosition;
   align: TimelineAlign;
+  wrap: boolean;
 };
 
 const TimelineContext = createContext<Ctx>({
@@ -71,6 +72,7 @@ const TimelineContext = createContext<Ctx>({
   size: "medium",
   timePosition: "end",
   align: "center",
+  wrap: false,
 });
 
 /** Where a group sits in the list, so its first and last rows know which rail ends to hide. */
@@ -85,6 +87,8 @@ export type TimelineProps = {
   size?: TimelineSize | undefined;
   /** Where the time sits. Down the page: `end` of the title's line, the default; `above` the title as a dated line; `below` in the footer with the badges; `start` in a column before the rail. Across: `above` the marker, the default, or `below` it. */
   timePosition?: TimelineTimePosition | undefined;
+  /** Titles wrap onto more lines instead of truncating: a feed, where the sentence names a task or a file. Down the page only. */
+  wrap?: boolean | undefined;
   /** Across only. `center`, the default, puts the marker mid-column with the rail either side, for a line of releases; `start` puts it at the column's start with the text under it, for stages with a body. */
   align?: TimelineAlign | undefined;
   /** Timeline.Item rows, or Timeline.Group sections of them. */
@@ -99,6 +103,7 @@ function TimelineRoot({
   size = "medium",
   timePosition,
   align = "center",
+  wrap = false,
   children,
   className,
 }: TimelineProps) {
@@ -110,7 +115,9 @@ function TimelineRoot({
     : (timePosition ?? "end");
   const items = Children.toArray(children);
   return (
-    <TimelineContext.Provider value={{ orientation, size, timePosition: position, align }}>
+    <TimelineContext.Provider
+      value={{ orientation, size, timePosition: position, align, wrap: wrap && !horizontal }}
+    >
       <ol
         aria-label={label}
         data-orientation={orientation}
@@ -227,7 +234,7 @@ export function TimelineItem({
   children,
   footer,
 }: TimelineItemProps) {
-  const { orientation, size, timePosition, align } = useContext(TimelineContext);
+  const { orientation, size, timePosition, align, wrap } = useContext(TimelineContext);
   const edge = useContext(GroupContext);
   const horizontal = orientation === "horizontal";
   const s = sizes[size];
@@ -260,7 +267,13 @@ export function TimelineItem({
     ));
 
   const text = (
-    <span className={cn("block truncate font-body text-default", emphasis && "font-medium")}>
+    <span
+      className={cn(
+        "block font-body text-default",
+        wrap ? "min-w-0" : "truncate",
+        emphasis && "font-medium",
+      )}
+    >
       {title}
     </span>
   );

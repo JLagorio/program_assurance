@@ -1,6 +1,9 @@
+import { Info } from "lucide-react";
+import { useState } from "react";
+import { fn } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Alert, Button, TextLink, tones } from "../../components";
+import { Alert, Button, TextLink, toneClasses, tones } from "../../components";
 import { Box, Stack } from "../../primitives";
 import { Matrix } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -20,7 +23,12 @@ type Story = StoryObj<typeof meta>;
 
 /** Every tone as a note, titled, and with an action. */
 export const AlertMatrix: Story = {
-  tags: ["contract"],
+  play: async ({ canvasElement }) => {
+    const { expect } = await import("storybook/test");
+    for (const alert of canvasElement.querySelectorAll('[data-slot="alert"]')) {
+      await expect(alert).toHaveAttribute("role", alert.getAttribute("data-tone") === "danger" ? "alert" : "status");
+    }
+  },
   render: () => (
     <Matrix
       rows={tones}
@@ -33,7 +41,7 @@ export const AlertMatrix: Story = {
             title={col === "note" ? undefined : "Evidence expires in 12 days"}
             action={
               col === "with an action" ? (
-                <TextLink size="small">
+                <TextLink size="small" className={`${toneClasses[tone].text} underline`}>
                   <a href="#evidence">Open the evidence</a>
                 </TextLink>
               ) : undefined
@@ -63,7 +71,7 @@ export const Placement: Story = {
           tone="warning"
           title="PKG-0031 is not shippable"
           action={
-            <TextLink size="small">
+            <TextLink className="text-warning underline" size="small">
               <a href="#gaps">Show the 14 gaps</a>
             </TextLink>
           }
@@ -78,8 +86,18 @@ export const Placement: Story = {
 
 /** Feedback and a note read differently: the first is a title that says what happened, the second a body alone. */
 export const Kinds: Story = {
+  play: async ({ canvasElement }) => {
+    const { expect, within } = await import("storybook/test");
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("alert")).toHaveTextContent("Evidence expired");
+    const draft = canvas.getByRole("note");
+    await expect(draft).toHaveTextContent("Draft");
+    await expect(draft.querySelector('[aria-hidden="true"]')).toBeNull();
+    const titleOnly = canvas.getByText("Assessment complete").closest('[data-slot="alert"]')!;
+    await expect(titleOnly.querySelector('[data-slot="alert-description"]')).toBeNull();
+  },
   render: () => (
-    <Stack space="space.200" className="max-w-[560px]">
+    <Stack space="space.200" className="w-layout-list max-w-full">
       <Alert tone="danger" title="Evidence expired">
         The bank reconciliation for July no longer covers the period.
       </Alert>
@@ -87,7 +105,7 @@ export const Kinds: Story = {
       <Alert tone="information">
         Rows marked suspect keep their determination and are flagged for the assessor.
       </Alert>
-      <Alert tone="neutral" title="Draft">
+      <Alert tone="neutral" role="note" title="Draft" icon={null}>
         This revision has not been submitted. Nothing here is in force.
       </Alert>
     </Stack>
@@ -118,7 +136,7 @@ export const Dont: Story = {
             tone="danger"
             title="Evidence expired"
             action={
-              <TextLink size="small">
+              <TextLink className="text-danger underline" size="small">
                 <a href="#evidence">Replace the artifact</a>
               </TextLink>
             }
@@ -146,7 +164,7 @@ export const Dont: Story = {
             The bank reconciliation for July no longer covers the period.
           </Alert>
         }
-        dontText="Three buttons and a dismiss. An alert is not a dialog; it goes when it is no longer true."
+        dontText="These actions offer conflicting responses to expired evidence. Keep the recovery path clear; dismissal must not conceal a blocking condition."
       />
       <Pair
         do={
@@ -169,3 +187,53 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {};
+
+const noticeRefs = { root: fn(), title: fn(), description: fn(), action: fn() };
+function NotificationNotice() {
+  const [enabled, setEnabled] = useState(false);
+  return (
+    <Alert
+      ref={noticeRefs.root}
+      aria-labelledby="notifications-title"
+      aria-describedby="notifications-description"
+      tone={enabled ? "success" : "information"}
+      role="status"
+      className="w-layout-list max-w-full"
+    >
+      <Alert.Title ref={noticeRefs.title} id="notifications-title">
+        <Info aria-hidden="true" className="size-icon-medium shrink-0" />
+        {enabled ? "Notifications enabled" : "Notifications are paused"}
+      </Alert.Title>
+      <Alert.Description ref={noticeRefs.description} id="notifications-description">
+        {enabled
+          ? "You’ll receive updates when evidence needs your attention."
+          : "Turn on notifications to hear when evidence needs your attention."}
+      </Alert.Description>
+      <Alert.Action ref={noticeRefs.action}>
+        <Button size="small" onClick={() => setEnabled(!enabled)}>
+          {enabled ? "Pause notifications" : "Enable notifications"}
+        </Button>
+      </Alert.Action>
+    </Alert>
+  );
+}
+
+/** Compose an action directly; the application owns its behavior and feedback. */
+export const WithAction: Story = {
+  render: () => <NotificationNotice />,
+  play: async ({ canvasElement }) => {
+    const { expect, userEvent, within } = await import("storybook/test");
+    const canvas = within(canvasElement);
+    const notice = canvas.getByRole("status");
+    await expect(notice).toHaveAccessibleName("Notifications are paused");
+    await expect(notice).toHaveAccessibleDescription("Turn on notifications to hear when evidence needs your attention.");
+    await expect(noticeRefs.root).toHaveBeenCalledWith(notice);
+    for (const part of ["title", "description", "action"] as const)
+      await expect(noticeRefs[part]).toHaveBeenCalledWith(notice.querySelector(`[data-slot="alert-${part}"]`));
+    await expect(canvas.getByRole("button", { name: "Enable notifications" })).not.toHaveClass("underline");
+    await userEvent.click(canvas.getByRole("button", { name: "Enable notifications" }));
+    await expect(canvas.getByRole("status")).toHaveTextContent("Notifications enabled");
+    await userEvent.click(canvas.getByRole("button", { name: "Pause notifications" }));
+    await expect(canvas.getByRole("status")).toHaveTextContent("Notifications are paused");
+  },
+};

@@ -16,7 +16,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Every tone alone, with an action, and truncated in a narrow screen. */
 export const BannerMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Matrix
       rows={["information", "warning", "danger"] as const}

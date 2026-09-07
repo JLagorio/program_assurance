@@ -19,7 +19,7 @@ A timeline is for events; things with a date are an Item list, and a fixed path 
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Rail        | A hairline, `color.border`, through the centre of every marker. Each row draws its own piece of it in the marker column, so it runs from the first marker to the last whatever the rows hold and wherever the time sits.                                                                       |
 | Marker      | On the rail, at the list's size: a bare Dot in the tone at `small`; a ring on `elevation.surface.raised` holding a Dot at `medium` and `large`. With `icon`, a disc in the tone with the icon on it (a check, a cross, a play). Anything the slot holds as `marker`: an Avatar for who did it. |
-| Title       | What happened, `font.body` in `color.text`, one line; medium weight when emphasised. It may be a sentence: the name in medium weight, the verb subtle, the record as a link. On a row that opens, this is the link or button, stretched over the row.                                          |
+| Title       | What happened, `font.body` in `color.text`, one line unless the list says `wrap`; medium weight when emphasised. It may be a sentence: the name in medium weight, the verb subtle, the record as a link. On a row that opens, this is the link or button, stretched over the row.          |
 | Time        | `font.body.xsmall` in `color.text.subtle`, as the reader would say it, where the list puts it: at the end of the title's line, above the title as a dated line, first in the footer, or in a column before the rail. Across, above or below the marker. A `<time>` when `dateTime` is given.   |
 | Meta        | Under the title, one line, `font.body.xsmall` in `color.text.subtle`: who, and the kind.                                                                                                                                                                                                       |
 | Description | Under the meta, `font.body.small` in `color.text.subtle`, wrapping: what the event amounts to, in a sentence.                                                                                                                                                                                  |
@@ -88,7 +88,7 @@ The feed in a Sheet, the count in its title, is the [In a sheet](?path=/story/co
 
 ## Modifiers
 
-- **`orientation`**, **`size`**, **`timePosition`** and, across, **`align`**, as in Variants and Sizes. All four are the list's, so every row agrees.
+- **`orientation`**, **`size`**, **`timePosition`** and, across, **`align`**, as in Variants and Sizes. All four are the list's, so every row agrees. **`wrap`**, also the list's, lets every title wrap: a feed whose sentences name a task or a file.
 - **`tone`** colours the default marker's dot by the event's kind; **`icon`**, passed bare, turns the marker into a disc in the tone with the icon on it; **`marker`** replaces it.
 - **`time`** as said, **`timeTitle`** as the full stamp on hover, **`dateTime`** as the machine stamp, which makes it a `<time>`.
 - **`meta`** for who and the kind, one line; **`description`** for the sentence under it; **`children`** for what the event carries; **`footer`** for the Badges and the name last.

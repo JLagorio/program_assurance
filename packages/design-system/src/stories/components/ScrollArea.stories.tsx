@@ -111,7 +111,6 @@ export const Always: Story = {
 
 /** Vertical, horizontal and both, with the bar on hover and always. */
 export const ScrollAreaMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       {(["hover", "always"] as const).map((bar) => (

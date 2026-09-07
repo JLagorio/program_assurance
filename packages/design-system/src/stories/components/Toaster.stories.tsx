@@ -1,5 +1,5 @@
 import type { Decorator, Meta, StoryObj } from "@storybook/react-vite";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentProps } from "react";
 
 import { Alert, AlertDialog, Button, Toaster, toast } from "../../components";
 import { toastClasses, toastIcons } from "../../components/toaster";
@@ -10,7 +10,7 @@ import { Pair } from "../_lib/pair";
 /* One Toaster on a docs page, however many stories it embeds: the first story to mount keeps it,
    the rest fire into it. A story opened alone mounts its own. */
 let mounted = 0;
-function OneToaster() {
+function OneToaster(props: ComponentProps<typeof Toaster>) {
   const [mine] = useState(() => mounted === 0);
   useEffect(() => {
     if (!mine) return;
@@ -19,12 +19,12 @@ function OneToaster() {
       mounted -= 1;
     };
   }, [mine]);
-  return mine ? <Toaster /> : null;
+  return mine ? <Toaster {...props} /> : null;
 }
 
-const withToaster: Decorator = (Story) => (
+const withToaster: Decorator = (Story, context) => (
   <>
-    <OneToaster />
+    <OneToaster {...context.args} />
     <Story />
   </>
 );
@@ -115,7 +115,6 @@ function UndoExample() {
   );
 }
 export const WithAction: Story = {
-  tags: ["contract"],
   render: () => <UndoExample />,
   play: async ({ canvasElement }) => {
     const { expect, userEvent, within } = await import("storybook/test");
@@ -238,7 +237,6 @@ function Specimen({
 
 /** Every kind at rest, then the shapes a toast takes: a title alone, with a description, with an action, an error with its close, working. Drawn with the Toaster's classes; the buttons above fire the live ones. */
 export const ToasterMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="kinds">
@@ -356,13 +354,8 @@ export const Dont: Story = {
 
 export const Playground: Story = {
   args: { position: "bottom-right", expand: false, closeButton: false },
-  render: (args) => (
+  render: () => (
     <Stack space="space.150">
-      <Toaster {...args} />
-      <Text size="small" color="color.text.subtle">
-        This story mounts a Toaster of its own with the controls below; open it alone from the
-        sidebar.
-      </Text>
       <Inline space="space.100">
         <Button
           variant="secondary"

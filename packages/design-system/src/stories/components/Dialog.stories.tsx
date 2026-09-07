@@ -147,13 +147,11 @@ function DialogStates() {
 
 /** Every state one click away, since an open dialog covers the page: medium, large, with an aside, a body that scrolls, an eyebrow, and pending while it saves. */
 export const DialogMatrix: Story = {
-  tags: ["contract"],
   render: () => <DialogStates />,
 };
 
 /** Large, with an eyebrow, a description, an aside and a footer, held open. */
 export const OpenMatrix: Story = {
-  tags: ["contract"],
   name: "Open",
   parameters: modalOpen,
   render: () => (
@@ -296,12 +294,12 @@ export const Dont: Story = { render: () => <DontDemo /> };
 
 export const Playground: Story = {};
 
-function ReturnFocusContractDemo() {
+function ReturnFocusDemo() {
   const [open, setOpen] = useState(false);
   const [nested, setNested] = useState(false);
   return (
     <>
-      <Button onClick={() => setOpen(true)}>Open contract dialog</Button>
+      <Button onClick={() => setOpen(true)}>Edit project</Button>
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
@@ -324,14 +322,13 @@ function ReturnFocusContractDemo() {
   );
 }
 
-export const ReturnFocusContract: Story = {
-  tags: ["contract"],
-  render: () => <ReturnFocusContractDemo />,
+export const ReturnFocus: Story = {
+  render: () => <ReturnFocusDemo />,
   play: async ({ canvasElement }) => {
     const { expect, userEvent, within, waitFor } = await import("storybook/test");
     const canvas = within(canvasElement);
     const page = within(document.body);
-    const opener = canvas.getByRole("button", { name: "Open contract dialog" });
+    const opener = canvas.getByRole("button", { name: "Edit project" });
     await userEvent.click(opener);
     await userEvent.click(page.getByRole("button", { name: "Open nested dialog" }));
     await userEvent.keyboard("{Escape}");

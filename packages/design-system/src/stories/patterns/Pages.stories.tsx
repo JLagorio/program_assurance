@@ -159,7 +159,6 @@ export const Loading: Story = { render: () => <PageSkeleton rows={5} /> };
 
 /** An index with filters, a show page with its rail on the overview tab and one without. */
 export const ArchetypesMatrix: Story = {
-  tags: ["contract"],
   // Several record headers in one story mean several trails named "Breadcrumb"; a page has one.
   parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
   render: () => (
@@ -215,6 +214,8 @@ export const ArchetypesMatrix: Story = {
 
 /** The mistakes the overview is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  // Independent page examples repeat their main and navigation landmarks.
+  parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
   render: () => (
     <Stack space="space.400">
       <Pair

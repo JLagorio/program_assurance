@@ -1,5 +1,25 @@
 import { useLayoutEffect, useRef, type RefObject } from "react";
 
+/** Radix observes Escape during capture; let a nested Base UI combobox handle it first. */
+export function preserveComboboxEscape(event: KeyboardEvent) {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  const popup = target.closest('[data-slot="combobox-content"][data-open]');
+  const input = target.closest<HTMLInputElement>('input[data-slot="combobox-input"]');
+  if (
+    popup ||
+    (input &&
+      !input.readOnly &&
+      !input.disabled &&
+      (input.getAttribute("aria-expanded") === "true" ||
+        input.value !== "" ||
+        input
+          .closest('[data-slot="combobox-chips"]')
+          ?.querySelector('[data-slot="combobox-chip"]')))
+  )
+    event.preventDefault();
+}
+
 /** Explicit targets take precedence; otherwise restore the element that opened the surface. */
 export function useOverlayFocus(open: boolean, returnFocusRef?: RefObject<HTMLElement | null>) {
   const opener = useRef<HTMLElement | null>(null);

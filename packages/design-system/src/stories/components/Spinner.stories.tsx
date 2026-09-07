@@ -19,7 +19,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Three sizes by appearance; then where each sits: beside a word, in a button, on its own in a row, centred in an empty section. */
 export const SpinnerMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Matrix
@@ -159,7 +158,7 @@ export const Dont: Story = {
 
 export const Playground: Story = {};
 
-function ChangingDelay() {
+function ChangingDelayExample() {
   const [delay, setDelay] = useState(60_000);
   // Re-arm before timers run: a revealed spinner must stay visible even across this update.
   useLayoutEffect(() => {
@@ -174,9 +173,8 @@ function ChangingDelay() {
   );
 }
 
-export const ChangingDelayContract: Story = {
-  tags: ["contract"],
-  render: () => <ChangingDelay />,
+export const ChangingDelay: Story = {
+  render: () => <ChangingDelayExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.queryByRole("status", { name: "Pending operation" })).toBeNull();

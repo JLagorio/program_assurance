@@ -52,7 +52,6 @@ const stateProps = (s: State) => ({
 
 /** Every state down the side; bare and inside a Field across. Open one to see the list. */
 export const SelectMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Grid
       rows={states}
@@ -310,8 +309,7 @@ export const Dont: Story = {
 export const Playground: Story = {};
 
 /** Trigger DOM styles survive the wrapper, with the explicit width prop taking precedence. */
-export const TriggerStyleContract: Story = {
-  tags: ["contract"],
+export const TriggerStyle: Story = {
   render: () => (
     <Stack space="space.100">
       <Select

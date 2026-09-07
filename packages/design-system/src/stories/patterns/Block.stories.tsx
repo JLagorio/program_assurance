@@ -36,7 +36,6 @@ const findings = (
 
 /** Title alone; with a count; with an action; a count of zero; a table as the work. */
 export const BlockMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300" className="max-w-layout-measure">
       <Block title="Determination">

@@ -95,7 +95,6 @@ export const InspectorGroups: Story = {
 
 /** Groups from data with a footer, beside a page; the composed group with an action; the same groups in a flush Panel, the rules edge to edge. */
 export const InspectorMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Inline space="space.300" alignBlock="start" shouldWrap>
       <Box className="w-layout-rail">
@@ -120,6 +119,8 @@ export const InspectorMatrix: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  // The negative example intentionally demonstrates an unnamed pencil button.
+  parameters: { a11y: { config: { rules: [{ id: "button-name", enabled: false }] } } },
   render: () => (
     <Inline space="space.300" alignBlock="start" shouldWrap>
       <Pair

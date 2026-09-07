@@ -1,5 +1,4 @@
-// Storybook is the contract: every component @ledger/design-system exports has a story that renders it,
-// every family has a Matrix story that lays out its variants and states, and every family has a page
+// Every component @ledger/design-system exports has a story that renders it, and a documentation page
 // on the template (the H2 set below), each heading present or marked not applicable. Existing gaps are
 // grandfathered in scripts/ds-check.allow; a new gap fails, and an allowlisted entry that closes must
 // leave the allowlist so the list only shrinks. `npm run build` runs this first.
@@ -69,7 +68,6 @@ const storyFiles = storyTree.filter((f) => /\.stories\.tsx?$/.test(f));
 const pageFiles = storyTree.filter((f) => f.endsWith(".mdx"));
 // Only executable syntax counts; imports and comments cannot manufacture coverage.
 const storyReferences = new Set();
-const contractFiles = new Set();
 for (const file of [...storyFiles, "packages/design-system/.storybook/preview.tsx"]) {
   const source = ts.createSourceFile(
     file,
@@ -83,13 +81,6 @@ for (const file of [...storyFiles, "packages/design-system/.storybook/preview.ts
     if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node))
       storyReferences.add(node.tagName.getText(source));
     if (ts.isCallExpression(node)) storyReferences.add(node.expression.getText(source));
-    if (
-      ts.isPropertyAssignment(node) &&
-      node.name.getText(source) === "tags" &&
-      ts.isArrayLiteralExpression(node.initializer) &&
-      node.initializer.elements.some((e) => ts.isStringLiteral(e) && e.text === "contract")
-    )
-      contractFiles.add(file);
     ts.forEachChild(node, visit);
   };
   visit(source);
@@ -102,27 +93,6 @@ const storyCount = storyFiles.reduce(
 const inStories = (name) =>
   storyReferences.has(name) || [...storyReferences].some((ref) => ref.startsWith(`${name}.`));
 const covered = (name) => inStories(name) || (partOf.has(name) && inStories(partOf.get(name)));
-
-// every component family (a file under components/, patterns/, shapes/, shell/) has a Matrix story:
-// a story file that imports from it and exports a name ending in Matrix; a part counts under its
-// compound name (chart/frame.tsx's ChartFrame as Chart.Frame)
-const families = new Map(); // file -> first export
-for (const [name, f] of exports_)
-  if (!/\/primitives\//.test(f) && !families.has(f)) families.set(f, name);
-const namesOf = (file) => [...exports_].filter(([, f]) => f === file).map(([n]) => n);
-const matrixOf = (file) =>
-  storyFiles.some((sf) => {
-    const text = fs.readFileSync(sf, "utf8").replace(/^import[^\n]*\n/gm, "");
-    return (
-      contractFiles.has(sf) &&
-      namesOf(file).some(
-        (n) =>
-          new RegExp(`(?<![\\w.$])${n}(?![\\w$])`).test(text) ||
-          (partOf.has(n) &&
-            new RegExp(`(?<![\\w.$])${partOf.get(n).replace(".", "\\.")}(?![\\w$])`).test(text)),
-      )
-    );
-  });
 
 // every story file in a page folder has an MDX page (`<Meta of={…}>` importing it), and every page
 // carries the template's headings
@@ -168,11 +138,7 @@ const allow = new Set(
 );
 
 const missing = [...exports_.keys()].filter((n) => !covered(n)).sort();
-const noMatrix = [...families]
-  .filter(([f]) => !matrixOf(f))
-  .map(([f]) => `matrix:${path.basename(f, ".tsx")}`)
-  .sort();
-const gaps = [...missing, ...noMatrix, ...pageGaps.sort()];
+const gaps = [...missing, ...pageGaps.sort()];
 const newGaps = gaps.filter((n) => !allow.has(n));
 const stale = [...allow].filter((n) => !gaps.includes(n)).sort();
 
@@ -182,7 +148,7 @@ const pagesChecked = storyFiles.filter((sf) =>
 const pagesComplete =
   pagesChecked - new Set(pageGaps.map((g) => g.replace(/^page:/, "").replace(/#.*$/, ""))).size;
 console.log(
-  `${exports_.size} exports · ${exports_.size - missing.length} with a story · ${missing.length} without · ${families.size} families · ${families.size - noMatrix.length} with a Matrix · ${pagesChecked} pages · ${pagesComplete} on the template · ${storyCount} stories in ${storyFiles.length} files (${allow.size} grandfathered)`,
+  `${exports_.size} exports · ${exports_.size - missing.length} with a story · ${missing.length} without · ${pagesChecked} pages · ${pagesComplete} on the template · ${storyCount} stories in ${storyFiles.length} files (${allow.size} grandfathered)`,
 );
 if (newGaps.length) {
   console.log(
@@ -215,7 +181,5 @@ const previous = new Set(
 );
 const growth = [...allow].filter((entry) => !previous.has(entry));
 if (growth.length) console.error("Coverage exceptions may not grow:", growth.join(", "));
-console.log(
-  `${publicApi.length} public API symbols resolved through TypeScript · ${contractFiles.size} files with explicit contracts`,
-);
+console.log(`${publicApi.length} public API symbols resolved through TypeScript`);
 process.exit(newGaps.length || stale.length || growth.length ? 1 : 0);

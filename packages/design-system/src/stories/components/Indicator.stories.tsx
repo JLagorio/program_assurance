@@ -24,7 +24,6 @@ const labels = {
 
 /** Every tone as an Indicator, a bare Dot, and a Dot that says its name. */
 export const IndicatorMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Grid
       rows={tones}

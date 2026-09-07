@@ -173,12 +173,10 @@ function SheetStates() {
 }
 
 /** Every state one click away, since an open sheet covers the page: either edge, the header with an eyebrow and facts, a toolbar, a stack with its back chevron, and wide with a footer. */
-export const SheetMatrix: Story = {
-  tags: ["contract"], render: () => <SheetStates /> };
+export const SheetMatrix: Story = { render: () => <SheetStates /> };
 
 /** From the end, with an eyebrow, a subtitle, three facts, a toolbar and a footer, held open. */
 export const OpenMatrix: Story = {
-  tags: ["contract"],
   name: "Open",
   parameters: modalOpen,
   render: () => (

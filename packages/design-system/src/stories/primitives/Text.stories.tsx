@@ -45,7 +45,6 @@ const colors = [
 
 /** The four sizes by the three weights; the text colours; alignment; one, two and three lines clamped; a paragraph at the reading measure; inverse on a bold fill without a colour. */
 export const TextMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Stack space="space.100">
@@ -175,7 +174,7 @@ export const WeightsAndColors: Story = {
         ))}
       </Inline>
       <Inline space="space.300" shouldWrap>
-        {colors.map((c) => (
+        {colors.filter((c) => c !== "color.text.disabled").map((c) => (
           <Text key={c} color={c} size="small">
             {c.replace("color.text.", "") === c ? "default" : c.replace("color.text.", "")}
           </Text>
@@ -267,14 +266,13 @@ export const Dont: Story = {
 
 export const Playground: Story = {};
 
-export const LabelAssociationContract: Story = {
-  tags: ["contract"],
+export const LabelAssociation: Story = {
   render: () => (
     <Stack space="space.100">
-      <Text as="label" htmlFor="text-contract-name">
+      <Text as="label" htmlFor="text-label-name">
         Display name
       </Text>
-      <Input id="text-contract-name" />
+      <Input id="text-label-name" />
     </Stack>
   ),
   play: async ({ canvasElement }) => {

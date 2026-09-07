@@ -30,7 +30,6 @@ const body = (
 
 /** Title; with a count; with a constraint under it; with an action at the end. */
 export const SectionMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.400" className="max-w-layout-measure">
       <Section title="Control coverage">{body}</Section>

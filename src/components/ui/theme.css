@@ -3,9 +3,8 @@
    or the kit imports from src/components/ui.
 
    Isolation: the preset's tokens live on `.theme-shadcn-nova` instead of `:root`,
-   so they only apply under an element carrying that class. The reference story
-   (src/stories/reference/ShadcnNova.stories.tsx) puts the class on <body>, not on
-   a wrapper, because Base UI portals every popup — Select, DropdownMenu, Popover,
+   so they only apply under an element carrying that class. Put the class on <body>,
+   not on a wrapper, because Base UI portals every popup — Select, DropdownMenu, Popover,
    Dialog, Tooltip — into document.body. Dark tokens key on `.dark`, matching the
    `dark:` variant in styles.css; they also apply to `.dark` elements *inside* the
    scope, which is how the preset's "inverted" menus work (each popup carries the

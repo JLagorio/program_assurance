@@ -10,7 +10,7 @@ import {
   Send,
   UserRound,
 } from "lucide-react";
-import { cloneElement, type ReactElement, type ReactNode } from "react";
+import { cloneElement, useState, type ReactElement, type ReactNode } from "react";
 
 import {
   Box,
@@ -19,6 +19,7 @@ import {
   type Tone,
   Button,
   Composer,
+  Id,
   Kbd,
   Timeline,
   type TimelineGroupProps,
@@ -27,10 +28,15 @@ import {
 import { mentionPattern, parseMentions } from "@/lib/mentions";
 
 /* Everything that happened to a record, in one feed, and the way to add to it. The work happens
-   outside the platform and comes back in through the log bar: a note, a task, a request to someone,
-   a link to what came back. What the system did (a field changed, a stage moved, a task closed) sits
-   in the same feed with an icon in place of a face. One feed, filtered by record, by person or by
-   program; the record's page shows its own slice. */
+   outside the platform and comes back in through one box at the top: a comment, or the same draft
+   as a task for someone. What the system did (a field changed, a stage moved, a task closed) and
+   what other pages did (evidence linked on the control) sit in the same feed with an icon in place
+   of a face. One feed, filtered by record, by person or by program; the record's page shows its own
+   slice.
+
+   A row reads like a line of talk: the face, then who did what with the names and the things in
+   weight and the verbs quiet, the when at the far right, and what they said in a card. The kind is
+   in the verb, not in a label. */
 
 export type ActivityKind =
   | "note"
@@ -49,18 +55,71 @@ type KindIcon = ReactElement<{
   "aria-hidden"?: boolean | undefined;
 }>;
 
-const kinds: Record<ActivityKind, { icon: KindIcon; tone: Tone; word: string }> = {
-  note: { icon: <FileText />, tone: "neutral", word: "Note" },
-  comment: { icon: <MessageSquare />, tone: "neutral", word: "Comment" },
-  task: { icon: <ListChecks />, tone: "information", word: "Task" },
-  request: { icon: <Send />, tone: "information", word: "Request" },
-  link: { icon: <Link2 />, tone: "neutral", word: "Linked" },
-  change: { icon: <ArrowRightLeft />, tone: "neutral", word: "Changed" },
-  stage: { icon: <Milestone />, tone: "information", word: "Stage" },
-  assign: { icon: <UserRound />, tone: "neutral", word: "Assigned" },
-  done: { icon: <CircleCheck />, tone: "success", word: "Done" },
-  created: { icon: <Plus />, tone: "neutral", word: "Created" },
+const kinds: Record<ActivityKind, { icon: KindIcon; tone: Tone }> = {
+  note: { icon: <FileText />, tone: "neutral" },
+  comment: { icon: <MessageSquare />, tone: "neutral" },
+  task: { icon: <ListChecks />, tone: "information" },
+  request: { icon: <Send />, tone: "information" },
+  link: { icon: <Link2 />, tone: "neutral" },
+  change: { icon: <ArrowRightLeft />, tone: "neutral" },
+  stage: { icon: <Milestone />, tone: "information" },
+  assign: { icon: <UserRound />, tone: "neutral" },
+  done: { icon: <CircleCheck />, tone: "success" },
+  created: { icon: <Plus />, tone: "neutral" },
 };
+
+/* -------------------------------------------------------------- Sentence */
+
+const strongClass = "font-medium text-default";
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Quoted titles, ids like EVD-0412 or AC-6(9), and the given phrases, longest first. */
+function sentencePattern(strong: readonly string[]): RegExp {
+  const phrases = [...new Set(strong.filter(Boolean))]
+    .sort((a, b) => b.length - a.length)
+    .map(escapeRe);
+  const parts = ['"([^"]+)"'];
+  if (phrases.length) parts.push(`(?<![A-Za-z0-9])(?:${phrases.join("|")})(?![A-Za-z0-9])`);
+  parts.push("\\b[A-Z]{2,5}-\\d[\\w().]*");
+  return new RegExp(parts.join("|"), "g");
+}
+
+export type ActivitySentenceProps = {
+  /** The sentence after the name, as the log wrote it: `asked Joel Barrantes for the account review procedure`, `linked EVD-0412 Account review, Q3`, `closed "Write the statement"`. */
+  children: string;
+  /** Phrases to set in weight besides the quoted titles and the ids: the people's names, the record the event touches. */
+  strong?: readonly string[] | undefined;
+  /** The reader's name: where it appears, the sentence says "you". */
+  me?: string | undefined;
+};
+
+/** Who did what, with the things in weight and the verbs quiet: a quoted title, an id, a name or a given phrase reads in medium weight, the rest of the words in the subtle colour. */
+function ActivitySentence({ children, strong = [], me }: ActivitySentenceProps) {
+  const parts: ReactNode[] = [];
+  let last = 0;
+  let i = 0;
+  for (const m of children.matchAll(sentencePattern(strong))) {
+    const start = m.index ?? 0;
+    if (start > last) parts.push(children.slice(last, start));
+    const text = m[1] ?? m[0];
+    const id = m[1] === undefined && /^[A-Z]{2,5}-\d/.test(text);
+    parts.push(
+      id ? (
+        <Id key={i++} className={strongClass}>
+          {text}
+        </Id>
+      ) : (
+        <Box as="span" key={i++} className={strongClass}>
+          {me && text === me ? "you" : text}
+        </Box>
+      ),
+    );
+    last = start + m[0].length;
+  }
+  if (last < children.length) parts.push(children.slice(last));
+  return <>{parts}</>;
+}
 
 /* --------------------------------------------------------------- Mentions */
 
@@ -102,7 +161,7 @@ export type ActivityTextProps = {
   className?: string | undefined;
 };
 
-/** A body with its mentions drawn: the rest of the text as written, wrapping, line breaks kept. */
+/** What was said, in a card under the sentence: the mentions drawn, the rest as written, wrapping, line breaks kept. */
 function ActivityText({ children, mention, className }: ActivityTextProps) {
   const parts: ReactNode[] = [];
   let last = 0;
@@ -120,7 +179,12 @@ function ActivityText({ children, mention, className }: ActivityTextProps) {
   }
   if (last < children.length) parts.push(children.slice(last));
   return (
-    <p className={cn("max-w-layout-measure whitespace-pre-wrap font-body text-default", className)}>
+    <p
+      className={cn(
+        "max-w-layout-measure whitespace-pre-wrap rounded-large bg-neutral px-150 py-100 font-body text-default",
+        className,
+      )}
+    >
       {parts}
     </p>
   );
@@ -136,10 +200,10 @@ export type ActivityProps = {
   className?: string | undefined;
 };
 
-/** The feed: events down one rail, newest first, each a face or an icon, a sentence, a time, and the body under it. */
+/** The feed: events down one rail, newest first, each a face or an icon, a sentence that wraps with the time at the far right of its row, and what was said in a card under it. */
 function ActivityRoot({ label = "Activity", children, className }: ActivityProps) {
   return (
-    <Timeline label={label} size="large" timePosition="end" className={className}>
+    <Timeline label={label} size="large" timePosition="end" wrap className={className}>
       {children}
     </Timeline>
   );
@@ -153,15 +217,15 @@ function ActivityGroup(props: ActivityGroupProps) {
 }
 
 export type ActivityItemProps = {
-  /** Who did it, by full name. The marker is their Avatar and the name leads the sentence. Unsaid, the system did it: the marker is the kind's icon. */
+  /** Who did it, by full name. The marker is their Avatar, bold, and the name leads the sentence. Unsaid, the system did it: the marker is the kind's icon. */
   actor?: string | undefined;
-  /** What kind of event: the icon and its tone when there is no actor, and the word in the meta line. */
+  /** What kind of event: the icon and its tone when there is no actor. */
   kind?: ActivityKind | undefined;
-  /** The sentence after the name, in the past tense: "asked Joel Barrantes for the account review procedure", "linked EVD-0412". */
+  /** The sentence after the name, in the past tense, quiet: an Activity.Sentence sets its names and things in weight; a Badge may end it with the new state. */
   title: ReactNode;
-  /** Where it happened, when the feed spans records: the record's id and name. */
+  /** Where it happened, when the feed spans records: the record's id and name, on the line under the sentence. */
   meta?: ReactNode;
-  /** When, as the reader would say it: "2h ago", "28 Aug". */
+  /** When, at the far right of the row: "2h ago" today, the clock for yesterday, the day and the clock before that. */
   time?: ReactNode;
   /** The full stamp as the time's tooltip: "2026-09-02 14:10". */
   timeTitle?: string | undefined;
@@ -201,45 +265,24 @@ function ActivityItem({
   footer,
 }: ActivityItemProps) {
   const k = kind ? kinds[kind] : null;
-  const metaLine =
-    k || meta ? (
-      <Box as="span" className="flex min-w-0 items-center gap-075">
-        {k ? (
-          <Box as="span" className="flex items-center gap-050">
-            {cloneElement(k.icon, { className: "size-150 shrink-0", "aria-hidden": true })}
-            {k.word}
-          </Box>
-        ) : null}
-        {k && meta ? (
-          <Box as="span" aria-hidden>
-            ·
-          </Box>
-        ) : null}
-        {meta ? (
-          <Box as="span" className="min-w-0 truncate">
-            {meta}
-          </Box>
-        ) : null}
-      </Box>
-    ) : undefined;
   return (
     <Timeline.Item
-      marker={actor ? <Avatar name={actor} size="small" isDecorative /> : undefined}
-      icon={!actor && k ? k.icon : undefined}
+      marker={actor ? <Avatar name={actor} size="small" variant="bold" isDecorative /> : undefined}
+      icon={!actor && k ? cloneElement(k.icon, { "aria-hidden": true }) : undefined}
       tone={!actor && k ? k.tone : "neutral"}
       title={
-        actor ? (
-          <>
-            <Box as="span" className="font-medium text-default">
-              {actor}
-            </Box>{" "}
+        <>
+          {actor ? (
+            <Box as="span" className={strongClass}>
+              {actor}{" "}
+            </Box>
+          ) : null}
+          <Box as="span" className="text-subtle">
             {title}
-          </>
-        ) : (
-          title
-        )
+          </Box>
+        </>
       }
-      meta={metaLine}
+      meta={meta}
       time={time}
       timeTitle={timeTitle}
       dateTime={dateTime}
@@ -267,9 +310,11 @@ export type ActivityComposerProps = {
   people?: ActivityPerson[] | undefined;
   /** Called with the body and mentioned names. Successful submission clears the draft; rejection preserves it. */
   onSubmit: (text: string, mentions: string[]) => void | Promise<void>;
-  /** Shown while a Cancel is wanted: the composer was opened by the log bar. */
+  /** The other way in: a Task button beside Comment that hands the draft over. The caller opens its task dialog with the first line as the title, and clears `value` once the task is made. */
+  onTask?: ((text: string, mentions: string[]) => void) | undefined;
+  /** Shown while a Cancel is wanted: the composer was opened for one reply. */
   onCancel?: (() => void) | undefined;
-  /** What the field says while empty: "Add a note", "What did they say?". */
+  /** What the field says while empty: "Leave a comment". */
   placeholder?: string | undefined;
   /** The field's accessible name. Unsaid, the placeholder. */
   label?: string | undefined;
@@ -277,9 +322,12 @@ export type ActivityComposerProps = {
   submitLabel?: string | undefined;
   /** The author, whose Avatar sits beside the field. */
   actor?: string | undefined;
-  /** The text to start with. */
+  /** The text to start with, when the draft is the composer's own. */
   defaultValue?: string | undefined;
-  /** Focus the field on mount: the log bar opened it. */
+  /** The draft, when the caller keeps it: to clear it once the task is made. */
+  value?: string | undefined;
+  onValueChange?: ((next: string) => void) | undefined;
+  /** Focus the field on mount: it was opened for one reply. */
   autoFocus?: boolean | undefined;
   /** Fields above the body: a "To" for a request. */
   children?: ReactNode;
@@ -298,29 +346,51 @@ function detectMention(text: string, caret: number): Menu | null {
   return { start: at, query };
 }
 
-/** The box that adds to the feed: a body with `@` completion over `people`, ⌘↵ or the button to post. */
+/** The box at the top of the feed: a comment with `@` completion over `people`, ⌘↵ or the button to post; with `onTask`, the draft as a task instead. */
 function ActivityComposer({
   people = [],
   onSubmit,
+  onTask,
   onCancel,
-  placeholder = "Add a note",
+  placeholder = "Leave a comment",
   label,
-  submitLabel = "Post",
+  submitLabel = "Comment",
   actor,
   defaultValue = "",
+  value,
+  onValueChange,
   autoFocus,
   children,
   className,
 }: ActivityComposerProps) {
+  const [own, setOwn] = useState(defaultValue);
+  const text = value ?? own;
+  const change = (next: string) => {
+    if (value === undefined) setOwn(next);
+    onValueChange?.(next);
+  };
   return (
     <Composer
       label={label ?? placeholder}
       placeholder={placeholder}
       submitLabel={submitLabel}
-      onSubmit={(text) => onSubmit(text, parseMentions(text))}
+      onSubmit={(body) => onSubmit(body, parseMentions(body))}
       onCancel={onCancel}
-      leading={actor ? <Avatar name={actor} size="small" isDecorative /> : undefined}
-      defaultValue={defaultValue}
+      actions={
+        onTask ? (
+          <Button
+            size="small"
+            variant="secondary"
+            iconBefore={<ListChecks />}
+            onClick={() => onTask(text.trim(), parseMentions(text))}
+          >
+            Task
+          </Button>
+        ) : undefined
+      }
+      leading={actor ? <Avatar name={actor} size="small" variant="bold" isDecorative /> : undefined}
+      value={text}
+      onValueChange={change}
       autoFocus={autoFocus}
       className={className}
       suggestionsLabel="People"
@@ -356,59 +426,11 @@ function ActivityComposer({
   );
 }
 
-/* ---------------------------------------------------------------- Log bar */
-
-export type ActivityLogItem = {
-  /** What the button reports. */
-  value: string;
-  /** The verb or the noun on it: "Note", "Task", "Request", "Evidence". */
-  label: string;
-  /** Before the label, bare. */
-  icon?: ReactElement | undefined;
-};
-
-export type ActivityLogBarProps = {
-  /** The ways to add to the feed, in order. Four at most. */
-  items: ActivityLogItem[];
-  /** The one that is open, pressed. */
-  value?: string | null | undefined;
-  /** Called with the item's value. The caller opens its composer or its dialog. */
-  onSelect: (value: string) => void;
-  /** The bar's accessible name: "Log". */
-  label?: string | undefined;
-  className?: string | undefined;
-};
-
-/** The row of ways to add to the feed: what happened outside comes back in through one of these. */
-function ActivityLogBar({ items, value, onSelect, label = "Log", className }: ActivityLogBarProps) {
-  return (
-    <Box
-      role="group"
-      aria-label={label}
-      className={cn("flex flex-wrap items-center gap-100", className)}
-    >
-      {items.map((item) => (
-        <Button
-          key={item.value}
-          size="small"
-          variant="secondary"
-          iconBefore={item.icon}
-          isSelected={value === item.value}
-          aria-pressed={value === item.value}
-          onClick={() => onSelect(item.value)}
-        >
-          {item.label}
-        </Button>
-      ))}
-    </Box>
-  );
-}
-
 export const Activity = Object.assign(ActivityRoot, {
   Item: ActivityItem,
   Group: ActivityGroup,
+  Sentence: ActivitySentence,
   Text: ActivityText,
   Mention: ActivityMention,
   Composer: ActivityComposer,
-  LogBar: ActivityLogBar,
 });

@@ -31,7 +31,6 @@ const stateProps = (s: State) => ({
 
 /** Every state down the side; bare, labelled, and with a description across. */
 export const SwitchMatrix: Story = {
-  tags: ["contract"],
   parameters: disabledLabels,
   render: () => (
     <Grid
@@ -93,7 +92,7 @@ function SettingsDemo() {
 }
 
 /** A settings list: each Switch applies the moment it is flipped, and the description says what changes. No Save. */
-export const Settings: Story = { render: () => <SettingsDemo /> };
+export const Settings: Story = { parameters: disabledLabels, render: () => <SettingsDemo /> };
 
 function RowsDemo() {
   const [applied, setApplied] = useState({ privacy: true, classified: false, cds: false });

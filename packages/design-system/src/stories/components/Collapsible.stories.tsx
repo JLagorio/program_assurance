@@ -13,7 +13,6 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const CollapsibleMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.200">
       <Collapsible>
@@ -77,7 +76,6 @@ function RetainedExample() {
 }
 
 export const ControlledAndRetained: Story = {
-  tags: ["contract"],
   render: () => <RetainedExample />,
   play: async ({ canvasElement }) => {
     const { expect, userEvent, within } = await import("storybook/test");

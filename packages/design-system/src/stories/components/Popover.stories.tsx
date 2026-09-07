@@ -45,7 +45,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Every side and alignment as a trigger, and one held open with a title, a line and a Close. */
 export const PopoverMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300" className="p-400">
       <Matrix
@@ -198,11 +197,10 @@ export const Dont: Story = {
     <Stack space="space.400">
       <Pair
         do={
-          <Box style={{ height: 240 }}>
+          <Box>
             <Popover
               label="Defer control"
               width={280}
-              defaultOpen
               trigger={<Button variant="secondary">Defer</Button>}
             >
               <Stack space="space.200">
@@ -223,11 +221,10 @@ export const Dont: Story = {
         }
         doText="One field and its buttons: a task the reader finishes where they stand."
         dont={
-          <Box style={{ height: 420 }}>
+          <Box>
             <Popover
               label="New finding"
               width={300}
-              defaultOpen
               trigger={<Button variant="secondary">New finding</Button>}
             >
               <Stack space="space.150">
@@ -252,8 +249,8 @@ export const Dont: Story = {
       />
       <Pair
         do={
-          <Box style={{ height: 200 }}>
-            <DropdownMenu trigger={<Button variant="secondary">Actions</Button>} defaultOpen>
+          <Box>
+            <DropdownMenu trigger={<Button variant="secondary">Actions</Button>}>
               <DropdownMenu.Item>Edit</DropdownMenu.Item>
               <DropdownMenu.Item>Reassign</DropdownMenu.Item>
               <DropdownMenu.Item>Duplicate</DropdownMenu.Item>
@@ -262,11 +259,10 @@ export const Dont: Story = {
         }
         doText="A list of actions is a DropdownMenu: arrow keys, typeahead, one Tab stop."
         dont={
-          <Box style={{ height: 200 }}>
+          <Box>
             <Popover
               label="Actions"
               width={200}
-              defaultOpen
               trigger={<Button variant="secondary">Actions</Button>}
             >
               <Stack space="space.050">
@@ -287,19 +283,18 @@ export const Dont: Story = {
       />
       <Pair
         do={
-          <Box style={{ height: 120, paddingTop: 48 }}>
-            <Tooltip content="Verified 12 Aug 2026" defaultOpen>
+          <Box>
+            <Tooltip content="Verified 12 Aug 2026">
               <Button variant="secondary">Verified</Button>
             </Tooltip>
           </Box>
         }
         doText="One line the reader only reads is a Tooltip."
         dont={
-          <Box style={{ height: 120, paddingTop: 48 }}>
+          <Box>
             <Popover
               label="Verified"
               width={220}
-              defaultOpen
               trigger={<Button variant="secondary">Verified</Button>}
             >
               <Text size="small">Verified 12 Aug 2026.</Text>
@@ -314,7 +309,7 @@ export const Dont: Story = {
 
 export const Playground: Story = {
   render: (args) => (
-    <Box style={{ height: 200 }} className="p-400">
+    <Box className="p-400">
       <Popover {...args} />
     </Box>
   ),

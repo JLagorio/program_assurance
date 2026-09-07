@@ -42,7 +42,6 @@ export const CommandPaletteStory: Story = {
 };
 /** Open, with three groups, hints on two commands and the keys in the footer: the one state a palette has. */
 export const CommandPaletteMatrix: Story = {
-  tags: ["contract"],
   render: () => <CommandPalette open onClose={() => undefined} commands={commands} />,
 };
 
@@ -124,7 +123,6 @@ function RepeatedCommandsDemo() {
 
 /** Distinct command identities survive identical labels and repeated nonadjacent headings. */
 export const RepeatedCommandIdentity: Story = {
-  tags: ["contract"],
   render: () => <RepeatedCommandsDemo />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);

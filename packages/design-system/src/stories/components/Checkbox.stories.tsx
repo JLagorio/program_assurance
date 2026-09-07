@@ -31,7 +31,6 @@ const stateProps = (s: State) => ({
 
 /** Every state down the side; bare, labelled, and with a description across. */
 export const CheckboxMatrix: Story = {
-  tags: ["contract"],
   parameters: disabledLabels,
   render: () => (
     <Grid

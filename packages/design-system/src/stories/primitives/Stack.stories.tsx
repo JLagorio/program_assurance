@@ -40,7 +40,6 @@ function Frame({ children, height }: { children: React.ReactNode; height?: numbe
 
 /** The space steps; the four inline alignments; `spread` and `grow` when the Stack is taller than its children; `as="ol"` for steps that are a list. */
 export const StackMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Stack space="space.100">

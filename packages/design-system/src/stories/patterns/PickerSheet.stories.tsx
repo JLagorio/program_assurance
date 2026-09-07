@@ -231,7 +231,6 @@ function PickerStates() {
 /** Frame one is a DataTable in the sheet: search, the family and state facets, a sortable id column and a selection that survives the search; frame two is a second DataTable whose responsibility and coverage cells edit in place, with a defaults row and "Does not apply" per row. Open it. */
 export const PickerSheetStory: Story = { name: "Picker sheet", render: () => <PickerStates /> };
 export const PickerSheetMatrix: Story = {
-  tags: ["contract"],
   render: () => <PickerStates />,
 };
 
@@ -325,7 +324,6 @@ function ControlledSearchDemo() {
 
 /** Search has a persistent accessible name and reports string values to the caller. */
 export const ControlledSearch: Story = {
-  tags: ["contract"],
   render: () => <ControlledSearchDemo />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);

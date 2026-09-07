@@ -42,7 +42,6 @@ const facts = (
 
 /** The id as the trail; with facts (deprecated); the parents in the trail, meta and actions; a sub-page under its record's trail with a strip below; a lifecycle below. */
 export const RecordHeaderMatrix: Story = {
-  tags: ["contract"],
   // Several record headers in one story mean several trails named "Breadcrumb"; a page has one.
   parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
   render: () => (
@@ -130,6 +129,8 @@ export const RecordHeaderMatrix: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  // Independent record examples repeat their navigation landmarks.
+  parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
   render: () => (
     <Stack space="space.400">
       <Pair

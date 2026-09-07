@@ -24,7 +24,6 @@ const stateProps = (s: State) => ({
 
 /** Every state down the side; bare and inside a Field across. Open one to see the month. */
 export const DatePickerMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Grid
       rows={states}
@@ -165,12 +164,12 @@ export const Dont: Story = {
 
 export const Playground: Story = {};
 
-function NativeFormContractDemo() {
+function NativeFormDemo() {
   const [disabled, setDisabled] = useState(false);
   const [controlled, setControlled] = useState("2026-09-20");
   return (
     <>
-      <form id="date-contract-form" aria-label="Date submission">
+      <form id="scheduled-date-form" aria-label="Date submission">
         <Field label="Uncontrolled date">
           <DatePicker name="scheduled" defaultValue="2026-09-18" disabled={disabled} />
         </Field>
@@ -180,7 +179,7 @@ function NativeFormContractDemo() {
         <Button type="reset">Reset dates</Button>
       </form>
       <Field label="External date">
-        <DatePicker name="external" form="date-contract-form" defaultValue="2026-09-22" />
+        <DatePicker name="external" form="scheduled-date-form" defaultValue="2026-09-22" />
       </Field>
       <Button onClick={() => setDisabled((value) => !value)}>Toggle disabled</Button>
     </>
@@ -188,9 +187,8 @@ function NativeFormContractDemo() {
 }
 
 /** Portals never move submitted values out of their owning form. */
-export const NativeFormContract: Story = {
-  tags: ["contract"],
-  render: () => <NativeFormContractDemo />,
+export const NativeForm: Story = {
+  render: () => <NativeFormDemo />,
   play: async ({ canvasElement }) => {
     const { expect, userEvent, within, waitFor } = await import("storybook/test");
     const canvas = within(canvasElement);
@@ -244,8 +242,7 @@ function FocusIntegrationDemo() {
     </form>
   );
 }
-export const FocusIntegrationContract: Story = {
-  tags: ["contract"],
+export const FocusIntegration: Story = {
   render: () => <FocusIntegrationDemo />,
   play: async ({ canvasElement }) => {
     const { expect, userEvent, within } = await import("storybook/test");

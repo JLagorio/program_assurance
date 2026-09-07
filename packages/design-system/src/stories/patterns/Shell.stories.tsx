@@ -19,7 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
-import { expect, userEvent, within } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import {
   Breadcrumb,
@@ -274,7 +274,20 @@ function Demo({
   );
 }
 
-export const Frame: Story = { render: () => <Demo /> };
+export const Frame: Story = {
+  render: () => <Demo />,
+  play: async ({ canvasElement }) => {
+    const splitter = within(canvasElement).getByRole("separator", { name: "Resize side navigation" });
+    await waitFor(() => expect(Number(splitter.getAttribute("aria-valuenow"))).toBeGreaterThan(0));
+    const initialWidth = Number(splitter.getAttribute("aria-valuenow"));
+    splitter.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await waitFor(() => expect(Number(splitter.getAttribute("aria-valuenow"))).toBe(initialWidth + 16));
+    await expect(splitter).toHaveAttribute("aria-valuetext", `${initialWidth + 16} pixels wide`);
+    await userEvent.keyboard("{ArrowLeft}");
+    await waitFor(() => expect(Number(splitter.getAttribute("aria-valuenow"))).toBe(initialWidth));
+  },
+};
 
 /** A banner above the top nav and a panel beside the page. Both push the layout; neither covers it. */
 export const WithBannerAndPanel: Story = { render: () => <Demo banner panel /> };
@@ -297,7 +310,6 @@ export const Remembered: Story = {
 
 /** Every part on its own: the items and their states, the levels, the logo's forms, the buttons, the end list. */
 export const ShellMatrix: Story = {
-  tags: ["contract"],
   parameters: { layout: "padded" },
   render: () => (
     <Stack space="space.400">
@@ -655,8 +667,7 @@ export const Dont: Story = {
 };
 
 /** Slot actions and landmark labels retain the contract of the product-supplied props. */
-export const ForwardingContract: Story = {
-  tags: ["contract"],
+export const Forwarding: Story = {
   render: () => <ForwardingExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);

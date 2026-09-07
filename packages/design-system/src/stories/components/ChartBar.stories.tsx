@@ -36,7 +36,6 @@ const planLine = { key: "plan", label: "Plan", tone: "neutral" as const };
 
 /** Every arrangement in both modes: one series, grouped, stacked; horizontal with end labels, a target per bar, floating values; a line over the bars, axis titles, the skeleton; the three heights. */
 export const BarMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="One series (brand) · grouped (the categorical set) · stacked (the status tones)">

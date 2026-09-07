@@ -17,7 +17,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Every sparkline in both modes: a line, with an end dot and a reference, an area, bars; named (with a tooltip), and loading. */
 export const SparklineMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Line · with an end dot and a reference · area · bars">

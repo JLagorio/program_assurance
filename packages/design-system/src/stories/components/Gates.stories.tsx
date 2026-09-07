@@ -16,7 +16,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Met and unmet in both unmet tones; bare, with a reason, with a reason and an action. */
 export const GatesMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Matrix
       rows={["met", "unmet · warning", "unmet · danger"] as const}

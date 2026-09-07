@@ -19,7 +19,6 @@ const owners = [...new Set(risks.map((r) => r.owner))].map((o) => ({ key: o, lab
 
 /** Every scatter in both modes: one tone, three groups, a bubble with quadrants; axis titles, the skeleton. */
 export const ScatterMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="One tone · three groups · a bubble with quadrants">

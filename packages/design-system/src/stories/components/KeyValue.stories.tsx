@@ -16,7 +16,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Label widths, every kind of value, a wrapping one, a truncating one with its title, and an absent one. */
 export const KeyValueMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Values">

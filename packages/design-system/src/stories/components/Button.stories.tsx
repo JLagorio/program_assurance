@@ -188,7 +188,7 @@ export const Dont: Story = {
         do={
           <Text>
             Traces to{" "}
-            <TextLink asChild={false} href="#req">
+            <TextLink asChild={false} href="#req" className="underline">
               REQ-0118
             </TextLink>
             .
@@ -230,7 +230,7 @@ export const Dont: Story = {
 
 export const Playground: Story = { args: { variant: "primary", size: "medium" } };
 
-function SlottedContractDemo() {
+function SlottedDemo() {
   const [blocked, setBlocked] = useState(true);
   const [calls, setCalls] = useState(0);
   return (
@@ -238,7 +238,7 @@ function SlottedContractDemo() {
       <Button onClick={() => setBlocked((value) => !value)}>Toggle blocking</Button>
       <Button asChild isLoading={blocked} onClick={() => setCalls((n) => n + 1)}>
         <a
-          href="#contract-navigation"
+          href="#record-navigation"
           onClick={(event) => {
             event.preventDefault();
             setCalls((n) => n + 1);
@@ -249,7 +249,7 @@ function SlottedContractDemo() {
       </Button>
       <Button asChild disabled={blocked}>
         <a
-          href="#contract-navigation"
+          href="#record-navigation"
           onClick={(event) => {
             event.preventDefault();
             setCalls((n) => n + 1);
@@ -260,7 +260,7 @@ function SlottedContractDemo() {
       </Button>
       <IconButton asChild disabled={blocked} label="Disabled icon link" icon={<Plus />}>
         <a
-          href="#contract-navigation"
+          href="#record-navigation"
           onClick={(event) => {
             event.preventDefault();
             setCalls((n) => n + 1);
@@ -272,9 +272,8 @@ function SlottedContractDemo() {
   );
 }
 
-export const SlottedActivationContract: Story = {
-  tags: ["contract"],
-  render: () => <SlottedContractDemo />,
+export const SlottedActivation: Story = {
+  render: () => <SlottedDemo />,
   play: async ({ canvasElement }) => {
     const { expect, userEvent, within } = await import("storybook/test");
     const canvas = within(canvasElement);
@@ -295,8 +294,7 @@ export const SlottedActivationContract: Story = {
 };
 
 /** Dense controls retain a minimum 24 CSS-pixel target without overlapping neighbors. */
-export const TargetSizeContract: Story = {
-  tags: ["contract"],
+export const TargetSize: Story = {
   render: () => (
     <Inline space="space.100">
       <Button size="xsmall">Dense action</Button>

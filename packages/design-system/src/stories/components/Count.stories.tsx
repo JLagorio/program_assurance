@@ -21,7 +21,6 @@ const appearances = ["default", "primary", "important", "added", "removed"] as c
 
 /** Every appearance at one, two and three digits, and past the ceiling. */
 export const CountMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Grid
       rows={appearances}

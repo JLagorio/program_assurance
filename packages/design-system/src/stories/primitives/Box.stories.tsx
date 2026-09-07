@@ -42,7 +42,6 @@ const surfaceFrame = {
 
 /** Padding on one side, two or all; the four surfaces, each publishing itself as the current surface; fills, the bold ones painting their text inverse; the element `as` names. */
 export const BoxMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Stack space="space.100">

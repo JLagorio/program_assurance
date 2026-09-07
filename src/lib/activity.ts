@@ -224,3 +224,28 @@ export function isoFromDatasetDate(value: string, hour = 9, minute = 0): string 
     Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), hour, minute),
   ).toISOString();
 }
+
+const clock = new Intl.DateTimeFormat("en", {
+  hour: "numeric",
+  minute: "2-digit",
+  timeZone: "UTC",
+});
+
+/**
+ * The stamp under a feed's sentence, which sits under a group's heading: today, as the reader
+ * would say it ("2h ago"); yesterday, the clock alone; this week, the day and the clock; older,
+ * the date and the clock. The full stamp is the tooltip.
+ */
+export function feedStamp(iso: string, now: Date = clockNow()): string {
+  const then = new Date(iso);
+  const daysBetween = Math.round((startOfDay(now) - startOfDay(then)) / dayMs);
+  if (daysBetween <= 0) return relativeTime(iso, now);
+  const time = clock.format(then);
+  if (daysBetween === 1) return time;
+  if (daysBetween < 7) return `${days[then.getUTCDay()]} ${time}`;
+  const date =
+    then.getUTCFullYear() === now.getUTCFullYear()
+      ? `${then.getUTCDate()} ${months[then.getUTCMonth()]}`
+      : `${then.getUTCDate()} ${months[then.getUTCMonth()]} ${then.getUTCFullYear()}`;
+  return `${date}, ${time}`;
+}

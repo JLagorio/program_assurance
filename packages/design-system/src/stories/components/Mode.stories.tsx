@@ -53,7 +53,6 @@ export const ControlledStory: Story = { name: "Controlled", render: () => <Contr
 
 /** Each state, icons only and with labels; then the control in a row of chrome. Nothing here touches the root. */
 export const ModeMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Matrix
@@ -124,8 +123,7 @@ export const Playground: Story = {
 };
 
 /** A controlled read-only field must not silently write the surrounding provider. */
-export const ControlledOwnershipContract: Story = {
-  tags: ["contract"],
+export const ControlledOwnership: Story = {
   render: () => (
     <ModeProvider storageKey="ledger.story.mode-ownership">
       <Stack>

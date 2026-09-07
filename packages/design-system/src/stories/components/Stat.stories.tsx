@@ -16,7 +16,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Stat and Stat.Tile in every tone and at zero; Stat.Grid as a card and as a band. */
 export const StatMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Matrix

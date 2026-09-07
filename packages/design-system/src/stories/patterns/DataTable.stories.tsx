@@ -773,6 +773,7 @@ function Server() {
     onPaginationChange: setPagination,
   });
   return (
+    <div aria-busy={loading}>
     <DataTable
       table={table}
       state={loading && !result ? "loading" : "ready"}
@@ -782,12 +783,21 @@ function Server() {
           <DataTable.Filter table={table} column="status" />
         </Toolbar>
       }
-      className={loading ? "opacity-loading" : undefined}
     />
+    </div>
   );
 }
 
-export const ServerStory: Story = { name: "Server", render: () => <Server /> };
+export const ServerStory: Story = {
+  name: "Server",
+  render: () => <Server />,
+  play: async ({ canvasElement }) => {
+    const { expect, within, waitFor } = await import("storybook/test");
+    // Wait for the response before checking the settled, interactive table.
+    const table = within(canvasElement).getByRole("table", { name: "Findings from the server" });
+    await waitFor(() => expect(table.closest("[aria-busy]")).toHaveAttribute("aria-busy", "false"));
+  },
+};
 
 const { SelectionBar, Filter, Search, Presets } = DataTable;
 
@@ -832,7 +842,6 @@ function Parts() {
 
 /** Every state the renderer draws: sorted, filtered, selected, with a glance, with actions; loading, empty and error; the toolbar parts alone; pinned, resizable and reorderable columns; column groups; a header by hand; a tree, detail rows, groups, pinned rows with totals, rows in the reader's order; the Table parts alone. */
 export const DataTableMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Register />
@@ -947,7 +956,6 @@ function ResizableTable() {
   return <DataTable table={table} />;
 }
 export const KeyboardResizeMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <LedgerProvider>
       <ResizableTable />
@@ -971,8 +979,8 @@ export const KeyboardResizeMatrix: Story = {
   },
 };
 
-const firstView = "contract-data-table-first";
-const secondView = "contract-data-table-second";
+const firstView = "data-table-example-first";
+const secondView = "data-table-example-second";
 const storageRows = [{ name: "Persisted program", count: 1234 }];
 function StoredTable() {
   const [view, setView] = useState(firstView);
@@ -1022,7 +1030,6 @@ function StoredViewsFixture() {
   return ready ? <StoredTable /> : <Text>Preparing saved views</Text>;
 }
 export const StoredViewsMatrix: Story = {
-  tags: ["contract"],
   render: () => <StoredViewsFixture />,
   play: async ({ canvasElement }) => {
     const { expect, userEvent, within, waitFor } = await import("storybook/test");

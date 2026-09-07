@@ -9,33 +9,67 @@ import * as Stories from "./Avatar.stories";
 
 A mark that a person is meant: initials in a circle, or a photo when there is one, named by the full name. Five sizes, from a 16px mark beside a name to a 64px portrait on a profile. Neutral by default, so a person never reads as a status; tinted, bold or a gradient when a surface wants people told apart at a glance, in a hue drawn from the name and stable for that person everywhere. `Person` is the avatar with the name written beside it, which is how a person appears in a row, a fact or a rail. `Avatar.Stack` is up to four overlapping and a +n.
 
+Powered by Base UI's Avatar, on Ledger's size, radius, colour and type tokens. Owner: Ledger maintainers. The compound parts (`Avatar.Image`, `Avatar.Fallback`, `Avatar.Badge`, `Avatar.Count` and a composed `Avatar.Stack`) are experimental; the `name`/`src` shorthand and the stack's `names` remain supported.
+
 <Canvas of={Stories.AvatarMatrix} />
 
 ## Anatomy
 
-| Part     | What it is                                                                                                                                                                |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Circle   | Round for a person, a square for a thing. Neutral: `color.background.neutral` with a `color.border` hairline. Tinted, bold and gradient: the accent colours, no hairline. |
-| Initials | The first letter of the first and last word of the name, medium weight; one letter at `xsmall`, where two do not fit.                                                     |
-| Photo    | `src`, filling the circle. If it fails to load the initials return.                                                                                                       |
-| Name     | In a Person: after the circle, `space.075` away, in the surrounding text style, truncating.                                                                               |
-| +n       | In a Stack: a neutral circle holding the count past `max`. Every stacked circle wears a 2px ring in `elevation.surface`, so they overlap and stay circles.                |
+| Part              | Responsibility                                                                                                                                                               |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Avatar`          | The circle: size, shape, treatment and the accessible name, from `name`. Round for a person, a square for a thing. Native span props and the ref target it.                  |
+| `Avatar.Image`    | The photo, `size-full` and cropped to cover. Rendered only once it has loaded, so a slow or broken photo is never an empty circle. Native img props and the ref target it.   |
+| `Avatar.Fallback` | What holds the circle until the photo loads, and when it fails or there is none: the initials from `name` by default, or an icon for a thing. Native span props and the ref. |
+| `Avatar.Badge`    | A mark on the circle's corner, ringed in the surface colour: a dot in a status tone, or an icon in it from `medium` up. Native span props and the ref target it.             |
+| `Person`          | The circle at `xsmall`, decorative, and the name after it, `space.075` away, in the surrounding text style, truncating.                                                      |
+| `Avatar.Stack`    | The people on a thing, overlapping, each circle ringed 2px in `elevation.surface`. From `names`, or composed. A group, named by every name or by the caller.                 |
+| `Avatar.Count`    | The +n at the end of a stack: a neutral circle at the stack's size holding what the caller writes in it.                                                                     |
+
+The shorthand, which is what the product writes:
+
+```tsx
+<Avatar name="Dana Whitlock" src={photo} size="medium" />
+<Person name="Dana Whitlock" />
+<Avatar.Stack names={["Dana Whitlock", "Grace Hoppel", "Linus Aarto", "Marcus Ryde", "Priya Raghavan"]} />
+```
+
+The parts, when the photo, the fallback or the count is the caller's:
+
+```tsx
+<Avatar name="Dana Whitlock" size="medium" variant="tinted" aria-label="Dana Whitlock, online">
+  <Avatar.Image src={photo} onLoadingStatusChange={track} />
+  <Avatar.Fallback delay={600} />
+  <Avatar.Badge tone="success" />
+</Avatar>
+
+<Avatar.Stack size="medium" aria-label="Reviewers: Dana Whitlock, Grace Hoppel and 3 more">
+  <Avatar name="Dana Whitlock" src={photo} />
+  <Avatar name="Grace Hoppel" />
+  <Avatar.Count>+3</Avatar.Count>
+</Avatar.Stack>
+```
+
+Children replace the shorthand's content: with children, `src` is not rendered, and with children a stack's `names` and `max` are not read. The root does not inspect its children; a Fallback anywhere inside the root finds the name through context, so an application component may wrap a part.
+
+<Canvas of={Stories.Composed} />
 
 ## Variants
 
-| Variant        | Use                                                                                                                                                        |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `neutral`      | The default. The grey mark, the same for everyone: an owner column, a fact, a rail. Colour stays for state.                                                |
-| `tinted`       | A tint from the name with the hue's dark text: a comment thread, a list of reviewers, anywhere people are told apart at a glance.                          |
-| `bold`         | The hue's fill with inverse text: a profile, a header, one person given weight.                                                                            |
-| `gradient`     | Two neighbouring hues blended, inverse text: the same weight as bold with more life, for a profile or a persona.                                           |
-| `Person`       | The circle and the name. The owner column, the assessor fact, the rail row.                                                                                |
-| `Avatar.Stack` | The people on a thing: reviewers, a team. Four and a +n.                                                                                                   |
-| `square`       | A thing, not a person: a system, a program, a team, pinned to one `hue` or given its photo. |
+| Variant        | Use                                                                                                                               |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `neutral`      | The default. The grey mark, the same for everyone: an owner column, a fact, a rail. Colour stays for state.                       |
+| `tinted`       | A tint from the name with the hue's dark text: a comment thread, a list of reviewers, anywhere people are told apart at a glance. |
+| `bold`         | The hue's fill with inverse text: a profile, a header, one person given weight.                                                   |
+| `gradient`     | Two neighbouring hues blended, inverse text: the same weight as bold with more life, for a profile or a persona.                  |
+| `Person`       | The circle and the name. The owner column, the assessor fact, the rail row.                                                       |
+| `Avatar.Stack` | The people on a thing: reviewers, a team. Four and a +n.                                                                          |
+| `square`       | A thing, not a person: a system, a program, a team, pinned to one `hue` or given its photo.                                       |
 
-The hue is drawn from the name, one of six, so Dana is the same blue on every page; `hue` pins it for a thing that has a colour. The accent colours carry no meaning, and the six are not the status tones: a green avatar is not "done".
+The hue is drawn from the name, one of six, so Dana is the same blue on every page; `hue` pins it for a thing that has a colour. The accent colours carry no meaning, and the six are not the status tones: a green avatar is not "done". The treatment is the fallback's: once a photo has loaded it sits on the neutral circle with its hairline, whatever the variant.
 
-Not built, and why: presence and status marks on the circle, because a person's state is a fact about the record, not about them; a menu behind the +n, because the group is named by every name and the record lists them; a grid of avatars, because a list of people is a list of Persons; sizes past 64px, because there is no page that is one person.
+`Avatar.Badge` is the one status the circle carries: presence, or a mark such as an invitation, in a tone from the status table, so a green dot means the same thing here as on a Badge. It sits on the corner and is ringed in the surface colour; below `medium` it is a dot and an icon inside it is hidden.
+
+Not built, and why: a menu behind the +n, because the group is named by every name and the record lists them; a grid of avatars, because a list of people is a list of Persons; sizes past 64px, because there is no page that is one person.
 
 ## Sizes
 
@@ -47,21 +81,25 @@ Not built, and why: presence and status marks on the circle, because a person's 
 | `large`  | 40px   | Two, `font.body.large`     | A profile row: the avatar with the name and the role beside it.                |
 | `xlarge` | 64px   | Two, `font.heading.medium` | The top of a profile.                                                          |
 
-Four steps, 16, 24, 32, 40, the ones this product uses. Two initials never go below 24px: at 16px they ran into each other, so `xsmall` draws one.
+Four steps, 16, 24, 32, 40, the ones this product uses. Two initials never go below 24px: at 16px they ran into each other, so `xsmall` draws one. Inside a stack every circle and the count take the stack's size, `small` or `medium`. A Badge follows the circle: 6px at `xsmall`, 8px at `small`, 12px at `medium` and `large` with an 8px icon, 16px at `xlarge` with a 12px icon.
 
 <Canvas of={Stories.People} />
 
 ## States
 
-An avatar has one state. It does not hover, focus or press; if the name is a link, the link is the TextLink around the Person. A photo that fails to load is the initials, not a broken image.
+An avatar has one state. It does not hover, focus or press; if the name is a link, the link is the TextLink around the Person. The photo has three: until it loads the Fallback holds the circle, once it has loaded the Image covers it, and if it fails the Fallback stays. A different `src` is tried again. There is no broken image and no empty circle.
 
 ## Modifiers
 
 - **`name`**: the full name, always. The initials, the hue and the accessible name come from it.
-- **`src`** for a photo. A Person and a stack entry take it too.
-- **`size`**, **`variant`**, **`shape`** as in Sizes and Variants; **`hue`** to pin the colour of a thing.
-- **`isDecorative`** when the name is written beside it: the circle is hidden from a screen reader so the name is read once. Person and Stack set it.
-- **Stack `max`**: how many circles before the +n, 4 by default; **`size`** `small` or `medium`; **`variant`** for every circle.
+- **`src`** for a photo, as the shorthand for an `Avatar.Image`. A Person and a stack entry take it too.
+- **`size`**, **`variant`**, **`shape`** as in Sizes and Variants; **`hue`** to pin the colour of a thing. Inside a stack, `size` and `variant` come from the stack unless the circle says otherwise.
+- **`isDecorative`** when the name is written beside it: the circle is hidden from a screen reader so the name is read once. Person sets it, and a circle inside a named stack is decorative unless told otherwise.
+- **`Avatar.Fallback` `delay`**, in milliseconds: hold the fallback back so a photo that loads at once never flashes initials first. `0` by default, so the initials are there from the first paint. Its children replace the initials: an icon for a thing.
+- **`Avatar.Image` `onLoadingStatusChange`** reports `idle`, `loading`, `loaded` or `error`.
+- **`Avatar.Badge` `tone`**: `neutral`, the default, for a mark that is not a status; `success`, `danger`, `warning` or `information` for one that is. Children are an icon, shown from `medium` up.
+- **Stack `names`** and **`max`**: how many circles before the +n, 4 by default; **`size`** `small` or `medium`; **`variant`** for every circle. With children instead of `names`, the caller places the circles and an `Avatar.Count`.
+- **Native props and refs.** `id`, `role`, `aria-*`, `data-*`, `dir`, `style`, `title` and event handlers target each part's own element: a span for Avatar, Fallback, Count, Stack and Person, an img for Image. The root's `title` is the name unless given; an explicit `role`, `aria-label` or `aria-hidden` overrides what `isDecorative` would set.
 
 ## Content
 
@@ -72,24 +110,26 @@ An avatar has one state. It does not hover, focus or press; if the name is a lin
 
 ## Style
 
-| Element  | Token                                                                                                                       |
-| -------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Circle   | `radius.full`; square `radius.xsmall` at 16, `radius.small` at 24, `radius.medium` at 32 and 40, `radius.large` at 64       |
-| Neutral  | `color.background.neutral` · `color.border` · initials `color.text.subtle`                                                  |
-| Tinted   | `color.background.accent.{hue}.subtler` · initials `color.text.accent.{hue}`                                                |
-| Bold     | `color.background.accent.{hue}.bolder` · initials `color.text.inverse`                                                      |
-| Gradient | 135° from `color.background.accent.{hue}.bolder` to the next hue's · initials `color.text.inverse`                          |
-| Photo    | `color.border` hairline, object-fit cover                                                                                   |
-| Person   | `space.075` between circle and name                                                                                         |
-| Stack    | `small` circles overlapping by `space.050`, `medium` by `space.100`, each ringed 2px in `elevation.surface`; the +n neutral |
+| Element  | Token                                                                                                                                                                                                                                                   |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Circle   | `radius.full`; square `radius.xsmall` at 16, `radius.small` at 24, `radius.medium` at 32 and 40, `radius.large` at 64                                                                                                                                   |
+| Neutral  | `color.background.neutral` · `color.border` · initials `color.text.subtle`                                                                                                                                                                              |
+| Tinted   | `color.background.accent.{hue}.subtler` · initials `color.text.accent.{hue}`                                                                                                                                                                            |
+| Bold     | `color.background.accent.{hue}.bolder` · initials `color.text.inverse`                                                                                                                                                                                  |
+| Gradient | 135° from `color.background.accent.{hue}.bolder` to the next hue's · initials `color.text.inverse`                                                                                                                                                      |
+| Photo    | `color.border` hairline over `color.background.neutral`, object-fit cover                                                                                                                                                                               |
+| Person   | `space.075` between circle and name                                                                                                                                                                                                                     |
+| Stack    | `small` circles overlapping by `space.050`, `medium` by `space.100`, each ringed 2px in `elevation.surface`; the +n neutral. A neutral circle in a stack is backed by `elevation.surface` under its wash, so the circle before it shows through nothing |
+| Badge    | `color.background.<tone>.bold` with `color.text.inverse` for the icon · `radius.full` · at the block-end, inline-end corner · ringed 2px in `elevation.surface`                                                                                         |
 
-The accent family is new with this component: six hues at two steps, `subtler` for a tint under the hue's own text and `bolder` for a fill under inverse text, each chosen so 11px initials pass 4.5:1 in both modes. The neutral circle is the fill of a Badge, so a person and a category read at the same weight and neither is a status.
+The accent family is new with this component: six hues at two steps, `subtler` for a tint under the hue's own text and `bolder` for a fill under inverse text, each chosen so 11px initials pass 4.5:1 in both modes. The neutral circle is the fill of a Badge, so a person and a category read at the same weight and neither is a status. Each part carries `data-slot` (`avatar`, `avatar-image`, `avatar-fallback`, `avatar-stack`, `avatar-count`, `person`), and the root `data-size`, `data-variant` and `data-shape`, for an application's own selectors.
 
 ## Accessibility
 
-- **An avatar alone is an image named by the full name**, so a screen reader hears "Dana Whitfield" where sighted readers see "DW" or a photo. The photo itself is presentational inside it.
+- **An avatar alone is an image named by the full name**, so a screen reader hears "Dana Whitfield" where sighted readers see "DW" or a photo. The photo itself is presentational inside it (`alt=""` unless given); the fallback's icon should be `aria-hidden`.
+- **A Badge is presentational inside the image**, as everything inside `role="img"` is, so its meaning goes into the root's `aria-label` ("Dana Whitlock, online") or is written beside the name. Colour is not the only signal because the name says it.
 - **In a Person the circle is hidden** and the name is text, read once.
-- **A stack is a group named by every name**, so the +n hides no one; the circles inside are hidden.
+- **A stack from `names` is a group named by every name**, so the +n hides no one; the circles inside are hidden. A composed stack is named by the caller's `aria-label` or `aria-labelledby`, and then its circles are hidden too; a composed stack with no name leaves each circle an image named by its person, and a Count that is read as written.
 - **Initials are never the name.** Pass the full name and let the component abbreviate; two people can share initials and the title and the label must tell them apart.
 - **Colour is never the only signal.** The hue is stable but decorative; nothing is said by it, so nothing is lost without it.
 - **Contrast:** the initials pass 4.5:1 on the neutral fill, on every tint and on every bold fill, in both modes; the gate runs every size and treatment.
@@ -98,6 +138,18 @@ The accent family is new with this component: six hues at two steps, `subtler` f
 
 <ArgTypes of={Avatar} />
 
+### Avatar.Image
+
+<ArgTypes of={Avatar.Image} />
+
+### Avatar.Fallback
+
+<ArgTypes of={Avatar.Fallback} />
+
+### Avatar.Badge
+
+<ArgTypes of={Avatar.Badge} />
+
 ### Person
 
 <ArgTypes of={Person} />
@@ -105,6 +157,10 @@ The accent family is new with this component: six hues at two steps, `subtler` f
 ### Avatar.Stack
 
 <ArgTypes of={Avatar.Stack} />
+
+### Avatar.Count
+
+<ArgTypes of={Avatar.Count} />
 
 ### Playground
 
@@ -118,6 +174,7 @@ The accent family is new with this component: six hues at two steps, `subtler` f
 - [Item](?path=/docs/components-item--docs): an Avatar as a row's leading mark.
 - [Badge](?path=/docs/components-badge--docs): the neutral fill the circle shares.
 - [Color](?path=/docs/tokens-color--docs): the accent family the tints and fills come from.
+- Reference: [shadcn Avatar](https://ui.shadcn.com/docs/components/base/avatar) and [Base UI Avatar](https://base-ui.com/react/components/avatar), which is underneath.
 
 ## Don't
 

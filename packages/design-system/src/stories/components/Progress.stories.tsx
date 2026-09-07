@@ -25,7 +25,6 @@ const coverage = [
 
 /** Every tone at three values; the three sizes; the read-out; the stacked bar. */
 export const ProgressMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Matrix
@@ -214,8 +213,7 @@ export const Dont: Story = {
 
 export const Playground: Story = {};
 
-export const InteractiveSegmentNameContract: Story = {
-  tags: ["contract"],
+export const InteractiveSegmentName: Story = {
   render: () => (
     <Progress.Stacked
       label="Coverage"

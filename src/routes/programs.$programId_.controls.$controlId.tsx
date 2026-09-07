@@ -42,7 +42,6 @@ import {
   Table,
   TextLink,
 } from "@ledger/design-system";
-import { record } from "@/lib/activity";
 import { controlDetail } from "@/lib/control-detail";
 import {
   assessmentTone,
@@ -494,26 +493,7 @@ function ControlRecord() {
           </Stack>
         </Section>
 
-        <RecordActivity
-          program={programId}
-          subject={subject}
-          me={me}
-          onLinkEvidence={(evidenceId, note) => {
-            linkEvidence(work.id, evidenceId);
-            if (note.trim()) {
-              record({
-                program: programId,
-                actor: me,
-                kind: "note",
-                summary: `noted what ${evidenceId} shows`,
-                body: note.trim(),
-                subject,
-                about: { kind: "evidence", id: evidenceId },
-              });
-            }
-            refresh();
-          }}
-        />
+        <RecordActivity program={programId} subject={subject} me={me} />
       </ShowPage>
 
       <MapRequirementsSheet

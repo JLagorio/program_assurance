@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">
+  <rect width="480" height="480" fill="#edf2f7"/>
+  <rect x="64" y="44" width="352" height="392" rx="12" fill="#fff" stroke="#d3dce6"/>
+  <rect x="96" y="82" width="32" height="6" rx="3" fill="#0065ff"/>
+  <text x="96" y="126" font-family="Arial, sans-serif" font-size="23" font-weight="bold" fill="#172b4d">Evidence workflow</text>
+  <text x="96" y="153" font-family="Arial, sans-serif" font-size="13" fill="#52657e">Collection · Review · Archive</text>
+  <path d="M240 220v100" stroke="#b3c3d4" stroke-width="3"/>
+  <rect x="96" y="185" width="288" height="48" rx="6" fill="#e9f2ff"/>
+  <text x="240" y="215" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#0052cc">Collect source documents</text>
+  <rect x="96" y="258" width="288" height="48" rx="6" fill="#e9f2ff"/>
+  <text x="240" y="288" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#0052cc">Review and approve</text>
+  <rect x="96" y="331" width="288" height="48" rx="6" fill="#dffcf0"/>
+  <text x="240" y="361" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#216e4e">Archive with the record</text>
+</svg>

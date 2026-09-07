@@ -44,7 +44,6 @@ function Owners() {
 
 /** Every state down the side; bare and inside a Field across. A select has no read-only state: see the page. */
 export const NativeSelectMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Grid
       rows={states}

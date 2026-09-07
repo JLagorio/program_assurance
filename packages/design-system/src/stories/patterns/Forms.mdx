@@ -169,7 +169,7 @@ Bind Input, Textarea and NativeSelect with `value`, `onBlur={field.handleBlur}` 
 
 Application forms formerly using `useRequired` now use TanStack through the application-owned `useRecordForm` policy: Zod required checks, conditional requirements, validation on submit followed by validation on change, nested drafts, and command selection through submit metadata. Their controls bind through `form.Field`.
 
-`useRequired` remains exported for compatibility with older consumers and component examples; it is a custom helper, not TanStack Form. Its legacy contract stories verify required checks, custom control binding and focus recovery. New forms should use the TanStack pattern above.
+`useRequired` remains exported for compatibility with older consumers and component examples; it is a custom helper, not TanStack Form. Its legacy interaction examples verify required checks, custom control binding and focus recovery. New forms should use the TanStack pattern above.
 
 ## Don't
 

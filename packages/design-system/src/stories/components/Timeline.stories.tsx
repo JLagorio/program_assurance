@@ -130,7 +130,6 @@ const three = (size?: "small" | "medium" | "large") => (
 
 /** Every tone as a marker; the states; icon markers; the three sizes; the four places the time can sit; and across, centred with the time above and start-aligned with it below. */
 export const TimelineMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Box className="max-w-layout-measure">

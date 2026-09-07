@@ -102,8 +102,7 @@ export const Specimens: Story = {
 };
 
 /** Checks the generated state variants, including the reduced-motion media rules. */
-export const PreferenceContract: Story = {
-  tags: ["contract"],
+export const Preference: Story = {
   render: () => (
     <Stack space="space.200">
       <div data-testid="motion-enter" data-state="open" className="data-[state=open]:animate-enter">

@@ -30,7 +30,6 @@ const stateProps = (s: State) =>
 
 /** Every state down the side; with the range and bare across. Each nav is named, so a page of several stays valid. */
 export const PaginationMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Grid
       rows={states}

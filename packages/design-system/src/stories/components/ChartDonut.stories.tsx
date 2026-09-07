@@ -32,7 +32,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Every ring in both modes: 64, 120 and 160 across; a gauge; one slice on the track; loading. */
 export const DonutMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="64 · 120 with a number and a caption · 160 · a gauge">

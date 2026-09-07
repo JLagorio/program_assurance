@@ -14,7 +14,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Field with a hint, an error and a requirement. */
 export const FieldMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Specimens title="Field">
       <Field label="Owner">

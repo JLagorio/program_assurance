@@ -59,6 +59,8 @@ export type ComposerProps = DraftProps & {
   errorMessage?: string | undefined;
   /** Optional dismissal. Disabled while submission is pending. */
   onCancel?: (() => void) | undefined;
+  /** A second thing to do with the draft, rendered before the cancel and primary actions: a secondary Button the caller wires to the draft it keeps. */
+  actions?: ReactNode;
   /** Decorative author or context marker beside the field. */
   leading?: ReactNode;
   /** Instructions below the field, also associated with it as a description. */
@@ -90,6 +92,7 @@ export function Composer({
   cancelLabel = "Cancel",
   errorMessage = "Could not send. Try again.",
   onCancel,
+  actions,
   leading,
   hint = "Ctrl/⌘ + Enter to send",
   children,
@@ -320,6 +323,7 @@ export function Composer({
             </Box>
           ) : null}
           <Box as="span" className="ms-auto flex items-center gap-100">
+            {actions}
             {onCancel ? (
               <Button
                 size="small"

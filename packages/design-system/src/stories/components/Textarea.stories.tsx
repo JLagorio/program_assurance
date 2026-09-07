@@ -30,7 +30,6 @@ const stateProps = (s: State) => ({
 
 /** Every state down the side; bare and inside a Field across. */
 export const TextareaMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Grid
       rows={states}
@@ -187,4 +186,6 @@ export const Dont: Story = {
   ),
 };
 
-export const Playground: Story = {};
+export const Playground: Story = {
+  render: (args) => <Field label="Assessment notes"><Textarea {...args} /></Field>,
+};

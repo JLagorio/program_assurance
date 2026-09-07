@@ -25,6 +25,7 @@ export function TaskDialog({
   requester,
   defaultTitle = "",
   defaultAssignee,
+  defaultNote = "",
   gate = null,
   onCreated,
 }: {
@@ -35,6 +36,8 @@ export function TaskDialog({
   requester: string;
   defaultTitle?: string | undefined;
   defaultAssignee?: string | undefined;
+  /** What they need to know, to start with: the rest of a comment draft made a task. */
+  defaultNote?: string | undefined;
   gate?: TaskGate | null | undefined;
   onCreated?: (() => void) | undefined;
 }) {
@@ -43,7 +46,7 @@ export function TaskDialog({
       title: defaultTitle,
       assignee: defaultAssignee ?? requester,
       due: "",
-      note: "",
+      note: defaultNote,
     },
     (value) => ({ title: value.title, assignee: value.assignee }),
   );
@@ -55,9 +58,9 @@ export function TaskDialog({
         title: defaultTitle,
         assignee: defaultAssignee ?? requester,
         due: "",
-        note: "",
+        note: defaultNote,
       });
-  }, [open, defaultTitle, defaultAssignee, requester, form]);
+  }, [open, defaultTitle, defaultAssignee, defaultNote, requester, form]);
 
   const people = mentionablePeople(program);
 

@@ -16,7 +16,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Three rows and the default eight. */
 export const PageSkeletonMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.600">
       <PageSkeleton rows={3} />

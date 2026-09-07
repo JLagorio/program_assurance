@@ -31,7 +31,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Depth, guide lines, an open and a closed branch, a leaf, the selected row and a trailing slot; then the same tree at xsmall, and one with icons. */
 export const TreeMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="small (32px), text only">
@@ -286,7 +285,7 @@ export const Dont: Story = {
 
 export const Playground: Story = {};
 
-function TreeContractDemo() {
+function TreeDemo() {
   const [selected, setSelected] = useState("");
   const [items, setItems] = useState(["Alpha", "Beta", "Charlie"]);
   return (
@@ -315,9 +314,8 @@ function TreeContractDemo() {
   );
 }
 
-export const KeyboardContract: Story = {
-  tags: ["contract"],
-  render: () => <TreeContractDemo />,
+export const Keyboard: Story = {
+  render: () => <TreeDemo />,
   play: async ({ canvasElement }) => {
     const { expect, userEvent, within, waitFor } = await import("storybook/test");
     const canvas = within(canvasElement);

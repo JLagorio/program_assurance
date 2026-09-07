@@ -50,7 +50,6 @@ function Frame({ children, width = 360 }: { children: React.ReactNode; width?: n
 
 /** The space steps; the block alignments against a taller child; wrapping with its own row space; `spread`; a separator; `grow`; and the inline-level row inside a sentence. */
 export const InlineMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Stack space="space.100">
@@ -304,8 +303,7 @@ export const Playground: Story = {
   ),
 };
 
-export const ListSemanticsContract: Story = {
-  tags: ["contract"],
+export const ListSemantics: Story = {
   render: () => (
     <Inline as="ul" separator="/" aria-label="Related records" space="space.100">
       <li>First record</li>

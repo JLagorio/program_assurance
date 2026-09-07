@@ -26,7 +26,7 @@ Inherits the surrounding Item.Group's default or compact density. There is no se
 
 `completed` is caller-owned and strikes through the title. `onCompletedChange` requests the next boolean; it does not persist or optimistically change the row. Use `completionDisabled` while the application is saving and explain that state in `status`. Read-only rows can still navigate or expose separate actions.
 
-<Canvas of={Stories.CompletionContract} />
+<Canvas of={Stories.Completion} />
 
 ## Modifiers
 
@@ -55,7 +55,7 @@ Completion is a named, controlled checkbox with Space-key operation. Completing 
 - [Item](?path=/docs/components-item--docs) for general rows and groups.
 - [Checkbox](?path=/docs/components-checkbox--docs) for independent boolean input.
 - [Badge](?path=/docs/components-badge--docs) for caller-owned status content.
-- The application's Task wrapper maps open/waiting/blocked/done, owner names and overdue presentation onto this contract. Create-task workflows remain in the application Storybook.
+- The application's Task wrapper maps open/waiting/blocked/done, owner names and overdue presentation onto this contract. Create-task workflows remain in the application.
 
 ## Don't
 

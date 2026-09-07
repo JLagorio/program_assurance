@@ -398,7 +398,6 @@ function GroupStates() {
 
 /** Every header, row, cell and id state, then a group open and closed. */
 export const TableMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Table>
@@ -727,8 +726,7 @@ export const Playground: Story = {
 };
 
 /** Selection cells must keep their pinning geometry when composed after another pinned column. */
-export const SelectionPinningContract: Story = {
-  tags: ["contract"],
+export const SelectionPinning: Story = {
   render: () => <PinnedSelection />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -736,7 +734,7 @@ export const SelectionPinningContract: Story = {
     const row = canvas.getByRole("checkbox", { name: "Select record" });
     await expect(page.closest("th")).toHaveStyle({ insetInlineStart: "48px" });
     await expect(row.closest("td")).toHaveStyle({ insetInlineStart: "48px" });
-    await expect(row.closest("td")).toHaveClass("border-e");
+    await expect(getComputedStyle(row.closest("td")!, "::after").borderInlineEndWidth).toBe("1px");
     await userEvent.click(row);
     await expect(row).toBeChecked();
     await expect(page).toBeChecked();

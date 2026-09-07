@@ -1,6 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { Plus, Server } from "lucide-react";
 
-import { Avatar, Fact, KeyValue, Person, Table } from "../../components";
+import { Avatar, Button, Fact, KeyValue, Person, Table } from "../../components";
+import { useState } from "react";
+import { fn } from "storybook/test";
+
 import { Inline, Stack, Text } from "../../primitives";
 import { Matrix, Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -25,7 +29,6 @@ const variants = ["neutral", "tinted", "bold", "gradient", "photo"] as const;
 
 /** Five sizes by five treatments; then shapes, a Person, and stacks that overflow. */
 export const AvatarMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Matrix
@@ -222,3 +225,104 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {};
+
+const photoStatus = fn();
+const avatarImageRef = fn();
+
+function RecoverablePhoto() {
+  const [src, setSrc] = useState("/no-such-photo.png");
+  return <Stack space="space.100" alignInline="start">
+    <Avatar name="Grace Hoppel" size="medium" data-testid="recoverable-photo">
+      <Avatar.Image src={src} />
+      <Avatar.Fallback delay={600} />
+    </Avatar>
+    <Button size="small" onClick={() => setSrc(photo)}>Retry photo</Button>
+  </Stack>;
+}
+
+/** The parts composed by hand: a photo over the initials, an icon for a thing, a fallback held back, a stack the caller names and counts. */
+export const Composed: Story = {
+  render: () => (
+    <Stack space="space.300">
+      <Specimens title="Avatar.Image and Avatar.Fallback: the initials from the name until the photo loads; an icon for a thing; a fallback held back 600ms so a fast photo never flashes initials">
+        <Avatar name="Dana Whitlock" size="medium" variant="tinted">
+          <Avatar.Image ref={avatarImageRef} src={photo} onLoadingStatusChange={photoStatus} />
+          <Avatar.Fallback />
+        </Avatar>
+        <Avatar name="Payables host" shape="square" size="medium" variant="bold" hue="blue">
+          <Avatar.Fallback>
+            <Server aria-hidden="true" className="size-icon-small" />
+          </Avatar.Fallback>
+        </Avatar>
+        <RecoverablePhoto />
+      </Specimens>
+      <Specimens title="Avatar.Badge: present at every size; a mark with an icon from medium up; away in danger">
+        <Avatar name="Dana Whitlock" size="xsmall" aria-label="Dana Whitlock, online">
+          <Avatar.Fallback />
+          <Avatar.Badge tone="success" />
+        </Avatar>
+        <Avatar name="Dana Whitlock" aria-label="Dana Whitlock, online">
+          <Avatar.Fallback />
+          <Avatar.Badge tone="success" />
+        </Avatar>
+        <Avatar name="Dana Whitlock" size="medium" aria-label="Dana Whitlock, online">
+          <Avatar.Image src={photo} />
+          <Avatar.Fallback />
+          <Avatar.Badge tone="success" />
+        </Avatar>
+        <Avatar name="Dana Whitlock" size="large" aria-label="Dana Whitlock, online">
+          <Avatar.Fallback />
+          <Avatar.Badge tone="success" />
+        </Avatar>
+        <Avatar
+          name="Dana Whitlock"
+          size="xlarge"
+          variant="tinted"
+          aria-label="Dana Whitlock, online"
+        >
+          <Avatar.Fallback />
+          <Avatar.Badge tone="success" />
+        </Avatar>
+        <Avatar name="Dana Whitlock" size="medium" aria-label="Dana Whitlock, invited">
+          <Avatar.Fallback />
+          <Avatar.Badge>
+            <Plus aria-hidden="true" />
+          </Avatar.Badge>
+        </Avatar>
+        <Avatar name="Dana Whitlock" size="large" variant="bold" aria-label="Dana Whitlock, away">
+          <Avatar.Fallback />
+          <Avatar.Badge tone="danger" />
+        </Avatar>
+      </Specimens>
+      <Specimens title="A stack composed: the caller names the group and writes the count">
+        <Avatar.Stack
+          size="medium"
+          variant="tinted"
+          aria-label="Reviewers: Dana Whitlock, Grace Hoppel, Linus Aarto and 3 more"
+        >
+          <Avatar name="Dana Whitlock" src={photo} />
+          <Avatar name="Grace Hoppel" />
+          <Avatar name="Linus Aarto" />
+          <Avatar.Count>+3</Avatar.Count>
+        </Avatar.Stack>
+      </Specimens>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const { expect, within, userEvent, waitFor } = await import("storybook/test");
+    const canvas = within(canvasElement);
+    await waitFor(() => expect(photoStatus).toHaveBeenCalledWith("loaded"));
+    await expect(avatarImageRef).toHaveBeenCalledWith(expect.any(HTMLImageElement));
+    const failed = canvas.getByTestId("recoverable-photo");
+    await waitFor(() => expect(failed).toHaveTextContent("GH"));
+    await expect(failed.querySelector("img")).toBeNull();
+    await userEvent.click(canvas.getByRole("button", { name: "Retry photo" }));
+    await waitFor(() => expect(failed.querySelector("img")).not.toBeNull());
+    await expect(failed.querySelector('[data-slot="avatar-fallback"]')).toBeNull();
+    const group = canvas.getByRole("group", { name: /Reviewers/ });
+    await expect(group.querySelectorAll('[data-slot="avatar"][aria-hidden="true"]')).toHaveLength(
+      3,
+    );
+    await expect(group.querySelector('[data-slot="avatar-count"]')).toHaveTextContent("+3");
+  },
+};

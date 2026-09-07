@@ -37,7 +37,6 @@ const contents = {
 
 /** Four sides down, and a word, a shortcut and two lines across, every one open at once. */
 export const TooltipMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Grid templateColumns="repeat(2, minmax(0, 1fr))" gap="space.800" className="p-800">
       {sides.flatMap((side) =>

@@ -123,9 +123,8 @@ every product. A product's own config adds nothing about the kit.
 
 1. Put the part in its layer with relative imports and the package `cn`. Class strings are token
    utilities; the package lints itself with the strict preset (`npm run lint` there).
-2. Give it a story file of its own under `src/stories` (`<Part>.stories.tsx`, one per part a product
-   imports by name; compound parts stay with their parent) and a `*Matrix` story that lays out its
-   variants and states, rendered once. The toolbar switches the mode. `node scripts/ds-check.mjs` from the repo root says
+2. Give it a story file of its own under the package's `src/stories` (`<Part>.stories.tsx`, one per part a product
+   imports by name; compound parts stay with their parent) with representative states and interactions. Use a Matrix when it helps compare variants. Add `play` assertions to the same examples; Storybook tests every story by default. The toolbar switches the mode. `node scripts/ds-check.mjs` from the repo root says
    what is missing; `npm run build` runs it first.
 3. Write the part's page (`<Part>.mdx`) on the template: Anatomy, Variants, Sizes, States, Modifiers, Content, Style,
    Accessibility, Props (`<ArgTypes of={Part} />`, generated from the types, so every prop carries a JSDoc
@@ -153,7 +152,7 @@ Semantic versions, recorded in `packages/design-system/CHANGELOG.md` with the st
 change. Until 1.0 a rename or a removed prop is a minor step; it ships with a deprecation the lint
 fixes wherever one is possible (`ledger/no-deprecated-name`, `ledger/no-deprecated-token`), and the
 old name stays one version. CI (`.github/workflows/ci.yml`) runs the contract on every push: the
-generated tokens match the source, every export has a story and every family a matrix, the
+generated tokens match the source, every export has a documented story, the
 package and the prototype typecheck and lint, the tests pass, everything builds, the Storybook
 builds, and the package packs; the tarball is the build's artifact. A second product in another
 repository installs that tarball, or the package from the organisation's registry once there is

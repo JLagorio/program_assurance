@@ -148,7 +148,6 @@ export const WorkPaneStory: Story = {
 
 /** Every row tone, one active, the list's label with its count, and the empty detail. */
 export const WorkPaneMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Box style={{ height: 360 }}>
       <WorkPane
@@ -200,6 +199,8 @@ export const WorkPaneMatrix: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  // Independent pane examples repeat their landmark names.
+  parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
   render: () => (
     <Stack space="space.400">
       <Pair

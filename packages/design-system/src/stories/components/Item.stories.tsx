@@ -18,7 +18,6 @@ const more = <IconButton label="More" variant="subtle" size="small" icon={<MoreH
 
 /** Each slot in a group of its own, since a group shares its columns; then the states, a titled compact group, and one with nothing in it. */
 export const ItemMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300" className="max-w-layout-measure">
       <Item.Group>
@@ -349,4 +348,6 @@ export const Dont: Story = {
   ),
 };
 
-export const Playground: Story = {};
+export const Playground: Story = {
+  render: (args) => <Item.Group><Item {...args} /></Item.Group>,
+};

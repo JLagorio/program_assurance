@@ -17,7 +17,6 @@ type Story = StoryObj<typeof meta>;
 
 /** One day, a range, and a month with the days before a date disabled. */
 export const CalendarMatrix: Story = {
-  tags: ["contract"],
   parameters: {
     // Three calendars, three "Navigation bar" navs from react-day-picker; a page has one. A false positive of the layout.
     a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } },
@@ -64,6 +63,8 @@ export const CalendarRange: Story = { render: () => <Range /> };
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  // Independent calendar examples repeat the library navigation landmark.
+  parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
   render: () => (
     <Stack space="space.400">
       <Pair

@@ -26,7 +26,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Every state on one path, plain and numbered; vertical, plain and numbered, with steps that can be moved to. */
 export const StepperMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Horizontal: done, done, current, blocked, upcoming">

@@ -17,7 +17,6 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const TaskRowMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Item.Group title="Checklist">
       <TaskRow
@@ -39,8 +38,7 @@ export const TaskRowMatrix: Story = {
   ),
 };
 
-export const CompletionContract: Story = {
-  tags: ["contract"],
+export const Completion: Story = {
   render: function Example() {
     const [completed, setCompleted] = useState(false);
     const [opened, setOpened] = useState(0);

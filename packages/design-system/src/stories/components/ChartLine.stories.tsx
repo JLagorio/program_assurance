@@ -33,7 +33,6 @@ const openPlan = [
 
 /** Every line in both modes: plain, smooth with dots, end labels; a band, a limit and a milestone, a cropped baseline, a gap; emphasis, axis titles, the skeleton. */
 export const LineMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Plain · smooth with dots · end labels">

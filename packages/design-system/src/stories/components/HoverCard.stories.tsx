@@ -43,7 +43,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Every side, held open, each with a Glance: the id, one status, the title, the meta line, the facts. */
 export const HoverCardMatrix: Story = {
-  tags: ["contract"],
   render: () => (
     <Grid templateColumns="repeat(2, minmax(0, 1fr))" gap="space.0" style={{ paddingTop: 80 }}>
       {(["top", "right", "left", "bottom"] as const).map((side) => (

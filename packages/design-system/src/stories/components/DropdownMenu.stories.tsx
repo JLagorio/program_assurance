@@ -38,7 +38,6 @@ const modalMenu = {
 
 /** One menu, open, holding every item state: plain, with a shortcut, chosen and not, disabled, and the danger item last under its separator. */
 export const DropdownMenuMatrix: Story = {
-  tags: ["contract"],
   parameters: modalMenu,
   render: () => (
     <Box style={{ height: 320 }} className="p-400">
@@ -98,7 +97,7 @@ export const Kebab: Story = {
             <Table.Header width={110}>Id</Table.Header>
             <Table.Header>Finding</Table.Header>
             <Table.Header width={160}>Owner</Table.Header>
-            <Table.Header width={48} aria-label="Actions" />
+            <Table.Header width={48}><span className="sr-only">Actions</span></Table.Header>
           </tr>
         </thead>
         <tbody>
@@ -174,14 +173,13 @@ export const Dont: Story = {
     <Stack space="space.400">
       <Pair
         do={
-          <Box style={{ height: 200 }}>
+          <Box>
             <DropdownMenu
               trigger={
                 <Button variant="secondary" iconAfter={<ChevronDown />}>
                   Actions
                 </Button>
               }
-              defaultOpen
             >
               <DropdownMenu.Item>Edit</DropdownMenu.Item>
               <DropdownMenu.Item>Reassign</DropdownMenu.Item>
@@ -193,14 +191,13 @@ export const Dont: Story = {
         }
         doText="Four verbs, the one that removes something last, under a separator, in red."
         dont={
-          <Box style={{ height: 200 }}>
+          <Box>
             <DropdownMenu
               trigger={
                 <Button variant="secondary" iconAfter={<ChevronDown />}>
                   Actions
                 </Button>
               }
-              defaultOpen
             >
               <DropdownMenu.Item>Archive</DropdownMenu.Item>
               <DropdownMenu.Item>Edit</DropdownMenu.Item>
@@ -239,10 +236,9 @@ export const Dont: Story = {
       />
       <Pair
         do={
-          <Box style={{ height: 200 }} className="flex justify-end">
+          <Box className="flex justify-end">
             <DropdownMenu
               align="end"
-              defaultOpen
               trigger={<IconButton label="More" variant="subtle" icon={<MoreHorizontal />} />}
             >
               <DropdownMenu.Item>Copy link</DropdownMenu.Item>
@@ -253,10 +249,9 @@ export const Dont: Story = {
         }
         doText="Under five items behind a menu button; a kebab's menu up to a dozen."
         dont={
-          <Box style={{ height: 440 }} className="flex justify-end">
+          <Box className="flex justify-end">
             <DropdownMenu
               align="end"
-              defaultOpen
               trigger={<IconButton label="More" variant="subtle" icon={<MoreHorizontal />} />}
             >
               {[
@@ -288,7 +283,7 @@ export const Dont: Story = {
 
 export const Playground: Story = {
   render: (args) => (
-    <Box style={{ height: 200 }}>
+    <Box>
       <DropdownMenu {...args} />
     </Box>
   ),

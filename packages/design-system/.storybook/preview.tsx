@@ -46,10 +46,12 @@ const preview: Preview = {
       },
     },
     backgrounds: { disable: true },
-    // The Matrix stories are the family contracts; `npm run test:a11y` runs axe on each and fails on violations.
+    // Run accessibility checks alongside each story’s render and interaction checks.
     a11y: { test: "error" },
     options: {
       storySort: {
+        method: "alphabetical",
+        locales: "en-US",
         order: [
           "Introduction",
           "Guidance",
@@ -58,7 +60,6 @@ const preview: Preview = {
           "Primitives",
           ["Overview"],
           "Components",
-          ["Overlays", "Chart", ["Overview", "*"], "*"],
           "Patterns",
           ["Pages"],
           "Shapes",

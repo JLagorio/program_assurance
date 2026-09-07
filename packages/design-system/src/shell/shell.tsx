@@ -990,6 +990,24 @@ function Splitter({
   const ref = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; width: number } | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [width, setMeasuredWidth] = useState(min);
+  const [maxWidth, setMaxWidth] = useState(min);
+  useEffect(() => {
+    const area = ref.current?.parentElement;
+    if (!area) return;
+    const update = () => {
+      setMeasuredWidth(Math.round(area.getBoundingClientRect().width));
+      setMaxWidth(Math.max(min, Math.round(window.innerWidth / 2)));
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(area);
+    window.addEventListener("resize", update);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [min]);
   const measure = () => ref.current?.parentElement?.getBoundingClientRect().width ?? min;
   const clamp = (w: number) => Math.round(Math.min(Math.max(w, min), window.innerWidth / 2));
 
@@ -1031,6 +1049,10 @@ function Splitter({
       role="separator"
       aria-orientation="vertical"
       aria-label={label}
+      aria-valuemin={Math.min(min, width)}
+      aria-valuemax={Math.max(maxWidth, width)}
+      aria-valuenow={width}
+      aria-valuetext={`${width} pixels wide`}
       tabIndex={0}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}

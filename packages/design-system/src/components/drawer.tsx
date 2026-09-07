@@ -1,5 +1,5 @@
 import { useLedgerLocale } from "../lib/locale";
-import { useOverlayFocus } from "./_overlay-focus";
+import { preserveComboboxEscape, useOverlayFocus } from "./_overlay-focus";
 import type { ReactNode, RefObject } from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
 
@@ -46,6 +46,7 @@ export function Drawer({
       <DrawerPrimitive.Portal>
         <DrawerPrimitive.Overlay className="fixed inset-0 z-50 bg-blanket" />
         <DrawerPrimitive.Content
+          onEscapeKeyDown={preserveComboboxEscape}
           onCloseAutoFocus={restoreFocus}
           dir={direction}
           {...(description ? {} : { "aria-describedby": undefined })}
