@@ -4,24 +4,28 @@
  * traces to, and how far its verification has run. The filters are the
  * questions a reader asks of the list; the bar is the one status per row.
  *
- * A DataTable: the saved questions are presets over projected columns, the
- * headers sort, search covers the id and the statement, and the one bar per
- * row reads how far the tests that name the requirement have run.
+ * A DataTable in the same shape as the program's task table (task-table.tsx):
+ * one toolbar row with search, the saved views as a menu, the filter chips,
+ * then Columns, Settings and the primary action at the end; the id pinned,
+ * every column resizable and reorderable, the layout kept under a view name.
+ * The one bar per row reads how far the tests that name the requirement have run.
  */
 
 import { Link } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { ControlHover, RequirementHover } from "@/components/app/glances";
 import { AllocateElementsSheet } from "@/components/app/allocate-picker";
+import { NewRequirementModal } from "@/components/app/requirement-forms";
 import { TargetLink } from "@/components/app/requirements";
 import {
+  Button,
   DataTable,
   Id,
   Indicator,
   Inline,
   Progress,
-  Stack,
   Text,
   TextLink,
   defineColumns,
@@ -39,7 +43,6 @@ import {
 } from "@/lib/requirement-verification";
 import {
   allocationsFor,
-  requirementSummary,
   requirementStateTone,
   requirementsForProgram,
   unallocatedRequirements,
@@ -86,25 +89,26 @@ function fromControl(r: Requirement): boolean {
 }
 
 // The saved questions, as the column filters each one applies. Counts come from the table.
+// Values are arrays, the shape the filter chips write, so a chip and a view agree on what is active.
 const presets: Preset[] = [
   { id: "all", label: "All" },
   {
     id: "unallocated",
     label: "Unallocated",
-    filters: [{ id: "carriedBy", value: "Nobody responsible" }],
+    filters: [{ id: "carriedBy", value: ["Nobody responsible"] }],
   },
-  { id: "no-control", label: "No control", filters: [{ id: "origin", value: "No control" }] },
+  { id: "no-control", label: "No control", filters: [{ id: "origin", value: ["No control"] }] },
   {
     id: "from-control",
     label: "From a control",
-    filters: [{ id: "origin", value: "From a control" }],
+    filters: [{ id: "origin", value: ["From a control"] }],
   },
   {
     id: "not-covered",
     label: "Not covered",
-    filters: [{ id: "verification", value: "Not covered" }],
+    filters: [{ id: "verification", value: ["Not covered"] }],
   },
-  { id: "suspect", label: "Suspect", filters: [{ id: "currency", value: "Suspect" }] },
+  { id: "suspect", label: "Suspect", filters: [{ id: "currency", value: ["Suspect"] }] },
 ];
 
 /** The bar's segments: one per result, and a hatched hole for what no test names. */
@@ -148,9 +152,9 @@ export function RequirementCoverage({ programId }: { programId: string }) {
   const verificationVersion = useVerificationVersion();
   const currencyVersion = useLinkCurrencyVersion();
   const [allocating, setAllocating] = useState<Requirement | null>(null);
+  const [adding, setAdding] = useState(false);
 
   const all = useMemo(() => requirementsForProgram(programId), [programId, version]);
-  const summary = useMemo(() => requirementSummary(programId), [programId, version]);
 
   // The projection. Every store it reads is subscribed through a version above.
   const rows = useMemo<CoverageRow[]>(() => {
@@ -188,7 +192,8 @@ export function RequirementCoverage({ programId }: { programId: string }) {
       defineColumns<CoverageRow>((c) => [
         c.id("id", {
           header: "Requirement",
-          width: 104,
+          width: 120,
+          pin: "start",
           hideable: false,
           cell: (r) => (
             <RequirementHover requirementId={r.id}>
@@ -272,7 +277,7 @@ export function RequirementCoverage({ programId }: { programId: string }) {
         c.text("currency", { header: "Currency", width: 104 }),
         c.status("state", {
           header: "State",
-          width: 104,
+          width: 130,
           tone: (r) => requirementStateTone[r.state],
         }),
         c.actions((r) => [{ label: "Allocate", onSelect: () => setAllocating(r.requirement) }]),
@@ -286,31 +291,46 @@ export function RequirementCoverage({ programId }: { programId: string }) {
     getRowId: (r) => r.id,
     label: "Requirement coverage",
     view: "requirement-coverage",
+    resizable: true,
+    reorderable: true,
     initialState: { columnVisibility: { currency: false } },
   });
 
-  return (
-    <Stack space="space.150">
-      <Inline space="space.150" alignBlock="center" spread="space-between" shouldWrap>
-        <DataTable.Presets table={table} presets={presets} aria-label="Requirement filter" />
-        <Text size="small" color="color.text.subtle">
-          {summary.allocations} allocations across {summary.elements} elements
-        </Text>
-      </Inline>
+  const newRequirement = (
+    <Button size="small" variant="primary" iconBefore={<Plus />} onClick={() => setAdding(true)}>
+      New requirement
+    </Button>
+  );
 
-      <DataTable
-        table={table}
-        toolbar={
-          <Inline space="space.100" alignBlock="center" spread="space-between" shouldWrap>
-            <DataTable.Search table={table} placeholder="Requirement or statement" />
-            <DataTable.Columns table={table} />
-          </Inline>
-        }
-        empty={{
-          title: "Nothing matches",
-          description: "Choose another question or clear the search.",
-        }}
-      />
+  const toolbar = (
+    <Inline space="space.100" alignBlock="center" shouldWrap>
+      <DataTable.Search table={table} placeholder="Find a requirement" />
+      <DataTable.Presets table={table} presets={presets} variant="menu" aria-label="Saved views" />
+      <DataTable.Filter table={table} column="carriedBy" />
+      <DataTable.Filter table={table} column="origin" />
+      <DataTable.Filter table={table} column="state" />
+      <Inline className="ml-auto" space="space.100" alignBlock="center">
+        <DataTable.Columns table={table} />
+        <DataTable.Settings table={table} />
+        {newRequirement}
+      </Inline>
+    </Inline>
+  );
+
+  // No requirements at all is a different empty from filters that leave none.
+  const empty = all.length
+    ? { title: "Nothing matches", description: "Choose another view or clear the filters." }
+    : {
+        title: "No security requirements",
+        description: `${programId} has no engineering requirements yet. Controls are obligations until a requirement states what the system must do.`,
+        action: newRequirement,
+      };
+
+  return (
+    <>
+      <DataTable table={table} toolbar={toolbar} empty={empty} />
+
+      <NewRequirementModal open={adding} onClose={() => setAdding(false)} programId={programId} />
 
       {allocating ? (
         <AllocateElementsSheet
@@ -320,6 +340,6 @@ export function RequirementCoverage({ programId }: { programId: string }) {
           requirement={allocating}
         />
       ) : null}
-    </Stack>
+    </>
   );
 }

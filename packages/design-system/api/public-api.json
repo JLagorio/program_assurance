@@ -3265,13 +3265,13 @@
     "\"src/components/separator\".Separator": [
       {
         "source": "src/components/separator.d.ts",
-        "declaration": "export declare function Separator({ orientation, isDecorative, className }: SeparatorProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function Separator({ orientation, isDecorative, className, ...props }: SeparatorProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/separator\".SeparatorProps": [
       {
         "source": "src/components/separator.d.ts",
-        "declaration": "export type SeparatorProps = {\n    orientation?: \"horizontal\" | \"vertical\" | undefined;\n    isDecorative?: boolean | undefined;\n    className?: string | undefined;\n};"
+        "declaration": "export type SeparatorProps = SeparatorPrimitive.Props & {\n    isDecorative?: boolean | undefined;\n};"
       }
     ],
     "\"src/components/sheet\".Sheet": [
@@ -6114,7 +6114,7 @@
     ]
   },
   "dependencyContracts": {
-    "@base-ui/react": "4676e965d83314292e5834383c9638d29d4723b9c8c032e78cff34825b0bef68",
+    "@base-ui/react": "d0dbcf1457b274c2182e89f6f864c0ce86984d1577e958ffb406ec03bdb20a5e",
     "@base-ui/utils": "044253f9555e03db30310030cdb5e40606af79eac510c1953fcb787bcdbfcfb3",
     "@floating-ui/dom": "82afab4c16f6bedc49dfed4eec228766546f4e0a8aed010cab33ad05aeed4568",
     "@floating-ui/utils": "5742c36912f8d5bc9c767528395282eadb54e2c0ee759025467464f0e51916a5",

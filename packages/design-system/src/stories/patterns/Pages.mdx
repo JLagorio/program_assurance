@@ -29,7 +29,7 @@ The two page archetypes and the parts they are assembled from.
 | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **[PageHeader](?path=/docs/patterns-pageheader--docs)**     | Eyebrow, title on `font.heading.medium`, one line, actions on the right.                                                                                                                                                                                                                                                                                                                                                                         |
 | **[RecordHeader](?path=/docs/patterns-recordheader--docs)** | The trail, its parents then the record's id as the current crumb, which is the way back; then the title, a word of meta and the actions on one line; `facts` for the strip of Facts under the title (at most six; the rest go in the rail), and `below` for a persistent state strip. No back chevron, no line for the id.                                                                                                                                                                      |
-| **[Section](?path=/docs/patterns-section--docs)**           | A titled region with a rule under its heading. Prefer Block for work and Collapsible for reference.                                                                                                                                                                                                                                                                                                                                              |
+| **[Section](?path=/docs/patterns-section--docs)**           | A titled region with a rule under its heading. Use Collapsible when the content should fold.                                                                                                                                                                                                                                                                                                                                              |
 | **[Card](?path=/docs/patterns-card--docs)**                 | A framed block on the raised surface, with an optional header row. It records its surface so a sticky table header inside it stays opaque.                                                                                                                                                                                                                                                                                                       |
 | **[Related](?path=/docs/patterns-related--docs)**           | A small card of linked records with a count and rows that may be buttons.                                                                                                                                                                                                                                                                                                                                                                        |
 | **[Empty](?path=/docs/patterns-empty--docs)**               | A dashed frame with a title, one line of why, and the action that fills it.                                                                                                                                                                                                                                                                                                                                                                      |
@@ -74,7 +74,7 @@ When the question is "which of these many belong on this one" and the many are f
 
 ## Variants
 
-Two archetypes, and a page is one of them: an **IndexPage** (a header, a filter row, one table) or a **ShowPage** (a record header, a tab strip, the tab's body, the rail on the overview tab). A page that is neither is a [Shape](?path=/docs/shapes-overview--docs): a WorkPane for working through a list, an Inspector beside content, an ActionBar over a record's state.
+Use **IndexPage** for a header, filters and a table. Use **ShowPage** for a record header, tabs, the selected tab's body and an optional details rail. Other workflows can compose the components they need without adopting a page archetype.
 
 ## Sizes
 
@@ -139,7 +139,7 @@ A page has three: loading, which is the [PageSkeleton](?path=/docs/patterns-page
 - [RecordPicker](?path=/docs/patterns-recordpicker--docs)
 - [Related](?path=/docs/patterns-related--docs)
 - [Section](?path=/docs/patterns-section--docs)
-- [Shapes](?path=/docs/shapes-overview--docs), the layer between the parts and a screen, and [Shell](?path=/docs/shell--docs), the navigation system.
+- [Shell](?path=/docs/shell--docs): the navigation system.
 
 ## Don't
 

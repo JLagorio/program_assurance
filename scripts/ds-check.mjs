@@ -1,4 +1,4 @@
-// Every component @ledger/design-system exports has a story that renders it, and a documentation page.
+// Maintained catalog components have a story that renders them, and a documentation page.
 // Page structure follows the component's needs; accuracy is reviewed with the examples. Existing gaps are
 // grandfathered in scripts/ds-check.allow; a new gap fails, and an allowlisted entry that closes must
 // leave the allowlist so the list only shrinks. `npm run build` runs this first.
@@ -15,6 +15,9 @@ const PKG = "packages/design-system/src";
 const LAYERS = ["primitives", "components", "patterns", "shapes", "shell", "mode"];
 // Story folders whose files are families and need a page. Tokens are sheets; docs are pages already.
 const PAGE_FOLDERS = ["components", "patterns", "primitives"];
+// The Shapes catalog is retired, but these APIs remain for existing consumers. Block and
+// Inspector still have integration stories; do not recreate demos just to cover these two.
+const RETIRED_STORY_EXPORTS = new Set(["ActionBar", "WorkPane"]);
 
 const walk = (dir, out = []) => {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -33,7 +36,8 @@ const exports_ = new Map(
         e.kind === "value" &&
         /^[A-Z]/.test(e.name) &&
         !/^[A-Z0-9_]+$/.test(e.name) &&
-        !e.deprecated,
+        !e.deprecated &&
+        !RETIRED_STORY_EXPORTS.has(e.name),
     )
     .map((e) => [e.name, e.source]),
 );
@@ -158,4 +162,5 @@ const previous = new Set(
 const growth = [...allow].filter((entry) => !previous.has(entry));
 if (growth.length) console.error("Coverage exceptions may not grow:", growth.join(", "));
 console.log(`${publicApi.length} public API symbols resolved through TypeScript`);
+console.log("ActionBar and WorkPane retain API checks outside the Storybook catalog.");
 process.exit(newGaps.length || stale.length || growth.length ? 1 : 0);

@@ -1,27 +1,30 @@
-import { cn } from "../lib/cn";
+import { Separator as SeparatorPrimitive } from "@base-ui/react/separator";
 
-/* A divider on its own, for the places that draw one outside a menu or a toolbar. Radix Separator
-   underneath for the roles: a rule
-   that splits groups of controls is a separator; a rule that only draws a line is decorative. */
+import { classes } from "../lib/base-ui";
 
-export type SeparatorProps = {
-  /** `horizontal` spans its container, the default; `vertical` stretches to the height of the flex row it sits in. */
-  orientation?: "horizontal" | "vertical" | undefined;
-  /** The rule only draws a line: between a heading and its body, between two cards. It is hidden from a screen reader. Off by default, when the rule splits groups of controls in a toolbar or a menu. */
+export type SeparatorProps = SeparatorPrimitive.Props & {
+  /** Hide a purely visual rule from assistive technology. Native role and ARIA props can override these defaults. */
   isDecorative?: boolean | undefined;
-  className?: string | undefined;
 };
 
-/** A hairline between siblings, `color.border`. */
-export function Separator({ orientation = "horizontal", isDecorative, className }: SeparatorProps) {
+/** A Base UI separator with a one-pixel `color.border` rule and parent-owned spacing. */
+export function Separator({
+  orientation = "horizontal",
+  isDecorative = false,
+  className,
+  ...props
+}: SeparatorProps) {
   return (
-    <div
-      role={isDecorative ? "none" : "separator"}
-      aria-orientation={isDecorative ? undefined : orientation}
-      aria-hidden={isDecorative || undefined}
-      className={cn(
-        "shrink-0 border-default",
-        orientation === "vertical" ? "w-0 self-stretch border-s" : "h-0 w-full border-t",
+    <SeparatorPrimitive
+      data-slot="separator"
+      orientation={orientation}
+      {...(isDecorative
+        ? { role: "none", "aria-hidden": true, "aria-orientation": undefined }
+        : undefined)}
+      {...props}
+      className={classes(
+        "h-auto shrink-0 border-0 border-default " +
+          (orientation === "vertical" ? "w-0 self-stretch border-s" : "h-0 w-full border-t"),
         className,
       )}
     />

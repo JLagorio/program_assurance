@@ -31,7 +31,7 @@ import type { DataTableInstance } from "./use-data-table";
 /*
  * The renderer. It takes the table from useDataTable and draws it with the Table parts: header
  * groups, rows and cells, the toolbar slot above, Pagination below when the table pages, the
- * states inside the frame so the header never moves. Every feature is one option on the hook and
+ * states under the header so it never moves. Every feature is one option on the hook and
  * one part here; nothing is a second table.
  */
 
@@ -39,7 +39,7 @@ export type DataTableState = "ready" | "loading" | "empty" | "error";
 
 export type DataTableProps<TData extends RowData> = {
   table: DataTableInstance<TData>;
-  /** Search, filters and actions. Sits inside the frame, above the header. */
+  /** Search, filters and actions. Sits above the header, flush with the table's edge. */
   toolbar?: ReactNode;
   state?: DataTableState | undefined;
   /** What the empty state says. */
@@ -716,8 +716,8 @@ function DataTableRoot<TData extends RowData>({
   );
 
   return (
-    <div className={cn("overflow-hidden rounded-large border border-default", className)}>
-      {toolbar ? <div className="border-b border-default px-150 py-100">{toolbar}</div> : null}
+    <div className={className}>
+      {toolbar ? <div className="pb-200">{toolbar}</div> : null}
       <DragContext table={table}>
         <Table
           frameRef={frame}
@@ -725,7 +725,7 @@ function DataTableRoot<TData extends RowData>({
           label={label}
           {...(maxHeight === undefined ? {} : { maxHeight })}
           {...(tree ? { role: "treegrid" } : options?.editable ? { role: "grid" } : {})}
-          className={fixed ? "table-fixed" : undefined}
+          className={cn("border-b border-default", fixed && "table-fixed")}
           style={minWidth === undefined ? undefined : { minWidth }}
         >
           <thead>
@@ -838,7 +838,7 @@ function DataTableRoot<TData extends RowData>({
           total={table.getRowCount()}
           pageSize={pageSize}
           label={label ? t("paginationLabel", { label }) : undefined}
-          className="border-t border-default px-150 py-100"
+          className="pt-100"
         />
       ) : null}
     </div>

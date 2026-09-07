@@ -64,10 +64,8 @@ import { findingsForProgram, programPosture } from "@/lib/program-actions";
 import { coverageFromRows } from "@/lib/program-coverage";
 import { isOpen } from "@/lib/findings";
 import { programCommands } from "@/lib/program-commands";
-import { NewRequirementModal } from "@/components/app/requirement-forms";
 import { ScopeTable } from "@/components/app/scopes";
 import { RequirementCoverage } from "@/components/app/requirement-coverage";
-import { RequirementTable } from "@/components/app/requirements";
 import { programControls, programStatuses, programStatusTone, programs } from "@/lib/grc-data";
 import { allocationsFor, requirementsForProgram, useRequirementsVersion } from "@/lib/requirements";
 import { rollupControlSet, scopesForProgram, useScopesVersion } from "@/lib/scopes";
@@ -238,7 +236,6 @@ function ProgramDetail() {
     () => requirementsForProgram(program.id),
     [program.id, requirementsVersion],
   );
-  const [newRequirement, setNewRequirement] = useState(false);
   useProgramsVersion();
   const [assessing, setAssessing] = useState(false);
   const [archiving, setArchiving] = useState(false);
@@ -783,31 +780,7 @@ function ProgramDetail() {
             <ScopeTable scopes={scopeRows} rollup={rollup} programId={program.id} />
           ) : null}
 
-          {tab === "Requirements" ? (
-            <>
-              <Inline alignInline="end">
-                <Button variant="primary" size="small" onClick={() => setNewRequirement(true)}>
-                  New requirement
-                </Button>
-              </Inline>
-              <NewRequirementModal
-                open={newRequirement}
-                onClose={() => setNewRequirement(false)}
-                programId={program.id}
-              />
-            </>
-          ) : null}
-
-          {tab === "Requirements" ? (
-            requirementRows.length ? (
-              <RequirementCoverage programId={program.id} />
-            ) : (
-              <Empty
-                title="No security requirements"
-                description={`${program.id} has no engineering requirements yet. Controls are obligations until a requirement states what the system must do.`}
-              />
-            )
-          ) : null}
+          {tab === "Requirements" ? <RequirementCoverage programId={program.id} /> : null}
 
           {tab === "Tasks" ? <ProgramTasks programId={program.id} me={me} /> : null}
 

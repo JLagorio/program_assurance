@@ -83,7 +83,7 @@ export const Dont: Story = {
             </Field>
           </Block>
         }
-        doText="Work happens in a Block: always open, a count or an action, nothing under the heading."
+        doText="The heading names the task, with its Save action beside it."
         dont={
           <Section
             title="Assessment result"
@@ -97,7 +97,7 @@ export const Dont: Story = {
             </Stack>
           </Section>
         }
-        dontText="A form in a Section, with an instruction under the heading. The Section reads; the Block works."
+        dontText="The instruction repeats the heading without adding a constraint or useful help."
       />
       <Pair
         do={

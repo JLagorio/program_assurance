@@ -38,7 +38,7 @@ Every control sits in a [Field](?path=/docs/components-field--docs), which gives
 | ------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | Field   | Label, control, message. The label is a noun in sentence case; the hint a sentence; the error what fixes it.                 |
 | Group   | A Field with `isGroup`: a legend over Checkboxes or a RadioGroup, with the hint and the error for the group.                 |
-| Section | When a form has parts, a [Block](?path=/docs/shapes-block--docs) per part, its title the part's noun, `space.300` between.   |
+| Section | Group related fields under a clear heading, with `space.300` between sections.   |
 | Buttons | An Inline at the end of the form, aligned to the end: Cancel as a subtle Button, then the primary. The primary says the act. |
 
 <Canvas of={Stories.Choices} />
@@ -79,7 +79,7 @@ Every control sits in a [Field](?path=/docs/components-field--docs), which gives
 
 | Form                                 | Where                                                                                                 |
 | ------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| Creating a record with several parts | A page, in Blocks, or the wizard in [Stepper](?path=/docs/components-stepper--docs) steps.            |
+| Creating a record with several parts | A page with headed sections, or a wizard in [Stepper](?path=/docs/components-stepper--docs) steps.            |
 | Editing a few fields of a record     | A [Sheet](?path=/docs/components-sheet--docs) from the record, the first field focused.               |
 | One or two fields                    | A [Dialog](?path=/docs/components-dialog--docs) or a [Popover](?path=/docs/components-popover--docs). |
 | One value on a record                | An [Editable](?path=/docs/components-editable--docs), read in place and edited on click.              |

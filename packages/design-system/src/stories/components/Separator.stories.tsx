@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Bold, Italic, Link2 } from "lucide-react";
+import { createRef } from "react";
+import { expect, fn, userEvent, within } from "storybook/test";
 
 import { Button, IconButton, Item, Separator, Toggle } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
@@ -51,6 +53,34 @@ export const SeparatorMatrix: Story = {
       </Specimens>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const separators = canvas.getAllByRole("separator");
+    await expect(separators).toHaveLength(3);
+    for (const [index, separator] of separators.entries()) {
+      const orientation = index === 0 ? "horizontal" : "vertical";
+      await expect(separator).toHaveAttribute("data-slot", "separator");
+      await expect(separator).toHaveAttribute("data-orientation", orientation);
+      await expect(separator).toHaveAttribute("aria-orientation", orientation);
+      await expect(separator.tabIndex).toBe(-1);
+      const bounds = separator.getBoundingClientRect();
+      await expect(orientation === "horizontal" ? bounds.height : bounds.width).toBe(1);
+      await expect(orientation === "horizontal" ? bounds.width : bounds.height).toBeGreaterThan(1);
+    }
+    const decorative = canvasElement.querySelector('[data-slot="separator"][aria-hidden="true"]');
+    await expect(decorative).toHaveAttribute("role", "none");
+    await expect(decorative).toHaveAttribute("data-orientation", "horizontal");
+    await expect(decorative).not.toHaveAttribute("aria-orientation");
+    await expect(decorative).not.toHaveAttribute("tabindex");
+
+    canvas.getByRole("button", { name: "Bold" }).focus();
+    for (const name of ["Italic", "Link", "Clear"]) {
+      await userEvent.tab();
+      await expect(canvas.getByRole("button", { name })).toHaveFocus();
+    }
+    await userEvent.tab({ shift: true });
+    await expect(canvas.getByRole("button", { name: "Link" })).toHaveFocus();
+  },
 };
 
 /** The mistakes the page is written to prevent, each beside the right way. */
@@ -117,6 +147,109 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+};
+
+const nativeRef = createRef<HTMLDivElement>();
+const compositionRefs = {
+  separator: createRef<HTMLDivElement>(),
+  element: createRef<HTMLHRElement>(),
+};
+const compositionEvents = {
+  separator: fn(),
+  element: fn(),
+};
+
+/** Native props target the divider; render composes the same contract onto a horizontal rule. */
+export const NativeComposition: Story = {
+  render: () => (
+    <Stack space="space.300">
+      <Box style={{ width: 360 }}>
+        <Stack space="space.150">
+          <Text weight="semibold">Evidence summary</Text>
+          <Separator
+            ref={nativeRef}
+            id="evidence-divider"
+            title="Evidence summary and attachments"
+            lang="en"
+            dir="ltr"
+            data-example="native-divider"
+            className="w-800 self-stretch"
+            style={{ maxWidth: 120 }}
+          />
+          <Text>Three attached records</Text>
+        </Stack>
+      </Box>
+      <Inline space="space.150" alignBlock="center">
+        <Text>Draft</Text>
+        <Separator
+          ref={compositionRefs.separator}
+          orientation="vertical"
+          isDecorative
+          role="separator"
+          aria-hidden={false}
+          aria-orientation="vertical"
+          aria-label="Workflow stages"
+          data-example="composed-divider"
+          className={({ orientation }) =>
+            orientation === "vertical" ? "self-stretch" : "max-w-layout-measure"
+          }
+          style={({ orientation }) => ({
+            minHeight: orientation === "vertical" ? 32 : 1,
+            marginInlineStart: 4,
+          })}
+          onPointerEnter={compositionEvents.separator}
+          render={
+            <hr
+              ref={compositionRefs.element}
+              title="Between workflow stages"
+              className="align-middle"
+              style={{ marginInlineEnd: 8 }}
+              onPointerEnter={compositionEvents.element}
+            />
+          }
+        />
+        <Text>Reviewed</Text>
+      </Inline>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const native = canvas.getByTitle("Evidence summary and attachments");
+    await expect(nativeRef.current).toBe(native);
+    await expect(native.tagName).toBe("DIV");
+    await expect(native).toHaveAttribute("id", "evidence-divider");
+    await expect(native).toHaveAttribute("lang", "en");
+    await expect(native).toHaveAttribute("dir", "ltr");
+    await expect(native).toHaveAttribute("data-example", "native-divider");
+    await expect(native).toHaveClass("w-800", "self-stretch");
+    await expect(native).toHaveStyle({ maxWidth: "120px" });
+    await expect(native.getBoundingClientRect().width).toBe(64);
+
+    const composed = canvas.getByRole("separator", { name: "Workflow stages" });
+    await expect(compositionRefs.separator.current).toBe(composed);
+    await expect(compositionRefs.element.current).toBe(composed);
+    await expect(composed.tagName).toBe("HR");
+    await expect(composed).toHaveAttribute("data-slot", "separator");
+    await expect(composed).toHaveAttribute("data-orientation", "vertical");
+    await expect(composed).toHaveAttribute("aria-hidden", "false");
+    await expect(composed).toHaveAttribute("aria-orientation", "vertical");
+    await expect(composed).toHaveAttribute("data-example", "composed-divider");
+    await expect(composed).toHaveAttribute("title", "Between workflow stages");
+    await expect(composed).toHaveClass("self-stretch", "align-middle");
+    await expect(composed).toHaveStyle({
+      minHeight: "32px",
+      marginInlineStart: "4px",
+      marginInlineEnd: "8px",
+      borderTopWidth: "0px",
+    });
+    await expect(composed.getBoundingClientRect().width).toBe(1);
+    await expect(composed.tabIndex).toBe(-1);
+    compositionEvents.separator.mockClear();
+    compositionEvents.element.mockClear();
+    await userEvent.hover(composed);
+    await expect(compositionEvents.separator).toHaveBeenCalledTimes(1);
+    await expect(compositionEvents.element).toHaveBeenCalledTimes(1);
+  },
 };
 
 export const Playground: Story = {};

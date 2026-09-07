@@ -652,7 +652,7 @@ function TableParts() {
   );
 }
 
-/** Loading keeps the header and the frame; empty and error sit inside them. */
+/** Loading keeps the header; empty and error sit under it. */
 function States() {
   const [state, setState] = useState<DataTableState>("loading");
   const table = useDataTable({

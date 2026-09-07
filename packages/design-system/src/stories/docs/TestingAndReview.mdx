@@ -36,6 +36,8 @@ Inspect 320 CSS pixel width, 200% text enlargement and 400% browser zoom. A dens
 
 `node scripts/ds-check.mjs` resolves public exports through the TypeScript compiler, counts executable story references, checks story coverage and documentation, and rejects a growing exception baseline. `node scripts/ds-public-api.mjs` prints the full public value/type inventory. A reference proves use, not correctness; interaction assertions establish behavior.
 
+The retired Shapes catalog no longer requires ActionBar or WorkPane stories. Their exports remain in the API baseline, which checks declarations rather than rendering or accessibility. Block and Inspector continue to render in existing integration stories. New component families still require stories and documentation.
+
 Keep one family page with useful examples, generated props and relevant usage/accessibility guidance. There is no required heading set. Omit sections that add no information, and review the prose against the current examples and implementation. Keep migration guidance in one place and link to it from the changelog.
 
 `npm run test:a11y -w packages/design-system` runs every story in light and dark Chromium using Storybook’s built-in `test` tag. Each story gets a render check; its `play` function adds interaction assertions. Axe and unexpected-console checks run alongside them. Dark mode also checks reduced motion.

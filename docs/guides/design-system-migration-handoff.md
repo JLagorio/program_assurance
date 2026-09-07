@@ -1,9 +1,8 @@
 # Design-system migration handoff
 
 Continue migrating `@ledger/design-system` using the local shadcn Base UI components as the foundation,
-one complete component family at a time. **Breadcrumb and Badge are complete. Separator is
-recommended for the next selection; it has not been migrated.** Review the completed Badge
-slice before starting another family.
+one complete component family at a time. **Breadcrumb, Badge and Separator are complete.
+Skeleton is the next recommended selection; it has not been migrated.**
 
 ## Accepted direction
 
@@ -30,10 +29,12 @@ historical notes may conflict with the current direction.
 
 - [Repository instructions](../../AGENTS.md), especially the Lovable history rule.
 - [Component-library guide](component-library.md) and [package README](../../packages/design-system/README.md).
-- [Reference Separator](../../src/components/ui/separator.tsx),
-  [Ledger Separator](../../packages/design-system/src/components/separator.tsx),
-  [stories](../../packages/design-system/src/stories/components/Separator.stories.tsx), and
-  [documentation](../../packages/design-system/src/stories/components/Separator.mdx).
+- [Reference Skeleton](../../src/components/ui/skeleton.tsx),
+  [Ledger Skeleton](../../packages/design-system/src/components/skeleton.tsx),
+  [stories](../../packages/design-system/src/stories/components/Skeleton.stories.tsx), and
+  [documentation](../../packages/design-system/src/stories/components/Skeleton.mdx).
+- Completed [Separator](../../packages/design-system/src/components/separator.tsx) and its
+  [usage and migration guidance](../../packages/design-system/src/stories/components/Separator.mdx).
 - Completed [Badge](../../packages/design-system/src/components/badge.tsx),
   [stories](../../packages/design-system/src/stories/components/Badge.stories.tsx),
   [documentation and migration mapping](../../packages/design-system/src/stories/components/Badge.mdx).
@@ -64,50 +65,26 @@ and the separate Count, Dot, Indicator and Avatar-part contracts when adapting o
 The packed-consumer fixture covers native attributes, render composition, types, SSR and CSS.
 Start `npm run storybook` and review [Components / Badge](http://localhost:6007/?path=/docs/components-badge--docs).
 
-## Next selection: Separator
+Separator uses the Base UI primitive with native props/refs, render composition and state
+callbacks. Its existing `isDecorative` option supplies hidden semantics that explicit native
+ARIA props can override. Styling keeps the one-pixel Ledger border and ordinary className
+overrides; the primitive exposes `data-orientation`. The [Separator page](../../packages/design-system/src/stories/components/Separator.mdx)
+owns migration details. Existing consumers need no edits.
 
-Separator is recommended because its standalone use is small and isolated. Inventory imports
-again before editing. At this handoff, only its own stories, Toggle stories and Resizable
-stories consume the Ledger export; application routes and patterns do not. Exclude the
-`react-resizable-panels` Separator, compound menu/select/combobox separators,
-`BreadcrumbSeparator`, and the reference/reui catalogs.
+## Next selection: Skeleton
 
-```sh
-rg -n '\b(Separator|SeparatorProps|isDecorative)\b' packages/design-system/src src --glob '!**/generated/**' --glob '!src/components/ui/**'
-```
+Start with `src/components/ui/skeleton.tsx`. Shadcn's Skeleton is a native div; this family
+does not need an invented Base UI primitive. The Ledger version has useful shape, multiline
+and dimension options but a narrow native-prop surface. Preserve those options on the same
+component while adopting native attributes and refs.
 
-Start with the local reference's single `Separator` export and `SeparatorPrimitive.Props`
-from `@base-ui/react/separator`. Preserve `orientation="horizontal"`, `data-slot="separator"`,
-Base UI state, native props/refs and `render` composition. The current Ledger implementation
-is a handmade div despite outdated comments/MDX claiming Radix. Its narrow API has
-`orientation`, `isDecorative` and `className` only.
+Inventory actual consumers before editing: Skeleton stories, DataTable, Chart.Frame and
+PageSkeleton currently use it. Resolve which element receives native props/ref when `lines`
+renders several rows, and document that contract. Keep token styling, hidden loading visuals
+and reduced-motion behavior. Use one family page and representative examples with assertions.
 
-Resolve these details in the slice:
-
-1. **Adapt decoration on Separator itself.** Installed Base UI 1.7.0 has neither
-   `isDecorative` nor `decorative`. The existing `isDecorative` convenience may be retained on
-   Separator and translated to `role="none"`/`"presentation"`, `aria-hidden="true"` and omitted
-   `aria-orientation`, with explicit native overrides respected. Preserve this useful option
-   directly instead of creating a second separator component.
-2. **Match actual state attributes.** Base UI emits `data-orientation="horizontal"` or
-   `"vertical"`. The reference's `data-horizontal:`/`data-vertical:` depend on aliases in
-   shadcn's stylesheet, which Ledger does not import. Translate to
-   `data-[orientation=horizontal]:` and `data-[orientation=vertical]:` or deliberately define
-   supported aliases. Retain full horizontal width and vertical self-stretch/hairline geometry.
-3. **Preserve callback props.** Base UI allows `className(state)` and `style(state)`. The local
-   reference passes className directly to its helper; Ledger's `cn` does not accept a callback.
-   Resolve a function against `Separator.State` before merging the token classes, and forward
-   the style callback. Do not silently narrow the primitive's public prop type.
-4. **Document the border mapping.** Ledger currently draws `color.border` with `border-default`;
-   the reference draws a background-filled hairline. Explicitly map that paint to the existing
-   border token, retaining one-pixel geometry and parent-owned spacing.
-5. **Verify semantics and composition.** The primitive defaults to a div, role separator,
-   aria-orientation horizontal, and no tab stop; vertical updates orientation. Add executable
-   checks for native/ref targets, rendered elements, merged handlers/styles/refs, callback
-   classes/styles, decorative output and ordinary tab order in both modes.
-
-Keep Button, Dialog, Avatar, Combobox and other families outside the slice even when they already
-use Base UI internally. Their full standard-contract migrations remain separate work.
+The reference catalogs stay in their installer locations. Do not move or delete them while
+cleaning up the package. Button, Dialog, Avatar and Combobox remain separate family migrations.
 
 ## Completion workflow
 
@@ -122,7 +99,8 @@ accepting it. Audit policy notes are optional; `npm run ds:api:matrix` produces 
 when an audit needs them. Neither matrix generation nor exhaustive prop-review prose is part
 of the normal component workflow.
 
-Run from the repository root:
+Run from the repository root. The story paths below are the completed Separator slice;
+select the affected stories for the next family:
 
 ```sh
 npm run typecheck -w packages/design-system
@@ -144,6 +122,15 @@ git diff --check
 The Storybook command runs light and dark projects. Add other affected stories; broaden when a
 shared change warrants it. Rebuild tokens first if token sources or their generator change.
 Do not repeat successful checks unless later edits or unresolved concerns require it.
+
+## Validation at the Separator handoff
+
+Package/application typechecks, package lint, 15 package tests, 3 API tests, 7 application tests,
+28 affected Storybook checks in light/dark modes, API and coverage checks, production/Storybook
+builds, and packed ESM/SSR/TypeScript/Vite/Tailwind validation passed. The built Separator page
+and composition story render without console errors; width overrides and vertical `hr` geometry
+are covered. Repository-wide lint retains 12 existing formatting errors in `src/hooks/use-mobile.ts`
+and `src/lib/utils.ts`.
 
 ## Validation at the Badge handoff
 

@@ -104,6 +104,47 @@ assert.doesNotMatch(neutralStatusHtml, /bg-brand-bold/);
 console.log('Packed Badge variants, native/render composition and semantic Badge SSR passed');
 `,
   );
+  fs.appendFileSync(
+    path.join(dir, "ssr.mjs"),
+    `
+import {Separator} from '@ledger/design-system';
+const separatorHtml = renderToString(createElement(Separator, {id: 'packed-separator', lang: 'en'}));
+assert.match(separatorHtml, /^<div /);
+for (const attribute of ['id="packed-separator"', 'lang="en"', 'data-slot="separator"', 'data-orientation="horizontal"', 'role="separator"', 'aria-orientation="horizontal"']) assert.ok(separatorHtml.includes(attribute), attribute);
+assert.doesNotMatch(separatorHtml, /tabindex=/);
+const renderedSeparatorHtml = renderToString(createElement(Separator, {
+  orientation: 'vertical',
+  className: state => state.orientation === 'vertical' ? 'packed-vertical' : 'packed-horizontal',
+  style: state => ({marginInline: state.orientation === 'vertical' ? 'var(--ds-space-100)' : '0px'}),
+  render: createElement('span', {className: 'packed-rendered', style: {opacity: 0.5}, 'data-consumer-render': 'element'})
+}));
+assert.match(renderedSeparatorHtml, /^<span /);
+for (const attribute of ['data-slot="separator"', 'data-orientation="vertical"', 'aria-orientation="vertical"', 'data-consumer-render="element"']) assert.ok(renderedSeparatorHtml.includes(attribute), attribute);
+assert.match(renderedSeparatorHtml, /packed-vertical/);
+assert.match(renderedSeparatorHtml, /packed-rendered/);
+assert.ok(renderedSeparatorHtml.includes('margin-inline:var(--ds-space-100)'));
+assert.ok(renderedSeparatorHtml.includes('opacity:0.5'));
+const callbackSeparatorHtml = renderToString(createElement(Separator, {
+  orientation: 'vertical',
+  render: (props, state) => createElement('span', {...props, 'data-consumer-orientation': state.orientation})
+}));
+assert.match(callbackSeparatorHtml, /^<span /);
+assert.match(callbackSeparatorHtml, /data-slot="separator"/);
+assert.match(callbackSeparatorHtml, /data-consumer-orientation="vertical"/);
+const decorativeSeparatorHtml = renderToString(createElement(Separator, {isDecorative: true}));
+assert.match(decorativeSeparatorHtml, /role="(?:none|presentation)"/);
+assert.match(decorativeSeparatorHtml, /aria-hidden="true"/);
+assert.doesNotMatch(decorativeSeparatorHtml, /aria-orientation=/);
+assert.doesNotMatch(decorativeSeparatorHtml, / (?:isDecorative|isdecorative|orientation)=/);
+const explicitSeparatorHtml = renderToString(createElement(Separator, {
+  isDecorative: true, role: 'separator', 'aria-hidden': false, 'aria-orientation': 'vertical'
+}));
+assert.match(explicitSeparatorHtml, /role="separator"/);
+assert.match(explicitSeparatorHtml, /aria-hidden="false"/);
+assert.match(explicitSeparatorHtml, /aria-orientation="vertical"/);
+console.log('Packed Separator semantics, state callbacks and render composition SSR passed');
+`,
+  );
   run(process.execPath, ["ssr.mjs"]);
   fs.writeFileSync(
     path.join(dir, "consumer.tsx"),
@@ -158,6 +199,23 @@ const spanHref = <Badge href="/records" />;
 void [badge, badgeLink, badgeCallback, nullVariant, classes, semanticClasses, statusBadge, semanticOutline, semanticLink, brandBadge, unknownTone, unknownSize, nullSize, unknownAppearance, unknownVariant, spanHref];
 `,
   );
+  fs.appendFileSync(
+    path.join(dir, "consumer.tsx"),
+    `
+import {Separator, type SeparatorProps} from '@ledger/design-system';
+const separatorRef = createRef<HTMLDivElement>();
+const renderedSeparatorRef = createRef<HTMLSpanElement>();
+const separatorProps: SeparatorProps = {orientation: 'vertical', isDecorative: false, id: 'packed-separator', 'aria-label': 'Details'};
+const separator = <Separator {...separatorProps} ref={separatorRef} onClick={event => { const target: HTMLDivElement = event.currentTarget; void target; }} />;
+const separatorCallbacks = <Separator ref={node => { const target: HTMLDivElement | null = node; void target; }} className={state => { const orientation: 'horizontal' | 'vertical' = state.orientation; return orientation === 'vertical' ? 'self-stretch' : 'w-full'; }} style={state => ({marginInline: state.orientation === 'vertical' ? 4 : 0})} />;
+const renderedSeparator = <Separator orientation="vertical" render={<span ref={renderedSeparatorRef} data-consumer-render="element" />} />;
+const callbackSeparator = <Separator render={(props, state) => { const orientation: 'horizontal' | 'vertical' = state.orientation; return <div {...props} data-consumer-orientation={orientation} />; }} />;
+const decorativeSeparator = <Separator isDecorative role="none" aria-hidden />;
+// @ts-expect-error Separator preserves the primitive's two orientations.
+const invalidSeparatorOrientation = <Separator orientation="diagonal" />;
+void [separator, separatorCallbacks, renderedSeparator, callbackSeparator, decorativeSeparator, invalidSeparatorOrientation];
+`,
+  );
   run(process.execPath, ["node_modules/typescript/bin/tsc", "-p", "tsconfig.json"]);
   fs.writeFileSync(
     path.join(dir, "index.html"),
@@ -165,7 +223,7 @@ void [badge, badgeLink, badgeCallback, nullVariant, classes, semanticClasses, st
   );
   fs.writeFileSync(
     path.join(dir, "main.js"),
-    `import {createElement} from 'react'; import {createRoot} from 'react-dom/client'; import {Button, Badge} from '@ledger/design-system'; import './style.css'; createRoot(document.getElementById('root')).render(createElement('div',null,createElement(Button,null,'Save'),createElement(Badge,{variant:'outline',render:createElement('a',{href:'#record'})},'Record'),createElement(Badge,{variant:'secondary',tone:'success'},'Ready')));`,
+    `import {createElement} from 'react'; import {createRoot} from 'react-dom/client'; import {Button, Badge, Separator} from '@ledger/design-system'; import './style.css'; createRoot(document.getElementById('root')).render(createElement('div',null,createElement(Button,null,'Save'),createElement(Badge,{variant:'outline',render:createElement('a',{href:'#record'})},'Record'),createElement(Badge,{variant:'secondary',tone:'success'},'Ready'),createElement(Separator),createElement(Separator,{orientation:'vertical'})));`,
   );
   fs.writeFileSync(
     path.join(dir, "style.css"),
@@ -185,6 +243,8 @@ void [badge, badgeLink, badgeCallback, nullVariant, classes, semanticClasses, st
     throw new Error("Consumer CSS is missing Ledger tokens or component utilities");
   if (!css.includes("outline-danger") || !css.includes("data-icon"))
     throw new Error("Consumer CSS is missing Badge danger outlines or icon selectors");
+  if (!/\.border-default[^{}]*\{[^}]*border-color:\s*var\(--ds-color-border\)/.test(css))
+    throw new Error("Consumer CSS is missing the Separator border token");
   console.log("Packed consumer declarations, Vite bundle and Tailwind CSS passed");
 } finally {
   if (process.argv.includes("--keep")) console.log(`Consumer fixture: ${dir}`);

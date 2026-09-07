@@ -7,72 +7,68 @@ import * as Stories from "./Separator.stories";
 
 # Separator
 
-A hairline between siblings: two blocks in a stack, two groups in a toolbar. It draws `color.border` and nothing else; the space around it is the parent's. Rows, menus and tables draw their own rules; this is the divider on its own, with Radix Separator underneath for the roles.
+A hairline between siblings: two blocks in a stack or two groups in a toolbar. Built on the shadcn Base UI Separator, with Ledger's `color.border` and parent-owned spacing. Rows, menus and tables already draw their own rules.
 
 <Canvas of={Stories.SeparatorMatrix} />
 
 ## Anatomy
 
-| Part | What it is                                                                                                                  |
-| ---- | --------------------------------------------------------------------------------------------------------------------------- |
-| Rule | 1px of `color.border`. Horizontal, it spans its container; vertical, it stretches to the height of the flex row it sits in. |
-| Role | `separator` with its orientation, or nothing when it only draws a line.                                                     |
+One `div` by default, with `data-slot="separator"` and `data-orientation`. The rule is one pixel: a top border spanning the container horizontally, or an inline-start border stretching to the height of a flex row vertically. Stack or Inline supplies the gap around it.
 
-## Variants
+Ledger retains its existing border paint instead of the reference's background-filled line. Both orientations use `color.border`; the component requires no shadcn theme or state-selector aliases.
 
-| Separator      | Use                                                                                                                            |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `horizontal`   | The default. Between two blocks in a Stack: a section's head and its body, two cards.                                          |
-| `vertical`     | Between groups in a toolbar or a row of controls, inside an Inline.                                                            |
-| `isDecorative` | Either, when the rule only draws: hidden from a screen reader. The default, off, is for a rule that splits groups of controls. |
+## Variants and composition
 
-Not built, and why: a rule with a word in it (Chakra, Mantine), because "or" between two forms is the form's copy; a thick or a dashed rule, because every hairline in the system is one hairline; spacing props (`my`), because the parent's gap is the space, and margins are not allowed.
+| Option | Behavior |
+| --- | --- |
+| `orientation="horizontal"` | Default. Spans its container between stacked blocks. |
+| `orientation="vertical"` | Stretches inside a flex row, such as an Inline or toolbar. |
+| `isDecorative` | Hides a purely visual rule from assistive technology. Defaults to `false`. |
+| `render` | Replaces the default element or composes a custom component. |
+| `className` / `style` | Accept a value or a callback receiving `{ orientation }`. |
 
-## Sizes
+Native props and refs reach the rendered element. Base UI merges props, event handlers, classes, styles and refs from a rendered element. A render callback or custom component must forward the supplied props and ref.
 
-One size: 1px. Horizontal it is as wide as its container; vertical as tall as the row.
+<Canvas of={Stories.NativeComposition} />
 
-## Modifiers
-
-- **`orientation`** as in Variants.
-- **`isDecorative`** to hide it from a screen reader.
-
-## Content
-
-- **Between two things.** With nothing on one side it is a border, and the container draws that.
-- **Not between every row.** A list draws its own hairlines: Item.Group, Table, a menu.
-- **Sparingly.** Two rules in view is many; space says most of what a rule says.
-
-## Style
-
-| Element | Token                                                                          |
-| ------- | ------------------------------------------------------------------------------ |
-| Rule    | `color.border` · 1px · `border-top` horizontal, `border-inline-start` vertical |
-| Space   | none of its own: the parent's Stack or Inline gap                              |
+```tsx
+<Separator
+  orientation="vertical"
+  aria-label="Editing actions"
+  className={({ orientation }) =>
+    orientation === "vertical" ? "border-bold" : undefined
+  }
+/>
+```
 
 ## Accessibility
 
-- **A rule between groups of controls is a `separator`** with `aria-orientation`, so a screen reader hears the toolbar's groups.
-- **A rule that only draws is decorative**: `isDecorative` gives it no role and hides it.
-- **Never focusable.** A separator that can be dragged is a Resizable's handle, not this.
+- By default the element has `role="separator"` and an `aria-orientation` matching its orientation.
+- `isDecorative` supplies `role="none"`, `aria-hidden="true"` and no `aria-orientation`. Explicit native role and ARIA props override those defaults; keep them consistent with the intended semantics.
+- The default separator has no tab stop. Use Resizable for a keyboard-operable resize handle.
+- Place a separator between related groups. Avoid redundant rules around containers or between rows that already draw their own borders.
 
 ## Props
 
-<ArgTypes of={Separator} />
+`SeparatorProps` includes the Base UI primitive props and Ledger's optional `isDecorative`. See the [Base UI API](https://base-ui.com/react/components/separator#api-reference) for native composition and state callbacks.
 
-### Playground
+<ArgTypes of={Separator} />
 
 <Canvas of={Stories.Playground} />
 
 <Controls of={Stories.Playground} />
 
+## Migration
+
+Existing `orientation`, `isDecorative` and string `className` callers continue to work. Separator now uses Base UI and also accepts native div props, refs, `render`, and callback classes/styles. No consumer rename is required.
+
+`data-slot="separator"` and `data-orientation` are available for integration. The existing one-pixel `color.border` appearance and parent-owned spacing remain. Decorative separators retain their previous hidden semantics.
+
 ## Related
 
-- [Stack](?path=/docs/primitives-stack--docs) and [Inline](?path=/docs/primitives-inline--docs): the gap around it.
-- [Toolbar](?path=/docs/components-toolbar--docs): where the vertical one lives.
-- [Item](?path=/docs/components-item--docs): rows that draw their own.
-- [Resizable](?path=/docs/components-resizable--docs): a rule that moves.
-
-## Don't
+- [Stack](?path=/docs/primitives-stack--docs) and [Inline](?path=/docs/primitives-inline--docs): the gap around the rule.
+- [Toolbar](?path=/docs/components-toolbar--docs): groups separated vertically.
+- [Item](?path=/docs/components-item--docs): rows with their own separators.
+- [Resizable](?path=/docs/components-resizable--docs): an interactive resize handle.
 
 <Canvas of={Stories.Dont} />

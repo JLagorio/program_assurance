@@ -7,7 +7,7 @@ import * as Stories from "./Section.stories";
 
 # Section
 
-A titled region of a page: a heading, a rule under it, and what follows. A region is a heading and its content; this draws the rule the system puts under every region's heading, and holds the rule about what goes beside it. [Block](?path=/docs/shapes-block--docs) is the same region for work, always open with a count or an action; [Collapsible](?path=/docs/components-collapsible--docs) is reference that folds. Section is the plain one, for what the reader reads.
+A titled region of a page: a heading, a rule under it, and what follows. A region is a heading and its content; this draws the rule the system puts under every region's heading, and holds the rule about what goes beside it. Use [Collapsible](?path=/docs/components-collapsible--docs) when the reader should be able to fold the content.
 
 <Canvas of={Stories.SectionMatrix} />
 
@@ -32,11 +32,11 @@ Section has one appearance. What it carries:
 | With a line    | A constraint the reader needs: "Derived from the live matrix."       |
 | With an action | A region that is a summary of more: "Activity" with "Full timeline". |
 
-Not built, and why: a collapsible section, because that is Collapsible; a framed one, because that is Card; a section with a form, because work is a Block; nested sections, because a page is one level of regions and a region that needs regions is a page.
+Use Collapsible for content that can fold and Card for a framed region. Sections can contain prose, tables or forms; choose headings to reflect the page's structure.
 
 ## Sizes
 
-One size: the heading is `font.body` medium, the same line as a Block's, so a page mixing the two reads as one. A Section is as wide as its column.
+One size: the heading is `font.body` medium. A Section is as wide as its column.
 
 ## States
 
@@ -86,7 +86,6 @@ A section has no state.
 ## Related
 
 - [Pages](?path=/docs/patterns-pages--docs): the two page archetypes and the parts they are assembled from.
-- [Block](?path=/docs/shapes-block--docs): the same region for work.
 - [Collapsible](?path=/docs/components-collapsible--docs): reference that folds.
 - [Card](?path=/docs/patterns-card--docs): a framed block on the raised surface.
 

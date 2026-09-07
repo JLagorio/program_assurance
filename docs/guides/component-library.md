@@ -2,7 +2,7 @@
 
 Ledger is the product design system. It is a package, `@ledger/design-system`, at
 `packages/design-system`, and the prototype is its first consumer. Its Storybook is the contract:
-every public component is exercised in a story, every family has a documentation page, and
+maintained catalog components are exercised in stories, each family has a documentation page, and
 `npm run build` checks that coverage. Matrices are useful when variants need comparison.
 This guide says how the package is shaped and how a screen uses it. The reasoning lives in the specs
 under `docs/superpowers/specs/`, and the parts document themselves in the package's Storybook
@@ -22,6 +22,11 @@ the layers below it, by relative path, so the dependency graph stays visible.
 | 4   | **Shapes**     | `src/shapes`     | A whole screen region and the job it does: ActionBar, Block, Inspector, WorkPane.                                                                    |
 | 5   | **Shell**      | `src/shell`      | The navigation system: banner, top nav, side nav, main, panel, and the items that go in them. It knows nothing about routes.                         |
 | 6   | **Mode**       | `src/mode`       | The colour mode: provider, switch, storage, the before-paint script.                                                                                 |
+
+The standalone Shapes catalog is retired. Its runtime exports remain for existing consumers;
+Block and Inspector still appear in integration stories. ActionBar and WorkPane retain API
+compatibility checks but no dedicated stories. Build new compositions from the components and
+patterns as their shadcn/Base UI migrations land, rather than extending the Shapes catalog.
 
 Domain files (`src/components/app/*.tsx`) and routes assemble these. They may own a tone map for
 their vocabulary and a component that binds data to a pattern. They never declare a primitive or a
@@ -75,6 +80,11 @@ composition and accessibility behavior, and adapt them to the product. Shadcn is
 its API is not a ceiling. Extend the same component with useful options when the product needs
 them, keeping one clear component for one job. A status badge is `Badge`.
 
+Keep `src/components/ui/`, `src/components/reui/` and `src/components/examples/` in their
+installer locations as reference material so they can be refreshed or reinstalled. Product
+screens consume `@ledger/design-system`; the references are source material for migrating its
+families to shadcn/Base UI. Their presence is intentional, not a second product component library.
+
 Use native props and refs, familiar component names and explicit composable parts. Preserve
 keyboard, focus, ARIA and `render` behavior when extending a component. Document defaults,
 interactions between options and intentional visual differences in the same component's page.
@@ -92,8 +102,12 @@ composition helpers and combines six shadcn variants with `tone`, `appearance`, 
 families keep their current APIs until their own migration updates implementation, consumers,
 stories and any necessary compatibility notes together.
 
-The [migration handoff](design-system-migration-handoff.md) records the completed Breadcrumb and Badge
-slices, the recommended Separator slice, integration constraints, and validation commands for the
+Separator now uses the Base UI primitive with native props/refs, `render` and state callbacks,
+while retaining Ledger's decorative option and border-token styling. Existing callers continue
+to work; see its [migration notes](../../packages/design-system/src/stories/components/Separator.mdx#migration).
+
+The [migration handoff](design-system-migration-handoff.md) records the completed Breadcrumb, Badge and Separator
+slices, the recommended Skeleton slice, integration constraints, and validation commands for the
 next agent.
 
 ## Naming
@@ -194,7 +208,7 @@ Semantic versions, recorded in `packages/design-system/CHANGELOG.md` with the st
 change. Until 1.0 a rename or a removed prop is a minor step; it ships with a deprecation the lint
 fixes wherever one is possible (`ledger/no-deprecated-name`, `ledger/no-deprecated-token`), and the
 old name stays one version. CI (`.github/workflows/ci.yml`) runs the contract on every push: the
-generated tokens match the source, every export has a documented story, the
+generated tokens match the source, maintained catalog exports have documented stories, the
 package and the prototype typecheck and lint, the tests pass, everything builds, the Storybook
 builds, and the package packs; the tarball is the build's artifact. A second product in another
 repository installs that tarball, or the package from the organisation's registry once there is
@@ -203,7 +217,7 @@ changelog entry.
 
 ## What is underneath
 
-Base UI powers Avatar and Combobox and supplies Badge and BreadcrumbLink's composition helpers. The rest
+Base UI powers Avatar, Combobox and Separator and supplies Badge and BreadcrumbLink's composition helpers. The rest
 of Breadcrumb is native HTML; there is no dedicated Base UI breadcrumb primitive. Existing
 families still use Radix under overlays, choice controls, Tabs, Toggle, Progress and ScrollArea;
 cmdk under Command; vaul under Drawer; react-day-picker under Calendar and DatePicker;

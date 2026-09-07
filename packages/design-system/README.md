@@ -14,7 +14,7 @@ Ledger, the product design system: tokens, primitives, components, patterns, sha
 | `src/primitives/` | Box, Stack, Inline, Flex, Grid, Bleed, Text, Heading. Token-typed props, no margins. |
 | `src/components/` | The parts: Button, Badge, the controls, Table, Tabs, the overlays, Chart and the rest. |
 | `src/patterns/` | Page-level compositions: IndexPage, ShowPage, PageHeader, Card, Section, Panel, the pickers and the previews. |
-| `src/shapes/` | The layer between the parts and a screen: WorkPane, Inspector, ActionBar, Block. |
+| `src/shapes/` | Existing application compositions: WorkPane, Inspector, ActionBar, Block. Runtime exports remain; the standalone Shapes Storybook catalog is retired. |
 | `src/shell/` | The navigation system: Shell with Banner, TopNav, SideNav, Main and Panel, and what it remembers. |
 | `src/mode/` | The colour mode: ModeProvider, ModeSwitch, the script that applies the stored choice before first paint. |
 | `src/lib/` | `cn`, the class merger, and the panel context. |
@@ -98,6 +98,8 @@ Use the checked-in shadcn Base UI components in `src/components/ui/` as the foun
 Port source into the package with relative imports and package `cn`; application source is never a package dependency. Ledger tokens supply styling. Document defaults, how options combine, and intentional differences from the reference, and test the resulting contract.
 
 Breadcrumb has seven composable exports and uses Base UI `render` for links. Badge combines shadcn variants and semantic status options in one component; its [Storybook page](src/stories/components/Badge.mdx) owns the usage and migration examples. Other families retain their documented APIs until their own migration.
+
+Separator uses the Base UI primitive with native props/refs, `render` and state callbacks. Existing orientation and decorative options remain, with Ledger's one-pixel border styling. See its [usage and migration guidance](src/stories/components/Separator.mdx).
 
 Semantic axes keep clear meanings: `tone` communicates status, `variant` chooses treatment and `size` chooses density. Native DOM names retain their meanings. Extend components deliberately instead of creating parallel standard and product versions of the same control.
 

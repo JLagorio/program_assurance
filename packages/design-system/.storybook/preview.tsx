@@ -62,8 +62,6 @@ const preview: Preview = {
           "Components",
           "Patterns",
           ["Pages"],
-          "Shapes",
-          ["Overview"],
           "Shell",
         ],
       },
