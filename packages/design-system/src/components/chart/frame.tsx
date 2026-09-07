@@ -1,6 +1,7 @@
 import { useLedgerLocale } from "../../lib/locale";
 import { Download, Maximize2, Table2 } from "lucide-react";
 import {
+  Fragment,
   createContext,
   useCallback,
   useContext,
@@ -12,7 +13,14 @@ import {
 } from "react";
 
 import { cn } from "../../lib/cn";
-import { Breadcrumb } from "../breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "../breadcrumb";
 import { IconButton } from "../button";
 import { Dialog } from "../dialog";
 import { DropdownMenu } from "../dropdown-menu";
@@ -292,16 +300,25 @@ export function ChartFrame(props: ChartFrameProps) {
               </span>
             ) : null}
             {path?.length ? (
-              <Breadcrumb label={t("chartPath")} className="pt-025">
-                {path.map((c, i) => (
-                  <Breadcrumb.Item
-                    key={i}
-                    isCurrent={i === path.length - 1}
-                    {...(c.onSelect && i !== path.length - 1 ? { onClick: c.onSelect } : {})}
-                  >
-                    {c.label}
-                  </Breadcrumb.Item>
-                ))}
+              <Breadcrumb aria-label={t("chartPath")} className="pt-025">
+                <BreadcrumbList>
+                  {path.map((c, i) => (
+                    <Fragment key={i}>
+                      {i > 0 ? <BreadcrumbSeparator /> : null}
+                      <BreadcrumbItem>
+                        {i === path.length - 1 ? (
+                          <BreadcrumbPage>{c.label}</BreadcrumbPage>
+                        ) : c.onSelect ? (
+                          <BreadcrumbLink render={<button type="button" onClick={c.onSelect} />}>
+                            {c.label}
+                          </BreadcrumbLink>
+                        ) : (
+                          <span>{c.label}</span>
+                        )}
+                      </BreadcrumbItem>
+                    </Fragment>
+                  ))}
+                </BreadcrumbList>
               </Breadcrumb>
             ) : null}
           </figcaption>

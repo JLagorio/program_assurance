@@ -4,7 +4,9 @@ import type { ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 
 import {
-  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
   Badge,
   Box,
   Dot,
@@ -218,14 +220,17 @@ function ProgramDashboard() {
           <RecordHeader
             crumbs={
               <>
-                <Breadcrumb.Item asChild>
-                  <Link to="/programs">Programs</Link>
-                </Breadcrumb.Item>
-                <Breadcrumb.Item asChild>
-                  <Link to="/programs/$programId" params={{ programId: program.id }}>
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    render={<Link to="/programs/$programId" params={{ programId: program.id }} />}
+                  >
                     {program.name}
-                  </Link>
-                </Breadcrumb.Item>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
               </>
             }
             id={program.id}

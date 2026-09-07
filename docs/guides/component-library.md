@@ -16,7 +16,7 @@ the layers below it, by relative path, so the dependency graph stays visible.
 | --- | -------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0   | **Tokens**     | `tokens/`        | Nothing. DTCG JSON, built by Style Dictionary into `src/generated/` (CSS variables, the Tailwind theme map, per-token utilities, `token()`).         |
 | 1   | **Primitives** | `src/primitives` | Layout and type: Box, Stack, Inline, Flex, Grid, Bleed, Text, Heading. Every prop is a token name.                                                   |
-| 2   | **Components** | `src/components` | One job each, on Radix where there is behaviour: Button, Badge, Table, Tabs, the controls, the overlays, the pickers, Chart.                         |
+| 2   | **Components** | `src/components` | Reusable component families. Standard families follow the shadcn Base UI contracts as they migrate; existing families retain their documented APIs. |
 | 3   | **Patterns**   | `src/patterns`   | Several components with a contract and no domain words: PageHeader, RecordHeader, Card, PreviewRail, PreviewSheet, PickerSheet, the page archetypes. |
 | 4   | **Shapes**     | `src/shapes`     | A whole screen region and the job it does: ActionBar, Block, Inspector, WorkPane.                                                                    |
 | 5   | **Shell**      | `src/shell`      | The navigation system: banner, top nav, side nav, main, panel, and the items that go in them. It knows nothing about routes.                         |
@@ -63,22 +63,49 @@ Hooks that belong with parts live in the package too: `useRequired` for legacy c
 shell. A product keeps no copy of anything generic; the prototype is the test vehicle, and when it
 breaks the system is what gets fixed.
 
-Links are slots. The package has no router: a Button or TextLink takes the router's Link as its
-child (`asChild`), Item and RecordHeader take a link element as a prop.
+The package has no router. `BreadcrumbLink` takes a router link through `render`; existing
+Button and TextLink use `asChild`, while Item and RecordHeader accept a link element as a prop.
+Custom rendered elements must accept the merged attributes, handlers and ref.
+
+## Component contracts
+
+Standard reusable components follow the anatomy and public API of the local shadcn Base UI
+reference in `src/components/ui/`: flat named exports, explicit composable parts, native props
+and refs, and the reference's `render` and state contracts. Port the reference into the package
+using relative imports and the package `cn`; the package never imports application source.
+Replace styling values with Ledger tokens while preserving the reference's composition and
+behavior. Use Base UI where the reference uses it; simple semantic elements remain native HTML.
+
+Product conveniences belong in patterns: assembled headers, automatic trails and opinionated
+content defaults can compose the standard parts without narrowing the component API. Tokens,
+layer boundaries, package imports and the product's domain boundary remain Ledger-owned.
+
+Breadcrumb is the first family migrated to this policy. It exports `Breadcrumb`,
+`BreadcrumbList`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbPage`,
+`BreadcrumbSeparator` and `BreadcrumbEllipsis`. List and separator placement are explicit;
+`BreadcrumbLink` uses Base UI's `useRender` and `mergeProps`. Other existing families keep
+their current names and contracts until a migration updates their implementation, consumers,
+stories, API metadata and migration notes together.
+
+The [migration handoff](design-system-migration-handoff.md) records the completed Breadcrumb
+slice, the recommended Badge slice, integration constraints, and validation commands for the
+next agent.
 
 ## Naming
 
-- **Full words.** `Table.Row`, not `Tr`. A name says what the thing is, never how it looks: `Id`,
-  not `Mono`.
-- **Compound for parts.** A component with parts hangs them off its name: `Table.Cell`,
-  `DropdownMenu.Item`, `Stat.Tile`, `Fact.Group`. Flat exports otherwise.
+- **Standard component names.** Preserve shadcn's flat named exports for migrated families,
+  such as `BreadcrumbItem` and `BreadcrumbLink`. Existing compound APIs remain until their
+  family migrates. Custom patterns can name their own parts by role.
+- **Meaningful custom names.** A custom name says what the thing is: `Id` marks an identifier.
+  Use full words and avoid naming a component after its current visual treatment.
 - **One name per idea.** Two components that do one job become one. `Tabs` absorbed `TabStrip`;
   `RailGroup` became `Inspector.Group`.
 - **No domain words in the kit.** Severity, finding, control and requirement live in routes and
   `lib`. The kit knows tones, identifiers and values.
-- **Props are the grammar.** `tone`, `size`, `isSelected`, `isActive`, `count`, `width`,
-  `asChild`. Sizes are `xsmall`, `small`, `medium`, `large`. Tones are the status vocabulary:
-  `neutral`, `information`, `success`, `warning`, `danger`, and `brand` where a chart needs it.
+- **Preserve component contracts.** Standard families keep the reference's prop names,
+  native DOM names and composition API. Existing Ledger axes retain their documented meanings
+  until migrated: sizes include `xsmall`, `small`, `medium`, `large`; tones describe
+  `neutral`, `information`, `success`, `warning`, `danger`, and `brand` where supported.
 
 ## What the lint enforces
 
@@ -121,10 +148,12 @@ every product. A product's own config adds nothing about the kit.
 
 ## Adding to the kit
 
-1. Put the part in its layer with relative imports and the package `cn`. Class strings are token
-   utilities; the package lints itself with the strict preset (`npm run lint` there).
-2. Give it a story file of its own under the package's `src/stories` (`<Part>.stories.tsx`, one per part a product
-   imports by name; compound parts stay with their parent) with representative states and interactions. Use a Matrix when it helps compare variants. Add `play` assertions to the same examples; Storybook tests every story by default. The toolbar switches the mode. `node scripts/ds-check.mjs` from the repo root says
+1. For a standard family, start from the local shadcn Base UI reference and preserve its public
+   contracts. Put the part in its layer with relative imports and the package `cn`. Class strings
+   use Ledger token utilities; the package lints itself with the strict preset (`npm run lint`
+   there). Put convenience compositions in patterns.
+2. Give the family a story file under the package's `src/stories` (`<Family>.stories.tsx`).
+   Document and exercise every named part in that family, including flat exports, with representative states and interactions. Use a Matrix when it helps compare variants. Add `play` assertions to the same examples; Storybook tests every story by default. The toolbar switches the mode. `node scripts/ds-check.mjs` from the repo root says
    what is missing; `npm run build` runs it first.
 3. Write the part's page (`<Part>.mdx`) on the template: Anatomy, Variants, Sizes, States, Modifiers, Content, Style,
    Accessibility, Props (`<ArgTypes of={Part} />`, generated from the types, so every prop carries a JSDoc
@@ -161,11 +190,13 @@ changelog entry.
 
 ## What is underneath
 
-Radix under the overlays, the choice controls, Tabs, Toggle, Progress and ScrollArea; cmdk under
-Command and Combobox; vaul under Drawer; react-day-picker under Calendar and DatePicker;
-react-resizable-panels under Resizable; sonner under Toaster; recharts under Chart. Focus, Escape,
-outside-click, keyboard and aria come from there; the kit owns the API and the look. No screen
-imports any of these directly.
+Base UI powers Avatar and Combobox and supplies BreadcrumbLink's composition helpers. The rest
+of Breadcrumb is native HTML; there is no dedicated Base UI breadcrumb primitive. Existing
+families still use Radix under overlays, choice controls, Tabs, Toggle, Progress and ScrollArea;
+cmdk under Command; vaul under Drawer; react-day-picker under Calendar and DatePicker;
+react-resizable-panels under Resizable; sonner under Toaster; recharts under Chart. Preserve the
+dependency's focus, Escape, outside-click, keyboard and ARIA behavior through the public parts.
+Screens import the package's documented APIs.
 
 ## Where the thinking is
 

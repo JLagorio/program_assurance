@@ -1,7 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 
 import {
-  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
   Badge,
   Id,
   Inline,
@@ -113,14 +115,17 @@ function WorkstreamDetail() {
             <RecordHeader
               crumbs={
                 <>
-                  <Breadcrumb.Item asChild>
-                    <Link to="/programs">Programs</Link>
-                  </Breadcrumb.Item>
-                  <Breadcrumb.Item asChild>
-                    <Link to="/programs/$programId" params={{ programId: ws.program }}>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbLink
+                      render={<Link to="/programs/$programId" params={{ programId: ws.program }} />}
+                    >
                       {ws.program}
-                    </Link>
-                  </Breadcrumb.Item>
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
                 </>
               }
               id={ws.id}

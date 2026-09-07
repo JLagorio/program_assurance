@@ -3,7 +3,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Fragment, useMemo } from "react";
 
 import {
-  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
   Badge,
   Box,
   Button,
@@ -221,9 +222,11 @@ function FindingRecord() {
             <RecordHeader
               crumbs={
                 <>
-                  <Breadcrumb.Item asChild>
-                    <Link to="/findings">Findings & assets</Link>
-                  </Breadcrumb.Item>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink render={<Link to="/findings" />}>
+                      Findings & assets
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
                 </>
               }
               id={finding.id}

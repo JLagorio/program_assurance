@@ -42,7 +42,48 @@ export function Empty() {
 }
 ```
 
-Components never import a router. Where a component renders a link (Button, Tabs.Tab, later Breadcrumb), pass `asChild` and the child element takes the component's classes and aria:
+Standard reusable components follow the local shadcn Base UI reference with flat named parts,
+native props and refs, and Ledger token styling. Breadcrumb is the first family migrated;
+other existing families keep their documented APIs until explicitly migrated. Assemble
+convenience layouts in patterns while keeping the component parts available.
+
+Components never import a router. Breadcrumb uses `render` to compose your router's link;
+the link must accept the merged attributes, handlers and ref:
+
+```tsx
+import { Link } from "@tanstack/react-router";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@ledger/design-system";
+
+export function RecordTrail() {
+  return (
+    <Breadcrumb aria-label="Breadcrumb">
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          <BreadcrumbLink render={<Link to="/controls" />}>Controls</BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbPage>New control</BreadcrumbPage>
+        </BreadcrumbItem>
+      </BreadcrumbList>
+    </Breadcrumb>
+  );
+}
+```
+
+The list, links, current page and separators are explicit parts. `BreadcrumbEllipsis` is a
+decorative overflow mark; compose it inside a named menu trigger when an overflow menu is needed.
+The default list wraps. See [Breadcrumb](?path=/docs/components-breadcrumb--docs) for the full
+anatomy and migration examples.
+
+Existing Button and Tabs.Tab APIs continue to use `asChild`:
 
 ```tsx
 <Button asChild variant="primary">

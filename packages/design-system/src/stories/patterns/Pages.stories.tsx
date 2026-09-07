@@ -5,7 +5,9 @@ import { useState } from "react";
 import {
   Avatar,
   Badge,
-  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
   Button,
   FilterChip,
   KeyValue,
@@ -77,12 +79,13 @@ function Show() {
         <RecordHeader
           crumbs={
             <>
-              <Breadcrumb.Item asChild>
-                <a href="#controls">Controls</a>
-              </Breadcrumb.Item>
-              <Breadcrumb.Item asChild>
-                <a href="#payables">Payables</a>
-              </Breadcrumb.Item>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="#controls">Controls</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href="#payables">Payables</BreadcrumbLink>
+              </BreadcrumbItem>
             </>
           }
           id="CTRL-0412"
@@ -159,7 +162,7 @@ export const Loading: Story = { render: () => <PageSkeleton rows={5} /> };
 
 /** An index with filters, a show page with its rail on the overview tab and one without. */
 export const ArchetypesMatrix: Story = {
-  // Several record headers in one story mean several trails named "Breadcrumb"; a page has one.
+  // Several record headers in one story mean several trails named "breadcrumb"; a page has one.
   parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
   render: () => (
     <Stack space="space.600">
@@ -186,7 +189,9 @@ export const ArchetypesMatrix: Story = {
         tabs={
           <Tabs.List label="Sections">
             <Tabs.Tab value="Overview">Overview</Tabs.Tab>
-            <Tabs.Tab value="Controls" count={26}>Controls</Tabs.Tab>
+            <Tabs.Tab value="Controls" count={26}>
+              Controls
+            </Tabs.Tab>
           </Tabs.List>
         }
         rail={<Inspector groups={panelGroups} />}
@@ -226,7 +231,9 @@ export const Dont: Story = {
             tabs={
               <Tabs.List label="Sections">
                 <Tabs.Tab value="Overview">Overview</Tabs.Tab>
-                <Tabs.Tab value="Controls" count={26}>Controls</Tabs.Tab>
+                <Tabs.Tab value="Controls" count={26}>
+                  Controls
+                </Tabs.Tab>
               </Tabs.List>
             }
           >
@@ -245,7 +252,9 @@ export const Dont: Story = {
             tabs={
               <Tabs.List label="Sections">
                 <Tabs.Tab value="Overview">Overview</Tabs.Tab>
-                <Tabs.Tab value="Controls" count={26}>Controls</Tabs.Tab>
+                <Tabs.Tab value="Controls" count={26}>
+                  Controls
+                </Tabs.Tab>
               </Tabs.List>
             }
             rail={<Inspector groups={panelGroups} />}

@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, FileDown } from "lucide-react";
 
 import {
-  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
   Alert,
   Badge,
   Box,
@@ -99,9 +100,9 @@ function PackageRecord() {
         <RecordHeader
           crumbs={
             <>
-              <Breadcrumb.Item asChild>
-                <Link to="/packages">Packages</Link>
-              </Breadcrumb.Item>
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link to="/packages" />}>Packages</BreadcrumbLink>
+              </BreadcrumbItem>
             </>
           }
           id={pkg.id}

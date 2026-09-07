@@ -49,7 +49,17 @@ export {
   type IndicatorProps,
   type Tone,
 } from "./badge";
-export { Breadcrumb, type BreadcrumbItemProps, type BreadcrumbProps } from "./breadcrumb";
+export {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  BreadcrumbEllipsis,
+  type BreadcrumbItemProps,
+  type BreadcrumbProps,
+} from "./breadcrumb";
 export { Button, IconButton, type ButtonProps, type IconButtonProps } from "./button";
 export { ButtonGroup, type ButtonGroupProps } from "./button-group";
 export { Calendar, type CalendarProps } from "./calendar";

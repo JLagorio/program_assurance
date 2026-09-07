@@ -25,7 +25,9 @@ import {
   Accordion,
   Badge,
   Box,
-  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
   Button,
   Editable,
   Gates,
@@ -368,18 +370,23 @@ function ControlRecord() {
           <RecordHeader
             crumbs={
               <>
-                <Breadcrumb.Item asChild>
-                  <Link to="/programs">Programs</Link>
-                </Breadcrumb.Item>
-                <Breadcrumb.Item asChild>
-                  <Link
-                    to="/programs/$programId"
-                    params={{ programId }}
-                    search={{ tab: "Controls" }}
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    render={
+                      <Link
+                        to="/programs/$programId"
+                        params={{ programId }}
+                        search={{ tab: "Controls" }}
+                      />
+                    }
                   >
                     {program.name}
-                  </Link>
-                </Breadcrumb.Item>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
               </>
             }
             id={controlId}

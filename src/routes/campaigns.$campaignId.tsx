@@ -2,7 +2,8 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useMemo, useState } from "react";
 
 import {
-  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
   Badge,
   Box,
   Empty,
@@ -255,9 +256,11 @@ function CampaignRecord() {
             <RecordHeader
               crumbs={
                 <>
-                  <Breadcrumb.Item asChild>
-                    <Link to="/campaigns">Test campaigns</Link>
-                  </Breadcrumb.Item>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink render={<Link to="/campaigns" />}>
+                      Test campaigns
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
                 </>
               }
               id={campaign.id}

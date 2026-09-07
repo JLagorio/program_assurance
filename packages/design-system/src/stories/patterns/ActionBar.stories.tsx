@@ -1,6 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Badge, Breadcrumb, Button, Fact, Tabs } from "../../components";
+import {
+  Badge,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  Button,
+  Fact,
+  Tabs,
+} from "../../components";
 import { RecordHeader } from "../../patterns";
 import { Inline, Stack } from "../../primitives";
 import { ActionBar } from "../../shapes";
@@ -31,7 +39,7 @@ type Story = StoryObj<typeof meta>;
 
 /** A primary allowed and a secondary blocked with its reason; every action blocked; the trail, a state with a control and the tab strip. */
 export const ActionBarMatrix: Story = {
-  // Several bars in one story mean several trails named "Breadcrumb"; a page has one.
+  // Several bars in one story mean several trails named "breadcrumb"; a page has one.
   parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
   render: () => (
     <Stack space="space.400">
@@ -63,13 +71,15 @@ export const ActionBarMatrix: Story = {
       <ActionBar
         crumbs={
           <>
-            <Breadcrumb.Item asChild>
-              <a href="#programs">Programs</a>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item asChild>
-              <a href="#program">Atlas payments platform</a>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>AC controls</Breadcrumb.Item>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="#programs">Programs</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink href="#program">Atlas payments platform</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>AC controls</BreadcrumbItem>
           </>
         }
         id="AC-17"
@@ -93,7 +103,9 @@ export const ActionBarMatrix: Story = {
           <Tabs defaultValue="Implementation" className="contents">
             <Tabs.List label="Sections">
               <Tabs.Tab value="Implementation">Implementation</Tabs.Tab>
-              <Tabs.Tab value="Assessment" count={3}>Assessment</Tabs.Tab>
+              <Tabs.Tab value="Assessment" count={3}>
+                Assessment
+              </Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="Implementation" />
           </Tabs>

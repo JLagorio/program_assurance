@@ -3,7 +3,9 @@ import { ChevronDown } from "lucide-react";
 
 import {
   Badge,
-  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
   Button,
   DropdownMenu,
   Fact,
@@ -42,7 +44,7 @@ const facts = (
 
 /** The id as the trail; with facts (deprecated); the parents in the trail, meta and actions; a sub-page under its record's trail with a strip below; a lifecycle below. */
 export const RecordHeaderMatrix: Story = {
-  // Several record headers in one story mean several trails named "Breadcrumb"; a page has one.
+  // Several record headers in one story mean several trails named "breadcrumb"; a page has one.
   parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
   render: () => (
     <Stack space="space.400">
@@ -55,9 +57,9 @@ export const RecordHeaderMatrix: Story = {
       <RecordHeader
         crumbs={
           <>
-            <Breadcrumb.Item asChild>
-              <a href="#programs">Programs</a>
-            </Breadcrumb.Item>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="#programs">Programs</BreadcrumbLink>
+            </BreadcrumbItem>
           </>
         }
         id="PRG-1041"
@@ -89,12 +91,13 @@ export const RecordHeaderMatrix: Story = {
       <RecordHeader
         crumbs={
           <>
-            <Breadcrumb.Item asChild>
-              <a href="#programs">Programs</a>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item asChild>
-              <a href="#program">Atlas payments platform</a>
-            </Breadcrumb.Item>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="#programs">Programs</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink href="#program">Atlas payments platform</BreadcrumbLink>
+            </BreadcrumbItem>
           </>
         }
         id="PRG-1041"
@@ -102,8 +105,12 @@ export const RecordHeaderMatrix: Story = {
         below={
           <Tabs defaultValue="Rows" className="contents">
             <Tabs.List label="Sections">
-              <Tabs.Tab value="Rows" count={340}>Rows</Tabs.Tab>
-              <Tabs.Tab value="Gaps" count={12}>Gaps</Tabs.Tab>
+              <Tabs.Tab value="Rows" count={340}>
+                Rows
+              </Tabs.Tab>
+              <Tabs.Tab value="Gaps" count={12}>
+                Gaps
+              </Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="Rows" />
           </Tabs>
@@ -125,6 +132,37 @@ export const RecordHeaderMatrix: Story = {
       />
     </Stack>
   ),
+};
+
+/** Optional parent levels can resolve to an empty fragment or array. The current id starts the trail in both cases. */
+export const EmptyParentLevels: Story = {
+  args: { crumbs: [] },
+  // Independent record examples repeat their navigation landmarks.
+  parameters: { a11y: { config: { rules: [{ id: "landmark-unique", enabled: false }] } } },
+  render: (args) => (
+    <Stack space="space.400">
+      <RecordHeader {...args} crumbs={<>{args.crumbs}</>} />
+      <RecordHeader
+        {...args}
+        id="REQ-0118"
+        title="The gateway shall encrypt telemetry in transit"
+      />
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const { expect, within } = await import("storybook/test");
+    const trails = within(canvasElement).getAllByRole("navigation", { name: "breadcrumb" });
+    await expect(trails).toHaveLength(2);
+    for (const trail of trails) {
+      const current = within(trail).getByRole("link", { current: "page" });
+      await expect(current).toBeVisible();
+      await expect(within(trail).getAllByRole("listitem")).toHaveLength(1);
+      await expect(within(trail).getAllByRole("link")).toHaveLength(1);
+      for (const separator of trail.querySelectorAll('[data-slot="breadcrumb-separator"]')) {
+        await expect(separator).not.toBeVisible();
+      }
+    }
+  },
 };
 
 /** The mistakes the page is written to prevent, each beside the right way. */

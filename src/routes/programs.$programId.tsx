@@ -9,7 +9,8 @@ import { Task } from "@/components/app/task";
 import { CdrPackageModal, DigitalThreadSection } from "@/components/app/digital-thread";
 import { LifecycleSection } from "@/components/app/lifecycle";
 import {
-  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
   AlertDialog,
   Badge,
   Box,
@@ -475,9 +476,9 @@ function ProgramDetail() {
             <RecordHeader
               crumbs={
                 <>
-                  <Breadcrumb.Item asChild>
-                    <Link to="/programs">Programs</Link>
-                  </Breadcrumb.Item>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+                  </BreadcrumbItem>
                 </>
               }
               id={program.id}

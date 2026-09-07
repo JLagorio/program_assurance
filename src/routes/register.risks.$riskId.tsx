@@ -3,7 +3,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Fragment } from "react";
 
 import {
-  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
   Badge,
   Box,
   Button,
@@ -168,9 +169,9 @@ function RiskRecord() {
             <RecordHeader
               crumbs={
                 <>
-                  <Breadcrumb.Item asChild>
-                    <Link to="/register">POA&M & risk</Link>
-                  </Breadcrumb.Item>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink render={<Link to="/register" />}>POA&M & risk</BreadcrumbLink>
+                  </BreadcrumbItem>
                 </>
               }
               id={risk.id}

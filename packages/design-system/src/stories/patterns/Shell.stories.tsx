@@ -22,7 +22,8 @@ import { useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import {
-  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
   Avatar,
   Badge,
   Banner,
@@ -277,12 +278,16 @@ function Demo({
 export const Frame: Story = {
   render: () => <Demo />,
   play: async ({ canvasElement }) => {
-    const splitter = within(canvasElement).getByRole("separator", { name: "Resize side navigation" });
+    const splitter = within(canvasElement).getByRole("separator", {
+      name: "Resize side navigation",
+    });
     await waitFor(() => expect(Number(splitter.getAttribute("aria-valuenow"))).toBeGreaterThan(0));
     const initialWidth = Number(splitter.getAttribute("aria-valuenow"));
     splitter.focus();
     await userEvent.keyboard("{ArrowRight}");
-    await waitFor(() => expect(Number(splitter.getAttribute("aria-valuenow"))).toBe(initialWidth + 16));
+    await waitFor(() =>
+      expect(Number(splitter.getAttribute("aria-valuenow"))).toBe(initialWidth + 16),
+    );
     await expect(splitter).toHaveAttribute("aria-valuetext", `${initialWidth + 16} pixels wide`);
     await userEvent.keyboard("{ArrowLeft}");
     await waitFor(() => expect(Number(splitter.getAttribute("aria-valuenow"))).toBe(initialWidth));
@@ -485,9 +490,9 @@ function RecordDemo() {
             <RecordHeader
               crumbs={
                 <>
-                  <Breadcrumb.Item asChild>
-                    <a href="#programs">Programs</a>
-                  </Breadcrumb.Item>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink href="#programs">Programs</BreadcrumbLink>
+                  </BreadcrumbItem>
                 </>
               }
               id="PRG-014"

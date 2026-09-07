@@ -1,7 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 
 import {
-  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
   Badge,
   Id,
   Inline,
@@ -115,17 +117,22 @@ function PersonDetail() {
             <RecordHeader
               crumbs={
                 <>
-                  <Breadcrumb.Item asChild>
-                    <Link to="/programs">Programs</Link>
-                  </Breadcrumb.Item>
-                  <Breadcrumb.Item asChild>
-                    <Link
-                      to="/programs/$programId"
-                      params={{ programId: streams[0]?.program ?? "PRG-1041" }}
+                  <BreadcrumbItem>
+                    <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbLink
+                      render={
+                        <Link
+                          to="/programs/$programId"
+                          params={{ programId: streams[0]?.program ?? "PRG-1041" }}
+                        />
+                      }
                     >
                       {streams[0]?.program ?? "PRG-1041"}
-                    </Link>
-                  </Breadcrumb.Item>
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
                 </>
               }
               id={person.id}

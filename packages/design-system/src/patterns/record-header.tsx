@@ -1,6 +1,12 @@
 import type { ReactNode } from "react";
 
-import { Breadcrumb } from "../components/breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "../components/breadcrumb";
 import { Id } from "../components/id";
 import { Fact } from "../components/typography";
 
@@ -11,7 +17,7 @@ import { Fact } from "../components/typography";
    `facts` is deprecated; a state strip may still sit below. */
 
 export type RecordHeaderProps = {
-  /** The trail's parents as Breadcrumb.Items, the list the record came from last: Programs; or Programs, then the program, over its sub-page. The record's `id` follows them as the current crumb. */
+  /** The trail's parents as BreadcrumbItem elements with BreadcrumbSeparator between them. The header appends a separator and the record's `id` as the current crumb. */
   crumbs?: ReactNode;
   /** The record's id, the trail's last crumb: "PRG-1041". Unlinked; it says where the reader is. */
   id?: ReactNode;
@@ -46,12 +52,17 @@ export function RecordHeader({
     breadcrumb
   ) : crumbs || id ? (
     <Breadcrumb>
-      {crumbs}
-      {id ? (
-        <Breadcrumb.Item isCurrent>
-          <Id>{id}</Id>
-        </Breadcrumb.Item>
-      ) : null}
+      <BreadcrumbList>
+        {crumbs}
+        {crumbs && id ? <BreadcrumbSeparator className="first:hidden" /> : null}
+        {id ? (
+          <BreadcrumbItem>
+            <BreadcrumbPage>
+              <Id>{id}</Id>
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        ) : null}
+      </BreadcrumbList>
     </Breadcrumb>
   ) : null;
   return (

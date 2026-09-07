@@ -976,53 +976,304 @@
       }
     },
     "Breadcrumb": {
-      "domTarget": "nav labelled Breadcrumb contains ol. No arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
-      "defaultBehavior": "The root supplies navigation/list semantics; each Item controls current/link/button rendering.",
-      "reviewSources": ["packages/design-system/src/components/breadcrumb.tsx"],
-      "props": {}
-    },
-    "Breadcrumb.Item": {
-      "domTarget": "Outer li; native button by default, span when current, or single Slot child when asChild. Native button props spread to that selected target; public type excludes ref.",
-      "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
-      "defaultBehavior": "asChild takes precedence over current for the rendered element. Current sets aria-current=page. Native buttons default type=button; other targets get no button type fallback. Keep valid target-specific attributes when using span/Slot.",
-      "reviewSources": ["packages/design-system/src/components/breadcrumb.tsx"],
+      "domTarget": "nav; native props, events, style, className and HTMLElement ref target the navigation landmark.",
+      "controlledBehavior": "Stateless composition. The caller owns navigation, current-page placement, custom controls and any expanded/collapsed trail state.",
+      "defaultBehavior": "Defaults to aria-label=breadcrumb and data-slot=breadcrumb; callers may override native attributes. No implicit ordered list, items or separators. Replace label with aria-label and compose BreadcrumbList explicitly.",
+      "reviewSources": [
+        "packages/design-system/src/components/breadcrumb.tsx"
+      ],
       "props": {
         "defaultChecked": {
-          "meaning": "Inherited React DOM attribute forwarded to the rendered target. On these presentation/button elements it does not create checked or editable state; compatible slotted children may define native behavior.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "meaning": "Inherited React DOM attribute forwarded to this part; it does not establish breadcrumb state. Use valid attributes for the rendered element.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
         },
         "defaultValue": {
-          "meaning": "Inherited React DOM attribute forwarded to the rendered target. On these presentation/button elements it does not create checked or editable state; compatible slotted children may define native behavior.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "meaning": "Inherited React DOM attribute forwarded to this part; it does not establish breadcrumb state. Use valid attributes for the rendered element.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
         },
         "id": {
-          "meaning": "Native DOM id forwarded to the rendered target described above; it is not displayed record content.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "meaning": "Native DOM id forwarded to this part; it does not create a record identifier or generated relationship.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
         },
         "onChange": {
-          "meaning": "Inherited React DOM onChange event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
         },
         "onDurationChange": {
-          "meaning": "Inherited React DOM onDurationChange event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
         },
         "onRateChange": {
-          "meaning": "Inherited React DOM onRateChange event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
         },
         "onSelect": {
-          "meaning": "Inherited React DOM onSelect event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
         },
         "onVolumeChange": {
-          "meaning": "Inherited React DOM onVolumeChange event handler forwarded to the rendered target. It observes native/descendant events under React event semantics, not a component-level value change.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        }
+      }
+    },
+    "BreadcrumbList": {
+      "domTarget": "ol; native props and HTMLOListElement ref target the ordered list.",
+      "controlledBehavior": "Stateless composition. The caller owns navigation, current-page placement, custom controls and any expanded/collapsed trail state.",
+      "defaultBehavior": "A wrapping flex list with Ledger small-body typography and subtle text. Callers compose items and decorative separators in order; truncation is no longer automatic.",
+      "reviewSources": [
+        "packages/design-system/src/components/breadcrumb.tsx"
+      ],
+      "props": {
+        "defaultChecked": {
+          "meaning": "Inherited React DOM attribute forwarded to this part; it does not establish breadcrumb state. Use valid attributes for the rendered element.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "defaultValue": {
+          "meaning": "Inherited React DOM attribute forwarded to this part; it does not establish breadcrumb state. Use valid attributes for the rendered element.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "id": {
+          "meaning": "Native DOM id forwarded to this part; it does not create a record identifier or generated relationship.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onDurationChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onRateChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onSelect": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onVolumeChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        }
+      }
+    },
+    "BreadcrumbItem": {
+      "domTarget": "li; native props and HTMLLIElement ref target the list item, not the nested link or button.",
+      "controlledBehavior": "Stateless composition. The caller owns navigation, current-page placement, custom controls and any expanded/collapsed trail state.",
+      "defaultBehavior": "An inline-flex list item only. It adds no separator or interactive child. Replace Breadcrumb.Item with BreadcrumbItem containing BreadcrumbLink, BreadcrumbPage or a caller-supplied control.",
+      "reviewSources": [
+        "packages/design-system/src/components/breadcrumb.tsx"
+      ],
+      "props": {
+        "defaultChecked": {
+          "meaning": "Inherited React DOM attribute forwarded to this part; it does not establish breadcrumb state. Use valid attributes for the rendered element.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "defaultValue": {
+          "meaning": "Inherited React DOM attribute forwarded to this part; it does not establish breadcrumb state. Use valid attributes for the rendered element.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "id": {
+          "meaning": "Native DOM id forwarded to this part; it does not create a record identifier or generated relationship.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onDurationChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onRateChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onSelect": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onVolumeChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
         },
         "value": {
-          "meaning": "Inherited native button value; only has button/form meaning for a compatible button target. It does not select the breadcrumb.",
-          "migration": "Preserve the documented target, payload and family-specific meaning. A change to ownership, rendering or defaults needs an explicit compatibility path rather than a blanket prop rename."
+          "meaning": "Native li ordinal value. It does not select a breadcrumb or supply link content.",
+          "migration": "Move former button value to the explicit composed button; use li value only for native ordered-list numbering."
+        }
+      }
+    },
+    "BreadcrumbLink": {
+      "domTarget": "Native anchor by default; anchor props/ref target the link. Base UI render composes a replacement element or custom component that must forward merged props and its ref.",
+      "controlledBehavior": "Stateless composition. The caller owns navigation, current-page placement, custom controls and any expanded/collapsed trail state.",
+      "defaultBehavior": "Base UI useRender and mergeProps retain rendered-element props, refs and composed events. Default data-slot is breadcrumb-link. Replace asChild with render on this part. No automatic navigation, router dependency, button type or disabled behavior.",
+      "reviewSources": [
+        "packages/design-system/src/components/breadcrumb.tsx"
+      ],
+      "props": {
+        "defaultChecked": {
+          "meaning": "Inherited React DOM attribute forwarded to this part; it does not establish breadcrumb state. Use valid attributes for the rendered element.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "defaultValue": {
+          "meaning": "Inherited React DOM attribute forwarded to this part; it does not establish breadcrumb state. Use valid attributes for the rendered element.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "id": {
+          "meaning": "Native DOM id forwarded to this part; it does not create a record identifier or generated relationship.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onDurationChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onRateChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onSelect": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onVolumeChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        }
+      }
+    },
+    "BreadcrumbPage": {
+      "domTarget": "span; native props and HTMLSpanElement ref target the current-page text.",
+      "controlledBehavior": "Stateless composition. The caller owns navigation, current-page placement, custom controls and any expanded/collapsed trail state.",
+      "defaultBehavior": "Defaults to role=link, aria-disabled=true, aria-current=page and data-slot=breadcrumb-page. No href or default tab stop; regular-weight Ledger default text. Native attributes can override defaults.",
+      "reviewSources": [
+        "packages/design-system/src/components/breadcrumb.tsx"
+      ],
+      "props": {
+        "defaultChecked": {
+          "meaning": "Inherited React DOM attribute forwarded to this part; it does not establish breadcrumb state. Use valid attributes for the rendered element.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "defaultValue": {
+          "meaning": "Inherited React DOM attribute forwarded to this part; it does not establish breadcrumb state. Use valid attributes for the rendered element.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "id": {
+          "meaning": "Native DOM id forwarded to this part; it does not create a record identifier or generated relationship.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onDurationChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onRateChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onSelect": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onVolumeChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        }
+      }
+    },
+    "BreadcrumbSeparator": {
+      "domTarget": "li; native props and HTMLLIElement ref target the decorative separator.",
+      "controlledBehavior": "Stateless composition. The caller owns navigation, current-page placement, custom controls and any expanded/collapsed trail state.",
+      "defaultBehavior": "Defaults to role=presentation, aria-hidden=true and data-slot=breadcrumb-separator. Nullish children render a chevron; other children replace it. Insert explicitly between items.",
+      "reviewSources": [
+        "packages/design-system/src/components/breadcrumb.tsx"
+      ],
+      "props": {
+        "defaultChecked": {
+          "meaning": "Inherited React DOM attribute forwarded to this part; it does not establish breadcrumb state. Use valid attributes for the rendered element.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "defaultValue": {
+          "meaning": "Inherited React DOM attribute forwarded to this part; it does not establish breadcrumb state. Use valid attributes for the rendered element.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "id": {
+          "meaning": "Native DOM id forwarded to this part; it does not create a record identifier or generated relationship.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onDurationChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onRateChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onSelect": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onVolumeChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "value": {
+          "meaning": "Native li ordinal value forwarded to the decorative separator; it does not establish breadcrumb selection.",
+          "migration": "Keep the separator decorative and use native list numbering only when needed."
+        }
+      }
+    },
+    "BreadcrumbEllipsis": {
+      "domTarget": "span; native props and HTMLSpanElement ref target the decorative collapsed-path indicator.",
+      "controlledBehavior": "Stateless composition. The caller owns navigation, current-page placement, custom controls and any expanded/collapsed trail state.",
+      "defaultBehavior": "Defaults to role=presentation, aria-hidden=true and data-slot=breadcrumb-ellipsis; renders the MoreHorizontal icon and hidden More text. No popup, button or collapse state. The caller labels and operates any surrounding interactive control.",
+      "reviewSources": [
+        "packages/design-system/src/components/breadcrumb.tsx"
+      ],
+      "props": {
+        "defaultChecked": {
+          "meaning": "Inherited React DOM attribute forwarded to this part; it does not establish breadcrumb state. Use valid attributes for the rendered element.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "defaultValue": {
+          "meaning": "Inherited React DOM attribute forwarded to this part; it does not establish breadcrumb state. Use valid attributes for the rendered element.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "id": {
+          "meaning": "Native DOM id forwarded to this part; it does not create a record identifier or generated relationship.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onDurationChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onRateChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onSelect": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
+        },
+        "onVolumeChange": {
+          "meaning": "Native React DOM event handler forwarded to this part; it does not report a component-level selection change. BreadcrumbLink uses Base UI event composition when render is supplied.",
+          "migration": "Move native props and refs to the explicit part they identify. Navigation belongs to BreadcrumbLink, current-page semantics to BreadcrumbPage, and in-place actions to a composed native button."
         }
       }
     },
@@ -4379,7 +4630,7 @@
     "RecordHeader": {
       "domTarget": "Root div with Breadcrumb and h1; id is visible Id content in current crumb. No native DOM id/ref passthrough.",
       "controlledBehavior": "Stateless record header; caller owns navigation and actions.",
-      "defaultBehavior": "Truthy deprecated breadcrumb wins over crumbs/id and is rendered unchanged. Otherwise truthy crumbs/id build the trail; omitted id adds no current crumb. Deprecated facts still render in Fact.Group; deprecated back is ignored. Falsy meta/actions/facts are omitted; below renders directly.",
+      "defaultBehavior": "Truthy deprecated breadcrumb wins over crumbs/id and is rendered unchanged. Otherwise truthy crumbs/id build Breadcrumb with BreadcrumbList; crumbs supply parent items and separators between parents, and a separator is inserted before a truthy id when crumbs are also present. The id is wrapped in BreadcrumbPage; omitted id adds no current crumb. Deprecated facts still render in Fact.Group; deprecated back is ignored. Falsy meta/actions/facts are omitted; below renders directly.",
       "reviewSources": [
         "packages/design-system/src/patterns/record-header.tsx",
         "packages/design-system/src/components/breadcrumb.tsx",

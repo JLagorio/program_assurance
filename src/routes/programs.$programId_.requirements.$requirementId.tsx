@@ -10,7 +10,9 @@ import { AllocateElementsSheet } from "@/components/app/allocate-picker";
 import { RecordActivity } from "@/components/app/record-activity";
 import { TasksSection } from "@/components/app/tasks-section";
 import {
-  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
   Badge,
   Block,
   Button,
@@ -303,14 +305,17 @@ function RequirementRecord() {
             <RecordHeader
               crumbs={
                 <>
-                  <Breadcrumb.Item asChild>
-                    <Link to="/programs">Programs</Link>
-                  </Breadcrumb.Item>
-                  <Breadcrumb.Item asChild>
-                    <Link to="/programs/$programId" params={{ programId }}>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink render={<Link to="/programs" />}>Programs</BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbLink
+                      render={<Link to="/programs/$programId" params={{ programId }} />}
+                    >
                       {program.name}
-                    </Link>
-                  </Breadcrumb.Item>
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
                 </>
               }
               id={requirement.id}

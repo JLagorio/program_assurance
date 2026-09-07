@@ -14,7 +14,7 @@ import { UnavailableAction } from "@/components/app/unavailable-action";
  * neutral for Satisfied, red for Other than satisfied, hatched for Unknown.
  */
 
-import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowUp } from "lucide-react";
 
@@ -23,6 +23,11 @@ import {
   Bleed,
   Box,
   Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
   Button,
   Grid,
   Id,
@@ -1150,18 +1155,32 @@ export function ControlWorkspace({ programId }: { programId: string }) {
         shouldWrap
       >
         <Breadcrumb className="min-w-0">
-          {crumbs.map((c, i) => (
-            <Breadcrumb.Item
-              key={i}
-              isCurrent={i === crumbs.length - 1}
-              onClick={() => {
-                setPath(c.path);
-                setHov(null);
-              }}
-            >
-              {c.l}
-            </Breadcrumb.Item>
-          ))}
+          <BreadcrumbList>
+            {crumbs.map((c, i) => (
+              <Fragment key={i}>
+                {i > 0 ? <BreadcrumbSeparator /> : null}
+                <BreadcrumbItem>
+                  {i === crumbs.length - 1 ? (
+                    <BreadcrumbPage>{c.l}</BreadcrumbPage>
+                  ) : (
+                    <BreadcrumbLink
+                      render={
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPath(c.path);
+                            setHov(null);
+                          }}
+                        />
+                      }
+                    >
+                      {c.l}
+                    </BreadcrumbLink>
+                  )}
+                </BreadcrumbItem>
+              </Fragment>
+            ))}
+          </BreadcrumbList>
         </Breadcrumb>
         <Inline className="ml-auto" space="space.100" alignBlock="center">
           <ToggleGroup

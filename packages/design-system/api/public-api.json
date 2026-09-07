@@ -243,16 +243,40 @@
       "kind": "type"
     },
     ".#Breadcrumb": {
-      "target": "\"src/components/breadcrumb\".Breadcrumb",
+      "target": "src/components/breadcrumb.d.ts#Breadcrumb",
+      "kind": "value"
+    },
+    ".#BreadcrumbEllipsis": {
+      "target": "src/components/breadcrumb.d.ts#BreadcrumbEllipsis",
+      "kind": "value"
+    },
+    ".#BreadcrumbItem": {
+      "target": "src/components/breadcrumb.d.ts#BreadcrumbItem",
       "kind": "value"
     },
     ".#BreadcrumbItemProps": {
       "target": "\"src/components/breadcrumb\".BreadcrumbItemProps",
       "kind": "type"
     },
+    ".#BreadcrumbLink": {
+      "target": "src/components/breadcrumb.d.ts#BreadcrumbLink",
+      "kind": "value"
+    },
+    ".#BreadcrumbList": {
+      "target": "src/components/breadcrumb.d.ts#BreadcrumbList",
+      "kind": "value"
+    },
+    ".#BreadcrumbPage": {
+      "target": "src/components/breadcrumb.d.ts#BreadcrumbPage",
+      "kind": "value"
+    },
     ".#BreadcrumbProps": {
       "target": "\"src/components/breadcrumb\".BreadcrumbProps",
       "kind": "type"
+    },
+    ".#BreadcrumbSeparator": {
+      "target": "src/components/breadcrumb.d.ts#BreadcrumbSeparator",
+      "kind": "value"
     },
     ".#Button": {
       "target": "\"src/components/button\".Button",
@@ -3518,6 +3542,12 @@
         "declaration": "validationMode: Form.ValidationMode;"
       }
     ],
+    "\"node_modules/@base-ui/react/internals/getStateAttributesProps\".StateAttributesMapping": [
+      {
+        "source": "node_modules/@base-ui/react/internals/getStateAttributesProps.d.mts",
+        "declaration": "export type StateAttributesMapping<State> = {\n    [Property in keyof State]?: (state: State[Property]) => Record<string, string> | null;\n};"
+      }
+    ],
     "\"node_modules/@base-ui/react/internals/reason-parts\".cancelOpen": [
       {
         "source": "node_modules/@base-ui/react/internals/reason-parts.d.mts",
@@ -3918,6 +3948,148 @@
       {
         "source": "node_modules/@base-ui/react/types/index.d.mts",
         "declaration": "export type HTMLProps<T = any> = React.HTMLAttributes<T> & {\n    ref?: React.Ref<T> | undefined;\n};"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".useRender": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "export declare function useRender<State extends Record<string, unknown>, RenderedElementType extends Element, Enabled extends boolean | undefined = undefined>(params: useRender.Parameters<State, RenderedElementType, Enabled>): useRender.ReturnValue<Enabled>;"
+      },
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "export declare namespace useRender {\n    type State = UseRenderState;\n    type RenderProp<TState = Record<string, unknown>> = UseRenderRenderProp<TState>;\n    type ElementProps<ElementType extends React.ElementType> = UseRenderElementProps<ElementType>;\n    type ComponentProps<ElementType extends React.ElementType, TState = {}, RenderFunctionProps = HTMLProps> = UseRenderComponentProps<ElementType, TState, RenderFunctionProps>;\n    type Parameters<TState, RenderedElementType extends Element, Enabled extends boolean | undefined> = UseRenderParameters<TState, RenderedElementType, Enabled>;\n    type ReturnValue<Enabled extends boolean | undefined> = UseRenderReturnValue<Enabled>;\n}"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".useRender.ComponentProps": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "type ComponentProps<ElementType extends React.ElementType, TState = {}, RenderFunctionProps = HTMLProps> = UseRenderComponentProps<ElementType, TState, RenderFunctionProps>;"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".useRender.ElementProps": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "type ElementProps<ElementType extends React.ElementType> = UseRenderElementProps<ElementType>;"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".useRender.Parameters": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "type Parameters<TState, RenderedElementType extends Element, Enabled extends boolean | undefined> = UseRenderParameters<TState, RenderedElementType, Enabled>;"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".useRender.RenderProp": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "type RenderProp<TState = Record<string, unknown>> = UseRenderRenderProp<TState>;"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".useRender.ReturnValue": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "type ReturnValue<Enabled extends boolean | undefined> = UseRenderReturnValue<Enabled>;"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".useRender.State": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "type State = UseRenderState;"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".UseRenderComponentProps": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "export type UseRenderComponentProps<ElementType extends React.ElementType, State = {}, RenderFunctionProps = HTMLProps> = React.ComponentPropsWithRef<ElementType> & {\n    render?: React.ReactElement | ComponentRenderFn<RenderFunctionProps, State> | undefined;\n};"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".UseRenderElementProps": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "export type UseRenderElementProps<ElementType extends React.ElementType> = React.ComponentPropsWithRef<ElementType>;"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".UseRenderParameters": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "export interface UseRenderParameters<State, RenderedElementType extends Element, Enabled extends boolean | undefined> {\n    render?: UseRenderRenderProp<State> | undefined;\n    ref?: React.Ref<RenderedElementType> | React.Ref<RenderedElementType>[] | undefined;\n    state?: State | undefined;\n    stateAttributesMapping?: StateAttributesMapping<State> | undefined;\n    props?: Record<string, unknown> | undefined;\n    enabled?: Enabled | undefined;\n    defaultTagName?: keyof React.JSX.IntrinsicElements | undefined;\n}"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".UseRenderParameters.defaultTagName": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "defaultTagName?: keyof React.JSX.IntrinsicElements | undefined;"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".UseRenderParameters.enabled": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "enabled?: Enabled | undefined;"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".UseRenderParameters.Enabled": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "Enabled extends boolean | undefined"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".UseRenderParameters.props": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "props?: Record<string, unknown> | undefined;"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".UseRenderParameters.ref": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "ref?: React.Ref<RenderedElementType> | React.Ref<RenderedElementType>[] | undefined;"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".UseRenderParameters.render": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "render?: UseRenderRenderProp<State> | undefined;"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".UseRenderParameters.RenderedElementType": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "RenderedElementType extends Element"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".UseRenderParameters.state": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "state?: State | undefined;"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".UseRenderParameters.State": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "State"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".UseRenderParameters.stateAttributesMapping": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "stateAttributesMapping?: StateAttributesMapping<State> | undefined;"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".UseRenderRenderProp": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "export type UseRenderRenderProp<State = Record<string, unknown>> = React.ReactElement | ComponentRenderFn<React.HTMLAttributes<any>, State>;"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".UseRenderReturnValue": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "export type UseRenderReturnValue<Enabled extends boolean | undefined> = Enabled extends false ? null : React.ReactElement;"
+      }
+    ],
+    "\"node_modules/@base-ui/react/use-render/useRender\".UseRenderState": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "export interface UseRenderState {\n}"
       }
     ],
     "\"node_modules/@base-ui/utils/useEnhancedClickHandler\".InteractionType": [
@@ -6668,28 +6840,16 @@
         "declaration": "export type BannerTone = \"information\" | \"warning\" | \"danger\";"
       }
     ],
-    "\"src/components/breadcrumb\".Breadcrumb": [
-      {
-        "source": "src/components/breadcrumb.d.ts",
-        "declaration": "Breadcrumb: typeof BreadcrumbRoot & {\n    Item: typeof BreadcrumbItem;\n}"
-      }
-    ],
-    "\"src/components/breadcrumb\".BreadcrumbItem": [
-      {
-        "source": "src/components/breadcrumb.d.ts",
-        "declaration": "export declare function BreadcrumbItem({ isCurrent, asChild, className, children, type, ...rest }: BreadcrumbItemProps): import(\"react\").JSX.Element;"
-      }
-    ],
     "\"src/components/breadcrumb\".BreadcrumbItemProps": [
       {
         "source": "src/components/breadcrumb.d.ts",
-        "declaration": "export type BreadcrumbItemProps = {\n    isCurrent?: boolean | undefined;\n    asChild?: boolean | undefined;\n    children: ReactNode;\n    className?: string | undefined;\n} & Omit<ComponentPropsWithoutRef<\"button\">, \"children\" | \"className\">;"
+        "declaration": "export type BreadcrumbItemProps = React.ComponentProps<\"li\">;"
       }
     ],
     "\"src/components/breadcrumb\".BreadcrumbProps": [
       {
         "source": "src/components/breadcrumb.d.ts",
-        "declaration": "export type BreadcrumbProps = {\n    children: ReactNode;\n    label?: string | undefined;\n    className?: string | undefined;\n};"
+        "declaration": "export type BreadcrumbProps = React.ComponentProps<\"nav\">;"
       }
     ],
     "\"src/components/button-group\".ButtonGroup": [
@@ -10178,6 +10338,24 @@
         "declaration": "name: string | undefined"
       }
     ],
+    "node_modules/@base-ui/react/internals/getStateAttributesProps.d.mts#Property": [
+      {
+        "source": "node_modules/@base-ui/react/internals/getStateAttributesProps.d.mts",
+        "declaration": "Property extends keyof State"
+      }
+    ],
+    "node_modules/@base-ui/react/internals/getStateAttributesProps.d.mts#state": [
+      {
+        "source": "node_modules/@base-ui/react/internals/getStateAttributesProps.d.mts",
+        "declaration": "state: State[Property]"
+      }
+    ],
+    "node_modules/@base-ui/react/internals/getStateAttributesProps.d.mts#State": [
+      {
+        "source": "node_modules/@base-ui/react/internals/getStateAttributesProps.d.mts",
+        "declaration": "State"
+      }
+    ],
     "node_modules/@base-ui/react/internals/resolveValueLabel.d.mts#key": [
       {
         "source": "node_modules/@base-ui/react/internals/resolveValueLabel.d.mts",
@@ -10402,6 +10580,74 @@
       {
         "source": "node_modules/@base-ui/react/types/index.d.mts",
         "declaration": "T = any"
+      }
+    ],
+    "node_modules/@base-ui/react/use-render/useRender.d.mts#__type.render": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "render?: React.ReactElement | ComponentRenderFn<RenderFunctionProps, State> | undefined;"
+      }
+    ],
+    "node_modules/@base-ui/react/use-render/useRender.d.mts#ElementType": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "ElementType extends React.ElementType"
+      }
+    ],
+    "node_modules/@base-ui/react/use-render/useRender.d.mts#Enabled": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "Enabled extends boolean | undefined = undefined"
+      },
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "Enabled extends boolean | undefined"
+      }
+    ],
+    "node_modules/@base-ui/react/use-render/useRender.d.mts#params": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "params: useRender.Parameters<State, RenderedElementType, Enabled>"
+      }
+    ],
+    "node_modules/@base-ui/react/use-render/useRender.d.mts#RenderedElementType": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "RenderedElementType extends Element"
+      }
+    ],
+    "node_modules/@base-ui/react/use-render/useRender.d.mts#RenderFunctionProps": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "RenderFunctionProps = HTMLProps"
+      }
+    ],
+    "node_modules/@base-ui/react/use-render/useRender.d.mts#State": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "State = {}"
+      },
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "State = Record<string, unknown>"
+      },
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "State extends Record<string, unknown>"
+      }
+    ],
+    "node_modules/@base-ui/react/use-render/useRender.d.mts#TState": [
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "TState = {}"
+      },
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "TState = Record<string, unknown>"
+      },
+      {
+        "source": "node_modules/@base-ui/react/use-render/useRender.d.mts",
+        "declaration": "TState"
       }
     ],
     "node_modules/@floating-ui/utils/dist/floating-ui.utils.d.mts#K": [
@@ -25716,52 +25962,46 @@
         "declaration": "tone"
       }
     ],
-    "src/components/breadcrumb.d.ts#__type.asChild": [
+    "src/components/breadcrumb.d.ts#Breadcrumb": [
       {
         "source": "src/components/breadcrumb.d.ts",
-        "declaration": "asChild?: boolean | undefined;"
+        "declaration": "declare function Breadcrumb({ className, ...props }: BreadcrumbProps): React.JSX.Element;"
       }
     ],
-    "src/components/breadcrumb.d.ts#__type.children": [
+    "src/components/breadcrumb.d.ts#BreadcrumbEllipsis": [
       {
         "source": "src/components/breadcrumb.d.ts",
-        "declaration": "children: ReactNode;"
+        "declaration": "declare function BreadcrumbEllipsis({ className, ...props }: React.ComponentProps<\"span\">): React.JSX.Element;"
       }
     ],
-    "src/components/breadcrumb.d.ts#__type.className": [
+    "src/components/breadcrumb.d.ts#BreadcrumbItem": [
       {
         "source": "src/components/breadcrumb.d.ts",
-        "declaration": "className?: string | undefined;"
+        "declaration": "declare function BreadcrumbItem({ className, ...props }: BreadcrumbItemProps): React.JSX.Element;"
       }
     ],
-    "src/components/breadcrumb.d.ts#__type.isCurrent": [
+    "src/components/breadcrumb.d.ts#BreadcrumbLink": [
       {
         "source": "src/components/breadcrumb.d.ts",
-        "declaration": "isCurrent?: boolean | undefined;"
+        "declaration": "declare function BreadcrumbLink({ className, render, ...props }: useRender.ComponentProps<\"a\">): React.ReactElement<unknown, string | React.JSXElementConstructor<any>>;"
       }
     ],
-    "src/components/breadcrumb.d.ts#__type.Item": [
+    "src/components/breadcrumb.d.ts#BreadcrumbList": [
       {
         "source": "src/components/breadcrumb.d.ts",
-        "declaration": "Item: typeof BreadcrumbItem;"
+        "declaration": "declare function BreadcrumbList({ className, ...props }: React.ComponentProps<\"ol\">): React.JSX.Element;"
       }
     ],
-    "src/components/breadcrumb.d.ts#__type.label": [
+    "src/components/breadcrumb.d.ts#BreadcrumbPage": [
       {
         "source": "src/components/breadcrumb.d.ts",
-        "declaration": "label?: string | undefined;"
+        "declaration": "declare function BreadcrumbPage({ className, ...props }: React.ComponentProps<\"span\">): React.JSX.Element;"
       }
     ],
-    "src/components/breadcrumb.d.ts#asChild": [
+    "src/components/breadcrumb.d.ts#BreadcrumbSeparator": [
       {
         "source": "src/components/breadcrumb.d.ts",
-        "declaration": "asChild"
-      }
-    ],
-    "src/components/breadcrumb.d.ts#BreadcrumbRoot": [
-      {
-        "source": "src/components/breadcrumb.d.ts",
-        "declaration": "declare function BreadcrumbRoot({ className, label, children }: BreadcrumbProps): import(\"react\").JSX.Element;"
+        "declaration": "declare function BreadcrumbSeparator({ children, className, ...props }: React.ComponentProps<\"li\">): React.JSX.Element;"
       }
     ],
     "src/components/breadcrumb.d.ts#children": [
@@ -25776,28 +26016,16 @@
         "declaration": "className"
       }
     ],
-    "src/components/breadcrumb.d.ts#isCurrent": [
+    "src/components/breadcrumb.d.ts#props": [
       {
         "source": "src/components/breadcrumb.d.ts",
-        "declaration": "isCurrent"
+        "declaration": "...props"
       }
     ],
-    "src/components/breadcrumb.d.ts#label": [
+    "src/components/breadcrumb.d.ts#render": [
       {
         "source": "src/components/breadcrumb.d.ts",
-        "declaration": "label"
-      }
-    ],
-    "src/components/breadcrumb.d.ts#rest": [
-      {
-        "source": "src/components/breadcrumb.d.ts",
-        "declaration": "...rest"
-      }
-    ],
-    "src/components/breadcrumb.d.ts#type": [
-      {
-        "source": "src/components/breadcrumb.d.ts",
-        "declaration": "type"
+        "declaration": "render"
       }
     ],
     "src/components/button-group.d.ts#__type.children": [

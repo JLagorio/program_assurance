@@ -4,7 +4,9 @@ import { useMemo } from "react";
 import {
   Badge,
   Box,
-  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
   Button,
   Editable,
   Inspector,
@@ -69,19 +71,26 @@ function TaskPage() {
           <RecordHeader
             crumbs={
               <>
-                <Breadcrumb.Item asChild>
-                  <Link to="/work">My work</Link>
-                </Breadcrumb.Item>
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link to="/work" />}>My work</BreadcrumbLink>
+                </BreadcrumbItem>
                 {program ? (
-                  <Breadcrumb.Item asChild>
-                    <Link
-                      to="/programs/$programId"
-                      params={{ programId: program.id }}
-                      search={{ tab: "Tasks", peek: undefined }}
-                    >
-                      {program.name}
-                    </Link>
-                  </Breadcrumb.Item>
+                  <>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbLink
+                        render={
+                          <Link
+                            to="/programs/$programId"
+                            params={{ programId: program.id }}
+                            search={{ tab: "Tasks", peek: undefined }}
+                          />
+                        }
+                      >
+                        {program.name}
+                      </BreadcrumbLink>
+                    </BreadcrumbItem>
+                  </>
                 ) : null}
               </>
             }

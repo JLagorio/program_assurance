@@ -34,7 +34,7 @@ export type ActionBarAction = {
 };
 
 export type ActionBarProps = {
-  /** The parents in the trail, Breadcrumb.Items; the id is the trail's last crumb. */
+  /** The parents as BreadcrumbItem elements with BreadcrumbSeparator between them; the header appends the id as the last crumb. */
   crumbs?: ReactNode;
   /** @deprecated A whole Breadcrumb. Pass the parents as `crumbs`; the id is drawn as the last crumb. */
   breadcrumb?: ReactNode;

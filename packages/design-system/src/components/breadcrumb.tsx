@@ -1,67 +1,120 @@
-import { Slot } from "@radix-ui/react-slot";
-import { ChevronRight } from "lucide-react";
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
-
+import * as React from "react";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import { cn } from "../lib/cn";
+import { ChevronRightIcon, MoreHorizontalIcon } from "lucide-react";
 
-export type BreadcrumbProps = {
-  /** Breadcrumb.Item children, from the highest level down to the page. */
-  children: ReactNode;
-  /** The landmark's name, "Breadcrumb" by default. A second trail on the page, a chart's drill-down path, takes its own: "Chart path". */
-  label?: string | undefined;
-  className?: string | undefined;
-};
+/** Native navigation props and ref. Compose the ordered list explicitly. */
+export type BreadcrumbProps = React.ComponentProps<"nav">;
+/** Native list-item props and ref. Compose a link or current page inside the item. */
+export type BreadcrumbItemProps = React.ComponentProps<"li">;
 
-/** Where you are. Every item but the last is a link back up the record tree; the last is the page itself. One line: a crumb truncates rather than wraps. */
-function BreadcrumbRoot({ className, label = "Breadcrumb", children }: BreadcrumbProps) {
+/** The navigation landmark; the caller owns the list, items, and separators. */
+function Breadcrumb({ className, ...props }: BreadcrumbProps) {
   return (
-    <nav aria-label={label} className={cn("min-w-0", className)}>
-      <ol className="flex items-center gap-050 font-body-small text-subtle">{children}</ol>
-    </nav>
+    <nav aria-label="breadcrumb" data-slot="breadcrumb" className={cn(className)} {...props} />
   );
 }
 
-export type BreadcrumbItemProps = {
-  /** The page itself: not a link, reads in the default colour, and `aria-current="page"`. */
-  isCurrent?: boolean | undefined;
-  /** The child (a router's Link) takes the item's classes. Without it the item is a button, for a crumb that changes state in place. */
-  asChild?: boolean | undefined;
-  /** The record's name as its title reads, or the level's name: "Programs", "Atlas payments platform". */
-  children: ReactNode;
-  className?: string | undefined;
-} & Omit<ComponentPropsWithoutRef<"button">, "children" | "className">;
-
-export function BreadcrumbItem({
-  isCurrent,
-  asChild,
-  className,
-  children,
-  type,
-  ...rest
-}: BreadcrumbItemProps) {
-  const Comp = asChild ? Slot : isCurrent ? "span" : "button";
+/** The ordered list. Long trails wrap by default. */
+function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
   return (
-    <li className="group/crumb flex min-w-0 items-center gap-050">
-      <ChevronRight
-        aria-hidden
-        className="size-150 shrink-0 icon-subtlest group-first/crumb:hidden"
-      />
-      <Comp
-        aria-current={isCurrent ? "page" : undefined}
-        type={asChild || isCurrent ? undefined : (type ?? "button")}
-        className={cn(
-          "truncate rounded-xsmall outline-none focus-visible:outline-focused",
-          isCurrent
-            ? "font-medium text-default"
-            : "text-subtle transition-colors duration-fast ease-standard hover:text-default",
+    <ol
+      data-slot="breadcrumb-list"
+      className={cn(
+        "flex flex-wrap items-center gap-075 font-body-small break-words text-subtle",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+/** A list item containing a link, current page, or composed control. */
+function BreadcrumbItem({ className, ...props }: BreadcrumbItemProps) {
+  return (
+    <li
+      data-slot="breadcrumb-item"
+      className={cn("inline-flex items-center gap-050", className)}
+      {...props}
+    />
+  );
+}
+
+/** An anchor by default. Use Base UI render to compose a router link or custom element. */
+function BreadcrumbLink({ className, render, ...props }: useRender.ComponentProps<"a">) {
+  return useRender({
+    defaultTagName: "a",
+    props: mergeProps<"a">(
+      {
+        className: cn(
+          "rounded-xsmall outline-none transition-colors duration-fast ease-standard hover:text-default focus-visible:outline-focused",
           className,
-        )}
-        {...rest}
-      >
-        {children}
-      </Comp>
+        ),
+      },
+      props,
+    ),
+    render,
+    state: {
+      slot: "breadcrumb-link",
+    },
+  });
+}
+
+/** The current page, announced as a disabled link and omitted from the tab order. */
+function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
+  return (
+    <span
+      data-slot="breadcrumb-page"
+      role="link"
+      aria-disabled="true"
+      aria-current="page"
+      className={cn("font-regular text-default", className)}
+      {...props}
+    />
+  );
+}
+
+/** A decorative chevron by default; children replace the separator. */
+function BreadcrumbSeparator({ children, className, ...props }: React.ComponentProps<"li">) {
+  return (
+    <li
+      data-slot="breadcrumb-separator"
+      role="presentation"
+      aria-hidden="true"
+      className={cn("[&>svg]:size-icon-small", className)}
+      {...props}
+    >
+      {children ?? <ChevronRightIcon />}
     </li>
   );
 }
 
-export const Breadcrumb = Object.assign(BreadcrumbRoot, { Item: BreadcrumbItem });
+/** A decorative collapsed-path indicator. Name its surrounding control when interactive. */
+function BreadcrumbEllipsis({ className, ...props }: React.ComponentProps<"span">) {
+  return (
+    <span
+      data-slot="breadcrumb-ellipsis"
+      role="presentation"
+      aria-hidden="true"
+      className={cn(
+        "flex size-250 items-center justify-center [&>svg]:size-icon-medium",
+        className,
+      )}
+      {...props}
+    >
+      <MoreHorizontalIcon />
+      <span className="sr-only">More</span>
+    </span>
+  );
+}
+
+export {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  BreadcrumbEllipsis,
+};
