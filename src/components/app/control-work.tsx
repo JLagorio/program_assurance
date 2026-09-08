@@ -2,7 +2,7 @@ import { useCallback, type SetStateAction, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { descendantsOf, nodeById } from "@/lib/composition";
 import { scopeById } from "@/lib/scopes";
-import { AddEvidenceDialog } from "@/components/app/program-evidence";
+import { AddEvidenceDialog, EvidencePreview } from "@/components/app/program-evidence";
 import { useRecordForm } from "@/lib/record-form";
 /**
  * The control work surface.
@@ -25,6 +25,7 @@ import {
   Block,
   Box,
   Button,
+  Combobox,
   Dialog,
   Field,
   Grid,
@@ -35,8 +36,10 @@ import {
   Textarea,
   TextLink,
 } from "@ledger/design-system";
-import { ActionBarAction, RecordPicker } from "@ledger/design-system";
-import { evidenceForProgram, useEvidenceVersion } from "@/lib/evidence-catalog";
+import { ActionBarAction } from "@ledger/design-system";
+import { linkArtifact, useEvidenceVersion, type EvidenceLink } from "@/lib/evidence-catalog";
+import { availableControlEvidence, controlEvidence } from "@/lib/control-evidence";
+import { controlRequirementsInElement } from "@/lib/program-controls";
 import { cn } from "@ledger/design-system/cn";
 import {
   activityFor,
@@ -54,7 +57,6 @@ import {
   perform,
   setDeterminationNote,
   setNarrative,
-  unlinkEvidence,
   workForProgram,
   type ControlWork,
   type WorkContext,
@@ -245,9 +247,18 @@ export function GateList({ work, context }: { work: ControlWork; context: WorkCo
 
 /* --------------------------------------------------------------- Narrative */
 
-export function Narrative({ work, onChange }: { work: ControlWork; onChange: () => void }) {
+export function Narrative({
+  work,
+  onChange,
+  elementId,
+}: {
+  work: ControlWork;
+  onChange: () => void;
+  elementId?: string | undefined;
+}) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(work.narrative);
+  const [error, setError] = useState("");
   const element = scopeById.get(work.scope)?.element;
   const componentIds = new Set(
     element ? [element, ...descendantsOf(element).map((node) => node.id)] : [],
@@ -263,6 +274,7 @@ export function Narrative({ work, onChange }: { work: ControlWork; onChange: () 
     return (
       <div>
         <Textarea
+          aria-label="Implementation statement"
           autoFocus
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -274,9 +286,16 @@ export function Narrative({ work, onChange }: { work: ControlWork; onChange: () 
             variant="primary"
             size="small"
             onClick={() => {
-              setNarrative(work.id, draft);
-              setEditing(false);
-              onChange();
+              try {
+                setNarrative(work.id, draft);
+                setEditing(false);
+                setError("");
+                onChange();
+              } catch (error) {
+                setError(
+                  error instanceof Error ? error.message : "The statement could not be saved.",
+                );
+              }
             }}
           >
             Save revision
@@ -285,6 +304,11 @@ export function Narrative({ work, onChange }: { work: ControlWork; onChange: () 
             Cancel
           </Button>
         </Inline>
+        {error ? (
+          <p role="alert" className="pt-100 font-body-small text-danger">
+            {error}
+          </p>
+        ) : null}
       </div>
     );
   }
@@ -301,6 +325,7 @@ export function Narrative({ work, onChange }: { work: ControlWork; onChange: () 
         size="small"
         onClick={() => {
           setDraft(work.narrative);
+          setError("");
           setEditing(true);
         }}
       >
@@ -324,7 +349,7 @@ export function Narrative({ work, onChange }: { work: ControlWork; onChange: () 
                       <Link
                         to="/programs/$programId/controls/$controlId"
                         params={{ programId: work.program, controlId: work.control }}
-                        search={{ scope: item.scope }}
+                        search={{ scope: item.scope, element: elementId }}
                       >
                         {nodeById.get(item.componentId!)?.name ?? item.componentId}
                       </Link>
@@ -347,52 +372,122 @@ export function Narrative({ work, onChange }: { work: ControlWork; onChange: () 
 export function EvidenceBlock({
   work,
   onChange,
+  elementId,
 }: {
   work: ControlWork;
   available?: { id: string; label: string; collected: string }[];
   onChange: () => void;
+  elementId?: string | undefined;
 }) {
   useEvidenceVersion();
-  const available = evidenceForProgram(work.program).filter(
-    (artifact) => !artifact.scopeIds.length || artifact.scopeIds.includes(work.scope),
+  const available = availableControlEvidence(work);
+  const rows = controlEvidence(work);
+  const requirements = controlRequirementsInElement(
+    work.program,
+    work.control,
+    scopeById.get(work.scope)?.element,
   );
   const [picking, setPicking] = useState(false);
   const [adding, setAdding] = useState(false);
-  const unlinked = available.filter((a) => !work.evidence.includes(a.id));
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [targetId, setTargetId] = useState("implementation");
+  const [artifactId, setArtifactId] = useState("");
+  const [error, setError] = useState("");
+  const target: EvidenceLink =
+    targetId === "implementation"
+      ? { kind: "control", id: work.control, scopeId: work.scope }
+      : { kind: "requirement", id: targetId, scopeId: work.scope };
+  const unlinked = available.filter(
+    (artifact) =>
+      !artifact.links.some(
+        (link) =>
+          link.kind === target.kind && link.id === target.id && link.scopeId === target.scopeId,
+      ),
+  );
+  const chooseTarget = (id: string) => {
+    setTargetId(id);
+    setArtifactId("");
+    setError("");
+  };
+  const link = () => {
+    try {
+      if (target.kind === "control") linkEvidence(work.id, artifactId);
+      else linkArtifact(artifactId, target);
+      setPicking(false);
+      setArtifactId("");
+      onChange();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Evidence could not be linked.");
+    }
+  };
 
   return (
     <div>
-      {work.evidence.length ? (
-        <Table>
+      {rows.length ? (
+        <Table label={`Supporting evidence for ${work.control}`} style={{ minWidth: 640 }}>
+          <thead>
+            <Table.Row>
+              <Table.Header>Artifact</Table.Header>
+              <Table.Header width={164}>Supports</Table.Header>
+              <Table.Header width={124}>Collected</Table.Header>
+              <Table.Header width={132}>Review</Table.Header>
+            </Table.Row>
+          </thead>
           <tbody>
-            {work.evidence.map((id) => {
-              const meta = available.find((a) => a.id === id);
+            {rows.map(({ artifact, supports }) => {
               return (
-                <Table.Row key={id}>
-                  <Table.Id id={id} width={118} />
-                  <Table.Cell className="truncate">
-                    {meta?.url ? (
-                      <TextLink>
-                        <a href={meta.url} target="_blank" rel="noreferrer">
-                          {meta.label}
-                        </a>
-                      </TextLink>
-                    ) : (
-                      (meta?.label ?? "Not in the evidence store")
-                    )}
+                <Table.Row key={artifact.id}>
+                  <Table.Cell className="max-w-none whitespace-normal">
+                    <TextLink>
+                      <button type="button" onClick={() => setSelectedId(artifact.id)}>
+                        {artifact.id} · {artifact.label}
+                      </button>
+                    </TextLink>
+                    <span className="block font-body-xsmall text-subtle">
+                      {artifact.kind} ·{" "}
+                      {artifact.version === "Unrecorded"
+                        ? "Version unrecorded"
+                        : `v${artifact.version}`}
+                      {artifact.url ? "" : " · Reference only"}
+                    </span>
                   </Table.Cell>
-                  <Table.Cell width={124}>{meta?.collected ?? "—"}</Table.Cell>
-                  <Table.Cell width={72}>
-                    <Button
+                  <Table.Cell className="max-w-none whitespace-normal">
+                    <Stack space="space.050">
+                      {[
+                        ...new Map(
+                          supports.map((support) => [`${support.kind}:${support.id}`, support]),
+                        ).values(),
+                      ].map((support) =>
+                        support.kind === "control" ? (
+                          <span key={`control:${support.id}`}>Implementation</span>
+                        ) : (
+                          <TextLink key={`requirement:${support.id}:${support.scopeId ?? ""}`}>
+                            <Link
+                              to="/programs/$programId/requirements/$requirementId"
+                              params={{ programId: work.program, requirementId: support.id }}
+                              search={{ element: elementId }}
+                            >
+                              {support.id}
+                            </Link>
+                          </TextLink>
+                        ),
+                      )}
+                    </Stack>
+                  </Table.Cell>
+                  <Table.Cell>{artifact.collected || "Undated"}</Table.Cell>
+                  <Table.Cell>
+                    <Badge
                       size="xsmall"
-                      variant="subtle"
-                      onClick={() => {
-                        unlinkEvidence(work.id, id);
-                        onChange();
-                      }}
+                      tone={
+                        artifact.review === "Accepted"
+                          ? "success"
+                          : artifact.review === "Needs revision"
+                            ? "danger"
+                            : "warning"
+                      }
                     >
-                      Unlink
-                    </Button>
+                      {artifact.review}
+                    </Badge>
                   </Table.Cell>
                 </Table.Row>
               );
@@ -400,14 +495,26 @@ export function EvidenceBlock({
           </tbody>
         </Table>
       ) : (
-        <p className="font-body text-subtle">None linked.</p>
+        <p className="font-body text-subtle">No supporting evidence linked.</p>
       )}
 
       <Inline space="space.100" className="pt-100">
-        <Button size="small" onClick={() => setPicking(true)}>
+        <Button
+          size="small"
+          onClick={() => {
+            chooseTarget("implementation");
+            setPicking(true);
+          }}
+        >
           Link evidence…
         </Button>
-        <Button size="small" onClick={() => setAdding(true)}>
+        <Button
+          size="small"
+          onClick={() => {
+            chooseTarget("implementation");
+            setAdding(true);
+          }}
+        >
           Add evidence
         </Button>
       </Inline>
@@ -416,29 +523,78 @@ export function EvidenceBlock({
           programId={work.program}
           open
           onClose={() => setAdding(false)}
-          initialLink={{ kind: "control", id: work.control, scopeId: work.scope }}
-          onCreated={onChange}
+          initialLink={target}
+          onCreated={(artifact) => {
+            setSelectedId(artifact.id);
+            onChange();
+          }}
         />
       ) : null}
 
-      <RecordPicker
+      <Dialog
         open={picking}
         onClose={() => setPicking(false)}
         title="Link evidence"
-        placeholder="Search by id, source, control or test run…"
-        emptyHint="No artifact matches. Add an artifact in the program Evidence tab."
-        records={unlinked.map((a) => ({
-          id: a.id,
-          title: a.label,
-          meta: `Collected ${a.collected}`,
-          badge: { label: a.collected.slice(0, 6), tone: "neutral" as const },
-          keywords: a.id,
-        }))}
-        onPick={(r) => {
-          linkEvidence(work.id, r.id);
-          onChange();
-        }}
-      />
+        footer={
+          <>
+            <Button onClick={() => setPicking(false)}>Cancel</Button>
+            <Button variant="primary" disabled={!artifactId} onClick={link}>
+              Link evidence
+            </Button>
+          </>
+        }
+      >
+        <Stack space="space.150">
+          <Field label="Supports">
+            <NativeSelect value={targetId} onChange={(event) => chooseTarget(event.target.value)}>
+              <option value="implementation">
+                {work.control} implementation · {scopeById.get(work.scope)?.name}
+              </option>
+              {requirements.map((requirement) => (
+                <option key={requirement.id} value={requirement.id}>
+                  {requirement.id} · {requirement.text}
+                </option>
+              ))}
+            </NativeSelect>
+          </Field>
+          <Field label="Evidence">
+            <Combobox
+              value={artifactId}
+              onChange={setArtifactId}
+              placeholder="Find an existing artifact"
+              options={unlinked.map((artifact) => ({
+                value: artifact.id,
+                label: `${artifact.id} · ${artifact.label}`,
+                keywords: `${artifact.kind} ${artifact.provenance} ${artifact.owner}`,
+                meta: artifact.review,
+              }))}
+              empty="No matching evidence in this system scope."
+            />
+          </Field>
+          <Button
+            size="small"
+            onClick={() => {
+              setPicking(false);
+              setAdding(true);
+            }}
+          >
+            Add a new evidence reference
+          </Button>
+          {error ? (
+            <p role="alert" className="font-body-small text-danger">
+              {error}
+            </p>
+          ) : null}
+        </Stack>
+      </Dialog>
+      {selectedId ? (
+        <EvidencePreview
+          programId={work.program}
+          evidenceId={selectedId}
+          elementId={elementId}
+          onClose={() => setSelectedId(null)}
+        />
+      ) : null}
     </div>
   );
 }

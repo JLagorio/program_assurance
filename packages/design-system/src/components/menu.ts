@@ -4,9 +4,6 @@
 /** The floating surface. */
 export const menuSurface = "z-50 overflow-hidden rounded-large border border-default bg-surface-overlay p-050 shadow-overlay outline-none";
 
-/** The surface's enter and exit, on Radix's data-state. */
-export const menuMotion = "data-[state=open]:animate-enter data-[state=closed]:animate-exit";
-
 /** One row: menu height, hairline radius, body text. */
 export const menuItem =
   "flex h-row-menu w-full cursor-default select-none items-center gap-100 rounded-medium px-100 text-left font-body text-default outline-none transition-colors duration-fast ease-standard";

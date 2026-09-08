@@ -18,6 +18,10 @@ import {
   Progress,
   Stack,
   Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  Count,
   TextLink,
   defineColumns,
   toast,
@@ -292,14 +296,15 @@ function ProgramList() {
         onValueChange={(value) => setTab(value)}
         className="contents"
       >
-        <Tabs.List>
+        <TabsList className="w-full justify-start" variant="line" activateOnFocus>
           {tabs.map((t) => (
-            <Tabs.Tab key={t.label} value={t.label} count={t.count}>
+            <TabsTrigger key={t.label} value={t.label}>
               {t.label}
-            </Tabs.Tab>
+              {t.count != null ? <Count value={t.count} max={9999} /> : null}
+            </TabsTrigger>
           ))}
-        </Tabs.List>
-        <Tabs.Panel value={showArchived ? "Archived" : tab} className="contents">
+        </TabsList>
+        <TabsContent value={showArchived ? "Archived" : tab} className="contents">
           <Inline space="space.100" alignBlock="center" shouldWrap>
             <DataTable.Filter table={table} column="impact" />
             <DataTable.Filter table={table} column="owner" />
@@ -389,7 +394,7 @@ function ProgramList() {
               <Calendar mode="single" selected={scheduleDate} onSelect={setScheduleDate} />
             </Inline>
           </Dialog>
-        </Tabs.Panel>
+        </TabsContent>
       </Tabs>
     </IndexPage>
   );

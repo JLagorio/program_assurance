@@ -2,7 +2,7 @@
 
 Continue migrating `@ledger/design-system` from the local shadcn Base UI references,
 one complete family at a time. **Breadcrumb, Badge, Separator, Skeleton, Kbd,
-Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard, Popover, Tooltip and DropdownMenu are complete.**
+Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard, Popover, Tooltip, DropdownMenu, Select and Tabs are complete.**
 
 ## Direction and sources
 
@@ -36,8 +36,10 @@ Completed contracts and migration examples live on their family pages:
 [Checkbox](../../packages/design-system/src/stories/components/Checkbox.mdx),
 [HoverCard](../../packages/design-system/src/stories/components/HoverCard.mdx),
 [Popover](../../packages/design-system/src/stories/components/Popover.mdx),
-[Tooltip](../../packages/design-system/src/stories/components/Tooltip.mdx), and
-[DropdownMenu](../../packages/design-system/src/stories/components/DropdownMenu.mdx).
+[Tooltip](../../packages/design-system/src/stories/components/Tooltip.mdx),
+[DropdownMenu](../../packages/design-system/src/stories/components/DropdownMenu.mdx),
+[Select](../../packages/design-system/src/stories/components/Select.mdx), and
+[Tabs](../../packages/design-system/src/stories/components/Tabs.mdx).
 
 Keep RecordHeader's tested separator behavior for empty breadcrumb fragments/arrays.
 Badge retains shared Tone and separate Count/Dot/Indicator contracts. The native
@@ -130,10 +132,29 @@ Modal focus restoration resolves disappearing menu items to their stable trigger
 submenus. Keep the shared enclosed-popup Escape guard and portal lookup until the modal
 families migrate. DataTable row actions use opacity so concealed triggers remain tabbable.
 
-Next candidate: Select. Check shadcn's Base UI Select source and the installed Base UI
-contract. Preserve Field label/error binding, form values, controlled/uncontrolled state,
-trigger refs, keyboard/typeahead, locale direction and selections inside dialogs. Keep
-NativeSelect as the native form option and leave shared menu recipes compatible.
+Select uses shadcn's ten flat parts over Base UI Select. Root owns generic single/multiple
+values and native form props; Trigger binds Ledger Field ARIA without clearing upstream
+announcements. Content names its listbox from Field or explicit Content ARIA; decorated
+items supply a plain-text label for typeahead. Trigger sizes are default/sm and native style replaces width. Value needs
+Root items, a formatter or object conversion for readable labels. Existing app and Forms
+callers preserve labels, nullable selection handling and below-trigger positioning.
+Content makes List the bounded scroller in either positioning mode. It defaults to
+selected-item alignment, trigger width with a 144px minimum and
+bottom/center with 4px side offset. It shares the enclosed-dialog portal and Escape guard.
+Form reset stays caller-owned. The package Radix Select dependency and now-unused
+Radix menuMotion recipe are removed; reference catalogs and dependencies remain.
+
+Tabs now uses shadcn's four flat parts and tabsListVariants over Base UI Tabs. List
+owns default/line styling, activateOnFocus (manual by default) and loopFocus. App strips
+explicitly retain line styling, full width and automatic activation. Counts and status
+badges are ordinary children. ShowPage composes its page root and selected body through
+render, preserving the route-controlled value and layout. Root forwards orientation and
+locale direction; inactive retained panels remain hidden even with display classes.
+The custom underline measurement/observers and package Radix Tabs dependency are removed.
+
+Next candidate: Accordion. Check shadcn's Base UI Accordion source and the installed
+contract. Trace Inspector and other consumers before changing compound composition,
+single/multiple selection, disabled items, controlled values and panel mounting.
 
 ## Completion workflow
 
@@ -160,27 +181,28 @@ Do not repeat passing checks without later edits or an unresolved concern.
 
 ## Latest validation
 
-DropdownMenu's package and application typechecks, package lint, scoped lint for the four
-migrated app files, API/coverage checks, 15 package tests, package/production/Storybook
-builds and packed consumer checks passed. The application tests passed 72 tests with
-one skipped. Repository-wide application lint was not run.
+Tabs package/application typechecks, package lint, API/coverage checks, 15 package tests,
+package/production/Storybook builds and packed-consumer checks passed. The application
+suite run passed 93 tests with one skipped. Scoped lint on migrated application callers
+had no errors and 18 existing hook-dependency warnings. Concurrent application and
+DataTable changes were preserved, including their API snapshot entries.
 
-All 248 affected Storybook checks pass in light and dark modes, covering the menu,
-DataTable controls, Editable, chart actions, menu consumers and surrounding overlays.
-The final 48 DropdownMenu/DataTable checks also verify keyboard access to concealed
-row actions and focus restoration after Escape. Built keyboard playback waits one
-animation frame for Base UI's native listeners; the freshly built submenu and dialog
-stories completed with no console errors.
+All 56 affected Storybook checks pass in light and dark modes: Tabs, Pages, PreviewSplit,
+PreviewRail, RecordHeader and Shell. The four Tabs stories cover manual/automatic
+activation, disabled focus, numeric and null selection, cancellation, retained form
+state, unmounted panels, refs/render/state callbacks, native links and modified clicks,
+orientation, locale direction and narrow-strip scrolling. ShowPage's existing Show story
+checks panel association, selection and details-rail restoration after its entrance
+animation. A positioned List keeps Base UI 1.7's scroll offsets relative to the strip;
+Home/End checks ensure selected tabs remain fully visible in LTR and RTL.
 
-Packed checks cover all 16 exports and their types, generic payloads, native refs,
-render composition, positioning/state callbacks, choice cancellation, disabled trigger
-semantics and client-only portals. The API diff replaces the configured wrapper with
-native Base UI parts and narrows Columns/Settings custom triggers to ReactElement.
-Coverage reports 140 documented exports, 103 pages and 569 stories, with no gaps.
+Packed fixtures cover all five value exports and four prop types, native refs, render
+composition, numeric selection, RTL/vertical semantics, anchor hrefs, hidden retained
+panels and unmounted content. The package Radix Tabs dependency is removed. Coverage
+reports 152 exports with stories, 103 family pages and 565 stories, with no gaps.
 
-The built docs, dark preferences, RTL submenu and nested dialog were visually reviewed.
-Keyboard and pointer activation both return a closed dialog to its stable menu trigger.
-The first Escape dismisses the nested menu and the second dismisses its dialog.
-Standalone navigation initially reported a missing favicon; final playback and nested
-interaction checks had no console errors. Temporary screenshots and browser artifacts
-were moved outside the repository.
+Built docs, default/line variants, dark RTL/vertical tabs and ShowPage were visually
+reviewed. ShowPage retains its 12px root gap, grid/rail structure and exactly one selected
+panel. Final built variant and orientation playback finished without component console
+errors; the temporary static server initially returned a favicon 404. Review artifacts
+were moved outside the repo.

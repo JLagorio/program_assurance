@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
-import { Button, Table, Tabs } from "../../components";
+import { Button, Table, Tabs, TabsList, TabsTrigger, TabsContent } from "../../components";
 import { PreviewRail, PreviewSplit } from "../../patterns";
 import { Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -96,12 +96,17 @@ function SplitRecord() {
       <PreviewRail id="PRG-003" title="Fleet telemetry" onClose={() => undefined}>
         <Stack space="space.150">
           <Tabs defaultValue="Overview" className="contents">
-            <Tabs.List label="Sections">
-              <Tabs.Tab value="Overview">Overview</Tabs.Tab>
-              <Tabs.Tab value="Controls">Controls</Tabs.Tab>
-              <Tabs.Tab value="Findings">Findings</Tabs.Tab>
-            </Tabs.List>
-            <Tabs.Panel value="Overview" />
+            <TabsList
+              variant="line"
+              activateOnFocus
+              aria-label="Sections"
+              className="w-full justify-start"
+            >
+              <TabsTrigger value="Overview">Overview</TabsTrigger>
+              <TabsTrigger value="Controls">Controls</TabsTrigger>
+              <TabsTrigger value="Findings">Findings</TabsTrigger>
+            </TabsList>
+            <TabsContent value="Overview" />
           </Tabs>
           <Inline space="space.100">
             <Button size="small" variant="primary">

@@ -2252,63 +2252,6 @@
         }
       }
     },
-    "Select": {
-      "domTarget": "Radix visible trigger button receives id, aria attributes, native events, style and React 19 ref; hidden native select owned by Radix carries form value. className targets trigger.",
-      "controlledBehavior": "Radix value/onValueChange or defaultValue controls selection; open state stays dependency-owned. Native onChange on trigger is not the selection callback.",
-      "defaultBehavior": "size=medium; no value/defaultValue means no selection. Placeholder is caller-supplied. Field merges name/description/invalid/required relationships. width overrides only style.width; other styles survive. Popup minimum width follows trigger and maximum height follows available space.",
-      "props": {
-        "defaultValue": {
-          "meaning": "Radix value/onValueChange or defaultValue controls selection; open state stays dependency-owned. Native onChange on trigger is not the selection callback."
-        },
-        "id": {
-          "meaning": "Radix visible trigger button receives id, aria attributes, native events, style and React 19 ref; hidden native select owned by Radix carries form value. className targets trigger.",
-          "migration": "Preserve the actual target; do not move control IDs to wrappers or hidden inputs. For context-generated command/tab IDs prefer the dependency association unless explicitly integrating with external labels.",
-          "defaultBehavior": "Explicit id is forwarded except dependency-owned internal relationships; consult component defaultBehavior for generated/Field fallback."
-        },
-        "onValueChange": {
-          "meaning": "Radix value/onValueChange or defaultValue controls selection; open state stays dependency-owned. Native onChange on trigger is not the selection callback."
-        },
-        "size": {
-          "meaning": "Visible trigger height small=28px/medium=32px.",
-          "migration": "Keep family-relative geometry and native attribute exceptions explicit; no global enum normalization."
-        },
-        "value": {
-          "meaning": "Radix value/onValueChange or defaultValue controls selection; open state stays dependency-owned. Native onChange on trigger is not the selection callback."
-        },
-        "width": {
-          "meaning": "CSS pixels for visible trigger; popup minimum width follows trigger.",
-          "migration": "Preserve physical dimension units and each family’s preset meaning; do not reinterpret as control size."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/select.tsx",
-        "packages/design-system/src/components/controls.tsx"
-      ]
-    },
-    "Select.Group": {
-      "domTarget": "Radix group div with generated association to its label. No arbitrary DOM/ref API.",
-      "controlledBehavior": "Context-owned grouping of options; no local selection state.",
-      "defaultBehavior": "Required label and children, no package fallback. Items obtain their selection from enclosing Select.",
-      "reviewSources": ["packages/design-system/src/components/select.tsx"]
-    },
-    "Select.Item": {
-      "domTarget": "Radix option div with nested ItemText and decorative check; className targets option. No arbitrary DOM/ref API.",
-      "controlledBehavior": "Parent Select context owns selection; required value identifies the item. Disabled prevents selection.",
-      "defaultBehavior": "No own state/default value. Empty-string value is reserved by Radix for clearing and is not a valid option value.",
-      "props": {
-        "value": {
-          "meaning": "Stable identity for Select.Item in its owning context. Required and supplied by the caller; no runtime default.",
-          "migration": "Keep keys stable across reorders/localization; do not rename identity to DOM id."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/select.tsx"]
-    },
-    "Select.Separator": {
-      "domTarget": "Radix separator div inside Select content; no public props or ref.",
-      "controlledBehavior": "Stateless decorative group separator.",
-      "defaultBehavior": "Fixed menu separator styling; no runtime prop defaults.",
-      "reviewSources": ["packages/design-system/src/components/select.tsx"]
-    },
     "Separator": {
       "domTarget": "div role=separator with aria-orientation; decorative uses role=none and aria-hidden. No native/ref bag.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
@@ -2534,9 +2477,9 @@
       "reviewSources": ["packages/design-system/src/shell/shell.tsx"]
     },
     "ShowPage": {
-      "domTarget": "Outer div, optionally slotted as Tabs root; body div optionally slotted as selected Tabs.Panel. rail renders in aside labeled Details. No DOM/ref passthrough.",
+      "domTarget": "Page div composed through Tabs render; body div composed through TabsContent render when tab is supplied. rail renders in aside labeled Details. No arbitrary DOM/ref forwarding.",
       "controlledBehavior": "tab undefined means no Tabs ownership. Supplying tab creates a controlled Tabs root; onTabChange receives the selected string and caller must update tab. There is no internal tab fallback; omitting the handler leaves a read-only controlled selection.",
-      "defaultBehavior": "Tabs/Panel are created only when tab is defined. rail is absent only for undefined/null/false; other values reserve the rail column. tabs content is passed directly, so a Tabs.List requires tab/onTabChange or a valid outer Tabs context.",
+      "defaultBehavior": "Tabs/TabsContent are created only when tab is defined. rail is absent only for undefined/null/false; other values reserve the rail column. tabs content is passed directly, so a TabsList requires tab/onTabChange or a valid outer Tabs context.",
       "reviewSources": [
         "packages/design-system/src/patterns/archetypes.tsx",
         "packages/design-system/src/components/tabs.tsx"
@@ -2731,64 +2674,6 @@
       "controlledBehavior": "Caller owns expanded and tree hierarchy; optional onToggle reports request only. Containing treegrid and rows must provide tree aria/key navigation.",
       "defaultBehavior": "hasChildren=false, expanded=false; depth required (space.200 per level). No children toggle when hasChildren is false; missing hint adds nothing.",
       "reviewSources": ["packages/design-system/src/components/table.tsx"]
-    },
-    "Tabs": {
-      "domTarget": "Radix root div or asChild element; className targets root. No generic root DOM/ref forwarding.",
-      "controlledBehavior": "value/onValueChange or defaultValue owns selected tab via Radix. activation automatic selects on focus; manual requires activation.",
-      "defaultBehavior": "activation=automatic, horizontal orientation; absent value/defaultValue gives empty selection. asChild is off. Dependencies generate tab/panel associations; root does not invent first-tab selection. Direction falls back to LedgerProvider locale; an explicit dir overrides it and reaches Radix context.",
-      "props": {
-        "defaultValue": {
-          "meaning": "value/onValueChange or defaultValue owns selected tab via Radix. activation automatic selects on focus; manual requires activation.",
-          "defaultBehavior": "activation=automatic, horizontal orientation; absent value/defaultValue gives empty selection. asChild is off. Dependencies generate tab/panel associations; root does not invent first-tab selection."
-        },
-        "onValueChange": {
-          "meaning": "value/onValueChange or defaultValue owns selected tab via Radix. activation automatic selects on focus; manual requires activation.",
-          "defaultBehavior": "activation=automatic, horizontal orientation; absent value/defaultValue gives empty selection. asChild is off. Dependencies generate tab/panel associations; root does not invent first-tab selection."
-        },
-        "value": {
-          "meaning": "value/onValueChange or defaultValue owns selected tab via Radix. activation automatic selects on focus; manual requires activation.",
-          "defaultBehavior": "activation=automatic, horizontal orientation; absent value/defaultValue gives empty selection. asChild is off. Dependencies generate tab/panel associations; root does not invent first-tab selection."
-        },
-        "dir": {
-          "meaning": "Reading and interaction direction passed to the Radix root, including keyboard navigation, portal direction and scroll positioning where applicable.",
-          "migration": "Use the LedgerProvider default for the localized subtree; preserve explicit dir when embedding opposite-direction content.",
-          "defaultBehavior": "Explicit dir wins; otherwise useLedgerLocale().direction."
-        }
-      },
-      "reviewSources": [
-        "packages/design-system/src/components/tabs.tsx",
-        "packages/design-system/src/lib/locale.tsx"
-      ]
-    },
-    "Tabs.List": {
-      "domTarget": "Radix div role=tablist; className targets list. Internal ref measures active tab; no public ref.",
-      "controlledBehavior": "Selection from Tabs context; internal mark only tracks selected tab geometry through resize/mutation observers.",
-      "defaultBehavior": "Optional label omitted when absent. Arrow focus loops through dependency; list scrolls horizontally. Indicator only renders when active tab has measurable width.",
-      "reviewSources": ["packages/design-system/src/components/tabs.tsx"]
-    },
-    "Tabs.Panel": {
-      "domTarget": "Radix tabpanel div or asChild child; className targets panel. No arbitrary DOM/ref forwarding.",
-      "controlledBehavior": "Parent Tabs context selects matching value. keepMounted retains inactive content; package hides it with data-state styling.",
-      "defaultBehavior": "keepMounted/asChild off; inactive content unmounts by default. Required value ties panel to trigger; no local selected state.",
-      "props": {
-        "value": {
-          "meaning": "Stable identity for Tabs.Panel in its owning context. Required and supplied by the caller; no runtime default.",
-          "migration": "Keep keys stable across reorders/localization; do not rename identity to DOM id."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/tabs.tsx"]
-    },
-    "Tabs.Tab": {
-      "domTarget": "Radix trigger button, or single asChild element via Slottable with count/trailing additions. Native button props/id/events forwarded; public ComponentPropsWithoutRef excludes ref.",
-      "controlledBehavior": "Parent Tabs value determines active state; required value connects this trigger to its Panel. Native onChange is not tab selection.",
-      "defaultBehavior": "asChild/disabled off. count null/undefined omitted, zero rendered, Count capped at 9999. Radix generates id and aria-controls, subject to explicit supported attributes.",
-      "props": {
-        "value": {
-          "meaning": "Stable identity for Tabs.Tab in its owning context. Required and supplied by the caller; no runtime default.",
-          "migration": "Keep keys stable across reorders/localization; do not rename identity to DOM id."
-        }
-      },
-      "reviewSources": ["packages/design-system/src/components/tabs.tsx"]
     },
     "TaskRow": {
       "domTarget": "Item li with separate Checkbox, title link/button/span and action slots; only Item-picked className/meta/actions/link/onSelect are forwarded. No DOM id/aria/ref passthrough.",

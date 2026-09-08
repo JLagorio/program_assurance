@@ -8,7 +8,7 @@ import {
   platformScopeId,
 } from "@/lib/platform-ids";
 import { workForProgram } from "@/lib/control-work";
-import { controlSetFor, rollupControlSet } from "@/lib/scopes";
+import { controlSetFor, rollupControlSet, scopeById } from "@/lib/scopes";
 import { revisionsForProgram } from "@/lib/control-set";
 import { evidenceForProgram } from "@/lib/evidence-catalog";
 import {
@@ -129,27 +129,35 @@ export function platformExportSnapshot(programId = platformProgramId): PlatformE
       ]),
     ),
     revisions: structuredClone(revisionsForProgram(programId)),
-    contributions: work
-      .filter((item) => item.componentId && componentsByNode.has(item.componentId))
-      .map((item) => ({
-        id: item.id,
-        componentId: componentsByNode.get(item.componentId!)!.id,
-        controlId: item.control,
-        narrative: item.narrative,
-        status:
-          item.implementationRecorded === false
-            ? "not-recorded"
-            : item.implementation.toLowerCase().replaceAll(" ", "-"),
-        responsibleRole: item.owner ?? "Unassigned",
-        requirementIds: dataset.requirements
-          .filter(
-            (requirement) =>
-              requirement.control_ids.includes(item.control) &&
-              requirement.component_ids.includes(componentsByNode.get(item.componentId!)!.id),
-          )
-          .map((requirement) => requirement.id),
-        evidenceIds: [...item.evidence],
-      })),
+    contributions: work.flatMap((item) => {
+      const component = componentsByNode.get(scopeById.get(item.scope)?.element ?? "");
+      if (
+        !component ||
+        (!item.componentId && !item.narrativeRevision && !item.owner && !item.evidence.length)
+      )
+        return [];
+      return [
+        {
+          id: item.id,
+          componentId: component.id,
+          controlId: item.control,
+          narrative: item.narrative,
+          status:
+            item.implementationRecorded === false
+              ? "not-recorded"
+              : item.implementation.toLowerCase().replaceAll(" ", "-"),
+          responsibleRole: item.owner ?? "Unassigned",
+          requirementIds: dataset.requirements
+            .filter(
+              (requirement) =>
+                requirement.control_ids.includes(item.control) &&
+                requirement.component_ids.includes(component.id),
+            )
+            .map((requirement) => requirement.id),
+          evidenceIds: [...item.evidence],
+        },
+      ];
+    }),
   };
 }
 

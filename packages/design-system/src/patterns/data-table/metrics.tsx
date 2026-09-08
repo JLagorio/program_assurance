@@ -15,8 +15,7 @@ export function Metrics(props: CollapsibleProps) {
   return <Collapsible data-slot="data-table-metrics" {...props} />;
 }
 
-type MetricsTriggerProps = ComponentPropsWithRef<"button"> &
-  Pick<ButtonProps, "size" | "variant">;
+type MetricsTriggerProps = ComponentPropsWithRef<"button"> & Pick<ButtonProps, "size" | "variant">;
 
 /** A toolbar action that expands the metrics region without changing the table's state. */
 export function MetricsTrigger({

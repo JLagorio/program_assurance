@@ -17,6 +17,7 @@ import {
   verificationMethods,
   type DerivationSource,
   type RequirementType,
+  type Requirement,
 } from "@/lib/requirements";
 import type { VerificationMethod } from "@/lib/spine";
 
@@ -49,23 +50,29 @@ export function NewRequirementModal({
   onClose,
   programId,
   parentId = null,
+  initialControlId,
+  onCreated,
 }: {
   open: boolean;
   onClose: () => void;
   programId: string;
   parentId?: string | null;
+  initialControlId?: string | undefined;
+  onCreated?: ((requirement: Requirement) => void) | undefined;
 }) {
   const { form, values, setValue, formId, formRef } = useRecordForm(
     {
       text: "",
-      type: "Derived" as RequirementType,
+      type: (initialControlId ? "Derived" : "System security") as RequirementType,
       parent: parentId ?? "",
       owner: "",
       method: "Test" as VerificationMethod,
       criteria: "",
-      sourceType: "Control statement" as DerivationSource,
-      sourceId: "",
-      sourceLabel: "",
+      sourceType: (initialControlId
+        ? "Control statement"
+        : "Architecture decision") as DerivationSource,
+      sourceId: initialControlId ?? "",
+      sourceLabel: initialControlId ?? "",
       why: "",
     },
     (value) => ({ text: value.text, owner: value.owner, sourceId: value.sourceId, why: value.why }),
@@ -103,18 +110,22 @@ export function NewRequirementModal({
   const candidates = useMemo(() => requirementsForProgram(programId), [programId]);
 
   const reset = () => {
+    setValue("type", initialControlId ? "Derived" : "System security");
+    setValue("sourceType", initialControlId ? "Control statement" : "Architecture decision");
+    setValue("parent", parentId ?? "");
+    setValue("method", "Test");
     setText("");
     setOwner("");
     setCriteria("");
-    setSourceId("");
-    setSourceLabel("");
+    setSourceId(initialControlId ?? "");
+    setSourceLabel(initialControlId ?? "");
     setWhy("");
   };
 
   const submit = () => {
     return form.handleSubmit({
       save: () => {
-        addRequirement({
+        const created = addRequirement({
           program: programId,
           parent: parent || null,
           type,
@@ -124,6 +135,7 @@ export function NewRequirementModal({
           successCriteria: criteria.trim() || "—",
           derivations: [
             {
+              relation: "derived",
               sourceType,
               sourceId: sourceId.trim(),
               sourceLabel: sourceLabel.trim() || sourceId.trim(),
@@ -133,6 +145,7 @@ export function NewRequirementModal({
         });
         reset();
         onClose();
+        onCreated?.(created);
       },
     });
   };
@@ -141,8 +154,7 @@ export function NewRequirementModal({
     <Dialog
       open={open}
       onClose={onClose}
-      title="New security requirement"
-      description="Authored as a Draft. Provenance is mandatory — a requirement with no source cannot be approved."
+      title={initialControlId ? "Derive requirement" : "New requirement"}
       width="large"
       footer={
         <>
@@ -314,7 +326,7 @@ export function NewRequirementModal({
               className="font-heading-xxsmall uppercase text-subtlest"
               paddingBlockEnd="space.100"
             >
-              Derivation source
+              Source
             </Box>
             <Grid gap="space.150" templateColumns={{ sm: "repeat(3, minmax(0, 1fr))" }}>
               <form.Field name="sourceType">
@@ -391,8 +403,7 @@ export function NewRequirementModal({
                       : undefined
                   }
                   className="pt-150"
-                  label="Why it produces this requirement"
-                  hint="&ldquo;The security team asked&rdquo; is not provenance."
+                  label="Rationale"
                 >
                   <Textarea
                     value={field.state.value}

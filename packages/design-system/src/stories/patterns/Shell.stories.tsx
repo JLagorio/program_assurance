@@ -33,7 +33,8 @@ import {
   IconButton,
   Input,
   InputGroup,
-  Tabs,
+  TabsList,
+  TabsTrigger,
 } from "../../components";
 import { ModeSwitch } from "../../mode";
 import { PageHeader, RecordHeader, ShowPage } from "../../patterns";
@@ -511,13 +512,18 @@ function RecordDemo() {
             />
           }
           tabs={
-            <Tabs.List label="Record">
+            <TabsList
+              variant="line"
+              activateOnFocus
+              aria-label="Record"
+              className="w-full justify-start"
+            >
               {tabs.map((t) => (
-                <Tabs.Tab key={t} value={t}>
+                <TabsTrigger key={t} value={t}>
                   {t}
-                </Tabs.Tab>
+                </TabsTrigger>
               ))}
-            </Tabs.List>
+            </TabsList>
           }
           rail={tab === "Overview" ? <Inspector groups={railGroups} /> : null}
         >

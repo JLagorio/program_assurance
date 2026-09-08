@@ -3,10 +3,10 @@ import { useEffect, useSyncExternalStore } from "react";
 import { programs } from "@/lib/grc-data";
 import { assetById, findings } from "@/lib/findings";
 import { campaignById, eventById, objectiveById } from "@/lib/campaigns";
-import { nodeById } from "@/lib/composition";
+import { descendantsOf, nodeById } from "@/lib/composition";
 import { allTestRuns, runById, useRunLogVersion } from "@/lib/test-execution";
-import { controlSetFor, scopesForProgram } from "@/lib/scopes";
-import { getRequirement } from "@/lib/requirements";
+import { controlSetFor, scopeById, scopesForProgram } from "@/lib/scopes";
+import { allocationsFor, getRequirement } from "@/lib/requirements";
 
 export type EvidenceLink = {
   kind: "control" | "requirement" | "assessment" | "finding";
@@ -101,10 +101,18 @@ export function restoreEvidence() {
   restored = true;
   emit();
 }
-function commit(artifact: EvidenceArtifact) {
+function commit(artifact: EvidenceArtifact, persistRelated?: () => void) {
   const next = new Map(saved).set(artifact.id, artifact);
+  const previous = typeof window !== "undefined" ? window.localStorage.getItem(storageKey) : null;
   if (typeof window !== "undefined")
     window.localStorage.setItem(storageKey, JSON.stringify([...next.values()]));
+  try {
+    // A control link and its audit entry must both save before either store publishes it.
+    persistRelated?.();
+  } catch (error) {
+    if (typeof window !== "undefined") window.localStorage.setItem(storageKey, previous ?? "[]");
+    throw error;
+  }
   saved.set(artifact.id, artifact);
   emit();
   return artifact;
@@ -227,6 +235,18 @@ export function evidenceForProgram(program: string) {
 export function evidenceById(id: string) {
   return allEvidence().find((artifact) => artifact.id === id);
 }
+/** Unscoped artifacts can be reused; a scoped artifact retains its declared system boundary. */
+export function evidenceAvailableInScope(
+  artifact: EvidenceArtifact,
+  programId: string,
+  scopeId: string,
+) {
+  return (
+    artifact.program === programId &&
+    scopeById.get(scopeId)?.program === programId &&
+    (!artifact.scopeIds.length || artifact.scopeIds.includes(scopeId))
+  );
+}
 export function evidenceForTarget(
   program: string,
   kind: EvidenceLink["kind"],
@@ -256,6 +276,21 @@ function validateLink(artifact: EvidenceArtifact, target: EvidenceLink) {
     throw new Error("Choose a control selected for this system.");
   if (target.kind === "requirement" && getRequirement(target.id)?.program !== artifact.program)
     throw new Error("The requirement must belong to this program.");
+  if (target.kind === "requirement" && target.scopeId) {
+    const scope = scopeById.get(target.scopeId)!;
+    const element = nodeById.get(scope.element);
+    const targets = new Set([
+      scope.element,
+      ...descendantsOf(scope.element).map((node) => node.id),
+    ]);
+    if (
+      element?.parent !== null &&
+      !allocationsFor(target.id).some(
+        (allocation) => allocation.targetKind === "node" && targets.has(allocation.target),
+      )
+    )
+      throw new Error("The requirement must be allocated within this system scope.");
+  }
   if (target.kind === "assessment") {
     const event =
       eventById.get(target.id) ??
@@ -325,29 +360,33 @@ export function createEvidence(input: NewEvidence): EvidenceArtifact {
     id: `EVD-${Math.max(9000, ...ids) + 1}`,
     label: input.label.trim(),
     url: url.href,
-    scopeIds: input.scopeIds ?? [],
-    links: input.links ?? [],
+    scopeIds: [...(input.scopeIds ?? [])],
+    links: (input.links ?? []).map((link) => ({ ...link })),
     review: "Pending review",
   };
   artifact.links.forEach((link) => validateLink(artifact, link));
   return commit(artifact);
 }
-export function linkArtifact(id: string, target: EvidenceLink) {
+export function linkArtifact(id: string, target: EvidenceLink, persistRelated?: () => void) {
   restoreEvidence();
   const artifact = evidenceById(id);
   if (!artifact) throw new Error("Evidence artifact was not found.");
   validateLink(artifact, target);
   if (artifact.links.some((link) => keyOf(link) === keyOf(target))) return artifact;
-  return commit({ ...artifact, links: [...artifact.links, target] });
+  return commit({ ...artifact, links: [...artifact.links, { ...target }] }, persistRelated);
 }
-export function unlinkArtifact(id: string, target: EvidenceLink) {
+export function unlinkArtifact(id: string, target: EvidenceLink, persistRelated?: () => void) {
   restoreEvidence();
   const artifact = evidenceById(id);
   if (!artifact) return;
-  return commit({
-    ...artifact,
-    links: artifact.links.filter((link) => keyOf(link) !== keyOf(target)),
-  });
+  if (!artifact.links.some((link) => keyOf(link) === keyOf(target))) return artifact;
+  return commit(
+    {
+      ...artifact,
+      links: artifact.links.filter((link) => keyOf(link) !== keyOf(target)),
+    },
+    persistRelated,
+  );
 }
 export function reviewEvidence(
   id: string,

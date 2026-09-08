@@ -119,6 +119,10 @@ DOM attributes and refs belong on the element that consumers must label, submit,
 
 [DropdownMenu](src/stories/components/DropdownMenu.mdx) uses flat Base UI parts for actions, checkbox/radio choices and submenus. Actions close by default; choices stay open unless `closeOnClick` is set. Use LinkItem for native/router links. Content owns placement, native styles and final focus; grouped labels belong inside Group or RadioGroup.
 
+[Select](src/stories/components/Select.mdx) uses flat Base UI parts. Root owns values and form props; Trigger owns Field binding, native button props and `default`/`sm` sizing; Value owns the placeholder and display; Content owns placement. Supply labels through `items` or Value. Single values may be null, multiple values are arrays, and form reset is caller-owned.
+
+[Tabs](src/stories/components/Tabs.mdx) uses flat Root, List, Trigger and Content parts with shadcn default/line list variants. List owns `activateOnFocus` (manual by default); Root owns orientation and controlled values. Compose counts as children and native/router links through `render` with `nativeButton={false}`.
+
 Base UI, Radix, Vaul and layout helpers are implementation dependencies. Consumers use the package's public parts and their documented native and dependency-derived contracts. **Explicit public adapters** also include Sonner's toast options/promise API, TanStack table definitions, and chart configuration types exposed by the package. Upgrades that affect public contracts require checking consumer types and migration notes. React and Tailwind remain peers. `MODE_STORAGE_KEY` and `SHELL_STORAGE_KEY` are public storage integration constants; persisted data must be validated and fall back safely.
 
 ## Lifecycle and contribution

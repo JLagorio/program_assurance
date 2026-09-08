@@ -1,3 +1,10 @@
+import {
+  controlAllocationCount,
+  controlRequirementsInElement,
+  programControlRows,
+} from "@/lib/program-controls";
+import { resolveProgramElement } from "@/lib/program-scope";
+import { controlEvidence } from "@/lib/control-evidence";
 import { Count } from "@ledger/design-system";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
@@ -61,7 +68,7 @@ import { isOpen } from "@/lib/findings";
 import { programs } from "@/lib/grc-data";
 import { catalogVersion } from "@/lib/nist-catalog";
 import { mentionablePeople } from "@/lib/people";
-import { allocationsFor, requirementsForControl, useRequirementsVersion } from "@/lib/requirements";
+import { useRequirementsVersion } from "@/lib/requirements";
 import { controlSetFor, scopesForProgram } from "@/lib/scopes";
 import { severityTone } from "@/lib/spine";
 import { askFor, createTask, gateTaskFor, resolveGateTasks, useTasksVersion } from "@/lib/tasks";
@@ -76,11 +83,12 @@ import { askFor, createTask, gateTaskFor, resolveGateTasks, useTasksVersion } fr
 export const Route = createFileRoute("/programs/$programId_/controls/$controlId")({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { tab?: string | undefined; scope?: string | undefined } => {
+  ): { tab?: string | undefined; scope?: string | undefined; element?: string | undefined } => {
     const raw = search["tab"];
     return {
       tab: typeof raw === "string" && raw ? raw : undefined,
       scope: typeof search["scope"] === "string" ? search["scope"] : undefined,
+      element: typeof search["element"] === "string" ? search["element"] : undefined,
     };
   },
   loader: async ({ params }) => {
@@ -109,13 +117,14 @@ function ControlRecord() {
   const { programId, controlId } = Route.useParams();
   const { program, text } = Route.useLoaderData();
   const rows = useControlMatrix(programId);
-  const row = rows.find((r) => r.id === controlId);
 
   const workVersion = useWorkVersion();
   const requirementsVersion = useRequirementsVersion();
   useTasksVersion();
   const scopes = useMemo(() => scopesForProgram(programId), [programId]);
   const requestedScope = Route.useSearch().scope;
+  const requestedElement = Route.useSearch().element;
+  const navigate = Route.useNavigate();
   const [scopeId, setScopeId] = useState(
     () =>
       (scopes.some((scope) => scope.id === requestedScope) ? requestedScope : undefined) ??
@@ -130,6 +139,17 @@ function ControlRecord() {
     if (requestedScope && scopes.some((scope) => scope.id === requestedScope))
       setScopeId(requestedScope);
   }, [requestedScope, scopes]);
+  // Program navigation retains its origin; the scope independently selects the work record.
+  const originElementId = resolveProgramElement(programId, requestedElement)?.id;
+  const scope = scopes.find((item) => item.id === scopeId);
+  const elementId = scope?.element;
+  const set = scope ? controlSetFor(scope.id) : null;
+  const selection = set?.controls.find((item) => item.control.id === controlId);
+  const applies = !!selection;
+  const scopedRow = selection
+    ? programControlRows(programId, elementId).find((control) => control.id === controlId)
+    : undefined;
+  const row = scopedRow ? { ...scopedRow.record, findings: scopedRow.findings } : undefined;
   const [, tick] = useState(0);
   const refresh = () => tick((n) => n + 1);
   const [mapping, setMapping] = useState(false);
@@ -137,15 +157,18 @@ function ControlRecord() {
   const me = session.name;
 
   const work = useMemo(
-    () => (scopeId ? workFor(programId, scopeId, controlId) : null),
-    [programId, scopeId, controlId, workVersion],
+    () => (scopeId && applies ? workFor(programId, scopeId, controlId) : null),
+    [programId, scopeId, controlId, applies, workVersion],
   );
   const derived = useMemo(
-    () => requirementsForControl(controlId, programId),
-    [controlId, programId, requirementsVersion],
+    () => controlRequirementsInElement(programId, controlId, elementId),
+    [controlId, programId, elementId, requirementsVersion],
   );
   const context = useMemo(() => {
-    const allocated = derived.reduce((n, r) => n + allocationsFor(r.id).length, 0);
+    const allocated = derived.reduce(
+      (n, r) => n + controlAllocationCount(programId, r.id, elementId),
+      0,
+    );
     return {
       contributors: allocated,
       contributorDetail: allocated
@@ -153,19 +176,19 @@ function ControlRecord() {
         : "No allocated requirement",
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [derived, workVersion]);
+  }, [derived, workVersion, programId, elementId]);
 
   const inScope = useMemo(() => {
-    const ids = new Set(rows.map((r) => r.id));
+    const ids = new Set(controlSetFor(scopeId)?.controls.map((row) => row.control.id) ?? []);
     return (id: string) => ids.has(id);
-  }, [rows]);
+  }, [rows, scopeId]);
 
   const gates = useMemo(() => (work ? gatesFor(work, context) : []), [work, context, workVersion]);
 
   // Tasks born from a gate close by artifact: the gate is met, so the ask is done.
   useEffect(() => {
-    if (scopeId) resolveGateTasks(scopeId, controlId, gates);
-  }, [scopeId, controlId, gates]);
+    if (scopeId && work) resolveGateTasks(scopeId, controlId, gates);
+  }, [scopeId, controlId, gates, work]);
 
   if (!row || !work) {
     return (
@@ -173,7 +196,11 @@ function ControlRecord() {
         <Stack space="space.150">
           <h1 className="font-heading-small font-semibold">Control not in scope</h1>
           <TextLink size="medium">
-            <Link to="/programs/$programId" params={{ programId }} search={{ tab: "Controls" }}>
+            <Link
+              to="/programs/$programId"
+              params={{ programId }}
+              search={{ tab: "Controls", element: originElementId }}
+            >
               Back to controls
             </Link>
           </TextLink>
@@ -184,9 +211,6 @@ function ControlRecord() {
 
   const detail = controlDetail(row, text, inScope);
   const open = row.findings.filter(isOpen);
-  const scope = scopes.find((s) => s.id === scopeId);
-  const set = scopeId ? controlSetFor(scopeId) : null;
-  const selection = set?.controls.find((c) => c.control.id === controlId);
   const subject = { kind: "control" as const, id: controlId, label: row.fullTitle };
   const unmet = gates.filter((g) => !g.met);
   const people = mentionablePeople(programId).map((p) => p.name);
@@ -219,7 +243,16 @@ function ControlRecord() {
             size="small"
             className="font-body-small"
             value={scopeId}
-            onChange={(e) => setScopeId(e.target.value)}
+            onChange={(event) => {
+              setScopeId(event.target.value);
+              void navigate({
+                search: (previous) => ({
+                  ...previous,
+                  scope: event.target.value,
+                  element: originElementId,
+                }),
+              });
+            }}
             aria-label="Assessment scope"
           >
             {scopes.map((sc) => (
@@ -279,7 +312,11 @@ function ControlRecord() {
         <KeyValue label="POA&M">
           {row.poam ? (
             <TextLink>
-              <Link to="/register/poam/$poamId" params={{ poamId: row.poam }}>
+              <Link
+                to="/programs/$programId"
+                params={{ programId }}
+                search={{ tab: "POA&M", poamId: row.poam, element: originElementId }}
+              >
                 <Id>{row.poam}</Id>
               </Link>
             </TextLink>
@@ -288,7 +325,7 @@ function ControlRecord() {
           )}
         </KeyValue>
         <KeyValue label="Requirements">{derived.length || "None"}</KeyValue>
-        <KeyValue label="Evidence">{work.evidence.length || "None"}</KeyValue>
+        <KeyValue label="Implementation evidence">{work.evidence.length || "None"}</KeyValue>
       </Inspector.Group>
 
       <Inspector.Group title="Catalog">
@@ -399,7 +436,7 @@ function ControlRecord() {
                       <Link
                         to="/programs/$programId"
                         params={{ programId }}
-                        search={{ tab: "Controls" }}
+                        search={{ tab: "Controls", element: originElementId }}
                       />
                     }
                   >
@@ -410,6 +447,7 @@ function ControlRecord() {
             }
             id={controlId}
             title={row.fullTitle}
+            meta={scope?.name}
             actions={<ControlActions work={work} context={context} onChange={refresh} />}
           />
         }
@@ -457,9 +495,25 @@ function ControlRecord() {
           </Section>
         ) : null}
 
-        <Section title="Implementation">
+        <Section
+          title="Implementation"
+          action={
+            <Button
+              size="small"
+              render={
+                <Link
+                  to="/programs/$programId/export"
+                  params={{ programId }}
+                  search={{ tab: "OSCAL" }}
+                />
+              }
+            >
+              View SSP
+            </Button>
+          }
+        >
           <Box paddingBlockStart="space.100">
-            <Narrative work={work} onChange={refresh} />
+            <Narrative key={work.id} work={work} elementId={originElementId} onChange={refresh} />
           </Box>
         </Section>
 
@@ -477,14 +531,20 @@ function ControlRecord() {
               requirements={derived}
               programId={programId}
               controlId={controlId}
-              allocationCount={(id: string) => allocationsFor(id).length}
+              elementId={originElementId}
+              allocationCount={(id: string) => controlAllocationCount(programId, id, elementId)}
             />
           </Box>
         </Section>
 
-        <Section title="Evidence" count={work.evidence.length || null}>
+        <Section title="Supporting evidence" count={controlEvidence(work).length || null}>
           <Box paddingBlockStart="space.100">
-            <EvidenceBlock work={work} onChange={refresh} />
+            <EvidenceBlock
+              key={work.id}
+              work={work}
+              elementId={originElementId}
+              onChange={refresh}
+            />
           </Box>
         </Section>
 
@@ -492,7 +552,7 @@ function ControlRecord() {
 
         <Section title="Assessment" count={open.length || null}>
           <Stack space="space.200" className="pt-100">
-            <Determination work={work} onChange={refresh} />
+            <Determination key={work.id} work={work} onChange={refresh} />
             {open.length ? (
               <Table>
                 <tbody>
@@ -500,7 +560,11 @@ function ControlRecord() {
                     <Table.Row key={f.id}>
                       <Table.Cell className="max-w-none" width={104}>
                         <TextLink>
-                          <Link to="/findings/$findingId" params={{ findingId: f.id }}>
+                          <Link
+                            to="/programs/$programId"
+                            params={{ programId }}
+                            search={{ tab: "Findings", findingId: f.id, element: originElementId }}
+                          >
                             <Id>{f.id}</Id>
                           </Link>
                         </TextLink>

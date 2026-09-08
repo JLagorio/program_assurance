@@ -263,7 +263,7 @@ export function coverageWord(c: RequirementCoverage): string {
     if (c.partial) return "Partially met";
     if (c.notMet) return "Not met";
     if (c.notRun) return "Not run";
-    return "Not covered";
+    return "No assessment linked";
   }
   return `${c.met} of ${total} met`;
 }

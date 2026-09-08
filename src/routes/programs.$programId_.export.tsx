@@ -30,10 +30,16 @@ import {
   RecordHeader,
   Section,
   Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   ShowPage,
   Stack,
   Table,
-  Tabs,
+  TabsList,
+  TabsTrigger,
+  Count,
   TextLink,
   Toolbar,
 } from "@ledger/design-system";
@@ -302,13 +308,14 @@ function ProgramExport() {
           />
         }
         tabs={
-          <Tabs.List>
+          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
             {exportTabs.map((t) => (
-              <Tabs.Tab key={t} value={t} count={counts[t]}>
+              <TabsTrigger key={t} value={t}>
                 {t}
-              </Tabs.Tab>
+                {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
+              </TabsTrigger>
             ))}
-          </Tabs.List>
+          </TabsList>
         }
       >
         {tab === "OSCAL" && doc ? (
@@ -332,17 +339,23 @@ function ProgramExport() {
                 </span>
               }
             >
-              <Select
+              <Select<OscalModel>
+                items={oscalModelLabels}
                 value={model}
-                onValueChange={(v) => setModel(v as OscalModel)}
-                aria-label="OSCAL model"
-                width={268}
+                onValueChange={(value) => {
+                  if (value !== null) setModel(value);
+                }}
               >
-                {oscalModels.map((m) => (
-                  <Select.Item key={m} value={m}>
-                    {oscalModelLabels[m]}
-                  </Select.Item>
-                ))}
+                <SelectTrigger className="w-full" aria-label="OSCAL model" style={{ width: 268 }}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent aria-label="OSCAL model" align="start" alignItemWithTrigger={false}>
+                  {oscalModels.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {oscalModelLabels[m]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </Toolbar>
 
@@ -375,17 +388,22 @@ function ProgramExport() {
                 <span className="font-body-small text-subtle">RFC 4180, CRLF line endings</span>
               }
             >
-              <Select
+              <Select<EmassExportKind>
                 value={sheetKind}
-                onValueChange={(v) => setSheetKind(v as EmassExportKind)}
-                aria-label="eMASS sheet"
-                width={224}
+                onValueChange={(value) => {
+                  if (value !== null) setSheetKind(value);
+                }}
               >
-                {emassExportKinds.map((kind) => (
-                  <Select.Item key={kind} value={kind}>
-                    {kind}
-                  </Select.Item>
-                ))}
+                <SelectTrigger className="w-full" aria-label="eMASS sheet" style={{ width: 224 }}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent aria-label="eMASS sheet" align="start" alignItemWithTrigger={false}>
+                  {emassExportKinds.map((kind) => (
+                    <SelectItem key={kind} value={kind}>
+                      {kind}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </Toolbar>
 
@@ -512,16 +530,28 @@ function ProgramExport() {
               action={
                 received.length > 1 ? (
                   <Select
-                    width={200}
+                    items={received.map((b) => ({ value: b.id, label: `${b.id} · ${b.created}` }))}
                     value={activeReceived.id}
                     onValueChange={setReceivedId}
-                    aria-label="Received media"
                   >
-                    {received.map((b) => (
-                      <Select.Item key={b.id} value={b.id}>
-                        {b.id} · {b.created}
-                      </Select.Item>
-                    ))}
+                    <SelectTrigger
+                      className="w-full"
+                      style={{ width: 200 }}
+                      aria-label="Received media"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent
+                      aria-label="Received media"
+                      align="start"
+                      alignItemWithTrigger={false}
+                    >
+                      {received.map((b) => (
+                        <SelectItem key={b.id} value={b.id}>
+                          {b.id} · {b.created}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 ) : (
                   <span className="font-body-small text-subtle">

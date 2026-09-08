@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Tabs } from "../components/tabs";
+import { Tabs, TabsContent } from "../components/tabs";
 import { cn } from "../lib/cn";
 
 export type IndexPageProps = {
@@ -27,7 +27,7 @@ export function IndexPage({ header, filters, children }: IndexPageProps) {
 export type ShowPageProps = {
   /** A RecordHeader. */
   header: ReactNode;
-  /** The Tabs.List, running the full width under the header. */
+  /** The TabsList, running the full width under the header. */
   tabs?: ReactNode;
   /** The selected tab's value, the router's search param on a record. With it the page is the Tabs root and the body its panel; pass it with `onTabChange` whenever `tabs` is passed. */
   tab?: string | undefined;
@@ -49,13 +49,7 @@ export function ShowPage({ header, tabs, tab, onTabChange, rail, children }: Sho
       {header}
       {tabs}
       <div className={cn("grid pt-200", withRail && "gap-400 lg:grid-cols-main-rail lg:gap-0")}>
-        {tab === undefined ? (
-          body
-        ) : (
-          <Tabs.Panel value={tab} asChild>
-            {body}
-          </Tabs.Panel>
-        )}
+        {tab === undefined ? body : <TabsContent value={tab} render={body} />}
         {withRail ? (
           <aside
             aria-label="Details"
@@ -69,8 +63,11 @@ export function ShowPage({ header, tabs, tab, onTabChange, rail, children }: Sho
   );
   if (tab === undefined) return page;
   return (
-    <Tabs value={tab} {...(onTabChange ? { onValueChange: onTabChange } : {})} asChild>
-      {page}
-    </Tabs>
+    <Tabs
+      value={tab}
+      {...(onTabChange ? { onValueChange: onTabChange } : {})}
+      className="gap-150"
+      render={page}
+    />
   );
 }

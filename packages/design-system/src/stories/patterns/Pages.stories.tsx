@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Plus } from "lucide-react";
 import { useState } from "react";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import {
   Badge,
@@ -11,7 +12,9 @@ import {
   Button,
   FilterChip,
   KeyValue,
-  Tabs,
+  TabsList,
+  TabsTrigger,
+  Count,
   TextLink,
 } from "../../components";
 import {
@@ -100,13 +103,18 @@ function Show() {
         />
       }
       tabs={
-        <Tabs.List label="Sections">
+        <TabsList
+          variant="line"
+          activateOnFocus
+          aria-label="Sections"
+          className="w-full justify-start"
+        >
           {["overview", "evidence", "history"].map((t) => (
-            <Tabs.Tab key={t} value={t}>
+            <TabsTrigger key={t} value={t}>
               {t[0]?.toUpperCase() + t.slice(1)}
-            </Tabs.Tab>
+            </TabsTrigger>
           ))}
-        </Tabs.List>
+        </TabsList>
       }
       rail={tab === "overview" ? <Inspector groups={panelGroups} /> : null}
     >
@@ -130,7 +138,29 @@ function Show() {
   );
 }
 
-export const ShowStory: Story = { name: "Show", render: () => <Show /> };
+export const ShowStory: Story = {
+  name: "Show",
+  render: () => <Show />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const overview = canvas.getByRole("tab", { name: "Overview" });
+    const panel = canvas.getByRole("tabpanel", { name: "Overview" });
+    await expect(overview).toHaveAttribute("aria-controls", panel.id);
+    await waitFor(() =>
+      expect(canvas.getByRole("complementary", { name: "Details" })).toBeVisible(),
+    );
+    await userEvent.click(canvas.getByRole("tab", { name: "Evidence" }));
+    await expect(canvas.getByRole("tabpanel", { name: "Evidence" })).toBeVisible();
+    await expect(canvas.getAllByRole("tabpanel")).toHaveLength(1);
+    await expect(canvas.queryByRole("complementary", { name: "Details" })).toBeNull();
+    await userEvent.keyboard("{Home}");
+    await waitFor(() => expect(overview).toHaveAttribute("aria-selected", "true"));
+    await expect(canvas.getByRole("tabpanel", { name: "Overview" })).toBeVisible();
+    await waitFor(() =>
+      expect(canvas.getByRole("complementary", { name: "Details" })).toBeVisible(),
+    );
+  },
+};
 
 export const Preview: Story = {
   render: () => (
@@ -189,12 +219,18 @@ export const ArchetypesMatrix: Story = {
         tab="Overview"
         header={<RecordHeader id="PRG-1041" title="Atlas payments platform" />}
         tabs={
-          <Tabs.List label="Sections">
-            <Tabs.Tab value="Overview">Overview</Tabs.Tab>
-            <Tabs.Tab value="Controls" count={26}>
+          <TabsList
+            variant="line"
+            activateOnFocus
+            aria-label="Sections"
+            className="w-full justify-start"
+          >
+            <TabsTrigger value="Overview">Overview</TabsTrigger>
+            <TabsTrigger value="Controls">
               Controls
-            </Tabs.Tab>
-          </Tabs.List>
+              <Count value={26} max={9999} />
+            </TabsTrigger>
+          </TabsList>
         }
         rail={<Inspector groups={panelGroups} />}
       >
@@ -231,12 +267,18 @@ export const Dont: Story = {
             tab="Controls"
             header={<RecordHeader id="PRG-1041" title="Atlas payments platform" />}
             tabs={
-              <Tabs.List label="Sections">
-                <Tabs.Tab value="Overview">Overview</Tabs.Tab>
-                <Tabs.Tab value="Controls" count={26}>
+              <TabsList
+                variant="line"
+                activateOnFocus
+                aria-label="Sections"
+                className="w-full justify-start"
+              >
+                <TabsTrigger value="Overview">Overview</TabsTrigger>
+                <TabsTrigger value="Controls">
                   Controls
-                </Tabs.Tab>
-              </Tabs.List>
+                  <Count value={26} max={9999} />
+                </TabsTrigger>
+              </TabsList>
             }
           >
             <Section title="Controls" count={26}>
@@ -252,12 +294,18 @@ export const Dont: Story = {
             tab="Controls"
             header={<RecordHeader id="PRG-1041" title="Atlas payments platform" />}
             tabs={
-              <Tabs.List label="Sections">
-                <Tabs.Tab value="Overview">Overview</Tabs.Tab>
-                <Tabs.Tab value="Controls" count={26}>
+              <TabsList
+                variant="line"
+                activateOnFocus
+                aria-label="Sections"
+                className="w-full justify-start"
+              >
+                <TabsTrigger value="Overview">Overview</TabsTrigger>
+                <TabsTrigger value="Controls">
                   Controls
-                </Tabs.Tab>
-              </Tabs.List>
+                  <Count value={26} max={9999} />
+                </TabsTrigger>
+              </TabsList>
             }
             rail={<Inspector groups={panelGroups} />}
           >

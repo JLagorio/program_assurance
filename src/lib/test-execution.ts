@@ -41,6 +41,7 @@ import { z } from "zod";
 
 import type { Tone } from "@ledger/design-system";
 import {
+  campaignById,
   eventsByCampaign,
   eventById,
   objectiveById,
@@ -1745,6 +1746,19 @@ export function runsForCampaign(campaignId: string): TestRun[] {
   return proceduresForCampaign(campaignId)
     .flatMap((p) => runsForProcedure(p.id))
     .sort(byExecutionOrder);
+}
+
+/** Resolve a program record link without substituting another assessment's run. */
+export function assessmentRunForProgram(
+  programId: string,
+  campaignId: string,
+  runId?: string | null,
+): TestRun | null {
+  if (campaignById.get(campaignId)?.program !== programId) return null;
+  const runs = runsForCampaign(campaignId).filter(
+    (run) => eventById.get(run.event ?? "")?.campaign === campaignId,
+  );
+  return (runId ? runs.find((run) => run.id === runId) : runs.at(-1)) ?? null;
 }
 
 /* ---------------------------------------------------------------- verdict */

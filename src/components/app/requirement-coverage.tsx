@@ -14,7 +14,7 @@
  * it. The eye on the id opens the requirement beside the list.
  */
 
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
@@ -37,6 +37,12 @@ import {
   type Preset,
 } from "@ledger/design-system";
 import { AllocationTable } from "@/components/app/requirements";
+import { useCompositionGraph } from "@/lib/composition";
+import { closestProgramScope, resolveProgramElement } from "@/lib/program-scope";
+import {
+  requirementsForProgramElement,
+  allocationsForProgramElement,
+} from "@/lib/requirement-context";
 import { suspectLinksFor, useLinkCurrencyVersion } from "@/lib/link-currency";
 import {
   coverageOf,
@@ -45,11 +51,9 @@ import {
   type RequirementCoverage,
 } from "@/lib/requirement-verification";
 import {
-  allocationsFor,
   nestRequirements,
   requirementStateTone,
   requirementControlOrigin,
-  requirementsForProgram,
   resolveTarget,
   unallocatedRequirements,
   useRequirementsVersion,
@@ -64,10 +68,10 @@ import {
 type CarriedBy = "Allocated" | "Nobody responsible" | "Not yet allocatable";
 
 /** Where a requirement came from: the catalog, or the program's own engineering. */
-type Origin = ReturnType<typeof requirementControlOrigin>;
+type Origin = "Derived from control" | "Mapped to control" | "Independent";
 
 /** Whether any test objective names the requirement (or one of its children). */
-type Verification = "Covered" | "Not covered";
+type Verification = "Assessment linked" | "No assessment linked";
 
 /** Whether every link under the requirement is current, or one has gone Suspect. */
 type Currency = "Current" | "Suspect";
@@ -104,16 +108,21 @@ const presets: Preset[] = [
     label: "Unallocated",
     filters: [{ id: "allocation", value: ["Nobody responsible"] }],
   },
-  { id: "no-control", label: "No control", filters: [{ id: "origin", value: ["No control"] }] },
+  { id: "no-control", label: "Independent", filters: [{ id: "origin", value: ["Independent"] }] },
   {
     id: "from-control",
-    label: "From a control",
-    filters: [{ id: "origin", value: ["From a control"] }],
+    label: "Control-derived",
+    filters: [{ id: "origin", value: ["Derived from control"] }],
+  },
+  {
+    id: "mapped-control",
+    label: "Mapped to control",
+    filters: [{ id: "origin", value: ["Mapped to control"] }],
   },
   {
     id: "not-covered",
-    label: "Not covered",
-    filters: [{ id: "verification", value: ["Not covered"] }],
+    label: "No assessment linked",
+    filters: [{ id: "verification", value: ["No assessment linked"] }],
   },
   { id: "suspect", label: "Suspect", filters: [{ id: "currency", value: ["Suspect"] }] },
 ];
@@ -124,8 +133,18 @@ function metShare(c: RequirementCoverage): number {
   return total ? c.met / total : -1;
 }
 
-export function RequirementCoverage({ programId }: { programId: string }) {
+export function RequirementCoverage({
+  programId,
+  elementId,
+}: {
+  programId: string;
+  elementId?: string | undefined;
+}) {
+  const navigate = useNavigate();
   const version = useRequirementsVersion();
+  const graph = useCompositionGraph(programId);
+  const selectedElementId = resolveProgramElement(programId, elementId)?.id;
+  const controlScopeId = closestProgramScope(programId, selectedElementId)?.id;
   const verificationVersion = useVerificationVersion();
   const currencyVersion = useLinkCurrencyVersion();
   const [allocating, setAllocating] = useState<Requirement | null>(null);
@@ -135,14 +154,17 @@ export function RequirementCoverage({ programId }: { programId: string }) {
   const previewRef = useRef(previewId);
   previewRef.current = previewId;
 
-  const all = useMemo(() => requirementsForProgram(programId), [programId, version]);
+  const all = useMemo(
+    () => requirementsForProgramElement(programId, selectedElementId),
+    [programId, selectedElementId, version, graph],
+  );
 
   // The projection, nested by `parent`. Every store it reads is subscribed through a version above.
   const rows = useMemo<CoverageRow[]>(() => {
     const unallocated = new Set(unallocatedRequirements(programId).map((r) => r.id));
     const notCovered = new Set(notCoveredRequirements(programId).map((r) => r.id));
     const flat: CoverageBase[] = all.map((r) => {
-      const allocations = allocationsFor(r.id);
+      const allocations = allocationsForProgramElement(r.id, programId, selectedElementId);
       const links = suspectLinksFor(r);
       return {
         id: r.id,
@@ -154,8 +176,13 @@ export function RequirementCoverage({ programId }: { programId: string }) {
           : unallocated.has(r.id)
             ? "Nobody responsible"
             : "Not yet allocatable",
-        origin: requirementControlOrigin(r),
-        verification: notCovered.has(r.id) ? "Not covered" : "Covered",
+        origin:
+          requirementControlOrigin(r) === "No control"
+            ? "Independent"
+            : requirementControlOrigin(r) === "Mapped to a control"
+              ? "Mapped to control"
+              : "Derived from control",
+        verification: notCovered.has(r.id) ? "No assessment linked" : "Assessment linked",
         currency: links.length ? "Suspect" : "Current",
         suspect: links.length,
         suspectAllocations: new Set(
@@ -170,7 +197,7 @@ export function RequirementCoverage({ programId }: { programId: string }) {
     });
     return nestRequirements(flat);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [all, programId, version, verificationVersion, currencyVersion]);
+  }, [all, programId, selectedElementId, version, verificationVersion, currencyVersion]);
 
   // The cells link into the program, so the columns close over its id.
   const columns = useMemo(
@@ -189,6 +216,7 @@ export function RequirementCoverage({ programId }: { programId: string }) {
                 <Link
                   to="/programs/$programId/requirements/$requirementId"
                   params={{ programId, requirementId: r.id }}
+                  search={{ element: selectedElementId }}
                 >
                   <Id>{r.id}</Id>
                 </Link>
@@ -198,7 +226,7 @@ export function RequirementCoverage({ programId }: { programId: string }) {
         }),
         c.text("text", { header: "Shall statement", minWidth: 240, hideable: false }),
         c.list("carriedBy", {
-          header: "Carried by",
+          header: "Allocated to",
           width: 240,
           items: (r) =>
             r.allocations.map((a) => {
@@ -239,8 +267,15 @@ export function RequirementCoverage({ programId }: { programId: string }) {
                       <Link
                         to="/programs/$programId/controls/$controlId"
                         params={{ programId, controlId: d.sourceId }}
-                        search={{ tab: undefined }}
+                        search={{
+                          tab: undefined,
+                          scope: controlScopeId,
+                          element: selectedElementId,
+                        }}
                       >
+                        <span className="text-subtle">
+                          {d.relation === "mapped" ? "Mapped to " : "Derived from "}
+                        </span>
                         <Id>{d.sourceId}</Id>
                       </Link>
                     </TextLink>
@@ -248,18 +283,19 @@ export function RequirementCoverage({ programId }: { programId: string }) {
                 ))}
                 {r.overlays.map((d) => (
                   <Text key={d.sourceId} size="small" color="color.text.subtle">
+                    {d.relation === "mapped" ? "Mapped to " : "Derived from "}
                     {d.sourceLabel || d.sourceId}
                   </Text>
                 ))}
               </Inline>
             ) : (
-              <Indicator tone="information">
-                {r.requirement.derivations[0]?.sourceType ?? "No source"}
-              </Indicator>
+              <Text size="small" color="color.text.subtle">
+                Independent
+              </Text>
             ),
         }),
         c.text("verification", {
-          header: "Verification",
+          header: "Assessment result",
           width: 168,
           cell: (r) => <CoverageBar coverage={r.coverage} />,
           // the met share; a requirement no test names sorts below everything
@@ -268,13 +304,13 @@ export function RequirementCoverage({ programId }: { programId: string }) {
         // Hidden until asked for: the Suspect question reads it.
         c.text("currency", { header: "Currency", width: 104 }),
         c.status("state", {
-          header: "State",
+          header: "Lifecycle status",
           width: 130,
           tone: (r) => requirementStateTone[r.state],
         }),
         c.actions((r) => [{ label: "Allocate", onSelect: () => setAllocating(r.requirement) }]),
       ]),
-    [programId],
+    [programId, selectedElementId, controlScopeId],
   );
 
   const table = useDataTable({
@@ -344,11 +380,17 @@ export function RequirementCoverage({ programId }: { programId: string }) {
   // No requirements at all is a different empty from filters that leave none.
   const empty = all.length
     ? { title: "Nothing matches", description: "Choose another view or clear the filters." }
-    : {
-        title: "No security requirements",
-        description: `${programId} has no engineering requirements yet. Controls are obligations until a requirement states what the system must do.`,
-        action: newRequirement,
-      };
+    : selectedElementId
+      ? {
+          title: "No requirements allocated",
+          description: "Choose another system element or allocate a requirement.",
+          action: newRequirement,
+        }
+      : {
+          title: "No security requirements",
+          description: "Create a requirement for this program.",
+          action: newRequirement,
+        };
 
   return (
     <>
@@ -356,12 +398,24 @@ export function RequirementCoverage({ programId }: { programId: string }) {
 
       <RequirementPreviewSheet
         programId={programId}
+        elementId={selectedElementId}
         requirementId={previewId}
         onClose={() => setPreviewId(null)}
         onAllocate={(r) => setAllocating(r)}
       />
 
-      <NewRequirementModal open={adding} onClose={() => setAdding(false)} programId={programId} />
+      <NewRequirementModal
+        open={adding}
+        onClose={() => setAdding(false)}
+        programId={programId}
+        onCreated={(requirement) => {
+          void navigate({
+            to: "/programs/$programId/requirements/$requirementId",
+            params: { programId, requirementId: requirement.id },
+            search: { element: selectedElementId },
+          });
+        }}
+      />
 
       {allocating ? (
         <AllocateElementsSheet

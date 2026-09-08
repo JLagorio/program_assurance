@@ -15,7 +15,9 @@ import {
   Section,
   Shell as DsShell,
   ShowPage,
-  Tabs,
+  TabsList,
+  TabsTrigger,
+  Count,
   TextLink,
   Toolbar,
 } from "@ledger/design-system";
@@ -265,13 +267,14 @@ function ProgramIngestion() {
             />
           }
           tabs={
-            <Tabs.List>
+            <TabsList className="w-full justify-start" variant="line" activateOnFocus>
               {ingestionTabs.map((key) => (
-                <Tabs.Tab key={key} value={key} count={counts[key] || null}>
+                <TabsTrigger key={key} value={key}>
                   {key}
-                </Tabs.Tab>
+                  {counts[key] ? <Count value={counts[key]} max={9999} /> : null}
+                </TabsTrigger>
               ))}
-            </Tabs.List>
+            </TabsList>
           }
         >
           {!scan ? (

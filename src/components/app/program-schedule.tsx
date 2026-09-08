@@ -17,6 +17,9 @@ import {
   Stack,
   Table,
   Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
   Textarea,
   TextLink,
   defineColumns,
@@ -171,20 +174,26 @@ export function ProgramSchedule({
   return (
     <Stack space="space.200">
       <Tabs
+        className="gap-0"
         value={view}
         onValueChange={(next) => {
           setView(next as ScheduleView);
           onViewChange?.(next as ScheduleView);
         }}
       >
-        <Tabs.List label="Schedule views">
+        <TabsList
+          variant="line"
+          activateOnFocus
+          aria-label="Schedule views"
+          className="w-full justify-start"
+        >
           {(["Plan", "Tasks", "Assignments"] as const).map((item) => (
-            <Tabs.Tab key={item} value={item}>
+            <TabsTrigger key={item} value={item}>
               {item}
-            </Tabs.Tab>
+            </TabsTrigger>
           ))}
-        </Tabs.List>
-        <Tabs.Panel value="Plan">
+        </TabsList>
+        <TabsContent value="Plan">
           <Stack space="space.150">
             <p className="font-body-small text-subtle">
               Program milestones, implementation work, assessments and remediation commitments.
@@ -217,16 +226,16 @@ export function ProgramSchedule({
               }}
             />
           </Stack>
-        </Tabs.Panel>
-        <Tabs.Panel value="Tasks">
+        </TabsContent>
+        <TabsContent value="Tasks">
           <ProgramTasks programId={programId} me={me} />
-        </Tabs.Panel>
-        <Tabs.Panel value="Assignments">
+        </TabsContent>
+        <TabsContent value="Assignments">
           <ScheduleAssignments
             programId={programId}
             onOpen={(id) => setSelectedId(`Workstream:${id}`)}
           />
-        </Tabs.Panel>
+        </TabsContent>
       </Tabs>
       {milestone ? (
         <MilestoneEditor

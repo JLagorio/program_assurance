@@ -19,7 +19,9 @@ import {
   Shell as DsShell,
   ShowPage,
   Table,
-  Tabs,
+  TabsList,
+  TabsTrigger,
+  Count,
   TextLink,
   Toolbar,
   Eyebrow,
@@ -295,13 +297,14 @@ function ProgramSctm() {
             />
           }
           tabs={
-            <Tabs.List>
+            <TabsList className="w-full justify-start" variant="line" activateOnFocus>
               {sctmTabs.map((t) => (
-                <Tabs.Tab key={t} value={t} count={counts[t]}>
+                <TabsTrigger key={t} value={t}>
                   {t}
-                </Tabs.Tab>
+                  {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
+                </TabsTrigger>
               ))}
-            </Tabs.List>
+            </TabsList>
           }
         >
           {tab === "Matrix" ? (

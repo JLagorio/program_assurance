@@ -261,7 +261,28 @@ export {
   type ResizableProps,
 } from "./resizable";
 export { ScrollArea, type ScrollAreaProps } from "./scroll-area";
-export { Select, type SelectGroupProps, type SelectItemProps, type SelectProps } from "./select";
+export {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectGroup,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+  type SelectProps,
+  type SelectTriggerProps,
+  type SelectValueProps,
+  type SelectContentProps,
+  type SelectGroupProps,
+  type SelectLabelProps,
+  type SelectItemProps,
+  type SelectSeparatorProps,
+  type SelectScrollUpButtonProps,
+  type SelectScrollDownButtonProps,
+} from "./select";
 export { Separator, type SeparatorProps } from "./separator";
 export { Sheet, type SheetProps } from "./sheet";
 export { Skeleton, type SkeletonProps, type SkeletonShape } from "./skeleton";
@@ -276,7 +297,17 @@ export {
 } from "./stepper";
 export { Table, type TableProps, type TdProps, type ThProps } from "./table";
 export { TextLink, type TextLinkProps } from "./text-link";
-export { Tabs, type TabListProps, type TabPanelProps, type TabProps, type TabsProps } from "./tabs";
+export {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  tabsListVariants,
+  type TabsProps,
+  type TabsListProps,
+  type TabsTriggerProps,
+  type TabsContentProps,
+} from "./tabs";
 export {
   Timeline,
   type TimelineAlign,

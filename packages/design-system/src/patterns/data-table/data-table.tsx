@@ -28,7 +28,8 @@ import { cn } from "../../lib/cn";
 import { Empty } from "../empty";
 import type { DataTableFeatures } from "./features";
 import { Columns, HeaderMenu, Settings } from "./columns-menu";
-import { Filter, Presets, Search } from "./filter";
+import { Filter, Filters, Presets, Search } from "./filter";
+import { GroupBy } from "./group-by";
 import { Metrics, MetricsContent, MetricsTrigger } from "./metrics";
 import { ColumnSortable, DragContext, RowSortable, useColumnDrag, useRowDrag } from "./reorder";
 import { SelectionBar } from "./selection-bar";
@@ -916,8 +917,10 @@ function DataTableRoot<TData extends RowData>({
 }
 
 export const DataTable = Object.assign(DataTableRoot, {
+  GroupBy,
   SelectionBar,
   Filter,
+  Filters,
   Search,
   Presets,
   Columns,

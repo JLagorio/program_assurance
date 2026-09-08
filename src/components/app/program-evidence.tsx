@@ -14,6 +14,7 @@ import {
   PreviewSheet,
   Stack,
   Text,
+  Table,
   Textarea,
   TextLink,
   defineColumns,
@@ -23,6 +24,7 @@ import {
 import {
   createEvidence,
   evidenceForProgram,
+  evidenceAvailableInScope,
   evidenceForTarget,
   linkArtifact,
   reviewEvidence,
@@ -33,9 +35,23 @@ import {
   type EvidenceReview,
   type NewEvidence,
 } from "@/lib/evidence-catalog";
-import { currentSession, linkEvidence, useWorkVersion, workFor } from "@/lib/control-work";
+import {
+  currentSession,
+  linkEvidence,
+  unlinkEvidence,
+  useWorkVersion,
+  workFor,
+} from "@/lib/control-work";
 import { requirementsForProgram } from "@/lib/requirements";
-import { scopesForProgram, controlSetFor } from "@/lib/scopes";
+import { scopesForProgram, controlSetFor, scopeById } from "@/lib/scopes";
+import { closestProgramScope, resolveProgramElement } from "@/lib/program-scope";
+import { requirementsForProgramElement } from "@/lib/requirement-context";
+import {
+  evidenceScopeNames,
+  evidenceSupportRows,
+  evidenceSupportSummary,
+  type EvidenceSupportRow,
+} from "@/lib/evidence-presentation";
 
 const reviewTone = (review: EvidenceReview) =>
   review === "Accepted"
@@ -43,9 +59,6 @@ const reviewTone = (review: EvidenceReview) =>
     : review === "Needs revision"
       ? ("danger" as const)
       : ("warning" as const);
-const describeLink = (link: EvidenceLink) =>
-  `${link.kind === "control" ? "Implementation" : link.kind === "requirement" ? "Requirement" : link.kind === "finding" ? "Finding" : "Assessment"} · ${link.id}${link.scopeId ? ` · ${link.scopeId}` : ""}`;
-
 /** Add a repository reference with enough provenance to find and review the actual artifact. */
 export function AddEvidenceDialog({
   programId,
@@ -171,8 +184,14 @@ export function AddEvidenceDialog({
   );
 }
 
-export function ProgramEvidence({ programId }: { programId: string }) {
-  const version = useEvidenceVersion();
+export function ProgramEvidence({
+  programId,
+  elementId,
+}: {
+  programId: string;
+  elementId?: string | undefined;
+}) {
+  useEvidenceVersion();
   useWorkVersion();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -187,20 +206,26 @@ export function ProgramEvidence({ programId }: { programId: string }) {
         c.custom("scopeIds", {
           header: "System",
           width: 150,
-          cell: (artifact) =>
-            artifact.scopeIds
-              .map((id) => scopesForProgram(programId).find((scope) => scope.id === id)?.name ?? id)
-              .join(", ") || "Program-wide",
-          text: (artifact) =>
-            artifact.scopeIds
-              .map((id) => scopesForProgram(programId).find((scope) => scope.id === id)?.name ?? id)
-              .join(", ") || "Program-wide",
+          cell: (artifact) => {
+            const scopes = evidenceScopeNames(artifact);
+            return (
+              <span title={scopes.join("; ")}>
+                {scopes.length > 1
+                  ? `${scopes[0]} +${scopes.length - 1}`
+                  : (scopes[0] ?? "Program")}
+              </span>
+            );
+          },
+          text: (artifact) => evidenceScopeNames(artifact).join("; ") || "Program",
         }),
         c.custom("links", {
           header: "Supports",
           width: 280,
-          cell: (artifact) => artifact.links.map(describeLink).join("; ") || "Not linked",
-          text: (artifact) => artifact.links.map(describeLink).join("; ") || "Not linked",
+          cell: evidenceSupportSummary,
+          text: (artifact) =>
+            evidenceSupportRows(artifact)
+              .map((row) => `${row.link.id} ${row.title} ${row.context}`)
+              .join("; "),
         }),
         c.text("owner", { header: "Owner", width: 145 }),
         c.text("version", { header: "Version", width: 90 }),
@@ -211,7 +236,7 @@ export function ProgramEvidence({ programId }: { programId: string }) {
           tone: (artifact) => reviewTone(artifact.review),
         }),
       ]),
-    [programId],
+    [],
   );
   const table = useDataTable({
     data: rows,
@@ -275,34 +300,73 @@ export function ProgramEvidence({ programId }: { programId: string }) {
       {selected ? (
         <EvidencePreview
           key={selected.id}
-          artifact={selected}
+          programId={programId}
+          evidenceId={selected.id}
+          elementId={elementId}
           onClose={() => setSelectedId(null)}
-          version={version}
         />
       ) : null}
     </Stack>
   );
 }
 
-export function EvidencePreview({
+export type EvidencePreviewProps = {
+  onClose: () => void;
+  elementId?: string | undefined;
+  version?: number;
+} & (
+  | { programId: string; evidenceId: string; artifact?: never }
+  | { artifact: EvidenceArtifact; programId?: never; evidenceId?: never }
+);
+
+/** Shared by the evidence table, control implementations, requirements and findings. */
+export function EvidencePreview(props: EvidencePreviewProps) {
+  useEvidenceVersion();
+  useWorkVersion();
+  const programId = props.programId ?? props.artifact.program;
+  const evidenceId = props.evidenceId ?? props.artifact.id;
+  const artifact = evidenceForProgram(programId).find((item) => item.id === evidenceId);
+  if (!artifact) return null;
+  return (
+    <EvidenceRecordPreview
+      key={artifact.id}
+      artifact={artifact}
+      onClose={props.onClose}
+      elementId={props.elementId}
+    />
+  );
+}
+
+function EvidenceRecordPreview({
   artifact,
   onClose,
+  elementId,
 }: {
   artifact: EvidenceArtifact;
   onClose: () => void;
-  version?: number;
+  elementId?: string | undefined;
 }) {
+  const [editing, setEditing] = useState<"link" | "review" | null>(null);
   const [kind, setKind] = useState<"control" | "requirement">("control");
-  const scopes = scopesForProgram(artifact.program).filter(
-    (scope) => !artifact.scopeIds.length || artifact.scopeIds.includes(scope.id),
+  const scopes = scopesForProgram(artifact.program).filter((scope) =>
+    evidenceAvailableInScope(artifact, artifact.program, scope.id),
   );
-  const [scopeId, setScopeId] = useState(scopes[0]?.id ?? "");
+  const requestedScope = closestProgramScope(artifact.program, elementId);
+  const [scopeId, setScopeId] = useState(
+    scopes.find((scope) => scope.id === requestedScope?.id)?.id ?? scopes[0]?.id ?? "",
+  );
   const [target, setTarget] = useState("");
   const [review, setReview] = useState<EvidenceReview>(artifact.review);
   const [note, setNote] = useState(artifact.reviewNote ?? "");
   const [reviewer, setReviewer] = useState(currentSession().name);
   const [error, setError] = useState("");
   const controls = scopeId ? (controlSetFor(scopeId)?.controls ?? []) : [];
+  const requirements = scopeId
+    ? requirementsForProgramElement(artifact.program, scopeById.get(scopeId)?.element)
+    : requirementsForProgram(artifact.program);
+  const supports = evidenceSupportRows(artifact);
+  const origin = resolveProgramElement(artifact.program, elementId)?.id;
+  const artifactUrl = artifact.url && /^https?:\/\//i.test(artifact.url) ? artifact.url : undefined;
   const run = (action: () => void) => {
     try {
       action();
@@ -311,117 +375,140 @@ export function EvidencePreview({
       setError(error instanceof Error ? error.message : "The record could not be saved.");
     }
   };
+  const closeEditor = () => {
+    setEditing(null);
+    setError("");
+    setTarget("");
+  };
   return (
     <PreviewSheet
-      openTo={
-        artifact.url ? (
-          <a href={artifact.url} target="_blank" rel="noreferrer">
-            Open artifact
-          </a>
-        ) : (
-          <Link
-            to="/programs/$programId"
-            params={{ programId: artifact.program }}
-            search={{ tab: "Evidence" }}
-          >
-            Open program evidence
-          </Link>
-        )
-      }
       open
       onClose={onClose}
       id={artifact.id}
       title={artifact.label}
-      subtitle={`${artifact.kind} · version ${artifact.version}`}
+      subtitle={`${artifact.kind} · ${artifact.version === "Unrecorded" ? "Version unrecorded" : `version ${artifact.version}`}`}
+      openTo={
+        <Link
+          to="/programs/$programId"
+          params={{ programId: artifact.program }}
+          search={{ tab: "Evidence", element: origin }}
+        >
+          Open program evidence
+        </Link>
+      }
       status={<Badge tone={reviewTone(artifact.review)}>{artifact.review}</Badge>}
       facts={
         <>
           <Fact label="Owner">{artifact.owner}</Fact>
           <Fact label="Collected">{artifact.collected}</Fact>
-          <Fact label="Reviewed">
-            {artifact.reviewedBy
-              ? `${artifact.reviewedBy} · ${artifact.reviewedOn ?? "Undated"}`
-              : "Not reviewed"}
-          </Fact>
+          <Fact label="Valid through">{artifact.validThrough?.slice(0, 10) || "Unrecorded"}</Fact>
         </>
       }
       actions={
-        artifact.url ? (
-          <Button render={<a href={artifact.url} target="_blank" rel="noreferrer" />}>
+        artifactUrl ? (
+          <Button render={<a href={artifactUrl} target="_blank" rel="noreferrer" />}>
             Open artifact
           </Button>
-        ) : undefined
+        ) : (
+          <Badge>Reference only</Badge>
+        )
       }
     >
-      <Stack space="space.150">
-        <Block title="Provenance">
-          <Text as="p">{artifact.provenance}</Text>
-          {artifact.referenceUri ? (
-            <Fact label="Reference">
-              <span className="break-all">{artifact.referenceUri}</span>
-            </Fact>
-          ) : null}
-          {artifact.validThrough ? (
-            <Fact label="Valid through">{artifact.validThrough.slice(0, 10)}</Fact>
-          ) : null}
-          {artifact.sha256 ? (
-            <Fact label="SHA-256">
-              <span className="break-all">{artifact.sha256}</span>
-            </Fact>
-          ) : null}
-          {artifact.componentIds?.length ? (
-            <Fact label="Components">{artifact.componentIds.join(", ")}</Fact>
-          ) : null}
-          {!artifact.url ? (
+      <Stack space="space.200">
+        <Block
+          title="Supporting records"
+          count={supports.length}
+          action={
+            <Button
+              size="small"
+              onClick={() => {
+                setEditing(editing === "link" ? null : "link");
+                setError("");
+              }}
+            >
+              Link record
+            </Button>
+          }
+        >
+          {supports.length ? (
+            <Table>
+              <thead>
+                <Table.Row>
+                  <Table.Header>Type</Table.Header>
+                  <Table.Header>Record</Table.Header>
+                  <Table.Header>Scope / assessment</Table.Header>
+                  <Table.Header />
+                </Table.Row>
+              </thead>
+              <tbody>
+                {supports.map((row) => (
+                  <Table.Row key={row.key}>
+                    <Table.Cell>{row.kind}</Table.Cell>
+                    <Table.Cell>
+                      <EvidenceTargetLink
+                        programId={artifact.program}
+                        row={row}
+                        elementId={origin}
+                      />
+                    </Table.Cell>
+                    <Table.Cell className="whitespace-normal" title={row.contextDetail}>
+                      {row.context}
+                    </Table.Cell>
+                    <Table.Cell>
+                      {row.link.kind === "control" || row.link.kind === "requirement" ? (
+                        <Button
+                          size="xsmall"
+                          variant="subtle"
+                          aria-label={`Unlink ${row.link.id} from ${row.context}`}
+                          onClick={() =>
+                            run(() => {
+                              const scope = row.link.scopeId
+                                ? scopeById.get(row.link.scopeId)
+                                : undefined;
+                              const applicable =
+                                scope?.program === artifact.program &&
+                                controlSetFor(scope.id)?.controls.some(
+                                  (item) => item.control.id === row.link.id,
+                                );
+                              if (row.link.kind === "control" && scope && applicable)
+                                unlinkEvidence(
+                                  workFor(artifact.program, scope.id, row.link.id).id,
+                                  artifact.id,
+                                );
+                              else unlinkArtifact(artifact.id, row.link);
+                            })
+                          }
+                        >
+                          Unlink
+                        </Button>
+                      ) : null}
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </tbody>
+            </Table>
+          ) : (
             <Text as="p" size="small" color="color.text.subtle">
-              This seeded reference has no linked artifact location.
+              No supporting records linked.
             </Text>
-          ) : null}
-        </Block>
-        <Block title="Supports" count={artifact.links.length}>
-          <Stack space="space.100">
-            {artifact.links.length ? (
-              artifact.links.map((link) => (
-                <Inline key={describeLink(link)} space="space.100" shouldWrap>
-                  <EvidenceTargetLink programId={artifact.program} link={link} />
-                  {["control", "requirement"].includes(link.kind) ? (
-                    <Button
-                      size="xsmall"
-                      variant="subtle"
-                      onClick={() =>
-                        run(() => {
-                          unlinkArtifact(artifact.id, link);
-                        })
-                      }
-                    >
-                      Unlink
-                    </Button>
-                  ) : null}
-                </Inline>
-              ))
-            ) : (
-              <Text as="p" size="small">
-                Link this artifact to the claim it supports.
-              </Text>
-            )}
-          </Stack>
-        </Block>
-        <Block title="Link supporting record">
-          <Stack space="space.100">
-            <Field label="Record type">
-              <NativeSelect
-                value={kind}
-                onChange={(event) => {
-                  setKind(event.target.value as typeof kind);
-                  setTarget("");
-                }}
-              >
-                <option value="control">Control implementation</option>
-                <option value="requirement">Requirement</option>
-              </NativeSelect>
-            </Field>
-            {kind === "control" ? (
-              <Field label="System">
+          )}
+          {editing === "link" ? (
+            <Stack space="space.150" className="pt-150">
+              <Field label="Link to">
+                <NativeSelect
+                  value={kind}
+                  onChange={(event) => {
+                    setKind(event.target.value as typeof kind);
+                    setTarget("");
+                    if (event.target.value === "control" && !scopeId)
+                      setScopeId(scopes[0]?.id ?? "");
+                  }}
+                >
+                  <option value="control">Control implementation</option>
+                  <option value="requirement">Requirement</option>
+                </NativeSelect>
+              </Field>
+              <Field label="System / component scope">
                 <NativeSelect
                   value={scopeId}
                   onChange={(event) => {
@@ -429,6 +516,9 @@ export function EvidencePreview({
                     setTarget("");
                   }}
                 >
+                  {kind === "requirement" && !artifact.scopeIds.length ? (
+                    <option value="">Program requirement</option>
+                  ) : null}
                   {scopes.map((scope) => (
                     <option key={scope.id} value={scope.id}>
                       {scope.name}
@@ -436,77 +526,141 @@ export function EvidencePreview({
                   ))}
                 </NativeSelect>
               </Field>
+              <Field label={kind === "control" ? "Control" : "Requirement"}>
+                <NativeSelect value={target} onChange={(event) => setTarget(event.target.value)}>
+                  <option value="">Choose a record…</option>
+                  {kind === "control"
+                    ? controls.map(({ control }) => (
+                        <option key={control.id} value={control.id}>
+                          {control.id} · {control.title}
+                        </option>
+                      ))
+                    : requirements.map((requirement) => (
+                        <option key={requirement.id} value={requirement.id}>
+                          {requirement.id} · {requirement.text}
+                        </option>
+                      ))}
+                </NativeSelect>
+              </Field>
+              <Inline space="space.100">
+                <Button
+                  size="small"
+                  variant="primary"
+                  disabled={!target || (kind === "control" && !scopeId)}
+                  onClick={() =>
+                    run(() => {
+                      if (scopeId && !scopes.some((scope) => scope.id === scopeId))
+                        throw new Error("Choose a scope supported by this artifact.");
+                      if (kind === "control")
+                        linkEvidence(workFor(artifact.program, scopeId, target).id, artifact.id);
+                      else {
+                        if (!requirements.some((requirement) => requirement.id === target))
+                          throw new Error("Choose a requirement allocated within this scope.");
+                        linkArtifact(artifact.id, {
+                          kind,
+                          id: target,
+                          ...(scopeId ? { scopeId } : {}),
+                        });
+                      }
+                      closeEditor();
+                      toast.success("Supporting record linked");
+                    })
+                  }
+                >
+                  Link evidence
+                </Button>
+                <Button size="small" onClick={closeEditor}>
+                  Cancel
+                </Button>
+              </Inline>
+            </Stack>
+          ) : null}
+        </Block>
+        <Block title="Artifact">
+          <Stack space="space.100">
+            {artifact.provenance ? (
+              <Text as="p" size="small">
+                {artifact.provenance}
+              </Text>
             ) : null}
-            <Field label={kind === "control" ? "Control" : "Requirement"}>
-              <NativeSelect value={target} onChange={(event) => setTarget(event.target.value)}>
-                <option value="">Choose a record…</option>
-                {kind === "control"
-                  ? controls.map(({ control }) => (
-                      <option key={control.id} value={control.id}>
-                        {control.id} · {control.title}
-                      </option>
-                    ))
-                  : requirementsForProgram(artifact.program).map((requirement) => (
-                      <option key={requirement.id} value={requirement.id}>
-                        {requirement.id} · {requirement.text}
-                      </option>
-                    ))}
-              </NativeSelect>
-            </Field>
-            <Button
-              size="small"
-              disabled={!target}
-              onClick={() =>
-                run(() => {
-                  if (kind === "control")
-                    linkEvidence(workFor(artifact.program, scopeId, target).id, artifact.id);
-                  else linkArtifact(artifact.id, { kind, id: target });
-                  setTarget("");
-                })
-              }
-            >
-              Link evidence
-            </Button>
+            <Fact label={artifactUrl ? "Location" : "Reference"}>
+              <span className="break-all">
+                {artifact.referenceUri || artifactUrl || "No location supplied"}
+              </span>
+            </Fact>
+            {artifact.sha256 ? (
+              <Fact label="SHA-256">
+                <span className="break-all">{artifact.sha256}</span>
+              </Fact>
+            ) : null}
           </Stack>
         </Block>
-        <Block title="Review">
-          <Stack space="space.100">
-            <Field label="Review status">
-              <NativeSelect
-                value={review}
-                onChange={(event) => setReview(event.target.value as EvidenceReview)}
-              >
-                {["Pending review", "Accepted", "Needs revision"].map((status) => (
-                  <option key={status}>{status}</option>
-                ))}
-              </NativeSelect>
-            </Field>
-            <Field label="Reviewer">
-              <Input value={reviewer} onChange={(event) => setReviewer(event.target.value)} />
-            </Field>
-            <Field label="Review rationale">
-              <Textarea
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-                placeholder="What does this artifact substantiate, and is its scope and version appropriate?"
-              />
-            </Field>
+        <Block
+          title="Evidence review"
+          action={
             <Button
               size="small"
-              onClick={() =>
-                run(() => {
-                  reviewEvidence(artifact.id, review, reviewer, note);
-                  toast.success("Evidence review saved");
-                })
-              }
+              onClick={() => {
+                setEditing(editing === "review" ? null : "review");
+                setError("");
+              }}
             >
-              Save review
+              Review evidence
             </Button>
-            <Text as="p" size="small" color="color.text.subtle">
-              Artifact review records suitability. Assessment results determine whether controls and
-              requirements are met.
+          }
+        >
+          <Text as="p" size="small" color="color.text.subtle">
+            {artifact.reviewedBy
+              ? `${artifact.reviewedBy} · ${artifact.reviewedOn ?? "Undated"}`
+              : "No review recorded"}
+          </Text>
+          {artifact.reviewNote ? (
+            <Text as="p" size="small">
+              {artifact.reviewNote}
             </Text>
-          </Stack>
+          ) : null}
+          {editing === "review" ? (
+            <Stack space="space.150" className="pt-150">
+              <Field label="Review status">
+                <NativeSelect
+                  value={review}
+                  onChange={(event) => setReview(event.target.value as EvidenceReview)}
+                >
+                  {["Pending review", "Accepted", "Needs revision"].map((status) => (
+                    <option key={status}>{status}</option>
+                  ))}
+                </NativeSelect>
+              </Field>
+              <Field label="Reviewer">
+                <Input value={reviewer} onChange={(event) => setReviewer(event.target.value)} />
+              </Field>
+              <Field label="Review rationale">
+                <Textarea
+                  value={note}
+                  onChange={(event) => setNote(event.target.value)}
+                  placeholder="Scope, version and suitability for the linked claims."
+                />
+              </Field>
+              <Inline space="space.100">
+                <Button
+                  size="small"
+                  variant="primary"
+                  onClick={() =>
+                    run(() => {
+                      reviewEvidence(artifact.id, review, reviewer, note);
+                      closeEditor();
+                      toast.success("Evidence review saved");
+                    })
+                  }
+                >
+                  Save review
+                </Button>
+                <Button size="small" onClick={closeEditor}>
+                  Cancel
+                </Button>
+              </Inline>
+            </Stack>
+          ) : null}
         </Block>
         {error ? (
           <p role="alert" className="font-body-small text-danger">
@@ -518,16 +672,31 @@ export function EvidencePreview({
   );
 }
 
-function EvidenceTargetLink({ programId, link }: { programId: string; link: EvidenceLink }) {
+function EvidenceTargetLink({
+  programId,
+  row,
+  elementId,
+}: {
+  programId: string;
+  row: EvidenceSupportRow;
+  elementId?: string | undefined;
+}) {
+  const link = row.link;
+  if (!row.available) return <Text size="small">{link.id} · unavailable</Text>;
+  const label = <span title={row.title}>{link.id}</span>;
   if (link.kind === "control")
     return (
       <TextLink>
         <Link
           to="/programs/$programId/controls/$controlId"
           params={{ programId, controlId: link.id }}
-          search={{ tab: "Implementation", scope: link.scopeId }}
+          search={{
+            tab: "Implementation",
+            scope: link.scopeId,
+            element: elementId ?? row.elementId,
+          }}
         >
-          {describeLink(link)}
+          {label}
         </Link>
       </TextLink>
     );
@@ -537,12 +706,40 @@ function EvidenceTargetLink({ programId, link }: { programId: string; link: Evid
         <Link
           to="/programs/$programId/requirements/$requirementId"
           params={{ programId, requirementId: link.id }}
+          search={{ element: elementId ?? row.elementId }}
         >
-          {describeLink(link)}
+          {label}
         </Link>
       </TextLink>
     );
-  return <Text size="small">{describeLink(link)}</Text>;
+  if (link.kind === "finding")
+    return (
+      <TextLink>
+        <Link
+          to="/programs/$programId"
+          params={{ programId }}
+          search={{ tab: "Findings", findingId: link.id, element: elementId }}
+        >
+          {label}
+        </Link>
+      </TextLink>
+    );
+  return (
+    <TextLink>
+      <Link
+        to="/programs/$programId"
+        params={{ programId }}
+        search={{
+          tab: "Assessments",
+          assessmentId: row.campaignId,
+          assessmentRunId: row.runId,
+          element: elementId,
+        }}
+      >
+        {label}
+      </Link>
+    </TextLink>
+  );
 }
 
 /** Requirement record readers consume the same artifact relationships as the inventory. */
@@ -556,14 +753,17 @@ export function RequirementEvidence({
   useEvidenceVersion();
   const [adding, setAdding] = useState(false);
   const [selected, setSelected] = useState("");
+  const [previewId, setPreviewId] = useState<string | null>(null);
   const linked = evidenceForTarget(programId, "requirement", requirementId);
   return (
     <Stack space="space.100">
       {linked.map((artifact) => (
         <Inline key={artifact.id} space="space.100">
-          <Text size="small">
-            {artifact.id} · {artifact.label}
-          </Text>
+          <TextLink>
+            <button type="button" onClick={() => setPreviewId(artifact.id)}>
+              {artifact.id} · {artifact.label}
+            </button>
+          </TextLink>
           {artifact.url ? (
             <TextLink>
               <a href={artifact.url} target="_blank" rel="noreferrer">
@@ -614,6 +814,13 @@ export function RequirementEvidence({
           Add evidence
         </Button>
       </Inline>
+      {previewId ? (
+        <EvidencePreview
+          programId={programId}
+          evidenceId={previewId}
+          onClose={() => setPreviewId(null)}
+        />
+      ) : null}
       {adding ? (
         <AddEvidenceDialog
           programId={programId}

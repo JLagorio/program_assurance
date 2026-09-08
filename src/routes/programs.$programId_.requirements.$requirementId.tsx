@@ -1,6 +1,6 @@
 import { Box } from "@ledger/design-system";
 import { ChevronDown } from "lucide-react";
-import { Collapsible, Count } from "@ledger/design-system";
+import { Collapsible } from "@ledger/design-system";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -32,7 +32,9 @@ import {
   ShowPage,
   Stack,
   Table,
-  Tabs,
+  TabsList,
+  TabsTrigger,
+  Count,
   TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
@@ -40,6 +42,7 @@ import { campaignById, eventById, objectiveTone } from "@/lib/campaigns";
 import { currentSession } from "@/lib/control-work";
 import { useLinkCurrencyVersion } from "@/lib/link-currency";
 import { programs } from "@/lib/grc-data";
+import { closestProgramScope, resolveProgramElement } from "@/lib/program-scope";
 import {
   linkVerification,
   needsWithVerification,
@@ -78,9 +81,14 @@ export const Route = createFileRoute("/programs/$programId_/requirements/$requir
   // `tab` is emitted unconditionally — the validated object is merged over the
   // raw search, so returning `{}` on a miss keeps `?tab=Bogus` in the URL and
   // renders a tab strip over an empty body.
-  validateSearch: (search: Record<string, unknown>): { tab?: RequirementTab | undefined } => {
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { tab?: RequirementTab | undefined; element?: string | undefined } => {
     const raw = String(search["tab"] ?? "");
-    return { tab: requirementTabs.find((t) => t.toLowerCase() === raw.toLowerCase()) };
+    return {
+      tab: requirementTabs.find((t) => t.toLowerCase() === raw.toLowerCase()),
+      element: typeof search["element"] === "string" ? search["element"] : undefined,
+    };
   },
   loader: ({ params }) => {
     const program = programs.find((p) => p.id.toLowerCase() === params.programId.toLowerCase());
@@ -109,6 +117,8 @@ export const Route = createFileRoute("/programs/$programId_/requirements/$requir
 function RequirementRecord() {
   const { programId, requirementId } = Route.useParams();
   const tab = Route.useSearch().tab ?? "Overview";
+  const elementId = resolveProgramElement(programId, Route.useSearch().element)?.id;
+  const controlScopeId = closestProgramScope(programId, elementId)?.id;
   const program = Route.useLoaderData();
   const navigate = useNavigate({ from: Route.fullPath });
 
@@ -146,7 +156,11 @@ function RequirementRecord() {
             {requirementId} is not a security requirement of {program.id}.
           </p>
           <TextLink size="medium">
-            <Link to="/programs/$programId" params={{ programId }} search={{ tab: "Requirements" }}>
+            <Link
+              to="/programs/$programId"
+              params={{ programId }}
+              search={{ tab: "Requirements", element: elementId }}
+            >
               Back to security requirements
             </Link>
           </TextLink>
@@ -164,7 +178,8 @@ function RequirementRecord() {
   const needs = needsWithVerification(requirement);
   const objectives = objectivesForRequirement(requirement.id);
   const candidates = unlinkedObjectives(requirement.id);
-  const go = (next: RequirementTab) => navigate({ search: { tab: next }, replace: true });
+  const go = (next: RequirementTab) =>
+    navigate({ search: { tab: next, element: elementId }, replace: true });
   const me = currentSession().name;
 
   return (
@@ -225,15 +240,18 @@ function RequirementRecord() {
                             <Link
                               to="/programs/$programId/controls/$controlId"
                               params={{ programId, controlId: d.sourceId }}
-                              search={{ tab: undefined }}
+                              search={{ tab: undefined, scope: controlScopeId, element: elementId }}
                             >
+                              <span className="text-subtle">
+                                {d.relation === "mapped" ? "Mapped to " : "Derived from "}
+                              </span>
                               <Id>{d.sourceId}</Id>
                             </Link>
                           </TextLink>
                         ))}
                       </Inline>
                     ) : (
-                      <span className="text-warning">None</span>
+                      <span className="text-subtle">Independent</span>
                     )}
                   </KeyValue>
                 </Inspector.Group>
@@ -262,11 +280,20 @@ function RequirementRecord() {
                     </Box>
                   </Collapsible.Content>
                 </Collapsible>
-                <Inspector.Group title="Derives from">
+                <Inspector.Group title="Sources">
                   {requirement.derivations.map((d) => (
-                    <KeyValue key={`${d.sourceType}-${d.sourceId}`} label={d.sourceType}>
+                    <KeyValue
+                      key={`${d.sourceType}-${d.sourceId}`}
+                      label={
+                        d.sourceType === "Control statement" || d.sourceType === "Overlay"
+                          ? d.relation === "mapped"
+                            ? "Mapped to"
+                            : "Derived from"
+                          : d.sourceType
+                      }
+                    >
                       <Stack as="span" space="space.025">
-                        <SourceRef derivation={d} programId={programId} />
+                        <SourceRef derivation={d} programId={programId} elementId={elementId} />
                         <span className="font-body-xsmall text-subtle">{d.sourceLabel}</span>
                       </Stack>
                     </KeyValue>
@@ -285,7 +312,7 @@ function RequirementRecord() {
                         <Link
                           to="/programs/$programId/requirements/$requirementId"
                           params={{ programId, requirementId: parent.id }}
-                          search={{ tab: undefined }}
+                          search={{ tab: undefined, element: elementId }}
                         >
                           <Id>{parent.id}</Id>
                         </Link>
@@ -315,7 +342,7 @@ function RequirementRecord() {
                       <Link
                         to="/programs/$programId"
                         params={{ programId }}
-                        search={{ tab: "Requirements" }}
+                        search={{ tab: "Requirements", element: elementId }}
                       >
                         <Id>{programId}</Id>
                       </Link>
@@ -335,7 +362,13 @@ function RequirementRecord() {
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
                     <BreadcrumbLink
-                      render={<Link to="/programs/$programId" params={{ programId }} />}
+                      render={
+                        <Link
+                          to="/programs/$programId"
+                          params={{ programId }}
+                          search={{ tab: "Requirements", element: elementId }}
+                        />
+                      }
                     >
                       {program.name}
                     </BreadcrumbLink>
@@ -346,7 +379,7 @@ function RequirementRecord() {
               title={requirement.text}
               actions={
                 <Editable.Select
-                  label="State"
+                  label="Lifecycle status"
                   options={requirementStates}
                   value={requirement.state}
                   validate={(next) =>
@@ -366,18 +399,19 @@ function RequirementRecord() {
             />
           }
           tabs={
-            <Tabs.List>
+            <TabsList className="w-full justify-start" variant="line" activateOnFocus>
               {(
                 [
                   ["Overview", allocations.length || null],
                   ["Provenance", requirement.derivations.length || null],
                 ] as [RequirementTab, number | null][]
               ).map(([key, count]) => (
-                <Tabs.Tab key={key} value={key} count={count || null}>
+                <TabsTrigger key={key} value={key}>
                   {key}
-                </Tabs.Tab>
+                  {count ? <Count value={count} max={9999} /> : null}
+                </TabsTrigger>
               ))}
-            </Tabs.List>
+            </TabsList>
           }
         >
           {tab === "Overview" ? (
@@ -404,7 +438,7 @@ function RequirementRecord() {
                 </Block>
               ) : null}
               <Section
-                title="Allocation"
+                title="Allocated to"
                 action={
                   <Button size="small" onClick={() => setAllocating(true)}>
                     Allocate to…
@@ -426,23 +460,24 @@ function RequirementRecord() {
                     requirements={children}
                     programId={programId}
                     allocationCount={(id) => allocationsFor(id).length}
+                    elementId={elementId}
                   />
                 </Section>
               ) : null}
 
               <Section
-                title="Verification"
+                title="Assessment result"
                 action={
                   candidates.length ? (
                     <Combobox
-                      aria-label="Link a test objective"
+                      aria-label="Link an assessment objective"
                       value=""
                       onChange={(id) => linkVerification(requirement.id, id, currentSession().name)}
                       options={candidates.map((o) => ({
                         value: o.id,
                         label: `${o.id} · ${o.statement}`,
                       }))}
-                      placeholder="Link a test objective…"
+                      placeholder="Link an assessment objective…"
                       searchPlaceholder="Search objectives…"
                       width={260}
                     />
@@ -476,8 +511,13 @@ function RequirementRecord() {
                               {event && campaign ? (
                                 <TextLink>
                                   <Link
-                                    to="/campaigns/$campaignId"
-                                    params={{ campaignId: campaign.id }}
+                                    to="/programs/$programId"
+                                    params={{ programId }}
+                                    search={{
+                                      tab: "Assessments",
+                                      assessmentId: campaign.id,
+                                      element: elementId,
+                                    }}
                                     title={event.window}
                                   >
                                     {event.name}
@@ -540,6 +580,7 @@ function RequirementRecord() {
                 derivations={requirement.derivations}
                 programId={programId}
                 requirementId={requirement.id}
+                elementId={elementId}
               />
             </Section>
           ) : null}
@@ -553,9 +594,11 @@ function RequirementRecord() {
 function SourceRef({
   derivation,
   programId,
+  elementId,
 }: {
   derivation: { sourceType: string; sourceId: string };
   programId: string;
+  elementId?: string | undefined;
 }) {
   const { sourceType, sourceId } = derivation;
   const tone = derivationSourceTone[sourceType as keyof typeof derivationSourceTone];
@@ -566,7 +609,11 @@ function SourceRef({
         <Link
           to="/programs/$programId/controls/$controlId"
           params={{ programId, controlId: sourceId }}
-          search={{ tab: undefined }}
+          search={{
+            tab: undefined,
+            scope: closestProgramScope(programId, elementId)?.id,
+            element: elementId,
+          }}
         >
           <Id>{sourceId}</Id>
         </Link>

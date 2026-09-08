@@ -138,6 +138,14 @@ Keep accessible names and essential instructions independent of the visual popup
 uses flat Base UI parts. Actions use `onClick`; independent and exclusive choices use
 CheckboxItem or RadioGroup. Content owns placement and width. Use LinkItem for navigation
 and Group for labeled sections; existing single-choice consumers explicitly close.
+[Select](../../packages/design-system/src/stories/components/Select.mdx#migration-and-api)
+composes Root, Trigger, Value and Content. Root owns selected/form state; Trigger binds
+Field labels and native events; Value owns display labels and the placeholder. Use
+`items` or Value children for readable labels, and handle nullable single selections.
+[Tabs](../../packages/design-system/src/stories/components/Tabs.mdx#migration-and-api)
+uses flat List, Trigger and Content parts. List owns default/line styling and
+`activateOnFocus`; counts and badges are children. Root owns orientation and values;
+ShowPage composes its existing root and body with `render`.
 The [migration handoff](design-system-migration-handoff.md) records the next family and
 integration constraints. Family pages own their detailed contracts.
 
@@ -248,9 +256,9 @@ changelog entry.
 
 ## What is underneath
 
-Base UI powers Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard, Popover, Tooltip, DropdownMenu, Avatar, Combobox and Separator and supplies Badge and BreadcrumbLink's composition helpers. The rest
+Base UI powers Button/IconButton, Toggle/ToggleGroup, Switch, RadioGroup, Checkbox, HoverCard, Popover, Tooltip, DropdownMenu, Select, Tabs, Avatar, Combobox and Separator and supplies Badge and BreadcrumbLink's composition helpers. The rest
 of Breadcrumb is native HTML; there is no dedicated Base UI breadcrumb primitive. Existing
-families still use Radix under overlays, Tabs, Progress and ScrollArea;
+families still use Radix under overlays, Progress and ScrollArea;
 cmdk under Command; vaul under Drawer; react-day-picker under Calendar and DatePicker;
 react-resizable-panels under Resizable; sonner under Toaster; recharts under Chart. Preserve the
 dependency's focus, Escape, outside-click, keyboard and ARIA behavior through the public parts.

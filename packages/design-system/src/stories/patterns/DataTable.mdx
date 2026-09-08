@@ -42,6 +42,33 @@ The root accepts [Collapsible](?path=/docs/components-collapsible--docs) props, 
 
 <Canvas of={Stories.MetricsStory} />
 
+## Group by
+
+`DataTable.GroupBy` replaces a row of grouping pills with one toolbar menu. It shows the selected field, checks that choice in the menu, and offers **None** to return to an ungrouped list. The active treatment matches Metrics. `options` supplies `{ value, label }` fields; `value` and `onValueChange` belong to the caller. The empty string means no grouping. Native button attributes and refs reach the trigger.
+
+For `useDataTable`, bind the same value to `groupBy` and `state.grouping`. Set `initialState.expanded: true` when newly selected groups should start open. Pagination returns when grouping is cleared; search, filters, selection and column settings retain their existing owners.
+
+```tsx
+const [group, setGroup] = useState("");
+const table = useDataTable({
+  columns,
+  data,
+  groupBy: group || undefined,
+  state: { grouping: group ? [group] : [] },
+  initialState: { expanded: true },
+});
+// Inside the toolbar actions:
+<DataTable.GroupBy options={groupOptions} value={group} onValueChange={setGroup} />
+```
+
+The menu also works with custom collection renderers. The control board binds it to family, stage, owner and component grouping; the scoped Program controls table offers family, implementation, assessment, owner and applies-to fields. Task tables use the same menu alongside saved views, columns and settings.
+
+`DataTable.Filters table={table} columns={["status", "owner"]}` collects multiple filters in one toolbar popover. It reuses each column's existing checkbox, text or range fields. The trigger shows the number of filtered columns; **Clear all filters** clears column filters while retaining search, grouping and selected records. `DataTable.Filter` remains available for a single exposed filter chip.
+
+For filters owned outside the table, pass `additionalFilters={{ content, count, onClear }}`. The supplied fields appear first, contribute to the active count, and reset with **Clear all filters**. Controls uses this for its URL-backed Scope filter.
+
+<Canvas of={Stories.GroupByStory} />
+
 ## Variants
 
 Which table first: a table sorts, filters, pages, chooses, pins, nests or scrolls inside itself, `DataTable`; otherwise `Table`. Then the modes, each one option on the hook:

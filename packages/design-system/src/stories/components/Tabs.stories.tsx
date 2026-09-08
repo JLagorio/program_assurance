@@ -1,313 +1,376 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { createRef, useState } from "react";
+import { expect, fireEvent, fn, userEvent, waitFor, within } from "storybook/test";
 
-import { Badge, Tabs, ToggleGroup, ToggleGroupItem } from "../../components";
-import { Empty, Section } from "../../patterns";
-import { Box, Stack, Text } from "../../primitives";
+import {
+  Badge,
+  Button,
+  Count,
+  Input,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components";
+import { LedgerProvider } from "../../lib/locale";
+import { Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Components/Tabs",
   component: Tabs,
   parameters: { layout: "padded" },
-  args: { defaultValue: "controls", activation: "automatic", children: null },
 } satisfies Meta<typeof Tabs>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-type SectionTab = { value: string; label: string; count?: number };
+const views = ["Overview", "Controls", "Evidence", "History"];
 
-const sections: SectionTab[] = [
-  { value: "overview", label: "Overview" },
-  { value: "controls", label: "Controls", count: 26 },
-  { value: "evidence", label: "Evidence", count: 3 },
-  { value: "history", label: "History" },
-];
-
-function Strip({ tabs, label = "Sections" }: { tabs: SectionTab[]; label?: string }) {
-  return (
-    <Tabs.List label={label}>
-      {tabs.map((t) => (
-        <Tabs.Tab key={t.value} value={t.value} count={t.count ?? null}>
-          {t.label}
-        </Tabs.Tab>
-      ))}
-    </Tabs.List>
-  );
-}
-
-function Panels({ tabs }: { tabs: SectionTab[] }) {
-  return (
-    <>
-      {tabs.map((t) => (
-        <Tabs.Panel key={t.value} value={t.value}>
-          <Text as="p" color="color.text.subtle" className="pt-150">
-            {t.label}: the view. Sections, a Card, a Table.
-          </Text>
-        </Tabs.Panel>
-      ))}
-    </>
-  );
-}
-
-/** A record's sections: one strip, one panel showing, the selection held by the strip. */
-export const Record: Story = {
-  render: (args) => (
-    <Tabs {...args}>
-      <Strip tabs={sections} />
-      <Panels tabs={sections} />
-    </Tabs>
+/** Shadcn's default and line variants, manual and automatic activation, and overflow. */
+export const Variants: Story = {
+  render: () => (
+    <Stack space="space.400">
+      <Specimens title="Default · manual activation">
+        <Tabs defaultValue={0}>
+          <TabsList aria-label="Manual views">
+            {views.map((view, i) => (
+              <TabsTrigger key={view} value={i} disabled={i === 2}>
+                {view}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {views.map((view, i) => (
+            <TabsContent key={view} value={i}>
+              {view} content
+            </TabsContent>
+          ))}
+        </Tabs>
+      </Specimens>
+      <Specimens title="Line · automatic activation · scrolls when narrow">
+        <Tabs defaultValue="Controls" className="w-full max-w-[320px]">
+          <TabsList
+            variant="line"
+            activateOnFocus
+            aria-label="Record views"
+            className="w-full justify-start"
+          >
+            {views.map((view) => (
+              <TabsTrigger key={view} value={view}>
+                {view}
+                {view === "Controls" ? <Count value={340} max={9999} /> : null}
+                {view === "Evidence" ? (
+                  <Badge variant="secondary" tone="warning" size="xsmall">
+                    Draft
+                  </Badge>
+                ) : null}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {views.map((view) => (
+            <TabsContent key={view} value={view}>
+              {view} content
+            </TabsContent>
+          ))}
+        </Tabs>
+      </Specimens>
+    </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const manual = within(canvas.getByRole("tablist", { name: "Manual views" }));
+    const overview = manual.getByRole("tab", { name: "Overview" });
+    const controls = manual.getByRole("tab", { name: "Controls" });
+    overview.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await waitFor(() => expect(controls).toHaveFocus());
+    await expect(overview).toHaveAttribute("aria-selected", "true");
+    await userEvent.keyboard("{Enter}");
+    await expect(controls).toHaveAttribute("aria-selected", "true");
+    const panel = canvas.getByRole("tabpanel", { name: "Controls" });
+    await expect(controls).toHaveAttribute("aria-controls", panel.id);
+    await expect(panel).toHaveAttribute("aria-labelledby", controls.id);
+    await userEvent.keyboard("{ArrowRight}");
+    const disabled = manual.getByRole("tab", { name: "Evidence" });
+    await waitFor(() => expect(disabled).toHaveFocus());
+    await userEvent.keyboard("{Enter} ");
+    await expect(disabled).toHaveAttribute("aria-disabled", "true");
+    await expect(controls).toHaveAttribute("aria-selected", "true");
+    await userEvent.keyboard("{End}");
+    await waitFor(() => expect(manual.getByRole("tab", { name: "History" })).toHaveFocus());
+    await userEvent.keyboard("{ArrowRight}");
+    await waitFor(() => expect(overview).toHaveFocus());
+    await userEvent.keyboard(" ");
+    await expect(overview).toHaveAttribute("aria-selected", "true");
+    const line = canvas.getByRole("tablist", { name: "Record views" });
+    await expect(line.scrollWidth).toBeGreaterThan(line.clientWidth);
+    const lineTabs = within(line);
+    const selected = lineTabs.getByRole("tab", { name: "Controls 340" });
+    await expect(selected.tagName).toBe("BUTTON");
+    await expect(selected.getBoundingClientRect().height).toBe(32);
+    await waitFor(() => expect(getComputedStyle(selected, "::after").opacity).toBe("1"));
+    await expect(getComputedStyle(selected, "::after").height).toBe("2px");
+    selected.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await waitFor(() =>
+      expect(lineTabs.getByRole("tab", { name: "Evidence Draft" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      ),
+    );
+    await userEvent.keyboard("{Home}");
+    await waitFor(() =>
+      expect(lineTabs.getByRole("tab", { name: "Overview" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      ),
+    );
+    await waitFor(() =>
+      expect(
+        lineTabs.getByRole("tab", { name: "Overview" }).getBoundingClientRect().left,
+      ).toBeGreaterThanOrEqual(line.getBoundingClientRect().left),
+    );
+    await userEvent.keyboard("{End}");
+    const history = lineTabs.getByRole("tab", { name: "History" });
+    await waitFor(() => expect(history).toHaveAttribute("aria-selected", "true"));
+    await waitFor(() =>
+      expect(history.getBoundingClientRect().right).toBeLessThanOrEqual(
+        line.getBoundingClientRect().right + 1,
+      ),
+    );
+    await userEvent.keyboard("{Home}");
+    await waitFor(() => expect(line.scrollLeft).toBe(0));
+  },
 };
 
-function Held() {
-  const [tab, setTab] = useState("controls");
+const rootRef = createRef<HTMLDivElement>();
+const listRef = createRef<HTMLDivElement>();
+const tabRef = createRef<HTMLButtonElement>();
+const panelRef = createRef<HTMLDivElement>();
+const rejectedChange = fn();
+function Editing() {
+  const [value, setValue] = useState<string | null>("Draft");
   return (
     <Stack space="space.200">
-      <Tabs value={tab} onValueChange={setTab}>
-        <Strip tabs={sections} />
-        <Panels tabs={sections} />
+      <Tabs
+        ref={rootRef}
+        value={value}
+        onValueChange={(next, details) => {
+          if (next === "Locked") {
+            rejectedChange(details.reason);
+            details.cancel();
+          } else setValue(next);
+        }}
+        render={<section aria-label="Review editor" />}
+        className={(state) => (state.orientation === "horizontal" ? "gap-200" : "gap-100")}
+      >
+        <TabsList ref={listRef} aria-label="Review views">
+          <TabsTrigger
+            ref={tabRef}
+            value="Draft"
+            style={(state) => ({ fontStyle: state.active ? "normal" : "italic" })}
+          >
+            Draft
+          </TabsTrigger>
+          <TabsTrigger value="Preview">Preview</TabsTrigger>
+          <TabsTrigger value="Locked">Locked</TabsTrigger>
+        </TabsList>
+        <TabsContent ref={panelRef} value="Draft" keepMounted className="flex" render={<section />}>
+          <Input aria-label="Draft title" defaultValue="Assessment" />
+        </TabsContent>
+        <TabsContent value="Preview">
+          <Input aria-label="Preview note" defaultValue="" />
+        </TabsContent>
+        <TabsContent value="Locked">Restricted review</TabsContent>
       </Tabs>
-      <Text size="small" color="color.text.subtle">
-        The caller holds it: ?tab={tab}
-      </Text>
+      <Button onClick={() => setValue(null)}>Clear selection</Button>
+      <Text role="status">Selected: {value ?? "none"}</Text>
     </Stack>
   );
 }
 
-/** The selection as the caller's state. On a record it is the router's search param, so a view has a URL. */
-export const Controlled: Story = { render: () => <Held /> };
+/** Controlled values, cancellable changes, refs/render, and retained versus unmounted views. */
+export const EditingAndMounting: Story = {
+  render: () => <Editing />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    rejectedChange.mockClear();
+    await expect(rootRef.current).toBe(canvas.getByRole("region", { name: "Review editor" }));
+    await expect(listRef.current).toBe(canvas.getByRole("tablist", { name: "Review views" }));
+    await expect(tabRef.current).toBe(canvas.getByRole("tab", { name: "Draft" }));
+    await expect(panelRef.current?.tagName).toBe("SECTION");
+    const draft = canvas.getByRole("textbox", { name: "Draft title" });
+    await userEvent.type(draft, " updated");
+    await userEvent.click(canvas.getByRole("tab", { name: "Preview" }));
+    await waitFor(() => expect(panelRef.current).not.toBeVisible());
+    await expect(panelRef.current).toHaveAttribute("hidden");
+    await expect(panelRef.current).toHaveAttribute("inert");
+    await expect(draft).toBeInTheDocument();
+    await userEvent.type(canvas.getByRole("textbox", { name: "Preview note" }), "Temporary");
+    await userEvent.click(canvas.getByRole("tab", { name: "Locked" }));
+    await expect(rejectedChange).toHaveBeenCalledWith("none");
+    await expect(canvas.getByRole("status")).toHaveTextContent("Selected: Preview");
+    await userEvent.click(canvas.getByRole("tab", { name: "Draft" }));
+    await expect(draft).toHaveValue("Assessment updated");
+    await expect(canvas.queryByRole("textbox", { name: "Preview note", hidden: true })).toBeNull();
+    await userEvent.click(canvas.getByRole("tab", { name: "Preview" }));
+    await expect(canvas.getByRole("textbox", { name: "Preview note" })).toHaveValue("");
+    await userEvent.click(canvas.getByRole("button", { name: "Clear selection" }));
+    await expect(canvas.queryByRole("tabpanel")).toBeNull();
+    await expect(canvas.getByRole("status")).toHaveTextContent("Selected: none");
+    await userEvent.click(canvas.getByRole("tab", { name: "Draft" }));
+  },
+};
+
+/** Locale direction and vertical keyboard navigation are supplied to Base UI itself. */
+export const Orientation: Story = {
+  render: () => (
+    <LedgerProvider direction="rtl">
+      <Stack space="space.400">
+        <Specimens title="Horizontal · inherited RTL">
+          <Tabs defaultValue="Overview" className="w-full max-w-[280px]">
+            <TabsList
+              variant="line"
+              activateOnFocus
+              aria-label="RTL views"
+              className="w-full justify-start"
+            >
+              {views.map((view) => (
+                <TabsTrigger key={view} value={view}>
+                  {view}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {views.map((view) => (
+              <TabsContent key={view} value={view}>
+                {view} content
+              </TabsContent>
+            ))}
+          </Tabs>
+        </Specimens>
+        <Specimens title="Vertical · explicit LTR · no wrapping">
+          <Tabs orientation="vertical" dir="ltr" defaultValue="Overview">
+            <TabsList variant="line" activateOnFocus loopFocus={false} aria-label="Vertical views">
+              {views.map((view) => (
+                <TabsTrigger key={view} value={view}>
+                  {view}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {views.map((view) => (
+              <TabsContent key={view} value={view}>
+                {view} content
+              </TabsContent>
+            ))}
+          </Tabs>
+        </Specimens>
+      </Stack>
+    </LedgerProvider>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const rtl = within(canvas.getByRole("tablist", { name: "RTL views" }));
+    rtl.getByRole("tab", { name: "Overview" }).focus();
+    await userEvent.keyboard("{ArrowLeft}");
+    await waitFor(() =>
+      expect(rtl.getByRole("tab", { name: "Controls" })).toHaveAttribute("aria-selected", "true"),
+    );
+    await userEvent.keyboard("{ArrowRight}");
+    await waitFor(() =>
+      expect(rtl.getByRole("tab", { name: "Overview" })).toHaveAttribute("aria-selected", "true"),
+    );
+    await userEvent.keyboard("{End}");
+    const rtlLast = rtl.getByRole("tab", { name: "History" });
+    await waitFor(() => expect(rtlLast).toHaveAttribute("aria-selected", "true"));
+    const rtlList = canvas.getByRole("tablist", { name: "RTL views" });
+    await waitFor(() =>
+      expect(rtlLast.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+        rtlList.getBoundingClientRect().left - 1,
+      ),
+    );
+    await userEvent.keyboard("{Home}");
+    await waitFor(() => expect(rtlList.scrollLeft).toBe(0));
+    const verticalList = canvas.getByRole("tablist", { name: "Vertical views" });
+    await expect(verticalList).toHaveAttribute("aria-orientation", "vertical");
+    await expect(getComputedStyle(verticalList).flexDirection).toBe("column");
+    const vertical = within(verticalList);
+    vertical.getByRole("tab", { name: "Overview" }).focus();
+    await userEvent.keyboard("{ArrowDown}");
+    await waitFor(() =>
+      expect(vertical.getByRole("tab", { name: "Controls" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      ),
+    );
+    await userEvent.keyboard("{End}");
+    const last = vertical.getByRole("tab", { name: "History" });
+    await waitFor(() => expect(last).toHaveFocus());
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(last).toHaveFocus();
+    await waitFor(() => expect(getComputedStyle(last, "::after").opacity).toBe("1"));
+    await expect(getComputedStyle(last, "::after").width).toBe("2px");
+    await userEvent.keyboard("{ArrowUp}");
+    await waitFor(() => expect(vertical.getByRole("tab", { name: "Evidence" })).toHaveFocus());
+  },
+};
 
 function Linked() {
-  const [tab, setTab] = useState("controls");
+  const [value, setValue] = useState("Overview");
   return (
-    <Tabs value={tab} onValueChange={setTab}>
-      <Tabs.List label="Sections">
-        {sections.map((t) => (
-          <Tabs.Tab key={t.value} value={t.value} count={t.count ?? null} asChild>
-            <a href={`#${t.value}`}>{t.label}</a>
-          </Tabs.Tab>
+    <Tabs value={value} onValueChange={setValue}>
+      <TabsList variant="line" aria-label="Linked views">
+        {views.map((view) => (
+          <TabsTrigger
+            key={view}
+            value={view}
+            nativeButton={false}
+            render={<a href={`#${view.toLowerCase()}`} />}
+          >
+            {view}
+          </TabsTrigger>
         ))}
-      </Tabs.List>
-      <Panels tabs={sections} />
+      </TabsList>
+      {views.map((view) => (
+        <TabsContent key={view} value={view}>
+          {view} content
+        </TabsContent>
+      ))}
     </Tabs>
   );
 }
 
-/** `asChild`: the router's Link takes the tab's role and classes; the count follows its label. The router sets `value` from the URL. */
-export const AsLinks: Story = { render: () => <Linked /> };
-
-/** Automatic selects the tab the arrows land on; manual moves focus and Enter or Space selects. Focus a tab and press Right. */
-export const Activation: Story = {
-  render: () => (
-    <Stack space="space.400">
-      {(["automatic", "manual"] as const).map((activation) => (
-        <Stack key={activation} space="space.100">
-          <Text size="small" weight="medium">
-            {activation}
-          </Text>
-          <Tabs defaultValue="overview" activation={activation}>
-            <Strip tabs={sections} label={`${activation} activation`} />
-            <Panels tabs={sections} />
-          </Tabs>
-        </Stack>
-      ))}
-    </Stack>
-  ),
-};
-
-const six: SectionTab[] = [
-  { value: "overview", label: "Overview" },
-  { value: "controls", label: "Controls", count: 340 },
-  { value: "systems", label: "Systems", count: 12 },
-  { value: "findings", label: "Findings", count: 7 },
-  { value: "evidence", label: "Evidence", count: 41 },
-  { value: "history", label: "History" },
-];
-
-/** Every state on one strip, and the strip in a narrow space, where it scrolls. */
-export const TabsMatrix: Story = {
-  render: () => (
-    <Stack space="space.300">
-      <Specimens title="States">
-        <Tabs defaultValue="selected">
-          <Tabs.List label="States">
-            <Tabs.Tab value="plain">Plain</Tabs.Tab>
-            <Tabs.Tab value="selected">Selected</Tabs.Tab>
-            <Tabs.Tab value="count" count={12}>
-              Count
-            </Tabs.Tab>
-            <Tabs.Tab value="zero" count={0 || null}>
-              Zero hidden
-            </Tabs.Tab>
-            <Tabs.Tab
-              value="trailing"
-              trailing={
-                <Badge variant="secondary" tone="warning" size="xsmall">
-                  Draft
-                </Badge>
-              }
-            >
-              Trailing
-            </Tabs.Tab>
-            <Tabs.Tab value="disabled" disabled>
-              Disabled
-            </Tabs.Tab>
-            <Tabs.Tab value="link" asChild>
-              <a href="#link">Link</a>
-            </Tabs.Tab>
-          </Tabs.List>
-          <Tabs.Panel value="selected" />
-        </Tabs>
-      </Specimens>
-      <Specimens title="Selected with a count">
-        <Tabs defaultValue="controls">
-          <Tabs.List label="Selected">
-            <Tabs.Tab value="controls" count={340}>
-              Controls
-            </Tabs.Tab>
-            <Tabs.Tab value="findings" count={7}>
-              Findings
-            </Tabs.Tab>
-          </Tabs.List>
-          <Tabs.Panel value="controls" />
-        </Tabs>
-      </Specimens>
-      <Specimens title="Narrow: the strip scrolls, never wraps">
-        <Box style={{ width: 320 }}>
-          <Tabs defaultValue="findings">
-            <Strip tabs={six} label="Narrow" />
-            <Tabs.Panel value="findings" />
-          </Tabs>
-        </Box>
-      </Specimens>
-    </Stack>
-  ),
-};
-
-const twelve: SectionTab[] = [
-  ...six,
-  { value: "controls-2", label: "Controls v2" },
-  { value: "controls-3", label: "Controls v3" },
-  { value: "requirements", label: "Requirements", count: 88 },
-  { value: "timeline", label: "Timeline" },
-  { value: "team", label: "Team", count: 9 },
-  { value: "activity", label: "Activity" },
-];
-
-/** The mistakes the page is written to prevent, each beside the right way. */
-export const Dont: Story = {
-  render: () => (
-    <Stack space="space.400">
-      <Pair
-        do={
-          <ToggleGroup
-            aria-label="Scope"
-            size="sm"
-
-            defaultValue={["open"]}
-          >
-            <ToggleGroupItem value="all">All</ToggleGroupItem>
-            <ToggleGroupItem value="open">Open</ToggleGroupItem>
-            <ToggleGroupItem value="closed">Closed</ToggleGroupItem>
-          </ToggleGroup>
-        }
-        doText="One register, three scopes: a ToggleGroup, or FilterChips. The rows are the same content narrowed."
-        dont={
-          <Tabs defaultValue="open">
-            <Tabs.List label="Scope">
-              <Tabs.Tab value="all" count={40}>
-                All
-              </Tabs.Tab>
-              <Tabs.Tab value="open" count={26}>
-                Open
-              </Tabs.Tab>
-              <Tabs.Tab value="closed" count={14}>
-                Closed
-              </Tabs.Tab>
-            </Tabs.List>
-            <Tabs.Panel value="open" />
-          </Tabs>
-        }
-        dontText="Tabs over the same table. A tab is a different view of the record; a filter is the same view with fewer rows, and the reader compares by flipping."
-      />
-      <Pair
-        do={
-          <Tabs defaultValue="overview">
-            <Strip tabs={sections} label="Four" />
-            <Tabs.Panel value="overview" />
-          </Tabs>
-        }
-        doText="Four views, each a noun, the record's day in order. Six is the most."
-        dont={
-          <Tabs defaultValue="overview">
-            <Strip tabs={twelve} label="Twelve" />
-            <Tabs.Panel value="overview" />
-          </Tabs>
-        }
-        dontText="Twelve, two of them experiments. The strip scrolls and the reader hunts. Past six, regroup, or move a section into the rail."
-      />
-      <Pair
-        do={
-          <Tabs defaultValue="evidence">
-            <Tabs.List label="Sections, evidence empty">
-              <Tabs.Tab value="overview">Overview</Tabs.Tab>
-              <Tabs.Tab value="evidence">Evidence</Tabs.Tab>
-            </Tabs.List>
-            <Tabs.Panel value="evidence">
-              <Box paddingBlock="space.200">
-                <Empty
-                  title="No evidence yet"
-                  description="Link a document or a screenshot to the control and it appears here."
-                  size="compact"
-                />
-              </Box>
-            </Tabs.Panel>
-          </Tabs>
-        }
-        doText="The section has nothing yet: the tab opens, and its panel says so and what fills it."
-        dont={
-          <Tabs defaultValue="overview">
-            <Tabs.List label="Sections, evidence disabled">
-              <Tabs.Tab value="overview">Overview</Tabs.Tab>
-              <Tabs.Tab value="evidence" disabled>
-                Evidence
-              </Tabs.Tab>
-            </Tabs.List>
-            <Tabs.Panel value="overview" />
-          </Tabs>
-        }
-        dontText="A disabled tab for an empty section. The reader cannot learn why, or what to do."
-      />
-      <Pair
-        do={
-          <Section title="Objective" description="What the control prevents.">
-            <Text as="p" size="small" color="color.text.subtle" className="pt-150">
-              One view: no strip. The page is its sections.
-            </Text>
-          </Section>
-        }
-        doText="A record with one view has no strip."
-        dont={
-          <Tabs defaultValue="overview">
-            <Tabs.List label="One tab">
-              <Tabs.Tab value="overview">Overview</Tabs.Tab>
-            </Tabs.List>
-            <Tabs.Panel value="overview" />
-          </Tabs>
-        }
-        dontText="A strip of one. Nothing to select; the rule and the indicator are noise."
-      />
-    </Stack>
-  ),
-};
-
-export const Playground: Story = {
-  render: (args) => (
-    <Tabs {...args}>
-      <Strip tabs={sections} />
-      <Panels tabs={sections} />
-    </Tabs>
-  ),
+/** A router Link or anchor keeps its href while participating in the tab pattern. */
+export const Links: Story = {
+  render: () => <Linked />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const controls = canvas.getByRole("tab", { name: "Controls" });
+    await expect(controls.tagName).toBe("A");
+    await expect(controls).toHaveAttribute("href", "#controls");
+    await expect(controls).not.toHaveAttribute("type");
+    // Observe whether Base UI allows native navigation; suppress only the test's browser action.
+    const prevented: boolean[] = [];
+    const intercept = (event: MouseEvent) => {
+      prevented.push(event.defaultPrevented);
+      event.preventDefault();
+    };
+    canvasElement.ownerDocument.addEventListener("click", intercept);
+    try {
+      await userEvent.click(controls);
+      await expect(controls).toHaveAttribute("aria-selected", "true");
+      await fireEvent.click(controls, { ctrlKey: true });
+      await fireEvent.click(controls, { metaKey: true });
+      await userEvent.keyboard("{ArrowRight}");
+      const evidence = canvas.getByRole("tab", { name: "Evidence" });
+      await waitFor(() => expect(evidence).toHaveFocus());
+      await expect(controls).toHaveAttribute("aria-selected", "true");
+      await userEvent.keyboard("{Enter}");
+      await expect(evidence).toHaveAttribute("aria-selected", "true");
+      await expect(prevented).toEqual([false, false, false, false]);
+    } finally {
+      canvasElement.ownerDocument.removeEventListener("click", intercept);
+    }
+  },
 };

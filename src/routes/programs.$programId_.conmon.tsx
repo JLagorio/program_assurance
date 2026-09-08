@@ -25,7 +25,9 @@ import {
   RecordHeader,
   Section,
   ShowPage,
-  Tabs,
+  TabsList,
+  TabsTrigger,
+  Count,
   TextLink,
   ToggleGroup,
   ToggleGroupItem,
@@ -291,13 +293,14 @@ function ProgramConMon() {
           />
         }
         tabs={
-          <Tabs.List>
+          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
             {conmonTabs.map((key) => (
-              <Tabs.Tab key={key} value={key} count={counts[key] || null}>
+              <TabsTrigger key={key} value={key}>
                 {key}
-              </Tabs.Tab>
+                {counts[key] ? <Count value={counts[key]} max={9999} /> : null}
+              </TabsTrigger>
             ))}
-          </Tabs.List>
+          </TabsList>
         }
       >
         {tab === "Drift" ? (

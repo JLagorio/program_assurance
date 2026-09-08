@@ -22,6 +22,28 @@ const draft = {
   scopeIds: ["SYS-0003"],
 };
 
+async function platformStores() {
+  const { registerPlatformStructure } = await import("./platform-structure");
+  const { registerPlatformControls } = await import("./platform-controls");
+  const { registerPlatformAssurance } = await import("./platform-assurance");
+  registerPlatformStructure();
+  registerPlatformControls();
+  registerPlatformAssurance();
+  const evidence = await import("./evidence-catalog");
+  const work = await import("./control-work");
+  evidence.restoreEvidence();
+  work.restoreWork();
+  return { evidence, work };
+}
+
+const missionScope = "SYS-109101";
+const platformDraft = {
+  ...draft,
+  program: "PRG-1090",
+  label: "Mission Computer audit review procedure",
+  scopeIds: [missionScope],
+};
+
 describe("shared evidence workflow", () => {
   it("scopes inventory, validates URLs and retains links and review after reload", async () => {
     let evidence = await import("./evidence-catalog");
@@ -118,6 +140,220 @@ describe("shared evidence workflow", () => {
       "Quota exceeded",
     );
     expect(evidence.evidenceForProgram(draft.program)).toHaveLength(before);
+  });
+
+  it("shows only the selected component's implementation and explicitly allocated requirement support", async () => {
+    const { evidence, work } = await platformStores();
+    const { controlEvidence, availableControlEvidence } = await import("./control-evidence");
+    const control = work.workFor("PRG-1090", missionScope, "AU-6");
+    expect(controlEvidence(control).find((row) => row.artifact.id === "EVD-015")?.supports).toEqual(
+      [
+        { kind: "control", id: "AU-6", scopeId: missionScope },
+        { kind: "requirement", id: "REQ-015", scopeId: "SYS-1090" },
+      ],
+    );
+    const sibling = work.workFor("PRG-1090", "SYS-109113", "AU-6");
+    expect(availableControlEvidence(sibling).some((row) => row.id === "EVD-015")).toBe(false);
+    expect(controlEvidence(sibling).find((row) => row.artifact.id === "EVD-089")?.supports).toEqual(
+      [
+        { kind: "control", id: "AU-6", scopeId: sibling.scope },
+        { kind: "requirement", id: "REQ-089", scopeId: "SYS-1090" },
+      ],
+    );
+
+    const artifact = evidence.createEvidence({ ...platformDraft, scopeIds: [] });
+    evidence.linkArtifact(artifact.id, {
+      kind: "requirement",
+      id: "REQ-089",
+      scopeId: missionScope,
+    });
+    expect(
+      controlEvidence(control).find((row) => row.artifact.id === artifact.id)?.supports,
+    ).toEqual([{ kind: "requirement", id: "REQ-089", scopeId: missionScope }]);
+    expect(control.evidence).not.toContain(artifact.id);
+    expect(controlEvidence(sibling).some((row) => row.artifact.id === artifact.id)).toBe(false);
+    expect(() =>
+      evidence.linkArtifact(artifact.id, {
+        kind: "requirement",
+        id: "REQ-015",
+        scopeId: sibling.scope,
+      }),
+    ).toThrow("allocated within this system scope");
+
+    evidence.linkArtifact(artifact.id, { kind: "requirement", id: "REQ-089" });
+    expect(controlEvidence(sibling).some((row) => row.artifact.id === artifact.id)).toBe(true);
+  });
+
+  it("keeps artifact review, implementation support, and requirement assessment separate", async () => {
+    const { evidence, work } = await platformStores();
+    const { controlEvidence } = await import("./control-evidence");
+    const { getRequirement } = await import("./requirements");
+    const { coverageOf } = await import("./requirement-verification");
+    const control = work.workFor("PRG-1090", missionScope, "AU-6");
+    const priorControl = {
+      implementation: control.implementation,
+      implementationRecorded: control.implementationRecorded,
+      assessment: control.assessment,
+      submitted: control.submitted,
+    };
+    const requirement = getRequirement("REQ-015")!;
+    const priorRequirement = { state: requirement.state, coverage: coverageOf(requirement) };
+    const artifact = evidence.createEvidence({
+      ...platformDraft,
+      links: [{ kind: "requirement", id: requirement.id, scopeId: missionScope }],
+    });
+    evidence.reviewEvidence(
+      artifact.id,
+      "Accepted",
+      "Assessor",
+      "Authenticity and version checked.",
+    );
+    expect(control.evidence).not.toContain(artifact.id);
+    expect(
+      controlEvidence(control).find((row) => row.artifact.id === artifact.id)?.supports,
+    ).toEqual([{ kind: "requirement", id: requirement.id, scopeId: missionScope }]);
+    work.linkEvidence(control.id, artifact.id);
+    expect(control.evidence).toContain(artifact.id);
+    work.unlinkEvidence(control.id, artifact.id);
+    expect(control.evidence).not.toContain(artifact.id);
+    expect(
+      evidence.evidenceForTarget("PRG-1090", "requirement", requirement.id, missionScope),
+    ).toContainEqual(expect.objectContaining({ id: artifact.id, review: "Accepted" }));
+    expect(control).toMatchObject(priorControl);
+    expect({ state: requirement.state, coverage: coverageOf(requirement) }).toEqual(
+      priorRequirement,
+    );
+  });
+
+  it("restores the edited Mission Computer statement and exact source unlink in SSP without changing peers", async () => {
+    let { evidence, work } = await platformStores();
+    const control = work.workFor("PRG-1090", missionScope, "AU-6");
+    const parentBefore = { ...work.workFor("PRG-1090", "SYS-1090", "AU-6") };
+    const siblingBefore = { ...work.workFor("PRG-1090", "SYS-109118", "AU-6") };
+    const artifact = evidence.createEvidence(platformDraft);
+    const narrative =
+      "Mission Computer operators review signed audit records after each mission; exceptions are retained in the mission audit review.";
+    work.setNarrative(control.id, narrative);
+    work.linkEvidence(control.id, artifact.id);
+    work.unlinkEvidence(control.id, "EVD-015");
+    expect(work.workFor("PRG-1090", "SYS-1090", "AU-6")).toEqual(parentBefore);
+    expect(work.workFor("PRG-1090", "SYS-109118", "AU-6")).toEqual(siblingBefore);
+
+    vi.resetModules();
+    ({ evidence, work } = await platformStores());
+    const restored = work.workFor("PRG-1090", missionScope, "AU-6");
+    expect(restored.narrative).toBe(narrative);
+    expect(restored.evidence).toContain(artifact.id);
+    expect(restored.evidence).not.toContain("EVD-015");
+    expect(work.workFor("PRG-1090", "SYS-109118", "AU-6").evidence).toContain("EVD-015");
+    expect(evidence.evidenceById("EVD-015")?.links).toContainEqual({
+      kind: "requirement",
+      id: "REQ-015",
+      scopeId: "SYS-1090",
+    });
+    const { platformExportSnapshot, buildSnapshotSsp } = await import("./platform-oscal");
+    const value = platformExportSnapshot();
+    const document = buildSnapshotSsp(value) as {
+      "system-security-plan": {
+        "control-implementation": {
+          "implemented-requirements": Array<{
+            "control-id": string;
+            remarks: string;
+            "by-components": Array<{
+              "component-uuid": string;
+              description: string;
+              links: Array<{ href: string; rel: string }>;
+            }>;
+          }>;
+        };
+      };
+    };
+    const exported = document["system-security-plan"]["control-implementation"][
+      "implemented-requirements"
+    ].find((row) => row["control-id"] === "au-6")!;
+    const missionUuid = value.dataset.components.find((row) => row.id === "LRU-001")!.uuid;
+    const contribution = exported["by-components"].find(
+      (row) => row["component-uuid"] === missionUuid,
+    )!;
+    const artifactUuid = value.dataset.evidence.find((row) => row.id === artifact.id)!.uuid;
+    const originalUuid = value.dataset.evidence.find((row) => row.id === "EVD-015")!.uuid;
+    expect(contribution.description).toBe(narrative);
+    expect(contribution.links).toContainEqual({ href: `#${artifactUuid}`, rel: "evidence" });
+    expect(contribution.links).not.toContainEqual({ href: `#${originalUuid}`, rel: "evidence" });
+    expect(exported.remarks).toContain(parentBefore.narrative);
+    expect(
+      exported["by-components"]
+        .filter((row) => row !== contribution)
+        .every(
+          (row) =>
+            row.description !== narrative &&
+            !row.links.some((link) => link.href === `#${artifactUuid}`),
+        ),
+    ).toBe(true);
+  });
+
+  it("does not publish an unsaved statement, review, or partial control link when storage fails", async () => {
+    const { evidence, work } = await platformStores();
+    const { activityForProgram } = await import("./activity");
+    const control = work.workFor("PRG-1090", missionScope, "AU-6");
+    const artifact = evidence.createEvidence(platformDraft);
+    const priorWork = { ...control };
+    const priorEvents = work.activityFor(control.id);
+    const priorActivity = activityForProgram("PRG-1090");
+    setItem.mockImplementation((key: string, value: string) => {
+      if (key === "equinox.control-work.v1") throw new Error("Quota exceeded");
+      storage.set(key, value);
+    });
+    expect(() => work.setNarrative(control.id, "Must not replace the saved narrative.")).toThrow(
+      "Quota exceeded",
+    );
+    expect(() => work.linkEvidence(control.id, artifact.id)).toThrow("Quota exceeded");
+    expect(() => work.unlinkEvidence(control.id, "EVD-015")).toThrow("Quota exceeded");
+    expect(control).toEqual(priorWork);
+    expect(work.activityFor(control.id)).toEqual(priorEvents);
+    expect(activityForProgram("PRG-1090")).toEqual(priorActivity);
+    expect(
+      JSON.parse(storage.get("equinox.evidence.v1")!).find(
+        (row: { id: string }) => row.id === artifact.id,
+      ).links,
+    ).toEqual([]);
+    setItem.mockImplementation(() => {
+      throw new Error("Quota exceeded");
+    });
+    expect(() => evidence.reviewEvidence(artifact.id, "Accepted", "Assessor", "Reviewed.")).toThrow(
+      "Quota exceeded",
+    );
+    expect(evidence.evidenceById(artifact.id)?.review).toBe("Pending review");
+  });
+
+  it("exports a first-authored component control from its scope even without an imported contribution", async () => {
+    const { evidence, work } = await platformStores();
+    const { controlSetFor } = await import("./scopes");
+    const { platformExportSnapshot } = await import("./platform-oscal");
+    const existing = new Set(work.workForScope(missionScope).map((item) => item.control));
+    const selected = controlSetFor(missionScope)!.controls.find(
+      (item) => !existing.has(item.control.id),
+    )!;
+    const control = work.workFor("PRG-1090", missionScope, selected.control.id);
+    expect(control.componentId).toBeUndefined();
+    expect(platformExportSnapshot().contributions.some((item) => item.id === control.id)).toBe(
+      false,
+    );
+    const artifact = evidence.createEvidence(platformDraft);
+    work.setNarrative(
+      control.id,
+      "Mission Computer implementation recorded for this locally applicable control.",
+    );
+    work.linkEvidence(control.id, artifact.id);
+    expect(platformExportSnapshot().contributions).toContainEqual(
+      expect.objectContaining({
+        id: control.id,
+        componentId: "LRU-001",
+        controlId: control.control,
+        narrative: control.narrative,
+        evidenceIds: [artifact.id],
+      }),
+    );
   });
 
   it("does not treat a sibling requirement's artifact as evidence for another requirement", async () => {

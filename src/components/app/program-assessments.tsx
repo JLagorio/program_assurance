@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import {
@@ -47,13 +47,13 @@ import { requirementsForProgram, useRequirementsVersion } from "@/lib/requiremen
 import { requirementsForObjective, useVerificationVersion } from "@/lib/requirement-verification";
 import {
   campaignExecution,
+  assessmentRunForProgram,
   completionBlockedBy,
   createTestRun,
   procedureById,
   proceduresForCampaign,
   recordStep,
   resolvedObjectiveResult,
-  runById,
   runVerdict,
   runsForCampaign,
   setRunState,
@@ -80,12 +80,18 @@ const errorText = (error: unknown) =>
 export function ProgramAssessments({
   programId,
   initialAssessmentId,
+  initialRunId,
+  elementId,
   onAssessmentChange,
+  onRunChange,
   onRaiseFinding,
 }: {
   programId: string;
   initialAssessmentId?: string | undefined;
+  initialRunId?: string | undefined;
+  elementId?: string | undefined;
   onAssessmentChange?: ((id: string | null) => void) | undefined;
+  onRunChange?: ((id: string | null) => void) | undefined;
   onRaiseFinding?: ((assessmentId: string) => void) | undefined;
 }) {
   const version = useAssessmentsVersion();
@@ -93,9 +99,12 @@ export function ProgramAssessments({
   useVerificationVersion();
   useAssuranceVersion();
   const [selected, setSelectedState] = useState<string | null>(initialAssessmentId ?? null);
+  const [runId, setRunIdState] = useState<string | null>(initialRunId ?? null);
+  const runRecordRef = useRef<HTMLDivElement>(null);
   const setSelected = useCallback(
     (id: string | null) => {
       setSelectedState(id);
+      setRunIdState(null);
       onAssessmentChange?.(id);
     },
     [onAssessmentChange],
@@ -104,7 +113,13 @@ export function ProgramAssessments({
   selectedRef.current = selected;
   const [adding, setAdding] = useState(false);
   const [starting, setStarting] = useState(false);
-  const [runId, setRunId] = useState<string | null>(null);
+  const setRunId = useCallback(
+    (id: string | null) => {
+      setRunIdState(id);
+      onRunChange?.(id);
+    },
+    [onRunChange],
+  );
   const [recording, setRecording] = useState<string | null>(null);
   const rows = useMemo(
     () =>
@@ -162,10 +177,15 @@ export function ProgramAssessments({
   });
   const campaign = campaigns.find((c) => c.id === selected && c.program === programId) ?? null;
   const assessmentRuns = campaign ? runsForCampaign(campaign.id) : [];
-  const run =
-    (runId && assessmentRuns.some((r) => r.id === runId)
-      ? runById(runId)
-      : assessmentRuns.at(-1)) ?? null;
+  const run = campaign ? assessmentRunForProgram(programId, campaign.id, runId) : null;
+  const selectedRunId = run?.id;
+  useEffect(() => {
+    if (!runId || !selectedRunId) return;
+    const frame = requestAnimationFrame(() =>
+      runRecordRef.current?.scrollIntoView({ block: "start" }),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [runId, selectedRunId]);
   const procedure = run ? (procedureById.get(run.procedure) ?? null) : null;
   const eventFindingIds = new Set(
     campaign ? eventsByCampaign(campaign.id).flatMap((e) => e.findings) : [],
@@ -222,7 +242,6 @@ export function ProgramAssessments({
         open={!!campaign}
         onClose={() => {
           setSelected(null);
-          setRunId(null);
         }}
         id={campaign?.id ?? ""}
         title={campaign?.name ?? ""}
@@ -288,6 +307,7 @@ export function ProgramAssessments({
                             <Link
                               to="/programs/$programId/requirements/$requirementId"
                               params={{ programId, requirementId: id }}
+                              search={{ element: elementId }}
                             >
                               {id}
                             </Link>
@@ -306,7 +326,7 @@ export function ProgramAssessments({
                       <Link
                         to="/programs/$programId"
                         params={{ programId }}
-                        search={{ tab: "Findings", findingId: f.id }}
+                        search={{ tab: "Findings", findingId: f.id, element: elementId }}
                       >
                         {f.id} · {f.title}
                       </Link>
@@ -327,20 +347,22 @@ export function ProgramAssessments({
                     ))}
                   </NativeSelect>
                 </Field>
-                <RunRecordView
-                  run={run}
-                  procedure={procedure}
-                  verdict={runVerdict(run.id)}
-                  blockedReason={completionBlockedBy(run.id)}
-                  onComplete={() => {
-                    try {
-                      setRunState(run.id, "Complete");
-                      toast.success("Assessment run completed");
-                    } catch (e) {
-                      toast.error(errorText(e));
-                    }
-                  }}
-                />
+                <div ref={runRecordRef}>
+                  <RunRecordView
+                    run={run}
+                    procedure={procedure}
+                    verdict={runVerdict(run.id)}
+                    blockedReason={completionBlockedBy(run.id)}
+                    onComplete={() => {
+                      try {
+                        setRunState(run.id, "Complete");
+                        toast.success("Assessment run completed");
+                      } catch (e) {
+                        toast.error(errorText(e));
+                      }
+                    }}
+                  />
+                </div>
                 {run.state !== "Complete" && procedure ? (
                   <Block title="Record an observation">
                     <Inline space="space.100" shouldWrap>
@@ -355,8 +377,19 @@ export function ProgramAssessments({
               </>
             ) : (
               <Empty
-                title="Ready to execute"
-                description="Start a run against a named build, then record observations and supporting evidence for each procedure step."
+                title={runId ? "Run not found in this assessment" : "Ready to execute"}
+                description={
+                  runId
+                    ? "Choose a run belonging to this assessment."
+                    : "Start a run against a named build, then record observations and supporting evidence for each procedure step."
+                }
+                action={
+                  runId && assessmentRuns.length ? (
+                    <Button size="small" onClick={() => setRunId(null)}>
+                      Show latest run
+                    </Button>
+                  ) : undefined
+                }
               />
             )}
           </Stack>
@@ -369,7 +402,6 @@ export function ProgramAssessments({
           onCreated={(c) => {
             setAdding(false);
             setSelected(c.id);
-            setRunId(null);
           }}
         />
       ) : null}

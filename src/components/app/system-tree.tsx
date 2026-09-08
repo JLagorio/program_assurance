@@ -1,6 +1,6 @@
-import { useCallback, type SetStateAction, useMemo, useState } from "react";
+import { useCallback, useEffect, type SetStateAction, useMemo, useRef, useState } from "react";
 import { useRecordForm } from "@/lib/record-form";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 
 import {
   Absent,
@@ -16,10 +16,15 @@ import {
   NativeSelect,
   Progress,
   Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Sheet,
   Stack,
   Text,
   Textarea,
+  TextLink,
   toast,
   useDataTable,
 } from "@ledger/design-system";
@@ -41,8 +46,9 @@ import {
   revisionTone,
   useControlSetVersion,
 } from "@/lib/control-set";
-import { positionOf, useWorkVersion, workForScope } from "@/lib/control-work";
-import { workIndex } from "@/lib/control-board";
+import { useWorkVersion, workForScope } from "@/lib/control-work";
+import { closestProgramScope, resolveProgramElement } from "@/lib/program-scope";
+import { programControlRows, programControlScopes } from "@/lib/program-controls";
 
 import { AllocateRequirementsSheet } from "./allocate-picker";
 import { ElementHover } from "./glances";
@@ -89,6 +95,7 @@ type Row = {
   node: CompositionNode;
   depth: number;
   scope: AssessmentScope | null;
+  owner: string;
   requirements: number;
   withoutControl: number;
   controls: number;
@@ -101,7 +108,13 @@ type TreeRow = Row & { parts: TreeRow[] };
 
 /* ------------------------------------------------------------------ Tree */
 
-export function SystemTree({ programId }: { programId: string }) {
+export function SystemTree({
+  programId,
+  elementId,
+}: {
+  programId: string;
+  elementId?: string | undefined;
+}) {
   const nodes = useCompositionGraph(programId);
   const scopesVersion = useScopesVersion();
   const controlSetVersion = useControlSetVersion();
@@ -114,7 +127,7 @@ export function SystemTree({ programId }: { programId: string }) {
   const navigate = useNavigate({ from: "/programs/$programId" });
   // The peek stack lives in the URL: the sheet's back chevron and the browser's back agree.
   const { peek } = useSearch({ from: "/programs/$programId" });
-  const stack = useMemo(() => (peek ? peek.split(",").filter(Boolean) : []), [peek]);
+  const stack = peek ? peek.split(",").filter((id) => resolveProgramElement(programId, id)) : [];
   const preview = stack[stack.length - 1] ?? null;
   const setStack = (next: string[]) =>
     void navigate({
@@ -127,9 +140,9 @@ export function SystemTree({ programId }: { programId: string }) {
   // and the tree's open rows survive that because the table keeps them by node id.
   const rows = useMemo(() => {
     const scopeByElement = new Map(scopes.map((s) => [s.element, s]));
-    const index = workIndex(programId);
     const build = (node: CompositionNode, depth: number): TreeRow => {
       const scope = scopeByElement.get(node.id) ?? null;
+      const effectiveScope = scope ?? closestProgramScope(programId, node.id);
       const kids = childrenOf(node.id);
       // What a node owes is the union over its subtree: a requirement allocated
       // to a board inside a subsystem is that subsystem's obligation too, and a
@@ -144,24 +157,46 @@ export function SystemTree({ programId }: { programId: string }) {
         for (const r of trace.withoutControl) withoutControl.add(r.id);
         for (const c of trace.controls) reached.add(c);
       }
+      const applicableScopes = programControlScopes(programId, node.id);
+      const controls = applicableScopes.length
+        ? new Set(
+            applicableScopes.flatMap(
+              (item) => controlSetFor(item.id)?.controls.map((row) => row.control.id) ?? [],
+            ),
+          ).size
+        : reached.size;
+      const subtreeIds = new Set(subtree.map((item) => item.id));
+      const aggregateRows =
+        !scope && applicableScopes.some((item) => subtreeIds.has(item.element))
+          ? programControlRows(programId, node.id)
+          : [];
+      const satisfied = aggregateRows.filter((row) => row.assessment === "Satisfied").length;
+      const inWork = aggregateRows.filter(
+        (row) => row.assessment !== "Satisfied" && row.owner !== "Unassigned",
+      ).length;
       return {
         node,
         depth,
         scope,
+        owner: effectiveScope?.owner || "Unassigned",
         requirements: requirements.size,
         withoutControl: withoutControl.size,
-        controls: scope ? (controlSetFor(scope.id)?.total ?? 0) : reached.size,
-        work: scope ? scopeWork(scope) : traceWork([...reached], index),
+        controls,
+        work: scope
+          ? scopeWork(scope)
+          : { total: controls, satisfied, inWork, unassigned: controls - satisfied - inWork },
         children: kids.length,
         parts: kids.map((k) => build(k, depth + 1)),
       };
     };
-    return nodes.filter((n) => n.parent === null).map((n) => build(n, 0));
+    const selected = resolveProgramElement(programId, elementId);
+    return (selected ? [selected] : nodes.filter((n) => n.parent === null)).map((n) => build(n, 0));
     // the stores this reads are subscribed through their versions
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     nodes,
     programId,
+    elementId,
     scopesVersion,
     controlSetVersion,
     requirementsVersion,
@@ -188,6 +223,9 @@ export function SystemTree({ programId }: { programId: string }) {
       defineColumns<TreeRow>((c) => [
         c.custom("element", {
           header: "Element",
+          width: 280,
+          minWidth: 240,
+          hideable: false,
           cell: (r) => (
             <ElementHover nodeId={r.node.id}>
               <span
@@ -200,6 +238,12 @@ export function SystemTree({ programId }: { programId: string }) {
           ),
         }),
         c.custom("kind", { header: "Kind", width: 100, cell: (r) => r.node.kind }),
+        c.custom("owner", {
+          header: "Owner",
+          width: 160,
+          cell: (r) => r.owner,
+          text: (r) => r.owner,
+        }),
         ...objectives.map((o) =>
           c.custom(o, {
             header: o.slice(0, 1),
@@ -215,34 +259,117 @@ export function SystemTree({ programId }: { programId: string }) {
           }),
         ),
         c.custom("requirements", {
-          header: "Requirements",
-          width: 110,
+          header: "Allocated requirements",
+          width: 170,
           align: "end",
           cell: (r) =>
             r.requirements ? (
-              <span title={r.withoutControl ? `${r.withoutControl} name no control` : undefined}>
-                {r.requirements}
-                {r.withoutControl ? (
-                  <Text color="color.text.subtle"> · {r.withoutControl} own</Text>
-                ) : null}
-              </span>
+              <TextLink>
+                <Link
+                  to="/programs/$programId"
+                  params={{ programId }}
+                  search={(prev) => ({
+                    ...prev,
+                    tab: "Requirements",
+                    element: r.node.id,
+                    peek: undefined,
+                  })}
+                  onClick={(event) => event.stopPropagation()}
+                  aria-label={`View ${r.requirements} allocated requirements for ${r.node.name}`}
+                  title={
+                    r.withoutControl
+                      ? `${r.withoutControl} requirements have no control mapping`
+                      : undefined
+                  }
+                >
+                  {r.requirements}
+                </Link>
+              </TextLink>
             ) : (
               <Absent />
             ),
         }),
         c.custom("controls", {
-          header: "Controls",
-          width: 80,
+          header: "Applicable controls",
+          width: 150,
           align: "end",
-          cell: (r) => r.controls || <Absent />,
+          cell: (r) =>
+            r.controls ? (
+              <TextLink>
+                <Link
+                  to="/programs/$programId"
+                  params={{ programId }}
+                  search={(prev) => ({
+                    ...prev,
+                    tab: "Controls",
+                    element: r.node.id,
+                    peek: undefined,
+                  })}
+                  onClick={(event) => event.stopPropagation()}
+                  aria-label={`View ${r.controls} applicable controls for ${r.node.name}`}
+                >
+                  {r.controls}
+                </Link>
+              </TextLink>
+            ) : (
+              <Absent />
+            ),
         }),
         c.custom("work", { header: "Work", width: 210, cell: (r) => <WorkBar work={r.work} /> }),
         c.custom("controlSet", {
           header: "Control set",
           width: 180,
-          cell: (r) => (r.scope ? <ControlSetCell scope={r.scope} /> : null),
+          cell: (r) =>
+            r.scope ? (
+              <Link
+                to="/programs/$programId/components/$componentId"
+                params={{ programId, componentId: r.node.id }}
+                search={{ tab: "Control set" }}
+                onClick={(event) => event.stopPropagation()}
+                aria-label={`Manage control set for ${r.node.name}`}
+              >
+                <ControlSetCell scope={r.scope} />
+              </Link>
+            ) : null,
         }),
         c.actions((r) => [
+          {
+            label: "View controls",
+            onSelect: () =>
+              void navigate({
+                search: (prev) => ({
+                  ...prev,
+                  tab: "Controls",
+                  element: r.node.id,
+                  peek: undefined,
+                }),
+              }),
+          },
+          {
+            label: "View requirements",
+            onSelect: () =>
+              void navigate({
+                search: (prev) => ({
+                  ...prev,
+                  tab: "Requirements",
+                  element: r.node.id,
+                  peek: undefined,
+                }),
+              }),
+          },
+          ...(r.scope
+            ? [
+                {
+                  label: "Manage control set",
+                  onSelect: () =>
+                    void navigate({
+                      to: "/programs/$programId/components/$componentId",
+                      params: { programId, componentId: r.node.id },
+                      search: { tab: "Control set" },
+                    }),
+                },
+              ]
+            : []),
           { label: "Allocate a requirement", onSelect: () => setAllocating(r.node) },
           { label: "Add a part", onSelect: () => setAdding(r.node) },
           {
@@ -263,6 +390,15 @@ export function SystemTree({ programId }: { programId: string }) {
     data: rows,
     getRowId: (r) => r.node.id,
     label: "System",
+    view: "program-system-tree",
+    initialState: {
+      columnVisibility: {
+        Confidentiality: false,
+        Integrity: false,
+        Availability: false,
+        work: false,
+      },
+    },
     tree: {
       children: (r) => r.parts,
       label: (r) => r.node.name,
@@ -275,9 +411,27 @@ export function SystemTree({ programId }: { programId: string }) {
     },
   });
 
+  // A newly selected subtree opens at its root; other disclosure choices remain intact.
+  const expandedSelection = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (expandedSelection.current === elementId) return;
+    expandedSelection.current = elementId;
+    if (elementId)
+      table.setExpanded((current) => (current === true ? true : { ...current, [elementId]: true }));
+  }, [elementId, table]);
+
   return (
     <Stack space="space.150">
-      <DataTable table={table} onRowClick={(r) => setStack([r.node.id])} />
+      <DataTable
+        table={table}
+        onRowClick={(r) => setStack([r.node.id])}
+        toolbar={
+          <Inline space="space.100" alignBlock="center" className="ml-auto">
+            <DataTable.Columns table={table} />
+            <DataTable.Settings table={table} />
+          </Inline>
+        }
+      />
 
       <AddNodeSheet
         open={adding !== null}
@@ -311,31 +465,12 @@ function expandedByDefault(node: CompositionNode): boolean {
 }
 
 function scopeWork(scope: AssessmentScope): WorkSummary {
-  const total = controlSetFor(scope.id)?.total ?? 0;
-  const records = workForScope(scope.id);
+  const controls = new Set(controlSetFor(scope.id)?.controls.map((row) => row.control.id) ?? []);
+  const total = controls.size;
+  const records = workForScope(scope.id).filter((work) => controls.has(work.control));
   const satisfied = records.filter((w) => w.assessment === "Satisfied").length;
   const inWork = records.filter((w) => w.owner && w.assessment !== "Satisfied").length;
   return { total, satisfied, inWork, unassigned: Math.max(0, total - satisfied - inWork) };
-}
-
-function traceWork(
-  controls: string[],
-  index: Map<string, ReturnType<typeof workIndex> extends Map<string, infer W> ? W : never>,
-): WorkSummary {
-  let satisfied = 0;
-  let inWork = 0;
-  for (const c of controls) {
-    const w = index.get(c);
-    const position = w ? positionOf(w) : "Unassigned";
-    if (position === "Satisfied") satisfied += 1;
-    else if (position !== "Unassigned") inWork += 1;
-  }
-  return {
-    total: controls.length,
-    satisfied,
-    inWork,
-    unassigned: controls.length - satisfied - inWork,
-  };
 }
 
 /** Three segments, no percentage: satisfied · in work · unassigned. The kit's stacked bar. */
@@ -665,16 +800,26 @@ export function AddNodeSheet({
                 hint="Copied into revision 1 as a draft; change it on the scope's Control set tab before submitting."
               >
                 <Select
-                  value={basisScope?.id ?? ""}
-                  onValueChange={setBasis}
-                  aria-label="Basis scope"
+                  items={scopes.map((s) => ({
+                    value: s.id,
+                    label: `${s.name} · ${triadOf(s).Confidentiality[0]}-${triadOf(s).Integrity[0]}-${triadOf(s).Availability[0]}`,
+                  }))}
+                  value={basisScope?.id ?? null}
+                  onValueChange={(value) => {
+                    if (value !== null) setBasis(value);
+                  }}
                 >
-                  {scopes.map((s) => (
-                    <Select.Item key={s.id} value={s.id}>
-                      {s.name} · {triadOf(s).Confidentiality[0]}-{triadOf(s).Integrity[0]}-
-                      {triadOf(s).Availability[0]}
-                    </Select.Item>
-                  ))}
+                  <SelectTrigger className="w-full" aria-label="Basis scope">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent align="start" alignItemWithTrigger={false}>
+                    {scopes.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name} · {triadOf(s).Confidentiality[0]}-{triadOf(s).Integrity[0]}-
+                        {triadOf(s).Availability[0]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </Field>
             </>

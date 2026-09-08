@@ -14,7 +14,7 @@ export function preserveNestedPopupEscape(event: KeyboardEvent) {
   const target = event.target;
   if (!(target instanceof HTMLElement)) return;
   const popup = target.closest(
-    '[data-slot="combobox-content"][data-open], [data-slot="popover-content"][data-open], [data-slot="dropdown-menu-content"][data-open], [data-slot="dropdown-menu-sub-content"][data-open]',
+    '[data-slot="combobox-content"][data-open], [data-slot="popover-content"][data-open], [data-slot="dropdown-menu-content"][data-open], [data-slot="dropdown-menu-sub-content"][data-open], [data-slot="select-content"][data-open]',
   );
   const trigger = target.closest('[data-slot="popover-trigger"][aria-expanded="true"]');
   const controlledPopup = trigger?.ownerDocument.getElementById(

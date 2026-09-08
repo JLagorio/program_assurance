@@ -25,7 +25,9 @@ import {
   Section,
   Shell as DsShell,
   ShowPage,
-  Tabs,
+  TabsList,
+  TabsTrigger,
+  Count,
   TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
@@ -191,13 +193,14 @@ function ProgramInheritance() {
             />
           }
           tabs={
-            <Tabs.List>
+            <TabsList className="w-full justify-start" variant="line" activateOnFocus>
               {inheritanceTabs.map((key) => (
-                <Tabs.Tab key={key} value={key} count={counts[key] || null}>
+                <TabsTrigger key={key} value={key}>
                   {key}
-                </Tabs.Tab>
+                  {counts[key] ? <Count value={counts[key]} max={9999} /> : null}
+                </TabsTrigger>
               ))}
-            </Tabs.List>
+            </TabsList>
           }
         >
           {tab === "Resolved" ? (

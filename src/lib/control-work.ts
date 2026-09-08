@@ -37,6 +37,7 @@ import {
   linkArtifact,
   unlinkArtifact,
   registerEvidenceSource,
+  restoreEvidence,
   subscribeEvidence,
   useEvidenceVersion,
   type EvidenceArtifact,
@@ -447,6 +448,7 @@ const events: WorkEvent[] = [];
 const comments: Comment[] = [];
 let eventSeq = 0;
 let commentSeq = 0;
+let pendingActivity: (() => void)[] | undefined;
 
 function log(
   work: string,
@@ -466,7 +468,10 @@ function log(
     summary,
     ...extra,
   });
-  forward(work, kind, summary, extra, clockNow().toISOString(), body, session.name);
+  const publish = () =>
+    forward(work, kind, summary, extra, clockNow().toISOString(), body, session.name);
+  if (pendingActivity) pendingActivity.push(publish);
+  else publish();
 }
 
 const activityKind: Record<EventKind, ActivityKind> = {
@@ -586,8 +591,40 @@ let workSeq = 0;
 
 function bump() {
   persistWork();
+  notifyWork();
+}
+
+function notifyWork() {
   version += 1;
   for (const l of listeners) l();
+}
+
+/** Save the record and its audit together; failed browser writes leave the visible record intact. */
+function changeWork(
+  item: ControlWork,
+  mutate: () => void,
+  persist: (saveWork: () => void) => void = (saveWork) => saveWork(),
+) {
+  const { evidence: _evidence, ...before } = item;
+  const previousEventSeq = eventSeq;
+  const eventCount = events.length;
+  pendingActivity = [];
+  try {
+    mutate();
+    persist(persistWork);
+  } catch (error) {
+    for (const key of Object.keys(item))
+      if (key !== "evidence" && !(key in before)) Reflect.deleteProperty(item, key);
+    Object.assign(item, before);
+    events.splice(eventCount);
+    eventSeq = previousEventSeq;
+    pendingActivity = undefined;
+    throw error;
+  }
+  const published = pendingActivity;
+  pendingActivity = undefined;
+  published.forEach((publish) => publish());
+  notifyWork();
 }
 
 export function subscribeWork(cb: () => void): () => void {
@@ -721,13 +758,14 @@ export function assignOwner(workId: string, owner: string) {
   const w = workById(workId);
   if (!w || w.owner === owner) return;
   const before = w.owner;
-  w.owner = owner;
-  log(workId, "assigned", `Owner set to ${owner}`, {
-    field: "owner",
-    before: before ?? "Unassigned",
-    after: owner,
+  changeWork(w, () => {
+    w.owner = owner;
+    log(workId, "assigned", `Owner set to ${owner}`, {
+      field: "owner",
+      before: before ?? "Unassigned",
+      after: owner,
+    });
   });
-  bump();
 }
 
 /**
@@ -738,51 +776,66 @@ export function setNarrative(workId: string, text: string) {
   const w = workById(workId);
   if (!w || w.narrative === text) return;
   const before = w.narrative;
-  w.narrative = text;
-  w.narrativeRevision += 1;
-  w.submitted = false;
-  if (w.assessment === "Satisfied") {
-    w.assessment = "Not assessed";
-    log(workId, "transition", "Implementation revised; reassessment required", {
-      field: "assessment",
-      before: "Satisfied",
-      after: "Not assessed",
+  changeWork(w, () => {
+    w.narrative = text;
+    w.narrativeRevision += 1;
+    w.submitted = false;
+    if (w.assessment === "Satisfied") {
+      w.assessment = "Not assessed";
+      log(workId, "transition", "Implementation revised; reassessment required", {
+        field: "assessment",
+        before: "Satisfied",
+        after: "Not assessed",
+      });
+    }
+    log(workId, "narrative", `Implementation revised to r${w.narrativeRevision}`, {
+      field: "narrative",
+      before: before || "(empty)",
+      after: text,
     });
-  }
-  log(workId, "narrative", `Implementation revised to r${w.narrativeRevision}`, {
-    field: "narrative",
-    before: before || "(empty)",
-    after: text,
   });
-  bump();
 }
 
 export function linkEvidence(workId: string, evidenceId: string) {
+  restoreEvidence();
   const w = workById(workId);
   if (!w || w.evidence.includes(evidenceId)) return;
   if (evidenceById(evidenceId)?.program !== w.program)
     throw new Error("Evidence must belong to this program.");
-  linkArtifact(evidenceId, { kind: "control", id: w.control, scopeId: w.scope });
-  log(workId, "evidence-linked", `Linked ${evidenceId}`, { field: "evidence", after: evidenceId });
-  bump();
+  changeWork(
+    w,
+    () =>
+      log(workId, "evidence-linked", `Linked ${evidenceId}`, {
+        field: "evidence",
+        after: evidenceId,
+      }),
+    (saveWork) =>
+      linkArtifact(evidenceId, { kind: "control", id: w.control, scopeId: w.scope }, saveWork),
+  );
 }
 
 export function unlinkEvidence(workId: string, evidenceId: string) {
+  restoreEvidence();
   const w = workById(workId);
-  if (!w) return;
-  unlinkArtifact(evidenceId, { kind: "control", id: w.control, scopeId: w.scope });
-  log(workId, "evidence-unlinked", `Unlinked ${evidenceId}`, {
-    field: "evidence",
-    before: evidenceId,
-  });
-  bump();
+  if (!w || !w.evidence.includes(evidenceId)) return;
+  changeWork(
+    w,
+    () =>
+      log(workId, "evidence-unlinked", `Unlinked ${evidenceId}`, {
+        field: "evidence",
+        before: evidenceId,
+      }),
+    (saveWork) =>
+      unlinkArtifact(evidenceId, { kind: "control", id: w.control, scopeId: w.scope }, saveWork),
+  );
 }
 
 export function setDeterminationNote(workId: string, note: string) {
   const w = workById(workId);
   if (!w || w.determinationNote === note) return;
-  w.determinationNote = note;
-  bump();
+  changeWork(w, () => {
+    w.determinationNote = note;
+  });
 }
 
 /**
@@ -812,15 +865,16 @@ export function perform(
 
   const before = positionOf(w);
   const priorImplementation = w.implementation;
-  const summary = offer.def.apply(w, note.trim());
-  if (w.implementation !== priorImplementation) w.implementationRecorded = true;
-  log(workId, "transition", summary, {
-    field: "position",
-    before,
-    after: positionOf(w),
-    ...(note.trim() ? { note: note.trim() } : {}),
+  changeWork(w, () => {
+    const summary = offer.def.apply(w, note.trim());
+    if (w.implementation !== priorImplementation) w.implementationRecorded = true;
+    log(workId, "transition", summary, {
+      field: "position",
+      before,
+      after: positionOf(w),
+      ...(note.trim() ? { note: note.trim() } : {}),
+    });
   });
-  bump();
   return { ok: true };
 }
 

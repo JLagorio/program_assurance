@@ -66,7 +66,7 @@ export function RecordHeader({
   return (
     <div className="flex flex-col gap-100">
       {trail ? <div className="min-w-0">{trail}</div> : null}
-      <div className="flex items-start gap-150">
+      <div className="flex flex-col items-start gap-150 sm:flex-row">
         <h1 className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-100 gap-y-025 font-heading-small font-semibold text-default">
           <span className="min-w-0">{title}</span>
           {meta ? (

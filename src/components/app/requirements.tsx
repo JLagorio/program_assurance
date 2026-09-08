@@ -28,6 +28,7 @@ import {
 } from "@ledger/design-system";
 import { ControlHover, ElementHover, RequirementHover } from "@/components/app/glances";
 import { SuspectFlag } from "@/components/app/link-currency";
+import { closestProgramScope } from "@/lib/program-scope";
 import {
   allocationStateTone,
   allocationStates,
@@ -148,11 +149,13 @@ export function RequirementTable({
   programId,
   allocationCount,
   selected,
+  elementId,
 }: {
   requirements: Requirement[];
   programId: string;
   allocationCount: (requirementId: string) => number;
   selected?: string;
+  elementId?: string | undefined;
 }) {
   const rows = useMemo<RequirementNode[]>(
     () =>
@@ -180,6 +183,7 @@ export function RequirementTable({
                 <Link
                   to="/programs/$programId/requirements/$requirementId"
                   params={{ programId, requirementId: r.id }}
+                  search={{ element: elementId }}
                 >
                   <Id>{r.id}</Id>
                 </Link>
@@ -210,12 +214,12 @@ export function RequirementTable({
         }),
         c.text("owner", { header: "Owner", width: 116 }),
         c.status("state", {
-          header: "State",
+          header: "Lifecycle status",
           width: 120,
           tone: (r) => requirementStateTone[r.state],
         }),
       ]),
-    [programId],
+    [programId, elementId],
   );
 
   const table = useDataTable({
@@ -252,11 +256,13 @@ export function ProvenanceTable({
   derivations,
   programId,
   requirementId,
+  elementId,
 }: {
   derivations: Derivation[];
   programId: string;
   /** When given, each source row carries its currency flag. */
   requirementId?: string | undefined;
+  elementId?: string | undefined;
 }) {
   if (derivations.length === 0) {
     return <p className="pt-150 font-body text-danger">No provenance recorded.</p>;
@@ -266,10 +272,10 @@ export function ProvenanceTable({
     <Table className="pt-050">
       <thead>
         <Table.Row>
-          <Table.Header width={150}>Source type</Table.Header>
+          <Table.Header width={150}>Source / relationship</Table.Header>
           <Table.Header width={150}>Source</Table.Header>
           <Table.Header width={260}>Name</Table.Header>
-          <Table.Header>Why it produces this requirement</Table.Header>
+          <Table.Header>Rationale</Table.Header>
         </Table.Row>
       </thead>
       <tbody>
@@ -277,12 +283,14 @@ export function ProvenanceTable({
           <Table.Row key={`${d.sourceType}-${d.sourceId}`}>
             <Table.Cell className="align-top py-100">
               <Badge variant="secondary" size="xsmall" tone={derivationSourceTone[d.sourceType]}>
-                {d.sourceType}
+                {d.sourceType === "Control statement" || d.sourceType === "Overlay"
+                  ? `${d.relation === "mapped" ? "Mapped to" : "Derived from"} ${d.sourceType === "Overlay" ? "overlay" : "control"}`
+                  : d.sourceType}
               </Badge>
             </Table.Cell>
             <Table.Cell className="align-top py-100">
               <Stack as="span" space="space.025">
-                <SourceLink derivation={d} programId={programId} />
+                <SourceLink derivation={d} programId={programId} elementId={elementId} />
                 {requirementId ? (
                   <SuspectFlag
                     link={{ kind: "derivation", requirement: requirementId, source: d.sourceId }}
@@ -300,7 +308,15 @@ export function ProvenanceTable({
   );
 }
 
-function SourceLink({ derivation, programId }: { derivation: Derivation; programId: string }) {
+function SourceLink({
+  derivation,
+  programId,
+  elementId,
+}: {
+  derivation: Derivation;
+  programId: string;
+  elementId?: string | undefined;
+}) {
   const { sourceType, sourceId } = derivation;
 
   if (sourceType === "Control statement" || sourceType === "Overlay") {
@@ -310,7 +326,11 @@ function SourceLink({ derivation, programId }: { derivation: Derivation; program
           <Link
             to="/programs/$programId/controls/$controlId"
             params={{ programId, controlId: sourceId }}
-            search={{ tab: undefined }}
+            search={{
+              tab: undefined,
+              element: elementId,
+              scope: closestProgramScope(programId, elementId)?.id,
+            }}
           >
             <Id>{sourceId}</Id>
           </Link>
@@ -411,10 +431,10 @@ export function AllocationTable({
         tone: (a) => coverageTone[a.coverage],
         editable: select("coverage", coverages),
       }),
-      c.text("scope", { header: "Scope of the claim", editable: edit("scope") }),
+      c.text("scope", { header: "Implementation responsibility", editable: edit("scope") }),
       c.text("owner", { header: "Owner", width: 124, editable: edit("owner") }),
       c.status("state", {
-        header: "State",
+        header: "Allocation status",
         width: 120,
         tone: (a) => allocationStateTone[a.state],
         editable: select("state", allocationStates),
@@ -464,9 +484,9 @@ export function ElementAllocationTable({
           <Table.Header>Shall statement</Table.Header>
           <Table.Header width={112}>Responsibility</Table.Header>
           <Table.Header width={92}>Coverage</Table.Header>
-          <Table.Header width={260}>Scope of the claim</Table.Header>
+          <Table.Header width={260}>Implementation responsibility</Table.Header>
           <Table.Header width={124}>Owner</Table.Header>
-          <Table.Header width={150}>State</Table.Header>
+          <Table.Header width={150}>Allocation status</Table.Header>
         </Table.Row>
       </thead>
       <tbody>
@@ -480,6 +500,7 @@ export function ElementAllocationTable({
                     <Link
                       to="/programs/$programId/requirements/$requirementId"
                       params={{ programId, requirementId: a.requirement }}
+                      search={{ element: a.targetKind === "node" ? a.target : undefined }}
                     >
                       <Id>{a.requirement}</Id>
                     </Link>
@@ -555,7 +576,7 @@ export function DerivedControlTrace({
               <Table.Header width={88}>Path</Table.Header>
               <Table.Header width={112}>Responsibility</Table.Header>
               <Table.Header width={92}>Coverage</Table.Header>
-              <Table.Header>Scope of the claim</Table.Header>
+              <Table.Header>Implementation responsibility</Table.Header>
             </Table.Row>
           </thead>
           <tbody>
@@ -599,6 +620,7 @@ export function DerivedControlTrace({
                   <Link
                     to="/programs/$programId/requirements/$requirementId"
                     params={{ programId, requirementId: r.id }}
+                    search={{ element: trace.target }}
                   >
                     <Id>{r.id}</Id>
                   </Link>
@@ -621,7 +643,14 @@ function TraceRow({ hop, programId }: { hop: ControlTraceHop; programId: string 
           <Link
             to="/programs/$programId/controls/$controlId"
             params={{ programId, controlId: hop.control }}
-            search={{ tab: undefined }}
+            search={{
+              tab: undefined,
+              scope: closestProgramScope(
+                programId,
+                hop.allocation.targetKind === "node" ? hop.allocation.target : undefined,
+              )?.id,
+              element: hop.allocation.targetKind === "node" ? hop.allocation.target : undefined,
+            }}
           >
             <Id>{hop.control}</Id>
           </Link>
@@ -633,6 +662,9 @@ function TraceRow({ hop, programId }: { hop: ControlTraceHop; programId: string 
             <Link
               to="/programs/$programId/requirements/$requirementId"
               params={{ programId, requirementId: hop.requirement }}
+              search={{
+                element: hop.allocation.targetKind === "node" ? hop.allocation.target : undefined,
+              }}
             >
               <Id>{hop.requirement}</Id>
             </Link>
@@ -681,18 +713,16 @@ export function ControlRequirementTable({
   programId,
   controlId,
   allocationCount,
+  elementId,
 }: {
   requirements: Requirement[];
   programId: string;
   controlId: string;
   allocationCount: (requirementId: string) => number;
+  elementId?: string | undefined;
 }) {
   if (requirements.length === 0) {
-    return (
-      <p className="pt-150 font-body text-subtle">
-        No security requirement derived from this control yet.
-      </p>
-    );
+    return <p className="pt-150 font-body text-subtle">No linked requirements.</p>;
   }
 
   return (
@@ -702,16 +732,16 @@ export function ControlRequirementTable({
           <Table.Header width={112}>Requirement</Table.Header>
           <Table.Header width={104}>Type</Table.Header>
           <Table.Header>Shall statement</Table.Header>
-          <Table.Header width={112}>Path</Table.Header>
+          <Table.Header width={132}>Relationship</Table.Header>
           <Table.Header width={72} className="text-right">
-            Alloc
+            Allocations
           </Table.Header>
-          <Table.Header width={150}>State</Table.Header>
+          <Table.Header width={150}>Engineering state</Table.Header>
         </Table.Row>
       </thead>
       <tbody>
         {requirements.map((r) => {
-          const direct = r.derivations.some(
+          const direct = r.derivations.find(
             (d) =>
               (d.sourceType === "Control statement" || d.sourceType === "Overlay") &&
               d.sourceId === controlId,
@@ -725,6 +755,7 @@ export function ControlRequirementTable({
                     <Link
                       to="/programs/$programId/requirements/$requirementId"
                       params={{ programId, requirementId: r.id }}
+                      search={{ element: elementId }}
                     >
                       <Id>{r.id}</Id>
                     </Link>
@@ -735,7 +766,11 @@ export function ControlRequirementTable({
               <Table.Cell className="truncate">{r.text}</Table.Cell>
               <Table.Cell>
                 {direct ? (
-                  "Direct"
+                  direct.relation === "mapped" ? (
+                    "Mapped to"
+                  ) : (
+                    "Derived from"
+                  )
                 ) : (
                   <Inline
                     title={`Inherited from ${r.parent}`}

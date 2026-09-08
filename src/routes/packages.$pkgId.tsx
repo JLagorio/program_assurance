@@ -20,6 +20,10 @@ import {
   Stack,
   Table,
   Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  Count,
   TextLink,
   ToggleGroup,
   ToggleGroupItem,
@@ -144,14 +148,15 @@ function PackageRecord() {
           }}
           className="contents"
         >
-          <Tabs.List>
+          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
             {tabs.map((t) => (
-              <Tabs.Tab key={t} value={t} count={counts[t]}>
+              <TabsTrigger key={t} value={t}>
                 {t}
-              </Tabs.Tab>
+                {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
+              </TabsTrigger>
             ))}
-          </Tabs.List>
-          <Tabs.Panel value={tab} className="contents">
+          </TabsList>
+          <TabsContent value={tab} className="contents">
             {tab === "Traceability" ? (
               <Box paddingBlockStart="space.050">
                 <ToggleGroup
@@ -345,7 +350,7 @@ function PackageRecord() {
                 </PreviewRail>
               ) : null}
             </PreviewSplit>
-          </Tabs.Panel>
+          </TabsContent>
         </Tabs>
       </Stack>
     </Shell>

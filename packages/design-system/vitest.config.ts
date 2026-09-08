@@ -13,7 +13,12 @@ export default mergeConfig(
   viteConfig,
   defineConfig({
     optimizeDeps: {
-      include: ["@base-ui/react/checkbox-group", "@base-ui/react/menu"],
+      include: [
+        "@base-ui/react/checkbox-group",
+        "@base-ui/react/menu",
+        "@base-ui/react/select",
+        "@base-ui/react/tabs",
+      ],
     },
     test: {
       maxWorkers: 3,

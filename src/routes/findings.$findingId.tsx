@@ -23,7 +23,8 @@ import {
   ShowPage,
   Stack,
   Table,
-  Tabs,
+  TabsList,
+  TabsTrigger,
   TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
@@ -285,7 +286,7 @@ function FindingRecord() {
             />
           }
           tabs={
-            <Tabs.List>
+            <TabsList className="w-full justify-start" variant="line" activateOnFocus>
               {(
                 [
                   ["Finding", null],
@@ -294,36 +295,31 @@ function FindingRecord() {
                   ["Residual risk", null],
                 ] as [FindingTab, number | null][]
               ).map(([key, count]) => (
-                <Tabs.Tab
-                  key={key}
-                  value={key}
-                  trailing={
-                    key === "Residual risk" ? (
-                      residual ? (
-                        <Badge
-                          variant="secondary"
-                          tone={bandTone[residual.band]}
-                          size="xsmall"
-                          className="tabular-nums"
-                        >
-                          {residual.score}
-                        </Badge>
-                      ) : null
-                    ) : count ? (
-                      <Box
-                        className="tabular-nums rounded-small bg-neutral font-body-xsmall font-medium text-subtle"
-                        as="span"
-                        paddingInline="space.050"
-                      >
-                        {count}
-                      </Box>
-                    ) : null
-                  }
-                >
+                <TabsTrigger key={key} value={key}>
                   {key === "Remediation" ? "Remediation plan" : key}
-                </Tabs.Tab>
+                  {key === "Residual risk" ? (
+                    residual ? (
+                      <Badge
+                        variant="secondary"
+                        tone={bandTone[residual.band]}
+                        size="xsmall"
+                        className="tabular-nums"
+                      >
+                        {residual.score}
+                      </Badge>
+                    ) : null
+                  ) : count ? (
+                    <Box
+                      className="tabular-nums rounded-small bg-neutral font-body-xsmall font-medium text-subtle"
+                      as="span"
+                      paddingInline="space.050"
+                    >
+                      {count}
+                    </Box>
+                  ) : null}
+                </TabsTrigger>
               ))}
-            </Tabs.List>
+            </TabsList>
           }
         >
           {tab === "Finding" ? (

@@ -27,6 +27,10 @@ import {
   Inline,
   NativeSelect,
   Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Stack,
   Switch,
   Table,
@@ -272,33 +276,41 @@ export function ScopeTailoringPane({
                   </NativeSelect>
                 </Field>
                 <Field label="Classification">
-                  <Select
+                  <Select<SystemParameters["classification"]>
                     value={p.classification}
-                    onValueChange={(v) =>
-                      setParameters({ classification: v as SystemParameters["classification"] })
-                    }
-                    aria-label="Classification"
+                    onValueChange={(value) => {
+                      if (value !== null) setParameters({ classification: value });
+                    }}
                   >
-                    {classifications.map((c) => (
-                      <Select.Item key={c} value={c}>
-                        {c}
-                      </Select.Item>
-                    ))}
+                    <SelectTrigger className="w-full" aria-label="Classification">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent align="start" alignItemWithTrigger={false}>
+                      {classifications.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </Field>
                 <Field label="Connectivity">
-                  <Select
+                  <Select<SystemParameters["connectivity"]>
                     value={p.connectivity}
-                    onValueChange={(v) =>
-                      setParameters({ connectivity: v as SystemParameters["connectivity"] })
-                    }
-                    aria-label="Connectivity"
+                    onValueChange={(value) => {
+                      if (value !== null) setParameters({ connectivity: value });
+                    }}
                   >
-                    {connectivityOptions.map((c) => (
-                      <Select.Item key={c} value={c}>
-                        {c}
-                      </Select.Item>
-                    ))}
+                    <SelectTrigger className="w-full" aria-label="Connectivity">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent align="start" alignItemWithTrigger={false}>
+                      {connectivityOptions.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </Field>
               </Grid>
@@ -494,18 +506,27 @@ export function ScopeTailoringPane({
                             {readOnly ? (
                               tailoringSources.find((s) => s.value === t.source)?.label
                             ) : (
-                              <Select
+                              <Select<TailoringSource>
+                                items={tailoringSources}
                                 value={t.source}
-                                onValueChange={(v) =>
-                                  patchDecision(t.control, { source: v as TailoringSource })
-                                }
-                                aria-label="Decision source"
+                                onValueChange={(value) => {
+                                  if (value !== null) patchDecision(t.control, { source: value });
+                                }}
                               >
-                                {tailoringSources.map((s) => (
-                                  <Select.Item key={s.value} value={s.value}>
-                                    {s.label}
-                                  </Select.Item>
-                                ))}
+                                <SelectTrigger className="w-full" aria-label="Decision source">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent
+                                  aria-label="Decision source"
+                                  align="start"
+                                  alignItemWithTrigger={false}
+                                >
+                                  {tailoringSources.map((s) => (
+                                    <SelectItem key={s.value} value={s.value}>
+                                      {s.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
                               </Select>
                             )}
                           </Table.Cell>

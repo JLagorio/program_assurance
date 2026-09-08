@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
   Breadcrumb,
   BreadcrumbList,
   BreadcrumbItem,
@@ -15,6 +19,11 @@ import {
   Alert,
   Accordion,
   Collapsible,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Button,
   IconButton,
   buttonVariants,
@@ -1119,3 +1128,75 @@ assert.match(menuSsr, /aria-haspopup="menu"/);
 assert.match(menuSsr, /disabled=""/);
 assert.doesNotMatch(menuSsr, /Archive record/);
 console.log("Packed DropdownMenu native trigger, disabled state and client-only portal SSR passed");
+
+const packedSelect = renderToString(
+  createElement(
+    Select,
+    {
+      name: "status",
+      required: true,
+      defaultOpen: true,
+      defaultValue: "review",
+      items: { review: "In review" },
+    },
+    createElement(SelectTrigger, { "aria-label": "Status" }, createElement(SelectValue)),
+    createElement(
+      SelectContent,
+      null,
+      createElement(SelectItem, { value: "review" }, "Popup option"),
+    ),
+  ),
+);
+assert.match(packedSelect, /role="combobox"/);
+assert.match(packedSelect, /type="button"/);
+assert.match(packedSelect, /aria-required="true"/);
+assert.match(packedSelect, /In review/);
+assert.match(packedSelect, /name="status"[^>]*value="review"/);
+assert.doesNotMatch(packedSelect, /Popup option/);
+const packedMultiSelect = renderToString(
+  createElement(
+    Select,
+    { multiple: true, name: "channel", defaultValue: [1, 2] },
+    createElement(SelectTrigger, { "aria-label": "Channel" }, createElement(SelectValue)),
+  ),
+);
+assert.match(packedMultiSelect, /name="channel"[^>]*value="1"/);
+assert.match(packedMultiSelect, /name="channel"[^>]*value="2"/);
+console.log(
+  "Packed Select labels, native trigger, required state, multiple form values and client-only portal SSR passed",
+);
+
+const packedTabs = renderToString(
+  createElement(
+    Tabs,
+    { defaultValue: 1, orientation: "vertical", dir: "rtl", render: createElement("section") },
+    createElement(
+      TabsList,
+      { variant: "line", activateOnFocus: true, "aria-label": "Record views" },
+      createElement(TabsTrigger, { value: 1 }, "Overview"),
+      createElement(
+        TabsTrigger,
+        {
+          value: 2,
+          nativeButton: false,
+          render: createElement("a", { href: "/record?tab=history" }),
+        },
+        "History",
+      ),
+    ),
+    createElement(TabsContent, { value: 1 }, "Overview content"),
+    createElement(TabsContent, { value: 2, keepMounted: true }, "Retained history"),
+    createElement(TabsContent, { value: 3 }, "Unmounted content"),
+  ),
+);
+assert.match(packedTabs, /<section[^>]*dir="rtl"/);
+assert.match(packedTabs, /aria-orientation="vertical"/);
+assert.match(packedTabs, /<button[^>]*type="button"/);
+assert.match(packedTabs, /aria-selected="true"/);
+assert.match(packedTabs, /<a[^>]*href="\/record\?tab=history"/);
+assert.match(packedTabs, /<div[^>]*hidden=""[^>]*inert=""[^>]*>Retained history<\/div>/);
+assert.doesNotMatch(packedTabs, /Unmounted content|activateOnFocus=|keepMounted=/);
+assert.equal("Tab" in Tabs, false);
+console.log(
+  "Packed Tabs orientation, numeric selection, composition, links and retained panels SSR passed",
+);

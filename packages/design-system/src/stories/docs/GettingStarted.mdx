@@ -84,7 +84,8 @@ The default list wraps. See [Breadcrumb](?path=/docs/components-breadcrumb--docs
 anatomy and migration examples.
 
 For navigation with button styling, put `buttonVariants` on the router link. It keeps its native
-link behavior. Action composition uses Button's `render`; Tabs.Tab keeps its existing `asChild` API.
+link behavior. Action composition uses Button's `render`; TabsTrigger uses `render` with
+`nativeButton={false}` for a navigation tab.
 
 ```tsx
 import { buttonVariants } from "@ledger/design-system";

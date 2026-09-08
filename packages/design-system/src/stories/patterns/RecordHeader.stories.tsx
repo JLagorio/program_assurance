@@ -15,6 +15,10 @@ import {
   IconButton,
   Stepper,
   Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  Count,
   TextLink,
 } from "../../components";
 import { RecordHeader } from "../../patterns";
@@ -113,15 +117,22 @@ export const RecordHeaderMatrix: Story = {
         title="Security control traceability matrix"
         below={
           <Tabs defaultValue="Rows" className="contents">
-            <Tabs.List label="Sections">
-              <Tabs.Tab value="Rows" count={340}>
+            <TabsList
+              variant="line"
+              activateOnFocus
+              aria-label="Sections"
+              className="w-full justify-start"
+            >
+              <TabsTrigger value="Rows">
                 Rows
-              </Tabs.Tab>
-              <Tabs.Tab value="Gaps" count={12}>
+                <Count value={340} max={9999} />
+              </TabsTrigger>
+              <TabsTrigger value="Gaps">
                 Gaps
-              </Tabs.Tab>
-            </Tabs.List>
-            <Tabs.Panel value="Rows" />
+                <Count value={12} max={9999} />
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="Rows" />
           </Tabs>
         }
       />

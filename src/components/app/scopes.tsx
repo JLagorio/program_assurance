@@ -7,77 +7,28 @@
  */
 
 import { Link } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
-import { useMemo, useState } from "react";
-
+import { Button, Indicator, Item, Section } from "@ledger/design-system";
 import {
-  Box,
-  Button,
-  Combobox,
-  Field,
-  Id,
-  Indicator,
-  Inline,
-  Input,
-  Item,
-  Section,
-  Select,
-  Sheet,
-  Stack,
-  Table,
-  Textarea,
-  toast,
-} from "@ledger/design-system";
-import { addCompositionNodes, nextNodeId, nodesForProgram } from "@/lib/composition";
-import {
-  createInitialRevision,
   currentRevision,
-  initialOverlayDecisions,
   openRevision,
   revisionTone,
   useControlSetVersion,
 } from "@/lib/control-set";
-import { addScopes, controlSetFor, objectives, triadOf } from "@/lib/scopes";
+import { controlSetFor } from "@/lib/scopes";
 import type { AssessmentScope, ProgramRollup } from "@/lib/scopes";
 
 import { SystemTree } from "./system-tree";
 
-const impactTone = { Low: "neutral", Moderate: "warning", High: "danger" } as const;
-
-const people = ["Grace Hoppel", "Marcus Ryde", "Dana Whitlock", "Priya Raghavan", "Sarah Chen"];
-
 export function ScopeTable({
-  scopes,
-  rollup,
   programId,
+  elementId,
 }: {
   scopes: AssessmentScope[];
   rollup: ProgramRollup;
   programId: string;
+  elementId?: string | undefined;
 }) {
-  useControlSetVersion();
-  return (
-    <Stack space="space.200">
-      <SystemTree programId={programId} />
-      <Box
-        className="rounded-large border border-default"
-        paddingInline="space.200"
-        paddingBlock="space.150"
-      >
-        <p className="font-body-small">
-          <span className="font-medium">
-            {rollup.total} controls in the program set — the union of {scopes.length} scopes, not
-            the highest of them.
-          </span>{" "}
-          <span className="text-subtle">
-            {rollup.singleScope} are required by exactly one scope. CNSSI 1253 selects per objective
-            and never collapses the triad, so a scope at A=Low sheds contingency obligations while
-            keeping every confidentiality control at High.
-          </span>
-        </p>
-      </Box>
-    </Stack>
-  );
+  return <SystemTree programId={programId} elementId={elementId} />;
 }
 
 /* ---------------------------------------------------- Controls tab pointer */

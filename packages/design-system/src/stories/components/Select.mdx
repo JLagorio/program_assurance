@@ -1,148 +1,74 @@
-import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
-
-import { Select } from "../../components";
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
 import * as Stories from "./Select.stories";
 
 <Meta of={Stories} />
 
 # Select
 
-One answer from a short, fixed list whose options mean more than their words: a status with its Dot, a severity, a kind with its Badge. The kit draws the list, so an option can carry the same mark the record shows in its table row and its header, and the reader picks the colour they already know.
+Choose predefined values with shadcn's Base UI Select parts. Ledger supplies control geometry, menu styling, locale direction and Field integration. Use NativeSelect for native browser presentation and Combobox when the list needs filtering.
 
-It is the second of four ways to choose. Plain words are a [NativeSelect](?path=/docs/components-nativeselect--docs), the browser's own list. Visible choices can use a [RadioGroup](?path=/docs/components-radiogroup--docs). More than a dozen, or names the reader would rather type, are a [Combobox](?path=/docs/components-combobox--docs). Actions are a [DropdownMenu](?path=/docs/components-dropdownmenu--docs), which looks like this list and is not a field.
+```tsx
+const statuses = { draft: "Draft", review: "In review" };
+
+<Field label="Status">
+  <Select name="status" items={statuses} defaultValue="draft">
+    <SelectTrigger className="w-full">
+      <SelectValue placeholder="Choose a status" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="draft">Draft</SelectItem>
+      <SelectItem value="review">In review</SelectItem>
+    </SelectContent>
+  </Select>
+</Field>
+```
+
+## Composition and states
+
+Root owns selected values, open state, form props and modality. Trigger owns native button props, refs, render composition, layout and size: `default` is 32px and `sm` is 28px. It fits its contents by default; use `className="w-full"` in a form or native `style` for a fixed width. Value owns the placeholder and displayed value.
+
+Supply Root's `items` label map/array, object-value label conversion, or Value's children to format the selected value. Item children alone do not label the closed trigger. A label can contain the same Dot or Badge shown on the record. Group and Label identify sections; Separator divides them.
+
+`disabled` prevents interaction and omits the value from submission. `readOnly` keeps the value submitted and the trigger focusable while preventing selection. Item's `disabled` state prevents activation but remains reachable with arrows. For decorated option children, provide Item's plain-text `label` for typeahead. Classes, styles, render props and refs follow each Base UI part's native contract.
 
 <Canvas of={Stories.SelectMatrix} />
 
-## Anatomy
+## Forms and selection
 
-| Part        | What it is                                                                                                                                                                                                                                       |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Label       | From the [Field](?path=/docs/components-field--docs), or `aria-label` on a select in a toolbar. It is the control's name.                                                                                                                        |
-| Control     | The field: `dimension.control.medium` (32px) or `small` (28px), `radius.medium`, `color.border.input` on `color.background.input`. The value, or the placeholder in `color.text.subtlest`; the chevron in `color.icon.subtle` at the end.        |
-| List        | The kit's floating surface: `elevation.surface.overlay`, `color.border.default`, `radius.large`, `elevation.shadow.overlay`, `space.050` inside. At least as wide as the field, as tall as the room below it, flipping above when there is none. |
-| Option      | One row, `dimension.row.menu` tall, `radius.medium`: the Dot or Badge, the text, and on the chosen one a check at the end in `color.text.selected`.                                                                                              |
-| Group label | A section heading in the list, `font.heading.xxsmall` uppercase in `color.text.subtlest`, with a hairline `Select.Separator` between sections.                                                                                                   |
-| Message     | From the Field, under the control: the hint, or the error that replaces it.                                                                                                                                                                      |
+Field binds its label, hint/error, invalid state and required announcement to Trigger. Field's `isRequired` is descriptive; Root's `required` enables native constraint validation. Native form props (`name`, `form`, `autoComplete`, `inputRef`) belong on Root. Root's ID supplies the default trigger ID; an explicit Trigger ID takes precedence. `inputRef` targets the hidden form input.
 
-## Variants
+Single selection accepts a value or `null`; `onValueChange(value, details)` can reject a change with `details.cancel()`. Cancellation preserves the value, but an item activation still closes a single-select popup. Add a `null` item when the reader needs to clear from the list. Value's placeholder appears when no value is selected.
 
-Select has one appearance. What varies is what an option carries, and which control the list wants:
+`multiple` uses arrays and keeps the list open while toggling options. FormData contains one entry per selected value under the same name. Object values can supply `itemToStringLabel`, `itemToStringValue` and `isItemEqualToValue` for display, submission and identity. Root preserves generic single/multiple inference; Item and Value use the installed Base UI value contracts.
 
-| The list                                     | Use                                                                            |
-| -------------------------------------------- | ------------------------------------------------------------------------------ |
-| Plain words                                  | `NativeSelect`.                                                                |
-| A status, a severity: a word with its colour | `Select`, each option with its `Dot`, the same tone the Badge and the row use. |
-| A kind, a source: a word with its mark       | `Select`, each option with its `Badge`.                                        |
-| More than a dozen, or names                  | `Combobox`.                                                                    |
-| Visible choices                             | `RadioGroup`.                                                                  |
+With installed Base UI 1.7, form reset is caller-owned: reset controlled values in the form's `onReset`. The example covers required values, cancelled changes, multiple numeric values and object identity.
 
-There is no multi-select: several values in a toolbar are a [FilterChip](?path=/docs/components-filterchip--docs), and in a form a group of [Checkbox](?path=/docs/components-checkbox--docs)es. There is no borderless select. There is no typed entry: a list the reader types into is a Combobox.
+<Canvas of={Stories.InField} />
 
-## Sizes
+## Positioning and scrolling
 
-| Size     | Height                          | Use                                                                            |
-| -------- | ------------------------------- | ------------------------------------------------------------------------------ |
-| `medium` | `dimension.control.medium` 32px | In a form, inside a Field, beside medium Buttons. The default.                 |
-| `small`  | `dimension.control.small` 28px  | A toolbar's filter, beside small Buttons and a small NativeSelect or Combobox. |
+Content includes Portal, Positioner, Popup, List and both scroll arrows. It defaults to trigger width, a 144px minimum, bottom/center placement, a 4px side offset and zero alignment offset. Native style/className/render/ref props target Popup; `finalFocus` controls focus return.
 
-The width is the layout's. In a form's Grid the column sets it; in a toolbar `width` does. The list is never narrower than the field, and it is as tall as the space below the field allows, scrolling past that.
+Following shadcn, `alignItemWithTrigger` defaults to true: when space and input modality allow it, the selected item overlaps and aligns with the trigger value. Side/alignment offsets apply in fallback positioning or when `alignItemWithTrigger={false}`. Existing consumers explicitly retain below-trigger placement with that setting. Content's `dir` overrides inherited positioning direction as well as text direction.
 
-<Canvas of={Stories.Sizes} />
+The inner List owns bounded scrolling so hover arrows work in both alignment modes with Base UI 1.7. ScrollUpButton and ScrollDownButton wrap Base UI's hover scroll arrows, including their native props and refs. They appear when scrolling is available and are omitted for touch input. Content includes them automatically; the example composes them directly for custom list geometry.
 
-## States
+<Canvas of={Stories.Scrolling} />
 
-| State    | What changes                                                                                                                                                                                                                 |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Rest     | `color.border.input` on `color.background.input`; the value, or the placeholder in `color.text.subtlest`.                                                                                                                    |
-| Hover    | The background steps to `color.background.input.hovered`.                                                                                                                                                                    |
-| Focus    | The border turns `color.border.focused` and the focus outline shows.                                                                                                                                                         |
-| Open     | The list is open below the field, or above it when there is no room. The field keeps its focus look; the row under the pointer or the keyboard is `color.background.neutral.subtle.hovered`; the chosen row shows its check. |
-| Filled   | An option is chosen, its Dot or Badge with it.                                                                                                                                                                               |
-| Invalid  | `aria-invalid`, from the Field's `error`: the border turns `color.border.danger` and the error replaces the hint.                                                                                                            |
-| Disabled | `color.background.disabled`, `color.border.disabled`, `color.text.disabled`. See Accessibility for when.                                                                                                                     |
+## Accessibility and dialogs
 
-A Select has no read-only state. A value the reader can see but not change here is shown as text, in a [KeyValue](?path=/docs/components-keyvalue--docs) or a [Fact](?path=/docs/components-fact--docs).
+Trigger is a native button with combobox semantics, expanded state and a listbox association. Options announce selected and disabled state. Enter, Space and ArrowDown open; arrows, Home and End move focus; typing matches labels; Enter/Space select. Closed single-select typeahead changes the selected value. Keep a visible Field label or an explicit accessible name on Trigger. Content names its list from Field; outside Field, also supply Content's `aria-label` or `aria-labelledby`. These name the listbox as well as passing through to Popup.
 
-## Modifiers
+Content shares an enclosing Ledger dialog's portal boundary during the Radix migration. Escape dismisses Select before the dialog, returning focus to the trigger. Closing the dialog then returns to its opener.
 
-- **`placeholder`** for what to choose when nothing is chosen: "Choose a status". A filter has no placeholder; its first option is its default and says what it includes ("All statuses").
-- **`value` with `onValueChange`**, or `defaultValue`. A TanStack form uses controlled values.
-- **`Select.Group`** with a `label` and **`Select.Separator`** when the list has natural sections. Not to make a long list feel shorter.
-- **A disabled `Select.Item`** for a choice the reader cannot make yet, when it helps to know it exists.
-- **`name`** when a form submits natively; a hidden input carries the value.
-- **`width`** in pixels, for a toolbar; **`size`** for its height.
+<Canvas of={Stories.Dialogs} />
 
-<Canvas of={Stories.Options} />
+## Migration and API
 
-## Content
+Replace the configured root with Select, SelectTrigger, SelectValue and SelectContent. Move trigger refs, ARIA, size, styles and event handlers to Trigger; replace `width` with native style and `small`/`medium` with `sm`/`default`. Move the placeholder to Value. Replace compound Item/Group/Separator with flat exports and put SelectLabel inside SelectGroup. Supply labels through `items` or Value; handle nullable single values explicitly.
 
-- **The label is a noun**, one to three words, sentence case: Status, Severity, Review gate.
-- **Options are short and parallel**: a word or two, sentence case, no full stops. An option that needs a sentence is not a select at all.
-- **The Dot or the Badge before the text is the record's own mark**, in the tone the Badge, the Indicator and the table row use for the same value. Never a decoration: an icon that means nothing on every row makes the reader look for a difference that is not there.
-- **Order the list** the way the reader thinks of it: a scale in its order, a lifecycle in its sequence, otherwise alphabetically.
-- **The placeholder says what to choose**: "Choose a status". Never "Select...", "Please select" or "--".
-
-## Style
-
-| Element     | Token                                                                                                                                                              |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Field       | `color.background.input` · `color.border.input` · `radius.medium` 5px                                                                                              |
-| Hover       | `color.background.input.hovered`                                                                                                                                   |
-| Focus       | `color.border.focused` as the border, plus the focus outline                                                                                                       |
-| Invalid     | `color.border.danger`; the message in `color.text.danger`                                                                                                          |
-| Disabled    | `color.background.disabled` · `color.border.disabled` · `color.text.disabled`                                                                                      |
-| Value       | `font.body` in `color.text`; placeholder in `color.text.subtlest`                                                                                                  |
-| Chevron     | `color.icon.subtle` · `dimension.icon.small` 14px                                                                                                                  |
-| List        | `elevation.surface.overlay` · `color.border.default` · `radius.large` · `elevation.shadow.overlay`                                                                 |
-| Row         | `font.body` in `color.text`; highlighted `color.background.neutral.subtle.hovered`; chosen text and check in `color.text.selected`; disabled `color.text.disabled` |
-| Group label | `font.heading.xxsmall` uppercase in `color.text.subtlest`                                                                                                          |
-| Separator   | `color.border.default`                                                                                                                                             |
-
-| Measure | Value                                                                                         |
-| ------- | --------------------------------------------------------------------------------------------- |
-| Height  | `dimension.control.medium` 32px · `dimension.control.small` 28px                              |
-| Row     | `dimension.row.menu`, `radius.medium`, `space.100` at the sides, `space.500` before the check |
-| List    | `space.050` 4px below the field · `space.050` inside · never narrower than the field          |
-| Motion  | `motion.duration.fast` on the colours; the list enters and leaves with the menu motion        |
-
-The trigger accepts a button `ref`, focus and blur handlers, ARIA and data attributes. Bind `onBlur` to your touched-field policy. `name` contributes the selected value to native submission; `form` supports an external owning form. Use `fieldRefs` for validation focus when using a custom Select; the native value is managed by Radix.
-
-## Accessibility
-
-- **It is a listbox behind a button** (Radix Select): the field announces the label, the chosen value and that it opens a list; the list is a listbox whose rows are options, the chosen one selected.
-- **Keyboard:** Tab reaches the field. Space, Enter, Up or Down opens the list with the chosen row focused; Up and Down move; typing a letter jumps to the row that starts with it; Enter or Space chooses and closes; Escape closes without changing; focus returns to the field.
-- **The label is the name.** Inside a Field, the label wraps the field and a click on it opens the list. In a toolbar, `aria-label` names it, and a filter's first option ("All statuses") is what the reader hears as the value.
-- **Invalid, required and the message** come from the Field: `aria-invalid` with the error announced, `aria-required` without the browser's bubble, the hint or the error as the field's description.
-- **The Dot and the Badge carry no name.** The option's words are what the reader hears; the mark is the colour the sighted reader already knows.
-- **Disabled is the last resort.** A disabled select cannot say why. Prefer a value shown as text, or an enabled select with the reason in the hint.
-
-## Props
-
-<ArgTypes of={Select} />
-
-### Select.Item
-
-<ArgTypes of={Select.Item} />
-
-### Select.Group
-
-<ArgTypes of={Select.Group} />
-
-### Playground
-
-<Canvas of={Stories.Playground} />
-
-<Controls of={Stories.Playground} />
+The implementation follows [shadcn Select](https://ui.shadcn.com/docs/components/base/select) and [Base UI Select](https://base-ui.com/react/components/select), using the installed Base UI version. Content adds shadcn's five positioning props to Popup; Ledger adds token styling and locale/Field/dialog integration.
 
 ## Related
 
-- [NativeSelect](?path=/docs/components-nativeselect--docs), [Combobox](?path=/docs/components-combobox--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): the other ways to choose one; see Variants for which.
-- [Badge](?path=/docs/components-badge--docs): the Dot and the Badge an option carries, in the tone the record uses.
-- [Field](?path=/docs/components-field--docs): the label, the hint and the error around it.
-- [Forms](?path=/docs/patterns-forms--docs): which control for which answer, and TanStack Form validation.
-- [FilterChip](?path=/docs/components-filterchip--docs): several values at once in a toolbar.
-- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): the same list, for actions.
-
-## Don't
-
-<Canvas of={Stories.Dont} />
+[NativeSelect](?path=/docs/components-nativeselect--docs) · [Combobox](?path=/docs/components-combobox--docs) · [Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [DropdownMenu](?path=/docs/components-dropdownmenu--docs)

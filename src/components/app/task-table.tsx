@@ -16,7 +16,6 @@ import {
   IconButton,
   Inline,
   KeyValue,
-  NativeSelect,
   Person,
   Popover,
   PopoverContent,
@@ -425,12 +424,11 @@ function TaskPanel({
 
 export type GroupKey = "" | "bucket" | "assignee" | "subject" | "state";
 
-const groupOptions: { value: GroupKey; label: string }[] = [
-  { value: "bucket", label: "By due" },
-  { value: "assignee", label: "By assignee" },
-  { value: "subject", label: "By record" },
-  { value: "state", label: "By state" },
-  { value: "", label: "No groups" },
+const groupOptions: { value: Exclude<GroupKey, "">; label: string }[] = [
+  { value: "bucket", label: "Due" },
+  { value: "assignee", label: "Assignee" },
+  { value: "subject", label: "Record" },
+  { value: "state", label: "State" },
 ];
 
 const sortFor = (g: GroupKey): SortingState => [{ id: g || "bucket", desc: false }];
@@ -667,23 +665,9 @@ export function TaskTable({
           aria-label="Saved views"
         />
       ) : null}
-      <DataTable.Filter table={table} column="assignee" />
-      <DataTable.Filter table={table} column="state" />
+      <DataTable.Filters table={table} columns={["assignee", "state"]} />
       <Inline className="ml-auto" space="space.100" alignBlock="center">
-        <Box style={{ width: 150 }}>
-          <NativeSelect
-            size="small"
-            aria-label="Group by"
-            value={group}
-            onChange={(e) => changeGroup(e.target.value as GroupKey)}
-          >
-            {groupOptions.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </NativeSelect>
-        </Box>
+        <DataTable.GroupBy options={groupOptions} value={group} onValueChange={changeGroup} />
         <DataTable.Columns table={table} />
         <DataTable.Settings table={table} />
         {add ? (

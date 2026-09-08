@@ -17,6 +17,13 @@ import {
   RadioGroup,
   RadioGroupItem,
   Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectGroup,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
   Switch,
   Textarea,
   useRequired,
@@ -238,22 +245,55 @@ function PickerFields() {
     <div style={{ width: 360 }}>
       <Stack space="space.200">
         <Field label="Status" hint="A Select: the options carry their Dot.">
-          <Select value={status} onValueChange={setStatus}>
-            <Select.Group label="Open">
-              <Select.Item value="draft">
-                <Dot tone="neutral" /> Draft
-              </Select.Item>
-              <Select.Item value="review">
-                <Dot tone="information" /> In review
-              </Select.Item>
-            </Select.Group>
-            <Select.Separator />
-            <Select.Item value="verified">
-              <Dot tone="success" /> Verified
-            </Select.Item>
-            <Select.Item value="overdue">
-              <Dot tone="danger" /> Overdue
-            </Select.Item>
+          <Select
+            items={{
+              draft: (
+                <>
+                  <Dot tone="neutral" /> Draft
+                </>
+              ),
+              review: (
+                <>
+                  <Dot tone="information" /> In review
+                </>
+              ),
+              verified: (
+                <>
+                  <Dot tone="success" /> Verified
+                </>
+              ),
+              overdue: (
+                <>
+                  <Dot tone="danger" /> Overdue
+                </>
+              ),
+            }}
+            value={status}
+            onValueChange={(value) => {
+              if (value !== null) setStatus(value);
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="start" alignItemWithTrigger={false}>
+              <SelectGroup>
+                <SelectLabel>Open</SelectLabel>
+                <SelectItem value="draft" label="Draft">
+                  <Dot tone="neutral" /> Draft
+                </SelectItem>
+                <SelectItem value="review" label="In review">
+                  <Dot tone="information" /> In review
+                </SelectItem>
+              </SelectGroup>
+              <SelectSeparator />
+              <SelectItem value="verified" label="Verified">
+                <Dot tone="success" /> Verified
+              </SelectItem>
+              <SelectItem value="overdue" label="Overdue">
+                <Dot tone="danger" /> Overdue
+              </SelectItem>
+            </SelectContent>
           </Select>
         </Field>
         <Field label="Owner" hint="A Combobox: a list worth searching.">
@@ -564,14 +604,18 @@ function CompositeDemo() {
         }}
       >
         <Field label="Status">
-          <Select
-            ref={selectRef}
-            name="status"
-            defaultValue="open"
-            data-testid="status-trigger"
-            onBlur={() => setBlurred(true)}
-          >
-            <Select.Item value="open">Open</Select.Item>
+          <Select items={{ open: "Open" }} name="status" defaultValue="open">
+            <SelectTrigger
+              className="w-full"
+              ref={selectRef}
+              data-testid="status-trigger"
+              onBlur={() => setBlurred(true)}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="start" alignItemWithTrigger={false}>
+              <SelectItem value="open">Open</SelectItem>
+            </SelectContent>
           </Select>
         </Field>
         <Field label="Owner" error={validation.errorFor("owner")}>

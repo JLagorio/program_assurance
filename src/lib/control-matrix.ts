@@ -211,6 +211,7 @@ function tailoredControls(programId: string, inherited: Iterable<string>): NistC
   for (const c of baselineControls(baselineFor(programId))) picked.set(c.id, c);
 
   const named = [
+    ...rollupControlSet(programId).controls.map((row) => row.control.id),
     ...programControls.map((c) => c.id),
     ...inherited,
     ...workstreamsForProgram(programId).flatMap((w) => w.controls),

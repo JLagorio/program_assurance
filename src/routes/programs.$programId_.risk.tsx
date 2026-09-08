@@ -30,7 +30,9 @@ import {
   Section,
   ShowPage,
   Stack,
-  Tabs,
+  TabsList,
+  TabsTrigger,
+  Count,
   TextLink,
   Toolbar,
 } from "@ledger/design-system";
@@ -244,13 +246,14 @@ function ProgramRisk() {
           />
         }
         tabs={
-          <Tabs.List>
+          <TabsList className="w-full justify-start" variant="line" activateOnFocus>
             {riskTabs.map((key) => (
-              <Tabs.Tab key={key} value={key} count={counts[key] || null}>
+              <TabsTrigger key={key} value={key}>
                 {key}
-              </Tabs.Tab>
+                {counts[key] ? <Count value={counts[key]} max={9999} /> : null}
+              </TabsTrigger>
             ))}
-          </Tabs.List>
+          </TabsList>
         }
       >
         {tab === "Posture" ? (

@@ -22,11 +22,12 @@ import {
 import { CoverageBar } from "@/components/app/coverage-bar";
 import { AllocationTable, ProvenanceTable } from "@/components/app/requirements";
 import { useLinkCurrencyVersion } from "@/lib/link-currency";
+import { allocationsForProgramElement } from "@/lib/requirement-context";
 import { coverageOf, coverageWord, useVerificationVersion } from "@/lib/requirement-verification";
 import {
-  allocationsFor,
   getRequirement,
   requirementStateTone,
+  requirementMethodLabel,
   useRequirementsVersion,
   type Requirement,
 } from "@/lib/requirements";
@@ -36,8 +37,10 @@ export function RequirementPreviewSheet({
   requirementId,
   onClose,
   onAllocate,
+  elementId,
 }: {
   programId: string;
+  elementId?: string | undefined;
   /** The requirement open in the sheet; null closes it. */
   requirementId: string | null;
   onClose: () => void;
@@ -47,8 +50,11 @@ export function RequirementPreviewSheet({
   useRequirementsVersion();
   useVerificationVersion();
   useLinkCurrencyVersion();
-  const requirement = requirementId ? (getRequirement(requirementId) ?? null) : null;
-  const allocations = requirement ? allocationsFor(requirement.id) : [];
+  const record = requirementId ? getRequirement(requirementId) : undefined;
+  const requirement = record?.program === programId ? record : null;
+  const allocations = requirement
+    ? allocationsForProgramElement(requirement.id, programId, elementId)
+    : [];
   const coverage = requirement ? coverageOf(requirement) : null;
   const allocate =
     requirement && onAllocate ? (
@@ -78,9 +84,9 @@ export function RequirementPreviewSheet({
       facts={
         requirement ? (
           <>
-            <Fact label="Method">{requirement.method}</Fact>
+            <Fact label="Method">{requirementMethodLabel(requirement)}</Fact>
             <Fact label="Owner">{requirement.owner}</Fact>
-            <Fact label="Carried by">
+            <Fact label="Allocated to">
               {allocations.length} element{allocations.length === 1 ? "" : "s"}
             </Fact>
           </>
@@ -90,6 +96,7 @@ export function RequirementPreviewSheet({
         <Link
           to="/programs/$programId/requirements/$requirementId"
           params={{ programId, requirementId: requirement?.id ?? "" }}
+          search={{ element: elementId }}
         >
           Open the requirement
         </Link>
@@ -100,7 +107,7 @@ export function RequirementPreviewSheet({
             <Link
               to="/programs/$programId/requirements/$requirementId"
               params={{ programId, requirementId: requirement.id }}
-              search={{ tab: "Provenance" }}
+              search={{ tab: "Provenance", element: elementId }}
             >
               Provenance
             </Link>
@@ -111,7 +118,7 @@ export function RequirementPreviewSheet({
     >
       {requirement && coverage ? (
         <Stack space="space.050">
-          <Block title="Verification" count={coverageWord(coverage)}>
+          <Block title="Assessment result" count={coverageWord(coverage)}>
             <CoverageBar coverage={coverage} />
             {requirement.successCriteria ? (
               <Text as="p" size="small" color="color.text.subtle" className="pt-100">
@@ -119,13 +126,13 @@ export function RequirementPreviewSheet({
               </Text>
             ) : null}
           </Block>
-          <Block title="Carried by" count={allocations.length}>
+          <Block title="Allocated to" count={allocations.length}>
             {allocations.length ? (
               <AllocationTable allocations={allocations} programId={programId} />
             ) : (
               <Empty
-                title="Nobody carries this requirement yet"
-                description="Allocate it to the elements that answer it, each with the scope of its claim."
+                title="No allocations"
+                description="Allocate this requirement to a system element."
                 action={allocate}
               />
             )}
@@ -135,6 +142,7 @@ export function RequirementPreviewSheet({
               derivations={requirement.derivations}
               programId={programId}
               requirementId={requirement.id}
+              elementId={elementId}
             />
           </Block>
         </Stack>

@@ -191,9 +191,7 @@ export const RegisterStory: Story = {
     await expect(actions).toHaveStyle({ opacity: "1" });
     await userEvent.keyboard("{ArrowDown}");
     const body = within(canvasElement.ownerDocument.body);
-    await waitFor(() =>
-      expect(body.getByRole("menuitem", { name: "Open" })).toHaveFocus(),
-    );
+    await waitFor(() => expect(body.getByRole("menuitem", { name: "Open" })).toHaveFocus());
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
     await waitFor(() => expect(actions).toHaveFocus());
@@ -690,6 +688,99 @@ function Grouped() {
 }
 
 export const GroupsStory: Story = { name: "Groups", render: () => <Grouped /> };
+
+const groupingOptions = [
+  { value: "family", label: "Family" },
+  { value: "owner", label: "Owner" },
+  { value: "status", label: "Status" },
+] as const;
+
+function GroupByExample() {
+  const [groupBy, setGroupBy] = useState<"" | "family" | "owner" | "status">("family");
+  const table = useDataTable({
+    columns,
+    data: findings,
+    getRowId: (row) => row.id,
+    label: "Grouped findings",
+    selectable: true,
+    pageSize: 8,
+    groupBy: groupBy || undefined,
+    state: { grouping: groupBy ? [groupBy] : [] },
+    initialState: { expanded: true },
+  });
+  return (
+    <DataTable.Metrics>
+      <Toolbar
+        actions={
+          <>
+            <DataTable.GroupBy
+              options={groupingOptions}
+              value={groupBy}
+              onValueChange={setGroupBy}
+            />
+            <DataTable.Filters table={table} columns={["status", "owner"]} />
+            <DataTable.MetricsTrigger />
+            <DataTable.Columns table={table} />
+            <DataTable.Settings table={table} />
+          </>
+        }
+      >
+        <DataTable.Search table={table} placeholder="Search grouped findings" />
+      </Toolbar>
+      <DataTable.MetricsContent className="px-200 py-100">
+        <Stat label="Total findings" value={findings.length} />
+      </DataTable.MetricsContent>
+      <DataTable table={table} />
+    </DataTable.Metrics>
+  );
+}
+
+export const GroupByStory: Story = {
+  name: "Group by menu",
+  render: () => <GroupByExample />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const search = canvas.getByRole("textbox", { name: "Search grouped findings" });
+    await userEvent.type(search, "Segregation");
+    await userEvent.click(canvas.getByRole("checkbox", { name: "Select row FND-2200" }));
+
+    const trigger = canvas.getByRole("button", { name: "Group by: Family" });
+    trigger.focus();
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(await body.findByRole("menuitemradio", { name: "Family" })).toBeChecked();
+    await userEvent.click(body.getByRole("menuitemradio", { name: "Owner" }));
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await expect(canvas.getByRole("button", { name: "Group by: Owner" })).toHaveFocus();
+    await expect(canvas.getByRole("checkbox", { name: "Select row FND-2200" })).toBeChecked();
+    await expect(search).toHaveValue("Segregation");
+    await expect(canvas.getByRole("table", { name: "Grouped findings" })).toHaveTextContent(
+      "Dana Whitfield",
+    );
+
+    await userEvent.click(canvas.getByRole("button", { name: "Group by: Owner" }));
+    await userEvent.click(await body.findByRole("menuitemradio", { name: "None" }));
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await expect(canvas.getByRole("button", { name: "Group by" })).toHaveFocus();
+    await expect(canvas.getByRole("checkbox", { name: "Select row FND-2200" })).toBeChecked();
+    await expect(search).toHaveValue("Segregation");
+    await expect(
+      canvas.getByRole("navigation", { name: "Grouped findings pagination" }),
+    ).toBeVisible();
+
+    await userEvent.clear(search);
+    await userEvent.click(canvas.getByRole("button", { name: "Filters" }));
+    const status = within(await body.findByRole("group", { name: "Status" }));
+    await userEvent.click(status.getByRole("checkbox", { name: /^Verified\b/ }));
+    await expect(canvas.getByRole("button", { name: "Filters (1)" })).toBeVisible();
+    await expect(canvas.queryByRole("checkbox", { name: "Select row FND-2200" })).toBeNull();
+    await userEvent.click(body.getByRole("button", { name: "Clear all filters" }));
+    await expect(canvas.getByRole("button", { name: "Filters" })).toBeVisible();
+    await expect(canvas.getByRole("checkbox", { name: "Select row FND-2200" })).toBeChecked();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(canvas.getByRole("button", { name: "Filters" })).toHaveFocus());
+  },
+};
 
 /** Pinned rows sit under the header or above the footer, on the sunken surface, whatever the sort. Pin and unpin from the row's actions. */
 function PinnedRows() {

@@ -15,6 +15,10 @@ import {
   Stack,
   Table,
   Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  Count,
   TextLink,
 } from "@ledger/design-system";
 import {
@@ -61,14 +65,15 @@ export function TeamSection({ programId }: { programId: string }) {
         }}
         className="contents"
       >
-        <Tabs.List className="pt-050">
+        <TabsList variant="line" activateOnFocus className="w-full justify-start pt-050">
           {tabs.map((t) => (
-            <Tabs.Tab key={t} value={t} count={counts[t]}>
+            <TabsTrigger key={t} value={t}>
               {t}
-            </Tabs.Tab>
+              {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
+            </TabsTrigger>
           ))}
-        </Tabs.List>
-        <Tabs.Panel value={tab} className="contents">
+        </TabsList>
+        <TabsContent value={tab} className="contents">
           <PreviewSplit open={Boolean(railOpen)}>
             <Box className="min-w-0 lg:pe-300" paddingBlockStart="space.200">
               {tab === "Workstreams" ? (
@@ -316,7 +321,7 @@ export function TeamSection({ programId }: { programId: string }) {
               </PreviewRail>
             ) : null}
           </PreviewSplit>
-        </Tabs.Panel>
+        </TabsContent>
       </Tabs>
     </Section>
   );

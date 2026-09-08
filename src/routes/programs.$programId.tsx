@@ -38,7 +38,9 @@ import {
   Select,
   ShowPage,
   Stack,
-  Tabs,
+  TabsList,
+  TabsTrigger,
+  Count,
   TextLink,
   toast,
   useCommandPalette,
@@ -55,11 +57,11 @@ import { useProgramScheduleVersion } from "@/lib/program-schedule";
 import { useAssessmentsVersion } from "@/lib/assessment-store";
 import { campaigns } from "@/lib/campaigns";
 import { CoverageBand } from "@/components/app/coverage";
-import { ControlBoard } from "@/components/app/control-board";
+import { ProgramControls } from "@/components/app/program-controls";
 import { RecordActivity } from "@/components/app/record-activity";
 import { StageStrip } from "@/components/app/stage-strip";
 import { TaskRows } from "@/components/app/tasks-section";
-import { currentSession } from "@/lib/control-work";
+import { currentSession, useWorkVersion } from "@/lib/control-work";
 import { stageOf } from "@/lib/stages";
 import { tasksForProgram, useTasksVersion } from "@/lib/tasks";
 import { useControlMatrix, type ControlStatus } from "@/lib/control-matrix";
@@ -69,8 +71,12 @@ import { coverageFromRows } from "@/lib/program-coverage";
 import { programCommands } from "@/lib/program-commands";
 import { ScopeTable } from "@/components/app/scopes";
 import { RequirementCoverage } from "@/components/app/requirement-coverage";
-import { programControls, programStatuses, programStatusTone, programs } from "@/lib/grc-data";
-import { requirementsForProgram, useRequirementsVersion } from "@/lib/requirements";
+import { programStatuses, programStatusTone, programs } from "@/lib/grc-data";
+import { useRequirementsVersion } from "@/lib/requirements";
+import { requirementsForProgramElement } from "@/lib/requirement-context";
+import { programControlRows } from "@/lib/program-controls";
+import { ancestorsOf, useCompositionGraph } from "@/lib/composition";
+import { programElementIds, resolveProgramElement } from "@/lib/program-scope";
 import { rollupControlSet, scopesForProgram, useScopesVersion } from "@/lib/scopes";
 import { poamItems as registerPoams } from "@/lib/register";
 import { programState, type Stage } from "@/lib/program-stage";
@@ -84,9 +90,11 @@ export const Route = createFileRoute("/programs/$programId")({
   ): {
     tab?: Tab | undefined;
     peek?: string | undefined;
+    element?: string | undefined;
     findingId?: string | undefined;
     poamId?: string | undefined;
     assessmentId?: string | undefined;
+    assessmentRunId?: string | undefined;
     newFindingAssessment?: string | undefined;
     scheduleView?: "Plan" | "Tasks" | "Assignments" | undefined;
   } => {
@@ -97,9 +105,13 @@ export const Route = createFileRoute("/programs/$programId")({
       tab:
         tabOrder.find((t) => t.toLowerCase() === raw.toLowerCase()) ?? tabAlias[raw.toLowerCase()],
       peek,
+      element:
+        typeof search["element"] === "string" && search["element"] ? search["element"] : undefined,
       findingId: typeof search["findingId"] === "string" ? search["findingId"] : undefined,
       poamId: typeof search["poamId"] === "string" ? search["poamId"] : undefined,
       assessmentId: typeof search["assessmentId"] === "string" ? search["assessmentId"] : undefined,
+      assessmentRunId:
+        typeof search["assessmentRunId"] === "string" ? search["assessmentRunId"] : undefined,
       newFindingAssessment:
         typeof search["newFindingAssessment"] === "string"
           ? search["newFindingAssessment"]
@@ -263,9 +275,11 @@ function ProgramDetail() {
         search: (prev) => ({
           ...prev,
           tab: next,
+          peek: undefined,
           findingId: undefined,
           poamId: undefined,
           assessmentId: undefined,
+          assessmentRunId: undefined,
           newFindingAssessment: undefined,
         }),
       });
@@ -282,17 +296,46 @@ function ProgramDetail() {
   const scopeRows = scopesForProgram(program.id);
   const rollup = rollupControlSet(program.id);
   useRequirementsVersion();
-  const requirementRows = requirementsForProgram(program.id);
+  useWorkVersion();
+  const elements = useCompositionGraph(program.id);
+  const selectedElement = resolveProgramElement(program.id, search.element);
+  const selectedElementIds = programElementIds(program.id, selectedElement?.id);
+  const scopedRequirementCount = requirementsForProgramElement(
+    program.id,
+    selectedElement?.id,
+  ).length;
+  const scopedControls = programControlRows(program.id, selectedElement?.id);
+  const changeElement = (element: string) => {
+    void navigate({
+      search: (prev) => ({
+        ...prev,
+        element: element === "__all__" ? undefined : element || undefined,
+        peek: undefined,
+      }),
+    });
+  };
+  useEffect(() => {
+    if (search.element && !selectedElement) {
+      void navigate({
+        replace: true,
+        search: (prev) => ({ ...prev, element: undefined, peek: undefined }),
+      });
+    }
+  }, [search.element, selectedElement, navigate]);
   useProgramsVersion();
   const [assessing, setAssessing] = useState(false);
   const [archiving, setArchiving] = useState(false);
-  const { form, values, formId, formRef } = useRecordForm(
+  const { form, values, setValue, formId, formRef } = useRecordForm(
     {
       assessControl: "AC-6(9)",
     },
     (value) => ({ assessControl: value.assessControl }),
   );
   const { assessControl } = values;
+  useEffect(() => {
+    if (assessing && !scopedControls.some((control) => control.id === assessControl))
+      setValue("assessControl", scopedControls[0]?.id ?? "");
+  }, [assessing, assessControl, scopedControls, setValue]);
 
   const [status, setStatus] = useState(program.status);
   const [owner, setOwner] = useState(program.owner);
@@ -609,13 +652,13 @@ function ProgramDetail() {
             />
           }
           tabs={
-            <Tabs.List>
+            <TabsList className="w-full justify-start" variant="line" activateOnFocus>
               {(
                 [
                   ["Overview", null],
-                  ["System", scopeRows.length || null],
-                  ["Requirements", requirementRows.length || null],
-                  ["Controls", posture.controlsFailing || null],
+                  ["System", selectedElementIds.size || null],
+                  ["Requirements", scopedRequirementCount || null],
+                  ["Controls", scopedControls.length || null],
                   ["Assessments", assessmentCount || null],
                   ["Schedule", null],
                   ["Findings", posture.findingsOpen || null],
@@ -624,13 +667,51 @@ function ProgramDetail() {
                   ["Activity", null],
                 ] as [Tab, number | null][]
               ).map(([key, count]) => (
-                <Tabs.Tab key={key} value={key} count={count || null}>
+                <TabsTrigger key={key} value={key}>
                   {key}
-                </Tabs.Tab>
+                  {count ? <Count value={count} max={9999} /> : null}
+                </TabsTrigger>
               ))}
-            </Tabs.List>
+            </TabsList>
           }
         >
+          {["System", "Requirements"].includes(tab) ? (
+            <Box paddingBlock="space.150">
+              <Inline space="space.100" alignBlock="center" shouldWrap>
+                <span className="font-body-small text-subtle">Scope</span>
+                <Combobox
+                  aria-label="System or component scope"
+                  size="small"
+                  width={360}
+                  className="max-w-full"
+                  value={selectedElement?.id ?? "__all__"}
+                  onChange={changeElement}
+                  placeholder="Find a system or component"
+                  options={[
+                    { value: "__all__", label: "Whole system" },
+                    ...elements.map((element) => ({
+                      value: element.id,
+                      label: element.name,
+                      meta: element.kind,
+                      keywords: ancestorsOf(element.id)
+                        .map((ancestor) => ancestor.name)
+                        .join(" "),
+                    })),
+                  ]}
+                />
+                {selectedElement ? (
+                  <>
+                    {selectedElementIds.size > 1 ? (
+                      <span className="font-body-small text-subtle">Includes parts</span>
+                    ) : null}
+                    <Button size="small" variant="subtle" onClick={() => changeElement("__all__")}>
+                      Clear scope
+                    </Button>
+                  </>
+                ) : null}
+              </Inline>
+            </Box>
+          ) : null}
           {tab === "Overview" ? (
             <>
               <StageStrip programId={program.id} />
@@ -693,7 +774,40 @@ function ProgramDetail() {
             </>
           ) : null}
 
-          {tab === "Controls" ? <ControlBoard programId={program.id} /> : null}
+          {tab === "Controls" ? (
+            <ProgramControls
+              programId={program.id}
+              elementId={selectedElement?.id}
+              onClearScope={() => changeElement("__all__")}
+              scopeFilter={
+                <Field
+                  label="Scope"
+                  hint={
+                    selectedElement && selectedElementIds.size > 1 ? "Includes parts" : undefined
+                  }
+                >
+                  <Combobox
+                    aria-label="System or component scope"
+                    size="small"
+                    value={selectedElement?.id ?? "__all__"}
+                    onChange={changeElement}
+                    placeholder="Find a system or component"
+                    options={[
+                      { value: "__all__", label: "Whole system" },
+                      ...elements.map((element) => ({
+                        value: element.id,
+                        label: element.name,
+                        meta: element.kind,
+                        keywords: ancestorsOf(element.id)
+                          .map((ancestor) => ancestor.name)
+                          .join(" "),
+                      })),
+                    ]}
+                  />
+                </Field>
+              }
+            />
+          ) : null}
 
           {tab === "Findings" ? (
             <ProgramFindings
@@ -712,7 +826,9 @@ function ProgramDetail() {
               initialAssessmentId={search.newFindingAssessment}
             />
           ) : null}
-          {tab === "Evidence" ? <ProgramEvidence programId={program.id} /> : null}
+          {tab === "Evidence" ? (
+            <ProgramEvidence programId={program.id} elementId={selectedElement?.id} />
+          ) : null}
           {tab === "POA&M" ? (
             <ProgramPoams
               key={`${program.id}/${search.poamId ?? ""}`}
@@ -725,12 +841,23 @@ function ProgramDetail() {
           ) : null}
           {tab === "Assessments" ? (
             <ProgramAssessments
-              key={`${program.id}/${search.assessmentId ?? ""}`}
+              key={`${program.id}/${search.assessmentId ?? ""}/${search.assessmentRunId ?? ""}`}
               programId={program.id}
               initialAssessmentId={search.assessmentId}
+              initialRunId={search.assessmentRunId}
+              elementId={selectedElement?.id}
               onAssessmentChange={(assessmentId) => {
                 void navigate({
-                  search: (prev) => ({ ...prev, assessmentId: assessmentId ?? undefined }),
+                  search: (prev) => ({
+                    ...prev,
+                    assessmentId: assessmentId ?? undefined,
+                    assessmentRunId: undefined,
+                  }),
+                });
+              }}
+              onRunChange={(assessmentRunId) => {
+                void navigate({
+                  search: (prev) => ({ ...prev, assessmentRunId: assessmentRunId ?? undefined }),
                 });
               }}
               onRaiseFinding={(assessmentId) => {
@@ -757,17 +884,29 @@ function ProgramDetail() {
               }}
               onOpenAssessment={(assessmentId) => {
                 void navigate({
-                  search: (prev) => ({ ...prev, tab: "Assessments", assessmentId }),
+                  search: (prev) => ({
+                    ...prev,
+                    tab: "Assessments",
+                    assessmentId,
+                    assessmentRunId: undefined,
+                  }),
                 });
               }}
             />
           ) : null}
 
           {tab === "System" ? (
-            <ScopeTable scopes={scopeRows} rollup={rollup} programId={program.id} />
+            <ScopeTable
+              scopes={scopeRows}
+              rollup={rollup}
+              programId={program.id}
+              elementId={selectedElement?.id}
+            />
           ) : null}
 
-          {tab === "Requirements" ? <RequirementCoverage programId={program.id} /> : null}
+          {tab === "Requirements" ? (
+            <RequirementCoverage programId={program.id} elementId={selectedElement?.id} />
+          ) : null}
 
           {tab === "Activity" ? (
             <RecordActivity
@@ -851,7 +990,10 @@ function ProgramDetail() {
                 void navigate({
                   to: "/programs/$programId/controls/$controlId",
                   params: { programId: program.id, controlId: assessControl },
-                  search: {},
+                  search: {
+                    scope: scopedControls.find((control) => control.id === assessControl)?.scopeId,
+                    element: selectedElement?.id,
+                  },
                 });
               },
             });
@@ -873,7 +1015,7 @@ function ProgramDetail() {
                   <Combobox
                     value={field.state.value}
                     onChange={field.handleChange}
-                    options={programControls.map((control) => ({
+                    options={scopedControls.map((control) => ({
                       value: control.id,
                       label: control.id,
                       meta: control.title,

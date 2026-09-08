@@ -1,6 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Badge, Button, Id, Indicator, KeyValue, Tabs, TextLink } from "../../components";
+import {
+  Badge,
+  Button,
+  Id,
+  Indicator,
+  KeyValue,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  TextLink,
+} from "../../components";
 import { PreviewRail } from "../../patterns";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Inspector } from "../../shapes";
@@ -107,12 +118,17 @@ export const Dont: Story = {
             >
               <Stack space="space.150">
                 <Tabs defaultValue="Overview" className="contents">
-                  <Tabs.List label="Sections">
-                    <Tabs.Tab value="Overview">Overview</Tabs.Tab>
-                    <Tabs.Tab value="Evidence">Evidence</Tabs.Tab>
-                    <Tabs.Tab value="History">History</Tabs.Tab>
-                  </Tabs.List>
-                  <Tabs.Panel value="Overview" />
+                  <TabsList
+                    variant="line"
+                    activateOnFocus
+                    aria-label="Sections"
+                    className="w-full justify-start"
+                  >
+                    <TabsTrigger value="Overview">Overview</TabsTrigger>
+                    <TabsTrigger value="Evidence">Evidence</TabsTrigger>
+                    <TabsTrigger value="History">History</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="Overview" />
                 </Tabs>
                 <Inline space="space.100">
                   <Button size="small" variant="primary">

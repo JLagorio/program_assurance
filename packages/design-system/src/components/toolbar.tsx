@@ -45,7 +45,9 @@ export function Toolbar({
         </InputGroup>
       ) : null}
       {children}
-      {actions ? <span className="ms-auto flex items-center gap-100">{actions}</span> : null}
+      {actions ? (
+        <span className="ms-auto flex max-w-full flex-wrap items-center gap-100">{actions}</span>
+      ) : null}
     </div>
   );
 }

@@ -1,191 +1,257 @@
-import { useLedgerLocale } from "../lib/locale";
-import * as SelectPrimitive from "@radix-ui/react-select";
-import { Check, ChevronDown } from "lucide-react";
-import type { ComponentProps, ReactNode } from "react";
+import { DirectionProvider, useDirection } from "@base-ui/react/direction-provider";
+import { Select as SelectPrimitive } from "@base-ui/react/select";
+import { Check, ChevronDown, ChevronUp } from "lucide-react";
 
+import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
-import { controlBase, controlHeight, useFieldControl, type ControlSize } from "./controls";
+import { useLedgerLocale } from "../lib/locale";
+import { useOverlayContainer } from "./_overlay-focus";
+import { controlBase, controlHeight, useFieldControl } from "./controls";
 import {
   menuItem,
   menuItemDisabled,
   menuItemHighlighted,
   menuLabel,
-  menuMotion,
   menuSeparator,
   menuSurface,
 } from "./menu";
 
-type SelectOwnProps = {
-  /** The chosen value, controlled; pair it with `onValueChange`. */
-  value?: string | undefined;
-  /** The starting value when uncontrolled. */
-  defaultValue?: string | undefined;
-  /** Called with the new value when the reader chooses. */
-  onValueChange?: ((value: string) => void) | undefined;
-  /** What the field says with nothing chosen: "Choose a status". Never the label. */
-  placeholder?: string | undefined;
-  /** `medium` (32px) in a form; `small` (28px) in a toolbar, beside small Buttons. */
-  size?: ControlSize | undefined;
-  /** Not available. The last resort: a value the reader cannot change here is shown as text. */
-  disabled?: boolean | undefined;
-  /** The form field's name; a hidden input carries the value on submit. */
-  name?: string | undefined;
-  form?: string | undefined;
-  /** The name, when there is no Field around it. */
-  id?: string | undefined;
-  "aria-labelledby"?: string | undefined;
-  "aria-label"?: string | undefined;
-  /** Set by the Field from `error`; the border turns. */
-  "aria-invalid"?: boolean | undefined;
-  /** Set by the Field from `isRequired`. */
-  "aria-required"?: boolean | undefined;
-  /** Set by the Field: the hint or the error is the control's description. */
-  "aria-describedby"?: string | undefined;
-  /** The trigger's width in pixels, for a select in a toolbar beside others. In a form the column sets it. */
-  width?: number | undefined;
-  /** Layout only. */
-  className?: string | undefined;
-  /** `Select.Item`s, in `Select.Group`s with a `Select.Separator` between when the list has sections. */
-  children: ReactNode;
-};
+export type SelectProps<
+  Value = unknown,
+  Multiple extends boolean | undefined = false,
+> = SelectPrimitive.Root.Props<Value, Multiple>;
 
-export type SelectProps = SelectOwnProps &
-  Omit<ComponentProps<typeof SelectPrimitive.Trigger>, keyof SelectOwnProps | "asChild">;
-
-/** One answer from a short, fixed list whose options mean more than their words: a status with its Dot, a kind with its Badge. For plain words, NativeSelect; for a list worth searching, Combobox. */
-function SelectRoot({
-  value,
-  defaultValue,
-  onValueChange,
-  placeholder,
-  size = "medium",
-  disabled,
-  name,
-  form,
-  id,
-  "aria-labelledby": ariaLabelledby,
-  "aria-label": ariaLabel,
-  "aria-invalid": ariaInvalid,
-  "aria-required": ariaRequired,
-  "aria-describedby": ariaDescribedby,
-  width,
-  className,
-  children,
-  ...triggerProps
-}: SelectProps) {
+export function Select<Value, Multiple extends boolean | undefined = false>(
+  props: SelectProps<Value, Multiple>,
+) {
   const { direction } = useLedgerLocale();
-  const field = useFieldControl({
-    ...triggerProps,
-    id,
-    "aria-label": ariaLabel,
-    "aria-labelledby": ariaLabelledby,
-    "aria-invalid": ariaInvalid,
-    "aria-describedby": ariaDescribedby,
-    "aria-required": ariaRequired,
-  });
   return (
-    <SelectPrimitive.Root
-      dir={direction}
-      {...(form ? { form } : {})}
-      {...(value === undefined ? (defaultValue === undefined ? {} : { defaultValue }) : { value })}
-      {...(onValueChange ? { onValueChange } : {})}
-      {...(disabled ? { disabled } : {})}
-      {...(name ? { name } : {})}
-    >
-      <SelectPrimitive.Trigger
-        {...field}
-        className={cn(
-          controlBase,
-          controlHeight[size],
-          "flex items-center justify-between gap-100 text-left data-[placeholder]:text-subtlest",
-          className,
-        )}
-        style={{ ...triggerProps.style, ...(width === undefined ? {} : { width }) }}
-      >
-        <span className="min-w-0 flex-1 truncate">
-          <SelectPrimitive.Value placeholder={placeholder} />
-        </span>
-        <SelectPrimitive.Icon asChild>
-          <ChevronDown className="size-icon-small shrink-0 icon-subtle" />
-        </SelectPrimitive.Icon>
-      </SelectPrimitive.Trigger>
-      <SelectPrimitive.Portal>
-        <SelectPrimitive.Content
-          position="popper"
-          sideOffset={4}
-          collisionPadding={8}
-          style={{
-            maxHeight: "var(--radix-select-content-available-height)",
-            minWidth: "var(--radix-select-trigger-width)",
-          }}
-          className={cn(menuSurface, menuMotion)}
-        >
-          <SelectPrimitive.Viewport className="overscroll-none">
-            {children}
-          </SelectPrimitive.Viewport>
-        </SelectPrimitive.Content>
-      </SelectPrimitive.Portal>
-    </SelectPrimitive.Root>
+    <DirectionProvider direction={direction}>
+      <SelectPrimitive.Root {...props} />
+    </DirectionProvider>
   );
 }
 
-export type SelectItemProps = {
-  /** The value the Select reports. */
-  value: string;
-  /** A choice the reader cannot make yet, kept in the list so they know it exists. */
-  disabled?: boolean | undefined;
-  /** Layout only. */
-  className?: string | undefined;
-  /** The option's text, with a Dot or a Badge before it when the option is a status or a kind. */
-  children: ReactNode;
+export type SelectTriggerProps = SelectPrimitive.Trigger.Props & {
+  size?: "sm" | "default" | undefined;
 };
-
-function SelectItem({ value, disabled, className, children }: SelectItemProps) {
+export function SelectTrigger({
+  className,
+  size = "default",
+  children,
+  ...props
+}: SelectTriggerProps) {
+  const bound = useFieldControl(props);
+  // Leave upstream Root/Field announcements intact when Ledger has no binding to add.
+  for (const key of [
+    "aria-required",
+    "aria-invalid",
+    "aria-labelledby",
+    "aria-describedby",
+  ] as const) {
+    if (bound[key] === undefined) delete bound[key];
+  }
   return (
-    <SelectPrimitive.Item
-      value={value}
-      {...(disabled ? { disabled } : {})}
-      className={cn(
-        menuItem,
-        "relative pe-500",
-        menuItemHighlighted,
-        "data-[state=checked]:text-selected",
-        menuItemDisabled,
+    <SelectPrimitive.Trigger
+      data-slot="select-trigger"
+      data-size={size}
+      {...bound}
+      className={classes(
+        cn(
+          controlBase,
+          controlHeight[size === "sm" ? "small" : "medium"],
+          "flex w-fit items-center justify-between gap-100 text-start data-placeholder:text-subtlest data-readonly:bg-surface-sunken data-readonly:hover:bg-surface-sunken [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-icon-small",
+        ),
         className,
       )}
     >
-      <span className="flex min-w-0 flex-1 items-center gap-100 truncate">
-        <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-      </span>
-      <SelectPrimitive.ItemIndicator className="absolute end-100 flex items-center">
-        <Check className="size-icon-small" />
+      {children}
+      <SelectPrimitive.Icon
+        render={<ChevronDown aria-hidden className="icon-subtle" />}
+        children={null}
+      />
+    </SelectPrimitive.Trigger>
+  );
+}
+
+export type SelectValueProps = SelectPrimitive.Value.Props;
+export function SelectValue({ className, ...props }: SelectValueProps) {
+  return (
+    <SelectPrimitive.Value
+      data-slot="select-value"
+      className={classes("flex min-w-0 flex-1 items-center gap-100 truncate text-start", className)}
+      {...props}
+    />
+  );
+}
+
+export type SelectContentProps = SelectPrimitive.Popup.Props &
+  Pick<
+    SelectPrimitive.Positioner.Props,
+    "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger"
+  >;
+export function SelectContent({
+  className,
+  children,
+  style,
+  dir,
+  side = "bottom",
+  sideOffset = 4,
+  align = "center",
+  alignOffset = 0,
+  alignItemWithTrigger = true,
+  ...props
+}: SelectContentProps) {
+  const inheritedDirection = useDirection();
+  const direction = dir === "ltr" || dir === "rtl" ? dir : inheritedDirection;
+  const portal = useOverlayContainer();
+  const listName = useFieldControl({
+    "aria-label": props["aria-label"],
+    "aria-labelledby": props["aria-labelledby"],
+  });
+  const defaults = {
+    width: "var(--anchor-width)",
+    minWidth: 144,
+    maxWidth: "var(--available-width)",
+    maxHeight: "var(--available-height)",
+    transformOrigin: "var(--transform-origin)",
+  };
+  return (
+    <DirectionProvider direction={direction}>
+      <span hidden ref={portal.ref} />
+      <SelectPrimitive.Portal container={portal.container}>
+        <SelectPrimitive.Positioner
+          side={side}
+          sideOffset={sideOffset}
+          align={align}
+          alignOffset={alignOffset}
+          alignItemWithTrigger={alignItemWithTrigger}
+          positionMethod={portal.container ? "fixed" : undefined}
+          className="isolate z-50"
+        >
+          <SelectPrimitive.Popup
+            data-slot="select-content"
+            data-align-trigger={alignItemWithTrigger}
+            dir={dir ?? direction}
+            className={classes(
+              cn(
+                menuSurface,
+                "relative flex flex-col overflow-x-hidden overflow-y-auto data-open:animate-enter data-closed:animate-exit data-[align-trigger=true]:animate-none motion-reduce:animate-none",
+              ),
+              className,
+            )}
+            style={
+              typeof style === "function"
+                ? (state) => ({ ...defaults, ...style(state) })
+                : { ...defaults, ...style }
+            }
+            {...props}
+          >
+            <SelectScrollUpButton />
+            <SelectPrimitive.List
+              className="min-h-0 overflow-y-auto overscroll-contain"
+              aria-label={listName["aria-label"]}
+              aria-labelledby={listName["aria-labelledby"]}
+            >
+              {children}
+            </SelectPrimitive.List>
+            <SelectScrollDownButton />
+          </SelectPrimitive.Popup>
+        </SelectPrimitive.Positioner>
+      </SelectPrimitive.Portal>
+    </DirectionProvider>
+  );
+}
+
+export type SelectGroupProps = SelectPrimitive.Group.Props;
+export function SelectGroup({ className, ...props }: SelectGroupProps) {
+  return (
+    <SelectPrimitive.Group
+      data-slot="select-group"
+      className={classes("scroll-my-050", className)}
+      {...props}
+    />
+  );
+}
+
+export type SelectLabelProps = SelectPrimitive.GroupLabel.Props;
+export function SelectLabel({ className, ...props }: SelectLabelProps) {
+  return (
+    <SelectPrimitive.GroupLabel
+      data-slot="select-label"
+      className={classes(menuLabel, className)}
+      {...props}
+    />
+  );
+}
+
+export type SelectItemProps = SelectPrimitive.Item.Props;
+export function SelectItem({ className, children, ...props }: SelectItemProps) {
+  return (
+    <SelectPrimitive.Item
+      data-slot="select-item"
+      className={classes(
+        cn(
+          menuItem,
+          menuItemHighlighted,
+          menuItemDisabled,
+          "relative pe-500 text-start data-selected:text-selected [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-icon-small",
+        ),
+        className,
+      )}
+      {...props}
+    >
+      <SelectPrimitive.ItemText className="flex min-w-0 flex-1 items-center gap-100 truncate">
+        {children}
+      </SelectPrimitive.ItemText>
+      <SelectPrimitive.ItemIndicator
+        render={<span className="pointer-events-none absolute end-100 flex items-center" />}
+      >
+        <Check aria-hidden className="size-icon-small" />
       </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>
   );
 }
 
-export type SelectGroupProps = {
-  /** The section's heading in the list, in the eyebrow style. */
-  label: ReactNode;
-  children: ReactNode;
-};
-
-function SelectGroup({ label, children }: SelectGroupProps) {
+export type SelectSeparatorProps = SelectPrimitive.Separator.Props;
+export function SelectSeparator({ className, ...props }: SelectSeparatorProps) {
   return (
-    <SelectPrimitive.Group>
-      <SelectPrimitive.Label className={menuLabel}>{label}</SelectPrimitive.Label>
-      {children}
-    </SelectPrimitive.Group>
+    <SelectPrimitive.Separator
+      data-slot="select-separator"
+      className={classes(menuSeparator, className)}
+      {...props}
+    />
   );
 }
 
-/** A hairline between groups. */
-function SelectSeparator() {
-  return <SelectPrimitive.Separator className={menuSeparator} />;
+export type SelectScrollUpButtonProps = SelectPrimitive.ScrollUpArrow.Props;
+export function SelectScrollUpButton({ className, ...props }: SelectScrollUpButtonProps) {
+  return (
+    <SelectPrimitive.ScrollUpArrow
+      data-slot="select-scroll-up-button"
+      className={classes(
+        "top-0 z-10 flex w-full cursor-default items-center justify-center bg-surface-overlay py-050",
+        className,
+      )}
+      {...props}
+    >
+      <ChevronUp aria-hidden className="size-icon-small" />
+    </SelectPrimitive.ScrollUpArrow>
+  );
 }
 
-export const Select = Object.assign(SelectRoot, {
-  Item: SelectItem,
-  Group: SelectGroup,
-  Separator: SelectSeparator,
-});
+export type SelectScrollDownButtonProps = SelectPrimitive.ScrollDownArrow.Props;
+export function SelectScrollDownButton({ className, ...props }: SelectScrollDownButtonProps) {
+  return (
+    <SelectPrimitive.ScrollDownArrow
+      data-slot="select-scroll-down-button"
+      className={classes(
+        "bottom-0 z-10 flex w-full cursor-default items-center justify-center bg-surface-overlay py-050",
+        className,
+      )}
+      {...props}
+    >
+      <ChevronDown aria-hidden className="size-icon-small" />
+    </SelectPrimitive.ScrollDownArrow>
+  );
+}

@@ -19,7 +19,7 @@ export function coverageSegments(c: RequirementCoverage): StackedSegment[] {
       value: c.notCovered,
       tone: "neutral",
       appearance: "hatched",
-      title: `${c.notCovered} not covered`,
+      title: `${c.notCovered} with no assessment linked`,
     },
   ];
 }

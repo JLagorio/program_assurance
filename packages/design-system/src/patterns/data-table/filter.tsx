@@ -1,6 +1,6 @@
 import { useLedgerLocale } from "../../lib/locale";
 import type { ColumnFiltersState, RowData } from "@tanstack/react-table";
-import { ChevronDown, Search as SearchIcon } from "lucide-react";
+import { ChevronDown, ListFilter, Search as SearchIcon } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { Count } from "../../components/badge";
@@ -17,12 +17,12 @@ import {
   DropdownMenuShortcut,
 } from "../../components/dropdown-menu";
 import { InputGroup } from "../../components/input-group";
-import { Popover, PopoverContent, PopoverTrigger } from "../../components/popover";
+import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "../../components/popover";
 import { ToggleGroup, ToggleGroupItem } from "../../components/toggle-group";
 import type { DataTableInstance } from "./use-data-table";
 
 /*
- * Filters live in the toolbar as chips, never as a row under the header. A chip's popover is built
+ * Filters share one toolbar popover, or appear as individual chips. Their fields are built
  * from the column: the facet's values as checkboxes for a status, a person or a short text column;
  * a range for a number or a date; a text field for a long text column. The applied filter reads on
  * the chip. Search is the global filter. Presets are saved questions: a named set of column filters
@@ -115,18 +115,25 @@ function RangeBody({
   );
 }
 
-/** The chip that filters one column. The popover's body follows the column's kind. */
-export function Filter<TData extends RowData>({
-  table,
-  column: columnId,
-  label,
-  width = 220,
-}: {
+type FilterProps<TData extends RowData> = {
   table: DataTableInstance<TData>;
   column: string;
   label?: string | undefined;
   width?: number | undefined;
-}) {
+};
+
+/** The chip that filters one column. The popover's body follows the column's kind. */
+export function Filter<TData extends RowData>(props: FilterProps<TData>) {
+  return <ColumnFilter {...props} />;
+}
+
+function ColumnFilter<TData extends RowData>({
+  table,
+  column: columnId,
+  label,
+  width = 220,
+  inline = false,
+}: FilterProps<TData> & { inline?: boolean }) {
   const { t, formatNumber, locale } = useLedgerLocale();
 
   const column = table.getColumn(columnId);
@@ -212,6 +219,15 @@ export function Filter<TData extends RowData>({
     value = contains || undefined;
   }
 
+  if (inline) {
+    return (
+      <fieldset className="flex min-w-0 flex-col gap-100">
+        <legend className="pb-100 font-body-small font-medium text-default">{title}</legend>
+        {body}
+      </fieldset>
+    );
+  }
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
@@ -227,6 +243,74 @@ export function Filter<TData extends RowData>({
               </Button>
             </div>
           ) : null}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/** A single toolbar action for several column filters, with their count and a clear action. */
+export function Filters<TData extends RowData>({
+  table,
+  columns,
+  additionalFilters,
+}: {
+  table: DataTableInstance<TData>;
+  columns: readonly string[];
+  /** Filters owned by the caller, such as a URL-backed scope. Included in the count and Clear all. */
+  additionalFilters?:
+    | {
+        content: ReactNode;
+        count: number;
+        onClear: () => void;
+      }
+    | undefined;
+}) {
+  const { t, formatNumber } = useLedgerLocale();
+  const count = table.state.columnFilters.length + (additionalFilters?.count ?? 0);
+  return (
+    <Popover>
+      <PopoverTrigger
+        render={
+          <Button
+            size="small"
+            iconBefore={<ListFilter />}
+            iconAfter={<ChevronDown />}
+            className={
+              count
+                ? "bg-selected text-selected hover:bg-selected-hovered active:bg-selected-pressed shadow-none"
+                : undefined
+            }
+          >
+            {t("filters")}
+            {count ? ` (${formatNumber(count)})` : ""}
+          </Button>
+        }
+      />
+      <PopoverContent
+        align="start"
+        className="overflow-y-auto"
+        style={{ maxHeight: "var(--available-height)" }}
+      >
+        <div className="flex items-center justify-between gap-100">
+          <PopoverTitle>{t("filters")}</PopoverTitle>
+          <Button
+            variant="link"
+            size="small"
+            disabled={!count}
+            onClick={() => {
+              table.setColumnFilters([]);
+              additionalFilters?.onClear();
+            }}
+          >
+            {t("clearAllFilters")}
+          </Button>
+        </div>
+        <div className="flex flex-col gap-200 pt-100">
+          {additionalFilters?.content}
+          {columns.map((column) => (
+            <ColumnFilter key={column} table={table} column={column} inline />
+          ))}
         </div>
       </PopoverContent>
     </Popover>

@@ -1,5 +1,25 @@
 import { createRef, type ComponentProps } from "react";
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectGroup,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+  type SelectProps,
+  type SelectTriggerProps,
+  type SelectValueProps,
+  type SelectContentProps,
+  type SelectGroupProps,
+  type SelectLabelProps,
+  type SelectItemProps,
+  type SelectSeparatorProps,
+  type SelectScrollUpButtonProps,
+  type SelectScrollDownButtonProps,
   Breadcrumb,
   BreadcrumbList,
   BreadcrumbItem,
@@ -37,6 +57,14 @@ import {
   Text,
   Input,
   Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  tabsListVariants,
+  type TabsProps,
+  type TabsListProps,
+  type TabsTriggerProps,
+  type TabsContentProps,
   Toggle,
   toggleVariants,
   ToggleGroup,
@@ -1013,3 +1041,150 @@ const menuSubContentProps: DropdownMenuSubContentProps = {
 <DropdownMenu trigger={<button />} />;
 // @ts-expect-error Action selection uses onClick; onSelect is not the menu's activation callback.
 <DropdownMenuItem isSelected />;
+
+type SelectOwner = { id: number; name: string };
+const selectRoot: SelectProps<SelectOwner> = {
+  name: "owner",
+  form: "record",
+  required: true,
+  autoComplete: "off",
+  readOnly: false,
+  inputRef: createRef<HTMLInputElement>(),
+  defaultValue: { id: 1, name: "Dana" },
+  itemToStringLabel: (owner) => owner.name,
+  itemToStringValue: (owner) => String(owner.id),
+  isItemEqualToValue: (a, b) => a.id === b.id,
+  actionsRef: createRef<{ unmount(): void }>(),
+  onValueChange(value, details) {
+    const id: number | undefined = value?.id;
+    if (id === 2) details.cancel();
+  },
+  onOpenChange(open, details) {
+    if (!open && details.reason === "outside-press") details.cancel();
+  },
+};
+const selectTrigger: SelectTriggerProps = {
+  ref: createRef<HTMLButtonElement>(),
+  size: "sm",
+  id: "owner-trigger",
+  style: (state) => ({ width: state.open ? 240 : 200 }),
+  className: (state) => (state.disabled ? "font-regular" : "font-medium"),
+  render: (props, state) => <button {...props} data-selected={state.value?.id} />,
+};
+const selectValue: SelectValueProps = {
+  ref: createRef<HTMLSpanElement>(),
+  placeholder: "Choose owner",
+  children: (value: SelectOwner | null) => value?.name ?? "Choose owner",
+};
+const selectContent: SelectContentProps = {
+  ref: createRef<HTMLDivElement>(),
+  alignItemWithTrigger: false,
+  side: "inline-end",
+  dir: "rtl",
+  sideOffset: ({ anchor }) => anchor.width / 10,
+  alignOffset: ({ positioner }) => positioner.width / 10,
+  finalFocus: createRef<HTMLButtonElement>(),
+  style: (state) => ({ minWidth: state.open ? 240 : 200 }),
+};
+const selectGroup: SelectGroupProps = { ref: createRef<HTMLDivElement>() };
+const selectLabel: SelectLabelProps = { ref: createRef<HTMLDivElement>() };
+const selectItem: SelectItemProps = {
+  ref: createRef<HTMLDivElement>(),
+  value: { id: 1, name: "Dana" },
+  label: "Dana",
+  disabled: false,
+  className: (state) => (state.selected ? "font-medium" : "font-regular"),
+  onClick: (event) => event.preventBaseUIHandler(),
+};
+const selectSeparator: SelectSeparatorProps = { ref: createRef<HTMLDivElement>() };
+const selectUp: SelectScrollUpButtonProps = { ref: createRef<HTMLDivElement>(), keepMounted: true };
+const selectDown: SelectScrollDownButtonProps = {
+  ref: createRef<HTMLDivElement>(),
+  keepMounted: true,
+};
+<Select {...selectRoot}>
+  <SelectTrigger {...selectTrigger}>
+    <SelectValue {...selectValue} />
+  </SelectTrigger>
+  <SelectContent {...selectContent}>
+    <SelectGroup {...selectGroup}>
+      <SelectLabel {...selectLabel}>Owner</SelectLabel>
+      <SelectItem {...selectItem}>Dana</SelectItem>
+    </SelectGroup>
+    <SelectSeparator {...selectSeparator} />
+    <SelectItem value={null}>Unassigned</SelectItem>
+    <SelectScrollUpButton {...selectUp} />
+    <SelectScrollDownButton {...selectDown} />
+  </SelectContent>
+</Select>;
+<Select<number, true>
+  multiple
+  defaultValue={[1]}
+  onValueChange={(values, details) => {
+    const numeric: number[] = values;
+    if (numeric.length === 0) details.cancel();
+  }}
+>
+  <SelectTrigger>
+    <SelectValue />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value={1}>One</SelectItem>
+  </SelectContent>
+</Select>;
+// @ts-expect-error Root owns state; native layout belongs on Trigger.
+<Select width={200} />;
+// @ts-expect-error Trigger follows shadcn's size names.
+<SelectTrigger size="small" />;
+
+const tabsRoot: TabsProps = {
+  ref: createRef<HTMLDivElement>(),
+  defaultValue: 1,
+  orientation: "vertical",
+  dir: "rtl",
+  render: <section aria-label="Record" />,
+  className: (state) => (state.orientation === "vertical" ? "gap-200" : "gap-100"),
+  style: (state) => ({ opacity: state.tabActivationDirection === "none" ? 1 : 0.9 }),
+  onValueChange(value, details) {
+    if (value === 2 && details.reason === "none") details.cancel();
+  },
+};
+const tabsList: TabsListProps = {
+  ref: createRef<HTMLDivElement>(),
+  variant: "line",
+  activateOnFocus: true,
+  loopFocus: false,
+  "aria-label": "Record views",
+  className: tabsListVariants({ variant: "line" }),
+};
+const tabsTrigger: TabsTriggerProps = {
+  ref: createRef<HTMLButtonElement>(),
+  value: 1,
+  disabled: false,
+  className: (state) => (state.active ? "font-medium" : "font-regular"),
+  onClick: (event) => event.preventBaseUIHandler(),
+};
+const tabsPanel: TabsContentProps = {
+  ref: createRef<HTMLDivElement>(),
+  value: 1,
+  keepMounted: true,
+  render: (props, state) => <section {...props} data-inactive={state.hidden} />,
+};
+<Tabs {...tabsRoot}>
+  <TabsList {...tabsList}>
+    <TabsTrigger {...tabsTrigger}>Overview</TabsTrigger>
+    <TabsTrigger value={2} nativeButton={false} render={<a href="/record?tab=history" />}>
+      History
+    </TabsTrigger>
+  </TabsList>
+  <TabsContent {...tabsPanel}>Overview content</TabsContent>
+</Tabs>;
+<Tabs value={null} />;
+// @ts-expect-error Activation belongs on TabsList as activateOnFocus.
+<Tabs activation="automatic" />;
+// @ts-expect-error Use aria-label on the tablist.
+<TabsList label="Views" />;
+// @ts-expect-error Counts belong in children.
+<TabsTrigger value="overview" count={2} />;
+// @ts-expect-error Composition uses render.
+<TabsContent value="overview" asChild />;

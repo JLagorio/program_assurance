@@ -15,7 +15,9 @@ import {
   Shell as DsShell,
   ShowPage,
   Stack,
-  Tabs,
+  TabsList,
+  TabsTrigger,
+  Count,
   TextLink,
   Eyebrow,
 } from "@ledger/design-system";
@@ -295,13 +297,14 @@ function CampaignRecord() {
             />
           }
           tabs={
-            <Tabs.List>
+            <TabsList className="w-full justify-start" variant="line" activateOnFocus>
               {campaignTabs.map((t) => (
-                <Tabs.Tab key={t} value={t} count={counts[t]}>
+                <TabsTrigger key={t} value={t}>
                   {t}
-                </Tabs.Tab>
+                  {counts[t] != null ? <Count value={counts[t]} max={9999} /> : null}
+                </TabsTrigger>
               ))}
-            </Tabs.List>
+            </TabsList>
           }
         >
           {tab === "Execution" ? (

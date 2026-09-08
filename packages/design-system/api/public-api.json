@@ -1574,16 +1574,80 @@
       "target": "\"src/components/select\".Select",
       "kind": "value"
     },
+    ".#SelectContent": {
+      "target": "\"src/components/select\".SelectContent",
+      "kind": "value"
+    },
+    ".#SelectContentProps": {
+      "target": "\"src/components/select\".SelectContentProps",
+      "kind": "type"
+    },
+    ".#SelectGroup": {
+      "target": "\"src/components/select\".SelectGroup",
+      "kind": "value"
+    },
     ".#SelectGroupProps": {
       "target": "\"src/components/select\".SelectGroupProps",
       "kind": "type"
+    },
+    ".#SelectItem": {
+      "target": "\"src/components/select\".SelectItem",
+      "kind": "value"
     },
     ".#SelectItemProps": {
       "target": "\"src/components/select\".SelectItemProps",
       "kind": "type"
     },
+    ".#SelectLabel": {
+      "target": "\"src/components/select\".SelectLabel",
+      "kind": "value"
+    },
+    ".#SelectLabelProps": {
+      "target": "\"src/components/select\".SelectLabelProps",
+      "kind": "type"
+    },
     ".#SelectProps": {
       "target": "\"src/components/select\".SelectProps",
+      "kind": "type"
+    },
+    ".#SelectScrollDownButton": {
+      "target": "\"src/components/select\".SelectScrollDownButton",
+      "kind": "value"
+    },
+    ".#SelectScrollDownButtonProps": {
+      "target": "\"src/components/select\".SelectScrollDownButtonProps",
+      "kind": "type"
+    },
+    ".#SelectScrollUpButton": {
+      "target": "\"src/components/select\".SelectScrollUpButton",
+      "kind": "value"
+    },
+    ".#SelectScrollUpButtonProps": {
+      "target": "\"src/components/select\".SelectScrollUpButtonProps",
+      "kind": "type"
+    },
+    ".#SelectSeparator": {
+      "target": "\"src/components/select\".SelectSeparator",
+      "kind": "value"
+    },
+    ".#SelectSeparatorProps": {
+      "target": "\"src/components/select\".SelectSeparatorProps",
+      "kind": "type"
+    },
+    ".#SelectTrigger": {
+      "target": "\"src/components/select\".SelectTrigger",
+      "kind": "value"
+    },
+    ".#SelectTriggerProps": {
+      "target": "\"src/components/select\".SelectTriggerProps",
+      "kind": "type"
+    },
+    ".#SelectValue": {
+      "target": "\"src/components/select\".SelectValue",
+      "kind": "value"
+    },
+    ".#SelectValueProps": {
+      "target": "\"src/components/select\".SelectValueProps",
       "kind": "type"
     },
     ".#Separator": {
@@ -1790,24 +1854,40 @@
       "target": "\"src/components/table\".TableProps",
       "kind": "type"
     },
-    ".#TabListProps": {
-      "target": "\"src/components/tabs\".TabListProps",
-      "kind": "type"
-    },
-    ".#TabPanelProps": {
-      "target": "\"src/components/tabs\".TabPanelProps",
-      "kind": "type"
-    },
-    ".#TabProps": {
-      "target": "\"src/components/tabs\".TabProps",
-      "kind": "type"
-    },
     ".#Tabs": {
       "target": "\"src/components/tabs\".Tabs",
       "kind": "value"
     },
+    ".#TabsContent": {
+      "target": "\"src/components/tabs\".TabsContent",
+      "kind": "value"
+    },
+    ".#TabsContentProps": {
+      "target": "\"src/components/tabs\".TabsContentProps",
+      "kind": "type"
+    },
+    ".#TabsList": {
+      "target": "\"src/components/tabs\".TabsList",
+      "kind": "value"
+    },
+    ".#TabsListProps": {
+      "target": "\"src/components/tabs\".TabsListProps",
+      "kind": "type"
+    },
+    ".#tabsListVariants": {
+      "target": "\"src/components/tabs\".tabsListVariants",
+      "kind": "value"
+    },
     ".#TabsProps": {
       "target": "\"src/components/tabs\".TabsProps",
+      "kind": "type"
+    },
+    ".#TabsTrigger": {
+      "target": "\"src/components/tabs\".TabsTrigger",
+      "kind": "value"
+    },
+    ".#TabsTriggerProps": {
+      "target": "\"src/components/tabs\".TabsTriggerProps",
       "kind": "type"
     },
     ".#TaskRow": {
@@ -3719,25 +3799,121 @@
     "\"src/components/select\".Select": [
       {
         "source": "src/components/select.d.ts",
-        "declaration": "Select: typeof SelectRoot & {\n    Item: typeof SelectItem;\n    Group: typeof SelectGroup;\n    Separator: typeof SelectSeparator;\n}"
+        "declaration": "export declare function Select<Value, Multiple extends boolean | undefined = false>(props: SelectProps<Value, Multiple>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/select\".SelectContent": [
+      {
+        "source": "src/components/select.d.ts",
+        "declaration": "export declare function SelectContent({ className, children, style, dir, side, sideOffset, align, alignOffset, alignItemWithTrigger, ...props }: SelectContentProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/select\".SelectContentProps": [
+      {
+        "source": "src/components/select.d.ts",
+        "declaration": "export type SelectContentProps = SelectPrimitive.Popup.Props & Pick<SelectPrimitive.Positioner.Props, \"align\" | \"alignOffset\" | \"side\" | \"sideOffset\" | \"alignItemWithTrigger\">;"
+      }
+    ],
+    "\"src/components/select\".SelectGroup": [
+      {
+        "source": "src/components/select.d.ts",
+        "declaration": "export declare function SelectGroup({ className, ...props }: SelectGroupProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/select\".SelectGroupProps": [
       {
         "source": "src/components/select.d.ts",
-        "declaration": "export type SelectGroupProps = {\n    label: ReactNode;\n    children: ReactNode;\n};"
+        "declaration": "export type SelectGroupProps = SelectPrimitive.Group.Props;"
+      }
+    ],
+    "\"src/components/select\".SelectItem": [
+      {
+        "source": "src/components/select.d.ts",
+        "declaration": "export declare function SelectItem({ className, children, ...props }: SelectItemProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/select\".SelectItemProps": [
       {
         "source": "src/components/select.d.ts",
-        "declaration": "export type SelectItemProps = {\n    value: string;\n    disabled?: boolean | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
+        "declaration": "export type SelectItemProps = SelectPrimitive.Item.Props;"
+      }
+    ],
+    "\"src/components/select\".SelectLabel": [
+      {
+        "source": "src/components/select.d.ts",
+        "declaration": "export declare function SelectLabel({ className, ...props }: SelectLabelProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/select\".SelectLabelProps": [
+      {
+        "source": "src/components/select.d.ts",
+        "declaration": "export type SelectLabelProps = SelectPrimitive.GroupLabel.Props;"
       }
     ],
     "\"src/components/select\".SelectProps": [
       {
         "source": "src/components/select.d.ts",
-        "declaration": "export type SelectProps = SelectOwnProps & Omit<ComponentProps<typeof SelectPrimitive.Trigger>, keyof SelectOwnProps | \"asChild\">;"
+        "declaration": "export type SelectProps<Value = unknown, Multiple extends boolean | undefined = false> = SelectPrimitive.Root.Props<Value, Multiple>;"
+      }
+    ],
+    "\"src/components/select\".SelectScrollDownButton": [
+      {
+        "source": "src/components/select.d.ts",
+        "declaration": "export declare function SelectScrollDownButton({ className, ...props }: SelectScrollDownButtonProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/select\".SelectScrollDownButtonProps": [
+      {
+        "source": "src/components/select.d.ts",
+        "declaration": "export type SelectScrollDownButtonProps = SelectPrimitive.ScrollDownArrow.Props;"
+      }
+    ],
+    "\"src/components/select\".SelectScrollUpButton": [
+      {
+        "source": "src/components/select.d.ts",
+        "declaration": "export declare function SelectScrollUpButton({ className, ...props }: SelectScrollUpButtonProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/select\".SelectScrollUpButtonProps": [
+      {
+        "source": "src/components/select.d.ts",
+        "declaration": "export type SelectScrollUpButtonProps = SelectPrimitive.ScrollUpArrow.Props;"
+      }
+    ],
+    "\"src/components/select\".SelectSeparator": [
+      {
+        "source": "src/components/select.d.ts",
+        "declaration": "export declare function SelectSeparator({ className, ...props }: SelectSeparatorProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/select\".SelectSeparatorProps": [
+      {
+        "source": "src/components/select.d.ts",
+        "declaration": "export type SelectSeparatorProps = SelectPrimitive.Separator.Props;"
+      }
+    ],
+    "\"src/components/select\".SelectTrigger": [
+      {
+        "source": "src/components/select.d.ts",
+        "declaration": "export declare function SelectTrigger({ className, size, children, ...props }: SelectTriggerProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/select\".SelectTriggerProps": [
+      {
+        "source": "src/components/select.d.ts",
+        "declaration": "export type SelectTriggerProps = SelectPrimitive.Trigger.Props & {\n    size?: \"sm\" | \"default\" | undefined;\n};"
+      }
+    ],
+    "\"src/components/select\".SelectValue": [
+      {
+        "source": "src/components/select.d.ts",
+        "declaration": "export declare function SelectValue({ className, ...props }: SelectValueProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/select\".SelectValueProps": [
+      {
+        "source": "src/components/select.d.ts",
+        "declaration": "export type SelectValueProps = SelectPrimitive.Value.Props;"
       }
     ],
     "\"src/components/separator\".Separator": [
@@ -3944,34 +4120,58 @@
         "declaration": "export type ThProps = ComponentPropsWithoutRef<\"th\"> & PinnedProps & {\n    ref?: Ref<HTMLTableCellElement> | undefined;\n    sort?: \"asc\" | \"desc\" | false | undefined;\n    onSort?: (() => void) | undefined;\n    sticky?: boolean | undefined;\n    width?: number | undefined;\n    resize?: {\n        onResizeStart: (event: unknown) => void;\n        onResizeKeyboard?: ((change: number | \"min\" | \"max\") => void) | undefined;\n        value?: number | undefined;\n        min?: number | undefined;\n        max?: number | undefined;\n        onResizeReset?: (() => void) | undefined;\n        isResizing?: boolean | undefined;\n        resizeDelta?: number | null | undefined;\n    } | undefined;\n    trailing?: ReactNode;\n};"
       }
     ],
-    "\"src/components/tabs\".TabListProps": [
-      {
-        "source": "src/components/tabs.d.ts",
-        "declaration": "export type TabListProps = {\n    label?: string | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "\"src/components/tabs\".TabPanelProps": [
-      {
-        "source": "src/components/tabs.d.ts",
-        "declaration": "export type TabPanelProps = {\n    value: string;\n    keepMounted?: boolean | undefined;\n    asChild?: boolean | undefined;\n    className?: string | undefined;\n    children?: ReactNode;\n};"
-      }
-    ],
-    "\"src/components/tabs\".TabProps": [
-      {
-        "source": "src/components/tabs.d.ts",
-        "declaration": "export type TabProps = {\n    value: string;\n    count?: number | string | null | undefined;\n    trailing?: ReactNode;\n    disabled?: boolean | undefined;\n    asChild?: boolean | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n} & Omit<ComponentPropsWithoutRef<\"button\">, \"children\" | \"className\" | \"disabled\" | \"value\">;"
-      }
-    ],
     "\"src/components/tabs\".Tabs": [
       {
         "source": "src/components/tabs.d.ts",
-        "declaration": "Tabs: typeof TabsRoot & {\n    List: typeof TabList;\n    Tab: typeof Tab;\n    Panel: typeof TabPanel;\n}"
+        "declaration": "export declare function Tabs({ className, orientation, dir, ...props }: TabsProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/tabs\".TabsContent": [
+      {
+        "source": "src/components/tabs.d.ts",
+        "declaration": "export declare function TabsContent({ className, ...props }: TabsContentProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/tabs\".TabsContentProps": [
+      {
+        "source": "src/components/tabs.d.ts",
+        "declaration": "export type TabsContentProps = TabsPrimitive.Panel.Props;"
+      }
+    ],
+    "\"src/components/tabs\".TabsList": [
+      {
+        "source": "src/components/tabs.d.ts",
+        "declaration": "export declare function TabsList({ className, variant, ...props }: TabsListProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/tabs\".TabsListProps": [
+      {
+        "source": "src/components/tabs.d.ts",
+        "declaration": "export type TabsListProps = TabsPrimitive.List.Props & VariantProps<typeof tabsListVariants>;"
+      }
+    ],
+    "\"src/components/tabs\".tabsListVariants": [
+      {
+        "source": "src/components/tabs.d.ts",
+        "declaration": "tabsListVariants: (props?: ({\n    variant?: \"default\" | \"line\" | null | undefined;\n} & import(\"class-variance-authority/types\").ClassProp) | undefined) => string"
       }
     ],
     "\"src/components/tabs\".TabsProps": [
       {
         "source": "src/components/tabs.d.ts",
-        "declaration": "export type TabsProps = {\n    dir?: \"ltr\" | \"rtl\" | undefined;\n    value?: string | undefined;\n    defaultValue?: string | undefined;\n    onValueChange?: ((value: string) => void) | undefined;\n    activation?: \"automatic\" | \"manual\" | undefined;\n    asChild?: boolean | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
+        "declaration": "export type TabsProps = TabsPrimitive.Root.Props;"
+      }
+    ],
+    "\"src/components/tabs\".TabsTrigger": [
+      {
+        "source": "src/components/tabs.d.ts",
+        "declaration": "export declare function TabsTrigger({ className, ...props }: TabsTriggerProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/tabs\".TabsTriggerProps": [
+      {
+        "source": "src/components/tabs.d.ts",
+        "declaration": "export type TabsTriggerProps = TabsPrimitive.Tab.Props;"
       }
     ],
     "\"src/components/text-link\".TextLink": [
@@ -4343,7 +4543,7 @@
     "\"src/lib/locale-format\".defaultMessages": [
       {
         "source": "src/lib/locale-format.d.ts",
-        "declaration": "defaultMessages: {\n    close: string;\n    open: string;\n    back: string;\n    next: string;\n    previous: string;\n    cancel: string;\n    confirm: string;\n    clear: string;\n    search: string;\n    loading: string;\n    refreshing: string;\n    notifications: string;\n    pagination: string;\n    pageLabel: string;\n    previousPage: string;\n    nextPage: string;\n    firstPage: string;\n    lastPage: string;\n    pageOf: string;\n    chooseDate: string;\n    previousMonth: string;\n    nextMonth: string;\n    selection: string;\n    selectedCount: string;\n    selectAllCount: string;\n    selectAll: string;\n    selectPage: string;\n    selectRow: string;\n    reorderRow: string;\n    reorderColumn: string;\n    dragInstructions: string;\n    dragStarted: string;\n    dragOver: string;\n    dragOutside: string;\n    dragDropped: string;\n    dragCanceled: string;\n    shareOfTotal: string;\n    rowActions: string;\n    columns: string;\n    show: string;\n    rows: string;\n    compactRows: string;\n    resetView: string;\n    resetColumns: string;\n    columnMenu: string;\n    sortAscending: string;\n    sortDescending: string;\n    pinStart: string;\n    pinEnd: string;\n    unpin: string;\n    hideColumn: string;\n    from: string;\n    to: string;\n    chosenCount: string;\n    contains: string;\n    savedQuestions: string;\n    view: string;\n    tableSettings: string;\n    details: string;\n    parts: string;\n    detailsLabel: string;\n    reorder: string;\n    rowsError: string;\n    nothingHere: string;\n    nothingToShow: string;\n    noResults: string;\n    noMatches: string;\n    retry: string;\n    chartError: string;\n    chartPath: string;\n    showChart: string;\n    showTable: string;\n    download: string;\n    expand: string;\n    tableLabel: string;\n    paginationLabel: string;\n    loadingLabel: string;\n    target: string;\n    point: string;\n    points: string;\n    value: string;\n    downloadCsv: string;\n    downloadPng: string;\n    resizeColumn: string;\n    resize: string;\n    month: string;\n    year: string;\n    selected: string;\n    calendarWeek: string;\n    preview: string;\n    previewRow: string;\n    collapse: string;\n    collapseLabel: string;\n    expandLabel: string;\n    tableScrolls: string;\n    tableScrollsLabel: string;\n    code: string;\n    copyFailed: string;\n    today: string;\n    choose: string;\n    saveFailed: string;\n    saving: string;\n    saved: string;\n    notSaved: string;\n    rowRange: string;\n    zeroRows: string;\n    copy: string;\n    copied: string;\n    required: string;\n    editLabel: string;\n    save: string;\n    more: string;\n    lightMode: string;\n    darkMode: string;\n    systemMode: string;\n    colorMode: string;\n}"
+        "declaration": "defaultMessages: {\n    close: string;\n    open: string;\n    back: string;\n    next: string;\n    previous: string;\n    cancel: string;\n    confirm: string;\n    clear: string;\n    search: string;\n    loading: string;\n    refreshing: string;\n    notifications: string;\n    pagination: string;\n    pageLabel: string;\n    previousPage: string;\n    nextPage: string;\n    firstPage: string;\n    lastPage: string;\n    pageOf: string;\n    chooseDate: string;\n    previousMonth: string;\n    nextMonth: string;\n    selection: string;\n    selectedCount: string;\n    selectAllCount: string;\n    selectAll: string;\n    selectPage: string;\n    selectRow: string;\n    reorderRow: string;\n    reorderColumn: string;\n    dragInstructions: string;\n    dragStarted: string;\n    dragOver: string;\n    dragOutside: string;\n    dragDropped: string;\n    dragCanceled: string;\n    shareOfTotal: string;\n    rowActions: string;\n    columns: string;\n    show: string;\n    rows: string;\n    compactRows: string;\n    resetView: string;\n    resetColumns: string;\n    columnMenu: string;\n    sortAscending: string;\n    sortDescending: string;\n    pinStart: string;\n    pinEnd: string;\n    unpin: string;\n    hideColumn: string;\n    from: string;\n    to: string;\n    chosenCount: string;\n    contains: string;\n    savedQuestions: string;\n    view: string;\n    tableSettings: string;\n    metrics: string;\n    groupBy: string;\n    groupedBy: string;\n    noGrouping: string;\n    filters: string;\n    clearAllFilters: string;\n    details: string;\n    parts: string;\n    detailsLabel: string;\n    reorder: string;\n    rowsError: string;\n    nothingHere: string;\n    nothingToShow: string;\n    noResults: string;\n    noMatches: string;\n    retry: string;\n    chartError: string;\n    chartPath: string;\n    showChart: string;\n    showTable: string;\n    download: string;\n    expand: string;\n    tableLabel: string;\n    paginationLabel: string;\n    loadingLabel: string;\n    target: string;\n    point: string;\n    points: string;\n    value: string;\n    downloadCsv: string;\n    downloadPng: string;\n    resizeColumn: string;\n    resize: string;\n    month: string;\n    year: string;\n    selected: string;\n    calendarWeek: string;\n    preview: string;\n    previewRow: string;\n    collapse: string;\n    collapseLabel: string;\n    expandLabel: string;\n    tableScrolls: string;\n    tableScrollsLabel: string;\n    code: string;\n    copyFailed: string;\n    today: string;\n    choose: string;\n    saveFailed: string;\n    saving: string;\n    saved: string;\n    notSaved: string;\n    rowRange: string;\n    zeroRows: string;\n    copy: string;\n    copied: string;\n    required: string;\n    editLabel: string;\n    save: string;\n    more: string;\n    lightMode: string;\n    darkMode: string;\n    systemMode: string;\n    colorMode: string;\n}"
       }
     ],
     "\"src/lib/locale-format\".LedgerDirection": [
@@ -4685,7 +4885,7 @@
     "\"src/patterns/data-table/data-table\".DataTable": [
       {
         "source": "src/patterns/data-table/data-table.d.ts",
-        "declaration": "DataTable: typeof DataTableRoot & {\n    SelectionBar: typeof SelectionBar;\n    Filter: typeof Filter;\n    Search: typeof Search;\n    Presets: typeof Presets;\n    Columns: typeof Columns;\n    Settings: typeof Settings;\n}"
+        "declaration": "DataTable: typeof DataTableRoot & {\n    GroupBy: typeof GroupBy;\n    SelectionBar: typeof SelectionBar;\n    Filter: typeof Filter;\n    Filters: typeof Filters;\n    Search: typeof Search;\n    Presets: typeof Presets;\n    Columns: typeof Columns;\n    Settings: typeof Settings;\n    Metrics: typeof Metrics;\n    MetricsTrigger: typeof MetricsTrigger;\n    MetricsContent: typeof MetricsContent;\n}"
       }
     ],
     "\"src/patterns/data-table/data-table\".DataTableProps": [
@@ -4745,7 +4945,13 @@
     "\"src/patterns/data-table/filter\".Filter": [
       {
         "source": "src/patterns/data-table/filter.d.ts",
-        "declaration": "export declare function Filter<TData extends RowData>({ table, column: columnId, label, width, }: {\n    table: DataTableInstance<TData>;\n    column: string;\n    label?: string | undefined;\n    width?: number | undefined;\n}): import(\"react\").JSX.Element | null;"
+        "declaration": "export declare function Filter<TData extends RowData>(props: FilterProps<TData>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/data-table/filter\".Filters": [
+      {
+        "source": "src/patterns/data-table/filter.d.ts",
+        "declaration": "export declare function Filters<TData extends RowData>({ table, columns, additionalFilters, }: {\n    table: DataTableInstance<TData>;\n    columns: readonly string[];\n    additionalFilters?: {\n        content: ReactNode;\n        count: number;\n        onClear: () => void;\n    } | undefined;\n}): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/patterns/data-table/filter\".Preset": [
@@ -4764,6 +4970,30 @@
       {
         "source": "src/patterns/data-table/filter.d.ts",
         "declaration": "export declare function Search<TData extends RowData>({ table, placeholder, width, }: {\n    table: DataTableInstance<TData>;\n    placeholder?: string | undefined;\n    width?: number | undefined;\n}): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/data-table/group-by\".GroupBy": [
+      {
+        "source": "src/patterns/data-table/group-by.d.ts",
+        "declaration": "export declare function GroupBy<Value extends string>({ options, value, onValueChange, className, ...props }: GroupByProps<Value>): import(\"react\").JSX.Element | null;"
+      }
+    ],
+    "\"src/patterns/data-table/metrics\".Metrics": [
+      {
+        "source": "src/patterns/data-table/metrics.d.ts",
+        "declaration": "export declare function Metrics(props: CollapsibleProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/data-table/metrics\".MetricsContent": [
+      {
+        "source": "src/patterns/data-table/metrics.d.ts",
+        "declaration": "export declare function MetricsContent({ className, ...props }: CollapsibleContentProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/data-table/metrics\".MetricsTrigger": [
+      {
+        "source": "src/patterns/data-table/metrics.d.ts",
+        "declaration": "export declare function MetricsTrigger({ children, className, size, variant, ...props }: MetricsTriggerProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/patterns/data-table/reorder\".ColumnSortable": [
@@ -6026,36 +6256,6 @@
         "declaration": "type Size = number | string;"
       }
     ],
-    "src/components/select.d.ts#SelectGroup": [
-      {
-        "source": "src/components/select.d.ts",
-        "declaration": "declare function SelectGroup({ label, children }: SelectGroupProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/select.d.ts#SelectItem": [
-      {
-        "source": "src/components/select.d.ts",
-        "declaration": "declare function SelectItem({ value, disabled, className, children }: SelectItemProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/select.d.ts#SelectOwnProps": [
-      {
-        "source": "src/components/select.d.ts",
-        "declaration": "type SelectOwnProps = {\n    value?: string | undefined;\n    defaultValue?: string | undefined;\n    onValueChange?: ((value: string) => void) | undefined;\n    placeholder?: string | undefined;\n    size?: ControlSize | undefined;\n    disabled?: boolean | undefined;\n    name?: string | undefined;\n    form?: string | undefined;\n    id?: string | undefined;\n    \"aria-labelledby\"?: string | undefined;\n    \"aria-label\"?: string | undefined;\n    \"aria-invalid\"?: boolean | undefined;\n    \"aria-required\"?: boolean | undefined;\n    \"aria-describedby\"?: string | undefined;\n    width?: number | undefined;\n    className?: string | undefined;\n    children: ReactNode;\n};"
-      }
-    ],
-    "src/components/select.d.ts#SelectRoot": [
-      {
-        "source": "src/components/select.d.ts",
-        "declaration": "declare function SelectRoot({ value, defaultValue, onValueChange, placeholder, size, disabled, name, form, id, \"aria-labelledby\": ariaLabelledby, \"aria-label\": ariaLabel, \"aria-invalid\": ariaInvalid, \"aria-required\": ariaRequired, \"aria-describedby\": ariaDescribedby, width, className, children, ...triggerProps }: SelectProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/select.d.ts#SelectSeparator": [
-      {
-        "source": "src/components/select.d.ts",
-        "declaration": "declare function SelectSeparator(): import(\"react\").JSX.Element;"
-      }
-    ],
     "src/components/stat.d.ts#StatRoot": [
       {
         "source": "src/components/stat.d.ts",
@@ -6144,30 +6344,6 @@
       {
         "source": "src/components/table.d.ts",
         "declaration": "declare function TreeCell({ depth, hasChildren, expanded, onToggle, label, hint, className, children, }: {\n    depth: number;\n    hasChildren?: boolean | undefined;\n    expanded?: boolean | undefined;\n    onToggle?: (() => void) | undefined;\n    label: string;\n    hint?: ReactNode;\n    className?: string | undefined;\n    children: ReactNode;\n}): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/tabs.d.ts#Tab": [
-      {
-        "source": "src/components/tabs.d.ts",
-        "declaration": "declare function Tab({ value, count, trailing, disabled, asChild, className, children, ...rest }: TabProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/tabs.d.ts#TabList": [
-      {
-        "source": "src/components/tabs.d.ts",
-        "declaration": "declare function TabList({ label, className, children }: TabListProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/tabs.d.ts#TabPanel": [
-      {
-        "source": "src/components/tabs.d.ts",
-        "declaration": "declare function TabPanel({ value, keepMounted, asChild, className, children }: TabPanelProps): import(\"react\").JSX.Element;"
-      }
-    ],
-    "src/components/tabs.d.ts#TabsRoot": [
-      {
-        "source": "src/components/tabs.d.ts",
-        "declaration": "declare function TabsRoot({ dir, value, defaultValue, onValueChange, activation, asChild, className, children, }: TabsProps): import(\"react\").JSX.Element;"
       }
     ],
     "src/components/timeline.d.ts#TimelineRoot": [
@@ -6264,6 +6440,24 @@
       {
         "source": "src/patterns/data-table/data-table.d.ts",
         "declaration": "declare function DataTableRoot<TData extends RowData>({ table, toolbar, state, empty, error, onRowClick, maxHeight, className, }: DataTableProps<TData>): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/patterns/data-table/filter.d.ts#FilterProps": [
+      {
+        "source": "src/patterns/data-table/filter.d.ts",
+        "declaration": "type FilterProps<TData extends RowData> = {\n    table: DataTableInstance<TData>;\n    column: string;\n    label?: string | undefined;\n    width?: number | undefined;\n};"
+      }
+    ],
+    "src/patterns/data-table/group-by.d.ts#GroupByProps": [
+      {
+        "source": "src/patterns/data-table/group-by.d.ts",
+        "declaration": "type GroupByProps<Value extends string> = Omit<ComponentPropsWithRef<\"button\">, \"value\" | \"onChange\" | \"children\"> & {\n    options: ReadonlyArray<{\n        value: Value;\n        label: string;\n    }>;\n    value: Value | \"\";\n    onValueChange: (value: Value | \"\") => void;\n};"
+      }
+    ],
+    "src/patterns/data-table/metrics.d.ts#MetricsTriggerProps": [
+      {
+        "source": "src/patterns/data-table/metrics.d.ts",
+        "declaration": "type MetricsTriggerProps = ComponentPropsWithRef<\"button\"> & Pick<ButtonProps, \"size\" | \"variant\">;"
       }
     ],
     "src/patterns/data-table/use-data-table.d.ts#TanStackOptions": [
@@ -6562,7 +6756,7 @@
     ]
   },
   "dependencyContracts": {
-    "@base-ui/react": "d9224c00b666ddb8801022cbec56fcf6347214fe438dfd4ae322331cd7bfef95",
+    "@base-ui/react": "1f6fad0ef8446c6998d9896720f82d17d0601da0bdd8c6836b84342e101d784d",
     "@base-ui/utils": "a71988b4234a15dd1dcecb2aaaac6ab8c6472d75cd26993efe45671a8247777a",
     "@floating-ui/core": "581cec84f04c06ef6908cd1af8471390d1d96893d63abdaf0391ef43ae0a1815",
     "@floating-ui/dom": "82afab4c16f6bedc49dfed4eec228766546f4e0a8aed010cab33ad05aeed4568",
@@ -6572,7 +6766,6 @@
     "@radix-ui/react-collapsible": "ca701be9348bda6a7fb90802c60d48fc17266f2db61ff5f600f6a8dd2e87101f",
     "@radix-ui/react-dialog": "82a48d5e74f33dc2aef6de95ede036bd198b55c6c3ae7a9549226e5bd7c16d9c",
     "@radix-ui/react-primitive": "63d3234db546b015692a041ebca64565f13927070357207f513c50568fb47110",
-    "@radix-ui/react-select": "3ccf302d0bc1396a714f62411df49aa74fb0a919c94186c5c581b5e91f737a76",
     "@tanstack/react-table": "9b4c12523ac392ff0b5564e6dbe85ca1a9437d2a78a56f7895ae7b2982c3f208",
     "@tanstack/store": "e91da0d2d43c8449f2e3c13471cd4bf3491a9e1ba2466681d3d5ba155c09c25d",
     "@tanstack/table-core": "763db1ab26ffc8c2a682e1db6b52b4cb4ab950fa79b574d1c83ab9064ff95c1e",

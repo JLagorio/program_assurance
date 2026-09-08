@@ -1,6 +1,15 @@
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   Button,
   IconButton,
   buttonVariants,
@@ -49,6 +58,28 @@ createRoot(document.getElementById("root")).render(
         createElement(TooltipTrigger, { render: createElement(Button) }, "Review"),
         createElement(TooltipContent, null, "Review record"),
       ),
+    ),
+    createElement(
+      Select,
+      { name: "status", defaultValue: "review", items: { review: "In review" } },
+      createElement(SelectTrigger, { "aria-label": "Status" }, createElement(SelectValue)),
+      createElement(
+        SelectContent,
+        null,
+        createElement(SelectItem, { value: "review" }, "In review"),
+      ),
+    ),
+    createElement(
+      Tabs,
+      { defaultValue: 1 },
+      createElement(
+        TabsList,
+        { variant: "line", activateOnFocus: true, "aria-label": "Record views" },
+        createElement(TabsTrigger, { value: 1 }, "Overview"),
+        createElement(TabsTrigger, { value: 2 }, "History"),
+      ),
+      createElement(TabsContent, { value: 1 }, "Overview content"),
+      createElement(TabsContent, { value: 2, keepMounted: true }, "History content"),
     ),
     createElement(Button, null, "Save"),
     createElement(Button, { variant: "primary", isLoading: true }, "Saving"),

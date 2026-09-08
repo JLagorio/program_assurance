@@ -17,7 +17,7 @@ The two page archetypes and the parts they are assembled from.
 
 <Canvas of={Stories.Index} />
 
-**ShowPage** is a [RecordHeader](?path=/docs/patterns-recordheader--docs), one tab strip running full width, then the tab body. The strip is a `Tabs.List` in `tabs`; with `tab` and `onTabChange` the page is the [Tabs](?path=/docs/components-tabs--docs) root and the body is the selected tab's panel, so the strip, the URL and the body are one ARIA pattern without wiring in the route. The rail is `rail`, passed on the overview tab and nothing on the others: it renders beside the body, under the tab strip, and every other tab is full width and self-contained. The rail column is `dimension.layout.rail` plus its rule. The rail wraps in an `<aside aria-label="Details">`; the Inspector inside it is a plain `div`, not an aside, so a rail is exactly one landmark.
+**ShowPage** is a [RecordHeader](?path=/docs/patterns-recordheader--docs), one tab strip running full width, then the tab body. The strip is a `TabsList` in `tabs`; with `tab` and `onTabChange` the page is the [Tabs](?path=/docs/components-tabs--docs) root and the body is the selected tab's panel, so the strip, the URL and the body are one ARIA pattern without wiring in the route. The rail is `rail`, passed on the overview tab and nothing on the others: it renders beside the body, under the tab strip, and every other tab is full width and self-contained. The rail column is `dimension.layout.rail` plus its rule. The rail wraps in an `<aside aria-label="Details">`; the Inspector inside it is a plain `div`, not an aside, so a rail is exactly one landmark.
 
 <Canvas of={Stories.ShowStory} />
 
@@ -87,7 +87,7 @@ A page has three: loading, which is the [PageSkeleton](?path=/docs/patterns-page
 ## Modifiers
 
 - **IndexPage `filters`** for the row between the header and the table.
-- **ShowPage `tabs`**, a `Tabs.List`, with **`tab`** and **`onTabChange`** so the page is the Tabs root and the body its panel; and **`rail`**, the rail on the overview tab only.
+- **ShowPage `tabs`**, a `TabsList`, with **`tab`** and **`onTabChange`** so the page is the Tabs root and the body its panel; and **`rail`**, the rail on the overview tab only.
 
 ## Content
 

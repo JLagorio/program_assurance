@@ -10,8 +10,8 @@ import { useRecordForm } from "@/lib/record-form";
 /**
  * The control board: the SCTM as a working surface rather than an artifact.
  *
- * A funnel across the top says how far the baseline has gotten along the
- * canonical path. Every row below is one control, and the row IS its pipeline:
+ * The toolbar's Metrics action reveals how far the baseline has gotten along
+ * the canonical path. Every row below is one control, and the row IS its pipeline:
  * six segments, filled, empty, hatched or broken. Colour appears only where the
  * strip breaks; a control that is through carries no words at all, because
  * Satisfied is the absence of a badge. Selecting a row opens the control's work
@@ -23,7 +23,7 @@ import { useRecordForm } from "@/lib/record-form";
  */
 
 import { Link } from "@tanstack/react-router";
-import { X } from "lucide-react";
+import { ChevronDown, ListFilter, X } from "lucide-react";
 
 import { nodeById } from "@/lib/composition";
 import { Determination, EvidenceBlock, GateList, Narrative } from "@/components/app/control-work";
@@ -33,9 +33,15 @@ import {
   Block,
   Box,
   Button,
+  DataTable,
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
   Empty,
   Field,
-  FilterChip,
   Grid,
   Id,
   Inline,
@@ -44,8 +50,6 @@ import {
   Table,
   Textarea,
   TextLink,
-  ToggleGroup,
-  ToggleGroupItem,
   Toolbar,
   Eyebrow,
 } from "@ledger/design-system";
@@ -53,7 +57,6 @@ import {
   buildBoard,
   groupBoard,
   lensLabels,
-  stageKeys,
   type BoardControl,
   type FunnelStage,
   type Lens,
@@ -1074,7 +1077,10 @@ function consequenceOf(
 
 /* ── Board ───────────────────────────────────────────────────────────────── */
 
-const lenses: Lens[] = ["family", "stage", "owner", "component"];
+const groupOptions = (["family", "stage", "owner", "component"] as const).map((value) => ({
+  value,
+  label: lensLabels[value],
+}));
 
 export function ControlBoard({ programId }: { programId: string }) {
   const text = useControlText();
@@ -1086,7 +1092,7 @@ export function ControlBoard({ programId }: { programId: string }) {
     [programId, sctm, workVersion],
   );
 
-  const [lens, setLens] = useState<Lens>("family");
+  const [lens, setLens] = useState<Lens | "">("family");
   const [stage, setStage] = useState<StageKey | null>(null);
   const [gapsOnly, setGapsOnly] = useState(false);
   const [unassigned, setUnassigned] = useState(false);
@@ -1107,7 +1113,22 @@ export function ControlBoard({ programId }: { programId: string }) {
     );
   }, [board.controls, stage, gapsOnly, unassigned, mine, query, session.name]);
 
-  const groups = useMemo(() => groupBoard(filtered, lens), [filtered, lens]);
+  const groups = useMemo(
+    () =>
+      lens
+        ? groupBoard(filtered, lens)
+        : filtered.length
+          ? [{ key: "all", label: "", meta: "", controls: filtered }]
+          : [],
+    [filtered, lens],
+  );
+  const filterCount = Number(gapsOnly) + Number(unassigned) + Number(mine) + Number(stage !== null);
+  const clearFilters = () => {
+    setGapsOnly(false);
+    setUnassigned(false);
+    setMine(false);
+    setStage(null);
+  };
 
   // The badge budget: at most a third of a collection may carry colour. Past
   // that a tone says nothing about any one row, so it falls to muted text and
@@ -1122,62 +1143,74 @@ export function ControlBoard({ programId }: { programId: string }) {
   const narrow = selectedControl !== null;
 
   return (
-    <Box paddingBlockStart="space.150">
-      <Funnel
-        funnel={board.funnel}
-        total={board.total}
-        hollow={board.hollow}
-        through={board.through}
-        unknown={board.unknown}
-        active={stage}
-        onSelect={setStage}
-      />
-
+    <DataTable.Metrics className="pt-150">
       <Toolbar
         search={query}
         onSearch={setQuery}
         placeholder="Control or title"
         actions={
-          <span className="tabular-nums font-body-small text-subtle">
-            {filtered.length} of {board.controls.length} controls
-          </span>
+          <>
+            <span className="tabular-nums font-body-small text-subtle">
+              {filtered.length} of {board.controls.length} controls
+            </span>
+            <DataTable.GroupBy options={groupOptions} value={lens} onValueChange={setLens} />
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    size="small"
+                    iconBefore={<ListFilter />}
+                    iconAfter={<ChevronDown />}
+                    className={
+                      filterCount
+                        ? "bg-selected text-selected hover:bg-selected-hovered active:bg-selected-pressed shadow-none"
+                        : undefined
+                    }
+                  >
+                    Filters{filterCount ? ` (${filterCount})` : ""}
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end" style={{ minWidth: 240 }}>
+                <DropdownMenuCheckboxItem checked={gapsOnly} onCheckedChange={setGapsOnly}>
+                  Gaps
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem checked={unassigned} onCheckedChange={setUnassigned}>
+                  Unassigned
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem checked={mine} onCheckedChange={setMine}>
+                  Mine
+                </DropdownMenuCheckboxItem>
+                {stage ? (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuCheckboxItem checked onCheckedChange={() => setStage(null)}>
+                      Stuck at {lensLabelFor(stage)}
+                    </DropdownMenuCheckboxItem>
+                  </>
+                ) : null}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled={!filterCount} onClick={clearFilters}>
+                  Clear all filters
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DataTable.MetricsTrigger />
+          </>
         }
-      >
-        <ToggleGroup
-          aria-label="Control lens"
-          size="sm"
-          value={[lens]}
-          onValueChange={([next]) => {
-            if (next !== undefined) setLens(next);
-          }}
-        >
-          {lenses.map((l) => (
-            <ToggleGroupItem key={l} value={l}>
-              {lensLabels[l]}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-        <FilterChip label="Gaps" isActive={gapsOnly} onClick={() => setGapsOnly((v) => !v)} />
-        <FilterChip
-          label="Unassigned"
-          isActive={unassigned}
-          onClick={() => setUnassigned((v) => !v)}
+      />
+
+      <DataTable.MetricsContent aria-label="Control metrics">
+        <Funnel
+          funnel={board.funnel}
+          total={board.total}
+          hollow={board.hollow}
+          through={board.through}
+          unknown={board.unknown}
+          active={stage}
+          onSelect={setStage}
         />
-        <FilterChip
-          label="Mine"
-          {...(mine ? { value: session.name } : {})}
-          isActive={mine}
-          onClick={() => setMine((v) => !v)}
-        />
-        {stage ? (
-          <FilterChip
-            label="Stuck at"
-            value={stageKeys.includes(stage) ? lensLabelFor(stage) : ""}
-            isActive
-            onClick={() => setStage(null)}
-          />
-        ) : null}
-      </Toolbar>
+      </DataTable.MetricsContent>
 
       <Grid
         templateColumns={
@@ -1193,10 +1226,16 @@ export function ControlBoard({ programId }: { programId: string }) {
               <BoardHeader narrow={narrow} />
               {groups.map((g) => (
                 <section key={g.key}>
-                  <Inline className="px-100 pb-050 pt-200" space="space.100" alignBlock="baseline">
-                    <Eyebrow as="span">{g.label}</Eyebrow>
-                    <span className="tabular-nums font-body-xsmall text-subtle">{g.meta}</span>
-                  </Inline>
+                  {lens ? (
+                    <Inline
+                      className="px-100 pb-050 pt-200"
+                      space="space.100"
+                      alignBlock="baseline"
+                    >
+                      <Eyebrow as="span">{g.label}</Eyebrow>
+                      <span className="tabular-nums font-body-xsmall text-subtle">{g.meta}</span>
+                    </Inline>
+                  ) : null}
                   {g.controls.map((c) => (
                     <BoardRow
                       key={`${g.key}:${c.id}`}
@@ -1225,7 +1264,7 @@ export function ControlBoard({ programId }: { programId: string }) {
           />
         ) : null}
       </Grid>
-    </Box>
+    </DataTable.Metrics>
   );
 }
 

@@ -28,7 +28,9 @@ import {
   ShowPage,
   Stack,
   Table,
-  Tabs,
+  TabsList,
+  TabsTrigger,
+  Count,
   TextLink,
 } from "@ledger/design-system";
 import { Shell } from "@/components/app/shell";
@@ -303,17 +305,16 @@ function ComponentRecord() {
           }
           tabs={
             anchored ? (
-              <Tabs.List>
+              <TabsList className="w-full justify-start" variant="line" activateOnFocus>
                 {nodeTabs.map((key) => (
-                  <Tabs.Tab
-                    key={key}
-                    value={key}
-                    count={key === "Control set" ? (anchoredSet?.total ?? null) : null}
-                  >
+                  <TabsTrigger key={key} value={key}>
                     {key}
-                  </Tabs.Tab>
+                    {key === "Control set" && anchoredSet?.total != null ? (
+                      <Count value={anchoredSet.total} max={9999} />
+                    ) : null}
+                  </TabsTrigger>
                 ))}
-              </Tabs.List>
+              </TabsList>
             ) : undefined
           }
         >
